@@ -1,0 +1,107 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kreathief - Design Suite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Core UI Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Batch 1: Popular Sans & Geometric -->
+    <link href="https://fonts.googleapis.com/css2?family=Arimo&family=Barlow&family=DM+Sans&family=Fira+Sans&family=Heebo&family=Hind&family=IBM+Plex+Sans&family=Inter&family=Josefin+Sans&family=Kanit&family=Lato&family=Montserrat&family=Mukta&family=Mulish&family=Noto+Sans&family=Nunito&family=Open+Sans&family=Oswald&family=Oxygen&family=Poppins&family=PT+Sans&family=Quicksand&family=Raleway&family=Roboto&family=Roboto+Condensed&family=Rubik&family=Source+Sans+3&family=Titillium+Web&family=Ubuntu&family=Work+Sans&display=swap" rel="stylesheet">
+    
+    <!-- Batch 2: Serif, Display & Handwriting -->
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Alfa+Slab+One&family=Amatic+SC&family=Anton&family=Bebas+Neue&family=Bitter&family=Bungee&family=Caveat&family=Cinzel&family=Comfortaa&family=Cormorant+Garamond&family=Crimson+Text&family=Dancing+Script&family=EB+Garamond&family=Great+Vibes&family=Inconsolata&family=Indie+Flower&family=Libre+Baskerville&family=Lobster&family=Lora&family=Merriweather&family=Noto+Serif&family=Pacifico&family=Permanent+Marker&family=Playfair+Display&family=PT+Serif&family=Righteous&family=Satisfy&family=Shadows+Into+Light&family=Slabo+27px&display=swap" rel="stylesheet">
+    
+    <!-- Batch 3: Monospace, Unique & Stylized -->
+    <link href="https://fonts.googleapis.com/css2?family=Abel&family=Acme&family=Asap&family=Bangers&family=Cabin&family=Cairo&family=Catamaran&family=Creepster&family=Dosis&family=Exo+2&family=Fjalla+One&family=Fredericka+the+Great&family=Gloria+Hallelujah&family=IBM+Plex+Mono&family=Lexend&family=Manrope&family=Monoton&family=Nanum+Gothic&family=Public+Sans&family=Rajdhani&family=Roboto+Mono&family=Russo+One&family=Sacramenta&family=Sarabun&family=Signika&family=Sora&family=Source+Code+Pro&family=Space+Mono&family=Special+Elite&family=Sriracha&family=Staatliches&family=Teko&family=Varela+Round&family=Vollkorn&family=Yellowtail&family=Zilla+Slab&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              display: ['Space Grotesk', 'sans-serif'],
+            },
+          },
+        },
+      }
+    </script>
+
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: #1f1f1f;
+        color: #e5e7eb;
+        overflow: hidden;
+      }
+      h1, h2, h3, h4, h5, h6, .font-display {
+        font-family: 'Space Grotesk', sans-serif;
+      }
+      /* Custom Scrollbar for panels */
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.1); 
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #444; 
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #666; 
+      }
+      
+      /* Hide number spinners */
+      .no-spinner::-webkit-inner-spin-button, 
+      .no-spinner::-webkit-outer-spin-button { 
+        -webkit-appearance: none; 
+        margin: 0; 
+      }
+      .no-spinner {
+        -moz-appearance: textfield;
+      }
+      
+      /* Smooth fade for overlays */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(5px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .animate-fadeIn {
+        animation: fadeIn 0.2s ease-out forwards;
+      }
+      @keyframes bounceIn {
+        0% { opacity: 0; transform: translate(-50%, -20px) scale(0.9); }
+        50% { opacity: 1; transform: translate(-50%, 5px) scale(1.02); }
+        100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+      }
+      .animate-bounce-in {
+        animation: bounceIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "@google/genai": "https://esm.sh/@google/genai@^1.33.0",
+    "vite": "https://esm.sh/vite@^7.2.7",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

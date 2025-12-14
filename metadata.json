@@ -1,0 +1,8 @@
+{
+  "name": "Kreathief",
+  "description": "A futuristic graphic design suite powered by Gemini. Generate, edit, and iterate on visuals with next-gen AI.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
