@@ -4,11 +4,16 @@ import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { SidePanel } from './SidePanel';
 import { Canvas } from './Canvas';
+import { AIAssistant } from './AIAssistant';
+import { DesignSuggestions } from './DesignSuggestions';
+import { SmartContentGenerator } from './SmartContentGenerator';
+import { DesignQualityScorer } from './DesignQualityScorer';
 import { AppMode, AspectRatio, GeneratedImage, NavTab, TextLayer, ShapeLayer, ImageLayer, HistoryState, CanvasFilters, Project, DesignTheme, BrandKit, CanvasSize, GenerationQuality, User } from '../types';
 import * as geminiService from '../services/geminiService';
 import * as exportService from '../services/exportService';
 import { MODEL_FAST, Icons } from '../constants';
 import { Toolbar } from './Toolbar'; // Re-import to ensure it is used, though logic is inside Canvas typically or passed down
+import { STARTER_TEMPLATES } from '../data/templates';
 
 const DEFAULT_FILTERS: CanvasFilters = {
   brightness: 100,
@@ -51,6 +56,15 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   const [showGrid, setShowGrid] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [isEraserActive, setIsEraserActive] = useState(false);
+  const [showExport, setShowExport] = useState(false);
+  const [exportFormat, setExportFormat] = useState<'png' | 'jpeg' | 'webp'>('png');
+  const [exportQuality, setExportQuality] = useState(0.95);
+  
+  // AI Features State
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [showDesignSuggestions, setShowDesignSuggestions] = useState(false);
+  const [showSmartContent, setShowSmartContent] = useState(false);
+  const [showQualityScore, setShowQualityScore] = useState(false);
   
   // Layers State
   const [textLayers, setTextLayers] = useState<TextLayer[]>([]);
@@ -77,6 +91,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   const [brushSize, setBrushSize] = useState(5);
   const [brushOpacity, setBrushOpacity] = useState(1);
   const drawingCancelRef = useRef(false);
+
+  // Clipboard State for copy/paste
+  const [clipboardLayer, setClipboardLayer] = useState<any>(null);
 
   // View State
   const [zoom, setZoom] = useState(0.5);
@@ -313,6 +330,23 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
       setShapeLayers(prev => [...prev, ...newLayers]);
   };
 
+  const handleApplyTemplate = (templateId: string) => {
+    const template = STARTER_TEMPLATES.find(t => t.id === templateId);
+    if (!template) return;
+    saveToHistory();
+    const { state } = template;
+
+    setCanvasBackgroundColor(state.canvasBackgroundColor);
+    if (state.canvasFilters) setCanvasFilters({ ...state.canvasFilters });
+    if (state.canvasSize) setCanvasSize(state.canvasSize);
+
+    setTextLayers(state.textLayers || []);
+    setShapeLayers(state.shapeLayers || []);
+    setImageLayers(state.imageLayers || []);
+    setSelectedLayerId(null);
+    setProjectTitle(template.name);
+  };
+
   const handleAddImageLayer = (src: string) => {
     saveToHistory();
     const newLayer: ImageLayer = {
@@ -470,7 +504,16 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
 
   const handleExportDataUrl = async (): Promise<string> => {
       const backgroundImageUrl = activeImage?.url || uploadedImage;
-      return await exportService.exportDesignToImage(canvasSize.width, canvasSize.height, canvasBackgroundColor, backgroundImageUrl, shapeLayers, textLayers, imageLayers, canvasFilters);
+      return await exportService.exportDesignToImage(
+        canvasSize.width,
+        canvasSize.height,
+        canvasBackgroundColor,
+        backgroundImageUrl,
+        shapeLayers,
+        textLayers,
+        imageLayers,
+        canvasFilters
+      );
   }
 
   const handleToggleEraser = () => {
@@ -516,11 +559,48 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
 
   const handleDeleteUpload = (index: number) => { setUploads(prev => prev.filter((_, i) => i !== index)); };
 
+  const handleCopyLayer = (id: string) => {
+    const layer = [
+      ...textLayers,
+      ...shapeLayers,
+      ...imageLayers
+    ].find(l => l.id === id);
+    
+    if (layer) {
+      setClipboardLayer(JSON.parse(JSON.stringify(layer)));
+    }
+  };
+
+  const handlePasteLayer = () => {
+    if (!clipboardLayer) return;
+    saveToHistory();
+    
+    const newLayer = {
+      ...JSON.parse(JSON.stringify(clipboardLayer)),
+      id: `${clipboardLayer.type}_${Date.now()}`,
+      x: (clipboardLayer.x || 0) + 20,
+      y: (clipboardLayer.y || 0) + 20,
+      name: (clipboardLayer.name || 'Layer') + ' Copy'
+    };
+
+    if (clipboardLayer.type === 'text') {
+      setTextLayers(prev => [...prev, newLayer]);
+    } else if (clipboardLayer.type === 'image') {
+      setImageLayers(prev => [...prev, newLayer]);
+    } else {
+      setShapeLayers(prev => [...prev, newLayer]);
+    }
+    
+    setSelectedLayerId(newLayer.id);
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
       if ((e.metaKey || e.ctrlKey) && e.key === 'z') { if (e.shiftKey) handleRedo(); else handleUndo(); e.preventDefault(); return; }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'c') { if (selectedLayerId) { handleCopyLayer(selectedLayerId); e.preventDefault(); } return; }
+      if ((e.metaKey || e.ctrlKey) && e.key === 'v') { handlePasteLayer(); e.preventDefault(); return; }
       if (e.key === 'Delete' || e.key === 'Backspace') { if (selectedLayerId) handleDeleteLayer(selectedLayerId); return; }
       if ((e.metaKey || e.ctrlKey) && e.key === 'd') { if (selectedLayerId) { e.preventDefault(); handleDuplicateLayer(selectedLayerId); } return; }
       if (e.key === '?') setShowShortcuts(prev => !prev);
@@ -609,23 +689,57 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   };
 
   const handleDownload = async () => {
+    // Open export options dialog
+    setShowExport(true);
+  };
+
+  const handleConfirmExport = async () => {
     setIsExporting(true);
     try {
-      const dataUrl = await handleExportDataUrl();
+      const backgroundImageUrl = activeImage?.url || uploadedImage;
+      const dataUrl = await exportService.exportDesignToImage(
+        canvasSize.width,
+        canvasSize.height,
+        canvasBackgroundColor,
+        backgroundImageUrl,
+        shapeLayers,
+        textLayers,
+        imageLayers,
+        canvasFilters,
+        exportFormat,
+        exportQuality
+      );
       const link = document.createElement('a');
       link.href = dataUrl;
-      link.download = `${projectTitle.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.png`;
+      link.download = `${projectTitle.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.${exportFormat}`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    } catch (error) { console.error("Export failed", error); alert("Failed to export design."); } finally { setIsExporting(false); }
+      setShowExport(false);
+    } catch (error) {
+      console.error("Export failed", error);
+      alert("Failed to export design.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleBack = async () => {
       // Save thumbnail before exit
       try {
           // Generate a small thumbnail
-          const thumb = await exportService.exportDesignToImage(300, 300, canvasBackgroundColor, activeImage?.url || uploadedImage, shapeLayers, textLayers, imageLayers, canvasFilters);
+          const thumb = await exportService.exportDesignToImage(
+            300,
+            300,
+            canvasBackgroundColor,
+            activeImage?.url || uploadedImage,
+            shapeLayers,
+            textLayers,
+            imageLayers,
+            canvasFilters,
+            'png',
+            1
+          );
           
           // Update project state in localStorage directly or via state if we had a dedicated project manager hook
           // Since we are exiting, we can just save it.
@@ -697,6 +811,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
           onAddText={handleAddText}
           onAddShape={handleAddShape}
           onAddImageLayer={handleAddImageLayer}
+          onApplyTemplate={handleApplyTemplate}
           textLayers={textLayers}
           shapeLayers={shapeLayers}
           imageLayers={imageLayers}
@@ -814,6 +929,101 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
            </div>
         </div>
       )}
+
+      {showExport && (
+        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center" onClick={() => setShowExport(false)}>
+          <div className="bg-[#252627] p-6 rounded-xl border border-gray-700 shadow-2xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Icons.Download className="w-5 h-5 text-[#7d2ae8]" /> Export
+              </h3>
+              <button onClick={() => setShowExport(false)} className="text-gray-400 hover:text-white">&times;</button>
+            </div>
+
+            <div className="space-y-4 text-sm text-gray-300">
+              <div className="flex items-center justify-between gap-3">
+                <span>Format</span>
+                <select
+                  value={exportFormat}
+                  onChange={(e) => setExportFormat(e.target.value as any)}
+                  className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500"
+                >
+                  <option value="png">PNG (lossless)</option>
+                  <option value="jpeg">JPEG (smaller)</option>
+                  <option value="webp">WebP (best)</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-between gap-3">
+                <span className={exportFormat === 'png' ? 'text-gray-500' : ''}>Quality</span>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="range"
+                    min={0.5}
+                    max={1}
+                    step={0.05}
+                    value={exportQuality}
+                    disabled={exportFormat === 'png'}
+                    onChange={(e) => setExportQuality(parseFloat(e.target.value))}
+                    className="w-40"
+                  />
+                  <span className={`font-mono text-xs bg-gray-800 px-2 py-1 rounded ${exportFormat === 'png' ? 'opacity-50' : ''}`}>
+                    {Math.round(exportQuality * 100)}%
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => setShowExport(false)}
+                  className="flex-1 bg-gray-800 hover:bg-gray-700 text-white py-2 rounded font-bold border border-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmExport}
+                  className="flex-1 bg-[#7d2ae8] hover:bg-[#6a22c5] text-white py-2 rounded font-bold"
+                >
+                  Export
+                </button>
+              </div>
+
+              <p className="text-xs text-gray-400">
+                Tip: PNG is best for crisp text/logos. JPEG/WebP are smaller for sharing.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Features Modals */}
+      <AIAssistant 
+        isOpen={showAIAssistant}
+        onClose={() => setShowAIAssistant(false)}
+        isProcessing={isProcessing}
+      />
+      
+      <DesignSuggestions 
+        isOpen={showDesignSuggestions}
+        onClose={() => setShowDesignSuggestions(false)}
+        designContext={`${projectTitle} design with ${textLayers.length} text layers and ${shapeLayers.length} shapes`}
+      />
+      
+      <SmartContentGenerator 
+        isOpen={showSmartContent}
+        onClose={() => setShowSmartContent(false)}
+        onSelectContent={(content) => {
+          handleAddText({ text: content });
+          setShowSmartContent(false);
+        }}
+        designContext={projectTitle}
+      />
+      
+      <DesignQualityScorer 
+        isOpen={showQualityScore}
+        onClose={() => setShowQualityScore(false)}
+        designImage={activeImage?.url || uploadedImage}
+      />
     </div>
   );
 };

@@ -42,6 +42,29 @@ const FILTER_PRESETS: { name: string, filters: Partial<LayerFilters> }[] = [
   { name: 'Fade', filters: { brightness: 120, contrast: 90, saturation: 80, grayscale: 0, blur: 1, sepia: 10, hueRotate: 0, vignette: 10 } },
 ];
 
+const CANVAS_EFFECT_PRESETS: { name: string; description: string; filters: Partial<CanvasFilters> }[] = [
+  {
+    name: 'Clean',
+    description: 'Subtle contrast boost',
+    filters: { brightness: 105, contrast: 110, saturation: 105, blur: 0, vignette: 0, opacity: 1 }
+  },
+  {
+    name: 'Bold',
+    description: 'High contrast & punch',
+    filters: { brightness: 105, contrast: 130, saturation: 120, blur: 0, vignette: 10, opacity: 1 }
+  },
+  {
+    name: 'Vintage',
+    description: 'Soft, slightly faded',
+    filters: { brightness: 110, contrast: 90, saturation: 85, blur: 0.5, vignette: 20, opacity: 1 }
+  },
+  {
+    name: 'Film',
+    description: 'Moody vignette',
+    filters: { brightness: 95, contrast: 115, saturation: 100, blur: 0, vignette: 35, opacity: 1 }
+  }
+];
+
 export const Toolbar: React.FC<ToolbarProps> = ({
   selectedLayer,
   canvasBackgroundColor,
@@ -211,40 +234,78 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   // -- Toolbar Sections --
 
   const CanvasTools = () => (
-    <div className="flex items-center gap-3">
-       <div className="flex items-center gap-2 px-2 py-1 rounded bg-gray-800/30 border border-gray-700/50">
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Canvas</span>
-       </div>
-       <Divider />
-       <div className="flex items-center gap-2">
-          <span className="text-[10px] text-gray-400 font-bold">BG</span>
-          <ColorPicker 
-            value={canvasBackgroundColor}
-            onChange={(color) => { onInteractionStart(); onSetCanvasBackgroundColor(color); }}
-            documentColors={documentColors}
-          />
-       </div>
-       <Divider />
-       {/* Compact Filter Sliders */}
-       <div className="flex items-center gap-4">
-          {[
-            { icon: Icons.Sun, val: canvasFilters.brightness, key: 'brightness', max: 200, title: 'Brightness' },
-            { icon: Icons.Contrast, val: canvasFilters.contrast, key: 'contrast', max: 200, title: 'Contrast' },
-            { icon: Icons.Droplet, val: canvasFilters.saturation, key: 'saturation', max: 200, title: 'Saturation' },
-          ].map((item) => (
-             <div key={item.key} className="flex items-center gap-2 group" title={item.title}>
-                <item.icon className="w-3.5 h-3.5 text-gray-500 group-hover:text-white transition-colors" />
-                <input 
-                  type="range" min="0" max={item.max} 
-                  value={item.val} 
-                  onChange={(e) => onUpdateCanvasFilters({ [item.key]: parseInt(e.target.value) })}
-                  onMouseDown={onInteractionStart}
-                  className="w-16 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]" 
-                />
-             </div>
+   <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 px-2 py-1 rounded bg-gray-800/30 border border-gray-700/50">
+         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Canvas</span>
+      </div>
+      <Divider />
+      <div className="flex items-center gap-2">
+         <span className="text-[10px] text-gray-400 font-bold">BG</span>
+         <ColorPicker 
+           value={canvasBackgroundColor}
+           onChange={(color) => { onInteractionStart(); onSetCanvasBackgroundColor(color); }}
+           documentColors={documentColors}
+         />
+      </div>
+      <Divider />
+      {/* Compact Filter Sliders */}
+      <div className="flex items-center gap-4">
+         {[
+           { icon: Icons.Sun, val: canvasFilters.brightness, key: 'brightness', max: 200, title: 'Brightness' },
+           { icon: Icons.Contrast, val: canvasFilters.contrast, key: 'contrast', max: 200, title: 'Contrast' },
+           { icon: Icons.Droplet, val: canvasFilters.saturation, key: 'saturation', max: 200, title: 'Saturation' },
+         ].map((item) => (
+            <div key={item.key} className="flex items-center gap-2 group" title={item.title}>
+               <item.icon className="w-3.5 h-3.5 text-gray-500 group-hover:text-white transition-colors" />
+               <input 
+                 type="range" min="0" max={item.max} 
+                 value={item.val} 
+                 onChange={(e) => onUpdateCanvasFilters({ [item.key]: parseInt(e.target.value) })}
+                 onMouseDown={onInteractionStart}
+                 className="w-16 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]" 
+               />
+            </div>
+         ))}
+      </div>
+      <Divider />
+      {/* Effect Presets */}
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] text-gray-400 font-bold uppercase">Looks</span>
+        <div className="flex items-center gap-1">
+          {CANVAS_EFFECT_PRESETS.map((preset) => (
+            <button
+              key={preset.name}
+              title={preset.description}
+              onClick={() => {
+                onInteractionStart();
+                onUpdateCanvasFilters({ ...preset.filters });
+              }}
+              className="px-2 py-1 rounded-full text-[10px] font-semibold bg-[#252627] text-gray-200 border border-gray-700 hover:border-[#7d2ae8] hover:text-white hover:bg-[#2d2f32] transition-colors"
+            >
+              {preset.name}
+            </button>
           ))}
-       </div>
-    </div>
+          <button
+            title="Reset canvas filters"
+            onClick={() => {
+              onInteractionStart();
+              onUpdateCanvasFilters({
+                brightness: 100,
+                contrast: 100,
+                saturation: 100,
+                blur: 0,
+                opacity: 1,
+                vignette: 0,
+                overlayTexture: undefined
+              });
+            }}
+            className="px-2 py-1 rounded-full text-[10px] font-semibold bg-transparent text-gray-400 border border-gray-600 hover:border-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+   </div>
   );
 
   const TransformTools = () => (

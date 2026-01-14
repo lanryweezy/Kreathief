@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Project, User } from '../types';
 import { Icons } from '../constants';
+import { STARTER_TEMPLATES, createProjectFromTemplate } from '../data/templates';
 
 interface DashboardProps {
   user: User;
@@ -46,6 +47,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
       return;
     }
     onCreateProject();
+  };
+
+  const canCreateMore = user.plan !== 'free' || projects.length < 5;
+
+  const handleStartFromTemplate = (templateId: string) => {
+    if (!canCreateMore) {
+      onOpenPricing();
+      return;
+    }
+    const template = STARTER_TEMPLATES.find(t => t.id === templateId);
+    if (!template) return;
+
+    const newProject = createProjectFromTemplate(template);
+    const updated = [newProject, ...projects];
+    setProjects(updated.sort((a, b) => b.updatedAt - a.updatedAt));
+    try {
+      localStorage.setItem('kreathief_projects', JSON.stringify(updated));
+    } catch (e) {
+      console.error('Failed to save template project', e);
+    }
+    onOpenProject(newProject);
   };
 
   return (
@@ -131,13 +153,47 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
            <div className="max-w-6xl mx-auto">
               <div className="flex items-center justify-between mb-8">
-                 <h2 className="text-2xl font-bold">Recent Designs</h2>
+                 <h2 className="text-2xl font-bold">Start designing</h2>
                  <button 
                     onClick={handleCreateClick}
                     className="bg-[#7d2ae8] hover:bg-[#6b23c5] text-white px-6 py-2.5 rounded-lg font-bold shadow-lg shadow-purple-900/20 flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
                  >
                     <Icons.Magic className="w-4 h-4" /> Create New Design
                  </button>
+              </div>
+
+              {/* Starter templates */}
+              <div className="mb-10">
+                <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
+                  <Icons.Templates className="w-4 h-4 text-[#00c4cc]" />
+                  Quick templates
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {STARTER_TEMPLATES.map((tmpl) => (
+                    <button
+                      key={tmpl.id}
+                      onClick={() => handleStartFromTemplate(tmpl.id)}
+                      className="group bg-[#1e1e1e] border border-gray-700 rounded-xl overflow-hidden text-left hover:border-[#00c4cc] hover:shadow-xl transition-all"
+                    >
+                      <div className="aspect-[4/3] bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center relative overflow-hidden">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-black/40 px-2 py-1 rounded-full absolute top-3 left-3">
+                          {tmpl.category}
+                        </span>
+                        <span className="text-xs text-gray-500 group-hover:text-gray-300 transition-colors">
+                          {tmpl.size.name}
+                        </span>
+                      </div>
+                      <div className="p-3">
+                        <div className="text-sm font-semibold text-white truncate mb-1">
+                          {tmpl.name}
+                        </div>
+                        <div className="text-[11px] text-gray-400 line-clamp-2">
+                          {tmpl.description}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

@@ -33,6 +33,7 @@ interface SidePanelProps {
   onAddText: (style: Partial<TextLayer>) => void;
   onAddShape: (type: any, style: Partial<ShapeLayer>) => void;
   onAddImageLayer?: (src: string) => void;
+  onApplyTemplate?: (templateId: string, confirmReplace?: boolean) => void;
   // Layer Management
   textLayers: TextLayer[];
   shapeLayers: ShapeLayer[];
@@ -100,6 +101,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   onAddText,
   onAddShape,
   onAddImageLayer,
+  onApplyTemplate,
   textLayers,
   shapeLayers,
   imageLayers = [],
@@ -256,6 +258,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
             setAspectRatio={setAspectRatio} 
             onSetMode={onSetMode} 
             onApplyLayout={onApplyLayout}
+            onApplyTemplate={onApplyTemplate}
         />
       )}
       
@@ -273,6 +276,8 @@ export const SidePanel: React.FC<SidePanelProps> = ({
           onDuplicateLayer={onDuplicateLayer}
           onMoveLayer={onMoveLayer}
           onLayoutLayers={onLayoutLayers}
+          onCopyLayer={onCopyLayer}
+          onPasteLayer={onPasteLayer}
         />
       )}
       

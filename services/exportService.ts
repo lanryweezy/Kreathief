@@ -172,7 +172,9 @@ export const exportDesignToImage = async (
   shapes: ShapeLayer[],
   texts: TextLayer[],
   images: ImageLayer[],
-  filters?: CanvasFilters
+  filters?: CanvasFilters,
+  format: 'png' | 'jpeg' | 'webp' = 'png',
+  quality: number = 0.95
 ): Promise<string> => {
   const canvas = document.createElement('canvas');
   canvas.width = width;
@@ -605,5 +607,9 @@ export const exportDesignToImage = async (
     ctx.restore();
   }
 
-  return canvas.toDataURL('image/png', 1.0);
+  // Export encoding
+  // Note: PNG ignores quality in most browsers; JPEG/WebP use it.
+  if (format === 'jpeg') return canvas.toDataURL('image/jpeg', quality);
+  if (format === 'webp') return canvas.toDataURL('image/webp', quality);
+  return canvas.toDataURL('image/png');
 };

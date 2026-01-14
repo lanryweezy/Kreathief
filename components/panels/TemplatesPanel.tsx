@@ -1,22 +1,26 @@
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AppMode, AspectRatio, ShapeLayer } from '../../types';
 import { Icons } from '../../constants';
+import { STARTER_TEMPLATES } from '../../data/templates';
 
 interface TemplatesPanelProps {
   setPrompt: (s: string) => void;
   setAspectRatio: (a: AspectRatio) => void;
   onSetMode: (m: AppMode) => void;
   onApplyLayout?: (shapes: Partial<ShapeLayer>[]) => void;
+  onApplyTemplate?: (templateId: string, confirmReplace?: boolean) => void;
 }
 
 export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   setPrompt,
   setAspectRatio,
   onSetMode,
-  onApplyLayout
+  onApplyLayout,
+  onApplyTemplate
 }) => {
   const [category, setCategory] = useState('All');
+  const [showReplaceWarning, setShowReplaceWarning] = useState(true);
 
   const templates = [
     { label: "Neon Cyberpunk", cat: "Futuristic", prompt: "A futuristic city street at night, heavy neon rain, cyberpunk aesthetic, pink and blue lighting", ratio: AspectRatio.PORTRAIT, color: "from-pink-500 to-purple-600" },
@@ -52,6 +56,11 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
 
   const filteredTemplates = category === 'All' ? templates : templates.filter(t => t.cat === category);
 
+  const starterTemplates = useMemo(() => {
+    if (category === 'All') return STARTER_TEMPLATES;
+    return STARTER_TEMPLATES.filter(t => t.category === category || t.category === 'Social' && category === 'Social');
+  }, [category]);
+
   return (
     <div className="flex flex-col h-full bg-[#13161a]">
        <div className="p-4 border-b border-gray-700">
@@ -86,6 +95,42 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                     {g.name}
                  </button>
              ))}
+          </div>
+
+          <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Starter Templates</h4>
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            {starterTemplates.map((tmpl) => (
+              <button
+                key={tmpl.id}
+                onClick={() => {
+                  if (!onApplyTemplate) return;
+                  const proceed = !showReplaceWarning || window.confirm("Apply template? This will replace your current canvas size, background, and layers.");
+                  if (!proceed) return;
+                  onApplyTemplate(tmpl.id, false);
+                }}
+                className="cursor-pointer group relative aspect-[4/3] rounded-lg overflow-hidden bg-[#1e1e1e] border border-gray-700 hover:border-[#00c4cc] transition-all shadow-lg text-left"
+              >
+                <div className="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-black/40 px-2 py-1 rounded-full">
+                  {tmpl.category}
+                </div>
+                <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[11px] text-gray-300 bg-black/40 px-2 py-1 rounded">
+                  <span className="font-semibold text-white truncate">{tmpl.name}</span>
+                  <span className="text-gray-400">{tmpl.size.width}×{tmpl.size.height}</span>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-900/70 to-slate-800/40"></div>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2 mb-6">
+            <input
+              id="warn-replace"
+              type="checkbox"
+              checked={showReplaceWarning}
+              onChange={(e) => setShowReplaceWarning(e.target.checked)}
+              className="accent-[#7d2ae8]"
+            />
+            <label htmlFor="warn-replace" className="text-[11px] text-gray-400">Ask before replacing my current design</label>
           </div>
 
           <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">AI Starting Points</h4>
