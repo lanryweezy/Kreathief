@@ -8,12 +8,14 @@ import { AIAssistant } from './AIAssistant';
 import { DesignSuggestions } from './DesignSuggestions';
 import { SmartContentGenerator } from './SmartContentGenerator';
 import { DesignQualityScorer } from './DesignQualityScorer';
-import { AppMode, AspectRatio, GeneratedImage, NavTab, TextLayer, ShapeLayer, ImageLayer, HistoryState, CanvasFilters, Project, DesignTheme, BrandKit, CanvasSize, GenerationQuality, User } from '../types';
+import { AppMode, AspectRatio, GeneratedImage, NavTab, TextLayer, ShapeLayer, ImageLayer, HistoryState, CanvasFilters, Project, DesignTheme, BrandKit, CanvasSize, GenerationQuality, User, BrushType } from '../types';
 import * as geminiService from '../services/geminiService';
 import * as exportService from '../services/exportService';
 import { MODEL_FAST, Icons } from '../constants';
-import { Toolbar } from './Toolbar'; // Re-import to ensure it is used, though logic is inside Canvas typically or passed down
 import { STARTER_TEMPLATES } from '../data/templates';
+import { ShareModal } from './modals/ShareModal';
+import { ExportModal } from './modals/ExportModal';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 
 const DEFAULT_FILTERS: CanvasFilters = {
   brightness: 100,
@@ -34,7 +36,7 @@ interface EditorProps {
 export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, onOpenPricing }) => {
   // Navigation State
   const [activeTab, setActiveTab] = useState<NavTab>(NavTab.MAGIC);
-  
+
   // Generation State
   const [mode, setMode] = useState<AppMode>(AppMode.GENERATE);
   const [prompt, setPrompt] = useState('');
@@ -42,7 +44,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   const [quality, setQuality] = useState<GenerationQuality>('standard');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  
+
   // Data State
   const [history, setHistory] = useState<GeneratedImage[]>([]);
   const [activeImageId, setActiveImageId] = useState<string | null>(null);
@@ -51,7 +53,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   const [canvasBackgroundColor, setCanvasBackgroundColor] = useState('#ffffff');
   const [canvasFilters, setCanvasFilters] = useState<CanvasFilters>(DEFAULT_FILTERS);
   const [canvasSize, setCanvasSize] = useState<CanvasSize>({ width: 1080, height: 1080, name: 'Square (IG Post)' });
-  
+
   // UI State
   const [showGrid, setShowGrid] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
@@ -59,18 +61,30 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   const [showExport, setShowExport] = useState(false);
   const [exportFormat, setExportFormat] = useState<'png' | 'jpeg' | 'webp'>('png');
   const [exportQuality, setExportQuality] = useState(0.95);
-  
+
   // AI Features State
   const [showAIAssistant, setShowAIAssistant] = useState(false);
   const [showDesignSuggestions, setShowDesignSuggestions] = useState(false);
   const [showSmartContent, setShowSmartContent] = useState(false);
   const [showQualityScore, setShowQualityScore] = useState(false);
-  
+  const [showShare, setShowShare] = useState(false);
+
   // Layers State
   const [textLayers, setTextLayers] = useState<TextLayer[]>([]);
   const [shapeLayers, setShapeLayers] = useState<ShapeLayer[]>([]);
   const [imageLayers, setImageLayers] = useState<ImageLayer[]>([]);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
+  const [selectedLayerIds, setSelectedLayerIds] = useState<string[]>([]);
+
+  // Sync selectedLayerId with the last selected item for backward compatibility
+  useEffect(() => {
+    if (selectedLayerIds.length > 0) {
+      setSelectedLayerId(selectedLayerIds[selectedLayerIds.length - 1]);
+    } else {
+      setSelectedLayerId(null);
+    }
+  }, [selectedLayerIds]);
+
 
   // Undo/Redo State
   const [past, setPast] = useState<HistoryState[]>([]);
@@ -90,6 +104,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   const [brushColor, setBrushColor] = useState('#000000');
   const [brushSize, setBrushSize] = useState(5);
   const [brushOpacity, setBrushOpacity] = useState(1);
+  const [brushType, setBrushType] = useState<BrushType>(BrushType.BASIC);
   const drawingCancelRef = useRef(false);
 
   // Clipboard State for copy/paste
@@ -98,23 +113,74 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   // View State
   const [zoom, setZoom] = useState(0.5);
 
+  // Keyboard Shortcuts State
+  const [shortcutsEnabled, setShortcutsEnabled] = useState(true);
+
   // Derived State
   const activeImage = history.find(img => img.id === activeImageId) || null;
 
   // Initialize from project prop
   useEffect(() => {
     if (initialProject) {
-        setProjectId(initialProject.id);
-        setProjectTitle(initialProject.name);
-        setTextLayers(initialProject.state.textLayers);
-        setShapeLayers(initialProject.state.shapeLayers);
-        setImageLayers(initialProject.state.imageLayers);
-        setCanvasBackgroundColor(initialProject.state.canvasBackgroundColor);
-        setCanvasFilters(initialProject.state.canvasFilters);
-        if (initialProject.state.canvasSize) setCanvasSize(initialProject.state.canvasSize);
-        if (initialProject.thumbnail) setThumbnail(initialProject.thumbnail);
+      setProjectId(initialProject.id);
+      setProjectTitle(initialProject.name);
+      setTextLayers(initialProject.state.textLayers);
+      setShapeLayers(initialProject.state.shapeLayers);
+      setImageLayers(initialProject.state.imageLayers);
+      setCanvasBackgroundColor(initialProject.state.canvasBackgroundColor);
+      setCanvasFilters(initialProject.state.canvasFilters);
+      if (initialProject.state.canvasSize) setCanvasSize(initialProject.state.canvasSize);
+      if (initialProject.thumbnail) setThumbnail(initialProject.thumbnail);
     }
   }, [initialProject]);
+
+  // -- Auto-Save & Crash Recovery --
+
+  // 1. Recover on mount
+  useEffect(() => {
+    const savedState = localStorage.getItem('kreathief_autosave_v1');
+    if (savedState && !initialProject) {
+      try {
+        const parsed = JSON.parse(savedState);
+        // Only prompt if there's actual content
+        if ((parsed.textLayers?.length > 0 || parsed.shapeLayers?.length > 0 || parsed.imageLayers?.length > 0) &&
+          window.confirm('We found an unsaved session. Would you like to restore it?')) {
+
+          if (parsed.textLayers) setTextLayers(parsed.textLayers);
+          if (parsed.shapeLayers) setShapeLayers(parsed.shapeLayers);
+          if (parsed.imageLayers) setImageLayers(parsed.imageLayers);
+          if (parsed.canvasBackgroundColor) setCanvasBackgroundColor(parsed.canvasBackgroundColor);
+          if (parsed.canvasFilters) setCanvasFilters(parsed.canvasFilters);
+          if (parsed.canvasSize) setCanvasSize(parsed.canvasSize);
+          if (parsed.projectTitle) setProjectTitle(parsed.projectTitle);
+        }
+      } catch (e) {
+        console.error("Failed to recover session", e);
+      }
+    }
+  }, [initialProject]);
+
+  // 2. Auto-save every 30s if changes exist
+  useEffect(() => {
+    const autoSaveInterval = setInterval(() => {
+      if (textLayers.length === 0 && shapeLayers.length === 0 && imageLayers.length === 0) return;
+
+      const stateToSave = {
+        projectTitle,
+        textLayers,
+        shapeLayers,
+        imageLayers,
+        canvasBackgroundColor,
+        canvasFilters,
+        canvasSize,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('kreathief_autosave_v1', JSON.stringify(stateToSave));
+      // Optional: console.log("Auto-saved");
+    }, 30000);
+
+    return () => clearInterval(autoSaveInterval);
+  }, [textLayers, shapeLayers, imageLayers, canvasBackgroundColor, canvasFilters, canvasSize, projectTitle]);
 
   // Extract Document Colors
   const documentColors = useMemo(() => {
@@ -161,40 +227,44 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   // Auto-save logic
   useEffect(() => {
     const timeout = setTimeout(() => {
-        setIsSaving(true);
-        const updatedProject: Project = {
-            id: projectId,
-            name: projectTitle,
-            updatedAt: Date.now(),
-            thumbnail: thumbnail, // Persist current thumbnail
-            state: {
-                textLayers,
-                shapeLayers,
-                imageLayers,
-                canvasBackgroundColor,
-                canvasFilters,
-                canvasSize
-            }
-        };
-        
-        // Read current projects, update ours, write back
-        try {
-            const allProjectsStr = localStorage.getItem('kreathief_projects');
-            let allProjects: Project[] = allProjectsStr ? JSON.parse(allProjectsStr) : [];
-            const idx = allProjects.findIndex(p => p.id === projectId);
-            if (idx >= 0) {
-                allProjects[idx] = updatedProject;
-            } else {
-                allProjects.push(updatedProject);
-            }
-            localStorage.setItem('kreathief_projects', JSON.stringify(allProjects));
-        } catch (e) { console.error(e); }
+      setIsSaving(true);
+      const updatedProject: Project = {
+        id: projectId,
+        name: projectTitle,
+        updatedAt: Date.now(),
+        thumbnail: thumbnail, // Persist current thumbnail
+        state: {
+          textLayers,
+          shapeLayers,
+          imageLayers,
+          canvasBackgroundColor,
+          canvasFilters,
+          canvasSize
+        }
+      };
 
-        setTimeout(() => setIsSaving(false), 500);
+      // Read current projects, update ours, write back
+      try {
+        const allProjectsStr = localStorage.getItem('kreathief_projects');
+        let allProjects: Project[] = allProjectsStr ? JSON.parse(allProjectsStr) : [];
+        const idx = allProjects.findIndex(p => p.id === projectId);
+        if (idx >= 0) {
+          allProjects[idx] = updatedProject;
+        } else {
+          allProjects.push(updatedProject);
+        }
+        localStorage.setItem('kreathief_projects', JSON.stringify(allProjects));
+      } catch (e) { console.error(e); }
+
+      setTimeout(() => setIsSaving(false), 500);
     }, 2000); // 2s debounce
 
     return () => clearTimeout(timeout);
   }, [textLayers, shapeLayers, imageLayers, canvasBackgroundColor, canvasFilters, projectTitle, projectId, canvasSize, thumbnail]);
+
+  // -- Layer Management Helpers --
+
+
 
 
   // -- History Handlers --
@@ -208,7 +278,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
       canvasFilters: { ...canvasFilters },
       canvasSize: { ...canvasSize }
     };
-    
+
     setPast(prev => {
       const newPast = [...prev, currentState];
       if (newPast.length > 50) newPast.shift();
@@ -226,10 +296,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     setPast(newPast);
     setTextLayers(previousState.textLayers);
     setShapeLayers(previousState.shapeLayers);
-    if(previousState.imageLayers) setImageLayers(previousState.imageLayers);
+    if (previousState.imageLayers) setImageLayers(previousState.imageLayers);
     setCanvasBackgroundColor(previousState.canvasBackgroundColor);
     setCanvasFilters(previousState.canvasFilters);
-    if(previousState.canvasSize) setCanvasSize(previousState.canvasSize);
+    if (previousState.canvasSize) setCanvasSize(previousState.canvasSize);
   }, [past, textLayers, shapeLayers, imageLayers, canvasBackgroundColor, canvasFilters, canvasSize]);
 
   const handleRedo = useCallback(() => {
@@ -241,10 +311,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     setFuture(newFuture);
     setTextLayers(nextState.textLayers);
     setShapeLayers(nextState.shapeLayers);
-    if(nextState.imageLayers) setImageLayers(nextState.imageLayers);
+    if (nextState.imageLayers) setImageLayers(nextState.imageLayers);
     setCanvasBackgroundColor(nextState.canvasBackgroundColor);
     setCanvasFilters(nextState.canvasFilters);
-    if(nextState.canvasSize) setCanvasSize(nextState.canvasSize);
+    if (nextState.canvasSize) setCanvasSize(nextState.canvasSize);
   }, [future, textLayers, shapeLayers, imageLayers, canvasBackgroundColor, canvasFilters, canvasSize]);
 
 
@@ -278,7 +348,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
       skewY: 0
     };
     setTextLayers(prev => [...prev, newLayer]);
-    setSelectedLayerId(newLayer.id);
+    setSelectedLayerIds([newLayer.id]);
   };
 
   const handleAddShape = (type: any, style: Partial<ShapeLayer>) => {
@@ -289,8 +359,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
       id: `shape_${Date.now()}`,
       type: type,
       name: type.charAt(0).toUpperCase() + type.slice(1),
-      x: canvasSize.width / 2 - w/2,
-      y: canvasSize.height / 2 - h/2,
+      x: canvasSize.width / 2 - w / 2,
+      y: canvasSize.height / 2 - h / 2,
       rotation: 0,
       width: w,
       height: h,
@@ -304,47 +374,97 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
       ...style
     };
     setShapeLayers(prev => [...prev, newLayer]);
-    setSelectedLayerId(newLayer.id);
+    setSelectedLayerIds([newLayer.id]);
   };
 
   const handleApplyLayout = (shapes: Partial<ShapeLayer>[]) => {
-      saveToHistory();
-      const newLayers: ShapeLayer[] = shapes.map((s, i) => ({
-          id: `shape_${Date.now()}_${Math.random()}`,
-          type: s.type || 'rectangle',
-          name: `Shape ${i + 1}`,
-          x: s.x || 0,
-          y: s.y || 0,
-          width: s.width || 100,
-          height: s.height || 100,
-          color: s.color || '#333',
-          rotation: 0,
-          opacity: 1,
-          locked: false,
-          visible: true,
-          cornerRadius: 0,
-          shadow: s.shadow,
-          skewX: 0,
-          skewY: 0
-      }));
-      setShapeLayers(prev => [...prev, ...newLayers]);
+    saveToHistory();
+    const newLayers: ShapeLayer[] = shapes.map((s, i) => ({
+      id: `shape_${Date.now()}_${Math.random()}`,
+      type: s.type || 'rectangle',
+      name: `Shape ${i + 1}`,
+      x: s.x || 0,
+      y: s.y || 0,
+      width: s.width || 100,
+      height: s.height || 100,
+      color: s.color || '#333',
+      rotation: 0,
+      opacity: 1,
+      locked: false,
+      visible: true,
+      cornerRadius: 0,
+      shadow: s.shadow,
+      skewX: 0,
+      skewY: 0
+    }));
+    setShapeLayers(prev => [...prev, ...newLayers]);
   };
 
-  const handleApplyTemplate = (templateId: string) => {
+  const handleApplyTemplate = useCallback((templateId: string) => {
     const template = STARTER_TEMPLATES.find(t => t.id === templateId);
     if (!template) return;
+
+    if (textLayers.length > 0 || shapeLayers.length > 0 || imageLayers.length > 0) {
+      if (!confirm("Are you sure? This will replace your current design.")) return;
+    }
+
     saveToHistory();
     const { state } = template;
-
     setCanvasBackgroundColor(state.canvasBackgroundColor);
-    if (state.canvasFilters) setCanvasFilters({ ...state.canvasFilters });
     if (state.canvasSize) setCanvasSize(state.canvasSize);
+    if (state.canvasFilters) setCanvasFilters(state.canvasFilters);
 
-    setTextLayers(state.textLayers || []);
-    setShapeLayers(state.shapeLayers || []);
-    setImageLayers(state.imageLayers || []);
-    setSelectedLayerId(null);
-    setProjectTitle(template.name);
+    setTextLayers((state.textLayers || []).map(l => ({ ...l, id: `text_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` })));
+    setShapeLayers((state.shapeLayers || []).map(l => ({ ...l, id: `shape_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` })));
+    setImageLayers((state.imageLayers || []).map(l => ({ ...l, id: `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` })));
+  }, [textLayers, shapeLayers, imageLayers, saveToHistory]);
+
+  const saveProject = async () => {
+    setIsSaving(true);
+    try {
+      const updatedProject: Project = {
+        id: projectId,
+        name: projectTitle,
+        updatedAt: Date.now(),
+        thumbnail: await handleExportDataUrl(),
+        state: {
+          textLayers,
+          shapeLayers,
+          imageLayers,
+          canvasBackgroundColor,
+          canvasFilters,
+          canvasSize
+        }
+      };
+
+      const allProjectsStr = localStorage.getItem('kreathief_projects');
+      let allProjects: Project[] = allProjectsStr ? JSON.parse(allProjectsStr) : [];
+      const idx = allProjects.findIndex(p => p.id === projectId);
+      if (idx >= 0) {
+        allProjects[idx] = updatedProject;
+      } else {
+        allProjects.push(updatedProject);
+      }
+      localStorage.setItem('kreathief_projects', JSON.stringify(allProjects));
+    } catch (e) {
+      console.error("Manual save failed", e);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleNew = () => {
+    if (confirm("Create new design? Unsaved changes might be lost.")) {
+      setProjectId(`proj_${Date.now()}`);
+      setProjectTitle('Untitled Design');
+      setTextLayers([]);
+      setShapeLayers([]);
+      setImageLayers([]);
+      setUploadedImage(null);
+      setCanvasBackgroundColor('#ffffff');
+      setPast([]);
+      setFuture([]);
+    }
   };
 
   const handleAddImageLayer = (src: string) => {
@@ -372,16 +492,43 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     const img = new Image();
     img.src = src;
     img.onload = () => {
-       const max = 300;
-       const ratio = img.width / img.height;
-       let w = max;
-       let h = max;
-       if (ratio > 1) { h = w / ratio; } else { w = h * ratio; }
-       setImageLayers(prev => prev.map(l => l.id === newLayer.id ? { ...l, width: w, height: h } : l));
+      const max = 300;
+      const ratio = img.width / img.height;
+      let w = max;
+      let h = max;
+      if (ratio > 1) { h = w / ratio; } else { w = h * ratio; }
+      setImageLayers(prev => prev.map(l => l.id === newLayer.id ? { ...l, width: w, height: h } : l));
     };
     setImageLayers(prev => [...prev, newLayer]);
-    setSelectedLayerId(newLayer.id);
+    setSelectedLayerIds([newLayer.id]);
   };
+
+  const handleDrawingComplete = (src: string) => {
+    saveToHistory();
+    const newLayer: ImageLayer = {
+      id: `drawing_${Date.now()}`,
+      type: 'image',
+      name: 'Drawing',
+      src,
+      x: 0,
+      y: 0,
+      width: canvasSize.width,
+      height: canvasSize.height,
+      rotation: 0,
+      opacity: 1,
+      locked: false,
+      visible: true,
+      flipX: false,
+      flipY: false,
+      blendMode: 'normal',
+      filters: { brightness: 100, contrast: 100, saturation: 100, grayscale: 0, blur: 0, sepia: 0, hueRotate: 0, vignette: 0 },
+      skewX: 0,
+      skewY: 0
+    };
+    setImageLayers(prev => [...prev, newLayer]);
+    setSelectedLayerIds([newLayer.id]);
+  };
+
 
   const handleUpdateTextLayer = useCallback((id: string, changes: Partial<TextLayer>) => {
     setTextLayers(prev => prev.map(layer => layer.id === id ? { ...layer, ...changes } : layer));
@@ -395,28 +542,260 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     setImageLayers(prev => prev.map(layer => layer.id === id ? { ...layer, ...changes } : layer));
   }, []);
 
+  const handlePasteLayer = useCallback(() => {
+    if (!clipboardLayer) return;
+    saveToHistory();
+    const newLayer = { ...clipboardLayer, id: `${clipboardLayer.type}_${Date.now()}`, x: clipboardLayer.x + 20, y: clipboardLayer.y + 20, name: clipboardLayer.name + ' Copy' };
+    if (clipboardLayer.type === 'text') setTextLayers(prev => [...prev, newLayer]);
+    else if (clipboardLayer.type === 'image') setImageLayers(prev => [...prev, newLayer]);
+    else if (clipboardLayer.type.startsWith('shape') || clipboardLayer.type === 'rectangle' || clipboardLayer.type === 'circle' || clipboardLayer.type === 'triangle' || clipboardLayer.type === 'star' || clipboardLayer.type === 'hexagon' || clipboardLayer.type === 'diamond' || clipboardLayer.type === 'arrow' || clipboardLayer.type === 'heart' || clipboardLayer.type === 'speech_bubble' || clipboardLayer.type === 'ribbon' || clipboardLayer.type === 'shield' || clipboardLayer.type === 'banner' || clipboardLayer.type === 'path') setShapeLayers(prev => [...prev, newLayer]);
+    setSelectedLayerIds([newLayer.id]);
+  }, [clipboardLayer, saveToHistory]);
+
+  const handleCopyLayer = useCallback((id?: string) => {
+    const targetId = id || selectedLayerId;
+    if (!targetId) return;
+    const layer = [...textLayers, ...shapeLayers, ...imageLayers].find(l => l.id === targetId);
+    if (layer) {
+      setClipboardLayer(JSON.parse(JSON.stringify(layer)));
+    }
+  }, [selectedLayerId, textLayers, shapeLayers, imageLayers]);
+
+  const handleNudgeLayer = useCallback((direction: 'up' | 'down' | 'left' | 'right', amount: number = 1) => {
+    if (selectedLayerIds.length === 0) return;
+    const updateLayer = (id: string, changes: any) => {
+      if (id.startsWith('text_')) handleUpdateTextLayer(id, changes);
+      else if (id.startsWith('shape_')) handleUpdateShapeLayer(id, changes);
+      else if (id.startsWith('image_')) handleUpdateImageLayer(id, changes);
+    };
+
+    selectedLayerIds.forEach(id => {
+      const layer = [...textLayers, ...shapeLayers, ...imageLayers].find(l => l.id === id);
+      if (layer) {
+        if (direction === 'up') updateLayer(id, { y: layer.y - amount });
+        else if (direction === 'down') updateLayer(id, { y: layer.y + amount });
+        else if (direction === 'left') updateLayer(id, { x: layer.x - amount });
+        else if (direction === 'right') updateLayer(id, { x: layer.x + amount });
+      }
+    });
+  }, [selectedLayerIds, textLayers, shapeLayers, imageLayers, handleUpdateTextLayer, handleUpdateShapeLayer, handleUpdateImageLayer]);
+
   const handleDeleteLayer = useCallback((id: string) => {
     saveToHistory();
     if (id.startsWith('text_')) setTextLayers(prev => prev.filter(layer => layer.id !== id));
     else if (id.startsWith('shape_')) setShapeLayers(prev => prev.filter(layer => layer.id !== id));
     else if (id.startsWith('image_')) setImageLayers(prev => prev.filter(layer => layer.id !== id));
-    setSelectedLayerId(currentId => currentId === id ? null : currentId);
+    setSelectedLayerIds(prev => prev.filter(selectedId => selectedId !== id));
   }, [saveToHistory]);
+
+  const handleDeleteSelected = useCallback(() => {
+    saveToHistory();
+    if (selectedLayerIds.length === 0) return;
+    setTextLayers(prev => prev.filter(layer => !selectedLayerIds.includes(layer.id)));
+    setShapeLayers(prev => prev.filter(layer => !selectedLayerIds.includes(layer.id)));
+    setImageLayers(prev => prev.filter(layer => !selectedLayerIds.includes(layer.id)));
+    setSelectedLayerIds([]);
+    setSelectedLayerId(null);
+  }, [selectedLayerIds, saveToHistory]);
+
+
+  // -- Grouping Logic --
+  const handleGroupSelected = useCallback(() => {
+    if (selectedLayerIds.length < 2) return;
+    saveToHistory();
+    const newGroupId = `group_${Date.now()}`;
+
+    const update = (layers: any[]) => layers.map(l => selectedLayerIds.includes(l.id) ? { ...l, groupId: newGroupId } : l);
+
+    setTextLayers(prev => update(prev));
+    setShapeLayers(prev => update(prev));
+    setImageLayers(prev => update(prev));
+  }, [selectedLayerIds, saveToHistory]);
+
+  const handleUngroupSelected = useCallback(() => {
+    if (selectedLayerIds.length === 0) return;
+    saveToHistory();
+
+    // Find if selection has a group ID (use the first one found)
+    const allLayers = [...textLayers, ...shapeLayers, ...imageLayers];
+    const selectedItems = allLayers.filter(l => selectedLayerIds.includes(l.id));
+    const targetGroupId = selectedItems.find(l => l.groupId)?.groupId;
+
+    if (!targetGroupId) return;
+
+    const update = (layers: any[]) => layers.map(l => l.groupId === targetGroupId ? { ...l, groupId: undefined } : l);
+
+    setTextLayers(prev => update(prev));
+    setShapeLayers(prev => update(prev));
+    setImageLayers(prev => update(prev));
+  }, [selectedLayerIds, textLayers, shapeLayers, imageLayers, saveToHistory]);
+
+  // Wrapper for selection to handle Groups
+  const handleSelectLayerWrapper = useCallback((id: string | null) => {
+    if (!id) {
+      setSelectedLayerId(null);
+      setSelectedLayerIds([]);
+      return;
+    }
+
+    const allLayers = [...textLayers, ...shapeLayers, ...imageLayers];
+    const targetLayer = allLayers.find(l => l.id === id);
+
+    if (targetLayer?.groupId) {
+      // Select all members of this group
+      const groupMembers = allLayers.filter(l => l.groupId === targetLayer.groupId);
+      setSelectedLayerIds(groupMembers.map(l => l.id));
+      setSelectedLayerId(id); // Keep the clicked one as "primary" for now
+    } else {
+      setSelectedLayerId(id);
+      setSelectedLayerIds([id]);
+    }
+  }, [textLayers, shapeLayers, imageLayers]);
+
+  const handleCutLayer = useCallback((id: string) => {
+    handleCopyLayer(id);
+    handleDeleteLayer(id);
+  }, [handleDeleteLayer, handleCopyLayer]);
 
   const handleDuplicateLayer = useCallback((id: string) => {
     saveToHistory();
     const copyLayer = (layers: any[], setLayers: Function) => {
-        const layerToCopy = layers.find(l => l.id === id);
-        if (layerToCopy) {
-            const newLayer = { ...layerToCopy, id: `${layerToCopy.type}_${Date.now()}`, x: layerToCopy.x + 20, y: layerToCopy.y + 20, name: layerToCopy.name + ' Copy' };
-            setTimeout(() => setSelectedLayerId(newLayer.id), 0);
-            setLayers((prev: any[]) => [...prev, newLayer]);
-        }
+      const layerToCopy = layers.find(l => l.id === id);
+      if (layerToCopy) {
+        const newLayer = { ...layerToCopy, id: `${layerToCopy.type}_${Date.now()}`, x: layerToCopy.x + 20, y: layerToCopy.y + 20, name: layerToCopy.name + ' Copy' };
+        setTimeout(() => setSelectedLayerIds([newLayer.id]), 0);
+        setLayers((prev: any[]) => [...prev, newLayer]);
+      }
     };
     if (id.startsWith('text_')) copyLayer(textLayers, setTextLayers);
     else if (id.startsWith('shape_')) copyLayer(shapeLayers, setShapeLayers);
     else if (id.startsWith('image_')) copyLayer(imageLayers, setImageLayers);
   }, [saveToHistory, textLayers, shapeLayers, imageLayers]);
+
+  const handleDuplicateSelected = useCallback(() => {
+    if (selectedLayerIds.length === 0) return;
+    saveToHistory();
+    const newIds: string[] = [];
+
+    const processLayers = (layers: any[]) => {
+      return layers.map(l => {
+        if (selectedLayerIds.includes(l.id)) {
+          const newLayer = { ...l, id: `${l.type}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, x: l.x + 20, y: l.y + 20, name: l.name + ' Copy' };
+          newIds.push(newLayer.id);
+          return [l, newLayer];
+        }
+        return [l];
+      }).flat();
+    };
+
+    setTextLayers(prev => processLayers(prev));
+    setShapeLayers(prev => processLayers(prev));
+    setImageLayers(prev => processLayers(prev));
+
+    setTimeout(() => setSelectedLayerIds(newIds), 0);
+  }, [selectedLayerIds, saveToHistory]);
+
+
+  const handleMultiSelectLayer = useCallback((id: string) => {
+    setSelectedLayerIds(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(lid => lid !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  }, []);
+
+  const handleAlignLayers = useCallback((alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => {
+    if (selectedLayerIds.length < 2) return;
+    saveToHistory();
+
+    const selectedLayers = [...textLayers, ...shapeLayers, ...imageLayers].filter(l => selectedLayerIds.includes(l.id));
+    if (selectedLayers.length === 0) return;
+
+    // Calculate bounds of the selection
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    selectedLayers.forEach(l => {
+      minX = Math.min(minX, l.x);
+      minY = Math.min(minY, l.y);
+      maxX = Math.max(maxX, l.x + l.width);
+      maxY = Math.max(maxY, l.y + (l as any).height || 0); // Handle text layer height if needed, usually handled by finding bounds
+    });
+
+    const alignMap = new Map<string, { x?: number, y?: number }>();
+    const centerX = minX + (maxX - minX) / 2;
+    const centerY = minY + (maxY - minY) / 2;
+
+    selectedLayers.forEach(l => {
+      let newX = l.x;
+      let newY = l.y;
+      const h = (l as any).height || (l as any).fontSize || 0; // approximate height for text if not set
+
+      switch (alignment) {
+        case 'left': newX = minX; break;
+        case 'center': newX = centerX - l.width / 2; break;
+        case 'right': newX = maxX - l.width; break;
+        case 'top': newY = minY; break;
+        case 'middle': newY = centerY - h / 2; break;
+        case 'bottom': newY = maxY - h; break;
+      }
+      alignMap.set(l.id, { x: newX, y: newY });
+    });
+
+    // Helper to update specific layers
+    const updateLayers = (layers: any[], setLayers: Function) => {
+      setLayers(layers.map(l => alignMap.has(l.id) ? { ...l, ...alignMap.get(l.id) } : l));
+    };
+
+    updateLayers(textLayers, setTextLayers);
+    updateLayers(shapeLayers, setShapeLayers);
+    updateLayers(imageLayers, setImageLayers);
+  }, [selectedLayerIds, textLayers, shapeLayers, imageLayers, saveToHistory]);
+
+  const handleDistributeLayers = useCallback((direction: 'horizontal' | 'vertical') => {
+    if (selectedLayerIds.length < 3) return; // Need 3 to distribute
+    saveToHistory();
+
+    const selectedLayers = [...textLayers, ...shapeLayers, ...imageLayers].filter(l => selectedLayerIds.includes(l.id));
+
+    // Sort layers by position
+    if (direction === 'horizontal') selectedLayers.sort((a, b) => a.x - b.x);
+    else selectedLayers.sort((a, b) => a.y - b.y);
+
+    if (selectedLayers.length < 3) return;
+
+    const first = selectedLayers[0];
+    const last = selectedLayers[selectedLayers.length - 1];
+
+    const alignMap = new Map<string, { x?: number, y?: number }>();
+
+    if (direction === 'horizontal') {
+      const totalSpan = (last.x + last.width / 2) - (first.x + first.width / 2);
+      const step = totalSpan / (selectedLayers.length - 1);
+      selectedLayers.forEach((l, i) => {
+        const centerX = (first.x + first.width / 2) + step * i;
+        alignMap.set(l.id, { x: centerX - l.width / 2 });
+      });
+    } else {
+      const h1 = (first as any).height || 0;
+      const h2 = (last as any).height || 0;
+      const totalSpan = (last.y + h2 / 2) - (first.y + h1 / 2);
+      const step = totalSpan / (selectedLayers.length - 1);
+      selectedLayers.forEach((l, i) => {
+        const h = (l as any).height || 0;
+        const centerY = (first.y + h1 / 2) + step * i;
+        alignMap.set(l.id, { y: centerY - h / 2 });
+      });
+    }
+
+    const updateLayers = (layers: any[], setLayers: Function) => {
+      setLayers(layers.map(l => alignMap.has(l.id) ? { ...l, ...alignMap.get(l.id) } : l));
+    };
+
+    updateLayers(textLayers, setTextLayers);
+    updateLayers(shapeLayers, setShapeLayers);
+    updateLayers(imageLayers, setImageLayers);
+  }, [selectedLayerIds, textLayers, shapeLayers, imageLayers, saveToHistory]);
 
   const handleMoveLayer = useCallback((id: string, direction: 'front' | 'back' | 'forward' | 'backward') => {
     const moveInArray = <T extends { id: string }>(arr: T[], idx: number, dir: 'front' | 'back' | 'forward' | 'backward'): T[] => {
@@ -446,35 +825,35 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     const CANVAS_H = canvasSize.height;
     const PADDING = 40;
     const allLayers = [
-      ...textLayers.map(l => ({...l, isText: true})),
-      ...shapeLayers.map(l => ({...l, isText: false})),
-      ...imageLayers.map(l => ({...l, isText: false}))
+      ...textLayers.map(l => ({ ...l, isText: true })),
+      ...shapeLayers.map(l => ({ ...l, isText: false })),
+      ...imageLayers.map(l => ({ ...l, isText: false }))
     ].filter(l => !l.locked && l.visible);
 
     if (allLayers.length === 0) return;
     allLayers.sort((a, b) => (a.y - b.y) || (a.x - b.x));
     const count = allLayers.length;
-    let newPositions: {id: string, x: number, y: number}[] = [];
+    let newPositions: { id: string, x: number, y: number }[] = [];
     const getHeight = (l: any) => l.height || 40;
 
     if (type === 'row') {
-       const totalWidth = allLayers.reduce((acc, l) => acc + l.width, 0);
-       const spacing = (CANVAS_W - 2 * PADDING - totalWidth) / (count - 1 > 0 ? count - 1 : 1);
-       let currentX = PADDING;
-       const centerY = CANVAS_H / 2;
-       allLayers.forEach(l => { newPositions.push({ id: l.id, x: count === 1 ? (CANVAS_W - l.width)/2 : currentX, y: centerY - getHeight(l) / 2 }); currentX += l.width + Math.max(0, spacing); });
+      const totalWidth = allLayers.reduce((acc, l) => acc + l.width, 0);
+      const spacing = (CANVAS_W - 2 * PADDING - totalWidth) / (count - 1 > 0 ? count - 1 : 1);
+      let currentX = PADDING;
+      const centerY = CANVAS_H / 2;
+      allLayers.forEach(l => { newPositions.push({ id: l.id, x: count === 1 ? (CANVAS_W - l.width) / 2 : currentX, y: centerY - getHeight(l) / 2 }); currentX += l.width + Math.max(0, spacing); });
     } else if (type === 'col') {
-       const totalHeight = allLayers.reduce((acc, l) => acc + getHeight(l), 0);
-       const spacing = (CANVAS_H - 2 * PADDING - totalHeight) / (count - 1 > 0 ? count - 1 : 1);
-       let currentY = PADDING;
-       const centerX = CANVAS_W / 2;
-       allLayers.forEach(l => { newPositions.push({ id: l.id, x: centerX - l.width / 2, y: count === 1 ? (CANVAS_H - getHeight(l))/2 : currentY }); currentY += getHeight(l) + Math.max(0, spacing); });
+      const totalHeight = allLayers.reduce((acc, l) => acc + getHeight(l), 0);
+      const spacing = (CANVAS_H - 2 * PADDING - totalHeight) / (count - 1 > 0 ? count - 1 : 1);
+      let currentY = PADDING;
+      const centerX = CANVAS_W / 2;
+      allLayers.forEach(l => { newPositions.push({ id: l.id, x: centerX - l.width / 2, y: count === 1 ? (CANVAS_H - getHeight(l)) / 2 : currentY }); currentY += getHeight(l) + Math.max(0, spacing); });
     } else if (type === 'grid') {
-       const cols = Math.ceil(Math.sqrt(count));
-       const rows = Math.ceil(count / cols);
-       const cellW = (CANVAS_W - 2 * PADDING) / cols;
-       const cellH = (CANVAS_H - 2 * PADDING) / rows;
-       allLayers.forEach((l, i) => { const col = i % cols; const row = Math.floor(i / cols); const cellCenterX = PADDING + col * cellW + cellW / 2; const cellCenterY = PADDING + row * cellH + cellH / 2; newPositions.push({ id: l.id, x: cellCenterX - l.width / 2, y: cellCenterY - getHeight(l) / 2 }); });
+      const cols = Math.ceil(Math.sqrt(count));
+      const rows = Math.ceil(count / cols);
+      const cellW = (CANVAS_W - 2 * PADDING) / cols;
+      const cellH = (CANVAS_H - 2 * PADDING) / rows;
+      allLayers.forEach((l, i) => { const col = i % cols; const row = Math.floor(i / cols); const cellCenterX = PADDING + col * cellW + cellW / 2; const cellCenterY = PADDING + row * cellH + cellH / 2; newPositions.push({ id: l.id, x: cellCenterX - l.width / 2, y: cellCenterY - getHeight(l) / 2 }); });
     }
 
     setTextLayers(prev => prev.map(l => { const pos = newPositions.find(p => p.id === l.id); return pos ? { ...l, x: pos.x, y: pos.y } : l; }));
@@ -498,22 +877,22 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   };
 
   const handleRemix = (layerId: string) => {
-     const layer = imageLayers.find(l => l.id === layerId);
-     if (layer) { setUploadedImage(layer.src); setMode(AppMode.EDIT); setActiveTab(NavTab.MAGIC); setPrompt(''); }
+    const layer = imageLayers.find(l => l.id === layerId);
+    if (layer) { setUploadedImage(layer.src); setMode(AppMode.EDIT); setActiveTab(NavTab.MAGIC); setPrompt(''); }
   };
 
   const handleExportDataUrl = async (): Promise<string> => {
-      const backgroundImageUrl = activeImage?.url || uploadedImage;
-      return await exportService.exportDesignToImage(
-        canvasSize.width,
-        canvasSize.height,
-        canvasBackgroundColor,
-        backgroundImageUrl,
-        shapeLayers,
-        textLayers,
-        imageLayers,
-        canvasFilters
-      );
+    const backgroundImageUrl = activeImage?.url || uploadedImage;
+    return await exportService.exportDesignToImage(
+      canvasSize.width,
+      canvasSize.height,
+      canvasBackgroundColor,
+      backgroundImageUrl,
+      shapeLayers,
+      textLayers,
+      imageLayers,
+      canvasFilters
+    );
   }
 
   const handleToggleEraser = () => {
@@ -559,122 +938,88 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
 
   const handleDeleteUpload = (index: number) => { setUploads(prev => prev.filter((_, i) => i !== index)); };
 
-  const handleCopyLayer = (id: string) => {
-    const layer = [
-      ...textLayers,
-      ...shapeLayers,
-      ...imageLayers
-    ].find(l => l.id === id);
-    
-    if (layer) {
-      setClipboardLayer(JSON.parse(JSON.stringify(layer)));
-    }
-  };
-
-  const handlePasteLayer = () => {
-    if (!clipboardLayer) return;
-    saveToHistory();
-    
-    const newLayer = {
-      ...JSON.parse(JSON.stringify(clipboardLayer)),
-      id: `${clipboardLayer.type}_${Date.now()}`,
-      x: (clipboardLayer.x || 0) + 20,
-      y: (clipboardLayer.y || 0) + 20,
-      name: (clipboardLayer.name || 'Layer') + ' Copy'
-    };
-
-    if (clipboardLayer.type === 'text') {
-      setTextLayers(prev => [...prev, newLayer]);
-    } else if (clipboardLayer.type === 'image') {
-      setImageLayers(prev => [...prev, newLayer]);
-    } else {
-      setShapeLayers(prev => [...prev, newLayer]);
-    }
-    
-    setSelectedLayerId(newLayer.id);
-  };
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
-      if ((e.metaKey || e.ctrlKey) && e.key === 'z') { if (e.shiftKey) handleRedo(); else handleUndo(); e.preventDefault(); return; }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'c') { if (selectedLayerId) { handleCopyLayer(selectedLayerId); e.preventDefault(); } return; }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'v') { handlePasteLayer(); e.preventDefault(); return; }
-      if (e.key === 'Delete' || e.key === 'Backspace') { if (selectedLayerId) handleDeleteLayer(selectedLayerId); return; }
-      if ((e.metaKey || e.ctrlKey) && e.key === 'd') { if (selectedLayerId) { e.preventDefault(); handleDuplicateLayer(selectedLayerId); } return; }
-      if (e.key === '?') setShowShortcuts(prev => !prev);
-      if (selectedLayerId && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-        e.preventDefault();
-        let isLocked = false;
-        if (selectedLayerId.startsWith('text')) isLocked = textLayers.find(l => l.id === selectedLayerId)?.locked || false;
-        else if (selectedLayerId.startsWith('shape')) isLocked = shapeLayers.find(l => l.id === selectedLayerId)?.locked || false;
-        else if (selectedLayerId.startsWith('image')) isLocked = imageLayers.find(l => l.id === selectedLayerId)?.locked || false;
-        if (isLocked) return;
-        saveToHistory(); 
-        const step = e.shiftKey ? 10 : 1;
-        let dx = 0; let dy = 0;
-        if (e.key === 'ArrowLeft') dx = -step; if (e.key === 'ArrowRight') dx = step; if (e.key === 'ArrowUp') dy = -step; if (e.key === 'ArrowDown') dy = step;
-        if (selectedLayerId.startsWith('text_')) setTextLayers(prev => prev.map(l => l.id === selectedLayerId ? { ...l, x: l.x + dx, y: l.y + dy } : l));
-        else if (selectedLayerId.startsWith('shape_')) setShapeLayers(prev => prev.map(l => l.id === selectedLayerId ? { ...l, x: l.x + dx, y: l.y + dy } : l));
-        else if (selectedLayerId.startsWith('image_')) setImageLayers(prev => prev.map(l => l.id === selectedLayerId ? { ...l, x: l.x + dx, y: l.y + dy } : l));
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown); return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedLayerId, handleDeleteLayer, handleUndo, handleRedo, saveToHistory, textLayers, shapeLayers, imageLayers, handleDuplicateLayer]);
+  // -- Keyboard Shortcuts --
+  useKeyboardShortcuts({
+    shortcuts: [
+      { key: 'z', ctrl: true, action: handleUndo, description: 'Undo' },
+      { key: 'y', ctrl: true, action: handleRedo, description: 'Redo' },
+      { key: 'z', ctrl: true, shift: true, action: handleRedo, description: 'Redo' },
+      { key: 'c', ctrl: true, action: handleCopyLayer, description: 'Copy Layer' },
+      { key: 'v', ctrl: true, action: handlePasteLayer, description: 'Paste Layer' },
+      { key: 'd', ctrl: true, action: () => selectedLayerIds.length > 0 && handleDuplicateSelected(), description: 'Duplicate Layer(s)' },
+      { key: 'Delete', action: () => selectedLayerIds.length > 0 && handleDeleteSelected(), description: 'Delete Layer(s)' },
+      { key: 'Backspace', action: () => selectedLayerIds.length > 0 && handleDeleteSelected(), description: 'Delete Layer(s)' },
+      { key: 's', ctrl: true, action: () => saveProject(), description: 'Save Project' },
+      { key: 'e', ctrl: true, action: () => setShowExport(true), description: 'Export Design' },
+      { key: 'e', ctrl: true, action: () => setShowExport(true), description: 'Export Design' },
+      { key: 'g', ctrl: true, action: () => selectedLayerIds.length > 1 && handleGroupSelected(), description: 'Group Layers' },
+      { key: 'g', ctrl: true, shift: true, action: () => selectedLayerIds.length > 0 && handleUngroupSelected(), description: 'Ungroup Layers' },
+      { key: '?', action: () => setShowShortcuts(prev => !prev), description: 'Toggle Shortcuts Help' },
+      // Nudge Shortcuts
+      { key: 'ArrowUp', action: () => handleNudgeLayer('up'), description: 'Move Layer Up' },
+      { key: 'ArrowDown', action: () => handleNudgeLayer('down'), description: 'Move Layer Down' },
+      { key: 'ArrowLeft', action: () => handleNudgeLayer('left'), description: 'Move Layer Left' },
+      { key: 'ArrowRight', action: () => handleNudgeLayer('right'), description: 'Move Layer Right' },
+      { key: 'ArrowUp', shift: true, action: () => handleNudgeLayer('up', 10), description: 'Move Layer Up (Large)' },
+      { key: 'ArrowDown', shift: true, action: () => handleNudgeLayer('down', 10), description: 'Move Layer Down (Large)' },
+      { key: 'ArrowLeft', shift: true, action: () => handleNudgeLayer('left', 10), description: 'Move Layer Left (Large)' },
+      { key: 'ArrowRight', shift: true, action: () => handleNudgeLayer('right', 10), description: 'Move Layer Right (Large)' },
+    ],
+    enabled: shortcutsEnabled
+  });
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     setIsProcessing(true);
     try {
       if (mode === AppMode.THEME) {
-          const theme = await geminiService.generateDesignTheme(prompt);
-          handleApplyTheme(theme);
+        const theme = await geminiService.generateDesignTheme(prompt);
+        handleApplyTheme(theme);
       } else {
-          if (quality === 'hd') {
-             if (user.plan === 'free') {
-                setIsProcessing(false);
-                onOpenPricing();
-                return;
-             }
-             // @ts-ignore
-             if (window.aistudio && !await window.aistudio.hasSelectedApiKey()) {
-                // @ts-ignore
-                await window.aistudio.openSelectKey();
-             }
+        if (quality === 'hd') {
+          if (user.plan === 'free') {
+            setIsProcessing(false);
+            onOpenPricing();
+            return;
           }
-          let resultBase64: string;
-          const timestamp = Date.now();
-          const newId = `img_${timestamp}`;
-          const selectedImageLayer = imageLayers.find(l => l.id === selectedLayerId);
-          if (mode === AppMode.GENERATE) {
-            resultBase64 = await geminiService.generateImage(prompt, aspectRatio, quality);
-          } else {
-            let sourceImage = uploadedImage;
-            if (selectedImageLayer) sourceImage = selectedImageLayer.src;
-            if (!sourceImage) throw new Error("No image source found to edit.");
-            resultBase64 = await geminiService.editImage(sourceImage, prompt, quality);
+          // @ts-ignore
+          if (window.aistudio && !await window.aistudio.hasSelectedApiKey()) {
+            // @ts-ignore
+            await window.aistudio.openSelectKey();
           }
-          const newImage: GeneratedImage = { id: newId, url: resultBase64, prompt: prompt, timestamp, mode: mode, aspectRatio: aspectRatio };
-          setHistory(prev => [newImage, ...prev]);
-          setActiveImageId(newId);
-          setCanvasFilters(DEFAULT_FILTERS);
+        }
+        let resultBase64: string;
+        const timestamp = Date.now();
+        const newId = `img_${timestamp}`;
+        const selectedImageLayer = imageLayers.find(l => l.id === selectedLayerId);
+        if (mode === AppMode.GENERATE) {
+          resultBase64 = await geminiService.generateImage(prompt, aspectRatio, quality);
+        } else {
+          let sourceImage = uploadedImage;
+          if (selectedImageLayer) sourceImage = selectedImageLayer.src;
+          if (!sourceImage) throw new Error("No image source found to edit.");
+          resultBase64 = await geminiService.editImage(sourceImage, prompt, quality);
+        }
+        const newImage: GeneratedImage = { id: newId, url: resultBase64, prompt: prompt, timestamp, mode: mode, aspectRatio: aspectRatio };
+        setHistory(prev => [newImage, ...prev]);
+        setActiveImageId(newId);
+        setCanvasFilters(DEFAULT_FILTERS);
       }
     } catch (error: any) { console.error(error); alert(`Error: ${error.message || "Failed to generate content"}`); } finally { setIsProcessing(false); }
   };
 
   const handleApplyTheme = useCallback((theme: DesignTheme) => {
-      saveToHistory();
-      setCanvasBackgroundColor(theme.backgroundColor);
-      setTextLayers(prev => prev.map(layer => {
-          const isHeading = layer.fontSize > 24;
-          return { ...layer, color: isHeading ? theme.primaryColor : theme.secondaryColor, fontFamily: isHeading ? theme.headingFont : theme.bodyFont };
-      }));
-      setShapeLayers(prev => prev.map((layer, index) => {
-          const colors = [theme.primaryColor, theme.secondaryColor, theme.accentColor];
-          return { ...layer, color: colors[index % colors.length] };
-      }));
-      setProjectTitle(`${theme.name} Design`);
+    saveToHistory();
+    setCanvasBackgroundColor(theme.backgroundColor);
+    setTextLayers(prev => prev.map(layer => {
+      const isHeading = layer.fontSize > 24;
+      return { ...layer, color: isHeading ? theme.primaryColor : theme.secondaryColor, fontFamily: isHeading ? theme.headingFont : theme.bodyFont };
+    }));
+    setShapeLayers(prev => prev.map((layer, index) => {
+      const colors = [theme.primaryColor, theme.secondaryColor, theme.accentColor];
+      return { ...layer, color: colors[index % colors.length] };
+    }));
+    setProjectTitle(`${theme.name} Design`);
   }, [saveToHistory]);
 
   const handleMagicWrite = async (layerId: string) => {
@@ -693,28 +1038,55 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     setShowExport(true);
   };
 
-  const handleConfirmExport = async () => {
+  const handleConfirmExport = async (
+    format: 'png' | 'jpeg' | 'webp' | 'pdf' = 'png',
+    quality: number = 0.95,
+    size?: { width: number, height: number }
+  ) => {
     setIsExporting(true);
     try {
       const backgroundImageUrl = activeImage?.url || uploadedImage;
-      const dataUrl = await exportService.exportDesignToImage(
-        canvasSize.width,
-        canvasSize.height,
-        canvasBackgroundColor,
-        backgroundImageUrl,
-        shapeLayers,
-        textLayers,
-        imageLayers,
-        canvasFilters,
-        exportFormat,
-        exportQuality
-      );
-      const link = document.createElement('a');
-      link.href = dataUrl;
-      link.download = `${projectTitle.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.${exportFormat}`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+
+      if (format === 'pdf') {
+        // PDF Export - Simple simulated implementation for now
+        // Usually requires jspdf, but we can do a high-res PNG and tell the user it's ready for PDF
+        const dataUrl = await exportService.exportDesignToImage(
+          size?.width || canvasSize.width,
+          size?.height || canvasSize.height,
+          canvasBackgroundColor,
+          backgroundImageUrl,
+          shapeLayers,
+          textLayers,
+          imageLayers,
+          canvasFilters,
+          'png',
+          1
+        );
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = `${projectTitle.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.png`;
+        alert("Preparing PDF... For this demo, we're downloading a high-res design which can be saved as PDF.");
+        link.click();
+      } else {
+        const dataUrl = await exportService.exportDesignToImage(
+          size?.width || canvasSize.width,
+          size?.height || canvasSize.height,
+          canvasBackgroundColor,
+          backgroundImageUrl,
+          shapeLayers,
+          textLayers,
+          imageLayers,
+          canvasFilters,
+          format as 'png' | 'jpeg' | 'webp',
+          quality
+        );
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = `${projectTitle.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.${format}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
       setShowExport(false);
     } catch (error) {
       console.error("Export failed", error);
@@ -725,75 +1097,97 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   };
 
   const handleBack = async () => {
-      // Save thumbnail before exit
-      try {
-          // Generate a small thumbnail
-          const thumb = await exportService.exportDesignToImage(
-            300,
-            300,
-            canvasBackgroundColor,
-            activeImage?.url || uploadedImage,
-            shapeLayers,
-            textLayers,
-            imageLayers,
-            canvasFilters,
-            'png',
-            1
-          );
-          
-          // Update project state in localStorage directly or via state if we had a dedicated project manager hook
-          // Since we are exiting, we can just save it.
-          const updatedProject: Project = {
-            id: projectId,
-            name: projectTitle,
-            updatedAt: Date.now(),
-            thumbnail: thumb,
-            state: {
-                textLayers,
-                shapeLayers,
-                imageLayers,
-                canvasBackgroundColor,
-                canvasFilters,
-                canvasSize
-            }
-          };
-          
-          const allProjectsStr = localStorage.getItem('kreathief_projects');
-          let allProjects: Project[] = allProjectsStr ? JSON.parse(allProjectsStr) : [];
-          const idx = allProjects.findIndex(p => p.id === projectId);
-          if (idx >= 0) {
-              allProjects[idx] = updatedProject;
-          } else {
-              allProjects.push(updatedProject);
-          }
-          localStorage.setItem('kreathief_projects', JSON.stringify(allProjects));
-          
-          onBack();
-      } catch(e) {
-          console.error("Failed to save thumbnail on exit", e);
-          onBack();
+    // Save thumbnail before exit
+    try {
+      // Generate a small thumbnail
+      const thumb = await exportService.exportDesignToImage(
+        300,
+        300,
+        canvasBackgroundColor,
+        activeImage?.url || uploadedImage,
+        shapeLayers,
+        textLayers,
+        imageLayers,
+        canvasFilters,
+        'png',
+        1
+      );
+
+      // Update project state in localStorage directly or via state if we had a dedicated project manager hook
+      // Since we are exiting, we can just save it.
+      const updatedProject: Project = {
+        id: projectId,
+        name: projectTitle,
+        updatedAt: Date.now(),
+        thumbnail: thumb,
+        state: {
+          textLayers,
+          shapeLayers,
+          imageLayers,
+          canvasBackgroundColor,
+          canvasFilters,
+          canvasSize
+        }
+      };
+
+      const allProjectsStr = localStorage.getItem('kreathief_projects');
+      let allProjects: Project[] = allProjectsStr ? JSON.parse(allProjectsStr) : [];
+      const idx = allProjects.findIndex(p => p.id === projectId);
+      if (idx >= 0) {
+        allProjects[idx] = updatedProject;
+      } else {
+        allProjects.push(updatedProject);
       }
+      localStorage.setItem('kreathief_projects', JSON.stringify(allProjects));
+
+      onBack();
+    } catch (e) {
+      console.error("Failed to save thumbnail on exit", e);
+      onBack();
+    }
+  };
+
+  const handleZoom = (direction: 'in' | 'out') => {
+    setZoom(prev => {
+      const step = 0.1;
+      const newZoom = direction === 'in' ? prev + step : prev - step;
+      return Math.min(Math.max(newZoom, 0.1), 3); // min 10%, max 300%
+    });
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#1f1f1f] overflow-hidden text-[#e5e7eb] font-sans relative">
-      <Header 
-        onDownload={handleDownload} 
+    <div className="flex flex-col h-screen w-full bg-[#121212] overflow-hidden text-[#e5e7eb] font-sans relative">
+      <Header
+        onDownload={handleDownload}
         title={projectTitle}
         onTitleChange={setProjectTitle}
         onUndo={handleUndo}
         onRedo={handleRedo}
+        onShare={() => setShowShare(true)}
         canUndo={past.length > 0}
         canRedo={future.length > 0}
         onToggleShortcuts={() => setShowShortcuts(!showShortcuts)}
         isSaving={isSaving}
         onBack={handleBack}
         user={user}
+        onNew={handleNew}
+        onOpen={() => setActiveTab(NavTab.PROJECTS)}
+        onSave={() => saveProject()}
+        onZoomIn={() => handleZoom('in')}
+        onZoomOut={() => handleZoom('out')}
+        onResetZoom={() => setZoom(1)}
+        onToggleGrid={() => setShowGrid(!showGrid)}
+        showGrid={showGrid}
+        onCopy={() => selectedLayerId && handleCopyLayer(selectedLayerId)}
+        onPaste={handlePasteLayer}
+        onDelete={() => selectedLayerId && handleDeleteLayer(selectedLayerId)}
+        onDuplicate={() => selectedLayerId && handleDuplicateLayer(selectedLayerId)}
+        onCut={() => selectedLayerId && handleCutLayer(selectedLayerId)}
       />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div id="canvas-container" className="flex-1 flex flex-row relative overflow-hidden bg-[#0e1318]">
         <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
-        <SidePanel 
+        <SidePanel
           activeTab={activeTab}
           mode={mode}
           prompt={prompt}
@@ -828,11 +1222,13 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
           setBrushColor={setBrushColor}
           brushSize={brushSize}
           setBrushSize={setBrushSize}
+          brushType={brushType}
+          setBrushType={setBrushType}
           isDrawing={isDrawing}
           setIsDrawing={setIsDrawing}
           brushOpacity={brushOpacity}
           setBrushOpacity={setBrushOpacity}
-          onFinishDrawing={() => { if(!isEraserActive) setIsDrawing(false) }}
+          onFinishDrawing={() => { if (!isEraserActive) setIsDrawing(false) }}
           onApplyLayout={handleApplyLayout}
           brandKits={brandKits}
           onAddBrandKit={handleAddBrandKit}
@@ -848,7 +1244,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
           uploads={uploads}
           onDeleteUpload={handleDeleteUpload}
         />
-        <Canvas 
+        <Canvas
           activeImage={activeImage}
           uploadedImage={uploadedImage}
           isProcessing={isProcessing}
@@ -864,11 +1260,15 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
           onUpdateTextLayer={handleUpdateTextLayer}
           onUpdateShapeLayer={handleUpdateShapeLayer}
           onUpdateImageLayer={handleUpdateImageLayer}
-          onSelectLayer={setSelectedLayerId}
+          onSelectLayer={handleSelectLayerWrapper}
           onDeleteLayer={handleDeleteLayer}
           onDuplicateLayer={handleDuplicateLayer}
           onMoveLayer={handleMoveLayer}
+          onGroup={handleGroupSelected}
+          onUngroup={handleUngroupSelected}
           selectedLayerId={selectedLayerId}
+          selectedLayerIds={selectedLayerIds}
+          onMultiSelectLayer={handleMultiSelectLayer}
           onInteractionStart={saveToHistory}
           onMagicWrite={handleMagicWrite}
           showGrid={showGrid}
@@ -876,8 +1276,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
           isDrawing={isDrawing}
           brushColor={brushColor}
           brushSize={brushSize}
+          brushType={brushType}
           brushOpacity={brushOpacity}
-          onDrawingComplete={isEraserActive ? handleEraserComplete : handleAddImageLayer}
+          onDrawingComplete={isEraserActive ? handleEraserComplete : handleDrawingComplete}
           onRemix={handleRemix}
           canvasSize={canvasSize}
           onSetCanvasSize={setCanvasSize}
@@ -885,131 +1286,90 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
           onOpenPricing={onOpenPricing}
         />
       </div>
-      
+
       {isEraserActive && (
-         <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-red-900/90 text-white px-6 py-3 rounded-full shadow-2xl z-[60] flex items-center gap-4 animate-bounce-in border border-red-500/50 backdrop-blur-md">
-            <div className="flex flex-col">
-               <span className="text-sm font-bold">Magic Eraser Active</span>
-               <span className="text-[10px] opacity-80">Paint over object to remove</span>
-            </div>
-            <div className="h-8 w-px bg-white/20"></div>
-            <button onClick={() => setIsDrawing(false)} className="bg-white text-red-900 px-4 py-1.5 rounded-full text-xs font-bold hover:bg-gray-100 transition-colors">Apply</button>
-            <button onClick={handleToggleEraser} className="text-white/80 hover:text-white text-xs font-medium underline">Cancel</button>
-         </div>
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 bg-red-900/90 text-white px-6 py-3 rounded-full shadow-2xl z-[60] flex items-center gap-4 animate-bounce-in border border-red-500/50 backdrop-blur-md">
+          <div className="flex flex-col">
+            <span className="text-sm font-bold">Magic Eraser Active</span>
+            <span className="text-[10px] opacity-80">Paint over object to remove</span>
+          </div>
+          <div className="h-8 w-px bg-white/20"></div>
+          <button onClick={() => setIsDrawing(false)} className="bg-white text-red-900 px-4 py-1.5 rounded-full text-xs font-bold hover:bg-gray-100 transition-colors">Apply</button>
+          <button onClick={handleToggleEraser} className="text-white/80 hover:text-white text-xs font-medium underline">Cancel</button>
+        </div>
       )}
-      
+
       {isExporting && (
         <div className="fixed inset-0 bg-black/70 z-[100] flex items-center justify-center">
-           <div className="text-white flex flex-col items-center">
-              <svg className="animate-spin h-8 w-8 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <p className="font-medium text-lg">Exporting your design...</p>
-           </div>
+          <div className="text-white flex flex-col items-center">
+            <svg className="animate-spin h-8 w-8 text-white mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p className="font-medium text-lg">Exporting your design...</p>
+          </div>
         </div>
+      )}
+
+      {showShare && (
+        <ShareModal
+          onClose={() => setShowShare(false)}
+          designTitle={projectTitle}
+          onGetShareLink={async () => {
+            // Simulated share link generation
+            await new Promise(r => setTimeout(r, 1500));
+            const randomId = Math.random().toString(36).substring(7);
+            return `https://kreathief.app/view/${randomId}`;
+          }}
+        />
       )}
 
       {showShortcuts && (
         <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center" onClick={() => setShowShortcuts(false)}>
-           <div className="bg-[#252627] p-6 rounded-xl border border-gray-700 shadow-2xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
-              <div className="flex justify-between items-center mb-4">
-                 <h3 className="text-lg font-bold text-white flex items-center gap-2"><Icons.Keyboard className="w-5 h-5 text-[#7d2ae8]" /> Keyboard Shortcuts</h3>
-                 <button onClick={() => setShowShortcuts(false)} className="text-gray-400 hover:text-white">&times;</button>
-              </div>
-              <div className="space-y-2 text-sm text-gray-300">
-                 <div className="flex justify-between py-2 border-b border-gray-700"><span>Undo</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Ctrl + Z</span></div>
-                 <div className="flex justify-between py-2 border-b border-gray-700"><span>Redo</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Ctrl + Shift + Z</span></div>
-                 <div className="flex justify-between py-2 border-b border-gray-700"><span>Delete Layer</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Del / Backspace</span></div>
-                 <div className="flex justify-between py-2 border-b border-gray-700"><span>Duplicate</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Ctrl + D</span></div>
-                 <div className="flex justify-between py-2 border-b border-gray-700"><span>Nudge</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Arrow Keys</span></div>
-                 <div className="flex justify-between py-2 border-b border-gray-700"><span>Nudge (x10)</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Shift + Arrow Keys</span></div>
-                 <div className="flex justify-between py-2"><span>Toggle Shortcuts</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">?</span></div>
-              </div>
-           </div>
-        </div>
-      )}
-
-      {showExport && (
-        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center" onClick={() => setShowExport(false)}>
           <div className="bg-[#252627] p-6 rounded-xl border border-gray-700 shadow-2xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Icons.Download className="w-5 h-5 text-[#7d2ae8]" /> Export
-              </h3>
-              <button onClick={() => setShowExport(false)} className="text-gray-400 hover:text-white">&times;</button>
+              <h3 className="text-lg font-bold text-white flex items-center gap-2"><Icons.Keyboard className="w-5 h-5 text-[#7d2ae8]" /> Keyboard Shortcuts</h3>
+              <button onClick={() => setShowShortcuts(false)} className="text-gray-400 hover:text-white">&times;</button>
             </div>
-
-            <div className="space-y-4 text-sm text-gray-300">
-              <div className="flex items-center justify-between gap-3">
-                <span>Format</span>
-                <select
-                  value={exportFormat}
-                  onChange={(e) => setExportFormat(e.target.value as any)}
-                  className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500"
-                >
-                  <option value="png">PNG (lossless)</option>
-                  <option value="jpeg">JPEG (smaller)</option>
-                  <option value="webp">WebP (best)</option>
-                </select>
-              </div>
-
-              <div className="flex items-center justify-between gap-3">
-                <span className={exportFormat === 'png' ? 'text-gray-500' : ''}>Quality</span>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="range"
-                    min={0.5}
-                    max={1}
-                    step={0.05}
-                    value={exportQuality}
-                    disabled={exportFormat === 'png'}
-                    onChange={(e) => setExportQuality(parseFloat(e.target.value))}
-                    className="w-40"
-                  />
-                  <span className={`font-mono text-xs bg-gray-800 px-2 py-1 rounded ${exportFormat === 'png' ? 'opacity-50' : ''}`}>
-                    {Math.round(exportQuality * 100)}%
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button
-                  onClick={() => setShowExport(false)}
-                  className="flex-1 bg-gray-800 hover:bg-gray-700 text-white py-2 rounded font-bold border border-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmExport}
-                  className="flex-1 bg-[#7d2ae8] hover:bg-[#6a22c5] text-white py-2 rounded font-bold"
-                >
-                  Export
-                </button>
-              </div>
-
-              <p className="text-xs text-gray-400">
-                Tip: PNG is best for crisp text/logos. JPEG/WebP are smaller for sharing.
-              </p>
+            <div className="space-y-2 text-sm text-gray-300">
+              <div className="flex justify-between py-2 border-b border-gray-700"><span>Undo</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Ctrl + Z</span></div>
+              <div className="flex justify-between py-2 border-b border-gray-700"><span>Redo</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Ctrl + Shift + Z</span></div>
+              <div className="flex justify-between py-2 border-b border-gray-700"><span>Copy</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Ctrl + C</span></div>
+              <div className="flex justify-between py-2 border-b border-gray-700"><span>Paste</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Ctrl + V</span></div>
+              <div className="flex justify-between py-2 border-b border-gray-700"><span>Duplicate</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Ctrl + D</span></div>
+              <div className="flex justify-between py-2 border-b border-gray-700"><span>Delete Layer</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Del / Backspace</span></div>
+              <div className="flex justify-between py-2 border-b border-gray-700"><span>Save Project</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Ctrl + S</span></div>
+              <div className="flex justify-between py-2 border-b border-gray-700"><span>Export Design</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Ctrl + E</span></div>
+              <div className="flex justify-between py-2 border-b border-gray-700"><span>Nudge</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Arrow Keys</span></div>
+              <div className="flex justify-between py-2 border-b border-gray-700"><span>Nudge (x10)</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Shift + Arrow Keys</span></div>
+              <div className="flex justify-between py-2"><span>Toggle Shortcuts</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">?</span></div>
             </div>
           </div>
         </div>
       )}
 
+      {showExport && (
+        <ExportModal
+          onClose={() => setShowExport(false)}
+          currentSize={canvasSize}
+          onExport={handleConfirmExport}
+        />
+      )}
+
       {/* AI Features Modals */}
-      <AIAssistant 
+      <AIAssistant
         isOpen={showAIAssistant}
         onClose={() => setShowAIAssistant(false)}
         isProcessing={isProcessing}
       />
-      
-      <DesignSuggestions 
+
+      <DesignSuggestions
         isOpen={showDesignSuggestions}
         onClose={() => setShowDesignSuggestions(false)}
         designContext={`${projectTitle} design with ${textLayers.length} text layers and ${shapeLayers.length} shapes`}
       />
-      
-      <SmartContentGenerator 
+
+      <SmartContentGenerator
         isOpen={showSmartContent}
         onClose={() => setShowSmartContent(false)}
         onSelectContent={(content) => {
@@ -1018,11 +1378,11 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
         }}
         designContext={projectTitle}
       />
-      
-      <DesignQualityScorer 
+
+      <DesignQualityScorer
         isOpen={showQualityScore}
         onClose={() => setShowQualityScore(false)}
-        designImage={activeImage?.url || uploadedImage}
+        designImage={activeImage?.url || uploadedImage || undefined}
       />
     </div>
   );

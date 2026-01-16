@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { NavTab, AppMode, AspectRatio, GeneratedImage, TextLayer, ShapeLayer, ImageLayer, Project, BrandKit, GenerationQuality } from '../types';
+import { NavTab, AppMode, AspectRatio, GeneratedImage, TextLayer, ShapeLayer, ImageLayer, Project, BrandKit, GenerationQuality, BrushType } from '../types';
 import { MagicPanel } from './panels/MagicPanel';
 import { LayersPanel } from './panels/LayersPanel';
 import { TemplatesPanel } from './panels/TemplatesPanel';
@@ -12,6 +12,7 @@ import { AssistantPanel } from './panels/AssistantPanel';
 import { ElementsPanel } from './panels/ElementsPanel';
 import { TextPanel } from './panels/TextPanel';
 import { UploadsPanel } from './panels/UploadsPanel';
+import { AssetsPanel } from './panels/AssetsPanel';
 
 interface SidePanelProps {
   activeTab: NavTab;
@@ -61,6 +62,8 @@ interface SidePanelProps {
   setIsDrawing?: (b: boolean) => void;
   brushOpacity?: number;
   setBrushOpacity?: (o: number) => void;
+  brushType?: BrushType;
+  setBrushType?: (t: BrushType) => void;
   onFinishDrawing?: () => void;
   onApplyLayout?: (shapes: Partial<ShapeLayer>[]) => void;
   // Brand
@@ -81,6 +84,9 @@ interface SidePanelProps {
   // Uploads Library
   uploads?: string[];
   onDeleteUpload?: (index: number) => void;
+  // Copy/Paste (missing in props but used in LayersPanel)
+  onCopyLayer?: (id: string) => void;
+  onPasteLayer?: () => void;
 }
 
 export const SidePanel: React.FC<SidePanelProps> = ({
@@ -119,14 +125,16 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   onDeleteProject,
   onCreateProject,
   brushColor = '#000000',
-  setBrushColor = () => {},
+  setBrushColor = () => { },
   brushSize = 5,
-  setBrushSize = () => {},
+  setBrushSize = () => { },
   isDrawing = false,
-  setIsDrawing = () => {},
+  setIsDrawing = () => { },
   brushOpacity = 1,
-  setBrushOpacity = () => {},
-  onFinishDrawing = () => {},
+  setBrushOpacity = () => { },
+  brushType = BrushType.BASIC,
+  setBrushType = () => { },
+  onFinishDrawing = () => { },
   onApplyLayout,
   brandKits = [],
   onAddBrandKit,
@@ -138,56 +146,58 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   currentTexture,
   getCanvasSnapshot,
   quality = 'standard',
-  setQuality = () => {},
+  setQuality = () => { },
   uploads = [],
-  onDeleteUpload
+  onDeleteUpload,
+  onCopyLayer,
+  onPasteLayer
 }) => {
-  
+
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Note: Projects render logic is simple enough to stay here or could be moved to ProjectsPanel if needed later.
   const renderProjects = () => (
     <div className="flex flex-col h-full p-4 bg-[#13161a]">
-        <h3 className="font-bold text-white mb-6">Projects</h3>
-        <button 
-            className="w-full bg-[#7d2ae8] hover:bg-[#6b23c5] text-white py-2 rounded text-sm font-bold mb-6 transition-colors" 
-            onClick={onCreateProject}
-        >
-            + New Design
-        </button>
+      <h3 className="font-bold text-white mb-6">Projects</h3>
+      <button
+        className="w-full bg-[#7d2ae8] hover:bg-[#6b23c5] text-white py-2 rounded text-sm font-bold mb-6 transition-colors"
+        onClick={onCreateProject}
+      >
+        + New Design
+      </button>
 
-        <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Saved</h4>
-        <div className="space-y-2 overflow-y-auto custom-scrollbar flex-1 pb-10">
-            {projects.length === 0 ? (
-                <div className="text-center text-gray-500 mt-10">
-                    <p className="text-xs">No saved projects yet</p>
-                </div>
-            ) : (
-                projects.map(project => (
-                    <div key={project.id} className="bg-[#1e1e1e] border border-gray-700 rounded-lg p-3 group hover:border-[#7d2ae8] transition-colors relative">
-                        <div className="cursor-pointer" onClick={() => onLoadProject && onLoadProject(project)}>
-                            <h5 className="text-sm font-bold text-white truncate pr-6">{project.name}</h5>
-                            <p className="text-[10px] text-gray-500 mt-1">
-                                Edited {new Date(project.updatedAt).toLocaleDateString()}
-                            </p>
-                        </div>
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); onDeleteProject && onDeleteProject(project.id); }}
-                            className="absolute top-2 right-2 text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                            &times;
-                        </button>
-                    </div>
-                ))
-            )}
-        </div>
+      <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Saved</h4>
+      <div className="space-y-2 overflow-y-auto custom-scrollbar flex-1 pb-10">
+        {projects.length === 0 ? (
+          <div className="text-center text-gray-500 mt-10">
+            <p className="text-xs">No saved projects yet</p>
+          </div>
+        ) : (
+          projects.map(project => (
+            <div key={project.id} className="bg-[#1e1e1e] border border-gray-700 rounded-lg p-3 group hover:border-[#7d2ae8] transition-colors relative">
+              <div className="cursor-pointer" onClick={() => onLoadProject && onLoadProject(project)}>
+                <h5 className="text-sm font-bold text-white truncate pr-6">{project.name}</h5>
+                <p className="text-[10px] text-gray-500 mt-1">
+                  Edited {new Date(project.updatedAt).toLocaleDateString()}
+                </p>
+              </div>
+              <button
+                onClick={(e) => { e.stopPropagation(); onDeleteProject && onDeleteProject(project.id); }}
+                className="absolute top-2 right-2 text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                &times;
+              </button>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 
   return (
     <div className="w-[320px] bg-[#13161a] border-r border-[#1f1f1f] flex flex-col z-20 shrink-0 shadow-xl relative">
       {activeTab === NavTab.MAGIC && (
-        <MagicPanel 
+        <MagicPanel
           mode={mode}
           prompt={prompt}
           setPrompt={setPrompt}
@@ -205,11 +215,11 @@ export const SidePanel: React.FC<SidePanelProps> = ({
           setQuality={setQuality}
         />
       )}
-      
+
       {(activeTab === NavTab.ELEMENTS || activeTab === NavTab.STICKERS) && (
-        <ElementsPanel 
-           onAddShape={onAddShape}
-           onAddImageLayer={onAddImageLayer}
+        <ElementsPanel
+          onAddShape={onAddShape}
+          onAddImageLayer={onAddImageLayer}
         />
       )}
 
@@ -218,52 +228,56 @@ export const SidePanel: React.FC<SidePanelProps> = ({
       )}
 
       {activeTab === NavTab.UPLOADS && (
-        <UploadsPanel 
-           onFileUpload={onFileUpload}
-           uploads={uploads}
-           onAddImageLayer={onAddImageLayer}
-           onDeleteUpload={onDeleteUpload}
+        <UploadsPanel
+          onFileUpload={onFileUpload}
+          uploads={uploads}
+          onAddImageLayer={onAddImageLayer}
+          onDeleteUpload={onDeleteUpload}
         />
       )}
 
+      {activeTab === NavTab.PHOTOS && (
+        <AssetsPanel onAddImageLayer={onAddImageLayer || (() => { })} />
+      )}
+
       {activeTab === NavTab.ASSISTANT && (
-        <AssistantPanel 
-           getCanvasSnapshot={getCanvasSnapshot || (async () => "")}
-           onAddText={onAddText}
-           onAddShape={onAddShape}
+        <AssistantPanel
+          getCanvasSnapshot={getCanvasSnapshot || (async () => "")}
+          onAddText={onAddText}
+          onAddShape={onAddShape}
         />
       )}
-      
+
       {activeTab === NavTab.BRAND && (
-        <BrandPanel 
-           brandKits={brandKits}
-           onAddBrandKit={onAddBrandKit || (() => {})}
-           onDeleteBrandKit={onDeleteBrandKit || (() => {})}
-           onApplyBrandColors={onApplyBrandColors || (() => {})}
-           onApplyBrandFonts={onApplyBrandFonts || (() => {})}
+        <BrandPanel
+          brandKits={brandKits}
+          onAddBrandKit={onAddBrandKit || (() => { })}
+          onDeleteBrandKit={onDeleteBrandKit || (() => { })}
+          onApplyBrandColors={onApplyBrandColors || (() => { })}
+          onApplyBrandFonts={onApplyBrandFonts || (() => { })}
         />
       )}
-      
+
       {activeTab === NavTab.TEXTURES && (
-        <TexturesPanel 
-           onApplyTexture={onApplyTexture || (() => {})}
-           currentTexture={currentTexture}
-           onRemoveTexture={onRemoveTexture || (() => {})}
+        <TexturesPanel
+          onApplyTexture={onApplyTexture || (() => { })}
+          currentTexture={currentTexture}
+          onRemoveTexture={onRemoveTexture || (() => { })}
         />
       )}
-      
+
       {activeTab === NavTab.TEMPLATES && (
-        <TemplatesPanel 
-            setPrompt={setPrompt} 
-            setAspectRatio={setAspectRatio} 
-            onSetMode={onSetMode} 
-            onApplyLayout={onApplyLayout}
-            onApplyTemplate={onApplyTemplate}
+        <TemplatesPanel
+          setPrompt={setPrompt}
+          setAspectRatio={setAspectRatio}
+          onSetMode={onSetMode}
+          onApplyLayout={onApplyLayout}
+          onApplyTemplate={onApplyTemplate}
         />
       )}
-      
+
       {activeTab === NavTab.LAYERS && (
-        <LayersPanel 
+        <LayersPanel
           textLayers={textLayers}
           shapeLayers={shapeLayers}
           imageLayers={imageLayers}
@@ -280,42 +294,44 @@ export const SidePanel: React.FC<SidePanelProps> = ({
           onPasteLayer={onPasteLayer}
         />
       )}
-      
+
       {activeTab === NavTab.DRAW && (
-        <DrawPanel 
-            brushColor={brushColor}
-            setBrushColor={setBrushColor}
-            brushSize={brushSize}
-            setBrushSize={setBrushSize}
-            isDrawing={isDrawing}
-            setIsDrawing={setIsDrawing}
-            brushOpacity={brushOpacity}
-            setBrushOpacity={setBrushOpacity}
-            onFinishDrawing={onFinishDrawing}
+        <DrawPanel
+          brushColor={brushColor}
+          setBrushColor={setBrushColor}
+          brushSize={brushSize}
+          setBrushSize={setBrushSize}
+          isDrawing={isDrawing}
+          setIsDrawing={setIsDrawing}
+          brushOpacity={brushOpacity}
+          setBrushOpacity={setBrushOpacity}
+          brushType={brushType}
+          setBrushType={setBrushType}
+          onFinishDrawing={onFinishDrawing}
         />
       )}
-      
+
       {activeTab === NavTab.MOCKUP && (
-        <MockupPanel 
-            onExportForMockup={getCanvasSnapshot || (async () => "")}
-            onAddToCanvas={onAddImageLayer}
+        <MockupPanel
+          onExportForMockup={getCanvasSnapshot || (async () => "")}
+          onAddToCanvas={onAddImageLayer}
         />
       )}
-      
+
       {activeTab === NavTab.PROJECTS && renderProjects()}
 
       {/* Hidden File Input placed at Root to ensure it always exists for MagicPanel Refs */}
-      <input 
-         type="file" 
-         ref={fileInputRef} 
-         className="hidden" 
-         accept="image/*" 
-         onChange={(e) => {
-           if (e.target.files && e.target.files.length > 0) {
-             onFileUpload(e.target.files[0]);
-           }
-         }} 
-       />
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept="image/*"
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            onFileUpload(e.target.files[0]);
+          }
+        }}
+      />
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { MODEL_FAST, MODEL_PRO, FONT_FAMILIES } from '../constants';
 import { DesignTheme, GenerationQuality } from '../types';
 
 // Helper to get fresh client instance (important for key switching)
-const getClient = () => new GoogleGenerativeAI(process.env.API_KEY!);
+const getClient = () => new GoogleGenerativeAI((process as any).env.API_KEY!);
 
 /**
  * Clean Base64 string by removing data URL prefix if present.
@@ -17,21 +17,21 @@ const cleanBase64 = (dataUrl: string): { data: string, mimeType: string } => {
 
   // Remove whitespace/newlines which might break the regex or API
   const cleanUrl = dataUrl.trim();
-  
+
   // More permissive regex to catch data URI schemes
   const matches = cleanUrl.match(/^data:([^;]+);base64,(.+)$/s);
   if (matches && matches.length === 3) {
-    return { 
-      mimeType: matches[1], 
+    return {
+      mimeType: matches[1],
       // Important: Strip newlines/spaces from the actual base64 payload
-      data: matches[2].replace(/\s/g, '') 
+      data: matches[2].replace(/\s/g, '')
     };
   }
-  
+
   // Fallback: If it looks like raw base64 (no data prefix), return as is with default mime
-  return { 
-    mimeType: 'image/png', 
-    data: cleanUrl.replace(/\s/g, '') 
+  return {
+    mimeType: 'image/png',
+    data: cleanUrl.replace(/\s/g, '')
   };
 };
 
@@ -43,7 +43,7 @@ export const generateImage = async (
   try {
     const ai = getClient();
     const modelName = quality === 'hd' ? MODEL_PRO : MODEL_FAST;
-    
+
     const config: any = {
       imageConfig: {
         aspectRatio: aspectRatio
@@ -57,6 +57,7 @@ export const generateImage = async (
     const model = ai.getGenerativeModel({ model: modelName });
     const response = await model.generateContent({
       contents: [{
+        role: 'user',
         parts: [{ text: prompt }]
       }],
       generationConfig: config
@@ -78,7 +79,7 @@ export const editImage = async (
     const ai = getClient();
     const { data, mimeType } = cleanBase64(base64Image);
     const modelName = quality === 'hd' ? MODEL_PRO : MODEL_FAST;
-    
+
     const parts: Part[] = [
       {
         text: prompt
@@ -93,7 +94,7 @@ export const editImage = async (
 
     const model = ai.getGenerativeModel({ model: modelName });
     const response = await model.generateContent({
-      contents: [{ parts }],
+      contents: [{ role: 'user', parts }],
     });
 
     return extractImageFromResponse(response);
@@ -109,7 +110,7 @@ export const removeBackground = async (
   try {
     const ai = getClient();
     const { data, mimeType } = cleanBase64(base64Image);
-    
+
     const prompt = "Extract the main subject of this image and place it on a transparent background. Isolate the subject perfectly.";
 
     const parts: Part[] = [
@@ -119,7 +120,7 @@ export const removeBackground = async (
 
     const model = ai.getGenerativeModel({ model: MODEL_FAST });
     const response = await model.generateContent({
-      contents: [{ parts }],
+      contents: [{ role: 'user', parts }],
     });
 
     return extractImageFromResponse(response);
@@ -136,13 +137,19 @@ export const generateText = async (
   try {
     const ai = getClient();
     const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+
+    // Improved system prompt to ensure formatting
+    const systemInstruction = `You are a creative copywriter. ${instruction}\nMaintain the original language. Keep it concise. Return ONLY the rewritten text without quotes or explanations.`;
+
     const response = await model.generateContent({
       contents: [{
-        parts: [{ text: `System Instruction: ${instruction}\n\nInput Text: "${currentText}"\n\nOutput (just the rewritten text):` }]
+        role: 'user',
+        parts: [{ text: `Input Text: "${currentText}"\n\nOutput:` }]
       }],
+      systemInstruction: systemInstruction
     });
 
-    return response.response.text()?.trim() || currentText;
+    return response.response.text()?.trim().replace(/^["']|["']$/g, '') || currentText;
   } catch (error) {
     console.error("Text Generation Error:", error);
     throw error;
@@ -152,18 +159,19 @@ export const generateText = async (
 export const generateTextOptions = async (topic: string): Promise<string[]> => {
   try {
     const ai = getClient();
-    const model = ai.getGenerativeModel({ 
+    const model = ai.getGenerativeModel({
       model: 'gemini-2.0-flash-exp',
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: {
-            type: SchemaType.ARRAY,
-            items: { type: SchemaType.STRING }
+          type: SchemaType.ARRAY,
+          items: { type: SchemaType.STRING }
         }
       }
     });
     const response = await model.generateContent({
       contents: [{
+        role: 'user',
         parts: [{ text: `Generate 5 creative, short, and catchy phrases about: "${topic}". Useful for posters or social media. Return them as a simple JSON string array.` }]
       }],
     });
@@ -180,7 +188,9 @@ export const enhancePrompt = async (simplePrompt: string): Promise<string> => {
     const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     const response = await model.generateContent({
       contents: [{
-        parts: [{ text: `You are an expert prompt engineer for AI image generators. Rewrite the following simple user description into a highly detailed, artistic, and effective image generation prompt. Include lighting, style, composition, and mood keywords. Keep it under 50 words.
+        role: 'user',
+        parts: [{
+          text: `You are an expert prompt engineer for AI image generators. Rewrite the following simple user description into a highly detailed, artistic, and effective image generation prompt. Include lighting, style, composition, and mood keywords. Keep it under 50 words.
       
       User Description: "${simplePrompt}"
       
@@ -210,7 +220,7 @@ export const generateDesignTheme = async (
       Return JSON only.
     `;
 
-    const model = ai.getGenerativeModel({ 
+    const model = ai.getGenerativeModel({
       model: 'gemini-2.0-flash-exp',
       generationConfig: {
         responseMimeType: "application/json",
@@ -231,13 +241,14 @@ export const generateDesignTheme = async (
     });
     const response = await model.generateContent({
       contents: [{
+        role: 'user',
         parts: [{ text: `${systemPrompt}\n\nUser Prompt: ${prompt}` }]
       }],
     });
 
     const text = response.response.text();
     if (!text) throw new Error("No theme generated");
-    
+
     return JSON.parse(text) as DesignTheme;
   } catch (error) {
     console.error("Theme Generation Error:", error);
@@ -256,12 +267,12 @@ export const analyzeDesign = async (
       { text: `You are a professional senior graphic designer. Analyze this design. ${query}` },
       { inlineData: { mimeType, data } }
     ];
-    
+
     const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     const response = await model.generateContent({
       contents: [{ parts }]
     });
-    
+
     return response.response.text() || "I couldn't analyze the design.";
   } catch (error) {
     console.error("Analyze Design Error:", error);
@@ -285,53 +296,54 @@ export const generateLayout = async (prompt: string): Promise<any> => {
       
       Keep it simple but effective.
     `;
-    
-    const model = ai.getGenerativeModel({ 
+
+    const model = ai.getGenerativeModel({
       model: 'gemini-2.0-flash-exp',
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: {
           type: SchemaType.OBJECT,
           properties: {
-             textLayers: {
-                type: SchemaType.ARRAY,
-                items: {
-                   type: SchemaType.OBJECT,
-                   properties: {
-                      text: { type: SchemaType.STRING },
-                      x: { type: SchemaType.NUMBER },
-                      y: { type: SchemaType.NUMBER },
-                      fontSize: { type: SchemaType.NUMBER },
-                      color: { type: SchemaType.STRING },
-                      width: { type: SchemaType.NUMBER },
-                      textAlign: { type: SchemaType.STRING }
-                   }
+            textLayers: {
+              type: SchemaType.ARRAY,
+              items: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  text: { type: SchemaType.STRING },
+                  x: { type: SchemaType.NUMBER },
+                  y: { type: SchemaType.NUMBER },
+                  fontSize: { type: SchemaType.NUMBER },
+                  color: { type: SchemaType.STRING },
+                  width: { type: SchemaType.NUMBER },
+                  textAlign: { type: SchemaType.STRING }
                 }
-             },
-             shapeLayers: {
-                type: SchemaType.ARRAY,
-                items: {
-                   type: SchemaType.OBJECT,
-                   properties: {
-                      type: { type: SchemaType.STRING },
-                      x: { type: SchemaType.NUMBER },
-                      y: { type: SchemaType.NUMBER },
-                      width: { type: SchemaType.NUMBER },
-                      height: { type: SchemaType.NUMBER },
-                      color: { type: SchemaType.STRING }
-                   }
+              }
+            },
+            shapeLayers: {
+              type: SchemaType.ARRAY,
+              items: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  type: { type: SchemaType.STRING },
+                  x: { type: SchemaType.NUMBER },
+                  y: { type: SchemaType.NUMBER },
+                  width: { type: SchemaType.NUMBER },
+                  height: { type: SchemaType.NUMBER },
+                  color: { type: SchemaType.STRING }
                 }
-             }
+              }
+            }
           }
         }
       }
     });
     const response = await model.generateContent({
       contents: [{
+        role: 'user',
         parts: [{ text: `${systemPrompt}\n\nUser Prompt: ${prompt}` }]
       }],
     });
-    
+
     const text = response.response.text();
     if (!text) return null;
     return JSON.parse(text);
@@ -351,14 +363,15 @@ export const generateSVGShape = async (prompt: string): Promise<string> => {
       Do NOT include <svg> or <path> tags, JUST the string content of the 'd' attribute.
       Assume a viewBox of 0 0 100 100.
     `;
-    
+
     const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     const response = await model.generateContent({
       contents: [{
+        role: 'user',
         parts: [{ text: `${systemPrompt}\n\nDescription: ${prompt}` }]
       }],
     });
-    
+
     let d = response.response.text()?.trim() || "";
     // Clean up if it returned markup
     d = d.replace(/<[^>]*>/g, '').replace(/d="/g, '').replace(/"/g, '').trim();

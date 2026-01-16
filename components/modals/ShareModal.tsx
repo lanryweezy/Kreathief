@@ -1,0 +1,99 @@
+import React, { useState } from 'react';
+import { Icons } from '../../constants';
+
+interface ShareModalProps {
+    onClose: () => void;
+    designTitle: string;
+    onGetShareLink: () => Promise<string>;
+}
+
+export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, onGetShareLink }) => {
+    const [shareLink, setShareLink] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const handleGenerateLink = async () => {
+        setIsGenerating(true);
+        try {
+            const link = await onGetShareLink();
+            setShareLink(link);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const copyToClipboard = () => {
+        navigator.clipboard.writeText(shareLink);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={onClose}>
+            <div className="bg-[#1e1e1e] border border-gray-700 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col relative" onClick={e => e.stopPropagation()}>
+                <div className="p-6 border-b border-gray-800 flex items-center justify-between">
+                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                        <Icons.Send className="w-5 h-5 text-[#00c4cc]" /> Share Design
+                    </h3>
+                    <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+                        <div className="text-2xl leading-none">&times;</div>
+                    </button>
+                </div>
+
+                <div className="p-8">
+                    <p className="text-gray-400 text-sm mb-6">
+                        Generate a link to share your design with others. People with the link can view your design in high resolution.
+                    </p>
+
+                    {!shareLink ? (
+                        <button
+                            onClick={handleGenerateLink}
+                            disabled={isGenerating}
+                            className="w-full py-3 bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] text-white rounded-xl font-bold shadow-lg shadow-purple-900/40 transform hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                        >
+                            {isGenerating ? (
+                                <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                            ) : (
+                                <>Generate Share Link <Icons.Zap className="w-4 h-4" /></>
+                            )}
+                        </button>
+                    ) : (
+                        <div className="flex flex-col gap-4">
+                            <div className="flex gap-2">
+                                <input
+                                    readOnly
+                                    value={shareLink}
+                                    className="flex-1 bg-[#13161a] border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-[#00c4cc]"
+                                />
+                                <button
+                                    onClick={copyToClipboard}
+                                    className={`px-4 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${copied ? 'bg-green-600 text-white' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
+                                >
+                                    {copied ? <Icons.Check className="w-4 h-4" /> : <Icons.Copy className="w-4 h-4" />}
+                                    {copied ? 'Copied' : 'Copy'}
+                                </button>
+                            </div>
+                            <div className="p-3 bg-blue-900/20 border border-blue-500/20 rounded-lg flex items-start gap-3">
+                                <Icons.Help className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+                                <p className="text-[10px] text-gray-400 italic">
+                                    Note: For this demo, share links are simulated. In production, this would upload the design metadata to a secure server.
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="p-6 bg-[#13161a] border-t border-gray-800 flex justify-end">
+                    <button
+                        onClick={onClose}
+                        className="px-6 py-2 text-gray-400 hover:text-white text-sm font-bold transition-colors"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};

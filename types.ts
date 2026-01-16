@@ -18,7 +18,20 @@ export enum NavTab {
   PROJECTS = 'PROJECTS',
   LAYERS = 'LAYERS',
   MOCKUP = 'MOCKUP',
-  ASSISTANT = 'ASSISTANT'
+  ASSISTANT = 'ASSISTANT',
+  PHOTOS = 'PHOTOS',
+  AI_SUGGESTIONS = 'AI_SUGGESTIONS',
+  SMART_CONTENT = 'SMART_CONTENT',
+  QUALITY_SCORE = 'QUALITY_SCORE'
+}
+
+export enum BrushType {
+  BASIC = 'basic',
+  CALLIGRAPHY = 'calligraphy',
+  OIL = 'oil',
+  CRAYON = 'crayon',
+  PENCIL = 'pencil',
+  WATERCOLOR = 'watercolor'
 }
 
 export enum AspectRatio {
@@ -83,6 +96,7 @@ export interface TextLayer {
   text: string;
   x: number;
   y: number;
+  groupId?: string;
   width: number;
   rotation: number;
   fontSize: number;
@@ -98,7 +112,7 @@ export interface TextLayer {
   opacity: number;
   shadow?: Shadow;
   stroke?: Stroke;
-  locked: boolean; 
+  locked: boolean;
   visible: boolean;
   blendMode?: string;
   gradient?: TextGradient;
@@ -117,6 +131,7 @@ export interface ShapeLayer {
   name?: string;
   x: number;
   y: number;
+  groupId?: string;
   rotation: number;
   width: number;
   height: number;
@@ -143,6 +158,7 @@ export interface ImageLayer {
   src: string;
   x: number;
   y: number;
+  groupId?: string;
   width: number;
   height: number;
   rotation: number;

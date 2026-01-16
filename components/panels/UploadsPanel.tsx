@@ -1,5 +1,5 @@
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Icons } from '../../constants';
 
 interface UploadsPanelProps {
@@ -16,6 +16,34 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({
   onDeleteUpload 
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        if (files[i].type.startsWith('image/')) {
+          onFileUpload(files[i]);
+        }
+      }
+    }
+  };
 
   return (
     <div className="flex flex-col h-full bg-[#13161a] p-4">
@@ -26,21 +54,37 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({
 
        <div 
          onClick={() => fileInputRef.current?.click()}
-         className="border-2 border-dashed border-gray-700 rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer hover:border-[#7d2ae8] hover:bg-[#7d2ae8]/5 transition-colors mb-6 group bg-[#1e1e1e]"
+         onDragOver={handleDragOver}
+         onDragLeave={handleDragLeave}
+         onDrop={handleDrop}
+         className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer transition-all mb-6 group bg-[#1e1e1e] ${
+           isDragging 
+             ? 'border-[#7d2ae8] bg-[#7d2ae8]/10 scale-105' 
+             : 'border-gray-700 hover:border-[#7d2ae8] hover:bg-[#7d2ae8]/5'
+         }`}
        >
-         <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-            <Icons.Upload className="w-6 h-6 text-gray-400 group-hover:text-white" />
+         <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-all ${
+           isDragging 
+             ? 'bg-[#7d2ae8] scale-125' 
+             : 'bg-gray-800 group-hover:scale-110'
+         }`}>
+            <Icons.Upload className={`w-6 h-6 ${isDragging ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
          </div>
-         <span className="text-xs font-bold text-gray-300 group-hover:text-white">Upload Media</span>
+         <span className={`text-xs font-bold transition-colors ${isDragging ? 'text-[#7d2ae8]' : 'text-gray-300 group-hover:text-white'}`}>
+           {isDragging ? 'Drop images here' : 'Upload Media'}
+         </span>
          <span className="text-[10px] text-gray-500 mt-1">Drag & drop or click</span>
          <input 
             type="file" 
             ref={fileInputRef}
             className="hidden"
             accept="image/*"
+            multiple
             onChange={(e) => {
-               if (e.target.files && e.target.files.length > 0) {
-                  onFileUpload(e.target.files[0]);
+               if (e.target.files) {
+                  for (let i = 0; i < e.target.files.length; i++) {
+                     onFileUpload(e.target.files[i]);
+                  }
                }
             }}
          />
@@ -56,7 +100,7 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({
             uploads.map((url, idx) => (
                 <div 
                   key={idx}
-                  className="aspect-square rounded-lg border border-gray-700 overflow-hidden relative group cursor-pointer bg-[#1e1e1e] hover:border-[#7d2ae8] transition-all"
+                  className="aspect-square rounded-lg border border-gray-700 overflow-hidden relative group cursor-pointer bg-[#1e1e1e] hover:border-[#7d2ae8] transition-all hover:shadow-lg hover:shadow-[#7d2ae8]/20"
                   draggable
                   onDragStart={(e) => {
                       e.dataTransfer.setData('text/plain', url);

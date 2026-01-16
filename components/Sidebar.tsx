@@ -11,7 +11,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab }) => {
   const navItems = [
     { id: NavTab.ASSISTANT, icon: Icons.Bot, label: "AI Assist" },
-    { id: NavTab.TEMPLATES, icon: Icons.Templates, label: "Design" }, 
+    { id: NavTab.TEMPLATES, icon: Icons.Templates, label: "Design" },
     { id: NavTab.ELEMENTS, icon: Icons.Shapes, label: "Elements" },
     { id: NavTab.TEXT, icon: Icons.Text, label: "Text" },
     { id: NavTab.BRAND, icon: Icons.Brand, label: "Brand" },
@@ -19,23 +19,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab }) => {
     { id: NavTab.DRAW, icon: Icons.Brush, label: "Draw" },
     { id: NavTab.STICKERS, icon: Icons.Sticker, label: "Stickers" },
     { id: NavTab.UPLOADS, icon: Icons.Uploads, label: "Uploads" },
-    { id: NavTab.MAGIC, icon: Icons.Magic, label: "Magic" }, 
+    { id: NavTab.PHOTOS, icon: Icons.Image, label: "Photos" },
+    { id: NavTab.MAGIC, icon: Icons.Magic, label: "Magic" },
     { id: NavTab.MOCKUP, icon: Icons.Mockup, label: "Mockups" },
     { id: NavTab.LAYERS, icon: Icons.Layers, label: "Layers" },
     { id: NavTab.PROJECTS, icon: Icons.Projects, label: "Projects" },
   ];
 
   return (
-    <div className="w-[72px] bg-[#0e1318] flex flex-col items-center py-4 gap-1 z-30 shrink-0 border-r border-[#1f1f1f] h-full overflow-y-auto custom-scrollbar">
+    <div id="sidebar" className="w-[72px] bg-[#0e1318] flex flex-col items-center py-4 gap-1 z-30 shrink-0 border-r border-[#1f1f1f] h-full overflow-y-auto custom-scrollbar">
       {navItems.map((item) => {
         const isActive = activeTab === item.id;
         return (
           <button
             key={item.id}
             onClick={() => onSelectTab(item.id)}
-            className={`w-full flex flex-col items-center justify-center gap-1.5 py-3 transition-all relative group shrink-0 ${
-              isActive ? 'text-white' : 'text-gray-400 hover:text-gray-100'
-            }`}
+            className={`w-full flex flex-col items-center justify-center gap-1.5 py-3 transition-all relative group shrink-0 ${isActive ? 'text-white' : 'text-gray-400 hover:text-gray-100'
+              }`}
           >
             {isActive && (
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-[#00c4cc] to-[#7d2ae8] rounded-r-md" />

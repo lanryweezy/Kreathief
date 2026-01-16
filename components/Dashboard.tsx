@@ -12,10 +12,10 @@ interface DashboardProps {
   onOpenPricing: () => void;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ 
-  user, 
-  onOpenProject, 
-  onCreateProject, 
+export const Dashboard: React.FC<DashboardProps> = ({
+  user,
+  onOpenProject,
+  onCreateProject,
   onLogout,
   onOpenPricing
 }) => {
@@ -83,27 +83,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         <div className="flex items-center gap-4">
           {user.plan === 'free' && (
-            <button 
+            <button
               onClick={onOpenPricing}
               className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white text-xs font-bold px-4 py-2 rounded-full transition-all shadow-lg shadow-orange-900/20 flex items-center gap-1.5"
             >
               <Icons.Star className="w-3 h-3" /> Upgrade to Pro
             </button>
           )}
-          
+
           <div className="h-8 w-px bg-gray-700 mx-2"></div>
-          
+
           <div className="flex items-center gap-3 group relative cursor-pointer">
             <div className="text-right hidden sm:block">
               <div className="text-sm font-bold">{user.name}</div>
               <div className="text-[10px] text-gray-400 uppercase font-bold">{user.plan} Plan</div>
             </div>
             <img src={user.avatar} className="w-9 h-9 rounded-full border-2 border-gray-700 group-hover:border-[#7d2ae8] transition-colors" />
-            
+
             <div className="absolute right-0 top-full mt-2 w-48 bg-[#252627] border border-gray-700 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all transform origin-top-right z-50">
-               <button onClick={onLogout} className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-white/5 rounded-lg flex items-center gap-2">
-                  <Icons.MicOff className="w-4 h-4" /> Sign Out
-               </button>
+              <button onClick={onLogout} className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-white/5 rounded-lg flex items-center gap-2">
+                <Icons.MicOff className="w-4 h-4" /> Sign Out
+              </button>
             </div>
           </div>
         </div>
@@ -112,145 +112,146 @@ export const Dashboard: React.FC<DashboardProps> = ({
       <main className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
         <aside className="w-64 bg-[#13161a] border-r border-gray-800 p-6 hidden md:block">
-           <nav className="space-y-2">
-              <button className="w-full flex items-center gap-3 px-3 py-2 bg-[#252627] text-white rounded-lg font-medium text-sm">
-                 <Icons.Home className="w-4 h-4 text-[#00c4cc]" /> All Projects
-              </button>
-              <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg font-medium text-sm transition-colors">
-                 <Icons.Templates className="w-4 h-4" /> Templates
-              </button>
-              <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg font-medium text-sm transition-colors">
-                 <Icons.Brand className="w-4 h-4" /> Brand Kits
-              </button>
-              <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg font-medium text-sm transition-colors">
-                 <Icons.Uploads className="w-4 h-4" /> Uploads
-              </button>
-           </nav>
+          <nav className="space-y-2">
+            <button className="w-full flex items-center gap-3 px-3 py-2 bg-[#252627] text-white rounded-lg font-medium text-sm">
+              <Icons.Home className="w-4 h-4 text-[#00c4cc]" /> All Projects
+            </button>
+            <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg font-medium text-sm transition-colors">
+              <Icons.Templates className="w-4 h-4" /> Templates
+            </button>
+            <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg font-medium text-sm transition-colors">
+              <Icons.Brand className="w-4 h-4" /> Brand Kits
+            </button>
+            <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg font-medium text-sm transition-colors">
+              <Icons.Uploads className="w-4 h-4" /> Uploads
+            </button>
+          </nav>
 
-           <div className="mt-10">
-              <div className="flex items-center justify-between mb-2">
-                 <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Storage</h4>
-                 {user.plan === 'free' && (
-                    <span className="text-[10px] text-[#7d2ae8] cursor-pointer hover:underline" onClick={onOpenPricing}>Upgrade</span>
-                 )}
+          <div className="mt-10">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Storage</h4>
+              {user.plan === 'free' && (
+                <span className="text-[10px] text-[#7d2ae8] cursor-pointer hover:underline" onClick={onOpenPricing}>Upgrade</span>
+              )}
+            </div>
+            <div className="px-3">
+              <div className="flex justify-between text-xs mb-1">
+                <span className="text-gray-300">{projects.length} / 5 Projects</span>
+                <span className="text-gray-500">{user.plan === 'free' ? 'Free Tier' : 'Pro'}</span>
               </div>
-              <div className="px-3">
-                 <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-300">{projects.length} / 5 Projects</span>
-                    <span className="text-gray-500">{user.plan === 'free' ? 'Free Tier' : 'Pro'}</span>
-                 </div>
-                 <div className="h-1.5 w-full bg-gray-700 rounded-full overflow-hidden">
-                    <div 
-                       className={`h-full ${projects.length >= 5 ? 'bg-red-500' : 'bg-blue-500'}`} 
-                       style={{ width: `${Math.min(100, (projects.length / 5) * 100)}%` }}
-                    ></div>
-                 </div>
+              <div className="h-1.5 w-full bg-gray-700 rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${projects.length >= 5 ? 'bg-red-500' : 'bg-blue-500'}`}
+                  style={{ width: `${Math.min(100, (projects.length / 5) * 100)}%` }}
+                ></div>
               </div>
-           </div>
+            </div>
+          </div>
         </aside>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-           <div className="max-w-6xl mx-auto">
-              <div className="flex items-center justify-between mb-8">
-                 <h2 className="text-2xl font-bold">Start designing</h2>
-                 <button 
-                    onClick={handleCreateClick}
-                    className="bg-[#7d2ae8] hover:bg-[#6b23c5] text-white px-6 py-2.5 rounded-lg font-bold shadow-lg shadow-purple-900/20 flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
-                 >
-                    <Icons.Magic className="w-4 h-4" /> Create New Design
-                 </button>
-              </div>
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold">Start designing</h2>
+              <button
+                id="create-btn"
+                onClick={handleCreateClick}
+                className="bg-[#7d2ae8] hover:bg-[#6b23c5] text-white px-6 py-2.5 rounded-lg font-bold shadow-lg shadow-purple-900/20 flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
+              >
+                <Icons.Magic className="w-4 h-4" /> Create New Design
+              </button>
+            </div>
 
-              {/* Starter templates */}
-              <div className="mb-10">
-                <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
-                  <Icons.Templates className="w-4 h-4 text-[#00c4cc]" />
-                  Quick templates
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {STARTER_TEMPLATES.map((tmpl) => (
-                    <button
-                      key={tmpl.id}
-                      onClick={() => handleStartFromTemplate(tmpl.id)}
-                      className="group bg-[#1e1e1e] border border-gray-700 rounded-xl overflow-hidden text-left hover:border-[#00c4cc] hover:shadow-xl transition-all"
-                    >
-                      <div className="aspect-[4/3] bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center relative overflow-hidden">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-black/40 px-2 py-1 rounded-full absolute top-3 left-3">
-                          {tmpl.category}
-                        </span>
-                        <span className="text-xs text-gray-500 group-hover:text-gray-300 transition-colors">
-                          {tmpl.size.name}
-                        </span>
+            {/* Starter templates */}
+            <div className="mb-10">
+              <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
+                <Icons.Templates className="w-4 h-4 text-[#00c4cc]" />
+                Quick templates
+              </h3>
+              <div id="templates-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {STARTER_TEMPLATES.map((tmpl) => (
+                  <button
+                    key={tmpl.id}
+                    onClick={() => handleStartFromTemplate(tmpl.id)}
+                    className="group bg-[#1e1e1e] border border-gray-700 rounded-xl overflow-hidden text-left hover:border-[#00c4cc] hover:shadow-xl transition-all"
+                  >
+                    <div className="aspect-[4/3] bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center relative overflow-hidden">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-black/40 px-2 py-1 rounded-full absolute top-3 left-3">
+                        {tmpl.category}
+                      </span>
+                      <span className="text-xs text-gray-500 group-hover:text-gray-300 transition-colors">
+                        {tmpl.size.name}
+                      </span>
+                    </div>
+                    <div className="p-3">
+                      <div className="text-sm font-semibold text-white truncate mb-1">
+                        {tmpl.name}
                       </div>
-                      <div className="p-3">
-                        <div className="text-sm font-semibold text-white truncate mb-1">
-                          {tmpl.name}
-                        </div>
-                        <div className="text-[11px] text-gray-400 line-clamp-2">
-                          {tmpl.description}
-                        </div>
+                      <div className="text-[11px] text-gray-400 line-clamp-2">
+                        {tmpl.description}
                       </div>
-                    </button>
-                  ))}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {/* Create New Card */}
+              <div
+                onClick={handleCreateClick}
+                className="aspect-[4/3] bg-[#1e1e1e] border-2 border-dashed border-gray-700 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-[#7d2ae8] hover:bg-[#7d2ae8]/5 transition-all group"
+              >
+                <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform group-hover:bg-[#7d2ae8]">
+                  <Icons.FolderPlus className="w-6 h-6 text-gray-400 group-hover:text-white" />
                 </div>
+                <span className="font-bold text-sm text-gray-400 group-hover:text-white">Start Blank Canvas</span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                 {/* Create New Card */}
-                 <div 
-                    onClick={handleCreateClick}
-                    className="aspect-[4/3] bg-[#1e1e1e] border-2 border-dashed border-gray-700 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-[#7d2ae8] hover:bg-[#7d2ae8]/5 transition-all group"
-                 >
-                    <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform group-hover:bg-[#7d2ae8]">
-                       <Icons.FolderPlus className="w-6 h-6 text-gray-400 group-hover:text-white" />
-                    </div>
-                    <span className="font-bold text-sm text-gray-400 group-hover:text-white">Start Blank Canvas</span>
-                 </div>
+              {/* Project Cards */}
+              {projects.map(project => (
+                <div
+                  key={project.id}
+                  onClick={() => onOpenProject(project)}
+                  className="group bg-[#1e1e1e] border border-gray-700 rounded-xl overflow-hidden cursor-pointer hover:ring-2 hover:ring-[#00c4cc] transition-all shadow-xl hover:shadow-2xl relative"
+                >
+                  <div className="aspect-[4/3] bg-[#13161a] relative overflow-hidden flex items-center justify-center">
+                    {project.thumbnail ? (
+                      <img src={project.thumbnail} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                    ) : (
+                      <div
+                        className="w-full h-full opacity-50 group-hover:scale-105 transition-transform duration-500"
+                        style={{ backgroundColor: project.state.canvasBackgroundColor }}
+                      >
+                        {project.state.textLayers.length > 0 && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-xs text-white/50 bg-black/50 px-2 rounded">T</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
-                 {/* Project Cards */}
-                 {projects.map(project => (
-                    <div 
-                       key={project.id}
-                       onClick={() => onOpenProject(project)}
-                       className="group bg-[#1e1e1e] border border-gray-700 rounded-xl overflow-hidden cursor-pointer hover:ring-2 hover:ring-[#00c4cc] transition-all shadow-xl hover:shadow-2xl relative"
-                    >
-                       <div className="aspect-[4/3] bg-[#13161a] relative overflow-hidden flex items-center justify-center">
-                          {project.thumbnail ? (
-                             <img src={project.thumbnail} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                          ) : (
-                             <div 
-                                className="w-full h-full opacity-50 group-hover:scale-105 transition-transform duration-500"
-                                style={{ backgroundColor: project.state.canvasBackgroundColor }}
-                             >
-                                {project.state.textLayers.length > 0 && (
-                                   <div className="absolute inset-0 flex items-center justify-center">
-                                      <span className="text-xs text-white/50 bg-black/50 px-2 rounded">T</span>
-                                   </div>
-                                )}
-                             </div>
-                          )}
-                          
-                          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                             <button 
-                                onClick={(e) => handleDelete(e, project.id)}
-                                className="p-2 bg-black/50 hover:bg-red-500/80 text-white rounded-lg backdrop-blur-sm transition-colors"
-                             >
-                                <Icons.Trash className="w-4 h-4" />
-                             </button>
-                          </div>
-                       </div>
-                       <div className="p-4">
-                          <h3 className="font-bold text-sm text-white truncate mb-1">{project.name}</h3>
-                          <div className="flex justify-between items-center text-[10px] text-gray-500">
-                             <span>{new Date(project.updatedAt).toLocaleDateString()}</span>
-                             <span>{project.state.canvasSize?.width}x{project.state.canvasSize?.height}</span>
-                          </div>
-                       </div>
+                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => handleDelete(e, project.id)}
+                        className="p-2 bg-black/50 hover:bg-red-500/80 text-white rounded-lg backdrop-blur-sm transition-colors"
+                      >
+                        <Icons.Trash className="w-4 h-4" />
+                      </button>
                     </div>
-                 ))}
-              </div>
-           </div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-bold text-sm text-white truncate mb-1">{project.name}</h3>
+                    <div className="flex justify-between items-center text-[10px] text-gray-500">
+                      <span>{new Date(project.updatedAt).toLocaleDateString()}</span>
+                      <span>{project.state.canvasSize?.width}x{project.state.canvasSize?.height}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </main>
     </div>

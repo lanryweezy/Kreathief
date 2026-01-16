@@ -1,0 +1,171 @@
+import React, { useState, useRef, useEffect } from 'react';
+import * as geminiService from '../services/geminiService';
+import { Icons } from '../constants';
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
+}
+
+interface AIAssistantProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onApplySuggestion?: (suggestion: string) => void;
+  isProcessing?: boolean;
+}
+
+export const AIAssistant: React.FC<AIAssistantProps> = ({ 
+  isOpen, 
+  onClose, 
+  onApplySuggestion,
+  isProcessing = false 
+}) => {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 'welcome',
+      role: 'assistant',
+      content: 'Hi! I\'m your AI design assistant. Tell me what you\'d like to create or improve, and I\'ll help you with suggestions, content generation, and design improvements.',
+      timestamp: Date.now()
+    }
+  ]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSendMessage = async (text: string) => {
+    if (!text.trim() || isLoading) return;
+
+    // Add user message
+    const userMessage: Message = {
+      id: `msg_${Date.now()}`,
+      role: 'user',
+      content: text,
+      timestamp: Date.now()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      // Generate AI response
+      const response = await geminiService.generateText(
+        text,
+        'You are a helpful AI design assistant. Provide concise, actionable design suggestions. Keep responses under 100 words. Be encouraging and creative.'
+      );
+
+      const assistantMessage: Message = {
+        id: `msg_${Date.now()}_response`,
+        role: 'assistant',
+        content: response,
+        timestamp: Date.now()
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('AI Assistant error:', error);
+      const errorMessage: Message = {
+        id: `msg_${Date.now()}_error`,
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.',
+        timestamp: Date.now()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-end sm:justify-center">
+      <div className="bg-[#1e1e1e] rounded-lg shadow-2xl w-full sm:w-96 h-[600px] sm:h-[500px] flex flex-col border border-gray-700">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-700">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+              <Icons.Sparkles className="w-4 h-4 text-white" />
+            </div>
+            <h2 className="font-bold text-white">AI Assistant</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-xs px-4 py-2 rounded-lg text-sm ${
+                  msg.role === 'user'
+                    ? 'bg-indigo-600 text-white rounded-br-none'
+                    : 'bg-gray-800 text-gray-100 rounded-bl-none'
+                }`}
+              >
+                {msg.content}
+              </div>
+            </div>
+          ))}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-gray-800 text-gray-100 px-4 py-2 rounded-lg rounded-bl-none">
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" />
+                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                  <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Input */}
+        <div className="p-4 border-t border-gray-700">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage(input);
+                }
+              }}
+              placeholder="Ask me anything..."
+              disabled={isLoading || isProcessing}
+              className="flex-1 bg-gray-700 text-white px-3 py-2 rounded outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 text-sm"
+            />
+            <button
+              onClick={() => handleSendMessage(input)}
+              disabled={!input.trim() || isLoading || isProcessing}
+              className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 text-white px-3 py-2 rounded transition-colors disabled:cursor-not-allowed"
+            >
+              <Icons.Send className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
