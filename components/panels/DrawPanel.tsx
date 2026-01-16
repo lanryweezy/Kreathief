@@ -194,6 +194,5 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
         </div>
       </div>
     </div>
-    </div >
   );
 };

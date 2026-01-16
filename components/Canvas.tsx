@@ -211,9 +211,6 @@ const ShapeLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, 
     );
 });
 
-    }
-};
-
 // Helper for rendering text along a path
 const renderTextOnPath = (canvas: HTMLCanvasElement, layer: TextLayer) => {
     const ctx = canvas.getContext('2d');
@@ -492,7 +489,6 @@ export const Canvas: React.FC<CanvasProps> = ({
     onSetCanvasSize,
     documentColors,
     user,
-    onOpenPricing,
     onOpenPricing,
     selectedLayerIds = [],
     onMultiSelectLayer,
