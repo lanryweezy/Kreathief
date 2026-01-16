@@ -4,7 +4,13 @@ import { MODEL_FAST, MODEL_PRO, FONT_FAMILIES } from '../constants';
 import { DesignTheme, GenerationQuality } from '../types';
 
 // Helper to get fresh client instance (important for key switching)
-const getClient = () => new GoogleGenerativeAI((process as any).env.API_KEY!);
+const getClient = () => {
+  const apiKey = (process as any).env?.API_KEY;
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY environment variable is not set. Please configure it in Vercel environment variables.');
+  }
+  return new GoogleGenerativeAI(apiKey);
+};
 
 /**
  * Clean Base64 string by removing data URL prefix if present.

@@ -20,6 +20,17 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, onSki
 
     const currentStep = steps[currentStepIdx];
 
+    // Allow closing tour with Escape key
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onSkip();
+            }
+        };
+        window.addEventListener('keydown', handleEscape);
+        return () => window.removeEventListener('keydown', handleEscape);
+    }, [onSkip]);
+
     useEffect(() => {
         const updateRect = () => {
             const el = document.querySelector(currentStep.target);
@@ -27,14 +38,21 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, onSki
                 setTargetRect(el.getBoundingClientRect());
                 el.scrollIntoView({ behavior: 'smooth', block: 'center' });
             } else {
-                setTargetRect(null);
+                // If element not found, skip to next step after a short delay
+                setTimeout(() => {
+                    if (currentStepIdx < steps.length - 1) {
+                        setCurrentStepIdx(prev => prev + 1);
+                    } else {
+                        onComplete();
+                    }
+                }, 500);
             }
         };
 
         updateRect();
         window.addEventListener('resize', updateRect);
         return () => window.removeEventListener('resize', updateRect);
-    }, [currentStep]);
+    }, [currentStep, currentStepIdx, steps.length, onComplete]);
 
     const handleNext = () => {
         if (currentStepIdx < steps.length - 1) {
@@ -50,7 +68,22 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, onSki
         }
     };
 
-    if (!targetRect) return null;
+    // If target not found, show a minimal tooltip that can be closed
+    if (!targetRect) {
+        return (
+            <div className="fixed inset-0 z-[999] pointer-events-none">
+                <div className="fixed top-4 right-4 bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl p-4 pointer-events-auto z-[1000]">
+                    <p className="text-white text-sm mb-3">Tour element not found. Skipping...</p>
+                    <button
+                        onClick={onSkip}
+                        className="w-full px-4 py-2 bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] text-white rounded-lg text-xs font-bold"
+                    >
+                        Close Tour
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     const tooltipStyle: React.CSSProperties = {
         position: 'fixed',
@@ -75,23 +108,29 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, onSki
 
     return (
         <div className="fixed inset-0 z-[999] pointer-events-none">
-            {/* Backdrop with hole */}
-            <svg className="absolute inset-0 w-full h-full">
-                <defs>
-                    <mask id="tour-mask">
-                        <rect x="0" y="0" width="100%" height="100%" fill="white" />
-                        <rect
-                            x={targetRect.left - 4}
-                            y={targetRect.top - 4}
-                            width={targetRect.width + 8}
-                            height={targetRect.height + 8}
-                            rx="8"
-                            fill="black"
-                        />
-                    </mask>
-                </defs>
-                <rect x="0" y="0" width="100%" height="100%" fill="rgba(0,0,0,0.7)" mask="url(#tour-mask)" className="pointer-events-auto" />
-            </svg>
+            {/* Backdrop with hole - click to skip */}
+            <div 
+                className="absolute inset-0 pointer-events-auto cursor-pointer"
+                onClick={onSkip}
+                style={{ zIndex: 998 }}
+            >
+                <svg className="absolute inset-0 w-full h-full">
+                    <defs>
+                        <mask id={`tour-mask-${currentStepIdx}`}>
+                            <rect x="0" y="0" width="100%" height="100%" fill="white" />
+                            <rect
+                                x={targetRect.left - 4}
+                                y={targetRect.top - 4}
+                                width={targetRect.width + 8}
+                                height={targetRect.height + 8}
+                                rx="8"
+                                fill="black"
+                            />
+                        </mask>
+                    </defs>
+                    <rect x="0" y="0" width="100%" height="100%" fill="rgba(0,0,0,0.7)" mask={`url(#tour-mask-${currentStepIdx})`} />
+                </svg>
+            </div>
 
             {/* Pulsing highlight */}
             <div
@@ -107,11 +146,18 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, onSki
             {/* Tooltip */}
             <div
                 className="bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl p-6 pointer-events-auto flex flex-col gap-4 animate-in fade-in zoom-in duration-300"
-                style={tooltipStyle}
+                style={{ ...tooltipStyle, zIndex: 1000 }}
+                onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex justify-between items-start">
                     <h4 className="text-[#00c4cc] font-bold text-sm uppercase tracking-wider">Step {currentStepIdx + 1} of {steps.length}</h4>
-                    <button onClick={onSkip} className="text-gray-500 hover:text-white transition-colors text-xs font-medium">Skip tour</button>
+                    <button 
+                        onClick={onSkip} 
+                        className="text-gray-400 hover:text-white transition-colors text-xs font-bold px-3 py-1 rounded hover:bg-gray-800"
+                        style={{ zIndex: 1001 }}
+                    >
+                        Skip tour
+                    </button>
                 </div>
 
                 <div>

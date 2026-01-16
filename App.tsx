@@ -105,7 +105,10 @@ const App: React.FC = () => {
         />
         {showWelcome && (
           <WelcomeModal
-            onClose={() => setShowWelcome(false)}
+            onClose={() => {
+              setShowWelcome(false);
+              localStorage.setItem('kreathief_onboarding_seen', 'true');
+            }}
             onStartTour={handleStartTour}
           />
         )}
