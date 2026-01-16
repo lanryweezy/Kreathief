@@ -128,7 +128,7 @@ export const ElementsPanel: React.FC<ElementsPanelProps> = ({ onAddShape, onAddI
   return (
     <div className="flex flex-col h-full bg-[#13161a]">
       {/* Tabs */}
-      <div className="flex border-b border-gray-700">
+      <div className="flex border-b border-gray-700 bg-[#13161a] sticky top-0 z-10">
         <button
           onClick={() => setActiveTab('shapes')}
           className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide border-b-2 transition-colors ${activeTab === 'shapes' ? 'border-[#7d2ae8] text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
@@ -201,8 +201,8 @@ export const ElementsPanel: React.FC<ElementsPanelProps> = ({ onAddShape, onAddI
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all ${selectedCategory === cat.id
-                      ? 'bg-[#7d2ae8] text-white shadow-lg shadow-purple-500/20'
-                      : 'bg-[#1e1e1e] text-gray-400 hover:bg-[#252627] hover:text-gray-300 border border-gray-700'
+                    ? 'bg-[#7d2ae8] text-white shadow-lg shadow-purple-500/20'
+                    : 'bg-[#1e1e1e] text-gray-400 hover:bg-[#252627] hover:text-gray-300 border border-gray-700'
                     }`}
                 >
                   <cat.icon className="w-3 h-3" />

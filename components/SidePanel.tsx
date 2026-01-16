@@ -273,6 +273,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
           onSetMode={onSetMode}
           onApplyLayout={onApplyLayout}
           onApplyTemplate={onApplyTemplate}
+          onApplyTheme={onApplyBrandColors}
         />
       )}
 

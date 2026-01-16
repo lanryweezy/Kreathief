@@ -23,7 +23,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab }) => {
     { id: NavTab.MAGIC, icon: Icons.Magic, label: "Magic" },
     { id: NavTab.MOCKUP, icon: Icons.Mockup, label: "Mockups" },
     { id: NavTab.LAYERS, icon: Icons.Layers, label: "Layers" },
-    { id: NavTab.PROJECTS, icon: Icons.Projects, label: "Projects" },
   ];
 
   return (

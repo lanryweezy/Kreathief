@@ -208,6 +208,27 @@ export const Icons = {
       React.createElement("line", { x1: "21", x2: "3", y1: "12", y2: "12" }),
       React.createElement("line", { x1: "21", x2: "7", y1: "18", y2: "18" })
     ),
+  ArrowLeft: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("line", { x1: "19", y1: "12", x2: "5", y2: "12" }),
+      React.createElement("polyline", { points: "12 19 5 12 12 5" })
+    ),
+  Briefcase: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("rect", { width: "20", height: "14", x: "2", y: "7", rx: "2", ry: "2" }),
+      React.createElement("path", { d: "M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" })
+    ),
+  Monitor: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("rect", { width: "20", height: "14", x: "2", y: "3", rx: "2", ry: "2" }),
+      React.createElement("line", { x1: "8", x2: "16", y1: "21", y2: "21" }),
+      React.createElement("line", { x1: "12", x2: "12", y1: "17", y2: "21" })
+    ),
+  User: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" }),
+      React.createElement("circle", { cx: "12", cy: "7", r: "4" })
+    ),
   Zap: (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement("svg", { ...svgProps, ...props },
       React.createElement("polygon", { points: "13 2 3 14 12 14 11 22 21 10 12 10 13 2" })

@@ -83,6 +83,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
             { id: BrushType.CRAYON, name: 'Crayon', icon: Icons.Zap },
             { id: BrushType.PENCIL, name: 'Pencil', icon: Icons.Edit },
             { id: BrushType.WATERCOLOR, name: 'Watercolor', icon: Icons.Droplet },
+            { id: BrushType.VECTOR_PENCIL, name: 'Vector Pen', icon: Icons.PenTool },
           ].map(type => (
             <button
               key={type.id}
@@ -165,7 +166,34 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
             className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
           />
         </div>
+
+        <div className="pt-4 border-t border-gray-700">
+          <label className="text-xs font-bold text-gray-400 mb-3 block uppercase">Advanced Settings</label>
+
+          <div className="mb-4">
+            <div className="flex justify-between mb-1">
+              <label className="text-[10px] font-bold text-gray-500">Smoothing (Stabilizer)</label>
+              <span className="text-[10px] text-gray-500">50%</span>
+            </div>
+            <input
+              type="range" min="0" max="100" defaultValue="50"
+              className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
+            />
+          </div>
+
+          <div>
+            <div className="flex justify-between mb-1">
+              <label className="text-[10px] font-bold text-gray-500">Jitter (Roughness)</label>
+              <span className="text-[10px] text-gray-500">0%</span>
+            </div>
+            <input
+              type="range" min="0" max="100" defaultValue="0"
+              className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-orange-500"
+            />
+          </div>
+        </div>
       </div>
     </div>
+    </div >
   );
 };

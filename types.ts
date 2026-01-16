@@ -31,7 +31,8 @@ export enum BrushType {
   OIL = 'oil',
   CRAYON = 'crayon',
   PENCIL = 'pencil',
-  WATERCOLOR = 'watercolor'
+  WATERCOLOR = 'watercolor',
+  VECTOR_PENCIL = 'vector_pencil'
 }
 
 export enum AspectRatio {
@@ -69,6 +70,13 @@ export interface Shadow {
 export interface Stroke {
   color: string;
   width: number;
+  opacity?: number;
+  jitter?: number; // 0-100
+  smoothing?: number; // 0-100
+  pressureSensitive?: boolean;
+  dashArray?: number[];
+  cap?: 'butt' | 'round' | 'square';
+  join?: 'round' | 'bevel' | 'miter';
 }
 
 export interface LayerFilters {
@@ -123,6 +131,13 @@ export interface TextLayer {
   skewY?: number; // degrees
   // Text Effects
   styleType?: 'normal' | 'hollow' | 'lift' | 'echo';
+  // Typography on Path
+  textPath?: string; // SVG path data
+  textPathSide?: 'left' | 'right';
+  textPathStartOffset?: number; // % or px
+  // 3D Text
+  depth?: number; // 0-50 px extrusion
+  depthColor?: string;
 }
 
 export interface ShapeLayer {

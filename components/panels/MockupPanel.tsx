@@ -26,17 +26,16 @@ interface MockupDef {
     left: number;
     width: number; // relative width
     rotate: number; // degrees
+    skewX?: number;
+    skewY?: number;
   };
 }
 
-const CheckIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-  </svg>
-);
+const MOCKUP_CATEGORIES = ['All', 'Apparel', 'Print', 'Digital', 'Outdoor'];
 
 export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onAddToCanvas }) => {
   const [activeMockupId, setActiveMockupId] = useState<string>('tshirt');
+  const [activeCategory, setActiveCategory] = useState('All');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -55,47 +54,12 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
   }, []);
 
   const mockups: MockupDef[] = [
+    // Apparel
     {
       id: 'tshirt',
       name: 'T-Shirt',
       bg: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       placement: { top: 30, left: 28, width: 45, rotate: 0 }
-    },
-    {
-      id: 'poster',
-      name: 'Poster Frame',
-      bg: 'https://images.unsplash.com/photo-1579762715118-a6f1d4b934f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      placement: { top: 15, left: 27, width: 46, rotate: -2 }
-    },
-    {
-      id: 'tote',
-      name: 'Tote Bag',
-      bg: 'https://images.unsplash.com/photo-1597484662317-c9253e609141?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      placement: { top: 45, left: 35, width: 30, rotate: 0 }
-    },
-    {
-      id: 'mug',
-      name: 'Coffee Mug',
-      bg: 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      placement: { top: 35, left: 35, width: 30, rotate: 0 }
-    },
-    {
-      id: 'phone',
-      name: 'Phone Case',
-      bg: 'https://images.unsplash.com/photo-1586105251261-72a756497a11?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      placement: { top: 20, left: 38, width: 25, rotate: 0 }
-    },
-    {
-      id: 'billboard',
-      name: 'City Billboard',
-      bg: 'https://images.unsplash.com/photo-1542662565-7e4b66b5adaa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      placement: { top: 10, left: 25, width: 50, rotate: 0 }
-    },
-    {
-      id: 'business_card',
-      name: 'Business Card',
-      bg: 'https://images.unsplash.com/photo-1589330694653-ded6df53f6ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      placement: { top: 35, left: 25, width: 50, rotate: -15 }
     },
     {
       id: 'hoodie',
@@ -107,13 +71,55 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
       id: 'cap',
       name: 'Baseball Cap',
       bg: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      placement: { top: 40, left: 35, width: 30, rotate: 0 }
+      placement: { top: 40, left: 35, width: 30, rotate: 0, skewX: 5 }
     },
+    {
+      id: 'tote',
+      name: 'Tote Bag',
+      bg: 'https://images.unsplash.com/photo-1597484662317-c9253e609141?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      placement: { top: 45, left: 35, width: 30, rotate: 0 }
+    },
+
+    // Print
+    {
+      id: 'poster',
+      name: 'Poster Frame',
+      bg: 'https://images.unsplash.com/photo-1579762715118-a6f1d4b934f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      placement: { top: 15, left: 27, width: 46, rotate: -2 }
+    },
+    {
+      id: 'business_card',
+      name: 'Business Card',
+      bg: 'https://images.unsplash.com/photo-1589330694653-ded6df53f6ee?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      placement: { top: 35, left: 25, width: 50, rotate: -15, skewX: 10 }
+    },
+    {
+      id: 'mug',
+      name: 'Coffee Mug',
+      bg: 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      placement: { top: 35, left: 35, width: 30, rotate: 0, skewY: 5 }
+    },
+
+    // Digital
     {
       id: 'macbook',
       name: 'MacBook Pro',
       bg: 'https://images.unsplash.com/photo-1517336712603-d2d0f0464686?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       placement: { top: 18, left: 22, width: 56, rotate: 0 }
+    },
+    {
+      id: 'phone',
+      name: 'Phone Case',
+      bg: 'https://images.unsplash.com/photo-1586105251261-72a756497a11?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      placement: { top: 20, left: 38, width: 25, rotate: 0 }
+    },
+
+    // Outdoor
+    {
+      id: 'billboard',
+      name: 'City Billboard',
+      bg: 'https://images.unsplash.com/photo-1542662565-7e4b66b5adaa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      placement: { top: 10, left: 25, width: 50, rotate: 0 }
     },
     {
       id: 'wall',
@@ -124,6 +130,15 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
   ];
 
   const currentMockup = mockups.find(m => m.id === activeMockupId) || mockups[0];
+
+  const filteredMockups = useMemo(() => {
+    if (activeCategory === 'All') return mockups;
+    if (activeCategory === 'Apparel') return mockups.filter(m => ['tshirt', 'hoodie', 'cap', 'tote'].includes(m.id));
+    if (activeCategory === 'Print') return mockups.filter(m => ['poster', 'business_card', 'mug'].includes(m.id));
+    if (activeCategory === 'Digital') return mockups.filter(m => ['macbook', 'phone'].includes(m.id));
+    if (activeCategory === 'Outdoor') return mockups.filter(m => ['billboard', 'wall'].includes(m.id));
+    return mockups;
+  }, [activeCategory]);
 
   const handleUpdatePreview = async () => {
     setIsGenerating(true);
@@ -189,11 +204,15 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
     // Apply base rotation + user transforms
     ctx.rotate((p.rotate * Math.PI) / 180);
 
+    // Apply Skew if defined
+    if (p.skewX || p.skewY) {
+      ctx.transform(1, (p.skewY || 0) * Math.PI / 180, (p.skewX || 0) * Math.PI / 180, 1, 0, 0);
+    }
+
     // User scale
     ctx.scale(settings.scale, settings.scale);
 
     // User offset (relative to canvas size for consistency)
-    // Multiplier 4 is arbitrary to make UI slider feel responsive on large canvas
     ctx.translate(settings.offsetX * 4, settings.offsetY * 4);
 
     // Apply effects
@@ -264,9 +283,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
                   top: `${currentMockup.placement.top}%`,
                   left: `${currentMockup.placement.left}%`,
                   width: `${currentMockup.placement.width}%`,
-                  // We can't set exact height in CSS easily without aspect ratio of image, 
-                  // but standard img tag handles width auto-height
-                  transform: `rotate(${currentMockup.placement.rotate}deg) translate(${settings.offsetX}px, ${settings.offsetY}px) scale(${settings.scale})`,
+                  transform: `rotate(${currentMockup.placement.rotate}deg) skew(${currentMockup.placement.skewX || 0}deg, ${currentMockup.placement.skewY || 0}deg) translate(${settings.offsetX}px, ${settings.offsetY}px) scale(${settings.scale})`,
                   opacity: settings.opacity,
                   mixBlendMode: settings.blendMode as any
                 }}
@@ -275,7 +292,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
               </div>
             )}
 
-            {/* Lighting/Texture Overlay (Fake fold/shadow) */}
+            {/* Lighting/Texture Overlay */}
             <div className="absolute inset-0 pointer-events-none mix-blend-multiply bg-gradient-to-tr from-black/20 via-transparent to-white/10 opacity-50"></div>
           </div>
 
@@ -381,9 +398,21 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
 
       {/* Product Selection */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
-        <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Products</h4>
+
+        <div className="flex items-center gap-2 mb-3 overflow-x-auto no-scrollbar pb-1">
+          {MOCKUP_CATEGORIES.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`whitespace-nowrap px-3 py-1 rounded-full text-[10px] font-bold border transition-colors ${activeCategory === cat ? 'bg-white text-black border-white' : 'bg-transparent text-gray-400 border-gray-700 hover:border-gray-500'}`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
         <div className="grid grid-cols-2 gap-3 pb-20">
-          {mockups.map((item) => (
+          {filteredMockups.map((item) => (
             <button
               key={item.id}
               onClick={() => { setActiveMockupId(item.id); }}
@@ -405,3 +434,4 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
     </div>
   );
 };
+

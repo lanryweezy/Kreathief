@@ -529,6 +529,32 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     setSelectedLayerIds([newLayer.id]);
   };
 
+  const handleVectorDrawingComplete = (pathData: string, stroke: any) => {
+    saveToHistory();
+    const newLayer: ShapeLayer = {
+      id: `vector_${Date.now()}`,
+      type: 'path',
+      name: 'Vector Path',
+      x: 0,
+      y: 0,
+      width: canvasSize.width,
+      height: canvasSize.height,
+      rotation: 0,
+      color: 'transparent',
+      stroke: stroke,
+      opacity: 1,
+      locked: false,
+      visible: true,
+      cornerRadius: 0,
+      skewX: 0,
+      skewY: 0,
+      pathData: pathData,
+      viewBox: `0 0 ${canvasSize.width} ${canvasSize.height}`
+    };
+    setShapeLayers(prev => [...prev, newLayer]);
+    setSelectedLayerIds([newLayer.id]);
+  };
+
 
   const handleUpdateTextLayer = useCallback((id: string, changes: Partial<TextLayer>) => {
     setTextLayers(prev => prev.map(layer => layer.id === id ? { ...layer, ...changes } : layer));
@@ -1266,6 +1292,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
           onMoveLayer={handleMoveLayer}
           onGroup={handleGroupSelected}
           onUngroup={handleUngroupSelected}
+          onVectorDrawingComplete={handleVectorDrawingComplete}
           selectedLayerId={selectedLayerId}
           selectedLayerIds={selectedLayerIds}
           onMultiSelectLayer={handleMultiSelectLayer}

@@ -529,6 +529,30 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                <IconButton onClick={() => onUpdateTextLayer(layer.id, { warpStyle: 'rise', curve: 30 })} active={layer.warpStyle === 'rise'} title="Rise"><Icons.Sparkles className="w-3.5 h-3.5" /></IconButton>
             </div>
 
+            <div className="w-px h-6 bg-gray-700/50 mx-1 hidden sm:block"></div>
+
+            {/* Path Tools (Typography) */}
+            <div className="flex items-center gap-1 bg-[#252627] rounded border border-gray-700 p-0.5">
+               <IconButton onClick={() => onUpdateTextLayer(layer.id, { textPath: undefined })} active={!layer.textPath} title="No Path"><Icons.Minimize className="w-3.5 h-3.5" /></IconButton>
+               <IconButton onClick={() => onUpdateTextLayer(layer.id, { textPath: 'M 10,50 Q 50,0 90,50' })} active={!!layer.textPath && layer.textPath.includes('Q 50,0')} title="Curve Path"><Icons.Activity className="w-3.5 h-3.5" /></IconButton>
+               <IconButton onClick={() => onUpdateTextLayer(layer.id, { textPath: 'M 50,50 m -40,0 a 40,40 0 1,1 80,0 a 40,40 0 1,1 -80,0' })} active={!!layer.textPath && layer.textPath.includes('a 40,40')} title="Circle Path"><Icons.Disc className="w-3.5 h-3.5" /></IconButton>
+            </div>
+
+            <div className="w-px h-6 bg-gray-700/50 mx-1 hidden sm:block"></div>
+
+            {/* 3D Tools */}
+            <div className="flex items-center gap-1.5 p-0.5 bg-[#252627] rounded border border-gray-700">
+               <span className="text-[9px] font-bold text-gray-500 px-1">3D</span>
+               <CompactInput
+                  value={layer.depth || 0}
+                  onChange={(e: any) => onUpdateTextLayer(layer.id, { depth: parseInt(e.target.value) })}
+                  min={0} max={50} width="w-8"
+               />
+               {(layer.depth || 0) > 0 && (
+                  <ColorPicker value={layer.depthColor || '#333333'} onChange={(c) => onUpdateTextLayer(layer.id, { depthColor: c })} documentColors={documentColors} />
+               )}
+            </div>
+
             {/* AI Rewrite with Tones */}
             <div className="relative" ref={rewriteRef}>
                <div className="flex items-center bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-purple-500/30 rounded overflow-hidden">
