@@ -162,6 +162,9 @@ export interface ShapeLayer {
   backgroundScale?: number; // 1 = 100%
   skewX?: number;
   skewY?: number;
+  perspective?: number; // CSS perspective value for 3D distortion
+  rotateX?: number; // 3D rotation on X axis
+  rotateY?: number; // 3D rotation on Y axis
   pathData?: string; // SVG Path D attribute for custom shapes
   viewBox?: string; // SVG ViewBox
 }
@@ -197,6 +200,8 @@ export interface CanvasFilters {
   brightness: number; // %
   contrast: number;   // %
   saturation: number; // %
+  sepia: number;      // %
+  grayscale: number;  // %
   blur: number;       // px
   opacity: number;    // 0-1
   vignette: number;   // 0-100

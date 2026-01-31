@@ -36,18 +36,18 @@ interface LayerItemProps {
   onCopy?: () => void;
 }
 
-const LayerItem: React.FC<LayerItemProps> = ({ 
-  layer, 
-  isSelected, 
+const LayerItem = React.memo(({
+  layer,
+  isSelected,
   isMultiSelected = false,
-  onSelect, 
-  onSelectMultiple = () => {},
-  onUpdate, 
-  onDelete, 
-  onDuplicate, 
+  onSelect,
+  onSelectMultiple = () => { },
+  onUpdate,
+  onDelete,
+  onDuplicate,
   onMove,
-  onCopy = () => {}
-}) => {
+  onCopy = () => { }
+}: LayerItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(layer.name || getLayerNameFallback(layer));
 
@@ -68,48 +68,47 @@ const LayerItem: React.FC<LayerItemProps> = ({
 
   const getThumbnail = () => {
     if (layer.type === 'image') {
-       return <img src={(layer as ImageLayer).src} className="w-full h-full object-cover" />;
+      return <img src={(layer as ImageLayer).src} className="w-full h-full object-cover" />;
     }
     if (layer.type === 'text') {
-        return (
-           <div className="w-full h-full flex items-center justify-center bg-white/5 text-gray-400 font-serif font-bold text-[10px]">
-              T
-           </div>
-        );
+      return (
+        <div className="w-full h-full flex items-center justify-center bg-white/5 text-gray-400 font-serif font-bold text-[10px]">
+          T
+        </div>
+      );
     }
-    
+
     // Shape Layer
     const l = layer as ShapeLayer;
     return (
-         <div 
-            className="w-full h-full flex items-center justify-center text-[8px]" 
-            style={{ 
-               backgroundColor: l.color, 
-               borderRadius: l.type === 'circle' ? '50%' : '2px',
-               // Simple visual approx for shape types
-               clipPath: l.type === 'triangle' ? 'polygon(50% 0%, 0% 100%, 100% 100%)' : 'none'
-            }} 
-         />
+      <div
+        className="w-full h-full flex items-center justify-center text-[8px]"
+        style={{
+          backgroundColor: l.color,
+          borderRadius: l.type === 'circle' ? '50%' : '2px',
+          // Simple visual approx for shape types
+          clipPath: l.type === 'triangle' ? 'polygon(50% 0%, 0% 100%, 100% 100%)' : 'none'
+        }}
+      />
     );
   };
 
   return (
-    <div 
+    <div
       onClick={onSelect}
       onContextMenu={(e) => {
         e.preventDefault();
         onSelectMultiple(e);
       }}
-      className={`group relative flex items-center gap-3 p-2 border rounded cursor-pointer transition-all select-none ${
-        isMultiSelected
-          ? 'bg-[#7d2ae8]/20 border-[#7d2ae8]/50 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-[#7d2ae8]' 
-          : isSelected 
-          ? 'bg-[#7d2ae8]/10 border-[#7d2ae8]/30 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-[#7d2ae8]' 
+      className={`group relative flex items-center gap-3 p-2 border rounded cursor-pointer transition-all select-none ${isMultiSelected
+        ? 'bg-[#7d2ae8]/20 border-[#7d2ae8]/50 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-[#7d2ae8]'
+        : isSelected
+          ? 'bg-[#7d2ae8]/10 border-[#7d2ae8]/30 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-[#7d2ae8]'
           : 'border-gray-800/50 hover:bg-[#252627] hover:border-gray-700'
-      }`}
+        }`}
     >
       {/* Checkbox for multi-select */}
-      <input 
+      <input
         type="checkbox"
         checked={isMultiSelected}
         onChange={(e) => {
@@ -130,14 +129,14 @@ const LayerItem: React.FC<LayerItemProps> = ({
 
       {/* Thumbnail */}
       <div className="w-8 h-8 rounded bg-[#13161a] border border-gray-700 flex items-center justify-center overflow-hidden shrink-0">
-         {getThumbnail()}
+        {getThumbnail()}
       </div>
 
       {/* Info */}
       <div className="flex-1 min-w-0" onDoubleClick={() => setIsEditing(true)}>
         {isEditing ? (
-          <input 
-            type="text" 
+          <input
+            type="text"
             value={editName}
             onChange={(e) => setEditName(e.target.value)}
             onBlur={handleRename}
@@ -148,57 +147,57 @@ const LayerItem: React.FC<LayerItemProps> = ({
           />
         ) : (
           <div className="flex flex-col gap-0.5">
-             <div className="flex items-center gap-2">
-                <span className={`text-xs truncate font-medium ${isSelected || isMultiSelected ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}`}>
-                  {layer.name || getLayerNameFallback(layer)}
+            <div className="flex items-center gap-2">
+              <span className={`text-xs truncate font-medium ${isSelected || isMultiSelected ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}`}>
+                {layer.name || getLayerNameFallback(layer)}
+              </span>
+              {layer.locked && <Icons.Lock className="w-2.5 h-2.5 text-gray-500" />}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {layer.blendMode && layer.blendMode !== 'normal' && (
+                <span className="text-[8px] bg-indigo-500/20 text-indigo-300 px-1 rounded uppercase font-bold tracking-wider">
+                  {layer.blendMode}
                 </span>
-                {layer.locked && <Icons.Lock className="w-2.5 h-2.5 text-gray-500" />}
-             </div>
-             
-             <div className="flex items-center gap-2">
-                {layer.blendMode && layer.blendMode !== 'normal' && (
-                   <span className="text-[8px] bg-indigo-500/20 text-indigo-300 px-1 rounded uppercase font-bold tracking-wider">
-                      {layer.blendMode}
-                   </span>
-                )}
-                {layer.opacity < 1 && (
-                   <span className="text-[9px] text-gray-600">
-                      {Math.round(layer.opacity * 100)}%
-                   </span>
-                )}
-             </div>
+              )}
+              {layer.opacity < 1 && (
+                <span className="text-[9px] text-gray-600">
+                  {Math.round(layer.opacity * 100)}%
+                </span>
+              )}
+            </div>
           </div>
         )}
       </div>
 
       {/* Quick Actions */}
       <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-         <button 
-            onClick={(e) => { e.stopPropagation(); onCopy(); }}
-            className="p-1 hover:bg-blue-900/30 rounded text-gray-500 hover:text-blue-400 transition-colors"
-            title="Copy (Ctrl+C)"
-         >
-            <Icons.Copy className="w-3 h-3" />
-         </button>
-         <button 
-            onClick={(e) => { e.stopPropagation(); onUpdate({ locked: !layer.locked }); }}
-            className={`p-1 hover:bg-gray-600 rounded ${layer.locked ? 'text-white' : 'text-gray-500'}`}
-            title={layer.locked ? "Unlock" : "Lock"}
-         >
-            {layer.locked ? <Icons.Unlock className="w-3.5 h-3.5" /> : <Icons.Lock className="w-3.5 h-3.5" />}
-         </button>
-         
-         <button 
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="p-1 hover:bg-red-900/30 text-gray-500 hover:text-red-400 rounded"
-            title="Delete"
-         >
-            <Icons.Trash className="w-3.5 h-3.5" />
-         </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onCopy(); }}
+          className="p-1 hover:bg-blue-900/30 rounded text-gray-500 hover:text-blue-400 transition-colors"
+          title="Copy (Ctrl+C)"
+        >
+          <Icons.Copy className="w-3 h-3" />
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onUpdate({ locked: !layer.locked }); }}
+          className={`p-1 hover:bg-gray-600 rounded ${layer.locked ? 'text-white' : 'text-gray-500'}`}
+          title={layer.locked ? "Unlock" : "Lock"}
+        >
+          {layer.locked ? <Icons.Unlock className="w-3.5 h-3.5" /> : <Icons.Lock className="w-3.5 h-3.5" />}
+        </button>
+
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          className="p-1 hover:bg-red-900/30 text-gray-500 hover:text-red-400 rounded"
+          title="Delete"
+        >
+          <Icons.Trash className="w-3.5 h-3.5" />
+        </button>
       </div>
     </div>
   );
-};
+});
 
 export const LayersPanel: React.FC<LayersPanelProps> = ({
   textLayers,
@@ -213,11 +212,11 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
   onDuplicateLayer,
   onMoveLayer,
   onLayoutLayers,
-  onCopyLayer = () => {},
-  onPasteLayer = () => {},
-  onBatchDelete = () => {},
-  onBatchToggleVisibility = () => {},
-  onBatchToggleLock = () => {}
+  onCopyLayer = () => { },
+  onPasteLayer = () => { },
+  onBatchDelete = () => { },
+  onBatchToggleVisibility = () => { },
+  onBatchToggleLock = () => { }
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLayerIds, setSelectedLayerIds] = useState<Set<string>>(new Set());
@@ -237,7 +236,7 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
   const filteredLayers = useMemo(() => {
     return allLayers.filter(layer => {
       const matchesFilter = filterType === 'all' || layer.category === filterType;
-      const matchesSearch = !searchQuery || 
+      const matchesSearch = !searchQuery ||
         (layer.name || getLayerNameFallback(layer)).toLowerCase().includes(searchQuery.toLowerCase()) ||
         (layer.type === 'text' && (layer as TextLayer).text.toLowerCase().includes(searchQuery.toLowerCase()));
       return matchesFilter && matchesSearch;
@@ -309,18 +308,18 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
       {/* Header / Actions */}
       <div className="p-4 border-b border-gray-700 flex flex-col gap-3">
         <div className="flex items-center justify-between">
-           <h3 className="font-bold text-white text-sm tracking-wide flex items-center gap-2">
-              <Icons.Layers className="w-4 h-4 text-[#7d2ae8]" />
-              LAYERS
-           </h3>
-           <div className="flex gap-1">
-              <button className="p-1.5 hover:bg-gray-700 rounded text-gray-400 text-xs" title="Collapse All"><Icons.MinusSquare className="w-3.5 h-3.5" /></button>
-           </div>
+          <h3 className="font-bold text-white text-sm tracking-wide flex items-center gap-2">
+            <Icons.Layers className="w-4 h-4 text-[#7d2ae8]" />
+            LAYERS
+          </h3>
+          <div className="flex gap-1">
+            <button className="p-1.5 hover:bg-gray-700 rounded text-gray-400 text-xs" title="Collapse All"><Icons.MinusSquare className="w-3.5 h-3.5" /></button>
+          </div>
         </div>
-        
+
         {/* Search Bar */}
         <div className="relative">
-          <input 
+          <input
             type="text"
             placeholder="Search layers..."
             value={searchQuery}
@@ -328,7 +327,7 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
             className="w-full bg-[#0e1318] border border-gray-700 rounded px-3 py-2 text-xs text-white placeholder-gray-500 focus:border-[#7d2ae8] focus:outline-none transition-colors"
           />
           {searchQuery && (
-            <button 
+            <button
               onClick={() => setSearchQuery('')}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
             >
@@ -338,33 +337,63 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex gap-1 bg-[#0e1318] rounded-lg p-1">
-          {(['all', 'text', 'shape', 'image'] as const).map(type => (
+        <div className="flex gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
+          {(['all', 'text', 'shape', 'image'] as const).map((type) => (
             <button
               key={type}
-              onClick={() => setFilterType(type)}
-              className={`flex-1 py-1.5 rounded text-[9px] font-bold uppercase transition-colors ${
-                filterType === type 
-                  ? 'bg-[#7d2ae8] text-white' 
-                  : 'text-gray-400 hover:text-white'
-              }`}
+              onClick={() => setFilterType(type as any)}
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all shrink-0 ${filterType === type ? 'bg-[#7d2ae8] text-white shadow-lg shadow-[#7d2ae8]/20' : 'bg-[#252627] text-gray-400 hover:text-white hover:bg-gray-700'
+                }`}
             >
               {type === 'all' ? 'All' : type === 'text' ? 'Text' : type === 'shape' ? 'Shapes' : 'Images'}
             </button>
           ))}
         </div>
 
+        {/* Global Actions */}
+        <div className="flex bg-[#252627] rounded-lg p-1 gap-1 border border-gray-700/50">
+          <button
+            onClick={() => setSelectedLayerIds(new Set(filteredLayers.map(l => l.id)))}
+            className="flex-1 py-1.5 hover:bg-gray-700 rounded text-[9px] font-bold text-gray-400 uppercase flex items-center justify-center gap-1 transition-colors"
+            title="Select All"
+          >
+            <Icons.CheckSquare className="w-3 h-3" /> Select All
+          </button>
+          <button
+            onClick={() => {
+              const ids = new Set(filteredLayers.map(l => l.id));
+              setSelectedLayerIds(ids);
+              handleBatchLock(true);
+            }}
+            className="flex-1 py-1.5 hover:bg-gray-700 rounded text-[9px] font-bold text-gray-400 uppercase flex items-center justify-center gap-1 transition-colors"
+            title="Lock All Visible"
+          >
+            <Icons.Lock className="w-3 h-3" /> Lock All
+          </button>
+          <button
+            onClick={() => {
+              const ids = new Set(filteredLayers.map(l => l.id));
+              setSelectedLayerIds(ids);
+              handleBatchVisibility(false);
+            }}
+            className="flex-1 py-1.5 hover:bg-gray-700 rounded text-[9px] font-bold text-gray-400 uppercase flex items-center justify-center gap-1 transition-colors"
+            title="Hide All Visible"
+          >
+            <Icons.EyeOff className="w-3 h-3" /> Hide All
+          </button>
+        </div>
+
         {/* Quick Layout Tools */}
         <div className="flex bg-[#252627] rounded-lg p-1 gap-1">
-           <button onClick={() => onLayoutLayers && onLayoutLayers('grid')} className="flex-1 py-1.5 hover:bg-gray-700 rounded text-[9px] font-bold text-gray-400 uppercase flex items-center justify-center gap-1 transition-colors">
-              <Icons.LayoutGrid className="w-3 h-3" /> Grid
-           </button>
-           <button onClick={() => onLayoutLayers && onLayoutLayers('row')} className="flex-1 py-1.5 hover:bg-gray-700 rounded text-[9px] font-bold text-gray-400 uppercase flex items-center justify-center gap-1 transition-colors">
-              <Icons.LayoutRow className="w-3 h-3" /> Row
-           </button>
-           <button onClick={() => onLayoutLayers && onLayoutLayers('col')} className="flex-1 py-1.5 hover:bg-gray-700 rounded text-[9px] font-bold text-gray-400 uppercase flex items-center justify-center gap-1 transition-colors">
-              <Icons.LayoutCol className="w-3 h-3" /> Col
-           </button>
+          <button onClick={() => onLayoutLayers && onLayoutLayers('grid')} className="flex-1 py-1.5 hover:bg-gray-700 rounded text-[9px] font-bold text-gray-400 uppercase flex items-center justify-center gap-1 transition-colors">
+            <Icons.LayoutGrid className="w-3 h-3" /> Grid
+          </button>
+          <button onClick={() => onLayoutLayers && onLayoutLayers('row')} className="flex-1 py-1.5 hover:bg-gray-700 rounded text-[9px] font-bold text-gray-400 uppercase flex items-center justify-center gap-1 transition-colors">
+            <Icons.LayoutRow className="w-3 h-3" /> Row
+          </button>
+          <button onClick={() => onLayoutLayers && onLayoutLayers('col')} className="flex-1 py-1.5 hover:bg-gray-700 rounded text-[9px] font-bold text-gray-400 uppercase flex items-center justify-center gap-1 transition-colors">
+            <Icons.LayoutCol className="w-3 h-3" /> Col
+          </button>
         </div>
 
         {/* Batch Actions */}
@@ -372,35 +401,35 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
           <div className="bg-[#7d2ae8]/10 border border-[#7d2ae8]/30 rounded-lg p-2 flex items-center justify-between">
             <span className="text-xs font-bold text-[#7d2ae8]">{selectedLayerIds.size} selected</span>
             <div className="flex gap-1">
-              <button 
+              <button
                 onClick={() => handleBatchVisibility(true)}
                 className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors"
                 title="Show all"
               >
                 <Icons.Eye className="w-3.5 h-3.5" />
               </button>
-              <button 
+              <button
                 onClick={() => handleBatchVisibility(false)}
                 className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors"
                 title="Hide all"
               >
                 <Icons.EyeOff className="w-3.5 h-3.5" />
               </button>
-              <button 
+              <button
                 onClick={() => handleBatchLock(true)}
                 className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors"
                 title="Lock all"
               >
                 <Icons.Lock className="w-3.5 h-3.5" />
               </button>
-              <button 
+              <button
                 onClick={() => handleBatchLock(false)}
                 className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors"
                 title="Unlock all"
               >
                 <Icons.Unlock className="w-3.5 h-3.5" />
               </button>
-              <button 
+              <button
                 onClick={handleBatchDelete}
                 className="p-1 hover:bg-red-900/30 rounded text-gray-400 hover:text-red-400 transition-colors"
                 title="Delete all"
@@ -411,21 +440,21 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
           </div>
         )}
       </div>
-      
+
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         {/* Empty State */}
         {filteredLayers.length === 0 && (
-            <div className="flex flex-col items-center justify-center mt-20 opacity-30 gap-2">
-                <Icons.Layers className="w-10 h-10 text-gray-500" />
-                <p className="text-xs font-medium">{searchQuery ? 'No layers found' : 'Empty Canvas'}</p>
-            </div>
+          <div className="flex flex-col items-center justify-center mt-20 opacity-30 gap-2">
+            <Icons.Layers className="w-10 h-10 text-gray-500" />
+            <p className="text-xs font-medium">{searchQuery ? 'No layers found' : 'Empty Canvas'}</p>
+          </div>
         )}
 
         {/* Layers List */}
         {filteredLayers.length > 0 && (
           <div className="space-y-0.5 p-2">
             {filteredLayers.map(layer => (
-              <LayerItem 
+              <LayerItem
                 key={layer.id}
                 layer={layer}
                 isSelected={selectedLayerId === layer.id}

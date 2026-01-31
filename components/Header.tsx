@@ -31,6 +31,7 @@ interface HeaderProps {
   onDuplicate?: () => void;
   onResetZoom?: () => void;
   onCut?: () => void;
+  onCopyToClipboard?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -58,12 +59,14 @@ export const Header: React.FC<HeaderProps> = ({
   onDelete,
   onDuplicate,
   onResetZoom,
-  onCut
+  onCut,
+  onCopyToClipboard
 }) => {
   const fileItems = [
     { label: 'New Design', icon: <Icons.Plus className="w-3.5 h-3.5" />, shortcut: 'Ctrl + N', onClick: onNew || (() => { }) },
     { label: 'Open...', icon: <Icons.Folder className="w-3.5 h-3.5" />, shortcut: 'Ctrl + O', onClick: onOpen || (() => { }) },
     { label: 'Save As...', icon: <Icons.Download className="w-3.5 h-3.5" />, shortcut: 'Ctrl + S', onClick: onSave || (() => { }) },
+    { label: 'Copy Image', icon: <Icons.Copy className="w-3.5 h-3.5" />, shortcut: 'Ctrl+Shift+C', onClick: onCopyToClipboard || (() => { }) },
     { label: 'Export...', icon: <Icons.Image className="w-3.5 h-3.5" />, shortcut: 'Ctrl + E', onClick: onDownload, divider: true },
   ];
 

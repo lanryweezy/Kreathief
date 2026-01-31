@@ -33,11 +33,12 @@ interface ToolbarProps {
    isEraserActive?: boolean;
    canvasSize?: CanvasSize;
    user: User;
-   canvasSize?: CanvasSize;
-   user: User;
    onOpenPricing: () => void;
    onGroup?: () => void;
    onUngroup?: () => void;
+   onToggleDesignSuggestions?: () => void;
+   onToggleSmartContent?: () => void;
+   onToggleQualityScore?: () => void;
 }
 
 const FILTER_PRESETS: { name: string, filters: Partial<LayerFilters> }[] = [
@@ -53,22 +54,27 @@ const CANVAS_EFFECT_PRESETS: { name: string; description: string; filters: Parti
    {
       name: 'Clean',
       description: 'Subtle contrast boost',
-      filters: { brightness: 105, contrast: 110, saturation: 105, blur: 0, vignette: 0, opacity: 1 }
+      filters: { brightness: 105, contrast: 110, saturation: 105, sepia: 0, grayscale: 0, blur: 0, vignette: 0, opacity: 1 }
    },
    {
       name: 'Bold',
       description: 'High contrast & punch',
-      filters: { brightness: 105, contrast: 130, saturation: 120, blur: 0, vignette: 10, opacity: 1 }
+      filters: { brightness: 105, contrast: 130, saturation: 120, sepia: 0, grayscale: 0, blur: 0, vignette: 10, opacity: 1 }
    },
    {
       name: 'Vintage',
       description: 'Soft, slightly faded',
-      filters: { brightness: 110, contrast: 90, saturation: 85, blur: 0.5, vignette: 20, opacity: 1 }
+      filters: { brightness: 110, contrast: 90, saturation: 85, sepia: 30, grayscale: 0, blur: 0.5, vignette: 20, opacity: 1 }
    },
    {
-      name: 'Film',
-      description: 'Moody vignette',
-      filters: { brightness: 95, contrast: 115, saturation: 100, blur: 0, vignette: 35, opacity: 1 }
+      name: 'Noir',
+      description: 'Classic B&W film',
+      filters: { brightness: 100, contrast: 130, saturation: 0, sepia: 0, grayscale: 100, blur: 0, vignette: 40, opacity: 1 }
+   },
+   {
+      name: 'Retro',
+      description: '70s warm vibe',
+      filters: { brightness: 100, contrast: 90, saturation: 120, sepia: 20, grayscale: 0, blur: 0, vignette: 20, opacity: 1 }
    }
 ];
 
@@ -97,7 +103,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
    user,
    onOpenPricing,
    onGroup,
-   onUngroup
+   onUngroup,
+   onToggleDesignSuggestions,
+   onToggleSmartContent,
+   onToggleQualityScore
 }) => {
    const [showFilters, setShowFilters] = useState(false);
    const [showEffects, setShowEffects] = useState(false);
@@ -253,6 +262,33 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide sm:hidden">BG</span>
          </div>
          <Divider />
+         {/* AI Tools Section */}
+         <div className="flex items-center gap-1.5 p-0.5 bg-[#252627] rounded border border-gray-700">
+            <button
+               onClick={onToggleDesignSuggestions}
+               className="px-2 py-1 hover:bg-[#7d2ae8]/20 text-[#00c4cc] text-[10px] font-bold transition-all flex items-center gap-1.5"
+               title="AI Design Suggestions (#81)"
+            >
+               <Icons.Magic className="w-3.5 h-3.5" /> Suggestions
+            </button>
+            <div className="w-px h-4 bg-gray-700"></div>
+            <button
+               onClick={onToggleSmartContent}
+               className="px-2 py-1 hover:bg-[#7d2ae8]/20 text-[#a855f7] text-[10px] font-bold transition-all flex items-center gap-1.5"
+               title="AI Content Generator (#82)"
+            >
+               <Icons.Bot className="w-3.5 h-3.5" /> Smart Text
+            </button>
+            <div className="w-px h-4 bg-gray-700"></div>
+            <button
+               onClick={onToggleQualityScore}
+               className="px-2 py-1 hover:bg-[#7d2ae8]/20 text-emerald-400 text-[10px] font-bold transition-all flex items-center gap-1.5"
+               title="Design Quality & Accessibility Score"
+            >
+               <Icons.Check className="w-3.5 h-3.5" /> Check Quality
+            </button>
+         </div>
+         <Divider />
          <div className="flex items-center gap-1.5 sm:gap-2">
             <span className="text-[10px] text-gray-400 font-bold hidden sm:inline">BG</span>
             <ColorPicker
@@ -268,6 +304,21 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                { icon: Icons.Sun, val: canvasFilters.brightness, key: 'brightness', max: 200, title: 'Brightness' },
                { icon: Icons.Contrast, val: canvasFilters.contrast, key: 'contrast', max: 200, title: 'Contrast' },
                { icon: Icons.Droplet, val: canvasFilters.saturation, key: 'saturation', max: 200, title: 'Saturation' },
+            ].map((item) => (
+               <div key={item.key} className="flex items-center gap-2 group" title={item.title}>
+                  <item.icon className="w-3.5 h-3.5 text-gray-500 group-hover:text-white transition-colors" />
+                  <input
+                     type="range" min="0" max={item.max}
+                     value={item.val}
+                     onChange={(e) => onUpdateCanvasFilters({ [item.key]: parseInt(e.target.value) })}
+                     onMouseDown={onInteractionStart}
+                     className="w-16 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+                  />
+               </div>
+            ))}
+            {[
+               { icon: Icons.Droplet, val: canvasFilters.sepia, key: 'sepia', max: 100, title: 'Sepia' },
+               { icon: Icons.Contrast, val: canvasFilters.grayscale, key: 'grayscale', max: 100, title: 'Gray' },
             ].map((item) => (
                <div key={item.key} className="flex items-center gap-2 group" title={item.title}>
                   <item.icon className="w-3.5 h-3.5 text-gray-500 group-hover:text-white transition-colors" />
@@ -307,6 +358,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                         brightness: 100,
                         contrast: 100,
                         saturation: 100,
+                        sepia: 0,
+                        grayscale: 0,
                         blur: 0,
                         opacity: 1,
                         vignette: 0,
@@ -400,6 +453,31 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                />
             </div>
          )}
+
+         <Divider />
+
+         {/* 3D Distort */}
+         <div className="flex items-center gap-1 p-0.5 bg-[#252627] rounded border border-gray-700">
+            <span className="text-[9px] font-bold text-gray-500 px-1 uppercase tracking-tighter hidden lg:inline">Distort</span>
+            <CompactInput
+               label="RX"
+               value={(selectedLayer as any).rotateX || 0}
+               onChange={(e: any) => handleUpdateLayer({ rotateX: parseInt(e.target.value) })}
+               min={-180} max={180} width="w-8 sm:w-9"
+            />
+            <CompactInput
+               label="RY"
+               value={(selectedLayer as any).rotateY || 0}
+               onChange={(e: any) => handleUpdateLayer({ rotateY: parseInt(e.target.value) })}
+               min={-180} max={180} width="w-8 sm:w-9"
+            />
+            <CompactInput
+               label="P"
+               value={(selectedLayer as any).perspective || 0}
+               onChange={(e: any) => handleUpdateLayer({ perspective: parseInt(e.target.value) })}
+               min={0} max={2000} width="w-10 sm:w-12"
+            />
+         </div>
       </div>
    );
 
@@ -629,6 +707,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                </button>
                <button onClick={() => onRemix && onRemix(layer.id)} className="p-1.5 rounded text-gray-400 hover:text-white hover:bg-gray-700 transition-colors" title="Remix Image">
                   <Icons.RefreshCw className="w-4 h-4" />
+               </button>
+               <button
+                  onClick={() => alert('Image Tracing: This feature converts bitmap images to vector SVG paths. Coming soon with advanced edge detection!')}
+                  className="relative p-1.5 rounded transition-colors text-gray-400 hover:text-white hover:bg-gray-700"
+                  title="Trace to Vector (Beta)"
+               >
+                  <Icons.Shapes className="w-4 h-4 text-cyan-400" />
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></div>
                </button>
             </div>
 

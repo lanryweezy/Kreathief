@@ -16,15 +16,34 @@ const DEFAULT_PALETTE = [
   '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#fffac8', '#800000', '#aaffc3'
 ];
 
-export const ColorPicker: React.FC<ColorPickerProps> = ({ 
-  value, 
-  onChange, 
-  documentColors = [], 
-  label 
+export const ColorPicker: React.FC<ColorPickerProps> = ({
+  value,
+  onChange,
+  documentColors = [],
+  label
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [hexInput, setHexInput] = useState(value);
+  const [recentColors, setRecentColors] = useState<string[]>([]);
   const popoverRef = useRef<HTMLDivElement>(null);
+
+  // Load recent colors from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('kreathief_recent_colors');
+    if (saved) {
+      try {
+        setRecentColors(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to load recent colors', e);
+      }
+    }
+  }, []);
+
+  const addToRecent = (color: string) => {
+    const updated = [color, ...recentColors.filter(c => c !== color)].slice(0, 10);
+    setRecentColors(updated);
+    localStorage.setItem('kreathief_recent_colors', JSON.stringify(updated));
+  };
 
   useEffect(() => {
     setHexInput(value);
@@ -46,6 +65,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
     setHexInput(e.target.value);
     if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
       onChange(e.target.value);
+      addToRecent(e.target.value);
     }
   };
 
@@ -54,7 +74,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   return (
     <div className="relative group" ref={popoverRef}>
       {label && <span className="text-[10px] uppercase font-bold text-gray-500 mb-1 block">{label}</span>}
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-8 h-8 rounded border border-gray-600 flex items-center justify-center relative overflow-hidden bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPjxyZWN0IHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiM0NDQiLz48cGF0aCBkPSJNMCAwSDRWNEgwem00IDhIOFY0SDR6IiBmaWxsPSIjNTU1Ii8+PC9zdmc+')] hover:border-gray-400 transition-colors shadow-sm"
       >
@@ -65,25 +85,51 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
         <div className="absolute top-full left-0 mt-2 bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-2xl p-3 z-50 w-64 animate-fadeIn">
           {/* Hex Input & Native Picker */}
           <div className="flex items-center gap-2 mb-4">
-             <div className="relative flex-1">
-                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs">#</span>
-                <input 
-                  type="text" 
-                  value={hexInput.replace('#', '')}
-                  onChange={(e) => handleHexChange({ ...e, target: { ...e.target, value: '#' + e.target.value } })}
-                  className="w-full bg-[#252627] border border-gray-600 rounded pl-5 pr-2 py-1.5 text-xs text-white uppercase focus:border-[#7d2ae8] outline-none font-mono"
-                />
-             </div>
-             <div className="w-8 h-8 rounded border border-gray-600 relative overflow-hidden">
-                <input 
-                  type="color" 
-                  value={value} 
-                  onChange={(e) => { onChange(e.target.value); setHexInput(e.target.value); }}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <div className="w-full h-full" style={{ backgroundColor: value }} />
-             </div>
+            <div className="relative flex-1">
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs">#</span>
+              <input
+                type="text"
+                value={hexInput.replace('#', '')}
+                onChange={(e) => handleHexChange({ ...e, target: { ...e.target, value: '#' + e.target.value } })}
+                className="w-full bg-[#252627] border border-gray-600 rounded pl-5 pr-2 py-1.5 text-xs text-white uppercase focus:border-[#7d2ae8] outline-none font-mono"
+              />
+            </div>
+            <div className="w-8 h-8 rounded border border-gray-600 relative overflow-hidden">
+              <input
+                type="color"
+                value={value}
+                onChange={(e) => { onChange(e.target.value); setHexInput(e.target.value); addToRecent(e.target.value); }}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <div className="w-full h-full" style={{ backgroundColor: value }} />
+            </div>
           </div>
+
+          {/* Recent Colors */}
+          {recentColors.length > 0 && (
+            <div className="mb-4">
+              <h5 className="text-[10px] font-bold text-gray-500 uppercase mb-2 flex justify-between items-center">
+                Recent Colors
+                <button
+                  onClick={() => { setRecentColors([]); localStorage.removeItem('kreathief_recent_colors'); }}
+                  className="text-[8px] hover:text-red-400"
+                >
+                  Clear
+                </button>
+              </h5>
+              <div className="flex flex-wrap gap-1.5">
+                {recentColors.map((color, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => { onChange(color); setHexInput(color); }}
+                    className="w-5 h-5 rounded-full border border-white/10 hover:scale-110 transition-transform shadow-sm"
+                    style={{ backgroundColor: color }}
+                    title={color}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Document Colors */}
           {uniqueDocColors.length > 0 && (
@@ -93,7 +139,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                 {uniqueDocColors.map((color, idx) => (
                   <button
                     key={idx}
-                    onClick={() => { onChange(color); setHexInput(color); }}
+                    onClick={() => { onChange(color); setHexInput(color); addToRecent(color); }}
                     className="w-5 h-5 rounded-full border border-white/10 hover:scale-110 transition-transform shadow-sm"
                     style={{ backgroundColor: color }}
                     title={color}
@@ -110,7 +156,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
               {DEFAULT_PALETTE.map((color) => (
                 <button
                   key={color}
-                  onClick={() => { onChange(color); setHexInput(color); }}
+                  onClick={() => { onChange(color); setHexInput(color); addToRecent(color); }}
                   className="w-5 h-5 rounded border border-white/10 hover:scale-110 transition-transform shadow-sm"
                   style={{ backgroundColor: color }}
                   title={color}

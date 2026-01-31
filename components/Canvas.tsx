@@ -83,7 +83,7 @@ const ImageLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, 
                 top: layer.y,
                 width: layer.width,
                 height: layer.height,
-                transform: `rotate(${layer.rotation}deg) skew(${layer.skewX || 0}deg, ${layer.skewY || 0}deg)`,
+                transform: `${layer.perspective ? `perspective(${layer.perspective}px)` : ''} rotateX(${layer.rotateX || 0}deg) rotateY(${layer.rotateY || 0}deg) rotate(${layer.rotation}deg) skew(${layer.skewX || 0}deg, ${layer.skewY || 0}deg)`,
                 opacity: layer.opacity,
                 mixBlendMode: layer.blendMode as any,
                 boxShadow: layer.shadow ? `${layer.shadow.offsetX}px ${layer.shadow.offsetY}px ${layer.shadow.blur}px ${layer.shadow.color}` : 'none',
@@ -150,7 +150,7 @@ const ShapeLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, 
                     top: layer.y,
                     width: layer.width,
                     height: layer.height,
-                    transform: `rotate(${layer.rotation}deg) skew(${layer.skewX || 0}deg, ${layer.skewY || 0}deg)`,
+                    transform: `${layer.perspective ? `perspective(${layer.perspective}px)` : ''} rotateX(${layer.rotateX || 0}deg) rotateY(${layer.rotateY || 0}deg) rotate(${layer.rotation}deg) skew(${layer.skewX || 0}deg, ${layer.skewY || 0}deg)`,
                     opacity: layer.opacity,
                     mixBlendMode: layer.blendMode as any,
                     filter: layer.shadow ? `drop-shadow(${layer.shadow.offsetX}px ${layer.shadow.offsetY}px ${layer.shadow.blur}px ${layer.shadow.color})` : 'none'
@@ -188,7 +188,7 @@ const ShapeLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, 
                 top: layer.y,
                 width: layer.width,
                 height: layer.height,
-                transform: `rotate(${layer.rotation}deg) skew(${layer.skewX || 0}deg, ${layer.skewY || 0}deg)`,
+                transform: `${layer.perspective ? `perspective(${layer.perspective}px)` : ''} rotateX(${layer.rotateX || 0}deg) rotateY(${layer.rotateY || 0}deg) rotate(${layer.rotation}deg) skew(${layer.skewX || 0}deg, ${layer.skewY || 0}deg)`,
                 backgroundColor: layer.backgroundImage ? 'transparent' : layer.color,
                 borderRadius: borderRadius,
                 clipPath: clipPath,
@@ -216,7 +216,7 @@ const renderTextOnPath = (canvas: HTMLCanvasElement, layer: TextLayer) => {
     const ctx = canvas.getContext('2d');
     if (!ctx || !layer.textPath) return;
 
-    const { text, color, fontSize, fontFamily, fontWeight, fontStyle, width, height } = layer;
+    const { text, color, fontSize, fontFamily, fontWeight, fontStyle, width } = layer;
     const dpr = 2; // High DPI
 
     // Create a path object to measure length
@@ -270,7 +270,7 @@ const renderTextOnPath = (canvas: HTMLCanvasElement, layer: TextLayer) => {
             // Rotate context and translate.
 
             // CIRCLE LOGIC (matches our circle preset)
-            if (layer.textPath.includes('a 40,40')) {
+            if (layer.textPath && layer.textPath.includes('a 40,40')) {
                 const angleStep = (Math.PI * 2) / (text.length * 1.5);
                 const startTheta = -Math.PI / 2 - (text.length * angleStep) / 2;
 
@@ -313,16 +313,85 @@ const renderTextOnPath = (canvas: HTMLCanvasElement, layer: TextLayer) => {
     }
 };
 
-const TextLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, onMouseEnter, onMouseLeave, onResize, onRotate, onContextMenu, onDoubleClick }: any) => {
+// Helper for rendering warped text to a canvas
+const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) => {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const { text, color, fontSize, fontFamily, fontWeight, fontStyle, warpStyle, curve = 0, width, lineHeight = 1.2, textAlign = 'left' } = layer;
+    const dpr = 2;
+    const font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
+
+    const lines = text.split('\n');
+    const totalLineHeight = fontSize * lineHeight;
+    const textBlockHeight = lines.length * totalLineHeight;
+
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    if (!tempCtx) return;
+
+    tempCanvas.width = width * dpr;
+    tempCanvas.height = textBlockHeight * dpr;
+    tempCtx.scale(dpr, dpr);
+    tempCtx.imageSmoothingEnabled = true;
+    tempCtx.imageSmoothingQuality = 'high';
+
+    tempCtx.font = font;
+    tempCtx.fillStyle = color;
+    tempCtx.textBaseline = 'top';
+    tempCtx.textAlign = textAlign;
+
+    lines.forEach((line, i) => {
+        let x = 0;
+        if (textAlign === 'center') x = width / 2;
+        if (textAlign === 'right') x = width;
+        tempCtx.fillText(line, x, i * totalLineHeight);
+    });
+
+    const intensity = curve / 100;
+    const maxDisplacement = Math.abs(intensity) * (width / 2);
+
+    canvas.width = width * dpr;
+    canvas.height = (textBlockHeight + maxDisplacement * 2) * dpr;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    const bufferY = maxDisplacement * dpr;
+    const sliceWidth = 2;
+
+    for (let x = 0; x < tempCanvas.width; x += sliceWidth) {
+        const normalizedX = (x / tempCanvas.width) * 2 - 1;
+        let offsetY = 0;
+
+        if (warpStyle === 'flag') {
+            offsetY = Math.sin(normalizedX * Math.PI * 1.5) * (intensity * width * dpr * 0.3);
+        } else if (warpStyle === 'rise') {
+            offsetY = normalizedX * (intensity * width * dpr * 0.3);
+        } else if (warpStyle === 'arc') {
+            offsetY = (1 - normalizedX * normalizedX) * (intensity * width * dpr * 0.3) * -1;
+        }
+
+        ctx.drawImage(
+            tempCanvas,
+            x, 0, sliceWidth, tempCanvas.height,
+            x, bufferY + offsetY, sliceWidth, tempCanvas.height
+        );
+    }
+};
+
+const TextLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, onMouseEnter, onMouseLeave, onResize, onRotate, onContextMenu, onDoubleClick, isInteracting }: any) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
+        if (isInteracting) return; // Optimization: Skip expensive re-renders during drag
         if (layer.textPath && canvasRef.current) {
             renderTextOnPath(canvasRef.current, layer);
         } else if (layer.warpStyle && layer.warpStyle !== 'none' && canvasRef.current) {
             renderWarpedText(canvasRef.current, layer);
         }
-    }, [layer]);
+    }, [layer.text, layer.color, layer.fontSize, layer.fontFamily, layer.fontWeight, layer.fontStyle, layer.warpStyle, layer.curve, layer.width, layer.lineHeight, layer.textAlign, layer.textPath, isInteracting]);
 
     const textStyle: React.CSSProperties = {
         fontSize: `${layer.fontSize}px`,
@@ -347,6 +416,20 @@ const TextLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, o
         userSelect: 'none',
     };
 
+    // 3D Text Depth Effect using stacked text-shadows
+    if (layer.depth && layer.depth > 0) {
+        const depthColor = layer.depthColor || '#333333';
+        const shadows: string[] = [];
+        for (let i = 1; i <= layer.depth; i++) {
+            shadows.push(`${i}px ${i}px 0px ${depthColor}`);
+        }
+        // Add main shadow if exists
+        if (layer.shadow) {
+            shadows.push(`${layer.shadow.offsetX + layer.depth}px ${layer.shadow.offsetY + layer.depth}px ${layer.shadow.blur}px ${layer.shadow.color}`);
+        }
+        textStyle.textShadow = shadows.join(', ');
+    }
+
     if (layer.styleType === 'hollow') {
         textStyle.color = 'transparent';
         textStyle.WebkitTextStroke = `1px ${layer.color}`;
@@ -365,7 +448,7 @@ const TextLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, o
                     left: layer.x,
                     top: layer.y,
                     width: layer.width,
-                    transform: `rotate(${layer.rotation}deg) skew(${layer.skewX || 0}deg, ${layer.skewY || 0}deg)`,
+                    transform: `${layer.perspective ? `perspective(${layer.perspective}px)` : ''} rotateX(${layer.rotateX || 0}deg) rotateY(${layer.rotateY || 0}deg) rotate(${layer.rotation}deg) skew(${layer.skewX || 0}deg, ${layer.skewY || 0}deg)`,
                     opacity: layer.opacity,
                     mixBlendMode: layer.blendMode as any,
                 }}
@@ -392,7 +475,7 @@ const TextLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, o
                 left: layer.x,
                 top: layer.y,
                 width: layer.width,
-                transform: `rotate(${layer.rotation}deg) skew(${layer.skewX || 0}deg, ${layer.skewY || 0}deg)`,
+                transform: `${layer.perspective ? `perspective(${layer.perspective}px)` : ''} rotateX(${layer.rotateX || 0}deg) rotateY(${layer.rotateY || 0}deg) rotate(${layer.rotation}deg) skew(${layer.skewX || 0}deg, ${layer.skewY || 0}deg)`,
                 opacity: layer.opacity,
                 mixBlendMode: layer.blendMode as any,
                 minHeight: layer.fontSize,
@@ -450,6 +533,11 @@ interface CanvasProps {
     onGroup?: () => void;
     onUngroup?: () => void;
     onVectorDrawingComplete?: (pathData: string, stroke: any) => void;
+    onFileUpload?: (file: File) => void;
+    onToggleEraser?: () => void;
+    onToggleDesignSuggestions?: () => void;
+    onToggleSmartContent?: () => void;
+    onToggleQualityScore?: () => void;
 }
 
 
@@ -494,7 +582,12 @@ export const Canvas: React.FC<CanvasProps> = ({
     onMultiSelectLayer,
     onGroup,
     onUngroup,
-    onVectorDrawingComplete
+    onVectorDrawingComplete,
+    onFileUpload,
+    onToggleEraser,
+    onToggleDesignSuggestions,
+    onToggleSmartContent,
+    onToggleQualityScore
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -504,7 +597,8 @@ export const Canvas: React.FC<CanvasProps> = ({
     const [dragState, setDragState] = useState<{ isDragging: boolean, startX: number, startY: number, initialPositions: Record<string, { x: number, y: number }> } | null>(null);
     const [resizeState, setResizeState] = useState<{ isResizing: boolean, handle: ResizeHandle, startX: number, startY: number, initialLayer: Layer } | null>(null);
     const [rotateState, setRotateState] = useState<{ isRotating: boolean, startX: number, startY: number, initialRotation: number, centerX: number, centerY: number } | null>(null);
-    const [drawingState, setDrawingState] = useState({ isDrawingPath: false, lastX: 0, lastY: 0 });
+    const [drawingState, setDrawingState] = useState({ isDrawingPath: false });
+    const drawingLastPos = useRef({ x: 0, y: 0 });
     const [contextMenu, setContextMenu] = useState<{ x: number, y: number, layerId: string } | null>(null);
     const [editingTextId, setEditingTextId] = useState<string | null>(null);
     const [editText, setEditText] = useState('');
@@ -516,9 +610,24 @@ export const Canvas: React.FC<CanvasProps> = ({
     const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
     const [snapLines, setSnapLines] = useState<{ vertical?: number, horizontal?: number }>({});
 
+    // local drag preview to avoid parent re-renders on every pixel
+    const [dragPreview, setDragPreview] = useState<{ id: string, x: number, y: number, width?: number, height?: number, rotation?: number } | null>(null);
+    const [bulkDragPreview, setBulkDragPreview] = useState<Record<string, { x: number, y: number }>>({});
+
     const layers: Layer[] = [...shapeLayers, ...imageLayers, ...textLayers];
     const selectedLayer = layers.find(l => l.id === selectedLayerId) || null;
     const bgImage = activeImage?.url || uploadedImage;
+
+    // Helper to get effective layer props (merging original with preview)
+    const getEffectiveLayer = <T extends Layer>(layer: T): T => {
+        if (bulkDragPreview[layer.id]) {
+            return { ...layer, ...bulkDragPreview[layer.id] };
+        }
+        if (dragPreview && dragPreview.id === layer.id) {
+            return { ...layer, ...dragPreview };
+        }
+        return layer;
+    };
 
     // -- Smart Guide Logic --
     const getSnapLines = (currentLayer: Layer, currentX: number, currentY: number) => {
@@ -640,12 +749,6 @@ export const Canvas: React.FC<CanvasProps> = ({
             const dx = (e.clientX - dragState.startX) / zoom;
             const dy = (e.clientY - dragState.startY) / zoom;
 
-            // Refined Logic (Bulk Move + Snapping):
-            // 1. Calculate raw delta based on mouse movement.
-            // 2. Identify primary layer (the one clicked or active).
-            // 3. Calculate snap-adjusted delta for the primary layer.
-            // 4. Apply this adjusted delta to ALL selected layers, preserving their relative positions.
-
             const primaryLayer = layers.find(l => l.id === selectedLayerId);
             let finalDx = dx;
             let finalDy = dy;
@@ -664,15 +767,11 @@ export const Canvas: React.FC<CanvasProps> = ({
                 setSnapLines({});
             }
 
+            const newBulkPreview: Record<string, { x: number, y: number }> = {};
             Object.entries(dragState.initialPositions).forEach(([id, initialPos]) => {
-                const newX = initialPos.x + finalDx;
-                const newY = initialPos.y + finalDy;
-                const update = { x: newX, y: newY };
-
-                if (id.startsWith('text')) onUpdateTextLayer(id, update);
-                else if (id.startsWith('shape')) onUpdateShapeLayer(id, update);
-                else if (id.startsWith('image')) onUpdateImageLayer(id, update);
+                newBulkPreview[id] = { x: initialPos.x + finalDx, y: initialPos.y + finalDy };
             });
+            setBulkDragPreview(newBulkPreview);
         } else {
             setSnapLines({});
         }
@@ -689,10 +788,9 @@ export const Canvas: React.FC<CanvasProps> = ({
             if (handle.includes('s')) height += dy;
             if (handle.includes('n')) { y += dy; height -= dy; }
 
-            const update = { x, y, width: Math.max(10, width), height: Math.max(10, height) };
-            if (selectedLayerId.startsWith('text')) onUpdateTextLayer(selectedLayerId, { ...update, width: update.width });
-            else if (selectedLayerId.startsWith('shape')) onUpdateShapeLayer(selectedLayerId, update);
-            else if (selectedLayerId.startsWith('image')) onUpdateImageLayer(selectedLayerId, update);
+            const w = Math.max(10, width);
+            const h = Math.max(10, height);
+            setDragPreview({ id: selectedLayerId, x, y, width: w, height: h });
         }
 
         if (rotateState?.isRotating && selectedLayerId) {
@@ -701,20 +799,34 @@ export const Canvas: React.FC<CanvasProps> = ({
             const currentAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180 / Math.PI;
             const rotation = initialRotation + (currentAngle - startAngle);
 
-            const update = { rotation };
-            if (selectedLayerId.startsWith('text')) onUpdateTextLayer(selectedLayerId, update);
-            else if (selectedLayerId.startsWith('shape')) onUpdateShapeLayer(selectedLayerId, update);
-            else if (selectedLayerId.startsWith('image')) onUpdateImageLayer(selectedLayerId, update);
+            setDragPreview({ id: selectedLayerId, x: selectedLayer?.x || 0, y: selectedLayer?.y || 0, rotation });
         }
     }, [dragState, resizeState, rotateState, selectedLayerId, zoom, isPanning, panStart, canvasSize]);
 
     const handleMouseUp = useCallback(() => {
+        // Commit changes to parent only on mouseup
+        if (dragState?.isDragging) {
+            Object.entries(bulkDragPreview).forEach(([id, pos]) => {
+                if (id.startsWith('text')) onUpdateTextLayer(id, pos);
+                else if (id.startsWith('shape')) onUpdateShapeLayer(id, pos);
+                else if (id.startsWith('image')) onUpdateImageLayer(id, pos);
+            });
+        }
+        if (dragPreview && (resizeState?.isResizing || rotateState?.isRotating)) {
+            const { id, ...changes } = dragPreview;
+            if (id.startsWith('text')) onUpdateTextLayer(id, changes);
+            else if (id.startsWith('shape')) onUpdateShapeLayer(id, { ...changes, width: changes.width || 0, height: changes.height || 0 });
+            else if (id.startsWith('image')) onUpdateImageLayer(id, { ...changes, width: changes.width || 0, height: changes.height || 0 });
+        }
+
         setDragState(null);
         setResizeState(null);
         setRotateState(null);
         setSnapLines({});
         setIsPanning(false);
-    }, []);
+        setDragPreview(null);
+        setBulkDragPreview({});
+    }, [dragState, bulkDragPreview, dragPreview, resizeState, rotateState, onUpdateTextLayer, onUpdateShapeLayer, onUpdateImageLayer]);
 
     useEffect(() => {
         window.addEventListener('mousemove', handleMouseMove);
@@ -733,9 +845,10 @@ export const Canvas: React.FC<CanvasProps> = ({
         const rect = drawingCanvasRef.current.getBoundingClientRect();
         const x = (e.clientX - rect.left) / zoom;
         const y = (e.clientY - rect.top) / zoom;
+        drawingLastPos.current = { x, y };
 
         if (brushType === BrushType.VECTOR_PENCIL) {
-            setDrawingState({ isDrawingPath: true, lastX: x, lastY: y });
+            setDrawingState({ isDrawingPath: true });
             setVectorPoints([{ x, y }]);
             const ctx = drawingCanvasRef.current.getContext('2d');
             if (ctx) {
@@ -750,7 +863,7 @@ export const Canvas: React.FC<CanvasProps> = ({
             return;
         }
 
-        setDrawingState({ isDrawingPath: true, lastX: x, lastY: y });
+        setDrawingState({ isDrawingPath: true });
         const ctx = drawingCanvasRef.current.getContext('2d');
         if (ctx) {
             ctx.beginPath(); ctx.moveTo(x, y); ctx.strokeStyle = brushColor; ctx.lineWidth = brushSize; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.globalAlpha = brushOpacity;
@@ -762,6 +875,7 @@ export const Canvas: React.FC<CanvasProps> = ({
         const rect = drawingCanvasRef.current.getBoundingClientRect();
         const x = (e.clientX - rect.left) / zoom;
         const y = (e.clientY - rect.top) / zoom;
+        const { x: lastX, y: lastY } = drawingLastPos.current;
         const ctx = drawingCanvasRef.current.getContext('2d');
         if (!ctx) return;
 
@@ -773,8 +887,8 @@ export const Canvas: React.FC<CanvasProps> = ({
             return;
         }
 
-        const distance = Math.sqrt(Math.pow(x - (drawingState.lastX || x), 2) + Math.pow(y - (drawingState.lastY || y), 2));
-        const angle = Math.atan2(y - (drawingState.lastY || y), x - (drawingState.lastX || x));
+        const distance = Math.sqrt(Math.pow(x - lastX, 2) + Math.pow(y - lastY, 2));
+        const angle = Math.atan2(y - lastY, x - lastX);
 
         ctx.strokeStyle = brushColor;
         ctx.fillStyle = brushColor;
@@ -790,8 +904,8 @@ export const Canvas: React.FC<CanvasProps> = ({
             // Calligraphy: slanted flat brush
             ctx.lineWidth = 1;
             for (let i = 0; i < distance; i += 0.5) {
-                const ix = (drawingState.lastX || x) + Math.cos(angle) * i;
-                const iy = (drawingState.lastY || y) + Math.sin(angle) * i;
+                const ix = lastX + Math.cos(angle) * i;
+                const iy = lastY + Math.sin(angle) * i;
                 ctx.save();
                 ctx.translate(ix, iy);
                 ctx.rotate(Math.PI / 4); // 45 degree slant
@@ -801,8 +915,8 @@ export const Canvas: React.FC<CanvasProps> = ({
         } else if (brushType === BrushType.OIL) {
             // Oil: multi-bristle effect
             for (let i = 0; i < distance; i += 1) {
-                const ix = (drawingState.lastX || x) + Math.cos(angle) * i;
-                const iy = (drawingState.lastY || y) + Math.sin(angle) * i;
+                const ix = lastX + Math.cos(angle) * i;
+                const iy = lastY + Math.sin(angle) * i;
                 for (let j = 0; j < 5; j++) {
                     const ox = (Math.random() - 0.5) * brushSize;
                     const oy = (Math.random() - 0.5) * brushSize;
@@ -816,8 +930,8 @@ export const Canvas: React.FC<CanvasProps> = ({
             // Crayon: textured/noisy
             ctx.globalAlpha = brushOpacity * 0.5;
             for (let i = 0; i < distance; i += 0.5) {
-                const ix = (drawingState.lastX || x) + Math.cos(angle) * i;
-                const iy = (drawingState.lastY || y) + Math.sin(angle) * i;
+                const ix = lastX + Math.cos(angle) * i;
+                const iy = lastY + Math.sin(angle) * i;
                 for (let j = 0; j < brushSize * 2; j++) {
                     const radius = Math.random() * (brushSize / 2);
                     const theta = Math.random() * Math.PI * 2;
@@ -831,8 +945,8 @@ export const Canvas: React.FC<CanvasProps> = ({
             ctx.lineWidth = 1;
             ctx.globalAlpha = brushOpacity * 0.8;
             for (let i = 0; i < distance; i += 0.2) {
-                const ix = (drawingState.lastX || x) + Math.cos(angle) * i;
-                const iy = (drawingState.lastY || y) + Math.sin(angle) * i;
+                const ix = lastX + Math.cos(angle) * i;
+                const iy = lastY + Math.sin(angle) * i;
                 const ox = (Math.random() - 0.5) * 1.5;
                 const oy = (Math.random() - 0.5) * 1.5;
                 ctx.fillRect(ix + ox, iy + oy, 1, 1);
@@ -841,8 +955,8 @@ export const Canvas: React.FC<CanvasProps> = ({
             // Watercolor: soft bleeding edges
             ctx.globalAlpha = brushOpacity * 0.05;
             for (let i = 0; i < distance; i += 2) {
-                const ix = (drawingState.lastX || x) + Math.cos(angle) * i;
-                const iy = (drawingState.lastY || y) + Math.sin(angle) * i;
+                const ix = lastX + Math.cos(angle) * i;
+                const iy = lastY + Math.sin(angle) * i;
                 const grad = ctx.createRadialGradient(ix, iy, 0, ix, iy, brushSize * 1.5);
                 grad.addColorStop(0, brushColor);
                 grad.addColorStop(1, 'transparent');
@@ -853,7 +967,7 @@ export const Canvas: React.FC<CanvasProps> = ({
             }
         }
 
-        setDrawingState({ ...drawingState, lastX: x, lastY: y });
+        drawingLastPos.current = { x, y };
     };
     const handleDrawingMouseUp = () => {
         if (!isDrawing) return;
@@ -907,10 +1021,23 @@ export const Canvas: React.FC<CanvasProps> = ({
         e.preventDefault(); const imageUrl = e.dataTransfer.getData('text/plain');
         if (imageUrl && layerId) onUpdateShapeLayer(layerId, { backgroundImage: imageUrl, color: 'transparent' });
     };
-    const handleTextDoubleClick = (e: React.MouseEvent, layer: TextLayer) => {
-        e.stopPropagation(); if (layer.locked) return; setEditingTextId(layer.id); setEditText(layer.text);
+    const handleMouseLeaveLayer = useCallback(() => setHoveredLayerId(null), []);
+    const handleSetHoveredLayerId = useCallback((id: string | null) => setHoveredLayerId(id), []);
+
+    const finishEditingText = () => {
+        if (editingTextId && editText.trim()) {
+            onUpdateTextLayer(editingTextId, { text: editText });
+            setEditingTextId(null);
+        } else {
+            setEditingTextId(null);
+        }
     };
-    const finishEditingText = () => { if (editingTextId) { onUpdateTextLayer(editingTextId, { text: editText }); setEditingTextId(null); } };
+
+    const handleTextDoubleClick = (e: React.MouseEvent, layer: TextLayer) => {
+        e.stopPropagation();
+        setEditingTextId(layer.id);
+        setEditText(layer.text);
+    };
 
     return (
         <div className="flex-1 relative bg-[#13161a] overflow-hidden flex flex-col">
@@ -946,7 +1073,7 @@ export const Canvas: React.FC<CanvasProps> = ({
                     onMagicWrite={onMagicWrite}
                     onInteractionStart={onInteractionStart}
                     onRemix={onRemix}
-                    onToggleEraser={() => {/* Handled in parent */ }}
+                    onToggleEraser={onToggleEraser}
                     isEraserActive={isDrawing && brushColor.includes('255, 0, 0')}
                     canvasSize={canvasSize}
                     documentColors={documentColors}
@@ -954,6 +1081,9 @@ export const Canvas: React.FC<CanvasProps> = ({
                     onOpenPricing={onOpenPricing}
                     onGroup={onGroup}
                     onUngroup={onUngroup}
+                    onToggleDesignSuggestions={onToggleDesignSuggestions}
+                    onToggleSmartContent={onToggleSmartContent}
+                    onToggleQualityScore={onToggleQualityScore}
                 />
             </div>
 
@@ -961,6 +1091,13 @@ export const Canvas: React.FC<CanvasProps> = ({
             <div
                 className={`flex-1 overflow-hidden bg-[#0e1318] relative ${isSpacePressed ? 'cursor-grab' : ''} ${isPanning ? 'cursor-grabbing' : ''}`}
                 onMouseDown={handleMouseDownContainer}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                    e.preventDefault();
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0 && onFileUpload) {
+                        onFileUpload(e.dataTransfer.files[0]);
+                    }
+                }}
             >
                 {/* Center the canvas initially, then apply panOffset */}
                 <div
@@ -975,7 +1112,7 @@ export const Canvas: React.FC<CanvasProps> = ({
                             height: canvasSize.height,
                             transform: `scale(${zoom})`,
                             backgroundColor: canvasBackgroundColor,
-                            filter: `brightness(${canvasFilters.brightness}%) contrast(${canvasFilters.contrast}%) saturate(${canvasFilters.saturation}%) blur(${canvasFilters.blur}px)`,
+                            filter: `brightness(${canvasFilters.brightness}%) contrast(${canvasFilters.contrast}%) saturate(${canvasFilters.saturation}%) sepia(${canvasFilters.sepia}%) grayscale(${canvasFilters.grayscale}%) blur(${canvasFilters.blur}px)`,
                             opacity: canvasFilters.opacity,
                         }}
                     >
@@ -1009,17 +1146,17 @@ export const Canvas: React.FC<CanvasProps> = ({
 
                         {/* Layers */}
                         {shapeLayers.map(l => (
-                            <ShapeLayerItem key={l.id} layer={l} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={setHoveredLayerId} onMouseLeave={() => setHoveredLayerId(null)} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} onDrop={handleDropShape} />
+                            <ShapeLayerItem key={l.id} layer={getEffectiveLayer(l)} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} onDrop={handleDropShape} />
                         ))}
                         {imageLayers.map(l => (
-                            <ImageLayerItem key={l.id} layer={l} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={setHoveredLayerId} onMouseLeave={() => setHoveredLayerId(null)} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} />
+                            <ImageLayerItem key={l.id} layer={getEffectiveLayer(l)} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} />
                         ))}
                         {textLayers.map(l => (
                             <React.Fragment key={l.id}>
                                 {editingTextId === l.id ? (
                                     <textarea value={editText} onChange={(e) => setEditText(e.target.value)} onBlur={finishEditingText} autoFocus className="absolute bg-transparent border-2 border-[#7d2ae8] outline-none resize-none overflow-hidden z-[100]" style={{ left: l.x, top: l.y, width: l.width, minHeight: l.fontSize * 1.5, fontSize: l.fontSize, fontFamily: l.fontFamily, fontWeight: l.fontWeight as any, fontStyle: l.fontStyle, textAlign: l.textAlign, color: l.color, lineHeight: l.lineHeight, transform: `rotate(${l.rotation}deg)` }} />
                                 ) : (
-                                    <TextLayerItem layer={l} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={setHoveredLayerId} onMouseLeave={() => setHoveredLayerId(null)} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} onDoubleClick={handleTextDoubleClick} />
+                                    <TextLayerItem layer={getEffectiveLayer(l)} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} onDoubleClick={handleTextDoubleClick} isInteracting={!!dragState || !!resizeState || !!rotateState} />
                                 )}
                             </React.Fragment>
                         ))}
@@ -1038,6 +1175,26 @@ export const Canvas: React.FC<CanvasProps> = ({
                             <div className="absolute inset-0 bg-black/60 z-[200] flex flex-col items-center justify-center backdrop-blur-md animate-fadeIn">
                                 <div className="w-16 h-16 relative"><div className="absolute inset-0 rounded-full border-4 border-gray-700"></div><div className="absolute inset-0 rounded-full border-4 border-t-[#7d2ae8] animate-spin"></div></div>
                                 <span className="text-white font-bold tracking-wider mt-4 text-sm animate-pulse">AI PROCESSING...</span>
+                            </div>
+                        )}
+
+                        {/* Zero State / Empty Canvas Helper */}
+                        {!bgImage && shapeLayers.length === 0 && imageLayers.length === 0 && textLayers.length === 0 && !isDrawing && !isProcessing && (
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40 hover:opacity-100 transition-opacity duration-300">
+                                <div className="flex flex-col items-center gap-4 p-8 border-2 border-dashed border-gray-300 rounded-2xl bg-white/50 backdrop-blur-sm">
+                                    <div className="flex flex-col items-center gap-2 text-gray-500">
+                                        <Icons.Uploads className="w-12 h-12 mb-2 opacity-50" />
+                                        <span className="font-bold text-lg text-gray-700">Drag & Drop Image</span>
+                                        <span className="text-xs uppercase tracking-widest opacity-60">to start creating</span>
+                                    </div>
+                                    <div className="w-full h-px bg-gray-300"></div>
+                                    <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-500 font-mono">
+                                        <div className="flex justify-between w-32"><span>Add Text</span><span className="font-bold text-gray-700">T</span></div>
+                                        <div className="flex justify-between w-32"><span>Rectangle</span><span className="font-bold text-gray-700">R</span></div>
+                                        <div className="flex justify-between w-32"><span>Circle</span><span className="font-bold text-gray-700">C</span></div>
+                                        <div className="flex justify-between w-32"><span>AI Magic</span><span className="font-bold text-gray-700">/</span></div>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>

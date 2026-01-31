@@ -190,7 +190,9 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                     if (!proceed) return;
                     onApplyTemplate(tmpl.id, false);
                   }}
-                  className="cursor-pointer group relative aspect-video rounded-lg overflow-hidden bg-[#1e1e1e] border border-gray-700 hover:border-[#7d2ae8] transition-all shadow-lg text-left"
+                  draggable={false}
+                  onDragStart={(e) => e.preventDefault()}
+                  className="cursor-pointer group relative aspect-video rounded-lg overflow-hidden bg-[#1e1e1e] border border-gray-700 hover:border-[#7d2ae8] transition-all shadow-lg text-left select-none"
                 >
                   {/* Simulation of template preview content based on category */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${tmpl.category === 'Social' ? 'from-purple-900 to-indigo-900' : 'from-slate-800 to-slate-900'} opacity-50`}></div>

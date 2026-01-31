@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Icons } from '../../constants';
 import { Button } from '../Button';
 
@@ -412,7 +412,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
         </div>
 
         <div className="grid grid-cols-2 gap-3 pb-20">
-          {filteredMockups.map((item) => (
+          {filteredMockups.map((item: MockupDef) => (
             <button
               key={item.id}
               onClick={() => { setActiveMockupId(item.id); }}
@@ -424,7 +424,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
               </div>
               {activeMockupId === item.id && (
                 <div className="absolute top-2 right-2 bg-[#7d2ae8] rounded-full p-1 shadow-md">
-                  <CheckIcon className="w-3 h-3 text-white" />
+                  <Icons.Check className="w-3 h-3 text-white" />
                 </div>
               )}
             </button>

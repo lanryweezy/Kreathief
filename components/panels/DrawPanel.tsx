@@ -83,7 +83,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
             { id: BrushType.CRAYON, name: 'Crayon', icon: Icons.Zap },
             { id: BrushType.PENCIL, name: 'Pencil', icon: Icons.Edit },
             { id: BrushType.WATERCOLOR, name: 'Watercolor', icon: Icons.Droplet },
-            { id: BrushType.VECTOR_PENCIL, name: 'Vector Pen', icon: Icons.PenTool },
+            { id: BrushType.VECTOR_PENCIL, name: 'Vector Pen', icon: Icons.Edit },
           ].map(type => (
             <button
               key={type.id}

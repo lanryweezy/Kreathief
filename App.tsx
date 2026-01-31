@@ -6,7 +6,9 @@ import { Editor } from './components/Editor';
 import { PricingModal } from './components/PricingModal';
 import { WelcomeModal } from './components/modals/WelcomeModal';
 import { GuidedTour, TourStep } from './components/modals/GuidedTour';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { User, Project } from './types';
+import { logger } from './services/logger';
 
 const App: React.FC = () => {
   // Views: 'auth' | 'dashboard' | 'editor'

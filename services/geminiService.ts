@@ -5,9 +5,9 @@ import { DesignTheme, GenerationQuality } from '../types';
 
 // Helper to get fresh client instance (important for key switching)
 const getClient = () => {
-  const apiKey = (process as any).env?.API_KEY;
+  const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || (window as any).GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error('GEMINI_API_KEY environment variable is not set. Please configure it in Vercel environment variables.');
+    throw new Error('VITE_GEMINI_API_KEY environment variable is not set.');
   }
   return new GoogleGenerativeAI(apiKey);
 };
@@ -276,7 +276,7 @@ export const analyzeDesign = async (
 
     const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     const response = await model.generateContent({
-      contents: [{ parts }]
+      contents: [{ role: 'user', parts }]
     });
 
     return response.response.text() || "I couldn't analyze the design.";

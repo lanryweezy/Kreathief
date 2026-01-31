@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { SidePanel } from './SidePanel';
+import { MobileNavBar } from './MobileNavBar';
 import { Canvas } from './Canvas';
 import { AIAssistant } from './AIAssistant';
 import { DesignSuggestions } from './DesignSuggestions';
@@ -21,6 +22,8 @@ const DEFAULT_FILTERS: CanvasFilters = {
   brightness: 100,
   contrast: 100,
   saturation: 100,
+  sepia: 0,
+  grayscale: 0,
   blur: 0,
   opacity: 1,
   vignette: 0
@@ -53,7 +56,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   const [canvasBackgroundColor, setCanvasBackgroundColor] = useState('#ffffff');
   const [canvasFilters, setCanvasFilters] = useState<CanvasFilters>(DEFAULT_FILTERS);
   const [canvasSize, setCanvasSize] = useState<CanvasSize>({ width: 1080, height: 1080, name: 'Square (IG Post)' });
-
   // UI State
   const [showGrid, setShowGrid] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
@@ -160,9 +162,15 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     }
   }, [initialProject]);
 
-  // 2. Auto-save every 30s if changes exist
+  // 2. Auto-save every 30s if changes exist (Optimized using Ref to avoid interval churn)
+  const stateRef = useRef({ projectTitle, textLayers, shapeLayers, imageLayers, canvasBackgroundColor, canvasFilters, canvasSize });
+  useEffect(() => {
+    stateRef.current = { projectTitle, textLayers, shapeLayers, imageLayers, canvasBackgroundColor, canvasFilters, canvasSize };
+  }, [projectTitle, textLayers, shapeLayers, imageLayers, canvasBackgroundColor, canvasFilters, canvasSize]);
+
   useEffect(() => {
     const autoSaveInterval = setInterval(() => {
+      const { textLayers, shapeLayers, imageLayers, projectTitle, canvasBackgroundColor, canvasFilters, canvasSize } = stateRef.current;
       if (textLayers.length === 0 && shapeLayers.length === 0 && imageLayers.length === 0) return;
 
       const stateToSave = {
@@ -176,11 +184,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
         timestamp: Date.now()
       };
       localStorage.setItem('kreathief_autosave_v1', JSON.stringify(stateToSave));
-      // Optional: console.log("Auto-saved");
     }, 30000);
 
     return () => clearInterval(autoSaveInterval);
-  }, [textLayers, shapeLayers, imageLayers, canvasBackgroundColor, canvasFilters, canvasSize, projectTitle]);
+  }, []); // Only start एकदा on mount
 
   // Extract Document Colors
   const documentColors = useMemo(() => {
@@ -271,9 +278,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
 
   const saveToHistory = useCallback(() => {
     const currentState: HistoryState = {
-      textLayers: JSON.parse(JSON.stringify(textLayers)),
-      shapeLayers: JSON.parse(JSON.stringify(shapeLayers)),
-      imageLayers: JSON.parse(JSON.stringify(imageLayers)),
+      textLayers: textLayers.map(l => ({ ...l })),
+      shapeLayers: shapeLayers.map(l => ({ ...l })),
+      imageLayers: imageLayers.map(l => ({ ...l })),
       canvasBackgroundColor,
       canvasFilters: { ...canvasFilters },
       canvasSize: { ...canvasSize }
@@ -1122,6 +1129,26 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     }
   };
 
+  const handleCopyToClipboard = async () => {
+    setIsExporting(true);
+    try {
+      const dataUrl = await handleExportDataUrl();
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [blob.type]: blob
+        })
+      ]);
+      alert("Design copied to clipboard!");
+    } catch (e) {
+      console.error(e);
+      alert("Failed to copy to clipboard.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleBack = async () => {
     // Save thumbnail before exit
     try {
@@ -1181,6 +1208,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     });
   };
 
+  // Mobile State
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <div className="flex flex-col h-screen w-full bg-[#121212] overflow-hidden text-[#e5e7eb] font-sans relative">
       <Header
@@ -1209,67 +1239,88 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
         onDelete={() => selectedLayerId && handleDeleteLayer(selectedLayerId)}
         onDuplicate={() => selectedLayerId && handleDuplicateLayer(selectedLayerId)}
         onCut={() => selectedLayerId && handleCutLayer(selectedLayerId)}
+        onCopyToClipboard={handleCopyToClipboard}
       />
 
       <div id="canvas-container" className="flex-1 flex flex-row relative overflow-hidden bg-[#0e1318]">
-        <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
-        <SidePanel
-          activeTab={activeTab}
-          mode={mode}
-          prompt={prompt}
-          setPrompt={setPrompt}
-          aspectRatio={aspectRatio}
-          setAspectRatio={setAspectRatio}
-          isProcessing={isProcessing}
-          onGenerate={handleGenerate}
-          onSetMode={setMode}
-          history={history}
-          onSelectImage={(img) => { setActiveImageId(img.id); setCanvasFilters(DEFAULT_FILTERS); }}
-          onClearHistory={() => setHistory([])}
-          onFileUpload={handleFileUpload}
-          uploadedImage={uploadedImage}
-          onAddText={handleAddText}
-          onAddShape={handleAddShape}
-          onAddImageLayer={handleAddImageLayer}
-          onApplyTemplate={handleApplyTemplate}
-          textLayers={textLayers}
-          shapeLayers={shapeLayers}
-          imageLayers={imageLayers}
-          selectedLayerId={selectedLayerId}
-          onSelectLayer={setSelectedLayerId}
-          onDeleteLayer={handleDeleteLayer}
-          onUpdateTextLayer={handleUpdateTextLayer}
-          onUpdateShapeLayer={handleUpdateShapeLayer}
-          onUpdateImageLayer={handleUpdateImageLayer}
-          onDuplicateLayer={handleDuplicateLayer}
-          onMoveLayer={handleMoveLayer}
-          onLayoutLayers={handleLayoutLayers}
-          brushColor={brushColor}
-          setBrushColor={setBrushColor}
-          brushSize={brushSize}
-          setBrushSize={setBrushSize}
-          brushType={brushType}
-          setBrushType={setBrushType}
-          isDrawing={isDrawing}
-          setIsDrawing={setIsDrawing}
-          brushOpacity={brushOpacity}
-          setBrushOpacity={setBrushOpacity}
-          onFinishDrawing={() => { if (!isEraserActive) setIsDrawing(false) }}
-          onApplyLayout={handleApplyLayout}
-          brandKits={brandKits}
-          onAddBrandKit={handleAddBrandKit}
-          onDeleteBrandKit={handleDeleteBrandKit}
-          onApplyBrandColors={handleApplyBrandColors}
-          onApplyBrandFonts={handleApplyBrandFonts}
-          onApplyTexture={(url) => setCanvasFilters(prev => ({ ...prev, overlayTexture: url }))}
-          onRemoveTexture={() => setCanvasFilters(prev => ({ ...prev, overlayTexture: undefined }))}
-          currentTexture={canvasFilters.overlayTexture}
-          getCanvasSnapshot={handleExportDataUrl}
-          quality={quality}
-          setQuality={setQuality}
-          uploads={uploads}
-          onDeleteUpload={handleDeleteUpload}
-        />
+
+        {/* Mobile Menu Toggle */}
+        <button
+          className="md:hidden absolute top-4 left-4 z-50 p-2 bg-[#1e1e1e] border border-gray-700 rounded-lg text-white shadow-xl"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? <Icons.X className="w-5 h-5" /> : <Icons.Menu className="w-5 h-5" />}
+        </button>
+
+        {/* Sidebar & Panel Container - Responsive */}
+        <div className={`
+          flex flex-row h-full transition-transform duration-300 ease-in-out z-40 shrink-0
+          ${isMobileMenuOpen ? 'absolute inset-0 bg-[#0e1318] translate-x-0' : 'absolute -translate-x-full md:relative md:translate-x-0'}
+        `}>
+          <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
+          <SidePanel
+            activeTab={activeTab}
+            mode={mode}
+            prompt={prompt}
+            setPrompt={setPrompt}
+            aspectRatio={aspectRatio}
+            setAspectRatio={setAspectRatio}
+            isProcessing={isProcessing}
+            onOpenPricing={onOpenPricing}
+            onToggleDesignSuggestions={() => setShowDesignSuggestions(true)}
+            onToggleSmartContent={() => setShowSmartContent(true)}
+            onToggleQualityScore={() => setShowQualityScore(true)}
+            onGenerate={handleGenerate}
+            onSetMode={setMode}
+            history={history}
+            onSelectImage={(img) => { setActiveImageId(img.id); setCanvasFilters(DEFAULT_FILTERS); }}
+            onClearHistory={() => setHistory([])}
+            onFileUpload={handleFileUpload}
+            uploadedImage={uploadedImage}
+            onAddText={(style) => { handleAddText(style); if (window.innerWidth < 768) setIsMobileMenuOpen(false); }}
+            onAddShape={(type, style) => { handleAddShape(type, style); if (window.innerWidth < 768) setIsMobileMenuOpen(false); }}
+            onAddImageLayer={(src) => { handleAddImageLayer(src); if (window.innerWidth < 768) setIsMobileMenuOpen(false); }}
+            onApplyTemplate={(id, confirm) => { handleApplyTemplate(id); if (window.innerWidth < 768) setIsMobileMenuOpen(false); }}
+            textLayers={textLayers}
+            shapeLayers={shapeLayers}
+            imageLayers={imageLayers}
+            selectedLayerId={selectedLayerId}
+            onSelectLayer={setSelectedLayerId}
+            onDeleteLayer={handleDeleteLayer}
+            onUpdateTextLayer={handleUpdateTextLayer}
+            onUpdateShapeLayer={handleUpdateShapeLayer}
+            onUpdateImageLayer={handleUpdateImageLayer}
+            onDuplicateLayer={handleDuplicateLayer}
+            onMoveLayer={handleMoveLayer}
+            onLayoutLayers={handleLayoutLayers}
+            brushColor={brushColor}
+            setBrushColor={setBrushColor}
+            brushSize={brushSize}
+            setBrushSize={setBrushSize}
+            brushType={brushType}
+            setBrushType={setBrushType}
+            isDrawing={isDrawing}
+            setIsDrawing={setIsDrawing}
+            brushOpacity={brushOpacity}
+            setBrushOpacity={setBrushOpacity}
+            onFinishDrawing={() => { if (!isEraserActive) setIsDrawing(false) }}
+            onApplyLayout={handleApplyLayout}
+            brandKits={brandKits}
+            onAddBrandKit={handleAddBrandKit}
+            onDeleteBrandKit={handleDeleteBrandKit}
+            onApplyBrandColors={handleApplyBrandColors}
+            onApplyBrandFonts={handleApplyBrandFonts}
+            onApplyTexture={(url) => setCanvasFilters(prev => ({ ...prev, overlayTexture: url }))}
+            onRemoveTexture={() => setCanvasFilters(prev => ({ ...prev, overlayTexture: undefined }))}
+            currentTexture={canvasFilters.overlayTexture}
+            getCanvasSnapshot={handleExportDataUrl}
+            quality={quality}
+            setQuality={setQuality}
+            uploads={uploads}
+            onDeleteUpload={handleDeleteUpload}
+          />
+        </div>
+
         <Canvas
           activeImage={activeImage}
           uploadedImage={uploadedImage}
@@ -1311,6 +1362,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
           onSetCanvasSize={setCanvasSize}
           user={user}
           onOpenPricing={onOpenPricing}
+          onFileUpload={handleFileUpload}
+          onToggleDesignSuggestions={() => setShowDesignSuggestions(true)}
+          onToggleSmartContent={() => setShowSmartContent(true)}
+          onToggleQualityScore={() => setShowQualityScore(true)}
         />
       </div>
 
@@ -1411,6 +1466,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
         onClose={() => setShowQualityScore(false)}
         designImage={activeImage?.url || uploadedImage || undefined}
       />
+
+      <MobileNavBar activeTab={activeTab} onSelectTab={setActiveTab} />
     </div>
   );
 };
