@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Layer, TextLayer, ShapeLayer, ImageLayer, CanvasFilters, LayerFilters, CanvasSize, User } from '../types';
 import { Icons, FONT_FAMILIES } from '../constants';
+import { loadFont } from '../services/FontLoader';
 import { ColorPicker } from './ColorPicker';
 import * as geminiService from '../services/geminiService';
 
@@ -527,14 +528,24 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                            autoFocus
                         />
                      </div>
+
+                     {/* Font Preview Styles Injection */}
+                     {filteredFonts.slice(0, 50).map((font, idx) => (
+                        <link
+                           key={idx}
+                           rel="stylesheet"
+                           href={`https://fonts.googleapis.com/css2?family=${font.replace(/ /g, '+')}&text=${encodeURIComponent(font)}&display=swap`}
+                        />
+                     ))}
+
                      {filteredFonts.map(font => (
                         <button
                            key={font}
-                           onClick={() => { onUpdateTextLayer(layer.id, { fontFamily: font }); setShowFontPicker(false); }}
+                           onClick={() => { loadFont(font); onUpdateTextLayer(layer.id, { fontFamily: font }); setShowFontPicker(false); }}
                            className={`w-full text-left px-3 py-2 text-sm hover:bg-[#7d2ae8] hover:text-white rounded flex items-center justify-between group ${layer.fontFamily === font ? 'bg-indigo-900/30 text-[#7d2ae8]' : 'text-gray-300'}`}
-                           style={{ fontFamily: font }}
+                           style={{ fontFamily: `"${font}", sans-serif` }}
                         >
-                           {font}
+                           <span className="truncate">{font}</span>
                            {layer.fontFamily === font && <div className="w-1.5 h-1.5 rounded-full bg-[#7d2ae8] group-hover:bg-white" />}
                         </button>
                      ))}

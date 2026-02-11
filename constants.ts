@@ -115,6 +115,12 @@ const svgProps = {
 
 // SVG Icons
 export const Icons = {
+  AlertTriangle: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" }),
+      React.createElement("line", { x1: "12", y1: "9", x2: "12", y2: "13" }),
+      React.createElement("line", { x1: "12", y1: "17", x2: "12.01", y2: "17" })
+    ),
   Home: (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement("svg", { ...svgProps, ...props },
       React.createElement("path", { d: "m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }),
@@ -494,6 +500,14 @@ export const Icons = {
       React.createElement("line", { x1: "8", y1: "9", x2: "16", y2: "9" }),
       React.createElement("line", { x1: "8", y1: "15", x2: "16", y2: "15" })
     ),
+  MicOff: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("line", { x1: "2", y1: "2", x2: "22", y2: "22" }),
+      React.createElement("path", { d: "M18.89 12a11.94 11.94 0 0 1-2.23 6.41" }),
+      React.createElement("path", { d: "M2 10h3" }),
+      React.createElement("path", { d: "M20 10h3" }),
+      React.createElement("path", { d: "M15 2H9a2 2 0 0 0-2 2v7h2V4h6v10H9v4h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z" })
+    ),
   Filter: (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement("svg", { ...svgProps, ...props },
       React.createElement("line", { x1: "4", y1: "21", x2: "4", y2: "14" }),
@@ -733,6 +747,15 @@ export const Icons = {
     React.createElement("svg", { ...svgProps, ...props },
       React.createElement("polyline", { points: "9 11 12 14 22 4" }),
       React.createElement("path", { d: "M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" })
+    )
+  ),
+  Scissors: (props: React.SVGProps<SVGSVGElement>) => (
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("circle", { cx: "6", cy: "6", r: "3" }),
+      React.createElement("circle", { cx: "6", cy: "18", r: "3" }),
+      React.createElement("line", { x1: "20", y1: "4", x2: "8.12", y2: "15.88" }),
+      React.createElement("line", { x1: "14.47", y1: "14.48", x2: "20", y2: "20" }),
+      React.createElement("line", { x1: "8.12", y1: "8.12", x2: "12", y2: "12" })
     )
   ),
 };

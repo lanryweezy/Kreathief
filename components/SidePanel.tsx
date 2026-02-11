@@ -1,18 +1,26 @@
 
 import React, { useState } from 'react';
 import { NavTab, AppMode, AspectRatio, GeneratedImage, TextLayer, ShapeLayer, ImageLayer, Project, BrandKit, GenerationQuality, BrushType } from '../types';
-import { MagicPanel } from './panels/MagicPanel';
 import { LayersPanel } from './panels/LayersPanel';
-import { TemplatesPanel } from './panels/TemplatesPanel';
 import { DrawPanel } from './panels/DrawPanel';
-import { BrandPanel } from './panels/BrandPanel';
-import { TexturesPanel } from './panels/TexturesPanel';
-import { MockupPanel } from './panels/MockupPanel';
-import { AssistantPanel } from './panels/AssistantPanel';
 import { ElementsPanel } from './panels/ElementsPanel';
 import { TextPanel } from './panels/TextPanel';
 import { UploadsPanel } from './panels/UploadsPanel';
 import { AssetsPanel } from './panels/AssetsPanel';
+
+// Lazy load complex panels
+const MagicPanel = React.lazy(() => import('./panels/MagicPanel').then(m => ({ default: m.MagicPanel })));
+const TemplatesPanel = React.lazy(() => import('./panels/TemplatesPanel').then(m => ({ default: m.TemplatesPanel })));
+const BrandPanel = React.lazy(() => import('./panels/BrandPanel').then(m => ({ default: m.BrandPanel })));
+const TexturesPanel = React.lazy(() => import('./panels/TexturesPanel').then(m => ({ default: m.TexturesPanel })));
+const MockupPanel = React.lazy(() => import('./panels/MockupPanel').then(m => ({ default: m.MockupPanel })));
+const AssistantPanel = React.lazy(() => import('./panels/AssistantPanel').then(m => ({ default: m.AssistantPanel })));
+
+const PanelLoading = () => (
+  <div className="flex h-full w-full items-center justify-center bg-[#13161a]">
+    <div className="w-6 h-6 rounded-full border-2 border-[#7d2ae8] border-t-transparent animate-spin"></div>
+  </div>
+);
 
 interface SidePanelProps {
   activeTab: NavTab;
@@ -205,131 +213,135 @@ export const SidePanel = React.memo(({ ...props }: SidePanelProps) => {
   );
 
   return (
-    <div className="w-[320px] bg-[#13161a] border-r border-[#1f1f1f] flex flex-col z-20 shrink-0 shadow-xl relative">
-      {activeTab === NavTab.MAGIC && (
-        <MagicPanel
-          mode={mode}
-          prompt={prompt}
-          setPrompt={setPrompt}
-          aspectRatio={aspectRatio}
-          setAspectRatio={setAspectRatio}
-          onGenerate={onGenerate}
-          isProcessing={isProcessing}
-          onSetMode={onSetMode}
-          uploadedImage={uploadedImage}
-          fileInputRef={fileInputRef}
-          selectedLayerId={selectedLayerId}
-          imageLayers={imageLayers}
-          onUpdateImageLayer={onUpdateImageLayer}
-          quality={quality}
-          setQuality={setQuality}
-        />
-      )}
+    <div className="w-[320px] bg-[#13161a] border-r border-[#1f1f1f] flex flex-col z-20 shrink-0 shadow-xl relative overflow-hidden">
+      <div key={activeTab} className="h-full flex flex-col animate-panel-entry">
+        <React.Suspense fallback={<PanelLoading />}>
+          {activeTab === NavTab.MAGIC && (
+            <MagicPanel
+              mode={mode}
+              prompt={prompt}
+              setPrompt={setPrompt}
+              aspectRatio={aspectRatio}
+              setAspectRatio={setAspectRatio}
+              onGenerate={onGenerate}
+              isProcessing={isProcessing}
+              onSetMode={onSetMode}
+              uploadedImage={uploadedImage}
+              fileInputRef={fileInputRef}
+              selectedLayerId={selectedLayerId}
+              imageLayers={imageLayers}
+              onUpdateImageLayer={onUpdateImageLayer}
+              quality={quality}
+              setQuality={setQuality}
+            />
+          )}
 
-      {(activeTab === NavTab.ELEMENTS || activeTab === NavTab.STICKERS) && (
-        <ElementsPanel
-          onAddShape={onAddShape}
-          onAddImageLayer={onAddImageLayer}
-        />
-      )}
+          {(activeTab === NavTab.ELEMENTS || activeTab === NavTab.STICKERS) && (
+            <ElementsPanel
+              onAddShape={onAddShape}
+              onAddImageLayer={onAddImageLayer}
+            />
+          )}
 
-      {activeTab === NavTab.TEXT && (
-        <TextPanel onAddText={onAddText} />
-      )}
+          {activeTab === NavTab.TEXT && (
+            <TextPanel onAddText={onAddText} />
+          )}
 
-      {activeTab === NavTab.UPLOADS && (
-        <UploadsPanel
-          onFileUpload={onFileUpload}
-          uploads={uploads}
-          onAddImageLayer={onAddImageLayer}
-          onDeleteUpload={onDeleteUpload}
-        />
-      )}
+          {activeTab === NavTab.UPLOADS && (
+            <UploadsPanel
+              onFileUpload={onFileUpload}
+              uploads={uploads}
+              onAddImageLayer={onAddImageLayer}
+              onDeleteUpload={onDeleteUpload}
+            />
+          )}
 
-      {activeTab === NavTab.PHOTOS && (
-        <AssetsPanel onAddImageLayer={onAddImageLayer || (() => { })} />
-      )}
+          {activeTab === NavTab.PHOTOS && (
+            <AssetsPanel onAddImageLayer={onAddImageLayer || (() => { })} />
+          )}
 
-      {activeTab === NavTab.ASSISTANT && (
-        <AssistantPanel
-          getCanvasSnapshot={getCanvasSnapshot || (async () => "")}
-          onAddText={onAddText}
-          onAddShape={onAddShape}
-        />
-      )}
+          {activeTab === NavTab.ASSISTANT && (
+            <AssistantPanel
+              getCanvasSnapshot={getCanvasSnapshot || (async () => "")}
+              onAddText={onAddText}
+              onAddShape={onAddShape}
+            />
+          )}
 
-      {activeTab === NavTab.BRAND && (
-        <BrandPanel
-          brandKits={brandKits}
-          onAddBrandKit={onAddBrandKit || (() => { })}
-          onDeleteBrandKit={onDeleteBrandKit || (() => { })}
-          onApplyBrandColors={onApplyBrandColors || (() => { })}
-          onApplyBrandFonts={onApplyBrandFonts || (() => { })}
-        />
-      )}
+          {activeTab === NavTab.BRAND && (
+            <BrandPanel
+              brandKits={brandKits}
+              onAddBrandKit={onAddBrandKit || (() => { })}
+              onDeleteBrandKit={onDeleteBrandKit || (() => { })}
+              onApplyBrandColors={onApplyBrandColors || (() => { })}
+              onApplyBrandFonts={onApplyBrandFonts || (() => { })}
+            />
+          )}
 
-      {activeTab === NavTab.TEXTURES && (
-        <TexturesPanel
-          onApplyTexture={onApplyTexture || (() => { })}
-          currentTexture={currentTexture}
-          onRemoveTexture={onRemoveTexture || (() => { })}
-        />
-      )}
+          {activeTab === NavTab.TEXTURES && (
+            <TexturesPanel
+              onApplyTexture={onApplyTexture || (() => { })}
+              currentTexture={currentTexture}
+              onRemoveTexture={onRemoveTexture || (() => { })}
+            />
+          )}
 
-      {activeTab === NavTab.TEMPLATES && (
-        <TemplatesPanel
-          setPrompt={setPrompt}
-          setAspectRatio={setAspectRatio}
-          onSetMode={onSetMode}
-          onApplyLayout={onApplyLayout}
-          onApplyTemplate={onApplyTemplate}
-          onApplyTheme={onApplyBrandColors}
-        />
-      )}
+          {activeTab === NavTab.TEMPLATES && (
+            <TemplatesPanel
+              setPrompt={setPrompt}
+              setAspectRatio={setAspectRatio}
+              onSetMode={onSetMode}
+              onApplyLayout={onApplyLayout}
+              onApplyTemplate={onApplyTemplate}
+              onApplyTheme={onApplyBrandColors}
+            />
+          )}
 
-      {activeTab === NavTab.LAYERS && (
-        <LayersPanel
-          textLayers={textLayers}
-          shapeLayers={shapeLayers}
-          imageLayers={imageLayers}
-          selectedLayerId={selectedLayerId}
-          onSelectLayer={onSelectLayer}
-          onDeleteLayer={onDeleteLayer}
-          onUpdateTextLayer={onUpdateTextLayer}
-          onUpdateShapeLayer={onUpdateShapeLayer}
-          onUpdateImageLayer={onUpdateImageLayer}
-          onDuplicateLayer={onDuplicateLayer}
-          onMoveLayer={onMoveLayer}
-          onLayoutLayers={onLayoutLayers}
-          onCopyLayer={onCopyLayer}
-          onPasteLayer={onPasteLayer}
-        />
-      )}
+          {activeTab === NavTab.LAYERS && (
+            <LayersPanel
+              textLayers={textLayers}
+              shapeLayers={shapeLayers}
+              imageLayers={imageLayers}
+              selectedLayerId={selectedLayerId}
+              onSelectLayer={onSelectLayer}
+              onDeleteLayer={onDeleteLayer}
+              onUpdateTextLayer={onUpdateTextLayer}
+              onUpdateShapeLayer={onUpdateShapeLayer}
+              onUpdateImageLayer={onUpdateImageLayer}
+              onDuplicateLayer={onDuplicateLayer}
+              onMoveLayer={onMoveLayer}
+              onLayoutLayers={onLayoutLayers}
+              onCopyLayer={onCopyLayer}
+              onPasteLayer={onPasteLayer}
+            />
+          )}
 
-      {activeTab === NavTab.DRAW && (
-        <DrawPanel
-          brushColor={brushColor}
-          setBrushColor={setBrushColor}
-          brushSize={brushSize}
-          setBrushSize={setBrushSize}
-          isDrawing={isDrawing}
-          setIsDrawing={setIsDrawing}
-          brushOpacity={brushOpacity}
-          setBrushOpacity={setBrushOpacity}
-          brushType={brushType}
-          setBrushType={setBrushType}
-          onFinishDrawing={onFinishDrawing}
-        />
-      )}
+          {activeTab === NavTab.DRAW && (
+            <DrawPanel
+              brushColor={brushColor}
+              setBrushColor={setBrushColor}
+              brushSize={brushSize}
+              setBrushSize={setBrushSize}
+              isDrawing={isDrawing}
+              setIsDrawing={setIsDrawing}
+              brushOpacity={brushOpacity}
+              setBrushOpacity={setBrushOpacity}
+              brushType={brushType}
+              setBrushType={setBrushType}
+              onFinishDrawing={onFinishDrawing}
+            />
+          )}
 
-      {activeTab === NavTab.MOCKUP && (
-        <MockupPanel
-          onExportForMockup={getCanvasSnapshot || (async () => "")}
-          onAddToCanvas={onAddImageLayer}
-        />
-      )}
+          {activeTab === NavTab.MOCKUP && (
+            <MockupPanel
+              onExportForMockup={getCanvasSnapshot || (async () => "")}
+              onAddToCanvas={onAddImageLayer}
+            />
+          )}
 
-      {activeTab === NavTab.PROJECTS && renderProjects()}
+          {activeTab === NavTab.PROJECTS && renderProjects()}
+        </React.Suspense>
+      </div>
 
       {/* Hidden File Input placed at Root to ensure it always exists for MagicPanel Refs */}
       <input

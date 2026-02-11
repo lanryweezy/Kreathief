@@ -429,3 +429,75 @@ const extractImageFromResponse = (response: any): string => {
 
   throw new Error("No valid image data found in response.");
 };
+
+export const optimizeLayout = async (
+  layers: any[],
+  canvasWidth: number,
+  canvasHeight: number
+): Promise<any[]> => {
+  try {
+    const ai = getClient();
+    // Simplify layer data to reduce token usage
+    const simplifiedLayers = layers.map(l => ({
+      id: l.id,
+      type: l.type,
+      text: l.text ? l.text.substring(0, 20) : undefined,
+      x: l.x,
+      y: l.y,
+      width: l.width,
+      height: l.height
+    }));
+
+    const systemPrompt = `
+      You are a layout optimization engine.
+      Analyze the provided graphic design elements and rearrange them into a professional, balanced composition.
+      Canvas size: ${canvasWidth}x${canvasHeight}.
+      
+      Rules:
+      1. Keep all layers.
+      2. Return ONLY the modified properties (x, y, width, height) for each layer ID.
+      3. Ensure clear visual hierarchy and alignment.
+      
+      Return JSON format:
+      [
+        { "id": "layer_1", "x": 100, "y": 100, "width": 200, "height": 50 },
+        ...
+      ]
+    `;
+
+    const model = ai.getGenerativeModel({
+      model: 'gemini-2.0-flash-exp',
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              id: { type: SchemaType.STRING },
+              x: { type: SchemaType.NUMBER },
+              y: { type: SchemaType.NUMBER },
+              width: { type: SchemaType.NUMBER },
+              height: { type: SchemaType.NUMBER }
+            },
+            required: ["id", "x", "y"]
+          }
+        }
+      }
+    });
+
+    const response = await model.generateContent({
+      contents: [{
+        role: 'user',
+        parts: [{ text: `${systemPrompt}\n\nCurrent Layout: ${JSON.stringify(simplifiedLayers)}` }]
+      }],
+    });
+
+    const text = response.response.text();
+    if (!text) return [];
+    return JSON.parse(text);
+  } catch (error) {
+    console.error("Layout Optimization Error:", error);
+    return [];
+  }
+};

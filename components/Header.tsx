@@ -32,6 +32,7 @@ interface HeaderProps {
   onResetZoom?: () => void;
   onCut?: () => void;
   onCopyToClipboard?: () => void;
+  onRestartTour?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -60,7 +61,8 @@ export const Header: React.FC<HeaderProps> = ({
   onDuplicate,
   onResetZoom,
   onCut,
-  onCopyToClipboard
+  onCopyToClipboard,
+  onRestartTour
 }) => {
   const fileItems = [
     { label: 'New Design', icon: <Icons.Plus className="w-3.5 h-3.5" />, shortcut: 'Ctrl + N', onClick: onNew || (() => { }) },
@@ -86,6 +88,7 @@ export const Header: React.FC<HeaderProps> = ({
     { label: 'Reset Zoom', onClick: onResetZoom || (() => { }), divider: true },
     { label: showGrid ? 'Hide Grid' : 'Show Grid', icon: <Icons.Grid className="w-3.5 h-3.5" />, shortcut: 'G', onClick: onToggleGrid || (() => { }) },
     { label: 'Keyboard Shortcuts', icon: <Icons.Keyboard className="w-3.5 h-3.5" />, shortcut: '?', onClick: onToggleShortcuts || (() => { }) },
+    { label: 'Take Tour', icon: <Icons.Magic className="w-3.5 h-3.5" />, onClick: onRestartTour || (() => { }) },
   ];
 
   return (
@@ -131,21 +134,29 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
-        <span className="text-xs text-white/70 ml-2 hidden lg:block min-w-[80px]">
-          {isSaving ? "Saving..." : "Saved"}
-        </span>
+        <div className="flex items-center gap-2 ml-2 min-w-[100px] hidden lg:flex">
+          <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isSaving ? "bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.8)]" : "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]"}`}></div>
+          <span className={`text-[10px] uppercase tracking-wider font-bold transition-colors ${isSaving ? "text-amber-200" : "text-emerald-200 opacity-80"}`}>
+            {isSaving ? "Syncing..." : "Synced"}
+          </span>
+        </div>
       </div>
 
-      <div className="flex-1 flex justify-center px-4">
+      <div className="flex-1 flex justify-center px-4 group/title relative">
         {onTitleChange ? (
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => onTitleChange(e.target.value)}
-            className="bg-transparent text-center font-medium text-sm border-b border-transparent hover:border-white/50 focus:border-white focus:outline-none transition-colors max-w-md px-2 truncate"
-          />
+          <div className="relative max-w-md w-full flex justify-center">
+            <input
+              id="header-title"
+              type="text"
+              value={title}
+              onChange={(e) => onTitleChange(e.target.value)}
+              className="bg-transparent text-center font-bold text-base border-b border-transparent hover:border-white/30 focus:border-white focus:outline-none transition-all px-2 truncate cursor-edit"
+              placeholder="Enter design name"
+            />
+            <Icons.Scissors className="w-3 h-3 absolute -right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover/title:opacity-40 transition-opacity pointer-events-none rotate-45" />
+          </div>
         ) : (
-          <div className="font-medium text-sm opacity-90 truncate max-w-md px-4">
+          <div className="font-bold text-base opacity-90 truncate max-w-md px-4">
             {title}
           </div>
         )}

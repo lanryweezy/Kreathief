@@ -176,6 +176,30 @@ export const exportDesignToImage = async (
   format: 'png' | 'jpeg' | 'webp' = 'png',
   quality: number = 0.95
 ): Promise<string> => {
+  // Try offloading to worker first for better responsiveness if supported
+  if (typeof OffscreenCanvas !== 'undefined' && typeof Worker !== 'undefined') {
+    try {
+      return await new Promise((resolve, reject) => {
+        const worker = new Worker(new URL('./exportWorker.ts', import.meta.url), { type: 'module' });
+        worker.onmessage = (e) => {
+          if (e.data.dataUrl) resolve(e.data.dataUrl);
+          else if (e.data.error) reject(new Error(e.data.error));
+          worker.terminate();
+        };
+        worker.onerror = (err) => {
+          reject(err);
+          worker.terminate();
+        };
+        worker.postMessage({
+          width, height, backgroundColor, backgroundImageUrl, shapes, texts, images, filters, format, quality
+        });
+      });
+    } catch (err) {
+      console.warn('Background export failed, falling back to main thread:', err);
+    }
+  }
+
+  // Fallback to main-thread implementation
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;

@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import * as geminiService from '../services/geminiService';
 import { Icons } from '../constants';
-import { DesignTheme } from '../types';
 
-interface Suggestion {
+export interface Suggestion {
   id: string;
   title: string;
   description: string;
-  action: 'theme' | 'text' | 'layout' | 'colors';
+  action: 'theme' | 'typography' | 'layout';
   data?: any;
   isApplying?: boolean;
 }
@@ -17,13 +16,17 @@ interface DesignSuggestionsProps {
   onClose: () => void;
   onApplySuggestion?: (suggestion: Suggestion) => void;
   designContext?: string;
+  layers?: any[];
+  canvasSize?: { width: number, height: number };
 }
 
 export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
   isOpen,
   onClose,
   onApplySuggestion,
-  designContext = 'modern poster'
+  designContext = 'modern poster',
+  layers = [],
+  canvasSize = { width: 1080, height: 1080 }
 }) => {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,28 +35,67 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
   const generateSuggestions = async () => {
     setIsLoading(true);
     try {
-      const suggestionPrompts = [
-        'Suggest a color palette improvement for this design',
-        'Suggest a typography improvement for this design',
-        'Suggest a layout improvement for this design',
-        'Suggest a visual hierarchy improvement for this design'
-      ];
-
       const newSuggestions: Suggestion[] = [];
 
-      for (let i = 0; i < suggestionPrompts.length; i++) {
-        const response = await geminiService.generateText(
-          designContext,
-          suggestionPrompts[i]
-        );
-
+      // 1. Layout Optimization (only if we have layers)
+      if (layers.length > 0) {
         newSuggestions.push({
-          id: `suggestion_${Date.now()}_${i}`,
-          title: suggestionPrompts[i].replace('Suggest a ', '').replace(' for this design', ''),
-          description: response,
-          action: ['colors', 'text', 'layout', 'theme'][i] as any,
-          isApplying: false
+          id: `suggestion_layout_${Date.now()}`,
+          title: 'Magic Layout',
+          description: 'Automatically optionalize layer positions for better balance and hierarchy.',
+          action: 'layout',
+          data: { /* data fetched on apply for now, or pre-fetched? Better to pre-fetch if fast, but layout optimizes strictly on *current* state. 
+                   Actually, let's pre-fetch "Layout" implies we change state. 
+                   If user moves things while menu is open, pre-fetched layout is stale. 
+                   Let's make "Magic Layout" an action that calls API immediately when clicked? 
+                   BUT the current UI pattern is "Generate" -> "List" -> "Apply".
+                   So we must generate the "Plan" or just a placeholder 'action'.
+                   Let's stick to the "Action" pattern where the suggestion *contains* the data.
+                   So we must fetch layout now. */
+          }
         });
+        // We will fetch the actual data in parallel below
+      }
+
+      // 2. Color Theme
+      newSuggestions.push({
+        id: `suggestion_theme_${Date.now()}`,
+        title: 'Smart Color Remediation',
+        description: 'Apply a harmonious color palette based on your design context.',
+        action: 'theme'
+      });
+
+      // 3. Typography
+      newSuggestions.push({
+        id: `suggestion_typo_${Date.now()}`,
+        title: 'Typography Polish',
+        description: 'Update fonts to a more professional pairing.',
+        action: 'typography'
+      });
+
+      // Parallel Fetching for Data
+      const [layoutData, themeData, typoData] = await Promise.all([
+        // Layout
+        layers.length > 0 ? geminiService.optimizeLayout(layers, canvasSize.width, canvasSize.height) : Promise.resolve(null),
+        // Theme
+        geminiService.generateDesignTheme(designContext + " color palette only"),
+        // Typo
+        geminiService.generateDesignTheme(designContext + " typography only")
+      ]);
+
+      // Assign Data
+      if (layoutData && newSuggestions[0].action === 'layout') {
+         newSuggestions[0].data = layoutData;
+      }
+      const themeIdx = newSuggestions.findIndex(s => s.action === 'theme');
+      if (themeIdx !== -1 && themeData) {
+         newSuggestions[themeIdx].data = themeData;
+         newSuggestions[themeIdx].description = `Apply ${themeData.name} palette.`;
+      }
+      const typoIdx = newSuggestions.findIndex(s => s.action === 'typography');
+      if (typoIdx !== -1 && typoData) {
+         newSuggestions[typoIdx].data = typoData;
+         newSuggestions[typoIdx].description = `Switch to ${typoData.headingFont} & ${typoData.bodyFont}.`;
       }
 
       setSuggestions(newSuggestions);
@@ -72,9 +114,9 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
 
     // Visual feedback
     setTimeout(() => {
-      setSuggestions(prev =>
-        prev.filter(s => s.id !== suggestion.id)
-      );
+    //   setSuggestions(prev =>
+    //     prev.filter(s => s.id !== suggestion.id)
+    //   );
     }, 500);
   };
 
@@ -84,22 +126,17 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-[#1e1e1e] rounded-lg shadow-2xl w-full max-w-2xl border border-gray-700 max-h-[80vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-[#1e1e1e] flex items-center justify-between p-6 border-b border-gray-700">
+        <div className="sticky top-0 bg-[#1e1e1e] flex items-center justify-between p-6 border-b border-gray-700 z-10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
               <Icons.Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="font-bold text-white text-lg">Design Suggestions</h2>
-              <p className="text-xs text-gray-400">AI-powered improvements for your design</p>
+              <h2 className="font-bold text-white text-lg">AI Design Director</h2>
+              <p className="text-xs text-gray-400">Actionable improvements for your masterpiece</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
-          >
-            ✕
-          </button>
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">✕</button>
         </div>
 
         {/* Content */}
@@ -107,13 +144,13 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
           {suggestions.length === 0 && !isLoading ? (
             <div className="text-center py-12">
               <Icons.Sparkles className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400 mb-4">Get AI-powered suggestions to improve your design</p>
+              <p className="text-gray-400 mb-4">Let AI analyze your layout, colors, and fonts.</p>
               <button
                 onClick={generateSuggestions}
                 disabled={isLoading}
                 className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 text-white px-6 py-2 rounded-lg font-medium transition-colors disabled:cursor-not-allowed"
               >
-                Generate Suggestions
+                Analyze & Suggest
               </button>
             </div>
           ) : (
@@ -122,7 +159,7 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
                 <div className="flex items-center justify-center py-12">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-8 h-8 border-4 border-gray-700 border-t-indigo-500 rounded-full animate-spin" />
-                    <p className="text-gray-400 text-sm">Analyzing your design...</p>
+                    <p className="text-gray-400 text-sm">Analyzing composition and style...</p>
                   </div>
                 </div>
               ) : (
@@ -133,12 +170,13 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-white capitalize mb-1">
-                          {suggestion.title}
-                        </h3>
-                        <p className="text-sm text-gray-400 line-clamp-2">
-                          {suggestion.description}
-                        </p>
+                        <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-white capitalize">{suggestion.title}</h3>
+                            {suggestion.action === 'layout' && <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 rounded uppercase font-bold">Layout</span>}
+                            {suggestion.action === 'theme' && <span className="text-[10px] bg-purple-500/20 text-purple-300 px-1.5 rounded uppercase font-bold">Color</span>}
+                            {suggestion.action === 'typography' && <span className="text-[10px] bg-green-500/20 text-green-300 px-1.5 rounded uppercase font-bold">Font</span>}
+                        </div>
+                        <p className="text-sm text-gray-400 line-clamp-2">{suggestion.description}</p>
                       </div>
                       <button
                         onClick={() => handleApplySuggestion(suggestion)}
@@ -162,7 +200,7 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
               onClick={generateSuggestions}
               className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
-              Refresh Suggestions
+              Re-Analyze
             </button>
             <button
               onClick={onClose}

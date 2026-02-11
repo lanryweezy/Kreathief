@@ -1,20 +1,56 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Kreathief - AI-Powered Creative Design Suite
 
-# Run and deploy your AI Studio app
+Kreathief is a professional-grade design application that leverages the power of Google Gemini AI to help you create stunning visuals, stickers, and layouts in seconds.
 
-This contains everything you need to run your app locally.
+## ✨ Features
 
-View your app in AI Studio: https://ai.studio/apps/drive/1P-9SBKY7nYmY2z7kVO9DM403qcTBnAQ4
+- **AI-Powered Layouts**: Generate professional design compositions from simple prompts.
+- **Smart Stickers**: Describe any sticker and have Gemini generate it for you.
+- **AI Assist**: Real-time design advice and layout optimization.
+- **Vector Drawing**: Professional pencil and brush tools for custom illustrations.
+- **Brand Kits**: Save your brand colors and fonts for consistent designs.
+- **Share & Collaborate**: Generate guest-friendly share links to showcase your work.
 
-## Run Locally
+## 🚀 Getting Started
 
-**Prerequisites:**  Node.js
+### Prerequisites
 
+- [Node.js](https://nodejs.org/) (v16 or higher)
+- A Google Gemini API Key
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Installation
+
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/lanryweezy/Kreathief.git
+    cd Kreathief
+    ```
+
+2.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
+
+3.  **Configure Environment**:
+    Copy `.env.example` to `.env.local` and add your Gemini API Key:
+    ```bash
+    cp .env.example .env.local
+    ```
+
+4.  **Run Development Server**:
+    ```bash
+    npm run dev
+    ```
+
+## 🛠️ Build for Production
+
+To create an optimized production build:
+```bash
+npm run build
+```
+The output will be in the `dist/` directory.
+
+## 📄 License
+
+This project is licensed under the MIT License.
+

@@ -22,3 +22,19 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Testing
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+test_output.txt
+
+# Environment
+.env
+.env*.local
+
+# Production
+build/
+.vercel
+

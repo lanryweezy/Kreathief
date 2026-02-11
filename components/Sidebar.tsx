@@ -8,7 +8,7 @@ interface SidebarProps {
   onSelectTab: (tab: NavTab) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab }) => {
+export const Sidebar: React.FC<SidebarProps> = React.memo(({ activeTab, onSelectTab }) => {
   const navItems = [
     { id: NavTab.ASSISTANT, icon: Icons.Bot, label: "AI Assist" },
     { id: NavTab.TEMPLATES, icon: Icons.Templates, label: "Design" },
@@ -48,4 +48,4 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onSelectTab }) => {
       })}
     </div>
   );
-};
+});

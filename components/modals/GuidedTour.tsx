@@ -109,16 +109,17 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, onSki
     return (
         <div className="fixed inset-0 z-[999] pointer-events-none">
             {/* Backdrop with hole - click to skip */}
-            <div 
-                className="absolute inset-0 pointer-events-auto cursor-pointer"
+            <div
+                className="absolute inset-0 pointer-events-auto cursor-pointer transition-opacity duration-500"
                 onClick={onSkip}
-                style={{ zIndex: 998 }}
+                style={{ zIndex: 998, opacity: targetRect ? 1 : 0 }}
             >
                 <svg className="absolute inset-0 w-full h-full">
                     <defs>
                         <mask id={`tour-mask-${currentStepIdx}`}>
                             <rect x="0" y="0" width="100%" height="100%" fill="white" />
                             <rect
+                                className="transition-all duration-500"
                                 x={targetRect.left - 4}
                                 y={targetRect.top - 4}
                                 width={targetRect.width + 8}
@@ -134,7 +135,7 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, onSki
 
             {/* Pulsing highlight */}
             <div
-                className="absolute border-2 border-[#00c4cc] rounded-lg animate-pulse"
+                className="absolute border-2 border-[#00c4cc] rounded-lg animate-pulse transition-all duration-500"
                 style={{
                     top: targetRect.top - 6,
                     left: targetRect.left - 6,
@@ -151,8 +152,8 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, onSki
             >
                 <div className="flex justify-between items-start">
                     <h4 className="text-[#00c4cc] font-bold text-sm uppercase tracking-wider">Step {currentStepIdx + 1} of {steps.length}</h4>
-                    <button 
-                        onClick={onSkip} 
+                    <button
+                        onClick={onSkip}
                         className="text-gray-400 hover:text-white transition-colors text-xs font-bold px-3 py-1 rounded hover:bg-gray-800"
                         style={{ zIndex: 1001 }}
                     >

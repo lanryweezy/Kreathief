@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { Project, User } from '../types';
 import { Icons } from '../constants';
 import { STARTER_TEMPLATES, createProjectFromTemplate } from '../data/templates';
+import { ConfirmModal } from './modals/ConfirmModal';
+import { storageService } from '../services/storageService';
 
 interface DashboardProps {
   user: User;
@@ -20,24 +22,39 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onOpenPricing
 }) => {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [sidebarTab, setSidebarTab] = useState<'projects' | 'templates' | 'brand' | 'uploads'>('projects');
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('kreathief_projects');
-      if (saved) {
-        setProjects(JSON.parse(saved).sort((a: Project, b: Project) => b.updatedAt - a.updatedAt));
+    const loadProjects = async () => {
+      try {
+        const saved = await storageService.getAllProjects();
+        setProjects(saved.sort((a, b) => b.updatedAt - a.updatedAt));
+      } catch (e) {
+        console.error('Failed to load projects:', e);
       }
-    } catch (e) {
-      console.error(e);
-    }
+    };
+    loadProjects();
   }, []);
+
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; projectId: string | null }>({
+    isOpen: false,
+    projectId: null
+  });
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
-    if (window.confirm("Are you sure you want to delete this project?")) {
-      const newProjects = projects.filter(p => p.id !== id);
+    setDeleteConfirm({ isOpen: true, projectId: id });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.projectId) return;
+    try {
+      await storageService.deleteProject(deleteConfirm.projectId);
+      const newProjects = projects.filter(p => p.id !== deleteConfirm.projectId);
       setProjects(newProjects);
-      localStorage.setItem('kreathief_projects', JSON.stringify(newProjects));
+      setDeleteConfirm({ isOpen: false, projectId: null });
+    } catch (e) {
+      console.error('Failed to delete project:', e);
     }
   };
 
@@ -60,14 +77,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
     if (!template) return;
 
     const newProject = createProjectFromTemplate(template);
-    const updated = [newProject, ...projects];
-    setProjects(updated.sort((a, b) => b.updatedAt - a.updatedAt));
-    try {
-      localStorage.setItem('kreathief_projects', JSON.stringify(updated));
-    } catch (e) {
+    storageService.saveProject(newProject).then(() => {
+      const updated = [newProject, ...projects];
+      setProjects(updated.sort((a, b) => b.updatedAt - a.updatedAt));
+      onOpenProject(newProject);
+    }).catch(e => {
       console.error('Failed to save template project', e);
-    }
-    onOpenProject(newProject);
+    });
   };
 
   return (
@@ -113,17 +129,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Sidebar */}
         <aside className="w-64 bg-[#13161a] border-r border-gray-800 p-6 hidden md:block">
           <nav className="space-y-2">
-            <button className="w-full flex items-center gap-3 px-3 py-2 bg-[#252627] text-white rounded-lg font-medium text-sm">
-              <Icons.Home className="w-4 h-4 text-[#00c4cc]" /> All Projects
+            <button onClick={() => setSidebarTab('projects')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition-colors ${sidebarTab === 'projects' ? 'bg-[#252627] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+              <Icons.Home className={`w-4 h-4 ${sidebarTab === 'projects' ? 'text-[#00c4cc]' : ''}`} /> All Projects
             </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg font-medium text-sm transition-colors">
-              <Icons.Templates className="w-4 h-4" /> Templates
+            <button onClick={() => setSidebarTab('templates')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition-colors ${sidebarTab === 'templates' ? 'bg-[#252627] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+              <Icons.Templates className={`w-4 h-4 ${sidebarTab === 'templates' ? 'text-[#00c4cc]' : ''}`} /> Templates
             </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg font-medium text-sm transition-colors">
-              <Icons.Brand className="w-4 h-4" /> Brand Kits
+            <button onClick={() => setSidebarTab('brand')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition-colors ${sidebarTab === 'brand' ? 'bg-[#252627] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+              <Icons.Brand className={`w-4 h-4 ${sidebarTab === 'brand' ? 'text-[#00c4cc]' : ''}`} /> Brand Kits
             </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg font-medium text-sm transition-colors">
-              <Icons.Uploads className="w-4 h-4" /> Uploads
+            <button onClick={() => setSidebarTab('uploads')} className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition-colors ${sidebarTab === 'uploads' ? 'bg-[#252627] text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
+              <Icons.Uploads className={`w-4 h-4 ${sidebarTab === 'uploads' ? 'text-[#00c4cc]' : ''}`} /> Uploads
             </button>
           </nav>
 
@@ -153,7 +169,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold">Start designing</h2>
+              <h2 className="text-2xl font-bold">
+                {sidebarTab === 'projects' && 'Your Designs'}
+                {sidebarTab === 'templates' && 'Start from a Template'}
+                {sidebarTab === 'brand' && 'Brand Kits'}
+                {sidebarTab === 'uploads' && 'Your Uploads'}
+              </h2>
               <button
                 id="create-btn"
                 onClick={handleCreateClick}
@@ -163,97 +184,187 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </button>
             </div>
 
-            {/* Starter templates */}
-            <div className="mb-10">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
-                <Icons.Templates className="w-4 h-4 text-[#00c4cc]" />
-                Quick templates
-              </h3>
-              <div id="templates-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {STARTER_TEMPLATES.map((tmpl) => (
-                  <button
-                    key={tmpl.id}
-                    onClick={() => handleStartFromTemplate(tmpl.id)}
-                    className="group bg-[#1e1e1e] border border-gray-700 rounded-xl overflow-hidden text-left hover:border-[#00c4cc] hover:shadow-xl transition-all"
-                  >
-                    <div className="aspect-[4/3] bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center relative overflow-hidden">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-black/40 px-2 py-1 rounded-full absolute top-3 left-3">
-                        {tmpl.category}
-                      </span>
-                      <span className="text-xs text-gray-500 group-hover:text-gray-300 transition-colors">
-                        {tmpl.size.name}
-                      </span>
-                    </div>
-                    <div className="p-3">
-                      <div className="text-sm font-semibold text-white truncate mb-1">
-                        {tmpl.name}
+            {/* Templates Tab */}
+            {sidebarTab === 'templates' && (
+              <div className="mb-10">
+                <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
+                  <Icons.Templates className="w-4 h-4 text-[#00c4cc]" />
+                  Quick templates
+                </h3>
+                <div id="templates-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 staggered-entry">
+                  {STARTER_TEMPLATES.map((tmpl) => (
+                    <button
+                      key={tmpl.id}
+                      onClick={() => handleStartFromTemplate(tmpl.id)}
+                      className="group glass-card rounded-xl overflow-hidden text-left shadow-lg"
+                    >
+                      <div className="aspect-[4/3] bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center relative overflow-hidden">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-black/40 px-2 py-1 rounded-full absolute top-3 left-3">
+                          {tmpl.category}
+                        </span>
+                        <span className="text-xs text-gray-500 group-hover:text-gray-300 transition-colors">
+                          {tmpl.size.name}
+                        </span>
                       </div>
-                      <div className="text-[11px] text-gray-400 line-clamp-2">
-                        {tmpl.description}
+                      <div className="p-3">
+                        <div className="text-sm font-semibold text-white truncate mb-1">
+                          {tmpl.name}
+                        </div>
+                        <div className="text-[11px] text-gray-400 line-clamp-2">
+                          {tmpl.description}
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {/* Create New Card */}
-              <div
-                onClick={handleCreateClick}
-                className="aspect-[4/3] bg-[#1e1e1e] border-2 border-dashed border-gray-700 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-[#7d2ae8] hover:bg-[#7d2ae8]/5 transition-all group"
-              >
-                <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform group-hover:bg-[#7d2ae8]">
-                  <Icons.FolderPlus className="w-6 h-6 text-gray-400 group-hover:text-white" />
+                    </button>
+                  ))}
                 </div>
-                <span className="font-bold text-sm text-gray-400 group-hover:text-white">Start Blank Canvas</span>
               </div>
+            )}
 
-              {/* Project Cards */}
-              {projects.map(project => (
-                <div
-                  key={project.id}
-                  onClick={() => onOpenProject(project)}
-                  className="group bg-[#1e1e1e] border border-gray-700 rounded-xl overflow-hidden cursor-pointer hover:ring-2 hover:ring-[#00c4cc] transition-all shadow-xl hover:shadow-2xl relative"
+            {/* Brand Kits Tab */}
+            {sidebarTab === 'brand' && (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#7d2ae8]/20 to-[#00c4cc]/20 flex items-center justify-center mb-4">
+                  <Icons.Brand className="w-8 h-8 text-[#7d2ae8]" />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">Brand Kits</h3>
+                <p className="text-sm text-gray-400 max-w-md mb-6">
+                  Create and manage your brand kits inside the editor. Define your brand colors, fonts, and logos to keep all your designs consistent.
+                </p>
+                <button
+                  onClick={handleCreateClick}
+                  className="bg-[#7d2ae8] hover:bg-[#6b23c5] text-white px-6 py-2.5 rounded-lg font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
                 >
-                  <div className="aspect-[4/3] bg-[#13161a] relative overflow-hidden flex items-center justify-center">
-                    {project.thumbnail ? (
-                      <img src={project.thumbnail} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                    ) : (
-                      <div
-                        className="w-full h-full opacity-50 group-hover:scale-105 transition-transform duration-500"
-                        style={{ backgroundColor: project.state.canvasBackgroundColor }}
-                      >
-                        {project.state.textLayers.length > 0 && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-xs text-white/50 bg-black/50 px-2 rounded">T</span>
+                  <Icons.Magic className="w-4 h-4" /> Open Editor to Manage Brands
+                </button>
+              </div>
+            )}
+
+            {/* Uploads Tab */}
+            {sidebarTab === 'uploads' && (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#00c4cc]/20 to-[#7d2ae8]/20 flex items-center justify-center mb-4">
+                  <Icons.Uploads className="w-8 h-8 text-[#00c4cc]" />
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">Your Uploads</h3>
+                <p className="text-sm text-gray-400 max-w-md mb-6">
+                  Upload images and assets directly inside the editor. All your uploads are saved and accessible across your projects.
+                </p>
+                <button
+                  onClick={handleCreateClick}
+                  className="bg-[#7d2ae8] hover:bg-[#6b23c5] text-white px-6 py-2.5 rounded-lg font-bold transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                >
+                  <Icons.Magic className="w-4 h-4" /> Open Editor to Upload
+                </button>
+              </div>
+            )}
+
+            {/* All Projects Tab (default) */}
+            {(sidebarTab === 'projects' || sidebarTab === 'templates') && (
+              <>
+                {sidebarTab === 'projects' && (
+                  <div className="mb-10">
+                    <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
+                      <Icons.Templates className="w-4 h-4 text-[#00c4cc]" />
+                      Quick templates
+                    </h3>
+                    <div id="templates-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 staggered-entry">
+                      {STARTER_TEMPLATES.map((tmpl) => (
+                        <button
+                          key={tmpl.id}
+                          onClick={() => handleStartFromTemplate(tmpl.id)}
+                          className="group glass-card rounded-xl overflow-hidden text-left shadow-lg"
+                        >
+                          <div className="aspect-[4/3] bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center relative overflow-hidden">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-black/40 px-2 py-1 rounded-full absolute top-3 left-3">
+                              {tmpl.category}
+                            </span>
+                            <span className="text-xs text-gray-500 group-hover:text-gray-300 transition-colors">
+                              {tmpl.size.name}
+                            </span>
+                          </div>
+                          <div className="p-3">
+                            <div className="text-sm font-semibold text-white truncate mb-1">
+                              {tmpl.name}
+                            </div>
+                            <div className="text-[11px] text-gray-400 line-clamp-2">
+                              {tmpl.description}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 staggered-entry">
+                  {/* Create New Card */}
+                  <div
+                    onClick={handleCreateClick}
+                    className="aspect-[4/3] glass-card border-2 border-dashed border-gray-700 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-[#7d2ae8] transition-all group"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform group-hover:bg-[#7d2ae8]">
+                      <Icons.FolderPlus className="w-6 h-6 text-gray-400 group-hover:text-white" />
+                    </div>
+                    <span className="font-bold text-sm text-gray-400 group-hover:text-white">Start Blank Canvas</span>
+                  </div>
+
+                  {/* Project Cards */}
+                  {projects.map(project => (
+                    <div
+                      key={project.id}
+                      onClick={() => onOpenProject(project)}
+                      className="group glass-card rounded-xl overflow-hidden cursor-pointer shadow-xl hover:shadow-2xl relative"
+                    >
+                      <div className="aspect-[4/3] bg-[#13161a] relative overflow-hidden flex items-center justify-center">
+                        {project.thumbnail ? (
+                          <img src={project.thumbnail} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                        ) : (
+                          <div
+                            className="w-full h-full opacity-50 group-hover:scale-105 transition-transform duration-500"
+                            style={{ backgroundColor: project.state.canvasBackgroundColor }}
+                          >
+                            {project.state.textLayers.length > 0 && (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-xs text-white/50 bg-black/50 px-2 rounded">T</span>
+                              </div>
+                            )}
                           </div>
                         )}
-                      </div>
-                    )}
 
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={(e) => handleDelete(e, project.id)}
-                        className="p-2 bg-black/50 hover:bg-red-500/80 text-white rounded-lg backdrop-blur-sm transition-colors"
-                      >
-                        <Icons.Trash className="w-4 h-4" />
-                      </button>
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => handleDelete(e, project.id)}
+                            className="p-2 bg-black/50 hover:bg-red-500/80 text-white rounded-lg backdrop-blur-sm transition-colors"
+                          >
+                            <Icons.Trash className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-bold text-sm text-white truncate mb-1">{project.name}</h3>
+                        <div className="flex justify-between items-center text-[10px] text-gray-500">
+                          <span>{new Date(project.updatedAt).toLocaleDateString()}</span>
+                          <span>{project.state.canvasSize?.width}x{project.state.canvasSize?.height}</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-sm text-white truncate mb-1">{project.name}</h3>
-                    <div className="flex justify-between items-center text-[10px] text-gray-500">
-                      <span>{new Date(project.updatedAt).toLocaleDateString()}</span>
-                      <span>{project.state.canvasSize?.width}x{project.state.canvasSize?.height}</span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            )}
           </div>
         </div>
       </main>
+
+      <ConfirmModal
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, projectId: null })}
+        onConfirm={confirmDelete}
+        title="Delete Project?"
+        message="This action cannot be undone. All your carefully crafted layers and AI generations in this design will be permanently removed."
+        confirmLabel="Delete Forever"
+        variant="danger"
+      />
     </div>
   );
 };

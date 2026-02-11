@@ -68,12 +68,27 @@ const LayerItem = React.memo(({
 
   const getThumbnail = () => {
     if (layer.type === 'image') {
-      return <img src={(layer as ImageLayer).src} className="w-full h-full object-cover" />;
+      return (
+        <div className="w-full h-full relative group/thumb overflow-hidden">
+          <img src={(layer as ImageLayer).src} className="w-full h-full object-cover transition-transform group-hover/thumb:scale-110" />
+          <div className="absolute inset-0 bg-black/20 group-hover/thumb:bg-black/0 transition-colors" />
+        </div>
+      );
     }
     if (layer.type === 'text') {
+      const l = layer as TextLayer;
       return (
-        <div className="w-full h-full flex items-center justify-center bg-white/5 text-gray-400 font-serif font-bold text-[10px]">
-          T
+        <div
+          className="w-full h-full flex items-center justify-center bg-[#0e1318] text-center p-0.5 overflow-hidden"
+          style={{
+            color: l.color,
+            fontFamily: `"${l.fontFamily}", sans-serif`,
+            lineHeight: 1
+          }}
+        >
+          <span className="text-[10px] font-bold truncate tracking-tighter">
+            {l.text.trim().substring(0, 3) || 'T'}
+          </span>
         </div>
       );
     }
@@ -81,15 +96,17 @@ const LayerItem = React.memo(({
     // Shape Layer
     const l = layer as ShapeLayer;
     return (
-      <div
-        className="w-full h-full flex items-center justify-center text-[8px]"
-        style={{
-          backgroundColor: l.color,
-          borderRadius: l.type === 'circle' ? '50%' : '2px',
-          // Simple visual approx for shape types
-          clipPath: l.type === 'triangle' ? 'polygon(50% 0%, 0% 100%, 100% 100%)' : 'none'
-        }}
-      />
+      <div className="w-full h-full flex items-center justify-center bg-[#0e1318] p-1.5">
+        <div
+          className="w-full h-full transition-transform group-hover:scale-110 shadow-sm"
+          style={{
+            backgroundColor: l.color,
+            borderRadius: l.type === 'circle' ? '50%' : l.type === 'rectangle' ? '2px' : '0',
+            clipPath: l.type === 'triangle' ? 'polygon(50% 0%, 0% 100%, 100% 100%)' : 'none',
+            border: l.color === '#ffffff' || l.color === 'white' ? '1px solid #333' : 'none'
+          }}
+        />
+      </div>
     );
   };
 

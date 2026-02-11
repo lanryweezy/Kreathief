@@ -58,14 +58,14 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
           {!isDrawing ? (
             <button
               onClick={() => setIsDrawing(true)}
-              className="flex-1 bg-[#7d2ae8] hover:bg-[#6b23c5] text-white text-xs font-bold py-2 rounded transition-colors"
+              className="flex-1 bg-[#7d2ae8] hover:bg-[#6b23c5] text-white text-xs font-bold py-3 md:py-2 rounded transition-colors"
             >
               Start Drawing
             </button>
           ) : (
             <button
               onClick={() => { setIsDrawing(false); onFinishDrawing(); }}
-              className="flex-1 bg-green-600 hover:bg-green-500 text-white text-xs font-bold py-2 rounded transition-colors"
+              className="flex-1 bg-green-600 hover:bg-green-500 text-white text-xs font-bold py-3 md:py-2 rounded transition-colors"
             >
               Done
             </button>
@@ -105,7 +105,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
               <button
                 key={c}
                 onClick={() => setBrushColor(c)}
-                className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${brushColor === c ? 'border-white ring-2 ring-white/20' : 'border-transparent'}`}
+                className={`w-10 h-10 md:w-8 md:h-8 rounded-full border-2 transition-transform hover:scale-110 ${brushColor === c ? 'border-white ring-2 ring-white/20' : 'border-transparent'}`}
                 style={{ backgroundColor: c }}
               />
             ))}

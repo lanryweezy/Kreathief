@@ -2,8 +2,10 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
+import { ErrorBoundary } from './ErrorBoundary';
 import { SidePanel } from './SidePanel';
 import { MobileNavBar } from './MobileNavBar';
+import { BottomSheet } from './BottomSheet';
 import { Canvas } from './Canvas';
 import { AIAssistant } from './AIAssistant';
 import { DesignSuggestions } from './DesignSuggestions';
@@ -12,11 +14,13 @@ import { DesignQualityScorer } from './DesignQualityScorer';
 import { AppMode, AspectRatio, GeneratedImage, NavTab, TextLayer, ShapeLayer, ImageLayer, HistoryState, CanvasFilters, Project, DesignTheme, BrandKit, CanvasSize, GenerationQuality, User, BrushType } from '../types';
 import * as geminiService from '../services/geminiService';
 import * as exportService from '../services/exportService';
+import { storageService } from '../services/storageService';
 import { MODEL_FAST, Icons } from '../constants';
 import { STARTER_TEMPLATES } from '../data/templates';
 import { ShareModal } from './modals/ShareModal';
 import { ExportModal } from './modals/ExportModal';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { loadFont, loadFonts } from '../services/FontLoader';
 
 const DEFAULT_FILTERS: CanvasFilters = {
   brightness: 100,
@@ -34,9 +38,10 @@ interface EditorProps {
   onBack: () => void;
   user: User;
   onOpenPricing: () => void;
+  onRestartTour?: () => void;
 }
 
-export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, onOpenPricing }) => {
+export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, onOpenPricing, onRestartTour }) => {
   // Navigation State
   const [activeTab, setActiveTab] = useState<NavTab>(NavTab.MAGIC);
 
@@ -53,9 +58,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   const [activeImageId, setActiveImageId] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [uploads, setUploads] = useState<string[]>([]);
-  const [canvasBackgroundColor, setCanvasBackgroundColor] = useState('#ffffff');
-  const [canvasFilters, setCanvasFilters] = useState<CanvasFilters>(DEFAULT_FILTERS);
-  const [canvasSize, setCanvasSize] = useState<CanvasSize>({ width: 1080, height: 1080, name: 'Square (IG Post)' });
+  const [canvasBackgroundColor, setCanvasBackgroundColor] = useState(initialProject?.state.canvasBackgroundColor || '#ffffff');
+  const [canvasFilters, setCanvasFilters] = useState<CanvasFilters>(initialProject?.state.canvasFilters || DEFAULT_FILTERS);
+  const [canvasSize, setCanvasSize] = useState<CanvasSize>(initialProject?.state.canvasSize || { width: 1080, height: 1080, name: 'Square (IG Post)' });
   // UI State
   const [showGrid, setShowGrid] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
@@ -72,9 +77,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   const [showShare, setShowShare] = useState(false);
 
   // Layers State
-  const [textLayers, setTextLayers] = useState<TextLayer[]>([]);
-  const [shapeLayers, setShapeLayers] = useState<ShapeLayer[]>([]);
-  const [imageLayers, setImageLayers] = useState<ImageLayer[]>([]);
+  const [textLayers, setTextLayers] = useState<TextLayer[]>(initialProject?.state.textLayers || []);
+  const [shapeLayers, setShapeLayers] = useState<ShapeLayer[]>(initialProject?.state.shapeLayers || []);
+  const [imageLayers, setImageLayers] = useState<ImageLayer[]>(initialProject?.state.imageLayers || []);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const [selectedLayerIds, setSelectedLayerIds] = useState<string[]>([]);
 
@@ -136,58 +141,88 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     }
   }, [initialProject]);
 
+  // Load fonts used in text layers
+  useEffect(() => {
+    const fonts = Array.from(new Set(textLayers.map(l => l.fontFamily)));
+    if (fonts.length > 0) {
+      loadFonts(fonts);
+    }
+  }, [textLayers]);
+
   // -- Auto-Save & Crash Recovery --
 
   // 1. Recover on mount
+  // 1. Recover on mount
   useEffect(() => {
-    const savedState = localStorage.getItem('kreathief_autosave_v1');
-    if (savedState && !initialProject) {
-      try {
-        const parsed = JSON.parse(savedState);
-        // Only prompt if there's actual content
-        if ((parsed.textLayers?.length > 0 || parsed.shapeLayers?.length > 0 || parsed.imageLayers?.length > 0) &&
-          window.confirm('We found an unsaved session. Would you like to restore it?')) {
+    const recoverSession = async () => {
+      const savedState = await storageService.getSetting('kreathief_autosave_v1', null);
+      if (savedState && !initialProject) {
+        try {
+          const parsed = typeof savedState === 'string' ? JSON.parse(savedState) : savedState;
+          if ((parsed.textLayers?.length > 0 || parsed.shapeLayers?.length > 0 || parsed.imageLayers?.length > 0) &&
+            window.confirm('We found an unsaved session. Would you like to restore it?')) {
 
-          if (parsed.textLayers) setTextLayers(parsed.textLayers);
-          if (parsed.shapeLayers) setShapeLayers(parsed.shapeLayers);
-          if (parsed.imageLayers) setImageLayers(parsed.imageLayers);
-          if (parsed.canvasBackgroundColor) setCanvasBackgroundColor(parsed.canvasBackgroundColor);
-          if (parsed.canvasFilters) setCanvasFilters(parsed.canvasFilters);
-          if (parsed.canvasSize) setCanvasSize(parsed.canvasSize);
-          if (parsed.projectTitle) setProjectTitle(parsed.projectTitle);
+            if (parsed.textLayers) setTextLayers(parsed.textLayers);
+            if (parsed.shapeLayers) setShapeLayers(parsed.shapeLayers);
+            if (parsed.imageLayers) setImageLayers(parsed.imageLayers);
+            if (parsed.canvasBackgroundColor) setCanvasBackgroundColor(parsed.canvasBackgroundColor);
+            if (parsed.canvasFilters) setCanvasFilters(parsed.canvasFilters);
+            if (parsed.canvasSize) setCanvasSize(parsed.canvasSize);
+            if (parsed.projectTitle) setProjectTitle(parsed.projectTitle);
+          }
+        } catch (e) {
+          console.error("Failed to recover session", e);
         }
-      } catch (e) {
-        console.error("Failed to recover session", e);
       }
-    }
+    };
+    recoverSession();
   }, [initialProject]);
 
-  // 2. Auto-save every 30s if changes exist (Optimized using Ref to avoid interval churn)
-  const stateRef = useRef({ projectTitle, textLayers, shapeLayers, imageLayers, canvasBackgroundColor, canvasFilters, canvasSize });
+  // 2. Optimized persistence (Debounced + Unified)
+  // 2. Optimized persistence (Debounced + Unified)
   useEffect(() => {
-    stateRef.current = { projectTitle, textLayers, shapeLayers, imageLayers, canvasBackgroundColor, canvasFilters, canvasSize };
-  }, [projectTitle, textLayers, shapeLayers, imageLayers, canvasBackgroundColor, canvasFilters, canvasSize]);
+    if (textLayers.length === 0 && shapeLayers.length === 0 && imageLayers.length === 0) return;
 
-  useEffect(() => {
-    const autoSaveInterval = setInterval(() => {
-      const { textLayers, shapeLayers, imageLayers, projectTitle, canvasBackgroundColor, canvasFilters, canvasSize } = stateRef.current;
-      if (textLayers.length === 0 && shapeLayers.length === 0 && imageLayers.length === 0) return;
-
-      const stateToSave = {
-        projectTitle,
-        textLayers,
-        shapeLayers,
-        imageLayers,
-        canvasBackgroundColor,
-        canvasFilters,
-        canvasSize,
-        timestamp: Date.now()
+    const timeout = setTimeout(async () => {
+      setIsSaving(true);
+      const updatedProject: Project = {
+        id: projectId,
+        name: projectTitle,
+        updatedAt: Date.now(),
+        thumbnail: thumbnail,
+        state: {
+          textLayers,
+          shapeLayers,
+          imageLayers,
+          canvasBackgroundColor,
+          canvasFilters,
+          canvasSize
+        }
       };
-      localStorage.setItem('kreathief_autosave_v1', JSON.stringify(stateToSave));
-    }, 30000);
 
-    return () => clearInterval(autoSaveInterval);
-  }, []); // Only start एकदा on mount
+      try {
+        // Update Project in IndexedDB
+        await storageService.saveProject(updatedProject);
+
+        // Update Crash Recovery (Autosave) in IndexedDB Settings
+        await storageService.setSetting('kreathief_autosave_v1', {
+          ...updatedProject.state,
+          projectTitle,
+          timestamp: Date.now()
+        });
+      } catch (e) {
+        console.error("Auto-save failed:", e);
+      }
+
+      setTimeout(() => {
+        setIsSaving(false);
+        setShowSavedToast(true);
+        setTimeout(() => setShowSavedToast(false), 2000);
+      }, 500);
+    }, 5000); // 5s debounce for heavier state
+
+    return () => clearTimeout(timeout);
+  }, [textLayers, shapeLayers, imageLayers, canvasBackgroundColor, canvasFilters, projectTitle, projectId, canvasSize, thumbnail]);
 
   // Extract Document Colors
   const documentColors = useMemo(() => {
@@ -207,67 +242,44 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     return Array.from(colors);
   }, [textLayers, shapeLayers, canvasBackgroundColor, brandKits]);
 
+  // Helper to find which layer array a given ID belongs to
+  const findLayerType = useCallback((id: string): 'text' | 'shape' | 'image' | null => {
+    if (textLayers.some(l => l.id === id)) return 'text';
+    if (shapeLayers.some(l => l.id === id)) return 'shape';
+    if (imageLayers.some(l => l.id === id)) return 'image';
+    return null;
+  }, [textLayers, shapeLayers, imageLayers]);
+
   // -- Persistence --
   useEffect(() => {
-    try {
-      const savedKits = localStorage.getItem('kreathief_brandkits');
-      if (savedKits) setBrandKits(JSON.parse(savedKits));
-      const savedUploads = localStorage.getItem('kreathief_uploads');
-      if (savedUploads) setUploads(JSON.parse(savedUploads));
-    } catch (e) {
-      console.error("Failed to load local storage data", e);
-    }
+    const loadPersistentData = async () => {
+      try {
+        const savedKits = await storageService.getSetting('kreathief_brandkits', []);
+        setBrandKits(savedKits);
+        const savedUploads = await storageService.getSetting('kreathief_uploads', []);
+        setUploads(savedUploads);
+      } catch (e) {
+        console.error("Failed to load local data", e);
+      }
+    };
+    loadPersistentData();
   }, []);
 
   useEffect(() => {
     try {
-      localStorage.setItem('kreathief_brandkits', JSON.stringify(brandKits));
+      storageService.setSetting('kreathief_brandkits', brandKits);
     } catch (e) { console.error(e); }
   }, [brandKits]);
 
   useEffect(() => {
     try {
-      localStorage.setItem('kreathief_uploads', JSON.stringify(uploads.slice(0, 10)));
+      storageService.setSetting('kreathief_uploads', uploads);
     } catch (e) { console.error(e); }
   }, [uploads]);
 
-  // Auto-save logic
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setIsSaving(true);
-      const updatedProject: Project = {
-        id: projectId,
-        name: projectTitle,
-        updatedAt: Date.now(),
-        thumbnail: thumbnail, // Persist current thumbnail
-        state: {
-          textLayers,
-          shapeLayers,
-          imageLayers,
-          canvasBackgroundColor,
-          canvasFilters,
-          canvasSize
-        }
-      };
+  const [showSavedToast, setShowSavedToast] = useState(false);
 
-      // Read current projects, update ours, write back
-      try {
-        const allProjectsStr = localStorage.getItem('kreathief_projects');
-        let allProjects: Project[] = allProjectsStr ? JSON.parse(allProjectsStr) : [];
-        const idx = allProjects.findIndex(p => p.id === projectId);
-        if (idx >= 0) {
-          allProjects[idx] = updatedProject;
-        } else {
-          allProjects.push(updatedProject);
-        }
-        localStorage.setItem('kreathief_projects', JSON.stringify(allProjects));
-      } catch (e) { console.error(e); }
-
-      setTimeout(() => setIsSaving(false), 500);
-    }, 2000); // 2s debounce
-
-    return () => clearTimeout(timeout);
-  }, [textLayers, shapeLayers, imageLayers, canvasBackgroundColor, canvasFilters, projectTitle, projectId, canvasSize, thumbnail]);
+  // Removed redundant auto-save block (was consolidated above)
 
   // -- Layer Management Helpers --
 
@@ -597,9 +609,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   const handleNudgeLayer = useCallback((direction: 'up' | 'down' | 'left' | 'right', amount: number = 1) => {
     if (selectedLayerIds.length === 0) return;
     const updateLayer = (id: string, changes: any) => {
-      if (id.startsWith('text_')) handleUpdateTextLayer(id, changes);
-      else if (id.startsWith('shape_')) handleUpdateShapeLayer(id, changes);
-      else if (id.startsWith('image_')) handleUpdateImageLayer(id, changes);
+      const type = findLayerType(id);
+      if (type === 'text') handleUpdateTextLayer(id, changes);
+      else if (type === 'shape') handleUpdateShapeLayer(id, changes);
+      else if (type === 'image') handleUpdateImageLayer(id, changes);
     };
 
     selectedLayerIds.forEach(id => {
@@ -611,15 +624,16 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
         else if (direction === 'right') updateLayer(id, { x: layer.x + amount });
       }
     });
-  }, [selectedLayerIds, textLayers, shapeLayers, imageLayers, handleUpdateTextLayer, handleUpdateShapeLayer, handleUpdateImageLayer]);
+  }, [selectedLayerIds, textLayers, shapeLayers, imageLayers, handleUpdateTextLayer, handleUpdateShapeLayer, handleUpdateImageLayer, findLayerType]);
 
   const handleDeleteLayer = useCallback((id: string) => {
     saveToHistory();
-    if (id.startsWith('text_')) setTextLayers(prev => prev.filter(layer => layer.id !== id));
-    else if (id.startsWith('shape_')) setShapeLayers(prev => prev.filter(layer => layer.id !== id));
-    else if (id.startsWith('image_')) setImageLayers(prev => prev.filter(layer => layer.id !== id));
+    const type = findLayerType(id);
+    if (type === 'text') setTextLayers(prev => prev.filter(layer => layer.id !== id));
+    else if (type === 'shape') setShapeLayers(prev => prev.filter(layer => layer.id !== id));
+    else if (type === 'image') setImageLayers(prev => prev.filter(layer => layer.id !== id));
     setSelectedLayerIds(prev => prev.filter(selectedId => selectedId !== id));
-  }, [saveToHistory]);
+  }, [saveToHistory, findLayerType]);
 
   const handleDeleteSelected = useCallback(() => {
     saveToHistory();
@@ -700,10 +714,11 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
         setLayers((prev: any[]) => [...prev, newLayer]);
       }
     };
-    if (id.startsWith('text_')) copyLayer(textLayers, setTextLayers);
-    else if (id.startsWith('shape_')) copyLayer(shapeLayers, setShapeLayers);
-    else if (id.startsWith('image_')) copyLayer(imageLayers, setImageLayers);
-  }, [saveToHistory, textLayers, shapeLayers, imageLayers]);
+    const type = findLayerType(id);
+    if (type === 'text') copyLayer(textLayers, setTextLayers);
+    else if (type === 'shape') copyLayer(shapeLayers, setShapeLayers);
+    else if (type === 'image') copyLayer(imageLayers, setImageLayers);
+  }, [saveToHistory, textLayers, shapeLayers, imageLayers, findLayerType]);
 
   const handleDuplicateSelected = useCallback(() => {
     if (selectedLayerIds.length === 0) return;
@@ -842,10 +857,11 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
       newArr.splice(newIndex, 0, item);
       return newArr;
     };
-    if (id.startsWith('text_')) setTextLayers(prev => { const idx = prev.findIndex(l => l.id === id); return idx !== -1 ? moveInArray(prev, idx, direction) : prev; });
-    else if (id.startsWith('shape_')) setShapeLayers(prev => { const idx = prev.findIndex(l => l.id === id); return idx !== -1 ? moveInArray(prev, idx, direction) : prev; });
-    else if (id.startsWith('image_')) setImageLayers(prev => { const idx = prev.findIndex(l => l.id === id); return idx !== -1 ? moveInArray(prev, idx, direction) : prev; });
-  }, []);
+    const type = findLayerType(id);
+    if (type === 'text') setTextLayers(prev => { const idx = prev.findIndex(l => l.id === id); return idx !== -1 ? moveInArray(prev, idx, direction) : prev; });
+    else if (type === 'shape') setShapeLayers(prev => { const idx = prev.findIndex(l => l.id === id); return idx !== -1 ? moveInArray(prev, idx, direction) : prev; });
+    else if (type === 'image') setImageLayers(prev => { const idx = prev.findIndex(l => l.id === id); return idx !== -1 ? moveInArray(prev, idx, direction) : prev; });
+  }, [findLayerType]);
 
   const handleUpdateCanvasFilters = useCallback((changes: Partial<CanvasFilters>) => {
     setCanvasFilters(prev => ({ ...prev, ...changes }));
@@ -1209,164 +1225,168 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   };
 
   // Mobile State
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
 
   return (
     <div className="flex flex-col h-screen w-full bg-[#121212] overflow-hidden text-[#e5e7eb] font-sans relative">
       <Header
-        onDownload={handleDownload}
         title={projectTitle}
         onTitleChange={setProjectTitle}
+        onBack={onBack}
         onUndo={handleUndo}
         onRedo={handleRedo}
-        onShare={() => setShowShare(true)}
         canUndo={past.length > 0}
         canRedo={future.length > 0}
         onToggleShortcuts={() => setShowShortcuts(!showShortcuts)}
+        onDownload={() => setShowExport(true)}
         isSaving={isSaving}
-        onBack={handleBack}
         user={user}
+        onShare={() => setShowShare(true)}
         onNew={handleNew}
-        onOpen={() => setActiveTab(NavTab.PROJECTS)}
-        onSave={() => saveProject()}
-        onZoomIn={() => handleZoom('in')}
-        onZoomOut={() => handleZoom('out')}
+        onSave={saveProject}
+        onZoomIn={() => setZoom(prev => Math.min(3, prev + 0.1))}
+        onZoomOut={() => setZoom(prev => Math.max(0.1, prev - 0.1))}
         onResetZoom={() => setZoom(1)}
         onToggleGrid={() => setShowGrid(!showGrid)}
         showGrid={showGrid}
-        onCopy={() => selectedLayerId && handleCopyLayer(selectedLayerId)}
+        onCopy={() => handleCopyLayer()}
         onPaste={handlePasteLayer}
-        onDelete={() => selectedLayerId && handleDeleteLayer(selectedLayerId)}
-        onDuplicate={() => selectedLayerId && handleDuplicateLayer(selectedLayerId)}
+        onDelete={handleDeleteSelected}
+        onDuplicate={handleDuplicateSelected}
         onCut={() => selectedLayerId && handleCutLayer(selectedLayerId)}
-        onCopyToClipboard={handleCopyToClipboard}
+        onCopyToClipboard={handleExportDataUrl} // Approximate "Copy Image"
+        onRestartTour={onRestartTour}
       />
 
       <div id="canvas-container" className="flex-1 flex flex-row relative overflow-hidden bg-[#0e1318]">
 
-        {/* Mobile Menu Toggle */}
+        {/* Mobile menu trigger is handled by MobileNavBar now, but we keep a floating toggle for convenience if needed, or remove it */}
         <button
-          className="md:hidden absolute top-4 left-4 z-50 p-2 bg-[#1e1e1e] border border-gray-700 rounded-lg text-white shadow-xl"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="md:hidden absolute top-4 left-4 z-30 p-2 bg-[#1e1e1e] border border-gray-700 rounded-lg text-white shadow-xl"
+          onClick={() => setIsBottomSheetOpen(true)}
         >
-          {isMobileMenuOpen ? <Icons.X className="w-5 h-5" /> : <Icons.Menu className="w-5 h-5" />}
+          <Icons.Menu className="w-5 h-5" />
         </button>
 
-        {/* Sidebar & Panel Container - Responsive */}
-        <div className={`
-          flex flex-row h-full transition-transform duration-300 ease-in-out z-40 shrink-0
-          ${isMobileMenuOpen ? 'absolute inset-0 bg-[#0e1318] translate-x-0' : 'absolute -translate-x-full md:relative md:translate-x-0'}
-        `}>
-          <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
-          <SidePanel
-            activeTab={activeTab}
-            mode={mode}
-            prompt={prompt}
-            setPrompt={setPrompt}
-            aspectRatio={aspectRatio}
-            setAspectRatio={setAspectRatio}
-            isProcessing={isProcessing}
-            onOpenPricing={onOpenPricing}
-            onToggleDesignSuggestions={() => setShowDesignSuggestions(true)}
-            onToggleSmartContent={() => setShowSmartContent(true)}
-            onToggleQualityScore={() => setShowQualityScore(true)}
-            onGenerate={handleGenerate}
-            onSetMode={setMode}
-            history={history}
-            onSelectImage={(img) => { setActiveImageId(img.id); setCanvasFilters(DEFAULT_FILTERS); }}
-            onClearHistory={() => setHistory([])}
-            onFileUpload={handleFileUpload}
+        {/* Desktop Sidebar & Panel - Hidden on Mobile */}
+        <div className="hidden md:flex flex-row h-full shrink-0 z-40 border-r border-gray-800">
+          <ErrorBoundary componentName="Sidebar" variant="widget">
+            <Sidebar
+              activeTab={activeTab}
+              onSelectTab={setActiveTab}
+            />
+            <SidePanel
+              activeTab={activeTab}
+              mode={mode}
+              prompt={prompt}
+              setPrompt={setPrompt}
+              aspectRatio={aspectRatio}
+              setAspectRatio={setAspectRatio}
+              isProcessing={isProcessing}
+              onOpenPricing={onOpenPricing}
+              onToggleDesignSuggestions={() => setShowDesignSuggestions(true)}
+              onToggleSmartContent={() => setShowSmartContent(true)}
+              onToggleQualityScore={() => setShowQualityScore(true)}
+              onGenerate={handleGenerate}
+              onSetMode={setMode}
+              history={history}
+              onSelectImage={(img) => { setActiveImageId(img.id); setCanvasFilters(DEFAULT_FILTERS); }}
+              onClearHistory={() => setHistory([])}
+              onFileUpload={handleFileUpload}
+              uploadedImage={uploadedImage}
+              onAddText={handleAddText}
+              onAddShape={handleAddShape}
+              onAddImageLayer={handleAddImageLayer}
+              onApplyTemplate={handleApplyTemplate}
+              textLayers={textLayers}
+              shapeLayers={shapeLayers}
+              imageLayers={imageLayers}
+              selectedLayerId={selectedLayerId}
+              onSelectLayer={handleSelectLayerWrapper}
+              onDeleteLayer={handleDeleteLayer}
+              onUpdateTextLayer={handleUpdateTextLayer}
+              onUpdateShapeLayer={handleUpdateShapeLayer}
+              onUpdateImageLayer={handleUpdateImageLayer}
+              onDuplicateLayer={handleDuplicateLayer}
+              onMoveLayer={handleMoveLayer}
+              onLayoutLayers={handleLayoutLayers}
+              brushColor={brushColor}
+              setBrushColor={setBrushColor}
+              brushSize={brushSize}
+              setBrushSize={setBrushSize}
+              brushType={brushType}
+              setBrushType={setBrushType}
+              isDrawing={isDrawing}
+              setIsDrawing={setIsDrawing}
+              brushOpacity={brushOpacity}
+              setBrushOpacity={setBrushOpacity}
+              onFinishDrawing={() => { if (!isEraserActive) setIsDrawing(false) }}
+              onApplyLayout={handleApplyLayout}
+              brandKits={brandKits}
+              onAddBrandKit={handleAddBrandKit}
+              onDeleteBrandKit={handleDeleteBrandKit}
+              onApplyBrandColors={handleApplyBrandColors}
+              onApplyBrandFonts={handleApplyBrandFonts}
+              onApplyTexture={(url) => setCanvasFilters(prev => ({ ...prev, overlayTexture: url }))}
+              onRemoveTexture={() => setCanvasFilters(prev => ({ ...prev, overlayTexture: undefined }))}
+              currentTexture={canvasFilters.overlayTexture}
+              getCanvasSnapshot={handleExportDataUrl}
+              quality={quality}
+              setQuality={setQuality}
+              uploads={uploads}
+              onDeleteUpload={handleDeleteUpload}
+            />
+          </ErrorBoundary>
+        </div>
+
+        <ErrorBoundary componentName="Canvas" variant="widget">
+          <Canvas
+            activeImage={activeImage}
             uploadedImage={uploadedImage}
-            onAddText={(style) => { handleAddText(style); if (window.innerWidth < 768) setIsMobileMenuOpen(false); }}
-            onAddShape={(type, style) => { handleAddShape(type, style); if (window.innerWidth < 768) setIsMobileMenuOpen(false); }}
-            onAddImageLayer={(src) => { handleAddImageLayer(src); if (window.innerWidth < 768) setIsMobileMenuOpen(false); }}
-            onApplyTemplate={(id, confirm) => { handleApplyTemplate(id); if (window.innerWidth < 768) setIsMobileMenuOpen(false); }}
+            isProcessing={isProcessing}
+            zoom={zoom}
+            onZoomChange={setZoom}
+            canvasBackgroundColor={canvasBackgroundColor}
+            onSetCanvasBackgroundColor={setCanvasBackgroundColor}
+            canvasFilters={canvasFilters}
+            onUpdateCanvasFilters={handleUpdateCanvasFilters}
             textLayers={textLayers}
             shapeLayers={shapeLayers}
             imageLayers={imageLayers}
-            selectedLayerId={selectedLayerId}
-            onSelectLayer={setSelectedLayerId}
-            onDeleteLayer={handleDeleteLayer}
             onUpdateTextLayer={handleUpdateTextLayer}
             onUpdateShapeLayer={handleUpdateShapeLayer}
             onUpdateImageLayer={handleUpdateImageLayer}
+            onSelectLayer={handleSelectLayerWrapper}
+            onDeleteLayer={handleDeleteLayer}
             onDuplicateLayer={handleDuplicateLayer}
             onMoveLayer={handleMoveLayer}
-            onLayoutLayers={handleLayoutLayers}
-            brushColor={brushColor}
-            setBrushColor={setBrushColor}
-            brushSize={brushSize}
-            setBrushSize={setBrushSize}
-            brushType={brushType}
-            setBrushType={setBrushType}
+            onGroup={handleGroupSelected}
+            onUngroup={handleUngroupSelected}
+            onVectorDrawingComplete={handleVectorDrawingComplete}
+            selectedLayerId={selectedLayerId}
+            selectedLayerIds={selectedLayerIds}
+            onMultiSelectLayer={handleMultiSelectLayer}
+            onInteractionStart={saveToHistory}
+            onMagicWrite={handleMagicWrite}
+            showGrid={showGrid}
+            onToggleGrid={() => setShowGrid(!showGrid)}
             isDrawing={isDrawing}
-            setIsDrawing={setIsDrawing}
+            brushColor={brushColor}
+            brushSize={brushSize}
+            brushType={brushType}
             brushOpacity={brushOpacity}
-            setBrushOpacity={setBrushOpacity}
-            onFinishDrawing={() => { if (!isEraserActive) setIsDrawing(false) }}
-            onApplyLayout={handleApplyLayout}
-            brandKits={brandKits}
-            onAddBrandKit={handleAddBrandKit}
-            onDeleteBrandKit={handleDeleteBrandKit}
-            onApplyBrandColors={handleApplyBrandColors}
-            onApplyBrandFonts={handleApplyBrandFonts}
-            onApplyTexture={(url) => setCanvasFilters(prev => ({ ...prev, overlayTexture: url }))}
-            onRemoveTexture={() => setCanvasFilters(prev => ({ ...prev, overlayTexture: undefined }))}
-            currentTexture={canvasFilters.overlayTexture}
-            getCanvasSnapshot={handleExportDataUrl}
-            quality={quality}
-            setQuality={setQuality}
-            uploads={uploads}
-            onDeleteUpload={handleDeleteUpload}
+            onDrawingComplete={isEraserActive ? handleEraserComplete : handleDrawingComplete}
+            onRemix={handleRemix}
+            canvasSize={canvasSize}
+            onSetCanvasSize={setCanvasSize}
+            user={user}
+            onOpenPricing={onOpenPricing}
+            onFileUpload={handleFileUpload}
+            onToggleDesignSuggestions={() => setShowDesignSuggestions(true)}
+            onToggleSmartContent={() => setShowSmartContent(true)}
+            onToggleQualityScore={() => setShowQualityScore(true)}
           />
-        </div>
-
-        <Canvas
-          activeImage={activeImage}
-          uploadedImage={uploadedImage}
-          isProcessing={isProcessing}
-          zoom={zoom}
-          onZoomChange={setZoom}
-          canvasBackgroundColor={canvasBackgroundColor}
-          onSetCanvasBackgroundColor={setCanvasBackgroundColor}
-          canvasFilters={canvasFilters}
-          onUpdateCanvasFilters={handleUpdateCanvasFilters}
-          textLayers={textLayers}
-          shapeLayers={shapeLayers}
-          imageLayers={imageLayers}
-          onUpdateTextLayer={handleUpdateTextLayer}
-          onUpdateShapeLayer={handleUpdateShapeLayer}
-          onUpdateImageLayer={handleUpdateImageLayer}
-          onSelectLayer={handleSelectLayerWrapper}
-          onDeleteLayer={handleDeleteLayer}
-          onDuplicateLayer={handleDuplicateLayer}
-          onMoveLayer={handleMoveLayer}
-          onGroup={handleGroupSelected}
-          onUngroup={handleUngroupSelected}
-          onVectorDrawingComplete={handleVectorDrawingComplete}
-          selectedLayerId={selectedLayerId}
-          selectedLayerIds={selectedLayerIds}
-          onMultiSelectLayer={handleMultiSelectLayer}
-          onInteractionStart={saveToHistory}
-          onMagicWrite={handleMagicWrite}
-          showGrid={showGrid}
-          onToggleGrid={() => setShowGrid(!showGrid)}
-          isDrawing={isDrawing}
-          brushColor={brushColor}
-          brushSize={brushSize}
-          brushType={brushType}
-          brushOpacity={brushOpacity}
-          onDrawingComplete={isEraserActive ? handleEraserComplete : handleDrawingComplete}
-          onRemix={handleRemix}
-          canvasSize={canvasSize}
-          onSetCanvasSize={setCanvasSize}
-          user={user}
-          onOpenPricing={onOpenPricing}
-          onFileUpload={handleFileUpload}
-          onToggleDesignSuggestions={() => setShowDesignSuggestions(true)}
-          onToggleSmartContent={() => setShowSmartContent(true)}
-          onToggleQualityScore={() => setShowQualityScore(true)}
-        />
+        </ErrorBoundary>
       </div>
 
       {isEraserActive && (
@@ -1398,33 +1418,174 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
           onClose={() => setShowShare(false)}
           designTitle={projectTitle}
           onGetShareLink={async () => {
-            // Simulated share link generation
-            await new Promise(r => setTimeout(r, 1500));
-            const randomId = Math.random().toString(36).substring(7);
-            return `https://kreathief.app/view/${randomId}`;
+            const projectToShare: Project = {
+              id: projectId,
+              name: projectTitle,
+              updatedAt: Date.now(),
+              thumbnail: thumbnail,
+              state: {
+                textLayers,
+                shapeLayers,
+                imageLayers,
+                canvasBackgroundColor,
+                canvasFilters,
+                canvasSize
+              }
+            };
+            // Dynamically import to separate chunk
+            const { generateShareLink } = await import('../utils/shareUtils');
+            return generateShareLink(projectToShare);
           }}
         />
       )}
 
       {showShortcuts && (
-        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center" onClick={() => setShowShortcuts(false)}>
-          <div className="bg-[#252627] p-6 rounded-xl border border-gray-700 shadow-2xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2"><Icons.Keyboard className="w-5 h-5 text-[#7d2ae8]" /> Keyboard Shortcuts</h3>
-              <button onClick={() => setShowShortcuts(false)} className="text-gray-400 hover:text-white">&times;</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setShowShortcuts(false)}>
+          <div className="bg-[#1a1c1e] rounded-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-800" onClick={e => e.stopPropagation()}>
+            <div className="flex flex-col items-center mb-8">
+              <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-wide">Keyboard Power</h3>
+              <p className="text-gray-400">Master these shortcuts to design at the speed of thought.</p>
             </div>
-            <div className="space-y-2 text-sm text-gray-300">
-              <div className="flex justify-between py-2 border-b border-gray-700"><span>Undo</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Ctrl + Z</span></div>
-              <div className="flex justify-between py-2 border-b border-gray-700"><span>Redo</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Ctrl + Shift + Z</span></div>
-              <div className="flex justify-between py-2 border-b border-gray-700"><span>Copy</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Ctrl + C</span></div>
-              <div className="flex justify-between py-2 border-b border-gray-700"><span>Paste</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Ctrl + V</span></div>
-              <div className="flex justify-between py-2 border-b border-gray-700"><span>Duplicate</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Ctrl + D</span></div>
-              <div className="flex justify-between py-2 border-b border-gray-700"><span>Delete Layer</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Del / Backspace</span></div>
-              <div className="flex justify-between py-2 border-b border-gray-700"><span>Save Project</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Ctrl + S</span></div>
-              <div className="flex justify-between py-2 border-b border-gray-700"><span>Export Design</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Ctrl + E</span></div>
-              <div className="flex justify-between py-2 border-b border-gray-700"><span>Nudge</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Arrow Keys</span></div>
-              <div className="flex justify-between py-2 border-b border-gray-700"><span>Nudge (x10)</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">Shift + Arrow Keys</span></div>
-              <div className="flex justify-between py-2"><span>Toggle Shortcuts</span><span className="font-mono bg-gray-800 px-2 py-0.5 rounded">?</span></div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+              <div className="space-y-8">
+                <div>
+                  <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-4">Tools</h4>
+                  <div className="space-y-4">
+                    {[
+                      { label: 'Select Tool', keys: ['V'] },
+                      { label: 'Hand Tool', keys: ['H'] },
+                      { label: 'Text Tool', keys: ['T'] },
+                      { label: 'Rectangle', keys: ['R'] },
+                      { label: 'Circle', keys: ['C'] },
+                      { label: 'Image Upload', keys: ['I'] },
+                      { label: 'Pencil / Draw', keys: ['P'] },
+                      { label: 'Eraser', keys: ['E'] },
+                    ].map((item, i) => (
+                      <div key={i} className="flex justify-between items-center group">
+                        <span className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors">{item.label}</span>
+                        <div className="flex gap-1.5">
+                          {item.keys.map((k, j) => (
+                            <kbd key={j} className="min-w-[2.5rem] h-7 flex items-center justify-center bg-[#252627] border-b-2 border-gray-900 rounded-md text-[10px] font-bold text-gray-300 font-mono shadow-sm">
+                              {k}
+                            </kbd>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-[10px] font-black text-[#7d2ae8] uppercase tracking-[0.2em] mb-4">Actions</h4>
+                  <div className="space-y-4">
+                    {[
+                      { label: 'Undo', keys: ['Ctrl', 'Z'] },
+                      { label: 'Redo', keys: ['Ctrl', 'Shift', 'Z'] },
+                      { label: 'Copy Layer', keys: ['Ctrl', 'C'] },
+                      { label: 'Paste Layer', keys: ['Ctrl', 'V'] },
+                      { label: 'Cut Layer', keys: ['Ctrl', 'X'] },
+                      { label: 'Duplicate', keys: ['Ctrl', 'D'] },
+                      { label: 'Delete Layer', keys: ['Del'] },
+                    ].map((item, i) => (
+                      <div key={i} className="flex justify-between items-center group">
+                        <span className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors">{item.label}</span>
+                        <div className="flex gap-1.5">
+                          {item.keys.map((k, j) => (
+                            <kbd key={j} className="min-w-[2.5rem] h-7 flex items-center justify-center bg-[#252627] border-b-2 border-gray-900 rounded-md text-[10px] font-bold text-gray-300 font-mono shadow-sm">
+                              {k}
+                            </kbd>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-8 mt-8 md:mt-0">
+                <div>
+                  <h4 className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-4">View</h4>
+                  <div className="space-y-4">
+                    {[
+                      { label: 'Zoom In', keys: ['Ctrl', '+'] },
+                      { label: 'Zoom Out', keys: ['Ctrl', '-'] },
+                      { label: 'Reset Zoom', keys: ['Ctrl', '0'] },
+                      { label: 'Toggle Grid', keys: ['G'] },
+                      { label: 'Shortcuts Help', keys: ['?'] },
+                    ].map((item, i) => (
+                      <div key={i} className="flex justify-between items-center group">
+                        <span className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors">{item.label}</span>
+                        <div className="flex gap-1.5">
+                          {item.keys.map((k, j) => (
+                            <kbd key={j} className="min-w-[2.5rem] h-7 flex items-center justify-center bg-[#252627] border-b-2 border-gray-900 rounded-md text-[10px] font-bold text-gray-300 font-mono shadow-sm">
+                              {k}
+                            </kbd>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-[10px] font-black text-amber-400 uppercase tracking-[0.2em] mb-4">Canvas Control</h4>
+                  <div className="space-y-4">
+                    {[
+                      { label: 'Move Layer', keys: ['Arrows'] },
+                      { label: 'Move (x10)', keys: ['Shift', 'Arrows'] },
+                      { label: 'Multi-Select', keys: ['Ctrl', 'Click'] },
+                      { label: 'Range Select', keys: ['Shift', 'Click'] },
+                    ].map((item, i) => (
+                      <div key={i} className="flex justify-between items-center group">
+                        <span className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors">{item.label}</span>
+                        <div className="flex gap-1.5">
+                          {item.keys.map((k, j) => (
+                            <kbd key={j} className="min-w-[2.5rem] h-7 flex items-center justify-center bg-[#252627] border-b-2 border-gray-900 rounded-md text-[10px] font-bold text-gray-300 font-mono shadow-sm">
+                              {k}
+                            </kbd>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-8 mt-8 md:mt-0">
+                <div>
+                  <h4 className="text-[10px] font-black text-rose-400 uppercase tracking-[0.2em] mb-4">Project</h4>
+                  <div className="space-y-4">
+                    {[
+                      { label: 'Save Project', keys: ['Ctrl', 'S'] },
+                      { label: 'Export Design', keys: ['Ctrl', 'E'] },
+                      { label: 'New Design', keys: ['Ctrl', 'N'] },
+                      { label: 'Open Project', keys: ['Ctrl', 'O'] },
+                    ].map((item, i) => (
+                      <div key={i} className="flex justify-between items-center group">
+                        <span className="text-sm text-gray-400 group-hover:text-gray-200 transition-colors">{item.label}</span>
+                        <div className="flex gap-1.5">
+                          {item.keys.map((k, j) => (
+                            <kbd key={j} className="min-w-[2.5rem] h-7 flex items-center justify-center bg-[#252627] border-b-2 border-gray-900 rounded-md text-[10px] font-bold text-gray-300 font-mono shadow-sm">
+                              {k}
+                            </kbd>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-12 pt-8 border-t border-gray-800 flex justify-center">
+              <button
+                onClick={() => setShowShortcuts(false)}
+                className="px-8 py-3 bg-[#7d2ae8] hover:bg-[#6b21c1] text-white rounded-full font-bold text-sm shadow-xl shadow-[#7d2ae8]/20 transition-all active:scale-95"
+                autoFocus
+              >
+                Got it, thanks!
+              </button>
             </div>
           </div>
         </div>
@@ -1448,7 +1609,55 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
       <DesignSuggestions
         isOpen={showDesignSuggestions}
         onClose={() => setShowDesignSuggestions(false)}
-        designContext={`${projectTitle} design with ${textLayers.length} text layers and ${shapeLayers.length} shapes`}
+        designContext={`${projectTitle} design`}
+        layers={[...textLayers, ...shapeLayers, ...imageLayers]}
+        canvasSize={canvasSize}
+        onApplySuggestion={(suggestion) => {
+          if (suggestion.action === 'layout' && suggestion.data) {
+            const layoutMap = new Map(suggestion.data.map((l: any) => [l.id, l]));
+
+            // Bulk Update Text
+            textLayers.forEach(l => {
+              const newL = layoutMap.get(l.id) as any;
+              if (newL) handleUpdateTextLayer(l.id, { x: newL.x, y: newL.y, width: newL.width });
+            });
+            // Bulk Update Shapes
+            shapeLayers.forEach(l => {
+              const newL = layoutMap.get(l.id) as any;
+              if (newL) handleUpdateShapeLayer(l.id, { x: newL.x, y: newL.y, width: newL.width, height: newL.height });
+            });
+            // Bulk Update Images
+            imageLayers.forEach(l => {
+              const newL = layoutMap.get(l.id) as any;
+              if (newL) handleUpdateImageLayer(l.id, { x: newL.x, y: newL.y, width: newL.width, height: newL.height });
+            });
+          }
+          else if (suggestion.action === 'theme' && suggestion.data) {
+            const theme = suggestion.data;
+            if (theme.backgroundColor) setCanvasBackgroundColor(theme.backgroundColor);
+
+            // Update shapes with Primary/Secondary randomly if not white/black? 
+            // Simple logic: If Shape is 'white' or 'gray', color it?
+            // Actually, theme usually implies systematic coloring.
+            // Let's just update all shapes to primary/secondary for now to be visible.
+            shapeLayers.forEach((l, idx) => {
+              handleUpdateShapeLayer(l.id, { color: idx % 2 === 0 ? theme.primaryColor : theme.secondaryColor });
+            });
+            textLayers.forEach(l => {
+              handleUpdateTextLayer(l.id, { color: theme.primaryColor });
+            });
+          }
+          else if (suggestion.action === 'typography' && suggestion.data) {
+            const theme = suggestion.data;
+            loadFonts([theme.headingFont, theme.bodyFont]); // Lazy load first
+
+            textLayers.forEach(l => {
+              // Heuristic: Short text = Heading, Long text = Body
+              const isHeading = l.text.length < 20 || l.fontSize > 30;
+              handleUpdateTextLayer(l.id, { fontFamily: isHeading ? theme.headingFont : theme.bodyFont });
+            });
+          }
+        }}
       />
 
       <SmartContentGenerator
@@ -1467,7 +1676,91 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
         designImage={activeImage?.url || uploadedImage || undefined}
       />
 
-      <MobileNavBar activeTab={activeTab} onSelectTab={setActiveTab} />
+      <MobileNavBar
+        activeTab={activeTab}
+        onSelectTab={(tab) => {
+          setActiveTab(tab);
+          setIsBottomSheetOpen(true);
+        }}
+      />
+
+      {/* Mobile Bottom Sheet for Tools */}
+      <BottomSheet
+        isOpen={isBottomSheetOpen}
+        onClose={() => setIsBottomSheetOpen(false)}
+        title={activeTab}
+      >
+        <SidePanel
+          activeTab={activeTab}
+          mode={mode}
+          prompt={prompt}
+          setPrompt={setPrompt}
+          aspectRatio={aspectRatio}
+          setAspectRatio={setAspectRatio}
+          isProcessing={isProcessing}
+          onOpenPricing={onOpenPricing}
+          onToggleDesignSuggestions={() => setShowDesignSuggestions(true)}
+          onToggleSmartContent={() => setShowSmartContent(true)}
+          onToggleQualityScore={() => setShowQualityScore(true)}
+          onGenerate={handleGenerate}
+          onSetMode={setMode}
+          history={history}
+          onSelectImage={(img) => { setActiveImageId(img.id); setCanvasFilters(DEFAULT_FILTERS); setIsBottomSheetOpen(false); }}
+          onClearHistory={() => setHistory([])}
+          onFileUpload={handleFileUpload}
+          uploadedImage={uploadedImage}
+          onAddText={(style) => { handleAddText(style); setIsBottomSheetOpen(false); }}
+          onAddShape={(type, style) => { handleAddShape(type, style); setIsBottomSheetOpen(false); }}
+          onAddImageLayer={(src) => { handleAddImageLayer(src); setIsBottomSheetOpen(false); }}
+          onApplyTemplate={(id, confirm) => { handleApplyTemplate(id); setIsBottomSheetOpen(false); }}
+          textLayers={textLayers}
+          shapeLayers={shapeLayers}
+          imageLayers={imageLayers}
+          selectedLayerId={selectedLayerId}
+          onSelectLayer={handleSelectLayerWrapper}
+          onDeleteLayer={handleDeleteLayer}
+          onUpdateTextLayer={handleUpdateTextLayer}
+          onUpdateShapeLayer={handleUpdateShapeLayer}
+          onUpdateImageLayer={handleUpdateImageLayer}
+          onDuplicateLayer={handleDuplicateLayer}
+          onMoveLayer={handleMoveLayer}
+          onLayoutLayers={handleLayoutLayers}
+          brushColor={brushColor}
+          setBrushColor={setBrushColor}
+          brushSize={brushSize}
+          setBrushSize={setBrushSize}
+          brushType={brushType}
+          setBrushType={setBrushType}
+          isDrawing={isDrawing}
+          setIsDrawing={setIsDrawing}
+          brushOpacity={brushOpacity}
+          setBrushOpacity={setBrushOpacity}
+          onFinishDrawing={() => { if (!isEraserActive) setIsDrawing(false) }}
+          onApplyLayout={handleApplyLayout}
+          brandKits={brandKits}
+          onAddBrandKit={handleAddBrandKit}
+          onDeleteBrandKit={handleDeleteBrandKit}
+          onApplyBrandColors={handleApplyBrandColors}
+          onApplyBrandFonts={handleApplyBrandFonts}
+          onApplyTexture={(url) => { setCanvasFilters(prev => ({ ...prev, overlayTexture: url })); setIsBottomSheetOpen(false); }}
+          onRemoveTexture={() => setCanvasFilters(prev => ({ ...prev, overlayTexture: undefined }))}
+          currentTexture={canvasFilters.overlayTexture}
+          getCanvasSnapshot={handleExportDataUrl}
+          quality={quality}
+          setQuality={setQuality}
+          uploads={uploads}
+          onDeleteUpload={handleDeleteUpload}
+        />
+      </BottomSheet>
+
+      {showSavedToast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] bg-[#1e1e1e]/90 backdrop-blur-md border border-gray-700 px-4 py-2 rounded-full shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-4 fade-in duration-300">
+          <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+            <Icons.Check className="w-3 h-3 text-white" />
+          </div>
+          <span className="text-xs font-bold text-white">Project Saved</span>
+        </div>
+      )}
     </div>
   );
 };

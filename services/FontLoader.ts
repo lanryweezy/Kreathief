@@ -43,40 +43,43 @@ export const AVAILABLE_FONTS = [
  * Load a single font from Google Fonts
  */
 export async function loadFont(fontFamily: string): Promise<boolean> {
+    // Strip CSS fallback (e.g. "Inter, sans-serif" → "Inter")
+    const cleanFamily = fontFamily.split(',')[0].trim().replace(/['"]/g, '');
+
     // Skip if already loaded
-    if (loadedFonts.has(fontFamily)) {
+    if (loadedFonts.has(cleanFamily)) {
         return true;
     }
 
     // Skip if it's a system font
-    if (fontFamily === 'sans-serif' || fontFamily === 'serif' || fontFamily === 'monospace') {
+    if (cleanFamily === 'sans-serif' || cleanFamily === 'serif' || cleanFamily === 'monospace' || cleanFamily === '') {
         return true;
     }
 
     try {
-        const endTimer = logger.time(`Loading font: ${fontFamily}`);
+        const endTimer = logger.time(`Loading font: ${cleanFamily}`);
 
         // Create link element
         const link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily.replace(/ /g, '+'))}:wght@300;400;500;600;700&display=swap`;
+        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(cleanFamily.replace(/ /g, '+'))}:wght@300;400;500;600;700&display=swap`;
 
         // Wait for font to load
         await new Promise<void>((resolve, reject) => {
             link.onload = () => resolve();
-            link.onerror = () => reject(new Error(`Failed to load font: ${fontFamily}`));
+            link.onerror = () => reject(new Error(`Failed to load font: ${cleanFamily}`));
             document.head.appendChild(link);
         });
 
         // Wait for font to be actually available
         await document.fonts.ready;
 
-        loadedFonts.add(fontFamily);
+        loadedFonts.add(cleanFamily);
         endTimer();
 
         return true;
     } catch (error) {
-        logger.warn(`Failed to load font: ${fontFamily}`, { error });
+        logger.warn(`Failed to load font: ${cleanFamily}`, { error });
         return false;
     }
 }

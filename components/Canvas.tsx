@@ -1,7 +1,8 @@
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { NavTab, TextLayer, ShapeLayer, ImageLayer, Layer, CanvasFilters, CanvasSize, User, BrushType, GeneratedImage } from '../types';
 import { Icons } from '../constants';
+import { Ruler } from './Ruler';
 import { Toolbar } from './Toolbar';
 import { ContextMenu } from './ContextMenu';
 
@@ -77,7 +78,7 @@ const ImageLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, 
             onMouseEnter={() => onMouseEnter(layer.id)}
             onMouseLeave={() => onMouseLeave(null)}
             onContextMenu={(e) => onContextMenu(e, layer.id)}
-            className="absolute cursor-move group"
+            className="absolute cursor-move group animate-scaleIn"
             style={{
                 left: layer.x,
                 top: layer.y,
@@ -89,6 +90,7 @@ const ImageLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, 
                 boxShadow: layer.shadow ? `${layer.shadow.offsetX}px ${layer.shadow.offsetY}px ${layer.shadow.blur}px ${layer.shadow.color}` : 'none',
                 border: layer.stroke ? `${layer.stroke.width}px solid ${layer.stroke.color}` : 'none',
                 borderRadius: `${layer.cornerRadius || 0}px`,
+                willChange: 'transform',
             }}
         >
             {isHovered && !isSelected && !layer.locked && (
@@ -144,7 +146,7 @@ const ShapeLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, 
                 onMouseEnter={() => onMouseEnter(layer.id)}
                 onMouseLeave={() => onMouseLeave(null)}
                 onContextMenu={(e) => onContextMenu(e, layer.id)}
-                className="absolute cursor-move group"
+                className="absolute cursor-move group animate-scaleIn"
                 style={{
                     left: layer.x,
                     top: layer.y,
@@ -153,7 +155,8 @@ const ShapeLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, 
                     transform: `${layer.perspective ? `perspective(${layer.perspective}px)` : ''} rotateX(${layer.rotateX || 0}deg) rotateY(${layer.rotateY || 0}deg) rotate(${layer.rotation}deg) skew(${layer.skewX || 0}deg, ${layer.skewY || 0}deg)`,
                     opacity: layer.opacity,
                     mixBlendMode: layer.blendMode as any,
-                    filter: layer.shadow ? `drop-shadow(${layer.shadow.offsetX}px ${layer.shadow.offsetY}px ${layer.shadow.blur}px ${layer.shadow.color})` : 'none'
+                    filter: layer.shadow ? `drop-shadow(${layer.shadow.offsetX}px ${layer.shadow.offsetY}px ${layer.shadow.blur}px ${layer.shadow.color})` : 'none',
+                    willChange: 'transform',
                 }}
             >
                 {isHovered && !isSelected && !layer.locked && (
@@ -182,7 +185,7 @@ const ShapeLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, 
             onContextMenu={(e) => onContextMenu(e, layer.id)}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => onDrop(e, layer.id)}
-            className="absolute cursor-move group"
+            className="absolute cursor-move group animate-scaleIn"
             style={{
                 left: layer.x,
                 top: layer.y,
@@ -199,7 +202,8 @@ const ShapeLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, 
                 filter: layer.shadow && clipPath ? `drop-shadow(${layer.shadow.offsetX}px ${layer.shadow.offsetY}px ${layer.shadow.blur}px ${layer.shadow.color})` : 'none',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                backgroundImage: layer.backgroundImage ? `url(${layer.backgroundImage})` : 'none'
+                backgroundImage: layer.backgroundImage ? `url(${layer.backgroundImage})` : 'none',
+                willChange: 'transform',
             }}
         >
             {isHovered && !isSelected && !layer.locked && (
@@ -443,7 +447,7 @@ const TextLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, o
                 onMouseLeave={() => onMouseLeave(null)}
                 onContextMenu={(e) => onContextMenu(e, layer.id)}
                 onDoubleClick={(e) => onDoubleClick(e, layer)}
-                className="absolute cursor-move group"
+                className="absolute cursor-move group animate-scaleIn"
                 style={{
                     left: layer.x,
                     top: layer.y,
@@ -451,6 +455,7 @@ const TextLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, o
                     transform: `${layer.perspective ? `perspective(${layer.perspective}px)` : ''} rotateX(${layer.rotateX || 0}deg) rotateY(${layer.rotateY || 0}deg) rotate(${layer.rotation}deg) skew(${layer.skewX || 0}deg, ${layer.skewY || 0}deg)`,
                     opacity: layer.opacity,
                     mixBlendMode: layer.blendMode as any,
+                    willChange: 'transform',
                 }}
             >
                 {isHovered && !isSelected && !layer.locked && (
@@ -470,7 +475,7 @@ const TextLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, o
             onMouseLeave={() => onMouseLeave(null)}
             onContextMenu={(e) => onContextMenu(e, layer.id)}
             onDoubleClick={(e) => onDoubleClick(e, layer)}
-            className="absolute cursor-move group"
+            className="absolute cursor-move group animate-scaleIn"
             style={{
                 left: layer.x,
                 top: layer.y,
@@ -479,6 +484,7 @@ const TextLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, o
                 opacity: layer.opacity,
                 mixBlendMode: layer.blendMode as any,
                 minHeight: layer.fontSize,
+                willChange: 'transform',
             }}
         >
             {isHovered && !isSelected && !layer.locked && (
@@ -614,9 +620,35 @@ export const Canvas: React.FC<CanvasProps> = ({
     const [dragPreview, setDragPreview] = useState<{ id: string, x: number, y: number, width?: number, height?: number, rotation?: number } | null>(null);
     const [bulkDragPreview, setBulkDragPreview] = useState<Record<string, { x: number, y: number }>>({});
 
-    const layers: Layer[] = [...shapeLayers, ...imageLayers, ...textLayers];
+    const layers: Layer[] = useMemo(() => [...shapeLayers, ...imageLayers, ...textLayers], [shapeLayers, imageLayers, textLayers]);
     const selectedLayer = layers.find(l => l.id === selectedLayerId) || null;
     const bgImage = activeImage?.url || uploadedImage;
+
+    // Use refs for state accessed in mouse handlers to avoid re-creating callbacks
+    const dragStateRef = useRef(dragState);
+    dragStateRef.current = dragState;
+    const resizeStateRef = useRef(resizeState);
+    resizeStateRef.current = resizeState;
+    const rotateStateRef = useRef(rotateState);
+    rotateStateRef.current = rotateState;
+    const selectedLayerRef = useRef(selectedLayer);
+    selectedLayerRef.current = selectedLayer;
+    const selectedLayerIdRef = useRef(selectedLayerId);
+    selectedLayerIdRef.current = selectedLayerId;
+    const selectedLayerIdsRef = useRef(selectedLayerIds);
+    selectedLayerIdsRef.current = selectedLayerIds;
+    const layersRef = useRef(layers);
+    layersRef.current = layers;
+    const isPanningRef = useRef(isPanning);
+    isPanningRef.current = isPanning;
+    const panStartRef = useRef(panStart);
+    panStartRef.current = panStart;
+    const zoomRef = useRef(zoom);
+    zoomRef.current = zoom;
+    const bulkDragPreviewRef = useRef(bulkDragPreview);
+    bulkDragPreviewRef.current = bulkDragPreview;
+    const dragPreviewRef = useRef(dragPreview);
+    dragPreviewRef.current = dragPreview;
 
     // Helper to get effective layer props (merging original with preview)
     const getEffectiveLayer = <T extends Layer>(layer: T): T => {
@@ -629,9 +661,8 @@ export const Canvas: React.FC<CanvasProps> = ({
         return layer;
     };
 
-    // -- Smart Guide Logic --
-    const getSnapLines = (currentLayer: Layer, currentX: number, currentY: number) => {
-        const SNAP_THRESHOLD = 5 / zoom;
+    const getSnapLines = useCallback((currentLayer: Layer, currentX: number, currentY: number) => {
+        const SNAP_THRESHOLD = 5 / zoomRef.current;
         const layerHeight = (currentLayer as any).height || 0;
         const centerY = currentY + layerHeight / 2;
         const centerX = currentX + currentLayer.width / 2;
@@ -655,7 +686,7 @@ export const Canvas: React.FC<CanvasProps> = ({
         }
 
         return { snapX, snapY, newX, newY };
-    };
+    }, [canvasSize.width, canvasSize.height]);
 
     // -- Global Space Key for Panning --
     useEffect(() => {
@@ -736,87 +767,127 @@ export const Canvas: React.FC<CanvasProps> = ({
         }
     };
 
+    const mouseMoveRequestRef = useRef<number>();
     const handleMouseMove = useCallback((e: MouseEvent) => {
-        if (isPanning) {
-            const dx = e.clientX - panStart.x;
-            const dy = e.clientY - panStart.y;
-            setPanOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
-            setPanStart({ x: e.clientX, y: e.clientY });
-            return;
+        if (mouseMoveRequestRef.current) {
+            cancelAnimationFrame(mouseMoveRequestRef.current);
         }
 
-        if (dragState?.isDragging && selectedLayerId) {
-            const dx = (e.clientX - dragState.startX) / zoom;
-            const dy = (e.clientY - dragState.startY) / zoom;
-
-            const primaryLayer = layers.find(l => l.id === selectedLayerId);
-            let finalDx = dx;
-            let finalDy = dy;
-
-            if (primaryLayer && dragState.initialPositions[primaryLayer.id]) {
-                const initial = dragState.initialPositions[primaryLayer.id];
-                let proposedX = initial.x + dx;
-                let proposedY = initial.y + dy;
-
-                const { snapX, snapY, newX, newY } = getSnapLines({ ...primaryLayer, x: proposedX, y: proposedY }, proposedX, proposedY);
-                setSnapLines({ vertical: snapX, horizontal: snapY });
-
-                if (newX !== proposedX) finalDx = newX - initial.x;
-                if (newY !== proposedY) finalDy = newY - initial.y;
-            } else {
-                setSnapLines({});
+        mouseMoveRequestRef.current = requestAnimationFrame(() => {
+            if (isPanningRef.current) {
+                const dx = e.clientX - panStartRef.current.x;
+                const dy = e.clientY - panStartRef.current.y;
+                setPanOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+                setPanStart({ x: e.clientX, y: e.clientY });
+                return;
             }
 
-            const newBulkPreview: Record<string, { x: number, y: number }> = {};
-            Object.entries(dragState.initialPositions).forEach(([id, initialPos]) => {
-                newBulkPreview[id] = { x: initialPos.x + finalDx, y: initialPos.y + finalDy };
-            });
-            setBulkDragPreview(newBulkPreview);
-        } else {
-            setSnapLines({});
-        }
+            const currentDragState = dragStateRef.current;
+            const currentSelectedLayerId = selectedLayerIdRef.current;
+            const currentSelectedLayerIds = selectedLayerIdsRef.current;
+            const currentLayers = layersRef.current;
+            const currentZoom = zoomRef.current;
 
-        if (resizeState?.isResizing && selectedLayerId) {
-            const dx = (e.clientX - resizeState.startX) / zoom;
-            const dy = (e.clientY - resizeState.startY) / zoom;
-            const { handle, initialLayer } = resizeState;
-            let { x, y, width } = initialLayer;
-            let height = (initialLayer as any).height || 0;
+            if (currentDragState?.isDragging && (currentSelectedLayerId || currentSelectedLayerIds.length > 0)) {
+                const dx = (e.clientX - currentDragState.startX) / currentZoom;
+                const dy = (e.clientY - currentDragState.startY) / currentZoom;
 
-            if (handle.includes('e')) width += dx;
-            if (handle.includes('w')) { x += dx; width -= dx; }
-            if (handle.includes('s')) height += dy;
-            if (handle.includes('n')) { y += dy; height -= dy; }
+                const primaryLayerId = currentSelectedLayerId || currentSelectedLayerIds[0];
+                const primaryLayer = currentLayers.find(l => l.id === primaryLayerId);
 
-            const w = Math.max(10, width);
-            const h = Math.max(10, height);
-            setDragPreview({ id: selectedLayerId, x, y, width: w, height: h });
-        }
+                let finalDx = dx;
+                let finalDy = dy;
 
-        if (rotateState?.isRotating && selectedLayerId) {
-            const { centerX, centerY, initialRotation, startX, startY } = rotateState;
-            const startAngle = Math.atan2(startY - centerY, startX - centerX) * 180 / Math.PI;
-            const currentAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * 180 / Math.PI;
-            const rotation = initialRotation + (currentAngle - startAngle);
+                if (primaryLayer && currentDragState.initialPositions[primaryLayer.id]) {
+                    const initial = currentDragState.initialPositions[primaryLayer.id];
+                    let proposedX = initial.x + dx;
+                    let proposedY = initial.y + dy;
 
-            setDragPreview({ id: selectedLayerId, x: selectedLayer?.x || 0, y: selectedLayer?.y || 0, rotation });
-        }
-    }, [dragState, resizeState, rotateState, selectedLayerId, zoom, isPanning, panStart, canvasSize]);
+                    const { snapX, snapY, newX, newY } = getSnapLines({ ...primaryLayer, x: proposedX, y: proposedY } as any, proposedX, proposedY);
+                    setSnapLines({ vertical: snapX, horizontal: snapY });
+
+                    if (newX !== proposedX) finalDx = newX - initial.x;
+                    if (newY !== proposedY) finalDy = newY - initial.y;
+                }
+
+                const newBulkPreview: Record<string, { x: number, y: number }> = {};
+                Object.entries(currentDragState.initialPositions).forEach(([id, initialPos]) => {
+                    newBulkPreview[id] = { x: initialPos.x + finalDx, y: initialPos.y + finalDy };
+                });
+                setBulkDragPreview(newBulkPreview);
+            } else {
+                setSnapLines({}); // Clear snap lines if not dragging
+            }
+
+            const currentResizeState = resizeStateRef.current;
+            if (currentResizeState?.isResizing && currentSelectedLayerId) {
+                const dx = (e.clientX - currentResizeState.startX) / currentZoom;
+                const dy = (e.clientY - currentResizeState.startY) / currentZoom;
+                const { handle, initialLayer } = currentResizeState;
+                let { x, y, width } = initialLayer;
+                let height = (initialLayer as any).height || 0;
+
+                if (handle.includes('e')) width += dx;
+                if (handle.includes('w')) { x += dx; width -= dx; }
+                if (handle.includes('s')) height += dy;
+                if (handle.includes('n')) { y += dy; height -= dy; }
+
+                setDragPreview({
+                    id: currentSelectedLayerId,
+                    x, y,
+                    width: Math.max(10, width),
+                    height: Math.max(10, height)
+                });
+            }
+
+            const currentRotateState = rotateStateRef.current;
+            const currentSelectedLayer = selectedLayerRef.current;
+            if (currentRotateState?.isRotating && currentSelectedLayerId) {
+                const angle = Math.atan2(e.clientY - currentRotateState.centerY, e.clientX - currentRotateState.centerX);
+                const startAngle = Math.atan2(currentRotateState.startY - currentRotateState.centerY, currentRotateState.startX - currentRotateState.centerX);
+                const rotation = currentRotateState.initialRotation + (angle - startAngle) * (180 / Math.PI);
+                setDragPreview({ id: currentSelectedLayerId, x: currentSelectedLayer?.x || 0, y: currentSelectedLayer?.y || 0, rotation });
+            }
+        });
+    }, [getSnapLines]);
 
     const handleMouseUp = useCallback(() => {
+        if (mouseMoveRequestRef.current) {
+            cancelAnimationFrame(mouseMoveRequestRef.current);
+            mouseMoveRequestRef.current = undefined;
+        }
+
+        const currentDragState = dragStateRef.current;
+        const currentBulkDragPreview = bulkDragPreviewRef.current;
+        const currentDragPreview = dragPreviewRef.current;
+        const currentResizeState = resizeStateRef.current;
+        const currentRotateState = rotateStateRef.current;
+        const currentLayers = layersRef.current;
+
+        // Helper to find layer type by id
+        const findLayerType = (id: string): 'text' | 'shape' | 'image' | null => {
+            const layer = currentLayers.find(l => l.id === id);
+            if (!layer) return null;
+            if (layer.type === 'text') return 'text';
+            if (layer.type === 'image') return 'image';
+            return 'shape'; // rectangle, circle, path, etc.
+        };
+
         // Commit changes to parent only on mouseup
-        if (dragState?.isDragging) {
-            Object.entries(bulkDragPreview).forEach(([id, pos]) => {
-                if (id.startsWith('text')) onUpdateTextLayer(id, pos);
-                else if (id.startsWith('shape')) onUpdateShapeLayer(id, pos);
-                else if (id.startsWith('image')) onUpdateImageLayer(id, pos);
+        if (currentDragState?.isDragging) {
+            Object.entries(currentBulkDragPreview).forEach(([id, pos]) => {
+                const type = findLayerType(id);
+                if (type === 'text') onUpdateTextLayer(id, pos);
+                else if (type === 'shape') onUpdateShapeLayer(id, pos);
+                else if (type === 'image') onUpdateImageLayer(id, pos);
             });
         }
-        if (dragPreview && (resizeState?.isResizing || rotateState?.isRotating)) {
-            const { id, ...changes } = dragPreview;
-            if (id.startsWith('text')) onUpdateTextLayer(id, changes);
-            else if (id.startsWith('shape')) onUpdateShapeLayer(id, { ...changes, width: changes.width || 0, height: changes.height || 0 });
-            else if (id.startsWith('image')) onUpdateImageLayer(id, { ...changes, width: changes.width || 0, height: changes.height || 0 });
+        if (currentDragPreview && (currentResizeState?.isResizing || currentRotateState?.isRotating)) {
+            const { id, ...changes } = currentDragPreview;
+            const type = findLayerType(id);
+            if (type === 'text') onUpdateTextLayer(id, changes);
+            else if (type === 'shape') onUpdateShapeLayer(id, { ...changes, width: changes.width || 0, height: changes.height || 0 });
+            else if (type === 'image') onUpdateImageLayer(id, { ...changes, width: changes.width || 0, height: changes.height || 0 });
         }
 
         setDragState(null);
@@ -826,7 +897,7 @@ export const Canvas: React.FC<CanvasProps> = ({
         setIsPanning(false);
         setDragPreview(null);
         setBulkDragPreview({});
-    }, [dragState, bulkDragPreview, dragPreview, resizeState, rotateState, onUpdateTextLayer, onUpdateShapeLayer, onUpdateImageLayer]);
+    }, [onUpdateTextLayer, onUpdateShapeLayer, onUpdateImageLayer]);
 
     useEffect(() => {
         window.addEventListener('mousemove', handleMouseMove);
@@ -1116,13 +1187,9 @@ export const Canvas: React.FC<CanvasProps> = ({
                             opacity: canvasFilters.opacity,
                         }}
                     >
-                        {/* Rulers (Simplified) */}
-                        <div className="absolute -top-6 left-0 right-0 h-6 bg-[#1e1e1e] border-b border-gray-700 flex items-end overflow-hidden opacity-50 text-[8px] text-gray-500 font-mono">
-                            {Array.from({ length: 10 }).map((_, i) => <div key={i} className="flex-1 border-l border-gray-600 pl-1">{Math.round(canvasSize.width * (i / 10))}</div>)}
-                        </div>
-                        <div className="absolute top-0 -left-6 bottom-0 w-6 bg-[#1e1e1e] border-r border-gray-700 flex flex-col overflow-hidden opacity-50 text-[8px] text-gray-500 font-mono pt-2">
-                            {Array.from({ length: 10 }).map((_, i) => <div key={i} className="flex-1 border-t border-gray-600 pt-1">{Math.round(canvasSize.height * (i / 10))}</div>)}
-                        </div>
+                        {/* Rulers */}
+                        <Ruler type="horizontal" length={canvasSize.width} zoom={zoom} />
+                        <Ruler type="vertical" length={canvasSize.height} zoom={zoom} />
 
                         {/* Grid Overlay */}
                         {showGrid && <div className="absolute inset-0 pointer-events-none z-[60]" style={{ backgroundImage: 'linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg, #ccc 1px, transparent 1px)', backgroundSize: '20px 20px', opacity: 0.2 }}></div>}
@@ -1203,7 +1270,7 @@ export const Canvas: React.FC<CanvasProps> = ({
 
             {/* Context Menu */}
             {contextMenu && (
-                <ContextMenu x={contextMenu.x} y={contextMenu.y} layerId={contextMenu.layerId} onClose={() => setContextMenu(null)} onDelete={onDeleteLayer} onDuplicate={onDuplicateLayer} onMoveForward={(id) => onMoveLayer(id, 'forward')} onMoveBackward={(id) => onMoveLayer(id, 'backward')} onLock={(id) => { const l = layers.find(la => la.id === id); if (l && selectedLayerId === id) { if (id.startsWith('text')) onUpdateTextLayer(id, { locked: !l.locked }); else if (id.startsWith('shape')) onUpdateShapeLayer(id, { locked: !l.locked }); else if (id.startsWith('image')) onUpdateImageLayer(id, { locked: !l.locked }); } }} isLocked={layers.find(l => l.id === contextMenu.layerId)?.locked || false} />
+                <ContextMenu x={contextMenu.x} y={contextMenu.y} layerId={contextMenu.layerId} onClose={() => setContextMenu(null)} onDelete={onDeleteLayer} onDuplicate={onDuplicateLayer} onMoveForward={(id) => onMoveLayer(id, 'forward')} onMoveBackward={(id) => onMoveLayer(id, 'backward')} onLock={(id) => { const l = layers.find(la => la.id === id); if (l && selectedLayerId === id) { if (l.type === 'text') onUpdateTextLayer(id, { locked: !l.locked }); else if (l.type === 'image') onUpdateImageLayer(id, { locked: !l.locked }); else onUpdateShapeLayer(id, { locked: !l.locked }); } }} isLocked={layers.find(l => l.id === contextMenu.layerId)?.locked || false} />
             )}
         </div>
     );
