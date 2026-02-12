@@ -513,6 +513,7 @@ interface CanvasProps {
     onUpdateTextLayer: (id: string, c: Partial<TextLayer>) => void;
     onUpdateShapeLayer: (id: string, c: Partial<ShapeLayer>) => void;
     onUpdateImageLayer: (id: string, c: Partial<ImageLayer>) => void;
+    onUpdateLayers?: (updates: Record<string, any>) => void;
     onSelectLayer: (id: string | null) => void;
     onDeleteLayer: (id: string) => void;
     onDuplicateLayer: (id: string) => void;
@@ -547,7 +548,7 @@ interface CanvasProps {
 }
 
 
-export const Canvas: React.FC<CanvasProps> = ({
+const CanvasComponent: React.FC<CanvasProps> = ({
     activeImage,
     uploadedImage,
     isProcessing,
@@ -563,6 +564,7 @@ export const Canvas: React.FC<CanvasProps> = ({
     onUpdateTextLayer,
     onUpdateShapeLayer,
     onUpdateImageLayer,
+    onUpdateLayers,
     onSelectLayer,
     onDeleteLayer,
     onDuplicateLayer,
@@ -649,9 +651,19 @@ export const Canvas: React.FC<CanvasProps> = ({
     bulkDragPreviewRef.current = bulkDragPreview;
     const dragPreviewRef = useRef(dragPreview);
     dragPreviewRef.current = dragPreview;
+    const isSpacePressedRef = useRef(isSpacePressed);
+    isSpacePressedRef.current = isSpacePressed;
+    const isDrawingRef = useRef(isDrawing);
+    isDrawingRef.current = isDrawing;
+    const onSelectLayerRef = useRef(onSelectLayer);
+    onSelectLayerRef.current = onSelectLayer;
+    const onInteractionStartRef = useRef(onInteractionStart);
+    onInteractionStartRef.current = onInteractionStart;
+    const onMultiSelectLayerRef = useRef(onMultiSelectLayer);
+    onMultiSelectLayerRef.current = onMultiSelectLayer;
 
     // Helper to get effective layer props (merging original with preview)
-    const getEffectiveLayer = <T extends Layer>(layer: T): T => {
+    const getEffectiveLayer = useCallback(<T extends Layer>(layer: T): T => {
         if (bulkDragPreview[layer.id]) {
             return { ...layer, ...bulkDragPreview[layer.id] };
         }
@@ -659,7 +671,12 @@ export const Canvas: React.FC<CanvasProps> = ({
             return { ...layer, ...dragPreview };
         }
         return layer;
-    };
+    }, [bulkDragPreview, dragPreview]);
+
+    // Pre-compute effective layers so React.memo gets stable references for non-dragged layers
+    const effectiveShapeLayers = useMemo(() => shapeLayers.map(l => getEffectiveLayer(l)), [shapeLayers, getEffectiveLayer]);
+    const effectiveImageLayers = useMemo(() => imageLayers.map(l => getEffectiveLayer(l)), [imageLayers, getEffectiveLayer]);
+    const effectiveTextLayers = useMemo(() => textLayers.map(l => getEffectiveLayer(l)), [textLayers, getEffectiveLayer]);
 
     const getSnapLines = useCallback((currentLayer: Layer, currentX: number, currentY: number) => {
         const SNAP_THRESHOLD = 5 / zoomRef.current;
@@ -711,33 +728,36 @@ export const Canvas: React.FC<CanvasProps> = ({
 
     // -- Mouse Handlers --
 
-    const handleMouseDownContainer = (e: React.MouseEvent) => {
-        if (isSpacePressed) {
+    const handleMouseDownContainer = useCallback((e: React.MouseEvent) => {
+        if (isSpacePressedRef.current) {
             setIsPanning(true);
             setPanStart({ x: e.clientX, y: e.clientY });
         } else {
-            onSelectLayer(null);
+            onSelectLayerRef.current(null);
             setEditingTextId(null);
         }
-    };
+    }, []);
 
-    const handleMouseDownLayer = (e: React.MouseEvent, layer: Layer) => {
-        if (isSpacePressed || isDrawing || layer.locked) return;
+    const handleMouseDownLayer = useCallback((e: React.MouseEvent, layer: Layer) => {
+        if (isSpacePressedRef.current || isDrawingRef.current || layer.locked) return;
         e.stopPropagation();
 
-        if (e.shiftKey && onMultiSelectLayer) {
-            onMultiSelectLayer(layer.id);
+        if (e.shiftKey && onMultiSelectLayerRef.current) {
+            onMultiSelectLayerRef.current(layer.id);
         } else {
-            onSelectLayer(layer.id);
+            onSelectLayerRef.current(layer.id);
         }
 
-        onInteractionStart();
+        // saveToHistory now schedules itself asynchronously with requestIdleCallback
+        onInteractionStartRef.current();
 
         // Capture initial positions for all selected layers
+        const currentSelectedLayerIds = selectedLayerIdsRef.current;
+        const currentLayers = layersRef.current;
         const initialPositions: Record<string, { x: number, y: number }> = {};
-        const idsToMove = (e.shiftKey || (selectedLayerIds && selectedLayerIds.includes(layer.id))) && selectedLayerIds ? [...new Set([...selectedLayerIds, layer.id])] : [layer.id];
+        const idsToMove = (e.shiftKey || (currentSelectedLayerIds && currentSelectedLayerIds.includes(layer.id))) && currentSelectedLayerIds ? [...new Set([...currentSelectedLayerIds, layer.id])] : [layer.id];
 
-        layers.forEach(l => {
+        currentLayers.forEach(l => {
             if (idsToMove.includes(l.id)) {
                 initialPositions[l.id] = { x: l.x, y: l.y };
             }
@@ -749,23 +769,23 @@ export const Canvas: React.FC<CanvasProps> = ({
             startY: e.clientY,
             initialPositions
         });
-    };
+    }, []);
 
-    const handleResizeStart = (e: React.MouseEvent, layer: Layer, handle: ResizeHandle) => {
+    const handleResizeStart = useCallback((e: React.MouseEvent, layer: Layer, handle: ResizeHandle) => {
         e.stopPropagation();
-        onInteractionStart();
+        onInteractionStartRef.current();
         setResizeState({ isResizing: true, handle, startX: e.clientX, startY: e.clientY, initialLayer: { ...layer } });
-    };
+    }, []);
 
-    const handleRotateStart = (e: React.MouseEvent, layer: Layer) => {
+    const handleRotateStart = useCallback((e: React.MouseEvent, layer: Layer) => {
         e.stopPropagation();
-        onInteractionStart();
+        onInteractionStartRef.current();
         const selectionBox = (e.target as HTMLElement).closest('.group');
         if (selectionBox) {
             const boxRect = selectionBox.getBoundingClientRect();
             setRotateState({ isRotating: true, startX: e.clientX, startY: e.clientY, initialRotation: layer.rotation, centerX: boxRect.left + boxRect.width / 2, centerY: boxRect.top + boxRect.height / 2 });
         }
-    };
+    }, []);
 
     const mouseMoveRequestRef = useRef<number>();
     const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -864,30 +884,40 @@ export const Canvas: React.FC<CanvasProps> = ({
         const currentRotateState = rotateStateRef.current;
         const currentLayers = layersRef.current;
 
-        // Helper to find layer type by id
-        const findLayerType = (id: string): 'text' | 'shape' | 'image' | null => {
-            const layer = currentLayers.find(l => l.id === id);
-            if (!layer) return null;
-            if (layer.type === 'text') return 'text';
-            if (layer.type === 'image') return 'image';
-            return 'shape'; // rectangle, circle, path, etc.
-        };
+        // Commit changes in a batch if onUpdateLayers is available
+        const accumulatedUpdates: Record<string, any> = {};
 
-        // Commit changes to parent only on mouseup
         if (currentDragState?.isDragging) {
             Object.entries(currentBulkDragPreview).forEach(([id, pos]) => {
-                const type = findLayerType(id);
-                if (type === 'text') onUpdateTextLayer(id, pos);
-                else if (type === 'shape') onUpdateShapeLayer(id, pos);
-                else if (type === 'image') onUpdateImageLayer(id, pos);
+                accumulatedUpdates[id] = pos;
             });
         }
+
         if (currentDragPreview && (currentResizeState?.isResizing || currentRotateState?.isRotating)) {
             const { id, ...changes } = currentDragPreview;
-            const type = findLayerType(id);
-            if (type === 'text') onUpdateTextLayer(id, changes);
-            else if (type === 'shape') onUpdateShapeLayer(id, { ...changes, width: changes.width || 0, height: changes.height || 0 });
-            else if (type === 'image') onUpdateImageLayer(id, { ...changes, width: changes.width || 0, height: changes.height || 0 });
+            accumulatedUpdates[id] = { ...accumulatedUpdates[id], ...changes };
+        }
+
+        const updatedIds = Object.keys(accumulatedUpdates);
+        if (updatedIds.length > 0) {
+            if (onUpdateLayers) {
+                onUpdateLayers(accumulatedUpdates);
+            } else {
+                // Fallback to sequential updates
+                const fetchLayerType = (id: string) => {
+                    const layer = currentLayers.find(l => l.id === id);
+                    if (!layer) return null;
+                    return layer.type;
+                };
+
+                updatedIds.forEach(id => {
+                    const type = fetchLayerType(id);
+                    const changes = accumulatedUpdates[id];
+                    if (type === 'text') onUpdateTextLayer(id, changes);
+                    else if (type === 'image') onUpdateImageLayer(id, changes);
+                    else onUpdateShapeLayer(id, changes);
+                });
+            }
         }
 
         setDragState(null);
@@ -897,7 +927,7 @@ export const Canvas: React.FC<CanvasProps> = ({
         setIsPanning(false);
         setDragPreview(null);
         setBulkDragPreview({});
-    }, [onUpdateTextLayer, onUpdateShapeLayer, onUpdateImageLayer]);
+    }, [onUpdateTextLayer, onUpdateShapeLayer, onUpdateImageLayer, onUpdateLayers]);
 
     useEffect(() => {
         window.addEventListener('mousemove', handleMouseMove);
@@ -1085,13 +1115,13 @@ export const Canvas: React.FC<CanvasProps> = ({
     }, [isDrawing, onDrawingComplete]);
 
     // Context Menu & Text Editing
-    const handleContextMenu = (e: React.MouseEvent, layerId: string) => {
+    const handleContextMenu = useCallback((e: React.MouseEvent, layerId: string) => {
         e.preventDefault(); e.stopPropagation(); setContextMenu({ x: e.clientX, y: e.clientY, layerId });
-    };
-    const handleDropShape = (e: React.DragEvent, layerId: string) => {
+    }, []);
+    const handleDropShape = useCallback((e: React.DragEvent, layerId: string) => {
         e.preventDefault(); const imageUrl = e.dataTransfer.getData('text/plain');
         if (imageUrl && layerId) onUpdateShapeLayer(layerId, { backgroundImage: imageUrl, color: 'transparent' });
-    };
+    }, [onUpdateShapeLayer]);
     const handleMouseLeaveLayer = useCallback(() => setHoveredLayerId(null), []);
     const handleSetHoveredLayerId = useCallback((id: string | null) => setHoveredLayerId(id), []);
 
@@ -1104,11 +1134,11 @@ export const Canvas: React.FC<CanvasProps> = ({
         }
     };
 
-    const handleTextDoubleClick = (e: React.MouseEvent, layer: TextLayer) => {
+    const handleTextDoubleClick = useCallback((e: React.MouseEvent, layer: TextLayer) => {
         e.stopPropagation();
         setEditingTextId(layer.id);
         setEditText(layer.text);
-    };
+    }, []);
 
     return (
         <div className="flex-1 relative bg-[#13161a] overflow-hidden flex flex-col">
@@ -1211,19 +1241,19 @@ export const Canvas: React.FC<CanvasProps> = ({
                             </div>
                         )}
 
-                        {/* Layers */}
-                        {shapeLayers.map(l => (
-                            <ShapeLayerItem key={l.id} layer={getEffectiveLayer(l)} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} onDrop={handleDropShape} />
+                        {/* Layers — using pre-computed effective layers for stable React.memo references */}
+                        {effectiveShapeLayers.map(l => (
+                            <ShapeLayerItem key={l.id} layer={l} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} onDrop={handleDropShape} />
                         ))}
-                        {imageLayers.map(l => (
-                            <ImageLayerItem key={l.id} layer={getEffectiveLayer(l)} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} />
+                        {effectiveImageLayers.map(l => (
+                            <ImageLayerItem key={l.id} layer={l} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} />
                         ))}
-                        {textLayers.map(l => (
+                        {effectiveTextLayers.map((l, idx) => (
                             <React.Fragment key={l.id}>
                                 {editingTextId === l.id ? (
                                     <textarea value={editText} onChange={(e) => setEditText(e.target.value)} onBlur={finishEditingText} autoFocus className="absolute bg-transparent border-2 border-[#7d2ae8] outline-none resize-none overflow-hidden z-[100]" style={{ left: l.x, top: l.y, width: l.width, minHeight: l.fontSize * 1.5, fontSize: l.fontSize, fontFamily: l.fontFamily, fontWeight: l.fontWeight as any, fontStyle: l.fontStyle, textAlign: l.textAlign, color: l.color, lineHeight: l.lineHeight, transform: `rotate(${l.rotation}deg)` }} />
                                 ) : (
-                                    <TextLayerItem layer={getEffectiveLayer(l)} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} onDoubleClick={handleTextDoubleClick} isInteracting={!!dragState || !!resizeState || !!rotateState} />
+                                    <TextLayerItem layer={l} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} onDoubleClick={handleTextDoubleClick} isInteracting={!!dragState || !!resizeState || !!rotateState} />
                                 )}
                             </React.Fragment>
                         ))}
@@ -1275,3 +1305,5 @@ export const Canvas: React.FC<CanvasProps> = ({
         </div>
     );
 };
+
+export const Canvas = React.memo(CanvasComponent);

@@ -83,14 +83,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const [selectedLayerIds, setSelectedLayerIds] = useState<string[]>([]);
 
-  // Sync selectedLayerId with the last selected item for backward compatibility
-  useEffect(() => {
-    if (selectedLayerIds.length > 0) {
-      setSelectedLayerId(selectedLayerIds[selectedLayerIds.length - 1]);
-    } else {
-      setSelectedLayerId(null);
-    }
-  }, [selectedLayerIds]);
+  // selectedLayerId is now always set explicitly alongside selectedLayerIds
+  // (no redundant useEffect needed — both are set in handleSelectLayerWrapper and handleMultiSelectLayer)
+
 
 
   // Undo/Redo State
@@ -126,9 +121,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   // Derived State
   const activeImage = history.find(img => img.id === activeImageId) || null;
 
-  // Initialize from project prop
+  // Initialize from project prop - skip if already initialized or same project
   useEffect(() => {
-    if (initialProject) {
+    if (initialProject && initialProject.id !== projectId) {
       setProjectId(initialProject.id);
       setProjectTitle(initialProject.name);
       setTextLayers(initialProject.state.textLayers);
@@ -139,13 +134,16 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
       if (initialProject.state.canvasSize) setCanvasSize(initialProject.state.canvasSize);
       if (initialProject.thumbnail) setThumbnail(initialProject.thumbnail);
     }
-  }, [initialProject]);
+  }, [initialProject, projectId]);
 
-  // Load fonts used in text layers
+  // Load fonts used in text layers - optimized to avoid excessive checks
+  const lastFontsRef = useRef<string>('');
   useEffect(() => {
-    const fonts = Array.from(new Set(textLayers.map(l => l.fontFamily)));
-    if (fonts.length > 0) {
-      loadFonts(fonts);
+    const uniqueFonts = Array.from(new Set(textLayers.map(l => l.fontFamily))).sort();
+    const fontsKey = uniqueFonts.join(',');
+    if (fontsKey !== lastFontsRef.current && uniqueFonts.length > 0) {
+      lastFontsRef.current = fontsKey;
+      loadFonts(uniqueFonts);
     }
   }, [textLayers]);
 
@@ -181,6 +179,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   // 2. Optimized persistence (Debounced + Unified)
   // 2. Optimized persistence (Debounced + Unified)
   useEffect(() => {
+    // Skip if design is empty or hasn't changed meaningfully
     if (textLayers.length === 0 && shapeLayers.length === 0 && imageLayers.length === 0) return;
 
     const timeout = setTimeout(async () => {
@@ -189,7 +188,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
         id: projectId,
         name: projectTitle,
         updatedAt: Date.now(),
-        thumbnail: thumbnail,
+        thumbnail: thumbnail, // Note: local thumbnail might be stale, but we don't want to re-export on every auto-save
         state: {
           textLayers,
           shapeLayers,
@@ -222,7 +221,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     }, 5000); // 5s debounce for heavier state
 
     return () => clearTimeout(timeout);
-  }, [textLayers, shapeLayers, imageLayers, canvasBackgroundColor, canvasFilters, projectTitle, projectId, canvasSize, thumbnail]);
+  }, [textLayers, shapeLayers, imageLayers, canvasBackgroundColor, canvasFilters, projectTitle, projectId, canvasSize]);
 
   // Extract Document Colors
   const documentColors = useMemo(() => {
@@ -286,25 +285,42 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
 
 
 
-  // -- History Handlers --
+  // Refs for layers to avoid saveToHistory dependency churn
+  const textLayersRef = useRef(textLayers);
+  textLayersRef.current = textLayers;
+  const shapeLayersRef = useRef(shapeLayers);
+  shapeLayersRef.current = shapeLayers;
+  const imageLayersRef = useRef(imageLayers);
+  imageLayersRef.current = imageLayers;
+  const canvasBgRef = useRef(canvasBackgroundColor);
+  canvasBgRef.current = canvasBackgroundColor;
+  const canvasFiltersRef = useRef(canvasFilters);
+  canvasFiltersRef.current = canvasFilters;
+  const canvasSizeRef = useRef(canvasSize);
+  canvasSizeRef.current = canvasSize;
 
   const saveToHistory = useCallback(() => {
-    const currentState: HistoryState = {
-      textLayers: textLayers.map(l => ({ ...l })),
-      shapeLayers: shapeLayers.map(l => ({ ...l })),
-      imageLayers: imageLayers.map(l => ({ ...l })),
-      canvasBackgroundColor,
-      canvasFilters: { ...canvasFilters },
-      canvasSize: { ...canvasSize }
-    };
+    // Use requestIdleCallback to avoid blocking any event handlers (mousedown, mouseup, click)
+    const scheduleHistorySnapshot = (window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 0));
 
-    setPast(prev => {
-      const newPast = [...prev, currentState];
-      if (newPast.length > 50) newPast.shift();
-      return newPast;
+    scheduleHistorySnapshot(() => {
+      const currentState: HistoryState = {
+        textLayers: textLayersRef.current.map(l => ({ ...l })),
+        shapeLayers: shapeLayersRef.current.map(l => ({ ...l })),
+        imageLayers: imageLayersRef.current.map(l => ({ ...l })),
+        canvasBackgroundColor: canvasBgRef.current,
+        canvasFilters: { ...canvasFiltersRef.current },
+        canvasSize: { ...canvasSizeRef.current }
+      };
+
+      setPast(prev => {
+        const newPast = [...prev, currentState];
+        if (newPast.length > 50) newPast.shift();
+        return newPast;
+      });
+      setFuture([]);
     });
-    setFuture([]);
-  }, [textLayers, shapeLayers, imageLayers, canvasBackgroundColor, canvasFilters, canvasSize]);
+  }, []); // Stable — never recreated
 
   const handleUndo = useCallback(() => {
     if (past.length === 0) return;
@@ -587,6 +603,31 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     setImageLayers(prev => prev.map(layer => layer.id === id ? { ...layer, ...changes } : layer));
   }, []);
 
+  // Optimized batched update for multiple layers
+  const handleUpdateLayers = useCallback((updates: Record<string, any>) => {
+    const updatedIds = Object.keys(updates);
+    if (updatedIds.length === 0) return;
+
+    // Check which arrays need updating
+    const textLayerIds = new Set(textLayersRef.current.map(l => l.id));
+    const shapeLayerIds = new Set(shapeLayersRef.current.map(l => l.id));
+    const imageLayerIds = new Set(imageLayersRef.current.map(l => l.id));
+
+    const needsTextUpdate = updatedIds.some(id => textLayerIds.has(id));
+    const needsShapeUpdate = updatedIds.some(id => shapeLayerIds.has(id));
+    const needsImageUpdate = updatedIds.some(id => imageLayerIds.has(id));
+
+    if (needsTextUpdate) {
+      setTextLayers(prev => prev.map(l => updates[l.id] ? { ...l, ...updates[l.id] } : l));
+    }
+    if (needsShapeUpdate) {
+      setShapeLayers(prev => prev.map(l => updates[l.id] ? { ...l, ...updates[l.id] } : l));
+    }
+    if (needsImageUpdate) {
+      setImageLayers(prev => prev.map(l => updates[l.id] ? { ...l, ...updates[l.id] } : l));
+    }
+  }, []);
+
   const handlePasteLayer = useCallback(() => {
     if (!clipboardLayer) return;
     saveToHistory();
@@ -677,7 +718,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     setImageLayers(prev => update(prev));
   }, [selectedLayerIds, textLayers, shapeLayers, imageLayers, saveToHistory]);
 
-  // Wrapper for selection to handle Groups
+  // Optimized selection handler using refs for stability
   const handleSelectLayerWrapper = useCallback((id: string | null) => {
     if (!id) {
       setSelectedLayerId(null);
@@ -685,19 +726,19 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
       return;
     }
 
-    const allLayers = [...textLayers, ...shapeLayers, ...imageLayers];
+    const allLayers = [...textLayersRef.current, ...shapeLayersRef.current, ...imageLayersRef.current];
     const targetLayer = allLayers.find(l => l.id === id);
 
     if (targetLayer?.groupId) {
       // Select all members of this group
       const groupMembers = allLayers.filter(l => l.groupId === targetLayer.groupId);
       setSelectedLayerIds(groupMembers.map(l => l.id));
-      setSelectedLayerId(id); // Keep the clicked one as "primary" for now
+      setSelectedLayerId(id); // Keep the clicked one as "primary"
     } else {
       setSelectedLayerId(id);
       setSelectedLayerIds([id]);
     }
-  }, [textLayers, shapeLayers, imageLayers]);
+  }, []); // Stable identity
 
   const handleCutLayer = useCallback((id: string) => {
     handleCopyLayer(id);
@@ -746,11 +787,12 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
 
   const handleMultiSelectLayer = useCallback((id: string) => {
     setSelectedLayerIds(prev => {
-      if (prev.includes(id)) {
-        return prev.filter(lid => lid !== id);
-      } else {
-        return [...prev, id];
-      }
+      const next = prev.includes(id)
+        ? prev.filter(lid => lid !== id)
+        : [...prev, id];
+      // Keep selectedLayerId in sync (was previously done by useEffect)
+      setSelectedLayerId(next.length > 0 ? next[next.length - 1] : null);
+      return next;
     });
   }, []);
 
@@ -988,32 +1030,33 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   const handleDeleteUpload = (index: number) => { setUploads(prev => prev.filter((_, i) => i !== index)); };
 
   // -- Keyboard Shortcuts --
+  const shortcuts = useMemo(() => [
+    { key: 'z', ctrl: true, action: handleUndo, description: 'Undo' },
+    { key: 'y', ctrl: true, action: handleRedo, description: 'Redo' },
+    { key: 'z', ctrl: true, shift: true, action: handleRedo, description: 'Redo' },
+    { key: 'c', ctrl: true, action: handleCopyLayer, description: 'Copy Layer' },
+    { key: 'v', ctrl: true, action: handlePasteLayer, description: 'Paste Layer' },
+    { key: 'd', ctrl: true, action: () => selectedLayerIds.length > 0 && handleDuplicateSelected(), description: 'Duplicate Layer(s)' },
+    { key: 'Delete', action: () => selectedLayerIds.length > 0 && handleDeleteSelected(), description: 'Delete Layer(s)' },
+    { key: 'Backspace', action: () => selectedLayerIds.length > 0 && handleDeleteSelected(), description: 'Delete Layer(s)' },
+    { key: 's', ctrl: true, action: () => saveProject(), description: 'Save Project' },
+    { key: 'e', ctrl: true, action: () => setShowExport(true), description: 'Export Design' },
+    { key: 'g', ctrl: true, action: () => selectedLayerIds.length > 1 && handleGroupSelected(), description: 'Group Layers' },
+    { key: 'g', ctrl: true, shift: true, action: () => selectedLayerIds.length > 0 && handleUngroupSelected(), description: 'Ungroup Layers' },
+    { key: '?', action: () => setShowShortcuts(prev => !prev), description: 'Toggle Shortcuts Help' },
+    // Nudge Shortcuts
+    { key: 'ArrowUp', action: () => handleNudgeLayer('up'), description: 'Move Layer Up' },
+    { key: 'ArrowDown', action: () => handleNudgeLayer('down'), description: 'Move Layer Down' },
+    { key: 'ArrowLeft', action: () => handleNudgeLayer('left'), description: 'Move Layer Left' },
+    { key: 'ArrowRight', action: () => handleNudgeLayer('right'), description: 'Move Layer Right' },
+    { key: 'ArrowUp', shift: true, action: () => handleNudgeLayer('up', 10), description: 'Move Layer Up (Large)' },
+    { key: 'ArrowDown', shift: true, action: () => handleNudgeLayer('down', 10), description: 'Move Layer Down (Large)' },
+    { key: 'ArrowLeft', shift: true, action: () => handleNudgeLayer('left', 10), description: 'Move Layer Left (Large)' },
+    { key: 'ArrowRight', shift: true, action: () => handleNudgeLayer('right', 10), description: 'Move Layer Right (Large)' },
+  ], [handleUndo, handleRedo, handleCopyLayer, handlePasteLayer, handleDuplicateSelected, handleDeleteSelected, saveProject, selectedLayerIds, handleGroupSelected, handleUngroupSelected, handleNudgeLayer]);
+
   useKeyboardShortcuts({
-    shortcuts: [
-      { key: 'z', ctrl: true, action: handleUndo, description: 'Undo' },
-      { key: 'y', ctrl: true, action: handleRedo, description: 'Redo' },
-      { key: 'z', ctrl: true, shift: true, action: handleRedo, description: 'Redo' },
-      { key: 'c', ctrl: true, action: handleCopyLayer, description: 'Copy Layer' },
-      { key: 'v', ctrl: true, action: handlePasteLayer, description: 'Paste Layer' },
-      { key: 'd', ctrl: true, action: () => selectedLayerIds.length > 0 && handleDuplicateSelected(), description: 'Duplicate Layer(s)' },
-      { key: 'Delete', action: () => selectedLayerIds.length > 0 && handleDeleteSelected(), description: 'Delete Layer(s)' },
-      { key: 'Backspace', action: () => selectedLayerIds.length > 0 && handleDeleteSelected(), description: 'Delete Layer(s)' },
-      { key: 's', ctrl: true, action: () => saveProject(), description: 'Save Project' },
-      { key: 'e', ctrl: true, action: () => setShowExport(true), description: 'Export Design' },
-      { key: 'e', ctrl: true, action: () => setShowExport(true), description: 'Export Design' },
-      { key: 'g', ctrl: true, action: () => selectedLayerIds.length > 1 && handleGroupSelected(), description: 'Group Layers' },
-      { key: 'g', ctrl: true, shift: true, action: () => selectedLayerIds.length > 0 && handleUngroupSelected(), description: 'Ungroup Layers' },
-      { key: '?', action: () => setShowShortcuts(prev => !prev), description: 'Toggle Shortcuts Help' },
-      // Nudge Shortcuts
-      { key: 'ArrowUp', action: () => handleNudgeLayer('up'), description: 'Move Layer Up' },
-      { key: 'ArrowDown', action: () => handleNudgeLayer('down'), description: 'Move Layer Down' },
-      { key: 'ArrowLeft', action: () => handleNudgeLayer('left'), description: 'Move Layer Left' },
-      { key: 'ArrowRight', action: () => handleNudgeLayer('right'), description: 'Move Layer Right' },
-      { key: 'ArrowUp', shift: true, action: () => handleNudgeLayer('up', 10), description: 'Move Layer Up (Large)' },
-      { key: 'ArrowDown', shift: true, action: () => handleNudgeLayer('down', 10), description: 'Move Layer Down (Large)' },
-      { key: 'ArrowLeft', shift: true, action: () => handleNudgeLayer('left', 10), description: 'Move Layer Left (Large)' },
-      { key: 'ArrowRight', shift: true, action: () => handleNudgeLayer('right', 10), description: 'Move Layer Right (Large)' },
-    ],
+    shortcuts,
     enabled: shortcutsEnabled
   });
 
@@ -1356,6 +1399,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
             onUpdateTextLayer={handleUpdateTextLayer}
             onUpdateShapeLayer={handleUpdateShapeLayer}
             onUpdateImageLayer={handleUpdateImageLayer}
+            onUpdateLayers={handleUpdateLayers}
             onSelectLayer={handleSelectLayerWrapper}
             onDeleteLayer={handleDeleteLayer}
             onDuplicateLayer={handleDuplicateLayer}

@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Icons } from '../../constants';
 import { Button } from '../Button';
@@ -63,6 +62,8 @@ export const ElementsPanel: React.FC<ElementsPanelProps> = ({ onAddShape, onAddI
       setIsGeneratingSticker(false);
     }
   };
+
+
 
   const shapePresets: ShapePreset[] = [
     // Basic Shapes
@@ -274,7 +275,7 @@ export const ElementsPanel: React.FC<ElementsPanelProps> = ({ onAddShape, onAddI
 
               {/* Quick Suggestions */}
               <div className="flex flex-wrap gap-1.5 mb-3">
-                {stickerPromptSuggestions.map((suggestion, i) => (
+                {['cute robot', 'coffee cup', 'rocket ship', 'neon star', 'pizza slice'].map((suggestion, i) => (
                   <button
                     key={i}
                     onClick={() => setStickerPrompt(suggestion)}

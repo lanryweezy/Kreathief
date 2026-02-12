@@ -216,7 +216,7 @@ const LayerItem = React.memo(({
   );
 });
 
-export const LayersPanel: React.FC<LayersPanelProps> = ({
+export const LayersPanel = React.memo(({
   textLayers,
   shapeLayers,
   imageLayers,
@@ -234,7 +234,7 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
   onBatchDelete = () => { },
   onBatchToggleVisibility = () => { },
   onBatchToggleLock = () => { }
-}) => {
+}: LayersPanelProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLayerIds, setSelectedLayerIds] = useState<Set<string>>(new Set());
   const [filterType, setFilterType] = useState<'all' | 'text' | 'shape' | 'image'>('all');
@@ -494,4 +494,4 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
       </div>
     </div>
   );
-};
+});
