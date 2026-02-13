@@ -6,9 +6,13 @@ import * as geminiService from '../../services/geminiService';
 
 interface TextPanelProps {
   onAddText: (style: Partial<TextLayer>) => void;
+  onHoverFont?: (fontFamily: string | null) => void;
 }
 
-export const TextPanel: React.FC<TextPanelProps> = ({ onAddText }) => {
+import { FONT_FAMILIES } from '../../constants';
+
+export const TextPanel: React.FC<TextPanelProps> = ({ onAddText, onHoverFont }) => {
+  const [fontSearch, setFontSearch] = useState('');
   const [textGenPrompt, setTextGenPrompt] = useState('');
   const [textGenResults, setTextGenResults] = useState<string[]>([]);
   const [isGeneratingText, setIsGeneratingText] = useState(false);
@@ -28,7 +32,7 @@ export const TextPanel: React.FC<TextPanelProps> = ({ onAddText }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#13161a] p-4">
+    <div className="flex flex-col h-full bg-[#13161a] p-4 overflow-y-auto custom-scrollbar">
       <h3 className="font-bold text-white mb-6 flex items-center gap-2">
         <Icons.Text className="w-5 h-5 text-[#7d2ae8]" />
         Typography
@@ -210,6 +214,36 @@ export const TextPanel: React.FC<TextPanelProps> = ({ onAddText }) => {
           >
             <span className="text-sm font-normal text-gray-400 block group-hover:translate-x-1 transition-transform">Body text goes here</span>
           </button>
+        </div>
+
+        <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Fonts</h4>
+        <div className="mb-3">
+          <input
+            type="text"
+            placeholder="Search fonts..."
+            className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-[#7d2ae8]"
+            value={fontSearch}
+            onChange={(e) => setFontSearch(e.target.value)}
+          />
+        </div>
+        <div className="grid grid-cols-1 gap-2 pb-20">
+          {FONT_FAMILIES.filter(f => f.toLowerCase().includes(fontSearch.toLowerCase())).map(font => (
+            <button
+              key={font}
+              onClick={() => onAddText({ text: 'New Text', fontFamily: font, fontSize: 32 })}
+              onMouseEnter={() => onHoverFont && onHoverFont(font)}
+              onMouseLeave={() => onHoverFont && onHoverFont(null)}
+              className="w-full text-left p-3 bg-[#1e1e1e] border border-gray-700 rounded-lg hover:border-[#7d2ae8] hover:bg-[#252627] transition-all group overflow-hidden"
+            >
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <span className="text-2xl text-gray-500 shrink-0" style={{ fontFamily: font }}>Aa</span>
+                  <span className="text-sm text-white truncate">{font}</span>
+                </div>
+                <span className="text-[10px] text-gray-500 opacity-0 group-hover:opacity-100 uppercase tracking-tighter shrink-0">Add</span>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
     </div>

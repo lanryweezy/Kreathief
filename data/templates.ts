@@ -10,9 +10,7 @@ export interface StarterTemplate {
 }
 
 const baseState = (size: CanvasSize): Omit<HistoryState, 'canvasSize'> => ({
-  textLayers: [],
-  shapeLayers: [],
-  imageLayers: [],
+  layers: [],
   canvasBackgroundColor: '#0f172a',
   canvasFilters: {
     brightness: 100,
@@ -37,98 +35,144 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       ...baseState({ width: 1080, height: 1080, name: 'Instagram Post' }),
       canvasSize: { width: 1080, height: 1080, name: 'Instagram Post' },
       canvasBackgroundColor: '#0a0a0a',
-      shapeLayers: [
+      layers: [
+        // Background gradient effect with layered circles
+        {
+          id: 'ig_bg_circle_1', type: 'circle', name: 'BG Circle 1',
+          x: -200, y: -200, width: 600, height: 600, rotation: 0,
+          color: '#22c55e', cornerRadius: 300, opacity: 0.05,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'ig_bg_circle_2', type: 'circle', name: 'BG Circle 2',
+          x: 800, y: 700, width: 500, height: 500, rotation: 0,
+          color: '#22c55e', cornerRadius: 250, opacity: 0.04,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Left accent bar with gradient effect
         {
           id: 'ig_accent_bar', type: 'rectangle', name: 'Left Accent Bar',
-          x: 0, y: 0, width: 12, height: 1080, rotation: 0,
+          x: 0, y: 0, width: 16, height: 1080, rotation: 0,
           color: '#22c55e', cornerRadius: 0, opacity: 1,
           locked: false, visible: true, skewX: 0, skewY: 0
         },
+        // Main card with enhanced styling
         {
           id: 'ig_card_bg', type: 'rectangle', name: 'Card Background',
           x: 48, y: 80, width: 984, height: 740, rotation: 0,
-          color: '#111318', cornerRadius: 28, opacity: 1,
+          color: '#111318', cornerRadius: 32, opacity: 1,
+          locked: false, visible: true, skewX: 0, skewY: 0,
+          shadow: { color: '#000000', blur: 40, offsetX: 0, offsetY: 20 }
+        },
+        // Top accent stripe
+        {
+          id: 'ig_top_stripe', type: 'rectangle', name: 'Top Stripe',
+          x: 48, y: 80, width: 984, height: 8, rotation: 0,
+          color: '#22c55e', cornerRadius: 32, opacity: 0.6,
           locked: false, visible: true, skewX: 0, skewY: 0
         },
+        // Tag pill with better styling
         {
           id: 'ig_pill', type: 'rectangle', name: 'Tag Pill',
-          x: 90, y: 120, width: 200, height: 44, rotation: 0,
+          x: 90, y: 120, width: 220, height: 48, rotation: 0,
           color: '#22c55e', cornerRadius: 999, opacity: 1,
           locked: false, visible: true, skewX: 0, skewY: 0
         },
+        // Decorative circles with better layering
         {
           id: 'ig_deco_circle', type: 'circle', name: 'Decorative Circle',
-          x: 780, y: 140, width: 220, height: 220, rotation: 0,
-          color: '#22c55e', cornerRadius: 110, opacity: 0.08,
+          x: 760, y: 120, width: 260, height: 260, rotation: 0,
+          color: '#22c55e', cornerRadius: 130, opacity: 0.06,
           locked: false, visible: true, skewX: 0, skewY: 0
         },
         {
           id: 'ig_deco_circle_2', type: 'circle', name: 'Inner Circle',
-          x: 820, y: 180, width: 140, height: 140, rotation: 0,
-          color: '#22c55e', cornerRadius: 70, opacity: 0.12,
+          x: 810, y: 170, width: 160, height: 160, rotation: 0,
+          color: '#22c55e', cornerRadius: 80, opacity: 0.1,
           locked: false, visible: true, skewX: 0, skewY: 0
         },
+        {
+          id: 'ig_deco_circle_3', type: 'circle', name: 'Center Dot',
+          x: 860, y: 220, width: 60, height: 60, rotation: 0,
+          color: '#22c55e', cornerRadius: 30, opacity: 0.3,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Enhanced CTA button
         {
           id: 'ig_cta_btn', type: 'rectangle', name: 'CTA Button',
-          x: 90, y: 660, width: 280, height: 60, rotation: 0,
-          color: '#22c55e', cornerRadius: 12, opacity: 1,
-          locked: false, visible: true, skewX: 0, skewY: 0
+          x: 90, y: 660, width: 300, height: 68, rotation: 0,
+          color: '#22c55e', cornerRadius: 16, opacity: 1,
+          locked: false, visible: true, skewX: 0, skewY: 0,
+          shadow: { color: '#22c55e', blur: 20, offsetX: 0, offsetY: 8 }
         },
+        // Bottom info bar
         {
           id: 'ig_bottom_bar', type: 'rectangle', name: 'Bottom Bar',
-          x: 48, y: 870, width: 984, height: 160, rotation: 0,
-          color: '#111318', cornerRadius: 24, opacity: 1,
+          x: 48, y: 870, width: 984, height: 150, rotation: 0,
+          color: '#0f1419', cornerRadius: 24, opacity: 1,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Divider line
+        {
+          id: 'ig_divider', type: 'rectangle', name: 'Divider Line',
+          x: 90, y: 940, width: 900, height: 2, rotation: 0,
+          color: '#22c55e', cornerRadius: 1, opacity: 0.2,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Accent dots
+        {
+          id: 'ig_dot_1', type: 'circle', name: 'Accent Dot 1',
+          x: 900, y: 900, width: 12, height: 12, rotation: 0,
+          color: '#22c55e', cornerRadius: 6, opacity: 0.4,
           locked: false, visible: true, skewX: 0, skewY: 0
         },
         {
-          id: 'ig_divider', type: 'rectangle', name: 'Divider Line',
-          x: 90, y: 940, width: 900, height: 1, rotation: 0,
-          color: '#ffffff', cornerRadius: 0, opacity: 0.08,
+          id: 'ig_dot_2', type: 'circle', name: 'Accent Dot 2',
+          x: 950, y: 920, width: 8, height: 8, rotation: 0,
+          color: '#22c55e', cornerRadius: 4, opacity: 0.3,
           locked: false, visible: true, skewX: 0, skewY: 0
-        }
-      ],
-      textLayers: [
+        },
         {
           id: 'ig_tag', type: 'text', name: 'Tag',
-          text: '✦ NEW DROP', x: 105, y: 128, width: 180, rotation: 0,
-          fontSize: 16, fontWeight: '700', fontStyle: 'normal', textDecoration: 'none',
+          text: '✦ NEW DROP', x: 110, y: 130, width: 180, rotation: 0,
+          fontSize: 18, fontWeight: '800', fontStyle: 'normal', textDecoration: 'none',
           color: '#022c22', fontFamily: 'Inter, sans-serif', textAlign: 'left',
-          letterSpacing: 2, lineHeight: 1.4, textTransform: 'uppercase',
+          letterSpacing: 2.5, lineHeight: 1.4, textTransform: 'uppercase',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
           curve: 0, skewX: 0, skewY: 0
         },
         {
           id: 'ig_title', type: 'text', name: 'Title',
-          text: 'Make scroll‑stopping\ncontent in minutes', x: 90, y: 210, width: 600, rotation: 0,
-          fontSize: 68, fontWeight: '800', fontStyle: 'normal', textDecoration: 'none',
-          color: '#f0f0f0', fontFamily: 'Inter, sans-serif', textAlign: 'left',
-          letterSpacing: -1, lineHeight: 1.05, textTransform: 'none',
+          text: 'Make scroll‑stopping\ncontent in minutes', x: 90, y: 210, width: 650, rotation: 0,
+          fontSize: 72, fontWeight: '900', fontStyle: 'normal', textDecoration: 'none',
+          color: '#ffffff', fontFamily: 'Inter, sans-serif', textAlign: 'left',
+          letterSpacing: -2, lineHeight: 1.0, textTransform: 'none',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
           curve: 0, skewX: 0, skewY: 0
         },
         {
           id: 'ig_body', type: 'text', name: 'Body',
-          text: 'Swap your colors, text, and images.\nPerfect for product drops and promos.', x: 90, y: 480, width: 600, rotation: 0,
-          fontSize: 20, fontWeight: '400', fontStyle: 'normal', textDecoration: 'none',
-          color: '#7a7e85', fontFamily: 'Inter, sans-serif', textAlign: 'left',
-          letterSpacing: 0, lineHeight: 1.6, textTransform: 'none',
+          text: 'Swap your colors, text, and images.\nPerfect for product drops and promos.', x: 90, y: 480, width: 650, rotation: 0,
+          fontSize: 22, fontWeight: '400', fontStyle: 'normal', textDecoration: 'none',
+          color: '#a0a8b0', fontFamily: 'Inter, sans-serif', textAlign: 'left',
+          letterSpacing: 0.5, lineHeight: 1.7, textTransform: 'none',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
           curve: 0, skewX: 0, skewY: 0
         },
         {
           id: 'ig_cta_text', type: 'text', name: 'CTA Text',
-          text: 'Start Creating →', x: 105, y: 672, width: 260, rotation: 0,
-          fontSize: 18, fontWeight: '700', fontStyle: 'normal', textDecoration: 'none',
+          text: 'Start Creating →', x: 110, y: 680, width: 280, rotation: 0,
+          fontSize: 20, fontWeight: '800', fontStyle: 'normal', textDecoration: 'none',
           color: '#022c22', fontFamily: 'Inter, sans-serif', textAlign: 'center',
-          letterSpacing: 0, lineHeight: 1.4, textTransform: 'none',
+          letterSpacing: 0.5, lineHeight: 1.4, textTransform: 'none',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
           curve: 0, skewX: 0, skewY: 0
         },
         {
           id: 'ig_handle', type: 'text', name: 'Handle',
           text: '@yourbrand', x: 90, y: 890, width: 300, rotation: 0,
-          fontSize: 22, fontWeight: '600', fontStyle: 'normal', textDecoration: 'none',
-          color: '#e5e7eb', fontFamily: 'Inter, sans-serif', textAlign: 'left',
+          fontSize: 24, fontWeight: '700', fontStyle: 'normal', textDecoration: 'none',
+          color: '#ffffff', fontFamily: 'Inter, sans-serif', textAlign: 'left',
           letterSpacing: 0, lineHeight: 1.4, textTransform: 'none',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
           curve: 0, skewX: 0, skewY: 0
@@ -136,14 +180,13 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         {
           id: 'ig_tagline', type: 'text', name: 'Tagline',
           text: 'Design that converts. Every single time.', x: 90, y: 960, width: 600, rotation: 0,
-          fontSize: 16, fontWeight: '400', fontStyle: 'normal', textDecoration: 'none',
-          color: '#52555a', fontFamily: 'Inter, sans-serif', textAlign: 'left',
-          letterSpacing: 0, lineHeight: 1.4, textTransform: 'none',
+          fontSize: 17, fontWeight: '400', fontStyle: 'normal', textDecoration: 'none',
+          color: '#6b7280', fontFamily: 'Inter, sans-serif', textAlign: 'left',
+          letterSpacing: 0.3, lineHeight: 1.5, textTransform: 'none',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
           curve: 0, skewX: 0, skewY: 0
         }
       ],
-      imageLayers: []
     }
   },
   {
@@ -155,7 +198,22 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 1080, height: 1920, name: 'Story / Reel' }),
       canvasSize: { width: 1080, height: 1920, name: 'Story / Reel' },
-      shapeLayers: [
+      canvasBackgroundColor: '#0a0a0a',
+      layers: [
+        // Background decorative circles
+        {
+          id: 'story_bg_circle_1', type: 'circle', name: 'BG Circle 1',
+          x: -150, y: -150, width: 500, height: 500, rotation: 0,
+          color: '#38bdf8', cornerRadius: 250, opacity: 0.04,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'story_bg_circle_2', type: 'circle', name: 'BG Circle 2',
+          x: 700, y: 1400, width: 600, height: 600, rotation: 0,
+          color: '#38bdf8', cornerRadius: 300, opacity: 0.03,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Top gradient area
         {
           id: 'shape_story_header',
           type: 'rectangle',
@@ -163,7 +221,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           x: 0,
           y: 0,
           width: 1080,
-          height: 580,
+          height: 600,
           rotation: 0,
           color: '#0b1120',
           cornerRadius: 0,
@@ -173,42 +231,89 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           skewX: 0,
           skewY: 0
         },
+        // Accent stripe
+        {
+          id: 'story_accent_stripe', type: 'rectangle', name: 'Accent Stripe',
+          x: 0, y: 580, width: 1080, height: 6, rotation: 0,
+          color: '#38bdf8', cornerRadius: 0, opacity: 0.5,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Decorative circles in header
+        {
+          id: 'story_deco_1', type: 'circle', name: 'Deco Circle 1',
+          x: 800, y: 100, width: 280, height: 280, rotation: 0,
+          color: '#38bdf8', cornerRadius: 140, opacity: 0.08,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'story_deco_2', type: 'circle', name: 'Deco Circle 2',
+          x: 850, y: 150, width: 180, height: 180, rotation: 0,
+          color: '#38bdf8', cornerRadius: 90, opacity: 0.12,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Footer bar with enhanced styling
         {
           id: 'shape_story_footer',
           type: 'rectangle',
           name: 'Footer Bar',
           x: 64,
-          y: 1550,
+          y: 1520,
           width: 952,
-          height: 180,
+          height: 320,
           rotation: 0,
-          color: '#020617',
-          cornerRadius: 24,
-          opacity: 0.9,
+          color: '#0f1419',
+          cornerRadius: 32,
+          opacity: 1,
           locked: false,
           visible: true,
           skewX: 0,
-          skewY: 0
-        }
-      ],
-      textLayers: [
+          skewY: 0,
+          shadow: { color: '#000000', blur: 30, offsetX: 0, offsetY: -10 }
+        },
+        // Footer top accent
+        {
+          id: 'story_footer_accent', type: 'rectangle', name: 'Footer Accent',
+          x: 64, y: 1520, width: 952, height: 6, rotation: 0,
+          color: '#38bdf8', cornerRadius: 32, opacity: 0.6,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Divider line in footer
+        {
+          id: 'story_footer_divider', type: 'rectangle', name: 'Footer Divider',
+          x: 100, y: 1620, width: 880, height: 2, rotation: 0,
+          color: '#38bdf8', cornerRadius: 1, opacity: 0.15,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Accent dots
+        {
+          id: 'story_dot_1', type: 'circle', name: 'Accent Dot 1',
+          x: 900, y: 1560, width: 16, height: 16, rotation: 0,
+          color: '#38bdf8', cornerRadius: 8, opacity: 0.3,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'story_dot_2', type: 'circle', name: 'Accent Dot 2',
+          x: 950, y: 1580, width: 10, height: 10, rotation: 0,
+          color: '#38bdf8', cornerRadius: 5, opacity: 0.2,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
         {
           id: 'story_kicker',
           type: 'text',
           name: 'Kicker',
-          text: 'TUTORIAL',
+          text: '✦ TUTORIAL',
           x: 80,
-          y: 140,
-          width: 260,
+          y: 160,
+          width: 300,
           rotation: 0,
-          fontSize: 26,
-          fontWeight: '600',
+          fontSize: 28,
+          fontWeight: '800',
           fontStyle: 'normal',
           textDecoration: 'none',
           color: '#38bdf8',
           fontFamily: 'Inter, sans-serif',
           textAlign: 'left',
-          letterSpacing: 3,
+          letterSpacing: 3.5,
           lineHeight: 1.3,
           textTransform: 'uppercase',
           opacity: 1,
@@ -225,18 +330,45 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           name: 'Title',
           text: 'Design thumbnails\npeople actually click',
           x: 80,
-          y: 220,
-          width: 760,
+          y: 260,
+          width: 800,
           rotation: 0,
-          fontSize: 72,
-          fontWeight: '800',
+          fontSize: 84,
+          fontWeight: '900',
           fontStyle: 'normal',
           textDecoration: 'none',
-          color: '#e5e7eb',
+          color: '#ffffff',
           fontFamily: 'Inter, sans-serif',
           textAlign: 'left',
-          letterSpacing: 0,
-          lineHeight: 1.05,
+          letterSpacing: -2,
+          lineHeight: 1.0,
+          textTransform: 'none',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
+        {
+          id: 'story_subtitle',
+          type: 'text',
+          name: 'Subtitle',
+          text: 'In just 5 minutes',
+          x: 80,
+          y: 500,
+          width: 600,
+          rotation: 0,
+          fontSize: 28,
+          fontWeight: '500',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#a0a8b0',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'left',
+          letterSpacing: 0.5,
+          lineHeight: 1.4,
           textTransform: 'none',
           opacity: 1,
           locked: false,
@@ -251,15 +383,15 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           type: 'text',
           name: 'Footer',
           text: 'Add your handle or CTA here',
-          x: 96,
-          y: 1585,
+          x: 100,
+          y: 1560,
           width: 820,
           rotation: 0,
-          fontSize: 24,
-          fontWeight: '500',
+          fontSize: 26,
+          fontWeight: '700',
           fontStyle: 'normal',
           textDecoration: 'none',
-          color: '#cbd5f5',
+          color: '#ffffff',
           fontFamily: 'Inter, sans-serif',
           textAlign: 'left',
           letterSpacing: 0,
@@ -272,9 +404,35 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0,
           skewX: 0,
           skewY: 0
+        },
+        {
+          id: 'story_footer_sub',
+          type: 'text',
+          name: 'Footer Sub',
+          text: 'Tap to learn more →',
+          x: 100,
+          y: 1650,
+          width: 820,
+          rotation: 0,
+          fontSize: 18,
+          fontWeight: '400',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#6b7280',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'left',
+          letterSpacing: 0.3,
+          lineHeight: 1.4,
+          textTransform: 'none',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
         }
       ],
-      imageLayers: []
     }
   },
   {
@@ -287,98 +445,140 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       ...baseState({ width: 1280, height: 720, name: 'YouTube Thumbnail' }),
       canvasSize: { width: 1280, height: 720, name: 'YouTube Thumbnail' },
       canvasBackgroundColor: '#020617',
-      shapeLayers: [
+      layers: [
+        // Background circles
+        {
+          id: 'yt_bg_circle_1', type: 'circle', name: 'BG Circle 1',
+          x: -100, y: -100, width: 400, height: 400, rotation: 0,
+          color: '#ef4444', cornerRadius: 200, opacity: 0.04,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'yt_bg_circle_2', type: 'circle', name: 'BG Circle 2',
+          x: 1000, y: 400, width: 450, height: 450, rotation: 0,
+          color: '#ef4444', cornerRadius: 225, opacity: 0.03,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Left image area
         {
           id: 'yt_left_panel', type: 'rectangle', name: 'Image Area',
           x: 0, y: 0, width: 560, height: 720, rotation: 0,
           color: '#0f172a', cornerRadius: 0, opacity: 1,
           locked: false, visible: true, skewX: 0, skewY: 0
         },
+        // Accent stripe with glow
         {
           id: 'yt_accent_stripe', type: 'rectangle', name: 'Accent Stripe',
-          x: 560, y: 0, width: 16, height: 720, rotation: 0,
+          x: 560, y: 0, width: 20, height: 720, rotation: 0,
           color: '#ef4444', cornerRadius: 0, opacity: 1,
-          locked: false, visible: true, skewX: 0, skewY: 0
+          locked: false, visible: true, skewX: 0, skewY: 0,
+          shadow: { color: '#ef4444', blur: 30, offsetX: 10, offsetY: 0 }
         },
+        // Decorative grid dots
         {
           id: 'yt_dot_1', type: 'circle', name: 'Dot Grid 1',
-          x: 60, y: 60, width: 16, height: 16, rotation: 0,
-          color: '#ffffff', cornerRadius: 8, opacity: 0.15,
+          x: 60, y: 60, width: 20, height: 20, rotation: 0,
+          color: '#ffffff', cornerRadius: 10, opacity: 0.12,
           locked: false, visible: true, skewX: 0, skewY: 0
         },
         {
           id: 'yt_dot_2', type: 'circle', name: 'Dot Grid 2',
-          x: 100, y: 60, width: 16, height: 16, rotation: 0,
-          color: '#ffffff', cornerRadius: 8, opacity: 0.15,
+          x: 120, y: 60, width: 20, height: 20, rotation: 0,
+          color: '#ffffff', cornerRadius: 10, opacity: 0.12,
           locked: false, visible: true, skewX: 0, skewY: 0
         },
         {
           id: 'yt_dot_3', type: 'circle', name: 'Dot Grid 3',
-          x: 140, y: 60, width: 16, height: 16, rotation: 0,
-          color: '#ffffff', cornerRadius: 8, opacity: 0.15,
+          x: 180, y: 60, width: 20, height: 20, rotation: 0,
+          color: '#ffffff', cornerRadius: 10, opacity: 0.12,
           locked: false, visible: true, skewX: 0, skewY: 0
         },
+        {
+          id: 'yt_dot_4', type: 'circle', name: 'Dot Grid 4',
+          x: 60, y: 120, width: 20, height: 20, rotation: 0,
+          color: '#ffffff', cornerRadius: 10, opacity: 0.1,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'yt_dot_5', type: 'circle', name: 'Dot Grid 5',
+          x: 120, y: 120, width: 20, height: 20, rotation: 0,
+          color: '#ffffff', cornerRadius: 10, opacity: 0.1,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Episode badge with enhanced styling
         {
           id: 'yt_episode_badge', type: 'rectangle', name: 'Episode Badge',
-          x: 620, y: 560, width: 160, height: 56, rotation: 0,
-          color: '#ef4444', cornerRadius: 12, opacity: 1,
+          x: 620, y: 540, width: 200, height: 80, rotation: 0,
+          color: '#ef4444', cornerRadius: 16, opacity: 1,
+          locked: false, visible: true, skewX: 0, skewY: 0,
+          shadow: { color: '#ef4444', blur: 25, offsetX: 0, offsetY: 12 }
+        },
+        // Bottom accent line
+        {
+          id: 'yt_bottom_line', type: 'rectangle', name: 'Bottom Line',
+          x: 620, y: 640, width: 640, height: 4, rotation: 0,
+          color: '#ef4444', cornerRadius: 2, opacity: 0.3,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Decorative circles on right
+        {
+          id: 'yt_deco_circle_1', type: 'circle', name: 'Deco Circle 1',
+          x: 900, y: 100, width: 200, height: 200, rotation: 0,
+          color: '#ef4444', cornerRadius: 100, opacity: 0.06,
           locked: false, visible: true, skewX: 0, skewY: 0
         },
         {
-          id: 'yt_bottom_line', type: 'rectangle', name: 'Bottom Line',
-          x: 620, y: 640, width: 300, height: 3, rotation: 0,
-          color: '#ffffff', cornerRadius: 2, opacity: 0.1,
+          id: 'yt_deco_circle_2', type: 'circle', name: 'Deco Circle 2',
+          x: 940, y: 140, width: 120, height: 120, rotation: 0,
+          color: '#ef4444', cornerRadius: 60, opacity: 0.1,
           locked: false, visible: true, skewX: 0, skewY: 0
-        }
-      ],
-      textLayers: [
+        },
         {
           id: 'yt_tag', type: 'text', name: 'Tag',
-          text: '✦ DESIGN GUIDE', x: 620, y: 80, width: 400, rotation: 0,
-          fontSize: 22, fontWeight: '700', fontStyle: 'normal', textDecoration: 'none',
+          text: '✦ DESIGN GUIDE', x: 620, y: 100, width: 450, rotation: 0,
+          fontSize: 26, fontWeight: '800', fontStyle: 'normal', textDecoration: 'none',
           color: '#ef4444', fontFamily: 'Inter, sans-serif', textAlign: 'left',
-          letterSpacing: 3, lineHeight: 1.3, textTransform: 'uppercase',
+          letterSpacing: 3.5, lineHeight: 1.3, textTransform: 'uppercase',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
           curve: 0, skewX: 0, skewY: 0
         },
         {
           id: 'yt_title', type: 'text', name: 'Title',
-          text: 'From blank\ncanvas to\nviral design', x: 620, y: 140, width: 620, rotation: 0,
-          fontSize: 72, fontWeight: '900', fontStyle: 'normal', textDecoration: 'none',
-          color: '#f9fafb', fontFamily: 'Inter, sans-serif', textAlign: 'left',
-          letterSpacing: -2, lineHeight: 1.0, textTransform: 'none',
+          text: 'From blank\ncanvas to\nviral design', x: 620, y: 170, width: 620, rotation: 0,
+          fontSize: 80, fontWeight: '900', fontStyle: 'normal', textDecoration: 'none',
+          color: '#ffffff', fontFamily: 'Inter, sans-serif', textAlign: 'left',
+          letterSpacing: -2.5, lineHeight: 0.95, textTransform: 'none',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
           curve: 0, skewX: 0, skewY: 0
         },
         {
           id: 'yt_sub', type: 'text', name: 'Subtitle',
-          text: 'Click-worthy designs in 5 min', x: 620, y: 480, width: 500, rotation: 0,
-          fontSize: 22, fontWeight: '400', fontStyle: 'normal', textDecoration: 'none',
-          color: '#94a3b8', fontFamily: 'Inter, sans-serif', textAlign: 'left',
-          letterSpacing: 0, lineHeight: 1.4, textTransform: 'none',
+          text: 'Click-worthy designs in 5 min', x: 620, y: 450, width: 550, rotation: 0,
+          fontSize: 26, fontWeight: '500', fontStyle: 'normal', textDecoration: 'none',
+          color: '#a0a8b0', fontFamily: 'Inter, sans-serif', textAlign: 'left',
+          letterSpacing: 0.5, lineHeight: 1.5, textTransform: 'none',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
           curve: 0, skewX: 0, skewY: 0
         },
         {
           id: 'yt_ep', type: 'text', name: 'Episode',
-          text: 'EP. 01', x: 640, y: 568, width: 120, rotation: 0,
-          fontSize: 20, fontWeight: '800', fontStyle: 'normal', textDecoration: 'none',
+          text: 'EP. 01', x: 650, y: 560, width: 140, rotation: 0,
+          fontSize: 24, fontWeight: '900', fontStyle: 'normal', textDecoration: 'none',
           color: '#ffffff', fontFamily: 'Inter, sans-serif', textAlign: 'center',
-          letterSpacing: 2, lineHeight: 1.4, textTransform: 'uppercase',
+          letterSpacing: 3, lineHeight: 1.4, textTransform: 'uppercase',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
           curve: 0, skewX: 0, skewY: 0
         },
         {
           id: 'yt_drop_hint', type: 'text', name: 'Drop Hint',
           text: 'Drop your photo here →', x: 100, y: 340, width: 360, rotation: 0,
-          fontSize: 22, fontWeight: '500', fontStyle: 'normal', textDecoration: 'none',
-          color: '#475569', fontFamily: 'Inter, sans-serif', textAlign: 'center',
-          letterSpacing: 0, lineHeight: 1.4, textTransform: 'none',
+          fontSize: 24, fontWeight: '600', fontStyle: 'normal', textDecoration: 'none',
+          color: '#4b5563', fontFamily: 'Inter, sans-serif', textAlign: 'center',
+          letterSpacing: 0.5, lineHeight: 1.4, textTransform: 'none',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
           curve: 0, skewX: 0, skewY: 0
         }
       ],
-      imageLayers: []
     }
   },
   {
@@ -390,14 +590,29 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 1200, height: 627, name: 'LinkedIn Post' }),
       canvasSize: { width: 1200, height: 627, name: 'LinkedIn Post' },
-      shapeLayers: [
+      canvasBackgroundColor: '#f5f5f5',
+      layers: [
+        // Background circles
+        {
+          id: 'li_bg_circle_1', type: 'circle', name: 'BG Circle 1',
+          x: -100, y: -100, width: 350, height: 350, rotation: 0,
+          color: '#0f766e', cornerRadius: 175, opacity: 0.04,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'li_bg_circle_2', type: 'circle', name: 'BG Circle 2',
+          x: 1000, y: 300, width: 400, height: 400, rotation: 0,
+          color: '#0f766e', cornerRadius: 200, opacity: 0.03,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Left brand bar
         {
           id: 'li_left_band',
           type: 'rectangle',
           name: 'Brand Bar',
           x: 0,
           y: 0,
-          width: 80,
+          width: 100,
           height: 627,
           rotation: 0,
           color: '#0f766e',
@@ -407,27 +622,94 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           visible: true,
           skewX: 0,
           skewY: 0
-        }
-      ],
-      textLayers: [
+        },
+        // Top accent stripe
+        {
+          id: 'li_top_stripe', type: 'rectangle', name: 'Top Stripe',
+          x: 100, y: 0, width: 1100, height: 8, rotation: 0,
+          color: '#0f766e', cornerRadius: 0, opacity: 0.5,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Content card background
+        {
+          id: 'li_card_bg', type: 'rectangle', name: 'Card Background',
+          x: 100, y: 40, width: 1100, height: 540, rotation: 0,
+          color: '#ffffff', cornerRadius: 16, opacity: 1,
+          locked: false, visible: true, skewX: 0, skewY: 0,
+          shadow: { color: '#0f766e', blur: 20, offsetX: 0, offsetY: 10 }
+        },
+        // Decorative accent circles
+        {
+          id: 'li_deco_1', type: 'circle', name: 'Deco Circle 1',
+          x: 900, y: 80, width: 180, height: 180, rotation: 0,
+          color: '#0f766e', cornerRadius: 90, opacity: 0.06,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'li_deco_2', type: 'circle', name: 'Deco Circle 2',
+          x: 940, y: 120, width: 100, height: 100, rotation: 0,
+          color: '#0f766e', cornerRadius: 50, opacity: 0.1,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Divider line
+        {
+          id: 'li_divider', type: 'rectangle', name: 'Divider',
+          x: 140, y: 320, width: 1020, height: 2, rotation: 0,
+          color: '#0f766e', cornerRadius: 1, opacity: 0.1,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Bottom accent bar
+        {
+          id: 'li_bottom_bar', type: 'rectangle', name: 'Bottom Bar',
+          x: 100, y: 540, width: 1100, height: 40, rotation: 0,
+          color: '#0f766e', cornerRadius: 0, opacity: 0.08,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'li_kicker',
+          type: 'text',
+          name: 'Kicker',
+          text: '✦ INDUSTRY INSIGHTS',
+          x: 140,
+          y: 70,
+          width: 800,
+          rotation: 0,
+          fontSize: 18,
+          fontWeight: '800',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#0f766e',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'left',
+          letterSpacing: 2.5,
+          lineHeight: 1.3,
+          textTransform: 'uppercase',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
         {
           id: 'li_title',
           type: 'text',
           name: 'Title',
           text: '3 ways to ship design assets\nfaster with AI',
-          x: 120,
-          y: 160,
-          width: 760,
+          x: 140,
+          y: 130,
+          width: 800,
           rotation: 0,
-          fontSize: 40,
-          fontWeight: '700',
+          fontSize: 48,
+          fontWeight: '800',
           fontStyle: 'normal',
           textDecoration: 'none',
           color: '#020617',
           fontFamily: 'Inter, sans-serif',
           textAlign: 'left',
-          letterSpacing: 0,
-          lineHeight: 1.3,
+          letterSpacing: -1,
+          lineHeight: 1.2,
           textTransform: 'none',
           opacity: 1,
           locked: false,
@@ -441,20 +723,47 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           id: 'li_body',
           type: 'text',
           name: 'Body',
-          text: 'Summarise the key value here in one or two short sentences.',
-          x: 120,
-          y: 280,
-          width: 760,
+          text: 'Summarise the key value here in one or two short sentences. Make it compelling and benefit-focused.',
+          x: 140,
+          y: 360,
+          width: 800,
           rotation: 0,
-          fontSize: 20,
+          fontSize: 22,
           fontWeight: '400',
           fontStyle: 'normal',
           textDecoration: 'none',
           color: '#4b5563',
           fontFamily: 'Inter, sans-serif',
           textAlign: 'left',
-          letterSpacing: 0,
-          lineHeight: 1.6,
+          letterSpacing: 0.3,
+          lineHeight: 1.7,
+          textTransform: 'none',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
+        {
+          id: 'li_cta',
+          type: 'text',
+          name: 'CTA',
+          text: 'Learn more →',
+          x: 140,
+          y: 550,
+          width: 300,
+          rotation: 0,
+          fontSize: 16,
+          fontWeight: '700',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#0f766e',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'left',
+          letterSpacing: 0.5,
+          lineHeight: 1.4,
           textTransform: 'none',
           opacity: 1,
           locked: false,
@@ -465,7 +774,6 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           skewY: 0
         }
       ],
-      imageLayers: []
     }
   },
   {
@@ -477,15 +785,37 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 1920, height: 1080, name: 'Presentation Slide' }),
       canvasSize: { width: 1920, height: 1080, name: 'Presentation Slide' },
-      shapeLayers: [
+      canvasBackgroundColor: '#ffffff',
+      layers: [
+        // Background circles
+        {
+          id: 'deck_bg_circle_1', type: 'circle', name: 'BG Circle 1',
+          x: -200, y: -200, width: 600, height: 600, rotation: 0,
+          color: '#0f172a', cornerRadius: 300, opacity: 0.04,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'deck_bg_circle_2', type: 'circle', name: 'BG Circle 2',
+          x: 1500, y: 600, width: 700, height: 700, rotation: 0,
+          color: '#0f172a', cornerRadius: 350, opacity: 0.03,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Top accent stripe
+        {
+          id: 'deck_top_stripe', type: 'rectangle', name: 'Top Stripe',
+          x: 0, y: 0, width: 1920, height: 12, rotation: 0,
+          color: '#0f172a', cornerRadius: 0, opacity: 1,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Main content band
         {
           id: 'deck_band',
           type: 'rectangle',
           name: 'Accent Band',
           x: 0,
-          y: 720,
+          y: 700,
           width: 1920,
-          height: 360,
+          height: 380,
           rotation: 0,
           color: '#0f172a',
           cornerRadius: 0,
@@ -494,27 +824,166 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           visible: true,
           skewX: 0,
           skewY: 0
-        }
-      ],
-      textLayers: [
+        },
+        // Decorative circles
+        {
+          id: 'deck_deco_1', type: 'circle', name: 'Deco Circle 1',
+          x: 1400, y: 150, width: 300, height: 300, rotation: 0,
+          color: '#0f172a', cornerRadius: 150, opacity: 0.06,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'deck_deco_2', type: 'circle', name: 'Deco Circle 2',
+          x: 1480, y: 230, width: 140, height: 140, rotation: 0,
+          color: '#0f172a', cornerRadius: 70, opacity: 0.1,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Accent line
+        {
+          id: 'deck_accent_line', type: 'rectangle', name: 'Accent Line',
+          x: 160, y: 680, width: 400, height: 6, rotation: 0,
+          color: '#0f172a', cornerRadius: 3, opacity: 0.3,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Bottom accent dots
+        {
+          id: 'deck_dot_1', type: 'circle', name: 'Accent Dot 1',
+          x: 1800, y: 750, width: 20, height: 20, rotation: 0,
+          color: '#0f172a', cornerRadius: 10, opacity: 0.2,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'deck_dot_2', type: 'circle', name: 'Accent Dot 2',
+          x: 1860, y: 800, width: 14, height: 14, rotation: 0,
+          color: '#0f172a', cornerRadius: 7, opacity: 0.15,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'deck_kicker',
+          type: 'text',
+          name: 'Kicker',
+          text: '✦ PRESENTATION',
+          x: 160,
+          y: 120,
+          width: 600,
+          rotation: 0,
+          fontSize: 28,
+          fontWeight: '800',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#0f172a',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'left',
+          letterSpacing: 3,
+          lineHeight: 1.3,
+          textTransform: 'uppercase',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
         {
           id: 'deck_title',
           type: 'text',
           name: 'Title',
-          text: 'Your next big idea,\n beautifully presented',
+          text: 'Your next big idea,\nbeautifully presented',
           x: 160,
-          y: 320,
-          width: 880,
+          y: 240,
+          width: 1000,
           rotation: 0,
-          fontSize: 64,
-          fontWeight: '800',
+          fontSize: 88,
+          fontWeight: '900',
           fontStyle: 'normal',
           textDecoration: 'none',
-          color: '#020617',
+          color: '#0f172a',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'left',
+          letterSpacing: -2,
+          lineHeight: 1.1,
+          textTransform: 'none',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
+        {
+          id: 'deck_subtitle',
+          type: 'text',
+          name: 'Subtitle',
+          text: 'Impress your audience with stunning visuals and compelling storytelling',
+          x: 160,
+          y: 600,
+          width: 800,
+          rotation: 0,
+          fontSize: 24,
+          fontWeight: '400',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#4b5563',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'left',
+          letterSpacing: 0.5,
+          lineHeight: 1.6,
+          textTransform: 'none',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
+        {
+          id: 'deck_footer',
+          type: 'text',
+          name: 'Footer',
+          text: 'Your Company Name',
+          x: 160,
+          y: 800,
+          width: 600,
+          rotation: 0,
+          fontSize: 32,
+          fontWeight: '700',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#ffffff',
           fontFamily: 'Inter, sans-serif',
           textAlign: 'left',
           letterSpacing: 0,
-          lineHeight: 1.2,
+          lineHeight: 1.4,
+          textTransform: 'none',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
+        {
+          id: 'deck_footer_sub',
+          type: 'text',
+          name: 'Footer Sub',
+          text: 'Tagline or date here',
+          x: 160,
+          y: 880,
+          width: 600,
+          rotation: 0,
+          fontSize: 18,
+          fontWeight: '400',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#a0a8b0',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'left',
+          letterSpacing: 0.3,
+          lineHeight: 1.4,
           textTransform: 'none',
           opacity: 1,
           locked: false,
@@ -525,7 +994,6 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           skewY: 0
         }
       ],
-      imageLayers: []
     }
   },
   {
@@ -537,26 +1005,122 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 1080, height: 1920, name: 'TikTok Ad' }),
       canvasSize: { width: 1080, height: 1920, name: 'TikTok Ad' },
-      shapeLayers: [
+      canvasBackgroundColor: '#000000',
+      layers: [
+        // Background circles
+        {
+          id: 'tt_bg_circle_1', type: 'circle', name: 'BG Circle 1',
+          x: -150, y: -150, width: 500, height: 500, rotation: 0,
+          color: '#fe2c55', cornerRadius: 250, opacity: 0.03,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'tt_bg_circle_2', type: 'circle', name: 'BG Circle 2',
+          x: 700, y: 1500, width: 600, height: 600, rotation: 0,
+          color: '#fe2c55', cornerRadius: 300, opacity: 0.02,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Top safe zone indicator
+        {
+          id: 'tt_top_safe', type: 'rectangle', name: 'Top Safe Zone',
+          x: 0, y: 0, width: 1080, height: 200, rotation: 0,
+          color: '#000000', cornerRadius: 0, opacity: 0,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Headline background with gradient effect
+        {
+          id: 'tt_headline_bg', type: 'rectangle', name: 'Headline BG',
+          x: 80, y: 300, width: 920, height: 280, rotation: 0,
+          color: '#000000', cornerRadius: 24, opacity: 0.7,
+          locked: false, visible: true, skewX: 0, skewY: 0,
+          shadow: { color: '#fe2c55', blur: 40, offsetX: 0, offsetY: 20 }
+        },
+        // Accent stripe on headline
+        {
+          id: 'tt_headline_accent', type: 'rectangle', name: 'Headline Accent',
+          x: 80, y: 300, width: 920, height: 8, rotation: 0,
+          color: '#fe2c55', cornerRadius: 24, opacity: 1,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Shop Now Button
         {
           id: 'tt_btn',
           type: 'rectangle',
           name: 'Shop Now Button',
-          x: 340,
+          x: 300,
           y: 1650,
-          width: 400,
-          height: 100,
+          width: 480,
+          height: 120,
           rotation: 0,
           color: '#fe2c55',
-          cornerRadius: 8,
+          cornerRadius: 16,
           opacity: 1,
           locked: false,
           visible: true,
           skewX: 0,
+          skewY: 0,
+          shadow: { color: '#fe2c55', blur: 35, offsetX: 0, offsetY: 15 }
+        },
+        // Decorative circles
+        {
+          id: 'tt_deco_1', type: 'circle', name: 'Deco Circle 1',
+          x: 800, y: 200, width: 220, height: 220, rotation: 0,
+          color: '#fe2c55', cornerRadius: 110, opacity: 0.08,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'tt_deco_2', type: 'circle', name: 'Deco Circle 2',
+          x: 850, y: 250, width: 120, height: 120, rotation: 0,
+          color: '#fe2c55', cornerRadius: 60, opacity: 0.12,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Bottom safe zone
+        {
+          id: 'tt_bottom_safe', type: 'rectangle', name: 'Bottom Safe Zone',
+          x: 0, y: 1820, width: 1080, height: 100, rotation: 0,
+          color: '#000000', cornerRadius: 0, opacity: 0,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Accent dots
+        {
+          id: 'tt_dot_1', type: 'circle', name: 'Accent Dot 1',
+          x: 150, y: 1700, width: 16, height: 16, rotation: 0,
+          color: '#fe2c55', cornerRadius: 8, opacity: 0.3,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'tt_dot_2', type: 'circle', name: 'Accent Dot 2',
+          x: 950, y: 1750, width: 12, height: 12, rotation: 0,
+          color: '#fe2c55', cornerRadius: 6, opacity: 0.25,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'tt_kicker',
+          type: 'text',
+          name: 'Kicker',
+          text: '✦ LIMITED TIME',
+          x: 100,
+          y: 320,
+          width: 880,
+          rotation: 0,
+          fontSize: 24,
+          fontWeight: '800',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#fe2c55',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'left',
+          letterSpacing: 3,
+          lineHeight: 1.3,
+          textTransform: 'uppercase',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
           skewY: 0
-        }
-      ],
-      textLayers: [
+        },
         {
           id: 'tt_headline',
           type: 'text',
@@ -566,15 +1130,69 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           y: 400,
           width: 880,
           rotation: 0,
-          fontSize: 80,
+          fontSize: 96,
           fontWeight: '900',
           fontStyle: 'normal',
           textDecoration: 'none',
           color: '#ffffff',
           fontFamily: 'Inter, sans-serif',
           textAlign: 'center',
-          letterSpacing: -2,
-          lineHeight: 1.1,
+          letterSpacing: -3,
+          lineHeight: 1.0,
+          textTransform: 'uppercase',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
+        {
+          id: 'tt_subheadline',
+          type: 'text',
+          name: 'Subheadline',
+          text: 'Don\'t miss out!',
+          x: 100,
+          y: 540,
+          width: 880,
+          rotation: 0,
+          fontSize: 32,
+          fontWeight: '600',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#e5e7eb',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'center',
+          letterSpacing: 0.5,
+          lineHeight: 1.4,
+          textTransform: 'none',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
+        {
+          id: 'tt_btn_text',
+          type: 'text',
+          name: 'Button Text',
+          text: 'SHOP NOW',
+          x: 320,
+          y: 1680,
+          width: 440,
+          rotation: 0,
+          fontSize: 36,
+          fontWeight: '900',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#ffffff',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'center',
+          letterSpacing: 2,
+          lineHeight: 1.4,
           textTransform: 'uppercase',
           opacity: 1,
           locked: false,
@@ -585,7 +1203,6 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           skewY: 0
         }
       ],
-      imageLayers: []
     }
   },
   {
@@ -597,44 +1214,186 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 1000, height: 1500, name: 'Pinterest Pin' }),
       canvasSize: { width: 1000, height: 1500, name: 'Pinterest Pin' },
-      shapeLayers: [
+      canvasBackgroundColor: '#f5f5f5',
+      layers: [
+        // Background circles
+        {
+          id: 'pin_bg_circle_1', type: 'circle', name: 'BG Circle 1',
+          x: -100, y: -100, width: 350, height: 350, rotation: 0,
+          color: '#ec4899', cornerRadius: 175, opacity: 0.04,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'pin_bg_circle_2', type: 'circle', name: 'BG Circle 2',
+          x: 700, y: 1100, width: 400, height: 400, rotation: 0,
+          color: '#ec4899', cornerRadius: 200, opacity: 0.03,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Top image area
+        {
+          id: 'pin_image_area', type: 'rectangle', name: 'Image Area',
+          x: 0, y: 0, width: 1000, height: 700, rotation: 0,
+          color: '#f0f0f0', cornerRadius: 0, opacity: 1,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Decorative circles in image area
+        {
+          id: 'pin_deco_1', type: 'circle', name: 'Deco Circle 1',
+          x: 650, y: 100, width: 280, height: 280, rotation: 0,
+          color: '#ec4899', cornerRadius: 140, opacity: 0.08,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'pin_deco_2', type: 'circle', name: 'Deco Circle 2',
+          x: 700, y: 150, width: 180, height: 180, rotation: 0,
+          color: '#ec4899', cornerRadius: 90, opacity: 0.12,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Text background with enhanced styling
         {
           id: 'pin_overlay',
           type: 'rectangle',
           name: 'Text Background',
-          x: 100,
-          y: 1100,
-          width: 800,
-          height: 300,
+          x: 60,
+          y: 800,
+          width: 880,
+          height: 620,
           rotation: 0,
           color: '#ffffff',
-          cornerRadius: 16,
-          opacity: 0.95,
+          cornerRadius: 24,
+          opacity: 1,
           locked: false,
           visible: true,
           skewX: 0,
+          skewY: 0,
+          shadow: { color: '#ec4899', blur: 25, offsetX: 0, offsetY: 12 }
+        },
+        // Top accent stripe
+        {
+          id: 'pin_overlay_accent', type: 'rectangle', name: 'Overlay Accent',
+          x: 60, y: 800, width: 880, height: 8, rotation: 0,
+          color: '#ec4899', cornerRadius: 24, opacity: 1,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Divider line
+        {
+          id: 'pin_divider', type: 'rectangle', name: 'Divider',
+          x: 100, y: 1050, width: 800, height: 2, rotation: 0,
+          color: '#ec4899', cornerRadius: 1, opacity: 0.15,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Accent dots
+        {
+          id: 'pin_dot_1', type: 'circle', name: 'Accent Dot 1',
+          x: 850, y: 850, width: 16, height: 16, rotation: 0,
+          color: '#ec4899', cornerRadius: 8, opacity: 0.3,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'pin_dot_2', type: 'circle', name: 'Accent Dot 2',
+          x: 900, y: 900, width: 10, height: 10, rotation: 0,
+          color: '#ec4899', cornerRadius: 5, opacity: 0.2,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'pin_kicker',
+          type: 'text',
+          name: 'Kicker',
+          text: '✦ DESIGN TIPS',
+          x: 100,
+          y: 830,
+          width: 800,
+          rotation: 0,
+          fontSize: 18,
+          fontWeight: '800',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#ec4899',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'left',
+          letterSpacing: 2.5,
+          lineHeight: 1.3,
+          textTransform: 'uppercase',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
           skewY: 0
-        }
-      ],
-      textLayers: [
+        },
         {
           id: 'pin_title',
           type: 'text',
           name: 'Title',
           text: 'Master the Art of\nMinimalist Design',
-          x: 150,
-          y: 1150,
-          width: 700,
+          x: 100,
+          y: 900,
+          width: 800,
           rotation: 0,
-          fontSize: 48,
-          fontWeight: '700',
+          fontSize: 56,
+          fontWeight: '800',
           fontStyle: 'normal',
           textDecoration: 'none',
           color: '#1e293b',
           fontFamily: 'Inter, sans-serif',
           textAlign: 'center',
-          letterSpacing: 0,
-          lineHeight: 1.2,
+          letterSpacing: -1,
+          lineHeight: 1.15,
+          textTransform: 'none',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
+        {
+          id: 'pin_body',
+          type: 'text',
+          name: 'Body',
+          text: 'Learn the principles of clean, elegant design that converts and inspires.',
+          x: 100,
+          y: 1100,
+          width: 800,
+          rotation: 0,
+          fontSize: 20,
+          fontWeight: '400',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#4b5563',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'center',
+          letterSpacing: 0.3,
+          lineHeight: 1.6,
+          textTransform: 'none',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
+        {
+          id: 'pin_cta',
+          type: 'text',
+          name: 'CTA',
+          text: 'Learn more →',
+          x: 100,
+          y: 1320,
+          width: 800,
+          rotation: 0,
+          fontSize: 16,
+          fontWeight: '700',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#ec4899',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'center',
+          letterSpacing: 0.5,
+          lineHeight: 1.4,
           textTransform: 'none',
           opacity: 1,
           locked: false,
@@ -645,7 +1404,6 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           skewY: 0
         }
       ],
-      imageLayers: []
     }
   },
   {
@@ -658,106 +1416,124 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       ...baseState({ width: 1050, height: 600, name: 'Business Card' }),
       canvasSize: { width: 1050, height: 600, name: 'Business Card' },
       canvasBackgroundColor: '#f8f6f3',
-      shapeLayers: [
+      layers: [
+        // Left dark panel
         {
           id: 'bc_left_panel', type: 'rectangle', name: 'Dark Panel',
           x: 0, y: 0, width: 420, height: 600, rotation: 0,
           color: '#0f172a', cornerRadius: 0, opacity: 1,
           locked: false, visible: true, skewX: 0, skewY: 0
         },
+        // Gold divider with glow
         {
           id: 'bc_gold_divider', type: 'rectangle', name: 'Gold Divider',
-          x: 420, y: 0, width: 4, height: 600, rotation: 0,
+          x: 420, y: 0, width: 6, height: 600, rotation: 0,
           color: '#d4a853', cornerRadius: 0, opacity: 1,
-          locked: false, visible: true, skewX: 0, skewY: 0
+          locked: false, visible: true, skewX: 0, skewY: 0,
+          shadow: { color: '#d4a853', blur: 20, offsetX: 5, offsetY: 0 }
         },
+        // Logo circle with layering
         {
           id: 'bc_logo_circle', type: 'circle', name: 'Logo Circle',
-          x: 160, y: 120, width: 100, height: 100, rotation: 0,
+          x: 160, y: 100, width: 100, height: 100, rotation: 0,
           color: '#d4a853', cornerRadius: 50, opacity: 0.15,
           locked: false, visible: true, skewX: 0, skewY: 0
         },
         {
           id: 'bc_logo_inner', type: 'circle', name: 'Logo Inner',
-          x: 180, y: 140, width: 60, height: 60, rotation: 0,
+          x: 180, y: 120, width: 60, height: 60, rotation: 0,
           color: '#d4a853', cornerRadius: 30, opacity: 1,
           locked: false, visible: true, skewX: 0, skewY: 0
         },
+        // Separator line
         {
           id: 'bc_separator', type: 'rectangle', name: 'Separator',
-          x: 80, y: 380, width: 60, height: 2, rotation: 0,
-          color: '#d4a853', cornerRadius: 1, opacity: 1,
+          x: 80, y: 380, width: 80, height: 3, rotation: 0,
+          color: '#d4a853', cornerRadius: 1.5, opacity: 1,
           locked: false, visible: true, skewX: 0, skewY: 0
         },
+        // Corner decorative dots
         {
           id: 'bc_corner_dot_1', type: 'circle', name: 'Corner Dot TL',
-          x: 460, y: 40, width: 8, height: 8, rotation: 0,
-          color: '#d4a853', cornerRadius: 4, opacity: 0.4,
+          x: 460, y: 40, width: 12, height: 12, rotation: 0,
+          color: '#d4a853', cornerRadius: 6, opacity: 0.4,
           locked: false, visible: true, skewX: 0, skewY: 0
         },
         {
           id: 'bc_corner_dot_2', type: 'circle', name: 'Corner Dot BR',
-          x: 990, y: 550, width: 8, height: 8, rotation: 0,
-          color: '#d4a853', cornerRadius: 4, opacity: 0.4,
+          x: 990, y: 550, width: 12, height: 12, rotation: 0,
+          color: '#d4a853', cornerRadius: 6, opacity: 0.4,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Right side info separator
+        {
+          id: 'bc_right_line', type: 'rectangle', name: 'Info Separator',
+          x: 460, y: 370, width: 540, height: 2, rotation: 0,
+          color: '#0f172a', cornerRadius: 1, opacity: 0.1,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Accent dots on right
+        {
+          id: 'bc_right_dot_1', type: 'circle', name: 'Right Dot 1',
+          x: 950, y: 100, width: 10, height: 10, rotation: 0,
+          color: '#d4a853', cornerRadius: 5, opacity: 0.25,
           locked: false, visible: true, skewX: 0, skewY: 0
         },
         {
-          id: 'bc_right_line', type: 'rectangle', name: 'Info Separator',
-          x: 460, y: 370, width: 540, height: 1, rotation: 0,
-          color: '#0f172a', cornerRadius: 0, opacity: 0.08,
+          id: 'bc_right_dot_2', type: 'circle', name: 'Right Dot 2',
+          x: 980, y: 130, width: 8, height: 8, rotation: 0,
+          color: '#d4a853', cornerRadius: 4, opacity: 0.2,
           locked: false, visible: true, skewX: 0, skewY: 0
-        }
-      ],
-      textLayers: [
+        },
         {
           id: 'bc_name', type: 'text', name: 'Name',
           text: 'ALEX\nRIVERA', x: 80, y: 260, width: 260, rotation: 0,
-          fontSize: 36, fontWeight: '800', fontStyle: 'normal', textDecoration: 'none',
+          fontSize: 40, fontWeight: '900', fontStyle: 'normal', textDecoration: 'none',
           color: '#f8fafc', fontFamily: 'Inter, sans-serif', textAlign: 'left',
-          letterSpacing: 5, lineHeight: 1.15, textTransform: 'uppercase',
+          letterSpacing: 6, lineHeight: 1.1, textTransform: 'uppercase',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
           curve: 0, skewX: 0, skewY: 0
         },
         {
           id: 'bc_role', type: 'text', name: 'Role',
-          text: 'Creative Director', x: 80, y: 400, width: 260, rotation: 0,
-          fontSize: 14, fontWeight: '500', fontStyle: 'normal', textDecoration: 'none',
+          text: 'Creative Director', x: 80, y: 410, width: 260, rotation: 0,
+          fontSize: 15, fontWeight: '600', fontStyle: 'normal', textDecoration: 'none',
           color: '#d4a853', fontFamily: 'Inter, sans-serif', textAlign: 'left',
-          letterSpacing: 3, lineHeight: 1.4, textTransform: 'uppercase',
+          letterSpacing: 3.5, lineHeight: 1.4, textTransform: 'uppercase',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
           curve: 0, skewX: 0, skewY: 0
         },
         {
           id: 'bc_company', type: 'text', name: 'Company',
-          text: 'STUDIO CO.', x: 80, y: 440, width: 260, rotation: 0,
-          fontSize: 12, fontWeight: '400', fontStyle: 'normal', textDecoration: 'none',
-          color: '#94a3b8', fontFamily: 'Inter, sans-serif', textAlign: 'left',
-          letterSpacing: 2, lineHeight: 1.4, textTransform: 'uppercase',
+          text: 'STUDIO CO.', x: 80, y: 460, width: 260, rotation: 0,
+          fontSize: 13, fontWeight: '500', fontStyle: 'normal', textDecoration: 'none',
+          color: '#a0a8b0', fontFamily: 'Inter, sans-serif', textAlign: 'left',
+          letterSpacing: 2.5, lineHeight: 1.4, textTransform: 'uppercase',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
           curve: 0, skewX: 0, skewY: 0
         },
         {
           id: 'bc_right_name', type: 'text', name: 'Right Name',
-          text: 'Alex Rivera', x: 460, y: 120, width: 540, rotation: 0,
-          fontSize: 28, fontWeight: '700', fontStyle: 'normal', textDecoration: 'none',
+          text: 'Alex Rivera', x: 460, y: 100, width: 540, rotation: 0,
+          fontSize: 32, fontWeight: '800', fontStyle: 'normal', textDecoration: 'none',
           color: '#0f172a', fontFamily: 'Inter, sans-serif', textAlign: 'left',
-          letterSpacing: 0, lineHeight: 1.3, textTransform: 'none',
+          letterSpacing: -0.5, lineHeight: 1.3, textTransform: 'none',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
           curve: 0, skewX: 0, skewY: 0
         },
         {
           id: 'bc_right_title', type: 'text', name: 'Right Title',
-          text: 'Creative Director — Studio Co.', x: 460, y: 160, width: 540, rotation: 0,
-          fontSize: 14, fontWeight: '400', fontStyle: 'normal', textDecoration: 'none',
-          color: '#64748b', fontFamily: 'Inter, sans-serif', textAlign: 'left',
-          letterSpacing: 0, lineHeight: 1.4, textTransform: 'none',
+          text: 'Creative Director — Studio Co.', x: 460, y: 150, width: 540, rotation: 0,
+          fontSize: 15, fontWeight: '500', fontStyle: 'normal', textDecoration: 'none',
+          color: '#6b7280', fontFamily: 'Inter, sans-serif', textAlign: 'left',
+          letterSpacing: 0.3, lineHeight: 1.4, textTransform: 'none',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
           curve: 0, skewX: 0, skewY: 0
         },
         {
           id: 'bc_email', type: 'text', name: 'Email',
           text: '✉  alex@studio.co', x: 460, y: 240, width: 540, rotation: 0,
-          fontSize: 15, fontWeight: '500', fontStyle: 'normal', textDecoration: 'none',
+          fontSize: 16, fontWeight: '600', fontStyle: 'normal', textDecoration: 'none',
           color: '#334155', fontFamily: 'Inter, sans-serif', textAlign: 'left',
           letterSpacing: 0, lineHeight: 1.4, textTransform: 'none',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
@@ -765,8 +1541,8 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'bc_phone', type: 'text', name: 'Phone',
-          text: '☎  +1 (555) 012-3456', x: 460, y: 275, width: 540, rotation: 0,
-          fontSize: 15, fontWeight: '500', fontStyle: 'normal', textDecoration: 'none',
+          text: '☎  +1 (555) 012-3456', x: 460, y: 280, width: 540, rotation: 0,
+          fontSize: 16, fontWeight: '600', fontStyle: 'normal', textDecoration: 'none',
           color: '#334155', fontFamily: 'Inter, sans-serif', textAlign: 'left',
           letterSpacing: 0, lineHeight: 1.4, textTransform: 'none',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
@@ -774,8 +1550,8 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'bc_web', type: 'text', name: 'Website',
-          text: '⌘  www.studio.co', x: 460, y: 310, width: 540, rotation: 0,
-          fontSize: 15, fontWeight: '500', fontStyle: 'normal', textDecoration: 'none',
+          text: '⌘  www.studio.co', x: 460, y: 320, width: 540, rotation: 0,
+          fontSize: 16, fontWeight: '600', fontStyle: 'normal', textDecoration: 'none',
           color: '#334155', fontFamily: 'Inter, sans-serif', textAlign: 'left',
           letterSpacing: 0, lineHeight: 1.4, textTransform: 'none',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
@@ -783,15 +1559,14 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'bc_address', type: 'text', name: 'Address',
-          text: '123 Design Avenue, Suite 400\nCreative District, NY 10001', x: 460, y: 400, width: 540, rotation: 0,
-          fontSize: 13, fontWeight: '400', fontStyle: 'normal', textDecoration: 'none',
-          color: '#94a3b8', fontFamily: 'Inter, sans-serif', textAlign: 'left',
-          letterSpacing: 0, lineHeight: 1.6, textTransform: 'none',
+          text: '123 Design Avenue, Suite 400\nCreative District, NY 10001', x: 460, y: 410, width: 540, rotation: 0,
+          fontSize: 14, fontWeight: '400', fontStyle: 'normal', textDecoration: 'none',
+          color: '#9ca3af', fontFamily: 'Inter, sans-serif', textAlign: 'left',
+          letterSpacing: 0.2, lineHeight: 1.7, textTransform: 'none',
           opacity: 1, locked: false, visible: true, blendMode: 'normal',
           curve: 0, skewX: 0, skewY: 0
         }
       ],
-      imageLayers: []
     }
   },
   {
@@ -803,16 +1578,137 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 1500, height: 500, name: 'Twitter Header' }),
       canvasSize: { width: 1500, height: 500, name: 'Twitter Header' },
-      shapeLayers: [],
-      textLayers: [
+      canvasBackgroundColor: '#0f172a',
+      layers: [
+        // Background circles
+        {
+          id: 'tw_bg_circle_1', type: 'circle', name: 'BG Circle 1',
+          x: -150, y: -150, width: 450, height: 450, rotation: 0,
+          color: '#1d9bf0', cornerRadius: 225, opacity: 0.04,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'tw_bg_circle_2', type: 'circle', name: 'BG Circle 2',
+          x: 1200, y: 150, width: 500, height: 500, rotation: 0,
+          color: '#1d9bf0', cornerRadius: 250, opacity: 0.03,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Top accent stripe
+        {
+          id: 'tw_top_stripe', type: 'rectangle', name: 'Top Stripe',
+          x: 0, y: 0, width: 1500, height: 10, rotation: 0,
+          color: '#1d9bf0', cornerRadius: 0, opacity: 0.6,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Center content area
+        {
+          id: 'tw_content_bg', type: 'rectangle', name: 'Content BG',
+          x: 200, y: 80, width: 1100, height: 340, rotation: 0,
+          color: '#1d9bf0', cornerRadius: 20, opacity: 0.08,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Decorative circles
+        {
+          id: 'tw_deco_1', type: 'circle', name: 'Deco Circle 1',
+          x: 1100, y: 80, width: 200, height: 200, rotation: 0,
+          color: '#1d9bf0', cornerRadius: 100, opacity: 0.06,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'tw_deco_2', type: 'circle', name: 'Deco Circle 2',
+          x: 1150, y: 130, width: 100, height: 100, rotation: 0,
+          color: '#1d9bf0', cornerRadius: 50, opacity: 0.1,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Bottom accent line
+        {
+          id: 'tw_bottom_line', type: 'rectangle', name: 'Bottom Line',
+          x: 200, y: 420, width: 1100, height: 4, rotation: 0,
+          color: '#1d9bf0', cornerRadius: 2, opacity: 0.3,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'tw_kicker',
+          type: 'text',
+          name: 'Kicker',
+          text: '✦ CREATIVE STUDIO',
+          x: 200,
+          y: 100,
+          width: 1100,
+          rotation: 0,
+          fontSize: 22,
+          fontWeight: '800',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#1d9bf0',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'center',
+          letterSpacing: 3,
+          lineHeight: 1.3,
+          textTransform: 'uppercase',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
         {
           id: 'tw_title',
+          type: 'text',
+          name: 'Title',
           text: 'CREATING THE FUTURE',
-          x: 0, y: 200, width: 1500, fontSize: 40, fontWeight: '800', fontFamily: 'Inter', color: '#ffffff', textAlign: 'center', letterSpacing: 10,
-          type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, textTransform: 'uppercase', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Title'
+          x: 200,
+          y: 200,
+          width: 1100,
+          rotation: 0,
+          fontSize: 56,
+          fontWeight: '900',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#ffffff',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'center',
+          letterSpacing: 4,
+          lineHeight: 1.2,
+          textTransform: 'uppercase',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
+        {
+          id: 'tw_subtitle',
+          type: 'text',
+          name: 'Subtitle',
+          text: 'Design that inspires and converts',
+          x: 200,
+          y: 330,
+          width: 1100,
+          rotation: 0,
+          fontSize: 24,
+          fontWeight: '500',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#a0a8b0',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'center',
+          letterSpacing: 1,
+          lineHeight: 1.4,
+          textTransform: 'none',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
         }
       ],
-      imageLayers: []
     }
   },
   {
@@ -824,13 +1720,198 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 2480, height: 3508, name: 'A4 Poster' }),
       canvasSize: { width: 2480, height: 3508, name: 'A4 Poster' },
-      shapeLayers: [
-        { id: 'p_circ', type: 'circle', name: 'Decoration', x: 1800, y: -200, width: 1000, height: 1000, color: '#f59e0b', rotation: 0, cornerRadius: 500, opacity: 0.2, locked: false, visible: true, skewX: 0, skewY: 0 }
+      canvasBackgroundColor: '#0a0a0a',
+      layers: [
+        // Background circles
+        {
+          id: 'p_bg_circle_1', type: 'circle', name: 'BG Circle 1',
+          x: -300, y: -300, width: 800, height: 800, rotation: 0,
+          color: '#f59e0b', cornerRadius: 400, opacity: 0.04,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'p_bg_circle_2', type: 'circle', name: 'BG Circle 2',
+          x: 1800, y: 2500, width: 900, height: 900, rotation: 0,
+          color: '#f59e0b', cornerRadius: 450, opacity: 0.03,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Main decorative circle
+        {
+          id: 'p_circ', type: 'circle', name: 'Decoration',
+          x: 1800, y: -200, width: 1200, height: 1200, rotation: 0,
+          color: '#f59e0b', cornerRadius: 600, opacity: 0.15,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Inner circle
+        {
+          id: 'p_circ_inner', type: 'circle', name: 'Inner Circle',
+          x: 1900, y: -100, width: 1000, height: 1000, rotation: 0,
+          color: '#f59e0b', cornerRadius: 500, opacity: 0.08,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Top accent stripe
+        {
+          id: 'p_top_stripe', type: 'rectangle', name: 'Top Stripe',
+          x: 0, y: 0, width: 2480, height: 20, rotation: 0,
+          color: '#f59e0b', cornerRadius: 0, opacity: 0.7,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Bottom accent bar
+        {
+          id: 'p_bottom_bar', type: 'rectangle', name: 'Bottom Bar',
+          x: 0, y: 3300, width: 2480, height: 208, rotation: 0,
+          color: '#f59e0b', cornerRadius: 0, opacity: 0.1,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Accent dots
+        {
+          id: 'p_dot_1', type: 'circle', name: 'Accent Dot 1',
+          x: 200, y: 2800, width: 40, height: 40, rotation: 0,
+          color: '#f59e0b', cornerRadius: 20, opacity: 0.3,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'p_dot_2', type: 'circle', name: 'Accent Dot 2',
+          x: 2200, y: 3100, width: 30, height: 30, rotation: 0,
+          color: '#f59e0b', cornerRadius: 15, opacity: 0.25,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'p_kicker',
+          type: 'text',
+          name: 'Kicker',
+          text: '✦ SAVE THE DATE',
+          x: 200,
+          y: 300,
+          width: 2080,
+          rotation: 0,
+          fontSize: 80,
+          fontWeight: '800',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#f59e0b',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'center',
+          letterSpacing: 5,
+          lineHeight: 1.3,
+          textTransform: 'uppercase',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
+        {
+          id: 'p_h',
+          type: 'text',
+          name: 'Headline',
+          text: 'SUMMER\nFESTIVAL',
+          x: 200,
+          y: 600,
+          width: 2080,
+          rotation: 0,
+          fontSize: 380,
+          fontWeight: '900',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#ffffff',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'center',
+          lineHeight: 0.9,
+          letterSpacing: -5,
+          textTransform: 'none',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
+        {
+          id: 'p_date',
+          type: 'text',
+          name: 'Date',
+          text: 'June 15-17, 2024',
+          x: 200,
+          y: 1600,
+          width: 2080,
+          rotation: 0,
+          fontSize: 80,
+          fontWeight: '700',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#f59e0b',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'center',
+          letterSpacing: 2,
+          lineHeight: 1.4,
+          textTransform: 'none',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
+        {
+          id: 'p_location',
+          type: 'text',
+          name: 'Location',
+          text: 'Central Park, New York',
+          x: 200,
+          y: 1900,
+          width: 2080,
+          rotation: 0,
+          fontSize: 60,
+          fontWeight: '500',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#a0a8b0',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'center',
+          letterSpacing: 1,
+          lineHeight: 1.4,
+          textTransform: 'none',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
+        {
+          id: 'p_cta',
+          type: 'text',
+          name: 'CTA',
+          text: 'Get Your Tickets Now',
+          x: 200,
+          y: 3350,
+          width: 2080,
+          rotation: 0,
+          fontSize: 60,
+          fontWeight: '800',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#ffffff',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'center',
+          letterSpacing: 1,
+          lineHeight: 1.4,
+          textTransform: 'none',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        }
       ],
-      textLayers: [
-        { id: 'p_h', text: 'SUMMER\nFESTIVAL', x: 200, y: 400, width: 2000, fontSize: 320, fontWeight: '900', fontFamily: 'Inter', color: '#ffffff', textAlign: 'left', lineHeight: 0.95, letterSpacing: 0, type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Headline' }
-      ],
-      imageLayers: []
     }
   },
   {
@@ -842,11 +1923,130 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 3000, height: 3000, name: 'Podcast Cover' }),
       canvasSize: { width: 3000, height: 3000, name: 'Podcast Cover' },
-      shapeLayers: [],
-      textLayers: [
-        { id: 'pod_t', text: 'THE\nDESIGN\nVOICE', x: 300, y: 600, width: 2400, fontSize: 400, fontWeight: '900', fontFamily: 'Inter', color: '#7d2ae8', textAlign: 'center', lineHeight: 0.9, letterSpacing: 0, type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Title' }
+      canvasBackgroundColor: '#0a0a0a',
+      layers: [
+        // Background circles
+        {
+          id: 'pod_bg_circle_1', type: 'circle', name: 'BG Circle 1',
+          x: -300, y: -300, width: 800, height: 800, rotation: 0,
+          color: '#7d2ae8', cornerRadius: 400, opacity: 0.04,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'pod_bg_circle_2', type: 'circle', name: 'BG Circle 2',
+          x: 2500, y: 2200, width: 900, height: 900, rotation: 0,
+          color: '#7d2ae8', cornerRadius: 450, opacity: 0.03,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Main decorative circles
+        {
+          id: 'pod_deco_1', type: 'circle', name: 'Deco Circle 1',
+          x: 1500, y: 1500, width: 1200, height: 1200, rotation: 0,
+          color: '#7d2ae8', cornerRadius: 600, opacity: 0.08,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'pod_deco_2', type: 'circle', name: 'Deco Circle 2',
+          x: 1650, y: 1650, width: 900, height: 900, rotation: 0,
+          color: '#7d2ae8', cornerRadius: 450, opacity: 0.12,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        {
+          id: 'pod_deco_3', type: 'circle', name: 'Deco Circle 3',
+          x: 1800, y: 1800, width: 600, height: 600, rotation: 0,
+          color: '#7d2ae8', cornerRadius: 300, opacity: 0.15,
+          locked: false, visible: true, skewX: 0, skewY: 0
+        },
+        // Border accent
+        {
+          id: 'pod_border', type: 'rectangle', name: 'Border Accent',
+          x: 150, y: 150, width: 2700, height: 2700, rotation: 0,
+          color: '#7d2ae8', cornerRadius: 0, opacity: 0,
+          locked: false, visible: true, skewX: 0, skewY: 0,
+          stroke: { color: '#7d2ae8', width: 8, opacity: 0.3 }
+        },
+        {
+          id: 'pod_kicker',
+          type: 'text',
+          name: 'Kicker',
+          text: '✦ PODCAST',
+          x: 300,
+          y: 800,
+          width: 2400,
+          rotation: 0,
+          fontSize: 100,
+          fontWeight: '800',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#7d2ae8',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'center',
+          letterSpacing: 4,
+          lineHeight: 1.3,
+          textTransform: 'uppercase',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
+        {
+          id: 'pod_t',
+          type: 'text',
+          name: 'Title',
+          text: 'THE\nDESIGN\nVOICE',
+          x: 300,
+          y: 1200,
+          width: 2400,
+          rotation: 0,
+          fontSize: 480,
+          fontWeight: '900',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#7d2ae8',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'center',
+          lineHeight: 0.85,
+          letterSpacing: -10,
+          textTransform: 'none',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        },
+        {
+          id: 'pod_tagline',
+          type: 'text',
+          name: 'Tagline',
+          text: 'Stories about design, creativity & innovation',
+          x: 300,
+          y: 2400,
+          width: 2400,
+          rotation: 0,
+          fontSize: 80,
+          fontWeight: '500',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+          color: '#a0a8b0',
+          fontFamily: 'Inter, sans-serif',
+          textAlign: 'center',
+          letterSpacing: 1,
+          lineHeight: 1.4,
+          textTransform: 'none',
+          opacity: 1,
+          locked: false,
+          visible: true,
+          blendMode: 'normal',
+          curve: 0,
+          skewX: 0,
+          skewY: 0
+        }
       ],
-      imageLayers: []
     }
   },
   {
@@ -858,8 +2058,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 1584, height: 396, name: 'LinkedIn Banner' }),
       canvasSize: { width: 1584, height: 396, name: 'LinkedIn Banner' },
-      textLayers: [{ id: 'li_b', text: 'Solving Problems Through Design', x: 100, y: 150, width: 800, fontSize: 48, fontWeight: '700', fontFamily: 'Inter', color: '#ffffff', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', textAlign: 'left', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Tagline' }],
-      shapeLayers: [], imageLayers: []
+      layers: [{ id: 'li_b', text: 'Solving Problems Through Design', x: 100, y: 150, width: 800, fontSize: 48, fontWeight: '700', fontFamily: 'Inter, sans-serif', color: '#ffffff', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', textAlign: 'left', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Tagline' }],
     }
   },
   {
@@ -871,8 +2070,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 820, height: 312, name: 'FB Cover' }),
       canvasSize: { width: 820, height: 312, name: 'FB Cover' },
-      textLayers: [{ id: 'fb_t', text: 'Join Our Community', x: 0, y: 120, width: 820, fontSize: 42, fontWeight: '800', fontFamily: 'Inter', color: '#ffffff', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Call to Action' }],
-      shapeLayers: [], imageLayers: []
+      layers: [{ id: 'fb_t', text: 'Join Our Community', x: 0, y: 120, width: 820, fontSize: 42, fontWeight: '800', fontFamily: 'Inter, sans-serif', color: '#ffffff', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Call to Action' }],
     }
   },
   {
@@ -884,11 +2082,10 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 1600, height: 2560, name: 'E-book' }),
       canvasSize: { width: 1600, height: 2560, name: 'E-book' },
-      textLayers: [
-        { id: 'eb_title', text: 'THE POWER\nOF HABITS', x: 100, y: 400, width: 1400, fontSize: 180, fontWeight: '900', fontFamily: 'Inter', color: '#fde047', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.1, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Book Title' },
-        { id: 'eb_author', text: 'By Author Name', x: 0, y: 2200, width: 1600, fontSize: 64, fontWeight: '500', fontFamily: 'Inter', color: '#ffffff', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Author' }
+      layers: [
+        { id: 'eb_title', text: 'THE POWER\nOF HABITS', x: 100, y: 400, width: 1400, fontSize: 180, fontWeight: '900', fontFamily: 'Inter, sans-serif', color: '#fde047', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.1, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Book Title' },
+        { id: 'eb_author', text: 'By Author Name', x: 0, y: 2200, width: 1600, fontSize: 64, fontWeight: '500', fontFamily: 'Inter, sans-serif', color: '#ffffff', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Author' }
       ],
-      shapeLayers: [], imageLayers: []
     }
   },
   {
@@ -900,9 +2097,10 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 1000, height: 1000, name: 'Square Branding' }),
       canvasSize: { width: 1000, height: 1000, name: 'Square Branding' },
-      shapeLayers: [{ id: 'lb', type: 'circle', x: 400, y: 400, width: 200, height: 200, color: '#ffffff', rotation: 0, cornerRadius: 100, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Circle' }],
-      textLayers: [{ id: 'lt', text: 'LOGO', x: 0, y: 650, width: 1000, fontSize: 42, fontWeight: '200', fontFamily: 'Inter', color: '#ffffff', textAlign: 'center', letterSpacing: 12, type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Brand Name' }],
-      imageLayers: []
+      layers: [
+        { id: 'lb', type: 'circle', x: 400, y: 400, width: 200, height: 200, color: '#ffffff', rotation: 0, cornerRadius: 100, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Circle' },
+        { id: 'lt', text: 'LOGO', x: 0, y: 650, width: 1000, fontSize: 42, fontWeight: '200', fontFamily: 'Inter, sans-serif', color: '#ffffff', textAlign: 'center', letterSpacing: 12, type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Brand Name' }
+      ],
     }
   },
   {
@@ -914,9 +2112,10 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 1242, height: 2208, name: 'App Preview' }),
       canvasSize: { width: 1242, height: 2208, name: 'App Preview' },
-      shapeLayers: [{ id: 'app_ph', type: 'rectangle', x: 150, y: 600, width: 942, height: 1408, color: '#1e293b', cornerRadius: 80, rotation: 0, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Phone' }],
-      textLayers: [{ id: 'app_t', text: 'Discover New Sounds', x: 100, y: 200, width: 1042, fontSize: 110, fontWeight: '800', fontFamily: 'Inter', color: '#ffffff', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.1, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Headline' }],
-      imageLayers: []
+      layers: [
+        { id: 'app_ph', type: 'rectangle', x: 150, y: 600, width: 942, height: 1408, color: '#1e293b', cornerRadius: 80, rotation: 0, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Phone' },
+        { id: 'app_t', text: 'Discover New Sounds', x: 100, y: 200, width: 1042, fontSize: 110, fontWeight: '800', fontFamily: 'Inter, sans-serif', color: '#ffffff', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.1, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Headline' }
+      ],
     }
   },
   {
@@ -928,9 +2127,10 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 1080, height: 1350, name: 'Portrait Flyer' }),
       canvasSize: { width: 1080, height: 1350, name: 'Portrait Flyer' },
-      shapeLayers: [{ id: 'ne', type: 'rectangle', x: 0, y: 1300, width: 1080, height: 50, color: '#ff00ff', rotation: 0, cornerRadius: 0, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Neon Line' }],
-      textLayers: [{ id: 'cy_t', text: 'NEO\nTOKYO', x: 100, y: 400, width: 880, fontSize: 220, fontWeight: '900', fontFamily: 'Inter', color: '#00ffff', textAlign: 'left', lineHeight: 0.8, letterSpacing: 0, type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'City' }],
-      imageLayers: []
+      layers: [
+        { id: 'ne', type: 'rectangle', x: 0, y: 1300, width: 1080, height: 50, color: '#ff00ff', rotation: 0, cornerRadius: 0, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Neon Line' },
+        { id: 'cy_t', text: 'NEO\nTOKYO', x: 100, y: 400, width: 880, fontSize: 220, fontWeight: '900', fontFamily: 'Inter, sans-serif', color: '#00ffff', textAlign: 'left', lineHeight: 0.8, letterSpacing: 0, type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'City' }
+      ],
     }
   },
   {
@@ -942,9 +2142,10 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 2480, height: 3508, name: 'Letterhead' }),
       canvasSize: { width: 2480, height: 3508, name: 'Letterhead' },
-      shapeLayers: [{ id: 'lh_h', type: 'rectangle', x: 0, y: 0, width: 2480, height: 300, color: '#f8fafc', rotation: 0, cornerRadius: 0, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Header' }],
-      textLayers: [{ id: 'lh_c', text: 'CORPORATE IDENTITY', x: 200, y: 120, width: 2080, fontSize: 80, fontWeight: '700', fontFamily: 'Inter', color: '#0f172a', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', textAlign: 'left', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Corp Name' }],
-      imageLayers: []
+      layers: [
+        { id: 'lh_h', type: 'rectangle', x: 0, y: 0, width: 2480, height: 300, color: '#f8fafc', rotation: 0, cornerRadius: 0, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Header' },
+        { id: 'lh_c', text: 'CORPORATE IDENTITY', x: 200, y: 120, width: 2080, fontSize: 80, fontWeight: '700', fontFamily: 'Inter, sans-serif', color: '#0f172a', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', textAlign: 'left', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Corp Name' }
+      ],
     }
   },
   {
@@ -956,11 +2157,10 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 1000, height: 1300, name: 'Magazine' }),
       canvasSize: { width: 1000, height: 1300, name: 'Magazine' },
-      textLayers: [
-        { id: 'mag_v', text: 'VOGUE', x: 0, y: 100, width: 1000, fontSize: 320, fontWeight: '900', fontFamily: 'Inter', color: '#000000', textAlign: 'center', letterSpacing: -10, type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Masthead' },
-        { id: 'mag_s', text: 'THE FUTURE OF FASHION', x: 50, y: 1100, width: 500, fontSize: 42, fontWeight: '700', fontFamily: 'Inter', color: '#000000', textAlign: 'left', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Headline' }
+      layers: [
+        { id: 'mag_v', text: 'VOGUE', x: 0, y: 100, width: 1000, fontSize: 320, fontWeight: '900', fontFamily: 'Inter, sans-serif', color: '#000000', textAlign: 'center', letterSpacing: -10, type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Masthead' },
+        { id: 'mag_s', text: 'THE FUTURE OF FASHION', x: 50, y: 1100, width: 500, fontSize: 42, fontWeight: '700', fontFamily: 'Inter, sans-serif', color: '#000000', textAlign: 'left', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Headline' }
       ],
-      shapeLayers: [], imageLayers: []
     }
   },
   {
@@ -972,8 +2172,59 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 1000, height: 1000, name: 'Square Card' }),
       canvasSize: { width: 1000, height: 1000, name: 'Square Card' },
-      textLayers: [{ id: 'ty_t', text: 'Thank You', x: 0, y: 400, width: 1000, fontSize: 120, fontWeight: '700', fontFamily: 'Caveat', color: '#be185d', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Message' }],
-      shapeLayers: [], imageLayers: []
+      layers: [{ id: 'ty_t', text: 'Thank You', x: 0, y: 400, width: 1000, fontSize: 120, fontWeight: '700', fontFamily: 'Caveat, cursive', color: '#be185d', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Message' }],
+    }
+  },
+  {
+    id: 'social_product_showcase',
+    name: 'Product Showcase',
+    category: 'Social',
+    description: 'Horizontal layout for product launches',
+    size: { width: 1200, height: 800, name: 'Product Showcase' },
+    state: {
+      ...baseState({ width: 1200, height: 800, name: 'Product Showcase' }),
+      canvasSize: { width: 1200, height: 800, name: 'Product Showcase' },
+      layers: [
+        { id: 'ps_left_bg', type: 'rectangle', x: 0, y: 0, width: 600, height: 800, color: '#f0f0f0', rotation: 0, cornerRadius: 0, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Image Area' },
+        { id: 'ps_accent', type: 'rectangle', x: 600, y: 0, width: 8, height: 800, color: '#3b82f6', rotation: 0, cornerRadius: 0, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Accent' },
+        { id: 'ps_title', text: 'New Product Launch', x: 620, y: 150, width: 560, fontSize: 48, fontWeight: '900', fontFamily: 'Inter, sans-serif', color: '#000000', textAlign: 'left', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: -1, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Title' },
+        { id: 'ps_desc', text: 'Introducing the next generation of innovation', x: 620, y: 350, width: 560, fontSize: 20, fontWeight: '400', fontFamily: 'Inter, sans-serif', color: '#666666', textAlign: 'left', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.6, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Description' }
+      ],
+    }
+  },
+  {
+    id: 'video_webinar_cover',
+    name: 'Webinar Cover',
+    category: 'Video',
+    description: 'Professional webinar thumbnail',
+    size: { width: 1920, height: 1080, name: 'Webinar' },
+    state: {
+      ...baseState({ width: 1920, height: 1080, name: 'Webinar' }),
+      canvasSize: { width: 1920, height: 1080, name: 'Webinar' },
+      canvasBackgroundColor: '#1e293b',
+      layers: [
+        { id: 'web_accent_1', type: 'rectangle', x: 0, y: 0, width: 1920, height: 12, color: '#06b6d4', rotation: 0, cornerRadius: 0, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Top Stripe' },
+        { id: 'web_accent_2', type: 'rectangle', x: 0, y: 1068, width: 1920, height: 12, color: '#06b6d4', rotation: 0, cornerRadius: 0, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Bottom Stripe' },
+        { id: 'web_title', text: 'LIVE WEBINAR', x: 200, y: 300, width: 1520, fontSize: 72, fontWeight: '900', fontFamily: 'Inter, sans-serif', color: '#06b6d4', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 2, textTransform: 'uppercase', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Title' },
+        { id: 'web_subtitle', text: 'Join us for an exclusive session', x: 200, y: 500, width: 1520, fontSize: 32, fontWeight: '500', fontFamily: 'Inter, sans-serif', color: '#e2e8f0', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.4, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Subtitle' }
+      ],
+    }
+  },
+  {
+    id: 'social_quote_graphic',
+    name: 'Quote Graphic',
+    category: 'Social',
+    description: 'Inspirational quote for social sharing',
+    size: { width: 1080, height: 1080, name: 'Quote' },
+    state: {
+      ...baseState({ width: 1080, height: 1080, name: 'Quote' }),
+      canvasSize: { width: 1080, height: 1080, name: 'Quote' },
+      canvasBackgroundColor: '#0f172a',
+      layers: [
+        { id: 'quote_border', type: 'rectangle', x: 80, y: 80, width: 920, height: 920, color: '#7d2ae8', rotation: 0, cornerRadius: 20, opacity: 0, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Border', stroke: { color: '#7d2ae8', width: 4, opacity: 0.5 } },
+        { id: 'quote_text', text: '"Design is not just what it looks like and feels like. Design is how it works."', x: 150, y: 350, width: 780, fontSize: 48, fontWeight: '700', fontFamily: 'Inter, sans-serif', color: '#ffffff', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'italic', textDecoration: 'none', lineHeight: 1.6, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Quote' },
+        { id: 'quote_author', text: '— Steve Jobs', x: 150, y: 750, width: 780, fontSize: 24, fontWeight: '500', fontFamily: 'Inter, sans-serif', color: '#7d2ae8', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.4, letterSpacing: 1, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Author' }
+      ],
     }
   }
 ];

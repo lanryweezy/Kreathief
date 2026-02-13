@@ -1,10 +1,12 @@
-
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { NavTab, TextLayer, ShapeLayer, ImageLayer, Layer, CanvasFilters, CanvasSize, User, BrushType, GeneratedImage } from '../types';
 import { Icons } from '../constants';
+import { ColorPicker } from './ColorPicker';
+import { FloatingToolbar } from './FloatingToolbar';
 import { Ruler } from './Ruler';
 import { Toolbar } from './Toolbar';
 import { ContextMenu } from './ContextMenu';
+import { GeometryOracle } from '../utils/geometryOracle';
 
 // --- Sub-Components (Memoized) ---
 
@@ -67,6 +69,82 @@ const SelectionHandles = React.memo(({ layer, onResize, onRotate, scale }: Selec
         </div>
     );
 });
+
+// This is a placeholder for a multi-selection SelectionHandles component.
+// The original SelectionHandles component is designed for a single layer.
+// If multi-selection handles are truly needed, a new component or a significant
+// refactor of the existing one would be required to handle an array of layers.
+// For now, this will be a basic bounding box around multiple selected layers.
+interface MultiSelectionHandlesProps {
+    layers: Layer[];
+    zoom: number;
+    onResize: (e: React.MouseEvent, layer: Layer, handle: ResizeHandle) => void;
+    onRotate: (e: React.MouseEvent, layer: Layer) => void;
+}
+
+const MultiSelectionHandles = React.memo(({ layers, zoom, onResize, onRotate }: MultiSelectionHandlesProps) => {
+    if (layers.length === 0) return null;
+
+    // Calculate bounding box for all selected layers using centralized logic
+    const bounds = useMemo(() => GeometryOracle.getGroupBounds(layers), [layers]);
+
+    // Create a proxy layer representing the group for the handles
+    // We intentionally ignore rotation for AABB-based group resizing for now
+    const groupLayer: Layer = {
+        id: 'group_proxy',
+        type: 'rectangle', // Dummy type
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height,
+        rotation: 0,
+        opacity: 1,
+        locked: false,
+        visible: true,
+        cornerRadius: 0,
+        color: 'transparent'
+    } as any;
+
+    return (
+        <div id="multi-selection-box" className="absolute inset-0 pointer-events-none" style={{ zIndex: 50 }}>
+            {/* Visual Bounding Box */}
+            <div
+                className="absolute border-2 border-[#7d2ae8] border-dashed"
+                style={{
+                    left: bounds.x,
+                    top: bounds.y,
+                    width: bounds.width,
+                    height: bounds.height,
+                    pointerEvents: 'none'
+                }}
+            />
+
+            {/* Reuse SelectionHandles UI logic manually for the group */}
+            <div className="absolute" style={{ left: bounds.x, top: bounds.y, width: bounds.width, height: bounds.height }}>
+                {/* Corner Handles */}
+                <div onMouseDown={(e) => onResize(e, groupLayer, 'nw')} className="absolute -top-1.5 -left-1.5 w-3.5 h-3.5 bg-white border-2 border-[#7d2ae8] rounded-full pointer-events-auto cursor-nw-resize shadow-md z-50"></div>
+                <div onMouseDown={(e) => onResize(e, groupLayer, 'ne')} className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-white border-2 border-[#7d2ae8] rounded-full pointer-events-auto cursor-ne-resize shadow-md z-50"></div>
+                <div onMouseDown={(e) => onResize(e, groupLayer, 'sw')} className="absolute -bottom-1.5 -left-1.5 w-3.5 h-3.5 bg-white border-2 border-[#7d2ae8] rounded-full pointer-events-auto cursor-sw-resize shadow-md z-50"></div>
+                <div onMouseDown={(e) => onResize(e, groupLayer, 'se')} className="absolute -bottom-1.5 -right-1.5 w-3.5 h-3.5 bg-white border-2 border-[#7d2ae8] rounded-full pointer-events-auto cursor-se-resize shadow-md z-50"></div>
+
+                {/* Edge Handles */}
+                {bounds.width > 30 && (
+                    <>
+                        <div onMouseDown={(e) => onResize(e, groupLayer, 'n')} className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-white border border-[#7d2ae8] rounded-full pointer-events-auto cursor-ns-resize shadow-sm z-40"></div>
+                        <div onMouseDown={(e) => onResize(e, groupLayer, 's')} className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-white border border-[#7d2ae8] rounded-full pointer-events-auto cursor-ns-resize shadow-sm z-40"></div>
+                    </>
+                )}
+                {bounds.height > 30 && (
+                    <>
+                        <div onMouseDown={(e) => onResize(e, groupLayer, 'w')} className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-1.5 h-6 bg-white border border-[#7d2ae8] rounded-full pointer-events-auto cursor-ew-resize shadow-sm z-40"></div>
+                        <div onMouseDown={(e) => onResize(e, groupLayer, 'e')} className="absolute top-1/2 -translate-y-1/2 -right-1.5 w-1.5 h-6 bg-white border border-[#7d2ae8] rounded-full pointer-events-auto cursor-ew-resize shadow-sm z-40"></div>
+                    </>
+                )}
+            </div>
+        </div>
+    );
+});
+
 
 const ImageLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, onMouseEnter, onMouseLeave, onResize, onRotate, onContextMenu }: any) => {
     const scaleX = layer.flipX ? -1 : 1;
@@ -137,6 +215,11 @@ const ShapeLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, 
         case 'shield': clipPath = 'polygon(50% 0, 100% 10%, 100% 80%, 50% 100%, 0 80%, 0 10%)'; break;
         case 'ribbon': clipPath = 'polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%, 10% 50%)'; break;
         case 'banner': clipPath = 'polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%)'; break;
+        case 'pentagon': clipPath = 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)'; break;
+        case 'octagon': clipPath = 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)'; break;
+        case 'plus': clipPath = 'polygon(35% 0%, 65% 0%, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0% 65%, 0% 35%, 35% 35%)'; break;
+        case 'star_4': clipPath = 'polygon(50% 0%, 61% 35%, 100% 50%, 61% 65%, 50% 100%, 39% 65%, 0% 50%, 39% 35%)'; break;
+        case 'star_8': clipPath = 'polygon(50% 0%, 61% 22%, 85% 15%, 72% 35%, 100% 50%, 72% 65%, 85% 85%, 61% 72%, 50% 100%, 39% 72%, 15% 85%, 28% 65%, 0% 50%, 28% 35%, 15% 15%, 39% 22%)'; break;
     }
 
     if (layer.type === 'path') {
@@ -216,30 +299,13 @@ const ShapeLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, 
 });
 
 // Helper for rendering text along a path
+// Helper for rendering text along a path
 const renderTextOnPath = (canvas: HTMLCanvasElement, layer: TextLayer) => {
     const ctx = canvas.getContext('2d');
     if (!ctx || !layer.textPath) return;
 
     const { text, color, fontSize, fontFamily, fontWeight, fontStyle, width } = layer;
     const dpr = 2; // High DPI
-
-    // Create a path object to measure length
-    const path = new Path2D(layer.textPath);
-    // Note: Path2D doesn't expose methods to get point at length in standard Canvas API easily without SVG DOM.
-    // We will use a hidden SVG element helper to get point at length logic if needed, 
-    // OR we can approximate for simple curves (Quad/Arc). 
-    // FOR ROBUSTNESS in this environment without heavy libraries:
-    // We will use a DOM-based approach: Create a temporary SVG element, measure, and draw.
-    // But we are in a Canvas component. 
-    // Better approach: Use a helper function that moves characters along the path using vector math for specific presets, 
-    // OR simply use the "warp" approach but with path logic.
-
-    // MVP: Approximate the curve logic for the specific presets we added (Curve Q and Circle A).
-    // Preset 1: Curve 'M 10,50 Q 50,0 90,50' (Quadratic Bezier)
-    // Preset 2: Circle 'M 50,50 m -40,0 a 40,40 0 1,1 80,0 a 40,40 0 1,1 -80,0'
-
-    // Let's implement a generic "Text on Path" is hard. 
-    // Let's implement logic that parses the path if it matches our presets.
 
     canvas.width = width * dpr;
     canvas.height = (width) * dpr; // Square aspect for paths usually
@@ -249,73 +315,35 @@ const renderTextOnPath = (canvas: HTMLCanvasElement, layer: TextLayer) => {
     ctx.textBaseline = 'middle';
     ctx.textAlign = 'center';
 
-    if (layer.textPath.includes('Q')) {
-        // Quadratic Curve Logic
-        // Simple Arc interpolation
-        const characters = text.split('');
-        const totalAngle = Math.PI; // 180 degree arc
-        const startAngle = Math.PI;
-        const radius = width / 2;
-        const cx = width / 2;
-        const cy = width / 2 + radius * 0.5; // Offset to center
+    const pathMetrics = GeometryOracle.measurePath(layer.textPath);
+    const textWidth = ctx.measureText(text).width;
 
-        characters.forEach((char, i) => {
-            const angle = startAngle + (i / (characters.length - 1 || 1)) * totalAngle;
-            // Actually Q curves are not perfect arcs. simpler to map linear x to arc.
-            const x = (i / (characters.length - 1 || 1)) * width;
-            // Map x to curve y
-            // For M 10,50 Q 50,0 90,50 (scaled to width)
-            // y = 4 * h * (x/w) * (1 - x/w) parabola roughly
-            // Let's just do a simple ARCH effect which we already have in warpStyle='arc'.
-            // BUT user wants "Text on Path".
+    // Center text on path
+    const startOffset = (pathMetrics.totalLength - textWidth) / 2;
 
-            // True Path Logic:
-            // Since we lack a robust path traverser, let's use the simplest approximation:
-            // Rotate context and translate.
+    let currentDistance = startOffset;
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const charWidth = ctx.measureText(char).width;
 
-            // CIRCLE LOGIC (matches our circle preset)
-            if (layer.textPath && layer.textPath.includes('a 40,40')) {
-                const angleStep = (Math.PI * 2) / (text.length * 1.5);
-                const startTheta = -Math.PI / 2 - (text.length * angleStep) / 2;
+        // Position at center of character
+        const charMiddleDistance = currentDistance + charWidth / 2;
 
-                ctx.save();
-                ctx.translate(width / 2, width / 2);
-                ctx.rotate(startTheta + i * angleStep);
-                ctx.translate(0, -width / 3); // Radius approximation
-                ctx.rotate(-Math.PI / 2); // upright text? no, tangent.
-                // Tangent means text sits on line. 
-                // For circle, we want text upright relative to center.
-                // Normal rotation is tangent.
-                ctx.translate(0, 0);
-                ctx.fillText(char, 0, 0);
-                ctx.restore();
-            } else {
-                // CURVE LOGIC
-                const t = i / (text.length - 1 || 1);
-                const x = t * width; // 10 to 90 mapped to 0 to width
-                // Parabolic arc: y = a(x-h)^2 + k
-                const h = width / 2;
-                const k = 0; // top
-                // at x=0, y=width/2. width/2 = a(-h)^2 => a = (width/2)/h^2 = 2/width
-                const y = (2 / width) * Math.pow(x - h, 2);
+        if (charMiddleDistance >= 0 && charMiddleDistance <= pathMetrics.totalLength) {
+            const { x, y, angle } = pathMetrics.getPointAt(charMiddleDistance);
 
-                // Slop/Rotation calculation (derivative)
-                // dy/dx = 2a(x-h)
-                const slope = (4 / width) * (x - h);
-                const rot = Math.atan(slope);
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.fillText(char, 0, 0);
+            ctx.restore();
+        }
 
-                ctx.save();
-                ctx.translate(x, y);
-                ctx.rotate(rot);
-                ctx.fillText(char, 0, 0);
-                ctx.restore();
-            }
-        });
-    } else {
-        // default or complex
-        ctx.fillText("Complex Path Preview", width / 2, width / 2);
+        currentDistance += charWidth;
     }
 };
+
+
 
 // Helper for rendering warped text to a canvas
 const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) => {
@@ -343,7 +371,8 @@ const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) => {
     tempCtx.font = font;
     tempCtx.fillStyle = color;
     tempCtx.textBaseline = 'top';
-    tempCtx.textAlign = textAlign;
+    const align = textAlign === 'justify' ? 'left' : textAlign;
+    tempCtx.textAlign = align as CanvasTextAlign;
 
     lines.forEach((line, i) => {
         let x = 0;
@@ -507,13 +536,11 @@ interface CanvasProps {
     onSetCanvasBackgroundColor: (c: string) => void;
     canvasFilters: CanvasFilters;
     onUpdateCanvasFilters: (f: Partial<CanvasFilters>) => void;
-    textLayers: TextLayer[];
-    shapeLayers: ShapeLayer[];
-    imageLayers: ImageLayer[];
-    onUpdateTextLayer: (id: string, c: Partial<TextLayer>) => void;
-    onUpdateShapeLayer: (id: string, c: Partial<ShapeLayer>) => void;
-    onUpdateImageLayer: (id: string, c: Partial<ImageLayer>) => void;
+    layers: Layer[];
     onUpdateLayers?: (updates: Record<string, any>) => void;
+    onUpdateTextLayer?: (id: string, changes: Partial<TextLayer>) => void;
+    onUpdateShapeLayer?: (id: string, changes: Partial<ShapeLayer>) => void;
+    onUpdateImageLayer?: (id: string, changes: Partial<ImageLayer>) => void;
     onSelectLayer: (id: string | null) => void;
     onDeleteLayer: (id: string) => void;
     onDuplicateLayer: (id: string) => void;
@@ -523,6 +550,8 @@ interface CanvasProps {
     onMagicWrite: (id: string) => void;
     showGrid: boolean;
     onToggleGrid: () => void;
+    showRulers: boolean;
+    onToggleRulers: () => void;
     isDrawing: boolean;
     brushColor: string;
     brushSize: number;
@@ -540,11 +569,14 @@ interface CanvasProps {
     onGroup?: () => void;
     onUngroup?: () => void;
     onVectorDrawingComplete?: (pathData: string, stroke: any) => void;
-    onFileUpload?: (file: File) => void;
+    onFileUpload?: (files: File[]) => void;
     onToggleEraser?: () => void;
     onToggleDesignSuggestions?: () => void;
     onToggleSmartContent?: () => void;
     onToggleQualityScore?: () => void;
+    setFontPreview: (font: string | null) => void;
+    fontPreview: string | null;
+    onAddLogoToCanvas: (url: string) => void;
 }
 
 
@@ -558,13 +590,11 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     onSetCanvasBackgroundColor,
     canvasFilters,
     onUpdateCanvasFilters,
-    textLayers,
-    shapeLayers,
-    imageLayers,
-    onUpdateTextLayer,
-    onUpdateShapeLayer,
-    onUpdateImageLayer,
+    layers = [],
     onUpdateLayers,
+    onUpdateTextLayer: onUpdateTextLayerProp,
+    onUpdateShapeLayer: onUpdateShapeLayerProp,
+    onUpdateImageLayer: onUpdateImageLayerProp,
     onSelectLayer,
     onDeleteLayer,
     onDuplicateLayer,
@@ -574,6 +604,8 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     onMagicWrite,
     showGrid,
     onToggleGrid,
+    showRulers,
+    onToggleRulers,
     isDrawing,
     brushColor,
     brushSize,
@@ -595,16 +627,57 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     onToggleEraser,
     onToggleDesignSuggestions,
     onToggleSmartContent,
-    onToggleQualityScore
+    onToggleQualityScore,
+    setFontPreview,
+    fontPreview,
+    onAddLogoToCanvas
 }) => {
+    // Shared derived slices for legacy code within Canvas
+    const textLayers = useMemo(() => layers.filter(l => l.type === 'text') as TextLayer[], [layers]);
+    const shapeLayers = useMemo(() => layers.filter(l => l.type !== 'text' && l.type !== 'image') as ShapeLayer[], [layers]);
+    const imageLayers = useMemo(() => layers.filter(l => l.type === 'image') as ImageLayer[], [layers]);
+
+    // Provided update handlers or fallback to onUpdateLayers
+    const onUpdateTextLayer = useCallback((id: string, changes: Partial<TextLayer>) => {
+        if (onUpdateTextLayerProp) onUpdateTextLayerProp(id, changes);
+        else onUpdateLayers?.({ [id]: changes });
+    }, [onUpdateTextLayerProp, onUpdateLayers]);
+
+    const onUpdateShapeLayer = useCallback((id: string, changes: Partial<ShapeLayer>) => {
+        if (onUpdateShapeLayerProp) onUpdateShapeLayerProp(id, changes);
+        else onUpdateLayers?.({ [id]: changes });
+    }, [onUpdateShapeLayerProp, onUpdateLayers]);
+
+    const onUpdateImageLayer = useCallback((id: string, changes: Partial<ImageLayer>) => {
+        if (onUpdateImageLayerProp) onUpdateImageLayerProp(id, changes);
+        else onUpdateLayers?.({ [id]: changes });
+    }, [onUpdateImageLayerProp, onUpdateLayers]);
+
+    // Pre-compute effective layers
+    const getEffectiveLayer = useCallback(<T extends Layer>(layer: T): T => {
+        if (bulkDragPreviewRef.current[layer.id]) {
+            return { ...layer, ...bulkDragPreviewRef.current[layer.id] };
+        }
+        if (dragPreviewRef.current && dragPreviewRef.current.id === layer.id) {
+            return { ...layer, ...dragPreviewRef.current };
+        }
+        return layer;
+    }, []);
+
+    const effectiveLayers = useMemo(() => layers.map(l => getEffectiveLayer(l)), [layers, getEffectiveLayer]);
+    const effectiveTextLayers = useMemo(() => effectiveLayers.filter(l => l.type === 'text') as TextLayer[], [effectiveLayers]);
+    const effectiveShapeLayers = useMemo(() => effectiveLayers.filter(l => l.type !== 'text' && l.type !== 'image') as ShapeLayer[], [effectiveLayers]);
+    const effectiveImageLayers = useMemo(() => effectiveLayers.filter(l => l.type === 'image') as ImageLayer[], [effectiveLayers]);
     const containerRef = useRef<HTMLDivElement>(null);
     const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
     const [hoveredLayerId, setHoveredLayerId] = useState<string | null>(null);
 
     // Interaction State
     const [dragState, setDragState] = useState<{ isDragging: boolean, startX: number, startY: number, initialPositions: Record<string, { x: number, y: number }> } | null>(null);
-    const [resizeState, setResizeState] = useState<{ isResizing: boolean, handle: ResizeHandle, startX: number, startY: number, initialLayer: Layer } | null>(null);
-    const [rotateState, setRotateState] = useState<{ isRotating: boolean, startX: number, startY: number, initialRotation: number, centerX: number, centerY: number } | null>(null);
+    const [resizeState, setResizeState] = useState<{ isResizing: boolean, handle: ResizeHandle, startX: number, startY: number, initialLayer?: Layer, initialBounds?: { x: number, y: number, width: number, height: number }, initialLayers?: Record<string, Layer> } | null>(null);
+    const [rotateState, setRotateState] = useState<{ isRotating: boolean, startX: number, startY: number, initialRotation: number, centerX: number, centerY: number, canvasCenterX?: number, canvasCenterY?: number, initialLayers?: Record<string, Layer> } | null>(null);
+
+
     const [drawingState, setDrawingState] = useState({ isDrawingPath: false });
     const drawingLastPos = useRef({ x: 0, y: 0 });
     const [contextMenu, setContextMenu] = useState<{ x: number, y: number, layerId: string } | null>(null);
@@ -613,18 +686,75 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
     // Pro Features: Pan & Snap
     const [isSpacePressed, setIsSpacePressed] = useState(false);
-    const [isPanning, setIsPanning] = useState(false);
-    const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+    const viewportRef = useRef<HTMLDivElement>(null);
     const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+    const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+    const [isPanning, setIsPanning] = useState(false);
     const [snapLines, setSnapLines] = useState<{ vertical?: number, horizontal?: number }>({});
+    const [viewportSize, setViewportSize] = useState({ width: window.innerWidth, height: window.innerHeight });
 
-    // local drag preview to avoid parent re-renders on every pixel
+    // Use ResizeObserver for stable viewport measurements
+    useEffect(() => {
+        if (!viewportRef.current) return;
+        const observer = new ResizeObserver((entries) => {
+            if (entries[0]) {
+                const { width, height } = entries[0].contentRect;
+                setViewportSize({ width, height });
+            }
+        });
+        observer.observe(viewportRef.current);
+        return () => observer.disconnect();
+    }, []);
+
+    // Block Safari gesture events for the canvas viewport
+    useEffect(() => {
+        const viewport = viewportRef.current;
+        if (!viewport) return;
+        const handleGesture = (e: any) => e.preventDefault();
+        viewport.addEventListener('gesturestart', handleGesture);
+        viewport.addEventListener('gesturechange', handleGesture);
+        return () => {
+            viewport.removeEventListener('gesturestart', handleGesture);
+            viewport.removeEventListener('gesturechange', handleGesture);
+        };
+    }, []);
+    const zoomRef = useRef(zoom);
+    zoomRef.current = zoom;
+
+    // Trackpad Pinch-to-Zoom and Pan
+    useEffect(() => {
+        const viewport = viewportRef.current;
+        if (!viewport) return;
+
+        const handleWheel = (e: WheelEvent) => {
+            if (e.ctrlKey || e.metaKey) {
+                // Pinch-to-zoom
+                e.preventDefault();
+                const zoomFactor = 0.01;
+                const newZoom = Math.min(3, Math.max(0.1, zoomRef.current - e.deltaY * zoomFactor));
+                onZoomChange(newZoom);
+            } else if (!isSpacePressed) {
+                // Natural Panning (if not drawing)
+                if (isDrawing) return;
+                e.preventDefault();
+                setPanOffset(prev => ({
+                    x: prev.x - e.deltaX,
+                    y: prev.y - e.deltaY
+                }));
+            }
+        };
+
+        viewport.addEventListener('wheel', handleWheel, { passive: false });
+        return () => viewport.removeEventListener('wheel', handleWheel);
+    }, [onZoomChange, isSpacePressed, isDrawing]);
+
     const [dragPreview, setDragPreview] = useState<{ id: string, x: number, y: number, width?: number, height?: number, rotation?: number } | null>(null);
     const [bulkDragPreview, setBulkDragPreview] = useState<Record<string, { x: number, y: number }>>({});
 
-    const layers: Layer[] = useMemo(() => [...shapeLayers, ...imageLayers, ...textLayers], [shapeLayers, imageLayers, textLayers]);
     const selectedLayer = layers.find(l => l.id === selectedLayerId) || null;
     const bgImage = activeImage?.url || uploadedImage;
+
+    const isMultiSelect = selectedLayerIds.length > 1;
 
     // Use refs for state accessed in mouse handlers to avoid re-creating callbacks
     const dragStateRef = useRef(dragState);
@@ -645,8 +775,6 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     isPanningRef.current = isPanning;
     const panStartRef = useRef(panStart);
     panStartRef.current = panStart;
-    const zoomRef = useRef(zoom);
-    zoomRef.current = zoom;
     const bulkDragPreviewRef = useRef(bulkDragPreview);
     bulkDragPreviewRef.current = bulkDragPreview;
     const dragPreviewRef = useRef(dragPreview);
@@ -662,27 +790,24 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     const onMultiSelectLayerRef = useRef(onMultiSelectLayer);
     onMultiSelectLayerRef.current = onMultiSelectLayer;
 
-    // Helper to get effective layer props (merging original with preview)
-    const getEffectiveLayer = useCallback(<T extends Layer>(layer: T): T => {
-        if (bulkDragPreview[layer.id]) {
-            return { ...layer, ...bulkDragPreview[layer.id] };
-        }
-        if (dragPreview && dragPreview.id === layer.id) {
-            return { ...layer, ...dragPreview };
-        }
-        return layer;
-    }, [bulkDragPreview, dragPreview]);
 
-    // Pre-compute effective layers so React.memo gets stable references for non-dragged layers
-    const effectiveShapeLayers = useMemo(() => shapeLayers.map(l => getEffectiveLayer(l)), [shapeLayers, getEffectiveLayer]);
-    const effectiveImageLayers = useMemo(() => imageLayers.map(l => getEffectiveLayer(l)), [imageLayers, getEffectiveLayer]);
-    const effectiveTextLayers = useMemo(() => textLayers.map(l => getEffectiveLayer(l)), [textLayers, getEffectiveLayer]);
 
     const getSnapLines = useCallback((currentLayer: Layer, currentX: number, currentY: number) => {
         const SNAP_THRESHOLD = 5 / zoomRef.current;
-        const layerHeight = (currentLayer as any).height || 0;
+        const layerWidth = currentLayer.width;
+        let layerHeight = (currentLayer as any).height || 0;
+        let currentAscent = 0;
+
+        if (currentLayer.type === 'text') {
+            // For text, height might not be fully accurate from prop, measure it or trust it?
+            // Trust prop if updated, but for baseline we need metric
+            const metric = GeometryOracle.measureText(currentLayer as TextLayer);
+            // layerHeight = metric.height; // Optionally use metric height
+            currentAscent = metric.ascent;
+        }
+
         const centerY = currentY + layerHeight / 2;
-        const centerX = currentX + currentLayer.width / 2;
+        const centerX = currentX + layerWidth / 2;
 
         let snapX: number | undefined = undefined;
         let snapY: number | undefined = undefined;
@@ -695,21 +820,139 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
         if (Math.abs(centerX - canvasCenterX) < SNAP_THRESHOLD) {
             snapX = canvasCenterX;
-            newX = canvasCenterX - currentLayer.width / 2;
+            newX = canvasCenterX - layerWidth / 2;
         }
         if (Math.abs(centerY - canvasCenterY) < SNAP_THRESHOLD) {
             snapY = canvasCenterY;
             newY = canvasCenterY - layerHeight / 2;
         }
 
+        // Snap to Canvas Edges
+        if (Math.abs(currentX) < SNAP_THRESHOLD) {
+            snapX = 0;
+            newX = 0;
+        }
+        if (Math.abs(currentX + layerWidth - canvasSize.width) < SNAP_THRESHOLD) {
+            snapX = canvasSize.width;
+            newX = canvasSize.width - layerWidth;
+        }
+        if (Math.abs(currentY) < SNAP_THRESHOLD) {
+            snapY = 0;
+            newY = 0;
+        }
+        if (Math.abs(currentY + layerHeight - canvasSize.height) < SNAP_THRESHOLD) {
+            snapY = canvasSize.height;
+            newY = canvasSize.height - layerHeight;
+        }
+
+        // Snap to Canvas Thirds (Rule of Thirds)
+        const thirdX1 = canvasSize.width / 3;
+        const thirdX2 = (canvasSize.width * 2) / 3;
+        const thirdY1 = canvasSize.height / 3;
+        const thirdY2 = (canvasSize.height * 2) / 3;
+
+        if (snapX === undefined) {
+            if (Math.abs(centerX - thirdX1) < SNAP_THRESHOLD) { snapX = thirdX1; newX = thirdX1 - layerWidth / 2; }
+            else if (Math.abs(centerX - thirdX2) < SNAP_THRESHOLD) { snapX = thirdX2; newX = thirdX2 - layerWidth / 2; }
+        }
+        if (snapY === undefined) {
+            if (Math.abs(centerY - thirdY1) < SNAP_THRESHOLD) { snapY = thirdY1; newY = thirdY1 - layerHeight / 2; }
+            else if (Math.abs(centerY - thirdY2) < SNAP_THRESHOLD) { snapY = thirdY2; newY = thirdY2 - layerHeight / 2; }
+        }
+
+        // Snap to Margin Guides (20px from edges)
+        const MARGIN = 20;
+        if (snapX === undefined) {
+            if (Math.abs(currentX - MARGIN) < SNAP_THRESHOLD) { snapX = MARGIN; newX = MARGIN; }
+            else if (Math.abs(currentX + layerWidth - (canvasSize.width - MARGIN)) < SNAP_THRESHOLD) { snapX = canvasSize.width - MARGIN; newX = canvasSize.width - MARGIN - layerWidth; }
+        }
+        if (snapY === undefined) {
+            if (Math.abs(currentY - MARGIN) < SNAP_THRESHOLD) { snapY = MARGIN; newY = MARGIN; }
+            else if (Math.abs(currentY + layerHeight - (canvasSize.height - MARGIN)) < SNAP_THRESHOLD) { snapY = canvasSize.height - MARGIN; newY = canvasSize.height - MARGIN - layerHeight; }
+        }
+
+        // Snap to Other Layers
+        const otherLayers = [...effectiveShapeLayers, ...effectiveImageLayers, ...effectiveTextLayers].filter(l => l.id !== currentLayer.id);
+
+        for (const other of otherLayers) {
+            const otherHeight = (other as any).height || 0;
+            const otherCenterY = other.y + otherHeight / 2;
+            const otherCenterX = other.x + other.width / 2;
+
+            // X snapping (edges and centers)
+            if (Math.abs(currentX - other.x) < SNAP_THRESHOLD) { snapX = other.x; newX = other.x; }
+            else if (Math.abs(currentX + layerWidth - (other.x + other.width)) < SNAP_THRESHOLD) { snapX = other.x + other.width; newX = other.x + other.width - layerWidth; }
+            else if (Math.abs(centerX - otherCenterX) < SNAP_THRESHOLD) { snapX = otherCenterX; newX = otherCenterX - layerWidth / 2; }
+            else if (Math.abs(currentX - (other.x + other.width)) < SNAP_THRESHOLD) { snapX = other.x + other.width; newX = other.x + other.width; } // Left to Right
+            else if (Math.abs(currentX + layerWidth - other.x) < SNAP_THRESHOLD) { snapX = other.x; newX = other.x - layerWidth; } // Right to Left
+
+
+            // Y snapping (edges, centers, baselines)
+            if (Math.abs(currentY - other.y) < SNAP_THRESHOLD) { snapY = other.y; newY = other.y; }
+            else if (Math.abs(currentY + layerHeight - (other.y + otherHeight)) < SNAP_THRESHOLD) { snapY = other.y + otherHeight; newY = other.y + otherHeight - layerHeight; }
+            else if (Math.abs(centerY - otherCenterY) < SNAP_THRESHOLD) { snapY = otherCenterY; newY = otherCenterY - layerHeight / 2; }
+            else if (Math.abs(currentY - (other.y + otherHeight)) < SNAP_THRESHOLD) { snapY = other.y + otherHeight; newY = other.y + otherHeight; } // Top to Bottom
+            else if (Math.abs(currentY + layerHeight - other.y) < SNAP_THRESHOLD) { snapY = other.y; newY = other.y - layerHeight; } // Bottom to Top
+
+            // Baseline Snapping (Text Only)
+            if (currentLayer.type === 'text' && other.type === 'text') {
+                const otherMetric = GeometryOracle.measureText(other as TextLayer);
+                const otherBaseline = other.y + otherMetric.ascent;
+                const currentBaseline = currentY + currentAscent;
+
+                if (Math.abs(currentBaseline - otherBaseline) < SNAP_THRESHOLD) {
+                    snapY = otherBaseline;
+                    newY = otherBaseline - currentAscent;
+                }
+            }
+
+            if (snapX !== undefined || snapY !== undefined) break; // Priority snapping (first found wins for now)
+        }
+
         return { snapX, snapY, newX, newY };
-    }, [canvasSize.width, canvasSize.height]);
+    }, [canvasSize.width, canvasSize.height, effectiveShapeLayers, effectiveImageLayers, effectiveTextLayers]);
 
     // -- Global Space Key for Panning --
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.code === 'Space' && !e.repeat && !editingTextId) {
                 setIsSpacePressed(true);
+            }
+
+            // Don't capture shortcuts while editing text
+            if (editingTextId) return;
+
+            const isCtrl = e.ctrlKey || e.metaKey;
+
+            // Ctrl+G: Group selected layers
+            if (isCtrl && e.key === 'g' && !e.shiftKey) {
+                e.preventDefault();
+                if (onGroup && selectedLayerIds.length > 1) onGroup();
+            }
+            // Ctrl+Shift+G: Ungroup
+            if (isCtrl && e.key === 'g' && e.shiftKey) {
+                e.preventDefault();
+                if (onUngroup) onUngroup();
+            }
+            // Delete or Backspace: Delete selected layer(s)
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                if (selectedLayerId) {
+                    onDeleteLayer(selectedLayerId);
+                }
+            }
+            // Ctrl+D: Duplicate selected
+            if (isCtrl && e.key === 'd') {
+                e.preventDefault();
+                if (selectedLayerId) {
+                    onDuplicateLayer(selectedLayerId);
+                }
+            }
+            // Ctrl+A: Select All (defers to multi-select of all layers)
+            if (isCtrl && e.key === 'a') {
+                e.preventDefault();
+                if (onMultiSelectLayer && layers.length > 0) {
+                    layers.forEach(l => onMultiSelectLayer!(l.id));
+                }
             }
         };
         const handleKeyUp = (e: KeyboardEvent) => {
@@ -724,7 +967,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
         };
-    }, [editingTextId]);
+    }, [editingTextId, selectedLayerId, selectedLayerIds, onGroup, onUngroup, onDeleteLayer, onDuplicateLayer, layers, onMultiSelectLayer]);
 
     // -- Mouse Handlers --
 
@@ -774,24 +1017,112 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     const handleResizeStart = useCallback((e: React.MouseEvent, layer: Layer, handle: ResizeHandle) => {
         e.stopPropagation();
         onInteractionStartRef.current();
-        setResizeState({ isResizing: true, handle, startX: e.clientX, startY: e.clientY, initialLayer: { ...layer } });
+
+        const currentSelectedLayerIds = selectedLayerIdsRef.current;
+        const currentLayers = layersRef.current;
+
+        if (currentSelectedLayerIds && currentSelectedLayerIds.length > 1) {
+            // Multi-selection resize
+            const selectedLayers = currentLayers.filter(l => currentSelectedLayerIds.includes(l.id));
+            const bounds = GeometryOracle.getGroupBounds(selectedLayers);
+            const initialLayers: Record<string, Layer> = {};
+            selectedLayers.forEach(l => initialLayers[l.id] = { ...l });
+
+            setResizeState({
+                isResizing: true,
+                handle,
+                startX: e.clientX,
+                startY: e.clientY,
+                initialBounds: bounds,
+                initialLayers
+            });
+        } else {
+            // Single layer resize
+            setResizeState({ isResizing: true, handle, startX: e.clientX, startY: e.clientY, initialLayer: { ...layer } });
+        }
     }, []);
 
     const handleRotateStart = useCallback((e: React.MouseEvent, layer: Layer) => {
         e.stopPropagation();
         onInteractionStartRef.current();
-        const selectionBox = (e.target as HTMLElement).closest('.group');
-        if (selectionBox) {
-            const boxRect = selectionBox.getBoundingClientRect();
-            setRotateState({ isRotating: true, startX: e.clientX, startY: e.clientY, initialRotation: layer.rotation, centerX: boxRect.left + boxRect.width / 2, centerY: boxRect.top + boxRect.height / 2 });
+
+        const currentSelectedLayerIds = selectedLayerIdsRef.current;
+        const currentLayers = layersRef.current;
+        const currentZoom = zoomRef.current;
+
+        if (currentSelectedLayerIds && currentSelectedLayerIds.length > 1) {
+            const selectedLayers = currentLayers.filter(l => currentSelectedLayerIds.includes(l.id));
+            const bounds = GeometryOracle.getGroupBounds(selectedLayers);
+            const canvasCenterX = bounds.x + bounds.width / 2;
+            const canvasCenterY = bounds.y + bounds.height / 2;
+
+            // Get Screen Space Center from DOM for accurate mouse angle delta
+            const selectionBox = document.getElementById('multi-selection-box');
+            let centerX = 0, centerY = 0;
+            if (selectionBox) {
+                const innerBox = selectionBox.firstElementChild as HTMLElement;
+                if (innerBox) {
+                    const rect = innerBox.getBoundingClientRect();
+                    centerX = rect.left + rect.width / 2;
+                    centerY = rect.top + rect.height / 2;
+                }
+            }
+
+            // Fallback if DOM not found
+            if (centerX === 0) {
+                if (viewportRef.current) {
+                    const rect = viewportRef.current.getBoundingClientRect();
+                    // Very rough approximation if DOM fails
+                    centerX = rect.left + rect.width / 2;
+                    centerY = rect.top + rect.height / 2;
+                }
+            }
+
+            const initialLayers: Record<string, Layer> = {};
+            selectedLayers.forEach(l => initialLayers[l.id] = { ...l });
+
+            setRotateState({
+                isRotating: true,
+                startX: e.clientX,
+                startY: e.clientY,
+                initialRotation: 0,
+                centerX, // Screen Space
+                centerY,  // Screen Space
+                canvasCenterX, // Canvas Space
+                canvasCenterY, // Canvas Space
+                initialLayers
+            });
+
+        } else {
+            const selectionBox = (e.target as HTMLElement).closest('.group');
+            if (selectionBox) {
+                const boxRect = selectionBox.getBoundingClientRect();
+                setRotateState({ isRotating: true, startX: e.clientX, startY: e.clientY, initialRotation: layer.rotation, centerX: boxRect.left + boxRect.width / 2, centerY: boxRect.top + boxRect.height / 2 });
+            }
         }
-    }, []);
+    }, [panOffset]);
 
     const mouseMoveRequestRef = useRef<number>();
-    const handleMouseMove = useCallback((e: MouseEvent) => {
-        if (mouseMoveRequestRef.current) {
-            cancelAnimationFrame(mouseMoveRequestRef.current);
+    const lastMousePosRef = useRef<{ x: number, y: number, time: number } | null>(null);
+    const velocityRef = useRef<number>(0);
+
+    const handleMouseMove = useCallback((e: any) => {
+        const reqId = mouseMoveRequestRef.current;
+        if (reqId) {
+            cancelAnimationFrame(reqId);
         }
+
+        const currentTime = Date.now();
+        if (lastMousePosRef.current) {
+            const dt = currentTime - lastMousePosRef.current.time;
+            if (dt > 0) {
+                const dist = Math.sqrt(Math.pow(e.clientX - lastMousePosRef.current.x, 2) + Math.pow(e.clientY - lastMousePosRef.current.y, 2));
+                // Low-pass filter for velocity to avoid spikes
+                const instantVelocity = dist / dt;
+                velocityRef.current = velocityRef.current * 0.8 + instantVelocity * 0.2;
+            }
+        }
+        lastMousePosRef.current = { x: e.clientX, y: e.clientY, time: currentTime };
 
         mouseMoveRequestRef.current = requestAnimationFrame(() => {
             if (isPanningRef.current) {
@@ -812,23 +1143,71 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                 const dx = (e.clientX - currentDragState.startX) / currentZoom;
                 const dy = (e.clientY - currentDragState.startY) / currentZoom;
 
-                const primaryLayerId = currentSelectedLayerId || currentSelectedLayerIds[0];
-                const primaryLayer = currentLayers.find(l => l.id === primaryLayerId);
+                // Predictive Throttling: If moving fast (> 2.5px/ms), disable snapping for performance & feel
+                // 2.5px/ms is roughly 2500px/s, a swift flick
+                const isMovingFast = velocityRef.current > 2.5;
 
                 let finalDx = dx;
                 let finalDy = dy;
+                let snapVertical: number | undefined;
+                let snapHorizontal: number | undefined;
 
-                if (primaryLayer && currentDragState.initialPositions[primaryLayer.id]) {
-                    const initial = currentDragState.initialPositions[primaryLayer.id];
-                    let proposedX = initial.x + dx;
-                    let proposedY = initial.y + dy;
+                if (!isMovingFast) {
+                    if (currentSelectedLayerIds.length > 1) {
+                        // Group Snapping
+                        const selectedLayers = currentLayers.filter(l => currentSelectedLayerIds.includes(l.id));
+                        const groupBounds = GeometryOracle.getGroupBounds(selectedLayers);
 
-                    const { snapX, snapY, newX, newY } = getSnapLines({ ...primaryLayer, x: proposedX, y: proposedY } as any, proposedX, proposedY);
-                    setSnapLines({ vertical: snapX, horizontal: snapY });
+                        // Construct a proxy layer for the group to reuse getSnapLines logic
+                        // We need the *current* position of the group, which is initial + delta
+                        const currentGroupX = groupBounds.x + dx;
+                        const currentGroupY = groupBounds.y + dy;
 
-                    if (newX !== proposedX) finalDx = newX - initial.x;
-                    if (newY !== proposedY) finalDy = newY - initial.y;
+                        const groupProxy: Layer = {
+                            id: 'group_proxy',
+                            type: 'rectangle',
+                            x: currentGroupX,
+                            y: currentGroupY,
+                            width: groupBounds.width,
+                            height: groupBounds.height,
+                            rotation: 0,
+                            opacity: 1,
+                            locked: false,
+                            visible: true,
+                            cornerRadius: 0,
+                            color: 'transparent'
+                        } as any;
+
+                        const { snapX, snapY, newX, newY } = getSnapLines(groupProxy, currentGroupX, currentGroupY);
+
+                        if (newX !== currentGroupX) finalDx = newX - groupBounds.x;
+                        if (newY !== currentGroupY) finalDy = newY - groupBounds.y;
+
+                        snapVertical = snapX;
+                        snapHorizontal = snapY;
+
+                    } else {
+                        // Single Layer Snapping
+                        const primaryLayerId = currentSelectedLayerId || currentSelectedLayerIds[0];
+                        const primaryLayer = currentLayers.find(l => l.id === primaryLayerId);
+
+                        if (primaryLayer && currentDragState.initialPositions[primaryLayer.id]) {
+                            const initial = currentDragState.initialPositions[primaryLayer.id];
+                            let proposedX = initial.x + dx;
+                            let proposedY = initial.y + dy;
+
+                            const { snapX, snapY, newX, newY } = getSnapLines({ ...primaryLayer, x: proposedX, y: proposedY } as any, proposedX, proposedY);
+
+                            if (newX !== proposedX) finalDx = newX - initial.x;
+                            if (newY !== proposedY) finalDy = newY - initial.y;
+
+                            snapVertical = snapX;
+                            snapHorizontal = snapY;
+                        }
+                    }
                 }
+
+                setSnapLines({ vertical: snapVertical, horizontal: snapHorizontal });
 
                 const newBulkPreview: Record<string, { x: number, y: number }> = {};
                 Object.entries(currentDragState.initialPositions).forEach(([id, initialPos]) => {
@@ -840,33 +1219,121 @@ const CanvasComponent: React.FC<CanvasProps> = ({
             }
 
             const currentResizeState = resizeStateRef.current;
-            if (currentResizeState?.isResizing && currentSelectedLayerId) {
+            if (currentResizeState?.isResizing) {
                 const dx = (e.clientX - currentResizeState.startX) / currentZoom;
                 const dy = (e.clientY - currentResizeState.startY) / currentZoom;
-                const { handle, initialLayer } = currentResizeState;
-                let { x, y, width } = initialLayer;
-                let height = (initialLayer as any).height || 0;
+                const { handle, initialLayer, initialBounds, initialLayers } = currentResizeState;
 
-                if (handle.includes('e')) width += dx;
-                if (handle.includes('w')) { x += dx; width -= dx; }
-                if (handle.includes('s')) height += dy;
-                if (handle.includes('n')) { y += dy; height -= dy; }
+                if (initialBounds && initialLayers) {
+                    // Group Resizing
+                    let { x, y, width, height } = initialBounds;
+                    let newX = x, newY = y, newW = width, newH = height;
 
-                setDragPreview({
-                    id: currentSelectedLayerId,
-                    x, y,
-                    width: Math.max(10, width),
-                    height: Math.max(10, height)
-                });
+                    if (handle.includes('e')) newW += dx;
+                    if (handle.includes('w')) { newX += dx; newW -= dx; }
+                    if (handle.includes('s')) newH += dy;
+                    if (handle.includes('n')) { newY += dy; newH -= dy; }
+
+                    // Construct bulk updates
+                    const updates: Record<string, any> = {};
+                    const scaleX = newW / width;
+                    const scaleY = newH / height;
+
+                    Object.entries(initialLayers).forEach(([id, layer]) => {
+                        // Calculate relative position
+                        const relX = (layer.x - x);
+                        const relY = (layer.y - y);
+
+                        updates[id] = {
+                            x: newX + relX * scaleX,
+                            y: newY + relY * scaleY,
+                            width: layer.width * scaleX,
+                            height: (layer as any).height ? (layer as any).height * scaleY : undefined,
+                            fontSize: layer.type === 'text' ? (layer as TextLayer).fontSize * scaleY : undefined
+                        };
+                    });
+
+                    // We need to render these updates. 
+                    // Since we don't have a 'bulkResizePreview' state, we might need to use bulkDragPreview or onUpdateLayers directly?
+                    // Ideally we should use a preview state to avoid costly renders, but for now let's use the batched update if performance allows, 
+                    // OR better, re-use setBulkDragPreview if it supports width/height/fontSize? 
+                    // The current bulkDragPreview only supports x/y.
+                    // Let's assume onUpdateLayers is fast enough or use a preview ref if needed. 
+                    // For smooth 60fps, we should probably commit to state or use a specialized preview.
+                    // Given the constraint, let's use onUpdateLayers for immediate feedback OR setDragPreview if we can extend it.
+                    // Extending dragPreview is complex. 
+                    // Let's use onUpdateLayers for now as it's the intended "live" update mechanism.
+                    if (onUpdateLayers) {
+                        onUpdateLayers(updates);
+                    }
+
+                    // Also update the selection box visual by calculating its new bounds conceptually?
+                    // The MultiSelectionHandles will update as layers change.
+                } else if (initialLayer && currentSelectedLayerId) {
+                    // Single Layer Resizing
+                    let { x, y, width } = initialLayer;
+                    let height = (initialLayer as any).height || 0;
+
+                    if (handle.includes('e')) width += dx;
+                    if (handle.includes('w')) { x += dx; width -= dx; }
+                    if (handle.includes('s')) height += dy;
+                    if (handle.includes('n')) { y += dy; height -= dy; }
+
+                    setDragPreview({
+                        id: currentSelectedLayerId,
+                        x, y,
+                        width: Math.max(10, width),
+                        height: Math.max(10, height)
+                    });
+                }
             }
 
             const currentRotateState = rotateStateRef.current;
             const currentSelectedLayer = selectedLayerRef.current;
-            if (currentRotateState?.isRotating && currentSelectedLayerId) {
-                const angle = Math.atan2(e.clientY - currentRotateState.centerY, e.clientX - currentRotateState.centerX);
-                const startAngle = Math.atan2(currentRotateState.startY - currentRotateState.centerY, currentRotateState.startX - currentRotateState.centerX);
-                const rotation = currentRotateState.initialRotation + (angle - startAngle) * (180 / Math.PI);
-                setDragPreview({ id: currentSelectedLayerId, x: currentSelectedLayer?.x || 0, y: currentSelectedLayer?.y || 0, rotation });
+
+            if (currentRotateState?.isRotating) {
+                const { initialLayers, centerX, centerY, canvasCenterX, canvasCenterY, initialRotation, startX, startY } = currentRotateState;
+
+                if (initialLayers && canvasCenterX !== undefined && canvasCenterY !== undefined) {
+                    // Group Rotation
+                    const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+                    const startAngle = Math.atan2(startY - centerY, startX - centerX);
+                    const deltaAngle = (angle - startAngle) * (180 / Math.PI);
+
+                    const updates: Record<string, any> = {};
+
+                    const rad = deltaAngle * (Math.PI / 180);
+                    const cos = Math.cos(rad);
+                    const sin = Math.sin(rad);
+
+                    Object.entries(initialLayers).forEach(([id, layer]) => {
+                        const lHeight = (layer as any).height || 0;
+                        // Center of layer relative to group center
+                        const cx = layer.x + layer.width / 2;
+                        const cy = layer.y + lHeight / 2;
+
+                        const rx = cx - canvasCenterX;
+                        const ry = cy - canvasCenterY;
+
+                        // Rotate center
+                        const nx = rx * cos - ry * sin;
+                        const ny = rx * sin + ry * cos;
+
+                        updates[id] = {
+                            x: canvasCenterX + nx - layer.width / 2,
+                            y: canvasCenterY + ny - lHeight / 2,
+                            rotation: (layer.rotation + deltaAngle) % 360
+                        };
+                    });
+
+                    onUpdateLayers?.(updates);
+
+                } else if (currentSelectedLayerId) {
+                    const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+                    const startAngle = Math.atan2(startY - centerY, startX - centerX);
+                    const rotation = initialRotation + (angle - startAngle) * (180 / Math.PI);
+                    setDragPreview({ id: currentSelectedLayerId, x: currentSelectedLayer?.x || 0, y: currentSelectedLayer?.y || 0, rotation });
+                }
             }
         });
     }, [getSnapLines]);
@@ -899,25 +1366,8 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         }
 
         const updatedIds = Object.keys(accumulatedUpdates);
-        if (updatedIds.length > 0) {
-            if (onUpdateLayers) {
-                onUpdateLayers(accumulatedUpdates);
-            } else {
-                // Fallback to sequential updates
-                const fetchLayerType = (id: string) => {
-                    const layer = currentLayers.find(l => l.id === id);
-                    if (!layer) return null;
-                    return layer.type;
-                };
-
-                updatedIds.forEach(id => {
-                    const type = fetchLayerType(id);
-                    const changes = accumulatedUpdates[id];
-                    if (type === 'text') onUpdateTextLayer(id, changes);
-                    else if (type === 'image') onUpdateImageLayer(id, changes);
-                    else onUpdateShapeLayer(id, changes);
-                });
-            }
+        if (updatedIds.length > 0 && onUpdateLayers) {
+            onUpdateLayers(accumulatedUpdates);
         }
 
         setDragState(null);
@@ -927,15 +1377,16 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         setIsPanning(false);
         setDragPreview(null);
         setBulkDragPreview({});
-    }, [onUpdateTextLayer, onUpdateShapeLayer, onUpdateImageLayer, onUpdateLayers]);
+    }, [onUpdateLayers]);
 
     useEffect(() => {
-        window.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('mouseup', handleMouseUp);
-        return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
-        };
+        // These listeners are now on the viewportRef div
+        // window.addEventListener('mousemove', handleMouseMove);
+        // window.addEventListener('mouseup', handleMouseUp);
+        // return () => {
+        //     window.removeEventListener('mousemove', handleMouseMove);
+        //     window.removeEventListener('mouseup', handleMouseUp);
+        // };
     }, [handleMouseMove, handleMouseUp]);
 
     const [vectorPoints, setVectorPoints] = useState<{ x: number, y: number }[]>([]);
@@ -1119,15 +1570,38 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         e.preventDefault(); e.stopPropagation(); setContextMenu({ x: e.clientX, y: e.clientY, layerId });
     }, []);
     const handleDropShape = useCallback((e: React.DragEvent, layerId: string) => {
-        e.preventDefault(); const imageUrl = e.dataTransfer.getData('text/plain');
-        if (imageUrl && layerId) onUpdateShapeLayer(layerId, { backgroundImage: imageUrl, color: 'transparent' });
-    }, [onUpdateShapeLayer]);
+        e.preventDefault();
+        e.stopPropagation(); // Stop bubbling to canvas drop handler
+
+        const files = e.dataTransfer.files;
+        if (files && files.length > 0) {
+            const file = files[0];
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const imageUrl = ev.target?.result as string;
+                    if (imageUrl && layerId && onUpdateLayers) onUpdateLayers({ [layerId]: { backgroundImage: imageUrl, color: 'transparent' } });
+                };
+                reader.readAsDataURL(file);
+            }
+            return;
+        }
+
+        const imageUrl = e.dataTransfer.getData('text/plain');
+        if (imageUrl && layerId && onUpdateLayers) onUpdateLayers({ [layerId]: { backgroundImage: imageUrl, color: 'transparent' } });
+    }, [onUpdateLayers]);
     const handleMouseLeaveLayer = useCallback(() => setHoveredLayerId(null), []);
     const handleSetHoveredLayerId = useCallback((id: string | null) => setHoveredLayerId(id), []);
 
+    const textEditRef = useRef<HTMLDivElement>(null);
+
     const finishEditingText = () => {
-        if (editingTextId && editText.trim()) {
-            onUpdateTextLayer(editingTextId, { text: editText });
+        if (editingTextId && textEditRef.current) {
+            const newText = textEditRef.current.innerText || '';
+            if (newText.trim() && onUpdateLayers) {
+                onUpdateLayers({ [editingTextId]: { text: newText } });
+
+            }
             setEditingTextId(null);
         } else {
             setEditingTextId(null);
@@ -1138,6 +1612,34 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         e.stopPropagation();
         setEditingTextId(layer.id);
         setEditText(layer.text);
+
+        // Focus the contenteditable div after it renders and place caret at click position
+        const clickX = e.clientX;
+        const clickY = e.clientY;
+        setTimeout(() => {
+            if (textEditRef.current) {
+                textEditRef.current.focus();
+                // Try to place caret at the exact mouse click position
+                try {
+                    if (document.caretRangeFromPoint) {
+                        const range = document.caretRangeFromPoint(clickX, clickY);
+                        if (range) {
+                            const sel = window.getSelection();
+                            sel?.removeAllRanges();
+                            sel?.addRange(range);
+                            return;
+                        }
+                    }
+                } catch (_) { }
+                // Fallback: place caret at end
+                const range = document.createRange();
+                const sel = window.getSelection();
+                range.selectNodeContents(textEditRef.current);
+                range.collapse(false);
+                sel?.removeAllRanges();
+                sel?.addRange(range);
+            }
+        }, 0);
     }, []);
 
     return (
@@ -1151,8 +1653,34 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                 </div>
                 <div className="flex items-center gap-2">
                     <button onClick={onToggleGrid} className={`p-1 rounded text-xs flex items-center gap-1 ${showGrid ? 'bg-[#7d2ae8] text-white' : 'text-gray-400 hover:bg-gray-700'}`}><Icons.Grid className="w-3 h-3" /> Grid</button>
+                    <button onClick={onToggleRulers} className={`p-1 rounded text-xs flex items-center gap-1 ${showRulers ? 'bg-[#7d2ae8] text-white' : 'text-gray-400 hover:bg-gray-700'}`}><Icons.Layout className="w-3 h-3" /> Rulers</button>
                     <div className="h-4 w-px bg-gray-600 mx-2"></div>
-                    <span className="text-xs text-gray-500">{canvasSize.width} x {canvasSize.height} px</span>
+                    <div className="flex items-center gap-1">
+                        <input
+                            type="number"
+                            className="w-12 bg-[#252627] border border-gray-600 rounded px-1 py-0.5 text-[10px] text-gray-300 text-center focus:outline-none focus:border-[#7d2ae8] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            defaultValue={canvasSize.width}
+                            key={`w-${canvasSize.width}`}
+                            onBlur={(e) => {
+                                const v = Math.max(100, Math.min(5000, parseInt(e.target.value) || canvasSize.width));
+                                if (v !== canvasSize.width) onSetCanvasSize({ ...canvasSize, width: v });
+                            }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                        />
+                        <span className="text-[10px] text-gray-500">×</span>
+                        <input
+                            type="number"
+                            className="w-12 bg-[#252627] border border-gray-600 rounded px-1 py-0.5 text-[10px] text-gray-300 text-center focus:outline-none focus:border-[#7d2ae8] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            defaultValue={canvasSize.height}
+                            key={`h-${canvasSize.height}`}
+                            onBlur={(e) => {
+                                const v = Math.max(100, Math.min(5000, parseInt(e.target.value) || canvasSize.height));
+                                if (v !== canvasSize.height) onSetCanvasSize({ ...canvasSize, height: v });
+                            }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+                        />
+                        <span className="text-[10px] text-gray-500">px</span>
+                    </div>
                 </div>
             </div>
 
@@ -1165,9 +1693,10 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                     onSetCanvasBackgroundColor={onSetCanvasBackgroundColor}
                     canvasFilters={canvasFilters}
                     onUpdateCanvasFilters={onUpdateCanvasFilters}
-                    onUpdateTextLayer={onUpdateTextLayer}
-                    onUpdateShapeLayer={onUpdateShapeLayer}
-                    onUpdateImageLayer={onUpdateImageLayer}
+                    onUpdateTextLayer={useCallback((id: string, changes: any) => onUpdateLayers && onUpdateLayers({ [id]: changes }), [onUpdateLayers])}
+                    onUpdateShapeLayer={useCallback((id: string, changes: any) => onUpdateLayers && onUpdateLayers({ [id]: changes }), [onUpdateLayers])}
+                    onUpdateImageLayer={useCallback((id: string, changes: any) => onUpdateLayers && onUpdateLayers({ [id]: changes }), [onUpdateLayers])}
+
                     onDeleteLayer={onDeleteLayer}
                     onDuplicateLayer={onDuplicateLayer}
                     onMoveLayer={onMoveLayer}
@@ -1190,13 +1719,34 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
             {/* Main Workspace with Infinite Canvas Feel */}
             <div
-                className={`flex-1 overflow-hidden bg-[#0e1318] relative ${isSpacePressed ? 'cursor-grab' : ''} ${isPanning ? 'cursor-grabbing' : ''}`}
+                ref={viewportRef}
+                className="flex-1 relative overflow-hidden bg-[#0a0a0a] flex items-center justify-center cursor-default bg-[radial-gradient(#1f1f1f_1px,transparent_1px)] bg-[size:40px_40px]"
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={(e) => {
+                    if (isPanning) setIsPanning(false);
+                    // handleMouseUp(e as any); // Replaced with separate logic if needed
+                }}
                 onMouseDown={handleMouseDownContainer}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
                     e.preventDefault();
-                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0 && onFileUpload) {
-                        onFileUpload(e.dataTransfer.files[0]);
+                    const files = e.dataTransfer.files;
+                    if (files && files.length > 0 && onFileUpload) {
+                        const validFiles: File[] = [];
+                        for (let i = 0; i < files.length; i++) {
+                            if (files[i].type.startsWith('image/')) {
+                                validFiles.push(files[i]);
+                            }
+                        }
+                        if (validFiles.length > 0) {
+                            onFileUpload(validFiles);
+                        }
+                    } else {
+                        const url = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('url');
+                        if (url && (url.startsWith('http') || url.startsWith('data:'))) {
+                            onAddLogoToCanvas(url);
+                        }
                     }
                 }}
             >
@@ -1218,8 +1768,12 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                         }}
                     >
                         {/* Rulers */}
-                        <Ruler type="horizontal" length={canvasSize.width} zoom={zoom} />
-                        <Ruler type="vertical" length={canvasSize.height} zoom={zoom} />
+                        {showRulers && (
+                            <>
+                                <Ruler type="horizontal" length={canvasSize.width} zoom={zoom} />
+                                <Ruler type="vertical" length={canvasSize.height} zoom={zoom} />
+                            </>
+                        )}
 
                         {/* Grid Overlay */}
                         {showGrid && <div className="absolute inset-0 pointer-events-none z-[60]" style={{ backgroundImage: 'linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg, #ccc 1px, transparent 1px)', backgroundSize: '20px 20px', opacity: 0.2 }}></div>}
@@ -1232,33 +1786,85 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                             <div className="absolute left-0 right-0 h-px bg-cyan-400 z-[100] pointer-events-none shadow-[0_0_4px_rgba(34,211,238,0.8)]" style={{ top: snapLines.horizontal }}></div>
                         )}
 
-                        {/* Background Image */}
+                        {/* Background Image Block */}
                         {bgImage && (
                             <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
                                 <img src={bgImage} className="w-full h-full object-contain" style={{ filter: `opacity(${canvasFilters.opacity})` }} />
                                 {canvasFilters.vignette > 0 && <div className="absolute inset-0 pointer-events-none" style={{ background: `radial-gradient(circle, transparent ${100 - canvasFilters.vignette}%, black 150%)` }}></div>}
-                                {canvasFilters.overlayTexture && <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-50" style={{ backgroundImage: `url(${canvasFilters.overlayTexture})`, backgroundSize: 'cover' }}></div>}
+                            </div>
+                        )}
+
+                        {/* Overlay Texture (Canvas Wide) */}
+                        {canvasFilters.overlayTexture && (
+                            <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-50 z-[5] overflow-hidden"
+                                style={{ backgroundImage: `url(${canvasFilters.overlayTexture})`, backgroundSize: 'cover' }}>
                             </div>
                         )}
 
                         {/* Layers — using pre-computed effective layers for stable React.memo references */}
-                        {effectiveShapeLayers.map(l => (
-                            <ShapeLayerItem key={l.id} layer={l} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} onDrop={handleDropShape} />
-                        ))}
-                        {effectiveImageLayers.map(l => (
-                            <ImageLayerItem key={l.id} layer={l} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} />
-                        ))}
-                        {effectiveTextLayers.map((l, idx) => (
-                            <React.Fragment key={l.id}>
-                                {editingTextId === l.id ? (
-                                    <textarea value={editText} onChange={(e) => setEditText(e.target.value)} onBlur={finishEditingText} autoFocus className="absolute bg-transparent border-2 border-[#7d2ae8] outline-none resize-none overflow-hidden z-[100]" style={{ left: l.x, top: l.y, width: l.width, minHeight: l.fontSize * 1.5, fontSize: l.fontSize, fontFamily: l.fontFamily, fontWeight: l.fontWeight as any, fontStyle: l.fontStyle, textAlign: l.textAlign, color: l.color, lineHeight: l.lineHeight, transform: `rotate(${l.rotation}deg)` }} />
-                                ) : (
-                                    <TextLayerItem layer={l} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} onDoubleClick={handleTextDoubleClick} isInteracting={!!dragState || !!resizeState || !!rotateState} />
-                                )}
-                            </React.Fragment>
-                        ))}
+                        {effectiveLayers.map((l, idx) => {
+                            if (l.type === 'image') return (
+                                <ImageLayerItem key={l.id} layer={l} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} />
+                            );
+                            if (l.type === 'text') return (
+                                <React.Fragment key={l.id}>
+                                    {editingTextId === l.id ? (
+                                        <div
+                                            ref={textEditRef}
+                                            contentEditable
+                                            suppressContentEditableWarning
+                                            onBlur={finishEditingText}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' && !e.shiftKey) {
+                                                    e.preventDefault();
+                                                    textEditRef.current?.blur();
+                                                }
+                                                if (e.key === 'Escape') {
+                                                    setEditingTextId(null);
+                                                }
+                                            }}
+                                            className="absolute bg-transparent border-2 border-[#7d2ae8] outline-none overflow-visible z-[100] cursor-text min-w-[50px]"
+                                            style={{
+                                                left: l.x,
+                                                top: l.y,
+                                                width: l.width,
+                                                fontSize: l.fontSize,
+                                                fontFamily: l.fontFamily,
+                                                fontWeight: l.fontWeight as any,
+                                                fontStyle: l.fontStyle,
+                                                textAlign: l.textAlign,
+                                                color: l.color,
+                                                lineHeight: l.lineHeight,
+                                                transform: `rotate(${l.rotation}deg)`,
+                                                whiteSpace: 'pre-wrap',
+                                                wordBreak: 'break-word'
+                                            }}
+                                        >
+                                            {l.text}
+                                        </div>
+                                    ) : (
+                                        <TextLayerItem layer={l} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} onDoubleClick={handleTextDoubleClick} isInteracting={!!dragState || !!resizeState || !!rotateState} />
+                                    )}
+                                </React.Fragment>
+                            );
+                            return (
+                                <ShapeLayerItem key={l.id} layer={l} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} onDrop={handleDropShape} />
+                            );
+                        })}
+
 
                         {/* Drawing & Processing Overlays */}
+                        {/* Multi-selection handles */}
+                        {isMultiSelect && (
+                            <div className="absolute inset-0 pointer-events-none z-[80]">
+                                <MultiSelectionHandles
+                                    layers={layers.filter(l => selectedLayerIds.includes(l.id))}
+                                    zoom={zoom}
+                                    onResize={handleResizeStart}
+                                    onRotate={handleRotateStart}
+                                />
+                            </div>
+                        )}
                         <canvas
                             ref={drawingCanvasRef}
                             width={canvasSize.width}
@@ -1300,7 +1906,20 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
             {/* Context Menu */}
             {contextMenu && (
-                <ContextMenu x={contextMenu.x} y={contextMenu.y} layerId={contextMenu.layerId} onClose={() => setContextMenu(null)} onDelete={onDeleteLayer} onDuplicate={onDuplicateLayer} onMoveForward={(id) => onMoveLayer(id, 'forward')} onMoveBackward={(id) => onMoveLayer(id, 'backward')} onLock={(id) => { const l = layers.find(la => la.id === id); if (l && selectedLayerId === id) { if (l.type === 'text') onUpdateTextLayer(id, { locked: !l.locked }); else if (l.type === 'image') onUpdateImageLayer(id, { locked: !l.locked }); else onUpdateShapeLayer(id, { locked: !l.locked }); } }} isLocked={layers.find(l => l.id === contextMenu.layerId)?.locked || false} />
+                <ContextMenu x={contextMenu.x} y={contextMenu.y} layerId={contextMenu.layerId} onClose={() => setContextMenu(null)} onDelete={onDeleteLayer} onDuplicate={onDuplicateLayer} onMoveForward={(id) => onMoveLayer(id, 'forward')} onMoveBackward={(id) => onMoveLayer(id, 'backward')} onLock={(id) => { const l = layers.find(la => la.id === id); if (l && onUpdateLayers) { onUpdateLayers({ [id]: { locked: !l.locked } }); } }} isLocked={layers.find(l => l.id === contextMenu.layerId)?.locked || false} />
+            )}
+
+            {/* Floating Pop-out Typography UI */}
+            {/* Floating Toolbar for Selected Layer */}
+            {selectedLayer && (
+                <FloatingToolbar
+                    selectedLayer={selectedLayer}
+                    onUpdateLayer={(id, changes) => onUpdateLayers && onUpdateLayers({ [id]: changes })}
+                    onDeleteLayer={onDeleteLayer}
+                    onDuplicateLayer={onDuplicateLayer}
+                    onMoveLayer={onMoveLayer}
+                    zoom={zoom}
+                />
             )}
         </div>
     );

@@ -37,7 +37,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
   ];
 
   return (
-    <div className="flex flex-col h-full p-4">
+    <div className="flex flex-col h-full p-4 overflow-y-auto custom-scrollbar pb-10">
       <h3 className="font-bold text-white mb-6 flex items-center gap-2">
         <Icons.Brush className="w-5 h-5 text-[#7d2ae8]" />
         Creative Drawing

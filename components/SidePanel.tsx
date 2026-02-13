@@ -9,12 +9,12 @@ import { UploadsPanel } from './panels/UploadsPanel';
 import { AssetsPanel } from './panels/AssetsPanel';
 
 // Lazy load complex panels
-const MagicPanel = React.lazy(() => import('./panels/MagicPanel').then(m => ({ default: m.MagicPanel })));
-const TemplatesPanel = React.lazy(() => import('./panels/TemplatesPanel').then(m => ({ default: m.TemplatesPanel })));
-const BrandPanel = React.lazy(() => import('./panels/BrandPanel').then(m => ({ default: m.BrandPanel })));
-const TexturesPanel = React.lazy(() => import('./panels/TexturesPanel').then(m => ({ default: m.TexturesPanel })));
-const MockupPanel = React.lazy(() => import('./panels/MockupPanel').then(m => ({ default: m.MockupPanel })));
-const AssistantPanel = React.lazy(() => import('./panels/AssistantPanel').then(m => ({ default: m.AssistantPanel })));
+const MagicPanel = React.lazy(() => import('./panels/MagicPanel'));
+const TemplatesPanel = React.lazy(() => import('./panels/TemplatesPanel'));
+const BrandPanel = React.lazy(() => import('./panels/BrandPanel'));
+const TexturesPanel = React.lazy(() => import('./panels/TexturesPanel'));
+const MockupPanel = React.lazy(() => import('./panels/MockupPanel'));
+const AssistantPanel = React.lazy(() => import('./panels/AssistantPanel'));
 
 const PanelLoading = () => (
   <div className="flex h-full w-full items-center justify-center bg-[#13161a]">
@@ -36,7 +36,7 @@ interface SidePanelProps {
   history: GeneratedImage[];
   onSelectImage: (img: GeneratedImage) => void;
   onClearHistory: () => void;
-  onFileUpload: (file: File) => void;
+  onFileUpload: (files: File[]) => void;
   uploadedImage: string | null;
   // Text & Shape Props
   onAddText: (style: Partial<TextLayer>) => void;
@@ -80,6 +80,7 @@ interface SidePanelProps {
   onDeleteBrandKit?: (id: string) => void;
   onApplyBrandColors?: (colors: string[]) => void;
   onApplyBrandFonts?: (heading: string, body: string) => void;
+  onUpdateBrandKit?: (id: string, updates: Partial<BrandKit>) => void;
   // Textures
   onApplyTexture?: (url: string) => void;
   onRemoveTexture?: () => void;
@@ -100,6 +101,7 @@ interface SidePanelProps {
   // Copy/Paste (missing in props but used in LayersPanel)
   onCopyLayer?: (id: string) => void;
   onPasteLayer?: () => void;
+  onHoverFont?: (fontFamily: string | null) => void;
 }
 
 export const SidePanel = React.memo(({ ...props }: SidePanelProps) => {
@@ -159,6 +161,7 @@ export const SidePanel = React.memo(({ ...props }: SidePanelProps) => {
     onDeleteBrandKit,
     onApplyBrandColors,
     onApplyBrandFonts,
+    onUpdateBrandKit,
     onApplyTexture,
     onRemoveTexture,
     currentTexture,
@@ -169,6 +172,7 @@ export const SidePanel = React.memo(({ ...props }: SidePanelProps) => {
     onDeleteUpload,
     onCopyLayer,
     onPasteLayer,
+    onHoverFont,
   } = props;
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -236,7 +240,7 @@ export const SidePanel = React.memo(({ ...props }: SidePanelProps) => {
             />
           )}
 
-          {(activeTab === NavTab.ELEMENTS || activeTab === NavTab.STICKERS) && (
+          {activeTab === NavTab.ELEMENTS && (
             <ElementsPanel
               onAddShape={onAddShape}
               onAddImageLayer={onAddImageLayer}
@@ -244,7 +248,7 @@ export const SidePanel = React.memo(({ ...props }: SidePanelProps) => {
           )}
 
           {activeTab === NavTab.TEXT && (
-            <TextPanel onAddText={onAddText} />
+            <TextPanel onAddText={onAddText} onHoverFont={onHoverFont} />
           )}
 
           {activeTab === NavTab.UPLOADS && (
@@ -275,6 +279,8 @@ export const SidePanel = React.memo(({ ...props }: SidePanelProps) => {
               onDeleteBrandKit={onDeleteBrandKit || (() => { })}
               onApplyBrandColors={onApplyBrandColors || (() => { })}
               onApplyBrandFonts={onApplyBrandFonts || (() => { })}
+              onUpdateBrandKit={onUpdateBrandKit || (() => { })}
+              onAddLogoToCanvas={onAddImageLayer || (() => { })}
             />
           )}
 
@@ -349,9 +355,10 @@ export const SidePanel = React.memo(({ ...props }: SidePanelProps) => {
         ref={fileInputRef}
         className="hidden"
         accept="image/*"
+        multiple
         onChange={(e) => {
           if (e.target.files && e.target.files.length > 0) {
-            onFileUpload(e.target.files[0]);
+            onFileUpload(Array.from(e.target.files));
           }
         }}
       />

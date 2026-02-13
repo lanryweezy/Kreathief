@@ -1,9 +1,42 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Icons } from '../../constants';
 import { Button } from '../Button';
 import { ChatMessage, TextLayer, ShapeLayer } from '../../types';
 import * as geminiService from '../../services/geminiService';
+
+// Local SVG icons to avoid dependence on constants.ts which might cause crashes
+const LocalIcons = {
+  Bot: (props: any) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2" /><path d="M20 14h2" /><path d="M15 13v2" /><path d="M9 13v2" />
+    </svg>
+  ),
+  Eye: (props: any) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" />
+    </svg>
+  ),
+  LayoutGrid: (props: any) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect width="7" height="7" x="3" y="3" rx="1" /><rect width="7" height="7" x="14" y="3" rx="1" /><rect width="7" height="7" x="14" y="14" rx="1" /><rect width="7" height="7" x="3" y="14" rx="1" />
+    </svg>
+  ),
+  Mic: (props: any) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="22" />
+    </svg>
+  ),
+  MicOff: (props: any) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="2" y1="2" x2="22" y2="22" /><path d="M18.89 12a11.94 11.94 0 0 1-2.23 6.41" /><path d="M2 10h3" /><path d="M20 10h3" /><path d="M15 2H9a2 2 0 0 0-2 2v7h2V4h6v10H9v4h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z" />
+    </svg>
+  ),
+  ArrowUp: (props: any) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" />
+    </svg>
+  )
+};
 
 interface AssistantPanelProps {
   getCanvasSnapshot: () => Promise<string>;
@@ -11,17 +44,17 @@ interface AssistantPanelProps {
   onAddShape: (type: any, style: Partial<ShapeLayer>) => void;
 }
 
-export const AssistantPanel: React.FC<AssistantPanelProps> = ({ 
+export const AssistantPanel: React.FC<AssistantPanelProps> = ({
   getCanvasSnapshot,
   onAddText,
   onAddShape
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { 
-      id: 'welcome', 
-      role: 'assistant', 
+    {
+      id: 'welcome',
+      role: 'assistant',
       content: "Hi! I'm your design partner. I can critique your work, suggest layouts, or answer design questions.",
-      timestamp: Date.now() 
+      timestamp: Date.now()
     }
   ]);
   const [input, setInput] = useState('');
@@ -98,37 +131,37 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({
       // Basic chat for now, but could be enhanced with context
       // For this demo, we check if the user asked for a layout
       if (input.toLowerCase().includes('layout') || input.toLowerCase().includes('generate')) {
-         const layoutData = await geminiService.generateLayout(input);
-         if (layoutData) {
-            if (layoutData.textLayers) {
-                layoutData.textLayers.forEach((l: any) => onAddText(l));
-            }
-            if (layoutData.shapeLayers) {
-                layoutData.shapeLayers.forEach((l: any) => onAddShape(l.type, l));
-            }
-            const aiMsg: ChatMessage = {
-              id: Date.now().toString() + '_ai',
-              role: 'assistant',
-              content: "I've added a layout suggestion to your canvas based on your description!",
-              timestamp: Date.now()
-            };
-            setMessages(prev => [...prev, aiMsg]);
-         } else {
-            throw new Error("Failed to generate layout");
-         }
-      } else {
-         // Fallback to text chat if no specific command detected or just general chat
-         // We reuse generateText for simple response for now or call a new chat endpoint
-         // Using analyzeDesign logic but without image if not analyzing
-         // For simplicity, let's just use generateText with a system prompt context
-         const response = await geminiService.generateText(input, "You are a helpful graphic design assistant. Keep answers concise and helpful.");
-         const aiMsg: ChatMessage = {
+        const layoutData = await geminiService.generateLayout(input);
+        if (layoutData) {
+          if (layoutData.textLayers) {
+            layoutData.textLayers.forEach((l: any) => onAddText(l));
+          }
+          if (layoutData.shapeLayers) {
+            layoutData.shapeLayers.forEach((l: any) => onAddShape(l.type, l));
+          }
+          const aiMsg: ChatMessage = {
             id: Date.now().toString() + '_ai',
             role: 'assistant',
-            content: response,
+            content: "I've added a layout suggestion to your canvas based on your description!",
             timestamp: Date.now()
-         };
-         setMessages(prev => [...prev, aiMsg]);
+          };
+          setMessages(prev => [...prev, aiMsg]);
+        } else {
+          throw new Error("Failed to generate layout");
+        }
+      } else {
+        // Fallback to text chat if no specific command detected or just general chat
+        // We reuse generateText for simple response for now or call a new chat endpoint
+        // Using analyzeDesign logic but without image if not analyzing
+        // For simplicity, let's just use generateText with a system prompt context
+        const response = await geminiService.generateText(input, "You are a helpful graphic design assistant. Keep answers concise and helpful.");
+        const aiMsg: ChatMessage = {
+          id: Date.now().toString() + '_ai',
+          role: 'assistant',
+          content: response,
+          timestamp: Date.now()
+        };
+        setMessages(prev => [...prev, aiMsg]);
       }
     } catch (e) {
       console.error(e);
@@ -147,33 +180,33 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({
   const handleAnalyze = async () => {
     setIsLoading(true);
     const loadingMsg: ChatMessage = {
-        id: 'analyzing',
-        role: 'assistant',
-        content: "Looking at your design...",
-        timestamp: Date.now()
+      id: 'analyzing',
+      role: 'assistant',
+      content: "Looking at your design...",
+      timestamp: Date.now()
     };
     setMessages(prev => [...prev, loadingMsg]);
 
     try {
-        const snapshot = await getCanvasSnapshot();
-        const analysis = await geminiService.analyzeDesign(snapshot, "Critique this design. Focus on composition, color balance, and typography. Be constructive.");
-        
-        setMessages(prev => prev.filter(m => m.id !== 'analyzing').concat({
-            id: Date.now().toString(),
-            role: 'assistant',
-            content: analysis,
-            timestamp: Date.now()
-        }));
+      const snapshot = await getCanvasSnapshot();
+      const analysis = await geminiService.analyzeDesign(snapshot, "Critique this design. Focus on composition, color balance, and typography. Be constructive.");
+
+      setMessages(prev => prev.filter(m => m.id !== 'analyzing').concat({
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: analysis,
+        timestamp: Date.now()
+      }));
     } catch (e) {
-        console.error(e);
-        setMessages(prev => prev.filter(m => m.id !== 'analyzing').concat({
-            id: Date.now().toString(),
-            role: 'assistant',
-            content: "I couldn't analyze the canvas right now.",
-            timestamp: Date.now()
-        }));
+      console.error(e);
+      setMessages(prev => prev.filter(m => m.id !== 'analyzing').concat({
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: "I couldn't analyze the canvas right now.",
+        timestamp: Date.now()
+      }));
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -181,7 +214,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({
     <div className="flex flex-col h-full bg-[#13161a]">
       <div className="p-4 border-b border-gray-700 bg-[#1e1e1e]">
         <h3 className="font-bold text-white flex items-center gap-2">
-          <Icons.Bot className="w-5 h-5 text-[#7d2ae8]" />
+          <LocalIcons.Bot className="w-5 h-5 text-[#7d2ae8]" />
           Design Assistant
         </h3>
       </div>
@@ -189,68 +222,67 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({
       <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-             <div 
-               className={`max-w-[85%] rounded-lg p-3 text-sm ${
-                 msg.role === 'user' 
-                   ? 'bg-[#7d2ae8] text-white rounded-br-none' 
-                   : 'bg-[#252627] text-gray-200 border border-gray-700 rounded-bl-none'
-               }`}
-             >
-                {msg.content}
-             </div>
+            <div
+              className={`max-w-[85%] rounded-lg p-3 text-sm ${msg.role === 'user'
+                ? 'bg-[#7d2ae8] text-white rounded-br-none'
+                : 'bg-[#252627] text-gray-200 border border-gray-700 rounded-bl-none'
+                }`}
+            >
+              {msg.content}
+            </div>
           </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
 
       <div className="p-4 border-t border-gray-700 bg-[#1e1e1e]">
-         {messages.length < 3 && (
-            <div className="flex gap-2 mb-3 overflow-x-auto pb-1 no-scrollbar">
-               <button 
-                 onClick={handleAnalyze} 
-                 disabled={isLoading}
-                 className="whitespace-nowrap px-3 py-1.5 bg-indigo-900/30 text-indigo-300 border border-indigo-500/30 rounded-full text-xs font-medium hover:bg-indigo-900/50 transition-colors flex items-center gap-1.5"
-               >
-                 <Icons.Eye className="w-3 h-3" /> Analyze Design
-               </button>
-               <button 
-                 onClick={() => setInput("Generate a layout for a modern coffee shop menu")} 
-                 disabled={isLoading}
-                 className="whitespace-nowrap px-3 py-1.5 bg-emerald-900/30 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-medium hover:bg-emerald-900/50 transition-colors flex items-center gap-1.5"
-               >
-                 <Icons.LayoutGrid className="w-3 h-3" /> Generate Layout
-               </button>
-            </div>
-         )}
-         
-         <div className="flex gap-2 bg-[#0e1318] border border-gray-700 rounded-lg p-1">
-            <textarea
-               value={input}
-               onChange={(e) => setInput(e.target.value)}
-               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
-               placeholder="Ask for advice or generate layouts..."
-               className="flex-1 bg-transparent border-none px-2 py-1 text-sm text-white focus:outline-none resize-none h-10 custom-scrollbar"
-               disabled={isLoading}
-            />
-            <div className="flex items-center gap-1 pr-1">
-               <button 
-                  onClick={toggleListening}
-                  className={`p-2 rounded-md transition-colors ${isListening ? 'bg-red-500 text-white animate-pulse' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}
-                  title={isListening ? "Stop listening" : "Start voice input"}
-               >
-                  {isListening ? <Icons.MicOff className="w-4 h-4" /> : <Icons.Mic className="w-4 h-4" />}
-               </button>
-               <Button 
-                  size="icon" 
-                  className="bg-[#7d2ae8] hover:bg-[#6b23c5] border-none"
-                  onClick={handleSendMessage} 
-                  disabled={isLoading || !input.trim()}
-               >
-                  {isLoading ? <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div> : <Icons.ArrowUp className="w-4 h-4 rotate-90" />}
-               </Button>
-            </div>
-         </div>
+        {messages.length < 3 && (
+          <div className="flex gap-2 mb-3 overflow-x-auto pb-1 no-scrollbar">
+            <button
+              onClick={handleAnalyze}
+              disabled={isLoading}
+              className="whitespace-nowrap px-3 py-1.5 bg-indigo-900/30 text-indigo-300 border border-indigo-500/30 rounded-full text-xs font-medium hover:bg-indigo-900/50 transition-colors flex items-center gap-1.5"
+            >
+              <LocalIcons.Eye className="w-3 h-3" /> Analyze Design
+            </button>
+            <button
+              onClick={() => setInput("Generate a layout for a modern coffee shop menu")}
+              disabled={isLoading}
+              className="whitespace-nowrap px-3 py-1.5 bg-emerald-900/30 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-medium hover:bg-emerald-900/50 transition-colors flex items-center gap-1.5"
+            >
+              <LocalIcons.LayoutGrid className="w-3 h-3" /> Generate Layout
+            </button>
+          </div>
+        )}
+
+        <div className="flex gap-2 bg-[#0e1318] border border-gray-700 rounded-lg p-1">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
+            placeholder="Ask for advice or generate layouts..."
+            className="flex-1 bg-transparent border-none px-2 py-1 text-sm text-white focus:outline-none resize-none h-10 custom-scrollbar"
+            disabled={isLoading}
+          />
+          <div className="flex items-center gap-1 pr-1">
+            <button
+              onClick={toggleListening}
+              className={`p-2 rounded-md transition-colors ${isListening ? 'bg-red-500 text-white animate-pulse' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}
+              title={isListening ? "Stop listening" : "Start voice input"}
+            >
+              {isListening ? <LocalIcons.MicOff className="w-4 h-4" /> : <LocalIcons.Mic className="w-4 h-4" />}
+            </button>
+            <Button
+              size="icon"
+              className="bg-[#7d2ae8] hover:bg-[#6b23c5] border-none"
+              onClick={handleSendMessage}
+              disabled={isLoading || !input.trim()}
+            >
+              {isLoading ? <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div> : <LocalIcons.ArrowUp className="w-4 h-4 rotate-90" />}
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );
-};
+}; export default AssistantPanel;

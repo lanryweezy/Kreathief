@@ -257,3 +257,4 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   );
 };
 
+export default TemplatesPanel;

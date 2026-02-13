@@ -230,7 +230,7 @@ const TextTools = React.memo(({
    layer, onUpdateTextLayer, onInteractionStart, documentColors, onMagicWrite,
    showFontPicker, setShowFontPicker, fontSearch, setFontSearch, fontPickerRef,
    showRewriteTones, setShowRewriteTones, rewriteRef, filteredFonts,
-   handleToneRewrite
+   handleToneRewrite, showTextEffects, setShowTextEffects, textEffectsRef
 }: any) => (
    <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
       <div className="relative" ref={fontPickerRef}>
@@ -282,6 +282,116 @@ const TextTools = React.memo(({
       <div className="flex items-center gap-1">
          <CompactInput label="AV" value={layer.letterSpacing || 0} onChange={(e: any) => onUpdateTextLayer(layer.id, { letterSpacing: parseFloat(e.target.value) })} step={0.1} width="w-8" title="Letter Spacing" />
          <CompactInput label="LH" value={layer.lineHeight || 1.2} onChange={(e: any) => onUpdateTextLayer(layer.id, { lineHeight: parseFloat(e.target.value) })} step={0.1} width="w-8" title="Line Height" />
+      </div>
+
+      <div className="w-px h-6 bg-gray-700/50 mx-1 hidden sm:block"></div>
+
+      <div className="flex bg-[#252627] rounded border border-gray-700 p-0.5 gap-0.5">
+         <IconButton onClick={() => onUpdateTextLayer(layer.id, { textAlign: 'left' })} active={layer.textAlign === 'left'} title="Align Left"><Icons.AlignLeft className="w-3.5 h-3.5" /></IconButton>
+         <IconButton onClick={() => onUpdateTextLayer(layer.id, { textAlign: 'center' })} active={layer.textAlign === 'center'} title="Align Center"><Icons.AlignCenter className="w-3.5 h-3.5" /></IconButton>
+         <IconButton onClick={() => onUpdateTextLayer(layer.id, { textAlign: 'right' })} active={layer.textAlign === 'right'} title="Align Right"><Icons.AlignRight className="w-3.5 h-3.5" /></IconButton>
+      </div>
+
+      <div className="relative" ref={textEffectsRef}>
+         <button
+            onClick={() => setShowTextEffects(!showTextEffects)}
+            className={`flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold border transition-colors ${showTextEffects ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300' : 'bg-[#252627] border-gray-700 text-gray-300 hover:border-gray-500'}`}
+         >
+            <Icons.Magic className="w-3 h-3" /> Effects
+         </button>
+
+         {showTextEffects && (
+            <div className="absolute top-full right-0 mt-2 w-72 bg-[#1e1e1e] rounded-lg shadow-xl border border-gray-700 p-4 z-50 animate-fadeIn space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
+
+               {/* Shadow Section */}
+               <div>
+                  <div className="flex justify-between items-center mb-2">
+                     <span className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-2">
+                        <input
+                           type="checkbox"
+                           checked={!!layer.shadow}
+                           onChange={(e) => onUpdateTextLayer(layer.id, { shadow: e.target.checked ? { color: '#000000', blur: 4, offsetX: 2, offsetY: 2 } : undefined })}
+                           className="accent-[#7d2ae8]"
+                        />
+                        Drop Shadow
+                     </span>
+                  </div>
+                  {layer.shadow && (
+                     <div className="space-y-2 pl-4 border-l-2 border-gray-700 ml-1">
+                        <div className="flex items-center justify-between">
+                           <span className="text-[9px] text-gray-500">Color</span>
+                           <ColorPicker value={layer.shadow.color} onChange={(color) => onUpdateTextLayer(layer.id, { shadow: { ...layer.shadow!, color } })} small />
+                        </div>
+                        <div className="flex items-center gap-2">
+                           <span className="text-[9px] text-gray-500 w-8">Blur</span>
+                           <input type="range" min="0" max="20" value={layer.shadow.blur} onChange={(e) => onUpdateTextLayer(layer.id, { shadow: { ...layer.shadow!, blur: parseInt(e.target.value) } })} className="flex-1 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                           <span className="text-[9px] text-gray-500 w-8">X</span>
+                           <input type="range" min="-20" max="20" value={layer.shadow.offsetX} onChange={(e) => onUpdateTextLayer(layer.id, { shadow: { ...layer.shadow!, offsetX: parseInt(e.target.value) } })} className="flex-1 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                           <span className="text-[9px] text-gray-500 w-8">Y</span>
+                           <input type="range" min="-20" max="20" value={layer.shadow.offsetY} onChange={(e) => onUpdateTextLayer(layer.id, { shadow: { ...layer.shadow!, offsetY: parseInt(e.target.value) } })} className="flex-1 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]" />
+                        </div>
+                     </div>
+                  )}
+               </div>
+
+               <Divider />
+
+               {/* Outline / Stroke Section */}
+               <div>
+                  <div className="flex justify-between items-center mb-2">
+                     <span className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-2">
+                        <input
+                           type="checkbox"
+                           checked={!!layer.stroke}
+                           onChange={(e) => onUpdateTextLayer(layer.id, { stroke: e.target.checked ? { color: '#000000', width: 1 } : undefined })}
+                           className="accent-[#7d2ae8]"
+                        />
+                        Outline
+                     </span>
+                  </div>
+                  {layer.stroke && (
+                     <div className="space-y-2 pl-4 border-l-2 border-gray-700 ml-1">
+                        <div className="flex items-center justify-between">
+                           <span className="text-[9px] text-gray-500">Color</span>
+                           <ColorPicker value={layer.stroke.color} onChange={(color) => onUpdateTextLayer(layer.id, { stroke: { ...layer.stroke!, color } })} small />
+                        </div>
+                        <div className="flex items-center gap-2">
+                           <span className="text-[9px] text-gray-500 w-8">Width</span>
+                           <input type="range" min="1" max="10" value={layer.stroke.width} onChange={(e) => onUpdateTextLayer(layer.id, { stroke: { ...layer.stroke!, width: parseInt(e.target.value) } })} className="flex-1 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]" />
+                        </div>
+                     </div>
+                  )}
+               </div>
+
+               <Divider />
+
+               {/* Warp / Curve Section */}
+               <div>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase mb-2 block">Curved Text</span>
+                  <div className="grid grid-cols-4 gap-1 mb-2">
+                     {['none', 'arc', 'flag', 'rise'].map((style) => (
+                        <button
+                           key={style}
+                           onClick={() => onUpdateTextLayer(layer.id, { warpStyle: style as any, curve: layer.curve || 50 })}
+                           className={`text-[9px] py-1 rounded border capitalize ${layer.warpStyle === style || (!layer.warpStyle && style === 'none') ? 'bg-[#7d2ae8] text-white border-[#7d2ae8]' : 'bg-[#252627] text-gray-400 border-gray-600 hover:border-gray-500'}`}
+                        >
+                           {style}
+                        </button>
+                     ))}
+                  </div>
+                  {layer.warpStyle && layer.warpStyle !== 'none' && (
+                     <div className="flex items-center gap-2 pl-1">
+                        <span className="text-[9px] text-gray-500 w-8">Bend</span>
+                        <input type="range" min="-100" max="100" value={layer.curve || 0} onChange={(e) => onUpdateTextLayer(layer.id, { curve: parseInt(e.target.value) })} className="flex-1 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]" />
+                     </div>
+                  )}
+               </div>
+            </div>
+         )}
       </div>
 
       {/* AI Rewrite Tools */}
@@ -444,9 +554,11 @@ export const Toolbar = React.memo(({
    const [isExpanding, setIsExpanding] = useState(false);
    const [showFontPicker, setShowFontPicker] = useState(false);
    const [showRewriteTones, setShowRewriteTones] = useState(false);
+   const [showTextEffects, setShowTextEffects] = useState(false);
    const [fontSearch, setFontSearch] = useState('');
    const fontPickerRef = useRef<HTMLDivElement>(null);
    const effectsRef = useRef<HTMLDivElement>(null);
+   const textEffectsRef = useRef<HTMLDivElement>(null);
    const rewriteRef = useRef<HTMLDivElement>(null);
 
    const isPro = user.plan !== 'free';
@@ -461,6 +573,9 @@ export const Toolbar = React.memo(({
          }
          if (rewriteRef.current && !rewriteRef.current.contains(event.target as Node)) {
             setShowRewriteTones(false);
+         }
+         if (textEffectsRef.current && !textEffectsRef.current.contains(event.target as Node)) {
+            setShowTextEffects(false);
          }
       };
       document.addEventListener('mousedown', handleClickOutside);
@@ -585,6 +700,9 @@ export const Toolbar = React.memo(({
                         rewriteRef={rewriteRef}
                         filteredFonts={filteredFonts}
                         handleToneRewrite={handleToneRewrite}
+                        showTextEffects={showTextEffects}
+                        setShowTextEffects={setShowTextEffects}
+                        textEffectsRef={textEffectsRef}
                      />
                   )}
                   {selectedLayer.type !== 'text' && selectedLayer.type !== 'image' && (

@@ -8,9 +8,7 @@ describe('StorageService', () => {
         name: 'Test Project',
         updatedAt: Date.now(),
         state: {
-            textLayers: [],
-            shapeLayers: [],
-            imageLayers: [],
+            layers: [],
             canvasBackgroundColor: '#ffffff',
             canvasFilters: {
                 brightness: 100,

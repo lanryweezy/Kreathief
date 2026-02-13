@@ -5,7 +5,8 @@ import { DesignTheme, GenerationQuality } from '../types';
 
 // Helper to get fresh client instance (important for key switching)
 const getClient = () => {
-  const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY || (window as any).GEMINI_API_KEY;
+  // @ts-ignore
+  const apiKey = import.meta.env?.VITE_GEMINI_API_KEY || (window as any).GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error('VITE_GEMINI_API_KEY environment variable is not set.');
   }

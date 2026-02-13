@@ -13,7 +13,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ activeTab, onSelect
     { id: NavTab.ASSISTANT, icon: Icons.Bot, label: "AI Assist" },
     { id: NavTab.TEMPLATES, icon: Icons.Templates, label: "Design" },
     { id: NavTab.ELEMENTS, icon: Icons.Shapes, label: "Elements" },
-    { id: NavTab.STICKERS, icon: Icons.Sticker, label: "Stickers" },
+
     { id: NavTab.TEXT, icon: Icons.Text, label: "Text" },
     { id: NavTab.BRAND, icon: Icons.Brand, label: "Brand" },
     { id: NavTab.TEXTURES, icon: Icons.Texture, label: "Textures" },

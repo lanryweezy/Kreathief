@@ -9,7 +9,6 @@ export enum NavTab {
   MAGIC = 'MAGIC',
   TEMPLATES = 'TEMPLATES',
   ELEMENTS = 'ELEMENTS',
-  STICKERS = 'STICKERS',
   UPLOADS = 'UPLOADS',
   TEXT = 'TEXT',
   DRAW = 'DRAW',
@@ -19,6 +18,7 @@ export enum NavTab {
   LAYERS = 'LAYERS',
   MOCKUP = 'MOCKUP',
   ASSISTANT = 'ASSISTANT',
+  STICKERS = 'STICKERS',
   PHOTOS = 'PHOTOS',
   AI_SUGGESTIONS = 'AI_SUGGESTIONS',
   SMART_CONTENT = 'SMART_CONTENT',
@@ -113,7 +113,7 @@ export interface TextLayer {
   textDecoration: string; // 'none' | 'underline' | 'line-through' | 'underline line-through'
   color: string;
   fontFamily: string;
-  textAlign: 'left' | 'center' | 'right';
+  textAlign: 'left' | 'center' | 'right' | 'justify';
   letterSpacing: number;
   lineHeight: number;
   textTransform: 'none' | 'uppercase' | 'lowercase';
@@ -124,6 +124,7 @@ export interface TextLayer {
   visible: boolean;
   blendMode?: string;
   gradient?: TextGradient;
+  textGradient?: Gradient;
   // Advanced Vintage Tools
   curve?: number; // -360 to 360 degrees
   warpStyle?: 'none' | 'arc' | 'flag' | 'rise'; // New Warp Styles
@@ -140,9 +141,19 @@ export interface TextLayer {
   depthColor?: string;
 }
 
+export interface Gradient {
+  type: 'linear' | 'radial';
+  angle?: number; // 0-360 degrees for linear
+  colors: Array<{ color: string; position: number }>;
+  startX?: number; // for radial
+  startY?: number;
+  endX?: number;
+  endY?: number;
+}
+
 export interface ShapeLayer {
   id: string;
-  type: 'rectangle' | 'circle' | 'triangle' | 'star' | 'hexagon' | 'diamond' | 'arrow' | 'heart' | 'speech_bubble' | 'ribbon' | 'shield' | 'banner' | 'path';
+  type: 'rectangle' | 'circle' | 'triangle' | 'star' | 'hexagon' | 'diamond' | 'arrow' | 'heart' | 'speech_bubble' | 'ribbon' | 'shield' | 'banner' | 'pentagon' | 'octagon' | 'plus' | 'star_4' | 'star_8' | 'path';
   name?: string;
   x: number;
   y: number;
@@ -158,6 +169,7 @@ export interface ShapeLayer {
   locked: boolean;
   visible: boolean;
   blendMode?: string;
+  gradient?: Gradient;
   backgroundImage?: string;
   backgroundScale?: number; // 1 = 100%
   skewX?: number;
@@ -215,12 +227,14 @@ export interface GenerationConfig {
 }
 
 export interface HistoryState {
-  textLayers: TextLayer[];
-  shapeLayers: ShapeLayer[];
-  imageLayers: ImageLayer[];
+  layers: Layer[];
   canvasBackgroundColor: string;
   canvasFilters: CanvasFilters;
   canvasSize?: CanvasSize;
+  showGrid?: boolean;
+  showRulers?: boolean;
+  onToggleGrid?: () => void;
+  onToggleRulers?: () => void;
 }
 
 export interface Project {
@@ -247,6 +261,8 @@ export interface BrandKit {
   colors: string[];
   fonts: string[];
   logos?: string[];
+  primaryLogo?: string;
+  secondaryLogo?: string;
 }
 
 export interface ChatMessage {

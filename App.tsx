@@ -82,9 +82,11 @@ const App: React.FC = () => {
     const prefetchTemplates = () => {
       STARTER_TEMPLATES.forEach(tmpl => {
         // Pre-fetch image layers
-        tmpl.state.imageLayers.forEach(layer => {
-          const img = new Image();
-          img.src = layer.src;
+        tmpl.state.layers.forEach(layer => {
+          if (layer.type === 'image') {
+            const img = new Image();
+            img.src = (layer as any).src;
+          }
         });
       });
     };

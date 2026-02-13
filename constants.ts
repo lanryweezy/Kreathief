@@ -7,6 +7,8 @@ export const MODEL_PRO = 'gemini-3-pro-image-preview';
 
 // Default Configuration
 export const DEFAULT_ASPECT_RATIO = '1:1';
+export const CANVAS_W = 1080;
+export const CANVAS_H = 1080;
 
 // Fonts
 export const FONT_FAMILIES = [
@@ -500,6 +502,12 @@ export const Icons = {
       React.createElement("line", { x1: "8", y1: "9", x2: "16", y2: "9" }),
       React.createElement("line", { x1: "8", y1: "15", x2: "16", y2: "15" })
     ),
+  Mic: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" }),
+      React.createElement("path", { d: "M19 10v2a7 7 0 0 1-14 0v-2" }),
+      React.createElement("line", { x1: "12", y1: "19", x2: "12", y2: "22" })
+    ),
   MicOff: (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement("svg", { ...svgProps, ...props },
       React.createElement("line", { x1: "2", y1: "2", x2: "22", y2: "22" }),
@@ -507,6 +515,11 @@ export const Icons = {
       React.createElement("path", { d: "M2 10h3" }),
       React.createElement("path", { d: "M20 10h3" }),
       React.createElement("path", { d: "M15 2H9a2 2 0 0 0-2 2v7h2V4h6v10H9v4h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z" })
+    ),
+  Pointer: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z" }),
+      React.createElement("path", { d: "m13 13 6 6" })
     ),
   Filter: (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement("svg", { ...svgProps, ...props },

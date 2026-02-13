@@ -96,7 +96,8 @@ const drawWarpedText = (
   // Draw flat text
   tempCtx.font = font;
   tempCtx.textBaseline = 'top';
-  tempCtx.textAlign = textAlign;
+  const align = textAlign === 'justify' ? 'left' : textAlign;
+  tempCtx.textAlign = align as CanvasTextAlign;
 
   if (layer.gradient?.enabled) {
     const grad = tempCtx.createLinearGradient(0, 0, 0, textBlockHeight);
@@ -494,6 +495,84 @@ export const exportDesignToImage = async (
       ctx.lineTo(-hw, hh * 0.6);
       ctx.closePath();
       ctx.fill();
+    } else if (shape.type === 'pentagon') {
+      ctx.moveTo(0, -hh);
+      ctx.lineTo(hw, -hh + h * 0.38);
+      ctx.lineTo(hw * 0.64, hh);
+      ctx.lineTo(-hw * 0.64, hh);
+      ctx.lineTo(-hw, -hh + h * 0.38);
+      ctx.closePath();
+      ctx.fill();
+    } else if (shape.type === 'octagon') {
+      ctx.moveTo(-hw * 0.4, -hh);
+      ctx.lineTo(hw * 0.4, -hh);
+      ctx.lineTo(hw, -hh + h * 0.3);
+      ctx.lineTo(hw, hh * 0.4);
+      ctx.lineTo(hw * 0.4, hh);
+      ctx.lineTo(-hw * 0.4, hh);
+      ctx.lineTo(-hw, hh * 0.4);
+      ctx.lineTo(-hw, -hh + h * 0.3);
+      ctx.closePath();
+      ctx.fill();
+    } else if (shape.type === 'plus') {
+      ctx.moveTo(-hw * 0.3, -hh);
+      ctx.lineTo(hw * 0.3, -hh);
+      ctx.lineTo(hw * 0.3, -hh + h * 0.35);
+      ctx.lineTo(hw, -hh + h * 0.35);
+      ctx.lineTo(hw, hh * 0.3); // 65% is 0.3 relative to center? No. 65% of H is -hh + 0.65H = 0.15H? 
+      // Re-calculating for Plus:
+      // Points: (w*0.35, 0) -> x = -hw + w*0.35 = -0.15w.  y = -hh.
+      // (w*0.65, 0) -> x = -hw + w*0.65 = 0.15w. y = -hh.
+      ctx.moveTo(-hw * 0.3, -hh); // 35%
+      ctx.lineTo(hw * 0.3, -hh);  // 65%
+      ctx.lineTo(hw * 0.3, -hh * 0.3); // 35% Y? No. 0.35H from top
+      ctx.lineTo(hw, -hh * 0.3);
+      ctx.lineTo(hw, hh * 0.3);
+      ctx.lineTo(hw * 0.3, hh * 0.3);
+      ctx.lineTo(hw * 0.3, hh);
+      ctx.lineTo(-hw * 0.3, hh);
+      ctx.lineTo(-hw * 0.3, hh * 0.3);
+      ctx.lineTo(-hw, hh * 0.3);
+      ctx.lineTo(-hw, -hh * 0.3);
+      ctx.lineTo(-hw * 0.3, -hh * 0.3);
+      ctx.closePath();
+      ctx.fill();
+    } else if (shape.type === 'star_4') {
+      const x39 = -hw + w * 0.39;
+      const x61 = -hw + w * 0.61;
+      const y35 = -hh + h * 0.35;
+      const y65 = -hh + h * 0.65;
+
+      ctx.moveTo(0, -hh); // 50% 0
+      ctx.lineTo(x61, y35); // 61% 35%
+      ctx.lineTo(hw, 0); // 100% 50% -> y=0
+      ctx.lineTo(x61, y65); // 61% 65%
+      ctx.lineTo(0, hh); // 50% 100%
+      ctx.lineTo(x39, y65); // 39% 65%
+      ctx.lineTo(-hw, 0); // 0% 50%
+      ctx.lineTo(x39, y35); // 39% 35%
+      ctx.closePath();
+      ctx.fill();
+    } else if (shape.type === 'star_8') {
+      // polygon(50% 0%, 61% 22%, 85% 15%, 72% 35%, 100% 50%, 72% 65%, 85% 85%, 61% 72%, 50% 100%, 39% 72%, 15% 85%, 28% 65%, 0% 50%, 28% 35%, 15% 15%, 39% 22%)
+      ctx.moveTo(0, -hh); // 50 0
+      ctx.lineTo(-hw + w * 0.61, -hh + h * 0.22);
+      ctx.lineTo(-hw + w * 0.85, -hh + h * 0.15);
+      ctx.lineTo(-hw + w * 0.72, -hh + h * 0.35);
+      ctx.lineTo(hw, 0); // 100 50
+      ctx.lineTo(-hw + w * 0.72, -hh + h * 0.65);
+      ctx.lineTo(-hw + w * 0.85, -hh + h * 0.85);
+      ctx.lineTo(-hw + w * 0.61, -hh + h * 0.72);
+      ctx.lineTo(0, hh); // 50 100
+      ctx.lineTo(-hw + w * 0.39, -hh + h * 0.72);
+      ctx.lineTo(-hw + w * 0.15, -hh + h * 0.85);
+      ctx.lineTo(-hw + w * 0.28, -hh + h * 0.65);
+      ctx.lineTo(-hw, 0); // 0 50
+      ctx.lineTo(-hw + w * 0.28, -hh + h * 0.35);
+      ctx.lineTo(-hw + w * 0.15, -hh + h * 0.15);
+      ctx.lineTo(-hw + w * 0.39, -hh + h * 0.22);
+      ctx.closePath();
+      ctx.fill();
     }
 
     if (shape.stroke && shape.type !== 'path') {
@@ -585,7 +664,8 @@ export const exportDesignToImage = async (
     if (textLayer.warpStyle && textLayer.warpStyle !== 'none') {
       drawWarpedText(ctx, textLayer, textBlockHeight, drawHeight);
     } else {
-      ctx.textAlign = textLayer.textAlign;
+      const align = textLayer.textAlign === 'justify' ? 'left' : textLayer.textAlign;
+      ctx.textAlign = align as CanvasTextAlign;
       let textToRender = textLayer.text;
       if (textLayer.textTransform === 'uppercase') textToRender = textToRender.toUpperCase();
       if (textLayer.textTransform === 'lowercase') textToRender = textToRender.toLowerCase();
@@ -629,6 +709,20 @@ export const exportDesignToImage = async (
     }
 
     ctx.restore();
+  }
+
+  // 6. Draw Texture Overlay (matches Canvas.tsx mix-blend-overlay at 50% opacity)
+  if (filters?.overlayTexture) {
+    try {
+      const texImg = await loadImage(filters.overlayTexture);
+      ctx.save();
+      ctx.globalCompositeOperation = 'overlay';
+      ctx.globalAlpha = 0.5;
+      ctx.drawImage(texImg, 0, 0, width, height);
+      ctx.restore();
+    } catch (err) {
+      console.warn("Failed to load texture for export", err);
+    }
   }
 
   // Export encoding

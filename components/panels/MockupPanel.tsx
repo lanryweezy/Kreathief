@@ -48,10 +48,35 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
     offsetY: 0
   });
 
+  const [isLive, setIsLive] = useState(false);
+  const liveIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
+
   // Auto-load design on mount
   React.useEffect(() => {
     handleUpdatePreview();
+    return () => stopLiveMode();
   }, []);
+
+  const stopLiveMode = () => {
+    if (liveIntervalRef.current) {
+      clearInterval(liveIntervalRef.current);
+      liveIntervalRef.current = null;
+    }
+  };
+
+  React.useEffect(() => {
+    if (isLive) {
+      handleUpdatePreview(); // Initial immediate update
+      liveIntervalRef.current = setInterval(() => {
+        if (!isGenerating) {
+          handleUpdatePreview();
+        }
+      }, 2000);
+    } else {
+      stopLiveMode();
+    }
+    return () => stopLiveMode();
+  }, [isLive]);
 
   const mockups: MockupDef[] = [
     // Apparel
@@ -262,11 +287,20 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
   };
 
   return (
-    <div className="flex flex-col h-full p-4 bg-[#13161a]">
-      <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-        <Icons.Mockup className="w-5 h-5 text-[#7d2ae8]" />
-        Mockup Studio
-      </h3>
+    <div className="flex flex-col h-full p-4 bg-[#13161a] overflow-y-auto custom-scrollbar pb-10">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-bold text-white flex items-center gap-2">
+          <Icons.Mockup className="w-5 h-5 text-[#7d2ae8]" />
+          Mockup Studio
+        </h3>
+        <button
+          onClick={() => setIsLive(!isLive)}
+          className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold border transition-all ${isLive ? 'bg-red-500/10 text-red-400 border-red-500/50 animate-pulse' : 'bg-transparent text-gray-500 border-gray-700 hover:border-gray-500'}`}
+        >
+          <div className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-red-500' : 'bg-gray-500'}`}></div>
+          {isLive ? 'LIVE' : 'OFF'}
+        </button>
+      </div>
 
       {/* Preview Section */}
       <div className="mb-6 relative group">
@@ -292,8 +326,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
               </div>
             )}
 
-            {/* Lighting/Texture Overlay */}
-            <div className="absolute inset-0 pointer-events-none mix-blend-multiply bg-gradient-to-tr from-black/20 via-transparent to-white/10 opacity-50"></div>
+            {/* Lighting/Texture Overlay - Enhanced for Realism */}
+            <div className={`absolute inset-0 pointer-events-none mix-blend-overlay bg-gradient-to-tr from-black/40 via-transparent to-white/20 opacity-60 rounded-lg`}></div>
+            <div className={`absolute inset-0 pointer-events-none mix-blend-soft-light bg-gradient-to-b from-transparent via-transparent to-black/30 opacity-40 rounded-lg`}></div>
           </div>
 
           {/* Loading State */}
@@ -397,9 +432,8 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
       )}
 
       {/* Product Selection */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
-
-        <div className="flex items-center gap-2 mb-3 overflow-x-auto no-scrollbar pb-1">
+      <div className="flex-1 min-h-0 flex flex-col">
+        <div className="flex items-center gap-2 mb-3 overflow-x-auto no-scrollbar shrink-0 pb-1">
           {MOCKUP_CATEGORIES.map(cat => (
             <button
               key={cat}
@@ -411,7 +445,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
           ))}
         </div>
 
-        <div className="grid grid-cols-2 gap-3 pb-20">
+        <div className="grid grid-cols-2 gap-3 pb-8 overflow-y-auto custom-scrollbar flex-1">
           {filteredMockups.map((item: MockupDef) => (
             <button
               key={item.id}
@@ -434,4 +468,4 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
     </div>
   );
 };
-
+export default MockupPanel;
