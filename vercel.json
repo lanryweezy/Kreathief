@@ -9,8 +9,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "env": {
-    "API_KEY": "@gemini_api_key"
-  }
+  ]
 }
