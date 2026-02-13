@@ -23,6 +23,28 @@ const getLines = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
 
   for (let i = 1; i < words.length; i++) {
     const word = words[i];
+    const wordWidth = ctx.measureText(word).width;
+
+    // Handle single words that are too long (break-word behavior)
+    if (wordWidth > maxWidth) {
+      if (currentLine.length > 0) {
+        lines.push(currentLine);
+        currentLine = "";
+      }
+      let subWord = "";
+      for (let c = 0; c < word.length; c++) {
+        const testSub = subWord + word[c];
+        if (ctx.measureText(testSub).width > maxWidth) {
+          lines.push(subWord);
+          subWord = word[c];
+        } else {
+          subWord = testSub;
+        }
+      }
+      currentLine = subWord;
+      continue;
+    }
+
     const width = ctx.measureText(currentLine + " " + word).width;
     if (width < maxWidth) {
       currentLine += " " + word;
@@ -242,6 +264,22 @@ export const exportDesignToImage = async (
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+
+      // Vignette for Background
+      if (filters?.vignette && filters.vignette > 0) {
+        ctx.globalCompositeOperation = 'source-over';
+        // Matches Canvas.tsx: radial-gradient(circle, transparent ${Math.max(0, 70 - v * 0.5)}%, rgba(0,0,0,v/100))
+        const radius = Math.max(width, height) / 1.5; // Approx coverage
+        const startPct = Math.max(0, 0.7 - (filters.vignette * 0.005));
+
+        const gradient = ctx.createRadialGradient(width / 2, height / 2, radius * startPct, width / 2, height / 2, radius);
+        gradient.addColorStop(0, 'rgba(0,0,0,0)');
+        gradient.addColorStop(1, `rgba(0,0,0,${filters.vignette / 100})`);
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+      }
+
       ctx.restore();
     } catch (err) {
       console.warn("Failed to load background image for export", err);
@@ -302,7 +340,9 @@ export const exportDesignToImage = async (
         ctx.filter = 'none';
         ctx.globalCompositeOperation = 'source-over';
         const radius = Math.max(imgLayer.width, imgLayer.height) / 1.5;
-        const gradient = ctx.createRadialGradient(0, 0, radius * Math.max(0, 1 - f.vignette / 100), 0, 0, radius);
+        const startPct = Math.max(0, 0.7 - (f.vignette * 0.005));
+
+        const gradient = ctx.createRadialGradient(0, 0, radius * startPct, 0, 0, radius);
         gradient.addColorStop(0, 'rgba(0,0,0,0)');
         gradient.addColorStop(1, `rgba(0,0,0,${f.vignette / 100})`);
         ctx.fillStyle = gradient;
@@ -681,6 +721,28 @@ export const exportDesignToImage = async (
         if (textLayer.textAlign === 'left') drawX = -wrapWidth / 2;
         if (textLayer.textAlign === 'right') drawX = wrapWidth / 2;
 
+        if (textLayer.textAlign === 'justify') {
+          const lineWords = line.split(' ');
+          if (lineWords.length > 1) {
+            const totalWordWidth = lineWords.reduce((acc, word) => acc + ctx.measureText(word).width, 0);
+            const spaceAvailable = wrapWidth - totalWordWidth;
+            const gap = spaceAvailable / (lineWords.length - 1);
+
+            let currentWordX = drawX; // drawX is left edge for left align? No, checking below.
+            // For justify, map to Left logic initially
+            let justifyStartX = -wrapWidth / 2;
+
+            lineWords.forEach((word, wordIdx) => {
+              if (textLayer.stroke) {
+                ctx.strokeText(word, justifyStartX, lineY);
+              }
+              ctx.fillText(word, justifyStartX, lineY);
+              justifyStartX += ctx.measureText(word).width + gap;
+            });
+            return; // Skip standard drawing
+          }
+        }
+
         if (textLayer.stroke) {
           ctx.lineWidth = textLayer.stroke.width;
           ctx.strokeStyle = textLayer.stroke.color;
@@ -693,16 +755,20 @@ export const exportDesignToImage = async (
         if (textLayer.textDecoration && textLayer.textDecoration !== 'none') {
           const lineWidth = ctx.measureText(line).width;
           let lineStartX = drawX;
-          if (textLayer.textAlign === 'center') lineStartX = -lineWidth / 2;
+          // Decorate justified text? 
+          if (textLayer.textAlign === 'justify') lineStartX = -wrapWidth / 2; // Approximation
+          else if (textLayer.textAlign === 'center') lineStartX = -lineWidth / 2;
           else if (textLayer.textAlign === 'right') lineStartX = wrapWidth / 2 - lineWidth;
 
           const thickness = Math.max(1, fontSize / 15);
           ctx.fillStyle = textLayer.color;
+          const decoWidth = textLayer.textAlign === 'justify' ? wrapWidth : lineWidth;
+
           if (textLayer.textDecoration.includes('underline')) {
-            ctx.fillRect(lineStartX, lineY + fontSize * 0.5, lineWidth, thickness);
+            ctx.fillRect(lineStartX, lineY + fontSize * 0.5, decoWidth, thickness);
           }
           if (textLayer.textDecoration.includes('line-through')) {
-            ctx.fillRect(lineStartX, lineY, lineWidth, thickness);
+            ctx.fillRect(lineStartX, lineY, decoWidth, thickness);
           }
         }
       });

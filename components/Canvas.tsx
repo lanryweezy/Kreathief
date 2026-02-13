@@ -1390,6 +1390,102 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     }, [handleMouseMove, handleMouseUp]);
 
     const [vectorPoints, setVectorPoints] = useState<{ x: number, y: number }[]>([]);
+    const lastTouchDistance = useRef<number | null>(null);
+    const lastTouchCenter = useRef<{ x: number, y: number } | null>(null);
+
+    // Gesture Handlers
+    const handleTouchStart = (e: React.TouchEvent) => {
+        const isTwoFinger = e.touches.length === 2;
+        if ((isDrawing && !isTwoFinger) || (e.target !== viewportRef.current && e.target !== containerRef.current && !isTwoFinger)) return;
+
+        if (isTwoFinger) {
+            e.preventDefault();
+            const t1 = e.touches[0];
+            const t2 = e.touches[1];
+            const dist = Math.sqrt(Math.pow(t1.clientX - t2.clientX, 2) + Math.pow(t1.clientY - t2.clientY, 2));
+            lastTouchDistance.current = dist;
+            lastTouchCenter.current = {
+                x: (t1.clientX + t2.clientX) / 2,
+                y: (t1.clientY + t2.clientY) / 2
+            };
+        } else if (e.touches.length === 1) {
+            // Pan logic
+            const t = e.touches[0];
+            dragStateRef.current = {
+                isDragging: false,
+                startX: t.clientX,
+                startY: t.clientY,
+                initialPositions: {},
+            };
+            setIsPanning(true);
+        }
+    };
+
+    const handleWheel = (e: React.WheelEvent) => {
+        if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            const delta = -e.deltaY;
+            const newZoom = Math.min(Math.max(0.1, zoom + delta * 0.001), 5);
+            onZoomChange(newZoom);
+        }
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        const isTwoFinger = e.touches.length === 2;
+        if (isDrawing && !isTwoFinger) return;
+
+        // Throttle using the same ref mechanism as mouse move or a simplified rAF
+        if (mouseMoveRequestRef.current) {
+            cancelAnimationFrame(mouseMoveRequestRef.current);
+        }
+
+        e.persist(); // React pooling (though likely not needed in newer React, good safety)
+
+        // Prevention must happen synchronously
+        if ((isTwoFinger && lastTouchDistance.current) || (e.touches.length === 1 && isPanning && dragStateRef.current)) {
+            e.preventDefault();
+        }
+
+        mouseMoveRequestRef.current = requestAnimationFrame(() => {
+            if (isTwoFinger && lastTouchDistance.current) {
+                // e.preventDefault() cannot be called async, so we must call it synchronously outside rAF
+                // However, rAF is for the state updates.
+                // We must separate the event prevention from the logic.
+                const t1 = e.touches[0];
+                const t2 = e.touches[1];
+                const dist = Math.sqrt(Math.pow(t1.clientX - t2.clientX, 2) + Math.pow(t1.clientY - t2.clientY, 2));
+
+                // Zoom
+                const scaleFactor = dist / lastTouchDistance.current;
+                const newZoom = Math.min(Math.max(0.1, zoom * scaleFactor), 5);
+
+                // Apply zoom
+                if (Math.abs(newZoom - zoom) > 0.01) {
+                    onZoomChange(newZoom);
+                    lastTouchDistance.current = dist;
+                }
+            } else if (e.touches.length === 1 && isPanning && dragStateRef.current) {
+                const t = e.touches[0];
+                const dx = t.clientX - dragStateRef.current.startX;
+                const dy = t.clientY - dragStateRef.current.startY;
+
+                setPanOffset(prev => ({
+                    x: prev.x + dx,
+                    y: prev.y + dy
+                }));
+
+                dragStateRef.current.startX = t.clientX;
+                dragStateRef.current.startY = t.clientY;
+            }
+        });
+    };
+
+    const handleTouchEnd = () => {
+        lastTouchDistance.current = null;
+        lastTouchCenter.current = null;
+        setIsPanning(false);
+        setDragState(null);
+    };
 
     // Drawing Handlers
     const handleDrawingMouseDown = (e: React.MouseEvent) => {
@@ -1398,11 +1494,26 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         const x = (e.clientX - rect.left) / zoom;
         const y = (e.clientY - rect.top) / zoom;
         drawingLastPos.current = { x, y };
+        startDrawing(x, y);
+    };
 
+    const handleDrawingTouchStart = (e: React.TouchEvent) => {
+        if (e.touches.length > 1) return;
+        if (!isDrawing || !drawingCanvasRef.current) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        const rect = drawingCanvasRef.current.getBoundingClientRect();
+        const x = (touch.clientX - rect.left) / zoom;
+        const y = (touch.clientY - rect.top) / zoom;
+        drawingLastPos.current = { x, y };
+        startDrawing(x, y);
+    };
+
+    const startDrawing = (x: number, y: number) => {
         if (brushType === BrushType.VECTOR_PENCIL) {
             setDrawingState({ isDrawingPath: true });
             setVectorPoints([{ x, y }]);
-            const ctx = drawingCanvasRef.current.getContext('2d');
+            const ctx = drawingCanvasRef.current?.getContext('2d');
             if (ctx) {
                 ctx.beginPath();
                 ctx.moveTo(x, y);
@@ -1416,9 +1527,15 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         }
 
         setDrawingState({ isDrawingPath: true });
-        const ctx = drawingCanvasRef.current.getContext('2d');
+        const ctx = drawingCanvasRef.current?.getContext('2d');
         if (ctx) {
-            ctx.beginPath(); ctx.moveTo(x, y); ctx.strokeStyle = brushColor; ctx.lineWidth = brushSize; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.globalAlpha = brushOpacity;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.strokeStyle = brushColor;
+            ctx.lineWidth = brushSize;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.globalAlpha = brushOpacity;
         }
     };
 
@@ -1427,21 +1544,41 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         const rect = drawingCanvasRef.current.getBoundingClientRect();
         const x = (e.clientX - rect.left) / zoom;
         const y = (e.clientY - rect.top) / zoom;
+        continueDrawing(x, y);
+    };
+
+    const handleDrawingTouchMove = (e: React.TouchEvent) => {
+        if (e.touches.length > 1) return;
+        if (!isDrawing || !drawingState.isDrawingPath || !drawingCanvasRef.current) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        const rect = drawingCanvasRef.current.getBoundingClientRect();
+        const x = (touch.clientX - rect.left) / zoom;
+        const y = (touch.clientY - rect.top) / zoom;
+        continueDrawing(x, y);
+    };
+
+    const continueDrawing = (x: number, y: number) => {
         const { x: lastX, y: lastY } = drawingLastPos.current;
-        const ctx = drawingCanvasRef.current.getContext('2d');
+        const ctx = drawingCanvasRef.current?.getContext('2d');
         if (!ctx) return;
 
         if (brushType === BrushType.VECTOR_PENCIL) {
             setVectorPoints(prev => [...prev, { x, y }]);
             ctx.lineTo(x, y);
             ctx.stroke();
-            // Optimization: Use requestAnimationFrame for smoother preview if needed
+            drawingLastPos.current = { x, y };
             return;
         }
 
         const distance = Math.sqrt(Math.pow(x - lastX, 2) + Math.pow(y - lastY, 2));
         const angle = Math.atan2(y - lastY, x - lastX);
 
+        drawBrushStroke(ctx, x, y, lastX, lastY, distance, angle);
+        drawingLastPos.current = { x, y };
+    };
+
+    const drawBrushStroke = (ctx: CanvasRenderingContext2D, x: number, y: number, lastX: number, lastY: number, distance: number, angle: number) => {
         ctx.strokeStyle = brushColor;
         ctx.fillStyle = brushColor;
         ctx.globalAlpha = brushOpacity;
@@ -1453,73 +1590,57 @@ const CanvasComponent: React.FC<CanvasProps> = ({
             ctx.lineTo(x, y);
             ctx.stroke();
         } else if (brushType === BrushType.CALLIGRAPHY) {
-            // Calligraphy: slanted flat brush
             ctx.lineWidth = 1;
             for (let i = 0; i < distance; i += 0.5) {
                 const ix = lastX + Math.cos(angle) * i;
                 const iy = lastY + Math.sin(angle) * i;
                 ctx.save();
                 ctx.translate(ix, iy);
-                ctx.rotate(Math.PI / 4); // 45 degree slant
+                ctx.rotate(Math.PI / 4);
                 ctx.fillRect(-brushSize / 2, -1, brushSize, 2);
                 ctx.restore();
             }
         } else if (brushType === BrushType.OIL) {
-            // Oil: multi-bristle effect
-            for (let i = 0; i < distance; i += 1) {
-                const ix = lastX + Math.cos(angle) * i;
-                const iy = lastY + Math.sin(angle) * i;
-                for (let j = 0; j < 5; j++) {
-                    const ox = (Math.random() - 0.5) * brushSize;
-                    const oy = (Math.random() - 0.5) * brushSize;
-                    ctx.globalAlpha = brushOpacity * 0.4;
-                    ctx.beginPath();
-                    ctx.arc(ix + ox, iy + oy, Math.random() * 1.5, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            }
-        } else if (brushType === BrushType.CRAYON) {
-            // Crayon: textured/noisy
-            ctx.globalAlpha = brushOpacity * 0.5;
-            for (let i = 0; i < distance; i += 0.5) {
-                const ix = lastX + Math.cos(angle) * i;
-                const iy = lastY + Math.sin(angle) * i;
-                for (let j = 0; j < brushSize * 2; j++) {
-                    const radius = Math.random() * (brushSize / 2);
-                    const theta = Math.random() * Math.PI * 2;
-                    const ox = Math.cos(theta) * radius;
-                    const oy = Math.sin(theta) * radius;
-                    ctx.fillRect(ix + ox, iy + oy, 1, 1);
-                }
-            }
-        } else if (brushType === BrushType.PENCIL) {
-            // Pencil: grainy thin line
-            ctx.lineWidth = 1;
+            ctx.shadowBlur = 0;
             ctx.globalAlpha = brushOpacity * 0.8;
-            for (let i = 0; i < distance; i += 0.2) {
-                const ix = lastX + Math.cos(angle) * i;
-                const iy = lastY + Math.sin(angle) * i;
-                const ox = (Math.random() - 0.5) * 1.5;
-                const oy = (Math.random() - 0.5) * 1.5;
-                ctx.fillRect(ix + ox, iy + oy, 1, 1);
-            }
-        } else if (brushType === BrushType.WATERCOLOR) {
-            // Watercolor: soft bleeding edges
-            ctx.globalAlpha = brushOpacity * 0.05;
             for (let i = 0; i < distance; i += 2) {
                 const ix = lastX + Math.cos(angle) * i;
                 const iy = lastY + Math.sin(angle) * i;
-                const grad = ctx.createRadialGradient(ix, iy, 0, ix, iy, brushSize * 1.5);
-                grad.addColorStop(0, brushColor);
-                grad.addColorStop(1, 'transparent');
-                ctx.fillStyle = grad;
                 ctx.beginPath();
-                ctx.arc(ix, iy, brushSize * 1.5, 0, Math.PI * 2);
+                ctx.arc(ix, iy, brushSize / 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        } else if (brushType === BrushType.CRAYON) {
+            ctx.globalAlpha = brushOpacity * 0.6;
+            for (let i = 0; i < distance; i += 3) {
+                const ix = lastX + Math.cos(angle) * i;
+                const iy = lastY + Math.sin(angle) * i;
+                ctx.save();
+                ctx.translate(ix, iy);
+                const noise = Math.random() * 2 - 1;
+                ctx.fillRect(-brushSize / 2 + noise, -brushSize / 2 + noise, brushSize, brushSize);
+                ctx.restore();
+            }
+        } else if (brushType === BrushType.PENCIL) {
+            ctx.lineWidth = 1;
+            ctx.globalAlpha = brushOpacity;
+            for (let i = 0; i < distance; i += 1) {
+                const ix = lastX + Math.cos(angle) * i + (Math.random() - 0.5);
+                const iy = lastY + Math.sin(angle) * i + (Math.random() - 0.5);
+                ctx.fillRect(ix, iy, 1, 1);
+            }
+        } else if (brushType === BrushType.WATERCOLOR) {
+            ctx.globalAlpha = 0.1;
+            ctx.shadowBlur = brushSize;
+            ctx.shadowColor = brushColor;
+            for (let i = 0; i < distance; i += 5) {
+                const ix = lastX + Math.cos(angle) * i;
+                const iy = lastY + Math.sin(angle) * i;
+                ctx.beginPath();
+                ctx.arc(ix, iy, brushSize, 0, Math.PI * 2);
                 ctx.fill();
             }
         }
-
-        drawingLastPos.current = { x, y };
     };
     const handleDrawingMouseUp = () => {
         if (!isDrawing) return;
@@ -1706,6 +1827,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                     onToggleEraser={onToggleEraser}
                     isEraserActive={isDrawing && brushColor.includes('255, 0, 0')}
                     canvasSize={canvasSize}
+                    onUpdateCanvasSize={onSetCanvasSize}
                     documentColors={documentColors}
                     user={user}
                     onOpenPricing={onOpenPricing}
@@ -1720,14 +1842,17 @@ const CanvasComponent: React.FC<CanvasProps> = ({
             {/* Main Workspace with Infinite Canvas Feel */}
             <div
                 ref={viewportRef}
-                className="flex-1 relative overflow-hidden bg-[#0a0a0a] flex items-center justify-center cursor-default bg-[radial-gradient(#1f1f1f_1px,transparent_1px)] bg-[size:40px_40px]"
+                className="flex-1 overflow-hidden relative bg-gray-900 cursor-grab active:cursor-grabbing touch-none"
+                onWheel={handleWheel}
+                onMouseDown={handleMouseDownContainer}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
                 onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
                 onMouseLeave={(e) => {
                     if (isPanning) setIsPanning(false);
                     // handleMouseUp(e as any); // Replaced with separate logic if needed
                 }}
-                onMouseDown={handleMouseDownContainer}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
                     e.preventDefault();
@@ -1873,6 +1998,9 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                             onMouseDown={handleDrawingMouseDown}
                             onMouseMove={handleDrawingMouseMove}
                             onMouseUp={handleDrawingMouseUp}
+                            onTouchStart={handleDrawingTouchStart}
+                            onTouchMove={handleDrawingTouchMove}
+                            onTouchEnd={handleDrawingMouseUp}
                         />
                         {isProcessing && (
                             <div className="absolute inset-0 bg-black/60 z-[200] flex flex-col items-center justify-center backdrop-blur-md animate-fadeIn">

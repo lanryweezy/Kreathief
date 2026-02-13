@@ -4,7 +4,10 @@ import { Layer, TextLayer, ShapeLayer, ImageLayer, CanvasFilters, LayerFilters, 
 import { Icons, FONT_FAMILIES } from '../constants';
 import { loadFont } from '../services/FontLoader';
 import { ColorPicker } from './ColorPicker';
+import { CanvasSizePicker } from './CanvasSizePicker';
+import { FontPicker } from './FontPicker';
 import * as geminiService from '../services/geminiService';
+import * as imageProcessor from '../utils/imageProcessor';
 
 interface ToolbarProps {
    selectedLayer: Layer | null;
@@ -32,7 +35,8 @@ interface ToolbarProps {
 
    onToggleEraser?: () => void;
    isEraserActive?: boolean;
-   canvasSize?: CanvasSize;
+   canvasSize: CanvasSize;
+   onUpdateCanvasSize: (size: CanvasSize) => void;
    user: User;
    onOpenPricing: () => void;
    onGroup?: () => void;
@@ -117,13 +121,20 @@ const CompactInput = React.memo(({ value, onChange, min, max, label, width = "w-
 const CanvasTools = React.memo(({
    onToggleDesignSuggestions, onToggleSmartContent, onToggleQualityScore,
    canvasBackgroundColor, onSetCanvasBackgroundColor, onInteractionStart,
-   documentColors, canvasFilters, onUpdateCanvasFilters
+   documentColors, canvasFilters, onUpdateCanvasFilters,
+   canvasSize, onUpdateCanvasSize
 }: any) => (
    <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-      <div className="flex items-center gap-2 px-2 py-1 rounded bg-gray-800/30 border border-gray-700/50">
+      <div className="flex items-center gap-2 px-2 py-1 rounded bg-gray-800/30 border border-gray-700/50 shrink-0">
          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide hidden sm:inline">Canvas</span>
          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide sm:hidden">BG</span>
       </div>
+
+      <CanvasSizePicker
+         currentSize={canvasSize}
+         onSizeChange={onUpdateCanvasSize}
+      />
+
       <Divider />
       {/* AI Tools Section */}
       <div className="flex items-center gap-1.5 p-0.5 bg-[#252627] rounded border border-gray-700">
@@ -180,17 +191,29 @@ const CanvasTools = React.memo(({
          ))}
       </div>
       <Divider />
-      <div className="flex items-center gap-2">
-         <span className="text-[10px] text-gray-400 font-bold uppercase">Looks</span>
-         <div className="flex items-center gap-1">
+      <div className="flex flex-col gap-1.5">
+         <div className="flex items-center gap-1.5 px-1">
+            <Icons.Sparkles className="w-3 h-3 text-[#7d2ae8]" />
+            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Styles & Looks</span>
+         </div>
+         <div className="flex items-center gap-2">
             {CANVAS_EFFECT_PRESETS.map((preset) => (
                <button
                   key={preset.name}
                   title={preset.description}
                   onClick={() => { onInteractionStart(); onUpdateCanvasFilters({ ...preset.filters }); }}
-                  className="px-2 py-1 rounded-full text-[10px] font-semibold bg-[#252627] text-gray-200 border border-gray-700 hover:border-[#7d2ae8] hover:text-white hover:bg-[#2d2f32] transition-colors"
+                  className="group relative w-12 h-10 rounded-md overflow-hidden border border-gray-700 hover:border-[#7d2ae8] transition-all bg-[#0e1318]"
                >
-                  {preset.name}
+                  {/* Visual Swatch Preview (Placeholder gradient based on filter types) */}
+                  <div className={`absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity ${preset.name === 'Vintage' ? 'bg-amber-900/50' :
+                     preset.name === 'Noir' ? 'bg-gray-900' :
+                        preset.name === 'Vivid' ? 'bg-gradient-to-tr from-purple-500 to-blue-500' : 'bg-gray-800'
+                     }`} />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                     <span className="text-[8px] font-black uppercase text-white tracking-tighter drop-shadow-md">
+                        {preset.name}
+                     </span>
+                  </div>
                </button>
             ))}
          </div>
@@ -198,33 +221,49 @@ const CanvasTools = React.memo(({
    </div>
 ));
 
-const TransformTools = React.memo(({ selectedLayer, handleUpdateLayer, isPro, onOpenPricing }: any) => (
-   <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-      <div className="flex items-center gap-1">
-         <CompactInput label="X" value={selectedLayer.x} onChange={(e: any) => handleUpdateLayer({ x: parseInt(e.target.value) })} width="w-10 sm:w-12" />
-         <CompactInput label="Y" value={selectedLayer.y} onChange={(e: any) => handleUpdateLayer({ y: parseInt(e.target.value) })} width="w-10 sm:w-12" />
-      </div>
-      <Divider />
-      <div className="flex items-center gap-1">
-         <CompactInput label="W" value={selectedLayer.width} onChange={(e: any) => handleUpdateLayer({ width: parseInt(e.target.value) })} min={10} width="w-10 sm:w-12" />
-         {selectedLayer.type !== 'text' && (
-            <CompactInput label="H" value={(selectedLayer as any).height || 0} onChange={(e: any) => handleUpdateLayer({ height: parseInt(e.target.value) })} min={10} width="w-10 sm:w-12" />
+const TransformTools = React.memo(({ selectedLayer, handleUpdateLayer, isPro, onOpenPricing }: any) => {
+   const [showAdvanced, setShowAdvanced] = useState(false);
+
+   return (
+      <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+         <div className="flex items-center gap-1">
+            <CompactInput label="X" value={selectedLayer.x} onChange={(e: any) => handleUpdateLayer({ x: parseInt(e.target.value) })} width="w-10 sm:w-12" />
+            <CompactInput label="Y" value={selectedLayer.y} onChange={(e: any) => handleUpdateLayer({ y: parseInt(e.target.value) })} width="w-10 sm:w-12" />
+         </div>
+         <Divider />
+         <div className="flex items-center gap-1">
+            <CompactInput label="W" value={selectedLayer.width} onChange={(e: any) => handleUpdateLayer({ width: parseInt(e.target.value) })} min={10} width="w-10 sm:w-12" />
+            {selectedLayer.type !== 'text' && (
+               <CompactInput label="H" value={(selectedLayer as any).height || 0} onChange={(e: any) => handleUpdateLayer({ height: parseInt(e.target.value) })} min={10} width="w-10 sm:w-12" />
+            )}
+         </div>
+
+         <button
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className={`flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold border transition-colors ${showAdvanced ? 'bg-[#7d2ae8]/20 border-[#7d2ae8]/50 text-[#7d2ae8]' : 'bg-[#252627] border-gray-700 text-gray-500 hover:border-gray-500 hover:text-white'}`}
+         >
+            <Icons.Settings className={`w-3 h-3 ${showAdvanced ? 'animate-spin-slow' : ''}`} />
+            Advanced
+         </button>
+
+         {showAdvanced && (
+            <div className="flex items-center gap-2 sm:gap-4 animate-fadeIn border-l border-gray-700 ml-2 pl-4">
+               <div className="flex items-center gap-1.5">
+                  <Icons.RotateCw className="w-3 h-3 text-gray-500" />
+                  <CompactInput label="R" value={selectedLayer.rotation} onChange={(e: any) => handleUpdateLayer({ rotation: parseInt(e.target.value) })} min={0} max={360} width="w-9 sm:w-10" />
+               </div>
+               <Divider />
+               <div className="flex items-center gap-1 p-0.5 bg-[#252627] rounded border border-gray-700">
+                  <span className="text-[9px] font-bold text-gray-500 px-1 uppercase tracking-tighter hidden lg:inline">Distort</span>
+                  <CompactInput label="RX" value={(selectedLayer as any).rotateX || 0} onChange={(e: any) => handleUpdateLayer({ rotateX: parseInt(e.target.value) })} min={-180} max={180} width="w-8 sm:w-9" />
+                  <CompactInput label="RY" value={(selectedLayer as any).rotateY || 0} onChange={(e: any) => handleUpdateLayer({ rotateY: parseInt(e.target.value) })} min={-180} max={180} width="w-8 sm:w-9" />
+                  <CompactInput label="P" value={(selectedLayer as any).perspective || 0} onChange={(e: any) => handleUpdateLayer({ perspective: parseInt(e.target.value) })} min={0} max={2000} width="w-10 sm:w-12" />
+               </div>
+            </div>
          )}
       </div>
-      <Divider />
-      <div className="flex items-center gap-1.5">
-         <Icons.RotateCw className="w-3 h-3 text-gray-500 hidden sm:block" />
-         <CompactInput value={selectedLayer.rotation} onChange={(e: any) => handleUpdateLayer({ rotation: parseInt(e.target.value) })} min={0} max={360} width="w-9 sm:w-10" />
-      </div>
-      <Divider />
-      <div className="flex items-center gap-1 p-0.5 bg-[#252627] rounded border border-gray-700">
-         <span className="text-[9px] font-bold text-gray-500 px-1 uppercase tracking-tighter hidden lg:inline">Distort</span>
-         <CompactInput label="RX" value={(selectedLayer as any).rotateX || 0} onChange={(e: any) => handleUpdateLayer({ rotateX: parseInt(e.target.value) })} min={-180} max={180} width="w-8 sm:w-9" />
-         <CompactInput label="RY" value={(selectedLayer as any).rotateY || 0} onChange={(e: any) => handleUpdateLayer({ rotateY: parseInt(e.target.value) })} min={-180} max={180} width="w-8 sm:w-9" />
-         <CompactInput label="P" value={(selectedLayer as any).perspective || 0} onChange={(e: any) => handleUpdateLayer({ perspective: parseInt(e.target.value) })} min={0} max={2000} width="w-10 sm:w-12" />
-      </div>
-   </div>
-));
+   );
+});
 
 const TextTools = React.memo(({
    layer, onUpdateTextLayer, onInteractionStart, documentColors, onMagicWrite,
@@ -243,29 +282,17 @@ const TextTools = React.memo(({
             <Icons.ChevronDown className="w-3 h-3 text-gray-500" />
          </button>
          {showFontPicker && (
-            <div className="absolute top-full left-0 mt-1 w-56 bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-xl max-h-80 overflow-y-auto z-50 p-1 animate-fadeIn custom-scrollbar">
-               <div className="sticky top-0 bg-[#1e1e1e] p-1 mb-1 border-b border-gray-700 z-10">
-                  <input
-                     type="text"
-                     placeholder="Search fonts..."
-                     className="w-full bg-[#13161a] border border-gray-600 rounded px-2 py-1.5 text-xs text-white focus:border-[#7d2ae8] outline-none"
-                     value={fontSearch}
-                     onChange={(e) => setFontSearch(e.target.value)}
-                     autoFocus
-                  />
-               </div>
-               {filteredFonts.map((font: string) => (
-                  <button
-                     key={font}
-                     onClick={() => { loadFont(font); onUpdateTextLayer(layer.id, { fontFamily: font }); setShowFontPicker(false); }}
-                     className={`w-full text-left px-3 py-2 text-sm hover:bg-[#7d2ae8] hover:text-white rounded flex items-center justify-between group ${layer.fontFamily === font ? 'bg-indigo-900/30 text-[#7d2ae8]' : 'text-gray-300'}`}
-                     style={{ fontFamily: `"${font}", sans-serif` }}
-                  >
-                     <span className="truncate">{font}</span>
-                     {layer.fontFamily === font && <div className="w-1.5 h-1.5 rounded-full bg-[#7d2ae8] group-hover:bg-white" />}
-                  </button>
-               ))}
-            </div>
+            <FontPicker
+               currentFont={layer.fontFamily}
+               onSelectFont={(font) => {
+                  loadFont(font);
+                  onUpdateTextLayer(layer.id, { fontFamily: font });
+                  setShowFontPicker(false);
+               }}
+               onClose={() => setShowFontPicker(false)}
+               search={fontSearch}
+               setSearch={setFontSearch}
+            />
          )}
       </div>
 
@@ -540,6 +567,7 @@ export const Toolbar = React.memo(({
    onToggleEraser,
    isEraserActive,
    canvasSize,
+   onUpdateCanvasSize,
    user,
    onOpenPricing,
    onGroup,
@@ -600,7 +628,8 @@ export const Toolbar = React.memo(({
       setIsRemovingBg(true);
       onInteractionStart();
       try {
-         const newSrc = await geminiService.removeBackground((selectedLayer as ImageLayer).src);
+         // Use client-side AI (imgly) instead of Gemini for faster/free BG removal
+         const newSrc = await imageProcessor.removeBackground((selectedLayer as ImageLayer).src);
          onUpdateImageLayer(selectedLayer.id, { src: newSrc });
       } catch (error) {
          console.error("Failed to remove background", error);
@@ -679,6 +708,8 @@ export const Toolbar = React.memo(({
                documentColors={documentColors}
                canvasFilters={canvasFilters}
                onUpdateCanvasFilters={onUpdateCanvasFilters}
+               canvasSize={canvasSize}
+               onUpdateCanvasSize={onUpdateCanvasSize}
             />
          ) : (
             <>

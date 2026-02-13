@@ -3,199 +3,148 @@ import React from 'react';
 import { Icons } from '../constants';
 import { Button } from './Button';
 import { User } from '../types';
-import { DropdownMenu } from './DropdownMenu';
 
 interface HeaderProps {
   onDownload: () => void;
-  title?: string;
-  onTitleChange?: (newTitle: string) => void;
+  onSave?: () => void;
+  onNew?: () => void;
   onUndo?: () => void;
   onRedo?: () => void;
   canUndo?: boolean;
   canRedo?: boolean;
-  onToggleShortcuts?: () => void;
+  title?: string;
+  onTitleChange?: (newTitle: string) => void;
   isSaving?: boolean;
   onBack?: () => void;
   user?: User;
   onShare?: () => void;
-  onNew?: () => void;
-  onOpen?: () => void;
-  onSave?: () => void;
-  onZoomIn?: () => void;
-  onZoomOut?: () => void;
-  onToggleGrid?: () => void;
-  showGrid?: boolean;
-  onCopy?: () => void;
-  onPaste?: () => void;
-  onDelete?: () => void;
-  onDuplicate?: () => void;
-  onResetZoom?: () => void;
-  onCut?: () => void;
-  onCopyToClipboard?: () => void;
   onRestartTour?: () => void;
+  onShowShortcuts?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onDownload,
-  title = "Untitled Design",
-  onTitleChange,
+  onSave,
+  onNew,
   onUndo,
   onRedo,
   canUndo = false,
   canRedo = false,
-  onToggleShortcuts,
+  title = "Untitled Design",
+  onTitleChange,
   isSaving = false,
   onBack,
   user,
   onShare,
-  onNew,
-  onOpen,
-  onSave,
-  onZoomIn,
-  onZoomOut,
-  onToggleGrid,
-  showGrid = false,
-  onCopy,
-  onPaste,
-  onDelete,
-  onDuplicate,
-  onResetZoom,
-  onCut,
-  onCopyToClipboard,
-  onRestartTour
+  onRestartTour,
+  onShowShortcuts
 }) => {
-  const fileItems = [
-    { label: 'New Design', icon: <Icons.Plus className="w-3.5 h-3.5" />, shortcut: 'Ctrl + N', onClick: onNew || (() => { }) },
-    { label: 'Open...', icon: <Icons.Folder className="w-3.5 h-3.5" />, shortcut: 'Ctrl + O', onClick: onOpen || (() => { }) },
-    { label: 'Save As...', icon: <Icons.Download className="w-3.5 h-3.5" />, shortcut: 'Ctrl + S', onClick: onSave || (() => { }) },
-    { label: 'Copy Image', icon: <Icons.Copy className="w-3.5 h-3.5" />, shortcut: 'Ctrl+Shift+C', onClick: onCopyToClipboard || (() => { }) },
-    { label: 'Export...', icon: <Icons.Image className="w-3.5 h-3.5" />, shortcut: 'Ctrl + E', onClick: onDownload, divider: true },
-  ];
-
-  const editItems = [
-    { label: 'Undo', icon: <Icons.Undo className="w-3.5 h-3.5" />, shortcut: 'Ctrl + Z', onClick: onUndo || (() => { }), disabled: !canUndo },
-    { label: 'Redo', icon: <Icons.Redo className="w-3.5 h-3.5" />, shortcut: 'Ctrl + Shift + Z', onClick: onRedo || (() => { }), disabled: !canRedo },
-    { label: 'Cut', icon: <Icons.Scissors className="w-3.5 h-3.5" />, shortcut: 'Ctrl + X', onClick: onCut || (() => { }), divider: true },
-    { label: 'Copy', icon: <Icons.Copy className="w-3.5 h-3.5" />, shortcut: 'Ctrl + C', onClick: onCopy || (() => { }) },
-    { label: 'Paste', icon: <Icons.Download className="w-3.5 h-3.5" />, shortcut: 'Ctrl + V', onClick: onPaste || (() => { }) },
-    { label: 'Duplicate', icon: <Icons.Magic className="w-3.5 h-3.5" />, shortcut: 'Ctrl + D', onClick: onDuplicate || (() => { }) },
-    { label: 'Delete', icon: <Icons.Trash className="w-3.5 h-3.5" />, shortcut: 'Del', onClick: onDelete || (() => { }), danger: true },
-  ];
-
-  const viewItems = [
-    { label: 'Zoom In', icon: <Icons.Plus className="w-3.5 h-3.5" />, shortcut: 'Ctrl + +', onClick: onZoomIn || (() => { }) },
-    { label: 'Zoom Out', icon: <Icons.Minus className="w-3.5 h-3.5" />, shortcut: 'Ctrl + -', onClick: onZoomOut || (() => { }) },
-    { label: 'Reset Zoom', onClick: onResetZoom || (() => { }), divider: true },
-    { label: showGrid ? 'Hide Grid' : 'Show Grid', icon: <Icons.Grid className="w-3.5 h-3.5" />, shortcut: 'G', onClick: onToggleGrid || (() => { }) },
-    { label: 'Keyboard Shortcuts', icon: <Icons.Keyboard className="w-3.5 h-3.5" />, shortcut: '?', onClick: onToggleShortcuts || (() => { }) },
-    { label: 'Take Tour', icon: <Icons.Magic className="w-3.5 h-3.5" />, onClick: onRestartTour || (() => { }) },
-  ];
-
   return (
-    <header className="h-14 bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] text-white flex items-center justify-between px-4 shadow-md z-50 shrink-0">
-      <div className="flex items-center gap-4">
-        {onBack ? (
-          <button onClick={onBack} className="p-1.5 hover:bg-white/10 rounded-full transition-colors" title="Back to Dashboard">
-            <Icons.ArrowUp className="w-5 h-5 -rotate-90" />
+    <header className="h-12 bg-[#0e1318] text-white flex items-center justify-between px-4 shadow-lg z-50 shrink-0 border-b border-gray-800">
+      <div className="flex items-center gap-2">
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="p-2 hover:bg-white/5 rounded-md transition-all text-gray-400 hover:text-white"
+            title="Back"
+          >
+            <Icons.ArrowLeft className="w-4 h-4" />
           </button>
-        ) : (
-          <div className="flex items-center gap-2 cursor-pointer hover:opacity-90">
-            <div className="font-bold text-2xl font-display tracking-tight">Kreathief</div>
-            <div className="text-[10px] uppercase font-semibold bg-white/20 px-1.5 py-0.5 rounded">AI</div>
-          </div>
         )}
 
-        <div className="h-6 w-px bg-white/30 mx-2 hidden sm:block"></div>
-
-        <div className="flex items-center gap-1 text-sm font-medium hidden sm:flex">
-          <DropdownMenu label="File" items={fileItems} />
-          <DropdownMenu label="Edit" items={editItems} />
-          <DropdownMenu label="View" items={viewItems} />
+        <div className="hidden md:flex items-center gap-1 px-2">
+          <button className="px-2 py-1 text-[11px] font-medium text-gray-400 hover:text-white hover:bg-white/5 rounded transition-colors">File</button>
+          <button className="px-2 py-1 text-[11px] font-medium text-gray-400 hover:text-white hover:bg-white/5 rounded transition-colors" onClick={() => (window as any).dispatchEvent(new CustomEvent('editor-edit-menu'))}>Edit</button>
+          <button className="px-2 py-1 text-[11px] font-medium text-gray-400 hover:text-white hover:bg-white/5 rounded transition-colors">View</button>
         </div>
 
-        <div className="h-6 w-px bg-white/30 mx-2 hidden sm:block"></div>
+        <div className="hidden md:block h-4 w-px bg-gray-800 mx-1"></div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
           <button
             onClick={onUndo}
             disabled={!canUndo}
-            className="p-1.5 rounded hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
+            className={`p-1.5 rounded-md transition-all ${canUndo ? 'text-gray-300 hover:bg-white/5 hover:text-white' : 'text-gray-600 cursor-not-allowed'}`}
             title="Undo (Ctrl+Z)"
           >
-            <Icons.Undo className="w-4 h-4" />
+            <Icons.Undo className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={onRedo}
             disabled={!canRedo}
-            className="p-1.5 rounded hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-transparent transition-colors"
-            title="Redo (Ctrl+Shift+Z)"
+            className={`p-1.5 rounded-md transition-all ${canRedo ? 'text-gray-300 hover:bg-white/5 hover:text-white' : 'text-gray-600 cursor-not-allowed'}`}
+            title="Redo (Ctrl+Y)"
           >
-            <Icons.Redo className="w-4 h-4" />
+            <Icons.Redo className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        <div className="flex items-center gap-2 ml-2 min-w-[100px] hidden lg:flex">
-          <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isSaving ? "bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.8)]" : "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]"}`}></div>
-          <span className={`text-[10px] uppercase tracking-wider font-bold transition-colors ${isSaving ? "text-amber-200" : "text-emerald-200 opacity-80"}`}>
-            {isSaving ? "Syncing..." : "Synced"}
+        <div className="h-4 w-px bg-gray-800 mx-1"></div>
+
+        <div className="flex items-center gap-2 px-2">
+          <div className={`sync-dot ${isSaving ? "sync-dot-saving" : ""}`}></div>
+          <span className="hidden md:block text-[9px] uppercase tracking-wider font-bold text-gray-500">
+            {isSaving ? "Saving..." : "Saved"}
           </span>
         </div>
       </div>
 
-      <div className="flex-1 flex justify-center px-4 group/title relative">
+      <div className="flex-1 flex justify-center px-4 max-w-sm">
         {onTitleChange ? (
-          <div className="relative max-w-md w-full flex justify-center">
+          <div className="relative w-full flex justify-center group">
             <input
               id="header-title"
               type="text"
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
-              className="bg-transparent text-center font-bold text-base border-b border-transparent hover:border-white/30 focus:border-white focus:outline-none transition-all px-2 truncate cursor-edit"
-              placeholder="Enter design name"
+              className="bg-transparent text-center font-bold text-sm text-gray-200 border-b border-transparent hover:border-gray-700 focus:border-[#7d2ae8] focus:outline-none transition-all px-2 truncate w-full"
+              placeholder="Untitled Design"
             />
-            <Icons.Scissors className="w-3 h-3 absolute -right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover/title:opacity-40 transition-opacity pointer-events-none rotate-45" />
           </div>
         ) : (
-          <div className="font-bold text-base opacity-90 truncate max-w-md px-4">
-            {title}
-          </div>
+          <div className="font-bold text-sm text-gray-200 truncate">{title}</div>
         )}
       </div>
 
-      <div className="flex items-center gap-3">
-        <button
-          onClick={onToggleShortcuts}
-          className="p-2 text-white/80 hover:text-white hover:bg-white/10 rounded-full transition-colors hidden sm:block"
-          title="Keyboard Shortcuts (?)"
-        >
-          <Icons.Help className="w-5 h-5" />
-        </button>
-
-        {user && (
-          <div className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center overflow-hidden shadow-sm">
-            <img src={user.avatar} className="w-full h-full object-cover" />
-          </div>
+      <div className="flex items-center gap-4">
+        {onShowShortcuts && (
+          <button
+            onClick={onShowShortcuts}
+            className="p-2 text-gray-400 hover:text-white transition-colors"
+            title="Keyboard Shortcuts (?)"
+          >
+            <Icons.Help className="w-4 h-4" />
+          </button>
         )}
 
         {onShare && (
           <button
             onClick={onShare}
-            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold transition-all border border-white/20"
+            className="p-2 text-gray-400 hover:text-[#00c4cc] transition-colors"
+            title="Share Design"
           >
-            <Icons.Send className="w-4 h-4" /> Share
+            <Icons.Share className="w-4 h-4" />
           </button>
         )}
+
+        <div className="h-4 w-px bg-gray-800"></div>
 
         <Button
           id="export-btn"
           variant="secondary"
           size="sm"
-          className="bg-white text-purple-700 hover:bg-gray-100 font-bold border-none shadow-lg"
+          className="bg-[#7d2ae8] text-white hover:bg-[#6b23c5] font-bold border-none shadow-lg h-8 px-4"
           onClick={onDownload}
         >
-          <Icons.Download className="w-4 h-4 mr-2" />
-          Export
+          <Icons.Download className="w-3.5 h-3.5 md:mr-2" />
+          <span className="hidden md:inline">Export</span>
         </Button>
+
+        {user && (
+          <div className="w-7 h-7 rounded-full border border-gray-700 flex items-center justify-center overflow-hidden shadow-sm hover:border-[#7d2ae8] transition-colors cursor-pointer">
+            <img src={user.avatar} className="w-full h-full object-cover" alt={user.name} />
+          </div>
+        )}
       </div>
     </header>
   );

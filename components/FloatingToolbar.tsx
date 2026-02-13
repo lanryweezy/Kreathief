@@ -22,121 +22,120 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
     zoom
 }) => {
     const [showColorPicker, setShowColorPicker] = useState(false);
-    const [position, setPosition] = useState({ top: 0, left: 0 });
-
-    // Calculate position relative to selection, ensuring it stays within viewport
-    useEffect(() => {
-        // This is a simplified positioning. Ideally we'd use useLayoutEffect and measure dom rects
-        // But for now, we'll position it above the layer based on its coordinates
-        // The parent container (Canvas) handles the actual screen-space conversion via `zoom` prop if needed
-        // logic here assumes toolbar is rendered in the same coordinate space as layers? 
-        // No, usually floating toolbars are in UI space overlapping the canvas.
-        // Let's assume this component is placed absolutely within the Canvas viewport container
-
-        // Actually, looking at FloatingTypographyToolbar usage, it might be positioned via style prop in parent.
-        // Let's check how FloatingTypographyToolbar is used.
-    }, [selectedLayer, zoom]);
 
     if (!selectedLayer) return null;
 
-    // Determine available actions based on layer type
+    const isLocked = selectedLayer.locked;
     const isText = selectedLayer.type === 'text';
     const isShape = ['rectangle', 'circle', 'triangle', 'star', 'hexagon', 'diamond', 'arrow', 'heart', 'speech_bubble', 'ribbon', 'shield', 'banner', 'pentagon', 'octagon', 'plus', 'star_4', 'star_8', 'path'].includes(selectedLayer.type);
     const isImage = selectedLayer.type === 'image';
 
     return (
         <div
-            className="absolute flex items-center gap-1 p-1 bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-xl z-[100] animate-fadeIn"
+            className="absolute flex items-center gap-0.5 p-1 bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl z-[200] animate-in zoom-in-95 duration-200 select-none backdrop-blur-md"
             style={{
-                left: selectedLayer.x + (selectedLayer.width / 2) - 150, // Center horizontally-ish
-                top: selectedLayer.y - 60, // Above the layer
-                transform: `scale(${1 / zoom})`, // Counter-scale against canvas zoom if it's inside the zoomed container
+                left: selectedLayer.x + (selectedLayer.width / 2) - 140,
+                top: selectedLayer.y - 60,
+                transform: `scale(${Math.max(0.6, Math.min(1.2, 1 / zoom))})`,
                 transformOrigin: 'bottom center'
             }}
-            onMouseDown={(e) => e.stopPropagation()} // Prevent canvas drag
+            onMouseDown={(e) => e.stopPropagation()}
         >
-            {/* Common Actions */}
+            {/* Lock Action */}
             <button
-                onClick={() => onDuplicateLayer(selectedLayer.id)}
-                className="p-2 hover:bg-[#2a2a2a] rounded text-gray-300 hover:text-white tooltip-trigger"
-                title="Duplicate"
+                onClick={() => onUpdateLayer(selectedLayer.id, { locked: !isLocked })}
+                className={`p-2 rounded-lg transition-all ${isLocked ? 'text-red-400 bg-red-500/10' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
+                title={isLocked ? "Unlock Layer" : "Lock Layer"}
             >
-                <Icons.Copy className="w-4 h-4" />
+                {isLocked ? <Icons.Lock className="w-4 h-4" /> : <Icons.Unlock className="w-4 h-4 opacity-50" />}
             </button>
 
-            {/* Layer Ordering */}
-            <div className="h-4 w-px bg-gray-700 mx-1" />
+            <div className="w-px h-6 bg-gray-800 mx-1" />
 
-            <button
-                onClick={() => onMoveLayer(selectedLayer.id, 'forward')}
-                className="p-2 hover:bg-[#2a2a2a] rounded text-gray-300 hover:text-white"
-                title="Bring Forward"
-            >
-                <Icons.ArrowUp className="w-4 h-4" />
-            </button>
-            <button
-                onClick={() => onMoveLayer(selectedLayer.id, 'backward')}
-                className="p-2 hover:bg-[#2a2a2a] rounded text-gray-300 hover:text-white"
-                title="Send Backward"
-            >
-                <Icons.ArrowDown className="w-4 h-4" />
-            </button>
-
-            <div className="h-4 w-px bg-gray-700 mx-1" />
-
-            {/* Type Specific */}
-            {(isText || isShape) && (
-                <div className="relative">
+            {!isLocked && (
+                <>
+                    {/* Duplicate */}
                     <button
-                        onClick={() => setShowColorPicker(!showColorPicker)}
-                        className="p-1 hover:bg-[#2a2a2a] rounded flex items-center gap-2"
-                        title="Color"
+                        onClick={() => onDuplicateLayer(selectedLayer.id)}
+                        className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-all"
+                        title="Duplicate"
                     >
-                        <div
-                            className="w-5 h-5 rounded border border-gray-600"
-                            style={{ backgroundColor: (selectedLayer as ShapeLayer | TextLayer).color }}
-                        />
+                        <Icons.Copy className="w-4 h-4" />
                     </button>
-                    {showColorPicker && (
-                        <div className="absolute top-full left-0 mt-2 z-50">
-                            <ColorPicker
-                                value={(selectedLayer as ShapeLayer | TextLayer).color}
-                                onChange={(color) => onUpdateLayer(selectedLayer.id, { color })}
-                            />
+
+                    <div className="w-px h-6 bg-gray-800 mx-1" />
+
+                    {/* Ordering */}
+                    <button
+                        onClick={() => onMoveLayer(selectedLayer.id, 'forward')}
+                        className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-all"
+                        title="Bring Forward"
+                    >
+                        <Icons.ArrowUp className="w-4 h-4 rotate-45" />
+                    </button>
+                    <button
+                        onClick={() => onMoveLayer(selectedLayer.id, 'backward')}
+                        className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-all"
+                        title="Send Backward"
+                    >
+                        <Icons.ArrowDown className="w-4 h-4 rotate-45" />
+                    </button>
+
+                    <div className="w-px h-6 bg-gray-800 mx-1" />
+
+                    {/* Color (if applicable) */}
+                    {(isText || isShape) && (
+                        <div className="relative flex items-center">
+                            <button
+                                onClick={() => setShowColorPicker(!showColorPicker)}
+                                className="p-1 rounded-lg hover:bg-gray-800 transition-all"
+                                title="Change Color"
+                            >
+                                <div
+                                    className="w-6 h-6 rounded-md border border-gray-700 shadow-inner"
+                                    style={{ backgroundColor: (selectedLayer as ShapeLayer | TextLayer).color }}
+                                />
+                            </button>
+                            {showColorPicker && (
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-[300] bg-[#1e1e1e] p-2 rounded-xl border border-gray-700 shadow-2xl animate-in fade-in slide-in-from-bottom-2">
+                                    <ColorPicker
+                                        value={(selectedLayer as ShapeLayer | TextLayer).color}
+                                        onChange={(color) => onUpdateLayer(selectedLayer.id, { color })}
+                                    />
+                                    <button
+                                        onClick={() => setShowColorPicker(false)}
+                                        className="mt-2 w-full py-1 text-[10px] font-bold uppercase text-gray-500 hover:text-white transition-colors"
+                                    >
+                                        Close
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
-                </div>
+
+                    {/* Opacity slider - subtle */}
+                    <div className="flex items-center gap-2 px-3 group/opacity">
+                        <Icons.Transparency className="w-3.5 h-3.5 text-gray-500 group-hover/opacity:text-[#7d2ae8] transition-colors" />
+                        <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.01"
+                            value={selectedLayer.opacity}
+                            onChange={(e) => onUpdateLayer(selectedLayer.id, { opacity: parseFloat(e.target.value) })}
+                            className="w-12 h-1 bg-gray-800 rounded-full appearance-none cursor-pointer accent-[#7d2ae8] hover:w-20 transition-all duration-300"
+                        />
+                    </div>
+                </>
             )}
 
-            {isImage && (
-                <button
-                    className="p-2 hover:bg-[#2a2a2a] rounded text-gray-300 hover:text-white"
-                    title="Filters (Coming Soon)"
-                >
-                    <Icons.Filter className="w-4 h-4" />
-                </button>
-            )}
+            <div className="w-px h-6 bg-gray-800 mx-1" />
 
-            {/* Opacity Slider Popover Trigger - simplified for now */}
-            <div className="flex items-center gap-2 px-2">
-                <Icons.Transparency className="w-4 h-4 text-gray-400" />
-                <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={selectedLayer.opacity}
-                    onChange={(e) => onUpdateLayer(selectedLayer.id, { opacity: parseFloat(e.target.value) })}
-                    className="w-16 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
-                />
-            </div>
-
-            <div className="h-4 w-px bg-gray-700 mx-1" />
-
+            {/* Delete */}
             <button
                 onClick={() => onDeleteLayer(selectedLayer.id)}
-                className="p-2 hover:bg-red-500/20 rounded text-red-400 hover:text-red-300"
-                title="Delete"
+                className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                title="Delete Layer"
             >
                 <Icons.Trash className="w-4 h-4" />
             </button>

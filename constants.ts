@@ -10,6 +10,17 @@ export const DEFAULT_ASPECT_RATIO = '1:1';
 export const CANVAS_W = 1080;
 export const CANVAS_H = 1080;
 
+export const CANVAS_SIZE_PRESETS = [
+  { id: 'ig-post', name: 'Instagram Post', width: 1080, height: 1080, category: 'Social' },
+  { id: 'ig-story', name: 'Instagram Story/Reel', width: 1080, height: 1920, category: 'Social' },
+  { id: 'fb-post', name: 'Facebook Post', width: 1200, height: 630, category: 'Social' },
+  { id: 'li-post', name: 'LinkedIn Post', width: 1200, height: 1200, category: 'Social' },
+  { id: 'yt-thumb', name: 'YouTube Thumbnail', width: 1280, height: 720, category: 'Video' },
+  { id: 'presentation', name: 'Presentation (16:9)', width: 1920, height: 1080, category: 'Print' },
+  { id: 'a4', name: 'A4 Document', width: 2480, height: 3508, category: 'Print' },
+  { id: 'letter', name: 'US Letter', width: 2550, height: 3300, category: 'Print' },
+];
+
 // Fonts
 export const FONT_FAMILIES = [
   'Inter', 'Space Grotesk', // System defaults
@@ -706,6 +717,24 @@ export const Icons = {
   Activity: (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement("svg", { ...svgProps, ...props },
       React.createElement("polyline", { points: "22 12 18 12 15 21 9 3 6 12 2 12" })
+    ),
+  Smartphone: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("rect", { width: "14", height: "20", x: "5", y: "2", rx: "2" }),
+      React.createElement("path", { d: "M12 18h.01" })
+    ),
+  FileText: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" }),
+      React.createElement("polyline", { points: "14 2 14 8 20 8" }),
+      React.createElement("line", { x1: "16", y1: "13", x2: "8", y2: "13" }),
+      React.createElement("line", { x1: "16", y1: "17", x2: "8", y2: "17" }),
+      React.createElement("line", { x1: "10", y1: "9", x2: "8", y2: "9" })
+    ),
+  Tag: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "m12 2 10 10-10 10-10-10L12 2Z" }),
+      React.createElement("path", { d: "m5 8 2 2" })
     ),
   Sun: (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement("svg", { ...svgProps, ...props },

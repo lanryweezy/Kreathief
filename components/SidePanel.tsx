@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { NavTab, AppMode, AspectRatio, GeneratedImage, TextLayer, ShapeLayer, ImageLayer, Project, BrandKit, GenerationQuality, BrushType } from '../types';
+import { NavTab, AppMode, AspectRatio, GeneratedImage, TextLayer, ShapeLayer, ImageLayer, Layer, Project, BrandKit, GenerationQuality, BrushType } from '../types';
+import { Icons } from '../constants';
 import { LayersPanel } from './panels/LayersPanel';
 import { DrawPanel } from './panels/DrawPanel';
 import { ElementsPanel } from './panels/ElementsPanel';
@@ -44,6 +45,7 @@ interface SidePanelProps {
   onAddImageLayer?: (src: string) => void;
   onApplyTemplate?: (templateId: string, confirmReplace?: boolean) => void;
   // Layer Management
+  layers?: Layer[]; // Unified layers prop
   textLayers: TextLayer[];
   shapeLayers: ShapeLayer[];
   imageLayers?: ImageLayer[];
@@ -56,6 +58,11 @@ interface SidePanelProps {
   onDuplicateLayer: (id: string) => void;
   onMoveLayer: (id: string, direction: 'front' | 'back' | 'forward' | 'backward') => void;
   onLayoutLayers?: (type: 'grid' | 'row' | 'col') => void;
+  // Copy/Paste (missing in props but used in LayersPanel)
+  onCopyLayer?: (id: string) => void;
+  onPasteLayer?: () => void;
+  onGroup?: () => void;
+  onUngroup?: () => void;
   // Projects
   projects?: Project[];
   onLoadProject?: (p: Project) => void;
@@ -98,9 +105,6 @@ interface SidePanelProps {
   onToggleDesignSuggestions?: () => void;
   onToggleSmartContent?: () => void;
   onToggleQualityScore?: () => void;
-  // Copy/Paste (missing in props but used in LayersPanel)
-  onCopyLayer?: (id: string) => void;
-  onPasteLayer?: () => void;
   onHoverFont?: (fontFamily: string | null) => void;
 }
 
@@ -128,6 +132,7 @@ export const SidePanel = React.memo(({ ...props }: SidePanelProps) => {
     onAddShape,
     onAddImageLayer,
     onApplyTemplate,
+    layers, // Unified layers
     textLayers,
     shapeLayers,
     imageLayers = [],
@@ -172,6 +177,8 @@ export const SidePanel = React.memo(({ ...props }: SidePanelProps) => {
     onDeleteUpload,
     onCopyLayer,
     onPasteLayer,
+    onGroup,
+    onUngroup,
     onHoverFont,
   } = props;
 
@@ -191,8 +198,18 @@ export const SidePanel = React.memo(({ ...props }: SidePanelProps) => {
       <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Saved</h4>
       <div className="space-y-2 overflow-y-auto custom-scrollbar flex-1 pb-10">
         {projects.length === 0 ? (
-          <div className="text-center text-gray-500 mt-10">
-            <p className="text-xs">No saved projects yet</p>
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7d2ae8]/20 to-[#00c4cc]/20 flex items-center justify-center mb-4">
+              <Icons.Projects className="w-7 h-7 text-[#7d2ae8]" />
+            </div>
+            <p className="text-sm font-bold text-white mb-1">No Projects Yet</p>
+            <p className="text-xs text-gray-500 mb-4 max-w-[200px]">Create your first design to see it here.</p>
+            <button
+              onClick={onCreateProject}
+              className="bg-[#7d2ae8] hover:bg-[#6b23c5] text-white text-xs font-bold px-4 py-2 rounded-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
+            >
+              <Icons.Magic className="w-3.5 h-3.5" /> New Design
+            </button>
           </div>
         ) : (
           projects.map(project => (
@@ -218,7 +235,7 @@ export const SidePanel = React.memo(({ ...props }: SidePanelProps) => {
 
   return (
     <div className="w-[320px] bg-[#13161a] border-r border-[#1f1f1f] flex flex-col z-20 shrink-0 shadow-xl relative overflow-hidden">
-      <div key={activeTab} className="h-full flex flex-col animate-panel-entry">
+      <div key={activeTab} className="h-full flex flex-col animate-panel-crossfade">
         <React.Suspense fallback={<PanelLoading />}>
           {activeTab === NavTab.MAGIC && (
             <MagicPanel
@@ -305,9 +322,7 @@ export const SidePanel = React.memo(({ ...props }: SidePanelProps) => {
 
           {activeTab === NavTab.LAYERS && (
             <LayersPanel
-              textLayers={textLayers}
-              shapeLayers={shapeLayers}
-              imageLayers={imageLayers}
+              layers={layers || []}
               selectedLayerId={selectedLayerId}
               onSelectLayer={onSelectLayer}
               onDeleteLayer={onDeleteLayer}
@@ -319,6 +334,8 @@ export const SidePanel = React.memo(({ ...props }: SidePanelProps) => {
               onLayoutLayers={onLayoutLayers}
               onCopyLayer={onCopyLayer}
               onPasteLayer={onPasteLayer}
+              onGroup={onGroup}
+              onUngroup={onUngroup}
             />
           )}
 

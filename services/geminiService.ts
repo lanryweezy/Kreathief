@@ -2,6 +2,7 @@
 import { GoogleGenerativeAI, Part, SchemaType } from "@google/generative-ai";
 import { MODEL_FAST, MODEL_PRO, FONT_FAMILIES } from '../constants';
 import { DesignTheme, GenerationQuality } from '../types';
+import * as freepikService from './freepikService';
 
 // Helper to get fresh client instance (important for key switching)
 const getClient = () => {
@@ -72,7 +73,21 @@ export const generateImage = async (
 
     return extractImageFromResponse(response);
   } catch (error) {
-    console.error("Generation Error:", error);
+    console.error("Gemini Generation Error — trying Freepik fallback:", error);
+
+    // Freepik fallback
+    if (freepikService.isConfigured()) {
+      try {
+        const result = await freepikService.generateImage(prompt, {
+          resolution: quality === 'hd' ? '2k' : '1k',
+          aspectRatio,
+        });
+        if (result) return result;
+      } catch (fpError) {
+        console.error("Freepik fallback also failed:", fpError);
+      }
+    }
+
     throw error;
   }
 };
@@ -132,7 +147,18 @@ export const removeBackground = async (
 
     return extractImageFromResponse(response);
   } catch (error) {
-    console.error("Remove BG Error:", error);
+    console.error("Gemini Remove BG Error — trying Freepik fallback:", error);
+
+    // Freepik fallback for background removal
+    if (freepikService.isConfigured()) {
+      try {
+        const result = await freepikService.removeBackground(base64Image);
+        if (result) return result;
+      } catch (fpError) {
+        console.error("Freepik BG removal fallback also failed:", fpError);
+      }
+    }
+
     throw error;
   }
 };
@@ -393,7 +419,18 @@ export const expandImage = async (base64Image: string): Promise<string> => {
   try {
     return await editImage(base64Image, "Fill in the transparent background to naturally extend the scene. Keep the style consistent.");
   } catch (error) {
-    console.error("Expand Image Error", error);
+    console.error("Gemini Expand Image Error — trying Freepik fallback:", error);
+
+    // Freepik fallback for image expansion/outpainting
+    if (freepikService.isConfigured()) {
+      try {
+        const result = await freepikService.expandImage(base64Image);
+        if (result) return result;
+      } catch (fpError) {
+        console.error("Freepik expand fallback also failed:", fpError);
+      }
+    }
+
     throw error;
   }
 };
@@ -502,3 +539,37 @@ export const optimizeLayout = async (
     return [];
   }
 };
+
+export const generatePaletteFromImage = async (base64Image: string): Promise<string[]> => {
+  try {
+    const ai = getClient();
+    // Use the fast model (Flash) as it supports vision and is quicker/cheaper
+    const model = ai.getGenerativeModel({ model: MODEL_FAST });
+
+    // Clean base64 string
+    const { data, mimeType } = cleanBase64(base64Image);
+
+    const imagePart = {
+      inlineData: {
+        data,
+        mimeType
+      }
+    };
+
+    const prompt = "Analyze this image/logo and extract the 5 most representative brand colors as HEX codes. Return ONLY a valid JSON array of strings (e.g., [\"#ffffff\", \"#000000\"]). Do not include markdown formatting.";
+
+    const result = await model.generateContent([prompt, imagePart]);
+    const text = result.response.text();
+
+    // Clean up response to ensure valid JSON
+    const jsonMatch = text.match(/\[.*\]/s);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+    return [];
+  } catch (error) {
+    console.error("Palette extraction failed", error);
+    return [];
+  }
+};
+

@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+
+import React, { useState, useRef } from 'react';
 import { BrandKit } from '../../types';
 import { Icons, FONT_FAMILIES } from '../../constants';
 import { Button } from '../Button';
+import { generatePaletteFromImage } from '../../services/geminiService';
 
 interface BrandPanelProps {
    brandKits: BrandKit[];
@@ -27,6 +29,8 @@ export const BrandPanel: React.FC<BrandPanelProps> = ({
    const [newColors, setNewColors] = useState<string[]>(['#000000', '#ffffff', '#7d2ae8']);
    const [newFonts, setNewFonts] = useState<string[]>(['Space Grotesk', 'Inter']);
    const [newLogos, setNewLogos] = useState<string[]>([]);
+   const [isAnalyzing, setIsAnalyzing] = useState(false);
+   const importInputRef = useRef<HTMLInputElement>(null);
 
    const handleCreate = () => {
       if (!newKitName.trim()) return;
@@ -35,11 +39,19 @@ export const BrandPanel: React.FC<BrandPanelProps> = ({
          name: newKitName,
          colors: newColors,
          fonts: newFonts,
-         logos: newLogos
+         logos: newLogos,
+         primaryLogo: newLogos[0], // Default first logo to primary if available
+         secondaryLogo: newLogos[1]
       };
       onAddBrandKit(kit);
       setIsCreating(false);
+      resetForm();
+   };
+
+   const resetForm = () => {
       setNewKitName('');
+      setNewColors(['#000000', '#ffffff', '#7d2ae8']);
+      setNewFonts(['Space Grotesk', 'Inter']);
       setNewLogos([]);
    };
 
@@ -63,69 +75,115 @@ export const BrandPanel: React.FC<BrandPanelProps> = ({
       setNewColors(updated);
    };
 
+   const extractColorsFromLogo = async () => {
+      if (newLogos.length === 0) {
+         alert("Please upload a logo first.");
+         return;
+      }
+      setIsAnalyzing(true);
+      try {
+         const extracted = await generatePaletteFromImage(newLogos[0]);
+         if (extracted && extracted.length > 0) {
+            setNewColors(extracted.slice(0, 5));
+         } else {
+            alert("Could not extract colors. Try another image.");
+         }
+      } catch (e) {
+         console.error(e);
+         alert("AI extraction failed.");
+      } finally {
+         setIsAnalyzing(false);
+      }
+   };
+
+   const handleExportKit = (kit: BrandKit) => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(kit));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", `${kit.name.replace(/\s+/g, '_')}_brandkit.json`);
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+   };
+
+   const handleImportKit = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+         try {
+            const kit = JSON.parse(event.target?.result as string);
+            if (kit.name && kit.colors && kit.fonts) {
+               // Ensure unique ID
+               kit.id = `brand_imported_${Date.now()}`;
+               onAddBrandKit(kit);
+            } else {
+               alert("Invalid Brand Kit JSON");
+            }
+         } catch (e) {
+            alert("Error parsing JSON");
+         }
+      };
+      reader.readAsText(file);
+      if (importInputRef.current) importInputRef.current.value = '';
+   };
+
    return (
-      <div className="flex flex-col h-full p-4 overflow-hidden">
+      <div className="flex flex-col h-full p-4 overflow-hidden bg-[#13161a]">
          <div className="flex items-center justify-between mb-4 flex-shrink-0">
             <h3 className="font-bold text-white flex items-center gap-2">
                <Icons.Brand className="w-5 h-5 text-[#7d2ae8]" />
                Brand Kits
             </h3>
-            {!isCreating && (
-               <button onClick={() => setIsCreating(true)} className="text-xs bg-[#252627] hover:bg-[#333] border border-gray-700 text-gray-300 px-2 py-1 rounded">
-                  + New Kit
+            <div className="flex gap-2">
+               <input
+                  type="file"
+                  accept=".json"
+                  ref={importInputRef}
+                  onChange={handleImportKit}
+                  className="hidden"
+               />
+               <button
+                  onClick={() => importInputRef.current?.click()}
+                  className="text-xs bg-[#252627] hover:bg-[#333] border border-gray-700 text-gray-300 px-2 py-1 rounded flex items-center gap-1"
+                  title="Import JSON Kit"
+               >
+                  <Icons.Plus className="w-3 h-3 rotate-45" /> Import
                </button>
-            )}
+               {!isCreating && (
+                  <button onClick={() => setIsCreating(true)} className="text-xs bg-[#7d2ae8] hover:bg-[#6b23c5] text-white px-2 py-1 rounded font-bold shadow-lg shadow-purple-900/20">
+                     + New Kit
+                  </button>
+               )}
+            </div>
          </div>
 
          {isCreating && (
-            <div className="bg-[#1e1e1e] p-4 rounded-lg border border-gray-700 mb-6 animate-fadeIn flex-shrink-0">
+            <div className="bg-[#1e1e1e] p-4 rounded-lg border border-gray-700 mb-6 animate-fadeIn flex-shrink-0 relative">
                <input
                   type="text"
                   placeholder="Brand Name (e.g. Acme Corp)"
-                  className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1 text-sm text-white mb-3 focus:border-[#7d2ae8] outline-none"
+                  className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1.5 text-sm text-white mb-4 focus:border-[#7d2ae8] outline-none"
                   value={newKitName}
                   onChange={(e) => setNewKitName(e.target.value)}
+                  autoFocus
                />
 
-               <div className="mb-3">
-                  <label className="text-[10px] text-gray-500 uppercase font-bold mb-1 block">Palette</label>
-                  <div className="flex gap-2">
-                     {newColors.map((c, i) => (
-                        <div key={i} className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-600 cursor-pointer">
-                           <input
-                              type="color"
-                              value={c}
-                              onChange={(e) => updateNewColor(i, e.target.value)}
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                           />
-                           <div className="w-full h-full" style={{ backgroundColor: c }} />
-                        </div>
-                     ))}
-                  </div>
-               </div>
-
-               <div className="mb-3">
-                  <label className="text-[10px] text-gray-500 uppercase font-bold mb-1 block">Typography</label>
-                  <div className="space-y-2">
-                     <select
-                        className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1 text-xs text-white"
-                        value={newFonts[0]}
-                        onChange={(e) => setNewFonts([e.target.value, newFonts[1]])}
-                     >
-                        {FONT_FAMILIES.map(f => <option key={f} value={f}>{f}</option>)}
-                     </select>
-                     <select
-                        className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1 text-xs text-white"
-                        value={newFonts[1]}
-                        onChange={(e) => setNewFonts([newFonts[0], e.target.value])}
-                     >
-                        {FONT_FAMILIES.map(f => <option key={f} value={f}>{f}</option>)}
-                     </select>
-                  </div>
-               </div>
-
                <div className="mb-4">
-                  <label className="text-[10px] text-gray-500 uppercase font-bold mb-2 block">Logos (Max 10)</label>
+                  <div className="flex justify-between items-center mb-2">
+                     <label className="text-[10px] text-gray-500 uppercase font-bold">Logos (Max 10)</label>
+                     {newLogos.length > 0 && (
+                        <button
+                           onClick={extractColorsFromLogo}
+                           disabled={isAnalyzing}
+                           className="text-[10px] text-[#7d2ae8] hover:text-[#9f5afd] flex items-center gap-1 disabled:opacity-50"
+                        >
+                           <Icons.Magic className="w-3 h-3" />
+                           {isAnalyzing ? "Analyzing..." : "Extract Colors"}
+                        </button>
+                     )}
+                  </div>
                   <div className="flex gap-3 flex-wrap">
                      {newLogos.map((logo, i) => (
                         <div key={i} className="w-12 h-12 rounded border border-gray-700 bg-black flex items-center justify-center relative group">
@@ -147,9 +205,66 @@ export const BrandPanel: React.FC<BrandPanelProps> = ({
                   </div>
                </div>
 
-               <div className="flex gap-2">
+               <div className="mb-4">
+                  <label className="text-[10px] text-gray-500 uppercase font-bold mb-2 block">Palette</label>
+                  <div className="flex gap-2 flex-wrap">
+                     {newColors.map((c, i) => (
+                        <div key={i} className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-600 cursor-pointer hover:scale-110 transition-transform group">
+                           <input
+                              type="color"
+                              value={c}
+                              onChange={(e) => updateNewColor(i, e.target.value)}
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                           />
+                           <div className="w-full h-full" style={{ backgroundColor: c }} />
+                           <button
+                              onClick={() => setNewColors(prev => prev.filter((_, idx) => idx !== i))}
+                              className="absolute inset-0 m-auto text-white opacity-0 group-hover:opacity-100 flex items-center justify-center bg-black/50"
+                           >
+                              &times;
+                           </button>
+                        </div>
+                     ))}
+                     {newColors.length < 8 && (
+                        <button
+                           onClick={() => setNewColors([...newColors, '#000000'])}
+                           className="w-8 h-8 rounded-full border border-dashed border-gray-600 flex items-center justify-center text-gray-500 hover:text-white hover:border-gray-400"
+                        >
+                           <Icons.Plus className="w-3 h-3" />
+                        </button>
+                     )}
+                  </div>
+               </div>
+
+               <div className="mb-4">
+                  <label className="text-[10px] text-gray-500 uppercase font-bold mb-2 block">Typography</label>
+                  <div className="space-y-2">
+                     <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-gray-400 w-12">Headings</span>
+                        <select
+                           className="flex-1 bg-[#252627] border border-gray-600 rounded px-2 py-1 text-xs text-white"
+                           value={newFonts[0]}
+                           onChange={(e) => setNewFonts([e.target.value, newFonts[1]])}
+                        >
+                           {FONT_FAMILIES.map(f => <option key={f} value={f}>{f}</option>)}
+                        </select>
+                     </div>
+                     <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-gray-400 w-12">Body</span>
+                        <select
+                           className="flex-1 bg-[#252627] border border-gray-600 rounded px-2 py-1 text-xs text-white"
+                           value={newFonts[1]}
+                           onChange={(e) => setNewFonts([newFonts[0], e.target.value])}
+                        >
+                           {FONT_FAMILIES.map(f => <option key={f} value={f}>{f}</option>)}
+                        </select>
+                     </div>
+                  </div>
+               </div>
+
+               <div className="flex gap-2 pt-2 border-t border-gray-700">
                   <Button size="sm" onClick={handleCreate} disabled={!newKitName.trim()}>Save Kit</Button>
-                  <Button size="sm" variant="ghost" onClick={() => setIsCreating(false)}>Cancel</Button>
+                  <Button size="sm" variant="ghost" onClick={() => { setIsCreating(false); resetForm(); }}>Cancel</Button>
                </div>
             </div>
          )}
@@ -157,203 +272,91 @@ export const BrandPanel: React.FC<BrandPanelProps> = ({
          <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar pb-10">
             {brandKits.length === 0 && !isCreating ? (
                <div className="text-center text-gray-500 mt-10">
-                  <Icons.Brand className="w-12 h-12 mx-auto mb-2 opacity-30" />
-                  <p className="text-xs">No brand kits yet.</p>
-                  <p className="text-[10px] mt-1">Create one to save colors & fonts.</p>
+                  <div className="w-16 h-16 rounded-full bg-[#1e1e1e] flex items-center justify-center mx-auto mb-4">
+                     <Icons.Brand className="w-8 h-8 opacity-30" />
+                  </div>
+                  <h4 className="text-sm font-bold text-gray-300 mb-1">No Brand Kits</h4>
+                  <p className="text-xs max-w-[200px] mx-auto">Create a kit to save your brand colors, fonts, and logos for quick access.</p>
+                  <button
+                     onClick={() => setIsCreating(true)}
+                     className="mt-4 text-[#7d2ae8] text-xs font-bold hover:underline"
+                  >
+                     Create your first kit
+                  </button>
                </div>
             ) : (
                brandKits.map(kit => (
-                  <div key={kit.id} className="bg-[#1e1e1e] border border-gray-700 rounded-lg p-3 group relative">
-                     <div className="flex justify-between items-start mb-2">
+                  <div key={kit.id} className="bg-[#1e1e1e] border border-gray-700 rounded-lg p-3 group relative hover:border-gray-600 transition-colors">
+                     <div className="flex justify-between items-start mb-3">
                         <h4 className="font-bold text-sm text-white">{kit.name}</h4>
-                        <button onClick={() => onDeleteBrandKit(kit.id)} className="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                           <Icons.Trash className="w-3 h-3" />
-                        </button>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                           <button onClick={() => handleExportKit(kit)} className="text-gray-500 hover:text-white p-1" title="Export Kit">
+                              <Icons.Download className="w-3 h-3" />
+                           </button>
+                           <button onClick={() => onDeleteBrandKit(kit.id)} className="text-gray-500 hover:text-red-400 p-1" title="Delete Kit">
+                              <Icons.Trash className="w-3 h-3" />
+                           </button>
+                        </div>
                      </div>
 
-                     <div className="flex items-center gap-2 mb-3">
+                     {/* Colors */}
+                     <div className="flex items-center gap-1.5 mb-3 flex-wrap">
                         {kit.colors.map((c, i) => (
-                           <div key={i} className="w-6 h-6 rounded-full border border-white/10" style={{ backgroundColor: c }} />
+                           <div key={i} className="w-5 h-5 rounded-full border border-white/10 shadow-sm" style={{ backgroundColor: c }} title={c} />
                         ))}
                         <button
                            onClick={() => onApplyBrandColors(kit.colors)}
-                           className="ml-auto text-[10px] bg-white/10 hover:bg-white/20 px-2 py-1 rounded text-white transition-colors font-medium border border-white/5"
+                           className="ml-auto text-[10px] bg-[#7d2ae8]/10 hover:bg-[#7d2ae8]/20 text-[#7d2ae8] px-2 py-0.5 rounded border border-[#7d2ae8]/20 transition-colors font-bold"
                         >
-                           Apply Colors
+                           Apply
                         </button>
                      </div>
 
-                     <div className="bg-[#252627] rounded p-2 mb-3">
-                        <div className="flex justify-between items-center mb-1">
-                           <span className="text-[10px] text-gray-400">Heading</span>
-                           <span className="text-xs font-medium text-white">{kit.fonts[0]}</span>
+                     {/* Typography */}
+                     <div className="bg-[#252627] rounded p-2 mb-3 border border-gray-800">
+                        <div className="flex justify-between items-center border-b border-gray-700 pb-1 mb-1">
+                           <span className="text-[10px] font-bold text-gray-500 uppercase">Typography</span>
+                           <button
+                              onClick={() => onApplyBrandFonts(kit.fonts[0], kit.fonts[1])}
+                              className="text-[10px] text-[#7d2ae8] hover:text-white transition-colors"
+                           >
+                              Apply
+                           </button>
                         </div>
-                        <div className="flex justify-between items-center">
-                           <span className="text-[10px] text-gray-400">Body</span>
-                           <span className="text-xs font-medium text-white">{kit.fonts[1]}</span>
+                        <div className="grid grid-cols-2 gap-2">
+                           <div>
+                              <span className="text-[9px] text-gray-500 block">Aa</span>
+                              <span className="text-[10px] font-medium text-white truncate block" style={{ fontFamily: kit.fonts[0] }}>{kit.fonts[0]}</span>
+                           </div>
+                           <div>
+                              <span className="text-[9px] text-gray-500 block">Aa</span>
+                              <span className="text-[10px] font-medium text-white truncate block" style={{ fontFamily: kit.fonts[1] }}>{kit.fonts[1]}</span>
+                           </div>
                         </div>
-                        <button
-                           onClick={() => onApplyBrandFonts(kit.fonts[0], kit.fonts[1])}
-                           className="w-full mt-2 text-[10px] bg-white/10 hover:bg-white/20 px-2 py-1 rounded text-white transition-colors font-medium border border-white/5"
-                        >
-                           Apply Fonts
-                        </button>
                      </div>
 
-                     {/* Logos Section */}
-                     <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-3">
-                           {/* Primary Logo Slot */}
-                           <div className="space-y-1.5">
-                              <label className="text-[10px] text-gray-500 uppercase font-bold px-1">Primary Logo</label>
-                              <div className="aspect-square rounded-lg border border-gray-700 bg-black/40 flex items-center justify-center relative group/logo overflow-hidden">
-                                 {kit.primaryLogo ? (
-                                    <>
-                                       <button
-                                          draggable
-                                          onDragStart={(e) => {
-                                             e.dataTransfer.setData('text/plain', kit.primaryLogo!);
-                                             e.dataTransfer.dropEffect = 'copy';
-                                          }}
-                                          onClick={() => onAddLogoToCanvas(kit.primaryLogo!)}
-                                          className="w-full h-full p-2 flex items-center justify-center cursor-grab active:cursor-grabbing hover:bg-white/5 transition-colors"
-                                       >
-                                          <img src={kit.primaryLogo} className="max-w-full max-h-full object-contain pointer-events-none" />
-                                       </button>
-                                       <button
-                                          onClick={() => onUpdateBrandKit(kit.id, { primaryLogo: undefined })}
-                                          className="absolute top-1.5 right-1.5 w-5 h-5 bg-red-500/80 hover:bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity shadow-lg backdrop-blur-sm"
-                                       >
-                                          <Icons.Trash className="w-2.5 h-2.5" />
-                                       </button>
-                                    </>
-                                 ) : (
-                                    <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-colors text-gray-500 hover:text-[#7d2ae8]">
-                                       <Icons.Plus className="w-4 h-4 mb-1" />
-                                       <span className="text-[9px] font-medium">Add Primary</span>
-                                       <input
-                                          type="file"
-                                          accept="image/*"
-                                          className="hidden"
-                                          onChange={(e) => {
-                                             const file = e.target.files?.[0];
-                                             if (file) {
-                                                const reader = new FileReader();
-                                                reader.onload = (re) => onUpdateBrandKit(kit.id, { primaryLogo: re.target?.result as string });
-                                                reader.readAsDataURL(file);
-                                             }
-                                          }}
-                                       />
-                                    </label>
-                                 )}
-                              </div>
-                           </div>
-
-                           {/* Secondary Logo Slot */}
-                           <div className="space-y-1.5">
-                              <label className="text-[10px] text-gray-500 uppercase font-bold px-1">Secondary Logo</label>
-                              <div className="aspect-square rounded-lg border border-gray-700 bg-black/40 flex items-center justify-center relative group/logo overflow-hidden">
-                                 {kit.secondaryLogo ? (
-                                    <>
-                                       <button
-                                          draggable
-                                          onDragStart={(e) => {
-                                             e.dataTransfer.setData('text/plain', kit.secondaryLogo!);
-                                             e.dataTransfer.dropEffect = 'copy';
-                                          }}
-                                          onClick={() => onAddLogoToCanvas(kit.secondaryLogo!)}
-                                          className="w-full h-full p-2 flex items-center justify-center cursor-grab active:cursor-grabbing hover:bg-white/5 transition-colors"
-                                       >
-                                          <img src={kit.secondaryLogo} className="max-w-full max-h-full object-contain pointer-events-none" />
-                                       </button>
-                                       <button
-                                          onClick={() => onUpdateBrandKit(kit.id, { secondaryLogo: undefined })}
-                                          className="absolute top-1.5 right-1.5 w-5 h-5 bg-red-500/80 hover:bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity shadow-lg backdrop-blur-sm"
-                                       >
-                                          <Icons.Trash className="w-2.5 h-2.5" />
-                                       </button>
-                                    </>
-                                 ) : (
-                                    <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 transition-colors text-gray-500 hover:text-[#7d2ae8]">
-                                       <Icons.Plus className="w-4 h-4 mb-1" />
-                                       <span className="text-[9px] font-medium">Add Secondary</span>
-                                       <input
-                                          type="file"
-                                          accept="image/*"
-                                          className="hidden"
-                                          onChange={(e) => {
-                                             const file = e.target.files?.[0];
-                                             if (file) {
-                                                const reader = new FileReader();
-                                                reader.onload = (re) => onUpdateBrandKit(kit.id, { secondaryLogo: re.target?.result as string });
-                                                reader.readAsDataURL(file);
-                                             }
-                                          }}
-                                       />
-                                    </label>
-                                 )}
-                              </div>
-                           </div>
-                        </div>
-
-                        {/* Other Logos Collection */}
+                     {/* Logos */}
+                     {(kit.logos && kit.logos.length > 0) && (
                         <div className="space-y-2">
-                           <div className="flex justify-between items-center px-1">
-                              <label className="text-[10px] text-gray-500 uppercase font-bold">Assets</label>
-                              {kit.logos && kit.logos.length < 10 && (
+                           <label className="text-[10px] font-bold text-gray-500 uppercase">Assets</label>
+                           <div className="grid grid-cols-4 gap-2">
+                              {kit.logos.slice(0, 4).map((logo, i) => (
                                  <button
-                                    onClick={() => {
-                                       const input = document.createElement('input');
-                                       input.type = 'file';
-                                       input.accept = 'image/*';
-                                       input.onchange = (e: any) => {
-                                          const file = e.target.files?.[0];
-                                          if (file) {
-                                             const reader = new FileReader();
-                                             reader.onload = (re) => {
-                                                const newLogos = [...(kit.logos || []), re.target?.result as string];
-                                                onUpdateBrandKit(kit.id, { logos: newLogos });
-                                             };
-                                             reader.readAsDataURL(file);
-                                          }
-                                       };
-                                       input.click();
-                                    }}
-                                    className="text-[10px] text-[#7d2ae8] hover:underline transition-all"
+                                    key={i}
+                                    onClick={() => onAddLogoToCanvas(logo)}
+                                    className="aspect-square rounded border border-gray-700 bg-black/20 p-1 flex items-center justify-center hover:border-[#7d2ae8] transition-colors"
                                  >
-                                    + Add Assets
+                                    <img src={logo} className="max-w-full max-h-full object-contain pointer-events-none" />
                                  </button>
+                              ))}
+                              {kit.logos.length > 4 && (
+                                 <div className="aspect-square rounded border border-gray-700 bg-[#252627] flex items-center justify-center text-[10px] text-gray-500">
+                                    +{kit.logos.length - 4}
+                                 </div>
                               )}
                            </div>
-                           <div className="grid grid-cols-3 gap-2 px-1">
-                              {kit.logos && kit.logos.map((logo, i) => (
-                                 <div key={i} className="relative group/logo">
-                                    <button
-                                       draggable
-                                       onDragStart={(e) => {
-                                          e.dataTransfer.setData('text/plain', logo);
-                                          e.dataTransfer.dropEffect = 'copy';
-                                       }}
-                                       onClick={() => onAddLogoToCanvas(logo)}
-                                       className="w-full aspect-square rounded border border-gray-700 bg-black/20 p-1.5 hover:border-[#7d2ae8] transition-all flex items-center justify-center cursor-grab active:cursor-grabbing"
-                                       title="Drag to canvas"
-                                    >
-                                       <img src={logo} className="max-w-full max-h-full object-contain pointer-events-none" />
-                                    </button>
-                                    <button
-                                       onClick={() => {
-                                          const newLogos = (kit.logos || []).filter((_, idx) => idx !== i);
-                                          onUpdateBrandKit(kit.id, { logos: newLogos });
-                                       }}
-                                       className="absolute -top-1 -right-1 w-4 h-4 bg-red-500/90 text-white rounded-full flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity hover:bg-red-600 shadow-md"
-                                    >
-                                       <Icons.Trash className="w-2 h-2" />
-                                    </button>
-                                 </div>
-                              ))}
-                           </div>
                         </div>
-                     </div>
+                     )}
                   </div>
                ))
             )}
@@ -361,5 +364,4 @@ export const BrandPanel: React.FC<BrandPanelProps> = ({
       </div>
    );
 };
-
 export default BrandPanel;

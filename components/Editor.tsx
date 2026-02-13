@@ -20,6 +20,7 @@ const PADDING = 20;
 import { STARTER_TEMPLATES } from '../data/templates';
 import { ShareModal } from './modals/ShareModal';
 import { ExportModal } from './modals/ExportModal';
+import { ShortcutOverlay } from './ShortcutOverlay';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { loadFont, loadFonts } from '../services/FontLoader';
 
@@ -647,6 +648,11 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     });
   }, [selectedLayerIds, layers, handleUpdateLayers]);
 
+  const handleUpdateCanvasSize = useCallback((size: CanvasSize) => {
+    saveToHistory();
+    setCanvasSize(size);
+  }, [saveToHistory]);
+
   const handleDeleteLayer = useCallback((id: string) => {
     saveToHistory();
     setLayers(prev => prev.filter(layer => layer.id !== id));
@@ -1263,23 +1269,20 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
         title={projectTitle}
         onTitleChange={setProjectTitle}
         isSaving={isSaving}
-        onSave={handleSave}
         onDownload={handleExport}
         onBack={onBack}
         user={user}
+        onRestartTour={onRestartTour}
         onUndo={handleUndo}
         onRedo={handleRedo}
         canUndo={past.length > 0}
         canRedo={future.length > 0}
-        onZoomIn={() => handleZoom('in')}
-        onZoomOut={() => handleZoom('out')}
-        onResetZoom={() => setZoom(1)}
-        onToggleGrid={() => setShowGrid(!showGrid)}
-        showGrid={showGrid}
-        onRestartTour={onRestartTour}
+        onShowShortcuts={() => setShowShortcuts(true)}
+        onSave={saveProject}
+        onNew={handleNew}
       />
 
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex flex-1 overflow-hidden relative pb-16 md:pb-0">
         {/* Desktop Sidebar & Panel */}
         <div className="hidden md:flex flex-row h-full shrink-0 z-40 border-r border-gray-800">
           <ErrorBoundary componentName="Sidebar" variant="widget">
@@ -1308,6 +1311,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
               uploadedImage={uploadedImage}
               onAddText={handleAddTextLayer}
               onAddShape={handleAddShapeLayer}
+              layers={layers}
               textLayers={textLayers}
               shapeLayers={shapeLayers}
               imageLayers={imageLayers}
@@ -1346,6 +1350,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
               onUpdateImageLayer={handleUpdateImageLayer}
               onDuplicateLayer={handleDuplicateLayer}
               onMoveLayer={handleMoveLayer}
+              onGroup={handleGroupSelected}
+              onUngroup={handleUngroupSelected}
               onHoverFont={setFontPreview}
             />
           </ErrorBoundary>
@@ -1394,7 +1400,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
               onDrawingComplete={isEraserActive ? handleEraserComplete : handleDrawingComplete}
               onRemix={handleRemix}
               canvasSize={canvasSize}
-              onSetCanvasSize={setCanvasSize}
+              onSetCanvasSize={handleUpdateCanvasSize}
               user={user}
               onOpenPricing={onOpenPricing}
               onFileUpload={handleFileUpload}
@@ -1517,6 +1523,11 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
           onGetShareLink={async () => "https://kreathief.com/share/demo"}
         />
       )}
+
+      <ShortcutOverlay
+        isOpen={showShortcuts}
+        onClose={() => setShowShortcuts(false)}
+      />
 
       {showDesignSuggestions && (
         <DesignSuggestions

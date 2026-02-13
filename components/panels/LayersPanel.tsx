@@ -4,9 +4,7 @@ import { TextLayer, ShapeLayer, ImageLayer, Layer } from '../../types';
 import { Icons } from '../../constants';
 
 interface LayersPanelProps {
-  textLayers: TextLayer[];
-  shapeLayers: ShapeLayer[];
-  imageLayers: ImageLayer[];
+  layers: Layer[];
   selectedLayerId: string | null;
   onSelectLayer: (id: string | null) => void;
   onDeleteLayer: (id: string) => void;
@@ -21,6 +19,8 @@ interface LayersPanelProps {
   onBatchDelete?: (ids: string[]) => void;
   onBatchToggleVisibility?: (ids: string[], visible: boolean) => void;
   onBatchToggleLock?: (ids: string[], locked: boolean) => void;
+  onGroup?: () => void;
+  onUngroup?: () => void;
 }
 
 interface LayerItemProps {
@@ -32,9 +32,53 @@ interface LayerItemProps {
   onUpdate: (changes: any) => void;
   onDelete: () => void;
   onDuplicate: () => void;
-  onMove: (dir: 'forward' | 'backward') => void;
+  onMove: (dir: 'forward' | 'backward' | 'front' | 'back') => void;
   onCopy?: () => void;
+  isGrouped?: boolean;
+  isGroupStart?: boolean;
+  isGroupEnd?: boolean;
 }
+
+
+const areLayerPropsEqual = (prev: LayerItemProps, next: LayerItemProps) => {
+  if (prev.isSelected !== next.isSelected) return false;
+  if (prev.isMultiSelected !== next.isMultiSelected) return false;
+  if (prev.isGrouped !== next.isGrouped) return false;
+  if (prev.isGroupStart !== next.isGroupStart) return false;
+  if (prev.isGroupEnd !== next.isGroupEnd) return false;
+
+  const l1 = prev.layer;
+  const l2 = next.layer;
+
+  if (l1 === l2) return true;
+
+  // Check critical fields for UI updates (ignore x,y,width,height,rotation)
+  if (l1.id !== l2.id) return false;
+  if (l1.name !== l2.name) return false;
+  if (l1.visible !== l2.visible) return false;
+  if (l1.locked !== l2.locked) return false;
+  if (l1.opacity !== l2.opacity) return false;
+  if (l1.blendMode !== l2.blendMode) return false;
+  if (l1.type !== l2.type) return false;
+  if (l1.groupId !== l2.groupId) return false;
+
+  if (l1.type === 'text') {
+    const t1 = l1 as TextLayer;
+    const t2 = l2 as TextLayer;
+    if (t1.text !== t2.text || t1.color !== t2.color || t1.fontFamily !== t2.fontFamily) return false;
+  } else if (l1.type === 'image') {
+    const i1 = l1 as ImageLayer;
+    const i2 = l2 as ImageLayer;
+    if (i1.src !== i2.src) return false;
+  } else {
+    // Must be ShapeLayer
+    const s1 = l1 as ShapeLayer;
+    const s2 = l2 as ShapeLayer;
+    if (s1.color !== s2.color) return false;
+  }
+
+  return true;
+};
 
 const LayerItem = React.memo(({
   layer,
@@ -46,10 +90,14 @@ const LayerItem = React.memo(({
   onDelete,
   onDuplicate,
   onMove,
-  onCopy = () => { }
+  onCopy = () => { },
+  isGrouped = false,
+  isGroupStart = false,
+  isGroupEnd = false
 }: LayerItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(layer.name || getLayerNameFallback(layer));
+  const [showSettings, setShowSettings] = useState(false);
 
   function getLayerNameFallback(l: Layer) {
     if (l.type === 'text') return (l as TextLayer).text.substring(0, 20) || 'Text Layer';
@@ -111,115 +159,164 @@ const LayerItem = React.memo(({
   };
 
   return (
-    <div
-      onClick={onSelect}
-      onContextMenu={(e) => {
-        e.preventDefault();
-        onSelectMultiple(e);
-      }}
-      className={`group relative flex items-center gap-3 p-2 border rounded cursor-pointer transition-all select-none ${isMultiSelected
-        ? 'bg-[#7d2ae8]/20 border-[#7d2ae8]/50 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-[#7d2ae8]'
-        : isSelected
-          ? 'bg-[#7d2ae8]/10 border-[#7d2ae8]/30 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-[#7d2ae8]'
-          : 'border-gray-800/50 hover:bg-[#252627] hover:border-gray-700'
-        }`}
-    >
-      {/* Checkbox for multi-select */}
-      <input
-        type="checkbox"
-        checked={isMultiSelected}
-        onChange={(e) => {
-          e.stopPropagation();
-          onSelectMultiple(e as any);
+    <div className="flex flex-col">
+      <div
+        onClick={onSelect}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          onSelectMultiple(e);
         }}
-        className="w-4 h-4 rounded cursor-pointer"
-        onClick={(e) => e.stopPropagation()}
-      />
-
-      {/* Visibility Toggle */}
-      <button
-        onClick={(e) => { e.stopPropagation(); onUpdate({ visible: !layer.visible }); }}
-        className={`w-4 h-4 flex items-center justify-center rounded text-gray-500 hover:text-white transition-colors ${!layer.visible ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 focus:opacity-100'}`}
+        className={`group relative flex items-center gap-3 p-2 border-b border-gray-800/50 cursor-pointer transition-all select-none ${isMultiSelected
+          ? 'bg-[#7d2ae8]/20 border-l-2 border-l-[#7d2ae8]'
+          : isSelected
+            ? 'bg-[#7d2ae8]/10 border-l-2 border-l-[#7d2ae8]'
+            : 'hover:bg-[#252627] border-l-2 border-l-transparent'
+          }`}
+        style={{
+          paddingLeft: isGrouped ? '24px' : '8px',
+          marginBottom: isGroupEnd ? '8px' : '0'
+        }}
       >
-        {layer.visible ? <Icons.Eye className="w-3.5 h-3.5" /> : <Icons.EyeOff className="w-3.5 h-3.5" />}
-      </button>
+        {isGrouped && (
+          <div className={`absolute left-0 w-1 bg-gray-700 ${isGroupStart ? 'top-0 rounded-tr' : ''} ${isGroupEnd ? 'bottom-0 rounded-br' : ''} h-full ml-1`}></div>
+        )}
 
-      {/* Thumbnail */}
-      <div className="w-8 h-8 rounded bg-[#13161a] border border-gray-700 flex items-center justify-center overflow-hidden shrink-0">
-        {getThumbnail()}
+        {/* Checkbox for multi-select */}
+        <input
+          type="checkbox"
+          checked={isMultiSelected}
+          onChange={(e) => {
+            e.stopPropagation();
+            onSelectMultiple(e as any);
+          }}
+          className="w-3 h-3 rounded cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 accent-[#7d2ae8]"
+          onClick={(e) => e.stopPropagation()}
+        />
+
+        {/* Visibility Toggle */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onUpdate({ visible: !layer.visible }); }}
+          className={`w-4 h-4 flex items-center justify-center rounded text-gray-500 hover:text-white transition-colors ${!layer.visible ? 'opacity-100 text-gray-600' : 'opacity-0 group-hover:opacity-100 focus:opacity-100'}`}
+        >
+          {layer.visible ? <Icons.Eye className="w-3.5 h-3.5" /> : <Icons.EyeOff className="w-3.5 h-3.5" />}
+        </button>
+
+        {/* Thumbnail */}
+        <div className="w-8 h-8 rounded bg-[#13161a] border border-gray-700 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+          {getThumbnail()}
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0" onDoubleClick={() => setIsEditing(true)}>
+          {isEditing ? (
+            <input
+              type="text"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onBlur={handleRename}
+              onKeyDown={(e) => e.key === 'Enter' && handleRename()}
+              className="w-full bg-[#0e1318] text-white text-xs px-1 py-0.5 rounded border border-[#7d2ae8] outline-none"
+              autoFocus
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-2">
+                <span className={`text-xs truncate font-medium ${isSelected || isMultiSelected ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}`}>
+                  {layer.name || getLayerNameFallback(layer)}
+                </span>
+                {layer.locked && <Icons.Lock className="w-2.5 h-2.5 text-gray-500" />}
+                {isGrouped && <span className="text-[8px] bg-gray-700 text-gray-400 px-1 rounded">GRP</span>}
+              </div>
+
+              {/* Status Badges */}
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] uppercase text-gray-600 font-bold bg-gray-800 px-1 rounded">{layer.type}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Quick Actions (Hover) */}
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }}
+            className={`p-1 rounded transition-colors ${showSettings ? 'bg-[#7d2ae8] text-white' : 'hover:bg-gray-700 text-gray-500'}`}
+            title="Layer Settings"
+          >
+            <Icons.Settings className="w-3 h-3" />
+          </button>
+
+          <button
+            onClick={(e) => { e.stopPropagation(); onUpdate({ locked: !layer.locked }); }}
+            className={`p-1 hover:bg-gray-600 rounded ${layer.locked ? 'text-[#7d2ae8]' : 'text-gray-500'}`}
+            title={layer.locked ? "Unlock" : "Lock"}
+          >
+            {layer.locked ? <Icons.Unlock className="w-3 h-3" /> : <Icons.Lock className="w-3 h-3" />}
+          </button>
+
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="p-1 hover:bg-red-900/30 text-gray-500 hover:text-red-400 rounded"
+            title="Delete"
+          >
+            <Icons.Trash className="w-3 h-3" />
+          </button>
+        </div>
       </div>
 
-      {/* Info */}
-      <div className="flex-1 min-w-0" onDoubleClick={() => setIsEditing(true)}>
-        {isEditing ? (
-          <input
-            type="text"
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            onBlur={handleRename}
-            onKeyDown={(e) => e.key === 'Enter' && handleRename()}
-            className="w-full bg-[#0e1318] text-white text-xs px-1 py-0.5 rounded border border-[#7d2ae8] outline-none"
-            autoFocus
-            onClick={(e) => e.stopPropagation()}
-          />
-        ) : (
-          <div className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-2">
-              <span className={`text-xs truncate font-medium ${isSelected || isMultiSelected ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}`}>
-                {layer.name || getLayerNameFallback(layer)}
-              </span>
-              {layer.locked && <Icons.Lock className="w-2.5 h-2.5 text-gray-500" />}
+      {/* Expanded Settings */}
+      {showSettings && (
+        <div className="bg-[#1a1d21] p-2 border-b border-gray-800 animate-slide-down text-[10px]" style={{ marginLeft: isGrouped ? '24px' : '0' }}>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-gray-500 font-bold">Opacity</label>
+              <input
+                type="range"
+                min="0" max="1" step="0.01"
+                value={layer.opacity}
+                onChange={(e) => onUpdate({ opacity: parseFloat(e.target.value) })}
+                className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+              />
             </div>
-
-            <div className="flex items-center gap-2">
-              {layer.blendMode && layer.blendMode !== 'normal' && (
-                <span className="text-[8px] bg-indigo-500/20 text-indigo-300 px-1 rounded uppercase font-bold tracking-wider">
-                  {layer.blendMode}
-                </span>
-              )}
-              {layer.opacity < 1 && (
-                <span className="text-[9px] text-gray-600">
-                  {Math.round(layer.opacity * 100)}%
-                </span>
-              )}
+            <div className="space-y-1">
+              <label className="text-gray-500 font-bold">Blend Mode</label>
+              <select
+                value={layer.blendMode || 'normal'}
+                onChange={(e) => onUpdate({ blendMode: e.target.value })}
+                className="w-full bg-[#0e1318] border border-gray-700 rounded px-1 py-0.5 text-gray-300 focus:border-[#7d2ae8] outline-none"
+              >
+                <option value="normal">Normal</option>
+                <option value="multiply">Multiply</option>
+                <option value="screen">Screen</option>
+                <option value="overlay">Overlay</option>
+                <option value="darken">Darken</option>
+                <option value="lighten">Lighten</option>
+              </select>
             </div>
           </div>
-        )}
-      </div>
-
-      {/* Quick Actions */}
-      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button
-          onClick={(e) => { e.stopPropagation(); onCopy(); }}
-          className="p-1 hover:bg-blue-900/30 rounded text-gray-500 hover:text-blue-400 transition-colors"
-          title="Copy (Ctrl+C)"
-        >
-          <Icons.Copy className="w-3 h-3" />
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); onUpdate({ locked: !layer.locked }); }}
-          className={`p-1 hover:bg-gray-600 rounded ${layer.locked ? 'text-white' : 'text-gray-500'}`}
-          title={layer.locked ? "Unlock" : "Lock"}
-        >
-          {layer.locked ? <Icons.Unlock className="w-3.5 h-3.5" /> : <Icons.Lock className="w-3.5 h-3.5" />}
-        </button>
-
-        <button
-          onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          className="p-1 hover:bg-red-900/30 text-gray-500 hover:text-red-400 rounded"
-          title="Delete"
-        >
-          <Icons.Trash className="w-3.5 h-3.5" />
-        </button>
-      </div>
+          <div className="mt-2 flex gap-2 border-t border-gray-700/50 pt-2">
+            <button onClick={() => onMove('forward')} className="flex-1 flex items-center justify-center gap-1 py-1 hover:bg-gray-700 rounded text-gray-400">
+              <Icons.ArrowUp className="w-3 h-3" /> Fwd
+            </button>
+            <button onClick={() => onMove('backward')} className="flex-1 flex items-center justify-center gap-1 py-1 hover:bg-gray-700 rounded text-gray-400">
+              <Icons.ArrowDown className="w-3 h-3" /> Bwd
+            </button>
+            <button onClick={() => onMove('front')} className="flex-1 flex items-center justify-center gap-1 py-1 hover:bg-gray-700 rounded text-gray-400">
+              <Icons.ArrowUp className="w-3 h-3" /> Front
+            </button>
+            <button onClick={() => onMove('back')} className="flex-1 flex items-center justify-center gap-1 py-1 hover:bg-gray-700 rounded text-gray-400">
+              <Icons.ArrowDown className="w-3 h-3" /> Back
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
-});
+}, areLayerPropsEqual);
 
 export const LayersPanel = React.memo(({
-  textLayers,
-  shapeLayers,
-  imageLayers,
+  layers,
   selectedLayerId,
   onSelectLayer,
   onDeleteLayer,
@@ -233,38 +330,39 @@ export const LayersPanel = React.memo(({
   onPasteLayer = () => { },
   onBatchDelete = () => { },
   onBatchToggleVisibility = () => { },
-  onBatchToggleLock = () => { }
+  onBatchToggleLock = () => { },
+  onGroup,
+  onUngroup
 }: LayersPanelProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLayerIds, setSelectedLayerIds] = useState<Set<string>>(new Set());
   const [filterType, setFilterType] = useState<'all' | 'text' | 'shape' | 'image'>('all');
 
-  // Combine all layers with metadata
-  const allLayers = useMemo(() => {
-    const combined = [
-      ...textLayers.map(l => ({ ...l, category: 'text' as const })),
-      ...shapeLayers.map(l => ({ ...l, category: 'shape' as const })),
-      ...imageLayers.map(l => ({ ...l, category: 'image' as const }))
-    ];
-    return combined;
-  }, [textLayers, shapeLayers, imageLayers]);
-
   // Filter and search layers
-  const filteredLayers = useMemo(() => {
-    return allLayers.filter(layer => {
-      const matchesFilter = filterType === 'all' || layer.category === filterType;
+  // Note: We reverse layers for display so top layer is first in list
+  const displayLayers = useMemo(() => {
+    let result = [...layers].reverse();
+
+    return result.filter(layer => {
+      const matchesFilter = filterType === 'all' || layer.type === filterType;
       const matchesSearch = !searchQuery ||
-        (layer.name || getLayerNameFallback(layer)).toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (layer.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (layer.type === 'text' && (layer as TextLayer).text.toLowerCase().includes(searchQuery.toLowerCase()));
       return matchesFilter && matchesSearch;
     });
-  }, [allLayers, searchQuery, filterType]);
+  }, [layers, searchQuery, filterType]);
 
-  function getLayerNameFallback(l: any) {
-    if (l.type === 'text') return (l as TextLayer).text.substring(0, 20) || 'Text Layer';
-    if (l.type === 'image') return 'Image Layer';
-    return (l as ShapeLayer).type.charAt(0).toUpperCase() + (l as ShapeLayer).type.slice(1);
-  }
+  // Helper to check group status for display
+  const getGroupStatus = (layer: Layer, index: number, array: Layer[]) => {
+    if (!layer.groupId) return { isGrouped: false };
+    const isGrouped = true;
+    // Since array is reversed, previous index is actually "visually above", next index is "visually below"
+    const prev = array[index - 1];
+    const next = array[index + 1];
+    const isGroupStart = !prev || prev.groupId !== layer.groupId;
+    const isGroupEnd = !next || next.groupId !== layer.groupId;
+    return { isGrouped, isGroupStart, isGroupEnd };
+  };
 
   const handleSelectMultiple = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -277,20 +375,26 @@ export const LayersPanel = React.memo(({
       }
       setSelectedLayerIds(newSelected);
     } else if (e.shiftKey && selectedLayerIds.size > 0) {
-      // Range select
+      // Logic for shift select needs to find index in displayLayers
       const lastSelected = Array.from(selectedLayerIds)[selectedLayerIds.size - 1];
-      const lastIdx = filteredLayers.findIndex(l => l.id === lastSelected);
-      const currentIdx = filteredLayers.findIndex(l => l.id === id);
+      const lastIdx = displayLayers.findIndex(l => l.id === lastSelected);
+      const currentIdx = displayLayers.findIndex(l => l.id === id);
       const start = Math.min(lastIdx, currentIdx);
       const end = Math.max(lastIdx, currentIdx);
       const newSelected = new Set<string>();
       for (let i = start; i <= end; i++) {
-        newSelected.add(filteredLayers[i].id);
+        if (displayLayers[i]) newSelected.add(displayLayers[i].id);
       }
       setSelectedLayerIds(newSelected);
     } else {
       setSelectedLayerIds(new Set([id]));
     }
+  };
+
+  const dispatchUpdate = (id: string, changes: any, type: string) => {
+    if (type === 'text') onUpdateTextLayer(id, changes);
+    else if (type === 'shape') onUpdateShapeLayer(id, changes);
+    else if (type === 'image') onUpdateImageLayer(id, changes);
   };
 
   const handleBatchDelete = () => {
@@ -303,23 +407,20 @@ export const LayersPanel = React.memo(({
 
   const handleBatchVisibility = (visible: boolean) => {
     selectedLayerIds.forEach(id => {
-      const layer = allLayers.find(l => l.id === id);
+      const layer = layers.find(l => l.id === id);
       if (!layer) return;
-      if (layer.category === 'text') onUpdateTextLayer(id, { visible });
-      else if (layer.category === 'shape') onUpdateShapeLayer(id, { visible });
-      else if (layer.category === 'image') onUpdateImageLayer(id, { visible });
+      dispatchUpdate(id, { visible }, layer.type);
     });
   };
 
   const handleBatchLock = (locked: boolean) => {
     selectedLayerIds.forEach(id => {
-      const layer = allLayers.find(l => l.id === id);
+      const layer = layers.find(l => l.id === id);
       if (!layer) return;
-      if (layer.category === 'text') onUpdateTextLayer(id, { locked });
-      else if (layer.category === 'shape') onUpdateShapeLayer(id, { locked });
-      else if (layer.category === 'image') onUpdateImageLayer(id, { locked });
+      dispatchUpdate(id, { locked }, layer.type);
     });
   };
+
   return (
     <div className="flex flex-col h-full bg-[#13161a]">
       {/* Header / Actions */}
@@ -329,9 +430,7 @@ export const LayersPanel = React.memo(({
             <Icons.Layers className="w-4 h-4 text-[#7d2ae8]" />
             LAYERS
           </h3>
-          <div className="flex gap-1">
-            <button className="p-1.5 hover:bg-gray-700 rounded text-gray-400 text-xs" title="Collapse All"><Icons.MinusSquare className="w-3.5 h-3.5" /></button>
-          </div>
+          <span className="text-[10px] text-gray-500 font-mono bg-gray-800 px-1.5 py-0.5 rounded">{layers.length} Layers</span>
         </div>
 
         {/* Search Bar */}
@@ -343,14 +442,6 @@ export const LayersPanel = React.memo(({
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-[#0e1318] border border-gray-700 rounded px-3 py-2 text-xs text-white placeholder-gray-500 focus:border-[#7d2ae8] focus:outline-none transition-colors"
           />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
-            >
-              ✕
-            </button>
-          )}
         </div>
 
         {/* Filter Tabs */}
@@ -367,92 +458,31 @@ export const LayersPanel = React.memo(({
           ))}
         </div>
 
-        {/* Global Actions */}
-        <div className="flex bg-[#252627] rounded-lg p-1 gap-1 border border-gray-700/50">
-          <button
-            onClick={() => setSelectedLayerIds(new Set(filteredLayers.map(l => l.id)))}
-            className="flex-1 py-1.5 hover:bg-gray-700 rounded text-[9px] font-bold text-gray-400 uppercase flex items-center justify-center gap-1 transition-colors"
-            title="Select All"
-          >
-            <Icons.CheckSquare className="w-3 h-3" /> Select All
-          </button>
-          <button
-            onClick={() => {
-              const ids = new Set(filteredLayers.map(l => l.id));
-              setSelectedLayerIds(ids);
-              handleBatchLock(true);
-            }}
-            className="flex-1 py-1.5 hover:bg-gray-700 rounded text-[9px] font-bold text-gray-400 uppercase flex items-center justify-center gap-1 transition-colors"
-            title="Lock All Visible"
-          >
-            <Icons.Lock className="w-3 h-3" /> Lock All
-          </button>
-          <button
-            onClick={() => {
-              const ids = new Set(filteredLayers.map(l => l.id));
-              setSelectedLayerIds(ids);
-              handleBatchVisibility(false);
-            }}
-            className="flex-1 py-1.5 hover:bg-gray-700 rounded text-[9px] font-bold text-gray-400 uppercase flex items-center justify-center gap-1 transition-colors"
-            title="Hide All Visible"
-          >
-            <Icons.EyeOff className="w-3 h-3" /> Hide All
-          </button>
-        </div>
-
-        {/* Quick Layout Tools */}
-        <div className="flex bg-[#252627] rounded-lg p-1 gap-1">
-          <button onClick={() => onLayoutLayers && onLayoutLayers('grid')} className="flex-1 py-1.5 hover:bg-gray-700 rounded text-[9px] font-bold text-gray-400 uppercase flex items-center justify-center gap-1 transition-colors">
-            <Icons.LayoutGrid className="w-3 h-3" /> Grid
-          </button>
-          <button onClick={() => onLayoutLayers && onLayoutLayers('row')} className="flex-1 py-1.5 hover:bg-gray-700 rounded text-[9px] font-bold text-gray-400 uppercase flex items-center justify-center gap-1 transition-colors">
-            <Icons.LayoutRow className="w-3 h-3" /> Row
-          </button>
-          <button onClick={() => onLayoutLayers && onLayoutLayers('col')} className="flex-1 py-1.5 hover:bg-gray-700 rounded text-[9px] font-bold text-gray-400 uppercase flex items-center justify-center gap-1 transition-colors">
-            <Icons.LayoutCol className="w-3 h-3" /> Col
-          </button>
-        </div>
-
         {/* Batch Actions */}
         {selectedLayerIds.size > 0 && (
-          <div className="bg-[#7d2ae8]/10 border border-[#7d2ae8]/30 rounded-lg p-2 flex items-center justify-between">
+          <div className="bg-[#7d2ae8]/10 border border-[#7d2ae8]/30 rounded-lg p-2 flex items-center justify-between animate-fade-in">
             <span className="text-xs font-bold text-[#7d2ae8]">{selectedLayerIds.size} selected</span>
             <div className="flex gap-1">
               <button
-                onClick={() => handleBatchVisibility(true)}
-                className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors"
-                title="Show all"
+                onClick={() => onGroup && onGroup()}
+                className="px-2 py-1 hover:bg-gray-700 rounded text-gray-400 text-[10px] font-bold uppercase"
+                title="Group"
+                disabled={selectedLayerIds.size < 2}
               >
-                <Icons.Eye className="w-3.5 h-3.5" />
+                Group
               </button>
               <button
-                onClick={() => handleBatchVisibility(false)}
-                className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors"
-                title="Hide all"
+                onClick={() => onUngroup && onUngroup()}
+                className="px-2 py-1 hover:bg-gray-700 rounded text-gray-400 text-[10px] font-bold uppercase"
+                title="Ungroup"
               >
-                <Icons.EyeOff className="w-3.5 h-3.5" />
+                Ungroup
               </button>
-              <button
-                onClick={() => handleBatchLock(true)}
-                className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors"
-                title="Lock all"
-              >
-                <Icons.Lock className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => handleBatchLock(false)}
-                className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors"
-                title="Unlock all"
-              >
-                <Icons.Unlock className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={handleBatchDelete}
-                className="p-1 hover:bg-red-900/30 rounded text-gray-400 hover:text-red-400 transition-colors"
-                title="Delete all"
-              >
-                <Icons.Trash className="w-3.5 h-3.5" />
-              </button>
+              <div className="w-px h-4 bg-gray-700 mx-1 self-center" />
+              <button onClick={() => handleBatchVisibility(true)} className="p-1 hover:bg-gray-700 rounded text-gray-400" title="Show"><Icons.Eye className="w-3.5 h-3.5" /></button>
+              <button onClick={() => handleBatchVisibility(false)} className="p-1 hover:bg-gray-700 rounded text-gray-400" title="Hide"><Icons.EyeOff className="w-3.5 h-3.5" /></button>
+              <button onClick={() => handleBatchLock(true)} className="p-1 hover:bg-gray-700 rounded text-gray-400" title="Lock"><Icons.Lock className="w-3.5 h-3.5" /></button>
+              <button onClick={handleBatchDelete} className="p-1 hover:bg-red-900/30 rounded text-gray-400 hover:text-red-400" title="Delete"><Icons.Trash className="w-3.5 h-3.5" /></button>
             </div>
           </div>
         )}
@@ -460,37 +490,37 @@ export const LayersPanel = React.memo(({
 
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         {/* Empty State */}
-        {filteredLayers.length === 0 && (
+        {displayLayers.length === 0 && (
           <div className="flex flex-col items-center justify-center mt-20 opacity-30 gap-2">
             <Icons.Layers className="w-10 h-10 text-gray-500" />
-            <p className="text-xs font-medium">{searchQuery ? 'No layers found' : 'Empty Canvas'}</p>
+            <p className="text-xs font-medium">{searchQuery ? 'No layers match filter' : 'Canvas is empty'}</p>
           </div>
         )}
 
         {/* Layers List */}
-        {filteredLayers.length > 0 && (
-          <div className="space-y-0.5 p-2">
-            {filteredLayers.map(layer => (
+        <div className="bg-[#13161a]">
+          {displayLayers.map((layer, index) => {
+            const { isGrouped, isGroupStart, isGroupEnd } = getGroupStatus(layer, index, displayLayers);
+            return (
               <LayerItem
                 key={layer.id}
                 layer={layer}
                 isSelected={selectedLayerId === layer.id}
                 isMultiSelected={selectedLayerIds.has(layer.id)}
+                isGrouped={isGrouped}
+                isGroupStart={isGroupStart}
+                isGroupEnd={isGroupEnd}
                 onSelect={() => onSelectLayer(layer.id)}
                 onSelectMultiple={(e) => handleSelectMultiple(layer.id, e)}
-                onUpdate={(c) => {
-                  if (layer.category === 'text') onUpdateTextLayer(layer.id, c);
-                  else if (layer.category === 'shape') onUpdateShapeLayer(layer.id, c);
-                  else if (layer.category === 'image') onUpdateImageLayer(layer.id, c);
-                }}
+                onUpdate={(c) => dispatchUpdate(layer.id, c, layer.type)}
                 onDelete={() => onDeleteLayer(layer.id)}
                 onDuplicate={() => onDuplicateLayer(layer.id)}
                 onMove={(dir) => onMoveLayer(layer.id, dir)}
-                onCopy={() => onCopyLayer(layer.id)}
+                onCopy={() => onCopyLayer && onCopyLayer(layer.id)}
               />
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

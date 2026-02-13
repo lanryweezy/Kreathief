@@ -47,8 +47,12 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({
     }
   };
 
+  // Note: For now filtering is local/placeholder based on simple string checks or just the 'All' state 
+  // until we have real metadata.
+  const filteredUploads = uploads;
+
   return (
-    <div className="flex flex-col h-full bg-[#13161a] p-4">
+    <div className="flex flex-col h-full bg-[#13161a] p-4 overflow-hidden">
       <h3 className="font-bold text-white mb-6 flex items-center gap-2">
         <Icons.Uploads className="w-5 h-5 text-[#7d2ae8]" />
         Media Library
@@ -59,21 +63,20 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer transition-all mb-6 group bg-[#1e1e1e] ${isDragging
-            ? 'border-[#7d2ae8] bg-[#7d2ae8]/10 scale-105'
-            : 'border-gray-700 hover:border-[#7d2ae8] hover:bg-[#7d2ae8]/5'
+        className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-all mb-6 group bg-[#1e1e1e] ${isDragging
+          ? 'border-[#7d2ae8] bg-[#7d2ae8]/10 scale-102'
+          : 'border-gray-700 hover:border-[#7d2ae8] hover:bg-[#7d2ae8]/5'
           }`}
       >
-        <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 transition-all ${isDragging
-            ? 'bg-[#7d2ae8] scale-125'
-            : 'bg-gray-800 group-hover:scale-110'
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-all ${isDragging
+          ? 'bg-[#7d2ae8] scale-110'
+          : 'bg-gray-800 group-hover:scale-105'
           }`}>
-          <Icons.Upload className={`w-6 h-6 ${isDragging ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+          <Icons.Upload className={`w-5 h-5 ${isDragging ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
         </div>
-        <span className={`text-xs font-bold transition-colors ${isDragging ? 'text-[#7d2ae8]' : 'text-gray-300 group-hover:text-white'}`}>
+        <span className={`text-[11px] font-bold transition-colors ${isDragging ? 'text-[#7d2ae8]' : 'text-gray-300 group-hover:text-white'}`}>
           {isDragging ? 'Drop images here' : 'Upload Media'}
         </span>
-        <span className="text-[10px] text-gray-500 mt-1">Drag & drop or click</span>
         <input
           type="file"
           ref={fileInputRef}
@@ -89,17 +92,17 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({
         />
       </div>
 
-      <div className="flex items-center justify-between mb-3">
-        <h4 className="text-xs font-bold text-gray-400 uppercase">Recent</h4>
-        <span className="text-[10px] text-gray-600">{uploads.length} items</span>
+      <div className="flex items-center justify-between mb-3 px-1">
+        <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Recent Uploads</h4>
+        <span className="text-[9px] text-gray-600 font-medium">{uploads.length} items</span>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 overflow-y-auto custom-scrollbar flex-1 pb-10">
-        {uploads && uploads.length > 0 ? (
-          uploads.map((url, idx) => (
+      <div className="grid grid-cols-2 gap-3 overflow-y-auto custom-scrollbar flex-1 pb-4">
+        {filteredUploads && filteredUploads.length > 0 ? (
+          filteredUploads.map((url, idx) => (
             <div
               key={idx}
-              className="aspect-square rounded-lg border border-gray-700 overflow-hidden relative group cursor-pointer bg-[#1e1e1e] hover:border-[#7d2ae8] transition-all hover:shadow-lg hover:shadow-[#7d2ae8]/20"
+              className="aspect-square rounded-lg border border-gray-800 overflow-hidden relative group cursor-pointer bg-[#1e1e1e] hover:border-[#7d2ae8] transition-all"
               draggable
               onDragStart={(e) => {
                 e.dataTransfer.setData('text/plain', url);
@@ -108,27 +111,29 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({
             >
               <img src={url} className="w-full h-full object-cover pointer-events-none" loading="lazy" />
 
-              {/* Hover Overlay */}
-              <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-center items-center gap-2 p-3">
+              {/* Minimalist Overlay */}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 <button
                   onClick={() => onAddImageLayer && onAddImageLayer(url)}
-                  className="bg-[#7d2ae8] hover:bg-[#6b23c5] text-white text-[10px] py-2 px-3 rounded w-full font-bold shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform"
+                  className="w-10 h-10 rounded-full bg-[#7d2ae8] text-white flex items-center justify-center hover:scale-110 transition-transform shadow-xl"
+                  title="Add to Canvas"
                 >
-                  Add to Canvas
+                  <Icons.Plus className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => onDeleteUpload && onDeleteUpload(idx)}
-                  className="bg-red-500/20 hover:bg-red-500/40 text-red-300 text-[10px] py-2 px-3 rounded w-full flex items-center justify-center gap-1 transform translate-y-2 group-hover:translate-y-0 transition-transform delay-75"
+                  className="w-8 h-8 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-xl"
+                  title="Remove"
                 >
-                  <Icons.Trash className="w-3 h-3" /> Remove
+                  <Icons.Trash className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
           ))
         ) : (
-          <div className="col-span-2 text-center text-gray-500 mt-10 flex flex-col items-center">
-            <Icons.Image className="w-10 h-10 opacity-20 mb-2" />
-            <p className="text-xs">No uploads yet</p>
+          <div className="col-span-2 text-center text-gray-600 mt-10 flex flex-col items-center">
+            <Icons.Image className="w-10 h-10 opacity-10 mb-2" />
+            <p className="text-[10px] font-medium uppercase tracking-widest">No matching media</p>
           </div>
         )}
       </div>
