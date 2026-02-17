@@ -3,6 +3,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '../Button';
 import { ChatMessage, TextLayer, ShapeLayer } from '../../types';
 import * as geminiService from '../../services/geminiService';
+import { useStore } from '../../store/useStore';
+import { v4 as uuidv4 } from 'uuid';
 
 // Local SVG icons to avoid dependence on constants.ts which might cause crashes
 const LocalIcons = {
@@ -40,15 +42,58 @@ const LocalIcons = {
 
 interface AssistantPanelProps {
   getCanvasSnapshot: () => Promise<string>;
-  onAddText: (style: Partial<TextLayer>) => void;
-  onAddShape: (type: any, style: Partial<ShapeLayer>) => void;
 }
 
 export const AssistantPanel: React.FC<AssistantPanelProps> = ({
-  getCanvasSnapshot,
-  onAddText,
-  onAddShape
+  getCanvasSnapshot
 }) => {
+  const addLayer = useStore(state => state.addLayer);
+  const canvasSize = useStore(state => state.canvasSize);
+
+  const onAddShape = (type: any, style: Partial<ShapeLayer>) => {
+    addLayer({
+      id: uuidv4(),
+      type: type as any,
+      name: style.name || 'New Shape',
+      x: canvasSize.width / 2 - 50,
+      y: canvasSize.height / 2 - 50,
+      width: 100,
+      height: 100,
+      rotation: 0,
+      opacity: 1,
+      locked: false,
+      visible: true,
+      flipX: false,
+      flipY: false,
+      blendMode: 'normal',
+      color: '#7d2ae8',
+      cornerRadius: 0,
+      ...style,
+      filters: { brightness: 100, contrast: 100, saturation: 100, grayscale: 0, blur: 0, sepia: 0, hueRotate: 0, vignette: 0, opacity: 1 }
+    } as any);
+  };
+
+  const onAddText = (style: Partial<TextLayer>) => {
+    addLayer({
+      id: uuidv4(),
+      type: 'text',
+      name: 'Text Layer',
+      text: 'Heading',
+      x: canvasSize.width / 2,
+      y: canvasSize.height / 2,
+      width: 200,
+      height: 50,
+      rotation: 0,
+      opacity: 1,
+      locked: false,
+      visible: true,
+      fontSize: 24,
+      fontFamily: 'Inter',
+      color: '#000000',
+      align: 'center',
+      ...style
+    } as TextLayer);
+  };
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',

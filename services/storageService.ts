@@ -7,13 +7,38 @@ import { logger } from './logger';
 import type { Project, HistoryState } from '../types';
 
 const DB_NAME = 'kreathief_db';
-const DB_VERSION = 1;
+const DB_VERSION = 3;
 
 interface ProjectVersion {
     id: string;
     projectId: string;
     state: HistoryState;
     timestamp: number;
+    thumbnail?: string;
+}
+
+interface ShareMapping {
+    id: string; // shareId
+    projectId: string;
+    createdAt: number;
+}
+
+interface DesignComment {
+    id: string;
+    projectId: string;
+    userId: string;
+    userName: string;
+    userAvatar?: string;
+    text: string;
+    timestamp: number;
+}
+
+interface DesignSnapshot {
+    id: string;
+    projectId: string;
+    name: string;
+    timestamp: number;
+    state: HistoryState;
     thumbnail?: string;
 }
 
@@ -60,7 +85,26 @@ class StorageService {
                     db.createObjectStore('settings', { keyPath: 'key' });
                 }
 
-                logger.info('IndexedDB schema created');
+                // Share mapping store [NEW in v2]
+                if (!db.objectStoreNames.contains('shares')) {
+                    const sharesStore = db.createObjectStore('shares', { keyPath: 'id' });
+                    sharesStore.createIndex('projectId', 'projectId', { unique: false });
+                }
+
+                // Snapshots store [NEW in v3]
+                if (!db.objectStoreNames.contains('snapshots')) {
+                    const snapshotsStore = db.createObjectStore('snapshots', { keyPath: 'id' });
+                    snapshotsStore.createIndex('projectId', 'projectId', { unique: false });
+                    snapshotsStore.createIndex('timestamp', 'timestamp', { unique: false });
+                }
+
+                // Comments store [NEW in v3]
+                if (!db.objectStoreNames.contains('comments')) {
+                    const commentsStore = db.createObjectStore('comments', { keyPath: 'id' });
+                    commentsStore.createIndex('projectId', 'projectId', { unique: false });
+                }
+
+                logger.info('IndexedDB schema updated');
             };
         });
 
@@ -201,6 +245,105 @@ class StorageService {
         return new Promise((resolve, reject) => {
             const request = store.put({ key, value });
             request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    // ===== Shares [NEW] =====
+
+    async saveShare(share: ShareMapping): Promise<void> {
+        const store = await this.getStore('shares', 'readwrite');
+        return new Promise((resolve, reject) => {
+            const request = store.put(share);
+            request.onsuccess = () => {
+                logger.debug('Share saved', { id: share.id });
+                resolve();
+            };
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    async getShare(id: string): Promise<ShareMapping | undefined> {
+        const store = await this.getStore('shares');
+        return new Promise((resolve, reject) => {
+            const request = store.get(id);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    async getShareByProjectId(projectId: string): Promise<ShareMapping | undefined> {
+        const store = await this.getStore('shares');
+        const index = store.index('projectId');
+        return new Promise((resolve, reject) => {
+            const request = index.get(projectId);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    // ===== Snapshots [NEW in v3] =====
+
+    async saveSnapshot(snapshot: DesignSnapshot): Promise<void> {
+        const store = await this.getStore('snapshots', 'readwrite');
+        return new Promise((resolve, reject) => {
+            const request = store.put(snapshot);
+            request.onsuccess = () => {
+                logger.debug('Snapshot saved', { id: snapshot.id, name: snapshot.name });
+                resolve();
+            };
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    async getSnapshots(projectId: string): Promise<DesignSnapshot[]> {
+        const store = await this.getStore('snapshots');
+        const index = store.index('projectId');
+        return new Promise((resolve, reject) => {
+            const snapshots: DesignSnapshot[] = [];
+            const request = index.openCursor(IDBKeyRange.only(projectId), 'prev');
+            request.onsuccess = (event) => {
+                const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+                if (cursor) {
+                    snapshots.push(cursor.value);
+                    cursor.continue();
+                } else {
+                    resolve(snapshots);
+                }
+            };
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    // ===== Comments [NEW in v3] =====
+
+    async saveComment(comment: DesignComment): Promise<void> {
+        const store = await this.getStore('comments', 'readwrite');
+        return new Promise((resolve, reject) => {
+            const request = store.put(comment);
+            request.onsuccess = () => {
+                logger.debug('Comment saved', { id: comment.id });
+                resolve();
+            };
+            request.onerror = () => reject(request.error);
+        });
+    }
+
+    async getComments(projectId: string): Promise<DesignComment[]> {
+        const store = await this.getStore('comments');
+        const index = store.index('projectId');
+        return new Promise((resolve, reject) => {
+            const comments: DesignComment[] = [];
+            const request = index.openCursor(IDBKeyRange.only(projectId));
+            request.onsuccess = (event) => {
+                const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+                if (cursor) {
+                    comments.push(cursor.value);
+                    cursor.continue();
+                } else {
+                    resolve(comments);
+                }
+            };
             request.onerror = () => reject(request.error);
         });
     }

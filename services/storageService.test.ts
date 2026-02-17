@@ -18,7 +18,8 @@ describe('StorageService', () => {
                 opacity: 1,
                 vignette: 0,
                 sepia: 0,
-                grayscale: 0
+                grayscale: 0,
+                hueRotate: 0
             }
         }
     };

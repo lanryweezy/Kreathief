@@ -1,12 +1,54 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useStore } from '../store/useStore';
 import { NavTab, TextLayer, ShapeLayer, ImageLayer, Layer, CanvasFilters, CanvasSize, User, BrushType, GeneratedImage } from '../types';
+import { VectorUtils } from '../utils/vectorUtils';
+import { unitToPx } from '../utils/unitUtils';
 import { Icons } from '../constants';
+import { PathEditorOverlay } from './VectorEditor/PathEditorOverlay';
 import { ColorPicker } from './ColorPicker';
-import { FloatingToolbar } from './FloatingToolbar';
 import { Ruler } from './Ruler';
-import { Toolbar } from './Toolbar';
 import { ContextMenu } from './ContextMenu';
 import { GeometryOracle } from '../utils/geometryOracle';
+import { AnimationSettings } from '../types';
+import { GoldenRatioOverlay } from './GoldenRatioOverlay';
+
+const getAnimationStyle = (anim?: AnimationSettings): React.CSSProperties => {
+    if (!anim || anim.type === 'none') return {};
+    return {
+        animationName: anim.type,
+        animationDuration: `${anim.duration}s`,
+        animationDelay: `${anim.delay}s`,
+        animationTimingFunction: anim.easing,
+        animationIterationCount: anim.iterationCount === 'infinite' ? 'infinite' : anim.iterationCount,
+        animationFillMode: 'both',
+    };
+};
+
+const getLayerClipPath = (layer: Layer): string | undefined => {
+    switch (layer.type) {
+        case 'triangle': return 'polygon(50% 0%, 0% 100%, 100% 100%)';
+        case 'star': return 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)';
+        case 'hexagon': return 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
+        case 'diamond': return 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
+        case 'arrow': return 'polygon(0% 20%, 60% 20%, 60% 0%, 100% 50%, 60% 100%, 60% 80%, 0% 80%)';
+        case 'heart': return 'polygon(50% 85%, 15% 50%, 15% 25%, 30% 10%, 50% 25%, 70% 10%, 85% 25%, 85% 50%)';
+        case 'speech_bubble': return 'polygon(0% 0%, 100% 0%, 100% 75%, 75% 75%, 75% 100%, 50% 75%, 0% 75%)';
+        case 'shield': return 'polygon(50% 0, 100% 10%, 100% 80%, 50% 100%, 0 80%, 0 10%)';
+        case 'ribbon': return 'polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%, 10% 50%)';
+        case 'banner': return 'polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%)';
+        case 'pentagon': return 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)';
+        case 'octagon': return 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)';
+        case 'plus': return 'polygon(35% 0%, 65% 0%, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0% 65%, 0% 35%, 35% 35%)';
+        case 'star_4': return 'polygon(50% 0%, 61% 35%, 100% 50%, 61% 65%, 50% 100%, 39% 65%, 0% 50%, 39% 35%)';
+        case 'star_8': return 'polygon(50% 0%, 61% 22%, 85% 15%, 72% 35%, 100% 50%, 72% 65%, 85% 85%, 61% 72%, 50% 100%, 39% 72%, 15% 85%, 28% 65%, 0% 50%, 28% 35%, 15% 15%, 39% 22%)';
+        case 'path':
+            if ((layer as any).pathData) {
+                return `path('${(layer as any).pathData}')`;
+            }
+            return undefined;
+        default: return undefined;
+    }
+};
 
 // --- Sub-Components (Memoized) ---
 
@@ -54,14 +96,14 @@ const SelectionHandles = React.memo(({ layer, onResize, onRotate, scale }: Selec
                     )}
 
                     {/* Rotate Handle */}
-                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 pointer-events-auto group/rotate z-50">
-                        <div className="w-px h-4 bg-[#00c4cc]"></div>
+                    <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 pointer-events-auto group/rotate z-50">
+                        <div className="w-px h-6 bg-[#7d2ae8]"></div>
                         <div
                             onMouseDown={(e) => onRotate(e, layer)}
-                            className="w-6 h-6 bg-white border-2 border-[#00c4cc] rounded-full cursor-grab flex items-center justify-center hover:bg-[#00c4cc] hover:text-white shadow-md transition-colors"
+                            className="w-7 h-7 bg-white border-2 border-[#7d2ae8] rounded-full cursor-grab flex items-center justify-center hover:bg-[#7d2ae8] hover:text-white shadow-lg transition-all active:cursor-grabbing hover:scale-110"
                             title="Rotate"
                         >
-                            <Icons.Undo className="w-3.5 h-3.5 text-[#00c4cc] group-hover/rotate:text-white rotate-90" />
+                            <Icons.RotateCw className="w-3.5 h-3.5 text-[#7d2ae8] group-hover/rotate:text-white" />
                         </div>
                     </div>
                 </>
@@ -134,29 +176,36 @@ const MultiSelectionHandles = React.memo(({ layers, zoom, onResize, onRotate }: 
                         <div onMouseDown={(e) => onResize(e, groupLayer, 's')} className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-white border border-[#7d2ae8] rounded-full pointer-events-auto cursor-ns-resize shadow-sm z-40"></div>
                     </>
                 )}
-                {bounds.height > 30 && (
-                    <>
-                        <div onMouseDown={(e) => onResize(e, groupLayer, 'w')} className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-1.5 h-6 bg-white border border-[#7d2ae8] rounded-full pointer-events-auto cursor-ew-resize shadow-sm z-40"></div>
-                        <div onMouseDown={(e) => onResize(e, groupLayer, 'e')} className="absolute top-1/2 -translate-y-1/2 -right-1.5 w-1.5 h-6 bg-white border border-[#7d2ae8] rounded-full pointer-events-auto cursor-ew-resize shadow-sm z-40"></div>
-                    </>
-                )}
+                {/* Rotate Handle for Multi-Selection */}
+                <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 pointer-events-auto group/rotate z-50">
+                    <div className="w-px h-6 bg-[#7d2ae8]"></div>
+                    <div
+                        onMouseDown={(e) => onRotate(e, groupLayer)}
+                        className="w-7 h-7 bg-white border-2 border-[#7d2ae8] rounded-full cursor-grab flex items-center justify-center hover:bg-[#7d2ae8] hover:text-white shadow-lg transition-all active:cursor-grabbing hover:scale-110"
+                        title="Rotate Selection"
+                    >
+                        <Icons.RotateCw className="w-3.5 h-3.5 text-[#7d2ae8] group-hover/rotate:text-white" />
+                    </div>
+                </div>
             </div>
         </div>
     );
 });
 
 
-const ImageLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, onMouseEnter, onMouseLeave, onResize, onRotate, onContextMenu }: any) => {
+const ImageLayerItem = React.memo(React.forwardRef<HTMLDivElement, any>(({ layer, isSelected, isHovered, onMouseDown, onMouseEnter, onMouseLeave, onResize, onRotate, onContextMenu, previewAnimation, ...props }, ref) => {
     const scaleX = layer.flipX ? -1 : 1;
     const scaleY = layer.flipY ? -1 : 1;
+    const animStyle = getAnimationStyle((isSelected && previewAnimation) ? previewAnimation : layer.animation);
 
     return (
         <div
+            ref={ref}
             onMouseDown={(e) => onMouseDown(e, layer)}
             onMouseEnter={() => onMouseEnter(layer.id)}
             onMouseLeave={() => onMouseLeave(null)}
             onContextMenu={(e) => onContextMenu(e, layer.id)}
-            className="absolute cursor-move group animate-scaleIn"
+            className="absolute cursor-move group"
             style={{
                 left: layer.x,
                 top: layer.y,
@@ -175,7 +224,12 @@ const ImageLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, 
                 <div className="absolute -inset-0.5 border border-cyan-400/50 rounded-sm pointer-events-none z-40"></div>
             )}
 
-            <div className="w-full h-full overflow-hidden" style={{ borderRadius: `${layer.cornerRadius || 0}px` }}>
+            {/* Masking Logic */}
+            <div className="w-full h-full overflow-hidden" style={{
+                borderRadius: `${layer.cornerRadius || 0}px`,
+                ...animStyle,
+                ...(props.maskPath ? { clipPath: props.maskPath } : {})
+            }}>
                 <img
                     src={layer.src}
                     className="w-full h-full object-cover pointer-events-none block"
@@ -196,109 +250,114 @@ const ImageLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, 
             {isSelected && <SelectionHandles layer={layer} onResize={onResize} onRotate={onRotate} scale={1} />}
         </div>
     );
-});
+}));
 
-const ShapeLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, onMouseEnter, onMouseLeave, onResize, onRotate, onContextMenu, onDrop }: any) => {
-    let borderRadius = '0';
-    if (layer.type === 'circle') borderRadius = '50%';
-    else if (layer.type === 'rectangle') borderRadius = `${layer.cornerRadius || 0}px`;
+const ShapeLayerItem = React.memo(React.forwardRef<HTMLDivElement, any>((props, ref) => {
+    const { layer, isSelected, isHovered, onMouseDown, onMouseEnter, onMouseLeave, onResize, onRotate, onContextMenu, onDrop, previewAnimation, editingPathId, onDoubleClick, onUpdatePath, zoom } = props;
 
-    let clipPath = undefined;
-    switch (layer.type) {
-        case 'triangle': clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)'; break;
-        case 'star': clipPath = 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)'; break;
-        case 'hexagon': clipPath = 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)'; break;
-        case 'diamond': clipPath = 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)'; break;
-        case 'arrow': clipPath = 'polygon(0% 20%, 60% 20%, 60% 0%, 100% 50%, 60% 100%, 60% 80%, 0% 80%)'; break;
-        case 'heart': clipPath = 'polygon(50% 85%, 15% 50%, 15% 25%, 30% 10%, 50% 25%, 70% 10%, 85% 25%, 85% 50%)'; break;
-        case 'speech_bubble': clipPath = 'polygon(0% 0%, 100% 0%, 100% 75%, 75% 75%, 75% 100%, 50% 75%, 0% 75%)'; break;
-        case 'shield': clipPath = 'polygon(50% 0, 100% 10%, 100% 80%, 50% 100%, 0 80%, 0 10%)'; break;
-        case 'ribbon': clipPath = 'polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%, 10% 50%)'; break;
-        case 'banner': clipPath = 'polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%)'; break;
-        case 'pentagon': clipPath = 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)'; break;
-        case 'octagon': clipPath = 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)'; break;
-        case 'plus': clipPath = 'polygon(35% 0%, 65% 0%, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0% 65%, 0% 35%, 35% 35%)'; break;
-        case 'star_4': clipPath = 'polygon(50% 0%, 61% 35%, 100% 50%, 61% 65%, 50% 100%, 39% 65%, 0% 50%, 39% 35%)'; break;
-        case 'star_8': clipPath = 'polygon(50% 0%, 61% 22%, 85% 15%, 72% 35%, 100% 50%, 72% 65%, 85% 85%, 61% 72%, 50% 100%, 39% 72%, 15% 85%, 28% 65%, 0% 50%, 28% 35%, 15% 15%, 39% 22%)'; break;
-    }
+    // Debug logging for properties
 
-    if (layer.type === 'path') {
-        return (
-            <div
-                onMouseDown={(e) => onMouseDown(e, layer)}
-                onMouseEnter={() => onMouseEnter(layer.id)}
-                onMouseLeave={() => onMouseLeave(null)}
-                onContextMenu={(e) => onContextMenu(e, layer.id)}
-                className="absolute cursor-move group animate-scaleIn"
-                style={{
-                    left: layer.x,
-                    top: layer.y,
-                    width: layer.width,
-                    height: layer.height,
-                    transform: `${layer.perspective ? `perspective(${layer.perspective}px)` : ''} rotateX(${layer.rotateX || 0}deg) rotateY(${layer.rotateY || 0}deg) rotate(${layer.rotation}deg) skew(${layer.skewX || 0}deg, ${layer.skewY || 0}deg)`,
-                    opacity: layer.opacity,
-                    mixBlendMode: layer.blendMode as any,
-                    filter: layer.shadow ? `drop-shadow(${layer.shadow.offsetX}px ${layer.shadow.offsetY}px ${layer.shadow.blur}px ${layer.shadow.color})` : 'none',
-                    willChange: 'transform',
-                }}
-            >
-                {isHovered && !isSelected && !layer.locked && (
-                    <div className="absolute -inset-0.5 border border-cyan-400/50 rounded-sm pointer-events-none z-40"></div>
-                )}
+    const isEditing = layer.id === editingPathId;
 
-                <svg viewBox={layer.viewBox || "0 0 100 100"} width="100%" height="100%" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
-                    <path
-                        d={layer.pathData}
-                        fill={layer.color}
-                        stroke={layer.stroke?.color || 'none'}
-                        strokeWidth={layer.stroke?.width || 0}
-                    />
-                </svg>
+    const clipPath = getLayerClipPath(layer);
 
-                {isSelected && <SelectionHandles layer={layer} onResize={onResize} onRotate={onRotate} scale={1} />}
-            </div>
-        );
-    }
 
     return (
         <div
+            ref={ref}
             onMouseDown={(e) => onMouseDown(e, layer)}
             onMouseEnter={() => onMouseEnter(layer.id)}
             onMouseLeave={() => onMouseLeave(null)}
             onContextMenu={(e) => onContextMenu(e, layer.id)}
+            onDoubleClick={(e) => onDoubleClick && onDoubleClick(layer)}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => onDrop(e, layer.id)}
-            className="absolute cursor-move group animate-scaleIn"
+            className="absolute cursor-move group"
             style={{
                 left: layer.x,
                 top: layer.y,
                 width: layer.width,
                 height: layer.height,
                 transform: `${layer.perspective ? `perspective(${layer.perspective}px)` : ''} rotateX(${layer.rotateX || 0}deg) rotateY(${layer.rotateY || 0}deg) rotate(${layer.rotation}deg) skew(${layer.skewX || 0}deg, ${layer.skewY || 0}deg)`,
-                backgroundColor: layer.backgroundImage ? 'transparent' : layer.color,
-                borderRadius: borderRadius,
-                clipPath: clipPath,
-                boxShadow: layer.shadow && !clipPath ? `${layer.shadow.offsetX}px ${layer.shadow.offsetY}px ${layer.shadow.blur}px ${layer.shadow.color}` : 'none',
-                border: layer.stroke && !clipPath ? `${layer.stroke.width}px solid ${layer.stroke.color}` : 'none',
                 opacity: layer.opacity,
                 mixBlendMode: layer.blendMode as any,
-                filter: layer.shadow && clipPath ? `drop-shadow(${layer.shadow.offsetX}px ${layer.shadow.offsetY}px ${layer.shadow.blur}px ${layer.shadow.color})` : 'none',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundImage: layer.backgroundImage ? `url(${layer.backgroundImage})` : 'none',
                 willChange: 'transform',
+                zIndex: isSelected ? 100 : (isHovered ? 99 : 1),
+                overflow: 'visible' // Ensure handles are visible outside bounds
             }}
         >
-            {isHovered && !isSelected && !layer.locked && (
-                <div className="absolute -inset-0.5 border border-cyan-400/50 rounded-sm pointer-events-none z-40"></div>
+            {/* Visual Hover Feedback - Larger inset to avoid conflicting with handles */}
+            {isHovered && !isSelected && !layer.locked && !isEditing && (
+                <div className="absolute -inset-2 border border-cyan-400/50 rounded-sm pointer-events-none z-40"></div>
             )}
 
-            {isSelected && <SelectionHandles layer={layer} onResize={onResize} onRotate={onRotate} scale={1} />}
+            {/* Content Container with Clipping and Effects */}
+            <div className="w-full h-full relative" style={{
+                ...getAnimationStyle((isSelected && previewAnimation) ? previewAnimation : layer.animation),
+                backgroundColor: layer.params?.gradient ? 'transparent' : (layer.type === 'path' ? 'transparent' : layer.color),
+                backgroundImage: layer.params?.gradient ? `linear-gradient(${layer.params.gradient.angle}deg, ${layer.params.gradient.startColor}, ${layer.params.gradient.endColor})` : (layer.backgroundImage ? `url(${layer.backgroundImage})` : 'none'),
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                boxShadow: layer.shadow && layer.type !== 'path' ? `${layer.shadow.offsetX}px ${layer.shadow.offsetY}px ${layer.shadow.blur}px ${layer.shadow.color}` : 'none',
+                borderRadius: (layer.type !== 'path' && layer.type !== 'arrow') ? `${layer.cornerRadius}px` : undefined,
+                clipPath: layer.type === 'path' ? undefined : clipPath,
+                filter: layer.filters ? `
+                    brightness(${layer.filters.brightness}%) 
+                    contrast(${layer.filters.contrast}%) 
+                    saturate(${layer.filters.saturation}%) 
+                    grayscale(${layer.filters.grayscale}%) 
+                    blur(${layer.filters.blur}px) 
+                    sepia(${layer.filters.sepia}%) 
+                    hue-rotate(${layer.filters.hueRotate}deg)
+                    ${layer.shadow && layer.type === 'path' ? `drop-shadow(${layer.shadow.offsetX}px ${layer.shadow.offsetY}px ${layer.shadow.blur}px ${layer.shadow.color})` : ''}
+                ` : 'none',
+                opacity: layer.opacity,
+                ...(props.maskPath ? { clipPath: props.maskPath } : {})
+            }}>
+                {/* SVG Path Rendering (for 'path' type or vectorPath property) */}
+                {(layer.type === 'path' || layer.vectorPath) && (
+                    <svg width="100%" height="100%" viewBox={layer.viewBox || `0 0 ${layer.width} ${layer.height}`} preserveAspectRatio="none" style={{ overflow: 'visible', pointerEvents: 'none' }}>
+                        {/* If there's a background image, we can use a mask or just clip-path. 
+                             For simplicity and wide support, we'll keep the background image on the div 
+                             and use clip-path if it's the 'path' type, but CSS clip-path (path('...')) is complex for raw SVG data.
+                             Instead, if we have an image, we use an SVG pattern or mask.
+                         */}
+                        <defs>
+                            {layer.backgroundImage && (
+                                <pattern id={`pattern-${layer.id}`} patternUnits="userSpaceOnUse" width="100%" height="100%">
+                                    <image href={layer.backgroundImage} width="100%" height="100%" preserveAspectRatio="xMidYMid slice" />
+                                </pattern>
+                            )}
+                        </defs>
+                        <path
+                            d={layer.pathData || (layer.vectorPath ? VectorUtils.serializePath(layer.vectorPath) : '')}
+                            fill={layer.backgroundImage ? `url(#pattern-${layer.id})` : (layer.color || '#7d2ae8')}
+                            fillOpacity={layer.opacity}
+                            stroke={layer.stroke?.color}
+                            strokeWidth={layer.stroke?.width}
+                            vectorEffect="non-scaling-stroke"
+                        />
+                    </svg>
+                )}
+            </div>
+
+            {/* Path Editing Overlay */}
+            {isEditing && layer.vectorPath && (
+                <PathEditorOverlay
+                    path={layer.vectorPath}
+                    zoom={zoom}
+                    onUpdate={onUpdatePath}
+                    onSelectPoint={() => { }}
+                    selectedPointIndices={[]}
+                />
+            )}
+
+            {/* Selection Handles - OUTSIDE the content container to prevent clipping */}
+            {isSelected && !isEditing && <SelectionHandles layer={layer} onResize={onResize} onRotate={onRotate} scale={1} />}
         </div>
     );
-});
+}));
 
-// Helper for rendering text along a path
 // Helper for rendering text along a path
 const renderTextOnPath = (canvas: HTMLCanvasElement, layer: TextLayer) => {
     const ctx = canvas.getContext('2d');
@@ -374,10 +433,27 @@ const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) => {
     const align = textAlign === 'justify' ? 'left' : textAlign;
     tempCtx.textAlign = align as CanvasTextAlign;
 
+    if (layer.shadow) {
+        tempCtx.shadowColor = layer.shadow.color;
+        tempCtx.shadowBlur = layer.shadow.blur;
+        tempCtx.shadowOffsetX = layer.shadow.offsetX;
+        tempCtx.shadowOffsetY = layer.shadow.offsetY;
+    }
+
+    if (layer.stroke) {
+        tempCtx.strokeStyle = layer.stroke.color;
+        tempCtx.lineWidth = layer.stroke.width;
+        tempCtx.lineJoin = 'round';
+    }
+
     lines.forEach((line, i) => {
         let x = 0;
         if (textAlign === 'center') x = width / 2;
         if (textAlign === 'right') x = width;
+
+        if (layer.stroke) {
+            tempCtx.strokeText(line, x, i * totalLineHeight);
+        }
         tempCtx.fillText(line, x, i * totalLineHeight);
     });
 
@@ -414,11 +490,11 @@ const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) => {
     }
 };
 
-const TextLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, onMouseEnter, onMouseLeave, onResize, onRotate, onContextMenu, onDoubleClick, isInteracting }: any) => {
+const TextLayerItem = React.memo(React.forwardRef<HTMLDivElement, any>(({ layer, isSelected, isHovered, onMouseDown, onMouseEnter, onMouseLeave, onResize, onRotate, onContextMenu, onDoubleClick, isInteracting, previewAnimation, ...props }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
-        if (isInteracting) return; // Optimization: Skip expensive re-renders during drag
+        if (isInteracting) return;
         if (layer.textPath && canvasRef.current) {
             renderTextOnPath(canvasRef.current, layer);
         } else if (layer.warpStyle && layer.warpStyle !== 'none' && canvasRef.current) {
@@ -427,56 +503,60 @@ const TextLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, o
     }, [layer.text, layer.color, layer.fontSize, layer.fontFamily, layer.fontWeight, layer.fontStyle, layer.warpStyle, layer.curve, layer.width, layer.lineHeight, layer.textAlign, layer.textPath, isInteracting]);
 
     const textStyle: React.CSSProperties = {
+        fontFamily: layer.fontFamily,
         fontSize: `${layer.fontSize}px`,
         fontWeight: layer.fontWeight,
         fontStyle: layer.fontStyle,
-        textDecoration: layer.textDecoration,
-        fontFamily: layer.fontFamily,
+        color: (layer.gradient && layer.gradient.enabled) ? 'transparent' : layer.color,
         textAlign: layer.textAlign,
         letterSpacing: `${layer.letterSpacing}px`,
         lineHeight: layer.lineHeight,
+        textDecoration: layer.textDecoration,
         textTransform: layer.textTransform,
-        color: layer.gradient?.enabled ? 'transparent' : layer.color,
-        backgroundImage: layer.gradient?.enabled ? `linear-gradient(${layer.gradient.angle}deg, ${layer.gradient.startColor}, ${layer.gradient.endColor})` : 'none',
-        WebkitBackgroundClip: layer.gradient?.enabled ? 'text' : 'unset',
-        backgroundClip: layer.gradient?.enabled ? 'text' : 'unset',
-        textShadow: layer.shadow ? `${layer.shadow.offsetX}px ${layer.shadow.offsetY}px ${layer.shadow.blur}px ${layer.shadow.color}` : 'none',
-        WebkitTextStroke: layer.stroke ? `${layer.stroke.width}px ${layer.stroke.color}` : 'none',
-        width: '100%',
-        height: '100%',
         whiteSpace: 'pre-wrap',
         wordBreak: 'break-word',
-        userSelect: 'none',
+        backgroundImage: (layer.gradient && layer.gradient.enabled) ? `linear-gradient(${layer.gradient.angle}deg, ${layer.gradient.startColor}, ${layer.gradient.endColor})` : 'none',
+        WebkitBackgroundClip: (layer.gradient && layer.gradient.enabled) ? 'text' : 'unset',
+        display: 'block',
+        ...(layer.shadow ? { textShadow: `${layer.shadow.offsetX}px ${layer.shadow.offsetY}px ${layer.shadow.blur}px ${layer.shadow.color}` } : {}),
+        position: 'relative',
+        zIndex: 1,
     };
 
-    // 3D Text Depth Effect using stacked text-shadows
-    if (layer.depth && layer.depth > 0) {
-        const depthColor = layer.depthColor || '#333333';
-        const shadows: string[] = [];
+    const render3DDepth = () => {
+        if (!layer.depth || layer.depth <= 0) return null;
+        const depthElements = [];
         for (let i = 1; i <= layer.depth; i++) {
-            shadows.push(`${i}px ${i}px 0px ${depthColor}`);
+            depthElements.push(
+                <div key={i} style={{
+                    ...textStyle,
+                    color: layer.depthColor || '#333333',
+                    position: 'absolute',
+                    top: `${i}px`,
+                    left: `${i}px`,
+                    zIndex: 0,
+                    textShadow: 'none',
+                    backgroundImage: 'none',
+                    WebkitBackgroundClip: 'unset',
+                    pointerEvents: 'none',
+                }}>
+                    {layer.text}
+                </div>
+            );
         }
-        // Add main shadow if exists
-        if (layer.shadow) {
-            shadows.push(`${layer.shadow.offsetX + layer.depth}px ${layer.shadow.offsetY + layer.depth}px ${layer.shadow.blur}px ${layer.shadow.color}`);
-        }
-        textStyle.textShadow = shadows.join(', ');
-    }
-
-    if (layer.styleType === 'hollow') {
-        textStyle.color = 'transparent';
-        textStyle.WebkitTextStroke = `1px ${layer.color}`;
-    }
+        return depthElements;
+    };
 
     if ((layer.warpStyle && layer.warpStyle !== 'none') || layer.textPath) {
         return (
             <div
+                ref={ref}
                 onMouseDown={(e) => onMouseDown(e, layer)}
                 onMouseEnter={() => onMouseEnter(layer.id)}
                 onMouseLeave={() => onMouseLeave(null)}
                 onContextMenu={(e) => onContextMenu(e, layer.id)}
                 onDoubleClick={(e) => onDoubleClick(e, layer)}
-                className="absolute cursor-move group animate-scaleIn"
+                className="absolute cursor-move group"
                 style={{
                     left: layer.x,
                     top: layer.y,
@@ -491,7 +571,7 @@ const TextLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, o
                     <div className="absolute -inset-2 border border-cyan-400/50 rounded-sm pointer-events-none z-40"></div>
                 )}
 
-                <canvas ref={canvasRef} style={{ width: '100%', height: 'auto', display: 'block' }} />
+                <canvas ref={canvasRef} style={{ width: '100%', height: 'auto', display: 'block', ...getAnimationStyle((isSelected && previewAnimation) ? previewAnimation : layer.animation), ...(props.maskPath ? { clipPath: props.maskPath } : {}) }} />
                 {isSelected && <SelectionHandles layer={layer} onResize={onResize} onRotate={onRotate} scale={1} />}
             </div>
         );
@@ -499,12 +579,13 @@ const TextLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, o
 
     return (
         <div
+            ref={ref}
             onMouseDown={(e) => onMouseDown(e, layer)}
             onMouseEnter={() => onMouseEnter(layer.id)}
             onMouseLeave={() => onMouseLeave(null)}
             onContextMenu={(e) => onContextMenu(e, layer.id)}
             onDoubleClick={(e) => onDoubleClick(e, layer)}
-            className="absolute cursor-move group animate-scaleIn"
+            className="absolute cursor-move group"
             style={{
                 left: layer.x,
                 top: layer.y,
@@ -520,122 +601,104 @@ const TextLayerItem = React.memo(({ layer, isSelected, isHovered, onMouseDown, o
                 <div className="absolute -inset-2 border border-cyan-400/50 rounded-sm pointer-events-none z-40"></div>
             )}
 
-            <div style={textStyle}>{layer.text}</div>
+            <div style={{
+                ...textStyle,
+                ...getAnimationStyle((isSelected && previewAnimation) ? previewAnimation : layer.animation),
+                ...(props.maskPath ? { clipPath: props.maskPath } : {})
+            }}>{layer.text}</div>
             {isSelected && <SelectionHandles layer={layer} onResize={onResize} onRotate={onRotate} scale={1} />}
         </div>
     );
-});
+}));
 
 interface CanvasProps {
-    activeImage: GeneratedImage | null;
-    uploadedImage: string | null;
-    isProcessing: boolean;
     zoom: number;
     onZoomChange: (z: number) => void;
-    canvasBackgroundColor: string;
-    onSetCanvasBackgroundColor: (c: string) => void;
-    canvasFilters: CanvasFilters;
-    onUpdateCanvasFilters: (f: Partial<CanvasFilters>) => void;
-    layers: Layer[];
-    onUpdateLayers?: (updates: Record<string, any>) => void;
-    onUpdateTextLayer?: (id: string, changes: Partial<TextLayer>) => void;
-    onUpdateShapeLayer?: (id: string, changes: Partial<ShapeLayer>) => void;
-    onUpdateImageLayer?: (id: string, changes: Partial<ImageLayer>) => void;
-    onSelectLayer: (id: string | null) => void;
-    onDeleteLayer: (id: string) => void;
-    onDuplicateLayer: (id: string) => void;
-    onMoveLayer: (id: string, dir: 'front' | 'back' | 'forward' | 'backward') => void;
-    selectedLayerId: string | null;
-    onInteractionStart: () => void;
-    onMagicWrite: (id: string) => void;
-    showGrid: boolean;
-    onToggleGrid: () => void;
-    showRulers: boolean;
-    onToggleRulers: () => void;
-    isDrawing: boolean;
-    brushColor: string;
-    brushSize: number;
-    brushOpacity: number;
-    brushType?: BrushType;
-    onDrawingComplete: (dataUrl: string) => void;
-    onRemix: (id: string) => void;
-    canvasSize: CanvasSize;
-    onSetCanvasSize: (size: CanvasSize) => void;
     documentColors?: string[];
     user: User;
     onOpenPricing: () => void;
-    selectedLayerIds?: string[];
-    onMultiSelectLayer?: (id: string) => void;
-    onGroup?: () => void;
-    onUngroup?: () => void;
-    onVectorDrawingComplete?: (pathData: string, stroke: any) => void;
     onFileUpload?: (files: File[]) => void;
-    onToggleEraser?: () => void;
+    previewAnimation?: AnimationSettings | null;
+    onAddLogoToCanvas: (url: string) => void;
+    onDoubleClickLayer?: (layer: Layer) => void;
+    activeImage?: GeneratedImage;
+    uploadedImage?: string | null;
     onToggleDesignSuggestions?: () => void;
     onToggleSmartContent?: () => void;
     onToggleQualityScore?: () => void;
-    setFontPreview: (font: string | null) => void;
-    fontPreview: string | null;
-    onAddLogoToCanvas: (url: string) => void;
+    onInteractionStart?: () => void;
+    onUpdateTextLayerProp?: (id: string, changes: Partial<TextLayer>) => void;
+    onUpdateShapeLayerProp?: (id: string, changes: Partial<ShapeLayer>) => void;
+    onUpdateImageLayerProp?: (id: string, changes: Partial<ImageLayer>) => void;
 }
 
-
 const CanvasComponent: React.FC<CanvasProps> = ({
-    activeImage,
-    uploadedImage,
-    isProcessing,
     zoom,
     onZoomChange,
-    canvasBackgroundColor,
-    onSetCanvasBackgroundColor,
-    canvasFilters,
-    onUpdateCanvasFilters,
-    layers = [],
-    onUpdateLayers,
-    onUpdateTextLayer: onUpdateTextLayerProp,
-    onUpdateShapeLayer: onUpdateShapeLayerProp,
-    onUpdateImageLayer: onUpdateImageLayerProp,
-    onSelectLayer,
-    onDeleteLayer,
-    onDuplicateLayer,
-    onMoveLayer,
-    selectedLayerId,
-    onInteractionStart,
-    onMagicWrite,
-    showGrid,
-    onToggleGrid,
-    showRulers,
-    onToggleRulers,
-    isDrawing,
-    brushColor,
-    brushSize,
-    brushOpacity,
-    brushType = BrushType.BASIC,
-    onDrawingComplete,
-    onRemix,
-    canvasSize,
-    onSetCanvasSize,
     documentColors,
     user,
     onOpenPricing,
-    selectedLayerIds = [],
-    onMultiSelectLayer,
-    onGroup,
-    onUngroup,
-    onVectorDrawingComplete,
     onFileUpload,
-    onToggleEraser,
+    previewAnimation,
+    onAddLogoToCanvas,
+    onDoubleClickLayer,
+    activeImage,
+    uploadedImage,
     onToggleDesignSuggestions,
     onToggleSmartContent,
     onToggleQualityScore,
-    setFontPreview,
-    fontPreview,
-    onAddLogoToCanvas
+    onInteractionStart,
+    onUpdateTextLayerProp,
+    onUpdateShapeLayerProp,
+    onUpdateImageLayerProp
 }) => {
+    const {
+        isProcessing,
+        canvasBackgroundColor,
+        setCanvasBackgroundColor: onSetCanvasBackgroundColor,
+        canvasFilters,
+        setCanvasFilters: onUpdateCanvasFilters,
+        layers,
+        updateLayers: onUpdateLayers,
+        selectLayer: onSelectLayer,
+        multiSelectLayer: onMultiSelectLayer,
+        deleteLayer: onDeleteLayer,
+        duplicateLayer: onDuplicateLayer,
+        moveLayer: onMoveLayer,
+        selectedLayerIds,
+        showGrid,
+        setShowGrid: onToggleGrid,
+        showRulers,
+        setShowRulers: onToggleRulers,
+        isPenMode: isDrawing,
+        brushColor,
+        brushSize,
+        brushOpacity,
+        brushType = BrushType.BASIC,
+        handleDrawingComplete: onDrawingComplete,
+        handleVectorDrawingComplete: onVectorDrawingComplete,
+        canvasSize,
+        setCanvasSize: onSetCanvasSize,
+        groupSelected: onGroup,
+        ungroupSelected: onUngroup,
+        toggleEraser: onToggleEraser,
+        addLayer: onAddLayer,
+        editingPathId,
+        updateLayer: onUpdatePath, // or specialized path update
+        unit,
+        showGoldenRatio
+    } = useStore();
+
+
+    // Moved up to avoid ReferenceError in getEffectiveLayer
+    const bulkDragPreviewManualRef = useRef<Record<string, { x: number, y: number }>>({});
+    const dragPreviewRef = useRef<{ id: string, x: number, y: number, width?: number, height?: number, rotation?: number } | null>(null);
+
+    const selectedLayerId = selectedLayerIds[selectedLayerIds.length - 1] || null;
     // Shared derived slices for legacy code within Canvas
-    const textLayers = useMemo(() => layers.filter(l => l.type === 'text') as TextLayer[], [layers]);
-    const shapeLayers = useMemo(() => layers.filter(l => l.type !== 'text' && l.type !== 'image') as ShapeLayer[], [layers]);
-    const imageLayers = useMemo(() => layers.filter(l => l.type === 'image') as ImageLayer[], [layers]);
+    const textLayers = useMemo(() => layers.filter((l: Layer) => l.type === 'text') as TextLayer[], [layers]);
+    const shapeLayers = useMemo(() => layers.filter((l: Layer) => l.type !== 'text' && l.type !== 'image') as ShapeLayer[], [layers]);
+    const imageLayers = useMemo(() => layers.filter((l: Layer) => l.type === 'image') as ImageLayer[], [layers]);
 
     // Provided update handlers or fallback to onUpdateLayers
     const onUpdateTextLayer = useCallback((id: string, changes: Partial<TextLayer>) => {
@@ -655,8 +718,8 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
     // Pre-compute effective layers
     const getEffectiveLayer = useCallback(<T extends Layer>(layer: T): T => {
-        if (bulkDragPreviewRef.current[layer.id]) {
-            return { ...layer, ...bulkDragPreviewRef.current[layer.id] };
+        if (bulkDragPreviewManualRef.current[layer.id]) {
+            return { ...layer, ...bulkDragPreviewManualRef.current[layer.id] };
         }
         if (dragPreviewRef.current && dragPreviewRef.current.id === layer.id) {
             return { ...layer, ...dragPreviewRef.current };
@@ -664,10 +727,10 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         return layer;
     }, []);
 
-    const effectiveLayers = useMemo(() => layers.map(l => getEffectiveLayer(l)), [layers, getEffectiveLayer]);
-    const effectiveTextLayers = useMemo(() => effectiveLayers.filter(l => l.type === 'text') as TextLayer[], [effectiveLayers]);
-    const effectiveShapeLayers = useMemo(() => effectiveLayers.filter(l => l.type !== 'text' && l.type !== 'image') as ShapeLayer[], [effectiveLayers]);
-    const effectiveImageLayers = useMemo(() => effectiveLayers.filter(l => l.type === 'image') as ImageLayer[], [effectiveLayers]);
+    const effectiveLayers = useMemo(() => layers.map((l: Layer) => getEffectiveLayer(l)), [layers, getEffectiveLayer]);
+    const effectiveTextLayers = useMemo(() => effectiveLayers.filter((l: Layer) => l.type === 'text') as TextLayer[], [effectiveLayers]);
+    const effectiveShapeLayers = useMemo(() => effectiveLayers.filter((l: Layer) => l.type !== 'text' && l.type !== 'image') as ShapeLayer[], [effectiveLayers]);
+    const effectiveImageLayers = useMemo(() => effectiveLayers.filter((l: Layer) => l.type === 'image') as ImageLayer[], [effectiveLayers]);
     const containerRef = useRef<HTMLDivElement>(null);
     const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
     const [hoveredLayerId, setHoveredLayerId] = useState<string | null>(null);
@@ -688,10 +751,20 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     const [isSpacePressed, setIsSpacePressed] = useState(false);
     const viewportRef = useRef<HTMLDivElement>(null);
     const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+    const panOffsetRef = useRef(panOffset);
+    panOffsetRef.current = panOffset;
     const [panStart, setPanStart] = useState({ x: 0, y: 0 });
     const [isPanning, setIsPanning] = useState(false);
     const [snapLines, setSnapLines] = useState<{ vertical?: number, horizontal?: number }>({});
     const [viewportSize, setViewportSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+
+    // Performance Refs
+    const layerRefs = useRef<Record<string, HTMLDivElement | null>>({});
+    const panContainerRef = useRef<HTMLDivElement>(null);
+    const snapVerticalRef = useRef<HTMLDivElement>(null);
+    const snapHorizontalRef = useRef<HTMLDivElement>(null);
+    // Track current preview values without state to avoid re-renders during drag
+
 
     // Use ResizeObserver for stable viewport measurements
     useEffect(() => {
@@ -751,7 +824,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     const [dragPreview, setDragPreview] = useState<{ id: string, x: number, y: number, width?: number, height?: number, rotation?: number } | null>(null);
     const [bulkDragPreview, setBulkDragPreview] = useState<Record<string, { x: number, y: number }>>({});
 
-    const selectedLayer = layers.find(l => l.id === selectedLayerId) || null;
+    const selectedLayer = layers.find((l: Layer) => l.id === selectedLayerId) || null;
     const bgImage = activeImage?.url || uploadedImage;
 
     const isMultiSelect = selectedLayerIds.length > 1;
@@ -777,7 +850,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     panStartRef.current = panStart;
     const bulkDragPreviewRef = useRef(bulkDragPreview);
     bulkDragPreviewRef.current = bulkDragPreview;
-    const dragPreviewRef = useRef(dragPreview);
+    // dragPreviewRef declared at top
     dragPreviewRef.current = dragPreview;
     const isSpacePressedRef = useRef(isSpacePressed);
     isSpacePressedRef.current = isSpacePressed;
@@ -935,23 +1008,41 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                 if (onUngroup) onUngroup();
             }
             // Delete or Backspace: Delete selected layer(s)
-            if (e.key === 'Delete' || e.key === 'Backspace') {
-                if (selectedLayerId) {
+            // Delete or Backspace: Delete selected layer(s)
+            if ((e.key === 'Delete' || e.key === 'Backspace') && !isDrawing) {
+                if (selectedLayerId && onDeleteLayer) {
                     onDeleteLayer(selectedLayerId);
                 }
             }
+
             // Ctrl+D: Duplicate selected
             if (isCtrl && e.key === 'd') {
                 e.preventDefault();
-                if (selectedLayerId) {
+                if (selectedLayerId && onDuplicateLayer) {
                     onDuplicateLayer(selectedLayerId);
                 }
             }
+
+            // Ctrl+L: Lock/Mask (Mask to previous layer)
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
+                e.preventDefault();
+                if (selectedLayerId) {
+                    const layerIndex = layers.findIndex(l => l.id === selectedLayerId);
+                    if (layerIndex > 0) {
+                        useStore.getState().applyMask(selectedLayerId, layers[layerIndex - 1].id);
+                    }
+                }
+            }
+
             // Ctrl+A: Select All (defers to multi-select of all layers)
             if (isCtrl && e.key === 'a') {
                 e.preventDefault();
                 if (onMultiSelectLayer && layers.length > 0) {
-                    layers.forEach(l => onMultiSelectLayer!(l.id));
+                    // We need to implement select all logic. 
+                    // If multiSelectLayer adds to selection, we can just loop.
+                    // But usually we want to clear and select all. 
+                    // For now, let's just loop.
+                    layers.forEach((l: Layer) => onMultiSelectLayer(l.id, true));
                 }
             }
         };
@@ -986,13 +1077,13 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         e.stopPropagation();
 
         if (e.shiftKey && onMultiSelectLayerRef.current) {
-            onMultiSelectLayerRef.current(layer.id);
+            onMultiSelectLayerRef.current(layer.id, true);
         } else {
             onSelectLayerRef.current(layer.id);
         }
 
         // saveToHistory now schedules itself asynchronously with requestIdleCallback
-        onInteractionStartRef.current();
+        onInteractionStartRef.current?.();
 
         // Capture initial positions for all selected layers
         const currentSelectedLayerIds = selectedLayerIdsRef.current;
@@ -1000,7 +1091,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         const initialPositions: Record<string, { x: number, y: number }> = {};
         const idsToMove = (e.shiftKey || (currentSelectedLayerIds && currentSelectedLayerIds.includes(layer.id))) && currentSelectedLayerIds ? [...new Set([...currentSelectedLayerIds, layer.id])] : [layer.id];
 
-        currentLayers.forEach(l => {
+        currentLayers.forEach((l: Layer) => {
             if (idsToMove.includes(l.id)) {
                 initialPositions[l.id] = { x: l.x, y: l.y };
             }
@@ -1016,17 +1107,17 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
     const handleResizeStart = useCallback((e: React.MouseEvent, layer: Layer, handle: ResizeHandle) => {
         e.stopPropagation();
-        onInteractionStartRef.current();
+        onInteractionStartRef.current?.();
 
         const currentSelectedLayerIds = selectedLayerIdsRef.current;
         const currentLayers = layersRef.current;
 
         if (currentSelectedLayerIds && currentSelectedLayerIds.length > 1) {
             // Multi-selection resize
-            const selectedLayers = currentLayers.filter(l => currentSelectedLayerIds.includes(l.id));
+            const selectedLayers = currentLayers.filter((l: Layer) => currentSelectedLayerIds.includes(l.id));
             const bounds = GeometryOracle.getGroupBounds(selectedLayers);
             const initialLayers: Record<string, Layer> = {};
-            selectedLayers.forEach(l => initialLayers[l.id] = { ...l });
+            selectedLayers.forEach((l: Layer) => initialLayers[l.id] = { ...l });
 
             setResizeState({
                 isResizing: true,
@@ -1044,14 +1135,14 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
     const handleRotateStart = useCallback((e: React.MouseEvent, layer: Layer) => {
         e.stopPropagation();
-        onInteractionStartRef.current();
+        onInteractionStartRef.current?.();
 
         const currentSelectedLayerIds = selectedLayerIdsRef.current;
         const currentLayers = layersRef.current;
         const currentZoom = zoomRef.current;
 
         if (currentSelectedLayerIds && currentSelectedLayerIds.length > 1) {
-            const selectedLayers = currentLayers.filter(l => currentSelectedLayerIds.includes(l.id));
+            const selectedLayers = currentLayers.filter((l: Layer) => currentSelectedLayerIds.includes(l.id));
             const bounds = GeometryOracle.getGroupBounds(selectedLayers);
             const canvasCenterX = bounds.x + bounds.width / 2;
             const canvasCenterY = bounds.y + bounds.height / 2;
@@ -1079,7 +1170,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
             }
 
             const initialLayers: Record<string, Layer> = {};
-            selectedLayers.forEach(l => initialLayers[l.id] = { ...l });
+            selectedLayers.forEach((l: Layer) => initialLayers[l.id] = { ...l });
 
             setRotateState({
                 isRotating: true,
@@ -1117,7 +1208,6 @@ const CanvasComponent: React.FC<CanvasProps> = ({
             const dt = currentTime - lastMousePosRef.current.time;
             if (dt > 0) {
                 const dist = Math.sqrt(Math.pow(e.clientX - lastMousePosRef.current.x, 2) + Math.pow(e.clientY - lastMousePosRef.current.y, 2));
-                // Low-pass filter for velocity to avoid spikes
                 const instantVelocity = dist / dt;
                 velocityRef.current = velocityRef.current * 0.8 + instantVelocity * 0.2;
             }
@@ -1128,7 +1218,16 @@ const CanvasComponent: React.FC<CanvasProps> = ({
             if (isPanningRef.current) {
                 const dx = e.clientX - panStartRef.current.x;
                 const dy = e.clientY - panStartRef.current.y;
-                setPanOffset(prev => ({ x: prev.x + dx, y: prev.y + dy }));
+
+                // Direct DOM Update for Panning
+                if (panContainerRef.current) {
+                    const newX = panOffsetRef.current.x + dx;
+                    const newY = panOffsetRef.current.y + dy;
+                    panContainerRef.current.style.transform = `translate(${newX}px, ${newY}px)`;
+                    // Still update ref for next frame
+                    panOffsetRef.current = { x: newX, y: newY };
+                }
+
                 setPanStart({ x: e.clientX, y: e.clientY });
                 return;
             }
@@ -1155,7 +1254,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                 if (!isMovingFast) {
                     if (currentSelectedLayerIds.length > 1) {
                         // Group Snapping
-                        const selectedLayers = currentLayers.filter(l => currentSelectedLayerIds.includes(l.id));
+                        const selectedLayers = currentLayers.filter((l: Layer) => currentSelectedLayerIds.includes(l.id));
                         const groupBounds = GeometryOracle.getGroupBounds(selectedLayers);
 
                         // Construct a proxy layer for the group to reuse getSnapLines logic
@@ -1207,15 +1306,34 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                     }
                 }
 
-                setSnapLines({ vertical: snapVertical, horizontal: snapHorizontal });
+                // Direct DOM Update for Snapping
+                if (snapVerticalRef.current) {
+                    snapVerticalRef.current.style.display = snapVertical !== undefined ? 'block' : 'none';
+                    if (snapVertical !== undefined) snapVerticalRef.current.style.left = `${snapVertical}px`;
+                }
+                if (snapHorizontalRef.current) {
+                    snapHorizontalRef.current.style.display = snapHorizontal !== undefined ? 'block' : 'none';
+                    if (snapHorizontal !== undefined) snapHorizontalRef.current.style.top = `${snapHorizontal}px`;
+                }
 
+                // Direct DOM Update for Dragging Layers
                 const newBulkPreview: Record<string, { x: number, y: number }> = {};
                 Object.entries(currentDragState.initialPositions).forEach(([id, initialPos]) => {
-                    newBulkPreview[id] = { x: initialPos.x + finalDx, y: initialPos.y + finalDy };
+                    const nx = initialPos.x + finalDx;
+                    const ny = initialPos.y + finalDy;
+                    newBulkPreview[id] = { x: nx, y: ny };
+
+                    const domNode = layerRefs.current[id];
+                    if (domNode) {
+                        domNode.style.left = `${nx}px`;
+                        domNode.style.top = `${ny}px`;
+                    }
                 });
-                setBulkDragPreview(newBulkPreview);
+                bulkDragPreviewManualRef.current = newBulkPreview;
+                // bulkDragPreviewRef.current = newBulkPreview; // Keep tracking for MouseUp
             } else {
-                setSnapLines({}); // Clear snap lines if not dragging
+                if (snapVerticalRef.current) snapVerticalRef.current.style.display = 'none';
+                if (snapHorizontalRef.current) snapHorizontalRef.current.style.display = 'none';
             }
 
             const currentResizeState = resizeStateRef.current;
@@ -1235,36 +1353,41 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                     if (handle.includes('n')) { newY += dy; newH -= dy; }
 
                     // Construct bulk updates
-                    const updates: Record<string, any> = {};
                     const scaleX = newW / width;
                     const scaleY = newH / height;
 
+                    const newBulkPreview: Record<string, { x: number, y: number, width: number, height: number, fontSize?: number }> = {};
                     Object.entries(initialLayers).forEach(([id, layer]) => {
                         // Calculate relative position
                         const relX = (layer.x - x);
                         const relY = (layer.y - y);
 
-                        updates[id] = {
-                            x: newX + relX * scaleX,
-                            y: newY + relY * scaleY,
-                            width: layer.width * scaleX,
-                            height: (layer as any).height ? (layer as any).height * scaleY : undefined,
-                            fontSize: layer.type === 'text' ? (layer as TextLayer).fontSize * scaleY : undefined
-                        };
-                    });
+                        const nx = newX + relX * scaleX;
+                        const ny = newY + relY * scaleY;
+                        const nw = layer.width * scaleX;
+                        const nh = (layer as any).height ? (layer as any).height * scaleY : undefined;
 
-                    // We need to render these updates. 
-                    // Since we don't have a 'bulkResizePreview' state, we might need to use bulkDragPreview or onUpdateLayers directly?
-                    // Ideally we should use a preview state to avoid costly renders, but for now let's use the batched update if performance allows, 
-                    // OR better, re-use setBulkDragPreview if it supports width/height/fontSize? 
-                    // The current bulkDragPreview only supports x/y.
-                    // Let's assume onUpdateLayers is fast enough or use a preview ref if needed. 
-                    // For smooth 60fps, we should probably commit to state or use a specialized preview.
-                    // Given the constraint, let's use onUpdateLayers for immediate feedback OR setDragPreview if we can extend it.
-                    // Extending dragPreview is complex. 
-                    // Let's use onUpdateLayers for now as it's the intended "live" update mechanism.
+                        const preview = { x: nx, y: ny, width: nw, height: nh } as any;
+                        if (layer.type === 'text') preview.fontSize = (layer as TextLayer).fontSize * scaleY;
+                        newBulkPreview[id] = preview;
+
+                        // Direct DOM Update for resizing
+                        const domNode = layerRefs.current[id];
+                        if (domNode) {
+                            domNode.style.left = `${nx}px`;
+                            domNode.style.top = `${ny}px`;
+                            domNode.style.width = `${nw}px`;
+                            if (nh) domNode.style.height = `${nh}px`;
+                            if (layer.type === 'text' && preview.fontSize) {
+                                (domNode.firstChild as HTMLElement).style.fontSize = `${preview.fontSize}px`;
+                            }
+                        }
+                    });
+                    bulkDragPreviewManualRef.current = newBulkPreview as any;
+
+                    // Render updates live for immediate feedback
                     if (onUpdateLayers) {
-                        onUpdateLayers(updates);
+                        onUpdateLayers(newBulkPreview);
                     }
 
                     // Also update the selection box visual by calculating its new bounds conceptually?
@@ -1279,18 +1402,22 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                     if (handle.includes('s')) height += dy;
                     if (handle.includes('n')) { y += dy; height -= dy; }
 
-                    setDragPreview({
-                        id: currentSelectedLayerId,
-                        x, y,
-                        width: Math.max(10, width),
-                        height: Math.max(10, height)
-                    });
+                    const nw = Math.max(10, width);
+                    const nh = Math.max(10, height);
+
+                    const domNode = layerRefs.current[currentSelectedLayerId];
+                    if (domNode) {
+                        domNode.style.left = `${x}px`;
+                        domNode.style.top = `${y}px`;
+                        domNode.style.width = `${nw}px`;
+                        domNode.style.height = `${nh}px`;
+                    }
+
+                    bulkDragPreviewManualRef.current[currentSelectedLayerId] = { x, y, width: nw, height: nh } as any;
                 }
             }
 
             const currentRotateState = rotateStateRef.current;
-            const currentSelectedLayer = selectedLayerRef.current;
-
             if (currentRotateState?.isRotating) {
                 const { initialLayers, centerX, centerY, canvasCenterX, canvasCenterY, initialRotation, startX, startY } = currentRotateState;
 
@@ -1319,24 +1446,51 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                         const nx = rx * cos - ry * sin;
                         const ny = rx * sin + ry * cos;
 
-                        updates[id] = {
-                            x: canvasCenterX + nx - layer.width / 2,
-                            y: canvasCenterY + ny - lHeight / 2,
-                            rotation: (layer.rotation + deltaAngle) % 360
-                        };
+                        const fx = canvasCenterX + nx - layer.width / 2;
+                        const fy = canvasCenterY + ny - lHeight / 2;
+                        const fr = (layer.rotation + deltaAngle) % 360;
+
+                        updates[id] = { x: fx, y: fy, rotation: fr };
+                        bulkDragPreviewManualRef.current[id] = updates[id];
+
+                        // Direct DOM Update for rotation (Performance)
+                        const domNode = layerRefs.current[id];
+                        if (domNode) {
+                            const l = layer as any;
+                            domNode.style.left = `${fx}px`;
+                            domNode.style.top = `${fy}px`;
+                            // transform is a bit complex since it includes skew, etc.
+                            // but we can update the 'rotate' part of the transform string or just the rotation property if used
+                            // The original style used transform template strings.
+                            domNode.style.transform = `${l.perspective ? `perspective(${l.perspective}px)` : ''} rotateX(${l.rotateX || 0}deg) rotateY(${l.rotateY || 0}deg) rotate(${fr}deg) skew(${l.skewX || 0}deg, ${l.skewY || 0}deg)`;
+                        }
                     });
 
-                    onUpdateLayers?.(updates);
+                    if (onUpdateLayers) onUpdateLayers(updates);
 
-                } else if (currentSelectedLayerId) {
+                } else if (currentSelectedLayerId && currentRotateState) {
                     const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
                     const startAngle = Math.atan2(startY - centerY, startX - centerX);
                     const rotation = initialRotation + (angle - startAngle) * (180 / Math.PI);
-                    setDragPreview({ id: currentSelectedLayerId, x: currentSelectedLayer?.x || 0, y: currentSelectedLayer?.y || 0, rotation });
+
+                    const domNode = layerRefs.current[currentSelectedLayerId];
+                    const layer = layersRef.current.find(l => l.id === currentSelectedLayerId);
+                    if (domNode && layer) {
+                        const l = layer as any;
+                        const transformStr = `${l.perspective ? `perspective(${l.perspective}px)` : ''} rotateX(${l.rotateX || 0}deg) rotateY(${l.rotateY || 0}deg) rotate(${rotation}deg) skew(${l.skewX || 0}deg, ${l.skewY || 0}deg)`;
+                        domNode.style.transform = transformStr;
+                    }
+
+                    const update = { rotation };
+                    bulkDragPreviewManualRef.current[currentSelectedLayerId] = update as any;
+
+                    if (onUpdateLayers) {
+                        onUpdateLayers({ [currentSelectedLayerId]: update });
+                    }
                 }
             }
         });
-    }, [getSnapLines]);
+    }, [getSnapLines, onUpdateLayers]);
 
     const handleMouseUp = useCallback(() => {
         if (mouseMoveRequestRef.current) {
@@ -1345,24 +1499,23 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         }
 
         const currentDragState = dragStateRef.current;
-        const currentBulkDragPreview = bulkDragPreviewRef.current;
-        const currentDragPreview = dragPreviewRef.current;
+        const currentBulkDragPreview = bulkDragPreviewManualRef.current;
         const currentResizeState = resizeStateRef.current;
         const currentRotateState = rotateStateRef.current;
-        const currentLayers = layersRef.current;
+        // const currentLayers = layersRef.current; // Not used
 
         // Commit changes in a batch if onUpdateLayers is available
         const accumulatedUpdates: Record<string, any> = {};
 
-        if (currentDragState?.isDragging) {
-            Object.entries(currentBulkDragPreview).forEach(([id, pos]) => {
-                accumulatedUpdates[id] = pos;
+        if (currentDragState?.isDragging || currentResizeState?.isResizing || currentRotateState?.isRotating) {
+            Object.entries(currentBulkDragPreview).forEach(([id, changes]) => {
+                accumulatedUpdates[id] = changes;
             });
         }
 
-        if (currentDragPreview && (currentResizeState?.isResizing || currentRotateState?.isRotating)) {
-            const { id, ...changes } = currentDragPreview;
-            accumulatedUpdates[id] = { ...accumulatedUpdates[id], ...changes };
+        // Final Pan Offset Commit
+        if (panOffsetRef.current.x !== panOffset.x || panOffsetRef.current.y !== panOffset.y) {
+            setPanOffset(panOffsetRef.current);
         }
 
         const updatedIds = Object.keys(accumulatedUpdates);
@@ -1377,17 +1530,18 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         setIsPanning(false);
         setDragPreview(null);
         setBulkDragPreview({});
-    }, [onUpdateLayers]);
+        bulkDragPreviewManualRef.current = {};
+    }, [onUpdateLayers, panOffset.x, panOffset.y]);
+
+    // Global MouseUp listener to catch releases outside the canvas
+    const handleMouseUpRef = useRef(handleMouseUp);
+    handleMouseUpRef.current = handleMouseUp;
 
     useEffect(() => {
-        // These listeners are now on the viewportRef div
-        // window.addEventListener('mousemove', handleMouseMove);
-        // window.addEventListener('mouseup', handleMouseUp);
-        // return () => {
-        //     window.removeEventListener('mousemove', handleMouseMove);
-        //     window.removeEventListener('mouseup', handleMouseUp);
-        // };
-    }, [handleMouseMove, handleMouseUp]);
+        const onUp = () => handleMouseUpRef.current();
+        window.addEventListener('mouseup', onUp);
+        return () => window.removeEventListener('mouseup', onUp);
+    }, []);
 
     const [vectorPoints, setVectorPoints] = useState<{ x: number, y: number }[]>([]);
     const lastTouchDistance = useRef<number | null>(null);
@@ -1469,10 +1623,13 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                 const dx = t.clientX - dragStateRef.current.startX;
                 const dy = t.clientY - dragStateRef.current.startY;
 
-                setPanOffset(prev => ({
-                    x: prev.x + dx,
-                    y: prev.y + dy
-                }));
+                // Direct DOM Update for Panning (Touch)
+                if (panContainerRef.current) {
+                    const newX = panOffsetRef.current.x + dx;
+                    const newY = panOffsetRef.current.y + dy;
+                    panContainerRef.current.style.transform = `translate(${newX}px, ${newY}px)`;
+                    panOffsetRef.current = { x: newX, y: newY };
+                }
 
                 dragStateRef.current.startX = t.clientX;
                 dragStateRef.current.startY = t.clientY;
@@ -1490,6 +1647,27 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     // Drawing Handlers
     const handleDrawingMouseDown = (e: React.MouseEvent) => {
         if (!isDrawing || !drawingCanvasRef.current) return;
+
+        // Hit Test for Existing Paths/Shapes
+        const hitElements = document.elementsFromPoint(e.clientX, e.clientY);
+        const layerElement = hitElements.find(el => el.hasAttribute('data-layer-id'));
+        if (layerElement) {
+            const layerId = layerElement.getAttribute('data-layer-id');
+            const layerType = layerElement.getAttribute('data-layer-type');
+
+            // If clicking a Path or Shape in Pen Mode, we probably want to EDIT it, not draw over it.
+            // Unless the user explicitly wants to draw a new path (maybe hold Alt?)
+            // For now, prioritize editing for Paths.
+            if (layerId && (layerType === 'path' || layerType === 'shape' || layerType === 'rectangle' || layerType === 'circle' || layerType === 'triangle')) {
+                // Determine if we should switch to edit mode
+                if (brushType === BrushType.VECTOR_PENCIL) {
+                    onUpdatePath(layerId, { /* trigger edit mode side effects if needed, mostly handled by Editor state */ });
+                    useStore.getState().setEditingPathId(layerId); // Explicitly enter edit mode
+                    return; // Stop drawing new path
+                }
+            }
+        }
+
         const rect = drawingCanvasRef.current.getBoundingClientRect();
         const x = (e.clientX - rect.left) / zoom;
         const y = (e.clientY - rect.top) / zoom;
@@ -1763,8 +1941,22 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         }, 0);
     }, []);
 
+    // Animation Keyframes Injection
+    const animationStyles = `
+      @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes slide { from { transform: translateX(-50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+      @keyframes zoom { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      @keyframes rotate { from { transform: rotate(-180deg); opacity: 0; } to { transform: rotate(0deg); opacity: 1; } }
+      @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-20px);} 60% {transform: translateY(-10px);} }
+      @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+      @keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); } 20%, 40%, 60%, 80% { transform: translateX(5px); } }
+      @keyframes flip { from { transform: rotateY(90deg); opacity: 0; } to { transform: rotateY(0deg); opacity: 1; } }
+      @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+    `;
+
     return (
         <div className="flex-1 relative bg-[#13161a] overflow-hidden flex flex-col">
+            <style>{animationStyles}</style>
             {/* Top Bar */}
             <div className="h-10 bg-[#1e1e1e] border-b border-gray-700 flex items-center justify-between px-4 z-10 shrink-0">
                 <div className="flex items-center gap-2">
@@ -1773,9 +1965,20 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                     <button onClick={() => onZoomChange(Math.min(3, zoom + 0.1))} className="p-1 hover:bg-gray-700 rounded text-gray-400"><Icons.ZoomIn className="w-4 h-4" /></button>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button onClick={onToggleGrid} className={`p-1 rounded text-xs flex items-center gap-1 ${showGrid ? 'bg-[#7d2ae8] text-white' : 'text-gray-400 hover:bg-gray-700'}`}><Icons.Grid className="w-3 h-3" /> Grid</button>
-                    <button onClick={onToggleRulers} className={`p-1 rounded text-xs flex items-center gap-1 ${showRulers ? 'bg-[#7d2ae8] text-white' : 'text-gray-400 hover:bg-gray-700'}`}><Icons.Layout className="w-3 h-3" /> Rulers</button>
-                    <div className="h-4 w-px bg-gray-600 mx-2"></div>
+                    <button
+                        onClick={() => onToggleGrid(!showGrid)}
+                        className={`p-2 rounded hover:bg-gray-800 transition-colors ${showGrid ? 'text-[#7d2ae8] bg-[#7d2ae8]/10' : 'text-gray-400'}`}
+                        title="Toggle Grid (G)"
+                    >
+                        <Icons.Grid className="w-5 h-5" />
+                    </button>
+                    <button
+                        onClick={() => onToggleRulers(!showRulers)}
+                        className={`p-2 rounded hover:bg-gray-800 transition-colors ${showRulers ? 'text-[#7d2ae8] bg-[#7d2ae8]/10' : 'text-gray-400'}`}
+                        title="Toggle Rulers (R)"
+                    >
+                        <Icons.Layout className="w-5 h-5" />
+                    </button>
                     <div className="flex items-center gap-1">
                         <input
                             type="number"
@@ -1805,39 +2008,6 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                 </div>
             </div>
 
-            {/* Toolbar */}
-            <div className="h-12 bg-[#1e1e1e] border-b border-gray-700 flex items-center px-4 z-10 shrink-0 overflow-x-auto no-scrollbar">
-                <Toolbar
-                    selectedLayer={selectedLayer}
-                    uploadedImage={uploadedImage}
-                    canvasBackgroundColor={canvasBackgroundColor}
-                    onSetCanvasBackgroundColor={onSetCanvasBackgroundColor}
-                    canvasFilters={canvasFilters}
-                    onUpdateCanvasFilters={onUpdateCanvasFilters}
-                    onUpdateTextLayer={useCallback((id: string, changes: any) => onUpdateLayers && onUpdateLayers({ [id]: changes }), [onUpdateLayers])}
-                    onUpdateShapeLayer={useCallback((id: string, changes: any) => onUpdateLayers && onUpdateLayers({ [id]: changes }), [onUpdateLayers])}
-                    onUpdateImageLayer={useCallback((id: string, changes: any) => onUpdateLayers && onUpdateLayers({ [id]: changes }), [onUpdateLayers])}
-
-                    onDeleteLayer={onDeleteLayer}
-                    onDuplicateLayer={onDuplicateLayer}
-                    onMoveLayer={onMoveLayer}
-                    onMagicWrite={onMagicWrite}
-                    onInteractionStart={onInteractionStart}
-                    onRemix={onRemix}
-                    onToggleEraser={onToggleEraser}
-                    isEraserActive={isDrawing && brushColor.includes('255, 0, 0')}
-                    canvasSize={canvasSize}
-                    onUpdateCanvasSize={onSetCanvasSize}
-                    documentColors={documentColors}
-                    user={user}
-                    onOpenPricing={onOpenPricing}
-                    onGroup={onGroup}
-                    onUngroup={onUngroup}
-                    onToggleDesignSuggestions={onToggleDesignSuggestions}
-                    onToggleSmartContent={onToggleSmartContent}
-                    onToggleQualityScore={onToggleQualityScore}
-                />
-            </div>
 
             {/* Main Workspace with Infinite Canvas Feel */}
             <div
@@ -1849,9 +2019,9 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
                 onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
                 onMouseLeave={(e) => {
                     if (isPanning) setIsPanning(false);
-                    // handleMouseUp(e as any); // Replaced with separate logic if needed
                 }}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => {
@@ -1875,8 +2045,8 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                     }
                 }}
             >
-                {/* Center the canvas initially, then apply panOffset */}
                 <div
+                    ref={panContainerRef}
                     className="absolute inset-0 flex items-center justify-center pointer-events-none"
                     style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px)` }}
                 >
@@ -1901,15 +2071,36 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                         )}
 
                         {/* Grid Overlay */}
-                        {showGrid && <div className="absolute inset-0 pointer-events-none z-[60]" style={{ backgroundImage: 'linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg, #ccc 1px, transparent 1px)', backgroundSize: '20px 20px', opacity: 0.2 }}></div>}
+                        {showGrid && (
+                            <div
+                                className="absolute inset-0 pointer-events-none z-[60]"
+                                style={{
+                                    backgroundImage: 'linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg, #ccc 1px, transparent 1px)',
+                                    backgroundSize: unit === 'px' ? '20px 20px' :
+                                        unit === 'in' ? `${unitToPx(0.25, 'in')}px ${unitToPx(0.25, 'in')}px` :
+                                            unit === 'cm' ? `${unitToPx(0.5, 'cm')}px ${unitToPx(0.5, 'cm')}px` :
+                                                `${unitToPx(5, 'mm')}px ${unitToPx(5, 'mm')}px`,
+                                    opacity: 0.2
+                                }}
+                            ></div>
+                        )}
+
+                        {/* Golden Ratio Overlay */}
+                        {showGoldenRatio && (
+                            <GoldenRatioOverlay width={canvasSize.width} height={canvasSize.height} />
+                        )}
 
                         {/* Snap Lines */}
-                        {snapLines.vertical !== undefined && (
-                            <div className="absolute top-0 bottom-0 w-px bg-cyan-400 z-[100] pointer-events-none shadow-[0_0_4px_rgba(34,211,238,0.8)]" style={{ left: snapLines.vertical }}></div>
-                        )}
-                        {snapLines.horizontal !== undefined && (
-                            <div className="absolute left-0 right-0 h-px bg-cyan-400 z-[100] pointer-events-none shadow-[0_0_4px_rgba(34,211,238,0.8)]" style={{ top: snapLines.horizontal }}></div>
-                        )}
+                        <div
+                            ref={snapVerticalRef}
+                            className="absolute top-0 bottom-0 w-px bg-cyan-400 z-[100] pointer-events-none shadow-[0_0_4px_rgba(34,211,238,0.8)]"
+                            style={{ left: snapLines.vertical, display: snapLines.vertical !== undefined ? 'block' : 'none' }}>
+                        </div>
+                        <div
+                            ref={snapHorizontalRef}
+                            className="absolute left-0 right-0 h-px bg-cyan-400 z-[100] pointer-events-none shadow-[0_0_4px_rgba(34,211,238,0.8)]"
+                            style={{ top: snapLines.horizontal, display: snapLines.horizontal !== undefined ? 'block' : 'none' }}>
+                        </div>
 
                         {/* Background Image Block */}
                         {bgImage && (
@@ -1927,15 +2118,30 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                         )}
 
                         {/* Layers — using pre-computed effective layers for stable React.memo references */}
-                        {effectiveLayers.map((l, idx) => {
+                        {effectiveLayers.filter((l: Layer) => !l.groupId).map((l: Layer) => {
+                            const setLayerRef = (el: HTMLDivElement | null) => {
+                                layerRefs.current[l.id] = el;
+                            };
+
+                            let maskPath = undefined;
+                            if (l.maskLayerId) {
+                                const maskLayer = layers.find(ml => ml.id === l.maskLayerId);
+                                if (maskLayer) maskPath = getLayerClipPath(maskLayer);
+                            }
+
                             if (l.type === 'image') return (
-                                <ImageLayerItem key={l.id} layer={l} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} />
+                                <div key={l.id} data-layer-id={l.id} data-layer-type={l.type} className="contents">
+                                    <ImageLayerItem ref={setLayerRef} layer={l} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} previewAnimation={previewAnimation} maskPath={maskPath} />
+                                </div>
                             );
                             if (l.type === 'text') return (
                                 <React.Fragment key={l.id}>
                                     {editingTextId === l.id ? (
+                                        // ... existing editing logic ...
                                         <div
                                             ref={textEditRef}
+                                            data-layer-id={l.id}
+                                            data-layer-type={l.type}
                                             contentEditable
                                             suppressContentEditableWarning
                                             onBlur={finishEditingText}
@@ -1962,18 +2168,41 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                                                 lineHeight: l.lineHeight,
                                                 transform: `rotate(${l.rotation}deg)`,
                                                 whiteSpace: 'pre-wrap',
-                                                wordBreak: 'break-word'
+                                                wordBreak: 'break-word',
+                                                ...(maskPath ? { clipPath: maskPath } : {})
                                             }}
                                         >
                                             {l.text}
                                         </div>
                                     ) : (
-                                        <TextLayerItem layer={l} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} onDoubleClick={handleTextDoubleClick} isInteracting={!!dragState || !!resizeState || !!rotateState} />
+                                        <div data-layer-id={l.id} data-layer-type={l.type} className="contents">
+                                            <TextLayerItem ref={setLayerRef} layer={l} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} onDoubleClick={handleTextDoubleClick} isInteracting={!!dragState || !!resizeState || !!rotateState} previewAnimation={previewAnimation} maskPath={maskPath} />
+                                        </div>
                                     )}
                                 </React.Fragment>
                             );
                             return (
-                                <ShapeLayerItem key={l.id} layer={l} isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))} isHovered={hoveredLayerId === l.id} onMouseDown={handleMouseDownLayer} onMouseEnter={handleSetHoveredLayerId} onMouseLeave={handleMouseLeaveLayer} onResize={handleResizeStart} onRotate={handleRotateStart} onContextMenu={handleContextMenu} onDrop={handleDropShape} />
+                                <div key={l.id} data-layer-id={l.id} data-layer-type={l.type} className="contents">
+                                    <ShapeLayerItem
+                                        ref={setLayerRef}
+                                        layer={l}
+                                        isSelected={selectedLayerId === l.id || (selectedLayerIds?.includes(l.id))}
+                                        isHovered={hoveredLayerId === l.id}
+                                        onMouseDown={handleMouseDownLayer}
+                                        onMouseEnter={handleSetHoveredLayerId}
+                                        onMouseLeave={handleMouseLeaveLayer}
+                                        onResize={handleResizeStart}
+                                        onRotate={handleRotateStart}
+                                        onContextMenu={handleContextMenu}
+                                        onDrop={handleDropShape}
+                                        onDoubleClick={onDoubleClickLayer}
+                                        editingPathId={editingPathId}
+                                        onUpdatePath={onUpdatePath}
+                                        zoom={zoom}
+                                        previewAnimation={previewAnimation}
+                                        maskPath={maskPath}
+                                    />
+                                </div>
                             );
                         })}
 
@@ -2034,21 +2263,15 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
             {/* Context Menu */}
             {contextMenu && (
-                <ContextMenu x={contextMenu.x} y={contextMenu.y} layerId={contextMenu.layerId} onClose={() => setContextMenu(null)} onDelete={onDeleteLayer} onDuplicate={onDuplicateLayer} onMoveForward={(id) => onMoveLayer(id, 'forward')} onMoveBackward={(id) => onMoveLayer(id, 'backward')} onLock={(id) => { const l = layers.find(la => la.id === id); if (l && onUpdateLayers) { onUpdateLayers({ [id]: { locked: !l.locked } }); } }} isLocked={layers.find(l => l.id === contextMenu.layerId)?.locked || false} />
-            )}
-
-            {/* Floating Pop-out Typography UI */}
-            {/* Floating Toolbar for Selected Layer */}
-            {selectedLayer && (
-                <FloatingToolbar
-                    selectedLayer={selectedLayer}
-                    onUpdateLayer={(id, changes) => onUpdateLayers && onUpdateLayers({ [id]: changes })}
-                    onDeleteLayer={onDeleteLayer}
-                    onDuplicateLayer={onDuplicateLayer}
-                    onMoveLayer={onMoveLayer}
-                    zoom={zoom}
+                <ContextMenu
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    layerId={contextMenu.layerId}
+                    onClose={() => setContextMenu(null)}
                 />
             )}
+
+
         </div>
     );
 };

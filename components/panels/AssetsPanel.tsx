@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Icons } from '../../constants';
 import * as unsplashService from '../../services/unsplashService';
 import * as freepikService from '../../services/freepikService';
+import { vecteezyService } from '../../services/vecteezyService';
+import { useStore } from '../../store/useStore';
+import { v4 as uuidv4 } from 'uuid';
 
-interface AssetsPanelProps {
-    onAddImageLayer: (src: string) => void;
-}
+interface AssetsPanelProps { }
 
 interface PhotoItem {
     id: string;
@@ -14,15 +15,40 @@ interface PhotoItem {
     alt: string;
     author: string;
     authorLink?: string;
-    source: 'unsplash' | 'freepik';
+    source: 'unsplash' | 'freepik' | 'vecteezy';
 }
 
-export const AssetsPanel: React.FC<AssetsPanelProps> = ({ onAddImageLayer }) => {
+export const AssetsPanel: React.FC<AssetsPanelProps> = ({ }) => {
+    const addLayer = useStore(state => state.addLayer);
+    const canvasSize = useStore(state => state.canvasSize);
+
+    const onAddImageLayer = (src: string) => {
+        addLayer({
+            id: uuidv4(),
+            type: 'image',
+            name: 'Photo',
+            src,
+            x: canvasSize.width / 2 - 150,
+            y: canvasSize.height / 2 - 150,
+            width: 300,
+            height: 300,
+            rotation: 0,
+            opacity: 1,
+            locked: false,
+            visible: true,
+            flipX: false,
+            flipY: false,
+            blendMode: 'normal',
+            filters: { brightness: 100, contrast: 100, saturation: 100, grayscale: 0, blur: 0, sepia: 0, hueRotate: 0, vignette: 0, opacity: 1 },
+            skewX: 0,
+            skewY: 0
+        } as any);
+    };
     const [query, setQuery] = useState('');
     const [photos, setPhotos] = useState<PhotoItem[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
-    const [activeSource, setActiveSource] = useState<'all' | 'unsplash' | 'freepik'>('all');
+    const [activeSource, setActiveSource] = useState<'all' | 'unsplash' | 'freepik' | 'vecteezy'>('all');
 
     useEffect(() => {
         handleSearch('nature');
@@ -71,15 +97,35 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ onAddImageLayer }) => 
                 }
             }
 
-            // Interleave results from both sources for variety
+            if (activeSource === 'all' || activeSource === 'vecteezy') {
+                try {
+                    const vecteezyResults = await vecteezyService.search(searchQuery || 'trending');
+                    vecteezyResults.forEach(r => {
+                        combined.push({
+                            id: `vz-${r.id}`,
+                            url: r.downloadUrl,
+                            thumbnail: r.previewUrl,
+                            alt: r.title,
+                            author: 'Vecteezy',
+                            source: 'vecteezy',
+                        });
+                    });
+                } catch (e) {
+                    console.error('Vecteezy search failed:', e);
+                }
+            }
+
+            // Interleave results from all active sources for variety
             if (activeSource === 'all' && combined.length > 0) {
                 const unsplash = combined.filter(p => p.source === 'unsplash');
                 const freepik = combined.filter(p => p.source === 'freepik');
+                const vecteezy = combined.filter(p => p.source === 'vecteezy');
                 const interleaved: PhotoItem[] = [];
-                const maxLen = Math.max(unsplash.length, freepik.length);
+                const maxLen = Math.max(unsplash.length, freepik.length, vecteezy.length);
                 for (let i = 0; i < maxLen; i++) {
                     if (i < unsplash.length) interleaved.push(unsplash[i]);
                     if (i < freepik.length) interleaved.push(freepik[i]);
+                    if (i < vecteezy.length) interleaved.push(vecteezy[i]);
                 }
                 setPhotos(interleaved);
             } else {
@@ -96,6 +142,7 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ onAddImageLayer }) => 
         { id: 'all' as const, label: 'All' },
         { id: 'unsplash' as const, label: 'Unsplash' },
         { id: 'freepik' as const, label: 'Freepik' },
+        { id: 'vecteezy' as const, label: 'Vecteezy' },
     ];
 
     return (
@@ -112,8 +159,8 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ onAddImageLayer }) => 
                         key={src.id}
                         onClick={() => { setActiveSource(src.id); if (hasSearched) handleSearch(query || 'nature'); }}
                         className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${activeSource === src.id
-                                ? 'bg-[#00c4cc] text-white'
-                                : 'text-gray-500 hover:text-gray-300'
+                            ? 'bg-[#00c4cc] text-white'
+                            : 'text-gray-500 hover:text-gray-300'
                             }`}
                     >
                         {src.label}
@@ -158,10 +205,12 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ onAddImageLayer }) => 
                                             )}
                                         </div>
                                         <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${photo.source === 'unsplash'
-                                                ? 'bg-white/20 text-white'
-                                                : 'bg-emerald-500/30 text-emerald-300'
+                                            ? 'bg-white/20 text-white'
+                                            : photo.source === 'freepik'
+                                                ? 'bg-emerald-500/30 text-emerald-300'
+                                                : 'bg-orange-500/30 text-orange-300'
                                             }`}>
-                                            {photo.source === 'unsplash' ? 'U' : 'F'}
+                                            {photo.source === 'unsplash' ? 'U' : photo.source === 'freepik' ? 'F' : 'V'}
                                         </span>
                                     </div>
                                 </div>

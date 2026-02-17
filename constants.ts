@@ -22,45 +22,30 @@ export const CANVAS_SIZE_PRESETS = [
 ];
 
 // Fonts
-export const FONT_FAMILIES = [
-  'Inter', 'Space Grotesk', // System defaults
-  'Abel', 'Abril Fatface', 'Acme', 'Alfa Slab One', 'Amatic SC', 'Anton', 'Arimo', 'Asap',
-  'Bangers', 'Barlow', 'Bebas Neue', 'Bitter', 'Bungee',
-  'Cabin', 'Cairo', 'Catamaran', 'Caveat', 'Cinzel', 'Comfortaa', 'Cormorant Garamond', 'Creepster', 'Crimson Text',
-  'Dancing Script', 'DM Sans', 'Dosis', 'EB Garamond', 'Exo 2',
-  'Fira Sans', 'Fjalla One', 'Fredericka the Great',
-  'Gloria Hallelujah', 'Great Vibes',
-  'Heebo', 'Hind',
-  'IBM Plex Mono', 'IBM Plex Sans', 'Inconsolata', 'Indie Flower',
-  'Josefin Sans',
-  'Kanit',
-  'Lato', 'Lexend', 'Libre Baskerville', 'Lobster', 'Lora',
-  'Manrope', 'Merriweather', 'Monoton', 'Montserrat', 'Mukta', 'Mulish',
-  'Nanum Gothic', 'Noto Sans', 'Noto Serif', 'Nunito',
-  'Open Sans', 'Oswald', 'Oxygen',
-  'Pacifico', 'Permanent Marker', 'Playfair Display', 'Poppins', 'PT Sans', 'PT Serif', 'Public Sans',
-  'Quicksand',
-  'Rajdhani', 'Raleway', 'Righteous', 'Roboto', 'Roboto Condensed', 'Roboto Mono', 'Rubik', 'Russo One',
-  'Sacramenta', 'Sarabun', 'Satisfy', 'Shadows Into Light', 'Signika', 'Slabo 27px', 'Sora', 'Source Code Pro', 'Source Sans 3', 'Space Mono', 'Special Elite', 'Sriracha', 'Staatliches',
-  'Teko', 'Titillium Web',
-  'Ubuntu',
-  'Varela Round', 'Vollkorn',
-  'Work Sans',
-  'Yellowtail',
-  'Zilla Slab'
-].sort();
+export const FONT_CATEGORIES = {
+  "Modern Sans": ['Inter', 'Space Grotesk', 'DM Sans', 'Manrope', 'Montserrat', 'Poppins', 'Work Sans', 'Public Sans', 'Lexend', 'Mulish', 'Open Sans', 'Lato', 'Roboto'],
+  "Classic Serifs": ['Playfair Display', 'Cormorant Garamond', 'EB Garamond', 'Libre Baskerville', 'Lora', 'Merriweather', 'PT Serif', 'Crimson Text', 'Zilla Slab', 'Vollkorn', 'Bitter'],
+  "Elegant Scripts": ['Dancing Script', 'Great Vibes', 'Pacifico', 'Satisfy', 'Yellowtail', 'Sacramenta', 'Caveat', 'Indie Flower', 'Shadows Into Light'],
+  "Display & Bold": ['Anton', 'Bebas Neue', 'Oswald', 'Kanit', 'Staatliches', 'Russo One', 'Alfa Slab One', 'Abril Fatface', 'Bungee', 'Monoton', 'Staatliches'],
+  "Vintage & Retro": ['Lobster', 'Righteous', 'Cinzel', 'Special Elite', 'Fredericka the Great', 'Bangers', 'Creepster', 'Permanent Marker', 'Fredoka One'],
+  "Monospace": ['IBM Plex Mono', 'Source Code Pro', 'Space Mono', 'Inconsolata', 'Roboto Mono']
+};
+
+export const FONT_FAMILIES = Object.values(FONT_CATEGORIES).flat().sort();
+
+export const DEFAULT_FILTERS = {
+  brightness: 100,
+  contrast: 100,
+  saturation: 100,
+  sepia: 0,
+  grayscale: 0,
+  blur: 0,
+  opacity: 1,
+  vignette: 0,
+};
 
 export const EFFECT_PRESETS = {
-  normal: {
-    brightness: 100,
-    contrast: 100,
-    saturation: 100,
-    sepia: 0,
-    grayscale: 0,
-    blur: 0,
-    opacity: 1,
-    vignette: 0,
-  },
+  normal: DEFAULT_FILTERS,
   vintage: {
     brightness: 110,
     contrast: 80,
@@ -133,6 +118,15 @@ export const Icons = {
       React.createElement("path", { d: "m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" }),
       React.createElement("line", { x1: "12", y1: "9", x2: "12", y2: "13" }),
       React.createElement("line", { x1: "12", y1: "17", x2: "12.01", y2: "17" })
+    ),
+  Slash: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("circle", { cx: "12", cy: "12", r: "10" }),
+      React.createElement("line", { x1: "4.93", y1: "4.93", x2: "19.07", y2: "19.07" })
+    ),
+  Cloud: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "M17.5 19c0-1.7-1.3-3-3-3-.6 0-1.1.2-1.5.5-1-2.4-3.4-4-6-4-3.6 0-6.5 2.7-6.5 6.3 0 .2 0 .5.1.7C.3 20 .1 20.5.1 21c0 1.7 1.3 3 3 3h14.4c1.7 0 3-1.3 3-3z" })
     ),
   Home: (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement("svg", { ...svgProps, ...props },
@@ -225,6 +219,24 @@ export const Icons = {
   ChevronDown: (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement("svg", { ...svgProps, ...props },
       React.createElement("path", { d: "m6 9 6 6 6-6" })
+    ),
+  ChevronUp: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "m18 15-6-6-6 6" })
+    ),
+  TrendingUp: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("polyline", { points: "23 6 13.5 15.5 8.5 10.5 1 18" }),
+      React.createElement("polyline", { points: "17 6 23 6 23 12" })
+    ),
+  Flag: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" }),
+      React.createElement("line", { x1: "4", x2: "4", y1: "22", y2: "15" })
+    ),
+  Circle: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("circle", { cx: "12", cy: "12", r: "10" })
     ),
   ZoomIn: (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement("svg", { ...svgProps, ...props },
@@ -391,6 +403,25 @@ export const Icons = {
       React.createElement("path", { d: "M21 6v12" }),
       React.createElement("path", { d: "M21 6l-2 2" }),
       React.createElement("path", { d: "M21 18l-2-2" })
+    ),
+  Crop: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "M6 2v14a2 2 0 0 0 2 2h14" }),
+      React.createElement("path", { d: "M18 22V8a2 2 0 0 0-2-2H2" })
+    ),
+  Eraser: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.9-9.9c1-1 2.5-1 3.4 0l4.3 4.3c1 1 1 2.5 0 3.4l-9.9 9.9c-1 1-2.5 1-3.4 0Z" }),
+      React.createElement("path", { d: "M22 21H7" }),
+      React.createElement("path", { d: "m5 11 9 9" })
+    ),
+  Scissors: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("circle", { cx: "6", cy: "6", r: "3" }),
+      React.createElement("circle", { cx: "6", cy: "18", r: "3" }),
+      React.createElement("line", { x1: "20", y1: "4", x2: "8.12", y2: "15.88" }),
+      React.createElement("line", { x1: "14.47", y1: "14.48", x2: "20", y2: "20" }),
+      React.createElement("line", { x1: "8.12", y1: "8.12", x2: "12", y2: "12" })
     ),
   Uppercase: (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement("svg", { ...svgProps, ...props },
@@ -574,12 +605,6 @@ export const Icons = {
       React.createElement("path", { d: "M2 21h10" }),
       React.createElement("path", { d: "M6.5 13.5 2 18l3 3 4.5-4.5" })
     ),
-  Eraser: (props: React.SVGProps<SVGSVGElement>) =>
-    React.createElement("svg", { ...svgProps, ...props },
-      React.createElement("path", { d: "m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" }),
-      React.createElement("path", { d: "M22 21H7" }),
-      React.createElement("path", { d: "m5 11 9 9" })
-    ),
   Brand: (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement("svg", { ...svgProps, ...props },
       React.createElement("path", { d: "M6 18h8" }),
@@ -593,6 +618,37 @@ export const Icons = {
       React.createElement("path", { d: "M3 15h18" }),
       React.createElement("path", { d: "M9 3v18" }),
       React.createElement("path", { d: "M15 3v18" })
+    ),
+  Instagram: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("rect", { width: "20", height: "20", x: "2", y: "2", rx: "5", ry: "5" }),
+      React.createElement("path", { d: "M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" }),
+      React.createElement("line", { x1: "17.5", y1: "6.5", x2: "17.51", y2: "6.5" })
+    ),
+  Facebook: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" })
+    ),
+  Twitter: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "M22 4s-1 2.18-4 4.18c-1.39.92-2.58 1.4-4 1.4A5.5 5.5 0 0 1 8.51 4c-.01 0-.02 0-.03.01C4.48 4.09 1 7.15 1 11c0 2.3 1.5 4.05 3 5.5l7 7 7-7c1.5-1.45 3-3.2 3-5.5 0-1-.3-1.93-.82-2.82.4-.64 1.82-2.18 1.82-3.68" }),
+      React.createElement("path", { d: "M22 4s-1.5 1-3 1.5a4.5 4.5 0 0 0-7.86 3A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 22 4z" })
+    ),
+  Youtube: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" }),
+      React.createElement("polygon", { points: "9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" })
+    ),
+  History: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" }),
+      React.createElement("path", { d: "M3 3v5h5" }),
+      React.createElement("path", { d: "M12 7v5l4 2" })
+    ),
+  Clock: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("circle", { cx: "12", cy: "12", r: "10" }),
+      React.createElement("polyline", { points: "12 6 12 12 16 14" })
     ),
   Mockup: (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement("svg", { ...svgProps, ...props },
@@ -742,11 +798,24 @@ export const Icons = {
       React.createElement("path", { d: "M12 2v2" }),
       React.createElement("path", { d: "M12 20v2" }),
       React.createElement("path", { d: "m4.93 4.93 1.41 1.41" }),
-      React.createElement("path", { d: "m17.66 17.66 1.41 1.41" }),
-      React.createElement("path", { d: "M2 12h2" }),
-      React.createElement("path", { d: "M20 12h2" }),
-      React.createElement("path", { d: "m6.34 17.66-1.41 1.41" }),
-      React.createElement("path", { d: "m19.07 4.93-1.41 1.41" })
+      React.createElement("path", { d: "m19.07 4.93-1.41 1.41" }),
+      React.createElement("path", { d: "m19.07 19.07-1.41-1.41" }),
+      React.createElement("path", { d: "m4.93 19.07 1.41-1.41" })
+    ),
+  Camera: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" }),
+      React.createElement("circle", { cx: "12", cy: "13", r: "4" })
+    ),
+  MessageSquare: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" })
+    ),
+  Globe: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("circle", { cx: "12", cy: "12", r: "10" }),
+      React.createElement("line", { x1: "2", y1: "12", x2: "22", y2: "12" }),
+      React.createElement("path", { d: "M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" })
     ),
   Contrast: (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement("svg", { ...svgProps, ...props },
@@ -791,13 +860,61 @@ export const Icons = {
       React.createElement("path", { d: "M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" })
     )
   ),
-  Scissors: (props: React.SVGProps<SVGSVGElement>) => (
+  Pen: (props: React.SVGProps<SVGSVGElement>) => (
     React.createElement("svg", { ...svgProps, ...props },
-      React.createElement("circle", { cx: "6", cy: "6", r: "3" }),
-      React.createElement("circle", { cx: "6", cy: "18", r: "3" }),
-      React.createElement("line", { x1: "20", y1: "4", x2: "8.12", y2: "15.88" }),
-      React.createElement("line", { x1: "14.47", y1: "14.48", x2: "20", y2: "20" }),
-      React.createElement("line", { x1: "8.12", y1: "8.12", x2: "12", y2: "12" })
+      React.createElement("path", { d: "M12 19l7-7 3 3-7 7-3-3z" }),
+      React.createElement("path", { d: "M18 13l-1.5-7.5L2 2l3.5 14.5L13 18z" }),
+      React.createElement("path", { d: "M2 2l5 5" }),
+      React.createElement("path", { d: "M11 11l1 1" })
     )
   ),
+  Union: (props: React.SVGProps<SVGSVGElement>) => (
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("rect", { x: "2", y: "2", width: "14", height: "14", rx: "2" }),
+      React.createElement("rect", { x: "8", y: "8", width: "14", height: "14", rx: "2" })
+    )
+  ),
+  Subtract: (props: React.SVGProps<SVGSVGElement>) => (
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("rect", { x: "2", y: "2", width: "14", height: "14", rx: "2" }),
+      React.createElement("rect", { x: "8", y: "8", width: "14", height: "14", rx: "2" })
+    )
+  ),
+  Intersect: (props: React.SVGProps<SVGSVGElement>) => (
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("circle", { cx: "9", cy: "12", r: "7" }),
+      React.createElement("circle", { cx: "15", cy: "12", r: "7" })
+    )
+  ),
+  Exclude: (props: React.SVGProps<SVGSVGElement>) => (
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("rect", { x: "2", y: "2", width: "14", height: "14", rx: "2" }),
+      React.createElement("rect", { x: "8", y: "8", width: "14", height: "14", rx: "2" })
+    )
+  ),
+  Anchor: (props: React.SVGProps<SVGSVGElement>) => (
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("circle", { cx: "12", cy: "12", r: "10" }),
+      React.createElement("path", { d: "M12 2v20" }),
+      React.createElement("path", { d: "M5 12h14" })
+    )
+  ),
+  ExternalLink: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("path", { d: "M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" }),
+      React.createElement("polyline", { points: "15 3 21 3 21 9" }),
+      React.createElement("line", { x1: "10", y1: "14", x2: "21", y2: "3" })
+    ),
+  Sliders: (props: React.SVGProps<SVGSVGElement>) =>
+    React.createElement("svg", { ...svgProps, ...props },
+      React.createElement("line", { x1: "4", y1: "21", x2: "4", y2: "14" }),
+      React.createElement("line", { x1: "4", y1: "10", x2: "4", y2: "3" }),
+      React.createElement("line", { x1: "12", y1: "21", x2: "12", y2: "12" }),
+      React.createElement("line", { x1: "12", y1: "8", x2: "12", y2: "3" }),
+      React.createElement("line", { x1: "20", y1: "21", x2: "20", y2: "16" }),
+      React.createElement("line", { x1: "20", y1: "12", x2: "20", y2: "3" }),
+      React.createElement("line", { x1: "1", y1: "14", x2: "7", y2: "14" }),
+      React.createElement("line", { x1: "9", y1: "8", x2: "15", y2: "8" }),
+      React.createElement("line", { x1: "17", y1: "16", x2: "23", y2: "16" })
+    ),
 };

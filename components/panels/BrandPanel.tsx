@@ -3,27 +3,45 @@ import React, { useState, useRef } from 'react';
 import { BrandKit } from '../../types';
 import { Icons, FONT_FAMILIES } from '../../constants';
 import { Button } from '../Button';
-import { generatePaletteFromImage } from '../../services/geminiService';
+import * as photoService from '../../services/photoService';
 
-interface BrandPanelProps {
-   brandKits: BrandKit[];
-   onAddBrandKit: (kit: BrandKit) => void;
-   onDeleteBrandKit: (id: string) => void;
-   onUpdateBrandKit: (id: string, updates: Partial<BrandKit>) => void;
-   onApplyBrandColors: (colors: string[]) => void;
-   onApplyBrandFonts: (heading: string, body: string) => void;
-   onAddLogoToCanvas: (url: string) => void;
-}
+import { useStore } from '../../store/useStore';
+import { v4 as uuidv4 } from 'uuid';
 
-export const BrandPanel: React.FC<BrandPanelProps> = ({
-   brandKits,
-   onAddBrandKit,
-   onDeleteBrandKit,
-   onUpdateBrandKit,
-   onApplyBrandColors,
-   onApplyBrandFonts,
-   onAddLogoToCanvas
-}) => {
+interface BrandPanelProps { }
+
+export const BrandPanel: React.FC<BrandPanelProps> = ({ }) => {
+   const brandKits = useStore(state => state.brandKits);
+   const onAddBrandKit = useStore(state => state.addBrandKit);
+   const onDeleteBrandKit = useStore(state => state.deleteBrandKit);
+   const onUpdateBrandKit = useStore(state => state.updateBrandKit);
+   const onApplyBrandColors = useStore(state => state.applyBrandColors);
+   const onApplyBrandFonts = useStore(state => state.applyBrandFonts);
+   const addLayer = useStore(state => state.addLayer);
+   const canvasSize = useStore(state => state.canvasSize);
+
+   const onAddLogoToCanvas = (url: string) => {
+      addLayer({
+         id: uuidv4(),
+         type: 'image',
+         name: 'Brand Logo',
+         src: url,
+         x: canvasSize.width / 2 - 100,
+         y: canvasSize.height / 2 - 100,
+         width: 200,
+         height: 200,
+         rotation: 0,
+         opacity: 1,
+         locked: false,
+         visible: true,
+         flipX: false,
+         flipY: false,
+         blendMode: 'normal',
+         filters: { brightness: 100, contrast: 100, saturation: 100, grayscale: 0, blur: 0, sepia: 0, hueRotate: 0, vignette: 0, opacity: 1 },
+         skewX: 0,
+         skewY: 0
+      });
+   };
    const [isCreating, setIsCreating] = useState(false);
    const [newKitName, setNewKitName] = useState('');
    const [newColors, setNewColors] = useState<string[]>(['#000000', '#ffffff', '#7d2ae8']);
@@ -82,15 +100,15 @@ export const BrandPanel: React.FC<BrandPanelProps> = ({
       }
       setIsAnalyzing(true);
       try {
-         const extracted = await generatePaletteFromImage(newLogos[0]);
+         const extracted = await photoService.extractPalette(newLogos[0], 5);
          if (extracted && extracted.length > 0) {
-            setNewColors(extracted.slice(0, 5));
+            setNewColors(extracted);
          } else {
             alert("Could not extract colors. Try another image.");
          }
       } catch (e) {
          console.error(e);
-         alert("AI extraction failed.");
+         alert("Extraction failed.");
       } finally {
          setIsAnalyzing(false);
       }

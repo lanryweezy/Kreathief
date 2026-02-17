@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Icons, FONT_FAMILIES } from '../constants';
+import { Icons, FONT_FAMILIES, FONT_CATEGORIES } from '../constants';
 import { loadFont } from '../services/FontLoader';
 
 interface FontPickerProps {
@@ -40,7 +40,7 @@ const FontItem = React.memo(({ font, isSelected, onSelect }: { font: string, isS
                 className={`text-base truncate transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
                 style={{ fontFamily: isLoaded ? `"${font}", sans-serif` : 'inherit' }}
             >
-                The quick brown fox
+                {font}
             </span>
             <div className="flex items-center justify-between w-full mt-1">
                 <span className={`text-[10px] ${isSelected ? 'text-indigo-300 group-hover:text-white' : 'text-gray-500 group-hover:text-indigo-200'}`}>{font}</span>
@@ -53,13 +53,19 @@ const FontItem = React.memo(({ font, isSelected, onSelect }: { font: string, isS
     );
 });
 
+
 export const FontPicker = ({ currentFont, onSelectFont, onClose, search, setSearch }: FontPickerProps) => {
 
-    // Filter fonts
-    const filteredFonts = useMemo(() =>
-        FONT_FAMILIES.filter(f => f.toLowerCase().includes(search.toLowerCase())),
-        [search]
-    );
+    const filteredCategories = useMemo(() => {
+        const result: { [key: string]: string[] } = {};
+        Object.entries(FONT_CATEGORIES).forEach(([category, fonts]) => {
+            const matches = fonts.filter(f => f.toLowerCase().includes(search.toLowerCase()));
+            if (matches.length > 0) {
+                result[category] = matches;
+            }
+        });
+        return result;
+    }, [search]);
 
     return (
         <div className="absolute top-full left-0 mt-1 w-64 bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-xl max-h-96 overflow-y-auto z-50 p-1 animate-fadeIn custom-scrollbar flex flex-col">
@@ -77,20 +83,27 @@ export const FontPicker = ({ currentFont, onSelectFont, onClose, search, setSear
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
-                {filteredFonts.length === 0 ? (
+            <div className="flex-1 overflow-y-auto p-1">
+                {Object.keys(filteredCategories).length === 0 ? (
                     <div className="p-4 text-center text-xs text-gray-500">No fonts found</div>
                 ) : (
-                    <div className="space-y-0.5">
-                        {filteredFonts.map((font) => (
-                            <FontItem
-                                key={font}
-                                font={font}
-                                isSelected={currentFont === font}
-                                onSelect={(f) => { onSelectFont(f); onClose(); }}
-                            />
-                        ))}
-                    </div>
+                    Object.entries(filteredCategories).map(([category, fonts]) => (
+                        <div key={category} className="mb-3 last:mb-0">
+                            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-2 py-1 block mb-1">
+                                {category}
+                            </span>
+                            <div className="space-y-0.5">
+                                {fonts.map((font) => (
+                                    <FontItem
+                                        key={font}
+                                        font={font}
+                                        isSelected={currentFont === font}
+                                        onSelect={(f) => { onSelectFont(f); onClose(); }}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    ))
                 )}
             </div>
         </div>

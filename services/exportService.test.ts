@@ -24,16 +24,14 @@ describe('exportDesignToImage', () => {
             mockParams.height,
             mockParams.backgroundColor,
             mockParams.backgroundImageUrl,
-            mockParams.shapes,
-            mockParams.texts,
-            mockParams.images
+            [] // Combined layers
         );
         expect(result).toContain('data:image/png;base64');
     });
 
     it('should handle different formats', async () => {
         const resultJpeg = await exportDesignToImage(
-            100, 100, '#ffffff', null, [], [], [], undefined, 'jpeg'
+            100, 100, '#ffffff', null, [], undefined, 'jpeg'
         );
         expect(resultJpeg).toContain('data:image/jpeg;base64');
     });

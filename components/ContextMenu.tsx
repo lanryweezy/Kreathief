@@ -1,17 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import { Icons } from '../constants';
+import { useStore } from '../store/useStore';
 
 interface ContextMenuProps {
   x: number;
   y: number;
   layerId: string;
   onClose: () => void;
-  onDuplicate: (id: string) => void;
-  onDelete: (id: string) => void;
-  onMoveForward: (id: string) => void;
-  onMoveBackward: (id: string) => void;
-  onLock: (id: string) => void;
-  isLocked: boolean;
 }
 
 export const ContextMenu: React.FC<ContextMenuProps> = ({
@@ -19,14 +14,18 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   y,
   layerId,
   onClose,
-  onDuplicate,
-  onDelete,
-  onMoveForward,
-  onMoveBackward,
-  onLock,
-  isLocked
 }) => {
   const menuRef = useRef<HTMLDivElement>(null);
+  const {
+    duplicateLayer,
+    deleteLayer,
+    moveLayer,
+    updateLayer,
+    layers
+  } = useStore();
+
+  const layer = layers.find(l => l.id === layerId);
+  const isLocked = layer?.locked || false;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -45,7 +44,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   };
 
   return (
-    <div 
+    <div
       ref={menuRef}
       className="fixed z-[100] w-48 bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-2xl py-1 animate-fadeIn flex flex-col"
       style={style}
@@ -54,29 +53,39 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
       <div className="px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-700 mb-1">
         Layer Actions
       </div>
-      
-      <button onClick={() => { onDuplicate(layerId); onClose(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#7d2ae8] hover:text-white transition-colors text-left">
+
+      <button onClick={() => { duplicateLayer(layerId); onClose(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#7d2ae8] hover:text-white transition-colors text-left">
         <Icons.Copy className="w-4 h-4" /> Duplicate
       </button>
-      
-      <button onClick={() => { onMoveForward(layerId); onClose(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white transition-colors text-left">
+
+      <button onClick={() => {
+        const layerIndex = layers.findIndex(l => l.id === layerId);
+        if (layerIndex > 0) {
+          useStore.getState().applyMask(layerId, layers[layerIndex - 1].id);
+        }
+        onClose();
+      }} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white transition-colors text-left">
+        <Icons.Layers className="w-4 h-4" /> Mask with Layer Below
+      </button>
+
+      <button onClick={() => { moveLayer(layerId, 'forward'); onClose(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white transition-colors text-left">
         <Icons.ArrowUp className="w-4 h-4" /> Bring Forward
       </button>
-      
-      <button onClick={() => { onMoveBackward(layerId); onClose(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white transition-colors text-left">
+
+      <button onClick={() => { moveLayer(layerId, 'backward'); onClose(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white transition-colors text-left">
         <Icons.ArrowDown className="w-4 h-4" /> Send Backward
       </button>
 
       <div className="h-px bg-gray-700 my-1"></div>
 
-      <button onClick={() => { onLock(layerId); onClose(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white transition-colors text-left">
+      <button onClick={() => { updateLayer(layerId, { locked: !isLocked }); onClose(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white transition-colors text-left">
         {isLocked ? <Icons.Unlock className="w-4 h-4" /> : <Icons.Lock className="w-4 h-4" />}
         {isLocked ? "Unlock" : "Lock"}
       </button>
 
       <div className="h-px bg-gray-700 my-1"></div>
 
-      <button onClick={() => { onDelete(layerId); onClose(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/20 transition-colors text-left">
+      <button onClick={() => { deleteLayer(layerId); onClose(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/20 transition-colors text-left">
         <Icons.Trash className="w-4 h-4" /> Delete
       </button>
     </div>

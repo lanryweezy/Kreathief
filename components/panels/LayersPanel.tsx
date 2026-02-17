@@ -1,44 +1,26 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { TextLayer, ShapeLayer, ImageLayer, Layer } from '../../types';
 import { Icons } from '../../constants';
+import { useStore } from '../../store/useStore';
 
-interface LayersPanelProps {
-  layers: Layer[];
-  selectedLayerId: string | null;
-  onSelectLayer: (id: string | null) => void;
-  onDeleteLayer: (id: string) => void;
-  onUpdateTextLayer: (id: string, changes: Partial<TextLayer>) => void;
-  onUpdateShapeLayer: (id: string, changes: Partial<ShapeLayer>) => void;
-  onUpdateImageLayer: (id: string, changes: Partial<ImageLayer>) => void;
-  onDuplicateLayer: (id: string) => void;
-  onMoveLayer: (id: string, direction: 'front' | 'back' | 'forward' | 'backward') => void;
-  onLayoutLayers?: (type: 'grid' | 'row' | 'col') => void;
-  onCopyLayer?: (id: string) => void;
-  onPasteLayer?: () => void;
-  onBatchDelete?: (ids: string[]) => void;
-  onBatchToggleVisibility?: (ids: string[], visible: boolean) => void;
-  onBatchToggleLock?: (ids: string[], locked: boolean) => void;
-  onGroup?: () => void;
-  onUngroup?: () => void;
-}
-
+// LayerItem Component
 interface LayerItemProps {
   layer: Layer;
+  index: number;
   isSelected: boolean;
   isMultiSelected?: boolean;
   onSelect: () => void;
-  onSelectMultiple?: (e: React.MouseEvent) => void;
+  onSelectMultiple: (e: React.MouseEvent) => void;
   onUpdate: (changes: any) => void;
   onDelete: () => void;
   onDuplicate: () => void;
   onMove: (dir: 'forward' | 'backward' | 'front' | 'back') => void;
-  onCopy?: () => void;
   isGrouped?: boolean;
   isGroupStart?: boolean;
   isGroupEnd?: boolean;
+  onDrop: (draggedId: string, targetId: string, position: 'above' | 'below') => void;
 }
-
 
 const areLayerPropsEqual = (prev: LayerItemProps, next: LayerItemProps) => {
   if (prev.isSelected !== next.isSelected) return false;
@@ -46,13 +28,13 @@ const areLayerPropsEqual = (prev: LayerItemProps, next: LayerItemProps) => {
   if (prev.isGrouped !== next.isGrouped) return false;
   if (prev.isGroupStart !== next.isGroupStart) return false;
   if (prev.isGroupEnd !== next.isGroupEnd) return false;
+  if (prev.index !== next.index) return false;
 
   const l1 = prev.layer;
   const l2 = next.layer;
 
   if (l1 === l2) return true;
 
-  // Check critical fields for UI updates (ignore x,y,width,height,rotation)
   if (l1.id !== l2.id) return false;
   if (l1.name !== l2.name) return false;
   if (l1.visible !== l2.visible) return false;
@@ -61,6 +43,7 @@ const areLayerPropsEqual = (prev: LayerItemProps, next: LayerItemProps) => {
   if (l1.blendMode !== l2.blendMode) return false;
   if (l1.type !== l2.type) return false;
   if (l1.groupId !== l2.groupId) return false;
+  if (l1.maskLayerId !== l2.maskLayerId) return false;
 
   if (l1.type === 'text') {
     const t1 = l1 as TextLayer;
@@ -71,7 +54,6 @@ const areLayerPropsEqual = (prev: LayerItemProps, next: LayerItemProps) => {
     const i2 = l2 as ImageLayer;
     if (i1.src !== i2.src) return false;
   } else {
-    // Must be ShapeLayer
     const s1 = l1 as ShapeLayer;
     const s2 = l2 as ShapeLayer;
     if (s1.color !== s2.color) return false;
@@ -82,22 +64,24 @@ const areLayerPropsEqual = (prev: LayerItemProps, next: LayerItemProps) => {
 
 const LayerItem = React.memo(({
   layer,
+  index,
   isSelected,
   isMultiSelected = false,
   onSelect,
-  onSelectMultiple = () => { },
+  onSelectMultiple,
   onUpdate,
   onDelete,
   onDuplicate,
   onMove,
-  onCopy = () => { },
   isGrouped = false,
   isGroupStart = false,
-  isGroupEnd = false
+  isGroupEnd = false,
+  onDrop
 }: LayerItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(layer.name || getLayerNameFallback(layer));
   const [showSettings, setShowSettings] = useState(false);
+  const [dragOver, setDragOver] = useState<'top' | 'bottom' | null>(null);
 
   function getLayerNameFallback(l: Layer) {
     if (l.type === 'text') return (l as TextLayer).text.substring(0, 20) || 'Text Layer';
@@ -140,8 +124,6 @@ const LayerItem = React.memo(({
         </div>
       );
     }
-
-    // Shape Layer
     const l = layer as ShapeLayer;
     return (
       <div className="w-full h-full flex items-center justify-center bg-[#0e1318] p-1.5">
@@ -158,9 +140,47 @@ const LayerItem = React.memo(({
     );
   };
 
+  // Drag Handlers
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData('layerId', layer.id);
+    e.dataTransfer.effectAllowed = 'move';
+    // Create a ghost image if desired, otherwise browser default is used
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    if (e.clientY < midY) {
+      setDragOver('top');
+    } else {
+      setDragOver('bottom');
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOver(null);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const draggedId = e.dataTransfer.getData('layerId');
+    if (draggedId && draggedId !== layer.id) {
+      onDrop(draggedId, layer.id, dragOver === 'top' ? 'above' : 'below');
+    }
+    setDragOver(null);
+  };
+
   return (
     <div className="flex flex-col">
       <div
+        draggable={!layer.locked && !isEditing}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
         onClick={onSelect}
         onContextMenu={(e) => {
           e.preventDefault();
@@ -174,7 +194,9 @@ const LayerItem = React.memo(({
           }`}
         style={{
           paddingLeft: isGrouped ? '24px' : '8px',
-          marginBottom: isGroupEnd ? '8px' : '0'
+          marginBottom: isGroupEnd ? '8px' : '0',
+          borderTop: dragOver === 'top' ? '2px solid #7d2ae8' : undefined,
+          borderBottom: dragOver === 'bottom' ? '2px solid #7d2ae8' : '1px solid rgba(31, 41, 55, 0.5)'
         }}
       >
         {isGrouped && (
@@ -197,13 +219,24 @@ const LayerItem = React.memo(({
         <button
           onClick={(e) => { e.stopPropagation(); onUpdate({ visible: !layer.visible }); }}
           className={`w-4 h-4 flex items-center justify-center rounded text-gray-500 hover:text-white transition-colors ${!layer.visible ? 'opacity-100 text-gray-600' : 'opacity-0 group-hover:opacity-100 focus:opacity-100'}`}
+          title={layer.visible ? "Hide Layer" : "Show Layer"}
         >
           {layer.visible ? <Icons.Eye className="w-3.5 h-3.5" /> : <Icons.EyeOff className="w-3.5 h-3.5" />}
         </button>
 
+        {/* Lock Toggle */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onUpdate({ locked: !layer.locked }); }}
+          className={`w-4 h-4 flex items-center justify-center rounded text-gray-500 hover:text-white transition-colors ${layer.locked ? 'opacity-100 text-[#7d2ae8]' : 'opacity-0 group-hover:opacity-100 focus:opacity-100'}`}
+          title={layer.locked ? "Unlock Layer" : "Lock Layer"}
+        >
+          {layer.locked ? <Icons.Lock className="w-3.5 h-3.5" /> : <Icons.Unlock className="w-3.5 h-3.5" />}
+        </button>
+
         {/* Thumbnail */}
-        <div className="w-8 h-8 rounded bg-[#13161a] border border-gray-700 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+        <div className="w-8 h-8 rounded bg-[#13161a] border border-gray-700 flex items-center justify-center overflow-hidden shrink-0 shadow-sm relative">
           {getThumbnail()}
+          {layer.maskLayerId && <div className="absolute bottom-0 right-0 w-3 h-3 bg-[#7d2ae8] rounded-tl flex items-center justify-center"><Icons.Layers className="w-2 h-2 text-white" /></div>}
         </div>
 
         {/* Info */}
@@ -222,10 +255,9 @@ const LayerItem = React.memo(({
           ) : (
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-2">
-                <span className={`text-xs truncate font-medium ${isSelected || isMultiSelected ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}`}>
+                <span className={`text-xs truncate font-medium ${isSelected || isMultiSelected ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'} ${layer.visible ? '' : 'opacity-50'}`}>
                   {layer.name || getLayerNameFallback(layer)}
                 </span>
-                {layer.locked && <Icons.Lock className="w-2.5 h-2.5 text-gray-500" />}
                 {isGrouped && <span className="text-[8px] bg-gray-700 text-gray-400 px-1 rounded">GRP</span>}
               </div>
 
@@ -245,22 +277,6 @@ const LayerItem = React.memo(({
             title="Layer Settings"
           >
             <Icons.Settings className="w-3 h-3" />
-          </button>
-
-          <button
-            onClick={(e) => { e.stopPropagation(); onUpdate({ locked: !layer.locked }); }}
-            className={`p-1 hover:bg-gray-600 rounded ${layer.locked ? 'text-[#7d2ae8]' : 'text-gray-500'}`}
-            title={layer.locked ? "Unlock" : "Lock"}
-          >
-            {layer.locked ? <Icons.Unlock className="w-3 h-3" /> : <Icons.Lock className="w-3 h-3" />}
-          </button>
-
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(); }}
-            className="p-1 hover:bg-red-900/30 text-gray-500 hover:text-red-400 rounded"
-            title="Delete"
-          >
-            <Icons.Trash className="w-3 h-3" />
           </button>
         </div>
       </div>
@@ -290,23 +306,21 @@ const LayerItem = React.memo(({
                 <option value="multiply">Multiply</option>
                 <option value="screen">Screen</option>
                 <option value="overlay">Overlay</option>
-                <option value="darken">Darken</option>
-                <option value="lighten">Lighten</option>
               </select>
             </div>
           </div>
-          <div className="mt-2 flex gap-2 border-t border-gray-700/50 pt-2">
-            <button onClick={() => onMove('forward')} className="flex-1 flex items-center justify-center gap-1 py-1 hover:bg-gray-700 rounded text-gray-400">
-              <Icons.ArrowUp className="w-3 h-3" /> Fwd
+          <div className="mt-2 flex gap-2 border-t border-gray-700/50 pt-2 justify-end">
+            <button
+              onClick={(e) => { e.stopPropagation(); onDuplicate(); setShowSettings(false); }}
+              className="px-2 py-1 hover:bg-gray-700 rounded text-gray-400 flex items-center gap-1"
+            >
+              <Icons.Copy className="w-3 h-3" /> Duplicate
             </button>
-            <button onClick={() => onMove('backward')} className="flex-1 flex items-center justify-center gap-1 py-1 hover:bg-gray-700 rounded text-gray-400">
-              <Icons.ArrowDown className="w-3 h-3" /> Bwd
-            </button>
-            <button onClick={() => onMove('front')} className="flex-1 flex items-center justify-center gap-1 py-1 hover:bg-gray-700 rounded text-gray-400">
-              <Icons.ArrowUp className="w-3 h-3" /> Front
-            </button>
-            <button onClick={() => onMove('back')} className="flex-1 flex items-center justify-center gap-1 py-1 hover:bg-gray-700 rounded text-gray-400">
-              <Icons.ArrowDown className="w-3 h-3" /> Back
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              className="px-2 py-1 hover:bg-red-900/30 text-red-400 rounded flex items-center gap-1"
+            >
+              <Icons.Trash className="w-3 h-3" /> Delete
             </button>
           </div>
         </div>
@@ -315,28 +329,32 @@ const LayerItem = React.memo(({
   );
 }, areLayerPropsEqual);
 
-export const LayersPanel = React.memo(({
-  layers,
-  selectedLayerId,
-  onSelectLayer,
-  onDeleteLayer,
-  onUpdateTextLayer,
-  onUpdateShapeLayer,
-  onUpdateImageLayer,
-  onDuplicateLayer,
-  onMoveLayer,
-  onLayoutLayers,
-  onCopyLayer = () => { },
-  onPasteLayer = () => { },
-  onBatchDelete = () => { },
-  onBatchToggleVisibility = () => { },
-  onBatchToggleLock = () => { },
-  onGroup,
-  onUngroup
-}: LayersPanelProps) => {
+export const LayersPanel = React.memo(() => {
+  const {
+    layers,
+    selectedLayerIds,
+    selectLayer,
+    multiSelectLayer,
+    updateLayer,
+    deleteLayer,
+    deleteSelected,
+    duplicateLayer,
+    moveLayer,
+    reorderLayer, // New action
+    groupSelected,
+    ungroupSelected,
+    copyLayer,
+  } = useStore();
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedLayerIds, setSelectedLayerIds] = useState<Set<string>>(new Set());
   const [filterType, setFilterType] = useState<'all' | 'text' | 'shape' | 'image'>('all');
+
+  const selectedLayerId = selectedLayerIds.length > 0 ? selectedLayerIds[selectedLayerIds.length - 1] : null;
+
+  // Virtualization constants/state
+  const ITEM_HEIGHT = 50;
+  const [scrollTop, setScrollTop] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(600);
 
   // Filter and search layers
   // Note: We reverse layers for display so top layer is first in list
@@ -352,11 +370,29 @@ export const LayersPanel = React.memo(({
     });
   }, [layers, searchQuery, filterType]);
 
-  // Helper to check group status for display
+  const totalHeight = displayLayers.length * ITEM_HEIGHT;
+
+  const visibleLayers = useMemo(() => {
+    const start = Math.floor(scrollTop / ITEM_HEIGHT);
+    const end = Math.ceil((scrollTop + containerHeight) / ITEM_HEIGHT);
+    const buffer = 10;
+    const startIndex = Math.max(0, start - buffer);
+    const endIndex = Math.min(displayLayers.length, end + buffer);
+
+    const visible = [];
+    for (let i = startIndex; i < endIndex; i++) {
+      visible.push({
+        layer: displayLayers[i],
+        index: i,
+        offset: i * ITEM_HEIGHT
+      });
+    }
+    return visible;
+  }, [displayLayers, scrollTop, containerHeight]);
+
   const getGroupStatus = (layer: Layer, index: number, array: Layer[]) => {
     if (!layer.groupId) return { isGrouped: false };
     const isGrouped = true;
-    // Since array is reversed, previous index is actually "visually above", next index is "visually below"
     const prev = array[index - 1];
     const next = array[index + 1];
     const isGroupStart = !prev || prev.groupId !== layer.groupId;
@@ -366,60 +402,54 @@ export const LayersPanel = React.memo(({
 
   const handleSelectMultiple = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (e.ctrlKey || e.metaKey) {
-      const newSelected = new Set(selectedLayerIds);
-      if (newSelected.has(id)) {
-        newSelected.delete(id);
-      } else {
-        newSelected.add(id);
-      }
-      setSelectedLayerIds(newSelected);
-    } else if (e.shiftKey && selectedLayerIds.size > 0) {
-      // Logic for shift select needs to find index in displayLayers
-      const lastSelected = Array.from(selectedLayerIds)[selectedLayerIds.size - 1];
-      const lastIdx = displayLayers.findIndex(l => l.id === lastSelected);
-      const currentIdx = displayLayers.findIndex(l => l.id === id);
-      const start = Math.min(lastIdx, currentIdx);
-      const end = Math.max(lastIdx, currentIdx);
-      const newSelected = new Set<string>();
-      for (let i = start; i <= end; i++) {
-        if (displayLayers[i]) newSelected.add(displayLayers[i].id);
-      }
-      setSelectedLayerIds(newSelected);
-    } else {
-      setSelectedLayerIds(new Set([id]));
-    }
-  };
-
-  const dispatchUpdate = (id: string, changes: any, type: string) => {
-    if (type === 'text') onUpdateTextLayer(id, changes);
-    else if (type === 'shape') onUpdateShapeLayer(id, changes);
-    else if (type === 'image') onUpdateImageLayer(id, changes);
-  };
-
-  const handleBatchDelete = () => {
-    if (selectedLayerIds.size === 0) return;
-    if (window.confirm(`Delete ${selectedLayerIds.size} layer(s)?`)) {
-      selectedLayerIds.forEach(id => onDeleteLayer(id));
-      setSelectedLayerIds(new Set());
-    }
+    multiSelectLayer(id, e.shiftKey || e.ctrlKey || e.metaKey);
   };
 
   const handleBatchVisibility = (visible: boolean) => {
-    selectedLayerIds.forEach(id => {
-      const layer = layers.find(l => l.id === id);
-      if (!layer) return;
-      dispatchUpdate(id, { visible }, layer.type);
-    });
+    selectedLayerIds.forEach(id => updateLayer(id, { visible }));
   };
 
   const handleBatchLock = (locked: boolean) => {
-    selectedLayerIds.forEach(id => {
-      const layer = layers.find(l => l.id === id);
-      if (!layer) return;
-      dispatchUpdate(id, { locked }, layer.type);
-    });
+    selectedLayerIds.forEach(id => updateLayer(id, { locked }));
   };
+
+  const handleDrop = (draggedId: string, targetId: string, position: 'above' | 'below') => {
+    if (!reorderLayer) return;
+
+    // Calculate indices based on ORIGINAL layers array (not display/reversed)
+    // displayLayers is reversed.
+    // We need to find the actual index in the store.layers array.
+
+    const draggedIndex = layers.findIndex(l => l.id === draggedId);
+    let targetIndex = layers.findIndex(l => l.id === targetId);
+
+    if (draggedIndex === -1 || targetIndex === -1) return;
+
+    // Logic:
+    // If we drop ABOVE a visible item (visually top), in the store (bottom-up Z-index),
+    // that means we want a HIGHER index than the target.
+    // If we drop BELOW a visible item (visually bottom), we want a LOWER index.
+
+    // WAIT! Standard mental model:
+    // Top of list = Top Z-index (Last in Array).
+    // Bottom of list = Bottom Z-index (First in Array).
+
+    // If dropping ABOVE target (visually higher):
+    // We want to be AFTER target in the array (higher Z).
+    // So newIndex = targetIndex + 1 (roughly).
+
+    // If dropping BELOW target (visually lower):
+    // We want to be BEFORE target in the array (lower Z).
+    // So newIndex = targetIndex. (Insert at target's position, shifting target up).
+
+    let newIndex = targetIndex;
+    if (position === 'above') {
+      newIndex = targetIndex + 1;
+    }
+
+    reorderLayer(draggedId, newIndex);
+  };
+
 
   return (
     <div className="flex flex-col h-full bg-[#13161a]">
@@ -459,37 +489,44 @@ export const LayersPanel = React.memo(({
         </div>
 
         {/* Batch Actions */}
-        {selectedLayerIds.size > 0 && (
+        {selectedLayerIds.length > 0 && (
           <div className="bg-[#7d2ae8]/10 border border-[#7d2ae8]/30 rounded-lg p-2 flex items-center justify-between animate-fade-in">
-            <span className="text-xs font-bold text-[#7d2ae8]">{selectedLayerIds.size} selected</span>
+            <span className="text-xs font-bold text-[#7d2ae8]">{selectedLayerIds.length} selected</span>
             <div className="flex gap-1">
               <button
-                onClick={() => onGroup && onGroup()}
+                onClick={() => groupSelected()}
                 className="px-2 py-1 hover:bg-gray-700 rounded text-gray-400 text-[10px] font-bold uppercase"
                 title="Group"
-                disabled={selectedLayerIds.size < 2}
+                disabled={selectedLayerIds.length < 2}
               >
-                Group
+                <Icons.Group className="w-3.5 h-3.5" />
               </button>
               <button
-                onClick={() => onUngroup && onUngroup()}
+                onClick={() => ungroupSelected()}
                 className="px-2 py-1 hover:bg-gray-700 rounded text-gray-400 text-[10px] font-bold uppercase"
                 title="Ungroup"
               >
-                Ungroup
+                <Icons.Ungroup className="w-3.5 h-3.5" />
               </button>
               <div className="w-px h-4 bg-gray-700 mx-1 self-center" />
               <button onClick={() => handleBatchVisibility(true)} className="p-1 hover:bg-gray-700 rounded text-gray-400" title="Show"><Icons.Eye className="w-3.5 h-3.5" /></button>
               <button onClick={() => handleBatchVisibility(false)} className="p-1 hover:bg-gray-700 rounded text-gray-400" title="Hide"><Icons.EyeOff className="w-3.5 h-3.5" /></button>
               <button onClick={() => handleBatchLock(true)} className="p-1 hover:bg-gray-700 rounded text-gray-400" title="Lock"><Icons.Lock className="w-3.5 h-3.5" /></button>
-              <button onClick={handleBatchDelete} className="p-1 hover:bg-red-900/30 rounded text-gray-400 hover:text-red-400" title="Delete"><Icons.Trash className="w-3.5 h-3.5" /></button>
+              <button onClick={() => deleteSelected()} className="p-1 hover:bg-red-900/30 rounded text-gray-400 hover:text-red-400" title="Delete"><Icons.Trash className="w-3.5 h-3.5" /></button>
             </div>
           </div>
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
-        {/* Empty State */}
+      <div
+        className="flex-1 overflow-y-auto custom-scrollbar"
+        onScroll={(e) => {
+          const target = e.currentTarget;
+          setScrollTop(target.scrollTop);
+          setContainerHeight(target.clientHeight);
+        }}
+        onDragOver={(e) => e.preventDefault()} // Enable drop zone
+      >
         {displayLayers.length === 0 && (
           <div className="flex flex-col items-center justify-center mt-20 opacity-30 gap-2">
             <Icons.Layers className="w-10 h-10 text-gray-500" />
@@ -497,30 +534,53 @@ export const LayersPanel = React.memo(({
           </div>
         )}
 
-        {/* Layers List */}
-        <div className="bg-[#13161a]">
-          {displayLayers.map((layer, index) => {
-            const { isGrouped, isGroupStart, isGroupEnd } = getGroupStatus(layer, index, displayLayers);
-            return (
-              <LayerItem
-                key={layer.id}
-                layer={layer}
-                isSelected={selectedLayerId === layer.id}
-                isMultiSelected={selectedLayerIds.has(layer.id)}
-                isGrouped={isGrouped}
-                isGroupStart={isGroupStart}
-                isGroupEnd={isGroupEnd}
-                onSelect={() => onSelectLayer(layer.id)}
-                onSelectMultiple={(e) => handleSelectMultiple(layer.id, e)}
-                onUpdate={(c) => dispatchUpdate(layer.id, c, layer.type)}
-                onDelete={() => onDeleteLayer(layer.id)}
-                onDuplicate={() => onDuplicateLayer(layer.id)}
-                onMove={(dir) => onMoveLayer(layer.id, dir)}
-                onCopy={() => onCopyLayer && onCopyLayer(layer.id)}
-              />
-            );
-          })}
-        </div>
+        {displayLayers.length > 0 && (
+          <div
+            style={{
+              height: `${totalHeight}px`,
+              position: 'relative',
+              backgroundColor: '#13161a'
+            }}
+          >
+            {visibleLayers.map((layerInfo) => {
+              const { layer, index, offset } = layerInfo;
+              const { isGrouped, isGroupStart, isGroupEnd } = getGroupStatus(layer, index, displayLayers);
+              const isSelected = selectedLayerIds.includes(layer.id);
+              const isMultiSelected = selectedLayerIds.includes(layer.id);
+
+              return (
+                <div
+                  key={layer.id}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    transform: `translateY(${offset}px)`
+                  }}
+                >
+                  <LayerItem
+                    layer={layer}
+                    index={index}
+                    isSelected={selectedLayerId === layer.id}
+                    isMultiSelected={isMultiSelected}
+                    isGrouped={isGrouped}
+                    isGroupStart={isGroupStart}
+                    isGroupEnd={isGroupEnd}
+                    onSelect={() => selectLayer(layer.id)}
+                    onSelectMultiple={(e) => handleSelectMultiple(layer.id, e)}
+                    onUpdate={(c) => updateLayer(layer.id, c)}
+                    onDelete={() => deleteLayer(layer.id)}
+                    onDuplicate={() => duplicateLayer(layer.id)}
+                    onMove={(dir) => moveLayer(layer.id, dir)}
+                    onCopy={() => copyLayer(layer.id)}
+                    onDrop={handleDrop}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

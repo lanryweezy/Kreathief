@@ -3,12 +3,8 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Icons, FONT_FAMILIES } from '../../constants';
 import { TextLayer } from '../../types';
 import * as geminiService from '../../services/geminiService';
-import { loadFont } from '../../services/FontLoader';
-
-interface TextPanelProps {
-  onAddText: (style: Partial<TextLayer>) => void;
-  onHoverFont?: (fontFamily: string | null) => void;
-}
+import { loadFont, registerCustomFont } from '../../services/FontLoader';
+import { useStore } from '../../store/useStore';
 
 const FONT_CATEGORIES = {
   'Sans Serif': ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Raleway', 'Oswald', 'Quicksand', 'Nunito', 'Ubuntu', 'Rubik', 'Mukta', 'Kanit', 'Barlow', 'Heebo', 'Work Sans', 'Dosis', 'PT Sans', 'Source Sans 3', 'Public Sans', 'Manrope', 'Cairo', 'Hind', 'Oxygen', 'Sarabun', 'Signika', 'Teko', 'Titillium Web', 'Varela Round', 'Josefin Sans', 'Exo 2', 'Arimo', 'Asap', 'Cabin', 'Catamaran', 'Space Grotesk', 'DM Sans'],
@@ -79,13 +75,19 @@ const FontPreviewItem = ({
   );
 };
 
-export const TextPanel: React.FC<TextPanelProps> = ({ onAddText, onHoverFont }) => {
+export const TextPanel: React.FC = () => {
+  const addTextLayer = useStore(state => state.addTextLayer);
+  const setPreviewFontFamily = useStore(state => state.setPreviewFontFamily);
+  const customFonts = useStore(state => state.customFonts);
+  const addCustomFont = useStore(state => state.addCustomFont);
+
   const [fontSearch, setFontSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [recentFonts, setRecentFonts] = useState<string[]>([]);
   const [textGenPrompt, setTextGenPrompt] = useState('');
   const [textGenResults, setTextGenResults] = useState<string[]>([]);
   const [isGeneratingText, setIsGeneratingText] = useState(false);
+  const fontInputRef = useRef<HTMLInputElement>(null);
 
   // Load recent fonts from localStorage on mount
   useEffect(() => {
@@ -100,7 +102,7 @@ export const TextPanel: React.FC<TextPanelProps> = ({ onAddText, onHoverFont }) 
   }, []);
 
   const handleAddText = (style: Partial<TextLayer>) => {
-    onAddText(style);
+    addTextLayer(style);
     if (style.fontFamily) {
       setRecentFonts(prev => {
         // Remove if exists to bubble to top
@@ -127,14 +129,30 @@ export const TextPanel: React.FC<TextPanelProps> = ({ onAddText, onHoverFont }) 
   };
 
   const filteredFonts = useMemo(() => {
+    if (activeCategory === 'My Fonts') return customFonts;
     let fonts = activeCategory === 'All' ? ALL_FONTS : (FONT_CATEGORIES as any)[activeCategory] || [];
     if (fontSearch) {
       fonts = fonts.filter((f: string) => f.toLowerCase().includes(fontSearch.toLowerCase()));
     }
     return fonts;
-  }, [activeCategory, fontSearch]);
+  }, [activeCategory, fontSearch, customFonts]);
 
-  const categories = ['All', ...Object.keys(FONT_CATEGORIES)];
+  const categories = ['All', 'My Fonts', ...Object.keys(FONT_CATEGORIES)];
+
+  const handleFontUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const fontName = file.name.split('.')[0].replace(/[^a-zA-Z0-9 ]/g, '');
+      await registerCustomFont(fontName, arrayBuffer);
+      addCustomFont(fontName);
+    } catch (err) {
+      console.error("Font upload failed", err);
+      alert("Font upload failed.");
+    }
+  };
 
   return (
     <div className="flex flex-col h-full bg-[#13161a] p-4 overflow-y-auto custom-scrollbar">
@@ -142,6 +160,28 @@ export const TextPanel: React.FC<TextPanelProps> = ({ onAddText, onHoverFont }) 
         <Icons.Text className="w-5 h-5 text-[#7d2ae8]" />
         Typography
       </h3>
+
+      {/* Standard Text Buttons */}
+      <div className="flex flex-col gap-2 mb-6">
+        <button
+          onClick={() => handleAddText({ text: 'Heading', fontSize: 62, fontWeight: '800' })}
+          className="w-full py-3 bg-[#252627] hover:bg-[#333] border border-gray-700 hover:border-gray-500 rounded-lg text-left px-4 transition-colors"
+        >
+          <span className="text-2xl font-extrabold text-white">Add a heading</span>
+        </button>
+        <button
+          onClick={() => handleAddText({ text: 'Subheading', fontSize: 38, fontWeight: '600' })}
+          className="w-full py-2.5 bg-[#252627] hover:bg-[#333] border border-gray-700 hover:border-gray-500 rounded-lg text-left px-4 transition-colors"
+        >
+          <span className="text-lg font-semibold text-gray-200">Add a subheading</span>
+        </button>
+        <button
+          onClick={() => handleAddText({ text: 'Body text', fontSize: 24, fontWeight: '400' })}
+          className="w-full py-2 bg-[#252627] hover:bg-[#333] border border-gray-700 hover:border-gray-500 rounded-lg text-left px-4 transition-colors"
+        >
+          <span className="text-sm text-gray-300">Add a little bit of body text</span>
+        </button>
+      </div>
 
       {/* Magic Writer */}
       <div className="mb-6 bg-gradient-to-r from-purple-900/20 to-blue-900/20 p-4 rounded-lg border border-purple-500/30">
@@ -182,7 +222,6 @@ export const TextPanel: React.FC<TextPanelProps> = ({ onAddText, onHoverFont }) 
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 pb-10">
-
         {/* Text Presets Grid */}
         <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Text Effects</h4>
         <div className="grid grid-cols-2 gap-2 mb-6">
@@ -245,19 +284,42 @@ export const TextPanel: React.FC<TextPanelProps> = ({ onAddText, onHoverFont }) 
           </div>
         </div>
 
-        {/* Search */}
-        <div className="mb-4 sticky top-0 bg-[#13161a] z-10 pb-2">
-          <div className="relative">
+        {/* My Fonts Section */}
+        {activeCategory === 'My Fonts' && (
+          <div className="mb-6">
+            <button
+              onClick={() => fontInputRef.current?.click()}
+              className="w-full py-4 border-2 border-dashed border-gray-700 rounded-xl hover:border-purple-500 transition-colors flex flex-col items-center justify-center gap-2 mb-4 bg-purple-500/5"
+            >
+              <Icons.Uploads className="w-6 h-6 text-purple-400" />
+              <div className="text-center">
+                <span className="text-xs font-bold text-white block">Upload Custom Font</span>
+                <span className="text-[9px] text-gray-500">Supports OTF, TTF, WOFF</span>
+              </div>
+            </button>
             <input
-              type="text"
-              placeholder="Search fonts..."
-              className="w-full bg-[#0e1318] border border-gray-700 rounded-lg pl-8 pr-2 py-2 text-xs text-white focus:outline-none focus:border-[#7d2ae8] focus:ring-1 focus:ring-[#7d2ae8]"
-              value={fontSearch}
-              onChange={(e) => setFontSearch(e.target.value)}
+              type="file"
+              ref={fontInputRef}
+              className="hidden"
+              accept=".otf,.ttf,.woff,.woff2"
+              onChange={handleFontUpload}
             />
-            <Icons.Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+            <div className="flex flex-col gap-2">
+              {customFonts.map(font => (
+                <FontPreviewItem
+                  key={`custom-${font}`}
+                  font={font}
+                  text={font}
+                  onClick={() => handleAddText({ text: 'Your Text', fontFamily: font, fontSize: 32 })}
+                  onHover={(f) => setPreviewFontFamily(f)}
+                />
+              ))}
+              {customFonts.length === 0 && (
+                <p className="text-[10px] text-gray-600 text-center py-8">You haven't uploaded any custom fonts yet.</p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Recent Fonts */}
         {recentFonts.length > 0 && !fontSearch && activeCategory === 'All' && (
@@ -268,9 +330,9 @@ export const TextPanel: React.FC<TextPanelProps> = ({ onAddText, onHoverFont }) 
                 <FontPreviewItem
                   key={`recent-${font}`}
                   font={font}
-                  text="Recently Used"
+                  text={font}
                   onClick={() => handleAddText({ text: 'Your Text', fontFamily: font, fontSize: 32 })}
-                  onHover={(f) => onHoverFont && onHoverFont(f)}
+                  onHover={(f) => setPreviewFontFamily(f)}
                 />
               ))}
             </div>
@@ -285,9 +347,9 @@ export const TextPanel: React.FC<TextPanelProps> = ({ onAddText, onHoverFont }) 
               <FontPreviewItem
                 key={font}
                 font={font}
-                text="The quick brown fox"
+                text={font}
                 onClick={() => handleAddText({ text: 'Your Text', fontFamily: font, fontSize: 32 })}
-                onHover={(f) => onHoverFont && onHoverFont(f)}
+                onHover={(f) => setPreviewFontFamily(f)}
               />
             ))
           ) : (
@@ -300,4 +362,3 @@ export const TextPanel: React.FC<TextPanelProps> = ({ onAddText, onHoverFont }) 
     </div>
   );
 };
-

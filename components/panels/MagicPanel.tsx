@@ -5,40 +5,31 @@ import { Icons } from '../../constants';
 import { Button } from '../Button';
 import * as geminiService from '../../services/geminiService';
 
+import { useStore } from '../../store/useStore';
+
 interface MagicPanelProps {
-  mode: AppMode;
-  prompt: string;
-  setPrompt: (s: string) => void;
-  aspectRatio: AspectRatio;
-  setAspectRatio: (a: AspectRatio) => void;
   onGenerate: () => void;
-  isProcessing: boolean;
-  onSetMode: (m: AppMode) => void;
   uploadedImage: string | null;
   fileInputRef: RefObject<HTMLInputElement>;
-  selectedLayerId: string | null;
-  imageLayers: ImageLayer[];
-  onUpdateImageLayer: (id: string, changes: Partial<ImageLayer>) => void;
-  quality: GenerationQuality;
-  setQuality: (q: GenerationQuality) => void;
 }
 
 export const MagicPanel: React.FC<MagicPanelProps> = ({
-  mode,
-  prompt,
-  setPrompt,
-  aspectRatio,
-  setAspectRatio,
   onGenerate,
-  isProcessing,
-  onSetMode,
   uploadedImage,
-  fileInputRef,
-  selectedLayerId,
-  imageLayers,
-  quality,
-  setQuality
+  fileInputRef
 }) => {
+  const {
+    mode, setMode: onSetMode,
+    prompt, setPrompt,
+    aspectRatio, setAspectRatio,
+    isProcessing,
+    quality, setQuality,
+    selectedLayerIds,
+    imageLayers,
+    updateLayer
+  } = useStore();
+
+  const selectedLayerId = selectedLayerIds[selectedLayerIds.length - 1] || null;
 
   const [isEnhancing, setIsEnhancing] = useState(false);
 

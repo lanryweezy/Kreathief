@@ -1,0 +1,11 @@
+components/panels/TextPanel.tsx(9,7): error TS2451: Cannot redeclare block-scoped variable 'FONT_CATEGORIES'.
+components/panels/TextPanel.tsx(18,7): error TS2451: Cannot redeclare block-scoped variable 'ALL_FONTS'.
+components/panels/TextPanel.tsx(20,7): error TS2451: Cannot redeclare block-scoped variable 'FontPreviewItem'.
+components/panels/TextPanel.tsx(78,14): error TS2451: Cannot redeclare block-scoped variable 'TextPanel'.
+components/panels/TextPanel.tsx(344,7): error TS2451: Cannot redeclare block-scoped variable 'FONT_CATEGORIES'.
+components/panels/TextPanel.tsx(353,7): error TS2451: Cannot redeclare block-scoped variable 'ALL_FONTS'.
+components/panels/TextPanel.tsx(355,7): error TS2451: Cannot redeclare block-scoped variable 'FontPreviewItem'.
+components/panels/TextPanel.tsx(413,14): error TS2451: Cannot redeclare block-scoped variable 'TextPanel'.
+components/panels/TextPanel.tsx(413,34): error TS2304: Cannot find name 'TextPanelProps'.
+components/panels/TextPanel.tsx(614,32): error TS7006: Parameter 'font' implicitly has an 'any' type.
+store/useStore.ts(214,13): error TS2741: Property 'hueRotate' is missing in type '{ brightness: number; contrast: number; saturation: number; sepia: number; grayscale: number; blur: number; opacity: number; vignette: number; overlayTexture?: string; }' but required in type 'LayerFilters'.

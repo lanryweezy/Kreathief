@@ -4,15 +4,17 @@ import { Button } from '../Button';
 
 interface ExportModalProps {
     onClose: () => void;
-    onExport: (format: 'png' | 'jpeg' | 'webp' | 'pdf', quality: number, size?: { width: number, height: number }) => Promise<void>;
+    onExport: (format: 'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd', quality: number, size?: { width: number, height: number }) => Promise<void>;
     currentSize: { width: number, height: number, name: string };
 }
 
 export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, currentSize }) => {
-    const [format, setFormat] = useState<'png' | 'jpeg' | 'webp' | 'pdf'>('png');
+    const [format, setFormat] = useState<'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd'>('png');
     const [quality, setQuality] = useState(0.95);
     const [activePreset, setActivePreset] = useState<string>('current');
     const [isExporting, setIsExporting] = useState(false);
+    const [exportStage, setExportStage] = useState<string>('');
+    const [highDPI, setHighDPI] = useState(false);
 
     const presets = [
         { id: 'current', name: `Current (${currentSize.width}x${currentSize.height})`, width: currentSize.width, height: currentSize.height },
@@ -26,13 +28,25 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, cur
 
     const handleExportClick = async () => {
         setIsExporting(true);
+        setExportStage('Preparing assets...');
+
         try {
             const preset = presets.find(p => p.id === activePreset);
-            await onExport(format, quality, preset ? { width: preset.width, height: preset.height } : undefined);
-            onClose();
+            const scale = highDPI ? 3 : 1;
+            const size = preset ? { width: preset.width * scale, height: preset.height * scale } : { width: currentSize.width * scale, height: currentSize.height * scale };
+
+            setExportStage('Rendering design...');
+            // Artificially delay slightly for UX if it's too fast (gives a sense of work being done)
+            await new Promise(r => setTimeout(r, 500));
+
+            await onExport(format, quality, size);
+
+            setExportStage('Complete!');
+            setTimeout(() => onClose(), 300);
         } catch (e) {
             console.error(e);
             alert("Export failed. Please try again.");
+            setExportStage('');
         } finally {
             setIsExporting(false);
         }
@@ -69,8 +83,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, cur
                         {/* Format Selection */}
                         <div>
                             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 block">Format</label>
-                            <div className="grid grid-cols-4 gap-2">
-                                {(['png', 'jpeg', 'webp', 'pdf'] as const).map((f) => (
+                            <div className="grid grid-cols-3 gap-2">
+                                {(['png', 'jpeg', 'webp', 'svg', 'pdf', 'psd'] as const).map((f) => (
                                     <button
                                         key={f}
                                         onClick={() => setFormat(f)}
@@ -82,8 +96,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, cur
                             </div>
                         </div>
 
-                        {/* Quality Slider (not for PDF) */}
-                        {format !== 'pdf' && (
+                        {/* Quality Slider */}
+                        {true && (
                             <div>
                                 <div className="flex justify-between items-center mb-2">
                                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Quality</label>
@@ -97,6 +111,20 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, cur
                                 />
                             </div>
                         )}
+
+                        {/* High DPI Toggle */}
+                        <div className="flex items-center justify-between p-4 bg-[#13161a] border border-gray-700 rounded-xl">
+                            <div>
+                                <h4 className="text-xs font-bold text-white mb-0.5">High Fidelity (300 DPI)</h4>
+                                <p className="text-[10px] text-gray-500 italic">Best for printing. Increases file size.</p>
+                            </div>
+                            <button
+                                onClick={() => setHighDPI(!highDPI)}
+                                className={`w-10 h-5 rounded-full transition-all relative ${highDPI ? 'bg-emerald-500' : 'bg-gray-700'}`}
+                            >
+                                <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${highDPI ? 'left-6' : 'left-1'}`} />
+                            </button>
+                        </div>
 
                         {/* Presets */}
                         <div>
@@ -119,12 +147,23 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, cur
                         <button
                             onClick={handleExportClick}
                             disabled={isExporting}
-                            className="w-full py-4 bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] text-white rounded-xl font-bold shadow-lg shadow-purple-900/40 transform hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-4"
+                            className={`w-full py-4 rounded-xl font-bold shadow-lg transform transition-all flex flex-col items-center justify-center gap-1 mt-4 ${isExporting ? 'bg-gray-800' : 'bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] hover:scale-[1.02] active:scale-[0.98] shadow-purple-900/40'}`}
                         >
                             {isExporting ? (
-                                <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                                <>
+                                    <div className="flex items-center gap-2">
+                                        <div className="animate-spin w-4 h-4 border-2 border-[#00c4cc] border-t-transparent rounded-full"></div>
+                                        <span className="text-sm font-black uppercase tracking-widest text-[#00c4cc]">{exportStage}</span>
+                                    </div>
+                                    <div className="w-48 h-1 bg-gray-700 rounded-full mt-2 overflow-hidden">
+                                        <div className="h-full bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] animate-progress-ind"></div>
+                                    </div>
+                                </>
                             ) : (
-                                <>Download {format.toUpperCase()} <Icons.Download className="w-4 h-4" /></>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm">Download {format.toUpperCase()}</span>
+                                    <Icons.Download className="w-4 h-4" />
+                                </div>
                             )}
                         </button>
                     </div>

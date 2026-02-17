@@ -3,17 +3,19 @@ import React, { useState, useEffect } from 'react';
 import { Icons } from '../../constants';
 import { BrushType } from '../../types';
 
+import { useStore } from '../../store/useStore';
+
 interface DrawPanelProps {
   brushColor: string;
-  setBrushColor: (c: string) => void;
+  setBrushColor: (color: string) => void;
   brushSize: number;
-  setBrushSize: (s: number) => void;
+  setBrushSize: (size: number) => void;
   isDrawing: boolean;
-  setIsDrawing: (b: boolean) => void;
+  setIsDrawing: (is: boolean) => void;
   brushOpacity: number;
-  setBrushOpacity: (o: number) => void;
+  setBrushOpacity: (opacity: number) => void;
   brushType: BrushType;
-  setBrushType: (t: BrushType) => void;
+  setBrushType: (type: BrushType) => void;
   onFinishDrawing: () => void;
 }
 
@@ -25,6 +27,8 @@ const BRUSH_PREVIEWS: Record<string, React.ReactNode> = {
   [BrushType.PENCIL]: <path d="M5 25 Q 50 5 95 25" stroke="currentColor" strokeWidth="1" fill="none" />,
   [BrushType.WATERCOLOR]: <path d="M5 25 Q 50 5 95 25" stroke="currentColor" strokeWidth="8" strokeOpacity="0.5" fill="none" filter="url(#watercolorFilter)" />,
   [BrushType.VECTOR_PENCIL]: <path d="M5 25 L 30 15 L 60 30 L 95 25" stroke="currentColor" strokeWidth="2" fill="none" />,
+  [BrushType.SPLATTER]: <g><circle cx="20" cy="20" r="4" fill="currentColor" /><circle cx="50" cy="30" r="2" fill="currentColor" /><circle cx="80" cy="15" r="3" fill="currentColor" /><circle cx="40" cy="10" r="1.5" fill="currentColor" /><circle cx="70" cy="40" r="2.5" fill="currentColor" /></g>,
+  [BrushType.TEXTURE]: <rect x="0" y="0" width="100" height="50" fill="currentColor" fillOpacity="0.2" filter="url(#oilFilter)" />,
 };
 
 export const DrawPanel: React.FC<DrawPanelProps> = ({
@@ -105,6 +109,8 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
             { id: BrushType.PENCIL, name: 'Pencil' },
             { id: BrushType.WATERCOLOR, name: 'Watercolor' },
             { id: BrushType.VECTOR_PENCIL, name: 'Vector Pen' },
+            { id: BrushType.SPLATTER, name: 'Splatter' },
+            { id: BrushType.TEXTURE, name: 'Texture' },
           ].map(type => (
             <button
               key={type.id}

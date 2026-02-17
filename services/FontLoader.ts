@@ -4,9 +4,11 @@
  */
 
 import { logger } from './logger';
+import { storageService } from './storageService';
 
 // Cache of loaded fonts
 const loadedFonts = new Set<string>();
+const customFonts = new Set<string>();
 
 // Preloaded common fonts (loaded immediately)
 const PRELOAD_FONTS = ['Inter', 'Space Grotesk'];
@@ -85,6 +87,64 @@ export async function loadFont(fontFamily: string): Promise<boolean> {
 }
 
 /**
+ * Register a custom font file (OTF, TTF, WOFF)
+ */
+export async function registerCustomFont(name: string, data: string | ArrayBuffer, saveToStorage = true): Promise<boolean> {
+    try {
+        const fontData = typeof data === 'string' ? data : await blobToBase64(new Blob([data]));
+        const fontFace = new FontFace(name, `url(${fontData})`);
+        const loadedFace = await fontFace.load();
+        (document.fonts as any).add(loadedFace);
+
+        customFonts.add(name);
+        loadedFonts.add(name);
+
+        if (saveToStorage) {
+            const saved = await storageService.getSetting<{ name: string, data: string }[]>('kreathief_custom_fonts', []);
+            if (!saved.find(f => f.name === name)) {
+                await storageService.setSetting('kreathief_custom_fonts', [...saved, { name, data: fontData }]);
+            }
+        }
+
+        logger.info(`Custom font registered: ${name}`);
+        return true;
+    } catch (error) {
+        logger.error(`Failed to register custom font: ${name}`, { error });
+        return false;
+    }
+}
+
+/**
+ * Initialize custom fonts from storage
+ */
+export async function initCustomFonts(): Promise<void> {
+    try {
+        const saved = await storageService.getSetting<{ name: string, data: string }[]>('kreathief_custom_fonts', []);
+        logger.info(`Initializing ${saved.length} custom fonts from storage`);
+        for (const font of saved) {
+            await registerCustomFont(font.name, font.data, false);
+        }
+    } catch (error) {
+        logger.error('Failed to initialize custom fonts', { error });
+    }
+}
+
+function blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(blob);
+    });
+}
+
+/**
+ * Get all available fonts including custom ones
+ */
+export function getAllAvailableFonts(): string[] {
+    return [...AVAILABLE_FONTS, ...Array.from(customFonts)].sort();
+}
+
+/**
  * Load multiple fonts at once
  */
 export async function loadFonts(fontFamilies: string[]): Promise<void> {
@@ -117,4 +177,5 @@ export function preloadEssentialFonts(): void {
 if (typeof window !== 'undefined') {
     // Only preload essential fonts, not all fonts
     preloadEssentialFonts();
+    initCustomFonts();
 }

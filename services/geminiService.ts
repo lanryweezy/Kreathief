@@ -573,3 +573,104 @@ export const generatePaletteFromImage = async (base64Image: string): Promise<str
   }
 };
 
+export const vectorizeImage = async (
+  base64Image: string,
+  colors: number = 4
+): Promise<Array<{ path: string, color: string }>> => {
+  try {
+    const ai = getClient();
+    const model = ai.getGenerativeModel({
+      model: MODEL_FAST,
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              path: { type: SchemaType.STRING, description: "SVG path 'd' attribute" },
+              color: { type: SchemaType.STRING, description: "Hex color code" }
+            },
+            required: ["path", "color"]
+          }
+        }
+      }
+    });
+
+    const { data, mimeType } = cleanBase64(base64Image);
+    const prompt = `Convert this image into a clean, minimal vector graphic with exactly ${colors} main colors.
+    Identify the main shapes and represent each as a high-quality SVG path 'd' attribute.
+    Group similar colors together. Return as a JSON array of objects with 'path' and 'color'.
+    Assume a viewBox of 0 0 100 100. Be precise with the paths.`;
+
+    const result = await model.generateContent([
+      prompt,
+      { inlineData: { data, mimeType } }
+    ]);
+
+    const text = result.response.text();
+    return JSON.parse(text || '[]');
+  } catch (error) {
+    console.error("Vectorization failed", error);
+    throw error;
+  }
+};
+export const generateAIVector = async (
+  prompt: string
+): Promise<Array<{ path: string, color: string }>> => {
+  try {
+    const ai = getClient();
+    const model = ai.getGenerativeModel({
+      model: MODEL_FAST,
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              path: { type: SchemaType.STRING, description: "SVG path 'd' attribute" },
+              color: { type: SchemaType.STRING, description: "Hex color code" }
+            },
+            required: ["path", "color"]
+          }
+        }
+      }
+    });
+
+    const systemPrompt = `You are a professional vector artist. Generate a clean, high-quality vector graphic based on the prompt. Represent the graphic as multiple SVG path 'd' attributes with corresponding hex colors. 
+    Assume a viewBox of 0 0 100 100. Be precise and creative. Return as a JSON array of objects.`;
+
+    const result = await model.generateContent(`${systemPrompt}\n\nPrompt: ${prompt}`);
+    const text = result.response.text();
+    return JSON.parse(text || '[]');
+  } catch (error) {
+    console.error("AI Vector Generation failed", error);
+    throw error;
+  }
+};
+
+export const upscaleImage = async (
+  base64Image: string
+): Promise<string> => {
+  return editImage(base64Image, "Upscale this image provided to high resolution, enhancing details and textures while maintaining the original composition. Enhance every pixel.");
+};
+
+export const enhanceImage = async (
+  base64Image: string
+): Promise<string> => {
+  return editImage(base64Image, "Automatically color correct this photo. Balance exposure, adjust highlights and shadows, and enhance the colors to make it look professional.");
+};
+
+export const eraseObject = async (
+  base64ImageWithMask: string, // Expecting the image with the "highlight" or just the subject to remove
+  prompt: string = "Remove the highlighted object naturally and fill the space with matching background."
+): Promise<string> => {
+  return editImage(base64ImageWithMask, prompt);
+};
+
+export const retouchImage = async (
+  base64Image: string
+): Promise<string> => {
+  return editImage(base64Image, "Retouch this portrait. Whiten teeth, remove blemishes, and smooth skin while maintaining a natural look.");
+};

@@ -85,25 +85,36 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
 
       {isOpen && (
         <div className="absolute top-full left-0 mt-2 bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-2xl p-3 z-50 w-64 animate-fadeIn">
-          {/* Hex Input & Native Picker */}
+          {/* No Fill & Hex Input */}
           <div className="flex items-center gap-2 mb-4">
-            <div className="relative flex-1">
+            <button
+              onClick={() => { onChange('transparent'); setHexInput('transparent'); }}
+              className={`flex-1 h-9 rounded border flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${value === 'transparent' ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white shadow-lg' : 'bg-black/40 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}
+              title="No Fill"
+            >
+              <Icons.Slash className="w-3 h-3" />
+              None
+            </button>
+            <div className="relative flex-[1.5]">
               <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs">#</span>
               <input
                 type="text"
-                value={hexInput.replace('#', '')}
+                value={hexInput === 'transparent' ? '' : hexInput.replace('#', '')}
                 onChange={(e) => handleHexChange({ ...e, target: { ...e.target, value: '#' + e.target.value } })}
-                className="w-full bg-[#252627] border border-gray-600 rounded pl-5 pr-2 py-1.5 text-xs text-white uppercase focus:border-[#7d2ae8] outline-none font-mono"
+                placeholder="HEX"
+                className="w-full bg-[#252627] border border-gray-600 rounded pl-5 pr-2 py-2 text-xs text-white uppercase focus:border-[#7d2ae8] outline-none font-mono"
               />
             </div>
-            <div className="w-8 h-8 rounded border border-gray-600 relative overflow-hidden">
+            <div className="w-9 h-9 rounded border border-gray-600 relative overflow-hidden group">
               <input
                 type="color"
-                value={value}
+                value={value === 'transparent' ? '#ffffff' : value}
                 onChange={(e) => { onChange(e.target.value); setHexInput(e.target.value); addToRecent(e.target.value); }}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
-              <div className="w-full h-full" style={{ backgroundColor: value }} />
+              <div className="w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPjxyZWN0IHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiM0NDQiLz48cGF0aCBkPSJNMCAwSDRWNEgwem00IDhIOFY0SDR6IiBmaWxsPSIjNTU1Ii8+PC9zdmc+')]">
+                <div className="w-full h-full" style={{ backgroundColor: value === 'transparent' ? 'transparent' : value }} />
+              </div>
             </div>
           </div>
 

@@ -20,7 +20,8 @@ const baseState = (size: CanvasSize): Omit<HistoryState, 'canvasSize'> => ({
     opacity: 1,
     vignette: 0,
     sepia: 0,
-    grayscale: 0
+    grayscale: 0,
+    hueRotate: 0
   }
 });
 
@@ -133,7 +134,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           locked: false, visible: true, skewX: 0, skewY: 0
         },
         {
-          id: 'ig_tag', type: 'text', name: 'Tag',
+          id: 'ig_tag', type: 'text', height: 50, name: 'Tag',
           text: '✦ NEW DROP', x: 110, y: 130, width: 180, rotation: 0,
           fontSize: 18, fontWeight: '800', fontStyle: 'normal', textDecoration: 'none',
           color: '#022c22', fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -142,7 +143,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0, skewX: 0, skewY: 0
         },
         {
-          id: 'ig_title', type: 'text', name: 'Title',
+          id: 'ig_title', type: 'text', height: 50, name: 'Title',
           text: 'Make scroll‑stopping\ncontent in minutes', x: 90, y: 210, width: 650, rotation: 0,
           fontSize: 72, fontWeight: '900', fontStyle: 'normal', textDecoration: 'none',
           color: '#ffffff', fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -151,7 +152,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0, skewX: 0, skewY: 0
         },
         {
-          id: 'ig_body', type: 'text', name: 'Body',
+          id: 'ig_body', type: 'text', height: 50, name: 'Body',
           text: 'Swap your colors, text, and images.\nPerfect for product drops and promos.', x: 90, y: 480, width: 650, rotation: 0,
           fontSize: 22, fontWeight: '400', fontStyle: 'normal', textDecoration: 'none',
           color: '#a0a8b0', fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -160,7 +161,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0, skewX: 0, skewY: 0
         },
         {
-          id: 'ig_cta_text', type: 'text', name: 'CTA Text',
+          id: 'ig_cta_text', type: 'text', height: 50, name: 'CTA Text',
           text: 'Start Creating →', x: 110, y: 680, width: 280, rotation: 0,
           fontSize: 20, fontWeight: '800', fontStyle: 'normal', textDecoration: 'none',
           color: '#022c22', fontFamily: 'Inter, sans-serif', textAlign: 'center',
@@ -169,7 +170,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0, skewX: 0, skewY: 0
         },
         {
-          id: 'ig_handle', type: 'text', name: 'Handle',
+          id: 'ig_handle', type: 'text', height: 50, name: 'Handle',
           text: '@yourbrand', x: 90, y: 890, width: 300, rotation: 0,
           fontSize: 24, fontWeight: '700', fontStyle: 'normal', textDecoration: 'none',
           color: '#ffffff', fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -178,7 +179,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0, skewX: 0, skewY: 0
         },
         {
-          id: 'ig_tagline', type: 'text', name: 'Tagline',
+          id: 'ig_tagline', type: 'text', height: 50, name: 'Tagline',
           text: 'Design that converts. Every single time.', x: 90, y: 960, width: 600, rotation: 0,
           fontSize: 17, fontWeight: '400', fontStyle: 'normal', textDecoration: 'none',
           color: '#6b7280', fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -299,7 +300,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'story_kicker',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Kicker',
           text: '✦ TUTORIAL',
           x: 80,
@@ -326,7 +327,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'story_title',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Title',
           text: 'Design thumbnails\npeople actually click',
           x: 80,
@@ -353,7 +354,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'story_subtitle',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Subtitle',
           text: 'In just 5 minutes',
           x: 80,
@@ -380,7 +381,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'story_footer',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Footer',
           text: 'Add your handle or CTA here',
           x: 100,
@@ -407,7 +408,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'story_footer_sub',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Footer Sub',
           text: 'Tap to learn more →',
           x: 100,
@@ -534,7 +535,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           locked: false, visible: true, skewX: 0, skewY: 0
         },
         {
-          id: 'yt_tag', type: 'text', name: 'Tag',
+          id: 'yt_tag', type: 'text', height: 50, name: 'Tag',
           text: '✦ DESIGN GUIDE', x: 620, y: 100, width: 450, rotation: 0,
           fontSize: 26, fontWeight: '800', fontStyle: 'normal', textDecoration: 'none',
           color: '#ef4444', fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -543,7 +544,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0, skewX: 0, skewY: 0
         },
         {
-          id: 'yt_title', type: 'text', name: 'Title',
+          id: 'yt_title', type: 'text', height: 50, name: 'Title',
           text: 'From blank\ncanvas to\nviral design', x: 620, y: 170, width: 620, rotation: 0,
           fontSize: 80, fontWeight: '900', fontStyle: 'normal', textDecoration: 'none',
           color: '#ffffff', fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -552,7 +553,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0, skewX: 0, skewY: 0
         },
         {
-          id: 'yt_sub', type: 'text', name: 'Subtitle',
+          id: 'yt_sub', type: 'text', height: 50, name: 'Subtitle',
           text: 'Click-worthy designs in 5 min', x: 620, y: 450, width: 550, rotation: 0,
           fontSize: 26, fontWeight: '500', fontStyle: 'normal', textDecoration: 'none',
           color: '#a0a8b0', fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -561,7 +562,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0, skewX: 0, skewY: 0
         },
         {
-          id: 'yt_ep', type: 'text', name: 'Episode',
+          id: 'yt_ep', type: 'text', height: 50, name: 'Episode',
           text: 'EP. 01', x: 650, y: 560, width: 140, rotation: 0,
           fontSize: 24, fontWeight: '900', fontStyle: 'normal', textDecoration: 'none',
           color: '#ffffff', fontFamily: 'Inter, sans-serif', textAlign: 'center',
@@ -570,7 +571,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0, skewX: 0, skewY: 0
         },
         {
-          id: 'yt_drop_hint', type: 'text', name: 'Drop Hint',
+          id: 'yt_drop_hint', type: 'text', height: 50, name: 'Drop Hint',
           text: 'Drop your photo here →', x: 100, y: 340, width: 360, rotation: 0,
           fontSize: 24, fontWeight: '600', fontStyle: 'normal', textDecoration: 'none',
           color: '#4b5563', fontFamily: 'Inter, sans-serif', textAlign: 'center',
@@ -667,7 +668,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'li_kicker',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Kicker',
           text: '✦ INDUSTRY INSIGHTS',
           x: 140,
@@ -694,7 +695,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'li_title',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Title',
           text: '3 ways to ship design assets\nfaster with AI',
           x: 140,
@@ -721,7 +722,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'li_body',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Body',
           text: 'Summarise the key value here in one or two short sentences. Make it compelling and benefit-focused.',
           x: 140,
@@ -748,7 +749,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'li_cta',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'CTA',
           text: 'Learn more →',
           x: 140,
@@ -860,7 +861,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'deck_kicker',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Kicker',
           text: '✦ PRESENTATION',
           x: 160,
@@ -887,7 +888,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'deck_title',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Title',
           text: 'Your next big idea,\nbeautifully presented',
           x: 160,
@@ -914,7 +915,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'deck_subtitle',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Subtitle',
           text: 'Impress your audience with stunning visuals and compelling storytelling',
           x: 160,
@@ -941,7 +942,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'deck_footer',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Footer',
           text: 'Your Company Name',
           x: 160,
@@ -968,7 +969,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'deck_footer_sub',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Footer Sub',
           text: 'Tagline or date here',
           x: 160,
@@ -1096,7 +1097,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'tt_kicker',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Kicker',
           text: '✦ LIMITED TIME',
           x: 100,
@@ -1123,7 +1124,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'tt_headline',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Headline',
           text: '50% OFF TODAY',
           x: 100,
@@ -1150,7 +1151,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'tt_subheadline',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Subheadline',
           text: 'Don\'t miss out!',
           x: 100,
@@ -1177,7 +1178,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'tt_btn_text',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Button Text',
           text: 'SHOP NOW',
           x: 320,
@@ -1297,7 +1298,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'pin_kicker',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Kicker',
           text: '✦ DESIGN TIPS',
           x: 100,
@@ -1324,7 +1325,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'pin_title',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Title',
           text: 'Master the Art of\nMinimalist Design',
           x: 100,
@@ -1351,7 +1352,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'pin_body',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Body',
           text: 'Learn the principles of clean, elegant design that converts and inspires.',
           x: 100,
@@ -1378,7 +1379,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'pin_cta',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'CTA',
           text: 'Learn more →',
           x: 100,
@@ -1486,7 +1487,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           locked: false, visible: true, skewX: 0, skewY: 0
         },
         {
-          id: 'bc_name', type: 'text', name: 'Name',
+          id: 'bc_name', type: 'text', height: 50, name: 'Name',
           text: 'ALEX\nRIVERA', x: 80, y: 260, width: 260, rotation: 0,
           fontSize: 40, fontWeight: '900', fontStyle: 'normal', textDecoration: 'none',
           color: '#f8fafc', fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -1495,7 +1496,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0, skewX: 0, skewY: 0
         },
         {
-          id: 'bc_role', type: 'text', name: 'Role',
+          id: 'bc_role', type: 'text', height: 50, name: 'Role',
           text: 'Creative Director', x: 80, y: 410, width: 260, rotation: 0,
           fontSize: 15, fontWeight: '600', fontStyle: 'normal', textDecoration: 'none',
           color: '#d4a853', fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -1504,7 +1505,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0, skewX: 0, skewY: 0
         },
         {
-          id: 'bc_company', type: 'text', name: 'Company',
+          id: 'bc_company', type: 'text', height: 50, name: 'Company',
           text: 'STUDIO CO.', x: 80, y: 460, width: 260, rotation: 0,
           fontSize: 13, fontWeight: '500', fontStyle: 'normal', textDecoration: 'none',
           color: '#a0a8b0', fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -1513,7 +1514,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0, skewX: 0, skewY: 0
         },
         {
-          id: 'bc_right_name', type: 'text', name: 'Right Name',
+          id: 'bc_right_name', type: 'text', height: 50, name: 'Right Name',
           text: 'Alex Rivera', x: 460, y: 100, width: 540, rotation: 0,
           fontSize: 32, fontWeight: '800', fontStyle: 'normal', textDecoration: 'none',
           color: '#0f172a', fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -1522,7 +1523,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0, skewX: 0, skewY: 0
         },
         {
-          id: 'bc_right_title', type: 'text', name: 'Right Title',
+          id: 'bc_right_title', type: 'text', height: 50, name: 'Right Title',
           text: 'Creative Director — Studio Co.', x: 460, y: 150, width: 540, rotation: 0,
           fontSize: 15, fontWeight: '500', fontStyle: 'normal', textDecoration: 'none',
           color: '#6b7280', fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -1531,7 +1532,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0, skewX: 0, skewY: 0
         },
         {
-          id: 'bc_email', type: 'text', name: 'Email',
+          id: 'bc_email', type: 'text', height: 50, name: 'Email',
           text: '✉  alex@studio.co', x: 460, y: 240, width: 540, rotation: 0,
           fontSize: 16, fontWeight: '600', fontStyle: 'normal', textDecoration: 'none',
           color: '#334155', fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -1540,7 +1541,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0, skewX: 0, skewY: 0
         },
         {
-          id: 'bc_phone', type: 'text', name: 'Phone',
+          id: 'bc_phone', type: 'text', height: 50, name: 'Phone',
           text: '☎  +1 (555) 012-3456', x: 460, y: 280, width: 540, rotation: 0,
           fontSize: 16, fontWeight: '600', fontStyle: 'normal', textDecoration: 'none',
           color: '#334155', fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -1549,7 +1550,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0, skewX: 0, skewY: 0
         },
         {
-          id: 'bc_web', type: 'text', name: 'Website',
+          id: 'bc_web', type: 'text', height: 50, name: 'Website',
           text: '⌘  www.studio.co', x: 460, y: 320, width: 540, rotation: 0,
           fontSize: 16, fontWeight: '600', fontStyle: 'normal', textDecoration: 'none',
           color: '#334155', fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -1558,7 +1559,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           curve: 0, skewX: 0, skewY: 0
         },
         {
-          id: 'bc_address', type: 'text', name: 'Address',
+          id: 'bc_address', type: 'text', height: 50, name: 'Address',
           text: '123 Design Avenue, Suite 400\nCreative District, NY 10001', x: 460, y: 410, width: 540, rotation: 0,
           fontSize: 14, fontWeight: '400', fontStyle: 'normal', textDecoration: 'none',
           color: '#9ca3af', fontFamily: 'Inter, sans-serif', textAlign: 'left',
@@ -1629,7 +1630,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'tw_kicker',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Kicker',
           text: '✦ CREATIVE STUDIO',
           x: 200,
@@ -1656,7 +1657,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'tw_title',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Title',
           text: 'CREATING THE FUTURE',
           x: 200,
@@ -1683,7 +1684,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'tw_subtitle',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Subtitle',
           text: 'Design that inspires and converts',
           x: 200,
@@ -1778,7 +1779,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'p_kicker',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Kicker',
           text: '✦ SAVE THE DATE',
           x: 200,
@@ -1805,7 +1806,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'p_h',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Headline',
           text: 'SUMMER\nFESTIVAL',
           x: 200,
@@ -1832,7 +1833,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'p_date',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Date',
           text: 'June 15-17, 2024',
           x: 200,
@@ -1859,7 +1860,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'p_location',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Location',
           text: 'Central Park, New York',
           x: 200,
@@ -1886,7 +1887,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'p_cta',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'CTA',
           text: 'Get Your Tickets Now',
           x: 200,
@@ -1967,7 +1968,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'pod_kicker',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Kicker',
           text: '✦ PODCAST',
           x: 300,
@@ -1994,7 +1995,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'pod_t',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Title',
           text: 'THE\nDESIGN\nVOICE',
           x: 300,
@@ -2021,7 +2022,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
         },
         {
           id: 'pod_tagline',
-          type: 'text',
+          type: 'text', height: 50,
           name: 'Tagline',
           text: 'Stories about design, creativity & innovation',
           x: 300,
@@ -2058,7 +2059,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 1584, height: 396, name: 'LinkedIn Banner' }),
       canvasSize: { width: 1584, height: 396, name: 'LinkedIn Banner' },
-      layers: [{ id: 'li_b', text: 'Solving Problems Through Design', x: 100, y: 150, width: 800, fontSize: 48, fontWeight: '700', fontFamily: 'Inter, sans-serif', color: '#ffffff', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', textAlign: 'left', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Tagline' }],
+      layers: [{ id: 'li_b', text: 'Solving Problems Through Design', x: 100, y: 150, width: 800, fontSize: 48, fontWeight: '700', fontFamily: 'Inter, sans-serif', color: '#ffffff', type: 'text', height: 50, rotation: 0, fontStyle: 'normal', textDecoration: 'none', textAlign: 'left', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Tagline' }],
     }
   },
   {
@@ -2070,7 +2071,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 820, height: 312, name: 'FB Cover' }),
       canvasSize: { width: 820, height: 312, name: 'FB Cover' },
-      layers: [{ id: 'fb_t', text: 'Join Our Community', x: 0, y: 120, width: 820, fontSize: 42, fontWeight: '800', fontFamily: 'Inter, sans-serif', color: '#ffffff', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Call to Action' }],
+      layers: [{ id: 'fb_t', text: 'Join Our Community', x: 0, y: 120, width: 820, fontSize: 42, fontWeight: '800', fontFamily: 'Inter, sans-serif', color: '#ffffff', textAlign: 'center', type: 'text', height: 50, rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Call to Action' }],
     }
   },
   {
@@ -2083,8 +2084,8 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       ...baseState({ width: 1600, height: 2560, name: 'E-book' }),
       canvasSize: { width: 1600, height: 2560, name: 'E-book' },
       layers: [
-        { id: 'eb_title', text: 'THE POWER\nOF HABITS', x: 100, y: 400, width: 1400, fontSize: 180, fontWeight: '900', fontFamily: 'Inter, sans-serif', color: '#fde047', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.1, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Book Title' },
-        { id: 'eb_author', text: 'By Author Name', x: 0, y: 2200, width: 1600, fontSize: 64, fontWeight: '500', fontFamily: 'Inter, sans-serif', color: '#ffffff', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Author' }
+        { id: 'eb_title', text: 'THE POWER\nOF HABITS', x: 100, y: 400, width: 1400, fontSize: 180, fontWeight: '900', fontFamily: 'Inter, sans-serif', color: '#fde047', textAlign: 'center', type: 'text', height: 50, rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.1, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Book Title' },
+        { id: 'eb_author', text: 'By Author Name', x: 0, y: 2200, width: 1600, fontSize: 64, fontWeight: '500', fontFamily: 'Inter, sans-serif', color: '#ffffff', textAlign: 'center', type: 'text', height: 50, rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Author' }
       ],
     }
   },
@@ -2099,7 +2100,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       canvasSize: { width: 1000, height: 1000, name: 'Square Branding' },
       layers: [
         { id: 'lb', type: 'circle', x: 400, y: 400, width: 200, height: 200, color: '#ffffff', rotation: 0, cornerRadius: 100, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Circle' },
-        { id: 'lt', text: 'LOGO', x: 0, y: 650, width: 1000, fontSize: 42, fontWeight: '200', fontFamily: 'Inter, sans-serif', color: '#ffffff', textAlign: 'center', letterSpacing: 12, type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Brand Name' }
+        { id: 'lt', text: 'LOGO', x: 0, y: 650, width: 1000, fontSize: 42, fontWeight: '200', fontFamily: 'Inter, sans-serif', color: '#ffffff', textAlign: 'center', letterSpacing: 12, type: 'text', height: 50, rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Brand Name' }
       ],
     }
   },
@@ -2114,7 +2115,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       canvasSize: { width: 1242, height: 2208, name: 'App Preview' },
       layers: [
         { id: 'app_ph', type: 'rectangle', x: 150, y: 600, width: 942, height: 1408, color: '#1e293b', cornerRadius: 80, rotation: 0, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Phone' },
-        { id: 'app_t', text: 'Discover New Sounds', x: 100, y: 200, width: 1042, fontSize: 110, fontWeight: '800', fontFamily: 'Inter, sans-serif', color: '#ffffff', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.1, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Headline' }
+        { id: 'app_t', text: 'Discover New Sounds', x: 100, y: 200, width: 1042, fontSize: 110, fontWeight: '800', fontFamily: 'Inter, sans-serif', color: '#ffffff', textAlign: 'center', type: 'text', height: 50, rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.1, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Headline' }
       ],
     }
   },
@@ -2129,7 +2130,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       canvasSize: { width: 1080, height: 1350, name: 'Portrait Flyer' },
       layers: [
         { id: 'ne', type: 'rectangle', x: 0, y: 1300, width: 1080, height: 50, color: '#ff00ff', rotation: 0, cornerRadius: 0, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Neon Line' },
-        { id: 'cy_t', text: 'NEO\nTOKYO', x: 100, y: 400, width: 880, fontSize: 220, fontWeight: '900', fontFamily: 'Inter, sans-serif', color: '#00ffff', textAlign: 'left', lineHeight: 0.8, letterSpacing: 0, type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'City' }
+        { id: 'cy_t', text: 'NEO\nTOKYO', x: 100, y: 400, width: 880, fontSize: 220, fontWeight: '900', fontFamily: 'Inter, sans-serif', color: '#00ffff', textAlign: 'left', lineHeight: 0.8, letterSpacing: 0, type: 'text', height: 50, rotation: 0, fontStyle: 'normal', textDecoration: 'none', textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'City' }
       ],
     }
   },
@@ -2144,7 +2145,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       canvasSize: { width: 2480, height: 3508, name: 'Letterhead' },
       layers: [
         { id: 'lh_h', type: 'rectangle', x: 0, y: 0, width: 2480, height: 300, color: '#f8fafc', rotation: 0, cornerRadius: 0, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Header' },
-        { id: 'lh_c', text: 'CORPORATE IDENTITY', x: 200, y: 120, width: 2080, fontSize: 80, fontWeight: '700', fontFamily: 'Inter, sans-serif', color: '#0f172a', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', textAlign: 'left', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Corp Name' }
+        { id: 'lh_c', text: 'CORPORATE IDENTITY', x: 200, y: 120, width: 2080, fontSize: 80, fontWeight: '700', fontFamily: 'Inter, sans-serif', color: '#0f172a', type: 'text', height: 50, rotation: 0, fontStyle: 'normal', textDecoration: 'none', textAlign: 'left', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Corp Name' }
       ],
     }
   },
@@ -2158,8 +2159,8 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       ...baseState({ width: 1000, height: 1300, name: 'Magazine' }),
       canvasSize: { width: 1000, height: 1300, name: 'Magazine' },
       layers: [
-        { id: 'mag_v', text: 'VOGUE', x: 0, y: 100, width: 1000, fontSize: 320, fontWeight: '900', fontFamily: 'Inter, sans-serif', color: '#000000', textAlign: 'center', letterSpacing: -10, type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Masthead' },
-        { id: 'mag_s', text: 'THE FUTURE OF FASHION', x: 50, y: 1100, width: 500, fontSize: 42, fontWeight: '700', fontFamily: 'Inter, sans-serif', color: '#000000', textAlign: 'left', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Headline' }
+        { id: 'mag_v', text: 'VOGUE', x: 0, y: 100, width: 1000, fontSize: 320, fontWeight: '900', fontFamily: 'Inter, sans-serif', color: '#000000', textAlign: 'center', letterSpacing: -10, type: 'text', height: 50, rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Masthead' },
+        { id: 'mag_s', text: 'THE FUTURE OF FASHION', x: 50, y: 1100, width: 500, fontSize: 42, fontWeight: '700', fontFamily: 'Inter, sans-serif', color: '#000000', textAlign: 'left', type: 'text', height: 50, rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Headline' }
       ],
     }
   },
@@ -2172,7 +2173,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     state: {
       ...baseState({ width: 1000, height: 1000, name: 'Square Card' }),
       canvasSize: { width: 1000, height: 1000, name: 'Square Card' },
-      layers: [{ id: 'ty_t', text: 'Thank You', x: 0, y: 400, width: 1000, fontSize: 120, fontWeight: '700', fontFamily: 'Caveat, cursive', color: '#be185d', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Message' }],
+      layers: [{ id: 'ty_t', text: 'Thank You', x: 0, y: 400, width: 1000, fontSize: 120, fontWeight: '700', fontFamily: 'Caveat, cursive', color: '#be185d', textAlign: 'center', type: 'text', height: 50, rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Message' }],
     }
   },
   {
@@ -2187,8 +2188,8 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       layers: [
         { id: 'ps_left_bg', type: 'rectangle', x: 0, y: 0, width: 600, height: 800, color: '#f0f0f0', rotation: 0, cornerRadius: 0, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Image Area' },
         { id: 'ps_accent', type: 'rectangle', x: 600, y: 0, width: 8, height: 800, color: '#3b82f6', rotation: 0, cornerRadius: 0, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Accent' },
-        { id: 'ps_title', text: 'New Product Launch', x: 620, y: 150, width: 560, fontSize: 48, fontWeight: '900', fontFamily: 'Inter, sans-serif', color: '#000000', textAlign: 'left', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: -1, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Title' },
-        { id: 'ps_desc', text: 'Introducing the next generation of innovation', x: 620, y: 350, width: 560, fontSize: 20, fontWeight: '400', fontFamily: 'Inter, sans-serif', color: '#666666', textAlign: 'left', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.6, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Description' }
+        { id: 'ps_title', text: 'New Product Launch', x: 620, y: 150, width: 560, fontSize: 48, fontWeight: '900', fontFamily: 'Inter, sans-serif', color: '#000000', textAlign: 'left', type: 'text', height: 50, rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: -1, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Title' },
+        { id: 'ps_desc', text: 'Introducing the next generation of innovation', x: 620, y: 350, width: 560, fontSize: 20, fontWeight: '400', fontFamily: 'Inter, sans-serif', color: '#666666', textAlign: 'left', type: 'text', height: 50, rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.6, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Description' }
       ],
     }
   },
@@ -2205,8 +2206,8 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       layers: [
         { id: 'web_accent_1', type: 'rectangle', x: 0, y: 0, width: 1920, height: 12, color: '#06b6d4', rotation: 0, cornerRadius: 0, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Top Stripe' },
         { id: 'web_accent_2', type: 'rectangle', x: 0, y: 1068, width: 1920, height: 12, color: '#06b6d4', rotation: 0, cornerRadius: 0, opacity: 1, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Bottom Stripe' },
-        { id: 'web_title', text: 'LIVE WEBINAR', x: 200, y: 300, width: 1520, fontSize: 72, fontWeight: '900', fontFamily: 'Inter, sans-serif', color: '#06b6d4', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 2, textTransform: 'uppercase', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Title' },
-        { id: 'web_subtitle', text: 'Join us for an exclusive session', x: 200, y: 500, width: 1520, fontSize: 32, fontWeight: '500', fontFamily: 'Inter, sans-serif', color: '#e2e8f0', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.4, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Subtitle' }
+        { id: 'web_title', text: 'LIVE WEBINAR', x: 200, y: 300, width: 1520, fontSize: 72, fontWeight: '900', fontFamily: 'Inter, sans-serif', color: '#06b6d4', textAlign: 'center', type: 'text', height: 50, rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.2, letterSpacing: 2, textTransform: 'uppercase', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Title' },
+        { id: 'web_subtitle', text: 'Join us for an exclusive session', x: 200, y: 500, width: 1520, fontSize: 32, fontWeight: '500', fontFamily: 'Inter, sans-serif', color: '#e2e8f0', textAlign: 'center', type: 'text', height: 50, rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.4, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Subtitle' }
       ],
     }
   },
@@ -2222,8 +2223,8 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       canvasBackgroundColor: '#0f172a',
       layers: [
         { id: 'quote_border', type: 'rectangle', x: 80, y: 80, width: 920, height: 920, color: '#7d2ae8', rotation: 0, cornerRadius: 20, opacity: 0, locked: false, visible: true, skewX: 0, skewY: 0, name: 'Border', stroke: { color: '#7d2ae8', width: 4, opacity: 0.5 } },
-        { id: 'quote_text', text: '"Design is not just what it looks like and feels like. Design is how it works."', x: 150, y: 350, width: 780, fontSize: 48, fontWeight: '700', fontFamily: 'Inter, sans-serif', color: '#ffffff', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'italic', textDecoration: 'none', lineHeight: 1.6, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Quote' },
-        { id: 'quote_author', text: '— Steve Jobs', x: 150, y: 750, width: 780, fontSize: 24, fontWeight: '500', fontFamily: 'Inter, sans-serif', color: '#7d2ae8', textAlign: 'center', type: 'text', rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.4, letterSpacing: 1, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Author' }
+        { id: 'quote_text', text: '"Design is not just what it looks like and feels like. Design is how it works."', x: 150, y: 350, width: 780, fontSize: 48, fontWeight: '700', fontFamily: 'Inter, sans-serif', color: '#ffffff', textAlign: 'center', type: 'text', height: 50, rotation: 0, fontStyle: 'italic', textDecoration: 'none', lineHeight: 1.6, letterSpacing: 0, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Quote' },
+        { id: 'quote_author', text: '— Steve Jobs', x: 150, y: 750, width: 780, fontSize: 24, fontWeight: '500', fontFamily: 'Inter, sans-serif', color: '#7d2ae8', textAlign: 'center', type: 'text', height: 50, rotation: 0, fontStyle: 'normal', textDecoration: 'none', lineHeight: 1.4, letterSpacing: 1, textTransform: 'none', opacity: 1, locked: false, visible: true, blendMode: 'normal', curve: 0, skewX: 0, skewY: 0, name: 'Author' }
       ],
     }
   }

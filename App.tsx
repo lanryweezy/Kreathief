@@ -41,10 +41,8 @@ const App: React.FC = () => {
 
       // Check for share link
       if (window.location.search.includes('share=')) {
-        console.log("Found share link, parsing...");
         const sharedProject = await parseShareLink(window.location.href);
         if (sharedProject) {
-          console.log("Project loaded from share link:", sharedProject);
           setCurrentProject(sharedProject);
           // If user not logged in, maybe show a guest mode or force auth? 
           // For now, let's allow viewing if we have a user, or force auth if not.

@@ -2,38 +2,46 @@
 import React from 'react';
 import { NavTab } from '../types';
 import { Icons } from '../constants';
+import { useStore } from '../store/useStore';
 
-interface SidebarProps {
-  activeTab: NavTab;
-  onSelectTab: (tab: NavTab) => void;
-}
+export const Sidebar: React.FC = React.memo(() => {
+  const activeTab = useStore(state => state.activeTab);
+  const setActiveTab = useStore(state => state.setActiveTab);
 
-export const Sidebar: React.FC<SidebarProps> = React.memo(({ activeTab, onSelectTab }) => {
   const items = [
     { id: NavTab.ASSISTANT, icon: Icons.Bot, label: "Ask AI" },
+    { id: NavTab.COMMENTS, icon: Icons.MessageSquare, label: "Comments" },
     { id: NavTab.MAGIC, icon: Icons.Magic, label: "AI Magic" },
+    { id: NavTab.VECTORIZER, icon: Icons.Union, label: "AI Vectorizer" },
     { id: NavTab.TEMPLATES, icon: Icons.Templates, label: "Designs" },
+    { id: NavTab.COMMUNITY, icon: Icons.Globe, label: "Community" },
     { id: NavTab.ELEMENTS, icon: Icons.Shapes, label: "Elements" },
     { id: NavTab.UPLOADS, icon: Icons.Uploads, label: "Uploads" },
     { id: NavTab.PHOTOS, icon: Icons.Image, label: "Photos" },
     { id: NavTab.TEXT, icon: Icons.Text, label: "Text" },
+    { id: NavTab.TEXT_EFFECTS, icon: Icons.Zap, label: "Effects" },
+    { id: NavTab.MOTION, icon: Icons.Play, label: "Motion" },
     { id: NavTab.DRAW, icon: Icons.Brush, label: "Draw" },
     { id: NavTab.BRAND, icon: Icons.Brand, label: "Brand" },
     { id: NavTab.TEXTURES, icon: Icons.Texture, label: "Textures" },
     { id: NavTab.MOCKUP, icon: Icons.Mockup, label: "Mockups" },
     { id: NavTab.LAYERS, icon: Icons.Layers, label: "Layers" },
+    { id: NavTab.SNAPSHOTS, icon: Icons.Camera, label: "Versions" },
+    { id: NavTab.ARRANGE, icon: Icons.Layout, label: "Arrange" },
     { id: NavTab.PROJECTS, icon: Icons.Projects, label: "Projects" },
   ];
 
   return (
     <div id="sidebar" className="w-[72px] bg-[#0e1318] flex flex-col items-center py-4 z-30 shrink-0 border-r border-[#1f1f1f] h-full overflow-y-auto custom-scrollbar scrollbar-hide">
-      <div className="flex flex-col items-center w-full gap-1">
+      <div className="flex flex-col items-center w-full gap-1" role="tablist">
         {items.map((item) => {
           const isActive = activeTab === item.id;
           return (
             <button
               key={item.id}
-              onClick={() => onSelectTab(item.id)}
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => setActiveTab(item.id)}
               className={`w-full flex flex-col items-center justify-center gap-1 py-2.5 transition-all relative group shrink-0 tooltip-trigger ${isActive ? 'text-white' : 'text-gray-500 hover:text-gray-200'
                 }`}
               data-tooltip={item.label}

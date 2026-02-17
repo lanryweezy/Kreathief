@@ -22,7 +22,14 @@ export enum NavTab {
   PHOTOS = 'PHOTOS',
   AI_SUGGESTIONS = 'AI_SUGGESTIONS',
   SMART_CONTENT = 'SMART_CONTENT',
-  QUALITY_SCORE = 'QUALITY_SCORE'
+  QUALITY_SCORE = 'QUALITY_SCORE',
+  VECTORIZER = 'VECTORIZER',
+  TEXT_EFFECTS = 'TEXT_EFFECTS',
+  ARRANGE = 'ARRANGE',
+  MOTION = 'MOTION',
+  SNAPSHOTS = 'SNAPSHOTS',
+  COMMENTS = 'COMMENTS',
+  COMMUNITY = 'COMMUNITY'
 }
 
 export enum BrushType {
@@ -32,7 +39,9 @@ export enum BrushType {
   CRAYON = 'crayon',
   PENCIL = 'pencil',
   WATERCOLOR = 'watercolor',
-  VECTOR_PENCIL = 'vector_pencil'
+  VECTOR_PENCIL = 'vector_pencil',
+  SPLATTER = 'splatter',
+  TEXTURE = 'texture'
 }
 
 export enum AspectRatio {
@@ -45,10 +54,13 @@ export enum AspectRatio {
 
 export type GenerationQuality = 'standard' | 'hd';
 
+export type CanvasUnit = 'px' | 'in' | 'cm' | 'mm';
+
 export interface CanvasSize {
   width: number;
   height: number;
   name: string;
+  unit?: CanvasUnit;
 }
 
 export interface GeneratedImage {
@@ -67,6 +79,13 @@ export interface Shadow {
   offsetY: number;
 }
 
+export interface AdvancedShadow extends Shadow {
+  type: 'drop' | 'line' | 'block' | '3d';
+  opacity: number;
+  angle?: number;
+  distance?: number;
+}
+
 export interface Stroke {
   color: string;
   width: number;
@@ -79,6 +98,15 @@ export interface Stroke {
   join?: 'round' | 'bevel' | 'miter';
 }
 
+export interface AnimationSettings {
+  type: 'none' | 'fade' | 'slide' | 'zoom' | 'rotate' | 'bounce' | 'pulse' | 'shake' | 'flip' | 'float';
+  direction?: 'up' | 'down' | 'left' | 'right' | 'in' | 'out';
+  duration: number; // seconds
+  delay: number; // seconds
+  easing: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'bounce';
+  iterationCount: number | 'infinite';
+}
+
 export interface LayerFilters {
   brightness: number; // 100 default
   contrast: number;   // 100 default
@@ -88,6 +116,7 @@ export interface LayerFilters {
   sepia: number;      // 0 default
   hueRotate: number;  // 0 default
   vignette: number;   // 0 default
+  opacity: number;    // 1 default
 }
 
 export interface TextGradient {
@@ -97,48 +126,80 @@ export interface TextGradient {
   angle: number;
 }
 
-export interface TextLayer {
+export interface ImageFillSettings {
+  src: string;
+  fit: 'fill' | 'contain' | 'cover';
+  offsetX: number;
+  offsetY: number;
+  scale: number;
+  opacity: number;
+  rotation?: number;
+  gradientOverlay?: Gradient;
+}
+
+export interface LayerBase {
   id: string;
-  type: 'text';
   name?: string;
-  text: string;
   x: number;
   y: number;
-  groupId?: string;
-  width: number;
   rotation: number;
+  opacity: number;
+  locked: boolean;
+  visible: boolean;
+  maskLayerId?: string;
+  groupId?: string;
+  animation?: AnimationSettings;
+  filters?: LayerFilters;
+  blendMode?: string;
+  shadow?: Shadow;
+  stroke?: Stroke;
+  skewX?: number;
+  skewY?: number;
+  perspective?: number;
+  rotateX?: number;
+  rotateY?: number;
+}
+
+export interface TextLayer extends LayerBase {
+  type: 'text';
+  text: string;
+  width: number;
+  height: number;
   fontSize: number;
   fontWeight: string;
   fontStyle: 'normal' | 'italic';
-  textDecoration: string; // 'none' | 'underline' | 'line-through' | 'underline line-through'
+  textDecoration: string;
   color: string;
   fontFamily: string;
   textAlign: 'left' | 'center' | 'right' | 'justify';
   letterSpacing: number;
   lineHeight: number;
   textTransform: 'none' | 'uppercase' | 'lowercase';
-  opacity: number;
-  shadow?: Shadow;
-  stroke?: Stroke;
-  locked: boolean;
-  visible: boolean;
-  blendMode?: string;
   gradient?: TextGradient;
-  textGradient?: Gradient;
-  // Advanced Vintage Tools
-  curve?: number; // -360 to 360 degrees
-  warpStyle?: 'none' | 'arc' | 'flag' | 'rise'; // New Warp Styles
-  skewX?: number; // degrees
-  skewY?: number; // degrees
-  // Text Effects
+  // effects...
+  curve?: number;
+  warpStyle?: 'none' | 'arc' | 'flag' | 'rise';
   styleType?: 'normal' | 'hollow' | 'lift' | 'echo';
-  // Typography on Path
-  textPath?: string; // SVG path data
-  textPathSide?: 'left' | 'right';
-  textPathStartOffset?: number; // % or px
-  // 3D Text
-  depth?: number; // 0-50 px extrusion
+  textPath?: string;
+  depth?: number;
   depthColor?: string;
+}
+
+export type PointType = 'sharp' | 'smooth' | 'symmetric';
+
+export interface VectorPoint {
+  id: string;
+  x: number;
+  y: number;
+  handleIn?: { x: number; y: number };
+  handleOut?: { x: number; y: number };
+  type: PointType;
+  cornerRadius?: number;
+}
+
+export interface VectorPath {
+  points: VectorPoint[];
+  isClosed: boolean;
 }
 
 export interface Gradient {
@@ -151,62 +212,37 @@ export interface Gradient {
   endY?: number;
 }
 
-export interface ShapeLayer {
-  id: string;
-  type: 'rectangle' | 'circle' | 'triangle' | 'star' | 'hexagon' | 'diamond' | 'arrow' | 'heart' | 'speech_bubble' | 'ribbon' | 'shield' | 'banner' | 'pentagon' | 'octagon' | 'plus' | 'star_4' | 'star_8' | 'path';
-  name?: string;
-  x: number;
-  y: number;
-  groupId?: string;
-  rotation: number;
+export type ShapeType = 'rectangle' | 'circle' | 'triangle' | 'star' | 'hexagon' | 'diamond' | 'arrow' | 'heart' | 'speech_bubble' | 'ribbon' | 'shield' | 'banner' | 'pentagon' | 'octagon' | 'plus' | 'star_4' | 'star_8' | 'path';
+
+export interface ShapeLayer extends LayerBase {
+  type: ShapeType;
   width: number;
   height: number;
   color: string;
   cornerRadius: number;
-  opacity: number;
-  shadow?: Shadow;
-  stroke?: Stroke;
-  locked: boolean;
-  visible: boolean;
-  blendMode?: string;
   gradient?: Gradient;
   backgroundImage?: string;
   backgroundScale?: number; // 1 = 100%
-  skewX?: number;
-  skewY?: number;
-  perspective?: number; // CSS perspective value for 3D distortion
-  rotateX?: number; // 3D rotation on X axis
-  rotateY?: number; // 3D rotation on Y axis
   pathData?: string; // SVG Path D attribute for custom shapes
   viewBox?: string; // SVG ViewBox
+  vectorPath?: VectorPath; // For active editing
+  imageFill?: ImageFillSettings;
+  backgroundGradient?: Gradient;
+  flipX?: boolean;
+  flipY?: boolean;
 }
 
-export interface ImageLayer {
-  id: string;
+export interface ImageLayer extends LayerBase {
   type: 'image';
-  name?: string;
   src: string;
-  x: number;
-  y: number;
-  groupId?: string;
   width: number;
   height: number;
-  rotation: number;
-  opacity: number;
-  locked: boolean;
-  visible: boolean;
   flipX: boolean;
   flipY: boolean;
-  filters: LayerFilters;
-  blendMode: string;
   cornerRadius?: number;
-  shadow?: Shadow;
-  stroke?: Stroke;
-  skewX?: number;
-  skewY?: number;
 }
 
-export type Layer = TextLayer | ShapeLayer | ImageLayer;
+export type Layer = TextLayer | ImageLayer | ShapeLayer;
 
 export interface CanvasFilters {
   brightness: number; // %
@@ -217,6 +253,7 @@ export interface CanvasFilters {
   blur: number;       // px
   opacity: number;    // 0-1
   vignette: number;   // 0-100
+  hueRotate: number;  // deg
   overlayTexture?: string; // CSS url or data URI for vintage texture overlay
 }
 
@@ -237,12 +274,35 @@ export interface HistoryState {
   onToggleRulers?: () => void;
 }
 
+export interface DesignComment {
+  id: string;
+  projectId: string;
+  userId: string;
+  userName: string;
+  userAvatar?: string;
+  text: string;
+  timestamp: number;
+}
+
+export interface DesignSnapshot {
+  id: string;
+  projectId: string;
+  name: string;
+  timestamp: number;
+  state: HistoryState;
+  thumbnail?: string;
+}
+
 export interface Project {
   id: string;
   name: string;
   updatedAt: number;
   thumbnail?: string;
   state: HistoryState;
+  tags?: string[];
+  isPublished?: boolean; // For community marketplace
+  authorId?: string;
+  authorName?: string;
 }
 
 export interface DesignTheme {

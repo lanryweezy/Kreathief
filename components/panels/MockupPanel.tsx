@@ -1,10 +1,13 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Icons } from '../../constants';
+import { dynamicMockupsService } from '../../services/dynamicMockupsService';
+
+import { useStore } from '../../store/useStore';
+import { v4 as uuidv4 } from 'uuid';
 
 interface MockupPanelProps {
   onExportForMockup: () => Promise<string>;
-  onAddToCanvas?: (src: string) => void;
 }
 
 interface MockupPlacement {
@@ -15,7 +18,7 @@ interface MockupPlacement {
   skewX: number;
   skewY: number;
   opacity: number;
-  blendMode: 'multiply' | 'screen' | 'overlay' | 'normal' | 'soft-light';
+  blendMode: 'multiply' | 'screen' | 'overlay' | 'source-over' | 'soft-light';
 }
 
 interface MockupDef {
@@ -33,13 +36,40 @@ const defPlace = (top = 30, left = 30, width = 40, rotate = 0, skewX = 0, skewY 
   top, left, width, rotate, skewX, skewY, opacity, blendMode
 });
 
-export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onAddToCanvas }) => {
+export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) => {
+  const addLayer = useStore(state => state.addLayer);
+  const canvasSize = useStore(state => state.canvasSize);
+
+  const onAddToCanvas = (src: string) => {
+    addLayer({
+      id: uuidv4(),
+      type: 'image',
+      name: 'Mockup Layer',
+      src,
+      x: canvasSize.width / 2 - 250,
+      y: canvasSize.height / 2 - 250,
+      width: 500,
+      height: 500,
+      rotation: 0,
+      opacity: 1,
+      locked: false,
+      visible: true,
+      flipX: false,
+      flipY: false,
+      blendMode: 'normal',
+      filters: { brightness: 100, contrast: 100, saturation: 100, grayscale: 0, blur: 0, sepia: 0, hueRotate: 0, vignette: 0, opacity: 1 },
+      skewX: 0,
+      skewY: 0
+    });
+  };
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeMockupId, setActiveMockupId] = useState<string>('tshirt_flat');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [generatedPreview, setGeneratedPreview] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLive, setIsLive] = useState(false); // Auto-update toggle
+  const [proRenderUrl, setProRenderUrl] = useState<string | null>(null);
+  const [isProGenerating, setIsProGenerating] = useState(false);
 
   // Current placement state (initialized from mockup default)
   const [placement, setPlacement] = useState<MockupPlacement>(defPlace());
@@ -52,11 +82,13 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
     { id: 'hoodie', name: 'Hoodie', category: 'Apparel', bg: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(25, 30, 40) },
     { id: 'model_tshirt', name: 'Model T-Shirt', category: 'Apparel', bg: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(30, 32, 35) },
     { id: 'totebag', name: 'Tote Bag', category: 'Apparel', bg: 'https://images.unsplash.com/photo-1597484662317-c9253e609141?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(45, 35, 30) },
+    { id: 'minimal_tshirt', name: 'Minimal White T-Shirt', category: 'Apparel', bg: '/New folder/man-wearing-minimal-white-t-shirt.jpg', defaultPlacement: defPlace(30, 32, 35) },
+    { id: 'grunge_apparel', name: 'Grunge Black Top', category: 'Apparel', bg: '/New folder/teenage-girl-black-top-flannel-shirt-youth-apparel-grunge-fashion-shoot.jpg', defaultPlacement: defPlace(25, 30, 40) },
 
     // Digital
-    { id: 'macbook', name: 'MacBook', category: 'Digital', bg: 'https://images.unsplash.com/photo-1517336712603-d2d0f0464686?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(18, 22, 56, 0, 0, 0, 0.95, 'normal') },
-    { id: 'iphone', name: 'iPhone', category: 'Digital', bg: 'https://images.unsplash.com/photo-1586105251261-72a756497a11?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(20, 38, 25, 0, 0, 0, 0.95, 'normal') },
-    { id: 'ipad', name: 'iPad Pro', category: 'Digital', bg: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(15, 25, 50, 0, 0, 0, 0.95, 'normal') },
+    { id: 'macbook', name: 'MacBook', category: 'Digital', bg: 'https://images.unsplash.com/photo-1517336712603-d2d0f0464686?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(18, 22, 56, 0, 0, 0, 0.95, 'source-over') },
+    { id: 'iphone', name: 'iPhone', category: 'Digital', bg: 'https://images.unsplash.com/photo-1586105251261-72a756497a11?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(20, 38, 25, 0, 0, 0, 0.95, 'source-over') },
+    { id: 'ipad', name: 'iPad Pro', category: 'Digital', bg: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(15, 25, 50, 0, 0, 0, 0.95, 'source-over') },
 
     // Print
     { id: 'poster_frame', name: 'Poster Frame', category: 'Print', bg: 'https://images.unsplash.com/photo-1579762715118-a6f1d4b934f1?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(15, 27, 46, -2, 0, 0, 0.9, 'multiply') },
@@ -206,7 +238,35 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
     }
   };
 
-  const handleAddToCanvas = () => {
+  const handleProRender = async () => {
+    setIsProGenerating(true);
+    setProRenderUrl(null);
+    try {
+      const designUrl = await captureDesign();
+      if (!designUrl) throw new Error('Failed to capture design');
+
+      const result = await dynamicMockupsService.generateMockup({
+        mockupId: activeMockupId, // Ideally map to their template IDs
+        designUrl: designUrl,
+        placement: {
+          top: placement.top,
+          left: placement.left,
+          width: placement.width,
+          rotate: placement.rotate,
+        }
+      });
+
+      if (result) {
+        setProRenderUrl(result);
+      }
+    } catch (e) {
+      console.error('Pro Render failed:', e);
+    } finally {
+      setIsProGenerating(false);
+    }
+  };
+
+  const handleAddToCanvas = async () => {
     if (generatedPreview && onAddToCanvas) {
       onAddToCanvas(generatedPreview);
     }
@@ -366,7 +426,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
                   onChange={(e) => updatePlacement('blendMode', e.target.value)}
                   className="bg-black border border-gray-700 rounded px-2 py-1 text-[10px] text-white focus:outline-none focus:border-[#7d2ae8]"
                 >
-                  <option value="normal">Normal</option>
+                  <option value="source-over">Normal</option>
                   <option value="multiply">Multiply (Realistic)</option>
                   <option value="screen">Screen (Light)</option>
                   <option value="overlay">Overlay</option>
@@ -374,28 +434,63 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, onA
                 </select>
               </div>
             </div>
+
+            {proRenderUrl && (
+              <div className="mt-4 p-2 bg-[#1e252e] rounded-lg border border-[#7d2ae8]/30 overflow-hidden">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] text-[#7d2ae8] font-bold">PRO RENDER RESULTS</span>
+                  <button onClick={() => setProRenderUrl(null)} className="text-gray-500 hover:text-white"><Icons.X className="w-3 h-3" /></button>
+                </div>
+                <img src={proRenderUrl} className="w-full rounded shadow-lg" alt="Pro Mockup" />
+                <a
+                  href={proRenderUrl}
+                  download="mockup_pro.png"
+                  className="mt-2 w-full py-1.5 bg-green-600 hover:bg-green-700 text-white rounded text-[10px] font-bold flex items-center justify-center gap-1"
+                >
+                  <Icons.Download className="w-3 h-3" /> Save Render
+                </a>
+              </div>
+            )}
           </div>
 
           {/* Actions */}
-          <div className="p-3 bg-[#0e1318] border-t border-gray-800 flex gap-2">
+          <div className="p-3 bg-[#0e1318] border-t border-gray-800 flex flex-col gap-2">
             <button
               onClick={handleDownload}
-              className="flex-1 bg-[#7d2ae8] hover:bg-[#6c23ce] text-white py-2 rounded text-xs font-bold transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-gray-700 hover:bg-gray-600 text-white py-2 rounded text-xs font-bold transition-colors flex items-center justify-center gap-2"
             >
               <Icons.Download className="w-4 h-4" />
-              Download Mockup
+              Quick Download
+            </button>
+            <button
+              onClick={handleProRender}
+              disabled={isProGenerating}
+              className={`w-full py-2 rounded text-xs font-bold transition-all flex items-center justify-center gap-2 ${isProGenerating
+                ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-[#7d2ae8] to-[#00c4cc] hover:from-[#6c23ce] hover:to-[#00b0b8] text-white shadow-lg'
+                }`}
+            >
+              {isProGenerating ? (
+                <>
+                  <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full"></div>
+                  Rendering...
+                </>
+              ) : (
+                <>
+                  <Icons.Zap className="w-4 h-4 text-yellow-300" />
+                  Pro Render (Dynamic)
+                </>
+              )}
             </button>
           </div>
         </div>
 
-        {onAddToCanvas && (
-          <button
-            onClick={handleAddToCanvas}
-            className="w-full py-2 bg-gray-800 text-gray-300 hover:text-white border border-gray-700 rounded text-xs font-bold transition-colors"
-          >
-            Add Mockup to Canvas
-          </button>
-        )}
+        <button
+          onClick={handleAddToCanvas}
+          className="w-full py-2 bg-gray-800 text-gray-300 hover:text-white border border-gray-700 rounded text-xs font-bold transition-colors"
+        >
+          Add Mockup to Canvas
+        </button>
       </div>
     </div>
   );

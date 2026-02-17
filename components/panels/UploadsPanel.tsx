@@ -1,22 +1,46 @@
-
 import React, { useRef, useState } from 'react';
 import { Icons } from '../../constants';
+import { Layer } from '../../types';
+import { parsePsdToLayers } from '../../services/psdService';
+import { useStore } from '../../store/useStore';
+import { v4 as uuidv4 } from 'uuid';
 
-interface UploadsPanelProps {
-  onFileUpload: (files: File[]) => void;
-  uploads: string[];
-  onAddImageLayer?: (src: string) => void;
-  onDeleteUpload?: (index: number) => void;
-}
+interface UploadsPanelProps { }
 
-export const UploadsPanel: React.FC<UploadsPanelProps> = ({
-  onFileUpload,
-  uploads,
-  onAddImageLayer,
-  onDeleteUpload
-}) => {
+export const UploadsPanel: React.FC<UploadsPanelProps> = ({ }) => {
+  const addLayer = useStore(state => state.addLayer);
+  const onAddLayers = useStore(state => state.addLayers);
+  const canvasSize = useStore(state => state.canvasSize);
+  const uploads = useStore(state => state.uploads);
+  const onFileUpload = useStore(state => state.handleFileUpload);
+  const onDeleteUpload = useStore(state => state.deleteUpload);
+
+  const onAddImageLayer = (src: string) => {
+    addLayer({
+      id: uuidv4(),
+      type: 'image',
+      name: 'Image Layer',
+      src,
+      x: canvasSize.width / 2 - 150,
+      y: canvasSize.height / 2 - 150,
+      width: 300,
+      height: 300,
+      rotation: 0,
+      opacity: 1,
+      locked: false,
+      visible: true,
+      flipX: false,
+      flipY: false,
+      blendMode: 'normal',
+      filters: { brightness: 100, contrast: 100, saturation: 100, grayscale: 0, blur: 0, sepia: 0, hueRotate: 0, vignette: 0, opacity: 1 },
+      skewX: 0,
+      skewY: 0
+    });
+  };
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const psdInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isParsingPsd, setIsParsingPsd] = useState(false);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -37,18 +61,41 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({
 
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
-      const validFiles: File[] = [];
+      const psdFiles: File[] = [];
+      const imageFiles: File[] = [];
+
       for (let i = 0; i < files.length; i++) {
-        if (files[i].type.startsWith('image/')) {
-          validFiles.push(files[i]);
+        if (files[i].name.toLowerCase().endsWith('.psd')) {
+          psdFiles.push(files[i]);
+        } else if (files[i].type.startsWith('image/')) {
+          imageFiles.push(files[i]);
         }
       }
-      if (validFiles.length > 0) onFileUpload(validFiles);
+
+      if (imageFiles.length > 0) onFileUpload(imageFiles);
+      if (psdFiles.length > 0) handlePsdFiles(psdFiles);
     }
   };
 
-  // Note: For now filtering is local/placeholder based on simple string checks or just the 'All' state 
-  // until we have real metadata.
+  const handlePsdFiles = async (files: File[]) => {
+    if (!onAddLayers) return;
+    setIsParsingPsd(true);
+    try {
+      for (const file of files) {
+        const buffer = await file.arrayBuffer();
+        const layers = await parsePsdToLayers(buffer);
+        if (layers.length > 0) {
+          onAddLayers(layers);
+        }
+      }
+    } catch (err) {
+      console.error('PSD Import failed:', err);
+      alert('Failed to parse PSD file.');
+    } finally {
+      setIsParsingPsd(false);
+    }
+  };
+
   const filteredUploads = uploads;
 
   return (
@@ -58,38 +105,46 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({
         Media Library
       </h3>
 
-      <div
-        onClick={() => fileInputRef.current?.click()}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-all mb-6 group bg-[#1e1e1e] ${isDragging
-          ? 'border-[#7d2ae8] bg-[#7d2ae8]/10 scale-102'
-          : 'border-gray-700 hover:border-[#7d2ae8] hover:bg-[#7d2ae8]/5'
-          }`}
-      >
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 transition-all ${isDragging
-          ? 'bg-[#7d2ae8] scale-110'
-          : 'bg-gray-800 group-hover:scale-105'
-          }`}>
-          <Icons.Upload className={`w-5 h-5 ${isDragging ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
+      <div className="grid grid-cols-1 gap-3 mb-6">
+        {/* Standard Image Upload */}
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-all group bg-[#1e1e1e] ${isDragging
+            ? 'border-[#7d2ae8] bg-[#7d2ae8]/10'
+            : 'border-gray-700 hover:border-[#7d2ae8] hover:bg-[#7d2ae8]/5'
+            }`}
+        >
+          <Icons.Upload className={`w-5 h-5 mb-2 ${isDragging ? 'text-[#7d2ae8]' : 'text-gray-400 group-hover:text-white'}`} />
+          <span className="text-[11px] font-bold text-gray-300 group-hover:text-white">Upload Media</span>
+          <input
+            type="file" ref={fileInputRef} className="hidden" accept="image/*" multiple
+            onChange={(e) => e.target.files && onFileUpload(Array.from(e.target.files))}
+          />
         </div>
-        <span className={`text-[11px] font-bold transition-colors ${isDragging ? 'text-[#7d2ae8]' : 'text-gray-300 group-hover:text-white'}`}>
-          {isDragging ? 'Drop images here' : 'Upload Media'}
-        </span>
-        <input
-          type="file"
-          ref={fileInputRef}
-          className="hidden"
-          accept="image/*"
-          multiple
-          onChange={(e) => {
-            if (e.target.files && e.target.files.length > 0) {
-              const files = Array.from(e.target.files);
-              onFileUpload(files);
-            }
-          }}
-        />
+
+        {/* PSD Import Button */}
+        <button
+          onClick={() => psdInputRef.current?.click()}
+          disabled={isParsingPsd}
+          className="flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-lg hover:from-blue-600/30 hover:to-purple-600/30 transition-all group disabled:opacity-50"
+        >
+          {isParsingPsd ? (
+            <div className="animate-spin w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full" />
+          ) : (
+            <Icons.Layout className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
+          )}
+          <div className="flex flex-col items-start">
+            <span className="text-[11px] font-bold text-white leading-none">Import PSD Template</span>
+            <span className="text-[9px] text-blue-300 opacity-60">Layers, Text & Images</span>
+          </div>
+          <input
+            type="file" ref={psdInputRef} className="hidden" accept=".psd"
+            onChange={(e) => e.target.files && handlePsdFiles(Array.from(e.target.files))}
+          />
+        </button>
       </div>
 
       <div className="flex items-center justify-between mb-3 px-1">
@@ -110,20 +165,16 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({
               }}
             >
               <img src={url} className="w-full h-full object-cover pointer-events-none" loading="lazy" />
-
-              {/* Minimalist Overlay */}
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 <button
                   onClick={() => onAddImageLayer && onAddImageLayer(url)}
-                  className="w-10 h-10 rounded-full bg-[#7d2ae8] text-white flex items-center justify-center hover:scale-110 transition-transform shadow-xl"
-                  title="Add to Canvas"
+                  className="w-8 h-8 rounded-full bg-[#7d2ae8] text-white flex items-center justify-center hover:scale-110 shadow-xl"
                 >
-                  <Icons.Plus className="w-5 h-5" />
+                  <Icons.Plus className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => onDeleteUpload && onDeleteUpload(idx)}
                   className="w-8 h-8 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-xl"
-                  title="Remove"
                 >
                   <Icons.Trash className="w-3.5 h-3.5" />
                 </button>
@@ -131,9 +182,9 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({
             </div>
           ))
         ) : (
-          <div className="col-span-2 text-center text-gray-600 mt-10 flex flex-col items-center">
-            <Icons.Image className="w-10 h-10 opacity-10 mb-2" />
-            <p className="text-[10px] font-medium uppercase tracking-widest">No matching media</p>
+          <div className="col-span-2 text-center text-gray-600 mt-10">
+            <Icons.Image className="w-10 h-10 mx-auto opacity-10 mb-2" />
+            <p className="text-[10px] uppercase tracking-widest">No matching media</p>
           </div>
         )}
       </div>
