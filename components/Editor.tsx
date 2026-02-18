@@ -17,10 +17,6 @@ import { MobileNavBar } from './MobileNavBar';
 import { BottomSheet } from './BottomSheet';
 import { Canvas } from './Canvas';
 import { AIAssistant } from './AIAssistant';
-import { DesignSuggestions } from './DesignSuggestions';
-import { SmartContentGenerator } from './SmartContentGenerator';
-import { DesignQualityScorer } from './DesignQualityScorer';
-import { MotionPanel } from './panels/MotionPanel';
 import { AppMode, AspectRatio, GeneratedImage, NavTab, TextLayer, ShapeLayer, ImageLayer, Layer, HistoryState, CanvasFilters, Project, DesignTheme, BrandKit, CanvasSize, GenerationQuality, User, BrushType, AnimationSettings, VectorPath, VectorPoint } from '../types';
 import * as geminiService from '../services/geminiService';
 import * as photoService from '../services/photoService';
@@ -60,11 +56,10 @@ interface EditorProps {
   initialProject?: Project;
   onBack: () => void;
   user: User;
-  onOpenPricing: () => void;
   onRestartTour?: () => void;
 }
 
-export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, onOpenPricing, onRestartTour }) => {
+export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, onRestartTour }) => {
   // Data State
   const [history, setHistory] = useState<GeneratedImage[]>([]);
   const [activeImageId, setActiveImageId] = useState<string | null>(null);
@@ -156,10 +151,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
 
   // AI Features State
   const [showAIAssistant, setShowAIAssistant] = useState(false);
-  const [showDesignSuggestions, setShowDesignSuggestions] = useState(false);
-  const [showSmartContent, setShowSmartContent] = useState(false);
-  const [showQualityScore, setShowQualityScore] = useState(false);
-  const [previewAnimation, setPreviewAnimation] = useState<AnimationSettings | null>(null);
 
 
   // Project Management State - Local to Editor for saving
@@ -517,18 +508,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
         const theme = await geminiService.generateDesignTheme(prompt);
         applyBrandColors([theme.primaryColor, theme.secondaryColor, theme.accentColor]);
       } else {
-        if (quality === 'hd') {
-          if (user.plan === 'free') {
-            setIsProcessing(false);
-            onOpenPricing();
-            return;
-          }
-          // @ts-ignore
-          if (window.aistudio && !await window.aistudio.hasSelectedApiKey()) {
-            // @ts-ignore
-            await window.aistudio.openSelectKey();
-          }
-        }
         let resultBase64: string;
         const timestamp = Date.now();
         const newId = `img_${timestamp}`;
@@ -920,9 +899,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
 
   const handleManualSave = handleSave;
 
-  const handleApplyDesignSuggestion = useCallback((suggestion: any) => {
-    saveToHistory();
-  }, [saveToHistory]);
+
 
   const handleUpdatePath = useCallback((path: VectorPath) => {
     if (!editingPathId) return;
@@ -963,8 +940,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
               onApplyTheme={applyBrandColors}
               onApplyLayout={handleApplyLayout}
               getCanvasSnapshot={handleExportDataUrl}
-              onPreviewMotion={setPreviewAnimation}
-              onOpenPricing={onOpenPricing}
               uploadedImage={activeImage?.url || uploadedImage}
               onFileUpload={handleFileUploads}
             />
@@ -978,11 +953,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
             documentColors={documentColors}
             onToggleEraser={() => setIsEraserActive(!isEraserActive)}
             isEraserActive={isEraserActive}
-            user={user}
-            onOpenPricing={onOpenPricing}
-            onToggleDesignSuggestions={() => setShowDesignSuggestions(!showDesignSuggestions)}
-            onToggleSmartContent={() => setShowSmartContent(!showSmartContent)}
-            onToggleQualityScore={() => setShowQualityScore(!showQualityScore)}
             onCompletePath={() => setPenMode(false)}
             onBooleanOperation={handleBooleanOperation}
             onCrop={() => setIsCropMode(true)}
@@ -992,17 +962,11 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
               zoom={zoom}
               onZoomChange={setZoom}
               documentColors={documentColors}
-              user={user}
-              onOpenPricing={onOpenPricing}
               onFileUpload={handleFileUpload}
-              previewAnimation={previewAnimation}
               onAddLogoToCanvas={handleAddLogoToCanvas}
               onDoubleClickLayer={handleDoubleClickLayer}
               activeImage={activeImage || undefined}
               uploadedImage={uploadedImage}
-              onToggleDesignSuggestions={() => setShowDesignSuggestions(!showDesignSuggestions)}
-              onToggleSmartContent={() => setShowSmartContent(!showSmartContent)}
-              onToggleQualityScore={() => setShowQualityScore(!showQualityScore)}
             />
             {editingPathId && (
               (() => {
@@ -1056,8 +1020,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
           onApplyTheme={applyBrandColors}
           onApplyLayout={handleApplyLayout}
           getCanvasSnapshot={handleExportDataUrl}
-          onPreviewMotion={setPreviewAnimation}
-          onOpenPricing={onOpenPricing}
           onFileUpload={handleFileUploads}
           uploadedImage={uploadedImage}
         />
@@ -1085,58 +1047,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
         onClose={() => setShowShortcuts(false)}
       />
 
-      {showDesignSuggestions && (
-        <DesignSuggestions
-          isOpen={showDesignSuggestions}
-          onClose={() => setShowDesignSuggestions(false)}
-          designContext={projectTitle}
-          layers={[...textLayers, ...shapeLayers, ...imageLayers]}
-          canvasSize={canvasSize}
-          onApplySuggestion={handleApplyDesignSuggestion}
-        />
-      )}
 
-      {showSmartContent && (
-        <SmartContentGenerator
-          isOpen={showSmartContent}
-          onClose={() => setShowSmartContent(false)}
-          onSelectContent={(content) => {
-            const { canvasSize, addLayer } = useStore.getState();
-            addLayer({
-              id: `text_${Date.now()}`,
-              type: 'text',
-              name: 'Smart Text',
-              text: content,
-              x: canvasSize.width / 2,
-              y: canvasSize.height / 2,
-              width: 400,
-              height: 100,
-              rotation: 0,
-              opacity: 1,
-              locked: false,
-              visible: true,
-              fontSize: 48,
-              fontFamily: 'Inter',
-              color: '#000000',
-              align: 'center',
-              filters: { ...useStore.getState().canvasFilters }, // or default
-              lineHeight: 1.2,
-              letterSpacing: 0,
-              textTransform: 'none',
-              warpStyle: 'none',
-              curve: 0
-            } as any); // Type cast to avoid strict check for now or import TextLayer
-            setShowSmartContent(false);
-          }}
-          designContext={projectTitle}
-        />
-      )}
-
-      <DesignQualityScorer
-        isOpen={showQualityScore}
-        onClose={() => setShowQualityScore(false)}
-        designImage={activeImage?.url || uploadedImage || undefined}
-      />
 
       {showSavedToast && (
         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[200] bg-[#1e1e1e]/90 backdrop-blur-md border border-gray-700 px-4 py-2 rounded-full shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-4 fade-in duration-300">

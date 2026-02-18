@@ -1,5 +1,5 @@
 import React, { useState, Suspense } from 'react';
-import { PricingModal } from './components/PricingModal';
+
 import { WelcomeModal } from './components/modals/WelcomeModal';
 import { GuidedTour, TourStep } from './components/modals/GuidedTour';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -24,7 +24,7 @@ const App: React.FC = () => {
   const [view, setView] = useState<'auth' | 'dashboard' | 'editor'>('auth');
   const [user, setUser] = useState<User | null>(null);
   const [currentProject, setCurrentProject] = useState<Project | undefined>(undefined);
-  const [showPricing, setShowPricing] = useState(false);
+
 
   // Onboarding State
   const [showWelcome, setShowWelcome] = useState(false);
@@ -119,15 +119,7 @@ const App: React.FC = () => {
     setCurrentProject(undefined);
   };
 
-  const handleUpgrade = () => {
-    if (user) {
-      const upgraded = { ...user, plan: 'pro' as const };
-      setUser(upgraded);
-      localStorage.setItem('kreathief_user', JSON.stringify(upgraded));
-      alert("Successfully upgraded to Pro!");
-      setShowPricing(false);
-    }
-  };
+
 
   const handleStartTour = () => {
     setShowWelcome(false);
@@ -159,7 +151,6 @@ const App: React.FC = () => {
             onCreateProject={handleCreateProject}
             onLogout={handleLogout}
             user={user}
-            onOpenPricing={() => setShowPricing(true)}
           />
         )}
         {view === 'dashboard' && user && showWelcome && (
@@ -178,19 +169,13 @@ const App: React.FC = () => {
             onSkip={() => setActiveTour(null)}
           />
         )}
-        {showPricing && (
-          <PricingModal
-            onClose={() => setShowPricing(false)}
-            onUpgrade={handleUpgrade}
-          />
-        )}
+
 
         {view === 'editor' && user && (
           <Editor
             initialProject={currentProject}
             onBack={handleBackToDashboard}
             user={user}
-            onOpenPricing={() => setShowPricing(true)}
             onRestartTour={handleStartTour}
           />
         )}

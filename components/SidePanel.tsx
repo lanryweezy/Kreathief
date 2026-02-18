@@ -9,10 +9,7 @@ import { UploadsPanel } from './panels/UploadsPanel';
 import { AssetsPanel } from './panels/AssetsPanel';
 import { TextEffectsPanel } from './panels/TextEffectsPanel';
 import { ArrangePanel } from './panels/ArrangePanel';
-import { MotionPanel } from './panels/MotionPanel';
 import { useStore } from '../store/useStore';
-import SnapshotsPanel from './SnapshotsPanel';
-import CommentsPanel from './CommentsPanel';
 
 // Lazy load complex panels
 const MagicPanel = React.lazy(() => import('./panels/MagicPanel'));
@@ -34,8 +31,6 @@ interface SidePanelProps {
   onApplyTheme: (colors: string[]) => void;
   onApplyLayout: (typeOrShapes: any) => void;
   getCanvasSnapshot?: () => Promise<string>;
-  onPreviewMotion: (settings: any) => void;
-  onOpenPricing: () => void;
   uploadedImage: string | null;
   onFileUpload: (files: File[]) => void;
 }
@@ -45,8 +40,6 @@ export const SidePanel = React.memo(({
   onApplyTheme,
   onApplyLayout,
   getCanvasSnapshot,
-  onPreviewMotion,
-  onOpenPricing,
   uploadedImage,
   onFileUpload,
 }: SidePanelProps) => {
@@ -218,16 +211,6 @@ export const SidePanel = React.memo(({
           {activeTab === NavTab.ARRANGE && (
             <ArrangePanel />
           )}
-
-          {activeTab === NavTab.MOTION && (
-            <MotionPanel
-              onPreviewMotion={onPreviewMotion}
-            />
-          )}
-
-
-          {activeTab === NavTab.SNAPSHOTS && <SnapshotsPanel />}
-          {activeTab === NavTab.COMMENTS && <CommentsPanel />}
         </React.Suspense>
       </div>
 

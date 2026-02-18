@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useStore } from '../store/useStore';
-import { NavTab, TextLayer, ShapeLayer, ImageLayer, Layer, CanvasFilters, CanvasSize, User, BrushType, GeneratedImage } from '../types';
+import { NavTab, TextLayer, ShapeLayer, ImageLayer, Layer, CanvasFilters, CanvasSize, BrushType, GeneratedImage } from '../types';
 import { VectorUtils } from '../utils/vectorUtils';
 import { unitToPx } from '../utils/unitUtils';
 import { Icons } from '../constants';
@@ -654,17 +654,11 @@ interface CanvasProps {
     zoom: number;
     onZoomChange: (z: number) => void;
     documentColors?: string[];
-    user: User;
-    onOpenPricing: () => void;
     onFileUpload?: (files: File[]) => void;
-    previewAnimation?: AnimationSettings | null;
     onAddLogoToCanvas: (url: string) => void;
     onDoubleClickLayer?: (layer: Layer) => void;
     activeImage?: GeneratedImage;
     uploadedImage?: string | null;
-    onToggleDesignSuggestions?: () => void;
-    onToggleSmartContent?: () => void;
-    onToggleQualityScore?: () => void;
     onInteractionStart?: () => void;
     onUpdateTextLayerProp?: (id: string, changes: Partial<TextLayer>) => void;
     onUpdateShapeLayerProp?: (id: string, changes: Partial<ShapeLayer>) => void;
@@ -675,17 +669,11 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     zoom,
     onZoomChange,
     documentColors,
-    user,
-    onOpenPricing,
     onFileUpload,
-    previewAnimation,
     onAddLogoToCanvas,
     onDoubleClickLayer,
     activeImage,
     uploadedImage,
-    onToggleDesignSuggestions,
-    onToggleSmartContent,
-    onToggleQualityScore,
     onInteractionStart,
     onUpdateTextLayerProp,
     onUpdateShapeLayerProp,

@@ -10,7 +10,6 @@ export const Sidebar: React.FC = React.memo(() => {
 
   const items = [
     { id: NavTab.ASSISTANT, icon: Icons.Bot, label: "Ask AI" },
-    { id: NavTab.COMMENTS, icon: Icons.MessageSquare, label: "Comments" },
     { id: NavTab.MAGIC, icon: Icons.Magic, label: "AI Magic" },
     { id: NavTab.VECTORIZER, icon: Icons.Union, label: "AI Vectorizer" },
     { id: NavTab.TEMPLATES, icon: Icons.Templates, label: "Designs" },
@@ -19,13 +18,11 @@ export const Sidebar: React.FC = React.memo(() => {
     { id: NavTab.PHOTOS, icon: Icons.Image, label: "Photos" },
     { id: NavTab.TEXT, icon: Icons.Text, label: "Text" },
     { id: NavTab.TEXT_EFFECTS, icon: Icons.Zap, label: "Effects" },
-    { id: NavTab.MOTION, icon: Icons.Play, label: "Motion" },
     { id: NavTab.DRAW, icon: Icons.Brush, label: "Draw" },
     { id: NavTab.BRAND, icon: Icons.Brand, label: "Brand" },
     { id: NavTab.TEXTURES, icon: Icons.Texture, label: "Textures" },
     { id: NavTab.MOCKUP, icon: Icons.Mockup, label: "Mockups" },
     { id: NavTab.LAYERS, icon: Icons.Layers, label: "Layers" },
-    { id: NavTab.SNAPSHOTS, icon: Icons.Camera, label: "Versions" },
     { id: NavTab.ARRANGE, icon: Icons.Layout, label: "Arrange" },
   ];
 

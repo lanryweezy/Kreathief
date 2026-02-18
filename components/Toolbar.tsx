@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useStore } from '../store/useStore';
 import { Icons } from '../constants';
 import * as geminiService from '../services/geminiService';
-import { TextLayer, User } from '../types';
+import { TextLayer } from '../types';
 
 // Modular Sub-components
 import { Divider, IconButton } from './toolbar/ToolbarShared';
@@ -17,13 +17,8 @@ import { CommonActions } from './toolbar/CommonActions';
 interface ToolbarProps {
    uploadedImage: string | null;
    documentColors?: string[];
-   onToggleEraser?: () => void; // Deprecated, use store
-   isEraserActive?: boolean; // Deprecated, use store
-   user: User;
-   onOpenPricing: () => void;
-   onToggleDesignSuggestions?: () => void;
-   onToggleSmartContent?: () => void;
-   onToggleQualityScore?: () => void;
+   onToggleEraser?: () => void;
+   isEraserActive?: boolean;
    onCompletePath?: () => void;
    onBooleanOperation?: (operation: 'union' | 'subtract' | 'intersect' | 'exclude') => void;
    onCrop?: (id: string) => void;
@@ -31,11 +26,6 @@ interface ToolbarProps {
 
 export const Toolbar = React.memo(({
    documentColors = [],
-   user,
-   onOpenPricing,
-   onToggleDesignSuggestions,
-   onToggleSmartContent,
-   onToggleQualityScore,
    onCompletePath,
    onBooleanOperation,
 }: ToolbarProps) => {
@@ -84,7 +74,6 @@ export const Toolbar = React.memo(({
    const isEraserActiveStore = useStore(state => state.isEraserActive);
 
    const selectedLayer = layers.find(l => selectedLayerIds.includes(l.id)) || null;
-   const isPro = user.plan !== 'free';
    const isMultiSelect = selectedLayerIds && selectedLayerIds.length > 1;
 
    // Global Click Handler for dropdowns
@@ -139,9 +128,6 @@ export const Toolbar = React.memo(({
             </div>
          ) : !selectedLayer ? (
             <CanvasTools
-               onToggleDesignSuggestions={onToggleDesignSuggestions}
-               onToggleSmartContent={onToggleSmartContent}
-               onToggleQualityScore={onToggleQualityScore}
                documentColors={documentColors}
             />
          ) : (
@@ -153,8 +139,6 @@ export const Toolbar = React.memo(({
                         handleUpdateLayer={handleUpdateLayer}
                         onCompletePath={onCompletePath}
                         onBooleanOperation={onBooleanOperation}
-                        isPro={isPro}
-                        onOpenPricing={onOpenPricing}
                         documentColors={documentColors}
                      />
                   )}
@@ -185,8 +169,6 @@ export const Toolbar = React.memo(({
                         layer={selectedLayer as any}
                         handleUpdateLayer={handleUpdateLayer}
                         documentColors={documentColors}
-                        isPro={isPro}
-                        onOpenPricing={onOpenPricing}
                      />
                   )}
                   {selectedLayer.type === 'image' && (
@@ -195,7 +177,6 @@ export const Toolbar = React.memo(({
                         isRemovingBg={isRemovingBgStore}
                         isExpanding={isExpandingStore}
                         isEraserActive={isEraserActiveStore}
-                        isPro={isPro}
                         handleRemoveBackground={() => onRmBg(selectedLayer.id)}
                         handleEraserClick={toggleEraser}
                         handleMagicExpand={() => onMagicExpand(selectedLayer.id)}
