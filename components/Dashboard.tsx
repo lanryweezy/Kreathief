@@ -6,6 +6,7 @@ import { STARTER_TEMPLATES, createProjectFromTemplate } from '../data/templates'
 import { ConfirmModal } from './modals/ConfirmModal';
 import { CreateProjectModal } from './modals/CreateProjectModal';
 import { useStore } from '../store/useStore';
+import CommunityTemplates from './CommunityTemplates';
 
 interface DashboardProps {
   user: User;
@@ -32,7 +33,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     loadProject
   } = useStore();
 
-  const [sidebarTab, setSidebarTab] = useState<'projects' | 'templates'>('projects');
+  const [sidebarTab, setSidebarTab] = useState<'projects' | 'templates' | 'community'>('projects');
   const [searchQuery, setSearchQuery] = useState('');
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
@@ -178,6 +179,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 >
                   Templates
                 </button>
+                <div className="h-6 w-px bg-gray-800" aria-hidden="true" />
+                <button
+                  role="tab"
+                  aria-selected={sidebarTab === 'community'}
+                  onClick={() => setSidebarTab('community')}
+                  className={`transition-all ${sidebarTab === 'community' ? 'text-white border-b-2 border-[#7d2ae8] pb-1' : 'text-gray-500 hover:text-gray-300'}`}
+                >
+                  Community
+                </button>
               </h2>
               <button
                 id="create-btn"
@@ -312,6 +322,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Community Tab */}
+            {sidebarTab === 'community' && (
+              <div className="bg-[#1e1e1e] rounded-3xl overflow-hidden border border-white/5 min-h-[600px]">
+                <CommunityTemplates />
               </div>
             )}
           </div>

@@ -14,7 +14,6 @@ export const Sidebar: React.FC = React.memo(() => {
     { id: NavTab.MAGIC, icon: Icons.Magic, label: "AI Magic" },
     { id: NavTab.VECTORIZER, icon: Icons.Union, label: "AI Vectorizer" },
     { id: NavTab.TEMPLATES, icon: Icons.Templates, label: "Designs" },
-    { id: NavTab.COMMUNITY, icon: Icons.Globe, label: "Community" },
     { id: NavTab.ELEMENTS, icon: Icons.Shapes, label: "Elements" },
     { id: NavTab.UPLOADS, icon: Icons.Uploads, label: "Uploads" },
     { id: NavTab.PHOTOS, icon: Icons.Image, label: "Photos" },
@@ -28,7 +27,6 @@ export const Sidebar: React.FC = React.memo(() => {
     { id: NavTab.LAYERS, icon: Icons.Layers, label: "Layers" },
     { id: NavTab.SNAPSHOTS, icon: Icons.Camera, label: "Versions" },
     { id: NavTab.ARRANGE, icon: Icons.Layout, label: "Arrange" },
-    { id: NavTab.PROJECTS, icon: Icons.Projects, label: "Projects" },
   ];
 
   return (

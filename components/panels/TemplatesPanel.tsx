@@ -25,7 +25,9 @@ const THEMES = [
   { name: 'Midnight', colors: ['#0f172a', '#1e293b', '#38bdf8', '#f8fafc'] },
   { name: 'Neon', colors: ['#09090b', '#27272a', '#d946ef', '#22d3ee'] },
   { name: 'Sunset', colors: ['#fff7ed', '#fed7aa', '#f97316', '#431407'] },
-  { name: 'Forest', colors: ['#f0fdf4', '#86efac', '#16a34a', '#14532d'] },
+  { name: 'Solarized', colors: ['#002b36', '#073642', '#268bd2', '#859900'] },
+  { name: 'Nordic', colors: ['#2e3440', '#3b4252', '#88c0d0', '#eceff4'] },
+  { name: 'Amethyst', colors: ['#1a1a2e', '#16213e', '#7d2ae8', '#e94560'] },
   { name: 'Luxury', colors: ['#0c0a09', '#1c1917', '#d6d3d1', '#e7e5e4'] },
   { name: 'Corporate', colors: ['#ffffff', '#f1f5f9', '#3b82f6', '#1e3a8a'] },
 ];
@@ -82,6 +84,9 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
         { type: 'rectangle', x: 266, y: 266, width: 226, height: 226, color: '#2a2a2a' }
       ]
     },
+    { name: "Golden Vertical", icon: Icons.LayoutCol, layout: 'golden_v' },
+    { name: "Golden Horizontal", icon: Icons.LayoutRow, layout: 'golden_h' },
+    { name: "Golden Grid", icon: Icons.Grid, layout: 'golden_grid' },
   ];
 
   const filteredAiTemplates = category === 'All' ? aiTemplates : aiTemplates.filter(t => t.cat === category || (category === 'Video' && t.ratio === AspectRatio.LANDSCAPE));
@@ -165,12 +170,18 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
             {grids.map((g, i) => (
               <button
                 key={i}
-                onClick={() => onApplyLayout && onApplyLayout(g.shapes as any)}
+                onClick={() => {
+                  if (g.layout) {
+                    onApplyLayout && (onApplyLayout as any)(g.layout);
+                  } else {
+                    onApplyLayout && onApplyLayout(g.shapes as any);
+                  }
+                }}
                 className="aspect-square bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#00c4cc] flex flex-col items-center justify-center text-gray-500 hover:text-white transition-all hover:bg-[#252627] gap-1"
                 title={g.name}
               >
                 <g.icon className="w-5 h-5" />
-                <span className="text-[8px] font-medium hidden sm:block">{g.name.split(' ')[0]}</span>
+                <span className="text-[8px] font-medium hidden sm:block truncate w-full text-center px-1">{g.name.split(' ')[0]}</span>
               </button>
             ))}
           </div>
@@ -225,33 +236,6 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
           <label htmlFor="warn-replace" className="text-[11px] text-gray-400 cursor-pointer select-none">Confirm before replacing canvas</label>
         </div>
 
-        {/* AI Templates */}
-        <div>
-          <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">AI Design Starters</h4>
-          <div className="grid grid-cols-2 gap-3 pb-10">
-            {filteredAiTemplates.map((t, i) => (
-              <div
-                key={i}
-                onClick={() => {
-                  setPrompt(t.prompt);
-                  setAspectRatio(t.ratio);
-                  onSetMode(AppMode.GENERATE);
-                }}
-                className="cursor-pointer group relative aspect-[3/4] rounded-lg overflow-hidden bg-gray-800 hover:ring-2 hover:ring-[#00c4cc] transition-all shadow-lg"
-              >
-                <div className={`absolute inset-0 bg-gradient-to-br ${t.color} opacity-80 group-hover:opacity-100 transition-opacity`}></div>
-                <div className="absolute inset-0 p-3 flex flex-col justify-end bg-gradient-to-t from-black/80 to-transparent">
-                  <span className="text-[9px] font-bold text-white/70 uppercase tracking-wider mb-1">{t.cat}</span>
-                  <span className="text-white font-bold text-sm leading-tight">{t.label}</span>
-                  <div className="mt-2 flex items-center gap-1 text-[9px] text-cyan-300 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Icons.Magic className="w-3 h-3" />
-                    <span>Generate</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );

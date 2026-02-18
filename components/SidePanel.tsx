@@ -13,7 +13,6 @@ import { MotionPanel } from './panels/MotionPanel';
 import { useStore } from '../store/useStore';
 import SnapshotsPanel from './SnapshotsPanel';
 import CommentsPanel from './CommentsPanel';
-import CommunityTemplates from './CommunityTemplates';
 
 // Lazy load complex panels
 const MagicPanel = React.lazy(() => import('./panels/MagicPanel'));
@@ -32,7 +31,8 @@ const PanelLoading = () => (
 
 interface SidePanelProps {
   onGenerate: () => void;
-  onApplyTheme: (theme: DesignTheme) => void;
+  onApplyTheme: (colors: string[]) => void;
+  onApplyLayout: (typeOrShapes: any) => void;
   getCanvasSnapshot?: () => Promise<string>;
   onPreviewMotion: (settings: any) => void;
   onOpenPricing: () => void;
@@ -43,6 +43,7 @@ interface SidePanelProps {
 export const SidePanel = React.memo(({
   onGenerate,
   onApplyTheme,
+  onApplyLayout,
   getCanvasSnapshot,
   onPreviewMotion,
   onOpenPricing,
@@ -57,7 +58,6 @@ export const SidePanel = React.memo(({
     updateLayer,
     addLayers,
     deleteProject,
-    createProject,
     loadProject,
     handleFileUpload,
     setPenMode,
@@ -118,53 +118,6 @@ export const SidePanel = React.memo(({
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  const renderProjects = () => (
-    <div className="flex flex-col h-full p-4 bg-[#13161a]">
-      <h3 className="font-bold text-white mb-6">Projects</h3>
-      <button
-        className="w-full bg-[#7d2ae8] hover:bg-[#6b23c5] text-white py-2 rounded text-sm font-bold mb-6 transition-colors"
-        onClick={() => createProject('Untitled Design')}
-      >
-        + New Design
-      </button>
-
-      <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Saved</h4>
-      <div className="space-y-2 overflow-y-auto custom-scrollbar flex-1 pb-10">
-        {projects.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#7d2ae8]/20 to-[#00c4cc]/20 flex items-center justify-center mb-4">
-              <Icons.Projects className="w-7 h-7 text-[#7d2ae8]" />
-            </div>
-            <p className="text-sm font-bold text-white mb-1">No Projects Yet</p>
-            <p className="text-xs text-gray-500 mb-4 max-w-[200px]">Create your first design to see it here.</p>
-            <button
-              onClick={() => createProject('Untitled Design')}
-              className="bg-[#7d2ae8] hover:bg-[#6b23c5] text-white text-xs font-bold px-4 py-2 rounded-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
-            >
-              <Icons.Magic className="w-3.5 h-3.5" /> New Design
-            </button>
-          </div>
-        ) : (
-          projects.map(project => (
-            <div key={project.id} className="bg-[#1e1e1e] border border-gray-700 rounded-lg p-3 group hover:border-[#7d2ae8] transition-colors relative">
-              <div className="cursor-pointer" onClick={() => loadProject(project.id)}>
-                <h5 className="text-sm font-bold text-white truncate pr-6">{project.name}</h5>
-                <p className="text-[10px] text-gray-500 mt-1">
-                  Edited {new Date(project.updatedAt).toLocaleDateString()}
-                </p>
-              </div>
-              <button
-                onClick={(e) => { e.stopPropagation(); deleteProject(project.id); }}
-                className="absolute top-2 right-2 text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                &times;
-              </button>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
 
   return (
     <div className="w-[320px] bg-[#13161a] border-r border-[#1f1f1f] flex flex-col z-20 shrink-0 shadow-xl relative overflow-hidden">
@@ -214,6 +167,8 @@ export const SidePanel = React.memo(({
               setPrompt={setPrompt}
               setAspectRatio={setAspectRatio}
               onSetMode={setMode}
+              onApplyLayout={onApplyLayout}
+              onApplyTheme={onApplyTheme}
             />
           )}
 
@@ -223,7 +178,6 @@ export const SidePanel = React.memo(({
 
           {activeTab === NavTab.TEXTURES && (
             <TexturesPanel
-              onApplyTexture={onApplyTexture}
               onRemoveTexture={onRemoveTexture}
               currentTexture={selectedTextLayer?.decorations?.textures?.[0]}
             />
@@ -271,11 +225,9 @@ export const SidePanel = React.memo(({
             />
           )}
 
-          {activeTab === NavTab.PROJECTS && renderProjects()}
 
           {activeTab === NavTab.SNAPSHOTS && <SnapshotsPanel />}
           {activeTab === NavTab.COMMENTS && <CommentsPanel />}
-          {activeTab === NavTab.COMMUNITY && <CommunityTemplates />}
         </React.Suspense>
       </div>
 

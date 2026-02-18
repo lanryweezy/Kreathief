@@ -142,7 +142,14 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     setShowGoldenRatio,
     editingPathId,
     setEditingPathId,
-    onUpdatePath
+    onUpdatePath,
+    isCropMode,
+    setIsCropMode,
+    onCrop,
+    applyCrop,
+    cancelCrop,
+    cropArea,
+    setCropArea
   } = useStore();
 
   const selectedLayerId = selectedLayerIds.length > 0 ? selectedLayerIds[selectedLayerIds.length - 1] : null;
@@ -168,7 +175,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
   const [clipboardLayer, setClipboardLayer] = useState<any>(null);
 
   const [isEraserActive, setIsEraserActive] = useState(false);
-  const [isCropMode, setIsCropMode] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [exportFormat, setExportFormat] = useState<'png' | 'jpeg' | 'webp'>('png');
   const [exportQuality, setExportQuality] = useState(0.95);
@@ -314,28 +320,15 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
     );
   }
 
-  const handleApplyCrop = async (id: string, cropArea: { x: number, y: number, width: number, height: number }) => {
-    const layer = layers.find(l => l.id === id && l.type === 'image') as ImageLayer;
-    if (!layer) return;
-    setIsProcessing(true);
-    setIsCropMode(false);
-    try {
-      const newSrc = await photoService.cropImage(layer.src, cropArea);
-      updateLayer(id, {
-        src: newSrc,
-        width: cropArea.width,
-        height: cropArea.height
-      } as Partial<ImageLayer>);
-    } catch (e) {
-      console.error(e);
-      alert("Cropping failed.");
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleApplyCrop = async (id: string, cropArea: { x: number; y: number; width: number; height: number }) => {
+    // This is now handled by the store's applyCrop, but we'll keep the signature for compatibility if needed
+    // or just call the store's applyCrop.
+    // Actually, the new plan is to use the store's applyCrop which already has the state.
+    await applyCrop();
   };
 
   const handleCrop = (id: string) => {
-    setIsCropMode(!isCropMode);
+    onCrop(id);
   };
 
   const handleAddLogoToCanvas = (url: string) => {
@@ -967,11 +960,12 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
             <Sidebar />
             <SidePanel
               onGenerate={handleGenerate}
-              onApplyTheme={(theme) => applyBrandColors([theme.primaryColor, theme.secondaryColor, theme.accentColor])}
+              onApplyTheme={applyBrandColors}
+              onApplyLayout={handleApplyLayout}
               getCanvasSnapshot={handleExportDataUrl}
               onPreviewMotion={setPreviewAnimation}
               onOpenPricing={onOpenPricing}
-              uploadedImage={uploadedImage}
+              uploadedImage={activeImage?.url || uploadedImage}
               onFileUpload={handleFileUploads}
             />
           </ErrorBoundary>
@@ -1059,7 +1053,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user, on
       >
         <SidePanel
           onGenerate={handleGenerate}
-          onApplyTheme={(theme) => applyBrandColors([theme.primaryColor, theme.secondaryColor, theme.accentColor])}
+          onApplyTheme={applyBrandColors}
+          onApplyLayout={handleApplyLayout}
           getCanvasSnapshot={handleExportDataUrl}
           onPreviewMotion={setPreviewAnimation}
           onOpenPricing={onOpenPricing}

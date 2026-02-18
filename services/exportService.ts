@@ -803,6 +803,20 @@ export const exportDesignToImage = async (
 };
 
 /**
+ * Exports an image data URL to a PDF file.
+ */
+export const exportToPDF = async (width: number, height: number, imgDataUrl: string, fileName: string) => {
+  const orientation = width > height ? 'landscape' : 'portrait';
+  const pdf = new jsPDF({
+    orientation: orientation,
+    unit: 'pt',
+    format: [width, height]
+  });
+  pdf.addImage(imgDataUrl, 'PNG', 0, 0, width, height);
+  pdf.save(fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
+};
+
+/**
  * Generates an SVG transform string combining translate, rotate, skew, and flip.
  */
 const getSVGTransform = (
@@ -837,9 +851,6 @@ const getSVGTransform = (
   return transform;
 };
 
-/**
- * Creates SVG <defs> for gradients and filters used in the design.
- */
 /**
  * Creates SVG <defs> for gradients and filters used in the design.
  */
@@ -900,9 +911,6 @@ const generateSVGDefs = (
   return defs;
 };
 
-/**
- * Exports the design as a Scalable Vector Graphic (SVG) string.
- */
 /**
  * Exports the design as a Scalable Vector Graphic (SVG) string.
  */

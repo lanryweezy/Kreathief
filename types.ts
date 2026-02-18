@@ -183,6 +183,9 @@ export interface TextLayer extends LayerBase {
   textPath?: string;
   depth?: number;
   depthColor?: string;
+  decorations?: {
+    textures?: string[];
+  };
 }
 
 export type PointType = 'sharp' | 'smooth' | 'symmetric';
@@ -240,6 +243,9 @@ export interface ImageLayer extends LayerBase {
   flipX: boolean;
   flipY: boolean;
   cornerRadius?: number;
+  crop?: { x: number; y: number; width: number; height: number };
+  naturalWidth?: number;
+  naturalHeight?: number;
 }
 
 export type Layer = TextLayer | ImageLayer | ShapeLayer;

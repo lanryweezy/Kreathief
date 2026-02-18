@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Icons } from '../../constants';
 import { dynamicMockupsService } from '../../services/dynamicMockupsService';
+import { MockupModal } from '../modals/MockupModal';
 
 import { useStore } from '../../store/useStore';
 import { v4 as uuidv4 } from 'uuid';
@@ -70,6 +71,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
   const [isLive, setIsLive] = useState(false); // Auto-update toggle
   const [proRenderUrl, setProRenderUrl] = useState<string | null>(null);
   const [isProGenerating, setIsProGenerating] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   // Current placement state (initialized from mockup default)
   const [placement, setPlacement] = useState<MockupPlacement>(defPlace());
@@ -456,6 +458,13 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
           {/* Actions */}
           <div className="p-3 bg-[#0e1318] border-t border-gray-800 flex flex-col gap-2">
             <button
+              onClick={() => setShowModal(true)}
+              className="w-full bg-[#7d2ae8] hover:bg-[#6c23ce] text-white py-2 rounded text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#7d2ae8]/20"
+            >
+              <Icons.Maximize className="w-4 h-4" />
+              Open Full Preview
+            </button>
+            <button
               onClick={handleDownload}
               className="w-full bg-gray-700 hover:bg-gray-600 text-white py-2 rounded text-xs font-bold transition-colors flex items-center justify-center gap-2"
             >
@@ -492,6 +501,13 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
           Add Mockup to Canvas
         </button>
       </div>
+
+      {showModal && previewImage && (
+        <MockupModal
+          designImage={previewImage}
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 };

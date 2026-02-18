@@ -51,6 +51,11 @@ interface EditorState {
     zoom: number;
     showGrid: boolean;
     showRulers: boolean;
+    setShowRulers: (show: boolean) => void;
+    snapToGrid: boolean;
+    setSnapToGrid: (snap: boolean) => void;
+    snapToObjects: boolean;
+    setSnapToObjects: (snap: boolean) => void;
     showShortcuts: boolean;
     fontPreview: string | null;
     customFonts: string[];
@@ -62,6 +67,9 @@ interface EditorState {
     snapshots: DesignSnapshot[];
     tags: string[];
     isPublished: boolean;
+    isCropMode: boolean;
+    croppingLayerId: string | null;
+    cropArea: { x: number; y: number; width: number; height: number };
 
     // --- Drawing State ---
     isPenMode: boolean;
@@ -99,6 +107,7 @@ interface EditorState {
     addTextLayer: (style?: Partial<TextLayer>) => void;
     updateLayer: (id: string, partial: Partial<Layer>) => void;
     updateLayers: (updates: Record<string, Partial<Layer>>) => void;
+    applyTexture: (textureUrl: string, intensity?: number) => void;
 
     selectLayer: (id: string | null) => void;
     multiSelectLayer: (id: string, shiftKey: boolean) => void;
@@ -121,7 +130,8 @@ interface EditorState {
     setIsShapeBuilderActive: (active: boolean) => void;
     setZoom: (zoom: number | ((prev: number) => number)) => void;
     setShowGrid: (show: boolean) => void;
-    setShowRulers: (show: boolean) => void;
+    // setShowRulers removed as duplicate
+
     setShowShortcuts: (show: boolean) => void;
     setShowShareModal: (show: boolean) => void;
     setPreviewFontFamily: (font: string | null) => void;
@@ -176,7 +186,7 @@ interface EditorState {
     moveLayer: (id: string, direction: 'front' | 'back' | 'forward' | 'backward') => void;
     groupSelected: () => void;
     ungroupSelected: () => void;
-    layoutLayers: (type: 'grid' | 'row' | 'col') => void;
+    layoutLayers: (typeOrShapes: 'grid' | 'row' | 'col' | 'golden_v' | 'golden_h' | 'golden_grid' | Partial<ShapeLayer>[]) => void;
     addImageLayer: (src: string, name?: string) => void;
     addShapeLayer: (type: ShapeLayer['type'], style?: Partial<ShapeLayer>) => void;
     duplicateSelected: () => void;
@@ -209,10 +219,19 @@ interface EditorState {
     handleVectorDrawingComplete: (pathData: string, stroke: any) => void;
     setEditingPathId: (id: string | null) => void;
     onUpdatePath: (id: string, updates: Partial<ShapeLayer>) => void;
+    setIsCropMode: (active: boolean) => void;
+    setCropArea: (area: { x: number; y: number; width: number; height: number }) => void;
+    applyCrop: () => Promise<void>;
+    cancelCrop: () => void;
     // --- Clipboard ---
     clipboardLayer: Layer | null;
     copyLayer: (id: string) => void;
     pasteLayer: () => void;
+
+    // --- Textures ---
+    textureIntensity: number;
+    setTextureIntensity: (val: number) => void;
+    removeTexture: () => void;
 }
 
 const DEFAULT_CANVAS_SIZE: CanvasSize = { width: 1080, height: 1080, name: 'Square (IG Post)' };
@@ -236,11 +255,17 @@ export const useStore = create<EditorState>((set, get) => ({
     isShapeBuilderActive: false,
     zoom: 0.5,
     showGrid: false,
-    showRulers: false,
+    showRulers: true,
+    snapToGrid: true,
+    snapToObjects: true,
     showShortcuts: false,
     fontPreview: null,
     customFonts: [],
     showShareModal: false,
+    isPublished: false,
+    isCropMode: false,
+    croppingLayerId: null,
+    cropArea: { x: 0, y: 0, width: 0, height: 0 },
     showGoldenRatio: false,
     setShowGoldenRatio: (show: boolean) => set({ showGoldenRatio: show }),
 
@@ -253,7 +278,6 @@ export const useStore = create<EditorState>((set, get) => ({
     comments: [],
     snapshots: [],
     tags: [],
-    isPublished: false,
 
     // AI Initial State
     prompt: '',
@@ -274,6 +298,28 @@ export const useStore = create<EditorState>((set, get) => ({
     past: [],
     future: [],
     editingPathId: null,
+
+    textureIntensity: 0.3,
+    setTextureIntensity: (val) => set({ textureIntensity: val }),
+    removeTexture: () => set((state) => {
+        const { selectedLayerIds, layers } = state;
+        if (selectedLayerIds.length === 0) return state;
+
+        const newLayers = layers.map(l => {
+            if (selectedLayerIds.includes(l.id) && l.type === 'text') {
+                return {
+                    ...l,
+                    decorations: {
+                        ...l.decorations,
+                        textures: []
+                    }
+                } as TextLayer;
+            }
+            return l;
+        });
+
+        return { layers: newLayers };
+    }),
 
     setProjectId: (projectId) => set({ projectId }),
     setProjectTitle: (projectTitle) => set({ projectTitle }),
@@ -378,6 +424,31 @@ export const useStore = create<EditorState>((set, get) => ({
         layers: state.layers.map(l => updates[l.id] ? { ...l, ...updates[l.id] } as Layer : l)
     })),
 
+    applyTexture: (textureUrl, intensity) => set((state) => {
+        const { selectedLayerIds, layers } = state;
+
+        if (intensity !== undefined) {
+            state.setTextureIntensity(intensity);
+        }
+
+        if (selectedLayerIds.length === 0) return state;
+
+        const newLayers = layers.map(l => {
+            if (selectedLayerIds.includes(l.id) && l.type === 'text') {
+                return {
+                    ...l,
+                    decorations: {
+                        ...l.decorations,
+                        textures: [textureUrl]
+                    }
+                } as TextLayer;
+            }
+            return l;
+        });
+
+        return { layers: newLayers };
+    }),
+
     selectLayer: (id) => set({ selectedLayerIds: id ? [id] : [] }),
 
     multiSelectLayer: (id, shiftKey) => set((state) => {
@@ -418,6 +489,8 @@ export const useStore = create<EditorState>((set, get) => ({
     setZoom: (zoom) => set(state => ({ zoom: typeof zoom === 'function' ? zoom(state.zoom) : zoom })),
     setShowGrid: (show) => set({ showGrid: show }),
     setShowRulers: (show) => set({ showRulers: show }),
+    setSnapToGrid: (snap) => set({ snapToGrid: snap }),
+    setSnapToObjects: (snap) => set({ snapToObjects: snap }),
     setShowShortcuts: (show) => set({ showShortcuts: show }),
     setShowShareModal: (show) => set({ showShareModal: show }),
     setPreviewFontFamily: (font) => set({ fontPreview: font }),
@@ -442,8 +515,31 @@ export const useStore = create<EditorState>((set, get) => ({
         brandKits: state.brandKits.map(k => k.id === id ? { ...k, ...updates } : k)
     })),
     applyBrandColors: (colors) => {
+        if (!colors || colors.length === 0) return;
         get().saveToHistory();
-        get().setCanvasBackgroundColor(colors[0]);
+
+        const background = colors[0];
+        const primary = colors[2] || colors[1] || colors[0];
+        const secondary = colors[1] || colors[0];
+        const accent = colors[3] || colors[2] || colors[1];
+
+        set(state => ({
+            canvasBackgroundColor: background,
+            layers: state.layers.map((l, i) => {
+                if (['rectangle', 'circle', 'triangle', 'path', 'star'].includes(l.type)) {
+                    // Shapes get a mix of primary and accent
+                    const colors_pool = [primary, accent, secondary];
+                    return { ...l, color: colors_pool[i % colors_pool.length] };
+                }
+                if (l.type === 'text') {
+                    // Text should be contrasting or use specific accent items
+                    const tl = l as TextLayer;
+                    const color = tl.fontSize > 30 ? primary : accent;
+                    return { ...l, color };
+                }
+                return l;
+            })
+        }));
     },
     applyBrandFonts: (heading, body) => {
         get().saveToHistory();
@@ -712,20 +808,93 @@ export const useStore = create<EditorState>((set, get) => ({
         }));
     },
 
-    layoutLayers: (type) => {
-        const { layers } = get();
-        const visibleLayers = layers.filter(l => !l.locked && l.visible);
-        if (visibleLayers.length === 0) return;
-        get().saveToHistory();
-        // Simple implementation - ideally imported from utils to avoid duplication, but inline for now to match Editor.tsx logic
-        const sorted = [...visibleLayers].sort((a, b) => (a.y - b.y) || (a.x - b.x));
-        const count = sorted.length;
+    layoutLayers: (typeOrShapes) => {
+        const { layers, selectedLayerIds, canvasSize, saveToHistory } = get();
+        const CANVAS_W = canvasSize.width;
+        const CANVAS_H = canvasSize.height;
         const PADDING = 20;
-        const CANVAS_W = get().canvasSize.width;
-        const CANVAS_H = get().canvasSize.height;
+        const phi = 0.61803398875; // Golden Ratio
+
+        saveToHistory();
+
+        if (Array.isArray(typeOrShapes)) {
+            // It's a list of template shapes (like the ones from TemplatesPanel)
+            // We should scale them to the current canvas (assuming they were designed for 512x512)
+            const templateBaseW = 512;
+            const templateBaseH = 512;
+            const scaleX = CANVAS_W / templateBaseW;
+            const scaleY = CANVAS_H / templateBaseH;
+
+            const newLayers = typeOrShapes.map(shape => ({
+                id: uuidv4(),
+                type: 'rectangle',
+                x: (shape.x || 0) * scaleX,
+                y: (shape.y || 0) * scaleY,
+                width: (shape.width || 100) * scaleX,
+                height: (shape.height || 100) * scaleY,
+                rotation: 0,
+                opacity: 1,
+                visible: true,
+                locked: false,
+                color: shape.color || '#333333',
+                ...shape
+            } as Layer));
+
+            set(state => ({ layers: [...state.layers, ...newLayers] }));
+            return;
+        }
+
+        const type = typeOrShapes;
+        const visibleLayers = layers.filter(l => !l.locked && l.visible);
+        if (visibleLayers.length === 0 && !type.startsWith('golden')) return;
+
+        const newPositions = new Map<string, { x: number, y: number, width?: number, height?: number }>();
         const getHeight = (l: any) => l.height || (l.type === 'text' ? l.fontSize * 1.2 : 100);
 
-        const newPositions = new Map<string, { x: number, y: number }>();
+        const selectedLayers = layers.filter(l => selectedLayerIds.includes(l.id) && !l.locked && l.visible);
+        const layersToLayout = selectedLayers.length > 0 ? selectedLayers : visibleLayers;
+
+        if (type === 'golden_v') {
+            const splitX = CANVAS_W * phi;
+            if (layersToLayout.length >= 2) {
+                newPositions.set(layersToLayout[0].id, { x: 0, y: 0, width: splitX, height: CANVAS_H });
+                newPositions.set(layersToLayout[1].id, { x: splitX, y: 0, width: CANVAS_W - splitX, height: CANVAS_H });
+            } else if (layersToLayout.length === 1) {
+                newPositions.set(layersToLayout[0].id, { x: 0, y: 0, width: splitX, height: CANVAS_H });
+            }
+        } else if (type === 'golden_h') {
+            const splitY = CANVAS_H * phi;
+            if (layersToLayout.length >= 2) {
+                newPositions.set(layersToLayout[0].id, { x: 0, y: 0, width: CANVAS_W, height: splitY });
+                newPositions.set(layersToLayout[1].id, { x: 0, y: splitY, width: CANVAS_W, height: CANVAS_H - splitY });
+            } else if (layersToLayout.length === 1) {
+                newPositions.set(layersToLayout[0].id, { x: 0, y: 0, width: CANVAS_W, height: splitY });
+            }
+        } else if (type === 'golden_grid') {
+            const x1 = CANVAS_W * (1 - phi);
+            const x2 = CANVAS_W * phi;
+            const y1 = CANVAS_H * (1 - phi);
+            const y2 = CANVAS_H * phi;
+
+            const gridCoords = [
+                { x: 0, y: 0, w: x1, h: y1 },
+                { x: x1, y: 0, w: x2 - x1, h: y1 },
+                { x: x2, y: 0, w: CANVAS_W - x2, h: y1 },
+                { x: 0, y: y1, w: x1, h: y2 - y1 },
+                { x: x1, y: y1, w: x2 - x1, h: y2 - y1 },
+                { x: x2, y: y1, w: CANVAS_W - x2, h: y2 - y1 },
+                { x: 0, y: y2, w: x1, h: CANVAS_H - y2 },
+                { x: x1, y: y2, w: x2 - x1, h: CANVAS_H - y2 },
+                { x: x2, y: y2, w: CANVAS_W - x2, h: CANVAS_H - y2 },
+            ];
+
+            layersToLayout.slice(0, 9).forEach((l, i) => {
+                newPositions.set(l.id, { x: gridCoords[i].x, y: gridCoords[i].y, width: gridCoords[i].w, height: gridCoords[i].h });
+            });
+        }
+
+        const sorted = [...visibleLayers].sort((a, b) => (a.y - b.y) || (a.x - b.x));
+        const count = sorted.length;
 
         if (type === 'row') {
             const totalWidth = sorted.reduce((acc, l) => acc + l.width, 0);
@@ -1066,9 +1235,86 @@ export const useStore = create<EditorState>((set, get) => ({
         }));
     },
 
-    onCrop: (id) => {
-        console.warn("onCrop not implemented yet");
-        alert("Crop feature coming soon!");
+    setIsCropMode: (isCropMode) => set({ isCropMode }),
+    setCropArea: (cropArea) => set({ cropArea }),
+
+    onCrop: async (id) => {
+        const layer = get().layers.find(l => l.id === id);
+        if (!layer || layer.type !== 'image') return;
+
+        const img = new Image();
+        img.src = layer.src;
+        await new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+        });
+
+        const naturalWidth = img.width || (layer as ImageLayer).width;
+        const naturalHeight = img.height || (layer as ImageLayer).height;
+
+        // Ensure natural dimensions are stored on the layer
+        if (!(layer as ImageLayer).naturalWidth) {
+            set(state => ({
+                layers: state.layers.map(l => l.id === id ? { ...l, naturalWidth, naturalHeight } : l)
+            }));
+        }
+
+        const initialCropArea = (layer as ImageLayer).crop || {
+            x: 0,
+            y: 0,
+            width: naturalWidth,
+            height: naturalHeight
+        };
+
+        set({
+            isCropMode: true,
+            croppingLayerId: id,
+            cropArea: initialCropArea
+        });
+    },
+
+    applyCrop: async () => {
+        const { croppingLayerId, cropArea, layers, saveToHistory } = get();
+        if (!croppingLayerId) return;
+
+        const layer = layers.find(l => l.id === croppingLayerId) as ImageLayer;
+        if (!layer || layer.type !== 'image') return;
+
+        saveToHistory();
+
+        // Calculate scale (how many canvas pixels per natural pixel)
+        // If we don't have naturalWidth stored yet, we use the current layer dimensions
+        const naturalWidth = layer.naturalWidth || layer.width;
+        const previousCropWidth = layer.crop?.width || naturalWidth;
+        const canvasScale = layer.width / previousCropWidth;
+
+        set(state => ({
+            layers: state.layers.map(l => {
+                if (l.id !== croppingLayerId || l.type !== 'image') return l;
+                const il = l as ImageLayer;
+
+                const oldCropX = il.crop?.x || 0;
+                const oldCropY = il.crop?.y || 0;
+
+                return {
+                    ...il,
+                    crop: { ...cropArea },
+                    x: il.x + (cropArea.x - oldCropX) * canvasScale,
+                    y: il.y + (cropArea.y - oldCropY) * canvasScale,
+                    width: cropArea.width * canvasScale,
+                    height: cropArea.height * canvasScale,
+                };
+            }),
+            isCropMode: false,
+            croppingLayerId: null,
+        }));
+    },
+
+    cancelCrop: () => {
+        set({
+            isCropMode: false,
+            croppingLayerId: null
+        });
     },
 
     onRmBg: async (id) => {
@@ -1200,6 +1446,7 @@ export const useStore = create<EditorState>((set, get) => ({
     toggleEraser: () => {
         set(state => ({ isEraserActive: !state.isEraserActive, isPenMode: !state.isEraserActive }));
     },
+
 
     applyMask: (targetId, maskId) => {
         get().saveToHistory();

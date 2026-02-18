@@ -155,8 +155,6 @@ export const tidyUpLayers = (
     if (layers.length < 2) return [];
 
     const count = layers.length;
-    const cols = Math.ceil(Math.sqrt(count));
-    const rows = Math.ceil(count / cols);
 
     // Find general bounds of current selection
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -170,22 +168,49 @@ export const tidyUpLayers = (
     const totalWidth = maxX - minX;
     const totalHeight = maxY - minY;
 
-    // Use a fixed spacing or calculate based on bounds
-    const spacingX = totalWidth / Math.max(1, cols - 1);
-    const spacingY = totalHeight / Math.max(1, rows - 1);
+    // Sort layers by their current position to preserve relative order (top-to-bottom, left-to-right)
+    const sorted = [...layers].sort((a, b) => {
+        const rowA = Math.round(a.y / 50);
+        const rowB = Math.round(b.y / 50);
+        if (rowA !== rowB) return rowA - rowB;
+        return a.x - b.x;
+    });
 
-    // Sort layers by their current position to preserve relative order (Z-index or reading order)
-    const sorted = [...layers].sort((a, b) => (a.y + a.x / 10) - (b.y + b.x / 10));
+    // Adaptive grid: if width is much larger than height, prefer more columns
+    const aspectRatio = totalWidth / (totalHeight || 1);
+    let cols = Math.ceil(Math.sqrt(count * aspectRatio));
+    cols = Math.max(1, Math.min(count, cols));
+    const rows = Math.ceil(count / cols);
+
+    const horizontalSpacing = Math.max(20, (totalWidth - (cols * 100)) / Math.max(1, cols - 1));
+    const verticalSpacing = 40;
+
+    let currentX = minX;
+    let currentY = minY;
+    let maxHeightInRow = 0;
 
     return sorted.map((l, i) => {
-        const r = Math.floor(i / cols);
-        const c = i % cols;
-        return {
+        const colIndex = i % cols;
+
+        if (colIndex === 0 && i !== 0) {
+            currentX = minX;
+            currentY += maxHeightInRow + verticalSpacing;
+            maxHeightInRow = 0;
+        }
+
+        const h = (l as any).height || l.width;
+        maxHeightInRow = Math.max(maxHeightInRow, h);
+
+        const result = {
             id: l.id,
             changes: {
-                x: minX + c * Math.max(spacingX, l.width + 20),
-                y: minY + r * Math.max(spacingY, ((l as any).height || l.width) + 20)
+                x: currentX,
+                y: currentY
             }
         };
+
+        currentX += l.width + horizontalSpacing;
+        return result;
     });
 };
+

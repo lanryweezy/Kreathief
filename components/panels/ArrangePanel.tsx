@@ -232,14 +232,36 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
                     <label className="flex items-center justify-between cursor-pointer group">
                         <span className="text-xs text-gray-400 group-hover:text-white transition-colors">Show Grid</span>
                         <div className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" className="sr-only peer" checked={false /* Managed globally */} readOnly />
+                            <input
+                                type="checkbox"
+                                className="sr-only peer"
+                                checked={useStore.getState().showGrid}
+                                onChange={(e) => useStore.getState().setShowGrid(e.target.checked)}
+                            />
                             <div className="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#7d2ae8]"></div>
                         </div>
                     </label>
                     <label className="flex items-center justify-between cursor-pointer group">
-                        <span className="text-xs text-gray-400 group-hover:text-white transition-colors">Smart Snapping</span>
+                        <span className="text-xs text-gray-400 group-hover:text-white transition-colors">Snap to Objects</span>
                         <div className="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" className="sr-only peer" defaultChecked />
+                            <input
+                                type="checkbox"
+                                className="sr-only peer"
+                                checked={useStore.getState().snapToObjects}
+                                onChange={(e) => useStore.getState().setSnapToObjects(e.target.checked)}
+                            />
+                            <div className="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#7d2ae8]"></div>
+                        </div>
+                    </label>
+                    <label className="flex items-center justify-between cursor-pointer group">
+                        <span className="text-xs text-gray-400 group-hover:text-white transition-colors">Snap to Grid</span>
+                        <div className="relative inline-flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                className="sr-only peer"
+                                checked={useStore.getState().snapToGrid}
+                                onChange={(e) => useStore.getState().setSnapToGrid(e.target.checked)}
+                            />
                             <div className="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#7d2ae8]"></div>
                         </div>
                     </label>

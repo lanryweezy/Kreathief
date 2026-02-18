@@ -11,6 +11,7 @@ import { ContextMenu } from './ContextMenu';
 import { GeometryOracle } from '../utils/geometryOracle';
 import { AnimationSettings } from '../types';
 import { GoldenRatioOverlay } from './GoldenRatioOverlay';
+import { CropOverlay } from './overlays/CropOverlay';
 
 const getAnimationStyle = (anim?: AnimationSettings): React.CSSProperties => {
     if (!anim || anim.type === 'none') return {};
@@ -198,6 +199,15 @@ const ImageLayerItem = React.memo(React.forwardRef<HTMLDivElement, any>(({ layer
     const scaleY = layer.flipY ? -1 : 1;
     const animStyle = getAnimationStyle((isSelected && previewAnimation) ? previewAnimation : layer.animation);
 
+    // Non-destructive cropping rendering logic
+    const hasCrop = !!layer.crop;
+    const naturalWidth = layer.naturalWidth || layer.width;
+    const naturalHeight = layer.naturalHeight || layer.height;
+    const crop = layer.crop || { x: 0, y: 0, width: naturalWidth, height: naturalHeight };
+
+    // Scale for the image within the container
+    const imgScale = layer.width / crop.width;
+
     return (
         <div
             ref={ref}
@@ -232,9 +242,12 @@ const ImageLayerItem = React.memo(React.forwardRef<HTMLDivElement, any>(({ layer
             }}>
                 <img
                     src={layer.src}
-                    className="w-full h-full object-cover pointer-events-none block"
+                    className="pointer-events-none block"
                     style={{
-                        transform: `scale(${scaleX}, ${scaleY})`,
+                        width: naturalWidth * imgScale,
+                        height: naturalHeight * imgScale,
+                        transform: `translate(${-crop.x * imgScale}px, ${-crop.y * imgScale}px) scale(${scaleX}, ${scaleY})`,
+                        transformOrigin: 'top left',
                         filter: `brightness(${layer.filters.brightness}%) contrast(${layer.filters.contrast}%) saturate(${layer.filters.saturation}%) grayscale(${layer.filters.grayscale}%) blur(${layer.filters.blur}px) sepia(${layer.filters.sepia}%) hue-rotate(${layer.filters.hueRotate}deg)`
                     }}
                 />
@@ -523,6 +536,25 @@ const TextLayerItem = React.memo(React.forwardRef<HTMLDivElement, any>(({ layer,
         zIndex: 1,
     };
 
+    const textureUrl = layer.decorations?.textures?.[0];
+    const textureIntensity = useStore(state => state.textureIntensity);
+
+    const textureStyle: React.CSSProperties = textureUrl ? {
+        position: 'absolute',
+        inset: 0,
+        backgroundImage: `url(${textureUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        WebkitBackgroundClip: 'text',
+        backgroundClip: 'text',
+        color: 'transparent',
+        zIndex: 2,
+        opacity: textureIntensity,
+        mixBlendMode: 'overlay',
+        pointerEvents: 'none'
+    } : {};
+
     const render3DDepth = () => {
         if (!layer.depth || layer.depth <= 0) return null;
         const depthElements = [];
@@ -606,6 +638,13 @@ const TextLayerItem = React.memo(React.forwardRef<HTMLDivElement, any>(({ layer,
                 ...getAnimationStyle((isSelected && previewAnimation) ? previewAnimation : layer.animation),
                 ...(props.maskPath ? { clipPath: props.maskPath } : {})
             }}>{layer.text}</div>
+            {textureUrl && (
+                <div style={{
+                    ...textStyle,
+                    ...textureStyle,
+                    ...(props.maskPath ? { clipPath: props.maskPath } : {})
+                }}>{layer.text}</div>
+            )}
             {isSelected && <SelectionHandles layer={layer} onResize={onResize} onRotate={onRotate} scale={1} />}
         </div>
     );
@@ -686,7 +725,17 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         editingPathId,
         updateLayer: onUpdatePath, // or specialized path update
         unit,
-        showGoldenRatio
+        showGoldenRatio,
+        isCropMode,
+        setIsCropMode,
+        onCrop,
+        applyCrop,
+        cancelCrop,
+        cropArea,
+        setCropArea,
+        croppingLayerId,
+        snapToGrid,
+        snapToObjects
     } = useStore();
 
 
@@ -755,7 +804,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     panOffsetRef.current = panOffset;
     const [panStart, setPanStart] = useState({ x: 0, y: 0 });
     const [isPanning, setIsPanning] = useState(false);
-    const [snapLines, setSnapLines] = useState<{ vertical?: number, horizontal?: number }>({});
+    const [snapLines, setSnapLines] = useState<{ vertical: number[], horizontal: number[] }>({ vertical: [], horizontal: [] });
     const [viewportSize, setViewportSize] = useState({ width: window.innerWidth, height: window.innerHeight });
 
     // Performance Refs
@@ -872,18 +921,15 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         let currentAscent = 0;
 
         if (currentLayer.type === 'text') {
-            // For text, height might not be fully accurate from prop, measure it or trust it?
-            // Trust prop if updated, but for baseline we need metric
             const metric = GeometryOracle.measureText(currentLayer as TextLayer);
-            // layerHeight = metric.height; // Optionally use metric height
             currentAscent = metric.ascent;
         }
 
         const centerY = currentY + layerHeight / 2;
         const centerX = currentX + layerWidth / 2;
 
-        let snapX: number | undefined = undefined;
-        let snapY: number | undefined = undefined;
+        const snapX: number[] = [];
+        const snapY: number[] = [];
         let newX = currentX;
         let newY = currentY;
 
@@ -892,98 +938,198 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         const canvasCenterY = canvasSize.height / 2;
 
         if (Math.abs(centerX - canvasCenterX) < SNAP_THRESHOLD) {
-            snapX = canvasCenterX;
+            snapX.push(canvasCenterX);
             newX = canvasCenterX - layerWidth / 2;
         }
         if (Math.abs(centerY - canvasCenterY) < SNAP_THRESHOLD) {
-            snapY = canvasCenterY;
+            snapY.push(canvasCenterY);
             newY = canvasCenterY - layerHeight / 2;
         }
 
         // Snap to Canvas Edges
-        if (Math.abs(currentX) < SNAP_THRESHOLD) {
-            snapX = 0;
-            newX = 0;
-        }
-        if (Math.abs(currentX + layerWidth - canvasSize.width) < SNAP_THRESHOLD) {
-            snapX = canvasSize.width;
-            newX = canvasSize.width - layerWidth;
-        }
-        if (Math.abs(currentY) < SNAP_THRESHOLD) {
-            snapY = 0;
-            newY = 0;
-        }
-        if (Math.abs(currentY + layerHeight - canvasSize.height) < SNAP_THRESHOLD) {
-            snapY = canvasSize.height;
-            newY = canvasSize.height - layerHeight;
-        }
+        if (Math.abs(currentX) < SNAP_THRESHOLD) { snapX.push(0); newX = 0; }
+        if (Math.abs(currentX + layerWidth - canvasSize.width) < SNAP_THRESHOLD) { snapX.push(canvasSize.width); newX = canvasSize.width - layerWidth; }
+        if (Math.abs(currentY) < SNAP_THRESHOLD) { snapY.push(0); newY = 0; }
+        if (Math.abs(currentY + layerHeight - canvasSize.height) < SNAP_THRESHOLD) { snapY.push(canvasSize.height); newY = canvasSize.height - layerHeight; }
 
-        // Snap to Canvas Thirds (Rule of Thirds)
-        const thirdX1 = canvasSize.width / 3;
-        const thirdX2 = (canvasSize.width * 2) / 3;
-        const thirdY1 = canvasSize.height / 3;
-        const thirdY2 = (canvasSize.height * 2) / 3;
+        if (snapToObjects) {
+            // Snap to Other Layers
+            const otherLayers = [...effectiveShapeLayers, ...effectiveImageLayers, ...effectiveTextLayers].filter(l => l.id !== currentLayer.id);
 
-        if (snapX === undefined) {
-            if (Math.abs(centerX - thirdX1) < SNAP_THRESHOLD) { snapX = thirdX1; newX = thirdX1 - layerWidth / 2; }
-            else if (Math.abs(centerX - thirdX2) < SNAP_THRESHOLD) { snapX = thirdX2; newX = thirdX2 - layerWidth / 2; }
-        }
-        if (snapY === undefined) {
-            if (Math.abs(centerY - thirdY1) < SNAP_THRESHOLD) { snapY = thirdY1; newY = thirdY1 - layerHeight / 2; }
-            else if (Math.abs(centerY - thirdY2) < SNAP_THRESHOLD) { snapY = thirdY2; newY = thirdY2 - layerHeight / 2; }
-        }
+            for (const other of otherLayers) {
+                const otherHeight = (other as any).height || 0;
+                const otherCenterY = other.y + otherHeight / 2;
+                const otherCenterX = other.x + other.width / 2;
 
-        // Snap to Margin Guides (20px from edges)
-        const MARGIN = 20;
-        if (snapX === undefined) {
-            if (Math.abs(currentX - MARGIN) < SNAP_THRESHOLD) { snapX = MARGIN; newX = MARGIN; }
-            else if (Math.abs(currentX + layerWidth - (canvasSize.width - MARGIN)) < SNAP_THRESHOLD) { snapX = canvasSize.width - MARGIN; newX = canvasSize.width - MARGIN - layerWidth; }
-        }
-        if (snapY === undefined) {
-            if (Math.abs(currentY - MARGIN) < SNAP_THRESHOLD) { snapY = MARGIN; newY = MARGIN; }
-            else if (Math.abs(currentY + layerHeight - (canvasSize.height - MARGIN)) < SNAP_THRESHOLD) { snapY = canvasSize.height - MARGIN; newY = canvasSize.height - MARGIN - layerHeight; }
-        }
+                // X snapping
+                if (Math.abs(currentX - other.x) < SNAP_THRESHOLD) { snapX.push(other.x); newX = other.x; }
+                if (Math.abs(currentX + layerWidth - (other.x + other.width)) < SNAP_THRESHOLD) { snapX.push(other.x + other.width); newX = other.x + other.width - layerWidth; }
+                if (Math.abs(centerX - otherCenterX) < SNAP_THRESHOLD) { snapX.push(otherCenterX); newX = otherCenterX - layerWidth / 2; }
 
-        // Snap to Other Layers
-        const otherLayers = [...effectiveShapeLayers, ...effectiveImageLayers, ...effectiveTextLayers].filter(l => l.id !== currentLayer.id);
+                // Y snapping
+                if (Math.abs(currentY - other.y) < SNAP_THRESHOLD) { snapY.push(other.y); newY = other.y; }
+                if (Math.abs(currentY + layerHeight - (other.y + otherHeight)) < SNAP_THRESHOLD) { snapY.push(other.y + otherHeight); newY = other.y + otherHeight - layerHeight; }
+                if (Math.abs(currentY + layerHeight - other.y) < SNAP_THRESHOLD) { snapY.push(other.y); newY = other.y - layerHeight; } // Bottom to Top
 
-        for (const other of otherLayers) {
-            const otherHeight = (other as any).height || 0;
-            const otherCenterY = other.y + otherHeight / 2;
-            const otherCenterX = other.x + other.width / 2;
-
-            // X snapping (edges and centers)
-            if (Math.abs(currentX - other.x) < SNAP_THRESHOLD) { snapX = other.x; newX = other.x; }
-            else if (Math.abs(currentX + layerWidth - (other.x + other.width)) < SNAP_THRESHOLD) { snapX = other.x + other.width; newX = other.x + other.width - layerWidth; }
-            else if (Math.abs(centerX - otherCenterX) < SNAP_THRESHOLD) { snapX = otherCenterX; newX = otherCenterX - layerWidth / 2; }
-            else if (Math.abs(currentX - (other.x + other.width)) < SNAP_THRESHOLD) { snapX = other.x + other.width; newX = other.x + other.width; } // Left to Right
-            else if (Math.abs(currentX + layerWidth - other.x) < SNAP_THRESHOLD) { snapX = other.x; newX = other.x - layerWidth; } // Right to Left
-
-
-            // Y snapping (edges, centers, baselines)
-            if (Math.abs(currentY - other.y) < SNAP_THRESHOLD) { snapY = other.y; newY = other.y; }
-            else if (Math.abs(currentY + layerHeight - (other.y + otherHeight)) < SNAP_THRESHOLD) { snapY = other.y + otherHeight; newY = other.y + otherHeight - layerHeight; }
-            else if (Math.abs(centerY - otherCenterY) < SNAP_THRESHOLD) { snapY = otherCenterY; newY = otherCenterY - layerHeight / 2; }
-            else if (Math.abs(currentY - (other.y + otherHeight)) < SNAP_THRESHOLD) { snapY = other.y + otherHeight; newY = other.y + otherHeight; } // Top to Bottom
-            else if (Math.abs(currentY + layerHeight - other.y) < SNAP_THRESHOLD) { snapY = other.y; newY = other.y - layerHeight; } // Bottom to Top
-
-            // Baseline Snapping (Text Only)
-            if (currentLayer.type === 'text' && other.type === 'text') {
-                const otherMetric = GeometryOracle.measureText(other as TextLayer);
-                const otherBaseline = other.y + otherMetric.ascent;
-                const currentBaseline = currentY + currentAscent;
-
-                if (Math.abs(currentBaseline - otherBaseline) < SNAP_THRESHOLD) {
-                    snapY = otherBaseline;
-                    newY = otherBaseline - currentAscent;
+                // Baseline Snapping (Text Only)
+                if (currentLayer.type === 'text' && other.type === 'text') {
+                    const otherMetric = GeometryOracle.measureText(other as TextLayer);
+                    const otherBaseline = other.y + otherMetric.ascent;
+                    const currentBaseline = currentY + currentAscent;
+                    if (Math.abs(currentBaseline - otherBaseline) < SNAP_THRESHOLD) {
+                        snapY.push(otherBaseline);
+                        newY = otherBaseline - currentAscent;
+                    }
                 }
             }
-
-            if (snapX !== undefined || snapY !== undefined) break; // Priority snapping (first found wins for now)
         }
 
         return { snapX, snapY, newX, newY };
-    }, [canvasSize.width, canvasSize.height, effectiveShapeLayers, effectiveImageLayers, effectiveTextLayers]);
+    }, [canvasSize.width, canvasSize.height, effectiveShapeLayers, effectiveImageLayers, effectiveTextLayers, snapToObjects]);
+
+    const getResizeSnapLines = useCallback((
+        currentLayer: Layer,
+        newX: number,
+        newY: number,
+        newWidth: number,
+        newHeight: number,
+        handle: ResizeHandle
+    ) => {
+        const SNAP_THRESHOLD = 5 / zoomRef.current;
+        const snapX: number[] = [];
+        const snapY: number[] = [];
+        let snappedX = newX;
+        let snappedY = newY;
+        let snappedWidth = newWidth;
+        let snappedHeight = newHeight;
+
+        // Grid Snapping
+        if (snapToGrid) {
+            const GRID_SIZE = 10;
+            if (handle.includes('e') || handle.includes('w')) {
+                const right = snappedX + snappedWidth;
+                const snappedRight = Math.round(right / GRID_SIZE) * GRID_SIZE;
+                const snappedLeft = Math.round(snappedX / GRID_SIZE) * GRID_SIZE;
+
+                if (handle.includes('e')) {
+                    if (Math.abs(right - snappedRight) < SNAP_THRESHOLD) {
+                        snappedWidth = snappedRight - snappedX;
+                    }
+                } else if (handle.includes('w')) {
+                    if (Math.abs(snappedX - snappedLeft) < SNAP_THRESHOLD) {
+                        const dx = snappedLeft - snappedX;
+                        snappedX = snappedLeft;
+                        snappedWidth -= dx;
+                    }
+                }
+            }
+            if (handle.includes('s') || handle.includes('n')) {
+                const bottom = snappedY + snappedHeight;
+                const snappedBottom = Math.round(bottom / GRID_SIZE) * GRID_SIZE;
+                const snappedTop = Math.round(snappedY / GRID_SIZE) * GRID_SIZE;
+
+                if (handle.includes('s')) {
+                    if (Math.abs(bottom - snappedBottom) < SNAP_THRESHOLD) {
+                        snappedHeight = snappedBottom - snappedY;
+                    }
+                } else if (handle.includes('n')) {
+                    if (Math.abs(snappedY - snappedTop) < SNAP_THRESHOLD) {
+                        const dy = snappedTop - snappedY;
+                        snappedY = snappedTop;
+                        snappedHeight -= dy;
+                    }
+                }
+            }
+        }
+
+        if (snapToObjects) {
+            const otherLayers = [...effectiveShapeLayers, ...effectiveImageLayers, ...effectiveTextLayers].filter(l => l.id !== currentLayer.id);
+
+            for (const other of otherLayers) {
+                const otherHeight = (other as any).height || 0;
+
+                // Edge alignment snapping during resize
+                if (handle.includes('e')) {
+                    const right = snappedX + snappedWidth;
+                    if (Math.abs(right - (other.x + other.width)) < SNAP_THRESHOLD) {
+                        snappedWidth = (other.x + other.width) - snappedX;
+                        snapX.push(other.x + other.width);
+                    }
+                    if (Math.abs(right - other.x) < SNAP_THRESHOLD) {
+                        snappedWidth = other.x - snappedX;
+                        snapX.push(other.x);
+                    }
+                }
+                if (handle.includes('w')) {
+                    if (Math.abs(snappedX - other.x) < SNAP_THRESHOLD) {
+                        const dx = other.x - snappedX;
+                        snappedX = other.x;
+                        snappedWidth -= dx;
+                        snapX.push(other.x);
+                    }
+                    if (Math.abs(snappedX - (other.x + other.width)) < SNAP_THRESHOLD) {
+                        const dx = (other.x + other.width) - snappedX;
+                        snappedX = (other.x + other.width);
+                        snappedWidth -= dx;
+                        snapX.push(other.x + other.width);
+                    }
+                }
+                if (handle.includes('s')) {
+                    const bottom = snappedY + snappedHeight;
+                    if (Math.abs(bottom - (other.y + otherHeight)) < SNAP_THRESHOLD) {
+                        snappedHeight = (other.y + otherHeight) - snappedY;
+                        snapY.push(other.y + otherHeight);
+                    }
+                    if (Math.abs(bottom - other.y) < SNAP_THRESHOLD) {
+                        snappedHeight = other.y - snappedY;
+                        snapY.push(other.y);
+                    }
+                }
+                if (handle.includes('n')) {
+                    if (Math.abs(snappedY - other.y) < SNAP_THRESHOLD) {
+                        const dy = other.y - snappedY;
+                        snappedY = other.y;
+                        snappedHeight -= dy;
+                        snapY.push(other.y);
+                    }
+                    if (Math.abs(snappedY - (other.y + otherHeight)) < SNAP_THRESHOLD) {
+                        const dy = (other.y + otherHeight) - snappedY;
+                        snappedY = (other.y + otherHeight);
+                        snappedHeight -= dy;
+                        snapY.push(other.y + otherHeight);
+                    }
+                }
+
+                // Dimension matching snapping
+                if (handle.includes('e') || handle.includes('w')) {
+                    if (Math.abs(snappedWidth - other.width) < SNAP_THRESHOLD) {
+                        if (handle.includes('e')) {
+                            snappedWidth = other.width;
+                        } else {
+                            const dx = other.width - snappedWidth;
+                            snappedX -= dx;
+                            snappedWidth = other.width;
+                        }
+                        // For dimension snapping, we might not show a line, or show something else.
+                        // Let's just use the edge lines if they happen to align.
+                    }
+                }
+                if (handle.includes('s') || handle.includes('n')) {
+                    if (Math.abs(snappedHeight - otherHeight) < SNAP_THRESHOLD) {
+                        if (handle.includes('s')) {
+                            snappedHeight = otherHeight;
+                        } else {
+                            const dy = otherHeight - snappedHeight;
+                            snappedY -= dy;
+                            snappedHeight = otherHeight;
+                        }
+                    }
+                }
+            }
+        }
+
+        return { snappedX, snappedY, snappedWidth, snappedHeight, snapX, snapY };
+    }, [snapToObjects, snapToGrid, effectiveShapeLayers, effectiveImageLayers, effectiveTextLayers]);
 
     // -- Global Space Key for Panning --
     useEffect(() => {
@@ -992,8 +1138,16 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                 setIsSpacePressed(true);
             }
 
-            // Don't capture shortcuts while editing text
-            if (editingTextId) return;
+            // Don't capture shortcuts while editing text or if an input is focused
+            const target = e.target as HTMLElement;
+            if (
+                editingTextId ||
+                target.tagName === 'INPUT' ||
+                target.tagName === 'TEXTAREA' ||
+                target.isContentEditable
+            ) {
+                return;
+            }
 
             const isCtrl = e.ctrlKey || e.metaKey;
 
@@ -1006,13 +1160,6 @@ const CanvasComponent: React.FC<CanvasProps> = ({
             if (isCtrl && e.key === 'g' && e.shiftKey) {
                 e.preventDefault();
                 if (onUngroup) onUngroup();
-            }
-            // Delete or Backspace: Delete selected layer(s)
-            // Delete or Backspace: Delete selected layer(s)
-            if ((e.key === 'Delete' || e.key === 'Backspace') && !isDrawing) {
-                if (selectedLayerId && onDeleteLayer) {
-                    onDeleteLayer(selectedLayerId);
-                }
             }
 
             // Ctrl+D: Duplicate selected
@@ -1352,6 +1499,27 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                     if (handle.includes('s')) newH += dy;
                     if (handle.includes('n')) { newY += dy; newH -= dy; }
 
+                    // Apply Size Snapping to Group Bounds
+                    const groupProxy = { id: 'group-proxy', x, y, width, height } as Layer;
+                    const { snappedX, snappedY, snappedWidth, snappedHeight, snapX, snapY } = getResizeSnapLines(
+                        groupProxy, newX, newY, newW, newH, handle
+                    );
+
+                    newX = snappedX;
+                    newY = snappedY;
+                    newW = Math.max(10, snappedWidth);
+                    newH = Math.max(10, snappedHeight);
+
+                    // Update Snap Lines for Resizing
+                    if (snapVerticalRef.current) {
+                        snapVerticalRef.current.style.display = snapX.length > 0 ? 'block' : 'none';
+                        if (snapX.length > 0) snapVerticalRef.current.style.left = `${snapX[0]}px`;
+                    }
+                    if (snapHorizontalRef.current) {
+                        snapHorizontalRef.current.style.display = snapY.length > 0 ? 'block' : 'none';
+                        if (snapY.length > 0) snapHorizontalRef.current.style.top = `${snapY[0]}px`;
+                    }
+
                     // Construct bulk updates
                     const scaleX = newW / width;
                     const scaleY = newH / height;
@@ -1394,74 +1562,92 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                     // The MultiSelectionHandles will update as layers change.
                 } else if (initialLayer && currentSelectedLayerId) {
                     // Single Layer Resizing
-                    let { x, y, width } = initialLayer;
-                    let height = (initialLayer as any).height || 0;
+                    let { x: ix, y: iy, width: iw } = initialLayer;
+                    let ih = (initialLayer as any).height || 0;
 
-                    if (handle.includes('e')) width += dx;
-                    if (handle.includes('w')) { x += dx; width -= dx; }
-                    if (handle.includes('s')) height += dy;
-                    if (handle.includes('n')) { y += dy; height -= dy; }
+                    let nx = ix, ny = iy, nw = iw, nh = ih;
 
-                    const nw = Math.max(10, width);
-                    const nh = Math.max(10, height);
+                    if (handle.includes('e')) nw += dx;
+                    if (handle.includes('w')) { nx += dx; nw -= dx; }
+                    if (handle.includes('s')) nh += dy;
+                    if (handle.includes('n')) { ny += dy; nh -= dy; }
 
+                    // Apply Size Snapping
+                    const { snappedX, snappedY, snappedWidth, snappedHeight, snapX, snapY } = getResizeSnapLines(
+                        initialLayer, nx, ny, nw, nh, handle
+                    );
+
+                    nx = snappedX;
+                    ny = snappedY;
+                    nw = Math.max(10, snappedWidth);
+                    nh = Math.max(10, snappedHeight);
+
+                    // Update DOM for Snapped Dimensions
                     const domNode = layerRefs.current[currentSelectedLayerId];
                     if (domNode) {
-                        domNode.style.left = `${x}px`;
-                        domNode.style.top = `${y}px`;
+                        domNode.style.left = `${nx}px`;
+                        domNode.style.top = `${ny}px`;
                         domNode.style.width = `${nw}px`;
                         domNode.style.height = `${nh}px`;
                     }
 
-                    bulkDragPreviewManualRef.current[currentSelectedLayerId] = { x, y, width: nw, height: nh } as any;
+                    // Update Snap Lines for Resizing
+                    if (snapVerticalRef.current) {
+                        snapVerticalRef.current.style.display = snapX.length > 0 ? 'block' : 'none';
+                        if (snapX.length > 0) snapVerticalRef.current.style.left = `${snapX[0]}px`;
+                    }
+                    if (snapHorizontalRef.current) {
+                        snapHorizontalRef.current.style.display = snapY.length > 0 ? 'block' : 'none';
+                        if (snapY.length > 0) snapHorizontalRef.current.style.top = `${snapY[0]}px`;
+                    }
+
+                    bulkDragPreviewManualRef.current[currentSelectedLayerId] = { x: nx, y: ny, width: nw, height: nh } as any;
                 }
             }
 
             const currentRotateState = rotateStateRef.current;
             if (currentRotateState?.isRotating) {
                 const { initialLayers, centerX, centerY, canvasCenterX, canvasCenterY, initialRotation, startX, startY } = currentRotateState;
+                const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+                const startAngle = Math.atan2(startY - centerY, startX - centerX);
+                let rawRotationDelta = (angle - startAngle) * (180 / Math.PI);
+
+                // Rotation Snapping
+                const SNAP_ANGLE = e.shiftKey ? 45 : 15;
+                const snappedRotationDelta = Math.round(rawRotationDelta / SNAP_ANGLE) * SNAP_ANGLE;
+                const deltaAngle = snappedRotationDelta;
 
                 if (initialLayers && canvasCenterX !== undefined && canvasCenterY !== undefined) {
                     // Group Rotation
-                    const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
-                    const startAngle = Math.atan2(startY - centerY, startX - centerX);
-                    const deltaAngle = (angle - startAngle) * (180 / Math.PI);
-
                     const updates: Record<string, any> = {};
-
                     const rad = deltaAngle * (Math.PI / 180);
                     const cos = Math.cos(rad);
                     const sin = Math.sin(rad);
 
                     Object.entries(initialLayers).forEach(([id, layer]) => {
                         const lHeight = (layer as any).height || 0;
-                        // Center of layer relative to group center
-                        const cx = layer.x + layer.width / 2;
+                        const lWidth = layer.width || 0;
+                        const cx = layer.x + lWidth / 2;
                         const cy = layer.y + lHeight / 2;
 
                         const rx = cx - canvasCenterX;
                         const ry = cy - canvasCenterY;
 
-                        // Rotate center
                         const nx = rx * cos - ry * sin;
                         const ny = rx * sin + ry * cos;
 
-                        const fx = canvasCenterX + nx - layer.width / 2;
+                        const fx = canvasCenterX + nx - lWidth / 2;
                         const fy = canvasCenterY + ny - lHeight / 2;
                         const fr = (layer.rotation + deltaAngle) % 360;
 
                         updates[id] = { x: fx, y: fy, rotation: fr };
                         bulkDragPreviewManualRef.current[id] = updates[id];
 
-                        // Direct DOM Update for rotation (Performance)
                         const domNode = layerRefs.current[id];
                         if (domNode) {
                             const l = layer as any;
                             domNode.style.left = `${fx}px`;
                             domNode.style.top = `${fy}px`;
-                            // transform is a bit complex since it includes skew, etc.
-                            // but we can update the 'rotate' part of the transform string or just the rotation property if used
-                            // The original style used transform template strings.
                             domNode.style.transform = `${l.perspective ? `perspective(${l.perspective}px)` : ''} rotateX(${l.rotateX || 0}deg) rotateY(${l.rotateY || 0}deg) rotate(${fr}deg) skew(${l.skewX || 0}deg, ${l.skewY || 0}deg)`;
                         }
                     });
@@ -1469,9 +1655,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                     if (onUpdateLayers) onUpdateLayers(updates);
 
                 } else if (currentSelectedLayerId && currentRotateState) {
-                    const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
-                    const startAngle = Math.atan2(startY - centerY, startX - centerX);
-                    const rotation = initialRotation + (angle - startAngle) * (180 / Math.PI);
+                    const rotation = Math.round((initialRotation + rawRotationDelta) / SNAP_ANGLE) * SNAP_ANGLE;
 
                     const domNode = layerRefs.current[currentSelectedLayerId];
                     const layer = layersRef.current.find(l => l.id === currentSelectedLayerId);
@@ -1527,6 +1711,8 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         setResizeState(null);
         setRotateState(null);
         setSnapLines({});
+        if (snapVerticalRef.current) snapVerticalRef.current.style.display = 'none';
+        if (snapHorizontalRef.current) snapHorizontalRef.current.style.display = 'none';
         setIsPanning(false);
         setDragPreview(null);
         setBulkDragPreview({});
@@ -2091,16 +2277,20 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                         )}
 
                         {/* Snap Lines */}
-                        <div
-                            ref={snapVerticalRef}
-                            className="absolute top-0 bottom-0 w-px bg-cyan-400 z-[100] pointer-events-none shadow-[0_0_4px_rgba(34,211,238,0.8)]"
-                            style={{ left: snapLines.vertical, display: snapLines.vertical !== undefined ? 'block' : 'none' }}>
-                        </div>
-                        <div
-                            ref={snapHorizontalRef}
-                            className="absolute left-0 right-0 h-px bg-cyan-400 z-[100] pointer-events-none shadow-[0_0_4px_rgba(34,211,238,0.8)]"
-                            style={{ top: snapLines.horizontal, display: snapLines.horizontal !== undefined ? 'block' : 'none' }}>
-                        </div>
+                        {snapLines.vertical.map((x, i) => (
+                            <div
+                                key={`v-${i}`}
+                                className="absolute top-0 bottom-0 w-px bg-cyan-400 z-[100] pointer-events-none shadow-[0_0_4px_rgba(34,211,238,0.8)]"
+                                style={{ left: x }}>
+                            </div>
+                        ))}
+                        {snapLines.horizontal.map((y, i) => (
+                            <div
+                                key={`h-${i}`}
+                                className="absolute left-0 right-0 h-px bg-cyan-400 z-[100] pointer-events-none shadow-[0_0_4px_rgba(34,211,238,0.8)]"
+                                style={{ top: y }}>
+                            </div>
+                        ))}
 
                         {/* Background Image Block */}
                         {bgImage && (
@@ -2217,6 +2407,12 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                                     onResize={handleResizeStart}
                                     onRotate={handleRotateStart}
                                 />
+                            </div>
+                        )}
+
+                        {isCropMode && (
+                            <div className="absolute inset-0 pointer-events-none z-[1002]">
+                                <CropOverlay zoom={zoom} canvasSize={canvasSize} />
                             </div>
                         )}
                         <canvas
