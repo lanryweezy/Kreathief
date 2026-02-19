@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { Icons } from '../constants';
-import { User, UserPlan } from '../types';
+import { User } from '../types';
 
 interface AuthProps {
   onLogin: (user: User) => void;
@@ -17,7 +16,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     // Simulate API call
     setTimeout(() => {
       const user: User = {
@@ -25,7 +24,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         name: name || email.split('@')[0] || 'Designer',
         email: email,
         plan: 'free',
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`
+        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
       };
       setLoading(false);
       onLogin(user);
@@ -55,8 +54,8 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
               <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">Full Name</label>
               <div className="relative">
                 <Icons.Bot className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full bg-[#13161a] border border-gray-700 rounded-lg py-2.5 pl-10 pr-4 text-white text-sm focus:outline-none focus:border-[#7d2ae8] transition-colors"
@@ -71,8 +70,8 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">Email Address</label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">@</span>
-              <input 
-                type="email" 
+              <input
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-[#13161a] border border-gray-700 rounded-lg py-2.5 pl-10 pr-4 text-white text-sm focus:outline-none focus:border-[#7d2ae8] transition-colors"
@@ -86,8 +85,8 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">Password</label>
             <div className="relative">
               <Icons.Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-              <input 
-                type="password" 
+              <input
+                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-[#13161a] border border-gray-700 rounded-lg py-2.5 pl-10 pr-4 text-white text-sm focus:outline-none focus:border-[#7d2ae8] transition-colors"
@@ -97,8 +96,8 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             </div>
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={loading}
             className="w-full bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] hover:from-[#00b3ba] hover:to-[#6b23c5] text-white font-bold py-3 rounded-lg shadow-lg shadow-purple-900/20 transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
           >
@@ -109,8 +108,8 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
         <div className="mt-6 text-center">
           <p className="text-xs text-gray-500">
-            {isSignUp ? "Already have an account?" : "Don't have an account?"}
-            <button 
+            {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+            <button
               onClick={() => setIsSignUp(!isSignUp)}
               className="ml-2 text-[#00c4cc] hover:text-white font-bold transition-colors"
             >

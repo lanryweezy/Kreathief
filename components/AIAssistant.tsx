@@ -16,19 +16,20 @@ interface AIAssistantProps {
   isProcessing?: boolean;
 }
 
-export const AIAssistant: React.FC<AIAssistantProps> = ({ 
-  isOpen, 
-  onClose, 
-  onApplySuggestion,
-  isProcessing = false 
+export const AIAssistant: React.FC<AIAssistantProps> = ({
+  isOpen,
+  onClose,
+  onApplySuggestion: _onApplySuggestion,
+  isProcessing = false,
 }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
       role: 'assistant',
-      content: 'Hi! I\'m your AI design assistant. Tell me what you\'d like to create or improve, and I\'ll help you with suggestions, content generation, and design improvements.',
-      timestamp: Date.now()
-    }
+      content:
+        "Hi! I'm your AI design assistant. Tell me what you'd like to create or improve, and I'll help you with suggestions, content generation, and design improvements.",
+      timestamp: Date.now(),
+    },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -43,17 +44,19 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
   }, [messages]);
 
   const handleSendMessage = async (text: string) => {
-    if (!text.trim() || isLoading) return;
+    if (!text.trim() || isLoading) {
+      return;
+    }
 
     // Add user message
     const userMessage: Message = {
       id: `msg_${Date.now()}`,
       role: 'user',
       content: text,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
@@ -68,25 +71,27 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         id: `msg_${Date.now()}_response`,
         role: 'assistant',
         content: response,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error('AI Assistant error:', error);
       const errorMessage: Message = {
         id: `msg_${Date.now()}_error`,
         role: 'assistant',
         content: 'Sorry, I encountered an error. Please try again.',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-end sm:justify-center">
@@ -99,10 +104,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
             </div>
             <h2 className="font-bold text-white">AI Assistant</h2>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
             ✕
           </button>
         </div>
@@ -110,10 +112,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
+            <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div
                 className={`max-w-xs px-4 py-2 rounded-lg text-sm ${
                   msg.role === 'user'

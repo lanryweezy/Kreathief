@@ -1,19 +1,19 @@
 import React, { useRef, useState } from 'react';
 import { Icons } from '../../constants';
-import { Layer } from '../../types';
 import { parsePsdToLayers } from '../../services/psdService';
 import { useStore } from '../../store/useStore';
 import { v4 as uuidv4 } from 'uuid';
 
-interface UploadsPanelProps { }
+interface UploadsPanelProps {
+  onFileUpload: (files: File[]) => void;
+  onDeleteUpload: (index: number) => void;
+}
 
-export const UploadsPanel: React.FC<UploadsPanelProps> = ({ }) => {
-  const addLayer = useStore(state => state.addLayer);
-  const onAddLayers = useStore(state => state.addLayers);
-  const canvasSize = useStore(state => state.canvasSize);
-  const uploads = useStore(state => state.uploads);
-  const onFileUpload = useStore(state => state.handleFileUpload);
-  const onDeleteUpload = useStore(state => state.deleteUpload);
+export const UploadsPanel: React.FC<UploadsPanelProps> = ({ onFileUpload, onDeleteUpload }) => {
+  const addLayer = useStore((state) => state.addLayer);
+  const onAddLayers = useStore((state) => state.addLayers);
+  const canvasSize = useStore((state) => state.canvasSize);
+  const uploads = useStore((state) => state.uploads);
 
   const onAddImageLayer = (src: string) => {
     addLayer({
@@ -32,9 +32,19 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({ }) => {
       flipX: false,
       flipY: false,
       blendMode: 'normal',
-      filters: { brightness: 100, contrast: 100, saturation: 100, grayscale: 0, blur: 0, sepia: 0, hueRotate: 0, vignette: 0, opacity: 1 },
+      filters: {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        grayscale: 0,
+        blur: 0,
+        sepia: 0,
+        hueRotate: 0,
+        vignette: 0,
+        opacity: 1,
+      },
       skewX: 0,
-      skewY: 0
+      skewY: 0,
     });
   };
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -72,13 +82,19 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({ }) => {
         }
       }
 
-      if (imageFiles.length > 0) onFileUpload(imageFiles);
-      if (psdFiles.length > 0) handlePsdFiles(psdFiles);
+      if (imageFiles.length > 0) {
+        onFileUpload(imageFiles);
+      }
+      if (psdFiles.length > 0) {
+        handlePsdFiles(psdFiles);
+      }
     }
   };
 
   const handlePsdFiles = async (files: File[]) => {
-    if (!onAddLayers) return;
+    if (!onAddLayers) {
+      return;
+    }
     setIsParsingPsd(true);
     try {
       for (const file of files) {
@@ -112,15 +128,22 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({ }) => {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-all group bg-[#1e1e1e] ${isDragging
-            ? 'border-[#7d2ae8] bg-[#7d2ae8]/10'
-            : 'border-gray-700 hover:border-[#7d2ae8] hover:bg-[#7d2ae8]/5'
-            }`}
+          className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-all group bg-[#1e1e1e] ${
+            isDragging
+              ? 'border-[#7d2ae8] bg-[#7d2ae8]/10'
+              : 'border-gray-700 hover:border-[#7d2ae8] hover:bg-[#7d2ae8]/5'
+          }`}
         >
-          <Icons.Upload className={`w-5 h-5 mb-2 ${isDragging ? 'text-[#7d2ae8]' : 'text-gray-400 group-hover:text-white'}`} />
+          <Icons.Upload
+            className={`w-5 h-5 mb-2 ${isDragging ? 'text-[#7d2ae8]' : 'text-gray-400 group-hover:text-white'}`}
+          />
           <span className="text-[11px] font-bold text-gray-300 group-hover:text-white">Upload Media</span>
           <input
-            type="file" ref={fileInputRef} className="hidden" accept="image/*" multiple
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*"
+            multiple
             onChange={(e) => e.target.files && onFileUpload(Array.from(e.target.files))}
           />
         </div>
@@ -141,7 +164,10 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({ }) => {
             <span className="text-[9px] text-blue-300 opacity-60">Layers, Text & Images</span>
           </div>
           <input
-            type="file" ref={psdInputRef} className="hidden" accept=".psd"
+            type="file"
+            ref={psdInputRef}
+            className="hidden"
+            accept=".psd"
             onChange={(e) => e.target.files && handlePsdFiles(Array.from(e.target.files))}
           />
         </button>
@@ -191,3 +217,5 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({ }) => {
     </div>
   );
 };
+
+export default UploadsPanel;

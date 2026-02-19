@@ -24,33 +24,44 @@ export default defineConfig(({ mode }) => {
             {
               src: 'pwa-192x192.png',
               sizes: '192x192',
-              type: 'image/png'
-            },
-            {
-              src: 'pwa-512x512.png',
-              sizes: '512x512',
-              type: 'image/png'
+              type: 'image/png',
             },
             {
               src: 'pwa-512x512.png',
               sizes: '512x512',
               type: 'image/png',
-              purpose: 'any maskable'
-            }
-          ]
+            },
+            {
+              src: 'pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any maskable',
+            },
+          ],
         },
         workbox: {
           maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-          globIgnores: ['**/*.onnx', '**/*.wasm', '**/*.map']
-        }
-      })
+          globIgnores: ['**/*.onnx', '**/*.wasm', '**/*.map'],
+        },
+      }),
     ],
     build: {
-      sourcemap: false
+      sourcemap: false,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-ai': ['@google/generative-ai'],
+            'vendor-utils': ['uuid', 'zustand'],
+            'vendor-export': ['jspdf', 'ag-psd', 'imagetracerjs'],
+            'vendor-graphics': ['opentype.js', '@imgly/background-removal'],
+          },
+        },
+      },
     },
     define: {
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || env.API_KEY || '')
-    }
+      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || env.API_KEY || ''),
+    },
   };
 });

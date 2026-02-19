@@ -1,8 +1,7 @@
-
 export enum AppMode {
   GENERATE = 'GENERATE',
   EDIT = 'EDIT',
-  THEME = 'THEME'
+  THEME = 'THEME',
 }
 
 export enum NavTab {
@@ -29,7 +28,7 @@ export enum NavTab {
   MOTION = 'MOTION',
   SNAPSHOTS = 'SNAPSHOTS',
   COMMENTS = 'COMMENTS',
-  COMMUNITY = 'COMMUNITY'
+  COMMUNITY = 'COMMUNITY',
 }
 
 export enum BrushType {
@@ -41,7 +40,8 @@ export enum BrushType {
   WATERCOLOR = 'watercolor',
   VECTOR_PENCIL = 'vector_pencil',
   SPLATTER = 'splatter',
-  TEXTURE = 'texture'
+  TEXTURE = 'texture',
+  ERASER = 'eraser',
 }
 
 export enum AspectRatio {
@@ -49,12 +49,14 @@ export enum AspectRatio {
   LANDSCAPE = '16:9',
   PORTRAIT = '9:16',
   WIDE = '4:3',
-  TALL = '3:4'
+  TALL = '3:4',
 }
 
 export type GenerationQuality = 'standard' | 'hd';
 
 export type CanvasUnit = 'px' | 'in' | 'cm' | 'mm';
+
+export type ResizeHandle = 'nw' | 'ne' | 'sw' | 'se' | 'w' | 'e' | 'n' | 's';
 
 export interface CanvasSize {
   width: number;
@@ -105,18 +107,20 @@ export interface AnimationSettings {
   delay: number; // seconds
   easing: 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out' | 'bounce';
   iterationCount: number | 'infinite';
+  intensity?: number;
+  angle?: number;
 }
 
 export interface LayerFilters {
   brightness: number; // 100 default
-  contrast: number;   // 100 default
+  contrast: number; // 100 default
   saturation: number; // 100 default
-  grayscale: number;  // 0 default
-  blur: number;       // 0 default
-  sepia: number;      // 0 default
-  hueRotate: number;  // 0 default
-  vignette: number;   // 0 default
-  opacity: number;    // 1 default
+  grayscale: number; // 0 default
+  blur: number; // 0 default
+  sepia: number; // 0 default
+  hueRotate: number; // 0 default
+  vignette: number; // 0 default
+  opacity: number; // 1 default
 }
 
 export interface TextGradient {
@@ -158,6 +162,7 @@ export interface LayerBase {
   perspective?: number;
   rotateX?: number;
   rotateY?: number;
+  isProcessing?: boolean;
 }
 
 export interface TextLayer extends LayerBase {
@@ -178,14 +183,25 @@ export interface TextLayer extends LayerBase {
   gradient?: TextGradient;
   // effects...
   curve?: number;
-  warpStyle?: 'none' | 'arc' | 'flag' | 'rise';
+  warpStyle?: 'none' | 'arc' | 'flag' | 'rise' | 'wave' | 'fish';
   styleType?: 'normal' | 'hollow' | 'lift' | 'echo';
   textPath?: string;
   depth?: number;
   depthColor?: string;
+  // Text transform effects
+  transformType?: string;
+  transformIntensity?: number;
+  transformDirection?: number; // Changed from string to number
+  // Advanced shadows
+  advancedShadows?: AdvancedShadow[];
   decorations?: {
     textures?: string[];
+    cuts?: Array<{ type: string; value: number }>;
+    lines?: Array<{ type: string; value: number }>;
   };
+  // Text features
+  kerning?: number;
+  ligatures?: boolean;
 }
 
 export type PointType = 'sharp' | 'smooth' | 'symmetric';
@@ -206,6 +222,7 @@ export interface VectorPath {
 }
 
 export interface Gradient {
+  enabled?: boolean;
   type: 'linear' | 'radial';
   angle?: number; // 0-360 degrees for linear
   colors: Array<{ color: string; position: number }>;
@@ -215,7 +232,25 @@ export interface Gradient {
   endY?: number;
 }
 
-export type ShapeType = 'rectangle' | 'circle' | 'triangle' | 'star' | 'hexagon' | 'diamond' | 'arrow' | 'heart' | 'speech_bubble' | 'ribbon' | 'shield' | 'banner' | 'pentagon' | 'octagon' | 'plus' | 'star_4' | 'star_8' | 'path';
+export type ShapeType =
+  | 'rectangle'
+  | 'circle'
+  | 'triangle'
+  | 'star'
+  | 'hexagon'
+  | 'diamond'
+  | 'arrow'
+  | 'heart'
+  | 'speech_bubble'
+  | 'ribbon'
+  | 'shield'
+  | 'banner'
+  | 'pentagon'
+  | 'octagon'
+  | 'plus'
+  | 'star_4'
+  | 'star_8'
+  | 'path';
 
 export interface ShapeLayer extends LayerBase {
   type: ShapeType;
@@ -252,14 +287,14 @@ export type Layer = TextLayer | ImageLayer | ShapeLayer;
 
 export interface CanvasFilters {
   brightness: number; // %
-  contrast: number;   // %
+  contrast: number; // %
   saturation: number; // %
-  sepia: number;      // %
-  grayscale: number;  // %
-  blur: number;       // px
-  opacity: number;    // 0-1
-  vignette: number;   // 0-100
-  hueRotate: number;  // deg
+  sepia: number; // %
+  grayscale: number; // %
+  blur: number; // px
+  opacity: number; // 0-1
+  vignette: number; // 0-100
+  hueRotate: number; // deg
   overlayTexture?: string; // CSS url or data URI for vintage texture overlay
 }
 
@@ -267,6 +302,13 @@ export interface GenerationConfig {
   prompt: string;
   aspectRatio: AspectRatio;
   referenceImage?: string; // Base64 string for editing
+}
+
+export interface GeneratedImage {
+  id: string;
+  url: string;
+  prompt: string;
+  timestamp: number;
 }
 
 export interface HistoryState {
@@ -347,4 +389,12 @@ export interface User {
   email: string;
   plan: UserPlan;
   avatar?: string;
+}
+
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
+
+export interface Toast {
+  id: string;
+  message: string;
+  type: ToastType;
 }

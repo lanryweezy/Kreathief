@@ -1,22 +1,18 @@
-
 import React from 'react';
 import { Icons } from '../constants';
 import { Button } from './Button';
-import { User } from '../types';
+import { User, Project } from '../types';
 import { DropdownMenu } from './DropdownMenu';
 import { useStore } from '../store/useStore';
 
 interface HeaderProps {
   onDownload: () => void;
   onBack?: () => void;
+  onNew?: (project: Project) => void;
   user?: User;
 }
 
-export const Header: React.FC<HeaderProps> = ({
-  onDownload,
-  onBack,
-  user,
-}) => {
+export const Header: React.FC<HeaderProps> = ({ onDownload, onBack, onNew, user }) => {
   const {
     undo,
     redo,
@@ -25,11 +21,10 @@ export const Header: React.FC<HeaderProps> = ({
     projectTitle: title,
     setProjectTitle: onTitleChange,
     isSaving,
-    handleNew: onNew,
     saveProject: onSave,
     showShortcuts,
     setShowShortcuts,
-    setShowShareModal
+    setShowShareModal,
   } = useStore();
 
   const onShare = () => setShowShareModal(true);
@@ -56,8 +51,40 @@ export const Header: React.FC<HeaderProps> = ({
           <DropdownMenu
             label="File"
             items={[
-              { label: 'New Design', icon: <Icons.FolderPlus className="w-3.5 h-3.5" />, onClick: onNew || (() => { }) },
-              { label: 'Save (Ctrl+S)', icon: <Icons.CheckSquare className="w-3.5 h-3.5" />, onClick: onSave || (() => { }) },
+              {
+                label: 'New Design',
+                icon: <Icons.FolderPlus className="w-3.5 h-3.5" />,
+                onClick: () => {
+                  if (onNew) {
+                    onNew({
+                      id: `project_${Date.now()}`,
+                      name: 'Untitled Design',
+                      updatedAt: Date.now(),
+                      state: {
+                        layers: [],
+                        canvasBackgroundColor: '#ffffff',
+                        canvasFilters: {
+                          brightness: 100,
+                          contrast: 100,
+                          saturation: 100,
+                          sepia: 0,
+                          grayscale: 0,
+                          blur: 0,
+                          opacity: 1,
+                          vignette: 0,
+                          hueRotate: 0,
+                        },
+                        canvasSize: { width: 1080, height: 1080, name: 'Square (IG Post)' },
+                      },
+                    });
+                  }
+                },
+              },
+              {
+                label: 'Save (Ctrl+S)',
+                icon: <Icons.CheckSquare className="w-3.5 h-3.5" />,
+                onClick: onSave || (() => {}),
+              },
               { divider: true, label: '' },
               { label: 'Export...', icon: <Icons.Download className="w-3.5 h-3.5" />, onClick: onDownload },
             ]}
@@ -65,22 +92,64 @@ export const Header: React.FC<HeaderProps> = ({
           <DropdownMenu
             label="Edit"
             items={[
-              { label: 'Undo', icon: <Icons.Undo className="w-3.5 h-3.5" />, shortcut: 'Ctrl+Z', disabled: !canUndo, onClick: undo || (() => { }) },
-              { label: 'Redo', icon: <Icons.Redo className="w-3.5 h-3.5" />, shortcut: 'Ctrl+Y', disabled: !canRedo, onClick: redo || (() => { }) },
+              {
+                label: 'Undo',
+                icon: <Icons.Undo className="w-3.5 h-3.5" />,
+                shortcut: 'Ctrl+Z',
+                disabled: !canUndo,
+                onClick: undo || (() => {}),
+              },
+              {
+                label: 'Redo',
+                icon: <Icons.Redo className="w-3.5 h-3.5" />,
+                shortcut: 'Ctrl+Y',
+                disabled: !canRedo,
+                onClick: redo || (() => {}),
+              },
               { divider: true, label: '' },
-              { label: 'Keyboard Shortcuts', icon: <Icons.Help className="w-3.5 h-3.5" />, shortcut: '?', onClick: onShowShortcuts || (() => { }) },
+              {
+                label: 'Keyboard Shortcuts',
+                icon: <Icons.Help className="w-3.5 h-3.5" />,
+                shortcut: '?',
+                onClick: onShowShortcuts || (() => {}),
+              },
             ]}
           />
           <DropdownMenu
             label="View"
             items={[
-              { label: 'Zoom In', icon: <Icons.Plus className="w-3.5 h-3.5" />, shortcut: 'Ctrl++', onClick: () => (window as any).dispatchEvent(new CustomEvent('editor-zoom-in')) },
-              { label: 'Zoom Out', icon: <Icons.Minus className="w-3.5 h-3.5" />, shortcut: 'Ctrl+-', onClick: () => (window as any).dispatchEvent(new CustomEvent('editor-zoom-out')) },
-              { label: 'Reset Zoom', onClick: () => (window as any).dispatchEvent(new CustomEvent('editor-zoom-reset')) },
+              {
+                label: 'Zoom In',
+                icon: <Icons.Plus className="w-3.5 h-3.5" />,
+                shortcut: 'Ctrl++',
+                onClick: () => (window as any).dispatchEvent(new CustomEvent('editor-zoom-in')),
+              },
+              {
+                label: 'Zoom Out',
+                icon: <Icons.Minus className="w-3.5 h-3.5" />,
+                shortcut: 'Ctrl+-',
+                onClick: () => (window as any).dispatchEvent(new CustomEvent('editor-zoom-out')),
+              },
+              {
+                label: 'Reset Zoom',
+                onClick: () => (window as any).dispatchEvent(new CustomEvent('editor-zoom-reset')),
+              },
               { divider: true, label: '' },
-              { label: 'Toggle Rulers', icon: <Icons.Layout className="w-3.5 h-3.5" />, onClick: () => (window as any).dispatchEvent(new CustomEvent('editor-toggle-rulers')) },
-              { label: 'Toggle Grid', icon: <Icons.Grid className="w-3.5 h-3.5" />, onClick: () => (window as any).dispatchEvent(new CustomEvent('editor-toggle-grid')) },
-              { label: 'Toggle Golden Ratio', icon: <Icons.Maximize className="w-3.5 h-3.5" />, onClick: () => (window as any).dispatchEvent(new CustomEvent('editor-toggle-golden-ratio')) },
+              {
+                label: 'Toggle Rulers',
+                icon: <Icons.Layout className="w-3.5 h-3.5" />,
+                onClick: () => (window as any).dispatchEvent(new CustomEvent('editor-toggle-rulers')),
+              },
+              {
+                label: 'Toggle Grid',
+                icon: <Icons.Grid className="w-3.5 h-3.5" />,
+                onClick: () => (window as any).dispatchEvent(new CustomEvent('editor-toggle-grid')),
+              },
+              {
+                label: 'Toggle Golden Ratio',
+                icon: <Icons.Maximize className="w-3.5 h-3.5" />,
+                onClick: () => (window as any).dispatchEvent(new CustomEvent('editor-toggle-golden-ratio')),
+              },
             ]}
           />
         </div>
@@ -112,14 +181,16 @@ export const Header: React.FC<HeaderProps> = ({
 
         <div className="flex items-center gap-2 px-2">
           <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500">
-            <button onClick={onBack} className="hover:text-[#7d2ae8] transition-colors">Home</button>
+            <button onClick={onBack} className="hover:text-[#7d2ae8] transition-colors">
+              Home
+            </button>
             <Icons.ArrowRight className="w-2.5 h-2.5" />
             <span className="text-gray-400 truncate max-w-[100px]">{title}</span>
           </div>
           <div className="h-4 w-px bg-gray-800 mx-2"></div>
-          <div className={`sync-dot ${isSaving ? "sync-dot-saving" : ""}`}></div>
+          <div className={`sync-dot ${isSaving ? 'sync-dot-saving' : ''}`}></div>
           <span className="hidden md:block text-[9px] uppercase tracking-wider font-bold text-gray-500">
-            {isSaving ? "Saving..." : "Saved"}
+            {isSaving ? 'Saving...' : 'Saved'}
           </span>
         </div>
       </div>
@@ -148,16 +219,14 @@ export const Header: React.FC<HeaderProps> = ({
           <Icons.Help className="w-4 h-4" />
         </button>
 
-        {onShare && (
-          <button
-            onClick={onShare}
-            className="p-2 text-gray-400 hover:text-[#00c4cc] transition-colors"
-            title="Share Design"
-            aria-label="Share design"
-          >
-            <Icons.Share className="w-4 h-4" />
-          </button>
-        )}
+        <button
+          onClick={onShare}
+          className="p-2 text-gray-400 hover:text-[#00c4cc] transition-colors"
+          title="Share Design"
+          aria-label="Share design"
+        >
+          <Icons.Share className="w-4 h-4" />
+        </button>
 
         <div className="h-4 w-px bg-gray-800"></div>
 

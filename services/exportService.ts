@@ -1,6 +1,5 @@
 import { TextLayer, ShapeLayer, ImageLayer, CanvasFilters, Layer } from '../types';
 import { jsPDF } from 'jspdf';
-import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Downloads a Blob object as a file.
@@ -16,16 +15,13 @@ export const downloadBlob = (blob: Blob, filename: string) => {
   URL.revokeObjectURL(url);
 };
 
-
-
-
 /**
  * Loads an image from a URL or Base64 string into an HTMLImageElement.
  */
 const loadImage = (url: string): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = "anonymous";
+    img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
     img.onerror = (e) => reject(e);
     img.src = url;
@@ -48,9 +44,9 @@ const getLines = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
     if (wordWidth > maxWidth) {
       if (currentLine.length > 0) {
         lines.push(currentLine);
-        currentLine = "";
+        currentLine = '';
       }
-      let subWord = "";
+      let subWord = '';
       for (let c = 0; c < word.length; c++) {
         const testSub = subWord + word[c];
         if (ctx.measureText(testSub).width > maxWidth) {
@@ -64,9 +60,9 @@ const getLines = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
       continue;
     }
 
-    const width = ctx.measureText(currentLine + " " + word).width;
+    const width = ctx.measureText(currentLine + ' ' + word).width;
     if (width < maxWidth) {
-      currentLine += " " + word;
+      currentLine += ' ' + word;
     } else {
       lines.push(currentLine);
       currentLine = word;
@@ -87,7 +83,12 @@ const applySkew = (ctx: CanvasRenderingContext2D, skewX: number = 0, skewY: numb
 };
 
 // Helper to create gradient for text
-const createTextGradient = (ctx: CanvasRenderingContext2D, width: number, height: number, gradientConfig: { startColor: string, endColor: string, angle: number }) => {
+const createTextGradient = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  gradientConfig: { startColor: string; endColor: string; angle: number }
+) => {
   // CSS Angle: 0deg = to top, 90deg = to right.
   // Convert to radians, offset by -90 degrees because Math.cos/sin starts at 3 o'clock (0 rad)
   const angleRad = (gradientConfig.angle - 90) * (Math.PI / 180);
@@ -99,10 +100,10 @@ const createTextGradient = (ctx: CanvasRenderingContext2D, width: number, height
   const centerX = 0;
   const centerY = 0;
 
-  const x1 = centerX - Math.cos(angleRad) * length / 2;
-  const y1 = centerY - Math.sin(angleRad) * length / 2;
-  const x2 = centerX + Math.cos(angleRad) * length / 2;
-  const y2 = centerY + Math.sin(angleRad) * length / 2;
+  const x1 = centerX - (Math.cos(angleRad) * length) / 2;
+  const y1 = centerY - (Math.sin(angleRad) * length) / 2;
+  const x2 = centerX + (Math.cos(angleRad) * length) / 2;
+  const y2 = centerY + (Math.sin(angleRad) * length) / 2;
 
   const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
   gradient.addColorStop(0, gradientConfig.startColor);
@@ -115,9 +116,21 @@ const drawWarpedText = (
   ctx: CanvasRenderingContext2D,
   layer: TextLayer,
   textBlockHeight: number,
-  totalHeight: number
+  _totalHeight: number
 ) => {
-  const { text, color, fontSize, fontFamily, fontWeight, fontStyle, warpStyle, curve = 0, width, lineHeight = 1.2, textAlign = 'left' } = layer;
+  const {
+    text,
+    color,
+    fontSize,
+    fontFamily,
+    fontWeight,
+    fontStyle,
+    warpStyle,
+    curve = 0,
+    width,
+    lineHeight = 1.2,
+    textAlign = 'left',
+  } = layer;
 
   // Font string
   const font = `${fontStyle === 'italic' ? 'italic' : 'normal'} ${fontWeight} ${fontSize}px ${fontFamily}`;
@@ -125,7 +138,9 @@ const drawWarpedText = (
   // Create temp canvas for the flat text
   const tempCanvas = document.createElement('canvas');
   const tempCtx = tempCanvas.getContext('2d');
-  if (!tempCtx) return;
+  if (!tempCtx) {
+    return;
+  }
 
   const intensity = curve / 100; // -1 to 1
 
@@ -154,8 +169,12 @@ const drawWarpedText = (
 
   lines.forEach((line, i) => {
     let x = 0;
-    if (textAlign === 'center') x = width / 2;
-    if (textAlign === 'right') x = width;
+    if (textAlign === 'center') {
+      x = width / 2;
+    }
+    if (textAlign === 'right') {
+      x = width;
+    }
     tempCtx.fillText(line, x, i * lh);
   });
 
@@ -166,8 +185,12 @@ const drawWarpedText = (
     tempCtx.lineJoin = 'round';
     lines.forEach((line, i) => {
       let x = 0;
-      if (textAlign === 'center') x = width / 2;
-      if (textAlign === 'right') x = width;
+      if (textAlign === 'center') {
+        x = width / 2;
+      }
+      if (textAlign === 'right') {
+        x = width;
+      }
       tempCtx.strokeText(line, x, i * lh);
     });
   }
@@ -200,8 +223,14 @@ const drawWarpedText = (
     // Draw slice from temp canvas to main context
     ctx.drawImage(
       tempCanvas,
-      x, 0, sliceWidth, textBlockHeight,
-      startX + x, startY + offsetY, sliceWidth, textBlockHeight
+      x,
+      0,
+      sliceWidth,
+      textBlockHeight,
+      startX + x,
+      startY + offsetY,
+      sliceWidth,
+      textBlockHeight
     );
   }
 };
@@ -271,8 +300,9 @@ const drawShapeToContext = (ctx: CanvasRenderingContext2D, shape: ShapeLayer) =>
     const spikes = 5;
     const outerRadius = Math.min(w, h) / 2;
     const innerRadius = outerRadius / 2.2;
-    let rot = Math.PI / 2 * 3;
-    let x = 0; let y = 0;
+    let rot = (Math.PI / 2) * 3;
+    let x = 0;
+    let y = 0;
     const step = Math.PI / spikes;
     ctx.moveTo(0, 0 - outerRadius);
     for (let i = 0; i < spikes; i++) {
@@ -292,7 +322,7 @@ const drawShapeToContext = (ctx: CanvasRenderingContext2D, shape: ShapeLayer) =>
     const sideLength = w / 2;
     ctx.moveTo(sideLength * Math.cos(0), sideLength * Math.sin(0));
     for (let i = 1; i <= 6; i++) {
-      ctx.lineTo(sideLength * Math.cos(i * 2 * Math.PI / 6), sideLength * Math.sin(i * 2 * Math.PI / 6));
+      ctx.lineTo(sideLength * Math.cos((i * 2 * Math.PI) / 6), sideLength * Math.sin((i * 2 * Math.PI) / 6));
     }
     ctx.closePath();
     ctx.fill();
@@ -338,9 +368,9 @@ const drawShapeToContext = (ctx: CanvasRenderingContext2D, shape: ShapeLayer) =>
     ctx.moveTo(0, -hh + h * 0.85);
     ctx.lineTo(-hw + w * 0.15, 0);
     ctx.lineTo(-hw + w * 0.15, -hh + h * 0.25);
-    ctx.lineTo(-hw + w * 0.30, -hh + h * 0.10);
+    ctx.lineTo(-hw + w * 0.3, -hh + h * 0.1);
     ctx.lineTo(0, -hh + h * 0.25);
-    ctx.lineTo(-hw + w * 0.70, -hh + h * 0.10);
+    ctx.lineTo(-hw + w * 0.7, -hh + h * 0.1);
     ctx.lineTo(-hw + w * 0.85, -hh + h * 0.25);
     ctx.lineTo(-hw + w * 0.85, 0);
     ctx.closePath();
@@ -480,7 +510,9 @@ const drawImageLayerToContext = async (ctx: CanvasRenderingContext2D, imgLayer: 
     }
 
     const f = imgLayer.filters;
-    ctx.filter = `brightness(${f.brightness}%) contrast(${f.contrast}%) saturate(${f.saturation}%) grayscale(${f.grayscale}%) blur(${f.blur}px) sepia(${f.sepia}%)`;
+    if (f) {
+      ctx.filter = `brightness(${f.brightness}%) contrast(${f.contrast}%) saturate(${f.saturation}%) grayscale(${f.grayscale}%) blur(${f.blur}px) sepia(${f.sepia}%)`;
+    }
 
     if (imgLayer.cornerRadius) {
       ctx.beginPath();
@@ -498,11 +530,11 @@ const drawImageLayerToContext = async (ctx: CanvasRenderingContext2D, imgLayer: 
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(img, -imgLayer.width / 2, -imgLayer.height / 2, imgLayer.width, imgLayer.height);
 
-    if (f.vignette && f.vignette > 0) {
+    if (f && f.vignette && f.vignette > 0) {
       ctx.filter = 'none';
       ctx.globalCompositeOperation = 'source-over';
       const radius = Math.max(imgLayer.width, imgLayer.height) / 1.5;
-      const startPct = Math.max(0, 0.7 - (f.vignette * 0.005));
+      const startPct = Math.max(0, 0.7 - f.vignette * 0.005);
 
       const gradient = ctx.createRadialGradient(0, 0, radius * startPct, 0, 0, radius);
       gradient.addColorStop(0, 'rgba(0,0,0,0)');
@@ -527,7 +559,7 @@ const drawImageLayerToContext = async (ctx: CanvasRenderingContext2D, imgLayer: 
 
     ctx.restore();
   } catch (err) {
-    console.warn("Failed to load image layer for export", err);
+    console.warn('Failed to load image layer for export', err);
   }
 };
 
@@ -541,19 +573,27 @@ const drawTextLayerToContext = (ctx: CanvasRenderingContext2D, textLayer: TextLa
   ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${textLayer.fontFamily}`;
 
   if (textLayer.letterSpacing) {
-    // @ts-ignore
+    // @ts-expect-error - ignore type mismatch
     ctx.letterSpacing = `${textLayer.letterSpacing}px`;
   }
 
   const lineHeight = textLayer.lineHeight || 1.2;
-  const rawLines = textLayer.text.split('\n');
+  let textToRender = textLayer.text;
+  if (textLayer.textTransform === 'uppercase') {
+    textToRender = textToRender.toUpperCase();
+  }
+  if (textLayer.textTransform === 'lowercase') {
+    textToRender = textToRender.toLowerCase();
+  }
+
+  const rawLines = textToRender.split('\n');
   let lines: string[] = [];
   const wrapWidth = textLayer.width || 400;
 
   if (textLayer.warpStyle && textLayer.warpStyle !== 'none') {
     lines = rawLines;
   } else {
-    rawLines.forEach(line => {
+    rawLines.forEach((line) => {
       lines = lines.concat(getLines(ctx, line, wrapWidth));
     });
   }
@@ -601,17 +641,18 @@ const drawTextLayerToContext = (ctx: CanvasRenderingContext2D, textLayer: TextLa
   } else {
     const align = textLayer.textAlign === 'justify' ? 'left' : textLayer.textAlign;
     ctx.textAlign = align as CanvasTextAlign;
-    let textToRender = textLayer.text;
-    if (textLayer.textTransform === 'uppercase') textToRender = textToRender.toUpperCase();
-    if (textLayer.textTransform === 'lowercase') textToRender = textToRender.toLowerCase();
 
     ctx.translate(0, -textBlockHeight / 2 + (fontSize * lineHeight) / 2);
 
     lines.forEach((line, index) => {
       const lineY = index * (fontSize * lineHeight);
       let drawX = 0;
-      if (textLayer.textAlign === 'left') drawX = -wrapWidth / 2;
-      if (textLayer.textAlign === 'right') drawX = wrapWidth / 2;
+      if (textLayer.textAlign === 'left') {
+        drawX = -wrapWidth / 2;
+      }
+      if (textLayer.textAlign === 'right') {
+        drawX = wrapWidth / 2;
+      }
 
       if (textLayer.textAlign === 'justify') {
         const lineWords = line.split(' ');
@@ -655,9 +696,13 @@ const drawTextLayerToContext = (ctx: CanvasRenderingContext2D, textLayer: TextLa
       if (textLayer.textDecoration && textLayer.textDecoration !== 'none') {
         const lineWidth = ctx.measureText(line).width;
         let lineStartX = drawX;
-        if (textLayer.textAlign === 'justify') lineStartX = -wrapWidth / 2;
-        else if (textLayer.textAlign === 'center') lineStartX = -lineWidth / 2;
-        else if (textLayer.textAlign === 'right') lineStartX = wrapWidth / 2 - lineWidth;
+        if (textLayer.textAlign === 'justify') {
+          lineStartX = -wrapWidth / 2;
+        } else if (textLayer.textAlign === 'center') {
+          lineStartX = -lineWidth / 2;
+        } else if (textLayer.textAlign === 'right') {
+          lineStartX = wrapWidth / 2 - lineWidth;
+        }
 
         const thickness = Math.max(1, fontSize / 15);
         ctx.fillStyle = textLayer.color;
@@ -692,8 +737,11 @@ export const exportDesignToImage = async (
       return await new Promise((resolve, reject) => {
         const worker = new Worker(new URL('./exportWorker.ts', import.meta.url), { type: 'module' });
         worker.onmessage = (e) => {
-          if (e.data.dataUrl) resolve(e.data.dataUrl);
-          else if (e.data.error) reject(new Error(e.data.error));
+          if (e.data.dataUrl) {
+            resolve(e.data.dataUrl);
+          } else if (e.data.error) {
+            reject(new Error(e.data.error));
+          }
           worker.terminate();
         };
         worker.onerror = (err) => {
@@ -701,7 +749,14 @@ export const exportDesignToImage = async (
           worker.terminate();
         };
         worker.postMessage({
-          width, height, backgroundColor, backgroundImageUrl, layers, filters, format, quality
+          width,
+          height,
+          backgroundColor,
+          backgroundImageUrl,
+          layers,
+          filters,
+          format,
+          quality,
         });
       });
     } catch (err) {
@@ -715,7 +770,9 @@ export const exportDesignToImage = async (
   canvas.height = height;
   const ctx = canvas.getContext('2d');
 
-  if (!ctx) throw new Error("Could not create canvas context");
+  if (!ctx) {
+    throw new Error('Could not create canvas context');
+  }
 
   // 1. Draw Background Color
   ctx.fillStyle = backgroundColor;
@@ -755,8 +812,15 @@ export const exportDesignToImage = async (
       if (filters?.vignette && filters.vignette > 0) {
         ctx.globalCompositeOperation = 'source-over';
         const radius = Math.max(width, height) / 1.5;
-        const startPct = Math.max(0, 0.7 - (filters.vignette * 0.005));
-        const gradient = ctx.createRadialGradient(width / 2, height / 2, radius * startPct, width / 2, height / 2, radius);
+        const startPct = Math.max(0, 0.7 - filters.vignette * 0.005);
+        const gradient = ctx.createRadialGradient(
+          width / 2,
+          height / 2,
+          radius * startPct,
+          width / 2,
+          height / 2,
+          radius
+        );
         gradient.addColorStop(0, 'rgba(0,0,0,0)');
         gradient.addColorStop(1, `rgba(0,0,0,${filters.vignette / 100})`);
         ctx.fillStyle = gradient;
@@ -765,13 +829,15 @@ export const exportDesignToImage = async (
 
       ctx.restore();
     } catch (err) {
-      console.warn("Failed to load background image for export", err);
+      console.warn('Failed to load background image for export', err);
     }
   }
 
   // 3. Draw Layers in Z-Index Order
   for (const layer of layers) {
-    if (!layer.visible) continue;
+    if (!layer.visible) {
+      continue;
+    }
 
     if (layer.type === 'image') {
       await drawImageLayerToContext(ctx, layer);
@@ -792,13 +858,17 @@ export const exportDesignToImage = async (
       ctx.drawImage(texImg, 0, 0, width, height);
       ctx.restore();
     } catch (err) {
-      console.warn("Failed to load texture for export", err);
+      console.warn('Failed to load texture for export', err);
     }
   }
 
   // Export encoding
-  if (format === 'jpeg') return canvas.toDataURL('image/jpeg', quality);
-  if (format === 'webp') return canvas.toDataURL('image/webp', quality);
+  if (format === 'jpeg') {
+    return canvas.toDataURL('image/jpeg', quality);
+  }
+  if (format === 'webp') {
+    return canvas.toDataURL('image/webp', quality);
+  }
   return canvas.toDataURL('image/png');
 };
 
@@ -810,7 +880,7 @@ export const exportToPDF = async (width: number, height: number, imgDataUrl: str
   const pdf = new jsPDF({
     orientation: orientation,
     unit: 'pt',
-    format: [width, height]
+    format: [width, height],
   });
   pdf.addImage(imgDataUrl, 'PNG', 0, 0, width, height);
   pdf.save(fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
@@ -834,11 +904,17 @@ const getSVGTransform = (
   const centerY = height / 2;
 
   let transform = `translate(${x} ${y})`;
-  if (rotation !== 0) transform += ` rotate(${rotation} ${centerX} ${centerY})`;
+  if (rotation !== 0) {
+    transform += ` rotate(${rotation} ${centerX} ${centerY})`;
+  }
   if (skewX !== 0 || skewY !== 0) {
     // Svg skew uses degrees. Matrix is more robust but skewX/skewY are standard.
-    if (skewX !== 0) transform += ` skewX(${skewX})`;
-    if (skewY !== 0) transform += ` skewY(${skewY})`;
+    if (skewX !== 0) {
+      transform += ` skewX(${skewX})`;
+    }
+    if (skewY !== 0) {
+      transform += ` skewY(${skewY})`;
+    }
   }
   if (flipX || flipY) {
     // To flip around center: translate(center), scale(-1, 1), translate(-center)
@@ -854,13 +930,13 @@ const getSVGTransform = (
 /**
  * Creates SVG <defs> for gradients and filters used in the design.
  */
-const generateSVGDefs = (
-  layers: Layer[]
-): string => {
+const generateSVGDefs = (layers: Layer[]): string => {
   let defs = '<defs>';
 
   const addGradient = (grad: any, id: string) => {
-    if (!grad || !grad.colors || grad.colors.length === 0) return;
+    if (!grad || !grad.colors || grad.colors.length === 0) {
+      return;
+    }
     if (grad.type === 'linear') {
       // CSS angle is 0deg at bottom, 90deg at right.
       // SVG linear gradient: x1, y1 (start), x2, y2 (end)
@@ -881,7 +957,7 @@ const generateSVGDefs = (
     defs += grad.type === 'linear' ? '</linearGradient>' : '</radialGradient>';
   };
 
-  layers.forEach(layer => {
+  layers.forEach((layer) => {
     const layerWithGrad = layer as any;
     if (layerWithGrad.gradient && layerWithGrad.gradient.colors?.length > 0) {
       addGradient(layerWithGrad.gradient, `grad-${layer.id}`);
@@ -889,7 +965,7 @@ const generateSVGDefs = (
   });
 
   // Unique Shadow Filters per Layer
-  layers.forEach(layer => {
+  layers.forEach((layer) => {
     if (layer.shadow) {
       const s = layer.shadow;
       // Approximate color for filter (SVG feDropShadow is simplest)
@@ -914,12 +990,7 @@ const generateSVGDefs = (
 /**
  * Exports the design as a Scalable Vector Graphic (SVG) string.
  */
-export const exportToSVG = (
-  width: number,
-  height: number,
-  backgroundColor: string,
-  layers: Layer[]
-): string => {
+export const exportToSVG = (width: number, height: number, backgroundColor: string, layers: Layer[]): string => {
   let svg = `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`;
 
   // 1. Defs (Gradients, Filters)
@@ -932,12 +1003,24 @@ export const exportToSVG = (
   const tempCanvas = document.createElement('canvas');
   const tempCtx = tempCanvas.getContext('2d');
 
-  layers.forEach(layer => {
-    if (!layer.visible) return;
+  layers.forEach((layer) => {
+    if (!layer.visible) {
+      return;
+    }
 
     if (layer.type === 'image') {
       const img = layer as ImageLayer;
-      const transform = getSVGTransform(img.x, img.y, img.width, img.height, img.rotation, img.skewX, img.skewY, img.flipX, img.flipY);
+      const transform = getSVGTransform(
+        img.x,
+        img.y,
+        img.width,
+        img.height,
+        img.rotation,
+        img.skewX,
+        img.skewY,
+        img.flipX,
+        img.flipY
+      );
 
       let imageContent = `<image x="0" y="0" width="${img.width}" height="${img.height}" href="${img.src}" />`;
 
@@ -950,14 +1033,22 @@ export const exportToSVG = (
       svg += `<g transform="${transform}" opacity="${img.opacity}">${imageContent}</g>`;
     } else if (layer.type === 'text') {
       const t = layer as TextLayer;
-      const transform = getSVGTransform(t.x, t.y, t.width, t.fontSize * (t.lineHeight || 1.2), t.rotation, t.skewX, t.skewY);
+      const transform = getSVGTransform(
+        t.x,
+        t.y,
+        t.width,
+        t.fontSize * (t.lineHeight || 1.2),
+        t.rotation,
+        t.skewX,
+        t.skewY
+      );
       const fill = t.gradient && t.gradient.enabled ? `url(#grad-${t.id})` : t.color;
       const shadow = t.shadow ? `filter="url(#shadow-${t.id})"` : '';
       const style = `font-family: ${t.fontFamily}; font-size: ${t.fontSize}px; font-weight: ${t.fontWeight}; font-style: ${t.fontStyle}; letter-spacing: ${t.letterSpacing}px;`;
 
-      const anchorMap: any = { 'left': 'start', 'center': 'middle', 'right': 'end', 'justify': 'start' };
+      const anchorMap: any = { left: 'start', center: 'middle', right: 'end', justify: 'start' };
       const anchor = anchorMap[t.textAlign] || 'start';
-      const x = t.textAlign === 'center' ? t.width / 2 : (t.textAlign === 'right' ? t.width : 0);
+      const x = t.textAlign === 'center' ? t.width / 2 : t.textAlign === 'right' ? t.width : 0;
 
       let textLines = [t.text];
       if (tempCtx) {
@@ -965,7 +1056,7 @@ export const exportToSVG = (
         textLines = getLines(tempCtx, t.text, t.width);
       }
 
-      let tspanContent = "";
+      let tspanContent = '';
       textLines.forEach((line, i) => {
         const lineHeightRel = t.fontSize * (t.lineHeight || 1.2);
         tspanContent += `<tspan x="${x}" dy="${i === 0 ? 0 : lineHeightRel}">${line}</tspan>`;
@@ -978,9 +1069,11 @@ export const exportToSVG = (
       const transform = getSVGTransform(s.x, s.y, s.width, s.height, s.rotation, s.skewX, s.skewY);
       const fill = s.gradient && s.gradient.colors?.length > 0 ? `url(#grad-${s.id})` : s.color;
       const shadow = s.shadow ? `filter="url(#shadow-${s.id})"` : '';
-      const stroke = s.stroke ? `stroke="${s.stroke.color}" stroke-width="${s.stroke.width}" stroke-opacity="${s.stroke.opacity ?? 1}" stroke-linejoin="round"` : '';
+      const stroke = s.stroke
+        ? `stroke="${s.stroke.color}" stroke-width="${s.stroke.width}" stroke-opacity="${s.stroke.opacity ?? 1}" stroke-linejoin="round"`
+        : '';
 
-      let shapeTag = "";
+      let shapeTag = '';
       if (s.type === 'rectangle') {
         shapeTag = `<rect width="${s.width}" height="${s.height}" fill="${fill}" rx="${s.cornerRadius || 0}" ${stroke} />`;
       } else if (s.type === 'circle') {

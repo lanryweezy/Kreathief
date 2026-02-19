@@ -24,7 +24,7 @@ export const SmartContentGenerator: React.FC<SmartContentGeneratorProps> = ({
   isOpen,
   onClose,
   onSelectContent,
-  designContext = 'social media post'
+  designContext = 'social media post',
 }) => {
   const [contentType, setContentType] = useState<ContentType>('headline');
   const [tone, setTone] = useState<Tone>('professional');
@@ -35,14 +35,14 @@ export const SmartContentGenerator: React.FC<SmartContentGeneratorProps> = ({
     { value: 'headline', label: 'Headline', description: 'Catchy main title' },
     { value: 'body', label: 'Body Text', description: 'Main message' },
     { value: 'cta', label: 'Call-to-Action', description: 'Action button text' },
-    { value: 'caption', label: 'Caption', description: 'Social media caption' }
+    { value: 'caption', label: 'Caption', description: 'Social media caption' },
   ];
 
   const tones: { value: Tone; label: string }[] = [
     { value: 'professional', label: 'Professional' },
     { value: 'casual', label: 'Casual' },
     { value: 'playful', label: 'Playful' },
-    { value: 'urgent', label: 'Urgent' }
+    { value: 'urgent', label: 'Urgent' },
   ];
 
   const generateContent = async () => {
@@ -52,21 +52,18 @@ export const SmartContentGenerator: React.FC<SmartContentGeneratorProps> = ({
       Make them concise, impactful, and suitable for design use.
       Return as a simple list with one option per line.`;
 
-      const response = await geminiService.generateText(
-        designContext,
-        prompt
-      );
+      const response = await geminiService.generateText(designContext, prompt);
 
       const options = response
         .split('\n')
-        .filter(line => line.trim())
+        .filter((line) => line.trim())
         .slice(0, 3)
         .map((content, index) => ({
           id: `content_${Date.now()}_${index}`,
           type: contentType,
           tone,
           content: content.replace(/^\d+\.\s*/, '').trim(),
-          timestamp: Date.now()
+          timestamp: Date.now(),
         }));
 
       setGeneratedContent(options);
@@ -82,7 +79,9 @@ export const SmartContentGenerator: React.FC<SmartContentGeneratorProps> = ({
     setGeneratedContent([]);
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -98,10 +97,7 @@ export const SmartContentGenerator: React.FC<SmartContentGeneratorProps> = ({
               <p className="text-xs text-gray-400">AI-powered text for your design</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
             ✕
           </button>
         </div>
@@ -110,9 +106,7 @@ export const SmartContentGenerator: React.FC<SmartContentGeneratorProps> = ({
         <div className="p-6 space-y-6">
           {/* Content Type Selection */}
           <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-3">
-              Content Type
-            </label>
+            <label className="block text-sm font-semibold text-gray-300 mb-3">Content Type</label>
             <div className="grid grid-cols-2 gap-2">
               {contentTypes.map(({ value, label, description }) => (
                 <button
@@ -133,9 +127,7 @@ export const SmartContentGenerator: React.FC<SmartContentGeneratorProps> = ({
 
           {/* Tone Selection */}
           <div>
-            <label className="block text-sm font-semibold text-gray-300 mb-3">
-              Tone
-            </label>
+            <label className="block text-sm font-semibold text-gray-300 mb-3">Tone</label>
             <div className="grid grid-cols-4 gap-2">
               {tones.map(({ value, label }) => (
                 <button
@@ -156,9 +148,7 @@ export const SmartContentGenerator: React.FC<SmartContentGeneratorProps> = ({
           {/* Generated Content */}
           {generatedContent.length > 0 && (
             <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-3">
-                Generated Options
-              </label>
+              <label className="block text-sm font-semibold text-gray-300 mb-3">Generated Options</label>
               <div className="space-y-2">
                 {generatedContent.map((item) => (
                   <button
@@ -166,9 +156,7 @@ export const SmartContentGenerator: React.FC<SmartContentGeneratorProps> = ({
                     onClick={() => handleSelectContent(item.content)}
                     className="w-full text-left p-3 bg-gray-800/50 border border-gray-700 rounded-lg hover:border-green-500/50 hover:bg-gray-800 transition-colors group"
                   >
-                    <p className="text-white text-sm group-hover:text-green-300 transition-colors">
-                      {item.content}
-                    </p>
+                    <p className="text-white text-sm group-hover:text-green-300 transition-colors">{item.content}</p>
                     <p className="text-xs text-gray-500 mt-1">Click to use</p>
                   </button>
                 ))}

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Icons, FONT_FAMILIES } from '../../constants';
 import { TextLayer } from '../../types';
@@ -7,11 +6,97 @@ import { loadFont, registerCustomFont } from '../../services/FontLoader';
 import { useStore } from '../../store/useStore';
 
 const FONT_CATEGORIES = {
-  'Sans Serif': ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Raleway', 'Oswald', 'Quicksand', 'Nunito', 'Ubuntu', 'Rubik', 'Mukta', 'Kanit', 'Barlow', 'Heebo', 'Work Sans', 'Dosis', 'PT Sans', 'Source Sans 3', 'Public Sans', 'Manrope', 'Cairo', 'Hind', 'Oxygen', 'Sarabun', 'Signika', 'Teko', 'Titillium Web', 'Varela Round', 'Josefin Sans', 'Exo 2', 'Arimo', 'Asap', 'Cabin', 'Catamaran', 'Space Grotesk', 'DM Sans'],
-  'Serif': ['Playfair Display', 'Merriweather', 'Lora', 'PT Serif', 'Noto Serif', 'Libre Baskerville', 'Cormorant Garamond', 'Crimson Text', 'EB Garamond', 'Slabo 27px', 'Vollkorn', 'Zilla Slab', 'Bitter'],
-  'Display': ['Bebas Neue', 'Anton', 'Lobster', 'Abril Fatface', 'Alfa Slab One', 'Bangers', 'Bungee', 'Cinzel', 'Comfortaa', 'Creepster', 'Fjalla One', 'Fredericka the Great', 'Monoton', 'Righteous', 'Russo One', 'Special Elite', 'Sriracha', 'Staatliches', 'Yellowtail', 'Acme'],
-  'Handwriting': ['Caveat', 'Pacifico', 'Dancing Script', 'Indie Flower', 'Shadows Into Light', 'Amatic SC', 'Gloria Hallelujah', 'Great Vibes', 'Permanent Marker', 'Sacramenta', 'Satisfy'],
-  'Monospace': ['Roboto Mono', 'Space Mono', 'Source Code Pro', 'IBM Plex Mono', 'Inconsolata']
+  'Sans Serif': [
+    'Inter',
+    'Roboto',
+    'Open Sans',
+    'Lato',
+    'Montserrat',
+    'Poppins',
+    'Raleway',
+    'Oswald',
+    'Quicksand',
+    'Nunito',
+    'Ubuntu',
+    'Rubik',
+    'Mukta',
+    'Kanit',
+    'Barlow',
+    'Heebo',
+    'Work Sans',
+    'Dosis',
+    'PT Sans',
+    'Source Sans 3',
+    'Public Sans',
+    'Manrope',
+    'Cairo',
+    'Hind',
+    'Oxygen',
+    'Sarabun',
+    'Signika',
+    'Teko',
+    'Titillium Web',
+    'Varela Round',
+    'Josefin Sans',
+    'Exo 2',
+    'Arimo',
+    'Asap',
+    'Cabin',
+    'Catamaran',
+    'Space Grotesk',
+    'DM Sans',
+  ],
+  Serif: [
+    'Playfair Display',
+    'Merriweather',
+    'Lora',
+    'PT Serif',
+    'Noto Serif',
+    'Libre Baskerville',
+    'Cormorant Garamond',
+    'Crimson Text',
+    'EB Garamond',
+    'Slabo 27px',
+    'Vollkorn',
+    'Zilla Slab',
+    'Bitter',
+  ],
+  Display: [
+    'Bebas Neue',
+    'Anton',
+    'Lobster',
+    'Abril Fatface',
+    'Alfa Slab One',
+    'Bangers',
+    'Bungee',
+    'Cinzel',
+    'Comfortaa',
+    'Creepster',
+    'Fjalla One',
+    'Fredericka the Great',
+    'Monoton',
+    'Righteous',
+    'Russo One',
+    'Special Elite',
+    'Sriracha',
+    'Staatliches',
+    'Yellowtail',
+    'Acme',
+  ],
+  Handwriting: [
+    'Caveat',
+    'Pacifico',
+    'Dancing Script',
+    'Indie Flower',
+    'Shadows Into Light',
+    'Amatic SC',
+    'Gloria Hallelujah',
+    'Great Vibes',
+    'Permanent Marker',
+    'Sacramenta',
+    'Satisfy',
+  ],
+  Monospace: ['Roboto Mono', 'Space Mono', 'Source Code Pro', 'IBM Plex Mono', 'Inconsolata'],
 };
 
 // Flatten relevant fonts for "All" tab but prioritize popular ones
@@ -19,14 +104,14 @@ const ALL_FONTS = FONT_FAMILIES;
 
 const FontPreviewItem = ({
   font,
-  text = "Typography",
+  text = 'Typography',
   onClick,
-  onHover
+  onHover,
 }: {
-  font: string,
-  text?: string,
-  onClick: () => void,
-  onHover: (f: string | null) => void
+  font: string;
+  text?: string;
+  onClick: () => void;
+  onHover: (f: string | null) => void;
 }) => {
   const [loaded, setLoaded] = useState(false);
   const ref = useRef<HTMLButtonElement>(null);
@@ -76,12 +161,12 @@ const FontPreviewItem = ({
 };
 
 export const TextPanel: React.FC = () => {
-  const addTextLayer = useStore(state => state.addTextLayer);
-  const setPreviewFontFamily = useStore(state => state.setPreviewFontFamily);
-  const customFonts = useStore(state => state.customFonts);
-  const addCustomFont = useStore(state => state.addCustomFont);
+  const addTextLayer = useStore((state) => state.addTextLayer);
+  const setPreviewFontFamily = useStore((state) => state.setPreviewFontFamily);
+  const customFonts = useStore((state) => state.customFonts);
+  const addCustomFont = useStore((state) => state.addCustomFont);
 
-  const [fontSearch, setFontSearch] = useState('');
+  const [fontSearch, _setFontSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [recentFonts, setRecentFonts] = useState<string[]>([]);
   const [textGenPrompt, setTextGenPrompt] = useState('');
@@ -97,16 +182,16 @@ export const TextPanel: React.FC = () => {
         setRecentFonts(JSON.parse(saved));
       }
     } catch (e) {
-      console.error("Failed to load recent fonts", e);
+      console.error('Failed to load recent fonts', e);
     }
   }, []);
 
   const handleAddText = (style: Partial<TextLayer>) => {
     addTextLayer(style);
     if (style.fontFamily) {
-      setRecentFonts(prev => {
+      setRecentFonts((prev) => {
         // Remove if exists to bubble to top
-        const filtered = prev.filter(f => f !== style.fontFamily);
+        const filtered = prev.filter((f) => f !== style.fontFamily);
         const updated = [style.fontFamily!, ...filtered].slice(0, 5);
         localStorage.setItem('kreathief_recent_fonts', JSON.stringify(updated));
         return updated;
@@ -115,21 +200,25 @@ export const TextPanel: React.FC = () => {
   };
 
   const handleMagicText = async () => {
-    if (!textGenPrompt.trim()) return;
+    if (!textGenPrompt.trim()) {
+      return;
+    }
     setIsGeneratingText(true);
     try {
       const results = await geminiService.generateTextOptions(textGenPrompt);
       setTextGenResults(results);
     } catch (e) {
       console.error(e);
-      alert("Failed to generate text options");
+      alert('Failed to generate text options');
     } finally {
       setIsGeneratingText(false);
     }
   };
 
   const filteredFonts = useMemo(() => {
-    if (activeCategory === 'My Fonts') return customFonts;
+    if (activeCategory === 'My Fonts') {
+      return customFonts;
+    }
     let fonts = activeCategory === 'All' ? ALL_FONTS : (FONT_CATEGORIES as any)[activeCategory] || [];
     if (fontSearch) {
       fonts = fonts.filter((f: string) => f.toLowerCase().includes(fontSearch.toLowerCase()));
@@ -141,7 +230,9 @@ export const TextPanel: React.FC = () => {
 
   const handleFontUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -149,8 +240,8 @@ export const TextPanel: React.FC = () => {
       await registerCustomFont(fontName, arrayBuffer);
       addCustomFont(fontName);
     } catch (err) {
-      console.error("Font upload failed", err);
-      alert("Font upload failed.");
+      console.error('Font upload failed', err);
+      alert('Font upload failed.');
     }
   };
 
@@ -203,7 +294,11 @@ export const TextPanel: React.FC = () => {
             disabled={isGeneratingText || !textGenPrompt.trim()}
             className="bg-purple-600 hover:bg-purple-500 text-white p-1.5 rounded disabled:opacity-50 transition-colors"
           >
-            {isGeneratingText ? <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div> : <Icons.Zap className="w-4 h-4" />}
+            {isGeneratingText ? (
+              <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+            ) : (
+              <Icons.Zap className="w-4 h-4" />
+            )}
           </button>
         </div>
         {textGenResults.length > 0 && (
@@ -226,7 +321,16 @@ export const TextPanel: React.FC = () => {
         <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Text Effects</h4>
         <div className="grid grid-cols-2 gap-2 mb-6">
           <button
-            onClick={() => handleAddText({ text: 'GLOW', fontSize: 60, fontWeight: 'bold', color: '#fff', fontFamily: 'Montserrat', shadow: { color: '#00ffff', blur: 20, offsetX: 0, offsetY: 0 } })}
+            onClick={() =>
+              handleAddText({
+                text: 'GLOW',
+                fontSize: 60,
+                fontWeight: 'bold',
+                color: '#fff',
+                fontFamily: 'Montserrat',
+                shadow: { color: '#00ffff', blur: 20, offsetX: 0, offsetY: 0 },
+              })
+            }
             className="h-16 bg-[#1a1a1a] rounded border border-gray-800 hover:border-cyan-500 group relative overflow-hidden flex items-center justify-center"
           >
             <div className="absolute inset-0 bg-cyan-500/5 group-hover:bg-cyan-500/10 transition-colors"></div>
@@ -234,35 +338,83 @@ export const TextPanel: React.FC = () => {
           </button>
 
           <button
-            onClick={() => handleAddText({ text: 'RETRO', fontSize: 50, fontWeight: 'bold', color: '#ff0099', fontFamily: 'Righteous', shadow: { color: '#00ffff', blur: 0, offsetX: 3, offsetY: 3 } })}
+            onClick={() =>
+              handleAddText({
+                text: 'RETRO',
+                fontSize: 50,
+                fontWeight: 'bold',
+                color: '#ff0099',
+                fontFamily: 'Righteous',
+                shadow: { color: '#00ffff', blur: 0, offsetX: 3, offsetY: 3 },
+              })
+            }
             className="h-16 bg-[#1a1a1a] rounded border border-gray-800 hover:border-pink-500 group relative overflow-hidden flex items-center justify-center"
           >
             <span className="font-display font-bold text-xl text-pink-500 drop-shadow-[2px_2px_0px_#0ff]">RETRO</span>
           </button>
 
           <button
-            onClick={() => handleAddText({ text: '3D', fontSize: 50, fontWeight: '900', color: '#ffd700', fontFamily: 'Anton', shadow: { color: '#b8860b', blur: 0, offsetX: 1, offsetY: 1 } })}
+            onClick={() =>
+              handleAddText({
+                text: '3D',
+                fontSize: 50,
+                fontWeight: '900',
+                color: '#ffd700',
+                fontFamily: 'Anton',
+                shadow: { color: '#b8860b', blur: 0, offsetX: 1, offsetY: 1 },
+              })
+            }
             className="h-16 bg-[#1a1a1a] rounded border border-gray-800 hover:border-yellow-500 group relative overflow-hidden flex items-center justify-center"
           >
-            <span className="font-bold text-xl text-yellow-400 drop-shadow-[1px_1px_0px_#b8860b] shadow-yellow-700/50">3D</span>
+            <span className="font-bold text-xl text-yellow-400 drop-shadow-[1px_1px_0px_#b8860b] shadow-yellow-700/50">
+              3D
+            </span>
           </button>
 
           <button
-            onClick={() => handleAddText({ text: 'HOLLOW', fontSize: 50, fontWeight: '900', color: 'transparent', styleType: 'hollow', fontFamily: 'Inter', stroke: { color: '#ffffff', width: 1 } })}
+            onClick={() =>
+              handleAddText({
+                text: 'HOLLOW',
+                fontSize: 50,
+                fontWeight: '900',
+                color: 'transparent',
+                styleType: 'hollow',
+                fontFamily: 'Inter',
+                stroke: { color: '#ffffff', width: 1 },
+              })
+            }
             className="h-16 bg-[#1a1a1a] rounded border border-gray-800 hover:border-white group flex items-center justify-center"
           >
             <span className="font-bold text-xl text-transparent [-webkit-text-stroke:1px_white]">HOLLOW</span>
           </button>
 
           <button
-            onClick={() => handleAddText({ text: 'GLITCH', fontSize: 50, fontWeight: 'bold', color: '#fff', fontFamily: 'Rubik Glitch', shadow: { color: '#f00', blur: 2, offsetX: -2, offsetY: 0 } })}
+            onClick={() =>
+              handleAddText({
+                text: 'GLITCH',
+                fontSize: 50,
+                fontWeight: 'bold',
+                color: '#fff',
+                fontFamily: 'Rubik Glitch',
+                shadow: { color: '#f00', blur: 2, offsetX: -2, offsetY: 0 },
+              })
+            }
             className="h-16 bg-[#1a1a1a] rounded border border-gray-800 hover:border-red-500 group flex items-center justify-center"
           >
             <span className="font-mono font-bold text-lg text-white tracking-widest">GLITCH</span>
           </button>
 
           <button
-            onClick={() => handleAddText({ text: 'NEON', fontSize: 50, fontWeight: 'bold', color: '#ff00ff', fontFamily: 'Monoton', shadow: { color: '#ff00ff', blur: 15, offsetX: 0, offsetY: 0 } })}
+            onClick={() =>
+              handleAddText({
+                text: 'NEON',
+                fontSize: 50,
+                fontWeight: 'bold',
+                color: '#ff00ff',
+                fontFamily: 'Monoton',
+                shadow: { color: '#ff00ff', blur: 15, offsetX: 0, offsetY: 0 },
+              })
+            }
             className="h-16 bg-[#1a1a1a] rounded border border-gray-800 hover:border-fuchsia-500 group flex items-center justify-center"
           >
             <span className="font-bold text-lg text-fuchsia-400 drop-shadow-[0_0_5px_rgba(255,0,255,0.8)]">NEON</span>
@@ -272,7 +424,7 @@ export const TextPanel: React.FC = () => {
         {/* Categories */}
         <div className="mb-4 overflow-x-auto custom-scrollbar pb-2">
           <div className="flex gap-2">
-            {categories.map(cat => (
+            {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
@@ -305,7 +457,7 @@ export const TextPanel: React.FC = () => {
               onChange={handleFontUpload}
             />
             <div className="flex flex-col gap-2">
-              {customFonts.map(font => (
+              {customFonts.map((font) => (
                 <FontPreviewItem
                   key={`custom-${font}`}
                   font={font}
@@ -315,7 +467,9 @@ export const TextPanel: React.FC = () => {
                 />
               ))}
               {customFonts.length === 0 && (
-                <p className="text-[10px] text-gray-600 text-center py-8">You haven't uploaded any custom fonts yet.</p>
+                <p className="text-[10px] text-gray-600 text-center py-8">
+                  You haven&apos;t uploaded any custom fonts yet.
+                </p>
               )}
             </div>
           </div>
@@ -326,7 +480,7 @@ export const TextPanel: React.FC = () => {
           <div className="mb-6">
             <h4 className="text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-wider">Recently Used</h4>
             <div className="flex flex-col gap-2">
-              {recentFonts.map(font => (
+              {recentFonts.map((font) => (
                 <FontPreviewItem
                   key={`recent-${font}`}
                   font={font}
@@ -362,3 +516,5 @@ export const TextPanel: React.FC = () => {
     </div>
   );
 };
+
+export default TextPanel;

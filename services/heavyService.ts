@@ -5,65 +5,69 @@
  */
 
 class HeavyService {
-    private worker: Worker | null = null;
-    private callbacks: Map<string, { resolve: (val: any) => void, reject: (err: any) => void }> = new Map();
+  private worker: Worker | null = null;
+  private callbacks: Map<string, { resolve: (val: any) => void; reject: (err: any) => void }> = new Map();
 
-    constructor() {
-        if (typeof window !== 'undefined') {
-            this.worker = new Worker(new URL('../workers/heavy.worker.ts', import.meta.url), { type: 'module' });
+  constructor() {
+    if (typeof window !== 'undefined') {
+      this.worker = new Worker(new URL('../workers/heavy.worker.ts', import.meta.url), { type: 'module' });
 
-            this.worker.onmessage = (e) => {
-                const { type, id, payload, error } = e.data;
-                const callback = this.callbacks.get(id);
+      this.worker.onmessage = (e) => {
+        const { type, id, payload, error } = e.data;
+        const callback = this.callbacks.get(id);
 
-                if (callback) {
-                    if (type === 'SUCCESS') {
-                        callback.resolve(payload);
-                    } else {
-                        callback.reject(new Error(error));
-                    }
-                    this.callbacks.delete(id);
-                }
-            };
-
-            this.worker.onerror = (e) => {
-                console.error("Heavy Worker Error", e);
-            };
+        if (callback) {
+          if (type === 'SUCCESS') {
+            callback.resolve(payload);
+          } else {
+            callback.reject(new Error(error));
+          }
+          this.callbacks.delete(id);
         }
-    }
+      };
 
-    private postMessage(type: string, payload: any): Promise<any> {
-        return new Promise((resolve, reject) => {
-            if (!this.worker) {
-                reject(new Error("Worker not initialized"));
-                return;
-            }
-            const id = Math.random().toString(36).substring(7);
-            this.callbacks.set(id, { resolve, reject });
-            this.worker.postMessage({ type, id, payload });
-        });
+      this.worker.onerror = (e) => {
+        console.error('Heavy Worker Error', e);
+      };
     }
+  }
 
-    public async vectorize(imageUrl: string, options: any = {}): Promise<string> {
-        return this.postMessage('VECTORIZE', { imageUrl, options });
-    }
+  private postMessage(type: string, payload: any): Promise<any> {
+    return new Promise((resolve, reject) => {
+      if (!this.worker) {
+        reject(new Error('Worker not initialized'));
+        return;
+      }
+      const id = Math.random().toString(36).substring(7);
+      this.callbacks.set(id, { resolve, reject });
+      this.worker.postMessage({ type, id, payload });
+    });
+  }
 
-    public async algorithmicEnhance(imageSrc: string): Promise<string> {
-        return this.postMessage('ENHANCE', { imageSrc });
-    }
+  public async vectorize(imageUrl: string, options: any = {}): Promise<string> {
+    return this.postMessage('VECTORIZE', { imageUrl, options });
+  }
 
-    public async extractPalette(imageSrc: string, colorCount: number = 5): Promise<string[]> {
-        return this.postMessage('EXTRACT_PALETTE', { imageSrc, colorCount });
-    }
+  public async algorithmicEnhance(imageSrc: string): Promise<string> {
+    return this.postMessage('ENHANCE', { imageSrc });
+  }
 
-    public async traceImageToSVG(imageSrc: string, colors: number = 2): Promise<any[]> {
-        return this.postMessage('TRACE_SVG', { imageSrc, colors });
-    }
+  public async extractPalette(imageSrc: string, colorCount: number = 5): Promise<string[]> {
+    return this.postMessage('EXTRACT_PALETTE', { imageSrc, colorCount });
+  }
 
-    public terminate() {
-        this.worker?.terminate();
-        this.worker = null;
-    }
+  public async traceImageToSVG(imageSrc: string, colors: number = 2): Promise<any[]> {
+    return this.postMessage('TRACE_SVG', { imageSrc, colors });
+  }
+
+  public async removeBackground(imageUrl: string): Promise<string> {
+    return this.postMessage('RM_BG', { imageUrl });
+  }
+
+  public terminate() {
+    this.worker?.terminate();
+    this.worker = null;
+  }
 }
 
 export const heavyService = new HeavyService();

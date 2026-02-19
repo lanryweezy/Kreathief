@@ -1,55 +1,54 @@
 import { storageService } from './storageService';
 import { logger } from './logger';
-import { v4 as uuidv4 } from 'uuid';
 
 class ShareService {
-    /**
-     * Generates a unique short link for a design
-     * For this mock, it uses a random string and persists the mapping in IndexedDB
-     */
-    async generateShareLink(projectId: string): Promise<string> {
-        try {
-            // Check if a share link already exists for this project
-            const existingShare = await storageService.getShareByProjectId(projectId);
-            if (existingShare) {
-                return this.formatShareUrl(existingShare.id);
-            }
+  /**
+   * Generates a unique short link for a design
+   * For this mock, it uses a random string and persists the mapping in IndexedDB
+   */
+  async generateShareLink(projectId: string): Promise<string> {
+    try {
+      // Check if a share link already exists for this project
+      const existingShare = await storageService.getShareByProjectId(projectId);
+      if (existingShare) {
+        return this.formatShareUrl(existingShare.id);
+      }
 
-            // Generate a unique short ID (8 characters)
-            const shareId = Math.random().toString(36).substring(2, 10);
+      // Generate a unique short ID (8 characters)
+      const shareId = Math.random().toString(36).substring(2, 10);
 
-            await storageService.saveShare({
-                id: shareId,
-                projectId,
-                createdAt: Date.now()
-            });
+      await storageService.saveShare({
+        id: shareId,
+        projectId,
+        createdAt: Date.now(),
+      });
 
-            logger.info('Share link generated', { projectId, shareId });
-            return this.formatShareUrl(shareId);
-        } catch (error) {
-            logger.error('Failed to generate share link', { error, projectId });
-            throw error;
-        }
+      logger.info('Share link generated', { projectId, shareId });
+      return this.formatShareUrl(shareId);
+    } catch (error) {
+      logger.error('Failed to generate share link', { error, projectId });
+      throw error;
     }
+  }
 
-    /**
-     * Resolves a share ID to its project ID
-     */
-    async resolveShare(shareId: string): Promise<string | null> {
-        try {
-            const mapping = await storageService.getShare(shareId);
-            return mapping ? mapping.projectId : null;
-        } catch (error) {
-            logger.error('Failed to resolve share link', { error, shareId });
-            return null;
-        }
+  /**
+   * Resolves a share ID to its project ID
+   */
+  async resolveShare(shareId: string): Promise<string | null> {
+    try {
+      const mapping = await storageService.getShare(shareId);
+      return mapping ? mapping.projectId : null;
+    } catch (error) {
+      logger.error('Failed to resolve share link', { error, shareId });
+      return null;
     }
+  }
 
-    private formatShareUrl(shareId: string): string {
-        const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
-        // In a real app, this would be a dedicated sharing domain or path
-        return `${origin}/share/${shareId}`;
-    }
+  private formatShareUrl(shareId: string): string {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
+    // In a real app, this would be a dedicated sharing domain or path
+    return `${origin}/share/${shareId}`;
+  }
 }
 
 export const shareService = new ShareService();

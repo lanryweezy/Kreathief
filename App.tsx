@@ -1,4 +1,6 @@
 import React, { useState, Suspense } from 'react';
+import { ToastContainer } from './components/Toast';
+import { useStore } from './store/useStore';
 
 import { WelcomeModal } from './components/modals/WelcomeModal';
 import { GuidedTour, TourStep } from './components/modals/GuidedTour';
@@ -6,11 +8,12 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { User, Project } from './types';
 import { parseShareLink } from './utils/shareUtils';
 import { STARTER_TEMPLATES } from './data/templates';
+import { logger } from './services/logger';
 
 // Lazy load main views for code splitting
-const Auth = React.lazy(() => import('./components/Auth').then(module => ({ default: module.Auth })));
-const Dashboard = React.lazy(() => import('./components/Dashboard').then(module => ({ default: module.Dashboard })));
-const Editor = React.lazy(() => import('./components/Editor').then(module => ({ default: module.Editor })));
+const Auth = React.lazy(() => import('./components/Auth').then((module) => ({ default: module.Auth })));
+const Dashboard = React.lazy(() => import('./components/Dashboard').then((module) => ({ default: module.Dashboard })));
+const Editor = React.lazy(() => import('./components/Editor').then((module) => ({ default: module.Editor })));
 
 const LoadingFallback = () => (
   <div className="flex h-screen w-full items-center justify-center bg-[#1f1f1f] flex-col gap-4">
@@ -24,13 +27,13 @@ const App: React.FC = () => {
   const [view, setView] = useState<'auth' | 'dashboard' | 'editor'>('auth');
   const [user, setUser] = useState<User | null>(null);
   const [currentProject, setCurrentProject] = useState<Project | undefined>(undefined);
-
+  const { toasts, removeToast } = useStore();
 
   // Onboarding State
   const [showWelcome, setShowWelcome] = useState(false);
   const [activeTour, setActiveTour] = useState<'dashboard' | 'editor' | null>(null);
 
-  // Check for existing session AND share link
+  // Check for onboarding and share links
   React.useEffect(() => {
     const initApp = async () => {
       const savedUser = localStorage.getItem('kreathief_user');
@@ -44,31 +47,17 @@ const App: React.FC = () => {
         const sharedProject = await parseShareLink(window.location.href);
         if (sharedProject) {
           setCurrentProject(sharedProject);
-          // If user not logged in, maybe show a guest mode or force auth? 
-          // For now, let's allow viewing if we have a user, or force auth if not.
-          // If no user, we might want to set a "pendingProject" state to open after login.
           if (savedUser) {
             setView('editor');
           } else {
-            // Determine what to do for non-logged in users. 
-            // Let's set it as currentProject and go to auth, maybe Auth can handle redirect?
-            // Simplest: Just set view to 'editor' but Editor requires user.
-            // Let's auto-create a temporary guest user if none exists?
-            // OR just redirect to Auth and hope currentProject persists (it acts as state).
-            // Actually, currentProject is state, so if we switch to 'auth', we keep it.
-            // But Auth doesn't know to switch back.
-
-            // Hack: Create guest user
             const guestUser: User = { id: 'guest', name: 'Guest', email: 'guest@kreathief.app', plan: 'free' };
             setUser(guestUser);
             setView('editor');
           }
-          // Clean URL
           window.history.replaceState({}, '', window.location.pathname);
         }
       }
 
-      // Check for onboarding
       const seenOnboarding = localStorage.getItem('kreathief_onboarding_seen');
       if (!seenOnboarding) {
         setShowWelcome(true);
@@ -76,19 +65,27 @@ const App: React.FC = () => {
     };
     initApp();
 
-    // Pre-fetch Template Assets
+    // Pre-fetch Template Assets with cleanup
+    const images: HTMLImageElement[] = [];
     const prefetchTemplates = () => {
-      STARTER_TEMPLATES.forEach(tmpl => {
-        // Pre-fetch image layers
-        tmpl.state.layers.forEach(layer => {
+      STARTER_TEMPLATES.forEach((tmpl) => {
+        tmpl.state.layers.forEach((layer) => {
           if (layer.type === 'image') {
             const img = new Image();
             img.src = (layer as any).src;
+            images.push(img);
           }
         });
       });
     };
     prefetchTemplates();
+
+    // Cleanup: Release memory from prefetched images
+    return () => {
+      images.forEach((img) => {
+        img.src = '';
+      });
+    };
   }, []);
 
   const handleLogin = (user: User) => {
@@ -101,6 +98,11 @@ const App: React.FC = () => {
     setUser(null);
     localStorage.removeItem('kreathief_user');
     setView('auth');
+  };
+
+  const handleOpenPricing = () => {
+    // TODO: Implement pricing modal
+    logger.info('Open pricing modal');
   };
 
   const handleOpenProject = (project: Project) => {
@@ -119,8 +121,6 @@ const App: React.FC = () => {
     setCurrentProject(undefined);
   };
 
-
-
   const handleStartTour = () => {
     setShowWelcome(false);
     localStorage.setItem('kreathief_onboarding_seen', 'true');
@@ -128,16 +128,51 @@ const App: React.FC = () => {
   };
 
   const dashboardTourSteps: TourStep[] = [
-    { target: '#create-btn', title: 'Start Fresh', content: 'Click here to start a blank canvas and let your creativity flow.', position: 'bottom' },
-    { target: '#templates-grid', title: 'Quick Start', content: 'Or pick a template to get professional results in seconds.', position: 'top' }
+    {
+      target: '#create-btn',
+      title: 'Start Fresh',
+      content: 'Click here to start a blank canvas and let your creativity flow.',
+      position: 'bottom',
+    },
+    {
+      target: '#templates-grid',
+      title: 'Quick Start',
+      content: 'Or pick a template to get professional results in seconds.',
+      position: 'top',
+    },
   ];
 
   const editorTourSteps: TourStep[] = [
-    { target: '#header-title', title: 'Your Workspace', content: 'Give your masterpiece a name here.', position: 'bottom' },
-    { target: '#sidebar', title: 'Creative Tools', content: 'Access AI Magic, Text, Shapes, and Uploads from this sidebar.', position: 'right' },
-    { target: '#canvas-container', title: 'The Canvas', content: 'This is where you create. Drag and drop elements, or use the brush to draw.', position: 'right' },
-    { target: '#layers-panel-toggle', title: 'Layers & Organization', content: 'Manage your layers here. Lock, hide, or reorder elements.', position: 'left' },
-    { target: '#export-btn', title: 'Export', content: 'Ready to share? Export your design in high quality PNG, JPG, or WEBP.', position: 'bottom' }
+    {
+      target: '#header-title',
+      title: 'Your Workspace',
+      content: 'Give your masterpiece a name here.',
+      position: 'bottom',
+    },
+    {
+      target: '#sidebar',
+      title: 'Creative Tools',
+      content: 'Access AI Magic, Text, Shapes, and Uploads from this sidebar.',
+      position: 'right',
+    },
+    {
+      target: '#canvas-container',
+      title: 'The Canvas',
+      content: 'This is where you create. Drag and drop elements, or use the brush to draw.',
+      position: 'right',
+    },
+    {
+      target: '#layers-panel-toggle',
+      title: 'Layers & Organization',
+      content: 'Manage your layers here. Lock, hide, or reorder elements.',
+      position: 'left',
+    },
+    {
+      target: '#export-btn',
+      title: 'Export',
+      content: 'Ready to share? Export your design in high quality PNG, JPG, or WEBP.',
+      position: 'bottom',
+    },
   ];
 
   return (
@@ -150,6 +185,7 @@ const App: React.FC = () => {
             onOpenProject={handleOpenProject}
             onCreateProject={handleCreateProject}
             onLogout={handleLogout}
+            onOpenPricing={handleOpenPricing}
             user={user}
           />
         )}
@@ -170,14 +206,8 @@ const App: React.FC = () => {
           />
         )}
 
-
         {view === 'editor' && user && (
-          <Editor
-            initialProject={currentProject}
-            onBack={handleBackToDashboard}
-            user={user}
-            onRestartTour={handleStartTour}
-          />
+          <Editor initialProject={currentProject} onBack={handleBackToDashboard} user={user} />
         )}
         {view === 'editor' && user && activeTour === 'editor' && (
           <GuidedTour
@@ -187,6 +217,7 @@ const App: React.FC = () => {
           />
         )}
       </Suspense>
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </ErrorBoundary>
   );
 };

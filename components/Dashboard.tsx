@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import { Project, User, CanvasSize } from '../types';
+import { Project, User } from '../types';
 import { Icons } from '../constants';
 import { STARTER_TEMPLATES, createProjectFromTemplate } from '../data/templates';
 import { ConfirmModal } from './modals/ConfirmModal';
@@ -21,17 +20,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onOpenProject,
   onCreateProject,
   onLogout,
-  onOpenPricing
+  onOpenPricing,
 }) => {
-  const {
-    projects,
-    loadAllProjects,
-    deleteProject,
-    duplicateProject,
-    updateProject,
-    createProject,
-    loadProject
-  } = useStore();
+  const { projects, loadAllProjects, deleteProject, duplicateProject, updateProject, createProject, loadProject } =
+    useStore();
 
   const [sidebarTab, setSidebarTab] = useState<'projects' | 'templates' | 'community'>('projects');
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,7 +36,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; projectId: string | null }>({
     isOpen: false,
-    projectId: null
+    projectId: null,
   });
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -55,7 +47,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const confirmDelete = async () => {
-    if (!deleteConfirm.projectId) return;
+    if (!deleteConfirm.projectId) {
+      return;
+    }
     await deleteProject(deleteConfirm.projectId);
     setDeleteConfirm({ isOpen: false, projectId: null });
   };
@@ -99,8 +93,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
       onOpenPricing();
       return;
     }
-    const template = STARTER_TEMPLATES.find(t => t.id === templateId);
-    if (!template) return;
+    const template = STARTER_TEMPLATES.find((t) => t.id === templateId);
+    if (!template) {
+      return;
+    }
 
     const newProject = createProjectFromTemplate(template);
     await createProject(newProject.name, newProject.state.canvasSize);
@@ -110,9 +106,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     onCreateProject();
   };
 
-  const filteredProjects = projects.filter(p =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProjects = projects.filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <div className="min-h-screen dashboard-background text-white flex flex-col relative z-0">
@@ -127,7 +121,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         <div className="flex items-center gap-4">
           <div className="relative hidden md:block group">
-            <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#7d2ae8] transition-colors" aria-hidden="true" />
+            <Icons.Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#7d2ae8] transition-colors"
+              aria-hidden="true"
+            />
             <input
               type="text"
               placeholder="Search designs..."
@@ -145,10 +142,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="text-sm font-bold">{user.name}</div>
               <div className="text-[10px] text-gray-400 uppercase font-bold">{user.plan} Plan</div>
             </div>
-            <img src={user.avatar} className="w-9 h-9 rounded-full border-2 border-gray-700 group-hover:border-[#7d2ae8] transition-colors" />
+            <img
+              src={user.avatar}
+              className="w-9 h-9 rounded-full border-2 border-gray-700 group-hover:border-[#7d2ae8] transition-colors"
+            />
 
             <div className="absolute right-0 top-full mt-2 w-48 bg-[#252627] border border-gray-700 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all transform origin-top-right z-50">
-              <button onClick={onLogout} className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-white/5 rounded-lg flex items-center gap-2">
+              <button
+                onClick={onLogout}
+                className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-white/5 rounded-lg flex items-center gap-2"
+              >
                 <Icons.MicOff className="w-4 h-4" /> Sign Out
               </button>
             </div>
@@ -205,7 +208,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <Icons.Templates className="w-4 h-4 text-[#00c4cc]" />
                   Quick templates
                 </h3>
-                <div id="templates-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 staggered-entry">
+                <div
+                  id="templates-grid"
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 staggered-entry"
+                >
                   {STARTER_TEMPLATES.map((tmpl) => (
                     <button
                       key={tmpl.id}
@@ -221,20 +227,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         </span>
                       </div>
                       <div className="p-3">
-                        <div className="text-sm font-semibold text-white truncate mb-1">
-                          {tmpl.name}
-                        </div>
-                        <div className="text-[11px] text-gray-400 line-clamp-2">
-                          {tmpl.description}
-                        </div>
+                        <div className="text-sm font-semibold text-white truncate mb-1">{tmpl.name}</div>
+                        <div className="text-[11px] text-gray-400 line-clamp-2">{tmpl.description}</div>
                       </div>
                     </button>
                   ))}
                 </div>
               </div>
             )}
-
-
 
             {/* All Projects Tab (default) */}
             {sidebarTab === 'projects' && (
@@ -247,11 +247,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <div className="w-16 h-16 rounded-2xl bg-gray-800/50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform group-hover:bg-[#7d2ae8]/10 group-hover:text-[#7d2ae8] text-gray-500 shadow-xl group-hover:shadow-[0_0_20px_rgba(125,42,232,0.2)]">
                     <Icons.FolderPlus className="w-8 h-8" />
                   </div>
-                  <span className="font-black text-xs text-gray-500 group-hover:text-white uppercase tracking-widest transition-colors">Blank Canvas</span>
+                  <span className="font-black text-xs text-gray-500 group-hover:text-white uppercase tracking-widest transition-colors">
+                    Blank Canvas
+                  </span>
                 </div>
 
                 {/* Project Cards */}
-                {filteredProjects.map(project => (
+                {filteredProjects.map((project) => (
                   <div
                     key={project.id}
                     onClick={() => {
@@ -262,11 +264,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   >
                     <div className="aspect-[4/3] bg-[#13161a] relative overflow-hidden flex items-center justify-center">
                       {project.thumbnail ? (
-                        <img src={project.thumbnail} className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+                        <img
+                          src={project.thumbnail}
+                          className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                        />
                       ) : (
-                        <div
-                          className="w-full h-full opacity-60 group-hover:scale-105 transition-transform duration-700 flex items-center justify-center bg-gradient-to-br from-[#1e293b] to-[#0f172a]"
-                        >
+                        <div className="w-full h-full opacity-60 group-hover:scale-105 transition-transform duration-700 flex items-center justify-center bg-gradient-to-br from-[#1e293b] to-[#0f172a]">
                           <Icons.Magic className="w-12 h-12 text-white/5 opacity-20" />
                         </div>
                       )}
@@ -308,7 +311,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           className="w-full bg-[#13161a] border border-[#7d2ae8] rounded px-2 py-1 text-sm text-white focus:outline-none"
                         />
                       ) : (
-                        <h3 className="font-bold text-sm text-white truncate mb-1 group-hover:text-[#00c4cc] transition-colors">{project.name}</h3>
+                        <h3 className="font-bold text-sm text-white truncate mb-1 group-hover:text-[#00c4cc] transition-colors">
+                          {project.name}
+                        </h3>
                       )}
                       <div className="flex justify-between items-center text-[10px] text-gray-500 font-medium">
                         <span className="flex items-center gap-1">

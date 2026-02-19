@@ -14,18 +14,16 @@ interface DesignQualityScorerProps {
   designImage?: string;
 }
 
-export const DesignQualityScorer: React.FC<DesignQualityScorerProps> = ({
-  isOpen,
-  onClose,
-  designImage
-}) => {
+export const DesignQualityScorer: React.FC<DesignQualityScorerProps> = ({ isOpen, onClose, designImage }) => {
   const [scores, setScores] = useState<QualityScore[]>([]);
   const [overallScore, setOverallScore] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
   const analyzeDesign = async () => {
-    if (!designImage) return;
+    if (!designImage) {
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -63,13 +61,13 @@ export const DesignQualityScorer: React.FC<DesignQualityScorerProps> = ({
           { category: 'Composition', score: 7, feedback: 'Good layout and balance' },
           { category: 'Color Harmony', score: 8, feedback: 'Well-coordinated color palette' },
           { category: 'Typography', score: 7, feedback: 'Clear and readable fonts' },
-          { category: 'Visual Hierarchy', score: 6, feedback: 'Could improve emphasis' }
+          { category: 'Visual Hierarchy', score: 6, feedback: 'Could improve emphasis' },
         ]);
         setOverallScore(7);
         setSuggestions([
           'Increase contrast between text and background',
           'Add more whitespace for better breathing room',
-          'Consider using a complementary accent color'
+          'Consider using a complementary accent color',
         ]);
       }
     } catch (error) {
@@ -80,18 +78,28 @@ export const DesignQualityScorer: React.FC<DesignQualityScorerProps> = ({
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 8) return 'text-green-400';
-    if (score >= 6) return 'text-yellow-400';
+    if (score >= 8) {
+      return 'text-green-400';
+    }
+    if (score >= 6) {
+      return 'text-yellow-400';
+    }
     return 'text-red-400';
   };
 
   const getScoreBarColor = (score: number) => {
-    if (score >= 8) return 'bg-green-500';
-    if (score >= 6) return 'bg-yellow-500';
+    if (score >= 8) {
+      return 'bg-green-500';
+    }
+    if (score >= 6) {
+      return 'bg-yellow-500';
+    }
     return 'bg-red-500';
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -107,10 +115,7 @@ export const DesignQualityScorer: React.FC<DesignQualityScorerProps> = ({
               <p className="text-xs text-gray-400">AI-powered design analysis</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
-          >
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
             ✕
           </button>
         </div>
@@ -142,9 +147,7 @@ export const DesignQualityScorer: React.FC<DesignQualityScorerProps> = ({
               <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-lg p-6 text-center">
                 <p className="text-gray-400 text-sm mb-2">Overall Score</p>
                 <div className="flex items-center justify-center gap-3">
-                  <div className={`text-5xl font-bold ${getScoreColor(overallScore)}`}>
-                    {overallScore}
-                  </div>
+                  <div className={`text-5xl font-bold ${getScoreColor(overallScore)}`}>{overallScore}</div>
                   <div className="text-gray-400">/10</div>
                 </div>
               </div>
@@ -156,9 +159,7 @@ export const DesignQualityScorer: React.FC<DesignQualityScorerProps> = ({
                   <div key={index} className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-300">{item.category}</span>
-                      <span className={`text-sm font-bold ${getScoreColor(item.score)}`}>
-                        {item.score}/10
-                      </span>
+                      <span className={`text-sm font-bold ${getScoreColor(item.score)}`}>{item.score}/10</span>
                     </div>
                     <div className="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
                       <div

@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from 'react';
 import { AppMode, AspectRatio, ShapeLayer } from '../../types';
 import { Icons } from '../../constants';
@@ -33,67 +32,65 @@ const THEMES = [
 ];
 
 export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
-  setPrompt,
-  setAspectRatio,
-  onSetMode,
+  setPrompt: _setPrompt,
+  setAspectRatio: _setAspectRatio,
+  onSetMode: _onSetMode,
   onApplyLayout,
   onApplyTemplate,
-  onApplyTheme
+  onApplyTheme,
 }) => {
   const [category, setCategory] = useState('All');
   const [showReplaceWarning, setShowReplaceWarning] = useState(true);
 
-  const activeCategoryLabel = DESIGN_CATEGORIES.find(c => c.id === category)?.label || 'All Designs';
-
-  // Enhanced AI Prompts with more visual variety
-  const aiTemplates = [
-    { label: "Neon Cyberpunk", cat: "Futuristic", prompt: "A futuristic city street at night, heavy neon rain, cyberpunk aesthetic, pink and blue lighting", ratio: AspectRatio.PORTRAIT, color: "from-pink-500 to-purple-600" },
-    { label: "Minimalist Bokeh", cat: "Abstract", prompt: "Soft focus abstract background, pastel gradients, floating spheres, minimalist 3d render", ratio: AspectRatio.SQUARE, color: "from-blue-200 to-white" },
-    { label: "Vintage Travel", cat: "Retro", prompt: "A retro travel poster illustration of the Swiss Alps, grainy texture, muted colors, 1950s style", ratio: AspectRatio.PORTRAIT, color: "from-orange-400 to-yellow-200" },
-    { label: "Product Studio", cat: "Minimal", prompt: "Professional product photography background, marble surface, soft window light, blurred botanical elements", ratio: AspectRatio.SQUARE, color: "from-gray-200 to-gray-400" },
-    { label: "Dark Fantasy", cat: "Art", prompt: "An ancient forest with glowing mushrooms, mystical atmosphere, dark fantasy oil painting style", ratio: AspectRatio.LANDSCAPE, color: "from-green-900 to-black" },
-    { label: "Tech Glitch", cat: "Futuristic", prompt: "Digital glitch art background, data stream, matrix code, distorted tech interface", ratio: AspectRatio.LANDSCAPE, color: "from-gray-900 to-green-500" },
-  ];
+  const activeCategoryLabel = DESIGN_CATEGORIES.find((c) => c.id === category)?.label || 'All Designs';
 
   const grids = [
     {
-      name: "2-Up Horizontal", icon: Icons.LayoutRow, shapes: [
+      name: '2-Up Horizontal',
+      icon: Icons.LayoutRow,
+      shapes: [
         { type: 'rectangle', x: 20, y: 156, width: 226, height: 200, color: '#2a2a2a' },
-        { type: 'rectangle', x: 266, y: 156, width: 226, height: 200, color: '#2a2a2a' }
-      ]
+        { type: 'rectangle', x: 266, y: 156, width: 226, height: 200, color: '#2a2a2a' },
+      ],
     },
     {
-      name: "3-Column", icon: Icons.LayoutCol, shapes: [
+      name: '3-Column',
+      icon: Icons.LayoutCol,
+      shapes: [
         { type: 'rectangle', x: 10, y: 56, width: 157, height: 400, color: '#2a2a2a' },
         { type: 'rectangle', x: 177, y: 56, width: 158, height: 400, color: '#333' },
-        { type: 'rectangle', x: 345, y: 56, width: 157, height: 400, color: '#2a2a2a' }
-      ]
+        { type: 'rectangle', x: 345, y: 56, width: 157, height: 400, color: '#2a2a2a' },
+      ],
     },
     {
-      name: "Hero Split", icon: Icons.LayoutRow, shapes: [
+      name: 'Hero Split',
+      icon: Icons.LayoutRow,
+      shapes: [
         { type: 'rectangle', x: 0, y: 0, width: 512, height: 256, color: '#222' },
         { type: 'rectangle', x: 0, y: 256, width: 256, height: 256, color: '#333' },
-        { type: 'rectangle', x: 256, y: 256, width: 256, height: 256, color: '#444' }
-      ]
+        { type: 'rectangle', x: 256, y: 256, width: 256, height: 256, color: '#444' },
+      ],
     },
     {
-      name: "Grid 4", icon: Icons.Grid, shapes: [
+      name: 'Grid 4',
+      icon: Icons.Grid,
+      shapes: [
         { type: 'rectangle', x: 20, y: 20, width: 226, height: 226, color: '#2a2a2a' },
         { type: 'rectangle', x: 266, y: 20, width: 226, height: 226, color: '#333' },
         { type: 'rectangle', x: 20, y: 266, width: 226, height: 226, color: '#333' },
-        { type: 'rectangle', x: 266, y: 266, width: 226, height: 226, color: '#2a2a2a' }
-      ]
+        { type: 'rectangle', x: 266, y: 266, width: 226, height: 226, color: '#2a2a2a' },
+      ],
     },
-    { name: "Golden Vertical", icon: Icons.LayoutCol, layout: 'golden_v' },
-    { name: "Golden Horizontal", icon: Icons.LayoutRow, layout: 'golden_h' },
-    { name: "Golden Grid", icon: Icons.Grid, layout: 'golden_grid' },
+    { name: 'Golden Vertical', icon: Icons.LayoutCol, layout: 'golden_v' },
+    { name: 'Golden Horizontal', icon: Icons.LayoutRow, layout: 'golden_h' },
+    { name: 'Golden Grid', icon: Icons.Grid, layout: 'golden_grid' },
   ];
 
-  const filteredAiTemplates = category === 'All' ? aiTemplates : aiTemplates.filter(t => t.cat === category || (category === 'Video' && t.ratio === AspectRatio.LANDSCAPE));
-
   const starterTemplates = useMemo(() => {
-    if (category === 'All') return STARTER_TEMPLATES;
-    return STARTER_TEMPLATES.filter(t => t.category === category);
+    if (category === 'All') {
+      return STARTER_TEMPLATES;
+    }
+    return STARTER_TEMPLATES.filter((t) => t.category === category);
   }, [category]);
 
   return (
@@ -104,16 +101,20 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
           <div className="mb-2">
             <h3 className="text-white font-bold mb-3">Browse Categories</h3>
             <div className="grid grid-cols-2 gap-2">
-              {DESIGN_CATEGORIES.filter(c => c.id !== 'All').map(c => (
+              {DESIGN_CATEGORIES.filter((c) => c.id !== 'All').map((c) => (
                 <button
                   key={c.id}
                   onClick={() => setCategory(c.id)}
                   className={`relative h-16 rounded-lg overflow-hidden flex items-center justify-center group`}
                 >
-                  <div className={`absolute inset-0 bg-gradient-to-br ${c.color} opacity-80 group-hover:opacity-100 transition-opacity`}></div>
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br ${c.color} opacity-80 group-hover:opacity-100 transition-opacity`}
+                  ></div>
                   <div className="relative z-10 flex flex-col items-center">
                     <c.icon className="w-5 h-5 text-white mb-1 drop-shadow-md" />
-                    <span className="text-[10px] font-bold text-white uppercase tracking-wide drop-shadow-md">{c.label}</span>
+                    <span className="text-[10px] font-bold text-white uppercase tracking-wide drop-shadow-md">
+                      {c.label}
+                    </span>
                   </div>
                 </button>
               ))}
@@ -133,12 +134,15 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
 
         <div className="relative mt-2">
           <Icons.Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-          <input type="text" placeholder="Search templates..." className="w-full bg-[#1e1e1e] border border-gray-700 rounded-lg py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#7d2ae8]" />
+          <input
+            type="text"
+            placeholder="Search templates..."
+            className="w-full bg-[#1e1e1e] border border-gray-700 rounded-lg py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#7d2ae8]"
+          />
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-6">
-
         {/* Themes Section */}
         <div>
           <div className="flex items-center justify-between mb-3">
@@ -157,7 +161,9 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                     <div key={ci} style={{ backgroundColor: c }} className="w-1/2 h-1/2"></div>
                   ))}
                 </div>
-                <span className="text-[9px] text-gray-500 text-center truncate group-hover:text-gray-300">{theme.name}</span>
+                <span className="text-[9px] text-gray-500 text-center truncate group-hover:text-gray-300">
+                  {theme.name}
+                </span>
               </button>
             ))}
           </div>
@@ -181,7 +187,9 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                 title={g.name}
               >
                 <g.icon className="w-5 h-5" />
-                <span className="text-[8px] font-medium hidden sm:block truncate w-full text-center px-1">{g.name.split(' ')[0]}</span>
+                <span className="text-[8px] font-medium hidden sm:block truncate w-full text-center px-1">
+                  {g.name.split(' ')[0]}
+                </span>
               </button>
             ))}
           </div>
@@ -196,28 +204,99 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                 <button
                   key={tmpl.id}
                   onClick={() => {
-                    if (!onApplyTemplate) return;
-                    const proceed = !showReplaceWarning || window.confirm("Apply template? This will replace your current canvas size, background, and layers.");
-                    if (!proceed) return;
+                    if (!onApplyTemplate) {
+                      return;
+                    }
+                    const proceed =
+                      !showReplaceWarning ||
+                      window.confirm(
+                        'Apply template? This will replace your current canvas size, background, and layers.'
+                      );
+                    if (!proceed) {
+                      return;
+                    }
                     onApplyTemplate(tmpl.id, false);
                   }}
                   draggable={false}
                   onDragStart={(e) => e.preventDefault()}
                   className="cursor-pointer group relative aspect-video rounded-lg overflow-hidden bg-[#1e1e1e] border border-gray-700 hover:border-[#7d2ae8] transition-all shadow-lg text-left select-none"
                 >
-                  {/* Simulation of template preview content based on category */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${tmpl.category === 'Social' ? 'from-purple-900 to-indigo-900' : 'from-slate-800 to-slate-900'} opacity-50`}></div>
-
-                  <div className="absolute top-3 left-3 right-3 bottom-10">
-                    {/* Mini mockup of content */}
-                    <div className="w-2/3 h-4 bg-white/20 rounded mb-2"></div>
-                    <div className="w-1/2 h-2 bg-white/10 rounded mb-4"></div>
-                    <div className="absolute bottom-0 right-0 w-16 h-16 bg-white/5 rounded-full blur-xl"></div>
+                  {/* Mini SVG preview — renders template layers as scaled colored blocks */}
+                  <div
+                    className="absolute inset-0 overflow-hidden"
+                    style={{ backgroundColor: tmpl.state.canvasBackgroundColor || '#1a1a2e' }}
+                  >
+                    <svg
+                      viewBox={`0 0 ${tmpl.size.width} ${tmpl.size.height}`}
+                      preserveAspectRatio="xMidYMid slice"
+                      className="w-full h-full"
+                      style={{ opacity: 0.9 }}
+                    >
+                      {(tmpl.state.layers || []).slice(0, 12).map((layer: any, li: number) => {
+                        if (layer.type === 'image') {
+                          return (
+                            <rect
+                              key={li}
+                              x={layer.x}
+                              y={layer.y}
+                              width={layer.width}
+                              height={layer.height}
+                              fill="#ffffff22"
+                              rx={4}
+                            />
+                          );
+                        }
+                        if (layer.type === 'text') {
+                          return (
+                            <rect
+                              key={li}
+                              x={layer.x}
+                              y={layer.y}
+                              width={Math.min(layer.width || 200, tmpl.size.width * 0.7)}
+                              height={layer.fontSize ? layer.fontSize * 1.2 : 20}
+                              fill={layer.color || '#ffffff'}
+                              opacity={0.85}
+                              rx={2}
+                            />
+                          );
+                        }
+                        if (layer.type === 'circle') {
+                          return (
+                            <ellipse
+                              key={li}
+                              cx={layer.x + layer.width / 2}
+                              cy={layer.y + (layer.height || layer.width) / 2}
+                              rx={layer.width / 2}
+                              ry={(layer.height || layer.width) / 2}
+                              fill={layer.color || '#7d2ae8'}
+                              opacity={layer.opacity ?? 0.9}
+                            />
+                          );
+                        }
+                        return (
+                          <rect
+                            key={li}
+                            x={layer.x}
+                            y={layer.y}
+                            width={layer.width}
+                            height={layer.height || layer.width}
+                            fill={layer.color || '#7d2ae8'}
+                            opacity={layer.opacity ?? 0.9}
+                            rx={layer.cornerRadius || 0}
+                          />
+                        );
+                      })}
+                    </svg>
                   </div>
+
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
 
                   <div className="absolute bottom-0 left-0 right-0 p-3 bg-black/60 backdrop-blur-sm flex items-center justify-between border-t border-white/5">
                     <span className="font-semibold text-xs text-white truncate">{tmpl.name}</span>
-                    <span className="text-[9px] text-gray-400">{tmpl.size.width}×{tmpl.size.height}</span>
+                    <span className="text-[9px] text-gray-400">
+                      {tmpl.size.width}×{tmpl.size.height}
+                    </span>
                   </div>
                 </button>
               ))}
@@ -233,9 +312,10 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
             onChange={(e) => setShowReplaceWarning(e.target.checked)}
             className="accent-[#7d2ae8]"
           />
-          <label htmlFor="warn-replace" className="text-[11px] text-gray-400 cursor-pointer select-none">Confirm before replacing canvas</label>
+          <label htmlFor="warn-replace" className="text-[11px] text-gray-400 cursor-pointer select-none">
+            Confirm before replacing canvas
+          </label>
         </div>
-
       </div>
     </div>
   );

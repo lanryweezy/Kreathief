@@ -1,5 +1,4 @@
-
-import { Layer, CanvasSize } from '../types';
+import { Layer } from '../types';
 
 export type AlignmentType = 'left' | 'h-center' | 'right' | 'top' | 'v-center' | 'bottom';
 export type DistributionType = 'h-spacing' | 'v-spacing' | 'h-center' | 'v-center';
@@ -8,209 +7,221 @@ export type DistributionType = 'h-spacing' | 'v-spacing' | 'h-center' | 'v-cente
  * Aligns a set of layers relative to their selection bounding box or the canvas.
  */
 export const alignLayers = (
-    layers: Layer[],
-    type: AlignmentType,
-    canvasSize: { width: number, height: number }
-): { id: string, changes: Partial<Layer> }[] => {
-    if (layers.length === 0) return [];
+  layers: Layer[],
+  type: AlignmentType,
+  canvasSize: { width: number; height: number }
+): { id: string; changes: Partial<Layer> }[] => {
+  if (layers.length === 0) {
+    return [];
+  }
 
-    // If only one layer, align to canvas. If multiple, align to their common bounding box.
-    const useCanvas = layers.length === 1;
+  // If only one layer, align to canvas. If multiple, align to their common bounding box.
+  const useCanvas = layers.length === 1;
 
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    layers.forEach(l => {
-        minX = Math.min(minX, l.x);
-        minY = Math.min(minY, l.y);
-        maxX = Math.max(maxX, l.x + l.width);
-        maxY = Math.max(maxY, l.y + (l as any).height || l.width); // Fallback for height
-    });
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
+  layers.forEach((l) => {
+    minX = Math.min(minX, l.x);
+    minY = Math.min(minY, l.y);
+    maxX = Math.max(maxX, l.x + l.width);
+    maxY = Math.max(maxY, l.y + (l as any).height || l.width); // Fallback for height
+  });
 
-    const boxWidth = maxX - minX;
-    const boxHeight = maxY - minY;
+  const boxWidth = maxX - minX;
+  const boxHeight = maxY - minY;
 
-    return layers.map(l => {
-        const h = (l as any).height || l.width;
-        let newX = l.x;
-        let newY = l.y;
+  return layers.map((l) => {
+    const h = (l as any).height || l.width;
+    let newX = l.x;
+    let newY = l.y;
 
-        switch (type) {
-            case 'left':
-                newX = useCanvas ? 0 : minX;
-                break;
-            case 'h-center':
-                newX = useCanvas ? (canvasSize.width - l.width) / 2 : minX + (boxWidth - l.width) / 2;
-                break;
-            case 'right':
-                newX = useCanvas ? canvasSize.width - l.width : maxX - l.width;
-                break;
-            case 'top':
-                newY = useCanvas ? 0 : minY;
-                break;
-            case 'v-center':
-                newY = useCanvas ? (canvasSize.height - h) / 2 : minY + (boxHeight - h) / 2;
-                break;
-            case 'bottom':
-                newY = useCanvas ? canvasSize.height - h : maxY - h;
-                break;
-        }
+    switch (type) {
+      case 'left':
+        newX = useCanvas ? 0 : minX;
+        break;
+      case 'h-center':
+        newX = useCanvas ? (canvasSize.width - l.width) / 2 : minX + (boxWidth - l.width) / 2;
+        break;
+      case 'right':
+        newX = useCanvas ? canvasSize.width - l.width : maxX - l.width;
+        break;
+      case 'top':
+        newY = useCanvas ? 0 : minY;
+        break;
+      case 'v-center':
+        newY = useCanvas ? (canvasSize.height - h) / 2 : minY + (boxHeight - h) / 2;
+        break;
+      case 'bottom':
+        newY = useCanvas ? canvasSize.height - h : maxY - h;
+        break;
+    }
 
-        return { id: l.id, changes: { x: newX, y: newY } };
-    });
+    return { id: l.id, changes: { x: newX, y: newY } };
+  });
 };
 
 /**
  * Distributes layers evenly based on their spacing.
  */
 export const distributeLayers = (
-    layers: Layer[],
-    type: DistributionType
-): { id: string, changes: Partial<Layer> }[] => {
-    if (layers.length < 3) return [];
+  layers: Layer[],
+  type: DistributionType
+): { id: string; changes: Partial<Layer> }[] => {
+  if (layers.length < 3) {
+    return [];
+  }
 
-    const result: { id: string, changes: Partial<Layer> }[] = [];
+  const result: { id: string; changes: Partial<Layer> }[] = [];
 
-    if (type === 'h-spacing') {
-        const sorted = [...layers].sort((a, b) => a.x - b.x);
-        const first = sorted[0];
-        const last = sorted[sorted.length - 1];
+  if (type === 'h-spacing') {
+    const sorted = [...layers].sort((a, b) => a.x - b.x);
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
 
-        const totalWidth = last.x - first.x;
-        const sumItemWidths = sorted.slice(0, -1).reduce((sum, l) => sum + l.width, 0) - sorted[0].width; // Not quite right for spacing
+    // Simple equal gap distribution:
+    const totalGaps = sorted.length - 1;
+    const span = last.x + last.width - first.x;
+    const totalContentWidth = sorted.reduce((sum, l) => sum + l.width, 0);
+    const gap = (span - totalContentWidth) / totalGaps;
 
-        // Simple equal gap distribution:
-        const totalGaps = sorted.length - 1;
-        const span = (last.x + last.width) - first.x;
-        const totalContentWidth = sorted.reduce((sum, l) => sum + l.width, 0);
-        const gap = (span - totalContentWidth) / totalGaps;
+    let currentX = first.x;
+    sorted.forEach((l, i) => {
+      if (i > 0 && i < sorted.length - 1) {
+        result.push({ id: l.id, changes: { x: currentX } });
+      }
+      currentX += l.width + gap;
+    });
+  } else if (type === 'v-spacing') {
+    const sorted = [...layers].sort((a, b) => a.y - b.y);
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
 
-        let currentX = first.x;
-        sorted.forEach((l, i) => {
-            if (i > 0 && i < sorted.length - 1) {
-                result.push({ id: l.id, changes: { x: currentX } });
-            }
-            currentX += l.width + gap;
-        });
-    } else if (type === 'v-spacing') {
-        const sorted = [...layers].sort((a, b) => a.y - b.y);
-        const first = sorted[0];
-        const last = sorted[sorted.length - 1];
+    const totalGaps = sorted.length - 1;
+    const hLast = (last as any).height || last.width;
+    const span = last.y + hLast - first.y;
+    const totalContentHeight = sorted.reduce((sum, l) => sum + ((l as any).height || l.width), 0);
+    const gap = (span - totalContentHeight) / totalGaps;
 
-        const totalGaps = sorted.length - 1;
-        const h1 = (first as any).height || first.width;
-        const hLast = (last as any).height || last.width;
-        const span = (last.y + hLast) - first.y;
-        const totalContentHeight = sorted.reduce((sum, l) => sum + ((l as any).height || l.width), 0);
-        const gap = (span - totalContentHeight) / totalGaps;
-
-        let currentY = first.y;
-        sorted.forEach((l, i) => {
-            const h = (l as any).height || l.width;
-            if (i > 0 && i < sorted.length - 1) {
-                result.push({ id: l.id, changes: { y: currentY } });
-            }
-            currentY += h + gap;
-        });
-    } else if (type === 'h-center') {
-        const sorted = [...layers].sort((a, b) => (a.x + a.width / 2) - (b.x + b.width / 2));
-        if (sorted.length < 2) return [];
-        const first = sorted[0];
-        const last = sorted[sorted.length - 1];
-        const span = (last.x + last.width / 2) - (first.x + first.width / 2);
-        const interval = span / (sorted.length - 1);
-
-        sorted.forEach((l, i) => {
-            if (i > 0 && i < sorted.length - 1) {
-                const targetCenter = (first.x + first.width / 2) + i * interval;
-                result.push({ id: l.id, changes: { x: targetCenter - l.width / 2 } });
-            }
-        });
-    } else if (type === 'v-center') {
-        const sorted = [...layers].sort((a, b) => (a.y + ((a as any).height || a.width) / 2) - (b.y + ((b as any).height || b.width) / 2));
-        if (sorted.length < 2) return [];
-        const first = sorted[0];
-        const last = sorted[sorted.length - 1];
-        const hFirst = (first as any).height || first.width;
-        const hLast = (last as any).height || last.width;
-        const span = (last.y + hLast / 2) - (first.y + hFirst / 2);
-        const interval = span / (sorted.length - 1);
-
-        sorted.forEach((l, i) => {
-            const h = (l as any).height || l.width;
-            if (i > 0 && i < sorted.length - 1) {
-                const targetCenter = (first.y + hFirst / 2) + i * interval;
-                result.push({ id: l.id, changes: { y: targetCenter - h / 2 } });
-            }
-        });
+    let currentY = first.y;
+    sorted.forEach((l, i) => {
+      const h = (l as any).height || l.width;
+      if (i > 0 && i < sorted.length - 1) {
+        result.push({ id: l.id, changes: { y: currentY } });
+      }
+      currentY += h + gap;
+    });
+  } else if (type === 'h-center') {
+    const sorted = [...layers].sort((a, b) => a.x + a.width / 2 - (b.x + b.width / 2));
+    if (sorted.length < 2) {
+      return [];
     }
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+    const span = last.x + last.width / 2 - (first.x + first.width / 2);
+    const interval = span / (sorted.length - 1);
 
-    return result;
+    sorted.forEach((l, i) => {
+      if (i > 0 && i < sorted.length - 1) {
+        const targetCenter = first.x + first.width / 2 + i * interval;
+        result.push({ id: l.id, changes: { x: targetCenter - l.width / 2 } });
+      }
+    });
+  } else if (type === 'v-center') {
+    const sorted = [...layers].sort(
+      (a, b) => a.y + ((a as any).height || a.width) / 2 - (b.y + ((b as any).height || b.width) / 2)
+    );
+    if (sorted.length < 2) {
+      return [];
+    }
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+    const hFirst = (first as any).height || first.width;
+    const hLast = (last as any).height || last.width;
+    const span = last.y + hLast / 2 - (first.y + hFirst / 2);
+    const interval = span / (sorted.length - 1);
+
+    sorted.forEach((l, i) => {
+      const h = (l as any).height || l.width;
+      if (i > 0 && i < sorted.length - 1) {
+        const targetCenter = first.y + hFirst / 2 + i * interval;
+        result.push({ id: l.id, changes: { y: targetCenter - h / 2 } });
+      }
+    });
+  }
+
+  return result;
 };
 
 /**
  * Automatically organizes layers into a neat grid.
  */
-export const tidyUpLayers = (
-    layers: Layer[]
-): { id: string, changes: Partial<Layer> }[] => {
-    if (layers.length < 2) return [];
+export const tidyUpLayers = (layers: Layer[]): { id: string; changes: Partial<Layer> }[] => {
+  if (layers.length < 2) {
+    return [];
+  }
 
-    const count = layers.length;
+  const count = layers.length;
 
-    // Find general bounds of current selection
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    layers.forEach(l => {
-        minX = Math.min(minX, l.x);
-        minY = Math.min(minY, l.y);
-        maxX = Math.max(maxX, l.x + l.width);
-        maxY = Math.max(maxY, l.y + ((l as any).height || l.width));
-    });
+  // Find general bounds of current selection
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
+  layers.forEach((l) => {
+    minX = Math.min(minX, l.x);
+    minY = Math.min(minY, l.y);
+    maxX = Math.max(maxX, l.x + l.width);
+    maxY = Math.max(maxY, l.y + ((l as any).height || l.width));
+  });
 
-    const totalWidth = maxX - minX;
-    const totalHeight = maxY - minY;
+  const totalWidth = maxX - minX;
+  const totalHeight = maxY - minY;
 
-    // Sort layers by their current position to preserve relative order (top-to-bottom, left-to-right)
-    const sorted = [...layers].sort((a, b) => {
-        const rowA = Math.round(a.y / 50);
-        const rowB = Math.round(b.y / 50);
-        if (rowA !== rowB) return rowA - rowB;
-        return a.x - b.x;
-    });
+  // Sort layers by their current position to preserve relative order (top-to-bottom, left-to-right)
+  const sorted = [...layers].sort((a, b) => {
+    const rowA = Math.round(a.y / 50);
+    const rowB = Math.round(b.y / 50);
+    if (rowA !== rowB) {
+      return rowA - rowB;
+    }
+    return a.x - b.x;
+  });
 
-    // Adaptive grid: if width is much larger than height, prefer more columns
-    const aspectRatio = totalWidth / (totalHeight || 1);
-    let cols = Math.ceil(Math.sqrt(count * aspectRatio));
-    cols = Math.max(1, Math.min(count, cols));
-    const rows = Math.ceil(count / cols);
+  // Adaptive grid: if width is much larger than height, prefer more columns
+  const aspectRatio = totalWidth / (totalHeight || 1);
+  let cols = Math.ceil(Math.sqrt(count * aspectRatio));
+  cols = Math.max(1, Math.min(count, cols));
 
-    const horizontalSpacing = Math.max(20, (totalWidth - (cols * 100)) / Math.max(1, cols - 1));
-    const verticalSpacing = 40;
+  const horizontalSpacing = Math.max(20, (totalWidth - cols * 100) / Math.max(1, cols - 1));
+  const verticalSpacing = 40;
 
-    let currentX = minX;
-    let currentY = minY;
-    let maxHeightInRow = 0;
+  let currentX = minX;
+  let currentY = minY;
+  let maxHeightInRow = 0;
 
-    return sorted.map((l, i) => {
-        const colIndex = i % cols;
+  return sorted.map((l, i) => {
+    const colIndex = i % cols;
 
-        if (colIndex === 0 && i !== 0) {
-            currentX = minX;
-            currentY += maxHeightInRow + verticalSpacing;
-            maxHeightInRow = 0;
-        }
+    if (colIndex === 0 && i !== 0) {
+      currentX = minX;
+      currentY += maxHeightInRow + verticalSpacing;
+      maxHeightInRow = 0;
+    }
 
-        const h = (l as any).height || l.width;
-        maxHeightInRow = Math.max(maxHeightInRow, h);
+    const h = (l as any).height || l.width;
+    maxHeightInRow = Math.max(maxHeightInRow, h);
 
-        const result = {
-            id: l.id,
-            changes: {
-                x: currentX,
-                y: currentY
-            }
-        };
+    const result = {
+      id: l.id,
+      changes: {
+        x: currentX,
+        y: currentY,
+      },
+    };
 
-        currentX += l.width + horizontalSpacing;
-        return result;
-    });
+    currentX += l.width + horizontalSpacing;
+    return result;
+  });
 };
-

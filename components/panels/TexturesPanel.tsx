@@ -3,19 +3,14 @@ import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 
 interface TexturesPanelProps {
+  onRemoveTexture: () => void;
+  currentTexture: string | undefined;
 }
 
-export const TexturesPanel: React.FC<TexturesPanelProps> = () => {
-  const applyTexture = useStore(state => state.applyTexture);
-  const removeTexture = useStore(state => state.removeTexture);
-  const setTextureIntensity = useStore(state => state.setTextureIntensity);
-  const textureIntensity = useStore(state => state.textureIntensity);
-
-  const selectedLayerIds = useStore(state => state.selectedLayerIds);
-  const layers = useStore(state => state.layers);
-
-  const currentLayer = layers.find(l => selectedLayerIds.includes(l.id));
-  const currentTexture = (currentLayer?.type === 'text') ? currentLayer.decorations?.textures?.[0] : null;
+export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, currentTexture }) => {
+  const applyTexture = useStore((state) => state.applyTexture);
+  const setTextureIntensity = useStore((state) => state.setTextureIntensity);
+  const textureIntensity = useStore((state) => state.textureIntensity);
 
   const [intensity, setIntensity] = useState(textureIntensity);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -23,55 +18,55 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = () => {
   // SVG Presets with placeholder logic for replacements
   const PRESETS = [
     {
-      name: "Vintage Paper",
-      url: "https://images.unsplash.com/photo-1586075010633-244416955a1b?auto=format&fit=crop&w=400&q=80",
-      preview: "bg-[#f2ebd4]"
+      name: 'Vintage Paper',
+      url: 'https://images.unsplash.com/photo-1586075010633-244416955a1b?auto=format&fit=crop&w=400&q=80',
+      preview: 'bg-[#f2ebd4]',
     },
     {
-      name: "White Marble",
-      url: "https://images.unsplash.com/photo-1533158326339-7f3cf2404354?auto=format&fit=crop&w=400&q=80",
-      preview: "bg-stone-200"
+      name: 'White Marble',
+      url: 'https://images.unsplash.com/photo-1533158326339-7f3cf2404354?auto=format&fit=crop&w=400&q=80',
+      preview: 'bg-stone-200',
     },
     {
-      name: "Dark Marble",
-      url: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&w=400&q=80",
-      preview: "bg-stone-900"
+      name: 'Dark Marble',
+      url: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&w=400&q=80',
+      preview: 'bg-stone-900',
     },
     {
-      name: "Rustic Wood",
-      url: "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&w=400&q=80",
-      preview: "bg-amber-900"
+      name: 'Rustic Wood',
+      url: 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&w=400&q=80',
+      preview: 'bg-amber-900',
     },
     {
-      name: "Gold Foil",
-      url: "https://images.unsplash.com/photo-1502220389334-a63e8df3111f?auto=format&fit=crop&w=400&q=80",
-      preview: "bg-yellow-600"
+      name: 'Gold Foil',
+      url: 'https://images.unsplash.com/photo-1502220389334-a63e8df3111f?auto=format&fit=crop&w=400&q=80',
+      preview: 'bg-yellow-600',
     },
     {
-      name: "Holographic",
-      url: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=400&q=80",
-      preview: "bg-indigo-400"
+      name: 'Holographic',
+      url: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=400&q=80',
+      preview: 'bg-indigo-400',
     },
     {
-      name: "Brushed Metal",
-      url: "https://images.unsplash.com/photo-1530514104649-e59ec601dff0?auto=format&fit=crop&w=400&q=80",
-      preview: "bg-zinc-400"
+      name: 'Brushed Metal',
+      url: 'https://images.unsplash.com/photo-1530514104649-e59ec601dff0?auto=format&fit=crop&w=400&q=80',
+      preview: 'bg-zinc-400',
     },
     {
-      name: "Carbon Fiber",
-      url: "https://images.unsplash.com/photo-1550684847-75bdda21cc95?auto=format&fit=crop&w=400&q=80",
-      preview: "bg-zinc-900"
+      name: 'Carbon Fiber',
+      url: 'https://images.unsplash.com/photo-1550684847-75bdda21cc95?auto=format&fit=crop&w=400&q=80',
+      preview: 'bg-zinc-900',
     },
     {
-      name: "Water Color",
-      url: "https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&w=400&q=80",
-      preview: "bg-blue-300"
+      name: 'Water Color',
+      url: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&w=400&q=80',
+      preview: 'bg-blue-300',
     },
     {
-      name: "Crumpled Paper",
-      url: "https://images.unsplash.com/photo-1614036417651-efe591214972?auto=format&fit=crop&w=400&q=80",
-      preview: "bg-gray-300"
-    }
+      name: 'Crumpled Paper',
+      url: 'https://images.unsplash.com/photo-1614036417651-efe591214972?auto=format&fit=crop&w=400&q=80',
+      preview: 'bg-gray-300',
+    },
   ];
 
   const applyPreset = (url: string, currentIntensity: number) => {
@@ -84,11 +79,6 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = () => {
   };
 
   const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
-
-  const handlePresetClick = (templateUrl: string) => {
-    setActiveTemplate(templateUrl);
-    applyPreset(templateUrl, intensity);
-  };
 
   // Re-apply when intensity changes if we have an active template
   useEffect(() => {
@@ -104,7 +94,9 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = () => {
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -113,7 +105,9 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = () => {
       setActiveTemplate(null);
     };
     reader.readAsDataURL(file);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -154,7 +148,10 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = () => {
       <div className="mb-4">
         {currentTexture && (
           <button
-            onClick={() => { removeTexture(); setActiveTemplate(null); }}
+            onClick={() => {
+              onRemoveTexture();
+              setActiveTemplate(null);
+            }}
             className="w-full py-2 bg-red-900/20 text-red-400 border border-red-900/50 rounded text-xs font-bold hover:bg-red-900/40 transition-colors"
           >
             Remove Texture
@@ -182,7 +179,11 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = () => {
               className={`relative aspect-square rounded-lg border-2 overflow-hidden group transition-all ${activeTemplate === tex.url ? 'border-[#7d2ae8] ring-2 ring-[#7d2ae8]/20' : 'border-gray-700 hover:border-gray-500'}`}
             >
               <div className={`absolute inset-0 ${tex.preview}`}></div>
-              <img src={tex.url} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" alt={tex.name} />
+              <img
+                src={tex.url}
+                className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
+                alt={tex.name}
+              />
               <div className="absolute inset-0 flex items-end p-2 bg-gradient-to-t from-black/80 to-transparent">
                 <span className="text-xs font-bold text-white shadow-black drop-shadow-md">{tex.name}</span>
               </div>

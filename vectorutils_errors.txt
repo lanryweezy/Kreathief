@@ -1,0 +1,117 @@
+utils/vectorUtils.ts(20,21): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(22,34): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(22,51): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(22,60): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(22,79): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(23,34): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(23,51): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(23,60): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(23,79): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(38,17): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(38,35): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(39,30): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(39,47): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(39,56): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(39,75): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(40,30): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(40,47): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(40,56): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(40,75): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(41,30): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(41,47): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(41,57): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(41,76): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(42,30): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(42,47): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(42,57): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(42,76): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(43,62): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(43,73): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(67,21): error TS18048: 'type' is possibly 'undefined'.
+utils/vectorUtils.ts(69,21): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+utils/vectorUtils.ts(70,21): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+utils/vectorUtils.ts(74,21): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+utils/vectorUtils.ts(75,21): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+utils/vectorUtils.ts(82,25): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(82,47): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(82,57): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(82,68): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(82,78): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(84,25): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+utils/vectorUtils.ts(85,25): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+utils/vectorUtils.ts(87,46): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(87,69): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(123,19): error TS6133: 'sourceDist' is declared but its value is never read.
+utils/vectorUtils.ts(189,17): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(189,34): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(190,32): error TS2345: Argument of type 'VectorPoint | undefined' is not assignable to parameter of type 'VectorPoint'.
+utils/vectorUtils.ts(194,28): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(194,62): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(196,32): error TS2345: Argument of type 'VectorPoint | undefined' is not assignable to parameter of type 'VectorPoint'.
+utils/vectorUtils.ts(201,29): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(201,38): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(201,49): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(201,58): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(202,29): error TS18048: 'next' is possibly 'undefined'.
+utils/vectorUtils.ts(202,38): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(202,49): error TS18048: 'next' is possibly 'undefined'.
+utils/vectorUtils.ts(202,58): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(215,29): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(215,56): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(216,29): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(216,56): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(256,24): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(257,24): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(257,31): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(257,50): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(257,57): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(259,24): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(260,24): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(260,31): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(260,49): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(260,56): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(263,56): error TS2345: Argument of type 'VectorPoint | undefined' is not assignable to parameter of type 'VectorPoint'.
+utils/vectorUtils.ts(276,24): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(277,24): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(277,31): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(277,50): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(277,57): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(279,24): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(280,24): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(280,31): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(280,49): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(280,56): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(283,56): error TS2345: Argument of type 'VectorPoint | undefined' is not assignable to parameter of type 'VectorPoint'.
+utils/vectorUtils.ts(304,20): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(304,40): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(304,47): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(304,66): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(304,73): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(305,20): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(305,39): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(305,46): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(305,64): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(305,71): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(309,55): error TS2345: Argument of type 'VectorPoint | undefined' is not assignable to parameter of type 'VectorPoint'.
+utils/vectorUtils.ts(320,56): error TS18048: 'splitPoint' is possibly 'undefined'.
+utils/vectorUtils.ts(320,70): error TS18048: 'splitPoint' is possibly 'undefined'.
+utils/vectorUtils.ts(323,34): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(323,46): error TS18048: 'splitPoint' is possibly 'undefined'.
+utils/vectorUtils.ts(323,63): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(323,75): error TS18048: 'splitPoint' is possibly 'undefined'.
+utils/vectorUtils.ts(324,35): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(324,48): error TS18048: 'splitPoint' is possibly 'undefined'.
+utils/vectorUtils.ts(324,65): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(324,78): error TS18048: 'splitPoint' is possibly 'undefined'.
+utils/vectorUtils.ts(327,39): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(327,51): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(327,60): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(327,72): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(330,38): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(330,51): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(330,60): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(330,73): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(341,13): error TS2322: Type '{ handleOut: { x: number; y: number; }; id?: string | undefined; x?: number | undefined; y?: number | undefined; handleIn?: { x: number; y: number; }; type?: PointType | undefined; cornerRadius?: number; }' is not assignable to type 'VectorPoint'.
+utils/vectorUtils.ts(342,13): error TS2322: Type '{ handleIn: { x: number; y: number; }; id?: string | undefined; x?: number | undefined; y?: number | undefined; handleOut?: { x: number; y: number; }; type?: PointType | undefined; cornerRadius?: number; }' is not assignable to type 'VectorPoint'.
+utils/vectorUtils.ts(346,13): error TS2322: Type '{ handleOut: { x: number; y: number; }; id?: string | undefined; x?: number | undefined; y?: number | undefined; handleIn?: { x: number; y: number; }; type?: PointType | undefined; cornerRadius?: number; }' is not assignable to type 'VectorPoint'.
+utils/vectorUtils.ts(347,13): error TS2322: Type '{ handleIn: { x: number; y: number; }; id?: string | undefined; x?: number | undefined; y?: number | undefined; handleOut?: { x: number; y: number; }; type?: PointType | undefined; cornerRadius?: number; }' is not assignable to type 'VectorPoint'.

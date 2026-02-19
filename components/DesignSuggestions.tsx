@@ -17,7 +17,7 @@ interface DesignSuggestionsProps {
   onApplySuggestion?: (suggestion: Suggestion) => void;
   designContext?: string;
   layers?: any[];
-  canvasSize?: { width: number, height: number };
+  canvasSize?: { width: number; height: number };
 }
 
 export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
@@ -26,7 +26,7 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
   onApplySuggestion,
   designContext = 'modern poster',
   layers = [],
-  canvasSize = { width: 1080, height: 1080 }
+  canvasSize = { width: 1080, height: 1080 },
 }) => {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +44,8 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
           title: 'Magic Layout',
           description: 'Automatically optionalize layer positions for better balance and hierarchy.',
           action: 'layout',
-          data: { /* data fetched on apply for now, or pre-fetched? Better to pre-fetch if fast, but layout optimizes strictly on *current* state. 
+          data: {
+            /* data fetched on apply for now, or pre-fetched? Better to pre-fetch if fast, but layout optimizes strictly on *current* state. 
                    Actually, let's pre-fetch "Layout" implies we change state. 
                    If user moves things while menu is open, pre-fetched layout is stale. 
                    Let's make "Magic Layout" an action that calls API immediately when clicked? 
@@ -52,7 +53,7 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
                    So we must generate the "Plan" or just a placeholder 'action'.
                    Let's stick to the "Action" pattern where the suggestion *contains* the data.
                    So we must fetch layout now. */
-          }
+          },
         });
         // We will fetch the actual data in parallel below
       }
@@ -62,7 +63,7 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
         id: `suggestion_theme_${Date.now()}`,
         title: 'Smart Color Remediation',
         description: 'Apply a harmonious color palette based on your design context.',
-        action: 'theme'
+        action: 'theme',
       });
 
       // 3. Typography
@@ -70,32 +71,34 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
         id: `suggestion_typo_${Date.now()}`,
         title: 'Typography Polish',
         description: 'Update fonts to a more professional pairing.',
-        action: 'typography'
+        action: 'typography',
       });
 
       // Parallel Fetching for Data
       const [layoutData, themeData, typoData] = await Promise.all([
         // Layout
-        layers.length > 0 ? geminiService.optimizeLayout(layers, canvasSize.width, canvasSize.height) : Promise.resolve(null),
+        layers.length > 0
+          ? geminiService.optimizeLayout(layers, canvasSize.width, canvasSize.height)
+          : Promise.resolve(null),
         // Theme
-        geminiService.generateDesignTheme(designContext + " color palette only"),
+        geminiService.generateDesignTheme(designContext + ' color palette only'),
         // Typo
-        geminiService.generateDesignTheme(designContext + " typography only")
+        geminiService.generateDesignTheme(designContext + ' typography only'),
       ]);
 
       // Assign Data
       if (layoutData && newSuggestions[0].action === 'layout') {
-         newSuggestions[0].data = layoutData;
+        newSuggestions[0].data = layoutData;
       }
-      const themeIdx = newSuggestions.findIndex(s => s.action === 'theme');
+      const themeIdx = newSuggestions.findIndex((s) => s.action === 'theme');
       if (themeIdx !== -1 && themeData) {
-         newSuggestions[themeIdx].data = themeData;
-         newSuggestions[themeIdx].description = `Apply ${themeData.name} palette.`;
+        newSuggestions[themeIdx].data = themeData;
+        newSuggestions[themeIdx].description = `Apply ${themeData.name} palette.`;
       }
-      const typoIdx = newSuggestions.findIndex(s => s.action === 'typography');
+      const typoIdx = newSuggestions.findIndex((s) => s.action === 'typography');
       if (typoIdx !== -1 && typoData) {
-         newSuggestions[typoIdx].data = typoData;
-         newSuggestions[typoIdx].description = `Switch to ${typoData.headingFont} & ${typoData.bodyFont}.`;
+        newSuggestions[typoIdx].data = typoData;
+        newSuggestions[typoIdx].description = `Switch to ${typoData.headingFont} & ${typoData.bodyFont}.`;
       }
 
       setSuggestions(newSuggestions);
@@ -107,20 +110,24 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
   };
 
   const handleApplySuggestion = async (suggestion: Suggestion) => {
-    if (appliedSuggestions.has(suggestion.id)) return;
+    if (appliedSuggestions.has(suggestion.id)) {
+      return;
+    }
 
-    setAppliedSuggestions(prev => new Set([...prev, suggestion.id]));
+    setAppliedSuggestions((prev) => new Set([...prev, suggestion.id]));
     onApplySuggestion?.(suggestion);
 
     // Visual feedback
     setTimeout(() => {
-    //   setSuggestions(prev =>
-    //     prev.filter(s => s.id !== suggestion.id)
-    //   );
+      //   setSuggestions(prev =>
+      //     prev.filter(s => s.id !== suggestion.id)
+      //   );
     }, 500);
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -136,7 +143,9 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
               <p className="text-xs text-gray-400">Actionable improvements for your masterpiece</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">✕</button>
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+            ✕
+          </button>
         </div>
 
         {/* Content */}
@@ -171,10 +180,22 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-white capitalize">{suggestion.title}</h3>
-                            {suggestion.action === 'layout' && <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 rounded uppercase font-bold">Layout</span>}
-                            {suggestion.action === 'theme' && <span className="text-[10px] bg-purple-500/20 text-purple-300 px-1.5 rounded uppercase font-bold">Color</span>}
-                            {suggestion.action === 'typography' && <span className="text-[10px] bg-green-500/20 text-green-300 px-1.5 rounded uppercase font-bold">Font</span>}
+                          <h3 className="font-semibold text-white capitalize">{suggestion.title}</h3>
+                          {suggestion.action === 'layout' && (
+                            <span className="text-[10px] bg-blue-500/20 text-blue-300 px-1.5 rounded uppercase font-bold">
+                              Layout
+                            </span>
+                          )}
+                          {suggestion.action === 'theme' && (
+                            <span className="text-[10px] bg-purple-500/20 text-purple-300 px-1.5 rounded uppercase font-bold">
+                              Color
+                            </span>
+                          )}
+                          {suggestion.action === 'typography' && (
+                            <span className="text-[10px] bg-green-500/20 text-green-300 px-1.5 rounded uppercase font-bold">
+                              Font
+                            </span>
+                          )}
                         </div>
                         <p className="text-sm text-gray-400 line-clamp-2">{suggestion.description}</p>
                       </div>

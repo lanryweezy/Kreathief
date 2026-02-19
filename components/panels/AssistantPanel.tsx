@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '../Button';
 import { ChatMessage, TextLayer, ShapeLayer } from '../../types';
@@ -9,46 +8,126 @@ import { v4 as uuidv4 } from 'uuid';
 // Local SVG icons to avoid dependence on constants.ts which might cause crashes
 const LocalIcons = {
   Bot: (props: any) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 8V4H8" /><rect width="16" height="12" x="4" y="8" rx="2" /><path d="M2 14h2" /><path d="M20 14h2" /><path d="M15 13v2" /><path d="M9 13v2" />
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 8V4H8" />
+      <rect width="16" height="12" x="4" y="8" rx="2" />
+      <path d="M2 14h2" />
+      <path d="M20 14h2" />
+      <path d="M15 13v2" />
+      <path d="M9 13v2" />
     </svg>
   ),
   Eye: (props: any) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" />
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
     </svg>
   ),
   LayoutGrid: (props: any) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="7" height="7" x="3" y="3" rx="1" /><rect width="7" height="7" x="14" y="3" rx="1" /><rect width="7" height="7" x="14" y="14" rx="1" /><rect width="7" height="7" x="3" y="14" rx="1" />
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect width="7" height="7" x="3" y="3" rx="1" />
+      <rect width="7" height="7" x="14" y="3" rx="1" />
+      <rect width="7" height="7" x="14" y="14" rx="1" />
+      <rect width="7" height="7" x="3" y="14" rx="1" />
     </svg>
   ),
   Mic: (props: any) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="22" />
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+      <line x1="12" y1="19" x2="12" y2="22" />
     </svg>
   ),
   MicOff: (props: any) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="2" y1="2" x2="22" y2="22" /><path d="M18.89 12a11.94 11.94 0 0 1-2.23 6.41" /><path d="M2 10h3" /><path d="M20 10h3" /><path d="M15 2H9a2 2 0 0 0-2 2v7h2V4h6v10H9v4h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z" />
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="2" y1="2" x2="22" y2="22" />
+      <path d="M18.89 12a11.94 11.94 0 0 1-2.23 6.41" />
+      <path d="M2 10h3" />
+      <path d="M20 10h3" />
+      <path d="M15 2H9a2 2 0 0 0-2 2v7h2V4h6v10H9v4h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z" />
     </svg>
   ),
   ArrowUp: (props: any) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" y1="19" x2="12" y2="5" /><polyline points="5 12 12 5 19 12" />
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="12" y1="19" x2="12" y2="5" />
+      <polyline points="5 12 12 5 19 12" />
     </svg>
-  )
+  ),
 };
 
 interface AssistantPanelProps {
   getCanvasSnapshot: () => Promise<string>;
 }
 
-export const AssistantPanel: React.FC<AssistantPanelProps> = ({
-  getCanvasSnapshot
-}) => {
-  const addLayer = useStore(state => state.addLayer);
-  const canvasSize = useStore(state => state.canvasSize);
+export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapshot }) => {
+  const addLayer = useStore((state) => state.addLayer);
+  const canvasSize = useStore((state) => state.canvasSize);
 
   const onAddShape = (type: any, style: Partial<ShapeLayer>) => {
     addLayer({
@@ -69,7 +148,17 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({
       color: '#7d2ae8',
       cornerRadius: 0,
       ...style,
-      filters: { brightness: 100, contrast: 100, saturation: 100, grayscale: 0, blur: 0, sepia: 0, hueRotate: 0, vignette: 0, opacity: 1 }
+      filters: {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        grayscale: 0,
+        blur: 0,
+        sepia: 0,
+        hueRotate: 0,
+        vignette: 0,
+        opacity: 1,
+      },
     } as any);
   };
 
@@ -91,7 +180,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({
       fontFamily: 'Inter',
       color: '#000000',
       align: 'center',
-      ...style
+      ...style,
     } as TextLayer);
   };
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -99,8 +188,8 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({
       id: 'welcome',
       role: 'assistant',
       content: "Hi! I'm your design partner. I can critique your work, suggest layouts, or answer design questions.",
-      timestamp: Date.now()
-    }
+      timestamp: Date.now(),
+    },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -120,12 +209,12 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({
 
         recognitionRef.current.onresult = (event: any) => {
           const transcript = event.results[0][0].transcript;
-          setInput(prev => (prev ? prev + ' ' + transcript : transcript));
+          setInput((prev) => (prev ? prev + ' ' + transcript : transcript));
           setIsListening(false);
         };
 
         recognitionRef.current.onerror = (event: any) => {
-          console.error("Speech Recognition Error", event.error);
+          console.error('Speech Recognition Error', event.error);
           setIsListening(false);
         };
 
@@ -138,7 +227,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({
 
   const toggleListening = () => {
     if (!recognitionRef.current) {
-      alert("Voice input is not supported in this browser.");
+      alert('Voice input is not supported in this browser.');
       return;
     }
 
@@ -159,16 +248,18 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!input.trim()) return;
+    if (!input.trim()) {
+      return;
+    }
 
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
       content: input,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
-    setMessages(prev => [...prev, userMsg]);
+    setMessages((prev) => [...prev, userMsg]);
     setInput('');
     setIsLoading(true);
 
@@ -188,35 +279,38 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({
             id: Date.now().toString() + '_ai',
             role: 'assistant',
             content: "I've added a layout suggestion to your canvas based on your description!",
-            timestamp: Date.now()
+            timestamp: Date.now(),
           };
-          setMessages(prev => [...prev, aiMsg]);
+          setMessages((prev) => [...prev, aiMsg]);
         } else {
-          throw new Error("Failed to generate layout");
+          throw new Error('Failed to generate layout');
         }
       } else {
         // Fallback to text chat if no specific command detected or just general chat
         // We reuse generateText for simple response for now or call a new chat endpoint
         // Using analyzeDesign logic but without image if not analyzing
         // For simplicity, let's just use generateText with a system prompt context
-        const response = await geminiService.generateText(input, "You are a helpful graphic design assistant. Keep answers concise and helpful.");
+        const response = await geminiService.generateText(
+          input,
+          'You are a helpful graphic design assistant. Keep answers concise and helpful.'
+        );
         const aiMsg: ChatMessage = {
           id: Date.now().toString() + '_ai',
           role: 'assistant',
           content: response,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         };
-        setMessages(prev => [...prev, aiMsg]);
+        setMessages((prev) => [...prev, aiMsg]);
       }
     } catch (e) {
       console.error(e);
       const errorMsg: ChatMessage = {
         id: Date.now().toString() + '_err',
         role: 'assistant',
-        content: "Sorry, I encountered an error processing that request.",
-        timestamp: Date.now()
+        content: 'Sorry, I encountered an error processing that request.',
+        timestamp: Date.now(),
       };
-      setMessages(prev => [...prev, errorMsg]);
+      setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setIsLoading(false);
     }
@@ -227,29 +321,40 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({
     const loadingMsg: ChatMessage = {
       id: 'analyzing',
       role: 'assistant',
-      content: "Looking at your design...",
-      timestamp: Date.now()
+      content: 'Looking at your design...',
+      timestamp: Date.now(),
     };
-    setMessages(prev => [...prev, loadingMsg]);
+    setMessages((prev) => [...prev, loadingMsg]);
 
     try {
       const snapshot = await getCanvasSnapshot();
-      const analysis = await geminiService.analyzeDesign(snapshot, "Critique this design. Focus on composition, color balance, and typography. Be constructive.");
+      const analysis = await geminiService.analyzeDesign(
+        snapshot,
+        'Critique this design. Focus on composition, color balance, and typography. Be constructive.'
+      );
 
-      setMessages(prev => prev.filter(m => m.id !== 'analyzing').concat({
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: analysis,
-        timestamp: Date.now()
-      }));
+      setMessages((prev) =>
+        prev
+          .filter((m) => m.id !== 'analyzing')
+          .concat({
+            id: Date.now().toString(),
+            role: 'assistant',
+            content: analysis,
+            timestamp: Date.now(),
+          })
+      );
     } catch (e) {
       console.error(e);
-      setMessages(prev => prev.filter(m => m.id !== 'analyzing').concat({
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: "I couldn't analyze the canvas right now.",
-        timestamp: Date.now()
-      }));
+      setMessages((prev) =>
+        prev
+          .filter((m) => m.id !== 'analyzing')
+          .concat({
+            id: Date.now().toString(),
+            role: 'assistant',
+            content: "I couldn't analyze the canvas right now.",
+            timestamp: Date.now(),
+          })
+      );
     } finally {
       setIsLoading(false);
     }
@@ -268,10 +373,11 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
-              className={`max-w-[85%] rounded-lg p-3 text-sm ${msg.role === 'user'
-                ? 'bg-[#7d2ae8] text-white rounded-br-none'
-                : 'bg-[#252627] text-gray-200 border border-gray-700 rounded-bl-none'
-                }`}
+              className={`max-w-[85%] rounded-lg p-3 text-sm ${
+                msg.role === 'user'
+                  ? 'bg-[#7d2ae8] text-white rounded-br-none'
+                  : 'bg-[#252627] text-gray-200 border border-gray-700 rounded-bl-none'
+              }`}
             >
               {msg.content}
             </div>
@@ -291,7 +397,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({
               <LocalIcons.Eye className="w-3 h-3" /> Analyze Design
             </button>
             <button
-              onClick={() => setInput("Generate a layout for a modern coffee shop menu")}
+              onClick={() => setInput('Generate a layout for a modern coffee shop menu')}
               disabled={isLoading}
               className="whitespace-nowrap px-3 py-1.5 bg-emerald-900/30 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-medium hover:bg-emerald-900/50 transition-colors flex items-center gap-1.5"
             >
@@ -304,7 +410,12 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
             placeholder="Ask for advice or generate layouts..."
             className="flex-1 bg-transparent border-none px-2 py-1 text-sm text-white focus:outline-none resize-none h-10 custom-scrollbar"
             disabled={isLoading}
@@ -313,7 +424,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({
             <button
               onClick={toggleListening}
               className={`p-2 rounded-md transition-colors ${isListening ? 'bg-red-500 text-white animate-pulse' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}
-              title={isListening ? "Stop listening" : "Start voice input"}
+              title={isListening ? 'Stop listening' : 'Start voice input'}
             >
               {isListening ? <LocalIcons.MicOff className="w-4 h-4" /> : <LocalIcons.Mic className="w-4 h-4" />}
             </button>
@@ -323,11 +434,16 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({
               onClick={handleSendMessage}
               disabled={isLoading || !input.trim()}
             >
-              {isLoading ? <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div> : <LocalIcons.ArrowUp className="w-4 h-4 rotate-90" />}
+              {isLoading ? (
+                <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+              ) : (
+                <LocalIcons.ArrowUp className="w-4 h-4 rotate-90" />
+              )}
             </Button>
           </div>
         </div>
       </div>
     </div>
   );
-}; export default AssistantPanel;
+};
+export default AssistantPanel;

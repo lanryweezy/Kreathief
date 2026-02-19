@@ -1,0 +1,813 @@
+
+> kreathief@1.0.0 type-check
+> tsc --noEmit
+
+components/AIAssistant.tsx(22,3): error TS6133: 'onApplySuggestion' is declared but its value is never read.
+components/Auth.tsx(4,16): error TS6133: 'UserPlan' is declared but its value is never read.
+components/BottomSheet.tsx(15,15): error TS7030: Not all code paths return a value.
+components/Canvas.tsx(14,35): error TS2304: Cannot find name 'AnimationSettings'.
+components/Canvas.tsx(63,67): error TS6133: 'scale' is declared but its value is never read.
+components/Canvas.tsx(126,53): error TS6133: 'zoom' is declared but its value is never read.
+components/Canvas.tsx(201,11): error TS6133: 'hasCrop' is declared but its value is never read.
+components/Canvas.tsx(283,29): error TS6133: 'e' is declared but its value is never read.
+components/Canvas.tsx(397,43): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+components/Canvas.tsx(408,26): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+components/Canvas.tsx(556,11): error TS6133: 'render3DDepth' is declared but its value is never read.
+components/Canvas.tsx(671,5): error TS6133: 'documentColors' is declared but its value is never read.
+components/Canvas.tsx(687,35): error TS6133: 'onSetCanvasBackgroundColor' is declared but its value is never read.
+components/Canvas.tsx(689,27): error TS6133: 'onUpdateCanvasFilters' is declared but its value is never read.
+components/Canvas.tsx(696,20): error TS6133: 'onMoveLayer' is declared but its value is never read.
+components/Canvas.tsx(713,23): error TS6133: 'onToggleEraser' is declared but its value is never read.
+components/Canvas.tsx(714,19): error TS6133: 'onAddLayer' is declared but its value is never read.
+components/Canvas.tsx(720,9): error TS6133: 'setIsCropMode' is declared but its value is never read.
+components/Canvas.tsx(721,9): error TS6133: 'onCrop' is declared but its value is never read.
+components/Canvas.tsx(722,9): error TS6133: 'applyCrop' is declared but its value is never read.
+components/Canvas.tsx(723,9): error TS6133: 'cancelCrop' is declared but its value is never read.
+components/Canvas.tsx(724,9): error TS6133: 'cropArea' is declared but its value is never read.
+components/Canvas.tsx(725,9): error TS6133: 'setCropArea' is declared but its value is never read.
+components/Canvas.tsx(726,9): error TS6133: 'croppingLayerId' is declared but its value is never read.
+components/Canvas.tsx(743,11): error TS6133: 'onUpdateTextLayer' is declared but its value is never read.
+components/Canvas.tsx(748,11): error TS6133: 'onUpdateShapeLayer' is declared but its value is never read.
+components/Canvas.tsx(753,11): error TS6133: 'onUpdateImageLayer' is declared but its value is never read.
+components/Canvas.tsx(787,12): error TS6133: 'editText' is declared but its value is never read.
+components/Canvas.tsx(798,12): error TS6133: 'viewportSize' is declared but its value is never read.
+components/Canvas.tsx(951,23): error TS6133: 'otherCenterY' is declared but its value is never read.
+components/Canvas.tsx(1169,72): error TS2532: Object is possibly 'undefined'.
+components/Canvas.tsx(1279,15): error TS6133: 'currentZoom' is declared but its value is never read.
+components/Canvas.tsx(1422,25): error TS2322: Type 'number[]' is not assignable to type 'number'.
+components/Canvas.tsx(1423,25): error TS2322: Type 'number[]' is not assignable to type 'number'.
+components/Canvas.tsx(1432,45): error TS18048: 'initial' is possibly 'undefined'.
+components/Canvas.tsx(1433,45): error TS18048: 'initial' is possibly 'undefined'.
+components/Canvas.tsx(1437,70): error TS18048: 'initial' is possibly 'undefined'.
+components/Canvas.tsx(1438,70): error TS18048: 'initial' is possibly 'undefined'.
+components/Canvas.tsx(1440,29): error TS2322: Type 'number[]' is not assignable to type 'number'.
+components/Canvas.tsx(1441,29): error TS2322: Type 'number[]' is not assignable to type 'number'.
+components/Canvas.tsx(1703,22): error TS2345: Argument of type '{}' is not assignable to parameter of type 'SetStateAction<{ vertical: number[]; horizontal: number[]; }>'.
+components/Canvas.tsx(1735,45): error TS18048: 't1' is possibly 'undefined'.
+components/Canvas.tsx(1735,58): error TS18048: 't2' is possibly 'undefined'.
+components/Canvas.tsx(1735,84): error TS18048: 't1' is possibly 'undefined'.
+components/Canvas.tsx(1735,97): error TS18048: 't2' is possibly 'undefined'.
+components/Canvas.tsx(1738,21): error TS18048: 't1' is possibly 'undefined'.
+components/Canvas.tsx(1738,34): error TS18048: 't2' is possibly 'undefined'.
+components/Canvas.tsx(1739,21): error TS18048: 't1' is possibly 'undefined'.
+components/Canvas.tsx(1739,34): error TS18048: 't2' is possibly 'undefined'.
+components/Canvas.tsx(1746,25): error TS18048: 't' is possibly 'undefined'.
+components/Canvas.tsx(1747,25): error TS18048: 't' is possibly 'undefined'.
+components/Canvas.tsx(1786,49): error TS18048: 't1' is possibly 'undefined'.
+components/Canvas.tsx(1786,62): error TS18048: 't2' is possibly 'undefined'.
+components/Canvas.tsx(1786,88): error TS18048: 't1' is possibly 'undefined'.
+components/Canvas.tsx(1786,101): error TS18048: 't2' is possibly 'undefined'.
+components/Canvas.tsx(1799,28): error TS18048: 't' is possibly 'undefined'.
+components/Canvas.tsx(1800,28): error TS18048: 't' is possibly 'undefined'.
+components/Canvas.tsx(1810,47): error TS18048: 't' is possibly 'undefined'.
+components/Canvas.tsx(1811,47): error TS18048: 't' is possibly 'undefined'.
+components/Canvas.tsx(1860,20): error TS18048: 'touch' is possibly 'undefined'.
+components/Canvas.tsx(1861,20): error TS18048: 'touch' is possibly 'undefined'.
+components/Canvas.tsx(1910,20): error TS18048: 'touch' is possibly 'undefined'.
+components/Canvas.tsx(1911,20): error TS18048: 'touch' is possibly 'undefined'.
+components/Canvas.tsx(2006,26): error TS2532: Object is possibly 'undefined'.
+components/Canvas.tsx(2006,47): error TS2532: Object is possibly 'undefined'.
+components/Canvas.tsx(2010,31): error TS18048: 'p1' is possibly 'undefined'.
+components/Canvas.tsx(2010,38): error TS18048: 'p2' is possibly 'undefined'.
+components/Canvas.tsx(2011,31): error TS18048: 'p1' is possibly 'undefined'.
+components/Canvas.tsx(2011,38): error TS18048: 'p2' is possibly 'undefined'.
+components/Canvas.tsx(2012,28): error TS18048: 'p1' is possibly 'undefined'.
+components/Canvas.tsx(2012,36): error TS18048: 'p1' is possibly 'undefined'.
+components/Canvas.tsx(2014,24): error TS2532: Object is possibly 'undefined'.
+components/Canvas.tsx(2014,67): error TS2532: Object is possibly 'undefined'.
+components/Canvas.tsx(2054,17): error TS18048: 'file' is possibly 'undefined'.
+components/Canvas.tsx(2060,38): error TS2345: Argument of type 'File | undefined' is not assignable to parameter of type 'Blob'.
+  Type 'undefined' is not assignable to type 'Blob'.
+components/Canvas.tsx(2199,32): error TS6133: 'e' is declared but its value is never read.
+components/Canvas.tsx(2209,33): error TS2532: Object is possibly 'undefined'.
+components/Canvas.tsx(2210,49): error TS2345: Argument of type 'File | undefined' is not assignable to parameter of type 'File'.
+  Type 'undefined' is not assignable to type 'File'.
+components/Canvas.tsx(2314,414): error TS2304: Cannot find name 'previewAnimation'.
+components/Canvas.tsx(2359,521): error TS2304: Cannot find name 'previewAnimation'.
+components/Canvas.tsx(2382,59): error TS2304: Cannot find name 'previewAnimation'.
+components/ContextMenu.tsx(64,50): error TS2532: Object is possibly 'undefined'.
+components/Dashboard.tsx(3,25): error TS6133: 'CanvasSize' is declared but its value is never read.
+components/Dashboard.tsx(107,19): error TS2345: Argument of type 'Project | undefined' is not assignable to parameter of type 'Project'.
+  Type 'undefined' is not assignable to type 'Project'.
+components/DesignSuggestions.tsx(87,25): error TS2532: Object is possibly 'undefined'.
+components/DesignSuggestions.tsx(88,10): error TS2532: Object is possibly 'undefined'.
+components/DesignSuggestions.tsx(92,10): error TS2532: Object is possibly 'undefined'.
+components/DesignSuggestions.tsx(93,10): error TS2532: Object is possibly 'undefined'.
+components/DesignSuggestions.tsx(97,10): error TS2532: Object is possibly 'undefined'.
+components/DesignSuggestions.tsx(98,10): error TS2532: Object is possibly 'undefined'.
+components/Editor.tsx(11,19): error TS6133: 'AspectRatio' is declared but its value is never read.
+components/Editor.tsx(11,135): error TS6133: 'BrushType' is declared but its value is never read.
+components/Editor.tsx(31,7): error TS6133: 'DEFAULT_CANVAS_SIZE' is declared but its value is never read.
+components/Editor.tsx(53,18): error TS6133: 'setAspectRatio' is declared but its value is never read.
+components/Editor.tsx(55,5): error TS6133: 'isPenMode' is declared but its value is never read.
+components/Editor.tsx(56,5): error TS6133: 'brushColor' is declared but its value is never read.
+components/Editor.tsx(57,5): error TS6133: 'brushSize' is declared but its value is never read.
+components/Editor.tsx(58,5): error TS6133: 'brushOpacity' is declared but its value is never read.
+components/Editor.tsx(59,5): error TS6133: 'brushType' is declared but its value is never read.
+components/Editor.tsx(59,16): error TS6133: 'setBrushType' is declared but its value is never read.
+components/Editor.tsx(61,5): error TS6133: 'showRulers' is declared but its value is never read.
+components/Editor.tsx(61,17): error TS6133: 'setShowRulers' is declared but its value is never read.
+components/Editor.tsx(68,5): error TS6133: 'addTextLayer' is declared but its value is never read.
+components/Editor.tsx(69,5): error TS6133: 'addShapeLayer' is declared but its value is never read.
+components/Editor.tsx(76,5): error TS6133: 'moveLayer' is declared but its value is never read.
+components/Editor.tsx(78,5): error TS6133: 'alignLayers' is declared but its value is never read.
+components/Editor.tsx(79,5): error TS6133: 'distributeLayers' is declared but its value is never read.
+components/Editor.tsx(80,5): error TS6133: 'layoutLayers' is declared but its value is never read.
+components/Editor.tsx(81,5): error TS6133: 'vectorizeLayer' is declared but its value is never read.
+components/Editor.tsx(83,5): error TS6133: 'createProject' is declared but its value is never read.
+components/Editor.tsx(84,5): error TS6133: 'deleteProject' is declared but its value is never read.
+components/Editor.tsx(85,5): error TS6133: 'loadProject' is declared but its value is never read.
+components/Editor.tsx(99,5): error TS6133: 'isCropMode' is declared but its value is never read.
+components/Editor.tsx(103,5): error TS6133: 'cancelCrop' is declared but its value is never read.
+components/Editor.tsx(104,5): error TS6133: 'cropArea' is declared but its value is never read.
+components/Editor.tsx(105,5): error TS6133: 'setCropArea' is declared but its value is never read.
+components/Editor.tsx(107,17): error TS6133: 'setDrawingMode' is declared but its value is never read.
+components/Editor.tsx(108,18): error TS6133: 'storeDeleteLayer' is declared but its value is never read.
+components/Editor.tsx(109,5): error TS6133: 'addBrandKit' is declared but its value is never read.
+components/Editor.tsx(110,5): error TS6133: 'deleteBrandKit' is declared but its value is never read.
+components/Editor.tsx(111,5): error TS6133: 'updateBrandKit' is declared but its value is never read.
+components/Editor.tsx(112,5): error TS6133: 'applyBrandFonts' is declared but its value is never read.
+components/Editor.tsx(113,5): error TS6133: 'deleteUpload' is declared but its value is never read.
+components/Editor.tsx(114,5): error TS6133: 'isSaving' is declared but its value is never read.
+components/Editor.tsx(115,5): error TS6133: 'projects' is declared but its value is never read.
+components/Editor.tsx(219,9): error TS6133: 'findLayerType' is declared but its value is never read.
+components/Editor.tsx(258,9): error TS6133: 'handleRemix' is declared but its value is never read.
+components/Editor.tsx(275,9): error TS6133: 'handleApplyCrop' is declared but its value is never read.
+components/Editor.tsx(275,34): error TS6133: 'id' is declared but its value is never read.
+components/Editor.tsx(275,46): error TS6133: 'cropArea' is declared but its value is never read.
+components/Editor.tsx(282,9): error TS6133: 'handleCrop' is declared but its value is never read.
+components/Editor.tsx(296,9): error TS6133: 'handleRemoveBackground' is declared but its value is never read.
+components/Editor.tsx(311,9): error TS6133: 'handleUpscale' is declared but its value is never read.
+components/Editor.tsx(326,9): error TS6133: 'handleEnhance' is declared but its value is never read.
+components/Editor.tsx(342,9): error TS6133: 'handleRetouch' is declared but its value is never read.
+components/Editor.tsx(357,9): error TS6133: 'handleToggleEraser' is declared but its value is never read.
+components/Editor.tsx(365,9): error TS6133: 'handleEraserComplete' is declared but its value is never read.
+components/Editor.tsx(422,25): error TS2304: Cannot find name 'DEFAULT_FILTERS'.
+components/Editor.tsx(424,26): error TS2304: Cannot find name 'DEFAULT_FILTERS'.
+components/Editor.tsx(436,62): error TS2304: Cannot find name 'copyLayer'.
+components/Editor.tsx(437,37): error TS2304: Cannot find name 'pasteLayer'.
+components/Editor.tsx(455,19): error TS2304: Cannot find name 'copyLayer'.
+components/Editor.tsx(455,30): error TS2304: Cannot find name 'pasteLayer'.
+components/Editor.tsx(459,14): error TS2304: Cannot find name 'shortcutsEnabled'.
+components/Editor.tsx(477,81): error TS2304: Cannot find name 'quality'.
+components/Editor.tsx(482,77): error TS2304: Cannot find name 'quality'.
+components/Editor.tsx(487,26): error TS2304: Cannot find name 'DEFAULT_FILTERS'.
+components/Editor.tsx(492,9): error TS6133: 'handleApplyTheme' is declared but its value is never read.
+components/Editor.tsx(492,48): error TS2304: Cannot find name 'DesignTheme'.
+components/Editor.tsx(508,9): error TS6133: 'handleMagicWrite' is declared but its value is never read.
+components/Editor.tsx(519,9): error TS6133: 'handleVectorize' is declared but its value is never read.
+components/Editor.tsx(532,59): error TS6133: 'i' is declared but its value is never read.
+components/Editor.tsx(563,9): error TS6133: 'handleVectorDrawingComplete' is declared but its value is never read.
+components/Editor.tsx(642,60): error TS2345: Argument of type '{ points: { x: number; y: number; id: string; handleIn?: { x: number; y: number; } | undefined; handleOut?: { x: number; y: number; } | undefined; type: PointType; cornerRadius?: number | undefined; }[]; isClosed: boolean; } | undefined' is not assignable to parameter of type 'VectorPath'.
+  Type 'undefined' is not assignable to type 'VectorPath'.
+components/Editor.tsx(643,66): error TS2345: Argument of type '{ points: { x: number; y: number; id: string; handleIn?: { x: number; y: number; } | undefined; handleOut?: { x: number; y: number; } | undefined; type: PointType; cornerRadius?: number | undefined; }[]; isClosed: boolean; } | undefined' is not assignable to parameter of type 'VectorPath'.
+  Type 'undefined' is not assignable to type 'VectorPath'.
+components/Editor.tsx(644,68): error TS2345: Argument of type '{ points: { x: number; y: number; id: string; handleIn?: { x: number; y: number; } | undefined; handleOut?: { x: number; y: number; } | undefined; type: PointType; cornerRadius?: number | undefined; }[]; isClosed: boolean; } | undefined' is not assignable to parameter of type 'VectorPath'.
+  Type 'undefined' is not assignable to type 'VectorPath'.
+components/Editor.tsx(645,64): error TS2345: Argument of type '{ points: { x: number; y: number; id: string; handleIn?: { x: number; y: number; } | undefined; handleOut?: { x: number; y: number; } | undefined; type: PointType; cornerRadius?: number | undefined; }[]; isClosed: boolean; } | undefined' is not assignable to parameter of type 'VectorPath'.
+  Type 'undefined' is not assignable to type 'VectorPath'.
+components/Editor.tsx(650,42): error TS2345: Argument of type '{ points: { x: number; y: number; id: string; handleIn?: { x: number; y: number; } | undefined; handleOut?: { x: number; y: number; } | undefined; type: PointType; cornerRadius?: number | undefined; }[]; isClosed: boolean; } | undefined' is not assignable to parameter of type 'VectorPath'.
+  Type 'undefined' is not assignable to type 'VectorPath'.
+components/Editor.tsx(653,15): error TS18048: 'resultPath' is possibly 'undefined'.
+components/Editor.tsx(660,51): error TS2345: Argument of type '{ points: { x: number; y: number; id: string; handleIn?: { x: number; y: number; }; handleOut?: { x: number; y: number; }; type: PointType; cornerRadius?: number; }[]; isClosed?: boolean | undefined; }' is not assignable to parameter of type 'VectorPath'.
+  Types of property 'isClosed' are incompatible.
+    Type 'boolean | undefined' is not assignable to type 'boolean'.
+      Type 'undefined' is not assignable to type 'boolean'.
+components/Editor.tsx(664,11): error TS2322: Type '{ id: string; type: "path"; x: number; y: number; width: number; height: number; pathData: string; cornerRadius: number; visible: true; locked: false; opacity: number; rotation: number; name: string; color?: string | undefined; ... 20 more ...; rotateY?: number; }' is not assignable to type 'ShapeLayer'.
+  Types of property 'color' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+components/Editor.tsx(677,17): error TS18048: 'topLayer' is possibly 'undefined'.
+components/Editor.tsx(741,9): error TS6133: 'handleExport' is declared but its value is never read.
+components/Editor.tsx(749,5): error TS2304: Cannot find name 'setIsExporting'.
+components/Editor.tsx(806,9): error TS2304: Cannot find name 'setIsExporting'.
+components/Editor.tsx(840,7): error TS2304: Cannot find name 'setIsExporting'.
+components/Editor.tsx(845,9): error TS6133: 'handleSelectImage' is declared but its value is never read.
+components/Editor.tsx(847,22): error TS2304: Cannot find name 'DEFAULT_FILTERS'.
+components/Editor.tsx(850,9): error TS6133: 'handleZoom' is declared but its value is never read.
+components/Editor.tsx(861,9): error TS6133: 'handleManualSave' is declared but its value is never read.
+components/Editor.tsx(871,9): error TS6133: 'handleLayerDoubleClick' is declared but its value is never read.
+components/Editor.tsx(902,30): error TS2304: Cannot find name 'handleApplyLayout'.
+components/Editor.tsx(943,39): error TS6133: 'indices' is declared but its value is never read.
+components/Editor.tsx(984,26): error TS2304: Cannot find name 'handleApplyLayout'.
+components/FontPicker.tsx(3,17): error TS6133: 'FONT_FAMILIES' is declared but its value is never read.
+components/FontPicker.tsx(20,17): error TS18048: 'entry' is possibly 'undefined'.
+components/GlyphPalette.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+components/GlyphPalette.tsx(1,38): error TS6133: 'useRef' is declared but its value is never read.
+components/GoldenRatioOverlay.tsx(18,11): error TS6133: 'spiralPath' is declared but its value is never read.
+components/GoldenRatioOverlay.tsx(19,13): error TS6133: 'x' is declared but its value is never read.
+components/GoldenRatioOverlay.tsx(20,13): error TS6133: 'y' is declared but its value is never read.
+components/GoldenRatioOverlay.tsx(21,13): error TS6133: 'w' is declared but its value is never read.
+components/GoldenRatioOverlay.tsx(22,13): error TS6133: 'h' is declared but its value is never read.
+components/GoldenRatioOverlay.tsx(23,13): error TS6133: 'path' is declared but its value is never read.
+components/GoldenRatioOverlay.tsx(24,13): error TS6133: 'direction' is declared but its value is never read.
+components/GoldenRatioOverlay.tsx(31,15): error TS6133: 'steps' is declared but its value is never read.
+components/GoldenRatioOverlay.tsx(32,13): error TS6133: 'currentX' is declared but its value is never read.
+components/GoldenRatioOverlay.tsx(33,13): error TS6133: 'currentY' is declared but its value is never read.
+components/GoldenRatioOverlay.tsx(34,13): error TS6133: 'currentW' is declared but its value is never read.
+components/GoldenRatioOverlay.tsx(35,13): error TS6133: 'currentH' is declared but its value is never read.
+components/modals/ExportModal.tsx(3,1): error TS6133: 'Button' is declared but its value is never read.
+components/modals/GuidedTour.tsx(2,1): error TS6133: 'Icons' is declared but its value is never read.
+components/modals/GuidedTour.tsx(36,47): error TS18048: 'currentStep' is possibly 'undefined'.
+components/modals/GuidedTour.tsx(95,9): error TS18048: 'currentStep' is possibly 'undefined'.
+components/modals/GuidedTour.tsx(98,16): error TS18048: 'currentStep' is possibly 'undefined'.
+components/modals/GuidedTour.tsx(101,16): error TS18048: 'currentStep' is possibly 'undefined'.
+components/modals/GuidedTour.tsx(104,16): error TS18048: 'currentStep' is possibly 'undefined'.
+components/modals/GuidedTour.tsx(165,72): error TS18048: 'currentStep' is possibly 'undefined'.
+components/modals/GuidedTour.tsx(166,75): error TS18048: 'currentStep' is possibly 'undefined'.
+components/modals/ShareModal.tsx(10,66): error TS6133: 'designTitle' is declared but its value is never read.
+components/overlays/CropOverlay.tsx(1,51): error TS6133: 'useRef' is declared but its value is never read.
+components/overlays/CropOverlay.tsx(12,65): error TS6133: 'canvasSize' is declared but its value is never read.
+components/overlays/CropOverlay.tsx(22,65): error TS2304: Cannot find name 'ImageLayer'.
+components/panels/ArrangePanel.tsx(4,17): error TS6133: 'CanvasSize' is declared but its value is never read.
+components/panels/ArrangePanel.tsx(95,51): error TS18048: 'firstLayer' is possibly 'undefined'.
+components/panels/ArrangePanel.tsx(104,51): error TS18048: 'firstLayer' is possibly 'undefined'.
+components/panels/ArrangePanel.tsx(113,51): error TS18048: 'firstLayer' is possibly 'undefined'.
+components/panels/ArrangePanel.tsx(129,81): error TS18048: 'firstLayer' is possibly 'undefined'.
+components/panels/ArrangePanel.tsx(210,60): error TS18048: 'firstLayer' is possibly 'undefined'.
+components/panels/ArrangePanel.tsx(216,60): error TS18048: 'firstLayer' is possibly 'undefined'.
+components/panels/AssetsPanel.tsx(126,63): error TS2345: Argument of type 'PhotoItem | undefined' is not assignable to parameter of type 'PhotoItem'.
+  Type 'undefined' is not assignable to type 'PhotoItem'.
+components/panels/AssetsPanel.tsx(127,62): error TS2345: Argument of type 'PhotoItem | undefined' is not assignable to parameter of type 'PhotoItem'.
+  Type 'undefined' is not assignable to type 'PhotoItem'.
+components/panels/AssetsPanel.tsx(128,63): error TS2345: Argument of type 'PhotoItem | undefined' is not assignable to parameter of type 'PhotoItem'.
+  Type 'undefined' is not assignable to type 'PhotoItem'.
+components/panels/BrandPanel.tsx(17,10): error TS6133: 'onUpdateBrandKit' is declared but its value is never read.
+components/panels/BrandPanel.tsx(103,62): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+components/panels/BrandPanel.tsx(265,74): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+components/panels/BrandPanel.tsx(275,58): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+components/panels/BrandPanel.tsx(338,64): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+components/panels/DrawPanel.tsx(2,27): error TS6133: 'useEffect' is declared but its value is never read.
+components/panels/DrawPanel.tsx(6,1): error TS6133: 'useStore' is declared but its value is never read.
+components/panels/ElementsPanel.tsx(41,10): error TS6133: 'isGeneratingShape' is declared but its value is never read.
+components/panels/ElementsPanel.tsx(44,10): error TS6133: 'isSearching' is declared but its value is never read.
+components/panels/ElementsPanel.tsx(46,10): error TS6133: 'loadingIconId' is declared but its value is never read.
+components/panels/ElementsPanel.tsx(97,9): error TS6133: 'handleGenerateShape' is declared but its value is never read.
+components/panels/LayersPanel.tsx(2,36): error TS6133: 'useRef' is declared but its value is never read.
+components/panels/LayersPanel.tsx(67,3): error TS6133: 'index' is declared but its value is never read.
+components/panels/LayersPanel.tsx(75,3): error TS6133: 'onMove' is declared but its value is never read.
+components/panels/LayersPanel.tsx(343,5): error TS2339: Property 'reorderLayer' does not exist on type 'EditorState'.
+components/panels/LayersPanel.tsx(547,78): error TS2345: Argument of type 'Layer | undefined' is not assignable to parameter of type 'Layer'.
+  Type 'undefined' is not assignable to type 'Layer'.
+components/panels/LayersPanel.tsx(548,21): error TS6133: 'isSelected' is declared but its value is never read.
+components/panels/LayersPanel.tsx(548,60): error TS18048: 'layer' is possibly 'undefined'.
+components/panels/LayersPanel.tsx(549,65): error TS18048: 'layer' is possibly 'undefined'.
+components/panels/LayersPanel.tsx(553,24): error TS18048: 'layer' is possibly 'undefined'.
+components/panels/LayersPanel.tsx(563,21): error TS2322: Type 'Layer | undefined' is not assignable to type 'Layer'.
+  Type 'undefined' is not assignable to type 'Layer'.
+components/panels/LayersPanel.tsx(565,53): error TS18048: 'layer' is possibly 'undefined'.
+components/panels/LayersPanel.tsx(570,49): error TS18048: 'layer' is possibly 'undefined'.
+components/panels/LayersPanel.tsx(571,67): error TS18048: 'layer' is possibly 'undefined'.
+components/panels/LayersPanel.tsx(572,50): error TS18048: 'layer' is possibly 'undefined'.
+components/panels/LayersPanel.tsx(573,49): error TS18048: 'layer' is possibly 'undefined'.
+components/panels/LayersPanel.tsx(574,55): error TS18048: 'layer' is possibly 'undefined'.
+components/panels/LayersPanel.tsx(575,48): error TS18048: 'layer' is possibly 'undefined'.
+components/panels/LayersPanel.tsx(576,45): error TS18048: 'layer' is possibly 'undefined'.
+components/panels/MagicPanel.tsx(3,32): error TS6133: 'ImageLayer' is declared but its value is never read.
+components/panels/MagicPanel.tsx(3,44): error TS6133: 'GenerationQuality' is declared but its value is never read.
+components/panels/MagicPanel.tsx(29,5): error TS6133: 'updateLayer' is declared but its value is never read.
+components/panels/MockupPanel.tsx(173,17): error TS18048: 'currentMockup' is possibly 'undefined'.
+components/panels/MockupPanel.tsx(238,26): error TS18048: 'currentMockup' is possibly 'undefined'.
+components/panels/MotionPanel.tsx(2,10): error TS6133: 'Layer' is declared but its value is never read.
+components/panels/MotionPanel.tsx(2,36): error TS6133: 'TextLayer' is declared but its value is never read.
+components/panels/MotionPanel.tsx(2,47): error TS6133: 'ShapeLayer' is declared but its value is never read.
+components/panels/MotionPanel.tsx(2,59): error TS6133: 'ImageLayer' is declared but its value is never read.
+components/panels/TemplatesPanel.tsx(36,3): error TS6133: 'setPrompt' is declared but its value is never read.
+components/panels/TemplatesPanel.tsx(37,3): error TS6133: 'setAspectRatio' is declared but its value is never read.
+components/panels/TemplatesPanel.tsx(38,3): error TS6133: 'onSetMode' is declared but its value is never read.
+components/panels/TemplatesPanel.tsx(92,9): error TS6133: 'filteredAiTemplates' is declared but its value is never read.
+components/panels/TemplatesPanel.tsx(209,100): error TS2339: Property 'background' does not exist on type 'StarterTemplate'.
+components/panels/TemplatesPanel.tsx(216,30): error TS2339: Property 'layers' does not exist on type 'StarterTemplate'.
+components/panels/TextEffectsPanel.tsx(62,33): error TS2739: Type 'any[]' is missing the following properties from type '{ color: string; blur: number; offsetX: number; offsetY: number; opacity?: number | undefined; angle?: number | undefined; distance?: number | undefined; }': color, blur, offsetX, offsetY
+components/panels/TextEffectsPanel.tsx(62,54): error TS2488: Type '{ color: string; blur: number; offsetX: number; offsetY: number; opacity?: number | undefined; angle?: number | undefined; distance?: number | undefined; } | never[]' must have a '[Symbol.iterator]()' method that returns an iterator.
+components/panels/TextEffectsPanel.tsx(68,33): error TS2739: Type 'any[]' is missing the following properties from type '{ color: string; blur: number; offsetX: number; offsetY: number; opacity?: number | undefined; angle?: number | undefined; distance?: number | undefined; }': color, blur, offsetX, offsetY
+components/panels/TextEffectsPanel.tsx(72,66): error TS2339: Property 'filter' does not exist on type '{ color: string; blur: number; offsetX: number; offsetY: number; opacity?: number | undefined; angle?: number | undefined; distance?: number | undefined; } | never[]'.
+  Property 'filter' does not exist on type '{ color: string; blur: number; offsetX: number; offsetY: number; opacity?: number | undefined; angle?: number | undefined; distance?: number | undefined; }'.
+components/panels/TextEffectsPanel.tsx(72,74): error TS7006: Parameter '_' implicitly has an 'any' type.
+components/panels/TextEffectsPanel.tsx(72,77): error TS7006: Parameter 'i' implicitly has an 'any' type.
+components/panels/TextEffectsPanel.tsx(77,64): error TS2322: Type '{ position: number; width: number; angle: number; }[]' is not assignable to type '{ type: string; value: number; }[]'.
+  Type '{ position: number; width: number; angle: number; }' is missing the following properties from type '{ type: string; value: number; }': type, value
+components/panels/TextEffectsPanel.tsx(92,64): error TS2322: Type '({ type: string; value: number; } | { type: "middle" | "bottom" | "top"; color: string; width: number; })[]' is not assignable to type '{ type: string; value: number; }[]'.
+  Type '{ type: string; value: number; } | { type: "middle" | "bottom" | "top"; color: string; width: number; }' is not assignable to type '{ type: string; value: number; }'.
+    Property 'value' is missing in type '{ type: "middle" | "bottom" | "top"; color: string; width: number; }' but required in type '{ type: string; value: number; }'.
+components/panels/TextEffectsPanel.tsx(148,78): error TS2322: Type 'number' is not assignable to type 'string'.
+components/panels/TextEffectsPanel.tsx(176,38): error TS2339: Property 'map' does not exist on type '{ color: string; blur: number; offsetX: number; offsetY: number; opacity?: number | undefined; angle?: number | undefined; distance?: number | undefined; } | never[]'.
+  Property 'map' does not exist on type '{ color: string; blur: number; offsetX: number; offsetY: number; opacity?: number | undefined; angle?: number | undefined; distance?: number | undefined; }'.
+components/panels/TextEffectsPanel.tsx(176,43): error TS7006: Parameter 's' implicitly has an 'any' type.
+components/panels/TextEffectsPanel.tsx(176,46): error TS7006: Parameter 'idx' implicitly has an 'any' type.
+components/panels/TextEffectsPanel.tsx(221,38): error TS2339: Property 'length' does not exist on type '{ color: string; blur: number; offsetX: number; offsetY: number; opacity?: number | undefined; angle?: number | undefined; distance?: number | undefined; } | never[]'.
+  Property 'length' does not exist on type '{ color: string; blur: number; offsetX: number; offsetY: number; opacity?: number | undefined; angle?: number | undefined; distance?: number | undefined; }'.
+components/panels/TextPanel.tsx(37,13): error TS2532: Object is possibly 'undefined'.
+components/panels/TextPanel.tsx(84,22): error TS6133: 'setFontSearch' is declared but its value is never read.
+components/panels/TextPanel.tsx(148,24): error TS2532: Object is possibly 'undefined'.
+components/panels/TexturesPanel.tsx(88,9): error TS6133: 'handlePresetClick' is declared but its value is never read.
+components/panels/UploadsPanel.tsx(3,1): error TS6133: 'Layer' is declared but its value is never read.
+components/panels/UploadsPanel.tsx(68,13): error TS2532: Object is possibly 'undefined'.
+components/panels/UploadsPanel.tsx(69,25): error TS2345: Argument of type 'File | undefined' is not assignable to parameter of type 'File'.
+  Type 'undefined' is not assignable to type 'File'.
+components/panels/UploadsPanel.tsx(70,20): error TS2532: Object is possibly 'undefined'.
+components/panels/UploadsPanel.tsx(71,27): error TS2345: Argument of type 'File | undefined' is not assignable to parameter of type 'File'.
+  Type 'undefined' is not assignable to type 'File'.
+components/panels/VectorizerPanel.tsx(6,1): error TS6133: 'Layer' is declared but its value is never read.
+components/Rulers.tsx(1,36): error TS6133: 'useState' is declared but its value is never read.
+components/Rulers.tsx(24,5): error TS6133: 'unit' is declared but its value is never read.
+components/Rulers.tsx(33,15): error TS6133: 'adjustedSpacing' is declared but its value is never read.
+components/SidePanel.tsx(1,17): error TS6133: 'useState' is declared but its value is never read.
+components/SidePanel.tsx(2,18): error TS6133: 'AppMode' is declared but its value is never read.
+components/SidePanel.tsx(2,27): error TS6133: 'AspectRatio' is declared but its value is never read.
+components/SidePanel.tsx(2,40): error TS6133: 'GeneratedImage' is declared but its value is never read.
+components/SidePanel.tsx(2,91): error TS6133: 'Layer' is declared but its value is never read.
+components/SidePanel.tsx(2,98): error TS6133: 'Project' is declared but its value is never read.
+components/SidePanel.tsx(2,107): error TS6133: 'BrandKit' is declared but its value is never read.
+components/SidePanel.tsx(2,117): error TS6133: 'GenerationQuality' is declared but its value is never read.
+components/SidePanel.tsx(2,136): error TS6133: 'DesignTheme' is declared but its value is never read.
+components/SidePanel.tsx(2,149): error TS6133: 'BrushType' is declared but its value is never read.
+components/SidePanel.tsx(3,1): error TS6133: 'Icons' is declared but its value is never read.
+components/SidePanel.tsx(50,5): error TS6133: 'projects' is declared but its value is never read.
+components/SidePanel.tsx(52,5): error TS6133: 'addLayers' is declared but its value is never read.
+components/SidePanel.tsx(53,5): error TS6133: 'deleteProject' is declared but its value is never read.
+components/SidePanel.tsx(54,5): error TS6133: 'loadProject' is declared but its value is never read.
+components/SidePanel.tsx(57,5): error TS6133: 'moveLayer' is declared but its value is never read.
+components/SidePanel.tsx(58,5): error TS6133: 'textLayers' is declared but its value is never read.
+components/SidePanel.tsx(59,5): error TS6133: 'shapeLayers' is declared but its value is never read.
+components/SidePanel.tsx(60,5): error TS6133: 'imageLayers' is declared but its value is never read.
+components/SidePanel.tsx(61,5): error TS6133: 'addShapeLayer' is declared but its value is never read.
+components/SidePanel.tsx(62,5): error TS6133: 'addImageLayer' is declared but its value is never read.
+components/SidePanel.tsx(64,5): error TS6133: 'brandKits' is declared but its value is never read.
+components/SidePanel.tsx(65,5): error TS6133: 'addBrandKit' is declared but its value is never read.
+components/SidePanel.tsx(66,5): error TS6133: 'deleteBrandKit' is declared but its value is never read.
+components/SidePanel.tsx(67,5): error TS6133: 'updateBrandKit' is declared but its value is never read.
+components/SidePanel.tsx(68,5): error TS6133: 'applyBrandFonts' is declared but its value is never read.
+components/SidePanel.tsx(69,5): error TS6133: 'applyBrandColors' is declared but its value is never read.
+components/SidePanel.tsx(71,5): error TS6133: 'canvasFilters' is declared but its value is never read.
+components/SidePanel.tsx(72,5): error TS6133: 'setCanvasFilters' is declared but its value is never read.
+components/SidePanel.tsx(91,9): error TS6133: 'onApplyTexture' is declared but its value is never read.
+components/SidePanel.tsx(109,9): error TS6133: 'onUpdateShapeLayer' is declared but its value is never read.
+components/SidePanel.tsx(110,9): error TS6133: 'onUpdateImageLayer' is declared but its value is never read.
+components/SidePanel.tsx(141,15): error TS2322: Type '{ onFileUpload: (files: File[]) => void; onDeleteUpload: (index: number) => void; }' is not assignable to type 'IntrinsicAttributes & UploadsPanelProps'.
+  Property 'onFileUpload' does not exist on type 'IntrinsicAttributes & UploadsPanelProps'.
+components/SidePanel.tsx(174,15): error TS2322: Type '{ onRemoveTexture: () => void; currentTexture: string | undefined; }' is not assignable to type 'IntrinsicAttributes & TexturesPanelProps'.
+  Property 'onRemoveTexture' does not exist on type 'IntrinsicAttributes & TexturesPanelProps'.
+components/Toast.tsx(1,28): error TS6133: 'useCallback' is declared but its value is never read.
+components/Toolbar.tsx(175,23): error TS2741: Property 'isPro' is missing in type '{ layer: any; isRemovingBg: boolean; isExpanding: boolean; isEraserActive: boolean; handleRemoveBackground: () => Promise<void>; handleEraserClick: () => void; handleMagicExpand: () => void; ... 10 more ...; onVectorize: () => Promise<...>; }' but required in type 'ImageToolsProps'.
+components/toolbar/ImageTools.tsx(1,17): error TS6133: 'useState' is declared but its value is never read.
+components/toolbar/ImageTools.tsx(72,40): error TS2304: Cannot find name 'onEnhance'.
+components/toolbar/ImageTools.tsx(72,53): error TS2304: Cannot find name 'onEnhance'.
+components/toolbar/ImageTools.tsx(75,40): error TS2304: Cannot find name 'onUpscale'.
+components/toolbar/ImageTools.tsx(75,53): error TS2304: Cannot find name 'onUpscale'.
+components/toolbar/ImageTools.tsx(78,40): error TS2304: Cannot find name 'onRetouch'.
+components/toolbar/ImageTools.tsx(78,53): error TS2304: Cannot find name 'onRetouch'.
+components/toolbar/MaskTools.tsx(15,78): error TS6133: 'isPro' is declared but its value is never read.
+components/toolbar/MaskTools.tsx(15,85): error TS6133: 'onOpenPricing' is declared but its value is never read.
+components/toolbar/ShapeTools.tsx(3,31): error TS6133: 'CompactInput' is declared but its value is never read.
+components/toolbar/TextTools.tsx(2,1): error TS6133: 'useStore' is declared but its value is never read.
+components/toolbar/VectorTools.tsx(20,11): error TS6133: 'setPenMode' is declared but its value is never read.
+components/VectorEditor/PathEditorOverlay.tsx(1,17): error TS6133: 'useState' is declared but its value is never read.
+components/VectorEditor/PathEditorOverlay.tsx(1,27): error TS6133: 'useCallback' is declared but its value is never read.
+components/VectorEditor/PathEditorOverlay.tsx(2,22): error TS6133: 'VectorPoint' is declared but its value is never read.
+components/VectorEditor/PathEditorOverlay.tsx(2,35): error TS6133: 'PointType' is declared but its value is never read.
+components/VectorEditor/PathEditorOverlay.tsx(62,17): error TS2322: Type '{ x: number; y: number; id?: string | undefined; handleIn?: { x: number; y: number; }; handleOut?: { x: number; y: number; }; type?: PointType | undefined; cornerRadius?: number; }' is not assignable to type 'VectorPoint'.
+  Types of property 'id' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+components/VectorEditor/PathEditorOverlay.tsx(64,24): error TS2532: Object is possibly 'undefined'.
+components/VectorEditor/PathEditorOverlay.tsx(65,24): error TS2532: Object is possibly 'undefined'.
+components/VectorEditor/PathEditorOverlay.tsx(72,37): error TS2538: Type 'undefined' cannot be used as an index type.
+components/VectorEditor/PathEditorOverlay.tsx(98,31): error TS18048: 'point' is possibly 'undefined'.
+components/VectorEditor/PathEditorOverlay.tsx(123,66): error TS2345: Argument of type '{ id?: string | undefined; x?: number | undefined; y?: number | undefined; handleIn?: { x: number; y: number; }; handleOut?: { x: number; y: number; }; type?: PointType | undefined; cornerRadius?: number; }' is not assignable to parameter of type 'VectorPoint'.
+  Types of property 'id' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+components/VectorEditor/PathEditorOverlay.tsx(125,17): error TS2322: Type '{ id?: string | undefined; x?: number | undefined; y?: number | undefined; handleIn?: { x: number; y: number; }; handleOut?: { x: number; y: number; }; type?: PointType | undefined; cornerRadius?: number; }' is not assignable to type 'VectorPoint'.
+  Types of property 'id' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+components/VectorEditor/PathEditorOverlay.tsx(162,9): error TS2322: Type '{ id?: string | undefined; x?: number | undefined; y?: number | undefined; handleIn?: { x: number; y: number; }; handleOut?: { x: number; y: number; }; type?: PointType | undefined; cornerRadius?: number; }' is not assignable to type 'VectorPoint'.
+  Types of property 'id' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+components/VectorEditor/PathEditorOverlay.tsx(208,15): error TS6133: 'svgRect' is declared but its value is never read.
+data/templates.ts(12,20): error TS6133: 'size' is declared but its value is never read.
+debug_error.ts(66,42): error TS18046: 'e' is of type 'unknown'.
+hooks/useSwipeGestures.ts(34,16): error TS18048: 'touch' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(35,16): error TS18048: 'touch' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(44,24): error TS18048: 'touch' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(45,24): error TS18048: 'touch' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(108,13): error TS18048: 'touch2' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(108,30): error TS18048: 'touch1' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(109,13): error TS18048: 'touch2' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(109,30): error TS18048: 'touch1' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(116,17): error TS18048: 'touch1' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(116,34): error TS18048: 'touch2' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(117,17): error TS18048: 'touch1' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(117,34): error TS18048: 'touch2' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(173,13): error TS18048: 'touch2' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(173,30): error TS18048: 'touch1' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(174,13): error TS18048: 'touch2' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(174,30): error TS18048: 'touch1' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(181,17): error TS18048: 'touch1' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(181,34): error TS18048: 'touch2' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(182,17): error TS18048: 'touch1' is possibly 'undefined'.
+hooks/useSwipeGestures.ts(182,34): error TS18048: 'touch2' is possibly 'undefined'.
+services/exportService.ts(3,1): error TS6133: 'uuidv4' is declared but its value is never read.
+services/exportService.ts(45,39): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+services/exportService.ts(49,11): error TS18048: 'currentLine' is possibly 'undefined'.
+services/exportService.ts(50,20): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+services/exportService.ts(54,27): error TS18048: 'word' is possibly 'undefined'.
+services/exportService.ts(55,35): error TS18048: 'word' is possibly 'undefined'.
+services/exportService.ts(58,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+services/exportService.ts(58,21): error TS18048: 'word' is possibly 'undefined'.
+services/exportService.ts(71,18): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+services/exportService.ts(75,14): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+services/exportService.ts(118,3): error TS6133: 'totalHeight' is declared but its value is never read.
+services/exportService.ts(483,32): error TS18048: 'f' is possibly 'undefined'.
+services/exportService.ts(483,59): error TS18048: 'f' is possibly 'undefined'.
+services/exportService.ts(483,84): error TS18048: 'f' is possibly 'undefined'.
+services/exportService.ts(483,112): error TS18048: 'f' is possibly 'undefined'.
+services/exportService.ts(483,134): error TS18048: 'f' is possibly 'undefined'.
+services/exportService.ts(483,153): error TS18048: 'f' is possibly 'undefined'.
+services/exportService.ts(501,9): error TS18048: 'f' is possibly 'undefined'.
+services/exportService.ts(501,23): error TS18048: 'f' is possibly 'undefined'.
+services/exportService.ts(505,43): error TS18048: 'f' is possibly 'undefined'.
+services/exportService.ts(509,46): error TS18048: 'f' is possibly 'undefined'.
+services/exportWorker.ts(75,36): error TS18048: 'xPerc' is possibly 'undefined'.
+services/exportWorker.ts(76,36): error TS18048: 'yPerc' is possibly 'undefined'.
+services/FontLoader.ts(49,25): error TS2532: Object is possibly 'undefined'.
+services/geminiService.ts(33,7): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+services/geminiService.ts(35,13): error TS2532: Object is possibly 'undefined'.
+services/MatrixMath.ts(88,26): error TS6133: 'pivotXPct' is declared but its value is never read.
+services/MatrixMath.ts(88,51): error TS6133: 'pivotYPct' is declared but its value is never read.
+services/psdService.ts(25,36): error TS6133: 'e' is declared but its value is never read.
+services/shareService.ts(3,1): error TS6133: 'uuidv4' is declared but its value is never read.
+services/storageService.test.ts(1,44): error TS6133: 'vi' is declared but its value is never read.
+store/useStore.ts(2,245): error TS6133: 'VectorPath' is declared but its value is never read.
+store/useStore.ts(542,13): error TS2345: Argument of type '(state: EditorState) => { canvasBackgroundColor: string | undefined; layers: (ImageLayer | { color: string | undefined; type: "text"; text: string; width: number; ... 43 more ...; rotateY?: number | undefined; } | { ...; } | { ...; })[]; }' is not assignable to parameter of type 'EditorState | Partial<EditorState> | ((state: EditorState) => EditorState | Partial<EditorState>)'.
+  Type '(state: EditorState) => { canvasBackgroundColor: string | undefined; layers: (ImageLayer | { color: string | undefined; type: "text"; text: string; width: number; ... 43 more ...; rotateY?: number | undefined; } | { ...; } | { ...; })[]; }' is not assignable to type '(state: EditorState) => EditorState | Partial<EditorState>'.
+    Type '{ canvasBackgroundColor: string | undefined; layers: (ImageLayer | { color: string | undefined; type: "text"; text: string; width: number; height: number; fontSize: number; ... 41 more ...; rotateY?: number; } | { ...; } | { ...; })[]; }' is not assignable to type 'EditorState | Partial<EditorState>'.
+      Type '{ canvasBackgroundColor: string | undefined; layers: (ImageLayer | { color: string | undefined; type: "text"; text: string; width: number; height: number; fontSize: number; ... 41 more ...; rotateY?: number; } | { ...; } | { ...; })[]; }' is not assignable to type 'Partial<EditorState>'.
+        Types of property 'layers' are incompatible.
+          Type '(ImageLayer | { color: string | undefined; type: "text"; text: string; width: number; height: number; fontSize: number; fontWeight: string; fontStyle: "normal" | "italic"; textDecoration: string; ... 38 more ...; rotateY?: number | undefined; } | { ...; } | { ...; })[]' is not assignable to type 'Layer[]'.
+            Type 'ImageLayer | { color: string | undefined; type: "text"; text: string; width: number; height: number; fontSize: number; fontWeight: string; fontStyle: "normal" | "italic"; textDecoration: string; ... 38 more ...; rotateY?: number | undefined; } | { ...; } | { ...; }' is not assignable to type 'Layer'.
+              Type '{ color: string | undefined; type: "text"; text: string; width: number; height: number; fontSize: number; fontWeight: string; fontStyle: "normal" | "italic"; textDecoration: string; ... 38 more ...; rotateY?: number; }' is not assignable to type 'Layer'.
+                Type '{ color: string | undefined; type: "text"; text: string; width: number; height: number; fontSize: number; fontWeight: string; fontStyle: "normal" | "italic"; textDecoration: string; ... 38 more ...; rotateY?: number; }' is not assignable to type 'TextLayer'.
+                  Types of property 'color' are incompatible.
+                    Type 'string | undefined' is not assignable to type 'string'.
+                      Type 'undefined' is not assignable to type 'string'.
+store/useStore.ts(636,28): error TS6133: 'past' is declared but its value is never read.
+store/useStore.ts(636,34): error TS6133: 'future' is declared but its value is never read.
+store/useStore.ts(689,21): error TS18048: 'previous' is possibly 'undefined'.
+store/useStore.ts(690,36): error TS18048: 'previous' is possibly 'undefined'.
+store/useStore.ts(691,28): error TS18048: 'previous' is possibly 'undefined'.
+store/useStore.ts(692,25): error TS18048: 'previous' is possibly 'undefined'.
+store/useStore.ts(709,21): error TS18048: 'next' is possibly 'undefined'.
+store/useStore.ts(710,36): error TS18048: 'next' is possibly 'undefined'.
+store/useStore.ts(711,28): error TS18048: 'next' is possibly 'undefined'.
+store/useStore.ts(712,25): error TS18048: 'next' is possibly 'undefined'.
+store/useStore.ts(774,20): error TS7006: Parameter 'id' implicitly has an 'any' type.
+store/useStore.ts(774,24): error TS7006: Parameter 'newIndex' implicitly has an 'any' type.
+store/useStore.ts(782,39): error TS2345: Argument of type 'Layer | undefined' is not assignable to parameter of type 'Layer'.
+  Type 'undefined' is not assignable to type 'Layer'.
+store/useStore.ts(799,43): error TS2345: Argument of type 'Layer | undefined' is not assignable to parameter of type 'Layer'.
+  Type 'undefined' is not assignable to type 'Layer'.
+store/useStore.ts(876,34): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(877,34): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(879,34): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(884,34): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(885,34): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(887,34): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(908,45): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(908,65): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(908,89): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(908,114): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(1099,26): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(1099,56): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(1099,90): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(1101,28): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(1114,26): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(1114,57): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(1114,98): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(1116,28): error TS2532: Object is possibly 'undefined'.
+store/useStore.ts(1185,27): error TS6133: 'id' is declared but its value is never read.
+store/useStore.ts(1216,65): error TS6133: 'i' is declared but its value is never read.
+tests/collaboration.test.ts(36,16): error TS2532: Object is possibly 'undefined'.
+tests/collaboration.test.ts(37,16): error TS2532: Object is possibly 'undefined'.
+tests/collaboration.test.ts(38,16): error TS2532: Object is possibly 'undefined'.
+tests/collaboration.test.ts(42,50): error TS6133: 'addLayer' is declared but its value is never read.
+tests/collaboration.test.ts(46,38): error TS2322: Type '{ id: string; type: string; x: number; y: number; width: number; height: number; fill: string; }' is not assignable to type 'Layer'.
+  Type '{ id: string; type: string; x: number; y: number; width: number; height: number; fill: string; }' is missing the following properties from type 'ImageLayer': src, flipX, flipY, rotation, and 3 more.
+tests/collaboration.test.ts(58,28): error TS2532: Object is possibly 'undefined'.
+tests/collaboration.test.ts(66,16): error TS2532: Object is possibly 'undefined'.
+tests/collaboration.test.ts(79,16): error TS2532: Object is possibly 'undefined'.
+tests/collaboration.test.ts(80,16): error TS2532: Object is possibly 'undefined'.
+tests/collaboration.test.ts(81,16): error TS2532: Object is possibly 'undefined'.
+tests/setup.ts(38,10): error TS6133: 'expect' is declared but its value is never read.
+utils/booleanOperations.ts(1,22): error TS6133: 'VectorPoint' is declared but its value is never read.
+utils/booleanOperations.ts(2,1): error TS6133: 'VectorUtils' is declared but its value is never read.
+utils/booleanOperations.ts(8,38): error TS6133: 'tolerance' is declared but its value is never read.
+utils/booleanOperations.ts(18,37): error TS18048: 'p1' is possibly 'undefined'.
+utils/booleanOperations.ts(18,46): error TS18048: 'p1' is possibly 'undefined'.
+utils/booleanOperations.ts(22,17): error TS18048: 'p1' is possibly 'undefined'.
+utils/booleanOperations.ts(22,33): error TS18048: 'p2' is possibly 'undefined'.
+utils/booleanOperations.ts(23,29): error TS18048: 'p1' is possibly 'undefined'.
+utils/booleanOperations.ts(23,49): error TS18048: 'p1' is possibly 'undefined'.
+utils/booleanOperations.ts(23,56): error TS18048: 'p1' is possibly 'undefined'.
+utils/booleanOperations.ts(23,75): error TS18048: 'p1' is possibly 'undefined'.
+utils/booleanOperations.ts(23,82): error TS18048: 'p1' is possibly 'undefined'.
+utils/booleanOperations.ts(23,106): error TS18048: 'p1' is possibly 'undefined'.
+utils/booleanOperations.ts(23,115): error TS18048: 'p1' is possibly 'undefined'.
+utils/booleanOperations.ts(24,29): error TS18048: 'p2' is possibly 'undefined'.
+utils/booleanOperations.ts(24,48): error TS18048: 'p2' is possibly 'undefined'.
+utils/booleanOperations.ts(24,55): error TS18048: 'p2' is possibly 'undefined'.
+utils/booleanOperations.ts(24,73): error TS18048: 'p2' is possibly 'undefined'.
+utils/booleanOperations.ts(24,80): error TS18048: 'p2' is possibly 'undefined'.
+utils/booleanOperations.ts(24,103): error TS18048: 'p2' is possibly 'undefined'.
+utils/booleanOperations.ts(24,112): error TS18048: 'p2' is possibly 'undefined'.
+utils/booleanOperations.ts(26,49): error TS18048: 'p2' is possibly 'undefined'.
+utils/booleanOperations.ts(26,56): error TS18048: 'p1' is possibly 'undefined'.
+utils/booleanOperations.ts(26,76): error TS18048: 'p2' is possibly 'undefined'.
+utils/booleanOperations.ts(26,83): error TS18048: 'p1' is possibly 'undefined'.
+utils/booleanOperations.ts(31,48): error TS18048: 'p1' is possibly 'undefined'.
+utils/booleanOperations.ts(31,68): error TS18048: 'p2' is possibly 'undefined'.
+utils/booleanOperations.ts(32,48): error TS18048: 'p1' is possibly 'undefined'.
+utils/booleanOperations.ts(32,68): error TS18048: 'p2' is possibly 'undefined'.
+utils/booleanOperations.ts(36,37): error TS18048: 'p1' is possibly 'undefined'.
+utils/booleanOperations.ts(36,46): error TS18048: 'p1' is possibly 'undefined'.
+utils/booleanOperations.ts(87,41): error TS6133: 'pathB' is declared but its value is never read.
+utils/booleanOperations.ts(108,24): error TS2532: Object is possibly 'undefined'.
+utils/booleanOperations.ts(108,40): error TS2532: Object is possibly 'undefined'.
+utils/booleanOperations.ts(109,24): error TS2532: Object is possibly 'undefined'.
+utils/booleanOperations.ts(109,40): error TS2532: Object is possibly 'undefined'.
+utils/geometryOracle.ts(2,1): error TS6133: 'MatrixUtils' is declared but its value is never read.
+utils/geometryOracle.ts(49,58): error TS6133: 'd' is declared but its value is never read.
+utils/geometryOracle.ts(57,51): error TS6133: 'd' is declared but its value is never read.
+utils/layerRendering.ts(126,23): error TS2339: Property 'x' does not exist on type 'never'.
+utils/layerRendering.ts(126,35): error TS2339: Property 'y' does not exist on type 'never'.
+utils/layerRendering.ts(129,9): error TS6133: 'centerX' is declared but its value is never read.
+utils/layerRendering.ts(130,9): error TS6133: 'centerY' is declared but its value is never read.
+utils/layoutUtils.ts(2,17): error TS6133: 'CanvasSize' is declared but its value is never read.
+utils/layoutUtils.ts(77,15): error TS6133: 'totalWidth' is declared but its value is never read.
+utils/layoutUtils.ts(77,28): error TS18048: 'last' is possibly 'undefined'.
+utils/layoutUtils.ts(77,37): error TS18048: 'first' is possibly 'undefined'.
+utils/layoutUtils.ts(78,15): error TS6133: 'sumItemWidths' is declared but its value is never read.
+utils/layoutUtils.ts(78,90): error TS2532: Object is possibly 'undefined'.
+utils/layoutUtils.ts(82,23): error TS18048: 'last' is possibly 'undefined'.
+utils/layoutUtils.ts(82,32): error TS18048: 'last' is possibly 'undefined'.
+utils/layoutUtils.ts(82,46): error TS18048: 'first' is possibly 'undefined'.
+utils/layoutUtils.ts(86,24): error TS18048: 'first' is possibly 'undefined'.
+utils/layoutUtils.ts(99,15): error TS6133: 'h1' is declared but its value is never read.
+utils/layoutUtils.ts(99,45): error TS18048: 'first' is possibly 'undefined'.
+utils/layoutUtils.ts(100,47): error TS18048: 'last' is possibly 'undefined'.
+utils/layoutUtils.ts(101,23): error TS18048: 'last' is possibly 'undefined'.
+utils/layoutUtils.ts(101,41): error TS18048: 'first' is possibly 'undefined'.
+utils/layoutUtils.ts(105,24): error TS18048: 'first' is possibly 'undefined'.
+utils/layoutUtils.ts(118,23): error TS18048: 'last' is possibly 'undefined'.
+utils/layoutUtils.ts(118,32): error TS18048: 'last' is possibly 'undefined'.
+utils/layoutUtils.ts(118,51): error TS18048: 'first' is possibly 'undefined'.
+utils/layoutUtils.ts(118,61): error TS18048: 'first' is possibly 'undefined'.
+utils/layoutUtils.ts(123,39): error TS18048: 'first' is possibly 'undefined'.
+utils/layoutUtils.ts(123,49): error TS18048: 'first' is possibly 'undefined'.
+utils/layoutUtils.ts(132,49): error TS18048: 'first' is possibly 'undefined'.
+utils/layoutUtils.ts(133,47): error TS18048: 'last' is possibly 'undefined'.
+utils/layoutUtils.ts(134,23): error TS18048: 'last' is possibly 'undefined'.
+utils/layoutUtils.ts(134,46): error TS18048: 'first' is possibly 'undefined'.
+utils/layoutUtils.ts(140,39): error TS18048: 'first' is possibly 'undefined'.
+utils/layoutUtils.ts(183,11): error TS6133: 'rows' is declared but its value is never read.
+utils/matrixMath.ts(4,13): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(4,21): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(4,29): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(4,37): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(5,13): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(5,21): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(5,29): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(5,37): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(6,13): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(6,21): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(6,29): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(6,37): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(7,13): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(7,21): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(7,29): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(7,37): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(8,13): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(8,21): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(8,29): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(8,37): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(8,45): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(9,13): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(9,21): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(9,29): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(9,37): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(9,45): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(30,22): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(30,35): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(30,42): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(31,22): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(31,35): error TS2532: Object is possibly 'undefined'.
+utils/matrixMath.ts(31,42): error TS2532: Object is possibly 'undefined'.
+utils/shareUtils.ts(2,19): error TS6133: 'AppMode' is declared but its value is never read.
+utils/shareUtils.ts(2,28): error TS6133: 'AspectRatio' is declared but its value is never read.
+utils/vectorUtils.ts(20,21): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(22,34): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(22,51): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(22,60): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(22,79): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(23,34): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(23,51): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(23,60): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(23,79): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(38,17): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(38,35): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(39,30): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(39,47): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(39,56): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(39,75): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(40,30): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(40,47): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(40,56): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(40,75): error TS18048: 'last' is possibly 'undefined'.
+utils/vectorUtils.ts(41,30): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(41,47): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(41,57): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(41,76): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(42,30): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(42,47): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(42,57): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(42,76): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(43,62): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(43,73): error TS18048: 'first' is possibly 'undefined'.
+utils/vectorUtils.ts(67,21): error TS18048: 'type' is possibly 'undefined'.
+utils/vectorUtils.ts(69,21): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+utils/vectorUtils.ts(70,21): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+utils/vectorUtils.ts(74,21): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+utils/vectorUtils.ts(75,21): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+utils/vectorUtils.ts(82,25): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(82,47): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(82,57): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(82,68): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(82,78): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(84,25): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+utils/vectorUtils.ts(85,25): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+utils/vectorUtils.ts(87,46): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(87,69): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(123,19): error TS6133: 'sourceDist' is declared but its value is never read.
+utils/vectorUtils.ts(189,17): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(189,34): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(190,32): error TS2345: Argument of type 'VectorPoint | undefined' is not assignable to parameter of type 'VectorPoint'.
+  Type 'undefined' is not assignable to type 'VectorPoint'.
+utils/vectorUtils.ts(194,28): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(194,62): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(196,32): error TS2345: Argument of type 'VectorPoint | undefined' is not assignable to parameter of type 'VectorPoint'.
+  Type 'undefined' is not assignable to type 'VectorPoint'.
+utils/vectorUtils.ts(201,29): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(201,38): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(201,49): error TS18048: 'prev' is possibly 'undefined'.
+utils/vectorUtils.ts(201,58): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(202,29): error TS18048: 'next' is possibly 'undefined'.
+utils/vectorUtils.ts(202,38): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(202,49): error TS18048: 'next' is possibly 'undefined'.
+utils/vectorUtils.ts(202,58): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(215,29): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(215,56): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(216,29): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(216,56): error TS18048: 'curr' is possibly 'undefined'.
+utils/vectorUtils.ts(256,24): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(257,24): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(257,31): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(257,50): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(257,57): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(259,24): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(260,24): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(260,31): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(260,49): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(260,56): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(263,56): error TS2345: Argument of type 'VectorPoint | undefined' is not assignable to parameter of type 'VectorPoint'.
+  Type 'undefined' is not assignable to type 'VectorPoint'.
+utils/vectorUtils.ts(276,24): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(277,24): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(277,31): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(277,50): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(277,57): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(279,24): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(280,24): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(280,31): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(280,49): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(280,56): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(283,56): error TS2345: Argument of type 'VectorPoint | undefined' is not assignable to parameter of type 'VectorPoint'.
+  Type 'undefined' is not assignable to type 'VectorPoint'.
+utils/vectorUtils.ts(304,20): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(304,40): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(304,47): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(304,66): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(304,73): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(305,20): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(305,39): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(305,46): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(305,64): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(305,71): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(309,55): error TS2345: Argument of type 'VectorPoint | undefined' is not assignable to parameter of type 'VectorPoint'.
+  Type 'undefined' is not assignable to type 'VectorPoint'.
+utils/vectorUtils.ts(320,56): error TS18048: 'splitPoint' is possibly 'undefined'.
+utils/vectorUtils.ts(320,70): error TS18048: 'splitPoint' is possibly 'undefined'.
+utils/vectorUtils.ts(323,34): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(323,46): error TS18048: 'splitPoint' is possibly 'undefined'.
+utils/vectorUtils.ts(323,63): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(323,75): error TS18048: 'splitPoint' is possibly 'undefined'.
+utils/vectorUtils.ts(324,35): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(324,48): error TS18048: 'splitPoint' is possibly 'undefined'.
+utils/vectorUtils.ts(324,65): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(324,78): error TS18048: 'splitPoint' is possibly 'undefined'.
+utils/vectorUtils.ts(327,39): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(327,51): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(327,60): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(327,72): error TS18048: 'p0' is possibly 'undefined'.
+utils/vectorUtils.ts(330,38): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(330,51): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(330,60): error TS2532: Object is possibly 'undefined'.
+utils/vectorUtils.ts(330,73): error TS18048: 'p3' is possibly 'undefined'.
+utils/vectorUtils.ts(341,13): error TS2322: Type '{ handleOut: { x: number; y: number; }; id?: string | undefined; x?: number | undefined; y?: number | undefined; handleIn?: { x: number; y: number; }; type?: PointType | undefined; cornerRadius?: number; }' is not assignable to type 'VectorPoint'.
+  Types of property 'id' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+utils/vectorUtils.ts(342,13): error TS2322: Type '{ handleIn: { x: number; y: number; }; id?: string | undefined; x?: number | undefined; y?: number | undefined; handleOut?: { x: number; y: number; }; type?: PointType | undefined; cornerRadius?: number; }' is not assignable to type 'VectorPoint'.
+  Types of property 'id' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+utils/vectorUtils.ts(346,13): error TS2322: Type '{ handleOut: { x: number; y: number; }; id?: string | undefined; x?: number | undefined; y?: number | undefined; handleIn?: { x: number; y: number; }; type?: PointType | undefined; cornerRadius?: number; }' is not assignable to type 'VectorPoint'.
+  Types of property 'id' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+utils/vectorUtils.ts(347,13): error TS2322: Type '{ handleIn: { x: number; y: number; }; id?: string | undefined; x?: number | undefined; y?: number | undefined; handleOut?: { x: number; y: number; }; type?: PointType | undefined; cornerRadius?: number; }' is not assignable to type 'VectorPoint'.
+  Types of property 'id' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+workers/heavy.worker.ts(78,13): error TS18048: 'r' is possibly 'undefined'.
+workers/heavy.worker.ts(78,23): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+workers/heavy.worker.ts(78,37): error TS18048: 'r' is possibly 'undefined'.
+workers/heavy.worker.ts(78,47): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+workers/heavy.worker.ts(79,13): error TS18048: 'g' is possibly 'undefined'.
+workers/heavy.worker.ts(79,23): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+workers/heavy.worker.ts(79,37): error TS18048: 'g' is possibly 'undefined'.
+workers/heavy.worker.ts(79,47): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+workers/heavy.worker.ts(80,13): error TS18048: 'b' is possibly 'undefined'.
+workers/heavy.worker.ts(80,23): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+workers/heavy.worker.ts(80,37): error TS18048: 'b' is possibly 'undefined'.
+workers/heavy.worker.ts(80,47): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+workers/heavy.worker.ts(81,17): error TS18048: 'r' is possibly 'undefined'.
+workers/heavy.worker.ts(81,28): error TS18048: 'g' is possibly 'undefined'.
+workers/heavy.worker.ts(81,39): error TS18048: 'b' is possibly 'undefined'.
+workers/heavy.worker.ts(94,18): error TS2532: Object is possibly 'undefined'.
+workers/heavy.worker.ts(95,18): error TS2532: Object is possibly 'undefined'.
+workers/heavy.worker.ts(96,18): error TS2532: Object is possibly 'undefined'.
+workers/heavy.worker.ts(124,13): error TS18048: 'a' is possibly 'undefined'.
+workers/heavy.worker.ts(130,24): error TS2532: Object is possibly 'undefined'.
+workers/heavy.worker.ts(130,38): error TS18048: 'r' is possibly 'undefined'.
+workers/heavy.worker.ts(130,46): error TS2532: Object is possibly 'undefined'.
+workers/heavy.worker.ts(130,60): error TS18048: 'g' is possibly 'undefined'.
+workers/heavy.worker.ts(130,68): error TS2532: Object is possibly 'undefined'.
+workers/heavy.worker.ts(130,82): error TS18048: 'b' is possibly 'undefined'.
+workers/heavy.worker.ts(137,13): error TS18048: 'm' is possibly 'undefined'.
+workers/heavy.worker.ts(138,13): error TS18048: 'm' is possibly 'undefined'.
+workers/heavy.worker.ts(138,20): error TS18048: 'm' is possibly 'undefined'.
+workers/heavy.worker.ts(138,30): error TS18048: 'r' is possibly 'undefined'.
+workers/heavy.worker.ts(139,13): error TS18048: 'm' is possibly 'undefined'.
+workers/heavy.worker.ts(139,20): error TS18048: 'm' is possibly 'undefined'.
+workers/heavy.worker.ts(139,30): error TS18048: 'g' is possibly 'undefined'.
+workers/heavy.worker.ts(140,13): error TS18048: 'm' is possibly 'undefined'.
+workers/heavy.worker.ts(140,20): error TS18048: 'm' is possibly 'undefined'.
+workers/heavy.worker.ts(140,30): error TS18048: 'b' is possibly 'undefined'.
+workers/heavy.worker.ts(142,27): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+workers/heavy.worker.ts(142,30): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+workers/heavy.worker.ts(142,33): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+workers/heavy.worker.ts(173,17): error TS2532: Object is possibly 'undefined'.
+workers/heavy.worker.ts(175,34): error TS2532: Object is possibly 'undefined'.
+workers/heavy.worker.ts(176,34): error TS2532: Object is possibly 'undefined'.
+workers/heavy.worker.ts(177,34): error TS2532: Object is possibly 'undefined'.
+workers/heavy.worker.ts(183,13): error TS2532: Object is possibly 'undefined'.
+workers/heavy.worker.ts(193,54): error TS2532: Object is possibly 'undefined'.

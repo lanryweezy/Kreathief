@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Icons } from '../../constants';
 import { dynamicMockupsService } from '../../services/dynamicMockupsService';
@@ -33,13 +32,29 @@ interface MockupDef {
 const MOCKUP_CATEGORIES = ['All', 'Apparel', 'Digital', 'Print', 'Packaging', 'Outdoor'];
 
 // Helper to create default placement
-const defPlace = (top = 30, left = 30, width = 40, rotate = 0, skewX = 0, skewY = 0, opacity = 0.9, blendMode: MockupPlacement['blendMode'] = 'multiply'): MockupPlacement => ({
-  top, left, width, rotate, skewX, skewY, opacity, blendMode
+const defPlace = (
+  top = 30,
+  left = 30,
+  width = 40,
+  rotate = 0,
+  skewX = 0,
+  skewY = 0,
+  opacity = 0.9,
+  blendMode: MockupPlacement['blendMode'] = 'multiply'
+): MockupPlacement => ({
+  top,
+  left,
+  width,
+  rotate,
+  skewX,
+  skewY,
+  opacity,
+  blendMode,
 });
 
 export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) => {
-  const addLayer = useStore(state => state.addLayer);
-  const canvasSize = useStore(state => state.canvasSize);
+  const addLayer = useStore((state) => state.addLayer);
+  const canvasSize = useStore((state) => state.canvasSize);
 
   const onAddToCanvas = (src: string) => {
     addLayer({
@@ -58,9 +73,19 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
       flipX: false,
       flipY: false,
       blendMode: 'normal',
-      filters: { brightness: 100, contrast: 100, saturation: 100, grayscale: 0, blur: 0, sepia: 0, hueRotate: 0, vignette: 0, opacity: 1 },
+      filters: {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        grayscale: 0,
+        blur: 0,
+        sepia: 0,
+        hueRotate: 0,
+        vignette: 0,
+        opacity: 1,
+      },
       skewX: 0,
-      skewY: 0
+      skewY: 0,
     });
   };
   const [activeCategory, setActiveCategory] = useState('All');
@@ -80,34 +105,136 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
 
   const mockups: MockupDef[] = [
     // Apparel
-    { id: 'tshirt_flat', name: 'T-Shirt Flat', category: 'Apparel', bg: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(25, 28, 45) },
-    { id: 'hoodie', name: 'Hoodie', category: 'Apparel', bg: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(25, 30, 40) },
-    { id: 'model_tshirt', name: 'Model T-Shirt', category: 'Apparel', bg: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(30, 32, 35) },
-    { id: 'totebag', name: 'Tote Bag', category: 'Apparel', bg: 'https://images.unsplash.com/photo-1597484662317-c9253e609141?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(45, 35, 30) },
-    { id: 'minimal_tshirt', name: 'Minimal White T-Shirt', category: 'Apparel', bg: '/New folder/man-wearing-minimal-white-t-shirt.jpg', defaultPlacement: defPlace(30, 32, 35) },
-    { id: 'grunge_apparel', name: 'Grunge Black Top', category: 'Apparel', bg: '/New folder/teenage-girl-black-top-flannel-shirt-youth-apparel-grunge-fashion-shoot.jpg', defaultPlacement: defPlace(25, 30, 40) },
+    {
+      id: 'tshirt_flat',
+      name: 'T-Shirt Flat',
+      category: 'Apparel',
+      bg: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80',
+      defaultPlacement: defPlace(25, 28, 45),
+    },
+    {
+      id: 'hoodie',
+      name: 'Hoodie',
+      category: 'Apparel',
+      bg: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=600&q=80',
+      defaultPlacement: defPlace(25, 30, 40),
+    },
+    {
+      id: 'model_tshirt',
+      name: 'Model T-Shirt',
+      category: 'Apparel',
+      bg: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&w=600&q=80',
+      defaultPlacement: defPlace(30, 32, 35),
+    },
+    {
+      id: 'totebag',
+      name: 'Tote Bag',
+      category: 'Apparel',
+      bg: 'https://images.unsplash.com/photo-1597484662317-c9253e609141?auto=format&fit=crop&w=600&q=80',
+      defaultPlacement: defPlace(45, 35, 30),
+    },
+    {
+      id: 'minimal_tshirt',
+      name: 'Minimal White T-Shirt',
+      category: 'Apparel',
+      bg: '/New folder/man-wearing-minimal-white-t-shirt.jpg',
+      defaultPlacement: defPlace(30, 32, 35),
+    },
+    {
+      id: 'grunge_apparel',
+      name: 'Grunge Black Top',
+      category: 'Apparel',
+      bg: '/New folder/teenage-girl-black-top-flannel-shirt-youth-apparel-grunge-fashion-shoot.jpg',
+      defaultPlacement: defPlace(25, 30, 40),
+    },
 
     // Digital
-    { id: 'macbook', name: 'MacBook', category: 'Digital', bg: 'https://images.unsplash.com/photo-1517336712603-d2d0f0464686?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(18, 22, 56, 0, 0, 0, 0.95, 'source-over') },
-    { id: 'iphone', name: 'iPhone', category: 'Digital', bg: 'https://images.unsplash.com/photo-1586105251261-72a756497a11?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(20, 38, 25, 0, 0, 0, 0.95, 'source-over') },
-    { id: 'ipad', name: 'iPad Pro', category: 'Digital', bg: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(15, 25, 50, 0, 0, 0, 0.95, 'source-over') },
+    {
+      id: 'macbook',
+      name: 'MacBook',
+      category: 'Digital',
+      bg: 'https://images.unsplash.com/photo-1517336712603-d2d0f0464686?auto=format&fit=crop&w=600&q=80',
+      defaultPlacement: defPlace(18, 22, 56, 0, 0, 0, 0.95, 'source-over'),
+    },
+    {
+      id: 'iphone',
+      name: 'iPhone',
+      category: 'Digital',
+      bg: 'https://images.unsplash.com/photo-1586105251261-72a756497a11?auto=format&fit=crop&w=600&q=80',
+      defaultPlacement: defPlace(20, 38, 25, 0, 0, 0, 0.95, 'source-over'),
+    },
+    {
+      id: 'ipad',
+      name: 'iPad Pro',
+      category: 'Digital',
+      bg: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=600&q=80',
+      defaultPlacement: defPlace(15, 25, 50, 0, 0, 0, 0.95, 'source-over'),
+    },
 
     // Print
-    { id: 'poster_frame', name: 'Poster Frame', category: 'Print', bg: 'https://images.unsplash.com/photo-1579762715118-a6f1d4b934f1?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(15, 27, 46, -2, 0, 0, 0.9, 'multiply') },
-    { id: 'business_card', name: 'Business Cards', category: 'Print', bg: 'https://images.unsplash.com/photo-1589330694653-ded6df53f6ee?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(35, 25, 50, -15, 10, 0, 0.9, 'multiply') },
-    { id: 'magazine', name: 'Magazine', category: 'Print', bg: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(20, 30, 40, 5, 0, 0, 0.9, 'multiply') },
+    {
+      id: 'poster_frame',
+      name: 'Poster Frame',
+      category: 'Print',
+      bg: 'https://images.unsplash.com/photo-1579762715118-a6f1d4b934f1?auto=format&fit=crop&w=600&q=80',
+      defaultPlacement: defPlace(15, 27, 46, -2, 0, 0, 0.9, 'multiply'),
+    },
+    {
+      id: 'business_card',
+      name: 'Business Cards',
+      category: 'Print',
+      bg: 'https://images.unsplash.com/photo-1589330694653-ded6df53f6ee?auto=format&fit=crop&w=600&q=80',
+      defaultPlacement: defPlace(35, 25, 50, -15, 10, 0, 0.9, 'multiply'),
+    },
+    {
+      id: 'magazine',
+      name: 'Magazine',
+      category: 'Print',
+      bg: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80',
+      defaultPlacement: defPlace(20, 30, 40, 5, 0, 0, 0.9, 'multiply'),
+    },
 
     // Packaging
-    { id: 'coffee_bag', name: 'Coffee Bag', category: 'Packaging', bg: 'https://images.unsplash.com/photo-1559526323-cb2f2fe2591b?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(30, 35, 30, 0, 0, 5, 0.9, 'multiply') },
-    { id: 'box', name: 'Mailer Box', category: 'Packaging', bg: 'https://images.unsplash.com/photo-1586769852044-692d6e3703f0?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(25, 25, 50, 0, 0, 0, 0.9, 'multiply') },
-    { id: 'cosmetic', name: 'Bottle', category: 'Packaging', bg: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(40, 45, 10, 0, 0, 0, 0.8, 'multiply') },
+    {
+      id: 'coffee_bag',
+      name: 'Coffee Bag',
+      category: 'Packaging',
+      bg: 'https://images.unsplash.com/photo-1559526323-cb2f2fe2591b?auto=format&fit=crop&w=600&q=80',
+      defaultPlacement: defPlace(30, 35, 30, 0, 0, 5, 0.9, 'multiply'),
+    },
+    {
+      id: 'box',
+      name: 'Mailer Box',
+      category: 'Packaging',
+      bg: 'https://images.unsplash.com/photo-1586769852044-692d6e3703f0?auto=format&fit=crop&w=600&q=80',
+      defaultPlacement: defPlace(25, 25, 50, 0, 0, 0, 0.9, 'multiply'),
+    },
+    {
+      id: 'cosmetic',
+      name: 'Bottle',
+      category: 'Packaging',
+      bg: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=600&q=80',
+      defaultPlacement: defPlace(40, 45, 10, 0, 0, 0, 0.8, 'multiply'),
+    },
 
     // Outdoor
-    { id: 'billboard', name: 'Billboard', category: 'Outdoor', bg: 'https://images.unsplash.com/photo-1542662565-7e4b66b5adaa?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(10, 25, 50) },
-    { id: 'sign', name: 'Wall Sign', category: 'Outdoor', bg: 'https://images.unsplash.com/photo-1514454529242-9e467756334d?auto=format&fit=crop&w=600&q=80', defaultPlacement: defPlace(20, 30, 40) }
+    {
+      id: 'billboard',
+      name: 'Billboard',
+      category: 'Outdoor',
+      bg: 'https://images.unsplash.com/photo-1542662565-7e4b66b5adaa?auto=format&fit=crop&w=600&q=80',
+      defaultPlacement: defPlace(10, 25, 50),
+    },
+    {
+      id: 'sign',
+      name: 'Wall Sign',
+      category: 'Outdoor',
+      bg: 'https://images.unsplash.com/photo-1514454529242-9e467756334d?auto=format&fit=crop&w=600&q=80',
+      defaultPlacement: defPlace(20, 30, 40),
+    },
   ];
 
-  const currentMockup = useMemo(() => mockups.find(m => m.id === activeMockupId) || mockups[0], [activeMockupId]);
+  const currentMockup = useMemo(() => mockups.find((m) => m.id === activeMockupId) || mockups[0], [activeMockupId]);
 
   // When mockup changes, reset placement to default
   useEffect(() => {
@@ -117,8 +244,10 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
   }, [currentMockup]);
 
   const filteredMockups = useMemo(() => {
-    if (activeCategory === 'All') return mockups;
-    return mockups.filter(m => m.category === activeCategory);
+    if (activeCategory === 'All') {
+      return mockups;
+    }
+    return mockups.filter((m) => m.category === activeCategory);
   }, [activeCategory]);
 
   // Capture design snapshot
@@ -158,16 +287,20 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
 
   // Generate the composite image
   const generateComposite = async (): Promise<string | null> => {
-    if (!previewImage) return null;
+    if (!previewImage) {
+      return null;
+    }
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    if (!ctx) return null;
+    if (!ctx) {
+      return null;
+    }
 
     // 1. Load Background
     const bgImg = await new Promise<HTMLImageElement>((resolve, reject) => {
       const img = new Image();
-      img.crossOrigin = "anonymous";
+      img.crossOrigin = 'anonymous';
       img.onload = () => resolve(img);
       img.onerror = reject;
       img.src = currentMockup.bg;
@@ -220,15 +353,22 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
   useEffect(() => {
     let active = true;
     const update = async () => {
-      if (!previewImage) return;
+      if (!previewImage) {
+        return;
+      }
       setIsGenerating(true);
       const url = await generateComposite();
-      if (active && url) setGeneratedPreview(url);
+      if (active && url) {
+        setGeneratedPreview(url);
+      }
       setIsGenerating(false);
     };
     // Debounce slightly for sliders
     const timer = setTimeout(update, 100);
-    return () => { active = false; clearTimeout(timer); };
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, [placement, previewImage, currentMockup]);
 
   const handleDownload = () => {
@@ -245,7 +385,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
     setProRenderUrl(null);
     try {
       const designUrl = await captureDesign();
-      if (!designUrl) throw new Error('Failed to capture design');
+      if (!designUrl) {
+        throw new Error('Failed to capture design');
+      }
 
       const result = await dynamicMockupsService.generateMockup({
         mockupId: activeMockupId, // Ideally map to their template IDs
@@ -255,7 +397,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
           left: placement.left,
           width: placement.width,
           rotate: placement.rotate,
-        }
+        },
       });
 
       if (result) {
@@ -275,19 +417,20 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
   };
 
   const updatePlacement = (key: keyof MockupPlacement, val: any) => {
-    setPlacement(p => ({ ...p, [key]: val }));
+    setPlacement((p) => ({ ...p, [key]: val }));
   };
 
   return (
     <div className="flex flex-col h-full bg-[#13161a]">
       {/* Category Tabs */}
       <div className="flex overflow-x-auto custom-scrollbar border-b border-gray-800 bg-[#0e1318]">
-        {MOCKUP_CATEGORIES.map(cat => (
+        {MOCKUP_CATEGORIES.map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`px-4 py-3 text-xs font-medium whitespace-nowrap transition-colors ${activeCategory === cat ? 'text-[#7d2ae8] border-b-2 border-[#7d2ae8]' : 'text-gray-400 hover:text-white'
-              }`}
+            className={`px-4 py-3 text-xs font-medium whitespace-nowrap transition-colors ${
+              activeCategory === cat ? 'text-[#7d2ae8] border-b-2 border-[#7d2ae8]' : 'text-gray-400 hover:text-white'
+            }`}
           >
             {cat}
           </button>
@@ -295,7 +438,6 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
-
         {/* Helper Box */}
         <div className="p-3 bg-blue-900/10 border border-blue-500/20 rounded-lg flex items-start gap-3">
           <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400">
@@ -304,8 +446,8 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
           <div>
             <h4 className="text-xs font-bold text-blue-200 mb-1">Smart Mockups</h4>
             <p className="text-[10px] text-blue-300/80 leading-relaxed">
-              Automatically places your design onto high-quality product photos.
-              Use the controls below to perfect the alignment.
+              Automatically places your design onto high-quality product photos. Use the controls below to perfect the
+              alignment.
             </p>
           </div>
         </div>
@@ -318,8 +460,11 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
               <button
                 key={m.id}
                 onClick={() => setActiveMockupId(m.id)}
-                className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${activeMockupId === m.id ? 'border-[#7d2ae8] ring-2 ring-[#7d2ae8]/20' : 'border-gray-800 hover:border-gray-600'
-                  }`}
+                className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${
+                  activeMockupId === m.id
+                    ? 'border-[#7d2ae8] ring-2 ring-[#7d2ae8]/20'
+                    : 'border-gray-800 hover:border-gray-600'
+                }`}
               >
                 <img src={m.bg} alt={m.name} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex items-end p-2">
@@ -336,8 +481,11 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
             <span className="text-xs font-bold text-gray-300">Preview</span>
             <button
               onClick={() => setIsLive(!isLive)}
-              className={`flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold border transition-all ${isLive ? 'bg-red-900/20 border-red-500/50 text-red-400 animate-pulse' : 'bg-gray-800 border-gray-700 text-gray-400'
-                }`}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold border transition-all ${
+                isLive
+                  ? 'bg-red-900/20 border-red-500/50 text-red-400 animate-pulse'
+                  : 'bg-gray-800 border-gray-700 text-gray-400'
+              }`}
             >
               <div className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-red-500' : 'bg-gray-500'}`} />
               {isLive ? 'LIVE SYNC' : 'SYNC OFF'}
@@ -363,17 +511,25 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
             <div className="space-y-3">
               <div className="flex justify-between items-center text-[10px]">
                 <span className="text-gray-400">Position (X / Y)</span>
-                <span className="text-gray-500">{Math.round(placement.left)}%, {Math.round(placement.top)}%</span>
+                <span className="text-gray-500">
+                  {Math.round(placement.left)}%, {Math.round(placement.top)}%
+                </span>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <input
-                  type="range" min="0" max="100"
-                  value={placement.left} onChange={e => updatePlacement('left', Number(e.target.value))}
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={placement.left}
+                  onChange={(e) => updatePlacement('left', Number(e.target.value))}
                   className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
                 />
                 <input
-                  type="range" min="0" max="100"
-                  value={placement.top} onChange={e => updatePlacement('top', Number(e.target.value))}
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={placement.top}
+                  onChange={(e) => updatePlacement('top', Number(e.target.value))}
                   className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
                 />
               </div>
@@ -386,14 +542,20 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <input
-                  type="range" min="10" max="150"
-                  value={placement.width} onChange={e => updatePlacement('width', Number(e.target.value))}
+                  type="range"
+                  min="10"
+                  max="150"
+                  value={placement.width}
+                  onChange={(e) => updatePlacement('width', Number(e.target.value))}
                   className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
                   title="Scale"
                 />
                 <input
-                  type="range" min="-180" max="180"
-                  value={placement.rotate} onChange={e => updatePlacement('rotate', Number(e.target.value))}
+                  type="range"
+                  min="-180"
+                  max="180"
+                  value={placement.rotate}
+                  onChange={(e) => updatePlacement('rotate', Number(e.target.value))}
                   className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
                   title="Rotate"
                 />
@@ -407,13 +569,19 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <input
-                  type="range" min="-45" max="45"
-                  value={placement.skewX || 0} onChange={e => updatePlacement('skewX', Number(e.target.value))}
+                  type="range"
+                  min="-45"
+                  max="45"
+                  value={placement.skewX || 0}
+                  onChange={(e) => updatePlacement('skewX', Number(e.target.value))}
                   className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
                 />
                 <input
-                  type="range" min="-45" max="45"
-                  value={placement.skewY || 0} onChange={e => updatePlacement('skewY', Number(e.target.value))}
+                  type="range"
+                  min="-45"
+                  max="45"
+                  value={placement.skewY || 0}
+                  onChange={(e) => updatePlacement('skewY', Number(e.target.value))}
                   className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
                 />
               </div>
@@ -441,7 +609,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
               <div className="mt-4 p-2 bg-[#1e252e] rounded-lg border border-[#7d2ae8]/30 overflow-hidden">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] text-[#7d2ae8] font-bold">PRO RENDER RESULTS</span>
-                  <button onClick={() => setProRenderUrl(null)} className="text-gray-500 hover:text-white"><Icons.X className="w-3 h-3" /></button>
+                  <button onClick={() => setProRenderUrl(null)} className="text-gray-500 hover:text-white">
+                    <Icons.X className="w-3 h-3" />
+                  </button>
                 </div>
                 <img src={proRenderUrl} className="w-full rounded shadow-lg" alt="Pro Mockup" />
                 <a
@@ -474,10 +644,11 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
             <button
               onClick={handleProRender}
               disabled={isProGenerating}
-              className={`w-full py-2 rounded text-xs font-bold transition-all flex items-center justify-center gap-2 ${isProGenerating
-                ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-[#7d2ae8] to-[#00c4cc] hover:from-[#6c23ce] hover:to-[#00b0b8] text-white shadow-lg'
-                }`}
+              className={`w-full py-2 rounded text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                isProGenerating
+                  ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-[#7d2ae8] to-[#00c4cc] hover:from-[#6c23ce] hover:to-[#00b0b8] text-white shadow-lg'
+              }`}
             >
               {isProGenerating ? (
                 <>
@@ -502,12 +673,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
         </button>
       </div>
 
-      {showModal && previewImage && (
-        <MockupModal
-          designImage={previewImage}
-          onClose={() => setShowModal(false)}
-        />
-      )}
+      {showModal && previewImage && <MockupModal designImage={previewImage} onClose={() => setShowModal(false)} />}
     </div>
   );
 };
