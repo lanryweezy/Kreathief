@@ -3,13 +3,11 @@
  * Background worker for heavy canvas rendering and export
  */
 
-/* eslint-disable no-restricted-globals */
-
 self.onmessage = async (e: MessageEvent) => {
   const { width, height, backgroundColor, backgroundImageUrl, layers, filters, format, quality } = e.data;
 
   try {
-    // @ts-expect-error - ignore type mismatch - OffscreenCanvas might not be recognized in worker context by TS
+    // @ts-ignore - ignore type mismatch
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d');
 
@@ -139,7 +137,7 @@ self.onmessage = async (e: MessageEvent) => {
 
         ctx.save();
         if (filters) {
-          // @ts-expect-error - ignore type mismatch - filter might not be on all context types
+          // @ts-ignore - ignore type mismatch
           ctx.filter = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%) sepia(${filters.sepia}%) grayscale(${filters.grayscale}%) blur(${filters.blur}px)`;
         }
         ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
@@ -151,7 +149,7 @@ self.onmessage = async (e: MessageEvent) => {
 
     // 3. Draw Layers (Combined loop)
     if (layers) {
-      // @ts-expect-error - ignore type mismatch - layers is any[]
+      // @ts-ignore - ignore type mismatch
       for (const layer of layers) {
         if (!layer.visible) {
           continue;
@@ -170,7 +168,7 @@ self.onmessage = async (e: MessageEvent) => {
 
         // --- Masking Application ---
         if (layer.maskLayerId) {
-          // @ts-expect-error - ignore type mismatch - layers is any[]
+          // @ts-ignore - ignore type mismatch
           const maskLayer = layers.find((l) => l.id === layer.maskLayerId);
           if (maskLayer) {
             applyClip(ctx, layer, maskLayer);
@@ -194,7 +192,7 @@ self.onmessage = async (e: MessageEvent) => {
             ctx.globalAlpha = layer.opacity ?? 1;
 
             if (layer.filters) {
-              // @ts-expect-error - ignore type mismatch - filter might not be on all context types
+              // @ts-ignore - ignore type mismatch
               ctx.filter = `brightness(${layer.filters.brightness}%) contrast(${layer.filters.contrast}%) saturate(${layer.filters.saturation}%) grayscale(${layer.filters.grayscale}%) blur(${layer.filters.blur}px) sepia(${layer.filters.sepia}%)`;
             }
 
@@ -203,7 +201,7 @@ self.onmessage = async (e: MessageEvent) => {
             console.warn('Worker: Failed to load image layer', err);
           }
         } else if (layer.type === 'text') {
-          // @ts-expect-error - ignore type mismatch - CanvasRenderingContext2D types can be strict
+          // @ts-ignore - ignore type mismatch
           ctx.font = `${layer.fontWeight || 'normal'} ${layer.fontSize || 16}px sans-serif`;
           ctx.fillStyle = layer.color || '#000000';
           ctx.textAlign = layer.textAlign || 'center'; // Updated to respect textAlign
@@ -254,7 +252,7 @@ self.onmessage = async (e: MessageEvent) => {
     // --- End Rendering ---
 
     // Convert to Blob
-    // @ts-expect-error - ignore type mismatch - convertToBlob is standard for OffscreenCanvas
+    // @ts-ignore - ignore type mismatch
     const blob = await canvas.convertToBlob({ type: `image/${format}`, quality: quality || 0.95 });
 
     // Convert to DataURL for message

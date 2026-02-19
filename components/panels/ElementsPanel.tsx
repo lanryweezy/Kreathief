@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { Icons } from '../../constants';
 import { ShapeLayer, ImageLayer } from '../../types';
 import * as freepikService from '../../services/freepikService';

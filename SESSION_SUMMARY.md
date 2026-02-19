@@ -435,7 +435,7 @@ const prop = obj?.property ?? defaultValue;
 1. ❌ Don't fix null checks before removing unused code
 2. ❌ Don't refactor without running type-check
 3. ❌ Don't ignore ESLint warnings
-4. ❌ Don't use `@ts-ignore` (fix properly)
+4. ❌ Don't use `@ts-ignore - ignore type mismatch` (fix properly)
 
 ### Best Practices
 

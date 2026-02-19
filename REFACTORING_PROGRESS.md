@@ -482,7 +482,7 @@ All fixes are straightforward type safety improvements.
 ### Decisions Made
 
 1. **Keep strict mode** - No relaxing rules
-2. **Fix properly, not quickly** - No `@ts-ignore`
+2. **Fix properly, not quickly** - No `@ts-ignore - ignore type mismatch`
 3. **Remove dead code** - Don't preserve unused features
 4. **Document changes** - For future maintainers
 

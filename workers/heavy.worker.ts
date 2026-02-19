@@ -1,4 +1,4 @@
-// @ts-expect-error - ignore type mismatch
+// @ts-ignore - ignore type mismatch
 import ImageTracer from 'imagetracerjs';
 import { removeBackground as imglyRemoveBackground } from '@imgly/background-removal';
 

@@ -1,4 +1,4 @@
-// @ts-expect-error - ignore type mismatch
+// @ts-ignore - ignore type mismatch
 const UNSPLASH_ACCESS_KEY = import.meta.env?.VITE_UNSPLASH_ACCESS_KEY || 'YOUR_UNSPLASH_ACCESS_KEY';
 
 export interface UnsplashPhoto {

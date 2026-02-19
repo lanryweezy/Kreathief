@@ -5,6 +5,7 @@ import { useStore } from './store/useStore';
 import { WelcomeModal } from './components/modals/WelcomeModal';
 import { GuidedTour, TourStep } from './components/modals/GuidedTour';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { LandingPage } from './components/LandingPage';
 import { User, Project } from './types';
 import { parseShareLink } from './utils/shareUtils';
 import { STARTER_TEMPLATES } from './data/templates';
@@ -23,8 +24,8 @@ const LoadingFallback = () => (
 );
 
 const App: React.FC = () => {
-  // Views: 'auth' | 'dashboard' | 'editor'
-  const [view, setView] = useState<'auth' | 'dashboard' | 'editor'>('auth');
+  // Views: 'landing' | 'auth' | 'dashboard' | 'editor'
+  const [view, setView] = useState<'landing' | 'auth' | 'dashboard' | 'editor'>('landing');
   const [user, setUser] = useState<User | null>(null);
   const [currentProject, setCurrentProject] = useState<Project | undefined>(undefined);
   const { toasts, removeToast } = useStore();
@@ -178,6 +179,8 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary componentName="App Root" variant="full">
       <Suspense fallback={<LoadingFallback />}>
+        {view === 'landing' && <LandingPage onGetStarted={() => setView('auth')} />}
+
         {view === 'auth' && <Auth onLogin={handleLogin} />}
 
         {view === 'dashboard' && user && (

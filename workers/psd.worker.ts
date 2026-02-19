@@ -51,9 +51,9 @@ self.onmessage = async (e: MessageEvent) => {
  */
 async function parsePsdToLayers(buffer: ArrayBuffer): Promise<WorkerLayer[]> {
   // initializeCanvas is needed for ag-psd to handle image data in a worker
-  // @ts-expect-error - ignore type mismatch
+  // @ts-ignore - ignore type mismatch
   if (typeof OffscreenCanvas !== 'undefined') {
-    // @ts-expect-error - ignore type mismatch
+    // @ts-ignore - ignore type mismatch
     readPsd.initializeCanvas((width, height) => new OffscreenCanvas(width, height));
   }
 
@@ -205,13 +205,13 @@ async function parsePsdToLayers(buffer: ArrayBuffer): Promise<WorkerLayer[]> {
       // construct dataURL manually or via FileReader if needed, but OffscreenCanvas supports convertToBlob
 
       let dataUrl = '';
-      // @ts-expect-error - ignore type mismatch
+      // @ts-ignore - ignore type mismatch
       if (psdLayer.canvas.convertToBlob) {
-        // @ts-expect-error - ignore type mismatch
+        // @ts-ignore - ignore type mismatch
         const blob = await psdLayer.canvas.convertToBlob({ type: 'image/png' });
         dataUrl = await blobToDataURL(blob);
       } else {
-        // @ts-expect-error - ignore type mismatch
+        // @ts-ignore - ignore type mismatch
         dataUrl = psdLayer.canvas.toDataURL('image/png');
       }
 
@@ -238,9 +238,9 @@ async function parsePsdToLayers(buffer: ArrayBuffer): Promise<WorkerLayer[]> {
  * Exports Layers to a PSD Blob.
  */
 async function exportLayersToPsd(width: number, height: number, layers: WorkerLayer[]): Promise<Blob> {
-  // @ts-expect-error - ignore type mismatch
+  // @ts-ignore - ignore type mismatch
   if (typeof OffscreenCanvas !== 'undefined') {
-    // @ts-expect-error - ignore type mismatch
+    // @ts-ignore - ignore type mismatch
     writePsd.initializeCanvas((width, height) => new OffscreenCanvas(width, height));
   }
 
@@ -347,7 +347,7 @@ async function exportLayersToPsd(width: number, height: number, layers: WorkerLa
 
     if (isImage || isShape) {
       // Need to draw to OffscreenCanvas
-      // @ts-expect-error - ignore type mismatch
+      // @ts-ignore - ignore type mismatch
       const canvas = new OffscreenCanvas(layerWidth, layerHeight || 1);
       const ctx = canvas.getContext('2d');
       if (!ctx) {

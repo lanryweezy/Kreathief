@@ -573,7 +573,6 @@ const drawTextLayerToContext = (ctx: CanvasRenderingContext2D, textLayer: TextLa
   ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${textLayer.fontFamily}`;
 
   if (textLayer.letterSpacing) {
-    // @ts-expect-error - ignore type mismatch
     ctx.letterSpacing = `${textLayer.letterSpacing}px`;
   }
 

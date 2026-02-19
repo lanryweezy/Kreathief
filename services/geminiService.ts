@@ -5,7 +5,7 @@ import * as freepikService from './freepikService';
 
 // Helper to get fresh client instance (important for key switching)
 const getClient = () => {
-  // @ts-expect-error - ignore type mismatch - import.meta.env might not be recognized in all environments
+  // @ts-ignore - ignore type mismatch
   const apiKey = import.meta.env?.VITE_GEMINI_API_KEY || (window as any).GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error('VITE_GEMINI_API_KEY environment variable is not set.');

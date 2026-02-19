@@ -487,17 +487,17 @@ For repetitive fixes, use regex:
 Sometimes you need to suppress errors:
 
 ```typescript
-// ✅ Acceptable uses of @ts-ignore
+// ✅ Acceptable uses of @ts-ignore - ignore type mismatch
 // Legacy code that works but types are wrong
-// @ts-ignore - API returns different type than declared
+// @ts-ignore - ignore type mismatch - API returns different type than declared
 const data = await legacyApi();
 
 // Temporary workaround while fixing
-// @ts-ignore - FIXME: Fix this in next PR
+// @ts-ignore - ignore type mismatch - FIXME: Fix this in next PR
 const value = possiblyUndefined;
 
 // Performance-critical code
-// @ts-ignore - Type guard is too expensive here
+// @ts-ignore - ignore type mismatch - Type guard is too expensive here
 const item = array[index];
 ```
 
