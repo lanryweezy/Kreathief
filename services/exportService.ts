@@ -1092,3 +1092,30 @@ export const exportToSVG = (width: number, height: number, backgroundColor: stri
   svg += `</svg>`;
   return svg;
 };
+
+/**
+ * Helper to export the design as a Blob for clipboard or sharing.
+ */
+export const exportDesignToBlob = async (
+  width: number,
+  height: number,
+  backgroundColor: string,
+  backgroundImageUrl: string | null,
+  layers: Layer[],
+  filters?: CanvasFilters,
+  format: 'png' | 'jpeg' | 'webp' = 'png',
+  quality: number = 0.95
+): Promise<Blob> => {
+  const dataUrl = await exportDesignToImage(
+    width,
+    height,
+    backgroundColor,
+    backgroundImageUrl,
+    layers,
+    filters,
+    format,
+    quality
+  );
+  const response = await fetch(dataUrl);
+  return await response.blob();
+};

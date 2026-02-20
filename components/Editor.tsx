@@ -14,7 +14,6 @@ import * as exportService from '../services/exportService';
 import * as psdService from '../services/psdService';
 import { storageService } from '../services/storageService';
 import { shareService } from '../services/shareService';
-import { Icons } from '../constants';
 import { ShareModal } from './modals/ShareModal';
 import { ExportModal } from './modals/ExportModal';
 import { Toolbar } from './Toolbar';
@@ -100,6 +99,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const uploads = useStore((state) => state.uploads);
   const setIsExporting = useStore((state) => state.setIsExporting);
   const brandKits = useStore((state) => state.brandKits);
+  const addToast = useStore((state) => state.addToast);
 
   // Local UI State
   const selectedLayerId = selectedLayerIds.length > 0 ? selectedLayerIds[selectedLayerIds.length - 1] || null : null;
@@ -107,7 +107,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const [isEraserActive, setIsEraserActive] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
-  const [_showSavedToast, _setShowSavedToast] = useState(false);
 
   const activeImage = history.length > 0 ? history[history.length - 1] || null : null;
   const uploadedImage = uploads.length > 0 ? uploads[uploads.length - 1] || null : null;
@@ -213,6 +212,18 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const handleExportDataUrl = async (): Promise<string> => {
     const backgroundImageUrl = activeImage?.url || uploadedImage || null;
     return await exportService.exportDesignToImage(
+      canvasSize.width,
+      canvasSize.height,
+      canvasBackgroundColor,
+      backgroundImageUrl,
+      layers,
+      canvasFilters
+    );
+  };
+
+  const handleExportBlob = async (): Promise<Blob | null> => {
+    const backgroundImageUrl = activeImage?.url || uploadedImage || null;
+    return await exportService.exportDesignToBlob(
       canvasSize.width,
       canvasSize.height,
       canvasBackgroundColor,
@@ -432,7 +443,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     } catch (error: any) {
       console.error(error);
       deleteLayer(tempId);
-      alert(`Error: ${error.message || 'Failed to generate content'}`);
+      addToast(error.message || 'Failed to generate content', 'error');
     } finally {
       setIsProcessing(false);
     }
@@ -452,7 +463,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const handleBooleanOperation = (operation: 'union' | 'subtract' | 'intersect' | 'exclude') => {
     const selectedPaths = layers.filter((l) => selectedLayerIds.includes(l.id) && l.type === 'path') as ShapeLayer[];
     if (selectedPaths.length < 2) {
-      alert('Select at least two path layers.');
+      addToast('Select at least two path layers to perform a boolean operation.', 'warning');
       return;
     }
     saveToHistory();
@@ -580,7 +591,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       setShowExport(false);
     } catch (error) {
       console.error(error);
-      alert('Export failed.');
+      addToast('Export failed. Please try again.', 'error');
     } finally {
       setIsExporting(false);
     }
@@ -679,7 +690,12 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
       <ErrorBoundary componentName="Modals" variant="widget">
         {showExport && (
-          <ExportModal onClose={() => setShowExport(false)} currentSize={canvasSize} onExport={handleConfirmExport} />
+          <ExportModal
+            onClose={() => setShowExport(false)}
+            currentSize={canvasSize}
+            onExport={handleConfirmExport}
+            onGetPngBlob={handleExportBlob}
+          />
         )}
         {showShareModal && (
           <ShareModal
@@ -691,15 +707,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       </ErrorBoundary>
 
       <ShortcutOverlay isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
-
-      {_showSavedToast && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[200] bg-[#1e1e1e]/90 backdrop-blur-md border border-gray-700 px-4 py-2 rounded-full shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-4 fade-in duration-300">
-          <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-            <Icons.Check className="w-3 h-3 text-white" />
-          </div>
-          <span className="text-xs font-bold text-white">Project Saved</span>
-        </div>
-      )}
     </div>
   );
 };

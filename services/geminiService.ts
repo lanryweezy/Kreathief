@@ -7,10 +7,18 @@ import * as freepikService from './freepikService';
 const getClient = () => {
   // @ts-ignore - ignore type mismatch
   const apiKey = import.meta.env?.VITE_GEMINI_API_KEY || (window as any).GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error('VITE_GEMINI_API_KEY environment variable is not set.');
+  if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY') {
+    return null;
   }
   return new GoogleGenerativeAI(apiKey);
+};
+
+const ensureClient = () => {
+  const ai = getClient();
+  if (!ai) {
+    throw new Error('Gemini API key is missing. Please set VITE_GEMINI_API_KEY to enable AI features.');
+  }
+  return ai;
 };
 
 /**
@@ -48,7 +56,7 @@ export const generateImage = async (
   quality: GenerationQuality = 'standard'
 ): Promise<string> => {
   try {
-    const ai = getClient();
+    const ai = ensureClient();
     const modelName = quality === 'hd' ? MODEL_PRO : MODEL_FAST;
 
     const config: any = {
@@ -101,7 +109,7 @@ export const editImage = async (
   quality: GenerationQuality = 'standard'
 ): Promise<string> => {
   try {
-    const ai = getClient();
+    const ai = ensureClient();
     const { data, mimeType } = cleanBase64(base64Image);
     const modelName = quality === 'hd' ? MODEL_PRO : MODEL_FAST;
 
@@ -131,7 +139,7 @@ export const editImage = async (
 
 export const removeBackground = async (base64Image: string): Promise<string> => {
   try {
-    const ai = getClient();
+    const ai = ensureClient();
     const { data, mimeType } = cleanBase64(base64Image);
 
     const prompt =
@@ -169,7 +177,7 @@ export const generateText = async (
   instruction: string = 'Rewrite this to be more creative and catchy.'
 ): Promise<string> => {
   try {
-    const ai = getClient();
+    const ai = ensureClient();
     const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
 
     // Improved system prompt to ensure formatting
@@ -199,7 +207,7 @@ export const generateText = async (
 
 export const generateTextOptions = async (topic: string): Promise<string[]> => {
   try {
-    const ai = getClient();
+    const ai = ensureClient();
     const model = ai.getGenerativeModel({
       model: 'gemini-2.0-flash-exp',
       generationConfig: {
@@ -231,7 +239,7 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
 
 export const enhancePrompt = async (simplePrompt: string): Promise<string> => {
   try {
-    const ai = getClient();
+    const ai = ensureClient();
     const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
     const response = await model.generateContent({
       contents: [
@@ -258,7 +266,7 @@ export const enhancePrompt = async (simplePrompt: string): Promise<string> => {
 
 export const generateDesignTheme = async (prompt: string): Promise<DesignTheme> => {
   try {
-    const ai = getClient();
+    const ai = ensureClient();
     const availableFonts = FONT_FAMILIES.join(', ');
     const systemPrompt = `
       You are a world-class graphic designer. 
@@ -320,7 +328,7 @@ export const generateDesignTheme = async (prompt: string): Promise<DesignTheme> 
 
 export const analyzeDesign = async (base64Image: string, query: string): Promise<string> => {
   try {
-    const ai = getClient();
+    const ai = ensureClient();
     const { data, mimeType } = cleanBase64(base64Image);
     const parts: Part[] = [
       { text: `You are a professional senior graphic designer. Analyze this design. ${query}` },
@@ -341,7 +349,7 @@ export const analyzeDesign = async (base64Image: string, query: string): Promise
 
 export const generateLayout = async (prompt: string): Promise<any> => {
   try {
-    const ai = getClient();
+    const ai = ensureClient();
     const systemPrompt = `
       You are a layout generator engine. Based on the description, return a JSON object containing a list of text layers and shape layers.
       
@@ -418,7 +426,7 @@ export const generateLayout = async (prompt: string): Promise<any> => {
 
 export const generateSVGShape = async (prompt: string): Promise<string> => {
   try {
-    const ai = getClient();
+    const ai = ensureClient();
     const systemPrompt = `
       You are an SVG path generator. 
       Generate a valid SVG path 'd' attribute for the shape described.
@@ -515,7 +523,7 @@ const extractImageFromResponse = (response: any): string => {
 
 export const optimizeLayout = async (layers: any[], canvasWidth: number, canvasHeight: number): Promise<any[]> => {
   try {
-    const ai = getClient();
+    const ai = ensureClient();
     // Simplify layer data to reduce token usage
     const simplifiedLayers = layers.map((l) => ({
       id: l.id,
@@ -587,7 +595,7 @@ export const optimizeLayout = async (layers: any[], canvasWidth: number, canvasH
 
 export const generatePaletteFromImage = async (base64Image: string): Promise<string[]> => {
   try {
-    const ai = getClient();
+    const ai = ensureClient();
     // Use the fast model (Flash) as it supports vision and is quicker/cheaper
     const model = ai.getGenerativeModel({ model: MODEL_FAST });
 
@@ -624,7 +632,7 @@ export const vectorizeImage = async (
   colors: number = 4
 ): Promise<Array<{ path: string; color: string }>> => {
   try {
-    const ai = getClient();
+    const ai = ensureClient();
     const model = ai.getGenerativeModel({
       model: MODEL_FAST,
       generationConfig: {
@@ -660,7 +668,7 @@ export const vectorizeImage = async (
 };
 export const generateAIVector = async (prompt: string): Promise<Array<{ path: string; color: string }>> => {
   try {
-    const ai = getClient();
+    const ai = ensureClient();
     const model = ai.getGenerativeModel({
       model: MODEL_FAST,
       generationConfig: {
