@@ -12,25 +12,26 @@ export interface UnsplashPhoto {
   };
 }
 
+const FALLBACK_PHOTOS: UnsplashPhoto[] = [
+  {
+    id: '1',
+    url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=1080&auto=format&fit=crop',
+    thumbnail: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=200&auto=format&fit=crop',
+    alt: 'Abstract Gradient',
+    user: { name: 'Unsplash', link: 'https://unsplash.com' },
+  },
+  {
+    id: '2',
+    url: 'https://images.unsplash.com/photo-1493612276216-ee3925520721?q=80&w=1080&auto=format&fit=crop',
+    thumbnail: 'https://images.unsplash.com/photo-1493612276216-ee3925520721?q=80&w=200&auto=format&fit=crop',
+    alt: 'Minimalist Workspace',
+    user: { name: 'Unsplash', link: 'https://unsplash.com' },
+  },
+];
+
 export const searchPhotos = async (query: string, page: number = 1): Promise<UnsplashPhoto[]> => {
-  if (UNSPLASH_ACCESS_KEY === 'YOUR_UNSPLASH_ACCESS_KEY') {
-    // Fallback to demo images if no key
-    return [
-      {
-        id: '1',
-        url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=1080&auto=format&fit=crop',
-        thumbnail: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=200&auto=format&fit=crop',
-        alt: 'Abstract Gradient',
-        user: { name: 'Unsplash', link: 'https://unsplash.com' },
-      },
-      {
-        id: '2',
-        url: 'https://images.unsplash.com/photo-1493612276216-ee3925520721?q=80&w=1080&auto=format&fit=crop',
-        thumbnail: 'https://images.unsplash.com/photo-1493612276216-ee3925520721?q=80&w=200&auto=format&fit=crop',
-        alt: 'Minimalist Workspace',
-        user: { name: 'Unsplash', link: 'https://unsplash.com' },
-      },
-    ];
+  if (UNSPLASH_ACCESS_KEY === 'YOUR_UNSPLASH_ACCESS_KEY' || !UNSPLASH_ACCESS_KEY) {
+    return FALLBACK_PHOTOS;
   }
 
   try {
@@ -44,7 +45,7 @@ export const searchPhotos = async (query: string, page: number = 1): Promise<Uns
     );
 
     if (!response.ok) {
-      throw new Error('Unsplash API error');
+      return FALLBACK_PHOTOS;
     }
 
     const data = await response.json();
@@ -60,6 +61,6 @@ export const searchPhotos = async (query: string, page: number = 1): Promise<Uns
     }));
   } catch (error) {
     console.error('Unsplash Search Error:', error);
-    return [];
+    return FALLBACK_PHOTOS;
   }
 };

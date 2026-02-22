@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Icons } from '../../constants';
 import { IconButton, Divider } from './ToolbarShared';
+import { Dropdown } from '../Dropdown';
 import { Layer } from '../../types';
 
 interface CommonActionsProps {
@@ -9,7 +10,6 @@ interface CommonActionsProps {
   documentColors?: string[];
   showEffects: boolean;
   setShowEffects: (show: boolean) => void;
-  effectsRef: React.RefObject<HTMLDivElement>;
   onMoveLayer: (id: string, direction: 'forward' | 'backward') => void;
   onDuplicateLayer: (id: string) => void;
   onDeleteLayer: (id: string) => void;
@@ -21,21 +21,29 @@ export const CommonActions = React.memo(
     handleUpdateLayer,
     showEffects,
     setShowEffects,
-    effectsRef,
     onMoveLayer,
     onDuplicateLayer,
     onDeleteLayer,
-  }: CommonActionsProps) => (
-    <div className="flex items-center gap-2">
-      <div className="relative" ref={effectsRef}>
-        <button
-          onClick={() => setShowEffects(!showEffects)}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${showEffects ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'bg-black/20 border-white/10 text-gray-300 hover:border-white/20 hover:bg-black/30'}`}
-        >
-          <Icons.Blend className="w-3.5 h-3.5" /> Appearance
-        </button>
-        {showEffects && (
-          <div className="absolute top-full right-0 mt-3 w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-4 z-50 animate-fadeIn space-y-4 backdrop-blur-xl">
+  }: CommonActionsProps) => {
+    const appearanceButtonRef = useRef<HTMLButtonElement>(null);
+
+    return (
+      <div className="flex items-center gap-2">
+        <div className="relative">
+          <button
+            ref={appearanceButtonRef}
+            onClick={() => setShowEffects(!showEffects)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${showEffects ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'bg-black/20 border-white/10 text-gray-300 hover:border-white/20 hover:bg-black/30'}`}
+          >
+            <Icons.Blend className="w-3.5 h-3.5" /> Appearance
+          </button>
+          <Dropdown
+            anchorRef={appearanceButtonRef}
+            isOpen={showEffects}
+            onClose={() => setShowEffects(false)}
+            align="right"
+          >
+            <div className="w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-4 animate-fadeIn space-y-4 backdrop-blur-xl">
             <div className="space-y-2">
               <div className="flex justify-between items-center mb-1">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Opacity</span>
@@ -69,7 +77,7 @@ export const CommonActions = React.memo(
               </select>
             </div>
           </div>
-        )}
+        </Dropdown>
       </div>
 
       <Divider />
@@ -100,8 +108,9 @@ export const CommonActions = React.memo(
       >
         {selectedLayer.locked ? <Icons.Lock className="w-3.5 h-3.5" /> : <Icons.Unlock className="w-3.5 h-3.5" />}
       </IconButton>
-    </div>
-  )
+      </div>
+    );
+  }
 );
 
 CommonActions.displayName = 'CommonActions';

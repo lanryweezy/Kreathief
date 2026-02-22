@@ -8,15 +8,17 @@ export class DashboardPage {
   readonly searchInput: Locator;
   readonly userMenu: Locator;
   readonly logoutButton: Locator;
+  readonly templatesTab: Locator;
 
   constructor(page: Page) {
     this.page = page;
-    this.createProjectButton = page.locator('button:has-text("New Design"), button:has-text("Create Project")');
+    this.createProjectButton = page.locator('button#create-btn, button:has-text("New Design")');
     this.templatesGrid = page.locator('#templates-grid');
-    this.projectsList = page.locator('#projects-list, [data-testid="projects-list"]');
-    this.searchInput = page.locator('input[placeholder*="Search"], input[aria-label*="Search"]');
-    this.userMenu = page.locator('[data-testid="user-menu"], button[aria-label*="User"]');
-    this.logoutButton = page.locator('button:has-text("Logout"), button:has-text("Sign Out")');
+    this.projectsList = page.locator('.grid-cols-1, .grid-cols-2, .grid-cols-3, .grid-cols-4');
+    this.searchInput = page.locator('input[placeholder*="Search designs"]');
+    this.userMenu = page.locator('header .profile-section, header .flex.items-center.gap-3.group');
+    this.logoutButton = page.locator('button:has-text("Sign Out")');
+    this.templatesTab = page.locator('button[role="tab"]:has-text("Templates")');
   }
 
   async goto() {

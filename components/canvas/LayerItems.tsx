@@ -73,7 +73,9 @@ export const ImageLayerItem = React.memo(
           onMouseEnter={() => onMouseEnter(imgLayer.id)}
           onMouseLeave={() => onMouseLeave(null)}
           onContextMenu={(e) => onContextMenu(e, imgLayer.id)}
-          className="absolute cursor-move group"
+          className="absolute cursor-move group image-layer-item"
+          data-layer-type="image"
+          data-layer-id={imgLayer.id}
           style={{
             left: imgLayer.x,
             top: imgLayer.y,
@@ -176,7 +178,9 @@ export const ShapeLayerItem = React.memo(
           onDoubleClick={(e) => onDoubleClick && onDoubleClick(e, shapeLayer)}
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => onDrop && onDrop(e, shapeLayer.id)}
-          className="absolute cursor-move group"
+          className="absolute cursor-move group shape-layer-item"
+          data-layer-type="shape"
+          data-layer-id={shapeLayer.id}
           style={{
             left: shapeLayer.x,
             top: shapeLayer.y,
@@ -273,7 +277,7 @@ export const ShapeLayerItem = React.memo(
               path={shapeLayer.vectorPath}
               zoom={zoom || 1}
               onUpdate={(newPath) => onUpdatePath?.(shapeLayer.id, { vectorPath: newPath })}
-              onSelectPoint={() => {}}
+              onSelectPoint={() => { }}
               selectedPointIndices={[]}
             />
           )}
@@ -361,8 +365,8 @@ export const TextLayerItem = React.memo(
         display: 'block',
         ...(textLayer.shadow
           ? {
-              textShadow: `${textLayer.shadow.offsetX}px ${textLayer.shadow.offsetY}px ${textLayer.shadow.blur}px ${textLayer.shadow.color}`,
-            }
+            textShadow: `${textLayer.shadow.offsetX}px ${textLayer.shadow.offsetY}px ${textLayer.shadow.blur}px ${textLayer.shadow.color}`,
+          }
           : {}),
         position: 'relative',
         zIndex: 1,
@@ -373,20 +377,20 @@ export const TextLayerItem = React.memo(
 
       const textureStyle: React.CSSProperties = textureUrl
         ? {
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: `url(${textureUrl})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            color: 'transparent',
-            zIndex: 2,
-            opacity: textureIntensity,
-            mixBlendMode: 'overlay',
-            pointerEvents: 'none',
-          }
+          position: 'absolute',
+          inset: 0,
+          backgroundImage: `url(${textureUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+          color: 'transparent',
+          zIndex: 2,
+          opacity: textureIntensity,
+          mixBlendMode: 'overlay',
+          pointerEvents: 'none',
+        }
         : {};
 
       const render3DDepth = () => {
@@ -427,7 +431,9 @@ export const TextLayerItem = React.memo(
             onMouseLeave={() => onMouseLeave(null)}
             onContextMenu={(e) => onContextMenu(e, textLayer.id)}
             onDoubleClick={(e) => onDoubleClick && onDoubleClick(e, textLayer)}
-            className="absolute cursor-move group"
+            className="absolute cursor-move group text-layer-item"
+            data-layer-type="text"
+            data-layer-id={textLayer.id}
             style={{
               left: textLayer.x,
               top: textLayer.y,
@@ -465,7 +471,9 @@ export const TextLayerItem = React.memo(
           onMouseLeave={() => onMouseLeave(null)}
           onContextMenu={(e) => onContextMenu(e, textLayer.id)}
           onDoubleClick={(e) => onDoubleClick && onDoubleClick(e, textLayer)}
-          className="absolute cursor-move group"
+          className="absolute cursor-move group text-layer-item"
+          data-layer-type="text"
+          data-layer-id={textLayer.id}
           style={{
             left: textLayer.x,
             top: textLayer.y,

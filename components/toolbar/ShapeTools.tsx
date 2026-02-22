@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Icons } from '../../constants';
 import { IconButton, Divider } from './ToolbarShared';
 import { ColorPicker } from '../ColorPicker';
 import { MaskTools } from './MaskTools';
+import { Dropdown } from '../Dropdown';
 import { Layer } from '../../types';
 
 interface ShapeToolsProps {
@@ -17,6 +18,7 @@ interface ShapeToolsProps {
 export const ShapeTools = React.memo(
   ({ layer, handleUpdateLayer, documentColors, isPro, onOpenPricing, onConvertToPath }: ShapeToolsProps) => {
     const [showEffects, setShowEffects] = React.useState(false);
+    const effectsButtonRef = useRef<HTMLButtonElement>(null);
 
     const updateFilter = (key: string, value: number) => {
       const currentFilters = (layer as any).filters || {
@@ -67,14 +69,19 @@ export const ShapeTools = React.memo(
 
         <div className="relative">
           <button
+            ref={effectsButtonRef}
             onClick={() => setShowEffects(!showEffects)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${showEffects ? 'bg-[#00c4cc] border-[#00c4cc] text-white shadow-lg shadow-[#00c4cc]/30' : 'bg-black/20 border-white/10 text-gray-300 hover:border-white/20 hover:bg-black/30'}`}
           >
             <Icons.Sliders className="w-3.5 h-3.5" /> Effects
           </button>
-
-          {showEffects && (
-            <div className="absolute top-full left-0 mt-3 w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-4 z-50 animate-fadeIn space-y-4 backdrop-blur-xl">
+          <Dropdown
+            anchorRef={effectsButtonRef}
+            isOpen={showEffects}
+            onClose={() => setShowEffects(false)}
+            align="left"
+          >
+            <div className="w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-4 animate-fadeIn space-y-4 backdrop-blur-xl">
               {/* Shadow Section */}
               <div className="bg-white/5 rounded-lg p-3 border border-white/5">
                 <div className="flex justify-between items-center mb-3">
@@ -173,7 +180,7 @@ export const ShapeTools = React.memo(
                 </div>
               </div>
             </div>
-          )}
+          </Dropdown>
         </div>
 
         {onConvertToPath && layer.type !== 'path' && (

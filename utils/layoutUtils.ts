@@ -9,14 +9,16 @@ export type DistributionType = 'h-spacing' | 'v-spacing' | 'h-center' | 'v-cente
 export const alignLayers = (
   layers: Layer[],
   type: AlignmentType,
-  canvasSize: { width: number; height: number }
+  canvasSize: { width: number; height: number },
+  forceCanvas: boolean = false
 ): { id: string; changes: Partial<Layer> }[] => {
   if (layers.length === 0) {
     return [];
   }
 
-  // If only one layer, align to canvas. If multiple, align to their common bounding box.
-  const useCanvas = layers.length === 1;
+  // If only one layer OR forceCanvas is true, align to canvas.
+  // If multiple and not forced, align to their common bounding box.
+  const useCanvas = forceCanvas || layers.length === 1;
 
   let minX = Infinity,
     minY = Infinity,

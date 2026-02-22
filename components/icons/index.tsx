@@ -1264,3 +1264,12 @@ export const Box = (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement('polyline', { points: '3.27 6.96 12 12.01 20.73 6.96' }),
     React.createElement('line', { x1: '12', y1: '22.08', x2: '12', y2: '12' })
   );
+
+export const MoreVertical = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('circle', { cx: '12', cy: '12', r: '1' }),
+    React.createElement('circle', { cx: '12', cy: '5', r: '1' }),
+    React.createElement('circle', { cx: '12', cy: '19', r: '1' })
+  );

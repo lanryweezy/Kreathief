@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Icons } from '../constants';
+import { Dropdown } from './Dropdown';
 
 interface ColorPickerProps {
   value: string;
@@ -27,7 +28,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [hexInput, setHexInput] = useState(value);
   const [recentColors, setRecentColors] = useState<string[]>([]);
-  const popoverRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLButtonElement>(null);
 
   // Load recent colors from localStorage
   useEffect(() => {
@@ -74,17 +75,22 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   const uniqueDocColors = Array.from(new Set(documentColors)).slice(0, 14);
 
   return (
-    <div className="relative group" ref={popoverRef}>
+    <div className="relative group">
       {label && <span className="text-[10px] uppercase font-bold text-gray-500 mb-1 block">{label}</span>}
       <button
+        ref={popoverRef}
         onClick={() => setIsOpen(!isOpen)}
         className={`${small ? 'w-6 h-6' : 'w-8 h-8'} rounded border border-gray-600 flex items-center justify-center relative overflow-hidden bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPjxyZWN0IHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiM0NDQiLz48cGF0aCBkPSJNMCAwSDRWNEgwem00IDhIOFY0SDR6IiBmaWxsPSIjNTU1Ii8+PC9zdmc+')] hover:border-gray-400 transition-colors shadow-sm`}
       >
         <div className="w-full h-full" style={{ backgroundColor: value }} />
       </button>
-
-      {isOpen && (
-        <div className="absolute top-full left-0 mt-2 bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-2xl p-3 z-50 w-64 animate-fadeIn">
+      <Dropdown
+        anchorRef={popoverRef}
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        align="left"
+      >
+        <div className="bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-2xl p-3 w-64 animate-fadeIn">
           {/* No Fill & Hex Input */}
           <div className="flex items-center gap-2 mb-4">
             <button
@@ -178,7 +184,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
             </div>
           </div>
         </div>
-      )}
+      </Dropdown>
     </div>
   );
 };

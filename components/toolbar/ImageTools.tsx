@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Icons } from '../../constants';
 import { IconButton, Divider, CompactInput } from './ToolbarShared';
 import { FILTER_PRESETS } from './ToolbarConstants';
 import { ImageLayer } from '../../types';
+import { Dropdown } from '../Dropdown';
 
 interface ImageToolsProps {
   layer: ImageLayer;
@@ -47,6 +48,9 @@ export const ImageTools = React.memo(
     showResize,
     setShowResize,
   }: ImageToolsProps) => {
+    const filtersButtonRef = useRef<HTMLButtonElement>(null);
+    const resizeButtonRef = useRef<HTMLButtonElement>(null);
+
     return (
       <div className="flex items-center gap-3">
         <IconButton
@@ -114,13 +118,19 @@ export const ImageTools = React.memo(
         <div className="flex items-center gap-2">
           <div className="relative">
             <button
+              ref={filtersButtonRef}
               onClick={() => setShowFilters(!showFilters)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${showFilters ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white shadow-lg shadow-[#7d2ae8]/30' : 'bg-black/20 border-white/10 text-gray-300 hover:border-white/20 hover:bg-black/30'}`}
             >
               <Icons.Filter className="w-3.5 h-3.5" /> Presets
             </button>
-            {showFilters && (
-              <div className="absolute top-full left-0 mt-3 w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-3 z-50 animate-fadeIn backdrop-blur-xl">
+            <Dropdown
+              anchorRef={filtersButtonRef}
+              isOpen={showFilters}
+              onClose={() => setShowFilters(false)}
+              align="left"
+            >
+              <div className="w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-3 animate-fadeIn backdrop-blur-xl">
                 <div className="grid grid-cols-3 gap-2">
                   {FILTER_PRESETS.map((preset) => (
                     <button
@@ -135,7 +145,7 @@ export const ImageTools = React.memo(
                   ))}
                 </div>
               </div>
-            )}
+            </Dropdown>
           </div>
           <div className="flex items-center gap-2 px-3 h-8 bg-black/20 rounded-lg border border-white/10">
             <Icons.Blend className="w-3.5 h-3.5 text-gray-500" />
@@ -157,11 +167,21 @@ export const ImageTools = React.memo(
           <Icons.Crop className="w-4 h-4 text-emerald-400" />
         </IconButton>
         <div className="relative">
-          <IconButton onClick={() => setShowResize(!showResize)} active={showResize} title="Resize Image">
+          <IconButton
+            ref={resizeButtonRef}
+            onClick={() => setShowResize(!showResize)}
+            active={showResize}
+            title="Resize Image"
+          >
             <Icons.Maximize className="w-4 h-4 text-blue-400" />
           </IconButton>
-          {showResize && (
-            <div className="absolute top-full left-0 mt-3 w-48 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-3 z-50 animate-fadeIn space-y-3 backdrop-blur-xl">
+          <Dropdown
+            anchorRef={resizeButtonRef}
+            isOpen={showResize}
+            onClose={() => setShowResize(false)}
+            align="left"
+          >
+            <div className="w-48 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-3 animate-fadeIn space-y-3 backdrop-blur-xl">
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block text-center">
                 Dimensions
               </span>
@@ -188,7 +208,7 @@ export const ImageTools = React.memo(
                 Done
               </button>
             </div>
-          )}
+          </Dropdown>
         </div>
       </div>
     );

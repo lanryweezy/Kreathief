@@ -1348,6 +1348,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
           >
             <div
               ref={containerRef}
+              id="canvas-container"
               className="relative shadow-2xl origin-center bg-white pointer-events-auto"
               style={{
                 width: canvasSize.width,
@@ -1436,7 +1437,9 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                             contentEditable
                             suppressContentEditableWarning
                             onBlur={finishEditingText}
-                            className="absolute bg-transparent border-2 border-[#7d2ae8] outline-none z-[100] cursor-text min-w-[50px]"
+                            className="absolute bg-transparent border-2 border-[#7d2ae8] outline-none z-[100] cursor-text min-w-[50px] text-layer-item"
+                            data-layer-type="text"
+                            data-is-editing="true"
                             style={{
                               left: l.x,
                               top: l.y,
@@ -1553,6 +1556,16 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                       <button
                         className="flex items-center gap-3 px-5 py-3 rounded-xl font-bold text-sm text-gray-700 bg-white border border-gray-200 shadow hover:bg-gray-50 hover:border-gray-300 transition-all hover:scale-[1.03] active:scale-[0.98]"
                         onClick={() => {
+                          const event = new CustomEvent('open-panel', { detail: 'TEMPLATES' });
+                          window.dispatchEvent(event);
+                        }}
+                      >
+                        <span className="text-xl">🎴</span>
+                        <span>Browse Templates</span>
+                      </button>
+                      <button
+                        className="flex items-center gap-3 px-5 py-3 rounded-xl font-bold text-sm text-gray-700 bg-white border border-gray-200 shadow hover:bg-gray-50 hover:border-gray-300 transition-all hover:scale-[1.03] active:scale-[0.98]"
+                        onClick={() => {
                           const input = document.createElement('input');
                           input.type = 'file';
                           input.accept = 'image/*';
@@ -1566,7 +1579,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                           input.click();
                         }}
                       >
-                        <span className="text-xl"></span>
+                        <span className="text-xl">🖼️</span>
                         <span>Upload an Image</span>
                       </button>
                     </div>

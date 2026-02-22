@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Icons } from '../../constants';
 import { IconButton, Divider, CompactInput } from './ToolbarShared';
 import { ColorPicker } from '../ColorPicker';
 import { FontPicker } from '../FontPicker';
 import { GlyphPalette } from '../GlyphPalette';
 import { MaskTools } from './MaskTools';
+import { Dropdown } from '../Dropdown';
 import { loadFont } from '../../services/FontLoader';
 import { TextLayer } from '../../types';
 
@@ -17,14 +18,13 @@ interface TextToolsProps {
   setShowFontPicker: (show: boolean) => void;
   fontSearch: string;
   setFontSearch: (search: string) => void;
-  fontPickerRef: React.RefObject<HTMLDivElement>;
   showRewriteTones: boolean;
   setShowRewriteTones: (show: boolean) => void;
-  rewriteRef: React.RefObject<HTMLDivElement>;
+  rewriteRef: React.RefObject<HTMLButtonElement>;
   handleToneRewrite: (id: string, instruction: string) => void;
   showTextEffects: boolean;
   setShowTextEffects: (show: boolean) => void;
-  textEffectsRef: React.RefObject<HTMLDivElement>;
+  textEffectsRef: React.RefObject<HTMLButtonElement>;
   showGlyphs: boolean;
   setShowGlyphs: (show: boolean) => void;
 }
@@ -39,20 +39,23 @@ export const TextTools = React.memo(
     setShowFontPicker,
     fontSearch,
     setFontSearch,
-    fontPickerRef,
     showRewriteTones,
     setShowRewriteTones,
     rewriteRef,
     handleToneRewrite,
     showTextEffects,
     setShowTextEffects,
-    textEffectsRef,
     showGlyphs,
     setShowGlyphs,
-  }: TextToolsProps) => (
-    <div className="flex items-center gap-3 flex-wrap">
-      <div className="relative" ref={fontPickerRef}>
-        <button
+  }: Omit<TextToolsProps, 'fontPickerRef' | 'textEffectsRef'>) => {
+    const fontButtonRef = useRef<HTMLButtonElement>(null);
+    const textEffectsButtonRef = useRef<HTMLButtonElement>(null);
+
+    return (
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative">
+          <button
+            ref={fontButtonRef}
           onClick={() => setShowFontPicker(!showFontPicker)}
           className="w-40 bg-black/20 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white text-left flex justify-between items-center hover:border-[#7d2ae8]/50 hover:bg-black/30 transition-all group"
           title="Font Family"
@@ -60,19 +63,26 @@ export const TextTools = React.memo(
           <span className="truncate mr-2 font-medium">{layer.fontFamily}</span>
           <Icons.ChevronDown className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#7d2ae8] transition-colors" />
         </button>
-        {showFontPicker && (
-          <FontPicker
-            currentFont={layer.fontFamily}
-            onSelectFont={(font: string) => {
-              loadFont(font);
-              onUpdateTextLayer(layer.id, { fontFamily: font });
-              setShowFontPicker(false);
-            }}
-            onClose={() => setShowFontPicker(false)}
-            search={fontSearch}
-            setSearch={setFontSearch}
-          />
-        )}
+        <Dropdown
+          anchorRef={fontButtonRef}
+          isOpen={showFontPicker}
+          onClose={() => setShowFontPicker(false)}
+          align="left"
+        >
+          <div className="bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl p-1 animate-fadeIn min-w-[280px] max-h-[70vh] overflow-y-auto custom-scrollbar">
+            <FontPicker
+              currentFont={layer.fontFamily}
+              onSelectFont={(font: string) => {
+                loadFont(font);
+                onUpdateTextLayer(layer.id, { fontFamily: font });
+                setShowFontPicker(false);
+              }}
+              onClose={() => setShowFontPicker(false)}
+              search={fontSearch}
+              setSearch={setFontSearch}
+            />
+          </div>
+        </Dropdown>
       </div>
 
       <CompactInput
@@ -174,16 +184,21 @@ export const TextTools = React.memo(
       </div>
       <Divider />
 
-      <div className="relative" ref={textEffectsRef}>
+      <div className="relative">
         <button
+          ref={textEffectsButtonRef}
           onClick={() => setShowTextEffects(!showTextEffects)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${showTextEffects ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white shadow-lg shadow-[#7d2ae8]/30' : 'bg-black/20 border-white/10 text-gray-300 hover:border-white/20 hover:bg-black/30'}`}
         >
           <Icons.Magic className="w-3.5 h-3.5" /> Effects
         </button>
-
-        {showTextEffects && (
-          <div className="absolute top-full right-0 mt-3 w-72 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-4 z-50 animate-fadeIn space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar backdrop-blur-xl">
+        <Dropdown
+          anchorRef={textEffectsButtonRef}
+          isOpen={showTextEffects}
+          onClose={() => setShowTextEffects(false)}
+          align="right"
+        >
+          <div className="w-72 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-4 animate-fadeIn space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar backdrop-blur-xl">
             <div className="bg-white/5 rounded-lg p-3 border border-white/5">
               <div className="flex justify-between items-center mb-3">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
@@ -366,7 +381,7 @@ export const TextTools = React.memo(
               )}
             </div>
           </div>
-        )}
+        </Dropdown>
       </div>
 
       <MaskTools
@@ -377,7 +392,7 @@ export const TextTools = React.memo(
         documentColors={documentColors}
       />
 
-      <div className="relative" ref={rewriteRef}>
+      <div className="relative">
         <div className="flex bg-gradient-to-r from-[#7d2ae8]/20 to-[#00c4cc]/20 border border-white/10 rounded-lg overflow-hidden group">
           <button
             onClick={() => onMagicWrite(layer.id)}
@@ -386,14 +401,20 @@ export const TextTools = React.memo(
             <Icons.Magic className="w-3.5 h-3.5" /> AI Rewrite
           </button>
           <button
+            ref={rewriteRef as any}
             onClick={() => setShowRewriteTones(!showRewriteTones)}
             className="px-1.5 py-1.5 border-l border-white/10 hover:bg-white/5 text-gray-400 hover:text-white transition-all"
           >
             <Icons.ChevronDown className="w-3.5 h-3.5" />
           </button>
         </div>
-        {showRewriteTones && (
-          <div className="absolute top-full right-0 mt-2 w-40 bg-[#1e1e1e] border border-white/10 rounded-xl shadow-2xl z-50 p-1.5 animate-fadeIn backdrop-blur-xl">
+        <Dropdown
+          anchorRef={rewriteRef as any}
+          isOpen={showRewriteTones}
+          onClose={() => setShowRewriteTones(false)}
+          align="right"
+        >
+          <div className="w-40 bg-[#1e1e1e] border border-white/10 rounded-xl shadow-2xl p-1.5 animate-fadeIn backdrop-blur-xl">
             {[
               { label: 'Magic', icon: Icons.Magic, instruction: 'Rewrite this to be more creative and catchy.' },
               { label: 'Shorten', icon: Icons.Minus, instruction: 'Rewrite this to be shorter and more concise.' },
@@ -410,10 +431,11 @@ export const TextTools = React.memo(
               </button>
             ))}
           </div>
-        )}
+        </Dropdown>
+        </div>
       </div>
-    </div>
-  )
+    );
+  }
 );
 
 TextTools.displayName = 'TextTools';

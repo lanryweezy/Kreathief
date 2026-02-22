@@ -73,7 +73,7 @@ export const FontPicker: React.FC<FontPickerProps> = ({ currentFont, onSelectFon
   }, [search]);
 
   return (
-    <div className="absolute top-full left-0 mt-1 w-64 bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-xl max-h-96 overflow-y-auto z-50 p-1 animate-fadeIn custom-scrollbar flex flex-col">
+    <div className="bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-xl p-1 animate-fadeIn min-w-[280px] max-h-[60vh] overflow-y-auto custom-scrollbar">
       <div className="sticky top-0 bg-[#1e1e1e] p-1 mb-1 border-b border-gray-700 z-10 shrink-0">
         <div className="relative">
           <Icons.Search className="w-3 h-3 text-gray-500 absolute left-2 top-1/2 -translate-y-1/2" />

@@ -5,7 +5,7 @@ import { alignLayers, distributeLayers, AlignmentType, DistributionType, tidyUpL
 
 import { useStore } from '../../store/useStore';
 
-interface ArrangePanelProps {}
+interface ArrangePanelProps { }
 
 export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
   const { layers, selectedLayerIds, canvasSize, updateLayers, moveLayer: onMoveLayer } = useStore();
@@ -13,6 +13,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
   const selectedLayers = layers.filter((l) => selectedLayerIds.includes(l.id));
   const onUpdateLayers = updateLayers;
   const [isAspectRatioLocked, setIsAspectRatioLocked] = React.useState(true);
+  const [alignToPage, setAlignToPage] = React.useState(false);
 
   if (selectedLayers.length === 0) {
     return (
@@ -27,7 +28,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
   const firstLayer = selectedLayers[0];
 
   const handleAlign = (type: AlignmentType) => {
-    const updatesArr = alignLayers(selectedLayers, type, canvasSize);
+    const updatesArr = alignLayers(selectedLayers, type, canvasSize, alignToPage);
     const updates: Record<string, any> = {};
     updatesArr.forEach((u) => (updates[u.id] = u.changes));
     onUpdateLayers(updates);
@@ -133,7 +134,25 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
 
         {/* Alignment Grid */}
         <div className="space-y-3">
-          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Alignment</label>
+          <div className="flex items-center justify-between">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Alignment</label>
+            {!isSingle && (
+              <div className="flex bg-[#0e1318] p-0.5 rounded-lg border border-gray-800">
+                <button
+                  onClick={() => setAlignToPage(false)}
+                  className={`px-2 py-1 rounded-md text-[9px] font-bold transition-all ${!alignToPage ? 'bg-[#7d2ae8] text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                >
+                  Selection
+                </button>
+                <button
+                  onClick={() => setAlignToPage(true)}
+                  className={`px-2 py-1 rounded-md text-[9px] font-bold transition-all ${alignToPage ? 'bg-[#7d2ae8] text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                >
+                  Page
+                </button>
+              </div>
+            )}
+          </div>
           <div className="grid grid-cols-3 gap-1">
             {[
               { id: 'left', icon: <Icons.AlignLeft className="w-4 h-4" />, label: 'Align Left' },

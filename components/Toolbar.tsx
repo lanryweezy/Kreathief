@@ -36,10 +36,7 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
   const [fontSearch, setFontSearch] = useState('');
 
   // Refs
-  const fontPickerRef = useRef<HTMLDivElement>(null);
-  const effectsRef = useRef<HTMLDivElement>(null);
-  const textEffectsRef = useRef<HTMLDivElement>(null);
-  const rewriteRef = useRef<HTMLDivElement>(null);
+  const rewriteRef = useRef<HTMLButtonElement>(null);
 
   // Store Actions
   const {
@@ -75,17 +72,8 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
   // Global Click Handler for dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (fontPickerRef.current && !fontPickerRef.current.contains(event.target as Node)) {
-        setShowFontPicker(false);
-      }
-      if (effectsRef.current && !effectsRef.current.contains(event.target as Node)) {
-        setShowEffects(false);
-      }
       if (rewriteRef.current && !rewriteRef.current.contains(event.target as Node)) {
         setShowRewriteTones(false);
-      }
-      if (textEffectsRef.current && !textEffectsRef.current.contains(event.target as Node)) {
-        setShowTextEffects(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -173,14 +161,12 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
                 setShowFontPicker={setShowFontPicker}
                 fontSearch={fontSearch}
                 setFontSearch={setFontSearch}
-                fontPickerRef={fontPickerRef}
                 showRewriteTones={showRewriteTones}
                 setShowRewriteTones={setShowRewriteTones}
                 rewriteRef={rewriteRef}
                 handleToneRewrite={handleToneRewrite}
                 showTextEffects={showTextEffects}
                 setShowTextEffects={setShowTextEffects}
-                textEffectsRef={textEffectsRef}
                 showGlyphs={showGlyphs}
                 setShowGlyphs={setShowGlyphs}
               />
@@ -227,7 +213,6 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
               documentColors={documentColors}
               showEffects={showEffects}
               setShowEffects={setShowEffects}
-              effectsRef={effectsRef}
               onMoveLayer={onMoveLayer}
               onDuplicateLayer={onDuplicateLayer}
               onDeleteLayer={onDeleteLayer}

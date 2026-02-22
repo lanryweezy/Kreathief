@@ -229,13 +229,12 @@ const LayerItem = React.memo(
             e.preventDefault();
             onSelectMultiple(e);
           }}
-          className={`group relative flex items-center gap-3 p-2 border-b border-gray-800/50 cursor-pointer transition-all select-none ${
-            isMultiSelected
+          className={`group relative flex items-center gap-3 p-2 border-b border-gray-800/50 cursor-pointer transition-all select-none ${isMultiSelected
               ? 'bg-[#7d2ae8]/20 border-l-2 border-l-[#7d2ae8]'
               : isSelected
                 ? 'bg-[#7d2ae8]/10 border-l-2 border-l-[#7d2ae8]'
                 : 'hover:bg-[#252627] border-l-2 border-l-transparent'
-          }`}
+            }`}
           style={{
             paddingLeft: isGrouped ? '24px' : '8px',
             marginBottom: isGroupEnd ? '8px' : '0',
@@ -249,16 +248,22 @@ const LayerItem = React.memo(
             ></div>
           )}
 
-          <input
-            type="checkbox"
-            checked={isMultiSelected}
-            onChange={(e) => {
-              e.stopPropagation();
-              onSelectMultiple(e as any);
-            }}
-            className="w-3 h-3 rounded cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 accent-[#7d2ae8]"
-            onClick={(e) => e.stopPropagation()}
-          />
+          <div className="flex items-center gap-1.5 shrink-0">
+            <div className="cursor-grab active:cursor-grabbing text-gray-700 group-hover:text-gray-500 transition-colors">
+              <Icons.MoreVertical className="w-3 h-3 -mr-1" />
+              <Icons.MoreVertical className="w-3 h-3 -ml-1" />
+            </div>
+            <input
+              type="checkbox"
+              checked={isMultiSelected}
+              onChange={(e) => {
+                e.stopPropagation();
+                onSelectMultiple(e as any);
+              }}
+              className="w-3 h-3 rounded cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100 accent-[#7d2ae8]"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
 
           <button
             onClick={(e) => {
@@ -525,11 +530,10 @@ export const LayersPanel = React.memo(() => {
             <button
               key={type}
               onClick={() => setFilterType(type as any)}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all shrink-0 ${
-                filterType === type
+              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all shrink-0 ${filterType === type
                   ? 'bg-[#7d2ae8] text-white shadow-lg shadow-[#7d2ae8]/20'
                   : 'bg-[#252627] text-gray-400 hover:text-white hover:bg-gray-700'
-              }`}
+                }`}
             >
               {type === 'all' ? 'All' : type === 'text' ? 'Text' : type === 'shape' ? 'Shapes' : 'Images'}
             </button>

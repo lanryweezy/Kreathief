@@ -57,7 +57,22 @@ const CommunityTemplates: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                     {COMMUNITY_TEMPLATES.map((template) => (
                         <div key={template.id} className="group relative break-inside-avoid mb-4">
-                            <div className="aspect-[3/4] rounded-lg overflow-hidden bg-slate-800 relative cursor-pointer" onClick={() => handleApplyTemplate(template)}>
+                            <div
+                                className="aspect-[3/4] rounded-lg overflow-hidden bg-slate-800 relative cursor-pointer"
+                                onClick={() => {
+                                    // Ensure template has a valid state for remixing
+                                    const templateWithState = {
+                                        ...template,
+                                        state: (template as any).state || {
+                                            layers: [],
+                                            canvasBackgroundColor: '#ffffff',
+                                            canvasFilters: { brightness: 100, contrast: 100, saturation: 100, blur: 0, opacity: 1, vignette: 0, sepia: 0, grayscale: 0, hueRotate: 0 },
+                                            canvasSize: { width: 1080, height: 1920, name: 'Story / Reel' }
+                                        }
+                                    };
+                                    handleApplyTemplate(templateWithState);
+                                }}
+                            >
                                 <img
                                     src={template.thumbnail}
                                     alt={template.title}
