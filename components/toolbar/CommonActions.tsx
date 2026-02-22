@@ -8,8 +8,6 @@ interface CommonActionsProps {
   selectedLayer: Layer;
   handleUpdateLayer: (changes: any) => void;
   documentColors?: string[];
-  showEffects: boolean;
-  setShowEffects: (show: boolean) => void;
   onMoveLayer: (id: string, direction: 'forward' | 'backward') => void;
   onDuplicateLayer: (id: string) => void;
   onDeleteLayer: (id: string) => void;
@@ -19,12 +17,11 @@ export const CommonActions = React.memo(
   ({
     selectedLayer,
     handleUpdateLayer,
-    showEffects,
-    setShowEffects,
     onMoveLayer,
     onDuplicateLayer,
     onDeleteLayer,
   }: CommonActionsProps) => {
+    const [showEffects, setShowEffects] = React.useState(false);
     const appearanceButtonRef = useRef<HTMLButtonElement>(null);
 
     return (

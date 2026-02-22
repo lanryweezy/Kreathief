@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useStore } from '../store/useStore';
+import { NavTab, TextLayer } from '../types';
 import { Icons } from '../constants';
 import * as geminiService from '../services/geminiService';
-import { TextLayer } from '../types';
 
 // Modular Sub-components
 import { Divider, IconButton } from './toolbar/ToolbarShared';
@@ -28,10 +28,8 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
   // UI State
   const [showFilters, setShowFilters] = useState(false);
   const [showResize, setShowResize] = useState(false);
-  const [showEffects, setShowEffects] = useState(false);
   const [showFontPicker, setShowFontPicker] = useState(false);
   const [showRewriteTones, setShowRewriteTones] = useState(false);
-  const [showTextEffects, setShowTextEffects] = useState(false);
   const [showGlyphs, setShowGlyphs] = useState(false);
   const [fontSearch, setFontSearch] = useState('');
 
@@ -59,6 +57,7 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
     onMagicExpand,
     toggleEraser,
     setIsProcessing,
+    setActiveTab,
   } = useStore();
 
   // Store State
@@ -69,16 +68,14 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
   const selectedLayer = layers.find((l) => selectedLayerIds.includes(l.id)) || null;
   const isMultiSelect = selectedLayerIds && selectedLayerIds.length > 1;
 
-  // Global Click Handler for dropdowns
+  // Listen for "open effects panel" event from QuickTextEffects
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (rewriteRef.current && !rewriteRef.current.contains(event.target as Node)) {
-        setShowRewriteTones(false);
-      }
+    const handleOpenEffects = () => {
+      setActiveTab(NavTab.TEXT_EFFECTS);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    window.addEventListener('open-effects-panel', handleOpenEffects);
+    return () => window.removeEventListener('open-effects-panel', handleOpenEffects);
+  }, [setActiveTab]);
 
   const handleUpdateLayer = useCallback(
     (changes: any) => {
@@ -165,8 +162,6 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
                 setShowRewriteTones={setShowRewriteTones}
                 rewriteRef={rewriteRef}
                 handleToneRewrite={handleToneRewrite}
-                showTextEffects={showTextEffects}
-                setShowTextEffects={setShowTextEffects}
                 showGlyphs={showGlyphs}
                 setShowGlyphs={setShowGlyphs}
               />
@@ -211,8 +206,6 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
               selectedLayer={selectedLayer}
               handleUpdateLayer={handleUpdateLayer}
               documentColors={documentColors}
-              showEffects={showEffects}
-              setShowEffects={setShowEffects}
               onMoveLayer={onMoveLayer}
               onDuplicateLayer={onDuplicateLayer}
               onDeleteLayer={onDeleteLayer}

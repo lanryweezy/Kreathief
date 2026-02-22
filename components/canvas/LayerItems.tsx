@@ -323,9 +323,11 @@ export const TextLayerItem = React.memo(
         if (isInteracting) {
           return;
         }
+        // Use canvas rendering for text paths, warps, and transforms
         if (textLayer.textPath && canvasRef.current) {
           renderTextOnPath(canvasRef.current, textLayer);
-        } else if (textLayer.warpStyle && textLayer.warpStyle !== 'none' && canvasRef.current) {
+        } else if (canvasRef.current && ((textLayer.warpStyle && textLayer.warpStyle !== 'none') || 
+                   (textLayer.transformType && textLayer.transformType !== 'none'))) {
           renderWarpedText(canvasRef.current, textLayer);
         }
       }, [
@@ -337,6 +339,9 @@ export const TextLayerItem = React.memo(
         textLayer.fontStyle,
         textLayer.warpStyle,
         textLayer.curve,
+        textLayer.transformType,
+        textLayer.transformIntensity,
+        textLayer.transformDirection,
         textLayer.width,
         textLayer.lineHeight,
         textLayer.textAlign,

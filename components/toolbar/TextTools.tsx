@@ -6,6 +6,7 @@ import { FontPicker } from '../FontPicker';
 import { GlyphPalette } from '../GlyphPalette';
 import { MaskTools } from './MaskTools';
 import { Dropdown } from '../Dropdown';
+import { QuickTextEffects } from './QuickTextEffects';
 import { loadFont } from '../../services/FontLoader';
 import { TextLayer } from '../../types';
 
@@ -43,13 +44,10 @@ export const TextTools = React.memo(
     setShowRewriteTones,
     rewriteRef,
     handleToneRewrite,
-    showTextEffects,
-    setShowTextEffects,
     showGlyphs,
     setShowGlyphs,
-  }: Omit<TextToolsProps, 'fontPickerRef' | 'textEffectsRef'>) => {
+  }: Omit<TextToolsProps, 'fontPickerRef' | 'textEffectsRef' | 'showTextEffects' | 'setShowTextEffects'>) => {
     const fontButtonRef = useRef<HTMLButtonElement>(null);
-    const textEffectsButtonRef = useRef<HTMLButtonElement>(null);
 
     return (
       <div className="flex items-center gap-3 flex-wrap">
@@ -184,205 +182,10 @@ export const TextTools = React.memo(
       </div>
       <Divider />
 
-      <div className="relative">
-        <button
-          ref={textEffectsButtonRef}
-          onClick={() => setShowTextEffects(!showTextEffects)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${showTextEffects ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white shadow-lg shadow-[#7d2ae8]/30' : 'bg-black/20 border-white/10 text-gray-300 hover:border-white/20 hover:bg-black/30'}`}
-        >
-          <Icons.Magic className="w-3.5 h-3.5" /> Effects
-        </button>
-        <Dropdown
-          anchorRef={textEffectsButtonRef}
-          isOpen={showTextEffects}
-          onClose={() => setShowTextEffects(false)}
-          align="right"
-        >
-          <div className="w-72 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-4 animate-fadeIn space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar backdrop-blur-xl">
-            <div className="bg-white/5 rounded-lg p-3 border border-white/5">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={!!layer.shadow}
-                    onChange={(e) =>
-                      onUpdateTextLayer(layer.id, {
-                        shadow: e.target.checked ? { color: '#000000', blur: 4, offsetX: 2, offsetY: 2 } : undefined,
-                      })
-                    }
-                    className="accent-[#7d2ae8] w-3 h-3"
-                  />
-                  Drop Shadow
-                </span>
-              </div>
-              {layer.shadow && (
-                <div className="space-y-3 pl-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[9px] text-gray-500 font-bold uppercase">Color</span>
-                    <ColorPicker
-                      value={layer.shadow.color}
-                      onChange={(color) => onUpdateTextLayer(layer.id, { shadow: { ...layer.shadow!, color } })}
-                      small
-                      documentColors={documentColors}
-                    />
-                  </div>
-                  {[
-                    { label: 'Blur', key: 'blur', max: 50 },
-                    { label: 'X', key: 'offsetX', min: -50, max: 50 },
-                    { label: 'Y', key: 'offsetY', min: -50, max: 50 },
-                  ].map((idx) => (
-                    <div key={idx.key} className="space-y-1">
-                      <div className="flex justify-between">
-                        <span className="text-[9px] text-gray-500 font-bold uppercase">{idx.label}</span>
-                        <span className="text-[9px] text-white font-mono">{(layer.shadow as any)[idx.key]}</span>
-                      </div>
-                      <input
-                        type="range"
-                        min={idx.min ?? 0}
-                        max={idx.max}
-                        value={(layer.shadow as any)[idx.key]}
-                        onChange={(e) =>
-                          onUpdateTextLayer(layer.id, {
-                            shadow: { ...layer.shadow!, [idx.key]: parseInt(e.target.value) },
-                          })
-                        }
-                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="bg-white/5 rounded-lg p-3 border border-white/5">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={!!layer.stroke}
-                    onChange={(e) =>
-                      onUpdateTextLayer(layer.id, {
-                        stroke: e.target.checked ? { color: '#000000', width: 1 } : undefined,
-                      })
-                    }
-                    className="accent-[#7d2ae8] w-3 h-3"
-                  />
-                  Stroke
-                </span>
-              </div>
-              {layer.stroke && (
-                <div className="space-y-3 pl-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[9px] text-gray-500 font-bold uppercase">Color</span>
-                    <ColorPicker
-                      value={layer.stroke.color}
-                      onChange={(color) => onUpdateTextLayer(layer.id, { stroke: { ...layer.stroke!, color } })}
-                      small
-                      documentColors={documentColors}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-[9px] text-gray-500 font-bold uppercase">Width</span>
-                      <span className="text-[9px] text-white font-mono">{layer.stroke.width}</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="1"
-                      max="20"
-                      value={layer.stroke.width}
-                      onChange={(e) =>
-                        onUpdateTextLayer(layer.id, { stroke: { ...layer.stroke!, width: parseInt(e.target.value) } })
-                      }
-                      className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="bg-white/5 rounded-lg p-3 border border-white/5">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 block">
-                Bend Text
-              </span>
-              <div className="grid grid-cols-4 gap-1.5 mb-3">
-                {['none', 'arc', 'flag', 'rise'].map((style) => (
-                  <button
-                    key={style}
-                    onClick={() => onUpdateTextLayer(layer.id, { warpStyle: style as any, curve: layer.curve || 50 })}
-                    className={`text-[9px] py-1.5 rounded-md border capitalize font-bold transition-all ${layer.warpStyle === style || (!layer.warpStyle && style === 'none') ? 'bg-[#7d2ae8] text-white border-[#7d2ae8]' : 'bg-white/5 text-gray-400 border-white/10 hover:border-white/20'}`}
-                  >
-                    {style}
-                  </button>
-                ))}
-              </div>
-              {layer.warpStyle && layer.warpStyle !== 'none' && (
-                <div className="space-y-1">
-                  <div className="flex justify-between">
-                    <span className="text-[9px] text-gray-500 font-bold uppercase">Intensity</span>
-                    <span className="text-[9px] text-white font-mono">{layer.curve}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="-100"
-                    max="100"
-                    value={layer.curve || 0}
-                    onChange={(e) => onUpdateTextLayer(layer.id, { curve: parseInt(e.target.value) })}
-                    className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="bg-white/5 rounded-lg p-3 border border-white/5">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <IconButton
-                    onClick={() =>
-                      onUpdateTextLayer(layer.id, {
-                        depth: layer.depth ? 0 : 5,
-                        depthColor: layer.depthColor || '#333333',
-                      })
-                    }
-                    active={!!(layer.depth && layer.depth > 0)}
-                    small
-                  >
-                    <Icons.Layers className="w-3 h-3" />
-                  </IconButton>
-                  3D Depth
-                </span>
-              </div>
-              {layer.depth !== undefined && layer.depth > 0 && (
-                <div className="space-y-3 pl-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[9px] text-gray-500 font-bold uppercase">Color</span>
-                    <ColorPicker
-                      value={layer.depthColor || '#333333'}
-                      onChange={(color) => onUpdateTextLayer(layer.id, { depthColor: color })}
-                      small
-                      documentColors={documentColors}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-[9px] text-gray-500 font-bold uppercase">Extrusion</span>
-                      <span className="text-[9px] text-white font-mono">{layer.depth}px</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="1"
-                      max="50"
-                      value={layer.depth}
-                      onChange={(e) => onUpdateTextLayer(layer.id, { depth: parseInt(e.target.value) })}
-                      className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </Dropdown>
-      </div>
+      <QuickTextEffects
+        layer={layer}
+        onUpdateLayer={(id, changes) => onUpdateTextLayer(id, changes)}
+      />
 
       <MaskTools
         layer={layer}
