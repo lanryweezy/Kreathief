@@ -52,18 +52,6 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
     setHexInput(value);
   }, [value]);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen]);
-
   const handleHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setHexInput(e.target.value);
     if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {

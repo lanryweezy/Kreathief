@@ -81,16 +81,33 @@ export const Dropdown: React.FC<DropdownProps> = ({
     };
   }, [isOpen, align, offset, mounted]);
 
-  // Handle escape key
+  // Handle escape key and click outside
   useEffect(() => {
     if (!isOpen) {return;}
 
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {onClose();}
     };
+
+    const handleClickOutside = (e: MouseEvent) => {
+      // Close if click is outside both the anchor button AND the dropdown content
+      if (
+        anchorRef.current &&
+        !anchorRef.current.contains(e.target as Node) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
+        onClose();
+      }
+    };
+
     document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen, onClose]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, onClose, anchorRef]);
 
   if (!isOpen || !mounted) {return null;}
 
