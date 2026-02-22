@@ -12,16 +12,9 @@ interface DashboardProps {
   onOpenProject: (project: Project) => void;
   onCreateProject: () => void;
   onLogout: () => void;
-  onOpenPricing: () => void;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({
-  user,
-  onOpenProject,
-  onCreateProject,
-  onLogout,
-  onOpenPricing,
-}) => {
+export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCreateProject, onLogout }) => {
   const { projects, loadAllProjects, deleteProject, duplicateProject, updateProject, createProject, loadProject } =
     useStore();
 
@@ -55,21 +48,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const handleCreateClick = () => {
-    if (user.plan === 'free' && projects.length >= 5) {
-      onOpenPricing();
-      return;
-    }
     setCreateModalOpen(true);
   };
 
-  const canCreateMore = user.plan !== 'free' || projects.length < 5;
-
   const handleDuplicate = async (e: React.MouseEvent, project: Project) => {
     e.stopPropagation();
-    if (!canCreateMore) {
-      onOpenPricing();
-      return;
-    }
     await duplicateProject(project);
   };
 
@@ -89,21 +72,25 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   const handleStartFromTemplate = async (templateId: string) => {
-    if (!canCreateMore) {
-      onOpenPricing();
-      return;
-    }
     const template = STARTER_TEMPLATES.find((t) => t.id === templateId);
     if (!template) {
       return;
     }
 
     const newProject = createProjectFromTemplate(template);
-    await createProject(newProject.name, newProject.state.canvasSize);
-    onOpenProject(projects[0]); // This might be wrong because createProject updates store async.
-    // Actually, createProject in store already calls initializeProject.
-    // So we just need to tell App.tsx to switch to editor.
-    onCreateProject();
+    const newProjectId = await createProject(newProject.name, newProject.state.canvasSize);
+
+    // Wait for store to update, then open the new project
+    setTimeout(() => {
+      const allProjects = useStore.getState().projects;
+      const createdProject = allProjects.find((p) => p.id === newProjectId);
+      if (createdProject) {
+        loadProject(createdProject.id);
+        onOpenProject(createdProject);
+      } else {
+        onCreateProject();
+      }
+    }, 0);
   };
 
   const filteredProjects = projects.filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -354,9 +341,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onCreate={async (size) => {
-          await createProject(size.name || 'Untitled Design', size);
-          onCreateProject();
+          const newProjectId = await createProject(size.name || 'Untitled Design', size);
           setCreateModalOpen(false);
+          // Wait a tick for store to update, then get the new project
+          setTimeout(() => {
+            const allProjects = useStore.getState().projects;
+            const newProject = allProjects.find((p) => p.id === newProjectId);
+            if (newProject) {
+              loadProject(newProject.id);
+              onOpenProject(newProject);
+            } else {
+              onCreateProject();
+            }
+          }, 0);
         }}
       />
     </div>

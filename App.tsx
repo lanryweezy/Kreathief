@@ -9,7 +9,6 @@ import { LandingPage } from './components/LandingPage';
 import { User, Project } from './types';
 import { parseShareLink } from './utils/shareUtils';
 import { STARTER_TEMPLATES } from './data/templates';
-import { logger } from './services/logger';
 
 // Lazy load main views for code splitting
 const Auth = React.lazy(() => import('./components/Auth').then((module) => ({ default: module.Auth })));
@@ -101,11 +100,6 @@ const App: React.FC = () => {
     setView('auth');
   };
 
-  const handleOpenPricing = () => {
-    // TODO: Implement pricing modal
-    logger.info('Open pricing modal');
-  };
-
   const handleOpenProject = (project: Project) => {
     setCurrentProject(project);
     setView('editor');
@@ -188,7 +182,6 @@ const App: React.FC = () => {
             onOpenProject={handleOpenProject}
             onCreateProject={handleCreateProject}
             onLogout={handleLogout}
-            onOpenPricing={handleOpenPricing}
             user={user}
           />
         )}

@@ -140,7 +140,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden selection:bg-[#7d2ae8] selection:text-white font-sans">
+    <div className="min-h-screen bg-[#050505] text-white overflow-x-auto selection:bg-[#7d2ae8] selection:text-white font-sans">
       {/* Background Gradients */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-purple-900/20 rounded-full blur-[120px] opacity-50 animate-pulse-slow"></div>
@@ -425,10 +425,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
               </div>
               <ul className="space-y-4 mb-8 flex-1">
                 <li className="flex gap-3 text-sm text-gray-300">
-                  <Icons.Check className="w-5 h-5 text-green-500" /> 5 Projects
+                  <Icons.Check className="w-5 h-5 text-green-500" /> Unlimited Projects
                 </li>
                 <li className="flex gap-3 text-sm text-gray-300">
-                  <Icons.Check className="w-5 h-5 text-green-500" /> 10 AI Generations
+                  <Icons.Check className="w-5 h-5 text-green-500" /> 10 AI Generations/mo
                 </li>
                 <li className="flex gap-3 text-sm text-gray-300">
                   <Icons.Check className="w-5 h-5 text-green-500" /> Standard Support

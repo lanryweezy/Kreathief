@@ -13,7 +13,7 @@ export interface ProjectSlice {
   setProjectTitle: (title: string) => void;
   setIsSaving: (isSaving: boolean) => void;
   saveProject: () => Promise<void>;
-  createProject: (name: string, size?: CanvasSize) => Promise<void>;
+  createProject: (name: string, size?: CanvasSize) => Promise<string>;
   deleteProject: (id: string) => Promise<void>;
   duplicateProject: (project: Project) => Promise<void>;
   updateProject: (id: string, updates: Partial<Project>) => Promise<void>;
@@ -89,6 +89,7 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
     await storageService.saveProject(newProject);
     set((state: any) => ({ projects: [newProject, ...state.projects] }));
     get().initializeProject(newProject);
+    return id;
   },
 
   deleteProject: async (id) => {
