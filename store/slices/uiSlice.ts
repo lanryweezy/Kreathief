@@ -41,6 +41,7 @@ export interface UISlice {
   isCropMode: boolean;
   croppingLayerId: string | null;
   cropArea: { x: number; y: number; width: number; height: number };
+  cropAspectRatio: number | null; // null for Free, or width/height ratio
 
   setActiveTab: (tab: NavTab) => void;
   setMode: (mode: AppMode) => void;
@@ -74,6 +75,7 @@ export interface UISlice {
   setCropArea: (area: { x: number; y: number; width: number; height: number }) => void;
   applyCrop: () => Promise<void>;
   cancelCrop: () => void;
+  setCropAspectRatio: (ratio: number | null) => void;
 
   // Collaboration
   fetchComments: () => Promise<void>;
@@ -91,7 +93,7 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   isShapeBuilderActive: false,
   zoom: 0.5,
   showGrid: false,
-  showRulers: true,
+  showRulers: false,
   snapToGrid: true,
   snapToObjects: true,
   showShortcuts: false,
@@ -109,6 +111,7 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   isCropMode: false,
   croppingLayerId: null,
   cropArea: { x: 0, y: 0, width: 0, height: 0 },
+  cropAspectRatio: null,
 
   setActiveTab: (activeTab) => set({ activeTab }),
   setMode: (mode) => set({ mode }),
@@ -248,6 +251,7 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   },
 
   cancelCrop: () => set({ isCropMode: false, croppingLayerId: null }),
+  setCropAspectRatio: (cropAspectRatio) => set({ cropAspectRatio }),
 
   fetchComments: async () => {
     const { projectId } = get();
