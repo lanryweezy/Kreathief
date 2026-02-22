@@ -363,9 +363,27 @@ export const TextLayerItem = React.memo(
             : 'none',
         WebkitBackgroundClip: textLayer.gradient && textLayer.gradient.enabled ? 'text' : 'unset',
         display: 'block',
-        ...(textLayer.shadow
+        // Support both old single shadow and new advanced multi-shadows
+        ...(textLayer.shadow || (textLayer.advancedShadows && textLayer.advancedShadows.length > 0)
           ? {
-            textShadow: `${textLayer.shadow.offsetX}px ${textLayer.shadow.offsetY}px ${textLayer.shadow.blur}px ${textLayer.shadow.color}`,
+            textShadow: textLayer.advancedShadows && textLayer.advancedShadows.length > 0
+              ? textLayer.advancedShadows
+                  .map((s) => `${s.offsetX}px ${s.offsetY}px ${s.blur}px ${s.color}`)
+                  .join(', ')
+              : textLayer.shadow
+                ? `${textLayer.shadow.offsetX}px ${textLayer.shadow.offsetY}px ${textLayer.shadow.blur}px ${textLayer.shadow.color}`
+                : undefined,
+          }
+          : {}),
+        // Apply text transformations from TextEffectsPanel
+        ...(textLayer.transformType && textLayer.transformType !== 'none'
+          ? {
+            transform: `
+              rotate(${textLayer.transformDirection || 0}deg)
+              scaleY(${1 + (textLayer.transformIntensity || 0) / 200})
+              scaleX(${1 - (textLayer.transformIntensity || 0) / 200})
+            `,
+            transformOrigin: 'center',
           }
           : {}),
         position: 'relative',
