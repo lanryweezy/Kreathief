@@ -524,7 +524,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const handleConfirmExport = async (
     format: 'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd' = 'png',
     quality: number = 0.95,
-    size?: { width: number; height: number }
+    size?: { width: number; height: number },
+    transparentBg?: boolean
   ) => {
     setIsExporting(true);
     try {
@@ -542,6 +543,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         ...(l.type === 'text' ? { fontSize: (l as TextLayer).fontSize * scaleY } : {}),
       })) as Layer[];
 
+      // Use transparent background if requested (PNG only)
+      const bgColor = transparentBg && format === 'png' ? 'transparent' : canvasBackgroundColor;
+
       let downloadUrl = '';
       if (format === 'psd') {
         const psdBlob = await psdService.exportLayersToPsd(exportWidth, exportHeight, scaledLayers);
@@ -550,7 +554,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         const svgString = await exportService.exportToSVG(
           exportWidth,
           exportHeight,
-          canvasBackgroundColor,
+          bgColor,
           scaledLayers
         );
         downloadUrl = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml' }));
@@ -558,7 +562,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         const imgDataUrl = await exportService.exportDesignToImage(
           exportWidth,
           exportHeight,
-          canvasBackgroundColor,
+          bgColor,
           activeImage?.url || uploadedImage || null,
           scaledLayers,
           canvasFilters,
@@ -572,7 +576,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         downloadUrl = await exportService.exportDesignToImage(
           exportWidth,
           exportHeight,
-          canvasBackgroundColor,
+          bgColor,
           activeImage?.url || uploadedImage || null,
           scaledLayers,
           canvasFilters,

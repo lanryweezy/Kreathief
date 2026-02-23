@@ -773,9 +773,11 @@ export const exportDesignToImage = async (
     throw new Error('Could not create canvas context');
   }
 
-  // 1. Draw Background Color
-  ctx.fillStyle = backgroundColor;
-  ctx.fillRect(0, 0, width, height);
+  // 1. Draw Background Color (skip if transparent)
+  if (backgroundColor !== 'transparent') {
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, width, height);
+  }
 
   // 2. Draw Background Image
   if (backgroundImageUrl) {
@@ -995,8 +997,10 @@ export const exportToSVG = (width: number, height: number, backgroundColor: stri
   // 1. Defs (Gradients, Filters)
   svg += generateSVGDefs(layers);
 
-  // 2. Background
-  svg += `<rect width="100%" height="100%" fill="${backgroundColor}" />`;
+  // 2. Background (skip if transparent)
+  if (backgroundColor !== 'transparent') {
+    svg += `<rect width="100%" height="100%" fill="${backgroundColor}" />`;
+  }
 
   // 3. Draw Layers
   const tempCanvas = document.createElement('canvas');

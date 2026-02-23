@@ -10,11 +10,14 @@ export interface MockupPlacement {
   skewY: number;
   opacity: number;
   blendMode: 'multiply' | 'screen' | 'overlay' | 'source-over' | 'soft-light';
+  // Corner pinning (4-point perspective)
   cornerTopLeft?: { x: number; y: number };
   cornerTopRight?: { x: number; y: number };
   cornerBottomLeft?: { x: number; y: number };
   cornerBottomRight?: { x: number; y: number };
-  perspective?: number;
+  useCornerPinning?: boolean;
+  perspectiveIntensity?: number;
+  curve?: number;
 }
 
 export interface MockupDef {
