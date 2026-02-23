@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Icons } from '../../constants';
 import { dynamicMockupsService } from '../../services/dynamicMockupsService';
 import { MockupModal } from '../modals/MockupModal';
+import { CornerHandles } from '../mockup/CornerHandles';
 import { MOCKUP_CATEGORIES, getMockupsByCategory, searchMockups, getMockupById, MockupPlacement } from '../../services/enhancedMockupsLibrary';
 import {
   getDefaultCornerPoints,
@@ -66,6 +67,8 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
   const [cornerPoints, setCornerPoints] = useState<CornerPoints | null>(null);
   const [curve, setCurve] = useState(0);
   const [perspectivePreset, setPerspectivePreset] = useState<'flat' | 'angled' | 'curved'>('flat');
+  const [previewContainerSize, setPreviewContainerSize] = useState({ width: 800, height: 600 });
+  const previewContainerRef = useRef<HTMLDivElement>(null);
 
   // Current placement state (initialized from mockup default)
   const [placement, setPlacement] = useState<MockupPlacement>({
@@ -103,6 +106,36 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
       setPerspectivePreset('flat');
     }
   }, [currentMockup]);
+
+  // Handle corner change from drag interaction
+  const handleCornerChange = useCallback(
+    (corner: keyof CornerPoints, point: { x: number; y: number }) => {
+      if (cornerPoints) {
+        setCornerPoints({
+          ...cornerPoints,
+          [corner]: point,
+        });
+      }
+    },
+    [cornerPoints]
+  );
+
+  // Measure preview container size
+  useEffect(() => {
+    const updateContainerSize = () => {
+      if (previewContainerRef.current) {
+        const rect = previewContainerRef.current.getBoundingClientRect();
+        setPreviewContainerSize({
+          width: rect.width,
+          height: rect.height,
+        });
+      }
+    };
+
+    updateContainerSize();
+    window.addEventListener('resize', updateContainerSize);
+    return () => window.removeEventListener('resize', updateContainerSize);
+  }, []);
 
   // Capture design snapshot
   const captureDesign = async () => {
@@ -514,7 +547,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
           {mockups.length === 0 && (
             <div className="text-center py-8 text-gray-500 text-xs">
               <Icons.Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p>No mockups found for "{searchQuery}"</p>
+              <p>No mockups found for &quot;{searchQuery}&quot;</p>
               <button onClick={() => setSearchQuery('')} className="mt-2 text-[#7d2ae8] hover:underline">
                 Clear search
               </button>
@@ -539,14 +572,33 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
             </button>
           </div>
 
-          <div className="aspect-video relative bg-[#0e1318] flex items-center justify-center p-4">
+          <div
+            ref={previewContainerRef}
+            className="aspect-video relative bg-[#0e1318] flex items-center justify-center p-4 overflow-hidden"
+          >
             {isGenerating && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-sm">
                 <div className="animate-spin w-6 h-6 border-2 border-[#7d2ae8] border-t-transparent rounded-full" />
               </div>
             )}
             {generatedPreview ? (
-              <img src={generatedPreview} className="max-w-full max-h-full object-contain shadow-2xl rounded" />
+              <>
+                <img
+                  src={generatedPreview}
+                  className="max-w-full max-h-full object-contain shadow-2xl rounded"
+                  alt="Mockup preview"
+                />
+                {/* Interactive Corner Handles Overlay */}
+                {useCornerPinning && cornerPoints && (
+                  <CornerHandles
+                    cornerPoints={cornerPoints}
+                    onCornerChange={handleCornerChange}
+                    containerWidth={previewContainerSize.width - 32} // Account for padding
+                    containerHeight={previewContainerSize.height - 32}
+                    isVisible={useCornerPinning}
+                  />
+                )}
+              </>
             ) : (
               <span className="text-gray-600 text-xs">Generating preview...</span>
             )}
@@ -616,12 +668,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
                     setUseCornerPinning(!useCornerPinning);
                     if (!useCornerPinning) {
                       // Initialize corner points when enabling
-                      const canvas = document.createElement('canvas');
-                      canvas.width = 800;
-                      canvas.height = 600;
                       const defaultCorners = getDefaultCornerPoints(
-                        800,
-                        600,
+                        previewContainerSize.width - 32,
+                        previewContainerSize.height - 32,
                         placement
                       );
                       setCornerPoints(defaultCorners);
