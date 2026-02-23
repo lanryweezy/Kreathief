@@ -261,6 +261,8 @@ export interface ShapeLayer extends LayerBase {
   gradient?: Gradient;
   backgroundImage?: string;
   backgroundScale?: number; // 1 = 100%
+  backgroundPositionX?: number;
+  backgroundPositionY?: number;
   pathData?: string; // SVG Path D attribute for custom shapes
   viewBox?: string; // SVG ViewBox
   vectorPath?: VectorPath; // For active editing

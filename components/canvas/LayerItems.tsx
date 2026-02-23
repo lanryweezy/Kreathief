@@ -206,14 +206,29 @@ export const ShapeLayerItem = React.memo(
                 ? 'transparent'
                 : shapeLayer.type === 'path'
                   ? 'transparent'
-                  : shapeLayer.color,
+                  : shapeLayer.imageFill
+                    ? 'transparent'  // Let imageFill handle the background
+                    : shapeLayer.color,
               backgroundImage: (shapeLayer as any).params?.gradient
                 ? `linear-gradient(${(shapeLayer as any).params.gradient.angle}deg, ${(shapeLayer as any).params.gradient.startColor}, ${(shapeLayer as any).params.gradient.endColor})`
-                : shapeLayer.backgroundImage
-                  ? `url(${shapeLayer.backgroundImage})`
-                  : 'none',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
+                : shapeLayer.imageFill
+                  ? `url(${shapeLayer.imageFill.src})`
+                  : shapeLayer.backgroundImage
+                    ? `url(${shapeLayer.backgroundImage})`
+                    : 'none',
+              backgroundSize: shapeLayer.imageFill?.fit === 'contain'
+                ? 'contain'
+                : shapeLayer.imageFill?.fit === 'fill'
+                  ? '100% 100%'
+                  : shapeLayer.backgroundScale
+                    ? `${shapeLayer.backgroundScale * 100}%`
+                    : 'cover',
+              backgroundPosition: shapeLayer.imageFill
+                ? `${(shapeLayer.imageFill.offsetX || 0) * 100}% ${(shapeLayer.imageFill.offsetY || 0) * 100}%`
+                : shapeLayer.backgroundPositionX || shapeLayer.backgroundPositionY
+                  ? `${shapeLayer.backgroundPositionX || 0}px ${shapeLayer.backgroundPositionY || 0}px`
+                  : 'center',
+              backgroundRepeat: shapeLayer.imageFill?.fit === 'contain' || shapeLayer.imageFill?.fit === 'fill' ? 'no-repeat' : 'repeat',
               boxShadow:
                 shapeLayer.shadow && shapeLayer.type !== 'path'
                   ? `${shapeLayer.shadow.offsetX}px ${shapeLayer.shadow.offsetY}px ${shapeLayer.shadow.blur}px ${shapeLayer.shadow.color}`
@@ -223,12 +238,12 @@ export const ShapeLayerItem = React.memo(
               clipPath: shapeLayer.type === 'path' ? undefined : clipPath,
               filter: shapeLayer.filters
                 ? `
-                    brightness(${shapeLayer.filters.brightness}%) 
-                    contrast(${shapeLayer.filters.contrast}%) 
-                    saturate(${shapeLayer.filters.saturation}%) 
-                    grayscale(${shapeLayer.filters.grayscale}%) 
-                    blur(${shapeLayer.filters.blur}px) 
-                    sepia(${shapeLayer.filters.sepia}%) 
+                    brightness(${shapeLayer.filters.brightness}%)
+                    contrast(${shapeLayer.filters.contrast}%)
+                    saturate(${shapeLayer.filters.saturation}%)
+                    grayscale(${shapeLayer.filters.grayscale}%)
+                    blur(${shapeLayer.filters.blur}px)
+                    sepia(${shapeLayer.filters.sepia}%)
                     hue-rotate(${shapeLayer.filters.hueRotate}deg)
                     ${shapeLayer.shadow && shapeLayer.type === 'path' ? `drop-shadow(${shapeLayer.shadow.offsetX}px ${shapeLayer.shadow.offsetY}px ${shapeLayer.shadow.blur}px ${shapeLayer.shadow.color})` : ''}
                 `

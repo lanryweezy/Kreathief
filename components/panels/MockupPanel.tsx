@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Icons } from '../../constants';
 import { dynamicMockupsService } from '../../services/dynamicMockupsService';
 import { MockupModal } from '../modals/MockupModal';
+import { MOCKUP_CATEGORIES, getMockupsByCategory, searchMockups, getMockupById, MockupPlacement } from '../../services/enhancedMockupsLibrary';
 
 import { useStore } from '../../store/useStore';
 import { v4 as uuidv4 } from 'uuid';
@@ -9,48 +10,6 @@ import { v4 as uuidv4 } from 'uuid';
 interface MockupPanelProps {
   onExportForMockup: () => Promise<string>;
 }
-
-interface MockupPlacement {
-  top: number;
-  left: number;
-  width: number; // percentage width relative to bg
-  rotate: number; // degrees
-  skewX: number;
-  skewY: number;
-  opacity: number;
-  blendMode: 'multiply' | 'screen' | 'overlay' | 'source-over' | 'soft-light';
-}
-
-interface MockupDef {
-  id: string;
-  name: string;
-  category: string;
-  bg: string;
-  defaultPlacement: MockupPlacement;
-}
-
-const MOCKUP_CATEGORIES = ['All', 'Apparel', 'Digital', 'Print', 'Packaging', 'Outdoor'];
-
-// Helper to create default placement
-const defPlace = (
-  top = 30,
-  left = 30,
-  width = 40,
-  rotate = 0,
-  skewX = 0,
-  skewY = 0,
-  opacity = 0.9,
-  blendMode: MockupPlacement['blendMode'] = 'multiply'
-): MockupPlacement => ({
-  top,
-  left,
-  width,
-  rotate,
-  skewX,
-  skewY,
-  opacity,
-  blendMode,
-});
 
 export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) => {
   const addLayer = useStore((state) => state.addLayer);
@@ -97,142 +56,29 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
   const [proRenderUrl, setProRenderUrl] = useState<string | null>(null);
   const [isProGenerating, setIsProGenerating] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Current placement state (initialized from mockup default)
-  const [placement, setPlacement] = useState<MockupPlacement>(defPlace());
+  const [placement, setPlacement] = useState<MockupPlacement>({
+    top: 30,
+    left: 30,
+    width: 40,
+    rotate: 0,
+    skewX: 0,
+    skewY: 0,
+    opacity: 0.9,
+    blendMode: 'multiply',
+  });
 
   const liveIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const mockups: MockupDef[] = [
-    // Apparel
-    {
-      id: 'tshirt_flat',
-      name: 'T-Shirt Flat',
-      category: 'Apparel',
-      bg: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80',
-      defaultPlacement: defPlace(25, 28, 45),
-    },
-    {
-      id: 'hoodie',
-      name: 'Hoodie',
-      category: 'Apparel',
-      bg: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=600&q=80',
-      defaultPlacement: defPlace(25, 30, 40),
-    },
-    {
-      id: 'model_tshirt',
-      name: 'Model T-Shirt',
-      category: 'Apparel',
-      bg: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&w=600&q=80',
-      defaultPlacement: defPlace(30, 32, 35),
-    },
-    {
-      id: 'totebag',
-      name: 'Tote Bag',
-      category: 'Apparel',
-      bg: 'https://images.unsplash.com/photo-1597484662317-c9253e609141?auto=format&fit=crop&w=600&q=80',
-      defaultPlacement: defPlace(45, 35, 30),
-    },
-    {
-      id: 'minimal_tshirt',
-      name: 'Minimal White T-Shirt',
-      category: 'Apparel',
-      bg: '/New folder/man-wearing-minimal-white-t-shirt.jpg',
-      defaultPlacement: defPlace(30, 32, 35),
-    },
-    {
-      id: 'grunge_apparel',
-      name: 'Grunge Black Top',
-      category: 'Apparel',
-      bg: '/New folder/teenage-girl-black-top-flannel-shirt-youth-apparel-grunge-fashion-shoot.jpg',
-      defaultPlacement: defPlace(25, 30, 40),
-    },
-
-    // Digital
-    {
-      id: 'macbook',
-      name: 'MacBook',
-      category: 'Digital',
-      bg: 'https://images.unsplash.com/photo-1517336712603-d2d0f0464686?auto=format&fit=crop&w=600&q=80',
-      defaultPlacement: defPlace(18, 22, 56, 0, 0, 0, 0.95, 'source-over'),
-    },
-    {
-      id: 'iphone',
-      name: 'iPhone',
-      category: 'Digital',
-      bg: 'https://images.unsplash.com/photo-1586105251261-72a756497a11?auto=format&fit=crop&w=600&q=80',
-      defaultPlacement: defPlace(20, 38, 25, 0, 0, 0, 0.95, 'source-over'),
-    },
-    {
-      id: 'ipad',
-      name: 'iPad Pro',
-      category: 'Digital',
-      bg: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=600&q=80',
-      defaultPlacement: defPlace(15, 25, 50, 0, 0, 0, 0.95, 'source-over'),
-    },
-
-    // Print
-    {
-      id: 'poster_frame',
-      name: 'Poster Frame',
-      category: 'Print',
-      bg: 'https://images.unsplash.com/photo-1579762715118-a6f1d4b934f1?auto=format&fit=crop&w=600&q=80',
-      defaultPlacement: defPlace(15, 27, 46, -2, 0, 0, 0.9, 'multiply'),
-    },
-    {
-      id: 'business_card',
-      name: 'Business Cards',
-      category: 'Print',
-      bg: 'https://images.unsplash.com/photo-1589330694653-ded6df53f6ee?auto=format&fit=crop&w=600&q=80',
-      defaultPlacement: defPlace(35, 25, 50, -15, 10, 0, 0.9, 'multiply'),
-    },
-    {
-      id: 'magazine',
-      name: 'Magazine',
-      category: 'Print',
-      bg: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=600&q=80',
-      defaultPlacement: defPlace(20, 30, 40, 5, 0, 0, 0.9, 'multiply'),
-    },
-
-    // Packaging
-    {
-      id: 'coffee_bag',
-      name: 'Coffee Bag',
-      category: 'Packaging',
-      bg: 'https://images.unsplash.com/photo-1559526323-cb2f2fe2591b?auto=format&fit=crop&w=600&q=80',
-      defaultPlacement: defPlace(30, 35, 30, 0, 0, 5, 0.9, 'multiply'),
-    },
-    {
-      id: 'box',
-      name: 'Mailer Box',
-      category: 'Packaging',
-      bg: 'https://images.unsplash.com/photo-1586769852044-692d6e3703f0?auto=format&fit=crop&w=600&q=80',
-      defaultPlacement: defPlace(25, 25, 50, 0, 0, 0, 0.9, 'multiply'),
-    },
-    {
-      id: 'cosmetic',
-      name: 'Bottle',
-      category: 'Packaging',
-      bg: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=600&q=80',
-      defaultPlacement: defPlace(40, 45, 10, 0, 0, 0, 0.8, 'multiply'),
-    },
-
-    // Outdoor
-    {
-      id: 'billboard',
-      name: 'Billboard',
-      category: 'Outdoor',
-      bg: 'https://images.unsplash.com/photo-1542662565-7e4b66b5adaa?auto=format&fit=crop&w=600&q=80',
-      defaultPlacement: defPlace(10, 25, 50),
-    },
-    {
-      id: 'sign',
-      name: 'Wall Sign',
-      category: 'Outdoor',
-      bg: 'https://images.unsplash.com/photo-1514454529242-9e467756334d?auto=format&fit=crop&w=600&q=80',
-      defaultPlacement: defPlace(20, 30, 40),
-    },
-  ];
+  // Use enhanced mockups library
+  const mockups = useMemo(() => {
+    if (searchQuery.trim()) {
+      return searchMockups(searchQuery);
+    }
+    return getMockupsByCategory(activeCategory);
+  }, [activeCategory, searchQuery]);
 
   const currentMockup = useMemo(() => mockups.find((m) => m.id === activeMockupId) || mockups[0], [activeMockupId]);
 
@@ -242,13 +88,6 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
       setPlacement(currentMockup.defaultPlacement);
     }
   }, [currentMockup]);
-
-  const filteredMockups = useMemo(() => {
-    if (activeCategory === 'All') {
-      return mockups;
-    }
-    return mockups.filter((m) => m.category === activeCategory);
-  }, [activeCategory]);
 
   // Capture design snapshot
   const captureDesign = async () => {
@@ -452,11 +291,63 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
           </div>
         </div>
 
+        {/* Search Bar */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search mockups (e.g., t-shirt, phone, coffee)..."
+            className="w-full bg-[#1e1e1e] border border-gray-700 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white focus:border-[#7d2ae8] focus:outline-none"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+            >
+              <Icons.X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Quick Stats */}
+        <div className="flex items-center justify-between text-[10px] text-gray-400">
+          <span>
+            Showing <span className="text-white font-bold">{mockups.length}</span> mockups
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setPlacement({ ...placement, skewX: 0, skewY: 0, rotate: 0 });
+              }}
+              className="px-2 py-1 bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#7d2ae8] transition-colors"
+              title="Reset perspective"
+            >
+              Reset Perspective
+            </button>
+            <button
+              onClick={() => {
+                const current = getMockupById(activeMockupId);
+                if (current) {
+                  setPlacement(current.defaultPlacement);
+                }
+              }}
+              className="px-2 py-1 bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#7d2ae8] transition-colors"
+              title="Reset all"
+            >
+              Reset All
+            </button>
+          </div>
+        </div>
+
         {/* Categories Grid */}
         <div>
-          <h3 className="text-xs font-bold text-gray-400 mb-3 uppercase tracking-wider">Select Mockup</h3>
+          <h3 className="text-xs font-bold text-gray-400 mb-3 uppercase tracking-wider">
+            {searchQuery ? 'Search Results' : 'Select Mockup'}
+          </h3>
           <div className="grid grid-cols-2 gap-3">
-            {filteredMockups.map((m) => (
+            {mockups.map((m) => (
               <button
                 key={m.id}
                 onClick={() => setActiveMockupId(m.id)}
@@ -470,9 +361,23 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex items-end p-2">
                   <span className="text-[10px] font-bold text-white shadow-sm">{m.name}</span>
                 </div>
+                {m.category && (
+                  <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-black/60 backdrop-blur-sm rounded text-[8px] text-gray-300">
+                    {m.category}
+                  </div>
+                )}
               </button>
             ))}
           </div>
+          {mockups.length === 0 && (
+            <div className="text-center py-8 text-gray-500 text-xs">
+              <Icons.Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
+              <p>No mockups found for "{searchQuery}"</p>
+              <button onClick={() => setSearchQuery('')} className="mt-2 text-[#7d2ae8] hover:underline">
+                Clear search
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Preview & Controls */}
@@ -507,6 +412,54 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
 
           {/* Adjustments */}
           <div className="p-4 space-y-4 bg-[#1a1d21]">
+            {/* Quick Actions */}
+            <div className="flex flex-wrap gap-2 pb-2 border-b border-gray-700/50">
+              <button
+                onClick={() => {
+                  // Auto-fit: Reset to default placement for current mockup
+                  const current = getMockupById(activeMockupId);
+                  if (current) {
+                    setPlacement(current.defaultPlacement);
+                  }
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#7d2ae8]/20 border border-[#7d2ae8]/50 text-[#7d2ae8] rounded-lg text-[10px] font-bold hover:bg-[#7d2ae8]/30 transition-all"
+                title="Auto-fit to mockup default position"
+              >
+                <Icons.Magic className="w-3.5 h-3.5" />
+                Auto-Fit
+              </button>
+              <button
+                onClick={() => {
+                  // Smart blend: Set optimal blend mode based on mockup category
+                  const current = getMockupById(activeMockupId);
+                  if (current) {
+                    const isApparel = current.category === 'Apparel';
+                    const isPrint = current.category === 'Print';
+                    updatePlacement(
+                      'blendMode',
+                      isApparel ? 'multiply' : isPrint ? 'multiply' : 'source-over'
+                    );
+                  }
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#00c4cc]/20 border border-[#00c4cc]/50 text-[#00c4cc] rounded-lg text-[10px] font-bold hover:bg-[#00c4cc]/30 transition-all"
+                title="Apply smart blend mode for this mockup type"
+              >
+                <Icons.Layers className="w-3.5 h-3.5" />
+                Smart Blend
+              </button>
+              <button
+                onClick={() => {
+                  // Reset perspective only
+                  setPlacement({ ...placement, skewX: 0, skewY: 0, rotate: 0 });
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-700/50 border border-gray-600 text-gray-300 rounded-lg text-[10px] font-bold hover:bg-gray-700 transition-all"
+                title="Reset perspective adjustments"
+              >
+                <Icons.RefreshCw className="w-3.5 h-3.5" />
+                Reset View
+              </button>
+            </div>
+
             {/* Position */}
             <div className="space-y-3">
               <div className="flex justify-between items-center text-[10px]">
