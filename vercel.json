@@ -9,5 +9,14 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "env": {
+    "VITE_UNSPLASH_ACCESS_KEY": "TMihMwpAViRw5m_quB3jRuz5E1JqM6lq80tk61Te0NE",
+    "VITE_UNSPLASH_SECRET_KEY": "r33Rec9tdBFW63HyuGFNKfsZSlNcIIzNqizbcabIijo",
+    "VITE_STREAMLINE_API_KEY": "IsccadJVao54BJh4.54e8c4f46c3b677f75f3cfc5a7b24af1",
+    "VITE_FREEPIK_API_KEY": "FPSX40ef8a80843a35ba41580998f686b7e4",
+    "VITE_DYNAMIC_MOCKUPS_API_KEY": "dd5e6fd8-e221-4264-aed6-387914b460ed:e0467e1585bb1aa2b35b32f36baa07a5d25b001ad027129fae9b4febd6aaa7c5",
+    "VITE_VECTEEZY_API_KEY": "IsccadJVao54BJh4.54e8c4f46c3b677f75f3cfc5a7b24af1",
+    "VITE_GEMINI_API_KEY": "AIzaSyCaKWA1N7JU9jDyPw1i8n3X4n1Q0DtZL5A"
+  }
 }
