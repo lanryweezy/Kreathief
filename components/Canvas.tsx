@@ -133,6 +133,9 @@ const CanvasComponent: React.FC<CanvasProps> = ({
   const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
 
+  // Calculate minimum zoom to fit canvas in viewport on mobile
+  const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
+
   const [hoveredLayerId, setHoveredLayerId] = useState<string | null>(null);
   const [dragState, setDragState] = useState<{
     isDragging: boolean;
@@ -231,6 +234,31 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     viewport.addEventListener('wheel', handleWheel, { passive: false });
     return () => viewport.removeEventListener('wheel', handleWheel);
   }, [onZoomChange, isSpacePressed, isDrawing]);
+
+  // Calculate minimum zoom to fit canvas in viewport (especially for mobile)
+  useEffect(() => {
+    const calculateMinZoom = () => {
+      const viewport = viewportRef.current;
+      if (!viewport) return;
+
+      const rect = viewport.getBoundingClientRect();
+      setViewportSize({ width: rect.width, height: rect.height });
+
+      // Calculate minimum zoom to fit entire canvas in viewport
+      const minZoomX = rect.width / canvasSize.width;
+      const minZoomY = rect.height / canvasSize.height;
+      const minZoom = Math.min(minZoomX, minZoomY);
+
+      // Auto-zoom to fit on initial load if zoom is too small
+      if (zoom < minZoom && minZoom < 1) {
+        onZoomChange(minZoom);
+      }
+    };
+
+    calculateMinZoom();
+    window.addEventListener('resize', calculateMinZoom);
+    return () => window.removeEventListener('resize', calculateMinZoom);
+  }, [canvasSize.width, canvasSize.height, onZoomChange, zoom]);
 
   // Refs for state sync in handlers
   const dragStateRef = useRef(dragState);
@@ -1267,16 +1295,31 @@ const CanvasComponent: React.FC<CanvasProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={() => onZoomChange(Math.max(0.1, zoom - 0.1))}
-              className="p-1 hover:bg-gray-700 rounded text-gray-400"
+              className="p-1 hover:bg-gray-700 rounded text-gray-400 transition-colors"
+              title="Zoom Out"
             >
               <Icons.ZoomOut className="w-4 h-4" />
             </button>
-            <span className="text-xs text-gray-300 w-12 text-center">{Math.round(zoom * 100)}%</span>
+            <span className="text-xs text-gray-300 w-14 text-center font-mono">{Math.round(zoom * 100)}%</span>
             <button
-              onClick={() => onZoomChange(Math.min(3, zoom + 0.1))}
-              className="p-1 hover:bg-gray-700 rounded text-gray-400"
+              onClick={() => onZoomChange(Math.min(5, zoom + 0.1))}
+              className="p-1 hover:bg-gray-700 rounded text-gray-400 transition-colors"
+              title="Zoom In"
             >
               <Icons.ZoomIn className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => {
+                // Auto-fit zoom
+                const minZoomX = viewportSize.width / canvasSize.width;
+                const minZoomY = viewportSize.height / canvasSize.height;
+                const fitZoom = Math.min(minZoomX, minZoomY, 1);
+                onZoomChange(Math.max(0.1, fitZoom));
+              }}
+              className="ml-2 px-2 py-1 text-xs bg-[#7d2ae8]/20 text-[#7d2ae8] rounded hover:bg-[#7d2ae8]/30 transition-colors"
+              title="Fit to Screen"
+            >
+              Fit
             </button>
           </div>
           <div className="flex items-center gap-2">
@@ -1315,7 +1358,12 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
         <div
           ref={viewportRef}
-          className="flex-1 overflow-hidden relative bg-gray-900 cursor-grab active:cursor-grabbing touch-none"
+          className="flex-1 overflow-hidden relative bg-gray-900 cursor-grab active:cursor-grabbing touch-none select-none"
+          style={{
+            minHeight: '100%',
+            minWidth: '100%',
+            WebkitOverflowScrolling: 'touch',
+          }}
           onWheel={(e) => {
             if (e.ctrlKey || e.metaKey) {
               e.preventDefault();
@@ -1344,19 +1392,27 @@ const CanvasComponent: React.FC<CanvasProps> = ({
           <div
             ref={panContainerRef}
             className="absolute inset-0 flex items-center justify-center pointer-events-none"
-            style={{ transform: `translate(${panOffset.x}px, ${panOffset.y}px)` }}
+            style={{
+              transform: `translate(${panOffset.x}px, ${panOffset.y}px)`,
+              minWidth: canvasSize.width,
+              minHeight: canvasSize.height,
+            }}
           >
             <div
               ref={containerRef}
               id="canvas-container"
-              className="relative shadow-2xl origin-center bg-white pointer-events-auto"
+              className="relative shadow-2xl bg-white pointer-events-auto"
               style={{
                 width: canvasSize.width,
                 height: canvasSize.height,
                 transform: `scale(${zoom})`,
+                transformOrigin: 'center center',
                 backgroundColor: canvasBackgroundColor,
                 filter: `brightness(${canvasFilters.brightness}%) contrast(${canvasFilters.contrast}%) saturate(${canvasFilters.saturation}%) sepia(${canvasFilters.sepia}%) grayscale(${canvasFilters.grayscale}%) blur(${canvasFilters.blur}px)`,
                 opacity: canvasFilters.opacity,
+                flexShrink: 0,
+                minWidth: canvasSize.width,
+                minHeight: canvasSize.height,
               }}
             >
               {showRulers && (
