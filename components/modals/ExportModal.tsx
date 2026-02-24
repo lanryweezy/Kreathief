@@ -23,15 +23,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
   const [isCopying, setIsCopying] = useState(false);
   const [exportStage, setExportStage] = useState<string>('');
   const [highDPI, setHighDPI] = useState(false);
-  
-  // NEW: Scale multiplier
-  const [exportScale, setExportScale] = useState<number>(1);
-  
-  // NEW: Transparent background (PNG only)
+
+  // Transparent background (PNG only)
   const [transparentBg, setTransparentBg] = useState(false);
-  
-  // NEW: Custom filename
-  const [filename, setFilename] = useState<string>('design');
 
   const presets = [
     {
@@ -54,8 +48,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
     try {
       const preset = presets.find((p) => p.id === activePreset);
-      // Combine highDPI and exportScale multipliers
-      const scale = (highDPI ? 3 : 1) * exportScale;
+      const scale = highDPI ? 3 : 1;
       const size = preset
         ? { width: preset.width * scale, height: preset.height * scale }
         : { width: currentSize.width * scale, height: currentSize.height * scale };
@@ -66,7 +59,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       await onExport(format, quality, size, transparentBg && format === 'png');
 
       setExportStage('Complete!');
-      addToast(`Exported as ${filename}.${format}!`, 'success');
+      addToast(`Exported as ${format.toUpperCase()}!`, 'success');
       setTimeout(() => onClose(), 300);
     } catch (e) {
       console.error(e);
@@ -170,32 +163,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
               </div>
             )}
 
-            {/* NEW: Scale Multiplier */}
-            <div>
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">
-                Export Scale
-              </label>
-              <div className="flex gap-2">
-                {[1, 2, 3].map((scale) => (
-                  <button
-                    key={scale}
-                    onClick={() => setExportScale(scale)}
-                    className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all border ${
-                      exportScale === scale
-                        ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white shadow-lg shadow-purple-900/30'
-                        : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500'
-                    }`}
-                  >
-                    {scale}x
-                    <span className="block text-[9px] opacity-60 mt-0.5">
-                      {scale === 1 ? 'Web' : scale === 2 ? 'Print' : 'Retina'}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* NEW: Transparent Background (PNG only) */}
+            {/* Transparent Background (PNG only) */}
             {format === 'png' && (
               <div className="flex items-center justify-between p-4 bg-[#13161a] border border-gray-700 rounded-xl">
                 <div>
@@ -212,26 +180,6 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 </button>
               </div>
             )}
-
-            {/* NEW: Custom Filename */}
-            <div>
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">
-                Filename
-              </label>
-              <div className="relative">
-                <Icons.Edit className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                <input
-                  type="text"
-                  value={filename}
-                  onChange={(e) => setFilename(e.target.value.replace(/[^a-z0-9-_]/gi, ''))}
-                  placeholder="my-design"
-                  className="w-full bg-[#252627] border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#7d2ae8] transition-all font-mono"
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">
-                  .{format}
-                </span>
-              </div>
-            </div>
 
             {/* High DPI Toggle */}
             <div className="flex items-center justify-between p-4 bg-[#13161a] border border-gray-700 rounded-xl">

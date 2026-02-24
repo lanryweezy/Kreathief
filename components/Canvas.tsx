@@ -1179,14 +1179,14 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     }
   };
 
-  // Drawing Logic
+  // Drawing Logic - Enhanced with brush-specific rendering
   const handleDrawingMouseDown = (e: React.MouseEvent) => {
     if (!isDrawing || !drawingCanvasRef.current) {
       return;
     }
     const rect = drawingCanvasRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / zoom,
-      y = (e.clientY - rect.top) / zoom;
+    const x = (e.clientX - rect.left),
+      y = (e.clientY - rect.top);
     drawingLastPos.current = { x, y };
     setDrawingState({ isDrawingPath: true });
     if (brushType === BrushType.VECTOR_PENCIL) {
@@ -1197,10 +1197,44 @@ const CanvasComponent: React.FC<CanvasProps> = ({
       ctx.beginPath();
       ctx.moveTo(x, y);
       ctx.strokeStyle = brushColor;
-      ctx.lineWidth = brushSize;
+      ctx.lineWidth = brushSize * zoom;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.globalAlpha = brushOpacity;
+      
+      // Brush-specific settings
+      switch (brushType) {
+        case BrushType.PENCIL:
+          ctx.lineWidth = brushSize * zoom * 0.5;
+          ctx.globalAlpha = brushOpacity * 0.8;
+          break;
+        case BrushType.CALLIGRAPHY:
+          ctx.lineCap = 'square';
+          ctx.lineWidth = brushSize * zoom * 1.5;
+          break;
+        case BrushType.OIL:
+          ctx.lineWidth = brushSize * zoom * 2;
+          ctx.globalAlpha = brushOpacity * 0.9;
+          break;
+        case BrushType.CRAYON:
+          ctx.lineWidth = brushSize * zoom * 1.2;
+          ctx.setLineDash([2, 1]);
+          break;
+        case BrushType.WATERCOLOR:
+          ctx.globalAlpha = brushOpacity * 0.3;
+          ctx.lineWidth = brushSize * zoom * 1.5;
+          break;
+        case BrushType.SPLATTER:
+          ctx.lineWidth = brushSize * zoom * 0.8;
+          ctx.globalAlpha = brushOpacity * 0.6;
+          break;
+        case BrushType.TEXTURE:
+          ctx.setLineDash([5, 3]);
+          ctx.lineWidth = brushSize * zoom * 1.3;
+          break;
+        default:
+          ctx.setLineDash([]);
+      }
     }
   };
 
@@ -1209,8 +1243,8 @@ const CanvasComponent: React.FC<CanvasProps> = ({
       return;
     }
     const rect = drawingCanvasRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / zoom,
-      y = (e.clientY - rect.top) / zoom;
+    const x = (e.clientX - rect.left),
+      y = (e.clientY - rect.top);
     const ctx = drawingCanvasRef.current.getContext('2d');
     if (!ctx) {
       return;
@@ -1221,8 +1255,19 @@ const CanvasComponent: React.FC<CanvasProps> = ({
       ctx.lineTo(x, y);
       ctx.stroke();
     } else {
-      ctx.lineTo(x, y);
+      // Add randomness for certain brushes
+      if ([BrushType.SPLATTER, BrushType.CRAYON, BrushType.TEXTURE].includes(brushType)) {
+        const randomOffset = (Math.random() - 0.5) * brushSize * zoom * 0.5;
+        ctx.lineTo(x + randomOffset, y + randomOffset);
+      } else {
+        ctx.lineTo(x, y);
+      }
       ctx.stroke();
+      
+      // Reset line dash for next stroke
+      if ([BrushType.CRAYON, BrushType.TEXTURE].includes(brushType)) {
+        ctx.setLineDash([]);
+      }
     }
     drawingLastPos.current = { x, y };
   };
@@ -1578,8 +1623,14 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
               <canvas
                 ref={drawingCanvasRef}
-                width={canvasSize.width}
-                height={canvasSize.height}
+                width={canvasSize.width * zoom}
+                height={canvasSize.height * zoom}
+                style={{
+                  width: canvasSize.width,
+                  height: canvasSize.height,
+                  transform: `scale(${zoom})`,
+                  transformOrigin: 'top left',
+                }}
                 className={`absolute inset-0 z-[100] touch-none ${isDrawing ? 'cursor-crosshair opacity-100' : 'pointer-events-none opacity-0'}`}
                 onMouseDown={handleDrawingMouseDown}
                 onMouseMove={handleDrawingMouseMove}
