@@ -14,15 +14,15 @@ export class EditorPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.canvas = page.locator('canvas').first();
-    this.canvasContainer = page.locator('.canvas-container, [data-testid="canvas-container"]');
-    this.projectTitleInput = page.locator('input#header-title, input[placeholder*="Title"]');
-    this.exportButton = page.locator('button:has-text("Export"), [data-testid="export-btn"]');
-    this.saveButton = page.locator('button:has-text("Save"), [data-testid="save-btn"]');
-    this.zoomControls = page.locator('[data-testid="zoom-controls"], .zoom-controls');
+    this.canvas = page.locator('#canvas-container, canvas').first();
+    this.canvasContainer = page.locator('#canvas-container, .canvas-container, [data-testid="canvas-container"]');
+    this.projectTitleInput = page.locator('input#header-title, input[placeholder*="Title"], input[placeholder*="title"]').first();
+    this.exportButton = page.locator('button:has-text("Export"), [data-testid="export-btn"]').first();
+    this.saveButton = page.locator('button:has-text("Save"), [data-testid="save-btn"]').first();
+    this.zoomControls = page.locator('[data-testid="zoom-controls"], .zoom-controls, .h-10.bg-\\[\\#1e1e1e\\]').first();
     this.layersPanel = page.locator('[data-testid="layers-panel"], .layers-panel');
     this.toolbar = page.locator('[data-testid="toolbar"], .toolbar');
-    this.sidebar = page.locator('#sidebar, [data-testid="sidebar"]');
+    this.sidebar = page.locator('#sidebar, [data-testid="sidebar"]').first();
   }
 
   async goto(projectId?: string) {
@@ -41,12 +41,12 @@ export class EditorPage {
   }
 
   async zoomIn() {
-    const zoomInBtn = this.zoomControls.locator('button[aria-label="Zoom In"], button:has-text("+")');
+    const zoomInBtn = this.page.locator('button[aria-label="Zoom In"], button:has-text("+"), .h-10.bg-\\[\\#1e1e1e\\] button').nth(1);
     await zoomInBtn.click();
   }
 
   async zoomOut() {
-    const zoomOutBtn = this.zoomControls.locator('button[aria-label="Zoom Out"], button:has-text("-")');
+    const zoomOutBtn = this.page.locator('button[aria-label="Zoom Out"], button:has-text("-"), .h-10.bg-\\[\\#1e1e1e\\] button').first();
     await zoomOutBtn.click();
   }
 

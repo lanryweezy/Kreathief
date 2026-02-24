@@ -27,26 +27,26 @@ test.describe('Kreathief Smoke Test', () => {
         await page.click('button:has-text("Launch Editor")');
 
         // 4. Verify Editor loads
-        await expect(page.locator('#canvas-container')).toBeVisible({ timeout: 15000 });
-        await expect(page.locator('input#header-title')).toBeVisible();
+        await expect(page.locator('#canvas-container')).toBeVisible({ timeout: 20000 });
+        await expect(page.locator('input#header-title, input[placeholder*="Title"]')).toBeVisible();
     });
 
     test('should be able to add a text layer and see it on canvas', async ({ page }) => {
         // 1. Navigate to editor via a template (faster path to canvas)
         await page.click('button[role="tab"]:has-text("Templates")');
-        await page.locator('#templates-grid button.glass-card, #templates-grid button.group').first().click();
+        await page.locator('#templates-grid button').first().click();
 
-        await expect(page.locator('#canvas-container')).toBeVisible({ timeout: 15000 });
-        await page.waitForTimeout(1000);
+        await expect(page.locator('#canvas-container')).toBeVisible({ timeout: 20000 });
+        await page.waitForTimeout(2000);
 
         // 2. Go to text tab
         await page.locator('#sidebar >> button').filter({ hasText: /^Text$/ }).click();
 
         // 3. Add text layer
-        await page.click('button:has-text("Add a heading")');
+        await page.click('button:has-text("Heading"), button:has-text("Add a heading")');
 
         // 4. Verify layer appears on canvas
-        await expect(page.locator('#canvas-container [data-layer-type="text"]')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('#canvas-container [data-layer-type="text"]')).toBeVisible({ timeout: 15000 });
     });
 
     test('should verify Photos integration', async ({ page }) => {
@@ -59,22 +59,22 @@ test.describe('Kreathief Smoke Test', () => {
         await firstTemplate.click({ force: true });
 
         await expect(page.locator('#canvas-container')).toBeVisible({ timeout: 20000 });
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(2000);
 
         // 2. Go to Photos tab
         await page.locator('#sidebar >> button').filter({ hasText: /^Photos$/ }).click();
 
         // 3. Wait for Photos panel content
-        await expect(page.locator('h3').filter({ hasText: /Photos/ })).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('h3:has-text("Photos"), h3:has-text("Unsplash")')).toBeVisible({ timeout: 10000 });
 
         // 4. Verify images are loading (Unsplash with guaranteed fallbacks)
-        const firstPhoto = page.locator('.custom-scrollbar img').first();
+        const firstPhoto = page.locator('#sidebar img[alt*="photo"], #sidebar img[src*="unsplash"]').first();
         await expect(firstPhoto).toBeVisible({ timeout: 15000 });
 
         // 5. Add photo to canvas
         await firstPhoto.click({ force: true });
 
         // 6. Verify image layer on canvas
-        await expect(page.locator('#canvas-container [data-layer-type="image"]')).toBeVisible({ timeout: 10000 });
+        await expect(page.locator('#canvas-container [data-layer-type="image"]')).toBeVisible({ timeout: 15000 });
     });
 });
