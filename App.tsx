@@ -1,4 +1,5 @@
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { ToastContainer } from './components/Toast';
 import { useStore } from './store/useStore';
 
@@ -9,6 +10,10 @@ import { LandingPage } from './components/LandingPage';
 import { User, Project } from './types';
 import { parseShareLink } from './utils/shareUtils';
 import { STARTER_TEMPLATES } from './data/templates';
+
+import { BlogList } from './components/blog/BlogList';
+import { BlogPostView } from './components/blog/BlogPostView';
+import { SEO } from './components/SEO';
 
 // Lazy load main views for code splitting
 const Auth = React.lazy(() => import('./components/Auth').then((module) => ({ default: module.Auth })));
@@ -23,37 +28,33 @@ const LoadingFallback = () => (
 );
 
 const App: React.FC = () => {
-  // Views: 'landing' | 'auth' | 'dashboard' | 'editor'
-  const [view, setView] = useState<'landing' | 'auth' | 'dashboard' | 'editor'>('landing');
+  const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [currentProject, setCurrentProject] = useState<Project | undefined>(undefined);
   const { toasts, removeToast } = useStore();
 
-  // Onboarding State
   const [showWelcome, setShowWelcome] = useState(false);
   const [activeTour, setActiveTour] = useState<'dashboard' | 'editor' | null>(null);
 
-  // Check for onboarding and share links
-  React.useEffect(() => {
+  useEffect(() => {
     const initApp = async () => {
       const savedUser = localStorage.getItem('kreathief_user');
       if (savedUser) {
         setUser(JSON.parse(savedUser));
-        setView('dashboard');
+        if (location.pathname === '/') {
+          navigate('/dashboard');
+        }
       }
 
-      // Check for share link
       if (window.location.search.includes('share=')) {
         const sharedProject = await parseShareLink(window.location.href);
         if (sharedProject) {
           setCurrentProject(sharedProject);
-          if (savedUser) {
-            setView('editor');
-          } else {
-            const guestUser: User = { id: 'guest', name: 'Guest', email: 'guest@kreathief.app', plan: 'free' };
-            setUser(guestUser);
-            setView('editor');
+          if (!savedUser) {
+            setUser({ id: 'guest', name: 'Guest', email: 'guest@kreathief.app', plan: 'free' });
           }
+          navigate('/editor');
           window.history.replaceState({}, '', window.location.pathname);
         }
       }
@@ -65,7 +66,6 @@ const App: React.FC = () => {
     };
     initApp();
 
-    // Pre-fetch Template Assets with cleanup
     const images: HTMLImageElement[] = [];
     const prefetchTemplates = () => {
       STARTER_TEMPLATES.forEach((tmpl) => {
@@ -80,7 +80,6 @@ const App: React.FC = () => {
     };
     prefetchTemplates();
 
-    // Cleanup: Release memory from prefetched images
     return () => {
       images.forEach((img) => {
         img.src = '';
@@ -91,35 +90,34 @@ const App: React.FC = () => {
   const handleLogin = (user: User) => {
     setUser(user);
     localStorage.setItem('kreathief_user', JSON.stringify(user));
-    setView('dashboard');
+    navigate('/dashboard');
   };
 
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem('kreathief_user');
-    setView('auth');
+    navigate('/auth');
   };
 
   const handleOpenProject = (project: Project) => {
     setCurrentProject(project);
-    setView('editor');
+    navigate('/editor');
   };
 
   const handleCreateProject = () => {
-    // Create new blank project logic is handled inside Editor init or by passing undefined
     setCurrentProject(undefined);
-    setView('editor');
+    navigate('/editor');
   };
 
   const handleBackToDashboard = () => {
-    setView('dashboard');
+    navigate('/dashboard');
     setCurrentProject(undefined);
   };
 
   const handleStartTour = () => {
     setShowWelcome(false);
     localStorage.setItem('kreathief_onboarding_seen', 'true');
-    setActiveTour(view === 'editor' ? 'editor' : 'dashboard');
+    setActiveTour(location.pathname === '/editor' ? 'editor' : 'dashboard');
   };
 
   const dashboardTourSteps: TourStep[] = [
@@ -172,20 +170,33 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary componentName="App Root" variant="full">
+      <SEO />
       <Suspense fallback={<LoadingFallback />}>
-        {view === 'landing' && <LandingPage onGetStarted={() => setView('auth')} />}
-
-        {view === 'auth' && <Auth onLogin={handleLogin} />}
-
-        {view === 'dashboard' && user && (
-          <Dashboard
-            onOpenProject={handleOpenProject}
-            onCreateProject={handleCreateProject}
-            onLogout={handleLogout}
-            user={user}
+        <Routes>
+          <Route path="/" element={<LandingPage onGetStarted={() => navigate('/auth')} />} />
+          <Route path="/auth" element={<Auth onLogin={handleLogin} />} />
+          <Route
+            path="/dashboard"
+            element={user ? (
+              <Dashboard
+                onOpenProject={handleOpenProject}
+                onCreateProject={handleCreateProject}
+                onLogout={handleLogout}
+                user={user}
+              />
+            ) : <Navigate to="/auth" />}
           />
-        )}
-        {view === 'dashboard' && user && showWelcome && (
+          <Route
+            path="/editor"
+            element={user ? (
+              <Editor initialProject={currentProject} onBack={handleBackToDashboard} user={user} />
+            ) : <Navigate to="/auth" />}
+          />
+          <Route path="/blog" element={<BlogList />} />
+          <Route path="/blog/:id" element={<BlogPostView />} />
+        </Routes>
+
+        {location.pathname === '/dashboard' && user && showWelcome && (
           <WelcomeModal
             onClose={() => {
               setShowWelcome(false);
@@ -194,18 +205,14 @@ const App: React.FC = () => {
             onStartTour={handleStartTour}
           />
         )}
-        {view === 'dashboard' && user && activeTour === 'dashboard' && (
+        {location.pathname === '/dashboard' && user && activeTour === 'dashboard' && (
           <GuidedTour
             steps={dashboardTourSteps}
             onComplete={() => setActiveTour(null)}
             onSkip={() => setActiveTour(null)}
           />
         )}
-
-        {view === 'editor' && user && (
-          <Editor initialProject={currentProject} onBack={handleBackToDashboard} user={user} />
-        )}
-        {view === 'editor' && user && activeTour === 'editor' && (
+        {location.pathname === '/editor' && user && activeTour === 'editor' && (
           <GuidedTour
             steps={editorTourSteps}
             onComplete={() => setActiveTour(null)}

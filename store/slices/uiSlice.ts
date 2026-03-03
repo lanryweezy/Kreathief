@@ -42,6 +42,10 @@ export interface UISlice {
   croppingLayerId: string | null;
   cropArea: { x: number; y: number; width: number; height: number };
   cropAspectRatio: number | null; // null for Free, or width/height ratio
+  isLassoMode: boolean;
+  lassoPoints: { x: number; y: number }[];
+  refineBrushMode: 'none' | 'erase' | 'restore';
+  refineBrushSize: number;
 
   setActiveTab: (tab: NavTab) => void;
   setMode: (mode: AppMode) => void;
@@ -76,6 +80,13 @@ export interface UISlice {
   applyCrop: () => Promise<void>;
   cancelCrop: () => void;
   setCropAspectRatio: (ratio: number | null) => void;
+  setIsLassoMode: (active: boolean) => void;
+  setLassoPoints: (points: { x: number; y: number }[]) => void;
+  applyLasso: () => Promise<void>;
+  cancelLasso: () => void;
+  doneLasso: () => void;
+  setRefineBrushMode: (mode: 'none' | 'erase' | 'restore') => void;
+  setRefineBrushSize: (size: number) => void;
 
   // Collaboration
   fetchComments: () => Promise<void>;
@@ -112,6 +123,10 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   croppingLayerId: null,
   cropArea: { x: 0, y: 0, width: 0, height: 0 },
   cropAspectRatio: null,
+  isLassoMode: false,
+  lassoPoints: [],
+  refineBrushMode: 'none',
+  refineBrushSize: 30,
 
   setActiveTab: (activeTab) => set({ activeTab }),
   setMode: (mode) => set({ mode }),
@@ -252,6 +267,51 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
 
   cancelCrop: () => set({ isCropMode: false, croppingLayerId: null }),
   setCropAspectRatio: (cropAspectRatio) => set({ cropAspectRatio }),
+
+  setIsLassoMode: (isLassoMode) => set({ isLassoMode, lassoPoints: [] }),
+  setLassoPoints: (lassoPoints) => set({ lassoPoints }),
+  applyLasso: async () => {
+    const { croppingLayerId, lassoPoints, layers, saveToHistory } = get();
+    if (!croppingLayerId || lassoPoints.length < 3) {
+      set({ isLassoMode: false, lassoPoints: [] });
+      return;
+    }
+
+    const layer = layers.find((l: any) => l.id === croppingLayerId) as ImageLayer;
+    if (!layer || layer.type !== 'image') {
+      return;
+    }
+
+    saveToHistory?.();
+
+    // Convert lasso points to SVG path data
+    const pathData = `M ${lassoPoints[0].x} ${lassoPoints[0].y} ` +
+      lassoPoints.slice(1).map((p: { x: number; y: number }) => `L ${p.x} ${p.y}`).join(' ') + ' Z';
+
+    set((state: any) => ({
+      layers: state.layers.map((l: any) =>
+        l.id === croppingLayerId ? { ...l, maskPath: pathData, maskType: 'lasso' } : l
+      ),
+      isLassoMode: false,
+      lassoPoints: [],
+      croppingLayerId: null,
+    }));
+  },
+  cancelLasso: () => set({
+    isLassoMode: false,
+    lassoPoints: [],
+    croppingLayerId: null,
+    refineBrushMode: 'none'
+  }),
+  doneLasso: () => set({
+    isLassoMode: false,
+    lassoPoints: [],
+    croppingLayerId: null,
+    refineBrushMode: 'none'
+  }),
+
+  setRefineBrushMode: (refineBrushMode) => set({ refineBrushMode }),
+  setRefineBrushSize: (refineBrushSize) => set({ refineBrushSize }),
 
   fetchComments: async () => {
     const { projectId } = get();

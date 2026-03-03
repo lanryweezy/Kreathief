@@ -58,12 +58,18 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
     toggleEraser,
     setIsProcessing,
     setActiveTab,
+    setIsLassoMode,
+    setRefineBrushMode,
+    setRefineBrushSize,
   } = useStore();
 
   // Store State
   const isRemovingBgStore = useStore((state) => state.isRemovingBg);
   const isExpandingStore = useStore((state) => state.isExpanding);
   const isEraserActiveStore = useStore((state) => state.isEraserActive);
+  const isLassoModeStore = useStore((state) => state.isLassoMode);
+  const refineBrushModeStore = useStore((state) => state.refineBrushMode);
+  const refineBrushSizeStore = useStore((state) => state.refineBrushSize);
 
   const selectedLayer = layers.find((l) => selectedLayerIds.includes(l.id)) || null;
   const isMultiSelect = selectedLayerIds && selectedLayerIds.length > 1;
@@ -190,9 +196,25 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
                 onUpscale={() => onUpscale(selectedLayer.id)}
                 onEnhance={() => onEnhance(selectedLayer.id)}
                 onRetouch={() => onRetouch(selectedLayer.id)}
-                onCrop={() => onCropAction(selectedLayer.id)}
+                onCrop={() => {
+                  onCropAction(selectedLayer.id);
+                  setIsLassoMode(false);
+                }}
                 showResize={showResize}
                 setShowResize={setShowResize}
+                setIsLassoMode={(active) => {
+                  setIsLassoMode(active);
+                  if (active) {
+                    useStore.getState().setCroppingLayerId(selectedLayer.id);
+                  }
+                }}
+                isLassoMode={isLassoModeStore}
+                refineBrushMode={refineBrushModeStore}
+                setRefineBrushMode={setRefineBrushMode}
+                refineBrushSize={refineBrushSizeStore}
+                setRefineBrushSize={setRefineBrushSize}
+                doneLasso={doneLasso}
+                cancelLasso={cancelLasso}
                 _onVectorize={() => vectorizeLayer(selectedLayer.id, {})}
               />
             )}

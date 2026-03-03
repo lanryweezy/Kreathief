@@ -283,6 +283,9 @@ export interface ImageLayer extends LayerBase {
   crop?: { x: number; y: number; width: number; height: number };
   naturalWidth?: number;
   naturalHeight?: number;
+  maskPath?: string; // SVG path data for lasso cutouts
+  maskDataURL?: string; // Base64 data for refined bitmap masks
+  maskType?: 'none' | 'lasso' | 'ai' | 'bitmap';
 }
 
 export type Layer = TextLayer | ImageLayer | ShapeLayer;

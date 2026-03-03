@@ -24,6 +24,14 @@ interface ImageToolsProps {
   onCrop?: () => void;
   showResize: boolean;
   setShowResize: (show: boolean) => void;
+  setIsLassoMode: (active: boolean) => void;
+  isLassoMode: boolean;
+  refineBrushMode: 'none' | 'erase' | 'restore';
+  setRefineBrushMode: (mode: 'none' | 'erase' | 'restore') => void;
+  refineBrushSize: number;
+  setRefineBrushSize: (size: number) => void;
+  doneLasso: () => void;
+  cancelLasso: () => void;
   _onVectorize?: (id: string) => void;
 }
 
@@ -47,30 +55,141 @@ export const ImageTools = React.memo(
     onCrop,
     showResize,
     setShowResize,
+    setIsLassoMode,
+    isLassoMode,
+    refineBrushMode,
+    setRefineBrushMode,
+    refineBrushSize,
+    setRefineBrushSize,
+    doneLasso,
+    cancelLasso,
   }: ImageToolsProps) => {
     const filtersButtonRef = useRef<HTMLButtonElement>(null);
     const resizeButtonRef = useRef<HTMLButtonElement>(null);
 
     return (
       <div className="flex items-center gap-3">
-        <IconButton
-          onClick={handleRemoveBackground}
-          disabled={isRemovingBg}
-          active={isRemovingBg}
-          title="Remove BG"
-          className="relative"
-        >
-          {isRemovingBg ? (
-            <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-          ) : (
-            <Icons.Magic className="w-4 h-4 text-indigo-400" />
-          )}
-          {!isPro && (
-            <div className="absolute -top-1 -right-1 bg-amber-500 rounded-full p-0.5">
-              <Icons.Lock className="w-2 h-2 text-white" />
+        <div className="flex bg-[#252627] rounded-lg border border-[#7d2ae8]/30 p-0.5 shadow-lg shadow-purple-900/10">
+          <IconButton
+            onClick={handleRemoveBackground}
+            disabled={isRemovingBg}
+            active={isRemovingBg}
+            title="Auto Cut Out (AI)"
+            className="px-3"
+          >
+            {isRemovingBg ? (
+              <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <Icons.Scissors className="w-4 h-4 text-purple-400" />
+                <span className="text-[10px] font-bold text-white uppercase tracking-wider">Cut Out</span>
+              </div>
+            )}
+            {!isPro && (
+              <div className="absolute -top-1 -right-1 bg-amber-500 rounded-full p-0.5">
+                <Icons.Lock className="w-2 h-2 text-white" />
+              </div>
+            )}
+          </IconButton>
+          <Divider />
+          <IconButton
+            onClick={() => setIsLassoMode(!isLassoMode)}
+            active={isLassoMode}
+            title="Lasso Cut Out"
+            className="px-3"
+          >
+            <Icons.Brush className={`w-4 h-4 ${isLassoMode ? 'text-white' : 'text-indigo-400'}`} />
+          </IconButton>
+        </div>
+
+        {isLassoMode && (
+          <>
+            <Divider />
+            <div className="flex bg-[#252627] rounded-lg border-2 border-indigo-500/50 p-0.5 gap-0.5 shadow-lg shadow-indigo-900/20 animate-slideIn">
+              <IconButton
+                onClick={() => setRefineBrushMode(refineBrushMode === 'erase' ? 'none' : 'erase')}
+                active={refineBrushMode === 'erase'}
+                title="Erase (Subtraction)"
+                className="px-2"
+              >
+                <div className="relative">
+                  <Icons.Eraser className={`w-4 h-4 ${refineBrushMode === 'erase' ? 'text-white' : 'text-red-400'}`} />
+                  <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full border border-[#1e1e1e]">
+                    <Icons.Minus className="w-1.5 h-1.5 text-white" />
+                  </div>
+                </div>
+              </IconButton>
+              <IconButton
+                onClick={() => setRefineBrushMode(refineBrushMode === 'restore' ? 'none' : 'restore')}
+                active={refineBrushMode === 'restore'}
+                title="Restore (Addition)"
+                className="px-2"
+              >
+                <div className="relative">
+                  <Icons.Brush className={`w-4 h-4 ${refineBrushMode === 'restore' ? 'text-white' : 'text-emerald-400'}`} />
+                  <div className="absolute -bottom-1 -right-1 bg-emerald-500 rounded-full border border-[#1e1e1e]">
+                    <Icons.Plus className="w-1.5 h-1.5 text-white" />
+                  </div>
+                </div>
+              </IconButton>
             </div>
-          )}
-        </IconButton>
+
+            <div className="flex items-center gap-2 px-3 h-8 bg-black/20 rounded-lg border border-white/10 animate-fadeIn">
+              <span className="text-[9px] text-gray-500 uppercase font-black">Size</span>
+              <input
+                type="range"
+                min="5"
+                max="150"
+                value={refineBrushSize}
+                onChange={(e) => setRefineBrushSize(parseInt(e.target.value))}
+                className="w-20 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+              />
+              <span className="text-[9px] text-indigo-400 font-mono w-6">{refineBrushSize}</span>
+            </div>
+
+            <Divider />
+
+            <div className="flex bg-[#252627] rounded-lg border border-gray-700 p-0.5 gap-0.5 animate-fadeIn">
+              <IconButton
+                onClick={() => handleUpdateLayer({ rotation: (layer.rotation + 90) % 360 })}
+                title="Rotate 90°"
+              >
+                <Icons.RotateCw className="w-4 h-4 text-blue-400" />
+              </IconButton>
+              <IconButton
+                onClick={() => handleUpdateLayer({ flipX: !layer.flipX })}
+                active={layer.flipX}
+                title="Flip Horizontal"
+              >
+                <Icons.FlipHorizontal className="w-4 h-4 text-cyan-400" />
+              </IconButton>
+              <IconButton
+                onClick={() => handleUpdateLayer({ flipY: !layer.flipY })}
+                active={layer.flipY}
+                title="Flip Vertical"
+              >
+                <Icons.FlipVertical className="w-4 h-4 text-cyan-400" />
+              </IconButton>
+            </div>
+
+            <div className="flex bg-[#252627] rounded-lg border border-gray-700 p-0.5 gap-1 animate-fadeIn">
+              <button
+                onClick={doneLasso}
+                className="px-3 h-8 flex items-center gap-1.5 bg-indigo-500 hover:bg-indigo-600 text-white text-[11px] font-bold rounded-md transition-all shadow-sm shadow-indigo-500/20 active:scale-95"
+              >
+                <Icons.Check className="w-3.5 h-3.5" />
+                Done
+              </button>
+              <button
+                onClick={cancelLasso}
+                className="px-3 h-8 flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-[11px] font-bold rounded-md transition-all active:scale-95"
+              >
+                <Icons.X className="w-3.5 h-3.5 text-gray-500" />
+                Cancel
+              </button>
+            </div>
+          </>
+        )}
         <IconButton onClick={handleEraserClick} active={isEraserActive} title="Magic Eraser" className="relative">
           <Icons.Eraser className="w-4 h-4 text-red-400" />
           {!isPro && (

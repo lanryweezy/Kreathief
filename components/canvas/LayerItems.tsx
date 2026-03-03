@@ -102,7 +102,20 @@ export const ImageLayerItem = React.memo(
             style={{
               borderRadius: `${imgLayer.cornerRadius || 0}px`,
               ...animStyle,
-              ...(maskPath ? { clipPath: maskPath } : {}),
+              ...(imgLayer.maskType === 'lasso' && imgLayer.maskPath
+                ? { clipPath: `path('${imgLayer.maskPath}')` }
+                : imgLayer.maskType === 'bitmap' && imgLayer.maskDataURL
+                  ? {
+                    WebkitMaskImage: `url(${imgLayer.maskDataURL})`,
+                    maskImage: `url(${imgLayer.maskDataURL})`,
+                    WebkitMaskSize: '100% 100%',
+                    maskSize: '100% 100%',
+                    WebkitMaskRepeat: 'no-repeat',
+                    maskRepeat: 'no-repeat',
+                  }
+                  : maskPath
+                    ? { clipPath: maskPath }
+                    : {}),
             }}
           >
             <img
@@ -341,8 +354,8 @@ export const TextLayerItem = React.memo(
         // Use canvas rendering for text paths, warps, and transforms
         if (textLayer.textPath && canvasRef.current) {
           renderTextOnPath(canvasRef.current, textLayer);
-        } else if (canvasRef.current && ((textLayer.warpStyle && textLayer.warpStyle !== 'none') || 
-                   (textLayer.transformType && textLayer.transformType !== 'none'))) {
+        } else if (canvasRef.current && ((textLayer.warpStyle && textLayer.warpStyle !== 'none') ||
+          (textLayer.transformType && textLayer.transformType !== 'none'))) {
           renderWarpedText(canvasRef.current, textLayer);
         }
       }, [
@@ -388,8 +401,8 @@ export const TextLayerItem = React.memo(
           ? {
             textShadow: textLayer.advancedShadows && textLayer.advancedShadows.length > 0
               ? textLayer.advancedShadows
-                  .map((s) => `${s.offsetX}px ${s.offsetY}px ${s.blur}px ${s.color}`)
-                  .join(', ')
+                .map((s) => `${s.offsetX}px ${s.offsetY}px ${s.blur}px ${s.color}`)
+                .join(', ')
               : textLayer.shadow
                 ? `${textLayer.shadow.offsetX}px ${textLayer.shadow.offsetY}px ${textLayer.shadow.blur}px ${textLayer.shadow.color}`
                 : undefined,

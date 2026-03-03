@@ -90,6 +90,13 @@ const CanvasComponent: React.FC<CanvasProps> = ({
   const isCropMode = useStore((state) => state.isCropMode);
   const snapToGrid = useStore((state) => state.snapToGrid);
   const snapToObjects = useStore((state) => state.snapToObjects);
+  const isLassoMode = useStore((state) => state.isLassoMode);
+  const lassoPoints = useStore((state) => state.lassoPoints);
+  const setLassoPoints = useStore((state) => state.setLassoPoints);
+  const applyLasso = useStore((state) => state.applyLasso);
+  const refineBrushMode = useStore((state) => state.refineBrushMode);
+  const refineBrushSize = useStore((state) => state.refineBrushSize);
+  const croppingLayerId = useStore((state) => state.croppingLayerId);
 
   // Interaction Refs
   const bulkDragPreviewManualRef = useRef<Record<string, { x: number; y: number }>>({});
@@ -131,6 +138,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
+  const refineCanvasRef = useRef<HTMLCanvasElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
 
   // Calculate minimum zoom to fit canvas in viewport on mobile
@@ -164,6 +172,8 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     initialLayers?: Record<string, Layer>;
   } | null>(null);
   const [drawingState, setDrawingState] = useState({ isDrawingPath: false });
+  const [isDrawingLasso, setIsDrawingLasso] = useState(false);
+  const [isRefining, setIsRefining] = useState(false);
   const drawingLastPos = useRef({ x: 0, y: 0 });
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; layerId: string } | null>(null);
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
@@ -239,7 +249,9 @@ const CanvasComponent: React.FC<CanvasProps> = ({
   useEffect(() => {
     const calculateMinZoom = () => {
       const viewport = viewportRef.current;
-      if (!viewport) return;
+      if (!viewport) {
+        return;
+      }
 
       const rect = viewport.getBoundingClientRect();
       setViewportSize({ width: rect.width, height: rect.height });
@@ -576,7 +588,40 @@ const CanvasComponent: React.FC<CanvasProps> = ({
   // Mouse Handlers
   const handleMouseDownContainer = useCallback(
     (e: React.MouseEvent) => {
-      if (isSpacePressedRef.current) {
+      if (isLassoMode) {
+        setIsDrawingLasso(true);
+        const rect = containerRef.current?.getBoundingClientRect();
+        if (rect) {
+          const x = (e.clientX - rect.left) / zoom;
+          const y = (e.clientY - rect.top) / zoom;
+          setLassoPoints([{ x, y }]);
+        }
+      } else if (refineBrushMode !== 'none' && croppingLayerId) {
+        setIsRefining(true);
+        // Initialize mask buffer from current layer mask
+        const layer = layersRef.current.find(l => l.id === croppingLayerId) as ImageLayer;
+        if (layer && refineCanvasRef.current) {
+          const ctx = refineCanvasRef.current.getContext('2d');
+          if (ctx) {
+            ctx.clearRect(0, 0, refineCanvasRef.current.width, refineCanvasRef.current.height);
+            // If we have an existing bitmap mask, draw it
+            if (layer.maskType === 'bitmap' && layer.maskDataURL) {
+              const img = new Image();
+              img.onload = () => ctx.drawImage(img, 0, 0);
+              img.src = layer.maskDataURL;
+            } else if (layer.maskType === 'lasso' && layer.maskPath) {
+              // Draw SVG path to mask buffer
+              ctx.fillStyle = 'white';
+              const p = new Path2D(layer.maskPath);
+              ctx.fill(p);
+            } else {
+              // Default to full mask
+              ctx.fillStyle = 'white';
+              ctx.fillRect(0, 0, layer.width, layer.height);
+            }
+          }
+        }
+      } else if (isSpacePressedRef.current) {
         setIsPanning(true);
         setPanStart({ x: e.clientX, y: e.clientY });
       } else {
@@ -584,7 +629,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         setEditingTextId(null);
       }
     },
-    [onSelectLayer]
+    [onSelectLayer, isLassoMode, zoom, setLassoPoints]
   );
 
   const handleMouseDownLayer = useCallback(
@@ -765,6 +810,44 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         const currentLayers = layersRef.current;
         const currentZoom = zoomRef.current;
 
+        if (isRefining && refineCanvasRef.current && croppingLayerId) {
+          const rect = containerRef.current?.getBoundingClientRect();
+          if (rect) {
+            const x = (e.clientX - rect.left) / currentZoom;
+            const y = (e.clientY - rect.top) / currentZoom;
+            const ctx = refineCanvasRef.current.getContext('2d');
+            if (ctx) {
+              ctx.lineCap = 'round';
+              ctx.lineJoin = 'round';
+              ctx.lineWidth = refineBrushSize;
+              ctx.strokeStyle = 'white'; // Used for source-over (restore)
+              ctx.globalCompositeOperation = refineBrushMode === 'erase' ? 'destination-out' : 'source-over';
+
+              if (drawingLastPos.current.x === 0 && drawingLastPos.current.y === 0) {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+              } else {
+                ctx.beginPath();
+                ctx.moveTo(drawingLastPos.current.x, drawingLastPos.current.y);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+              }
+              drawingLastPos.current = { x, y };
+            }
+          }
+          return;
+        }
+
+        if (isLassoMode && isDrawingLasso) {
+          const rect = containerRef.current?.getBoundingClientRect();
+          if (rect) {
+            const x = (e.clientX - rect.left) / currentZoom;
+            const y = (e.clientY - rect.top) / currentZoom;
+            setLassoPoints([...lassoPoints, { x, y }]);
+          }
+          return;
+        }
+
         if (currentDragState?.isDragging) {
           const dx = (e.clientX - currentDragState.startX) / currentZoom;
           const dy = (e.clientY - currentDragState.startY) / currentZoom;
@@ -798,7 +881,6 @@ const CanvasComponent: React.FC<CanvasProps> = ({
               if (newY !== currentGroupY) {
                 finalDy = newY - groupBounds.y;
               }
-
               snapVertical = snapX;
               snapHorizontal = snapY;
             } else {
@@ -855,10 +937,8 @@ const CanvasComponent: React.FC<CanvasProps> = ({
             }
           });
           bulkDragPreviewManualRef.current = newBulkPreview;
-        } else {
-          if (snapVerticalRef.current) {
-            snapVerticalRef.current.style.display = 'none';
-          }
+        } else if (snapVerticalRef.current) {
+          snapVerticalRef.current.style.display = 'none';
           if (snapHorizontalRef.current) {
             snapHorizontalRef.current.style.display = 'none';
           }
@@ -1089,6 +1169,11 @@ const CanvasComponent: React.FC<CanvasProps> = ({
       effectiveShapeLayers,
       effectiveImageLayers,
       effectiveTextLayers,
+      isLassoMode,
+      isDrawingLasso,
+      lassoPoints,
+      setLassoPoints,
+      zoom,
     ]
   );
 
@@ -1096,6 +1181,29 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     if (mouseMoveRequestRef.current) {
       cancelAnimationFrame(mouseMoveRequestRef.current);
       mouseMoveRequestRef.current = undefined;
+    }
+
+    if (isLassoMode && isDrawingLasso) {
+      setIsDrawingLasso(false);
+      if (lassoPoints.length > 5) {
+        applyLasso();
+      }
+      return;
+    }
+
+    if (isRefining && refineCanvasRef.current && croppingLayerId) {
+      setIsRefining(false);
+      drawingLastPos.current = { x: 0, y: 0 };
+      const dataURL = refineCanvasRef.current.toDataURL();
+      if (onUpdateLayers) {
+        onUpdateLayers({
+          [croppingLayerId]: {
+            maskDataURL: dataURL,
+            maskType: 'bitmap'
+          }
+        });
+      }
+      return;
     }
 
     const currentDragState = dragStateRef.current;
@@ -1129,7 +1237,15 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     }
     setIsPanning(false);
     bulkDragPreviewManualRef.current = {};
-  }, [onUpdateLayers, panOffset.x, panOffset.y]);
+  }, [
+    onUpdateLayers,
+    panOffset.x,
+    panOffset.y,
+    isLassoMode,
+    isDrawingLasso,
+    lassoPoints,
+    applyLasso,
+  ]);
 
   useEffect(() => {
     const onUp = () => handleMouseUp();
@@ -1201,7 +1317,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.globalAlpha = brushOpacity;
-      
+
       // Brush-specific settings
       switch (brushType) {
         case BrushType.PENCIL:
@@ -1263,7 +1379,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         ctx.lineTo(x, y);
       }
       ctx.stroke();
-      
+
       // Reset line dash for next stroke
       if ([BrushType.CRAYON, BrushType.TEXTURE].includes(brushType)) {
         ctx.setLineDash([]);
@@ -1306,10 +1422,9 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
   const finishEditingText = () => {
     if (editingTextId && textEditRef.current) {
-      const newText = textEditRef.current.innerText || '';
-      if (newText.trim()) {
-        onUpdateLayers?.({ [editingTextId]: { text: newText } });
-      }
+      // Use innerText but fall back to textContent, and handle empty text to allow deletion.
+      const newText = textEditRef.current.innerText || textEditRef.current.textContent || '';
+      onUpdateLayers?.({ [editingTextId]: { text: newText } });
     }
     setEditingTextId(null);
   };
@@ -1480,6 +1595,42 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
               {showGoldenRatio && <GoldenRatioOverlay width={canvasSize.width} height={canvasSize.height} />}
 
+              {isLassoMode && lassoPoints.length > 0 && (
+                <svg
+                  className="absolute inset-0 z-[200] pointer-events-none"
+                  width={canvasSize.width}
+                  height={canvasSize.height}
+                  viewBox={`0 0 ${canvasSize.width} ${canvasSize.height}`}
+                >
+                  <path
+                    d={`M ${lassoPoints[0].x} ${lassoPoints[0].y} ` +
+                      lassoPoints.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ') +
+                      (isDrawingLasso ? '' : ' Z')}
+                    fill="rgba(125, 42, 232, 0.2)"
+                    stroke="#7d2ae8"
+                    strokeWidth={2 / zoom}
+                    strokeDasharray={isDrawingLasso ? `${4 / zoom} ${2 / zoom}` : 'none'}
+                  />
+                  {lassoPoints.map((p, i) => (
+                    i === 0 && (
+                      <circle
+                        key="start"
+                        cx={p.x} cy={p.y} r={4 / zoom}
+                        fill="#7d2ae8"
+                        className="animate-pulse"
+                      />
+                    )
+                  ))}
+                </svg>
+              )}
+
+              <canvas
+                ref={refineCanvasRef}
+                className={`absolute inset-0 z-[150] pointer-events-none ${isRefining ? 'cursor-none' : 'hidden'}`}
+                width={canvasSize.width}
+                height={canvasSize.height}
+              />
+
               <div
                 ref={snapVerticalRef}
                 className="absolute top-0 bottom-0 w-px bg-cyan-400 z-[100] pointer-events-none hidden shadow-[0_0_4px_rgba(34,211,238,0.8)]"
@@ -1538,6 +1689,12 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                             contentEditable
                             suppressContentEditableWarning
                             onBlur={finishEditingText}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                textEditRef.current?.blur();
+                              }
+                            }}
                             className="absolute bg-transparent border-2 border-[#7d2ae8] outline-none z-[100] cursor-text min-w-[50px] text-layer-item"
                             data-layer-type="text"
                             data-is-editing="true"
