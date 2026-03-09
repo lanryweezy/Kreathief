@@ -1,0 +1,14 @@
+{
+  "error": [
+    "﻿components/blog/BlogPostView.tsx(86,44): error TS2339: Property 'Link' does not exist on type 'typeof import(\"C:/Users/lanry/Desktop/kreathief/components/icons/index\")'.\r",
+    "components/landing/LogoTicker.tsx(2,1): error TS6133: 'motion' is declared but its value is never read.\r",
+    "components/LandingPage.tsx(3,1): error TS6133: 'Icons' is declared but its value is never read.\r",
+    "components/panels/LayersPanel.tsx(253,22): error TS2339: Property 'MoreVertical' does not exist on type 'typeof import(\"C:/Users/lanry/Desktop/kreathief/components/icons/index\")'.\r",
+    "components/panels/LayersPanel.tsx(254,22): error TS2339: Property 'MoreVertical' does not exist on type 'typeof import(\"C:/Users/lanry/Desktop/kreathief/components/icons/index\")'.\r",
+    "components/Toolbar.tsx(208,41): error TS2551: Property 'setCroppingLayerId' does not exist on type 'StoreState'. Did you mean 'croppingLayerId'?\r",
+    "components/Toolbar.tsx(216,28): error TS2304: Cannot find name 'doneLasso'.\r",
+    "components/Toolbar.tsx(217,30): error TS2304: Cannot find name 'cancelLasso'.\r",
+    "components/toolbar/QuickTextEffects.tsx(103,24): error TS2339: Property 'Box' does not exist on type 'typeof import(\"C:/Users/lanry/Desktop/kreathief/components/icons/index\")'.\r",
+    ""
+  ]
+}

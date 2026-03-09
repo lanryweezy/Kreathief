@@ -377,6 +377,28 @@ export const TextLayerItem = React.memo(
         isInteracting,
       ]);
 
+      // Build text-shadow: layer advanced shadows + neon glow
+      const buildTextShadow = () => {
+        const parts: string[] = [];
+        // Advanced shadows
+        if (textLayer.advancedShadows && textLayer.advancedShadows.length > 0) {
+          textLayer.advancedShadows.forEach((s) => {
+            parts.push(`${s.offsetX}px ${s.offsetY}px ${s.blur}px ${s.color}`);
+          });
+        } else if (textLayer.shadow) {
+          parts.push(`${textLayer.shadow.offsetX}px ${textLayer.shadow.offsetY}px ${textLayer.shadow.blur}px ${textLayer.shadow.color}`);
+        }
+        // Neon glow effect
+        if (textLayer.neonGlow?.enabled) {
+          const g = textLayer.neonGlow;
+          parts.push(`0 0 ${g.spread * 0.5}px ${g.color}`);
+          parts.push(`0 0 ${g.spread}px ${g.color}`);
+          parts.push(`0 0 ${g.spread * 2}px ${g.color}`);
+          parts.push(`0 0 ${g.spread * 3}px ${g.color}40`);
+        }
+        return parts.length > 0 ? parts.join(', ') : undefined;
+      };
+
       const textStyle: React.CSSProperties = {
         fontFamily: textLayer.fontFamily,
         fontSize: `${textLayer.fontSize}px`,
@@ -396,17 +418,17 @@ export const TextLayerItem = React.memo(
             : 'none',
         WebkitBackgroundClip: textLayer.gradient && textLayer.gradient.enabled ? 'text' : 'unset',
         display: 'block',
-        // Support both old single shadow and new advanced multi-shadows
-        ...(textLayer.shadow || (textLayer.advancedShadows && textLayer.advancedShadows.length > 0)
+        textShadow: buildTextShadow(),
+        // Text stroke (outline)
+        ...(textLayer.stroke && textLayer.stroke.width > 0
           ? {
-            textShadow: textLayer.advancedShadows && textLayer.advancedShadows.length > 0
-              ? textLayer.advancedShadows
-                .map((s) => `${s.offsetX}px ${s.offsetY}px ${s.blur}px ${s.color}`)
-                .join(', ')
-              : textLayer.shadow
-                ? `${textLayer.shadow.offsetX}px ${textLayer.shadow.offsetY}px ${textLayer.shadow.blur}px ${textLayer.shadow.color}`
-                : undefined,
-          }
+            WebkitTextStroke: `${textLayer.stroke.width}px ${textLayer.stroke.color}`,
+            paintOrder: 'stroke fill',
+          } as any
+          : {}),
+        // Neon flicker animation
+        ...(textLayer.neonGlow?.enabled && textLayer.neonGlow.flicker
+          ? { animation: 'neonFlicker 2s ease-in-out infinite alternate' }
           : {}),
         // Apply text transformations from TextEffectsPanel
         ...(textLayer.transformType && textLayer.transformType !== 'none'

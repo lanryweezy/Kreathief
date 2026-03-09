@@ -2,15 +2,14 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { ToastContainer } from './components/Toast';
 import { useStore } from './store/useStore';
+import { authService } from './services/authService';
+import { storageService } from './services/storageService';
+import { User, Project } from './types';
 
 import { WelcomeModal } from './components/modals/WelcomeModal';
 import { GuidedTour, TourStep } from './components/modals/GuidedTour';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LandingPage } from './components/LandingPage';
-import { User, Project } from './types';
-import { parseShareLink } from './utils/shareUtils';
-import { STARTER_TEMPLATES } from './data/templates';
-
 import { BlogList } from './components/blog/BlogList';
 import { BlogPostView } from './components/blog/BlogPostView';
 import { SEO } from './components/SEO';
@@ -32,6 +31,7 @@ const App: React.FC = () => {
   const location = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [currentProject, setCurrentProject] = useState<Project | undefined>(undefined);
+  const [loading, setLoading] = useState(true);
   const { toasts, removeToast } = useStore();
 
   const [showWelcome, setShowWelcome] = useState(false);
@@ -39,15 +39,21 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const initApp = async () => {
-      const savedUser = localStorage.getItem('kreathief_user');
+      // Initialize storage service (migrates from localStorage if needed)
+      await storageService.init();
+
+      // Check Supabase auth session
+      const savedUser = await authService.getSession();
       if (savedUser) {
-        setUser(JSON.parse(savedUser));
-        if (location.pathname === '/') {
+        setUser(savedUser);
+        if (location.pathname === '/' || location.pathname === '/auth') {
           navigate('/dashboard');
         }
       }
 
+      // Handle share links
       if (window.location.search.includes('share=')) {
+        const { parseShareLink } = await import('./utils/shareUtils');
         const sharedProject = await parseShareLink(window.location.href);
         if (sharedProject) {
           setCurrentProject(sharedProject);
@@ -63,39 +69,32 @@ const App: React.FC = () => {
       if (!seenOnboarding) {
         setShowWelcome(true);
       }
+
+      setLoading(false);
     };
     initApp();
 
-    const images: HTMLImageElement[] = [];
-    const prefetchTemplates = () => {
-      STARTER_TEMPLATES.forEach((tmpl) => {
-        tmpl.state.layers.forEach((layer) => {
-          if (layer.type === 'image') {
-            const img = new Image();
-            img.src = (layer as any).src;
-            images.push(img);
-          }
-        });
-      });
-    };
-    prefetchTemplates();
+    // Listen for auth state changes
+    const unsubscribe = authService.onAuthChange((updatedUser) => {
+      setUser(updatedUser);
+      if (updatedUser && location.pathname === '/auth') {
+        navigate('/dashboard');
+      }
+    });
 
     return () => {
-      images.forEach((img) => {
-        img.src = '';
-      });
+      unsubscribe();
     };
   }, []);
 
   const handleLogin = (user: User) => {
     setUser(user);
-    localStorage.setItem('kreathief_user', JSON.stringify(user));
     navigate('/dashboard');
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await authService.signOut();
     setUser(null);
-    localStorage.removeItem('kreathief_user');
     navigate('/auth');
   };
 
@@ -167,6 +166,10 @@ const App: React.FC = () => {
       position: 'bottom',
     },
   ];
+
+  if (loading) {
+    return <LoadingFallback />;
+  }
 
   return (
     <ErrorBoundary componentName="App Root" variant="full">

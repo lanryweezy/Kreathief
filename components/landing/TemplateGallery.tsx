@@ -1,0 +1,82 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Icons } from '../../constants';
+
+export const TemplateGallery: React.FC = () => {
+    const templates = [
+        { id: 1, src: '/images/template_thumb_1_1772615134954.png', style: 'col-span-1 row-span-2' },
+        { id: 2, src: '/images/template_thumb_2_1772615154321.png', style: 'col-span-1 row-span-1' },
+        { id: 3, src: '/images/template_thumb_3_1772615229047.png', style: 'col-span-1 row-span-1' },
+        { id: 4, src: '/images/template_thumb_4_1772615492900.png', style: 'col-span-1 row-span-2' },
+        { id: 5, src: '/images/template_thumb_5_1772615512770.png', style: 'col-span-2 row-span-1' },
+        { id: 6, src: '/images/template_thumb_6_1772615671327.png', style: 'col-span-1 row-span-1' },
+    ];
+
+    return (
+        <section className="py-32 relative bg-[#0a0a0a] overflow-hidden">
+            <div className="max-w-[1400px] mx-auto px-6">
+                <div className="flex flex-col md:flex-row items-end justify-between mb-20 gap-8">
+                    <div className="max-w-2xl">
+                        <motion.h2
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            className="text-4xl md:text-6xl font-black mb-6 tracking-tighter text-white"
+                        >
+                            Start from <br />
+                            <span className="text-purple-500">Inspiration.</span>
+                        </motion.h2>
+                        <motion.p
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.1 }}
+                            className="text-xl text-gray-400 font-medium"
+                        >
+                            Browse 100,000+ premium templates designed by world-class creators. Fully editable, absolutely stunning.
+                        </motion.p>
+                    </div>
+                    <motion.button
+                        initial={{ opacity: 0, x: 20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        className="px-8 py-4 rounded-full bg-white/5 border border-white/10 text-white font-bold tracking-[0.2em] text-[11px] uppercase hover:bg-white/10 transition-colors flex items-center gap-3"
+                    >
+                        Explore Library
+                        <Icons.ArrowRight className="w-4 h-4" />
+                    </motion.button>
+                </div>
+
+                <div className="grid grid-cols-2 lg:grid-cols-4 auto-rows-[250px] gap-6">
+                    {templates.map((tpl, idx) => (
+                        <motion.div
+                            key={tpl.id}
+                            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                            viewport={{ once: true, margin: "-50px" }}
+                            transition={{ duration: 0.6, delay: idx * 0.1 }}
+                            className={`rounded-3xl overflow-hidden relative group cursor-pointer ${tpl.style}`}
+                        >
+                            <img
+                                src={tpl.src}
+                                alt={`Template ${tpl.id}`}
+                                className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#050505]/90 via-black/20 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
+
+                            <div className="absolute bottom-6 left-6 right-6 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 flex justify-between items-center">
+                                <div>
+                                    <p className="text-white font-black text-lg">Pro Template</p>
+                                    <p className="text-white/60 text-xs font-bold uppercase tracking-widest">Fully Editable</p>
+                                </div>
+                                <div className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center transform group-hover:scale-110 transition-transform">
+                                    <Icons.Plus className="w-5 h-5" />
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+};

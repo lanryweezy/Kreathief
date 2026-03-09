@@ -2,26 +2,67 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://kreathief.app/</loc>
-    <lastmod>2026-02-25</lastmod>
-    <changefreq>monthly</changefreq>
     <priority>1.0</priority>
+    <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>https://kreathief.app/auth</loc>
-    <lastmod>2026-02-25</lastmod>
-    <changefreq>monthly</changefreq>
     <priority>0.5</priority>
+    <changefreq>monthly</changefreq>
   </url>
   <url>
     <loc>https://kreathief.app/blog</loc>
-    <lastmod>2026-02-25</lastmod>
-    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://kreathief.app/blog/ai-design-trends-2026</loc>
-    <lastmod>2026-02-25</lastmod>
-    <changefreq>monthly</changefreq>
+    <loc>https://kreathief.app/blog/ultimate-canva-alternative-2026</loc>
     <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.app/blog/figma-vs-kreathief-marketing</loc>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.app/blog/top-5-ai-design-tools-ranked</loc>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.app/blog/cut-out-complex-backgrounds</loc>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.app/blog/future-of-vector-graphics</loc>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.app/blog/real-time-collaboration-broken</loc>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.app/blog/stop-paying-for-subscriptions</loc>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.app/blog/speed-test-top-platforms</loc>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.app/blog/guide-to-ai-generative-art</loc>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.app/blog/building-a-brand-kit</loc>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
   </url>
 </urlset>

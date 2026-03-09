@@ -10,6 +10,8 @@ export const BlogList: React.FC = () => {
             <SEO
                 title="Blog | Creative Insights & Tutorials"
                 description="Learn how to master generative design, AI cutouts, and professional vector tools with the Kreathief blog."
+                url="https://kreathief.app/blog"
+                type="website"
             />
 
             {/* Background Decor */}

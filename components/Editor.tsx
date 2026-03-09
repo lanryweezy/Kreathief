@@ -23,6 +23,9 @@ import { loadFonts } from '../services/FontLoader';
 import { BooleanOperations } from '../utils/booleanOperations';
 import { VectorUtils } from '../utils/vectorUtils';
 import { PathEditorOverlay } from './VectorEditor/PathEditorOverlay';
+import { haptics } from '../utils/haptics';
+import { getExportErrorMessage, getAIErrorMessage, getSaveErrorMessage } from '../utils/errorMessages';
+import { debounce } from '../utils/debounce';
 
 const DEFAULT_FILTERS: CanvasFilters = {
   brightness: 100,
@@ -107,6 +110,12 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const [isEraserActive, setIsEraserActive] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const [selectedPathPoints, setSelectedPathPoints] = useState<number[]>([]);
+
+  // Reset point selection when editing path changes
+  useEffect(() => {
+    setSelectedPathPoints([]);
+  }, [editingPathId]);
 
   const activeImage = history.length > 0 ? history[history.length - 1] || null : null;
   const uploadedImage = uploads.length > 0 ? uploads[uploads.length - 1] || null : null;
@@ -169,16 +178,26 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     recoverSession();
   }, [initialProject, setLayers, setCanvasBackgroundColor, setCanvasFilters, setCanvasSize, setProjectTitle]);
 
-  // Silent Autosave Logic (10s debounce)
+  // Silent Autosave Logic with smart debouncing
+  const debouncedSave = useMemo(
+    () => debounce(() => {
+      try {
+        saveProject();
+      } catch (error) {
+        console.error('Autosave failed:', error);
+        addToast(getSaveErrorMessage(error), 'error');
+      }
+    }, 10000),
+    [saveProject, addToast]
+  );
+
   useEffect(() => {
     if (layers.length === 0) {
       return;
     }
-    const timer = setTimeout(() => {
-      saveProject();
-    }, 10000);
-    return () => clearTimeout(timer);
-  }, [layers, canvasBackgroundColor, canvasFilters, canvasSize, projectTitle, saveProject]);
+    debouncedSave();
+    return () => debouncedSave.cancel();
+  }, [layers, canvasBackgroundColor, canvasFilters, canvasSize, projectTitle, debouncedSave]);
 
   // Extract Document Colors
   const documentColors = useMemo(() => {
@@ -293,28 +312,93 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     });
   };
 
-  // -- Keyboard Shortcuts --
+  // -- Keyboard Shortcuts with Haptic Feedback --
   const shortcuts = useMemo(
     () => [
-      { key: 'z', ctrl: true, action: undo, description: 'Undo' },
-      { key: 'y', ctrl: true, action: redo, description: 'Redo' },
-      { key: 'c', ctrl: true, action: () => selectedLayerId && copyLayer(selectedLayerId), description: 'Copy Layer' },
-      { key: 'v', ctrl: true, action: pasteLayer, description: 'Paste Layer' },
+      { 
+        key: 'z', 
+        ctrl: true, 
+        action: () => {
+          undo();
+          haptics.light();
+        }, 
+        description: 'Undo' 
+      },
+      { 
+        key: 'y', 
+        ctrl: true, 
+        action: () => {
+          redo();
+          haptics.light();
+        }, 
+        description: 'Redo' 
+      },
+      { 
+        key: 'c', 
+        ctrl: true, 
+        action: () => {
+          if (selectedLayerId) {
+            copyLayer(selectedLayerId);
+            haptics.selection();
+          }
+        }, 
+        description: 'Copy Layer' 
+      },
+      { 
+        key: 'v', 
+        ctrl: true, 
+        action: () => {
+          pasteLayer();
+          haptics.medium();
+        }, 
+        description: 'Paste Layer' 
+      },
       {
         key: 'd',
         ctrl: true,
-        action: () => selectedLayerIds.length > 0 && duplicateSelected(),
+        action: () => {
+          if (selectedLayerIds.length > 0) {
+            duplicateSelected();
+            haptics.medium();
+          }
+        },
         description: 'Duplicate Layer(s)',
       },
-      { key: 'Delete', action: () => selectedLayerIds.length > 0 && deleteSelected(), description: 'Delete Layer(s)' },
-      { key: 's', ctrl: true, action: () => saveProject(), description: 'Save Project' },
-      { key: 'e', ctrl: true, action: () => setShowExport(true), description: 'Export Design' },
+      { 
+        key: 'Delete', 
+        action: () => {
+          if (selectedLayerIds.length > 0) {
+            deleteSelected();
+            haptics.heavy();
+          }
+        }, 
+        description: 'Delete Layer(s)' 
+      },
+      { 
+        key: 's', 
+        ctrl: true, 
+        action: () => {
+          saveProject();
+          haptics.light();
+        }, 
+        description: 'Save Project' 
+      },
+      { 
+        key: 'e', 
+        ctrl: true, 
+        action: () => {
+          setShowExport(true);
+          haptics.light();
+        }, 
+        description: 'Export Design' 
+      },
       {
         key: 'g',
         ctrl: true,
         action: () => {
           if (selectedLayerIds.length > 1) {
             groupSelected();
+            haptics.medium();
           }
         },
         description: 'Group Layers',
@@ -443,7 +527,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     } catch (error: any) {
       console.error(error);
       deleteLayer(tempId);
-      addToast(error.message || 'Failed to generate content', 'error');
+      addToast(getAIErrorMessage(error), 'error');
     } finally {
       setIsProcessing(false);
     }
@@ -593,9 +677,11 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         setTimeout(() => URL.revokeObjectURL(downloadUrl), 100);
       }
       setShowExport(false);
+      haptics.success(); // Haptic feedback on successful export
     } catch (error) {
       console.error(error);
-      addToast('Export failed. Please try again.', 'error');
+      addToast(getExportErrorMessage(error), 'error');
+      haptics.error(); // Haptic feedback on error
     } finally {
       setIsExporting(false);
     }
@@ -642,7 +728,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
               onDoubleClickLayer={handleLayerDoubleClick}
               activeImage={activeImage || undefined}
               uploadedImage={uploadedImage}
-              onInteractionStart={() => {}}
+              onInteractionStart={() => { }}
             />
             {editingPathId &&
               (() => {
@@ -653,8 +739,11 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                       path={layer.vectorPath}
                       zoom={zoom}
                       onUpdate={handleUpdatePath}
-                      onSelectPoint={() => {}}
-                      selectedPointIndices={[]}
+                      onSelectPoint={setSelectedPathPoints}
+                      selectedPointIndices={selectedPathPoints}
+                      layerX={layer.x}
+                      layerY={layer.y}
+                      onClose={() => setEditingPathId(null)}
                     />
                   );
                 }

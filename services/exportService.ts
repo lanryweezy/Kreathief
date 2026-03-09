@@ -1,5 +1,6 @@
 import { TextLayer, ShapeLayer, ImageLayer, CanvasFilters, Layer } from '../types';
 import { jsPDF } from 'jspdf';
+// import { measureOperation } from '../utils/performance'; // TODO: Add performance monitoring
 
 /**
  * Downloads a Blob object as a file.

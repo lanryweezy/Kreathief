@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useScroll, useSpring } from 'framer-motion';
-import * as Icons from './icons';
 import { Icons as GlobalIcons } from '../constants';
 import { Hero } from './landing/Hero';
+import { LogoTicker } from './landing/LogoTicker';
 import { Features } from './landing/Features';
+import { ScrollShowcase } from './landing/ScrollShowcase';
+import { TemplateGallery } from './landing/TemplateGallery';
+import { ComparisonSection } from './landing/ComparisonSection';
 import { Stats, Pricing } from './landing/StatsAndPricing';
 import { BlogPreview, Footer } from './landing/BlogAndFooter';
 import { SEO } from './SEO';
@@ -81,23 +84,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       <main>
         <Hero onGetStarted={onGetStarted} />
-
-        {/* Social Proof Marquee */}
-        <div className="py-12 border-y border-white/5 bg-white/[0.01] overflow-hidden">
-          <div className="flex gap-20 animate-marquee whitespace-nowrap px-10">
-            {[...Array(2)].map((_, i) => (
-              <div key={i} className="flex gap-20 items-center">
-                {['Adobe', 'Figma', 'Sketch', 'Canva', 'Webflow', 'Framer', 'Procreate', 'InVision'].map((brand) => (
-                  <span key={brand} className="text-xl font-black text-gray-700 uppercase tracking-[0.4em] hover:text-gray-500 transition-colors cursor-default">
-                    {brand}
-                  </span>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-
+        <LogoTicker />
         <Features />
+        <ScrollShowcase />
+        <TemplateGallery />
+        <ComparisonSection />
+
         <Stats />
         <Pricing onPlanSelect={onGetStarted} />
         <BlogPreview />

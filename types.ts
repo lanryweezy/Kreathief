@@ -199,12 +199,20 @@ export interface TextLayer extends LayerBase {
     cuts?: Array<{ type: string; value: number }>;
     lines?: Array<{ type: string; value: number }>;
   };
+  // Neon glow effect
+  neonGlow?: {
+    enabled: boolean;
+    color: string;
+    intensity: number; // 0-100
+    spread: number; // 0-50
+    flicker: boolean;
+  };
   // Text features
   kerning?: number;
   ligatures?: boolean;
 }
 
-export type PointType = 'sharp' | 'smooth' | 'symmetric';
+export type PointType = 'sharp' | 'smooth' | 'symmetric' | 'corner';
 
 export interface VectorPoint {
   id: string;

@@ -71,6 +71,9 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
   const refineBrushModeStore = useStore((state) => state.refineBrushMode);
   const refineBrushSizeStore = useStore((state) => state.refineBrushSize);
 
+  const doneLasso = () => setIsLassoMode(false);
+  const cancelLasso = () => setIsLassoMode(false);
+
   const selectedLayer = layers.find((l) => selectedLayerIds.includes(l.id)) || null;
   const isMultiSelect = selectedLayerIds && selectedLayerIds.length > 1;
 
@@ -205,7 +208,7 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
                 setIsLassoMode={(active) => {
                   setIsLassoMode(active);
                   if (active) {
-                    useStore.getState().setCroppingLayerId(selectedLayer.id);
+                    useStore.setState({ croppingLayerId: selectedLayer.id } as any);
                   }
                 }}
                 isLassoMode={isLassoModeStore}
