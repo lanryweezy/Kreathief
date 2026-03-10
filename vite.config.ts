@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg', 'logo.svg'],
+        includeAssets: ['logo.svg'],
         manifest: {
           name: 'Kreathief - AI Design Suite',
           short_name: 'Kreathief',
@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => {
           icons: [
             {
               src: 'logo.svg',
-              sizes: '192x192 512x512',
+              sizes: '512x512',
               type: 'image/svg+xml',
               purpose: 'any maskable',
             },
@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => {
         workbox: {
           maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-          globIgnores: ['**/*.onnx', '**/*.wasm', '**/*.map'],
+          globIgnores: ['**/*.map'],
         },
       }),
     ],
@@ -52,9 +52,6 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || env.API_KEY || ''),
-    },
-    worker: {
-      format: 'es',
     },
   };
 });
