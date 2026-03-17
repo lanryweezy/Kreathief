@@ -1,19 +1,21 @@
 import React, { useRef, useState } from 'react';
 import { Icons } from '../../constants';
-import { parsePsdToLayers } from '../../services/psdService';
 import { useStore } from '../../store/useStore';
+import { useFileHandler } from '../../hooks/useFileHandler';
 import { v4 as uuidv4 } from 'uuid';
+import { EmptyState } from '../EmptyState';
+import { log } from '../../utils/log';
+import { parsePsdToLayers } from '../../services/psdService';
 
-interface UploadsPanelProps {
-  onFileUpload: (files: File[]) => void;
-  onDeleteUpload: (index: number) => void;
-}
+interface UploadsPanelProps {}
 
-export const UploadsPanel: React.FC<UploadsPanelProps> = ({ onFileUpload, onDeleteUpload }) => {
+export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
   const addLayer = useStore((state) => state.addLayer);
   const onAddLayers = useStore((state) => state.addLayers);
   const canvasSize = useStore((state) => state.canvasSize);
   const uploads = useStore((state) => state.uploads);
+  const { handleFileUploads } = useFileHandler();
+  const deleteUpload = useStore((state) => state.deleteUpload);
 
   const onAddImageLayer = (src: string) => {
     addLayer({
@@ -83,7 +85,7 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({ onFileUpload, onDele
       }
 
       if (imageFiles.length > 0) {
-        onFileUpload(imageFiles);
+        handleFileUploads(imageFiles);
       }
       if (psdFiles.length > 0) {
         handlePsdFiles(psdFiles);
@@ -105,7 +107,7 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({ onFileUpload, onDele
         }
       }
     } catch (err) {
-      console.error('PSD Import failed:', err);
+      log.error('[UploadsPanel] PSD Import failed', err);
       alert('Failed to parse PSD file.');
     } finally {
       setIsParsingPsd(false);
@@ -144,7 +146,7 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({ onFileUpload, onDele
             className="hidden"
             accept="image/*"
             multiple
-            onChange={(e) => e.target.files && onFileUpload(Array.from(e.target.files))}
+            onChange={(e) => e.target.files && handleFileUploads(Array.from(e.target.files))}
           />
         </div>
 
@@ -199,7 +201,7 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({ onFileUpload, onDele
                   <Icons.Plus className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => onDeleteUpload && onDeleteUpload(idx)}
+                  onClick={() => deleteUpload && deleteUpload(idx)}
                   className="w-8 h-8 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-xl"
                 >
                   <Icons.Trash className="w-3.5 h-3.5" />
@@ -208,9 +210,12 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = ({ onFileUpload, onDele
             </div>
           ))
         ) : (
-          <div className="col-span-2 text-center text-gray-600 mt-10">
-            <Icons.Image className="w-10 h-10 mx-auto opacity-10 mb-2" />
-            <p className="text-[10px] uppercase tracking-widest">No matching media</p>
+          <div className="col-span-2 text-center text-gray-600 mt-4">
+            <EmptyState
+              icon={Icons.Image}
+              title="No uploads yet"
+              description="Drag and drop or click to upload your media here."
+            />
           </div>
         )}
       </div>

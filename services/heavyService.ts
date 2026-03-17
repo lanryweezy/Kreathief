@@ -8,8 +8,11 @@ class HeavyService {
   private worker: Worker | null = null;
   private callbacks: Map<string, { resolve: (val: any) => void; reject: (err: any) => void }> = new Map();
 
-  constructor() {
-    if (typeof window !== 'undefined') {
+  private initializeWorker() {
+    console.log('[HeavyService] Initializing worker. Caller stack:', new Error().stack);
+    if (this.worker || typeof window === 'undefined') {return;}
+
+    try {
       this.worker = new Worker(new URL('../workers/heavy.worker.ts', import.meta.url), { type: 'module' });
 
       this.worker.onmessage = (e) => {
@@ -20,22 +23,32 @@ class HeavyService {
           if (type === 'SUCCESS') {
             callback.resolve(payload);
           } else {
-            callback.reject(new Error(error));
+            callback.reject(new Error(error || 'Worker task failed'));
           }
           this.callbacks.delete(id);
         }
       };
 
       this.worker.onerror = (e) => {
-        console.error('Heavy Worker Error', e);
+        console.error('Heavy Worker Error:', e);
+        // Do not block main thread, just log and allow service to try again later if needed
+        this.worker = null;
       };
+    } catch (err) {
+      console.error('Failed to initialize Heavy Worker:', err);
     }
+  }
+
+  constructor() {
+    // Lazy initialization now
   }
 
   private postMessage(type: string, payload: any): Promise<any> {
     return new Promise((resolve, reject) => {
+      this.initializeWorker();
+
       if (!this.worker) {
-        reject(new Error('Worker not initialized'));
+        reject(new Error('Heavy Worker could not be initialized. This might be due to your browser or a network issue.'));
         return;
       }
       const id = Math.random().toString(36).substring(7);

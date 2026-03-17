@@ -86,7 +86,7 @@ export const CommonActions = React.memo(
         <Icons.ArrowDown className="w-3.5 h-3.5" />
       </IconButton>
 
-      <IconButton onClick={() => onDuplicateLayer(selectedLayer.id)} title="Duplicate">
+      <IconButton onClick={() => onDuplicateLayer(selectedLayer.id)} title="Duplicate" shortcut="Ctrl+D">
         <Icons.Copy className="w-3.5 h-3.5" />
       </IconButton>
       <IconButton

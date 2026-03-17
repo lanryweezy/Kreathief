@@ -66,6 +66,35 @@ export const ImageLayerItem = React.memo(
       // Scale for the image within the container
       const imgScale = imgLayer.width / crop.width;
 
+      const maskWrapperStyle = React.useMemo(() => ({
+          borderRadius: `${imgLayer.cornerRadius || 0}px`,
+          ...animStyle,
+          ...(imgLayer.maskType === 'lasso' && imgLayer.maskPath
+            ? { clipPath: `path('${imgLayer.maskPath}')` }
+            : imgLayer.maskType === 'bitmap' && imgLayer.maskDataURL
+              ? {
+                WebkitMaskImage: `url(${imgLayer.maskDataURL})`,
+                maskImage: `url(${imgLayer.maskDataURL})`,
+                WebkitMaskSize: '100% 100%',
+                maskSize: '100% 100%',
+                WebkitMaskRepeat: 'no-repeat',
+                maskRepeat: 'no-repeat',
+              }
+              : maskPath
+                ? { clipPath: maskPath }
+                : {}),
+      }), [imgLayer.cornerRadius, animStyle, imgLayer.maskType, imgLayer.maskPath, imgLayer.maskDataURL, maskPath]);
+
+      const imgStyle = React.useMemo(() => ({
+          width: naturalWidth * imgScale,
+          height: naturalHeight * imgScale,
+          transform: `translate(${-crop.x * imgScale}px, ${-crop.y * imgScale}px) scale(${scaleX}, ${scaleY})`,
+          transformOrigin: 'top left',
+          filter: imgLayer.filters
+            ? `${imgLayer.filters.artisticFilter ? `url(#${imgLayer.filters.artisticFilter}) ` : ''}brightness(${imgLayer.filters.brightness}%) contrast(${imgLayer.filters.contrast}%) saturate(${imgLayer.filters.saturation}%) grayscale(${imgLayer.filters.grayscale}%) blur(${imgLayer.filters.blur}px) sepia(${imgLayer.filters.sepia}%) hue-rotate(${imgLayer.filters.hueRotate}deg)`
+            : 'none',
+      }), [naturalWidth, imgScale, crop.x, crop.y, scaleX, scaleY, imgLayer.filters]);
+
       return (
         <div
           ref={ref}
@@ -99,38 +128,13 @@ export const ImageLayerItem = React.memo(
           {/* Masking Logic */}
           <div
             className="w-full h-full overflow-hidden"
-            style={{
-              borderRadius: `${imgLayer.cornerRadius || 0}px`,
-              ...animStyle,
-              ...(imgLayer.maskType === 'lasso' && imgLayer.maskPath
-                ? { clipPath: `path('${imgLayer.maskPath}')` }
-                : imgLayer.maskType === 'bitmap' && imgLayer.maskDataURL
-                  ? {
-                    WebkitMaskImage: `url(${imgLayer.maskDataURL})`,
-                    maskImage: `url(${imgLayer.maskDataURL})`,
-                    WebkitMaskSize: '100% 100%',
-                    maskSize: '100% 100%',
-                    WebkitMaskRepeat: 'no-repeat',
-                    maskRepeat: 'no-repeat',
-                  }
-                  : maskPath
-                    ? { clipPath: maskPath }
-                    : {}),
-            }}
+            style={maskWrapperStyle}
           >
             <img
               src={imgLayer.src}
               className="pointer-events-none block"
               alt=""
-              style={{
-                width: naturalWidth * imgScale,
-                height: naturalHeight * imgScale,
-                transform: `translate(${-crop.x * imgScale}px, ${-crop.y * imgScale}px) scale(${scaleX}, ${scaleY})`,
-                transformOrigin: 'top left',
-                filter: imgLayer.filters
-                  ? `brightness(${imgLayer.filters.brightness}%) contrast(${imgLayer.filters.contrast}%) saturate(${imgLayer.filters.saturation}%) grayscale(${imgLayer.filters.grayscale}%) blur(${imgLayer.filters.blur}px) sepia(${imgLayer.filters.sepia}%) hue-rotate(${imgLayer.filters.hueRotate}deg)`
-                  : 'none',
-              }}
+              style={imgStyle}
             />
             {imgLayer.filters?.vignette !== undefined && imgLayer.filters.vignette > 0 && (
               <div
@@ -181,6 +185,73 @@ export const ShapeLayerItem = React.memo(
       const isEditing = shapeLayer.id === editingPathId;
       const clipPath = getLayerClipPath(shapeLayer);
 
+      const animStyle = getAnimationStyle(isSelected && previewAnimation ? previewAnimation : shapeLayer.animation);
+
+      const containerStyle = React.useMemo(() => ({
+          left: shapeLayer.x,
+          top: shapeLayer.y,
+          width: shapeLayer.width,
+          height: shapeLayer.height,
+          transform: `${shapeLayer.perspective ? `perspective(${shapeLayer.perspective}px)` : ''} rotateX(${shapeLayer.rotateX || 0}deg) rotateY(${shapeLayer.rotateY || 0}deg) rotate(${shapeLayer.rotation}deg) skew(${shapeLayer.skewX || 0}deg, ${shapeLayer.skewY || 0}deg)`,
+          opacity: shapeLayer.opacity,
+          mixBlendMode: shapeLayer.blendMode as any,
+          willChange: 'transform',
+          zIndex: isSelected ? 100 : isHovered ? 99 : 1,
+          overflow: 'visible',
+      }), [shapeLayer.x, shapeLayer.y, shapeLayer.width, shapeLayer.height, shapeLayer.perspective, shapeLayer.rotateX, shapeLayer.rotateY, shapeLayer.rotation, shapeLayer.skewX, shapeLayer.skewY, shapeLayer.opacity, shapeLayer.blendMode, isSelected, isHovered]);
+
+      const innerStyle = React.useMemo(() => ({
+          ...animStyle,
+          backgroundColor: (shapeLayer as any).params?.gradient
+            ? 'transparent'
+            : shapeLayer.type === 'path'
+              ? 'transparent'
+              : shapeLayer.imageFill
+                ? 'transparent'  // Let imageFill handle the background
+                : shapeLayer.color,
+          backgroundImage: (shapeLayer as any).params?.gradient
+            ? `linear-gradient(${(shapeLayer as any).params.gradient.angle}deg, ${(shapeLayer as any).params.gradient.startColor}, ${(shapeLayer as any).params.gradient.endColor})`
+            : shapeLayer.imageFill
+              ? `url(${shapeLayer.imageFill.src})`
+              : shapeLayer.backgroundImage
+                ? `url(${shapeLayer.backgroundImage})`
+                : 'none',
+          backgroundSize: shapeLayer.imageFill?.fit === 'contain'
+            ? 'contain'
+            : shapeLayer.imageFill?.fit === 'fill'
+              ? '100% 100%'
+              : shapeLayer.backgroundScale
+                ? `${shapeLayer.backgroundScale * 100}%`
+                : 'cover',
+          backgroundPosition: shapeLayer.imageFill
+            ? `${(shapeLayer.imageFill.offsetX || 0) * 100}% ${(shapeLayer.imageFill.offsetY || 0) * 100}%`
+            : shapeLayer.backgroundPositionX || shapeLayer.backgroundPositionY
+              ? `${shapeLayer.backgroundPositionX || 0}px ${shapeLayer.backgroundPositionY || 0}px`
+              : 'center',
+          backgroundRepeat: shapeLayer.imageFill?.fit === 'contain' || shapeLayer.imageFill?.fit === 'fill' ? 'no-repeat' : 'repeat',
+          boxShadow:
+            shapeLayer.shadow && shapeLayer.type !== 'path'
+              ? `${shapeLayer.shadow.offsetX}px ${shapeLayer.shadow.offsetY}px ${shapeLayer.shadow.blur}px ${shapeLayer.shadow.color}`
+              : 'none',
+          borderRadius:
+            shapeLayer.type !== 'path' && shapeLayer.type !== 'arrow' ? `${shapeLayer.cornerRadius}px` : undefined,
+          clipPath: shapeLayer.type === 'path' ? undefined : clipPath,
+          filter: shapeLayer.filters
+            ? `
+                brightness(${shapeLayer.filters.brightness}%)
+                contrast(${shapeLayer.filters.contrast}%)
+                saturate(${shapeLayer.filters.saturation}%)
+                grayscale(${shapeLayer.filters.grayscale}%)
+                blur(${shapeLayer.filters.blur}px)
+                sepia(${shapeLayer.filters.sepia}%)
+                hue-rotate(${shapeLayer.filters.hueRotate}deg)
+                ${shapeLayer.shadow && shapeLayer.type === 'path' ? `drop-shadow(${shapeLayer.shadow.offsetX}px ${shapeLayer.shadow.offsetY}px ${shapeLayer.shadow.blur}px ${shapeLayer.shadow.color})` : ''}
+            `
+            : 'none',
+          opacity: shapeLayer.opacity,
+          ...(maskPath ? { clipPath: maskPath } : {}),
+      }), [animStyle, shapeLayer, clipPath, maskPath]);
+
       return (
         <div
           ref={ref}
@@ -194,18 +265,7 @@ export const ShapeLayerItem = React.memo(
           className="absolute cursor-move group shape-layer-item"
           data-layer-type="shape"
           data-layer-id={shapeLayer.id}
-          style={{
-            left: shapeLayer.x,
-            top: shapeLayer.y,
-            width: shapeLayer.width,
-            height: shapeLayer.height,
-            transform: `${shapeLayer.perspective ? `perspective(${shapeLayer.perspective}px)` : ''} rotateX(${shapeLayer.rotateX || 0}deg) rotateY(${shapeLayer.rotateY || 0}deg) rotate(${shapeLayer.rotation}deg) skew(${shapeLayer.skewX || 0}deg, ${shapeLayer.skewY || 0}deg)`,
-            opacity: shapeLayer.opacity,
-            mixBlendMode: shapeLayer.blendMode as any,
-            willChange: 'transform',
-            zIndex: isSelected ? 100 : isHovered ? 99 : 1,
-            overflow: 'visible',
-          }}
+          style={containerStyle}
         >
           {isHovered && !isSelected && !shapeLayer.locked && !isEditing && (
             <div className="absolute -inset-2 border border-cyan-400/50 rounded-sm pointer-events-none z-40"></div>
@@ -213,57 +273,7 @@ export const ShapeLayerItem = React.memo(
 
           <div
             className="w-full h-full relative"
-            style={{
-              ...getAnimationStyle(isSelected && previewAnimation ? previewAnimation : shapeLayer.animation),
-              backgroundColor: (shapeLayer as any).params?.gradient
-                ? 'transparent'
-                : shapeLayer.type === 'path'
-                  ? 'transparent'
-                  : shapeLayer.imageFill
-                    ? 'transparent'  // Let imageFill handle the background
-                    : shapeLayer.color,
-              backgroundImage: (shapeLayer as any).params?.gradient
-                ? `linear-gradient(${(shapeLayer as any).params.gradient.angle}deg, ${(shapeLayer as any).params.gradient.startColor}, ${(shapeLayer as any).params.gradient.endColor})`
-                : shapeLayer.imageFill
-                  ? `url(${shapeLayer.imageFill.src})`
-                  : shapeLayer.backgroundImage
-                    ? `url(${shapeLayer.backgroundImage})`
-                    : 'none',
-              backgroundSize: shapeLayer.imageFill?.fit === 'contain'
-                ? 'contain'
-                : shapeLayer.imageFill?.fit === 'fill'
-                  ? '100% 100%'
-                  : shapeLayer.backgroundScale
-                    ? `${shapeLayer.backgroundScale * 100}%`
-                    : 'cover',
-              backgroundPosition: shapeLayer.imageFill
-                ? `${(shapeLayer.imageFill.offsetX || 0) * 100}% ${(shapeLayer.imageFill.offsetY || 0) * 100}%`
-                : shapeLayer.backgroundPositionX || shapeLayer.backgroundPositionY
-                  ? `${shapeLayer.backgroundPositionX || 0}px ${shapeLayer.backgroundPositionY || 0}px`
-                  : 'center',
-              backgroundRepeat: shapeLayer.imageFill?.fit === 'contain' || shapeLayer.imageFill?.fit === 'fill' ? 'no-repeat' : 'repeat',
-              boxShadow:
-                shapeLayer.shadow && shapeLayer.type !== 'path'
-                  ? `${shapeLayer.shadow.offsetX}px ${shapeLayer.shadow.offsetY}px ${shapeLayer.shadow.blur}px ${shapeLayer.shadow.color}`
-                  : 'none',
-              borderRadius:
-                shapeLayer.type !== 'path' && shapeLayer.type !== 'arrow' ? `${shapeLayer.cornerRadius}px` : undefined,
-              clipPath: shapeLayer.type === 'path' ? undefined : clipPath,
-              filter: shapeLayer.filters
-                ? `
-                    brightness(${shapeLayer.filters.brightness}%)
-                    contrast(${shapeLayer.filters.contrast}%)
-                    saturate(${shapeLayer.filters.saturation}%)
-                    grayscale(${shapeLayer.filters.grayscale}%)
-                    blur(${shapeLayer.filters.blur}px)
-                    sepia(${shapeLayer.filters.sepia}%)
-                    hue-rotate(${shapeLayer.filters.hueRotate}deg)
-                    ${shapeLayer.shadow && shapeLayer.type === 'path' ? `drop-shadow(${shapeLayer.shadow.offsetX}px ${shapeLayer.shadow.offsetY}px ${shapeLayer.shadow.blur}px ${shapeLayer.shadow.color})` : ''}
-                `
-                : 'none',
-              opacity: shapeLayer.opacity,
-              ...(maskPath ? { clipPath: maskPath } : {}),
-            }}
+            style={innerStyle}
           >
             {(shapeLayer.type === 'path' || shapeLayer.vectorPath) && (
               <svg
@@ -399,7 +409,7 @@ export const TextLayerItem = React.memo(
         return parts.length > 0 ? parts.join(', ') : undefined;
       };
 
-      const textStyle: React.CSSProperties = {
+      const textStyle: React.CSSProperties = React.useMemo(() => ({
         fontFamily: textLayer.fontFamily,
         fontSize: `${textLayer.fontSize}px`,
         fontWeight: textLayer.fontWeight,
@@ -443,12 +453,12 @@ export const TextLayerItem = React.memo(
           : {}),
         position: 'relative',
         zIndex: 1,
-      };
+      }), [textLayer, buildTextShadow]);
 
       const textureUrl = textLayer.decorations?.textures?.[0];
       const textureIntensity = useStore((state) => state.textureIntensity);
 
-      const textureStyle: React.CSSProperties = textureUrl
+      const textureStyle: React.CSSProperties = React.useMemo(() => textureUrl
         ? {
           position: 'absolute',
           inset: 0,
@@ -464,7 +474,30 @@ export const TextLayerItem = React.memo(
           mixBlendMode: 'overlay',
           pointerEvents: 'none',
         }
-        : {};
+        : {}, [textureUrl, textureIntensity]);
+
+      const containerStyle = React.useMemo(() => ({
+          left: textLayer.x,
+          top: textLayer.y,
+          width: textLayer.width,
+          transform: `${textLayer.perspective ? `perspective(${textLayer.perspective}px)` : ''} rotateX(${textLayer.rotateX || 0}deg) rotateY(${textLayer.rotateY || 0}deg) rotate(${textLayer.rotation}deg) skew(${textLayer.skewX || 0}deg, ${textLayer.skewY || 0}deg)`,
+          opacity: textLayer.opacity,
+          mixBlendMode: textLayer.blendMode as any,
+          willChange: 'transform',
+      }), [textLayer.x, textLayer.y, textLayer.width, textLayer.perspective, textLayer.rotateX, textLayer.rotateY, textLayer.rotation, textLayer.skewX, textLayer.skewY, textLayer.opacity, textLayer.blendMode]);
+
+      const textContainerStyle = React.useMemo(() => ({
+          ...containerStyle,
+          minHeight: textLayer.fontSize,
+      }), [containerStyle, textLayer.fontSize]);
+
+      const animStyle = getAnimationStyle(isSelected && previewAnimation ? previewAnimation : textLayer.animation);
+
+      const combinedTextStyle = React.useMemo(() => ({
+          ...textStyle,
+          ...animStyle,
+          ...(maskPath ? { clipPath: maskPath } : {}),
+      }), [textStyle, animStyle, maskPath]);
 
       const render3DDepth = () => {
         if (!textLayer.depth || textLayer.depth <= 0) {
@@ -507,15 +540,7 @@ export const TextLayerItem = React.memo(
             className="absolute cursor-move group text-layer-item"
             data-layer-type="text"
             data-layer-id={textLayer.id}
-            style={{
-              left: textLayer.x,
-              top: textLayer.y,
-              width: textLayer.width,
-              transform: `${textLayer.perspective ? `perspective(${textLayer.perspective}px)` : ''} rotateX(${textLayer.rotateX || 0}deg) rotateY(${textLayer.rotateY || 0}deg) rotate(${textLayer.rotation}deg) skew(${textLayer.skewX || 0}deg, ${textLayer.skewY || 0}deg)`,
-              opacity: textLayer.opacity,
-              mixBlendMode: textLayer.blendMode as any,
-              willChange: 'transform',
-            }}
+            style={containerStyle}
           >
             {isHovered && !isSelected && !textLayer.locked && (
               <div className="absolute -inset-2 border border-cyan-400/50 rounded-sm pointer-events-none z-40"></div>
@@ -547,30 +572,15 @@ export const TextLayerItem = React.memo(
           className="absolute cursor-move group text-layer-item"
           data-layer-type="text"
           data-layer-id={textLayer.id}
-          style={{
-            left: textLayer.x,
-            top: textLayer.y,
-            width: textLayer.width,
-            transform: `${textLayer.perspective ? `perspective(${textLayer.perspective}px)` : ''} rotateX(${textLayer.rotateX || 0}deg) rotateY(${textLayer.rotateY || 0}deg) rotate(${textLayer.rotation}deg) skew(${textLayer.skewX || 0}deg, ${textLayer.skewY || 0}deg)`,
-            opacity: textLayer.opacity,
-            mixBlendMode: textLayer.blendMode as any,
-            minHeight: textLayer.fontSize,
-            willChange: 'transform',
-          }}
-        >
-          {isHovered && !isSelected && !textLayer.locked && (
+            style={textContainerStyle}
+          >
+            {isHovered && !isSelected && !textLayer.locked && (
             <div className="absolute -inset-2 border border-cyan-400/50 rounded-sm pointer-events-none z-40"></div>
           )}
 
           {render3DDepth()}
 
-          <div
-            style={{
-              ...textStyle,
-              ...getAnimationStyle(isSelected && previewAnimation ? previewAnimation : textLayer.animation),
-              ...(maskPath ? { clipPath: maskPath } : {}),
-            }}
-          >
+          <div style={combinedTextStyle}>
             {textLayer.text}
           </div>
           {textureUrl && (

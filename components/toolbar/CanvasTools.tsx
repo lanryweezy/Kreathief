@@ -25,7 +25,7 @@ export const CanvasTools = React.memo(
     const setPenMode = useStore((state) => state.setPenMode);
 
     return (
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-center gap-3 flex-nowrap overflow-x-auto no-scrollbar py-1">
         <IconButton onClick={() => setPenMode(!isPenMode)} active={isPenMode} title="Pen Tool (P)">
           <Icons.Pen className="w-4 h-4" />
         </IconButton>

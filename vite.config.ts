@@ -8,6 +8,11 @@ export default defineConfig(({ mode }) => {
     build: {
       sourcemap: false,
       rollupOptions: {
+        onwarn(warning, warn) {
+          // Suppress specific warnings for onnxruntime-web
+          if (warning.code === 'UNRESOLVED_IMPORT' && warning.message.includes('onnxruntime-web')) return;
+          warn(warning);
+        },
         output: {
           manualChunks: {
             'vendor-react': ['react', 'react-dom', 'react-router-dom'],

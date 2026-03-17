@@ -155,7 +155,12 @@ const SnapshotsPanel: React.FC = () => {
                 </div>
               </div>
               <div className="text-xs text-slate-500 flex justify-between">
-                <span>{snapshot.state.layers.length} layers</span>
+                <span>
+                  {snapshot.state.artboards
+                    ? snapshot.state.artboards.reduce((acc: number, a: any) => acc + (a.layers?.length || 0), 0)
+                    : (snapshot.state.layers?.length || 0)
+                  } layers
+                </span>
                 <span className="bg-slate-900 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider">
                   {snapshot.state.canvasSize?.name || 'Custom'}
                 </span>

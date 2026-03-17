@@ -6,6 +6,7 @@ import * as photoService from '../../services/photoService';
 
 import { useStore } from '../../store/useStore';
 import { v4 as uuidv4 } from 'uuid';
+import { log } from '../../utils/log';
 
 export const BrandPanel = () => {
   const brandKits = useStore((state) => state.brandKits);
@@ -117,7 +118,7 @@ export const BrandPanel = () => {
         alert('Could not extract colors. Try another image.');
       }
     } catch (e) {
-      console.error(e);
+      log.error('[BrandPanel] Color extraction failed', e);
       alert('Extraction failed.');
     } finally {
       setIsAnalyzing(false);

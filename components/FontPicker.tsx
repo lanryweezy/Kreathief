@@ -5,13 +5,14 @@ import { loadFont } from '../services/FontLoader';
 interface FontPickerProps {
   currentFont: string;
   onSelectFont: (font: string) => void;
+  onHoverFont?: (font: string | null) => void;
   onClose: () => void;
   search: string;
   setSearch: (s: string) => void;
 }
 
 const FontItem = React.memo(
-  ({ font, isSelected, onSelect }: { font: string; isSelected: boolean; onSelect: (f: string) => void }) => {
+  ({ font, isSelected, onSelect, onHover }: { font: string; isSelected: boolean; onSelect: (f: string) => void; onHover?: (f: string | null) => void }) => {
     const [isLoaded, setIsLoaded] = useState(false);
     const ref = useRef<HTMLButtonElement>(null);
 
@@ -37,6 +38,8 @@ const FontItem = React.memo(
       <button
         ref={ref}
         onClick={() => onSelect(font)}
+        onMouseEnter={() => onHover?.(font)}
+        onMouseLeave={() => onHover?.(null)}
         className={`w-full text-left px-3 py-2 hover:bg-[#7d2ae8] hover:text-white rounded flex flex-col group transition-colors ${isSelected ? 'bg-indigo-900/30 border border-indigo-500/30' : 'text-gray-300'}`}
       >
         <span
@@ -60,7 +63,7 @@ const FontItem = React.memo(
 );
 FontItem.displayName = 'FontItem';
 
-export const FontPicker: React.FC<FontPickerProps> = ({ currentFont, onSelectFont, onClose, search, setSearch }) => {
+export const FontPicker: React.FC<FontPickerProps> = ({ currentFont, onSelectFont, onHoverFont, onClose, search, setSearch }) => {
   const filteredCategories = useMemo(() => {
     const result: { [key: string]: string[] } = {};
     Object.entries(FONT_CATEGORIES).forEach(([category, fonts]) => {
@@ -107,6 +110,7 @@ export const FontPicker: React.FC<FontPickerProps> = ({ currentFont, onSelectFon
                       onSelectFont(f);
                       onClose();
                     }}
+                    onHover={onHoverFont}
                   />
                 ))}
               </div>

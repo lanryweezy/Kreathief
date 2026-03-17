@@ -4,6 +4,7 @@ import { ChatMessage, TextLayer, ShapeLayer } from '../../types';
 import * as geminiService from '../../services/geminiService';
 import { useStore } from '../../store/useStore';
 import { v4 as uuidv4 } from 'uuid';
+import { log } from '../../utils/log';
 
 // Local SVG icons to avoid dependence on constants.ts which might cause crashes
 const LocalIcons = {
@@ -214,7 +215,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapsho
         };
 
         recognitionRef.current.onerror = (event: any) => {
-          console.error('Speech Recognition Error', event.error);
+          log.error('[AssistantPanel] Speech recognition error', event, { error: event.error });
           setIsListening(false);
         };
 
@@ -303,7 +304,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapsho
         setMessages((prev) => [...prev, aiMsg]);
       }
     } catch (e) {
-      console.error(e);
+      log.error('[AssistantPanel] AI chat response failed', e, { input: input.substring(0, 100) });
       const errorMsg: ChatMessage = {
         id: Date.now().toString() + '_err',
         role: 'assistant',
@@ -344,7 +345,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapsho
           })
       );
     } catch (e) {
-      console.error(e);
+      log.error('[AssistantPanel] Canvas analysis failed', e);
       setMessages((prev) =>
         prev
           .filter((m) => m.id !== 'analyzing')

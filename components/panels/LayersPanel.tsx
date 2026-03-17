@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { TextLayer, ShapeLayer, ImageLayer, Layer } from '../../types';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
+import { EmptyState } from '../EmptyState';
 
 // LayerItem Component Props
 interface LayerItemProps {
@@ -20,6 +21,9 @@ interface LayerItemProps {
   isGroupEnd?: boolean;
   onDrop: (draggedId: string, targetId: string, position: 'above' | 'below') => void;
   onCopy: () => void;
+  onSwipeVisible?: (id: string) => void;
+  onSwipeLock?: (id: string) => void;
+  isSwipeOrigin?: boolean;
 }
 
 const areLayerPropsEqual = (prev: LayerItemProps, next: LayerItemProps) => {
@@ -114,11 +118,31 @@ const LayerItem = React.memo(
     isGroupStart = false,
     isGroupEnd = false,
     onDrop,
+    onSwipeVisible,
+    onSwipeLock,
   }: LayerItemProps) => {
+    const itemRef = useRef<HTMLDivElement>(null);
+
+    // Auto-scroll logic for #7
+    useEffect(() => {
+      if (isSelected && itemRef.current) {
+        itemRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, [isSelected]);
     const [isEditing, setIsEditing] = useState(false);
     const [editName, setEditName] = useState(layer.name || '');
     const [showSettings, setShowSettings] = useState(false);
     const [dragOver, setDragOver] = useState<'top' | 'bottom' | null>(null);
+    
+    // Group expand/collapse state
+    const isGroup = layer.isGroup === true;
+    const isExpanded = layer.isExpanded !== false;
+    const [localExpanded, setLocalExpanded] = useState(isExpanded);
+
+    // Sync with layer changes
+    useEffect(() => {
+      setLocalExpanded(layer.isExpanded !== false);
+    }, [layer.isExpanded]);
 
     function getLayerNameFallback(l: Layer) {
       if (l.type === 'text') {
@@ -217,42 +241,76 @@ const LayerItem = React.memo(
     };
 
     return (
-      <div className="flex flex-col">
+      <div className="flex flex-col" ref={itemRef}>
         <div
-          draggable={!layer.locked && !isEditing}
+          draggable={!layer.locked && !isEditing && !isGroup}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          onClick={onSelect}
+          onClick={(e) => {
+            if (isGroup) {
+              // Toggle group expansion on click
+              setLocalExpanded(!localExpanded);
+              onUpdate({ isExpanded: !localExpanded });
+              e.stopPropagation();
+              return;
+            }
+            onSelect();
+          }}
           onContextMenu={(e) => {
             e.preventDefault();
             onSelectMultiple(e);
           }}
-          className={`group relative flex items-center gap-3 p-2 border-b border-gray-800/50 cursor-pointer transition-all select-none ${isMultiSelected
-              ? 'bg-[#7d2ae8]/20 border-l-2 border-l-[#7d2ae8]'
+          className={`group relative flex items-center gap-3 p-2 border-b border-gray-800/50 cursor-pointer transition-all duration-300 select-none ${
+            layer.isGroup
+              ? 'bg-gradient-to-r from-[#7d2ae8]/15 to-transparent border-l-4 border-l-[#7d2ae8]'
+              : isMultiSelected
+              ? 'bg-[#7d2ae8]/20 border-l-2 border-l-[#7d2ae8] shadow-[inset_4px_0_12px_rgba(125,42,232,0.1)]'
               : isSelected
-                ? 'bg-[#7d2ae8]/10 border-l-2 border-l-[#7d2ae8]'
-                : 'hover:bg-[#252627] border-l-2 border-l-transparent'
-            }`}
+              ? 'bg-[#7d2ae8]/10 border-l-2 border-l-[#7d2ae8] scale-[1.01] z-10 shadow-lg'
+              : 'hover:bg-[#252627] border-l-2 border-l-transparent'
+          }`}
           style={{
-            paddingLeft: isGrouped ? '24px' : '8px',
+            paddingLeft: isGrouped && !layer.isGroup ? '32px' : '10px',
             marginBottom: isGroupEnd ? '8px' : '0',
             borderTop: dragOver === 'top' ? '2px solid #7d2ae8' : undefined,
             borderBottom: dragOver === 'bottom' ? '2px solid #7d2ae8' : '1px solid rgba(31, 41, 55, 0.5)',
           }}
         >
-          {isGrouped && (
+          {/* Folder/Group Expand Collapse */}
+          {layer.isGroup && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setLocalExpanded(!localExpanded);
+                onUpdate({ isExpanded: !localExpanded });
+              }}
+              className="w-4 h-4 flex items-center justify-center rounded hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
+              title={localExpanded ? 'Collapse Group' : 'Expand Group'}
+            >
+              <Icons.ChevronDown
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${localExpanded ? 'rotate-0' : '-rotate-90'}`}
+              />
+            </button>
+          )}
+
+          {isGrouped && !layer.isGroup && (
             <div
               className={`absolute left-0 w-1 bg-gray-700 ${isGroupStart ? 'top-0 rounded-tr' : ''} ${isGroupEnd ? 'bottom-0 rounded-br' : ''} h-full ml-1`}
             ></div>
           )}
 
           <div className="flex items-center gap-1.5 shrink-0">
-            <div className="cursor-grab active:cursor-grabbing text-gray-700 group-hover:text-gray-500 transition-colors">
-              <Icons.MoreVertical className="w-3 h-3 -mr-1" />
-              <Icons.MoreVertical className="w-3 h-3 -ml-1" />
-            </div>
+            {!layer.isGroup && (
+              <div className="cursor-grab active:cursor-grabbing text-gray-700 group-hover:text-gray-500 transition-colors">
+                <Icons.MoreVertical className="w-3 h-3 -mr-1" />
+                <Icons.MoreVertical className="w-3 h-3 -ml-1" />
+              </div>
+            )}
+            {layer.isGroup && (
+              <Icons.Folder className="w-4 h-4 text-[#7d2ae8]" />
+            )}
             <input
               type="checkbox"
               checked={isMultiSelected}
@@ -266,10 +324,12 @@ const LayerItem = React.memo(
           </div>
 
           <button
-            onClick={(e) => {
+            onMouseDown={(e) => {
               e.stopPropagation();
               onUpdate({ visible: !layer.visible });
+              onSwipeVisible?.(layer.id);
             }}
+            onMouseEnter={() => onSwipeVisible?.(layer.id)}
             className={`w-4 h-4 flex items-center justify-center rounded text-gray-500 hover:text-white transition-colors ${!layer.visible ? 'opacity-100 text-gray-600' : 'opacity-0 group-hover:opacity-100 focus:opacity-100'}`}
             title={layer.visible ? 'Hide Layer' : 'Show Layer'}
           >
@@ -277,10 +337,12 @@ const LayerItem = React.memo(
           </button>
 
           <button
-            onClick={(e) => {
+            onMouseDown={(e) => {
               e.stopPropagation();
               onUpdate({ locked: !layer.locked });
+              onSwipeLock?.(layer.id);
             }}
+            onMouseEnter={() => onSwipeLock?.(layer.id)}
             className={`w-4 h-4 flex items-center justify-center rounded text-gray-500 hover:text-white transition-colors ${layer.locked ? 'opacity-100 text-[#7d2ae8]' : 'opacity-0 group-hover:opacity-100 focus:opacity-100'}`}
             title={layer.locked ? 'Unlock Layer' : 'Lock Layer'}
           >
@@ -312,14 +374,14 @@ const LayerItem = React.memo(
               <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`text-xs truncate font-medium ${isSelected || isMultiSelected ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'} ${layer.visible ? '' : 'opacity-50'}`}
+                    className={`text-xs truncate font-medium transition-colors duration-300 ${isSelected || isMultiSelected ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'} ${layer.visible ? '' : 'opacity-50'}`}
                   >
                     {layer.name || getLayerNameFallback(layer)}
                   </span>
-                  {isGrouped && <span className="text-[8px] bg-gray-700 text-gray-400 px-1 rounded">GRP</span>}
+                  {isGrouped && <span className="text-[8px] bg-[#7d2ae8]/20 text-[#7d2ae8] px-1.5 py-0.5 rounded font-black border border-[#7d2ae8]/30">GRP</span>}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[9px] uppercase text-gray-600 font-bold bg-gray-800 px-1 rounded">
+                  <span className="text-[9px] uppercase text-gray-500 font-bold bg-white/5 px-1.5 py-0.5 rounded border border-white/5 transition-colors group-hover:bg-white/10 group-hover:text-gray-300">
                     {layer.type}
                   </span>
                 </div>
@@ -404,7 +466,12 @@ const LayerItem = React.memo(
 LayerItem.displayName = 'LayerItem';
 
 export const LayersPanel = React.memo(() => {
-  const layers = useStore((state) => state.layers);
+  const artboards = useStore((state) => state.artboards);
+  const activeArtboardId = useStore((state) => state.activeArtboardId);
+  const layers = useMemo(() => 
+    artboards.find(a => a.id === activeArtboardId)?.layers || [], 
+    [artboards, activeArtboardId]
+  );
   const selectedLayerIds = useStore((state) => state.selectedLayerIds);
   const selectLayer = useStore((state) => state.selectLayer);
   const multiSelectLayer = useStore((state) => state.multiSelectLayer);
@@ -417,9 +484,35 @@ export const LayersPanel = React.memo(() => {
   const groupSelected = useStore((state) => state.groupSelected);
   const ungroupSelected = useStore((state) => state.ungroupSelected);
   const copyLayer = useStore((state) => state.copyLayer);
+  const setSelectedLayerIds = useStore((state) => state.setSelectedLayerIds);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'text' | 'shape' | 'image'>('all');
+  const [swipeState, setSwipeState] = useState<{ type: 'visible' | 'lock'; value: boolean } | null>(null);
+
+  const handleSwipeVisible = (id: string) => {
+    if (!swipeState) {
+      const layer = layers.find(l => l.id === id);
+      if (layer) {setSwipeState({ type: 'visible', value: !layer.visible });}
+    } else if (swipeState.type === 'visible') {
+      updateLayer(id, { visible: swipeState.value });
+    }
+  };
+
+  const handleSwipeLock = (id: string) => {
+    if (!swipeState) {
+      const layer = layers.find(l => l.id === id);
+      if (layer) {setSwipeState({ type: 'lock', value: !layer.locked });}
+    } else if (swipeState.type === 'lock') {
+      updateLayer(id, { locked: swipeState.value });
+    }
+  };
+
+  useEffect(() => {
+    const handleMouseUp = () => setSwipeState(null);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => window.removeEventListener('mouseup', handleMouseUp);
+  }, []);
 
   const selectedLayerId = selectedLayerIds.length > 0 ? selectedLayerIds[selectedLayerIds.length - 1] : null;
 
@@ -430,15 +523,35 @@ export const LayersPanel = React.memo(() => {
 
   const displayLayers = useMemo(() => {
     const result = [...layers].reverse();
-
-    return result.filter((layer) => {
+    
+    // Filter out collapsed group children
+    let skipUntilNextGroup = false;
+    
+    const filtered = result.filter((layer) => {
       const matchesFilter = filterType === 'all' || layer.type === filterType;
       const matchesSearch =
         !searchQuery ||
         (layer.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (layer.type === 'text' && (layer as TextLayer).text.toLowerCase().includes(searchQuery.toLowerCase()));
-      return matchesFilter && matchesSearch;
+      
+      if (!matchesFilter || !matchesSearch) {
+        return false;
+      }
+      
+      // Handle group collapse/expand
+      if (layer.isGroup) {
+        skipUntilNextGroup = layer.isExpanded === false;
+        return true;
+      }
+      
+      if (skipUntilNextGroup && layer.groupId) {
+        return false;
+      }
+      
+      return true;
     });
+
+    return filtered;
   }, [layers, searchQuery, filterType]);
 
   const totalHeight = displayLayers.length * ITEM_HEIGHT;
@@ -525,19 +638,36 @@ export const LayersPanel = React.memo(() => {
           />
         </div>
 
-        <div className="flex gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
-          {(['all', 'text', 'shape', 'image'] as const).map((type) => (
+        <div className="flex items-center justify-between">
+          <div className="flex gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
+            {(['all', 'text', 'shape', 'image'] as const).map((type) => (
+              <button
+                key={type}
+                onClick={() => setFilterType(type as any)}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all shrink-0 ${filterType === type
+                    ? 'bg-[#7d2ae8] text-white shadow-lg shadow-[#7d2ae8]/20'
+                    : 'bg-[#252627] text-gray-400 hover:text-white hover:bg-gray-700'
+                  }`}
+              >
+                {type === 'all' ? 'All' : type === 'text' ? 'Text' : type === 'shape' ? 'Shapes' : 'Images'}
+              </button>
+            ))}
+          </div>
+          {displayLayers.length > 0 && (
             <button
-              key={type}
-              onClick={() => setFilterType(type as any)}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all shrink-0 ${filterType === type
-                  ? 'bg-[#7d2ae8] text-white shadow-lg shadow-[#7d2ae8]/20'
-                  : 'bg-[#252627] text-gray-400 hover:text-white hover:bg-gray-700'
-                }`}
+               onClick={() => {
+                 if (selectedLayerIds.length === displayLayers.length) {
+                   setSelectedLayerIds([]);
+                 } else {
+                   setSelectedLayerIds(displayLayers.map(l => l.id));
+                 }
+               }}
+               className="p-1.5 text-gray-400 hover:text-white rounded bg-[#252627] hover:bg-gray-700 transition-colors shrink-0"
+               title={selectedLayerIds.length === displayLayers.length ? "Deselect All" : "Select All"}
             >
-              {type === 'all' ? 'All' : type === 'text' ? 'Text' : type === 'shape' ? 'Shapes' : 'Images'}
+              <Icons.CheckSquare className="w-3.5 h-3.5" />
             </button>
-          ))}
+          )}
         </div>
 
         {selectedLayerIds.length > 0 && (
@@ -603,9 +733,12 @@ export const LayersPanel = React.memo(() => {
         onDragOver={(e) => e.preventDefault()}
       >
         {displayLayers.length === 0 && (
-          <div className="flex flex-col items-center justify-center mt-20 opacity-30 gap-2">
-            <Icons.Layers className="w-10 h-10 text-gray-500" />
-            <p className="text-xs font-medium">{searchQuery ? 'No layers match filter' : 'Canvas is empty'}</p>
+          <div className="mt-8">
+            <EmptyState
+              icon={Icons.Layers}
+              title={searchQuery ? 'No matches' : 'Canvas is empty'}
+              description={searchQuery ? 'Try a different search term.' : 'Add text, shapes, or images to start designing.'}
+            />
           </div>
         )}
 
@@ -650,6 +783,8 @@ export const LayersPanel = React.memo(() => {
                     onMove={(dir) => moveLayer(layer.id, dir)}
                     onCopy={() => copyLayer(layer.id)}
                     onDrop={handleDrop}
+                    onSwipeVisible={handleSwipeVisible}
+                    onSwipeLock={handleSwipeLock}
                   />
                 </div>
               );

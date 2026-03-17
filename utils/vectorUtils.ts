@@ -15,7 +15,10 @@ export class VectorUtils {
 
     let d = '';
     path.points.forEach((point, i) => {
-      if (i === 0) {
+      if (i === 0 || point.isMove) {
+        if (i !== 0 && path.isClosed) {
+           d += ' Z ';
+        }
         d += `M ${point.x} ${point.y}`;
       } else {
         const prev = path.points[i - 1];
@@ -44,6 +47,7 @@ export class VectorUtils {
           const cp1y = last.handleOut ? last.y + last.handleOut.y : last.y;
           const cp2x = first.handleIn ? first.x + first.handleIn.x : first.x;
           const cp2y = first.handleIn ? first.y + first.handleIn.y : first.y;
+          // Only draw close curve if first point is not a move, or if we strictly want it
           d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${first.x} ${first.y}`;
         }
         d += ' Z';
@@ -82,7 +86,9 @@ export class VectorUtils {
           if (args[0] !== undefined && args[1] !== undefined) {
             currentX = args[0];
             currentY = args[1];
-            points.push(this.createPoint(currentX, currentY));
+            const pt = this.createPoint(currentX, currentY);
+            if (points.length > 0) {pt.isMove = true;}
+            points.push(pt);
           }
           break;
         case 'L':

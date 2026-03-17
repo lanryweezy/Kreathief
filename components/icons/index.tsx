@@ -620,6 +620,16 @@ export const EyeOff = (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement('line', { x1: '2', y1: '2', x2: '22', y2: '22' })
   );
 
+export const EyeDropper = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('path', { d: 'M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z' }),
+    React.createElement('circle', { cx: '12', cy: '13', r: '3' }),
+    React.createElement('path', { d: 'M16 13h5' }),
+    React.createElement('path', { d: 'M13 16v5' })
+  );
+
 export const Menu = (props: React.SVGProps<SVGSVGElement>) =>
   React.createElement(
     'svg',
@@ -929,6 +939,23 @@ export const X = (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement('path', { d: 'm6 6 12 12' })
   );
 
+export const Path = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('path', { d: 'M4 12c0-4.4 3.6-8 8-8s8 3.6 8 8', fill: 'none', stroke: 'currentColor', strokeWidth: '2' }),
+    React.createElement('circle', { cx: '4', cy: '12', r: '2' }),
+    React.createElement('circle', { cx: '20', cy: '12', r: '2' })
+  );
+
+export const Snap = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('path', { d: 'M12 2v4M12 18v4M2 12h4M18 12h4', stroke: 'currentColor', strokeWidth: '2' }),
+    React.createElement('circle', { cx: '12', cy: '12', r: '4', fill: 'currentColor' })
+  );
+
 export const Shield = (props: React.SVGProps<SVGSVGElement>) =>
   React.createElement(
     'svg',
@@ -984,6 +1011,15 @@ export const Ungroup = (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement('rect', { x: '14', y: '14', width: '7', height: '7', rx: '1' }),
     React.createElement('rect', { x: '3', y: '14', width: '7', height: '7', rx: '1' }),
     React.createElement('line', { x1: '3', y1: '3', x2: '21', y2: '21' })
+  );
+
+export const Info = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('circle', { cx: '12', cy: '12', r: '10' }),
+    React.createElement('line', { x1: '12', y1: '16', x2: '12', y2: '12' }),
+    React.createElement('line', { x1: '12', y1: '8', x2: '12.01', y2: '8' })
   );
 
 export const MinusSquare = (props: React.SVGProps<SVGSVGElement>) =>

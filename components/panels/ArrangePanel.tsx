@@ -8,9 +8,10 @@ import { useStore } from '../../store/useStore';
 interface ArrangePanelProps { }
 
 export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
-  const { layers, selectedLayerIds, canvasSize, updateLayers, moveLayer: onMoveLayer } = useStore();
+  const { artboards, selectedLayerIds, canvasSize, updateLayers, moveLayer: onMoveLayer } = useStore();
 
-  const selectedLayers = layers.filter((l) => selectedLayerIds.includes(l.id));
+  const allLayers = artboards.flatMap(a => a.layers);
+  const selectedLayers = allLayers.filter((l) => selectedLayerIds.includes(l.id));
   const onUpdateLayers = updateLayers;
   const [isAspectRatioLocked, setIsAspectRatioLocked] = React.useState(true);
   const [alignToPage, setAlignToPage] = React.useState(false);

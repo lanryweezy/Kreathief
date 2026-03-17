@@ -94,8 +94,8 @@ function logPerformance(name: string, duration: number) {
  * Get performance rating based on duration
  */
 function getRating(duration: number): 'good' | 'needs-improvement' | 'poor' {
-  if (duration < 100) return 'good';
-  if (duration < 300) return 'needs-improvement';
+  if (duration < 100) {return 'good';}
+  if (duration < 300) {return 'needs-improvement';}
   return 'poor';
 }
 

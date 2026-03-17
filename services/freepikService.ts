@@ -11,8 +11,11 @@
 //   5. AI Image Upscaling — new capability
 //   6. AI Style Transfer — new capability
 
+import { log } from '../utils/log';
+import { apis } from '../config';
+
 const BASE_URL = 'https://api.freepik.com/v1';
-const API_KEY = import.meta.env.VITE_FREEPIK_API_KEY || '';
+const API_KEY = apis.freepik.apiKey;
 
 // ──────────────────────────────────────────
 // Types
@@ -68,7 +71,7 @@ async function freepikFetch(
   } = {}
 ): Promise<any> {
   if (!API_KEY) {
-    console.warn('[FreepikService] No API key configured (VITE_FREEPIK_API_KEY)');
+    log.warn('[FreepikService] No API key configured (VITE_FREEPIK_API_KEY)');
     return null;
   }
 
@@ -94,13 +97,16 @@ async function freepikFetch(
 
     if (!res.ok) {
       const errorText = await res.text().catch(() => '');
-      console.error(`[FreepikService] ${method} ${endpoint} → ${res.status}: ${errorText}`);
+      log.error(`[FreepikService] ${method} ${endpoint} failed`, new Error(errorText), { 
+        status: res.status, 
+        endpoint 
+      });
       return null;
     }
 
     return await res.json();
   } catch (err) {
-    console.error('[FreepikService] Network error:', err);
+    log.error('[FreepikService] Network error', err, { endpoint, method });
     return null;
   }
 }
@@ -277,7 +283,7 @@ export async function generateImage(
   const result = await freepikFetch('/ai/mystic', { method: 'POST', body });
 
   if (!result?.data?.task_id) {
-    console.error('[FreepikService] Image generation failed — no task_id');
+    log.error('[FreepikService] Image generation failed', new Error('No task_id returned'), { prompt: prompt.substring(0, 100) });
     return null;
   }
 
@@ -314,7 +320,8 @@ async function pollTask(taskId: string, basePath: string, maxAttempts = 30, inte
           const res = await fetch(imageUrl);
           const blob = await res.blob();
           return URL.createObjectURL(blob);
-        } catch {
+        } catch (err) {
+          log.error('[FreepikService] Failed to convert image URL to blob', err, { imageUrl });
           return imageUrl;
         }
       }
@@ -322,12 +329,12 @@ async function pollTask(taskId: string, basePath: string, maxAttempts = 30, inte
     }
 
     if (status.data.status === 'FAILED') {
-      console.error('[FreepikService] Task failed:', status.data.error || 'Unknown error');
+      log.error('[FreepikService] Task failed', new Error(status.data.error || 'Unknown error'), { taskId });
       return null;
     }
   }
 
-  console.warn('[FreepikService] Task polling timed out');
+  log.warn('[FreepikService] Task polling timed out', { taskId, maxAttempts, intervalMs });
   return null;
 }
 
@@ -360,11 +367,12 @@ export async function removeBackground(imageSource: string): Promise<string | nu
         const res = await fetch(result.data.url || result.data.image_url);
         const blob = await res.blob();
         return URL.createObjectURL(blob);
-      } catch {
+      } catch (err) {
+        log.error('[FreepikService] Failed to convert BG removal result to blob', err);
         return result.data.url || result.data.image_url;
       }
     }
-    console.error('[FreepikService] BG removal failed — no task_id or direct result');
+    log.error('[FreepikService] Background removal failed', new Error('No task_id or direct result'), { imageSourceLength: imageSource.length });
     return null;
   }
 

@@ -1,6 +1,6 @@
 /**
  * Font Loader Service
- * Lazy loads Google Fonts on-demand to improve initial page load
+ * Lazy loads fonts on-demand. Uses local fonts first, falls back to Google Fonts CDN if needed
  */
 
 import { logger } from './logger';
@@ -11,7 +11,7 @@ const loadedFonts = new Set<string>();
 const customFonts = new Set<string>();
 
 // Preloaded common fonts (loaded immediately)
-const PRELOAD_FONTS = ['Inter', 'Space Grotesk'];
+const PRELOAD_FONTS = ['Inter', 'Space Grotesk', 'Outfit'];
 
 // All available fonts
 export const AVAILABLE_FONTS = [
@@ -41,8 +41,11 @@ export const AVAILABLE_FONTS = [
     'Zilla Slab'
 ].sort();
 
+// Local font files (downloaded from Google Fonts)
+const LOCAL_FONT_WEIGHTS = ['300', '400', '500', '600', '700'];
+
 /**
- * Load a single font from Google Fonts
+ * Load a single font - tries local first, falls back to CDN
  */
 export async function loadFont(fontFamily: string): Promise<boolean> {
     // Strip CSS fallback (e.g. "Inter, sans-serif" → "Inter")
@@ -61,28 +64,62 @@ export async function loadFont(fontFamily: string): Promise<boolean> {
     try {
         const endTimer = logger.time(`Loading font: ${cleanFamily}`);
 
-        // Create link element
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(cleanFamily.replace(/ /g, '+'))}:wght@300;400;500;600;700&display=swap`;
-
-        // Wait for font to load
-        await new Promise<void>((resolve, reject) => {
-            link.onload = () => resolve();
-            link.onerror = () => reject(new Error(`Failed to load font: ${cleanFamily}`));
-            document.head.appendChild(link);
+        // Try to load local font files
+        const localPromises = LOCAL_FONT_WEIGHTS.map(weight => {
+            return new Promise<void>((resolve, reject) => {
+                const fontFace = new FontFace(cleanFamily, `url(/fonts/${cleanFamily.replace(/ /g, '-')}-${weight}.woff2)`, {
+                    weight: weight as any,
+                    style: 'normal'
+                });
+                
+                fontFace.load()
+                    .then(loaded => {
+                        (document.fonts as any).add(loaded);
+                        resolve();
+                    })
+                    .catch(reject);
+            });
         });
 
-        // Wait for font to be actually available
-        await document.fonts.ready;
+        // Wait for all weights to load, with timeout
+        await Promise.race([
+            Promise.all(localPromises),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+        ]);
 
         loadedFonts.add(cleanFamily);
         endTimer();
-
         return true;
-    } catch (error) {
-        logger.warn(`Failed to load font: ${cleanFamily}`, { error });
-        return false;
+
+    } catch (localError) {
+        // Fallback to Google Fonts CDN if local fonts fail
+        logger.warn(`Local font load failed for ${cleanFamily}, falling back to CDN`, { error: localError instanceof Error ? localError.message : String(localError) });
+        
+        try {
+            const endTimer = logger.time(`Loading font from CDN: ${cleanFamily}`);
+
+            // Create link element for Google Fonts
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(cleanFamily.replace(/ /g, '+'))}:wght@300;400;500;600;700&display=swap`;
+
+            // Wait for font to load
+            await new Promise<void>((resolve, reject) => {
+                link.onload = () => resolve();
+                link.onerror = () => reject(new Error(`Failed to load font: ${cleanFamily}`));
+                document.head.appendChild(link);
+            });
+
+            // Wait for font to be actually available
+            await document.fonts.ready;
+
+            loadedFonts.add(cleanFamily);
+            endTimer();
+            return true;
+        } catch (cdnError) {
+            logger.warn(`Failed to load font from CDN: ${cleanFamily}`, { error: cdnError instanceof Error ? cdnError.message : String(cdnError) });
+            return false;
+        }
     }
 }
 

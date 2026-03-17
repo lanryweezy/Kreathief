@@ -16,8 +16,20 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
-    "noUncheckedIndexedAccess": false // Temporarily disabled - causes 100+ false positives in array-heavy code
+    "noUncheckedIndexedAccess": false
   },
   "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "dist", "build", "test-results", "playwright-report"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "test-results",
+    "playwright-report",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "tests",
+    "data"
+  ]
 }

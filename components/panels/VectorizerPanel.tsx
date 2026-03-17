@@ -4,6 +4,7 @@ import * as geminiService from '../../services/geminiService';
 import * as photoService from '../../services/photoService';
 
 import { useStore } from '../../store/useStore';
+import { log } from '../../utils/log';
 
 type Tab = 'image' | 'text';
 
@@ -21,11 +22,11 @@ function countPathNodes(d: string): number {
 
 // Simplify SVG path data using Ramer-Douglas-Peucker on line segments
 function simplifyPathData(d: string, tolerance: number): string {
-  if (tolerance <= 0) return d;
+  if (tolerance <= 0) {return d;}
   // For simplification we just thin out redundant L commands
   // This is a lightweight approach; real simplification would parse all commands
   const parts = d.split(/(?=[MLHVCSQTAZ])/gi).filter(Boolean);
-  if (parts.length <= 3) return d;
+  if (parts.length <= 3) {return d;}
 
   const simplified: string[] = [];
   let lastKept = 0;
@@ -82,7 +83,7 @@ export const VectorizerPanel = () => {
 
   // Simplified result for preview
   const displayResult = useMemo(() => {
-    if (!result || simplifyTolerance <= 0) return result;
+    if (!result || simplifyTolerance <= 0) {return result;}
     return result.map((item) => ({
       ...item,
       path: simplifyPathData(item.path, simplifyTolerance),
@@ -91,7 +92,7 @@ export const VectorizerPanel = () => {
 
   // Path stats
   const pathStats = useMemo(() => {
-    if (!displayResult) return null;
+    if (!displayResult) {return null;}
     const totalPaths = displayResult.length;
     const totalNodes = displayResult.reduce((sum, item) => sum + countPathNodes(item.path), 0);
     const totalChars = displayResult.reduce((sum, item) => sum + item.path.length, 0);
@@ -149,7 +150,7 @@ export const VectorizerPanel = () => {
         setResult(paths);
         addToast('Vectorization complete!', 'success');
       } catch (error) {
-        console.error(error);
+        log.error('[VectorizerPanel] Vectorization failed', error, { prompt: prompt.substring(0, 100), trials });
         addToast('Vectorization failed. Please try again.', 'error');
       } finally {
         setIsProcessing(false);
@@ -165,7 +166,7 @@ export const VectorizerPanel = () => {
         setTrials((prev) => prev - 1);
         addToast('Vector generated successfully!', 'success');
       } catch (error) {
-        console.error(error);
+        log.error('[VectorizerPanel] Vector generation failed', error, { prompt: prompt.substring(0, 100) });
         addToast('Vector generation failed.', 'error');
       } finally {
         setIsProcessing(false);
@@ -202,7 +203,7 @@ export const VectorizerPanel = () => {
 
   // SVG Export/Download
   const downloadSVG = useCallback(() => {
-    if (!displayResult) return;
+    if (!displayResult) {return;}
     const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="800" height="800">
 ${displayResult
         .map(
@@ -223,7 +224,7 @@ ${displayResult
 
   // Copy SVG to clipboard
   const copySVGToClipboard = useCallback(() => {
-    if (!displayResult) return;
+    if (!displayResult) {return;}
     const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">\n${displayResult
       .map((item) => `  <path d="${item.path}" fill="${item.color}" />`)
       .join('\n')}\n</svg>`;
@@ -234,7 +235,7 @@ ${displayResult
 
   // Batch handlers
   const handleBatchFiles = (files: FileList | null) => {
-    if (!files) return;
+    if (!files) {return;}
     Array.from(files).forEach((file) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -254,7 +255,7 @@ ${displayResult
     setIsProcessing(true);
     const items = [...batchItems];
     for (let i = 0; i < items.length; i++) {
-      if (items[i]!.status !== 'queued') continue;
+      if (items[i]!.status !== 'queued') {continue;}
       setBatchItems((prev) =>
         prev.map((item) => (item.id === items[i]!.id ? { ...item, status: 'processing' } : item))
       );
@@ -263,7 +264,7 @@ ${displayResult
           ? await photoService.traceImageToSVG(items[i]!.dataUrl, colors)
           : await geminiService.vectorizeImage(items[i]!.dataUrl, colors);
 
-        if (!useAlgorithm) setTrials((prev) => prev - 1);
+        if (!useAlgorithm) {setTrials((prev) => prev - 1);}
 
         setBatchItems((prev) =>
           prev.map((item) =>
@@ -283,7 +284,7 @@ ${displayResult
   };
 
   const addBatchItemToCanvas = (item: BatchItem) => {
-    if (!item.result) return;
+    if (!item.result) {return;}
     const newLayers = item.result.map((r, i) => ({
       id: crypto.randomUUID(),
       type: 'path' as const,

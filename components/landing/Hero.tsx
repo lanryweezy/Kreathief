@@ -110,8 +110,8 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
                             <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
                         </div>
                         <img
-                            src="/images/hero_screenshot_1772019796016.png"
-                            alt="Kreathief Main Interface"
+                            src="/images/screenshot_editor_main.png"
+                            alt="Kreathief Pro Editor"
                             className="w-full h-auto object-cover opacity-90 hover:opacity-100 transition-opacity duration-700"
                         />
                     </motion.div>
@@ -136,9 +136,12 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
                         initial={{ opacity: 0, x: 100, y: 150 }}
                         animate={{ opacity: 1, x: 0, y: 0 }}
                         transition={{ duration: 1.2, delay: 1, ease: "easeOut" }}
-                        className="absolute -right-5 md:right-5 top-[30%] w-[220px] md:w-[300px] rounded-2xl overflow-hidden shadow-[0_40px_80px_rgba(0,0,0,0.7)] border border-white/10 z-30 group"
+                        className="absolute -right-5 md:right-5 top-[30%] w-[250px] md:w-[350px] rounded-2xl overflow-hidden shadow-[0_40px_80px_rgba(0,0,0,0.7)] border border-white/10 z-30 group"
                     >
-                        <img src="/images/hero_typography_panel_1772614945039.png" alt="Typography Tool" className="w-full h-auto scale-105 group-hover:scale-110 transition-transform duration-1000" />
+                        <img src="/images/landing_feature_layers.png" alt="Pro Layers Panel" className="w-full h-auto scale-105 group-hover:scale-110 transition-transform duration-1000" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-5">
+                            <span className="text-white font-bold text-sm bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">Advanced Layer Orchestration</span>
+                        </div>
                     </motion.div>
 
                     {/* Floating UI Element 3: Palette Panel */}

@@ -2,12 +2,14 @@ import { GoogleGenerativeAI, Part, SchemaType } from '@google/generative-ai';
 import { MODEL_FAST, MODEL_PRO, FONT_FAMILIES } from '../constants';
 import { DesignTheme, GenerationQuality } from '../types';
 import * as freepikService from './freepikService';
+import { log } from '../utils/log';
+import { ai as aiConfig } from '../config';
 
 // Helper to get fresh client instance (important for key switching)
 const getClient = () => {
-  // @ts-ignore - ignore type mismatch
-  const apiKey = import.meta.env?.VITE_GEMINI_API_KEY || (window as any).GEMINI_API_KEY;
-  if (!apiKey || apiKey === 'YOUR_GEMINI_API_KEY') {
+  const apiKey = aiConfig.gemini.apiKey;
+  if (!apiKey) {
+    log.debug('Gemini API key not configured');
     return null;
   }
   return new GoogleGenerativeAI(apiKey);
@@ -16,7 +18,9 @@ const getClient = () => {
 const ensureClient = () => {
   const ai = getClient();
   if (!ai) {
-    throw new Error('Gemini API key is missing. Please set VITE_GEMINI_API_KEY to enable AI features.');
+    const error = new Error('Gemini API key is missing. Please set VITE_GEMINI_API_KEY to enable AI features.');
+    log.error('Gemini client initialization failed', error);
+    throw error;
   }
   return ai;
 };
@@ -321,7 +325,7 @@ export const generateDesignTheme = async (prompt: string): Promise<DesignTheme> 
 
     return JSON.parse(text) as DesignTheme;
   } catch (error) {
-    console.error('Theme Generation Error:', error);
+    log.error('Theme Generation Error', error, { prompt: prompt.substring(0, 100) });
     throw error;
   }
 };
@@ -342,7 +346,7 @@ export const analyzeDesign = async (base64Image: string, query: string): Promise
 
     return response.response.text() || "I couldn't analyze the design.";
   } catch (error) {
-    console.error('Analyze Design Error:', error);
+    log.error('Analyze Design Error', error, { query, base64Length: base64Image?.length || 0 });
     throw error;
   }
 };
@@ -419,7 +423,7 @@ export const generateLayout = async (prompt: string): Promise<any> => {
     }
     return JSON.parse(text);
   } catch (error) {
-    console.error('Layout Generation Error:', error);
+    log.error('Layout Generation Error', error, { prompt: prompt.substring(0, 100) });
     throw error;
   }
 };
@@ -454,7 +458,7 @@ export const generateSVGShape = async (prompt: string): Promise<string> => {
       .trim();
     return d;
   } catch (error) {
-    console.error('SVG Generation Error:', error);
+    log.error('SVG Generation Error', error, { prompt: prompt.substring(0, 100) });
     throw error;
   }
 };
@@ -466,17 +470,18 @@ export const expandImage = async (base64Image: string): Promise<string> => {
       'Fill in the transparent background to naturally extend the scene. Keep the style consistent.'
     );
   } catch (error) {
-    console.error('Gemini Expand Image Error — trying Freepik fallback:', error);
+    log.error('Gemini Expand Image Error — trying Freepik fallback', error);
 
     // Freepik fallback for image expansion/outpainting
     if (freepikService.isConfigured()) {
       try {
         const result = await freepikService.expandImage(base64Image);
         if (result) {
+          log.info('Freepik expand fallback succeeded');
           return result;
         }
       } catch (fpError) {
-        console.error('Freepik expand fallback also failed:', fpError);
+        log.error('Freepik expand fallback also failed', fpError);
       }
     }
 
@@ -492,7 +497,7 @@ export const generatePattern = async (prompt: string): Promise<string> => {
       'standard'
     );
   } catch (error) {
-    console.error('Pattern Generation Error', error);
+    log.error('Pattern Generation Error', error, { prompt: prompt.substring(0, 100) });
     throw error;
   }
 };

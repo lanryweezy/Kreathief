@@ -45,21 +45,21 @@ export const ScrollShowcase: React.FC = () => {
                     <div className="w-6/12 h-[75%] rounded-[40px] border border-white/10 bg-[#0a0a0a] relative overflow-hidden shadow-2xl">
                         <motion.img
                             style={{ opacity: img1Opacity }}
-                            src="/images/hero_screenshot_1772019714351.png"
+                            src="/images/screenshot_editor_main.png"
                             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700"
-                            alt="Visual 1"
+                            alt="Pro Editor"
                         />
                         <motion.img
                             style={{ opacity: img2Opacity }}
-                            src="/images/feature_generative_fill_1771994400635.png"
-                            className="absolute inset-0 w-full h-full object-cover mix-blend-screen transition-transform duration-700 scale-110"
-                            alt="Visual 2"
+                            src="/images/screenshot_magic_panel.png"
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 scale-110"
+                            alt="AI Magic Tools"
                         />
                         <motion.img
                             style={{ opacity: img3Opacity }}
-                            src="/images/feature_cutout_mockup_1772615585150.png"
-                            className="absolute inset-0 w-full h-full object-cover mix-blend-screen transition-transform duration-700 scale-125"
-                            alt="Visual 3"
+                            src="/images/screenshot_export_modal.png"
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 scale-125"
+                            alt="Premium Export"
                         />
 
                         {/* Overlay Gradient */}

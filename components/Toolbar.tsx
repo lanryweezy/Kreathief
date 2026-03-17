@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore';
 import { NavTab, TextLayer } from '../types';
 import { Icons } from '../constants';
 import * as geminiService from '../services/geminiService';
+import { log } from '../utils/log';
 
 // Modular Sub-components
 import { Divider, IconButton } from './toolbar/ToolbarShared';
@@ -13,6 +14,7 @@ import { VectorTools } from './toolbar/VectorTools';
 import { ShapeTools } from './toolbar/ShapeTools';
 import { ImageTools } from './toolbar/ImageTools';
 import { CommonActions } from './toolbar/CommonActions';
+import { AutoLayoutTools } from './toolbar/AutoLayoutTools';
 
 interface ToolbarProps {
   uploadedImage: string | null;
@@ -21,10 +23,11 @@ interface ToolbarProps {
   isEraserActive?: boolean;
   onCompletePath?: () => void;
   onBooleanOperation?: (operation: 'union' | 'subtract' | 'intersect' | 'exclude') => void;
+  onBooleanHover?: (operation: 'union' | 'subtract' | 'intersect' | 'exclude' | null) => void;
   onCrop?: (id: string) => void;
 }
 
-export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBooleanOperation }: ToolbarProps) => {
+export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBooleanOperation, onBooleanHover }: ToolbarProps) => {
   // UI State
   const [showFilters, setShowFilters] = useState(false);
   const [showResize, setShowResize] = useState(false);
@@ -38,7 +41,8 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
 
   // Store Actions
   const {
-    layers,
+    artboards,
+    activeArtboardId,
     selectedLayerIds,
     updateLayer,
     deleteLayer: onDeleteLayer,
@@ -74,7 +78,12 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
   const doneLasso = () => setIsLassoMode(false);
   const cancelLasso = () => setIsLassoMode(false);
 
-  const selectedLayer = layers.find((l) => selectedLayerIds.includes(l.id)) || null;
+  const layers = React.useMemo(() => 
+    (artboards || []).find((a: any) => a.id === activeArtboardId)?.layers || [],
+    [artboards, activeArtboardId]
+  );
+
+  const selectedLayer = layers.find((l: any) => l && selectedLayerIds && selectedLayerIds.includes(l.id)) || null;
   const isMultiSelect = selectedLayerIds && selectedLayerIds.length > 1;
 
   // Listen for "open effects panel" event from QuickTextEffects
@@ -103,14 +112,14 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
       const newText = await geminiService.generateText((selectedLayer as TextLayer).text, instruction);
       updateLayer(id, { text: newText });
     } catch (error) {
-      console.error(error);
+      log.error('[Toolbar] Text rewrite failed', error, { layerId: id, instruction: instruction.substring(0, 100) });
     } finally {
       setIsProcessing(false);
     }
   };
 
   return (
-    <div className="flex items-center min-h-14 bg-[#1e1e1e] border-b border-gray-700 px-2 sm:px-4 gap-2 sm:gap-4 overflow-x-auto custom-scrollbar w-full shadow-sm z-20 py-2">
+    <div className="flex items-center min-h-14 bg-[#1e1e1e] border-b border-gray-700 px-2 sm:px-4 gap-2 sm:gap-4 overflow-x-auto custom-scrollbar w-full shadow-sm z-20 py-2 flex-nowrap whitespace-nowrap">
       {isMultiSelect ? (
         <div className="flex items-center gap-4">
           <span className="text-[10px] font-bold text-gray-400 uppercase">Selection ({selectedLayerIds?.length})</span>
@@ -126,11 +135,11 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
               <Icons.AlignRight className="w-3.5 h-3.5" />
             </IconButton>
           </div>
-          <div className="flex bg-[#252627] rounded border border-gray-700 p-0.5 gap-0.5">
-            <IconButton onClick={onGroup} title="Group (Ctrl+G)">
+          <div className="flex items-center gap-1 shrink-0 flex-nowrap whitespace-nowrap">
+            <IconButton onClick={onGroup} title="Group" shortcut="Ctrl+G">
               <Icons.Group className="w-3.5 h-3.5" />
             </IconButton>
-            <IconButton onClick={onUngroup} title="Ungroup (Ctrl+Shift+G)">
+            <IconButton onClick={onUngroup} title="Ungroup" shortcut="Ctrl+Shift+G">
               <Icons.Ungroup className="w-3.5 h-3.5" />
             </IconButton>
           </div>
@@ -145,13 +154,14 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
         <CanvasTools documentColors={documentColors} />
       ) : (
         <>
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0 flex-wrap">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0 flex-nowrap whitespace-nowrap">
             {((selectedLayer as any).type === 'path' || (selectedLayer as any).vectorPath) && (
               <VectorTools
                 layer={selectedLayer}
                 handleUpdateLayer={handleUpdateLayer}
                 onCompletePath={onCompletePath}
                 onBooleanOperation={onBooleanOperation}
+                onBooleanHover={onBooleanHover}
                 documentColors={documentColors}
               />
             )}
@@ -225,7 +235,8 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
 
           <div className="h-8 w-px bg-gray-700 mx-1 sm:mx-2 shrink-0 hidden md:block"></div>
 
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0 flex-wrap">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0 flex-nowrap whitespace-nowrap min-w-max">
+            <AutoLayoutTools selectedLayer={selectedLayer} handleUpdateLayer={handleUpdateLayer} />
             <TransformTools selectedLayer={selectedLayer} />
             <CommonActions
               selectedLayer={selectedLayer}

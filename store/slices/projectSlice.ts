@@ -1,5 +1,5 @@
 import { StateCreator } from 'zustand';
-import { Project, CanvasSize } from '../../types';
+import { Project, CanvasSize, Artboard } from '../../types';
 import { storageService } from '../../services/storageService';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -21,6 +21,12 @@ export interface ProjectSlice {
   loadAllProjects: () => Promise<void>;
   setProjects: (projects: Project[]) => void;
   initializeProject: (project: Project) => void;
+
+  // Comments
+  addCanvasComment: (x: number, y: number, content: string, author: { name: string; avatar?: string }) => void;
+  resolveCanvasComment: (id: string) => void;
+  deleteCanvasComment: (id: string) => void;
+  updateCanvasComment: (id: string, content: string) => void;
 }
 
 export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set, get) => ({
@@ -34,7 +40,7 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
   setIsSaving: (isSaving) => set({ isSaving }),
 
   saveProject: async () => {
-    const { projectId, projectTitle, layers, canvasBackgroundColor, canvasFilters, canvasSize } = get();
+    const { projectId, projectTitle, artboards, activeArtboardId, canvasBackgroundColor, canvasFilters, canvasSize } = get();
     if (!projectId) {
       return;
     }
@@ -46,11 +52,13 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
         name: projectTitle,
         updatedAt: Date.now(),
         state: {
-          layers,
+          artboards,
+          activeArtboardId,
           canvasBackgroundColor,
           canvasFilters,
           canvasSize,
         },
+        comments: get().projects.find((p: Project) => p.id === projectId)?.comments || [],
       };
       await storageService.saveProject(updatedProject);
       set((state: any) => ({
@@ -65,12 +73,24 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
 
   createProject: async (name, size) => {
     const id = uuidv4();
+    const defaultArtboard: Artboard = {
+      id: 'default',
+      name: 'Artboard 1',
+      x: 0,
+      y: 0,
+      width: size?.width || 1080,
+      height: size?.height || 1080,
+      layers: [],
+    };
+
     const newProject: Project = {
       id,
       name,
       updatedAt: Date.now(),
+      comments: [],
       state: {
-        layers: [],
+        artboards: [defaultArtboard],
+        activeArtboardId: 'default',
         canvasBackgroundColor: '#ffffff',
         canvasFilters: {
           brightness: 100,
@@ -138,14 +158,110 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
   setProjects: (projects) => set({ projects }),
 
   initializeProject: (project) => {
+    // Migration: if project has root layers but no artboards, create a default artboard
+    let artboards = project.state.artboards || [];
+    let activeArtboardId = project.state.activeArtboardId || (artboards.length > 0 ? artboards[0].id : 'default');
+
+    if (artboards.length === 0 && (project.state as any).layers?.length >= 0) {
+      artboards = [{
+        id: 'default',
+        name: 'Artboard 1',
+        x: 0,
+        y: 0,
+        width: project.state.canvasSize?.width || 1080,
+        height: project.state.canvasSize?.height || 1080,
+        layers: (project.state as any).layers || [],
+      }];
+      activeArtboardId = 'default';
+    }
+
     set({
       projectId: project.id,
       projectTitle: project.name,
-      layers: project.state.layers,
-      canvasBackgroundColor: project.state.canvasBackgroundColor,
+      artboards,
+      activeArtboardId,
+      canvasBackgroundColor: project.state.canvasBackgroundColor || '#ffffff',
       canvasFilters: project.state.canvasFilters,
       canvasSize: project.state.canvasSize,
       selectedLayerIds: [],
+      showGrid: project.state?.showGrid || false,
+      showRulers: project.state?.showRulers || false,
     });
   },
+
+  // Comments Actions
+  addCanvasComment: (x, y, content, author) => {
+    const { projectId } = get();
+    if (!projectId) {return;}
+
+    const newComment = {
+      id: uuidv4(),
+      x,
+      y,
+      content,
+      author,
+      createdAt: Date.now(),
+      resolved: false
+    };
+
+    set((state: any) => ({
+      projects: state.projects.map((p: Project) => 
+        p.id === projectId 
+          ? { ...p, comments: [...(p.comments || []), newComment] }
+          : p
+      )
+    }));
+    get().saveProject();
+  },
+
+  resolveCanvasComment: (id) => {
+    const { projectId } = get();
+    if (!projectId) {return;}
+
+    set((state: any) => ({
+      projects: state.projects.map((p: Project) => 
+        p.id === projectId 
+          ? { 
+              ...p, 
+              comments: (p.comments || []).map(c => c.id === id ? { ...c, resolved: !c.resolved } : c)
+            }
+          : p
+      )
+    }));
+    get().saveProject();
+  },
+
+  deleteCanvasComment: (id) => {
+    const { projectId } = get();
+    if (!projectId) {return;}
+
+    set((state: any) => ({
+      projects: state.projects.map((p: Project) => 
+        p.id === projectId 
+          ? { 
+              ...p, 
+              comments: (p.comments || []).filter(c => c.id !== id)
+            }
+          : p
+      )
+    }));
+    get().saveProject();
+  },
+
+  updateCanvasComment: (id, content) => {
+    const { projectId } = get();
+    if (!projectId) {return;}
+
+    set((state: any) => ({
+      projects: state.projects.map((p: Project) => 
+        p.id === projectId 
+          ? { 
+              ...p, 
+              comments: (p.comments || []).map(c => c.id === id ? { ...c, content, createdAt: Date.now() } : c)
+            }
+          : p
+      )
+    }));
+    get().saveProject();
+  }
 });

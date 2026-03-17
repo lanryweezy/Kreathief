@@ -68,23 +68,18 @@ export const ImageTools = React.memo(
     const resizeButtonRef = useRef<HTMLButtonElement>(null);
 
     return (
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-nowrap">
         <div className="flex bg-[#252627] rounded-lg border border-[#7d2ae8]/30 p-0.5 shadow-lg shadow-purple-900/10">
           <IconButton
             onClick={handleRemoveBackground}
-            disabled={isRemovingBg}
-            active={isRemovingBg}
+            loading={isRemovingBg}
             title="Auto Cut Out (AI)"
             className="px-3"
           >
-            {isRemovingBg ? (
-              <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <Icons.Scissors className="w-4 h-4 text-purple-400" />
-                <span className="text-[10px] font-bold text-white uppercase tracking-wider">Cut Out</span>
-              </div>
-            )}
+            <div className="flex items-center gap-1.5">
+              <Icons.Scissors className="w-4 h-4 text-purple-400" />
+              <span className="text-[10px] font-bold text-white uppercase tracking-wider">Cut Out</span>
+            </div>
             {!isPro && (
               <div className="absolute -top-1 -right-1 bg-amber-500 rounded-full p-0.5">
                 <Icons.Lock className="w-2 h-2 text-white" />
@@ -200,16 +195,12 @@ export const ImageTools = React.memo(
         </IconButton>
         <IconButton
           onClick={handleMagicExpand}
-          disabled={isExpanding}
+          loading={isExpanding}
           active={isExpanding}
           title="Expand"
           className="relative"
         >
-          {isExpanding ? (
-            <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-          ) : (
-            <Icons.Maximize className="w-4 h-4 text-purple-400" />
-          )}
+          <Icons.Maximize className="w-4 h-4 text-purple-400" />
           {!isPro && (
             <div className="absolute -top-1 -right-1 bg-amber-500 rounded-full p-0.5">
               <Icons.Lock className="w-2 h-2 text-white" />
@@ -249,19 +240,52 @@ export const ImageTools = React.memo(
               onClose={() => setShowFilters(false)}
               align="left"
             >
-              <div className="w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-3 animate-fadeIn backdrop-blur-xl">
-                <div className="grid grid-cols-3 gap-2">
-                  {FILTER_PRESETS.map((preset) => (
-                    <button
-                      key={preset.name}
-                      onClick={() => {
-                        handleUpdateLayer({ filters: { ...layer.filters, ...preset.filters } });
-                      }}
-                      className="aspect-video rounded-lg border border-white/5 hover:border-[#7d2ae8] bg-black/20 flex items-center justify-center text-[10px] text-gray-400 hover:text-white transition-all font-bold uppercase tracking-tighter"
-                    >
-                      {preset.name}
-                    </button>
-                  ))}
+              <div className="w-80 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-3 animate-fadeIn backdrop-blur-xl max-h-[60vh] overflow-y-auto custom-scrollbar">
+                <div className="mb-4">
+                  <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">Standard</h4>
+                  <div className="grid grid-cols-3 gap-2">
+                    {FILTER_PRESETS.map((preset) => (
+                      <button
+                        key={preset.name}
+                        onClick={() => {
+                          handleUpdateLayer({ filters: { ...layer.filters, ...preset.filters, artisticFilter: undefined } });
+                        }}
+                        className={`aspect-video rounded-lg border flex items-center justify-center text-[10px] transition-all font-bold uppercase tracking-tighter ${
+                          !layer.filters?.artisticFilter && Object.keys(preset.filters || {}).every((k) => (layer.filters as any)?.[k] === (preset.filters as any)[k])
+                            ? 'border-[#7d2ae8] bg-[#7d2ae8]/10 text-white'
+                            : 'border-white/5 hover:border-[#7d2ae8] bg-black/20 text-gray-400 hover:text-white'
+                        }`}
+                      >
+                        {preset.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">Artistic Effects</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { id: 'artistic-watercolor', name: 'Watercolor' },
+                      { id: 'artistic-sketch', name: 'Pencil Sketch' },
+                      { id: 'artistic-cartoon', name: 'Cartoon / Halftone' },
+                      { id: 'artistic-glitch', name: 'Vintage Glitch' }
+                    ].map((effect) => (
+                      <button
+                        key={effect.id}
+                        onClick={() => {
+                          handleUpdateLayer({ filters: { ...layer.filters, artisticFilter: effect.id } });
+                        }}
+                        className={`py-3 rounded-lg border flex items-center justify-center text-[11px] transition-all font-bold tracking-tight ${
+                          layer.filters?.artisticFilter === effect.id
+                            ? 'border-[#7d2ae8] bg-[#7d2ae8] text-white shadow-lg shadow-[#7d2ae8]/40'
+                            : 'border-white/5 hover:border-[#7d2ae8]/50 bg-black/20 text-gray-300 hover:text-white hover:bg-[#7d2ae8]/10'
+                        }`}
+                      >
+                        <span className="flex items-center gap-1.5"><Icons.Sparkles className="w-3.5 h-3.5" />{effect.name}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </Dropdown>

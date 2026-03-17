@@ -3,8 +3,11 @@
 // Base: https://public-api.streamlinehq.com
 // Auth: STREAMLINE_SECRET header
 
+import { log } from '../utils/log';
+import { apis } from '../config';
+
 const BASE_URL = 'https://public-api.streamlinehq.com/v2';
-const API_KEY = import.meta.env.VITE_STREAMLINE_API_KEY || '';
+const API_KEY = apis.streamline.apiKey;
 
 export interface StreamlineIcon {
   id: string;
@@ -27,7 +30,7 @@ export interface StreamlineSearchResult {
 
 async function streamlineFetch(endpoint: string, params: Record<string, string> = {}) {
   if (!API_KEY) {
-    console.warn('[StreamlineService] No API key configured (VITE_STREAMLINE_API_KEY)');
+    log.warn('[StreamlineService] No API key configured (VITE_STREAMLINE_API_KEY)');
     return null;
   }
 
@@ -43,13 +46,16 @@ async function streamlineFetch(endpoint: string, params: Record<string, string> 
     });
 
     if (!res.ok) {
-      console.error(`[StreamlineService] ${res.status}: ${res.statusText}`);
+      log.error(`[StreamlineService] Request failed`, new Error(res.statusText), { 
+        status: res.status, 
+        endpoint 
+      });
       return null;
     }
 
     return await res.json();
   } catch (err) {
-    console.error('[StreamlineService] Network error:', err);
+    log.error('[StreamlineService] Network error', err, { endpoint, params });
     return null;
   }
 }

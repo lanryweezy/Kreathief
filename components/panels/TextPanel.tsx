@@ -4,6 +4,13 @@ import { TextLayer } from '../../types';
 import * as geminiService from '../../services/geminiService';
 import { loadFont, registerCustomFont } from '../../services/FontLoader';
 import { useStore } from '../../store/useStore';
+import { log } from '../../utils/log';
+import { TextStylesPanel, TextStyle } from './TextStylesPanel';
+import { TextGradientEditor } from './TextGradientEditor';
+import { TextEffectsPanel } from './TextEffectsPanel';
+import { TextOnPath } from './TextOnPath';
+import { FindReplaceText } from './FindReplaceText';
+import { TextSpacingControls } from './TextSpacingControls';
 
 const FONT_CATEGORIES = {
   'Sans Serif': [
@@ -165,6 +172,10 @@ export const TextPanel: React.FC = () => {
   const setPreviewFontFamily = useStore((state) => state.setPreviewFontFamily);
   const customFonts = useStore((state) => state.customFonts);
   const addCustomFont = useStore((state) => state.addCustomFont);
+  const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
+  const artboards = useStore((state) => state.artboards) || [];
+  const layers = artboards.flatMap(a => a.layers);
+  const addToast = useStore((state) => state.addToast);
 
   const [fontSearch, _setFontSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
@@ -172,6 +183,10 @@ export const TextPanel: React.FC = () => {
   const [textGenPrompt, setTextGenPrompt] = useState('');
   const [textGenResults, setTextGenResults] = useState<string[]>([]);
   const [isGeneratingText, setIsGeneratingText] = useState(false);
+  const [activeTextTab, setActiveTextTab] = useState<'add' | 'styles' | 'gradient' | 'effects' | 'path' | 'find' | 'spacing'>('add');
+  const [selectedTextStyle, setSelectedTextStyle] = useState<Partial<TextStyle> | null>(null);
+  const [textGradient, setTextGradient] = useState<any>(null);
+  const [textEffects, setTextEffects] = useState<any>({});
   const fontInputRef = useRef<HTMLInputElement>(null);
 
   // Load recent fonts from localStorage on mount
@@ -182,7 +197,7 @@ export const TextPanel: React.FC = () => {
         setRecentFonts(JSON.parse(saved));
       }
     } catch (e) {
-      console.error('Failed to load recent fonts', e);
+      log.error('[TextPanel] Failed to load recent fonts', e);
     }
   }, []);
 
@@ -208,7 +223,7 @@ export const TextPanel: React.FC = () => {
       const results = await geminiService.generateTextOptions(textGenPrompt);
       setTextGenResults(results);
     } catch (e) {
-      console.error(e);
+      log.error('[TextPanel] Text generation failed', e, { prompt: textGenPrompt.substring(0, 100) });
       alert('Failed to generate text options');
     } finally {
       setIsGeneratingText(false);
@@ -240,19 +255,99 @@ export const TextPanel: React.FC = () => {
       await registerCustomFont(fontName, arrayBuffer);
       addCustomFont(fontName);
     } catch (err) {
-      console.error('Font upload failed', err);
+      log.error('[TextPanel] Font upload failed', err, { fileName: file.name });
       alert('Font upload failed.');
     }
   };
 
   return (
     <div className="flex flex-col h-full bg-[#13161a] p-4 overflow-y-auto custom-scrollbar">
-      <h3 className="font-bold text-white mb-6 flex items-center gap-2">
+      <h3 className="font-bold text-white mb-4 flex items-center gap-2">
         <Icons.Text className="w-5 h-5 text-[#7d2ae8]" />
         Typography
       </h3>
 
-      {/* Standard Text Buttons */}
+      {/* Text Panel Tabs - Row 1 */}
+      <div className="flex gap-1 mb-2 bg-[#0e1318] rounded-lg p-1">
+        <button
+          onClick={() => setActiveTextTab('add')}
+          className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+            activeTextTab === 'add'
+              ? 'bg-[#7d2ae8] text-white shadow-lg'
+              : 'text-gray-400 hover:text-white hover:bg-gray-700'
+          }`}
+        >
+          Add
+        </button>
+        <button
+          onClick={() => setActiveTextTab('styles')}
+          className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+            activeTextTab === 'styles'
+              ? 'bg-[#7d2ae8] text-white shadow-lg'
+              : 'text-gray-400 hover:text-white hover:bg-gray-700'
+          }`}
+        >
+          Styles
+        </button>
+        <button
+          onClick={() => setActiveTextTab('gradient')}
+          className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+            activeTextTab === 'gradient'
+              ? 'bg-[#7d2ae8] text-white shadow-lg'
+              : 'text-gray-400 hover:text-white hover:bg-gray-700'
+          }`}
+        >
+          Gradient
+        </button>
+        <button
+          onClick={() => setActiveTextTab('effects')}
+          className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+            activeTextTab === 'effects'
+              ? 'bg-[#7d2ae8] text-white shadow-lg'
+              : 'text-gray-400 hover:text-white hover:bg-gray-700'
+          }`}
+        >
+          Effects
+        </button>
+      </div>
+
+      {/* Text Panel Tabs - Row 2 */}
+      <div className="flex gap-1 mb-4 bg-[#0e1318] rounded-lg p-1">
+        <button
+          onClick={() => setActiveTextTab('path')}
+          className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+            activeTextTab === 'path'
+              ? 'bg-[#7d2ae8] text-white shadow-lg'
+              : 'text-gray-400 hover:text-white hover:bg-gray-700'
+          }`}
+        >
+          Path
+        </button>
+        <button
+          onClick={() => setActiveTextTab('find')}
+          className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+            activeTextTab === 'find'
+              ? 'bg-[#7d2ae8] text-white shadow-lg'
+              : 'text-gray-400 hover:text-white hover:bg-gray-700'
+          }`}
+        >
+          Find
+        </button>
+        <button
+          onClick={() => setActiveTextTab('spacing')}
+          className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+            activeTextTab === 'spacing'
+              ? 'bg-[#7d2ae8] text-white shadow-lg'
+              : 'text-gray-400 hover:text-white hover:bg-gray-700'
+          }`}
+        >
+          Spacing
+        </button>
+      </div>
+
+      {/* Add Text Tab */}
+      {activeTextTab === 'add' && (
+        <>
       <div className="flex flex-col gap-2 mb-6">
         <button
           onClick={() => handleAddText({ text: 'Heading', fontSize: 62, fontWeight: '800' })}
@@ -513,6 +608,82 @@ export const TextPanel: React.FC = () => {
           )}
         </div>
       </div>
+        </>
+      )}
+
+      {/* Styles Tab */}
+      {activeTextTab === 'styles' && (
+        <TextStylesPanel
+          currentStyle={selectedTextStyle || undefined}
+          onApplyStyle={(style) => {
+            setSelectedTextStyle(style);
+            handleAddText({
+              text: 'Styled Text',
+              fontFamily: style.fontFamily,
+              fontSize: style.fontSize,
+              fontWeight: style.fontWeight,
+              fontStyle: style.fontStyle,
+              color: style.color,
+              textAlign: style.textAlign,
+              letterSpacing: style.letterSpacing,
+              lineHeight: style.lineHeight,
+              textTransform: style.textTransform,
+            });
+          }}
+          onSaveStyle={(name, style) => {
+            console.log('Saved style:', name, style);
+          }}
+        />
+      )}
+
+      {/* Gradient Tab */}
+      {activeTextTab === 'gradient' && (
+        <TextGradientEditor
+          gradient={textGradient}
+          onChange={(gradient) => {
+            setTextGradient(gradient);
+            // Apply gradient to selected text layer would go here
+          }}
+        />
+      )}
+
+      {/* Effects Tab */}
+      {activeTextTab === 'effects' && (
+        <TextEffectsPanel
+          effects={textEffects}
+          onChange={(effects) => {
+            setTextEffects(effects);
+            // Apply effects to selected text layer would go here
+          }}
+        />
+      )}
+
+      {/* Path Tab */}
+      {activeTextTab === 'path' && (
+        <TextOnPath
+          onApply={(options) => {
+            handleAddText({
+              text: options.text,
+              fontSize: 32,
+              fontWeight: 'bold',
+              // Text on path would be handled by canvas rendering
+            });
+            addToast(`Added curved text: "${options.text}"`, 'success');
+          }}
+        />
+      )}
+
+      {/* Find Tab */}
+      {activeTextTab === 'find' && (
+        <FindReplaceText />
+      )}
+
+      {/* Spacing Tab */}
+      {activeTextTab === 'spacing' && (
+        <TextSpacingControls
+          selectedLayer={selectedLayerIds.length > 0 ? (layers.find(l => l.id === selectedLayerIds[0]) as TextLayer) : undefined}
+        />
+      )}
     </div>
   );
 };

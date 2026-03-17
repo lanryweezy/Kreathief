@@ -6,19 +6,15 @@ import {
   ImageLayer,
   Layer,
   BrushType,
-  GeneratedImage,
   AnimationSettings,
   ResizeHandle,
+  VectorPath,
 } from '../types';
 import { Icons } from '../constants';
-import { Ruler } from './Ruler';
 import { ContextMenu } from './ContextMenu';
 import { GeometryOracle } from '../utils/geometryOracle';
-import { GoldenRatioOverlay } from './GoldenRatioOverlay';
-import { CropOverlay } from './overlays/CropOverlay';
 import { MultiSelectionHandles } from './canvas/MultiSelectionHandles';
-import { ImageLayerItem, ShapeLayerItem, TextLayerItem } from './canvas/LayerItems';
-import { getLayerClipPath } from '../utils/layerRendering';
+import { CanvasLayerRenderer } from './CanvasLayerRenderer';
 import {
   GRID_SIZE,
   SNAP_THRESHOLD,
@@ -30,13 +26,50 @@ import { ErrorBoundary } from './ErrorBoundary';
 
 // ... existing imports ...
 
+const EditableZoom = ({ zoom, onZoomChange }: { zoom: number; onZoomChange: (z: number) => void }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [value, setValue] = useState(String(Math.round(zoom * 100)));
+
+  if (isEditing) {
+    return (
+      <input
+        autoFocus
+        className="text-xs text-white bg-black/40 border border-[#7d2ae8] w-14 text-center font-mono rounded outline-none"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={() => {
+          const num = parseInt(value);
+          if (!isNaN(num)) {onZoomChange(num / 100);}
+          setIsEditing(false);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {e.currentTarget.blur();}
+          if (e.key === 'Escape') {setIsEditing(false);}
+        }}
+      />
+    );
+  }
+
+  return (
+    <span
+      className="text-xs text-gray-300 w-14 text-center font-mono cursor-edit hover:text-white transition-colors select-none"
+      onClick={() => {
+        setValue(String(Math.round(zoom * 100)));
+        setIsEditing(false); // Wait, should be true
+        setIsEditing(true);
+      }}
+    >
+      {Math.round(zoom * 100)}%
+    </span>
+  );
+};
+
 interface CanvasProps {
   zoom: number;
   onZoomChange: (z: number) => void;
   onFileUpload?: (files: File[]) => void;
   onAddLogoToCanvas: (url: string) => void;
   onDoubleClickLayer?: (layer: Layer) => void;
-  activeImage?: GeneratedImage;
   uploadedImage?: string | null;
   onInteractionStart?: () => void;
   onUpdateTextLayerProp?: (id: string, changes: Partial<TextLayer>) => void;
@@ -44,6 +77,9 @@ interface CanvasProps {
   onUpdateImageLayerProp?: (id: string, changes: Partial<ImageLayer>) => void;
   onOpenAIPanel?: () => void;
   onOpenTemplates?: () => void;
+  booleanPreview?: { path: string; operation: string } | null;
+  onUpdatePath?: (path: VectorPath) => void;
+  onSelectLayer?: (id: string | null) => void;
   previewAnimation?: AnimationSettings;
 }
 
@@ -54,15 +90,23 @@ const CanvasComponent: React.FC<CanvasProps> = ({
   onAddLogoToCanvas,
   onDoubleClickLayer,
   onInteractionStart,
-  activeImage,
-  uploadedImage,
   previewAnimation,
+  booleanPreview,
 }) => {
-  // Essential state using fine-grained selectors for performance
-  const isProcessing = useStore((state) => state.isProcessing);
+  // Essential state from Artboard system
+  const artboards = useStore((state) => state.artboards);
+  const activeArtboardId = useStore((state) => state.activeArtboardId);
+  const activeArtboard = useMemo(() => 
+    (artboards || []).find(a => a.id === activeArtboardId) || (artboards || [])[0], 
+    [artboards, activeArtboardId]
+  );
+  
   const canvasBackgroundColor = useStore((state) => state.canvasBackgroundColor);
   const canvasFilters = useStore((state) => state.canvasFilters);
-  const layers = useStore((state) => state.layers);
+  
+  // Flatten all layers for global interaction if needed, or just work with active
+  const layers = useMemo(() => activeArtboard?.layers || [], [activeArtboard]);
+  
   const onUpdateLayers = useStore((state) => state.updateLayers);
   const onSelectLayer = useStore((state) => state.selectLayer);
   const onMultiSelectLayer = useStore((state) => state.multiSelectLayer);
@@ -80,14 +124,11 @@ const CanvasComponent: React.FC<CanvasProps> = ({
   const brushType = useStore((state) => state.brushType ?? BrushType.BASIC);
   const onDrawingComplete = useStore((state) => state.handleDrawingComplete);
   const onVectorDrawingComplete = useStore((state) => state.handleVectorDrawingComplete);
-  const canvasSize = useStore((state) => state.canvasSize);
-  const onSetCanvasSize = useStore((state) => state.setCanvasSize);
+  const onAddArtboard = useStore((state) => state.addArtboard);
   const onGroup = useStore((state) => state.groupSelected);
   const onUngroup = useStore((state) => state.ungroupSelected);
   const editingPathId = useStore((state) => state.editingPathId);
   const onUpdatePath = useStore((state) => state.updateLayer);
-  const showGoldenRatio = useStore((state) => state.showGoldenRatio);
-  const isCropMode = useStore((state) => state.isCropMode);
   const snapToGrid = useStore((state) => state.snapToGrid);
   const snapToObjects = useStore((state) => state.snapToObjects);
   const isLassoMode = useStore((state) => state.isLassoMode);
@@ -136,7 +177,6 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     [effectiveLayers]
   );
 
-  const containerRef = useRef<HTMLDivElement>(null);
   const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
   const refineCanvasRef = useRef<HTMLCanvasElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -173,6 +213,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
   } | null>(null);
   const [drawingState, setDrawingState] = useState({ isDrawingPath: false });
   const [isDrawingLasso, setIsDrawingLasso] = useState(false);
+  const [localLassoPoints, setLocalLassoPoints] = useState<{ x: number; y: number }[]>([]);
   const [isRefining, setIsRefining] = useState(false);
   const drawingLastPos = useRef({ x: 0, y: 0 });
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; layerId: string } | null>(null);
@@ -182,7 +223,11 @@ const CanvasComponent: React.FC<CanvasProps> = ({
   const panOffsetRef = useRef(panOffset);
   panOffsetRef.current = panOffset;
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const panStartRef = useRef(panStart);
+  panStartRef.current = panStart;
   const [isPanning, setIsPanning] = useState(false);
+  const isPanningRef = useRef(isPanning);
+  isPanningRef.current = isPanning;
   const [vectorPoints, setVectorPoints] = useState<{ x: number; y: number }[]>([]);
 
   const layerRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -193,7 +238,22 @@ const CanvasComponent: React.FC<CanvasProps> = ({
   const zoomRef = useRef(zoom);
   zoomRef.current = zoom;
 
-  const bgImage = activeImage?.url || uploadedImage;
+  // Refs for state sync in high-frequency handlers
+  const layersRef = useRef(layers);
+  layersRef.current = layers;
+  const selectedLayerIdsRef = useRef(selectedLayerIds);
+  selectedLayerIdsRef.current = selectedLayerIds;
+  const dragStateRef = useRef(dragState);
+  dragStateRef.current = dragState;
+  const resizeStateRef = useRef(resizeState);
+  resizeStateRef.current = resizeState;
+  const rotateStateRef = useRef(rotateState);
+  rotateStateRef.current = rotateState;
+  const isDrawingSyncRef = useRef(isDrawing);
+  isDrawingSyncRef.current = isDrawing;
+  const isSpacePressedRef = useRef(isSpacePressed);
+  isSpacePressedRef.current = isSpacePressed;
+
 
   const handleContextMenu = useCallback((e: React.MouseEvent, layerId: string) => {
     e.preventDefault();
@@ -256,41 +316,38 @@ const CanvasComponent: React.FC<CanvasProps> = ({
       const rect = viewport.getBoundingClientRect();
       setViewportSize({ width: rect.width, height: rect.height });
 
-      // Calculate minimum zoom to fit entire canvas in viewport
-      const minZoomX = rect.width / canvasSize.width;
-      const minZoomY = rect.height / canvasSize.height;
-      const minZoom = Math.min(minZoomX, minZoomY);
+      if (activeArtboard) {
+        // Calculate minimum zoom to fit the active artboard
+        const minZoomX = rect.width / activeArtboard.width;
+        const minZoomY = rect.height / activeArtboard.height;
+        const minZoom = Math.min(minZoomX, minZoomY);
 
-      // Auto-zoom to fit on initial load if zoom is too small
-      if (zoom < minZoom && minZoom < 1) {
-        onZoomChange(minZoom);
+        // Auto-zoom to fit on initial load if zoom is too small
+        if (zoom < minZoom && minZoom < 1) {
+          onZoomChange(minZoom);
+        }
       }
     };
 
     calculateMinZoom();
     window.addEventListener('resize', calculateMinZoom);
     return () => window.removeEventListener('resize', calculateMinZoom);
-  }, [canvasSize.width, canvasSize.height, onZoomChange, zoom]);
+  }, [activeArtboard, onZoomChange, zoom]);
 
-  // Refs for state sync in handlers
-  const dragStateRef = useRef(dragState);
-  dragStateRef.current = dragState;
-  const resizeStateRef = useRef(resizeState);
-  resizeStateRef.current = resizeState;
-  const rotateStateRef = useRef(rotateState);
-  rotateStateRef.current = rotateState;
-  const selectedLayerIdsRef = useRef(selectedLayerIds);
-  selectedLayerIdsRef.current = selectedLayerIds;
-  const layersRef = useRef(layers);
-  layersRef.current = layers;
-  const isPanningRef = useRef(isPanning);
-  isPanningRef.current = isPanning;
-  const panStartRef = useRef(panStart);
-  panStartRef.current = panStart;
-  const isSpacePressedRef = useRef(isSpacePressed);
-  isSpacePressedRef.current = isSpacePressed;
-  const isDrawingRef = useRef(isDrawing);
-  isDrawingRef.current = isDrawing;
+  // Handle rotation reset for #2
+  useEffect(() => {
+    const handleReset = (e: any) => {
+      const { id, ids } = e.detail;
+      const targetIds = ids || [id];
+      const updates: Record<string, Partial<Layer>> = {};
+      targetIds.forEach((tid: string) => {
+        updates[tid] = { rotation: 0 };
+      });
+      onUpdateLayers(updates);
+    };
+    window.addEventListener('canvas-reset-rotation', handleReset);
+    return () => window.removeEventListener('canvas-reset-rotation', handleReset);
+  }, [onUpdateLayers]);
 
   const getSnapLines = useCallback(
     (currentLayer: Layer, currentX: number, currentY: number) => {
@@ -312,8 +369,8 @@ const CanvasComponent: React.FC<CanvasProps> = ({
       let newX = currentX;
       let newY = currentY;
 
-      const canvasCenterX = canvasSize.width / 2;
-      const canvasCenterY = canvasSize.height / 2;
+      const canvasCenterX = activeArtboard.width / 2;
+      const canvasCenterY = activeArtboard.height / 2;
 
       if (Math.abs(centerX - canvasCenterX) < threshold) {
         snapX.push(canvasCenterX);
@@ -328,22 +385,22 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         snapX.push(0);
         newX = 0;
       }
-      if (Math.abs(currentX + layerWidth - canvasSize.width) < threshold) {
-        snapX.push(canvasSize.width);
-        newX = canvasSize.width - layerWidth;
+      if (Math.abs(currentX + layerWidth - activeArtboard.width) < threshold) {
+        snapX.push(activeArtboard.width);
+        newX = activeArtboard.width - layerWidth;
       }
       if (Math.abs(currentY) < threshold) {
         snapY.push(0);
         newY = 0;
       }
-      if (Math.abs(currentY + layerHeight - canvasSize.height) < threshold) {
-        snapY.push(canvasSize.height);
-        newY = canvasSize.height - layerHeight;
+      if (Math.abs(currentY + layerHeight - activeArtboard.height) < threshold) {
+        snapY.push(activeArtboard.height);
+        newY = activeArtboard.height - layerHeight;
       }
 
       if (snapToObjects) {
-        const otherLayers = [...effectiveShapeLayers, ...effectiveImageLayers, ...effectiveTextLayers].filter(
-          (l) => l.id !== currentLayer.id
+        const otherLayers = ([...effectiveShapeLayers, ...effectiveImageLayers, ...effectiveTextLayers] as Layer[]).filter(
+          (l: Layer) => l.id !== currentLayer.id
         );
 
         for (const other of otherLayers) {
@@ -391,8 +448,8 @@ const CanvasComponent: React.FC<CanvasProps> = ({
       return { snapX, snapY, newX, newY };
     },
     [
-      canvasSize.width,
-      canvasSize.height,
+      activeArtboard.width,
+      activeArtboard.height,
       effectiveShapeLayers,
       effectiveImageLayers,
       effectiveTextLayers,
@@ -449,7 +506,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
       if (snapToObjects) {
         const otherLayers = [...effectiveShapeLayers, ...effectiveImageLayers, ...effectiveTextLayers].filter(
-          (l) => l.id !== currentLayer.id
+          (l: Layer) => l.id !== currentLayer.id
         );
 
         for (const other of otherLayers) {
@@ -590,16 +647,16 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     (e: React.MouseEvent) => {
       if (isLassoMode) {
         setIsDrawingLasso(true);
-        const rect = containerRef.current?.getBoundingClientRect();
-        if (rect) {
-          const x = (e.clientX - rect.left) / zoom;
-          const y = (e.clientY - rect.top) / zoom;
-          setLassoPoints([{ x, y }]);
+        const rect = viewportRef.current?.getBoundingClientRect();
+        if (rect && activeArtboard) {
+          const x = (e.clientX - rect.left - panOffset.x) / zoom - activeArtboard.x;
+          const y = (e.clientY - rect.top - panOffset.y) / zoom - activeArtboard.y;
+          setLocalLassoPoints([{ x, y }]);
         }
       } else if (refineBrushMode !== 'none' && croppingLayerId) {
         setIsRefining(true);
         // Initialize mask buffer from current layer mask
-        const layer = layersRef.current.find(l => l.id === croppingLayerId) as ImageLayer;
+        const layer = layersRef.current.find((l: Layer) => l.id === croppingLayerId) as ImageLayer;
         if (layer && refineCanvasRef.current) {
           const ctx = refineCanvasRef.current.getContext('2d');
           if (ctx) {
@@ -617,7 +674,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
             } else {
               // Default to full mask
               ctx.fillStyle = 'white';
-              ctx.fillRect(0, 0, layer.width, layer.height);
+              ctx.fillRect(0, 0, layer.width, (layer as any).height || 0);
             }
           }
         }
@@ -634,7 +691,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
   const handleMouseDownLayer = useCallback(
     (e: React.MouseEvent, layer: Layer) => {
-      if (isSpacePressedRef.current || isDrawingRef.current || layer.locked) {
+      if (isSpacePressedRef.current || isDrawingSyncRef.current || layer.locked) {
         return;
       }
       e.stopPropagation();
@@ -810,11 +867,15 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         const currentLayers = layersRef.current;
         const currentZoom = zoomRef.current;
 
+        if (isDrawingSyncRef.current) {
+          return;
+        }
+
         if (isRefining && refineCanvasRef.current && croppingLayerId) {
-          const rect = containerRef.current?.getBoundingClientRect();
-          if (rect) {
-            const x = (e.clientX - rect.left) / currentZoom;
-            const y = (e.clientY - rect.top) / currentZoom;
+          const rect = viewportRef.current?.getBoundingClientRect();
+          if (rect && activeArtboard) {
+            const x = (e.clientX - rect.left - panOffset.x) / currentZoom - activeArtboard.x;
+            const y = (e.clientY - rect.top - panOffset.y) / currentZoom - activeArtboard.y;
             const ctx = refineCanvasRef.current.getContext('2d');
             if (ctx) {
               ctx.lineCap = 'round';
@@ -839,11 +900,11 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         }
 
         if (isLassoMode && isDrawingLasso) {
-          const rect = containerRef.current?.getBoundingClientRect();
-          if (rect) {
-            const x = (e.clientX - rect.left) / currentZoom;
-            const y = (e.clientY - rect.top) / currentZoom;
-            setLassoPoints([...lassoPoints, { x, y }]);
+          const rect = viewportRef.current?.getBoundingClientRect();
+          if (rect && activeArtboard) {
+            const x = (e.clientX - rect.left - panOffset.x) / currentZoom - activeArtboard.x;
+            const y = (e.clientY - rect.top - panOffset.y) / currentZoom - activeArtboard.y;
+            setLocalLassoPoints((prev) => [...prev, { x, y }]);
           }
           return;
         }
@@ -884,8 +945,8 @@ const CanvasComponent: React.FC<CanvasProps> = ({
               snapVertical = snapX;
               snapHorizontal = snapY;
             } else {
-              const primaryLayerId = currentSelectedLayerId || currentSelectedLayerIds[0];
-              const primaryLayer = currentLayers.find((l) => l.id === primaryLayerId);
+              const primaryLayerId = currentSelectedLayerId || (currentSelectedLayerIds && currentSelectedLayerIds[0]);
+              const primaryLayer = currentLayers.find((l: Layer) => l.id === primaryLayerId);
 
               if (primaryLayer && currentDragState.initialPositions[primaryLayer.id]) {
                 const initial = currentDragState.initialPositions[primaryLayer.id]!;
@@ -927,7 +988,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
           const newBulkPreview: Record<string, { x: number; y: number }> = {};
           Object.entries(currentDragState.initialPositions).forEach(([id, initialPos]) => {
             const nx = initialPos.x + finalDx;
-            const ny = initialPos.y + finalDy;
+            const ny = (initialPos as { x: number; y: number }).y + finalDy;
             newBulkPreview[id] = { x: nx, y: ny };
 
             const domNode = layerRefs.current[id];
@@ -1027,14 +1088,12 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                   domNode.style.height = `${nh}px`;
                 }
                 if (layer.type === 'text' && preview.fontSize) {
-                  (domNode.firstChild as HTMLElement).style.fontSize = `${preview.fontSize}px`;
+                  const firstChild = domNode.firstChild as HTMLElement;
+                  if (firstChild) {firstChild.style.fontSize = `${preview.fontSize}px`;}
                 }
               }
             });
             bulkDragPreviewManualRef.current = newBulkPreview;
-            if (onUpdateLayers) {
-              onUpdateLayers(newBulkPreview);
-            }
           } else if (initialLayer && currentSelectedLayerId) {
             const { x: ix, y: iy, width: iw } = initialLayer;
             const ih = (initialLayer as any).height || 0;
@@ -1144,7 +1203,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
           } else if (currentSelectedLayerId && currentRotateState) {
             const rotation = Math.round((initialRotation + rawRotationDelta) / snapAngle) * snapAngle;
             const domNode = layerRefs.current[currentSelectedLayerId];
-            const layer = layersRef.current.find((l) => l.id === currentSelectedLayerId);
+            const layer = layersRef.current.find((l: Layer) => l.id === currentSelectedLayerId);
             if (domNode && layer) {
               const l = layer as any;
               domNode.style.transform = `${l.perspective ? `perspective(${l.perspective}px)` : ''} rotateX(${l.rotateX || 0}deg) rotateY(${l.rotateY || 0}deg) rotate(${rotation}deg) skew(${l.skewX || 0}deg, ${l.skewY || 0}deg)`;
@@ -1162,7 +1221,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
       getSnapLines,
       onUpdateLayers,
       selectedLayerId,
-      canvasSize,
+      activeArtboard,
       getResizeSnapLines,
       snapToGrid,
       snapToObjects,
@@ -1185,9 +1244,12 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
     if (isLassoMode && isDrawingLasso) {
       setIsDrawingLasso(false);
-      if (lassoPoints.length > 5) {
-        applyLasso();
+      if (localLassoPoints.length > 5) {
+        setLassoPoints(localLassoPoints);
+        // Add timeout to ensure state settles
+        setTimeout(() => applyLasso(), 0);
       }
+      setLocalLassoPoints([]);
       return;
     }
 
@@ -1243,8 +1305,9 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     panOffset.y,
     isLassoMode,
     isDrawingLasso,
-    lassoPoints,
+    localLassoPoints,
     applyLasso,
+    setLassoPoints,
   ]);
 
   useEffect(() => {
@@ -1420,14 +1483,33 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     setTimeout(() => textEditRef.current?.focus(), 0);
   }, []);
 
-  const finishEditingText = () => {
+  const finishEditingText = useCallback(() => {
     if (editingTextId && textEditRef.current) {
-      // Use innerText but fall back to textContent, and handle empty text to allow deletion.
+      // Get the text content from the contentEditable div
+      // Use trim() to remove trailing newlines but preserve intentional whitespace
       const newText = textEditRef.current.innerText || textEditRef.current.textContent || '';
-      onUpdateLayers?.({ [editingTextId]: { text: newText } });
+      
+      // Only update if the text has actually changed
+      const currentLayer = useStore.getState().artboards.flatMap(a => a.layers).find((l: Layer) => l.id === editingTextId);
+      if (currentLayer && currentLayer.type === 'text' && currentLayer.text === newText) {
+        // Text hasn't changed, just exit edit mode
+        setEditingTextId(null);
+        return;
+      }
+      
+      // Save to history before updating to ensure the change is persisted
+      useStore.getState().saveToHistory();
+      
+      // Update the text and also update the layer name to match the text
+      const updates: Partial<TextLayer> = { text: newText };
+      if (currentLayer && currentLayer.type === 'text') {
+        const autoName = newText.length > 20 ? newText.slice(0, 20) + '…' : newText;
+        updates.name = autoName;
+      }
+      onUpdateLayers?.({ [editingTextId]: updates });
     }
     setEditingTextId(null);
-  };
+  }, [editingTextId, onUpdateLayers]);
 
   const handleDropShape = useCallback(
     (e: React.DragEvent, layerId: string) => {
@@ -1460,7 +1542,8 @@ const CanvasComponent: React.FC<CanvasProps> = ({
             >
               <Icons.ZoomOut className="w-4 h-4" />
             </button>
-            <span className="text-xs text-gray-300 w-14 text-center font-mono">{Math.round(zoom * 100)}%</span>
+            {/* Editable Zoom Input for #4 */}
+            <EditableZoom zoom={zoom} onZoomChange={onZoomChange} />
             <button
               onClick={() => onZoomChange(Math.min(5, zoom + 0.1))}
               className="p-1 hover:bg-gray-700 rounded text-gray-400 transition-colors"
@@ -1470,11 +1553,13 @@ const CanvasComponent: React.FC<CanvasProps> = ({
             </button>
             <button
               onClick={() => {
-                // Auto-fit zoom
-                const minZoomX = viewportSize.width / canvasSize.width;
-                const minZoomY = viewportSize.height / canvasSize.height;
-                const fitZoom = Math.min(minZoomX, minZoomY, 1);
-                onZoomChange(Math.max(0.1, fitZoom));
+                if (activeArtboard) {
+                  // Auto-fit zoom
+                  const minZoomX = viewportSize.width / activeArtboard.width;
+                  const minZoomY = viewportSize.height / activeArtboard.height;
+                  const fitZoom = Math.min(minZoomX, minZoomY, 1);
+                  onZoomChange(Math.max(0.1, fitZoom));
+                }
               }}
               className="ml-2 px-2 py-1 text-xs bg-[#7d2ae8]/20 text-[#7d2ae8] rounded hover:bg-[#7d2ae8]/30 transition-colors"
               title="Fit to Screen"
@@ -1495,34 +1580,23 @@ const CanvasComponent: React.FC<CanvasProps> = ({
             >
               <Icons.Layout className="w-5 h-5" />
             </button>
-            <div className="flex items-center gap-1">
-              <input
-                type="number"
-                className="w-12 bg-[#252627] border border-gray-600 rounded px-1 py-0.5 text-[10px] text-gray-300 text-center"
-                defaultValue={canvasSize.width}
-                onBlur={(e) => onSetCanvasSize({ ...canvasSize, width: parseInt(e.target.value) || canvasSize.width })}
-              />
-              <span className="text-[10px] text-gray-500">×</span>
-              <input
-                type="number"
-                className="w-12 bg-[#252627] border border-gray-600 rounded px-1 py-0.5 text-[10px] text-gray-300 text-center"
-                defaultValue={canvasSize.height}
-                onBlur={(e) =>
-                  onSetCanvasSize({ ...canvasSize, height: parseInt(e.target.value) || canvasSize.height })
-                }
-              />
-              <span className="text-[10px] text-gray-500">px</span>
-            </div>
+            <button
+              onClick={() => onAddArtboard()}
+              className="px-3 py-1 bg-[#7d2ae8] text-white rounded text-xs font-bold hover:bg-[#6a24c5] transition-colors"
+            >
+              + Artboard
+            </button>
           </div>
         </div>
 
         <div
           ref={viewportRef}
-          className="flex-1 overflow-hidden relative bg-gray-900 cursor-grab active:cursor-grabbing touch-none select-none"
+          className="flex-1 overflow-hidden relative bg-gray-900 touch-none select-none transition-transform duration-300 ease-out"
           style={{
             minHeight: '100%',
             minWidth: '100%',
             WebkitOverflowScrolling: 'touch',
+            cursor: isPanning ? 'grabbing' : isSpacePressed ? 'grab' : 'default'
           }}
           onWheel={(e) => {
             if (e.ctrlKey || e.metaKey) {
@@ -1551,317 +1625,140 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         >
           <div
             ref={panContainerRef}
-            className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            className="absolute inset-0 pointer-events-none"
             style={{
-              transform: `translate(${panOffset.x}px, ${panOffset.y}px)`,
-              minWidth: canvasSize.width,
-              minHeight: canvasSize.height,
+              transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
+              transformOrigin: '0 0',
             }}
           >
-            <div
-              ref={containerRef}
-              id="canvas-container"
-              className="relative shadow-2xl bg-white pointer-events-auto"
-              style={{
-                width: canvasSize.width,
-                height: canvasSize.height,
-                transform: `scale(${zoom})`,
-                transformOrigin: 'center center',
-                backgroundColor: canvasBackgroundColor,
-                filter: `brightness(${canvasFilters.brightness}%) contrast(${canvasFilters.contrast}%) saturate(${canvasFilters.saturation}%) sepia(${canvasFilters.sepia}%) grayscale(${canvasFilters.grayscale}%) blur(${canvasFilters.blur}px)`,
-                opacity: canvasFilters.opacity,
-                flexShrink: 0,
-                minWidth: canvasSize.width,
-                minHeight: canvasSize.height,
-              }}
-            >
-              {showRulers && (
-                <>
-                  <Ruler type="horizontal" length={canvasSize.width} zoom={zoom} />
-                  <Ruler type="vertical" length={canvasSize.height} zoom={zoom} />
-                </>
-              )}
-
-              {showGrid && (
-                <div
-                  className="absolute inset-0 pointer-events-none z-[60] opacity-20"
-                  style={{
-                    backgroundImage:
-                      'linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg, #ccc 1px, transparent 1px)',
-                    backgroundSize: '20px 20px',
-                  }}
-                />
-              )}
-
-              {showGoldenRatio && <GoldenRatioOverlay width={canvasSize.width} height={canvasSize.height} />}
-
-              {isLassoMode && lassoPoints.length > 0 && (
-                <svg
-                  className="absolute inset-0 z-[200] pointer-events-none"
-                  width={canvasSize.width}
-                  height={canvasSize.height}
-                  viewBox={`0 0 ${canvasSize.width} ${canvasSize.height}`}
-                >
-                  <path
-                    d={`M ${lassoPoints[0].x} ${lassoPoints[0].y} ` +
-                      lassoPoints.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ') +
-                      (isDrawingLasso ? '' : ' Z')}
-                    fill="rgba(125, 42, 232, 0.2)"
-                    stroke="#7d2ae8"
-                    strokeWidth={2 / zoom}
-                    strokeDasharray={isDrawingLasso ? `${4 / zoom} ${2 / zoom}` : 'none'}
-                  />
-                  {lassoPoints.map((p, i) => (
-                    i === 0 && (
-                      <circle
-                        key="start"
-                        cx={p.x} cy={p.y} r={4 / zoom}
-                        fill="#7d2ae8"
-                        className="animate-pulse"
-                      />
-                    )
-                  ))}
-                </svg>
-              )}
-
-              <canvas
-                ref={refineCanvasRef}
-                className={`absolute inset-0 z-[150] pointer-events-none ${isRefining ? 'cursor-none' : 'hidden'}`}
-                width={canvasSize.width}
-                height={canvasSize.height}
-              />
-
-              <div
-                ref={snapVerticalRef}
-                className="absolute top-0 bottom-0 w-px bg-cyan-400 z-[100] pointer-events-none hidden shadow-[0_0_4px_rgba(34,211,238,0.8)]"
-              />
-              <div
-                ref={snapHorizontalRef}
-                className="absolute left-0 right-0 h-px bg-cyan-400 z-[100] pointer-events-none hidden shadow-[0_0_4px_rgba(34,211,238,0.8)]"
-              />
-
-              {bgImage && (
-                <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-                  <img
-                    src={bgImage}
-                    className="w-full h-full object-contain"
-                    style={{ filter: `opacity(${canvasFilters.opacity})` }}
-                  />
-                </div>
-              )}
-
-              {effectiveLayers
-                .filter((l) => !l.groupId)
-                .map((l) => {
-                  const setLayerRef = (el: HTMLDivElement | null) => {
-                    layerRefs.current[l.id] = el;
-                  };
-                  const maskLayer = l.maskLayerId ? layers.find((ml) => ml.id === l.maskLayerId) : null;
-                  const maskPath = maskLayer ? getLayerClipPath(maskLayer) : undefined;
-                  const isSelected = selectedLayerId === l.id || selectedLayerIds.includes(l.id);
-
-                  if (l.type === 'image') {
-                    return (
-                      <ImageLayerItem
-                        key={l.id}
-                        ref={setLayerRef}
-                        layer={l as ImageLayer}
-                        isSelected={isSelected}
-                        isHovered={hoveredLayerId === l.id}
-                        onMouseDown={handleMouseDownLayer}
-                        onMouseEnter={setHoveredLayerId}
-                        onMouseLeave={() => setHoveredLayerId(null)}
-                        onResize={handleResizeStart}
-                        onRotate={handleRotateStart}
-                        onContextMenu={handleContextMenu}
-                        previewAnimation={previewAnimation}
-                        maskPath={maskPath}
-                      />
-                    );
-                  }
-
-                  if (l.type === 'text') {
-                    return (
-                      <React.Fragment key={l.id}>
-                        {editingTextId === l.id ? (
-                          <div
-                            ref={textEditRef}
-                            contentEditable
-                            suppressContentEditableWarning
-                            onBlur={finishEditingText}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                textEditRef.current?.blur();
-                              }
-                            }}
-                            className="absolute bg-transparent border-2 border-[#7d2ae8] outline-none z-[100] cursor-text min-w-[50px] text-layer-item"
-                            data-layer-type="text"
-                            data-is-editing="true"
-                            style={{
-                              left: l.x,
-                              top: l.y,
-                              width: l.width,
-                              fontSize: (l as TextLayer).fontSize,
-                              fontFamily: (l as TextLayer).fontFamily,
-                              fontWeight: (l as TextLayer).fontWeight,
-                              textAlign: (l as TextLayer).textAlign,
-                              color: (l as TextLayer).color,
-                              transform: `rotate(${l.rotation}deg)`,
-                              whiteSpace: 'pre-wrap',
-                              wordBreak: 'break-word',
-                              clipPath: maskPath,
-                            }}
-                          >
-                            {l.text}
-                          </div>
-                        ) : (
-                          <TextLayerItem
-                            ref={setLayerRef}
-                            layer={l as TextLayer}
-                            isSelected={isSelected}
-                            isHovered={hoveredLayerId === l.id}
-                            onMouseDown={handleMouseDownLayer}
-                            onMouseEnter={setHoveredLayerId}
-                            onMouseLeave={() => setHoveredLayerId(null)}
-                            onResize={handleResizeStart}
-                            onRotate={handleRotateStart}
-                            onContextMenu={handleContextMenu}
-                            onDoubleClick={handleTextDoubleClick}
-                            isInteracting={!!dragState || !!resizeState || !!rotateState}
-                            previewAnimation={previewAnimation}
-                            maskPath={maskPath}
-                          />
-                        )}
-                      </React.Fragment>
-                    );
-                  }
-
-                  return (
-                    <ShapeLayerItem
-                      key={l.id}
-                      ref={setLayerRef}
-                      layer={l as ShapeLayer}
-                      isSelected={isSelected}
-                      isHovered={hoveredLayerId === l.id}
-                      onMouseDown={handleMouseDownLayer}
-                      onMouseEnter={setHoveredLayerId}
-                      onMouseLeave={() => setHoveredLayerId(null)}
-                      onResize={handleResizeStart}
-                      onRotate={handleRotateStart}
-                      onContextMenu={handleContextMenu}
-                      onDrop={handleDropShape}
-                      onDoubleClick={(_e, layer) => onDoubleClickLayer?.(layer)}
-                      editingPathId={editingPathId}
-                      onUpdatePath={onUpdatePath}
-                      zoom={zoom}
-                      previewAnimation={previewAnimation}
-                      maskPath={maskPath}
-                    />
-                  );
-                })}
-
-              {selectedLayerIds.length > 1 && (
-                <div className="absolute inset-0 pointer-events-none z-[80]">
-                  <MultiSelectionHandles
-                    layers={layers.filter((l) => selectedLayerIds.includes(l.id))}
-                    zoom={zoom}
-                    onResize={handleResizeStart}
-                    onRotate={handleRotateStart}
-                  />
-                </div>
-              )}
-
-              {isCropMode && (
-                <div className="absolute inset-0 pointer-events-none z-[1002]">
-                  <CropOverlay zoom={zoom} canvasSize={canvasSize} />
-                </div>
-              )}
-
-              <canvas
-                ref={drawingCanvasRef}
-                width={canvasSize.width * zoom}
-                height={canvasSize.height * zoom}
+            {artboards.map((artboard) => (
+              <div 
+                key={artboard.id}
+                className="absolute pointer-events-auto"
                 style={{
-                  width: canvasSize.width,
-                  height: canvasSize.height,
-                  transform: `scale(${zoom})`,
-                  transformOrigin: 'top left',
+                  left: artboard.x,
+                  top: artboard.y,
+                  width: artboard.width,
+                  height: artboard.height,
                 }}
-                className={`absolute inset-0 z-[100] touch-none ${isDrawing ? 'cursor-crosshair opacity-100' : 'pointer-events-none opacity-0'}`}
-                onMouseDown={handleDrawingMouseDown}
-                onMouseMove={handleDrawingMouseMove}
-                onMouseUp={handleDrawingMouseUp}
-              />
-
-              {/* Zero State / Empty Canvas Helper */}
-              {!bgImage && layers.length === 0 && !isDrawing && !isProcessing && (
-                <div className="absolute inset-0 flex items-center justify-center z-[50]">
-                  <div
-                    className="flex flex-col items-center gap-6 p-10 rounded-3xl"
-                    style={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)' }}
-                  >
-                    <div className="flex flex-col items-center gap-1">
-                      <h2 className="text-xl font-black text-gray-800 tracking-tight">Your canvas is empty</h2>
-                      <p className="text-sm text-gray-500">Pick a starting point to begin creating</p>
-                    </div>
-                    <div className="flex flex-col gap-3 w-full min-w-[220px]">
-                      <button
-                        className="flex items-center gap-3 px-5 py-3 rounded-xl font-bold text-sm text-white shadow-lg transition-all hover:scale-[1.03] active:scale-[0.98]"
-                        style={{ background: 'linear-gradient(135deg, #7d2ae8, #00c4cc)' }}
-                        onClick={() => {
-                          const event = new CustomEvent('open-panel', { detail: 'MAGIC' });
-                          window.dispatchEvent(event);
-                        }}
-                      >
-                        <span className="text-xl">✨</span>
-                        <span>Generate with AI</span>
-                      </button>
-                      <button
-                        className="flex items-center gap-3 px-5 py-3 rounded-xl font-bold text-sm text-gray-700 bg-white border border-gray-200 shadow hover:bg-gray-50 hover:border-gray-300 transition-all hover:scale-[1.03] active:scale-[0.98]"
-                        onClick={() => {
-                          const event = new CustomEvent('open-panel', { detail: 'TEMPLATES' });
-                          window.dispatchEvent(event);
-                        }}
-                      >
-                        <span className="text-xl">🎴</span>
-                        <span>Browse Templates</span>
-                      </button>
-                      <button
-                        className="flex items-center gap-3 px-5 py-3 rounded-xl font-bold text-sm text-gray-700 bg-white border border-gray-200 shadow hover:bg-gray-50 hover:border-gray-300 transition-all hover:scale-[1.03] active:scale-[0.98]"
-                        onClick={() => {
-                          const input = document.createElement('input');
-                          input.type = 'file';
-                          input.accept = 'image/*';
-                          input.multiple = true;
-                          input.onchange = (e) => {
-                            const files = Array.from((e.target as HTMLInputElement).files || []);
-                            if (files.length > 0) {
-                              onFileUpload?.(files);
-                            }
-                          };
-                          input.click();
-                        }}
-                      >
-                        <span className="text-xl">🖼️</span>
-                        <span>Upload an Image</span>
-                      </button>
-                    </div>
-                    <div className="flex gap-4 text-[10px] text-gray-400 font-mono">
-                      <span>
-                        <kbd className="bg-gray-100 border border-gray-300 rounded px-1">T</kbd> Text
-                      </span>
-                      <span>
-                        <kbd className="bg-gray-100 border border-gray-300 rounded px-1">R</kbd> Rect
-                      </span>
-                      <span>
-                        <kbd className="bg-gray-100 border border-gray-300 rounded px-1">C</kbd> Circle
-                      </span>
-                    </div>
-                  </div>
+                onClick={() => useStore.getState().setActiveArtboardId(artboard.id)}
+              >
+                {/* Artboard Header */}
+                <div className="absolute -top-6 left-0 flex items-center gap-2 pointer-events-none">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">
+                    {artboard.name} <span className="text-gray-600 ml-1">{artboard.width} × {artboard.height}</span>
+                  </span>
                 </div>
-              )}
-            </div>
+
+                <div
+                  className={`relative shadow-2xl bg-white overflow-hidden ${activeArtboardId === artboard.id ? 'ring-2 ring-[#7d2ae8]/50' : 'ring-1 ring-white/10'}`}
+                  style={{
+                    width: artboard.width,
+                    height: artboard.height,
+                    backgroundColor: artboard.backgroundColor || canvasBackgroundColor,
+                    filter: activeArtboardId === artboard.id ? 
+                      `brightness(${canvasFilters.brightness}%) contrast(${canvasFilters.contrast}%) saturate(${canvasFilters.saturation}%) sepia(${canvasFilters.sepia}%) grayscale(${canvasFilters.grayscale}%) blur(${canvasFilters.blur}px)` : 
+                      'none',
+                    opacity: activeArtboardId === artboard.id ? canvasFilters.opacity : 1,
+                  }}
+                >
+                  <CanvasLayerRenderer
+                    layers={artboard.layers}
+                    effectiveLayers={artboard.layers.map((l) => getEffectiveLayer(l))}
+                    selectedLayerId={selectedLayerId}
+                    selectedLayerIds={selectedLayerIds}
+                    hoveredLayerId={hoveredLayerId}
+                    setHoveredLayerId={setHoveredLayerId}
+                    setLayerRef={(id, el) => {
+                      layerRefs.current[id] = el;
+                    }}
+                    handleMouseDownLayer={handleMouseDownLayer}
+                    handleResizeStart={handleResizeStart}
+                    handleRotateStart={handleRotateStart}
+                    handleContextMenu={handleContextMenu}
+                    handleTextDoubleClick={handleTextDoubleClick}
+                    handleDropShape={handleDropShape}
+                    onDoubleClickLayer={onDoubleClickLayer}
+                    editingTextId={editingTextId}
+                    textEditRef={textEditRef}
+                    finishEditingText={finishEditingText}
+                    editingPathId={editingPathId}
+                    onUpdatePath={onUpdatePath}
+                    zoom={zoom}
+                    previewAnimation={previewAnimation}
+                    isInteracting={!!dragState || !!resizeState || !!rotateState}
+                  />
+
+                  {/* Artboard specific overlays */}
+                  {activeArtboardId === artboard.id && (
+                    <>
+                      {showGrid && (
+                        <div
+                          className="absolute inset-0 pointer-events-none z-[60] opacity-10"
+                          style={{
+                            backgroundImage:
+                              'linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg, #ccc 1px, transparent 1px)',
+                            backgroundSize: '100px 100px',
+                          }}
+                        />
+                      )}
+
+                      {/* Creative Tool Canvases */}
+                      {(isDrawing || isRefining) && (
+                        <canvas
+                          ref={isRefining ? refineCanvasRef : drawingCanvasRef}
+                          className="absolute inset-0 z-[70] cursor-crosshair touch-none"
+                          width={artboard.width}
+                          height={artboard.height}
+                          onMouseDown={isRefining ? undefined : handleDrawingMouseDown}
+                          onMouseMove={isRefining ? handleMouseMove : handleDrawingMouseMove}
+                          onMouseUp={isRefining ? handleMouseUp : handleDrawingMouseUp}
+                        />
+                      )}
+
+                      {isLassoMode && (
+                        <svg className="absolute inset-0 z-[70] pointer-events-none w-full h-full">
+                          {localLassoPoints.length > 1 && (
+                            <polyline
+                              points={localLassoPoints.map((p) => `${p.x},${p.y}`).join(' ')}
+                              fill="rgba(125, 42, 232, 0.2)"
+                              stroke="#7d2ae8"
+                              strokeWidth={2 / zoom}
+                              strokeDasharray="5,5"
+                            />
+                          )}
+                        </svg>
+                      )}
+
+                      {booleanPreview && (
+                        <svg className="absolute inset-0 z-[75] pointer-events-none w-full h-full">
+                          <path
+                            d={booleanPreview.path}
+                            fill="rgba(168, 85, 247, 0.15)"
+                            stroke="#a855f7"
+                            strokeWidth={3 / zoom}
+                            strokeDasharray={`${6 / zoom},${4 / zoom}`}
+                            className="animate-pulse"
+                          />
+                        </svg>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+            
+            {/* Global Multi-selection handles across the workspace */}
+            {selectedLayerIds.length > 1 && (
+              <div className="absolute inset-0 pointer-events-none z-[80]">
+                <MultiSelectionHandles
+                  layers={artboards.flatMap(a => a.layers).filter((l) => selectedLayerIds.includes(l.id))}
+                  zoom={zoom}
+                  onResize={handleResizeStart}
+                  onRotate={handleRotateStart}
+                />
+              </div>
+            )}
           </div>
         </div>
 

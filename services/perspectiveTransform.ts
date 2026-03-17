@@ -145,8 +145,8 @@ export function getDefaultCornerPoints(
 
   const transformed = corners.map((corner) => {
     // Apply skew
-    let x = corner.x + corner.y * Math.tan(skewXRad);
-    let y = corner.y + corner.x * Math.tan(skewYRad);
+    const x = corner.x + corner.y * Math.tan(skewXRad);
+    const y = corner.y + corner.x * Math.tan(skewYRad);
 
     // Apply rotation
     const cos = Math.cos(rotRad);
@@ -185,7 +185,7 @@ export function applyPerspectiveWarp(
   tempCanvas.height = height;
   const tempCtx = tempCanvas.getContext('2d');
 
-  if (!tempCtx) return;
+  if (!tempCtx) {return;}
 
   // Draw image normally first
   tempCtx.drawImage(image, 0, 0);
@@ -245,7 +245,7 @@ export function applyCurveToCorners(
   width: number,
   _height: number
 ): CornerPoints {
-  if (curve === 0) return corners;
+  if (curve === 0) {return corners;}
 
   const curveRad = (curve * Math.PI) / 180;
   // const midX = width / 2;

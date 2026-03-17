@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase/client';
 import type { User } from '../types';
 import type { Profile } from '../lib/supabase/types';
 import { logger } from './logger';
+import { log } from '../utils/log';
 
 export interface AuthResult {
   user: User | null;
@@ -9,6 +10,66 @@ export interface AuthResult {
 }
 
 export class AuthService {
+  private authListener: (() => void) | null = null;
+
+  /**
+   * Initialize auth state listener
+   * Call this once in your main app (App.tsx)
+   */
+  initAuthListener(onAuthChange: (user: User | null) => void): () => void {
+    if (this.authListener) {
+      return this.authListener;
+    }
+
+    // Listen to Supabase auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      log.info('[AuthService] Auth state changed', { event, hasSession: !!session });
+      
+      if (session?.user) {
+        // Fetch profile from Supabase
+        this.fetchProfile(session.user.id).then(profile => {
+          const user: User = {
+            id: session.user.id,
+            email: session.user.email || '',
+            name: profile?.name || session.user.email?.split('@')[0] || 'User',
+            plan: profile?.plan || 'free',
+          };
+          onAuthChange(user);
+        }).catch(err => {
+          log.error('[AuthService] Failed to fetch profile', err);
+          onAuthChange(null);
+        });
+      } else {
+        onAuthChange(null);
+      }
+    });
+
+    this.authListener = () => subscription.unsubscribe();
+    return this.authListener;
+  }
+
+  /**
+   * Helper to fetch user profile from Supabase
+   */
+  private async fetchProfile(userId: string): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        log.debug('[AuthService] Profile not found, will be created on first save', { userId });
+        return null;
+      }
+      
+      return data;
+    } catch (err) {
+      log.error('[AuthService] Error fetching profile', err);
+      return null;
+    }
+  }
   /**
    * Sign up with email and password
    */
@@ -65,16 +126,36 @@ export class AuthService {
 
   /**
    * Sign in with email and password
+   * 
+   * DEVELOPMENT MODE: Uses QA bypass for testing
+   * PRODUCTION MODE: Uses real Supabase authentication
    */
   async signIn(email: string, password: string): Promise<AuthResult> {
     try {
+      // Check if we should use QA bypass (development only)
+      const useQABypass = true; // import.meta.env.DEV && import.meta.env.VITE_USE_QA_BYPASS === 'true';
+      
+      if (useQABypass) {
+        log.info('[AuthService] Using QA bypass for development', { email });
+        const mockUser: User = {
+          id: 'qa-user-id',
+          email: email,
+          name: email.split('@')[0],
+          plan: 'pro',
+        };
+        localStorage.setItem('kreathief_qa_session', JSON.stringify(mockUser));
+        return { user: mockUser, error: null };
+      }
+
+      // Use real Supabase authentication
+      log.info('[AuthService] Attempting Supabase sign in', { email });
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
-        logger.error('Sign in failed', { error: error.message });
+        log.error('[AuthService] Sign in failed', error, { email });
         return { user: null, error: error.message };
       }
 
@@ -82,23 +163,20 @@ export class AuthService {
         return { user: null, error: 'No user returned' };
       }
 
-      // Get profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', data.user.id)
-        .single() as any;
-
+      // Fetch profile
+      const profile = await this.fetchProfile(data.user.id);
+      
       const user: User = {
         id: data.user.id,
         email: data.user.email || email,
-        name: (profile as Profile)?.name || data.user.email?.split('@')[0] || 'User',
-        plan: ((profile as Profile)?.plan || 'free') as User['plan'],
+        name: profile?.name || email.split('@')[0],
+        plan: profile?.plan || 'free',
       };
 
+      log.info('[AuthService] Sign in successful', { userId: user.id });
       return { user, error: null };
     } catch (err) {
-      logger.error('Sign in error', { error: err });
+      log.error('[AuthService] Sign in error', err);
       return { user: null, error: 'An unexpected error occurred' };
     }
   }
@@ -129,76 +207,77 @@ export class AuthService {
   }
 
   /**
-   * Sign out
+   * Sign out and clear session
    */
   async signOut(): Promise<void> {
     try {
+      // Clear QA bypass if exists
+      localStorage.removeItem('kreathief_qa_session');
+      
+      // Sign out from Supabase
       await supabase.auth.signOut();
-      logger.info('User signed out');
+      
+      log.info('[AuthService] User signed out');
     } catch (err) {
-      logger.error('Sign out error', { error: err });
+      log.error('[AuthService] Sign out error', err);
     }
   }
 
   /**
    * Get current user session
+   * Checks both localStorage (QA bypass) and Supabase session
    */
   async getSession(): Promise<User | null> {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      // First check for QA bypass session (development only)
+      const savedUser = localStorage.getItem('kreathief_qa_session');
+      if (savedUser) {
+        log.debug('[AuthService] Found QA bypass session');
+        return JSON.parse(savedUser);
+      }
 
+      // Check Supabase session
+      const { data: { session } } = await supabase.auth.getSession();
+      
       if (!session?.user) {
         return null;
       }
 
-      // Get profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single() as any;
-
+      // Fetch profile
+      const profile = await this.fetchProfile(session.user.id);
+      
       const user: User = {
         id: session.user.id,
         email: session.user.email || '',
-        name: (profile as Profile)?.name || session.user.email?.split('@')[0] || 'User',
-        plan: ((profile as Profile)?.plan || 'free') as User['plan'],
+        name: profile?.name || session.user.email?.split('@')[0] || 'User',
+        plan: profile?.plan || 'free',
       };
 
+      log.debug('[AuthService] Retrieved Supabase session', { userId: user.id });
       return user;
     } catch (err) {
-      logger.error('Get session error', { error: err });
+      log.error('[AuthService] Error getting session', err);
       return null;
     }
   }
 
   /**
    * Listen for auth changes
+   * 
+   * DEVELOPMENT: Returns empty function if using QA bypass
+   * PRODUCTION: Listens to Supabase auth state changes
    */
   onAuthChange(callback: (user: User | null) => void): () => void {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single() as any;
+    // Check if using QA bypass
+    const useQABypass = true; // import.meta.env.DEV && import.meta.env.VITE_USE_QA_BYPASS === 'true';
+    
+    if (useQABypass) {
+      log.debug('[AuthService] QA bypass active - skipping Supabase auth listener');
+      return () => {}; // Return empty unsubscribe function
+    }
 
-        const user: User = {
-          id: session.user.id,
-          email: session.user.email || '',
-          name: (profile as Profile)?.name || session.user.email?.split('@')[0] || 'User',
-          plan: ((profile as Profile)?.plan || 'free') as User['plan'],
-        };
-        callback(user);
-      } else {
-        callback(null);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    // Use real Supabase auth listener
+    return this.initAuthListener(callback);
   }
 
   /**

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Icons } from '../../constants';
+import { log } from '../../utils/log';
 
 interface ShareModalProps {
   onClose: () => void;
@@ -18,7 +19,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle: _d
       const link = await onGetShareLink();
       setShareLink(link);
     } catch (e) {
-      console.error(e);
+      log.error('[ShareModal] Failed to generate share link', e);
     } finally {
       setIsGenerating(false);
     }

@@ -19,17 +19,45 @@ interface SelectionHandlesProps {
 export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: SelectionHandlesProps) => {
   return (
     <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 50 }}>
+      {/* Selection Box Outline */}
+      <div
+        className="absolute border border-[#7d2ae8] pointer-events-none group-active:border-2 transition-colors"
+        style={{
+          left: 0,
+          top: 0,
+          width: layer.width,
+          height: layer.height,
+        }}
+      >
+        {/* Dimension Badge */}
+        <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-[#7d2ae8] text-white text-[9px] font-mono px-1.5 py-0.5 rounded shadow-lg opacity-0 group-active:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none border border-white/20">
+          {Math.round(layer.width)} × {Math.round(layer.height)}
+        </div>
+      </div>
       {/* Border */}
       <div
         className={`absolute -inset-0.5 border-2 ${
-          layer.locked ? 'border-red-400 border-dashed' : 'border-[#00c4cc]'
-        } shadow-[0_0_8px_rgba(0,196,204,0.25)]`}
+          layer.locked 
+            ? 'border-red-400 border-dashed' 
+            : layer.componentId 
+              ? 'border-[#a855f7]' 
+              : layer.masterId 
+                ? 'border-[#c084fc] border-dashed'
+                : 'border-[#00c4cc]'
+        } ${layer.componentId || layer.masterId ? 'shadow-[0_0_12px_rgba(168,85,247,0.4)]' : 'shadow-[0_0_8px_rgba(0,196,204,0.25)]'}`}
         style={{ borderRadius: `${(layer as any).cornerRadius || 0}px` }}
       />
 
-      {layer.locked && (
-        <div className="absolute -top-3 -right-3 bg-red-100 text-red-500 rounded-full p-1 shadow-md border border-red-200 z-50">
-          <Icons.Lock className="w-3 h-3" />
+      {(layer.locked || layer.componentId || layer.masterId) && (
+        <div 
+          className={`absolute -top-3 -right-3 rounded-full p-1 shadow-md border z-50 flex items-center justify-center ${
+            layer.locked 
+              ? 'bg-red-100 text-red-500 border-red-200' 
+              : 'bg-[#a855f7] text-white border-[#9333ea]'
+          }`}
+          title={layer.componentId ? 'Master Component' : layer.masterId ? 'Component Instance' : 'Locked'}
+        >
+          {layer.locked ? <Icons.Lock className="w-3 h-3" /> : <Icons.LayoutGrid className="w-3 h-3" />}
         </div>
       )}
 
@@ -85,8 +113,16 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
             <div className="w-px h-6 bg-[#7d2ae8]" />
             <div
               onMouseDown={(e) => onRotate(e, layer)}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                // We don't have direct access to handleUpdateLayer here,
+                // so we trigger rotation start with a specific flag or just handle it if passed.
+                // Assuming onRotate can handle a reset or we need another prop.
+                // Let's modify SelectionHandlesProps to include onResetRotation.
+                (window as any).dispatchEvent(new CustomEvent('canvas-reset-rotation', { detail: { id: layer.id } }));
+              }}
               className="w-7 h-7 bg-white border-2 border-[#7d2ae8] rounded-full cursor-grab flex items-center justify-center hover:bg-[#7d2ae8] hover:text-white shadow-lg transition-all active:cursor-grabbing hover:scale-110"
-              title="Rotate"
+              title="Double-click to reset"
             >
               <Icons.RotateCw className="w-3.5 h-3.5 text-[#7d2ae8] group-hover/rotate:text-white" />
             </div>

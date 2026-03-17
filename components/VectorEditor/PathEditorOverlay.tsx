@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { VectorPath, VectorPoint } from '../../types';
+import { PenToolbar } from '../toolbar/PenToolbar';
 
 interface PathEditorOverlayProps {
   path: VectorPath;
@@ -14,6 +15,17 @@ interface PathEditorOverlayProps {
 
 type PointMode = 'corner' | 'smooth' | 'symmetric';
 type EditorTool = 'select' | 'pen' | 'add' | 'remove';
+
+interface PenToolOptions {
+  isClosed: boolean;
+  hasFill: boolean;
+  hasStroke: boolean;
+  strokeWidth: number;
+  strokeColor: string;
+  fillColor: string;
+  snapToGrid: boolean;
+  showPreview: boolean;
+}
 
 export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
   path,
@@ -31,7 +43,17 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
   const [activeTool, setActiveTool] = useState<EditorTool>('select');
   const [penPreviewPoint, setPenPreviewPoint] = useState<{ x: number; y: number } | null>(null);
   const [isDrawingCurve, setIsDrawingCurve] = useState(false);
-  const showToolbar = true;
+  const [showPenToolbar, setShowPenToolbar] = useState(true);
+  const [penOptions, setPenOptions] = useState<PenToolOptions>({
+    isClosed: false,
+    hasFill: false,
+    hasStroke: true,
+    strokeWidth: 2,
+    strokeColor: '#7d2ae8',
+    fillColor: '#7d2ae8',
+    snapToGrid: false,
+    showPreview: true,
+  });
   const svgRef = useRef<SVGSVGElement>(null);
 
   // Scale factor for crisp visuals at any zoom
@@ -67,7 +89,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
           const newPoints = [...path.points];
           selectedPointIndices.forEach((idx) => {
             const pt = newPoints[idx];
-            if (!pt) return;
+            if (!pt) {return;}
             const newType: PointMode = pt.type === 'smooth' ? 'corner' : 'smooth';
             newPoints[idx] = {
               ...pt,
@@ -99,12 +121,12 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
   // PEN TOOL: Click + drag to create curves
   const handlePenMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      if (activeTool !== 'pen') return;
+      if (activeTool !== 'pen') {return;}
       e.preventDefault();
       e.stopPropagation();
 
       const svg = svgRef.current;
-      if (!svg) return;
+      if (!svg) {return;}
 
       const rect = svg.getBoundingClientRect();
       const clickX = (e.clientX - rect.left) / zoom;
@@ -159,7 +181,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
   // PEN TOOL: Close path by clicking first point
   const handlePenCloseClick = useCallback(
     (e: React.MouseEvent) => {
-      if (activeTool !== 'pen') return;
+      if (activeTool !== 'pen') {return;}
       e.preventDefault();
       e.stopPropagation();
       onUpdate({ ...path, isClosed: true });
@@ -176,7 +198,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
         return;
       }
       const svg = svgRef.current;
-      if (!svg) return;
+      if (!svg) {return;}
       const rect = svg.getBoundingClientRect();
       setPenPreviewPoint({
         x: (e.clientX - rect.left) / zoom,
@@ -189,7 +211,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
   // REMOVE POINT TOOL: click to delete
   const handleRemovePointClick = useCallback(
     (e: React.MouseEvent, index: number) => {
-      if (activeTool !== 'remove') return;
+      if (activeTool !== 'remove') {return;}
       e.preventDefault();
       e.stopPropagation();
       const newPoints = path.points.filter((_, i) => i !== index);
@@ -216,7 +238,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
         handlePenCloseClick(e);
         return;
       }
-      if (activeTool !== 'select') return;
+      if (activeTool !== 'select') {return;}
 
       e.preventDefault();
       e.stopPropagation();
@@ -372,12 +394,12 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
   // ==================================
   const handlePathClick = useCallback(
     (e: React.MouseEvent, segIndex: number) => {
-      if (isDragging || activeTool === 'pen') return;
+      if (isDragging || activeTool === 'pen') {return;}
       e.preventDefault();
       e.stopPropagation();
 
       const svg = svgRef.current;
-      if (!svg) return;
+      if (!svg) {return;}
 
       const rect = svg.getBoundingClientRect();
       const clickX = (e.clientX - rect.left) / zoom;
@@ -403,11 +425,11 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
   // ==================================
   const setPointType = useCallback(
     (type: PointMode) => {
-      if (selectedPointIndices.length === 0) return;
+      if (selectedPointIndices.length === 0) {return;}
       const newPoints = [...path.points];
       selectedPointIndices.forEach((idx) => {
         const pt = newPoints[idx];
-        if (!pt) return;
+        if (!pt) {return;}
         const newPt: VectorPoint = { ...pt, type };
 
         if (type === 'corner') {
@@ -430,7 +452,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
   );
 
   const deleteSelectedPoints = useCallback(() => {
-    if (selectedPointIndices.length === 0) return;
+    if (selectedPointIndices.length === 0) {return;}
     const newPoints = path.points.filter((_, i) => !selectedPointIndices.includes(i));
     if (newPoints.length >= 2) {
       onUpdate({ ...path, points: newPoints });
@@ -457,7 +479,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
   // BUILD SVG PATH STRING
   // ==================================
   const buildPathD = () => {
-    if (path.points.length < 2) return '';
+    if (path.points.length < 2) {return '';}
     let d = '';
     const pts = path.points;
 
@@ -519,7 +541,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
         className="absolute inset-0 z-[90]"
         style={{ cursor: getCursorStyle() }}
         onMouseDown={(e) => {
-          if ((e.target as Element).closest('.path-editor-overlay')) return;
+          if ((e.target as Element).closest('.path-editor-overlay')) {return;}
           if (activeTool === 'pen') {
             handlePenMouseDown(e);
             return;
@@ -630,7 +652,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
 
         {/* Invisible hit targets for path segments */}
         {path.points.map((pt, i) => {
-          if (i === 0) return null;
+          if (i === 0) {return null;}
           const prev = path.points[i - 1]!;
           const cp1x = prev.x + (prev.handleOut?.x ?? 0);
           const cp1y = prev.y + (prev.handleOut?.y ?? 0);
@@ -687,7 +709,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
         {path.points.map((pt, i) => {
           const isSelected = selectedPointIndices.includes(i);
           const isHovered = hoveredPointIndex === i;
-          if (!isSelected && !isHovered) return null;
+          if (!isSelected && !isHovered) {return null;}
 
           return (
             <g key={`handles-${i}`}>
@@ -846,7 +868,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
       </svg>
 
       {/* Floating Mini Toolbar */}
-      {showToolbar && (
+      {showPenToolbar && (
         <div
           className="absolute z-[100] path-editor-overlay"
           style={{
@@ -957,6 +979,15 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Enhanced Pen Tool Options Toolbar */}
+      {activeTool === 'pen' && showPenToolbar && (
+        <PenToolbar
+          options={penOptions}
+          onUpdateOptions={(opts) => setPenOptions({ ...penOptions, ...opts })}
+          onClose={() => setShowPenToolbar(false)}
+        />
       )}
     </>
   );

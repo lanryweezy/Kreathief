@@ -7,6 +7,7 @@ import { SHAPE_LIBRARY } from '../../constants/shapeLibrary';
 
 import { useStore } from '../../store/useStore';
 import { v4 as uuidv4 } from 'uuid';
+import { log } from '../../utils/log';
 
 type ShapeCategory = 'all' | 'basic' | 'geometric' | 'decorative' | 'ui' | 'arrows' | 'stars';
 type ActiveSource = 'shapes' | 'icons' | 'illustrations';
@@ -146,7 +147,7 @@ export const ElementsPanel = () => {
       }
       setRemoteIcons(icons);
     } catch (err) {
-      console.error('Icon search error:', err);
+      log.error('[ElementsPanel] Icon search failed', err);
       setRemoteIcons([]);
     } finally {
       setIsSearching(false);
@@ -185,7 +186,7 @@ export const ElementsPanel = () => {
         internalAddImageLayer(icon.thumbnailUrl);
       }
     } catch (err) {
-      console.error('Failed to add icon:', err);
+      log.error('[ElementsPanel] Failed to add icon', err, { iconId: icon.id });
       internalAddImageLayer(icon.thumbnailUrl);
     } finally {
       setLoadingIconId(null);

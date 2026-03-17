@@ -6,6 +6,7 @@ import { ConfirmModal } from './modals/ConfirmModal';
 import { CreateProjectModal } from './modals/CreateProjectModal';
 import { useStore } from '../store/useStore';
 import CommunityTemplates from './CommunityTemplates';
+import { EmptyState } from './EmptyState';
 
 interface DashboardProps {
   user: User;
@@ -15,11 +16,12 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCreateProject, onLogout }) => {
-  const { projects, loadAllProjects, deleteProject, duplicateProject, updateProject, createProject, loadProject } =
+  const { projects, loadAllProjects, deleteProject, duplicateProject, updateProject, createProject, loadProject, favoriteProjects, toggleFavoriteProject } =
     useStore();
 
   const [sidebarTab, setSidebarTab] = useState<'projects' | 'templates' | 'community'>('projects');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
 
@@ -93,7 +95,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     }, 0);
   };
 
-  const filteredProjects = projects.filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredProjects = projects.filter((p) => {
+    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFavorites = !showFavoritesOnly || favoriteProjects.includes(p.id);
+    return matchesSearch && matchesFavorites;
+  });
 
   return (
     <div className="min-h-screen dashboard-background text-white flex flex-col relative z-0">
@@ -103,7 +109,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
           <div className="w-9 h-9 bg-gradient-to-br from-[#7d2ae8] to-[#00c4cc] rounded-xl flex items-center justify-center shadow-lg shadow-purple-900/20">
             <Icons.Magic className="w-5 h-5 text-white" />
           </div>
-          <span className="font-display font-black text-2xl tracking-tighter text-white">Kreathief</span>
+          <span className="font-display font-black text-lg md:text-2xl tracking-tighter text-white">Kreathief</span>
         </div>
 
         <div className="flex items-center gap-4">
@@ -148,10 +154,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
 
       <main className="flex-1 flex overflow-hidden">
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold flex items-center gap-4" role="tablist">
+        <div className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12 custom-scrollbar">
+          <div className="max-w-[1600px] mx-auto">
+            <div className="flex items-start sm:items-center justify-between gap-4 mb-8 flex-col sm:flex-row">
+              <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 md:gap-4 overflow-x-auto whitespace-nowrap pb-2 sm:pb-0 w-full sm:w-auto custom-scrollbar" role="tablist">
                 <button
                   role="tab"
                   aria-selected={sidebarTab === 'projects'}
@@ -160,7 +166,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 >
                   My Projects
                 </button>
-                <div className="h-6 w-px bg-gray-800" aria-hidden="true" />
+                <div className="h-6 w-px bg-gray-800 shrink-0" aria-hidden="true" />
                 <button
                   role="tab"
                   aria-selected={sidebarTab === 'templates'}
@@ -169,7 +175,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 >
                   Templates
                 </button>
-                <div className="h-6 w-px bg-gray-800" aria-hidden="true" />
+                <div className="h-6 w-px bg-gray-800 shrink-0" aria-hidden="true" />
                 <button
                   role="tab"
                   aria-selected={sidebarTab === 'community'}
@@ -182,11 +188,28 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               <button
                 id="create-btn"
                 onClick={handleCreateClick}
-                className="bg-[#7d2ae8] text-white hover:bg-[#6c1fd1] px-7 py-3 rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-purple-900/50 flex items-center gap-2.5 transition-all hover:scale-[1.02] active:scale-95 border border-white/10"
+                className="bg-[#7d2ae8] text-white hover:bg-[#6c1fd1] px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-[12px] uppercase tracking-widest shadow-lg shadow-purple-900/50 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95 border border-white/10 shrink-0"
               >
-                <Icons.Plus className="w-4 h-4" /> New Design
+                <Icons.Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> New Design
               </button>
             </div>
+
+            {/* Filter Controls (for Projects) */}
+            {sidebarTab === 'projects' && (
+              <div className="flex items-center gap-4 mb-6">
+                <button
+                  onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border ${
+                    showFavoritesOnly 
+                      ? 'bg-red-500/10 border-red-500/50 text-red-400' 
+                      : 'bg-[#1e1e1e] border-white/5 text-gray-400 hover:text-white hover:border-white/20'
+                  }`}
+                >
+                  <Icons.Heart className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+                  Favorites Only
+                </button>
+              </div>
+            )}
 
             {/* Templates Tab */}
             {sidebarTab === 'templates' && (
@@ -197,7 +220,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 </h3>
                 <div
                   id="templates-grid"
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 staggered-entry"
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 staggered-entry"
                 >
                   {STARTER_TEMPLATES.map((tmpl) => (
                     <button
@@ -225,7 +248,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
 
             {/* All Projects Tab (default) */}
             {sidebarTab === 'projects' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 staggered-entry">
+              projects.length === 0 ? (
+                <EmptyState
+                  icon={Icons.FolderPlus}
+                  title="No projects yet"
+                  description="Start creating amazing designs with AI-powered tools. Your projects will appear here."
+                  action={{
+                    label: "Create Your First Project",
+                    onClick: handleCreateClick
+                  }}
+                />
+              ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 staggered-entry">
                 {/* Create New Card */}
                 <div
                   onClick={handleCreateClick}
@@ -262,6 +296,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                       )}
 
                       <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity translate-y-[-10px] group-hover:translate-y-0 duration-300">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavoriteProject(project.id);
+                          }}
+                          aria-label={`${favoriteProjects.includes(project.id) ? 'Remove from' : 'Add to'} Favorites`}
+                          className="p-2 bg-black/60 hover:bg-black text-red-500 rounded-lg backdrop-blur-md transition-all shadow-lg"
+                        >
+                          <Icons.Heart className={`w-3.5 h-3.5 ${favoriteProjects.includes(project.id) ? 'fill-current' : ''}`} />
+                        </button>
                         <button
                           onClick={(e) => startRenaming(e, project)}
                           aria-label={`Rename ${project.name}`}
@@ -315,6 +359,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   </div>
                 ))}
               </div>
+              )
             )}
 
             {/* Community Tab */}

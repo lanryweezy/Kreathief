@@ -1,12 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 
-export type ToastType = 'success' | 'error' | 'info' | 'warning';
-
-export interface Toast {
-  id: string;
-  message: string;
-  type: ToastType;
-}
+import { Toast, ToastType } from '../types';
 
 interface ToastItemProps {
   toast: Toast;
@@ -28,28 +22,44 @@ const COLORS: Record<ToastType, string> = {
 };
 
 const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
-  useEffect(() => {
-    const timer = setTimeout(() => onRemove(toast.id), 3500);
-    return () => clearTimeout(timer);
-  }, [toast.id, onRemove]);
-
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl text-white text-sm font-medium
-        animate-slide-in-right backdrop-blur-sm min-w-[240px] max-w-[360px] ${COLORS[toast.type]}`}
+      className={`flex flex-col gap-2 p-4 rounded-xl border shadow-2xl text-white text-sm font-medium
+        animate-slide-in-right backdrop-blur-sm min-w-[280px] max-w-[400px] ${COLORS[toast.type]}`}
       role="alert"
     >
-      <span className="text-base font-bold shrink-0 w-5 h-5 flex items-center justify-center rounded-full bg-white/20">
-        {ICONS[toast.type]}
-      </span>
-      <span className="flex-1 leading-snug">{toast.message}</span>
-      <button
-        onClick={() => onRemove(toast.id)}
-        className="shrink-0 text-white/60 hover:text-white transition-colors text-lg leading-none"
-        aria-label="Dismiss"
-      >
-        ×
-      </button>
+      <div className="flex items-start gap-3">
+        <span className="text-base font-bold shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-white/20 mt-0.5">
+          {ICONS[toast.type]}
+        </span>
+        <div className="flex-1 flex flex-col gap-1">
+          <span className="leading-snug font-bold">{toast.message}</span>
+          {toast.details && (
+            <p className="text-[11px] text-white/80 leading-tight">
+              {toast.details}
+            </p>
+          )}
+        </div>
+        <button
+          onClick={() => onRemove(toast.id)}
+          className="shrink-0 text-white/60 hover:text-white transition-colors text-xl leading-none"
+          aria-label="Dismiss"
+        >
+          ×
+        </button>
+      </div>
+
+      {toast.action && (
+        <button
+          onClick={() => {
+            toast.action?.onClick();
+            onRemove(toast.id);
+          }}
+          className="mt-1 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-black uppercase tracking-widest transition-all text-center"
+        >
+          {toast.action.label}
+        </button>
+      )}
     </div>
   );
 };

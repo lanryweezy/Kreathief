@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
+import { analyticsService } from '../../services/analyticsService';
+import { log } from '../../utils/log';
 
 interface ExportModalProps {
   onClose: () => void;
@@ -8,7 +10,8 @@ interface ExportModalProps {
     format: 'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd',
     quality: number,
     size?: { width: number; height: number },
-    transparentBg?: boolean
+    transparentBg?: boolean,
+    customFilename?: string
   ) => Promise<void>;
   onGetPngBlob?: () => Promise<Blob | null>;
   currentSize: { width: number; height: number; name: string };
@@ -22,10 +25,20 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
   const [isExporting, setIsExporting] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
   const [exportStage, setExportStage] = useState<string>('');
-  const [highDPI, setHighDPI] = useState(false);
+  const [exportScale, setExportScale] = useState<number>(1);
+  const [filename, setFilename] = useState<string>(
+    currentSize.name ? currentSize.name.replace(/\s+/g, '-').toLowerCase() : 'design'
+  );
 
   // Transparent background (PNG only)
   const [transparentBg, setTransparentBg] = useState(false);
+
+  // Format-aware quality reset for #20
+  React.useEffect(() => {
+    if (format === 'webp') {setQuality(0.8);}
+    else if (format === 'jpeg') {setQuality(0.9);}
+    else {setQuality(1);}
+  }, [format]);
 
   const presets = [
     {
@@ -48,7 +61,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
     try {
       const preset = presets.find((p) => p.id === activePreset);
-      const scale = highDPI ? 3 : 1;
+      const scale = exportScale;
       const size = preset
         ? { width: preset.width * scale, height: preset.height * scale }
         : { width: currentSize.width * scale, height: currentSize.height * scale };
@@ -56,14 +69,21 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       setExportStage('Rendering design...');
       await new Promise((r) => setTimeout(r, 500));
 
-      await onExport(format, quality, size, transparentBg && format === 'png');
+      await onExport(format, quality, size, transparentBg && format === 'png', filename);
+      analyticsService.trackExport(format, quality);
 
       setExportStage('Complete!');
+      analyticsService.trackExport(format, quality);
       addToast(`Exported as ${format.toUpperCase()}!`, 'success');
       setTimeout(() => onClose(), 300);
-    } catch (e) {
-      console.error(e);
-      addToast('Export failed. Please try again.', 'error');
+    } catch (e: any) {
+      log.error('[ExportModal] Export failed', e, { format, quality });
+      addToast(
+        'Export failed',
+        'error',
+        { label: 'Try Again', onClick: handleExportClick },
+        e.message || 'The canvas might be too large for this format.'
+      );
       setExportStage('');
     } finally {
       setIsExporting(false);
@@ -79,6 +99,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         if (blob) {
           await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
           addToast('Copied to clipboard!', 'success');
+          analyticsService.track('export_design', { method: 'clipboard', format: 'png' });
           setIsCopying(false);
           return;
         }
@@ -87,7 +108,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       await onExport('png', 0.95, { width: currentSize.width, height: currentSize.height });
       addToast('Image downloaded — clipboard copy requires a modern browser.', 'info');
     } catch (e) {
-      console.error(e);
+      log.error('[ExportModal] Clipboard copy failed', e);
       addToast('Could not copy to clipboard. Try downloading instead.', 'error');
     } finally {
       setIsCopying(false);
@@ -144,12 +165,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
               </div>
             </div>
 
-            {/* Quality Slider */}
-            {true && (
-              <div>
+            {/* Quality Slider (JPEG/WebP only) */}
+            {['jpeg', 'webp'].includes(format) ? (
+              <div className="animate-fade-in">
                 <div className="flex justify-between items-center mb-2">
                   <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Quality</label>
-                  <span className="text-xs font-medium text-[#00c4cc]">{Math.round(quality * 100)}%</span>
+                  <span className="text-xs font-medium text-[#7d2ae8]">{Math.round(quality * 100)}%</span>
                 </div>
                 <input
                   type="range"
@@ -158,8 +179,15 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                   step="0.05"
                   value={quality}
                   onChange={(e) => setQuality(parseFloat(e.target.value))}
-                  className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#00c4cc]"
+                  className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
                 />
+              </div>
+            ) : (
+              <div className="p-3 bg-gray-800/50 rounded-xl border border-gray-700/50 animate-fade-in">
+                <p className="text-[10px] text-gray-400 flex items-center gap-1.5">
+                  <Icons.Info className="w-3.5 h-3.5 text-blue-400" />
+                  {format.toUpperCase()} exports at maximum lossless quality.
+                </p>
               </div>
             )}
 
@@ -181,20 +209,35 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
               </div>
             )}
 
-            {/* High DPI Toggle */}
-            <div className="flex items-center justify-between p-4 bg-[#13161a] border border-gray-700 rounded-xl">
-              <div>
-                <h4 className="text-xs font-bold text-white mb-0.5">High Fidelity (300 DPI)</h4>
-                <p className="text-[10px] text-gray-500 italic">Best for printing. Increases file size.</p>
-              </div>
-              <button
-                onClick={() => setHighDPI(!highDPI)}
-                className={`w-10 h-5 rounded-full transition-all relative ${highDPI ? 'bg-emerald-500' : 'bg-gray-700'}`}
-              >
-                <div
-                  className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${highDPI ? 'left-6' : 'left-1'}`}
+            {/* Custom Filename */}
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 block">Filename</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={filename}
+                  onChange={(e) => setFilename(e.target.value)}
+                  className="flex-1 bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-[#7d2ae8] outline-none transition-colors"
+                  placeholder="design-name"
                 />
-              </button>
+                <span className="text-gray-500 text-sm font-mono">.{format}</span>
+              </div>
+            </div>
+
+            {/* Scale Multiplier */}
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 block">Export Scale</label>
+              <div className="grid grid-cols-3 gap-2">
+                {[1, 2, 3].map((scale) => (
+                  <button
+                    key={scale}
+                    onClick={() => setExportScale(scale)}
+                    className={`py-2 rounded-lg text-xs font-bold transition-all border ${exportScale === scale ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white'}`}
+                  >
+                    {scale}x
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Presets */}

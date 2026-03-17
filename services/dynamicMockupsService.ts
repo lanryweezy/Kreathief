@@ -1,4 +1,6 @@
 import { logger } from './logger';
+import { log } from '../utils/log';
+import { apis } from '../config';
 
 const API_ENDPOINT = 'https://app.dynamicmockups.com/dashboard-api';
 
@@ -15,7 +17,7 @@ export interface DynamicMockupRequest {
 
 export const dynamicMockupsService = {
   async generateMockup(params: DynamicMockupRequest) {
-    const apiKey = import.meta.env.VITE_DYNAMIC_MOCKUPS_API_KEY;
+    const apiKey = apis.dynamicMockups.apiKey;
     if (!apiKey) {
       logger.warn('Dynamic Mockups API key not configured');
       return null;
@@ -32,20 +34,27 @@ export const dynamicMockupsService = {
       });
 
       if (!response.ok) {
-        throw new Error(`Dynamic Mockups API error: ${response.statusText}`);
+        const error = new Error(`Dynamic Mockups API error: ${response.statusText}`);
+        log.error('[DynamicMockupsService] Generation failed', error, { 
+          status: response.status,
+          mockupId: params.mockupId 
+        });
+        throw error;
       }
 
       const data = await response.json();
       return data.url; // Assuming it returns a URL
     } catch (error) {
       logger.error('Failed to generate mockup', { error, params });
+      log.error('[DynamicMockupsService] Generation failed', error, { params });
       return null;
     }
   },
 
   async listMockups() {
-    const apiKey = import.meta.env.VITE_DYNAMIC_MOCKUPS_API_KEY;
+    const apiKey = apis.dynamicMockups.apiKey;
     if (!apiKey) {
+      log.debug('[DynamicMockupsService] No API key configured, returning empty list');
       return [];
     }
 
@@ -58,7 +67,7 @@ export const dynamicMockupsService = {
       const data = await response.json();
       return data.templates || [];
     } catch (error) {
-      logger.error('Failed to list mockups', { error });
+      log.error('[DynamicMockupsService] Failed to list mockups', error);
       return [];
     }
   },

@@ -4,6 +4,7 @@ import { dynamicMockupsService } from '../../services/dynamicMockupsService';
 import { MockupModal } from '../modals/MockupModal';
 import { CornerHandles } from '../mockup/CornerHandles';
 import { MOCKUP_CATEGORIES, getMockupsByCategory, searchMockups, getMockupById, MockupPlacement } from '../../services/enhancedMockupsLibrary';
+import { log } from '../../utils/log';
 import {
   getDefaultCornerPoints,
   applyCurveToCorners,
@@ -144,7 +145,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
       setPreviewImage(url);
       return url;
     } catch (e) {
-      console.error(e);
+      log.error('[MockupPanel] Failed to capture design for mockup', e);
       return null;
     }
   };
@@ -274,7 +275,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
     tempCanvas.width = width;
     tempCanvas.height = height;
     const tempCtx = tempCanvas.getContext('2d');
-    if (!tempCtx) return;
+    if (!tempCtx) {return;}
 
     // Draw image to temp canvas
     tempCtx.drawImage(image, 0, 0);
@@ -418,7 +419,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
         setProRenderUrl(result);
       }
     } catch (e) {
-      console.error('Pro Render failed:', e);
+      log.error('[MockupPanel] Pro mockup render failed', e);
     } finally {
       setIsProGenerating(false);
     }

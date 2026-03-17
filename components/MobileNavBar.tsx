@@ -14,7 +14,6 @@ interface MobileNavBarProps {
 export const MobileNavBar: React.FC<MobileNavBarProps> = ({ activeTab, onSelectTab }) => {
     const navItems = [
         { id: NavTab.MAGIC, icon: Icons.Magic, label: 'Magic' },
-        { id: NavTab.TEMPLATES, icon: Icons.Templates, label: 'Templates' },
         { id: NavTab.TEXT, icon: Icons.Text, label: 'Text' },
         { id: NavTab.ELEMENTS, icon: Icons.Shapes, label: 'Elements' },
         { id: NavTab.LAYERS, icon: Icons.Layers, label: 'Layers' },

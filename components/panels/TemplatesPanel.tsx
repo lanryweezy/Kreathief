@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { AppMode, AspectRatio, ShapeLayer } from '../../types';
+import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
+import { analyticsService } from '../../services/analyticsService';
 import { STARTER_TEMPLATES } from '../../data/templates';
 
 interface TemplatesPanelProps {
@@ -41,6 +43,9 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
 }) => {
   const [category, setCategory] = useState('All');
   const [showReplaceWarning, setShowReplaceWarning] = useState(true);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const favoriteTemplates = useStore((state) => state.favoriteTemplates);
+  const toggleFavoriteTemplate = useStore((state) => state.toggleFavoriteTemplate);
 
   const activeCategoryLabel = DESIGN_CATEGORIES.find((c) => c.id === category)?.label || 'All Designs';
 
@@ -87,11 +92,15 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   ];
 
   const starterTemplates = useMemo(() => {
-    if (category === 'All') {
-      return STARTER_TEMPLATES;
+    let filtered = STARTER_TEMPLATES;
+    if (category !== 'All') {
+      filtered = filtered.filter((t) => t.category === category);
     }
-    return STARTER_TEMPLATES.filter((t) => t.category === category);
-  }, [category]);
+    if (showFavoritesOnly) {
+      filtered = filtered.filter((t) => favoriteTemplates.includes(t.id));
+    }
+    return filtered;
+  }, [category, showFavoritesOnly, favoriteTemplates]);
 
   return (
     <div className="flex flex-col h-full bg-[#13161a]">
@@ -139,6 +148,20 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
             placeholder="Search templates..."
             className="w-full bg-[#1e1e1e] border border-gray-700 rounded-lg py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#7d2ae8]"
           />
+        </div>
+
+        <div className="flex items-center gap-2 mt-3">
+          <button
+            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border w-full justify-center ${
+              showFavoritesOnly 
+                ? 'bg-red-500/10 border-red-500/50 text-red-400' 
+                : 'bg-[#1e1e1e] border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'
+            }`}
+          >
+            <Icons.Heart className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+            Favorites Only
+          </button>
         </div>
       </div>
 
@@ -215,7 +238,8 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                     if (!proceed) {
                       return;
                     }
-                    onApplyTemplate(tmpl.id, false);
+                    onApplyTemplate(tmpl.id, showReplaceWarning);
+                    analyticsService.trackTemplateApply(tmpl.id, tmpl.name);
                   }}
                   draggable={false}
                   onDragStart={(e) => e.preventDefault()}
@@ -232,7 +256,7 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                       className="w-full h-full"
                       style={{ opacity: 0.9 }}
                     >
-                      {(tmpl.state.layers || []).slice(0, 12).map((layer: any, li: number) => {
+                      {(tmpl.state.artboards?.[0]?.layers || []).slice(0, 12).map((layer: any, li: number) => {
                         if (layer.type === 'image') {
                           return (
                             <rect
@@ -289,8 +313,19 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                     </svg>
                   </div>
 
-                  {/* Hover overlay */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+
+                  <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity translate-y-[-5px] group-hover:translate-y-0 duration-300 z-10">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavoriteTemplate(tmpl.id);
+                      }}
+                      className="p-1.5 bg-black/60 hover:bg-black text-red-500 rounded-lg backdrop-blur-md transition-all shadow-lg"
+                    >
+                      <Icons.Heart className={`w-3 h-3 ${favoriteTemplates.includes(tmpl.id) ? 'fill-current' : ''}`} />
+                    </button>
+                  </div>
 
                   <div className="absolute bottom-0 left-0 right-0 p-3 bg-black/60 backdrop-blur-sm flex items-center justify-between border-t border-white/5">
                     <span className="font-semibold text-xs text-white truncate">{tmpl.name}</span>

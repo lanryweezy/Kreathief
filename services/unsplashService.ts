@@ -1,5 +1,8 @@
 // @ts-ignore - ignore type mismatch
-const UNSPLASH_ACCESS_KEY = import.meta.env?.VITE_UNSPLASH_ACCESS_KEY || 'YOUR_UNSPLASH_ACCESS_KEY';
+import { log } from '../utils/log';
+import { apis } from '../config';
+
+const UNSPLASH_ACCESS_KEY = apis.unsplash.accessKey;
 
 export interface UnsplashPhoto {
   id: string;
@@ -30,7 +33,8 @@ const FALLBACK_PHOTOS: UnsplashPhoto[] = [
 ];
 
 export const searchPhotos = async (query: string, page: number = 1): Promise<UnsplashPhoto[]> => {
-  if (UNSPLASH_ACCESS_KEY === 'YOUR_UNSPLASH_ACCESS_KEY' || !UNSPLASH_ACCESS_KEY) {
+  if (!UNSPLASH_ACCESS_KEY || UNSPLASH_ACCESS_KEY === 'YOUR_UNSPLASH_ACCESS_KEY') {
+    log.warn('[UnsplashService] No API key configured, using fallback photos', { query });
     return FALLBACK_PHOTOS;
   }
 
@@ -45,6 +49,11 @@ export const searchPhotos = async (query: string, page: number = 1): Promise<Uns
     );
 
     if (!response.ok) {
+      log.error('[UnsplashService] API request failed', new Error(`Status: ${response.status}`), { 
+        query, 
+        page,
+        status: response.status 
+      });
       return FALLBACK_PHOTOS;
     }
 
@@ -60,7 +69,7 @@ export const searchPhotos = async (query: string, page: number = 1): Promise<Uns
       },
     }));
   } catch (error) {
-    console.error('Unsplash Search Error:', error);
+    log.error('[UnsplashService] Search failed', error, { query, page });
     return FALLBACK_PHOTOS;
   }
 };

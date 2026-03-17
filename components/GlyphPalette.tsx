@@ -76,14 +76,48 @@ export const GlyphPalette = ({ fontFamily, onSelect, onClose }: GlyphPaletteProp
   const loadFontGlyphs = async () => {
     setIsLoading(true);
     try {
+      // Try to load local font first
+      let fontUrl: string | null = null;
+      
+      // Check if it's one of our core local fonts
+      const localFonts = ['Inter', 'Space Grotesk', 'Outfit'];
+      if (localFonts.includes(fontFamily)) {
+        // Try weight 400
+        fontUrl = `/fonts/${fontFamily.replace(/\s+/g, '-')}-400.ttf`;
+      }
+      
+      if (fontUrl) {
+        try {
+          const buffer = await fetch(fontUrl).then((res) => res.arrayBuffer());
+          const font = opentype.parse(buffer);
+          setFontObj(font);
+
+          const extracted: string[] = [];
+          const numGlyphs = font.numGlyphs;
+
+          for (let i = 0; i < Math.min(numGlyphs, 2000); i++) {
+            const glyph = font.glyphs.get(i);
+            if (glyph.unicode) {
+              extracted.push(String.fromCharCode(glyph.unicode));
+            }
+          }
+          setGlyphs(extracted);
+          setIsLoading(false);
+          return;
+        } catch (localError) {
+          console.warn(`Local font load failed for ${fontFamily}, trying CDN...`, localError);
+        }
+      }
+      
+      // Fallback to Google Fonts CDN
       const cssUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily.replace(/ /g, '+'))}:wght@400&display=swap`;
       const cssResponse = await fetch(cssUrl);
       const cssText = await cssResponse.text();
 
       const urlMatch = cssText.match(/src:\s*url\(([^)]+)\)/);
       if (urlMatch && urlMatch[1]) {
-        const fontUrl = urlMatch[1].replace(/['"]/g, '');
-        const buffer = await fetch(fontUrl).then((res) => res.arrayBuffer());
+        const urlFromCDN = urlMatch[1].replace(/['"]/g, '');
+        const buffer = await fetch(urlFromCDN).then((res) => res.arrayBuffer());
 
         try {
           const font = opentype.parse(buffer);

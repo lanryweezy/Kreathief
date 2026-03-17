@@ -48,9 +48,21 @@ export const TextTools = React.memo(
     setShowGlyphs,
   }: Omit<TextToolsProps, 'fontPickerRef' | 'textEffectsRef' | 'showTextEffects' | 'setShowTextEffects'>) => {
     const fontButtonRef = useRef<HTMLButtonElement>(null);
+    const [originalFont, setOriginalFont] = React.useState<string | null>(null);
+
+    const handleHoverFont = (font: string | null) => {
+      if (font) {
+        if (!originalFont) {setOriginalFont(layer.fontFamily);}
+        loadFont(font);
+        onUpdateTextLayer(layer.id, { fontFamily: font });
+      } else if (originalFont) {
+        onUpdateTextLayer(layer.id, { fontFamily: originalFont });
+        setOriginalFont(null);
+      }
+    };
 
     return (
-      <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex items-center gap-3 flex-nowrap">
         <div className="relative">
           <button
             ref={fontButtonRef}
@@ -73,9 +85,15 @@ export const TextTools = React.memo(
               onSelectFont={(font: string) => {
                 loadFont(font);
                 onUpdateTextLayer(layer.id, { fontFamily: font });
+                setOriginalFont(null);
                 setShowFontPicker(false);
               }}
-              onClose={() => setShowFontPicker(false)}
+              onHoverFont={handleHoverFont}
+              onClose={() => {
+                if (originalFont) {onUpdateTextLayer(layer.id, { fontFamily: originalFont });}
+                setOriginalFont(null);
+                setShowFontPicker(false);
+              }}
               search={fontSearch}
               setSearch={setFontSearch}
             />

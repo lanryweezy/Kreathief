@@ -11,7 +11,18 @@ interface CropOverlayProps {
 type ResizeHandle = 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'e' | 'w';
 
 export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _canvasSize }) => {
-  const { croppingLayerId, layers, cropArea, setCropArea, applyCrop, cancelCrop, cropAspectRatio, setCropAspectRatio } = useStore();
+  const { croppingLayerId, artboards, cropArea: globalCropArea, setCropArea, applyCrop: globalApplyCrop, cancelCrop: globalCancelCrop, cropAspectRatio, setCropAspectRatio } = useStore();
+
+  const [localCropArea, setLocalCropArea] = useState<{ x: number, y: number, width: number, height: number } | null>(null);
+
+  // Initialize local state from global on mount
+  useEffect(() => {
+    if (globalCropArea) {
+      setLocalCropArea(globalCropArea);
+    }
+  }, [globalCropArea]);
+
+  const activeArea = localCropArea || globalCropArea || { x: 0, y: 0, width: 0, height: 0 };
 
   const [isResizing, setIsResizing] = useState<ResizeHandle | null>(null);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
@@ -21,7 +32,8 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
     setIsResizing(null);
   }, []);
 
-  const layer = layers.find((l) => l.id === croppingLayerId) as ImageLayer;
+  const allLayers = artboards.flatMap(a => a.layers);
+  const layer = allLayers.find((l) => l.id === croppingLayerId) as ImageLayer;
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
@@ -123,7 +135,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
       newArea.x = Math.max(0, Math.min(newArea.x, naturalWidth - newArea.width));
       newArea.y = Math.max(0, Math.min(newArea.y, naturalHeight - newArea.height));
 
-      setCropArea(newArea);
+      setLocalCropArea(newArea);
     },
     [isResizing, startPos, startArea, zoom, layer, setCropArea, cropAspectRatio]
   );
@@ -147,7 +159,22 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
     e.stopPropagation();
     setIsResizing(handle);
     setStartPos({ x: e.clientX, y: e.clientY });
-    setStartArea({ ...cropArea });
+    setStartArea({ ...activeArea });
+  };
+
+  const applyCrop = () => {
+    if (localCropArea) {
+      setCropArea(localCropArea);
+    }
+    // ensure state sync before action
+    setTimeout(() => {
+        globalApplyCrop();
+    }, 0);
+  };
+
+  const cancelCrop = () => {
+    setLocalCropArea(null);
+    globalCancelCrop();
   };
 
   const naturalWidth = layer.naturalWidth || layer.width;
@@ -171,10 +198,10 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
 
   const cropBoxStyle: React.CSSProperties = {
     position: 'absolute',
-    left: cropArea.x * canvasScale,
-    top: cropArea.y * canvasScale,
-    width: cropArea.width * canvasScale,
-    height: cropArea.height * canvasScale,
+    left: activeArea.x * canvasScale,
+    top: activeArea.y * canvasScale,
+    width: activeArea.width * canvasScale,
+    height: activeArea.height * canvasScale,
     border: '2px solid #7d2ae8',
     boxShadow: '0 0 0 4000px rgba(0, 0, 0, 0.5)',
     pointerEvents: 'auto',

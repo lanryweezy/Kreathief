@@ -20,6 +20,8 @@ const UploadsPanel = React.lazy(() => import('./panels/UploadsPanel'));
 const AssetsPanel = React.lazy(() => import('./panels/AssetsPanel'));
 const TextEffectsPanel = React.lazy(() => import('./panels/TextEffectsPanel'));
 const ArrangePanel = React.lazy(() => import('./panels/ArrangePanel'));
+const ComponentsPanel = React.lazy(() => import('./panels/ComponentsPanel'));
+const CommentsPanel = React.lazy(() => import('./panels/CommentsPanel'));
 
 const PanelLoading = () => (
   <div className="flex h-full w-full items-center justify-center bg-[#13161a]">
@@ -33,17 +35,19 @@ interface SidePanelProps {
   onApplyLayout: (typeOrShapes: any) => void;
   getCanvasSnapshot?: () => Promise<string>;
   uploadedImage: string | null;
-  onFileUpload: (files: File[]) => void;
 }
 
 export const SidePanel = React.memo(
-  ({ onGenerate, onApplyTheme, onApplyLayout, getCanvasSnapshot, uploadedImage, onFileUpload }: SidePanelProps) => {
+  ({ onGenerate, onApplyTheme, onApplyLayout, getCanvasSnapshot, uploadedImage }: SidePanelProps) => {
+    const artboards = useStore((state) => state.artboards);
+    const activeArtboardId = useStore((state) => state.activeArtboardId);
     const activeTab = useStore((state) => state.activeTab);
-    const layers = useStore((state) => state.layers);
+    const layers = React.useMemo(() => 
+      (artboards || []).find(a => a.id === activeArtboardId)?.layers || [], 
+      [artboards, activeArtboardId]
+    );
     const selectedLayerIds = useStore((state) => state.selectedLayerIds);
     const updateLayer = useStore((state) => state.updateLayer);
-    const handleFileUpload = useStore((state) => state.handleFileUpload);
-    const deleteUpload = useStore((state) => state.deleteUpload);
     const setPenMode = useStore((state) => state.setPenMode);
     const brushColor = useStore((state) => state.brushColor);
     const setBrushColor = useStore((state) => state.setBrushColor);
@@ -59,8 +63,8 @@ export const SidePanel = React.memo(
     const setMode = useStore((state) => state.setMode);
     const handleApplyTemplate = useStore((state) => state.handleApplyTemplate);
 
-    const selectedLayerId = selectedLayerIds[selectedLayerIds.length - 1] || null;
-    const selectedLayer = layers.find((l) => l.id === selectedLayerId);
+    const selectedLayerId = (selectedLayerIds && selectedLayerIds.length > 0) ? selectedLayerIds[selectedLayerIds.length - 1] : null;
+    const selectedLayer = layers?.find((l: any) => l?.id === selectedLayerId) || null;
     const selectedTextLayer = selectedLayer?.type === 'text' ? (selectedLayer as TextLayer) : null;
 
     // Helper actions moved internal
@@ -84,7 +88,7 @@ export const SidePanel = React.memo(
               {activeTab === NavTab.ELEMENTS && <ElementsPanel />}
 
               {activeTab === NavTab.UPLOADS && (
-                <UploadsPanel onFileUpload={onFileUpload} onDeleteUpload={deleteUpload} />
+                <UploadsPanel />
               )}
 
               {activeTab === NavTab.PHOTOS && <AssetsPanel />}
@@ -149,6 +153,10 @@ export const SidePanel = React.memo(
 
               {activeTab === NavTab.MOCKUP && <MockupPanel onExportForMockup={getCanvasSnapshot || (async () => '')} />}
 
+              {activeTab === NavTab.COMPONENTS && <ComponentsPanel />}
+
+              {activeTab === NavTab.COMMENTS && <CommentsPanel />}
+
               {activeTab === NavTab.VECTORIZER && <VectorizerPanel />}
 
               {activeTab === NavTab.ARRANGE && <ArrangePanel />}
@@ -163,7 +171,7 @@ export const SidePanel = React.memo(
             multiple
             onChange={(e) => {
               if (e.target.files && e.target.files.length > 0) {
-                handleFileUpload(Array.from(e.target.files));
+                // handleFileUpload is now used directly in UploadsPanel, this input is unused but kept for compatibility
               }
             }}
           />

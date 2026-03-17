@@ -1,4 +1,6 @@
 import { logger } from './logger';
+import { log } from '../utils/log';
+import { apis } from '../config';
 
 const API_ENDPOINT = 'https://api.vecteezy.com/v1';
 
@@ -12,7 +14,7 @@ export interface VecteezySearchResult {
 
 export const vecteezyService = {
     async search(query: string, type: 'vector' | 'photo' = 'vector') {
-        const apiKey = import.meta.env.VITE_VECTEEZY_API_KEY;
+        const apiKey = apis.vecteezy.apiKey;
         if (!apiKey) {
             logger.warn('Vecteezy API key not configured');
             return [];
@@ -29,7 +31,13 @@ export const vecteezyService = {
             });
 
             if (!response.ok) {
-                throw new Error(`Vecteezy API error: ${response.statusText}`);
+                const error = new Error(`Vecteezy API error: ${response.statusText}`);
+                log.error('[VecteezyService] API request failed', error, { 
+                    status: response.status, 
+                    query,
+                    type 
+                });
+                throw error;
             }
 
             const data = await response.json();
@@ -42,6 +50,7 @@ export const vecteezyService = {
             })) as VecteezySearchResult[];
         } catch (error) {
             logger.error('Failed to search Vecteezy', { error, query });
+            log.error('[VecteezyService] Search failed', error, { query, type });
             return [];
         }
     }

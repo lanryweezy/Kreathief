@@ -34,11 +34,8 @@ export const useStore = create<StoreState>()((set, get, store) => ({
   // Common action to reset the store
   reset: () => {
     set({
-      layers: [],
+      artboards: [],
       selectedLayerIds: [],
-      textLayers: [],
-      shapeLayers: [],
-      imageLayers: [],
       canvasBackgroundColor: '#ffffff',
       past: [],
       future: [],

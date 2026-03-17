@@ -56,7 +56,12 @@ export const MultiSelectionHandles = React.memo(({ layers, onResize, onRotate }:
           height: bounds.height,
           pointerEvents: 'none',
         }}
-      />
+      >
+        {/* Dimension Badge for Multi-selection */}
+        <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-[#7d2ae8] text-white text-[9px] font-mono px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap z-50 pointer-events-none border border-white/20">
+          {Math.round(bounds.width)} × {Math.round(bounds.height)}
+        </div>
+      </div>
 
       {/* Reuse SelectionHandles UI logic manually for the group */}
       <div className="absolute" style={{ left: bounds.x, top: bounds.y, width: bounds.width, height: bounds.height }}>
@@ -97,8 +102,12 @@ export const MultiSelectionHandles = React.memo(({ layers, onResize, onRotate }:
           <div className="w-px h-6 bg-[#7d2ae8]"></div>
           <div
             onMouseDown={(e) => onRotate(e, groupLayer)}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              (window as any).dispatchEvent(new CustomEvent('canvas-reset-rotation', { detail: { ids: layers.map(l => l.id) } }));
+            }}
             className="w-7 h-7 bg-white border-2 border-[#7d2ae8] rounded-full cursor-grab flex items-center justify-center hover:bg-[#7d2ae8] hover:text-white shadow-lg transition-all active:cursor-grabbing hover:scale-110"
-            title="Rotate Selection"
+            title="Double-click to reset"
           >
             <Icons.RotateCw className="w-3.5 h-3.5 text-[#7d2ae8] group-hover/rotate:text-white" />
           </div>

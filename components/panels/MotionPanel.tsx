@@ -31,10 +31,11 @@ interface MotionPanelProps {
 }
 
 export const MotionPanel: React.FC<MotionPanelProps> = ({ onPreviewMotion }) => {
-  const { layers, selectedLayerIds, updateLayer } = useStore();
+  const { artboards, selectedLayerIds, updateLayer } = useStore();
 
+  const allLayers = artboards.flatMap(a => a.layers);
   const selectedLayerId = selectedLayerIds[selectedLayerIds.length - 1] || null;
-  const selectedLayer = layers.find((l) => l.id === selectedLayerId) || null;
+  const selectedLayer = allLayers.find((l) => l.id === selectedLayerId) || null;
   const onUpdateLayer = updateLayer;
   if (!selectedLayer) {
     return (

@@ -62,7 +62,7 @@ export const Features: React.FC = () => {
                         </div>
 
                         <img
-                            src="/images/feature_vector_mockup_1772615626869.png"
+                            src="/images/feature_vector_pro.png"
                             alt="Vector Tool"
                             className="absolute -bottom-10 -right-10 w-[80%] md:w-[65%] h-auto rounded-tl-3xl shadow-2xl transition-transform duration-700 group-hover:scale-105 group-hover:-translate-x-4 group-hover:-translate-y-4"
                         />
@@ -91,7 +91,7 @@ export const Features: React.FC = () => {
                         <div className="flex-1 w-full relative mt-auto px-6 pb-6">
                             <div className="w-full h-full rounded-2xl overflow-hidden border border-white/10 relative">
                                 <img
-                                    src="/images/feature_generative_fill_1771994400635.png"
+                                    src="/images/feature_gen_fill_pro.png"
                                     alt="Generative Fill"
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                                 />
@@ -148,16 +148,75 @@ export const Features: React.FC = () => {
                             <p className="text-gray-400 font-medium leading-relaxed mb-6">
                                 Invite your team, share cursor presence, and edit the same document simultaneously without conflicts. Never send a "vFinal_final.psd" again.
                             </p>
-                            <button className="flex items-center gap-2 text-white font-bold tracking-widest uppercase text-xs w-max group/btn">
-                                See Collaboration Features
-                                <Icons.ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                            </button>
                         </div>
 
                         <img
-                            src="/images/feature_collab_mockup_1772615650011.png"
+                            src="/images/feature_collab_pro.png"
                             alt="Multiplayer Collaboration"
                             className="absolute top-1/2 -translate-y-1/2 -right-5 w-[75%] md:w-[60%] h-auto shadow-[0_30px_60px_rgba(0,0,0,0.6)] border border-white/10 rounded-2xl transition-transform duration-700 group-hover:-translate-x-4 group-hover:scale-105"
+                        />
+                    </motion.div>
+
+                    {/* BENTO 5: Mockup Studio (4 cols) */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-50px" }}
+                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[#0a0a0a] border border-white/5 relative overflow-hidden group hover:border-orange-500/40 transition-all duration-500"
+                    >
+                        <div className="p-8 relative z-10">
+                            <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center mb-6 border border-orange-500/20">
+                                <Icons.Monitor className="w-6 h-6 text-orange-400" />
+                            </div>
+                            <h3 className="text-xl font-black mb-2 text-white">Mockup Studio</h3>
+                            <p className="text-gray-400 text-xs font-medium">Visualize your designs on physical products instantly.</p>
+                        </div>
+                        <img
+                            src="/images/feature_mockup_pro.png"
+                            className="absolute -bottom-4 left-0 w-full h-auto object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-700 shadow-2xl"
+                            alt="Mockup Studio"
+                        />
+                    </motion.div>
+
+                    {/* BENTO 6: Brand Kits (4 cols) */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-50px" }}
+                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[#0a0a0a] border border-white/5 relative overflow-hidden group hover:border-blue-500/40 transition-all duration-500"
+                    >
+                        <div className="p-8 relative z-10">
+                            <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20">
+                                <Icons.Brand className="w-6 h-6 text-blue-400" />
+                            </div>
+                            <h3 className="text-xl font-black mb-2 text-white">Smart Brand Kits</h3>
+                            <p className="text-gray-400 text-xs font-medium">Keep your identity consistent across every asset.</p>
+                        </div>
+                        <img
+                            src="/images/landing_feature_brand_kit.png"
+                            className="absolute -bottom-4 right-0 w-[90%] h-auto rounded-tl-2xl border-l border-t border-white/10 group-hover:-translate-x-2 transition-transform duration-500"
+                            alt="Brand Kits"
+                        />
+                    </motion.div>
+
+                    {/* BENTO 7: AI Suggestions (4 cols) */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-50px" }}
+                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[#0a0a0a] border border-white/5 relative overflow-hidden group hover:border-purple-500/40 transition-all duration-500"
+                    >
+                        <div className="p-8 relative z-10">
+                            <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-6 border border-purple-500/20">
+                                <Icons.Zap className="w-6 h-6 text-purple-400" />
+                            </div>
+                            <h3 className="text-xl font-black mb-2 text-white">AI Copilot</h3>
+                            <p className="text-gray-400 text-xs font-medium">Intelligent layout and content suggestions as you work.</p>
+                        </div>
+                        <img
+                            src="/images/landing_feature_suggestions.png"
+                            className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-[85%] h-auto rounded-t-2xl shadow-2xl"
+                            alt="AI Suggestions"
                         />
                     </motion.div>
 

@@ -1,19 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+import { supabase as supabaseConfig } from '../../config';
+import { log } from '../../utils/log';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase credentials not found. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env.local file.');
+if (!supabaseConfig.url || !supabaseConfig.anonKey) {
+  log.warn('Supabase credentials not found. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env.local file.');
 }
 
 export const supabase = createClient<Database>(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key',
+  supabaseConfig.url || 'https://placeholder.supabase.co',
+  supabaseConfig.anonKey || 'placeholder-key',
   {
     db: {
-      schema: 'kreathief',
+      schema: supabaseConfig.schema,
+    },
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
     },
   }
 );

@@ -21,10 +21,20 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
     deleteLayer,
     moveLayer,
     updateLayer,
-    layers
+    artboards,
+    activeArtboardId,
+    convertToComponent,
+    instantiateComponent,
+    detachInstance,
+    resetOverrides,
   } = useStore();
 
-  const layer = layers.find(l => l.id === layerId);
+  const layers = React.useMemo(() => 
+    artboards.find(a => a.id === activeArtboardId)?.layers || [], 
+    [artboards, activeArtboardId]
+  );
+
+  const layer = layers.find((l: any) => l.id === layerId);
   const isLocked = layer?.locked || false;
 
   useEffect(() => {
@@ -58,14 +68,29 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         <Icons.Copy className="w-4 h-4" /> Duplicate
       </button>
 
-      <button onClick={() => {
-        const layerIndex = layers.findIndex(l => l.id === layerId);
-        if (layerIndex > 0) {
-          useStore.getState().applyMask(layerId, layers[layerIndex - 1].id);
-        }
-        onClose();
-      }} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white transition-colors text-left">
+      <button 
+        onClick={() => {
+          const layerIndex = layers.findIndex((l: any) => l.id === layerId);
+          if (layerIndex > 0) {
+            useStore.getState().applyMask(layerId, layers[layerIndex - 1].id);
+          }
+          onClose();
+        }} 
+        disabled={layers.findIndex((l: any) => l.id === layerId) === 0}
+        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white transition-colors text-left disabled:opacity-30 disabled:hover:bg-transparent"
+      >
         <Icons.Layers className="w-4 h-4" /> Mask with Layer Below
+      </button>
+
+      <button 
+        onClick={() => { 
+          (useStore.getState() as any).pasteLayer();
+          onClose(); 
+        }} 
+        disabled={!(useStore.getState() as any).clipboardLayer}
+        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white transition-colors text-left disabled:opacity-30 disabled:hover:bg-transparent"
+      >
+        <Icons.Copy className="w-4 h-4" /> Paste
       </button>
 
       <button onClick={() => { moveLayer(layerId, 'forward'); onClose(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white transition-colors text-left">
@@ -82,6 +107,31 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         {isLocked ? <Icons.Unlock className="w-4 h-4" /> : <Icons.Lock className="w-4 h-4" />}
         {isLocked ? "Unlock" : "Lock"}
       </button>
+
+      <div className="h-px bg-gray-700 my-1"></div>
+
+      {layer?.componentId && (
+        <button onClick={() => { instantiateComponent(layer.componentId!); onClose(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#7d2ae8] hover:text-white transition-colors text-left">
+          <Icons.Plus className="w-4 h-4" /> Create Instance
+        </button>
+      )}
+
+      {layer && !layer.componentId && !layer.masterId && (
+        <button onClick={() => { convertToComponent(layerId); onClose(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-[#a855f7] hover:bg-[#a855f7]/10 hover:text-[#c084fc] transition-colors text-left">
+          <Icons.LayoutGrid className="w-4 h-4" /> Create Component
+        </button>
+      )}
+
+      {layer?.masterId && (
+        <>
+          <button onClick={() => { resetOverrides(layerId); onClose(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white transition-colors text-left">
+            <Icons.Undo className="w-4 h-4" /> Reset Overrides
+          </button>
+          <button onClick={() => { detachInstance(layerId); onClose(); }} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] hover:text-white transition-colors text-left">
+            <Icons.Scissors className="w-4 h-4" /> Detach Instance
+          </button>
+        </>
+      )}
 
       <div className="h-px bg-gray-700 my-1"></div>
 

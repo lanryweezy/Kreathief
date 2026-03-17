@@ -4,12 +4,14 @@
  */
 
 import { logger } from './logger';
+import { log } from '../utils/log';
 import type { Project, HistoryState } from '../types';
 import { supabase } from '../lib/supabase/client';
 import { authService } from './authService';
+import { storage as storageConfig } from '../config';
 
-const DB_NAME = 'kreathief_db';
-const DB_VERSION = 3;
+const DB_NAME = storageConfig.indexedDB.name;
+const DB_VERSION = storageConfig.indexedDB.version;
 
 interface ProjectVersion {
   id: string;
@@ -48,10 +50,20 @@ interface DesignSnapshot {
   thumbnail?: string;
 }
 
+interface PendingSyncOperation {
+  id: string;
+  projectId: string;
+  operation: 'create' | 'update' | 'delete';
+  timestamp: number;
+  retryCount: number;
+}
+
 class StorageService {
   private db: IDBDatabase | null = null;
   private initPromise: Promise<void> | null = null;
   private isOnline = navigator.onLine;
+  private pendingChanges = new Map<string, PendingSyncOperation>();
+  private isSyncing = false;
 
   constructor() {
     window.addEventListener('online', () => {
@@ -63,6 +75,9 @@ class StorageService {
       this.isOnline = false;
       logger.info('Storage service: offline');
     });
+    
+    // Load pending changes on initialization
+    this.loadPendingChanges();
   }
 
   private async getUserId(): Promise<string | null> {
@@ -70,13 +85,219 @@ class StorageService {
     return user?.id || null;
   }
 
+  /**
+   * Load pending changes from IndexedDB on startup
+   */
+  private async loadPendingChanges(): Promise<void> {
+    try {
+      const store = await this.getStore('sync_queue', 'readonly');
+      const allOperations = await this.getAllFromStore(store);
+      
+      this.pendingChanges.clear();
+      for (const op of allOperations) {
+        this.pendingChanges.set(op.projectId, op);
+      }
+      
+      log.debug('[Storage] Loaded pending changes', { count: this.pendingChanges.size });
+      
+      // Auto-sync if online and has pending changes
+      if (this.isOnline && this.pendingChanges.size > 0) {
+        setTimeout(() => this.syncOfflineChanges(), 1000);
+      }
+    } catch (err) {
+      log.debug('[Storage] No pending changes to load', { error: err instanceof Error ? err.message : String(err) });
+    }
+  }
+
+  /**
+   * Sync offline changes to Supabase when back online
+   */
   private async syncOfflineChanges(): Promise<void> {
-    logger.info('Syncing offline changes...');
+    if (!this.isOnline || this.isSyncing || this.pendingChanges.size === 0) {
+      return;
+    }
+
+    this.isSyncing = true;
+    const operationsToSync = Array.from(this.pendingChanges.values());
+    
+    log.info('[Storage] Starting sync', { 
+      count: operationsToSync.length,
+      isOnline: this.isOnline 
+    });
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const op of operationsToSync) {
+      try {
+        const userId = await this.getUserId();
+        if (!userId) {
+          log.warn('[Storage] No user ID, skipping sync', { projectId: op.projectId });
+          this.pendingChanges.delete(op.projectId);
+          continue;
+        }
+
+        switch (op.operation) {
+          case 'delete':
+            await this.syncDeleteToSupabase(op.projectId, userId);
+            break;
+          case 'create':
+          case 'update':
+            await this.syncUpdateToSupabase(op.projectId, userId);
+            break;
+        }
+
+        this.pendingChanges.delete(op.projectId);
+        successCount++;
+        log.debug('[Storage] Synced operation', { 
+          projectId: op.projectId, 
+          operation: op.operation 
+        });
+      } catch (err) {
+        failCount++;
+        log.error('[Storage] Sync failed for project', err, { 
+          projectId: op.projectId,
+          retryCount: op.retryCount 
+        });
+
+        // Retry with exponential backoff (max 3 retries)
+        if (op.retryCount < 3) {
+          op.retryCount++;
+          this.pendingChanges.set(op.projectId, op);
+        } else {
+          this.pendingChanges.delete(op.projectId);
+          log.error('[Storage] Max retries reached, dropping operation', { 
+            projectId: op.projectId 
+          });
+        }
+      }
+    }
+
+    // Persist updated queue
+    await this.persistPendingChanges();
+
+    this.isSyncing = false;
+    log.info('[Storage] Sync complete', { 
+      total: operationsToSync.length,
+      success: successCount,
+      failed: failCount,
+      remaining: this.pendingChanges.size 
+    });
+
+    // Schedule retry for any remaining failed operations
+    if (this.pendingChanges.size > 0 && this.isOnline) {
+      const retryDelay = 5000; // 5 seconds
+      setTimeout(() => {
+        this.syncOfflineChanges();
+      }, retryDelay);
+    }
+  }
+
+  /**
+   * Sync a project update to Supabase
+   */
+  private async syncUpdateToSupabase(projectId: string, userId: string): Promise<void> {
+    const project = await this.getProjectFromIndexedDB(projectId);
+    if (!project) {
+      throw new Error(`Project not found: ${projectId}`);
+    }
+
+    const state = project.state as any;
+    
+    const { error } = await supabase
+      .from('projects')
+      .upsert({
+        id: project.id,
+        user_id: userId,
+        name: project.name,
+        state: state,
+        canvas_size: state.canvasSize || null,
+        background_color: state.canvasBackgroundColor || '#ffffff',
+        canvas_filters: state.canvasFilters || null,
+        updated_at: new Date(project.updatedAt).toISOString(),
+        is_public: false,
+      } as any, { onConflict: 'id' });
+
+    if (error) {
+      throw new Error(`Supabase upsert failed: ${error.message}`);
+    }
+
+    log.debug('[Storage] Project synced to Supabase', { id: project.id });
+  }
+
+  /**
+   * Sync a project deletion to Supabase
+   */
+  private async syncDeleteToSupabase(projectId: string, userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', projectId)
+      .eq('user_id', userId);
+
+    if (error) {
+      throw new Error(`Supabase delete failed: ${error.message}`);
+    }
+
+    log.debug('[Storage] Project deletion synced', { id: projectId });
+  }
+
+  /**
+   * Persist pending changes to IndexedDB
+   */
+  private async persistPendingChanges(): Promise<void> {
+    try {
+      const store = await this.getStore('sync_queue', 'readwrite');
+      
+      // Clear existing queue
+      await this.clearStore(store);
+      
+      // Add all pending operations
+      for (const op of this.pendingChanges.values()) {
+        await this.addToStore(store, op);
+      }
+      
+      log.debug('[Storage] Pending changes persisted', { 
+        count: this.pendingChanges.size 
+      });
+    } catch (err) {
+      log.error('[Storage] Failed to persist pending changes', err);
+    }
+  }
+
+  /**
+   * Queue a sync operation
+   */
+  private async queueSyncOperation(
+    projectId: string,
+    operation: 'create' | 'update' | 'delete'
+  ): Promise<void> {
+    const syncOp: PendingSyncOperation = {
+      id: `${projectId}_${Date.now()}`,
+      projectId,
+      operation,
+      timestamp: Date.now(),
+      retryCount: 0,
+    };
+
+    this.pendingChanges.set(projectId, syncOp);
+    await this.persistPendingChanges();
+
+    log.debug('[Storage] Sync operation queued', { 
+      projectId, 
+      operation,
+      totalPending: this.pendingChanges.size 
+    });
+
+    // Attempt immediate sync if online
+    if (this.isOnline && !this.isSyncing) {
+      setTimeout(() => this.syncOfflineChanges(), 100);
+    }
   }
 
   async init(): Promise<void> {
-    if (this.db) return;
-    if (this.initPromise) return this.initPromise;
+    if (this.db) {return;}
+    if (this.initPromise) {return this.initPromise;}
 
     this.initPromise = new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -126,6 +347,14 @@ class StorageService {
           commentsStore.createIndex('projectId', 'projectId', { unique: false });
         }
 
+        // Sync queue for offline changes
+        if (!db.objectStoreNames.contains('sync_queue')) {
+          const queueStore = db.createObjectStore('sync_queue', { keyPath: 'id' });
+          queueStore.createIndex('projectId', 'projectId', { unique: false });
+          queueStore.createIndex('timestamp', 'timestamp', { unique: false });
+          queueStore.createIndex('status', 'status', { unique: false });
+        }
+
         logger.info('IndexedDB schema updated');
       };
     });
@@ -137,6 +366,51 @@ class StorageService {
     await this.init();
     const transaction = this.db!.transaction(storeName, mode);
     return transaction.objectStore(storeName);
+  }
+
+  /**
+   * Helper to get all items from a store
+   */
+  private async getAllFromStore(store: IDBObjectStore): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Helper to add item to store
+   */
+  private async addToStore(store: IDBObjectStore, item: any): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const request = store.put(item);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Helper to clear a store
+   */
+  private async clearStore(store: IDBObjectStore): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const request = store.clear();
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  /**
+   * Get project from IndexedDB (helper for sync)
+   */
+  private async getProjectFromIndexedDB(projectId: string): Promise<Project | undefined> {
+    const store = await this.getStore('projects', 'readonly');
+    return new Promise((resolve, reject) => {
+      const request = store.get(projectId);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
   }
 
   // ===== Projects =====
@@ -153,15 +427,18 @@ class StorageService {
             user_id: userId,
             name: project.name,
             state: project.state as any,
-            canvas_size: project.state.canvasSize as any,
-            background_color: project.state.canvasBackgroundColor,
-            canvas_filters: project.state.canvasFilters as any,
+            canvas_size: (project.state as any).canvasSize,
+            background_color: (project.state as any).canvasBackgroundColor,
+            canvas_filters: (project.state as any).canvasFilters,
             updated_at: new Date(project.updatedAt).toISOString(),
             is_public: false,
           } as any, { onConflict: 'id' });
 
         if (!error) {
           logger.debug('Project saved to Supabase', { id: project.id });
+          // Remove from pending changes if synced successfully
+          this.pendingChanges.delete(project.id);
+          await this.persistPendingChanges();
           return;
         }
         logger.warn('Supabase save failed, falling back to IndexedDB', { error: error.message });
@@ -170,7 +447,9 @@ class StorageService {
       }
     }
 
+    // Offline or error - save locally and queue for sync
     await this.saveProjectIndexedDB(project);
+    await this.queueSyncOperation(project.id, 'update');
   }
 
   private async saveProjectIndexedDB(project: Project): Promise<void> {
@@ -254,17 +533,22 @@ class StorageService {
           .eq('id', id)
           .eq('user_id', userId);
         logger.debug('Project deleted from Supabase', { id });
+        // Remove from pending changes
+        this.pendingChanges.delete(id);
+        await this.persistPendingChanges();
+        return;
       } catch (err) {
         logger.warn('Supabase delete error', { error: err });
       }
     }
 
+    // Offline or error - delete locally and queue for sync
     const store = await this.getStore('projects', 'readwrite');
     return new Promise((resolve, reject) => {
       const request = store.delete(id);
       request.onsuccess = () => {
         logger.debug('Project deleted from IndexedDB', { id });
-        resolve();
+        this.queueSyncOperation(id, 'delete').then(resolve).catch(reject);
       };
       request.onerror = () => reject(request.error);
     });
@@ -276,7 +560,7 @@ class StorageService {
       name: dbProject.name,
       updatedAt: new Date(dbProject.updated_at).getTime(),
       state: {
-        layers: dbProject.state?.layers || [],
+        artboards: dbProject.state?.artboards || [],
         canvasBackgroundColor: dbProject.background_color || '#ffffff',
         canvasFilters: dbProject.canvas_filters || {
           brightness: 100,
@@ -427,7 +711,7 @@ class StorageService {
 
   async cleanOldVersions(projectId: string, keepCount = 20): Promise<void> {
     const versions = await this.getVersions(projectId, 100);
-    if (versions.length <= keepCount) return;
+    if (versions.length <= keepCount) {return;}
 
     const toDelete = versions.slice(keepCount);
 
@@ -697,7 +981,7 @@ class StorageService {
   async migrateFromLocalStorage(): Promise<void> {
     try {
       const projectsStr = localStorage.getItem('kreathief_projects');
-      if (!projectsStr) return;
+      if (!projectsStr) {return;}
 
       const projects: Project[] = JSON.parse(projectsStr);
       logger.info('Migrating projects from localStorage', { count: projects.length });

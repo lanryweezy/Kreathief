@@ -2,6 +2,7 @@ import { StateCreator } from 'zustand';
 import { HistoryState, DesignSnapshot } from '../../types';
 import { storageService } from '../../services/storageService';
 import { v4 as uuidv4 } from 'uuid';
+import { analyticsService } from '../../services/analyticsService';
 
 export interface HistorySlice {
   past: HistoryState[];
@@ -23,7 +24,8 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
   saveToHistory: () => {
     set((state: any) => {
       const currentState: HistoryState = {
-        layers: structuredClone(state.layers),
+        artboards: structuredClone(state.artboards),
+        activeArtboardId: state.activeArtboardId,
         canvasBackgroundColor: state.canvasBackgroundColor,
         canvasFilters: { ...state.canvasFilters },
         canvasSize: { ...state.canvasSize },
@@ -47,15 +49,17 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
       const previous = state.past[state.past.length - 1]!;
       const newPast = state.past.slice(0, -1);
       const current: HistoryState = {
-        layers: state.layers,
+        artboards: state.artboards,
+        activeArtboardId: state.activeArtboardId,
         canvasBackgroundColor: state.canvasBackgroundColor,
         canvasFilters: state.canvasFilters,
         canvasSize: state.canvasSize,
       };
       return {
         past: newPast,
-        future: [current, ...state.future],
-        layers: previous.layers,
+        future: [current],
+        artboards: previous.artboards,
+        activeArtboardId: previous.activeArtboardId,
         canvasBackgroundColor: previous.canvasBackgroundColor,
         canvasFilters: previous.canvasFilters,
         canvasSize: previous.canvasSize || state.canvasSize,
@@ -70,7 +74,8 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
       const next = state.future[0]!;
       const newFuture = state.future.slice(1);
       const current: HistoryState = {
-        layers: state.layers,
+        artboards: state.artboards,
+        activeArtboardId: state.activeArtboardId,
         canvasBackgroundColor: state.canvasBackgroundColor,
         canvasFilters: state.canvasFilters,
         canvasSize: state.canvasSize,
@@ -78,7 +83,8 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
       return {
         past: [...state.past, current],
         future: newFuture,
-        layers: next.layers,
+        artboards: next.artboards,
+        activeArtboardId: next.activeArtboardId,
         canvasBackgroundColor: next.canvasBackgroundColor,
         canvasFilters: next.canvasFilters,
         canvasSize: next.canvasSize || state.canvasSize,
@@ -95,7 +101,7 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
   },
 
   createSnapshot: async (name, thumbnail) => {
-    const { projectId, layers, canvasBackgroundColor, canvasFilters, canvasSize } = get();
+    const { projectId, artboards, activeArtboardId, canvasBackgroundColor, canvasFilters, canvasSize } = get();
     if (!projectId) {
       return;
     }
@@ -106,7 +112,8 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
       name,
       timestamp: Date.now(),
       state: {
-        layers: structuredClone(layers),
+        artboards: structuredClone(artboards),
+        activeArtboardId,
         canvasBackgroundColor,
         canvasFilters: { ...canvasFilters },
         canvasSize: canvasSize ? { ...canvasSize } : undefined,
@@ -116,6 +123,7 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
 
     await storageService.saveSnapshot(snapshot);
     set((state: any) => ({ snapshots: [snapshot, ...state.snapshots] }));
+    analyticsService.track('export_design', { method: 'snapshot', name });
   },
 
   restoreSnapshot: async (snapshotId) => {
@@ -130,10 +138,11 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
     set({
       layers: structuredClone(snapshot.state.layers),
       canvasBackgroundColor: snapshot.state.canvasBackgroundColor,
-      canvasFilters: { ...snapshot.state.canvasFilters },
-      canvasSize: snapshot.state.canvasSize ? { ...snapshot.state.canvasSize } : get().canvasSize,
+      canvasFilters: snapshot.state.canvasFilters || { brightness: 100, contrast: 100, saturation: 100, sepia: 0, grayscale: 0, blur: 0, opacity: 1, vignette: 0, hueRotate: 0 },
+      canvasSize: snapshot.state.canvasSize || { width: 1080, height: 1080 },
       selectedLayerIds: [],
     });
+    analyticsService.track('apply_template', { method: 'snapshot', id: snapshotId });
   },
 
   deleteSnapshot: async (snapshotId) => {

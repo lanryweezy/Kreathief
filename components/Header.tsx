@@ -9,10 +9,21 @@ interface HeaderProps {
   onDownload: () => void;
   onBack?: () => void;
   onNew?: (project: Project) => void;
+  onAddArtboard?: () => void;
+  onDeleteArtboard?: () => void;
+  onOpenCommunity?: () => void;
   user?: User;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onDownload, onBack, onNew, user }) => {
+export const Header: React.FC<HeaderProps> = ({ 
+  onDownload, 
+  onBack, 
+  onNew, 
+  onAddArtboard,
+  onDeleteArtboard,
+  onOpenCommunity,
+  user 
+}) => {
   const {
     undo,
     redo,
@@ -61,7 +72,15 @@ export const Header: React.FC<HeaderProps> = ({ onDownload, onBack, onNew, user 
                       name: 'Untitled Design',
                       updatedAt: Date.now(),
                       state: {
-                        layers: [],
+                        artboards: [{
+                          id: 'artboard_1',
+                          name: 'Artboard 1',
+                          x: 0,
+                          y: 0,
+                          width: 1080,
+                          height: 1080,
+                          layers: [],
+                        }],
                         canvasBackgroundColor: '#ffffff',
                         canvasFilters: {
                           brightness: 100,
@@ -188,6 +207,27 @@ export const Header: React.FC<HeaderProps> = ({ onDownload, onBack, onNew, user 
             <span className="text-gray-400 truncate max-w-[100px]">{title}</span>
           </div>
           <div className="h-4 w-px bg-gray-800 mx-2"></div>
+          
+          {/* Artboard Management */}
+          <div className="flex items-center bg-[#1e1e1e] rounded-lg p-0.5 border border-white/5 shadow-inner">
+            <button
+              onClick={onDeleteArtboard}
+              className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-white/5 rounded-md transition-all"
+              title="Remove Artboard"
+            >
+              <Icons.Minus className="w-3 h-3" />
+            </button>
+            <div className="w-px h-3 bg-gray-800 mx-0.5" />
+            <button
+              onClick={onAddArtboard}
+              className="p-1.5 text-gray-400 hover:text-green-400 hover:bg-white/5 rounded-md transition-all"
+              title="Add Artboard"
+            >
+              <Icons.Plus className="w-3 h-3" />
+            </button>
+          </div>
+
+          <div className="h-4 w-px bg-gray-800 mx-2"></div>
           <div className={`sync-dot ${isSaving ? 'sync-dot-saving' : ''}`}></div>
           <span className="hidden md:block text-[9px] uppercase tracking-wider font-bold text-gray-500">
             {isSaving ? 'Saving...' : 'Saved'}
@@ -210,6 +250,17 @@ export const Header: React.FC<HeaderProps> = ({ onDownload, onBack, onNew, user 
       </div>
 
       <div className="flex items-center gap-4">
+        <button
+          onClick={onOpenCommunity}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/5 transition-all border border-white/5"
+          title="Community Templates"
+        >
+          <Icons.Globe className="w-3.5 h-3.5 text-[#7d2ae8]" />
+          <span className="hidden lg:inline">Community</span>
+        </button>
+
+        <div className="h-4 w-px bg-gray-800"></div>
+
         <button
           onClick={onShowShortcuts}
           className="p-2 text-gray-400 hover:text-white transition-colors"

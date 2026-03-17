@@ -1,14 +1,85 @@
+import paper from 'paper/dist/paper-core';
 import { VectorPath } from '../types';
+import { VectorUtils } from './vectorUtils';
+
+let paperInitialized = false;
+
+function initPaper() {
+  if (!paperInitialized) {
+    // Size doesn't matter for pure vector math
+    paper.setup(new paper.Size(1, 1));
+    paperInitialized = true;
+  }
+}
 
 export class BooleanOperations {
+  /**
+   * Run a Paper.js boolean operation
+   */
+  private static runBoolean(pathA: VectorPath, pathB: VectorPath, operation: 'unite' | 'subtract' | 'intersect' | 'exclude'): VectorPath {
+    initPaper();
+    
+    // Import SVG data into Paper.js
+    const svgA = `<svg><path d="${VectorUtils.serializePath(pathA)}" /></svg>`;
+    const svgB = `<svg><path d="${VectorUtils.serializePath(pathB)}" /></svg>`;
+    
+    const groupA = paper.project.importSVG(svgA) as paper.Group;
+    const groupB = paper.project.importSVG(svgB) as paper.Group;
+    
+    // Extract paths from groups
+    const itemA = groupA.children[0] as paper.PathItem;
+    const itemB = groupB.children[0] as paper.PathItem;
+    
+    if (!itemA || !itemB) {
+      if (groupA) {groupA.remove();}
+      if (groupB) {groupB.remove();}
+      return pathA;
+    }
+    
+    // Perform operation
+    const result = itemA[operation](itemB);
+    
+    // Convert resulting PathItem to SVG path data string
+    const resultSvgString = result.exportSVG({ asString: true }) as string;
+    
+    // Clean up memory
+    groupA.remove();
+    groupB.remove();
+    itemA.remove();
+    itemB.remove();
+    result.remove();
+    
+    // Extract 'd' attribute using a simple regex since it's an isolated shape
+    const match = resultSvgString.match(/d="([^"]+)"/);
+    if (!match || !match[1]) {
+      return pathA; 
+    }
+    
+    // Parse it back to our unified VectorPath format (now with sub-path support via isMove)
+    return VectorUtils.parsePath(match[1]);
+  }
+
+  static union(pathA: VectorPath, pathB: VectorPath): VectorPath {
+    return this.runBoolean(pathA, pathB, 'unite');
+  }
+
+  static subtract(pathA: VectorPath, pathB: VectorPath): VectorPath {
+    return this.runBoolean(pathA, pathB, 'subtract');
+  }
+
+  static intersect(pathA: VectorPath, pathB: VectorPath): VectorPath {
+    return this.runBoolean(pathA, pathB, 'intersect');
+  }
+
+  static exclude(pathA: VectorPath, pathB: VectorPath): VectorPath {
+    return this.runBoolean(pathA, pathB, 'exclude');
+  }
+
   /**
    * Flattens a Bézier path into a series of line segments with adaptive sampling
    */
   static flatten(path: VectorPath, _tolerance = 1.0): { x: number; y: number }[] {
-    if (path.points.length === 0) {
-      return [];
-    }
-
+    if (path.points.length === 0) {return [];}
     const flattened: { x: number; y: number }[] = [];
 
     for (let i = 0; i < path.points.length; i++) {
@@ -23,7 +94,6 @@ export class BooleanOperations {
       if (p1.handleOut || p2.handleIn) {
         const cp1 = p1.handleOut ? { x: p1.x + p1.handleOut.x, y: p1.y + p1.handleOut.y } : { x: p1.x, y: p1.y };
         const cp2 = p2.handleIn ? { x: p2.x + p2.handleIn.x, y: p2.y + p2.handleIn.y } : { x: p2.x, y: p2.y };
-
         const dist = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
         const steps = Math.max(10, Math.min(50, Math.floor(dist / 5)));
 
@@ -37,7 +107,6 @@ export class BooleanOperations {
         flattened.push({ x: p1.x, y: p1.y });
       }
     }
-
     return flattened;
   }
 
@@ -46,74 +115,14 @@ export class BooleanOperations {
     return mt * mt * mt * p0 + 3 * mt * mt * t * p1 + 3 * mt * t * t * p2 + t * t * t * p3;
   }
 
-  /**
-   * Union: Combines multiple paths into one
-   * For high-performance simple union, we just merge point arrays if they don't overlap,
-   * but for real vector editing we use the 'winding rule' or group paths.
-   * Here we implement a simplified 'Multi-Path' representation which SVG supports.
-   */
-  static union(pathA: VectorPath, pathB: VectorPath): VectorPath {
-    // SVG paths support multiple 'M' commands. We merge them.
-    return {
-      points: [...pathA.points, ...pathB.points],
-      isClosed: true,
-    };
-  }
-
-  /**
-   * Subtract: PathA minus PathB
-   * Uses the 'Even-Odd' fill rule trick for SVG where a sub-path with reverse winding
-   * creates a hole.
-   */
-  static subtract(pathA: VectorPath, pathB: VectorPath): VectorPath {
-    // Reverse PathB winding to create a hole if it's inside PathA
-    const reversedPoints = [...pathB.points].reverse().map((p) => ({
-      ...p,
-      handleIn: p.handleOut ? { x: -p.handleOut.x, y: -p.handleOut.y } : undefined,
-      handleOut: p.handleIn ? { x: -p.handleIn.x, y: -p.handleIn.y } : undefined,
-    }));
-
-    return {
-      points: [...pathA.points, ...reversedPoints],
-      isClosed: true,
-    };
-  }
-
-  /**
-   * Intersect: Shared area between PathA and PathB
-   * Note: True intersection requires polygon clipping.
-   * As a simplified version for this editor, we'll return pathA but we should
-   * ideally implement Sutherland-Hodgman if we want perfect results.
-   */
-  static intersect(pathA: VectorPath, _pathB: VectorPath): VectorPath {
-    // Placeholder for now - true intersection is complex without a library
-    // We return PathA as it's the 'source'
-    return pathA;
-  }
-
-  /**
-   * Exclude (XOR): Areas not shared by PathA and PathB
-   */
-  static exclude(pathA: VectorPath, pathB: VectorPath): VectorPath {
-    return {
-      points: [...pathA.points, ...pathB.points],
-      isClosed: true,
-    };
-  }
-
-  // Helper to check if a point is inside a polygon (flattened path)
   static isPointInPath(point: { x: number; y: number }, path: VectorPath): boolean {
     const poly = this.flatten(path);
     let inside = false;
     for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-      const xi = poly[i].x,
-        yi = poly[i].y;
-      const xj = poly[j].x,
-        yj = poly[j].y;
+      const xi = poly[i].x, yi = poly[i].y;
+      const xj = poly[j].x, yj = poly[j].y;
       const intersect = yi > point.y !== yj > point.y && point.x < ((xj - xi) * (point.y - yi)) / (yj - yi) + xi;
-      if (intersect) {
-        inside = !inside;
-      }
+      if (intersect) {inside = !inside;}
     }
     return inside;
   }

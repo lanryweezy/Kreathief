@@ -5,6 +5,8 @@ import { Button } from '../Button';
 import * as geminiService from '../../services/geminiService';
 
 import { useStore } from '../../store/useStore';
+import { analyticsService } from '../../services/analyticsService';
+import { log } from '../../utils/log';
 
 interface MagicPanelProps {
   onGenerate: () => void;
@@ -21,12 +23,15 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
     aspectRatio,
     setAspectRatio,
     isProcessing,
+    addToast,
     quality,
     setQuality,
     selectedLayerIds,
-    imageLayers,
+    artboards,
+    activeArtboardId
   } = useStore();
 
+  const layers = artboards?.find((a) => a.id === activeArtboardId)?.layers || [];
   const selectedLayerId = selectedLayerIds[selectedLayerIds.length - 1] || null;
 
   const [isEnhancing, setIsEnhancing] = useState(false);
@@ -39,14 +44,21 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
     try {
       const enhanced = await geminiService.enhancePrompt(prompt);
       setPrompt(enhanced);
-    } catch (e) {
-      console.error(e);
+      analyticsService.track('generate_image', { mode: 'enhance_prompt' });
+    } catch (e: any) {
+      log.error('[MagicPanel] Prompt enhancement failed', e, { prompt: prompt.substring(0, 100) });
+      addToast(
+        'Prompt enhancement failed',
+        'error',
+        { label: 'Retry', onClick: handleEnhancePrompt },
+        'There was an issue connecting to the AI service.'
+      );
     } finally {
       setIsEnhancing(false);
     }
   };
 
-  const selectedImageLayer = imageLayers.find((l) => l.id === selectedLayerId);
+  const selectedImageLayer = layers.find((l) => l.id === selectedLayerId && l.type === 'image');
 
   // -- Contextual Edit Mode --
   if (selectedImageLayer && mode !== AppMode.THEME) {
@@ -91,7 +103,10 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           <Button
             variant="primary"
             className="w-full py-3 shadow-xl shadow-indigo-900/20"
-            onClick={onGenerate}
+            onClick={() => {
+              onGenerate();
+              analyticsService.trackGeneration(prompt, 'edit');
+            }}
             loading={isProcessing}
             disabled={!prompt.trim()}
           >
@@ -235,7 +250,10 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
         <Button
           variant="primary"
           className="w-full py-3 shadow-lg shadow-purple-900/20"
-          onClick={onGenerate}
+          onClick={() => {
+            onGenerate();
+            analyticsService.trackGeneration(prompt, mode);
+          }}
           loading={isProcessing}
           disabled={!prompt.trim() || (mode === AppMode.EDIT && !uploadedImage)}
         >
@@ -268,7 +286,10 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           ].map((item) => (
             <button
               key={item.name}
-              onClick={() => setPrompt(prompt ? `${prompt}, ${item.style}` : item.style)}
+              onClick={() => {
+                setPrompt(prompt ? `${prompt}, ${item.style}` : item.style);
+                analyticsService.track('generate_image', { mode: 'apply_style', style: item.name });
+              }}
               className="group relative h-16 bg-[#1e1e1e] border border-gray-700 rounded-lg overflow-hidden hover:border-[#7d2ae8] transition-all"
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-2">

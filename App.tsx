@@ -5,6 +5,7 @@ import { useStore } from './store/useStore';
 import { authService } from './services/authService';
 import { storageService } from './services/storageService';
 import { User, Project } from './types';
+import { performanceService } from './services/performanceService';
 
 import { WelcomeModal } from './components/modals/WelcomeModal';
 import { GuidedTour, TourStep } from './components/modals/GuidedTour';
@@ -13,6 +14,7 @@ import { LandingPage } from './components/LandingPage';
 import { BlogList } from './components/blog/BlogList';
 import { BlogPostView } from './components/blog/BlogPostView';
 import { SEO } from './components/SEO';
+import { FeedbackModal } from './components/modals/FeedbackModal';
 
 // Lazy load main views for code splitting
 const Auth = React.lazy(() => import('./components/Auth').then((module) => ({ default: module.Auth })));
@@ -39,7 +41,8 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const initApp = async () => {
-      // Initialize storage service (migrates from localStorage if needed)
+      // Initialize performance and storage
+      performanceService.init();
       await storageService.init();
 
       // Check Supabase auth session
@@ -224,6 +227,7 @@ const App: React.FC = () => {
         )}
       </Suspense>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
+      <FeedbackModal />
     </ErrorBoundary>
   );
 };

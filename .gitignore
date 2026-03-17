@@ -33,6 +33,7 @@ test_output.txt
 # Environment
 .env
 .env*.local
+.env.production
 
 # Production
 build/

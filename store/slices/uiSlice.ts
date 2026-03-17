@@ -3,7 +3,6 @@ import {
   NavTab,
   AppMode,
   DesignComment,
-  DesignSnapshot,
   Toast,
   ToastType,
   ImageLayer,
@@ -32,12 +31,8 @@ export interface UISlice {
   uploads: string[];
   history: GeneratedImage[];
   showShareModal: boolean;
+  showFeedbackModal: boolean;
   comments: DesignComment[];
-  snapshots: DesignSnapshot[];
-  tags: string[];
-  isPublished: boolean;
-  showGoldenRatio: boolean;
-  toasts: Toast[];
   isCropMode: boolean;
   croppingLayerId: string | null;
   cropArea: { x: number; y: number; width: number; height: number };
@@ -46,6 +41,14 @@ export interface UISlice {
   lassoPoints: { x: number; y: number }[];
   refineBrushMode: 'none' | 'erase' | 'restore';
   refineBrushSize: number;
+  showGoldenRatio: boolean;
+
+  favoriteTemplates: string[];
+  favoriteProjects: string[];
+  toasts: Toast[];
+  snapshots: any[];
+  tags: string[];
+  isPublished: boolean;
 
   setActiveTab: (tab: NavTab) => void;
   setMode: (mode: AppMode) => void;
@@ -63,6 +66,7 @@ export interface UISlice {
   setSnapToObjects: (snap: boolean) => void;
   setShowShortcuts: (show: boolean) => void;
   setShowShareModal: (show: boolean) => void;
+  setShowFeedbackModal: (show: boolean) => void;
   setPreviewFontFamily: (font: string | null) => void;
   addCustomFont: (font: string) => void;
   setShowGoldenRatio: (show: boolean) => void;
@@ -70,7 +74,7 @@ export interface UISlice {
   addTag: (tag: string) => void;
   removeTag: (tag: string) => void;
   setIsPublished: (isPublished: boolean) => void;
-  addToast: (message: string, type?: ToastType) => void;
+  addToast: (message: string, type?: ToastType, action?: { label: string; onClick: () => void }, details?: string) => void;
   removeToast: (id: string) => void;
 
   // Crop Actions
@@ -91,6 +95,10 @@ export interface UISlice {
   // Collaboration
   fetchComments: () => Promise<void>;
   addComment: (text: string, user: any) => Promise<void>;
+
+  // Favorites
+  toggleFavoriteTemplate: (id: string) => void;
+  toggleFavoriteProject: (id: string) => void;
 }
 
 export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => ({
@@ -113,6 +121,7 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   uploads: [],
   history: [],
   showShareModal: false,
+  showFeedbackModal: false,
   comments: [],
   snapshots: [],
   tags: [],
@@ -127,6 +136,9 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   lassoPoints: [],
   refineBrushMode: 'none',
   refineBrushSize: 30,
+
+  favoriteTemplates: [],
+  favoriteProjects: [],
 
   setActiveTab: (activeTab) => set({ activeTab }),
   setMode: (mode) => set({ mode }),
@@ -159,6 +171,7 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   setSnapToObjects: (snap) => set({ snapToObjects: snap }),
   setShowShortcuts: (show) => set({ showShortcuts: show }),
   setShowShareModal: (show) => set({ showShareModal: show }),
+  setShowFeedbackModal: (show) => set({ showFeedbackModal: show }),
   setPreviewFontFamily: (font) => set({ fontPreview: font }),
   addCustomFont: (font: string) => set((state: any) => ({ customFonts: [...state.customFonts, font] })),
   setShowGoldenRatio: (show) => set({ showGoldenRatio: show }),
@@ -172,12 +185,13 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
       tags: state.tags.filter((t: string) => t !== tag),
     })),
   setIsPublished: (isPublished) => set({ isPublished }),
-  addToast: (message, type = 'info') => {
+  addToast: (message, type = 'info', action, details) => {
     const id = uuidv4();
     set((state: any) => ({
-      toasts: [...state.toasts, { id, message, type }],
+      toasts: [...state.toasts, { id, message, type, action, details }],
     }));
-    setTimeout(() => get().removeToast(id), 3000);
+    // If no action, auto-remove after 5s. If action exists, keep it longer (15s).
+    setTimeout(() => get().removeToast(id), action ? 15000 : 5000);
   },
   removeToast: (id) =>
     set((state: any) => ({
@@ -339,4 +353,18 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     await storageService.saveComment(newComment);
     set((state: any) => ({ comments: [...state.comments, newComment] }));
   },
+
+  toggleFavoriteTemplate: (id: string) =>
+    set((state: any) => ({
+      favoriteTemplates: state.favoriteTemplates.includes(id)
+        ? state.favoriteTemplates.filter((tid: string) => tid !== id)
+        : [...state.favoriteTemplates, id],
+    })),
+
+  toggleFavoriteProject: (id: string) =>
+    set((state: any) => ({
+      favoriteProjects: state.favoriteProjects.includes(id)
+        ? state.favoriteProjects.filter((pid: string) => pid !== id)
+        : [...state.favoriteProjects, id],
+    })),
 });

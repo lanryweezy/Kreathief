@@ -15,6 +15,7 @@ export enum NavTab {
   TEXTURES = 'TEXTURES',
   PROJECTS = 'PROJECTS',
   LAYERS = 'LAYERS',
+  COMPONENTS = 'COMPONENTS',
   MOCKUP = 'MOCKUP',
   ASSISTANT = 'ASSISTANT',
   STICKERS = 'STICKERS',
@@ -121,6 +122,7 @@ export interface LayerFilters {
   hueRotate: number; // 0 default
   vignette: number; // 0 default
   opacity: number; // 1 default
+  artisticFilter?: string; // Optional SVG filter ID (e.g. 'watercolor')
 }
 
 export interface TextGradient {
@@ -141,11 +143,18 @@ export interface ImageFillSettings {
   gradientOverlay?: Gradient;
 }
 
+export interface AutoLayoutSettings {
+  direction: 'row' | 'col';
+  padding: number | { top: number; right: number; bottom: number; left: number };
+  spacing: number;
+  alignment: 'start' | 'center' | 'end' | 'space-between';
+}
+
 export interface LayerBase {
   id: string;
   name?: string;
-  x: number;
-  y: number;
+  x: number; // Local to Artboard
+  y: number; // Local to Artboard
   rotation: number;
   opacity: number;
   locked: boolean;
@@ -163,6 +172,16 @@ export interface LayerBase {
   rotateX?: number;
   rotateY?: number;
   isProcessing?: boolean;
+  lockProportions?: boolean;
+  // Group/Folder support
+  isGroup?: boolean; // True if this is a group marker (folder)
+  isExpanded?: boolean; // For groups: whether children are visible in layers panel
+  // Design Systems: Component Support
+  masterId?: string; // Reference to the Master Component
+  componentId?: string; // If this layer IS a Master Component itself
+  overrides?: string[]; // Properties that are overridden from the Master
+  // Auto-Layout
+  autoLayout?: AutoLayoutSettings;
 }
 
 export interface TextLayer extends LayerBase {
@@ -222,6 +241,7 @@ export interface VectorPoint {
   handleOut?: { x: number; y: number };
   type: PointType;
   cornerRadius?: number;
+  isMove?: boolean;
 }
 
 export interface VectorPath {
@@ -298,6 +318,17 @@ export interface ImageLayer extends LayerBase {
 
 export type Layer = TextLayer | ImageLayer | ShapeLayer;
 
+export interface Artboard {
+  id: string;
+  name: string;
+  x: number; // World Position
+  y: number; // World Position
+  width: number;
+  height: number;
+  layers: Layer[];
+  backgroundColor?: string;
+}
+
 export interface CanvasFilters {
   brightness: number; // %
   contrast: number; // %
@@ -325,14 +356,13 @@ export interface GeneratedImage {
 }
 
 export interface HistoryState {
-  layers: Layer[];
+  artboards: Artboard[];
+  activeArtboardId?: string;
   canvasBackgroundColor: string;
   canvasFilters: CanvasFilters;
-  canvasSize?: CanvasSize;
+  canvasSize?: { width: number; height: number; name: string };
   showGrid?: boolean;
   showRulers?: boolean;
-  onToggleGrid?: () => void;
-  onToggleRulers?: () => void;
 }
 
 export interface DesignComment {
@@ -343,6 +373,19 @@ export interface DesignComment {
   userAvatar?: string;
   text: string;
   timestamp: number;
+}
+
+export interface CanvasComment {
+  id: string;
+  x: number;
+  y: number;
+  content: string;
+  author: {
+    name: string;
+    avatar?: string;
+  };
+  createdAt: number;
+  resolved: boolean;
 }
 
 export interface DesignSnapshot {
@@ -364,6 +407,7 @@ export interface Project {
   isPublished?: boolean; // For community marketplace
   authorId?: string;
   authorName?: string;
+  comments?: CanvasComment[];
 }
 
 export interface DesignTheme {
@@ -410,4 +454,9 @@ export interface Toast {
   id: string;
   message: string;
   type: ToastType;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
+  details?: string;
 }

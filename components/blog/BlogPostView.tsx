@@ -149,7 +149,7 @@ export const BlogPostView: React.FC = () => {
                         <div className="text-gray-400 leading-[1.8] text-xl font-medium space-y-8">
                             {post.content.split('\n').map((line, i) => {
                                 const trimmed = line.trim();
-                                if (!trimmed) return null;
+                                if (!trimmed) {return null;}
 
                                 if (trimmed.startsWith('# ')) {
                                     return <h1 key={i} className="text-5xl font-black text-white mt-16 mb-8 tracking-tight">{formatText(trimmed.replace('# ', ''))}</h1>;

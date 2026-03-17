@@ -43,22 +43,44 @@ export const TransformTools = React.memo(({ selectedLayer }: TransformToolsProps
           onChange={(e: any) => handleUnitChange('y', e.target.value)}
           width="w-10 sm:w-14"
         />
-        <CompactInput
-          label="W"
-          value={pxToUnit(selectedLayer.width, unit)}
-          onChange={(e: any) => handleUnitChange('width', e.target.value)}
-          min={1}
-          width="w-10 sm:w-14"
-        />
-        {selectedLayer.type !== 'text' && (
+        <div className="relative flex items-center gap-2">
           <CompactInput
-            label="H"
-            value={pxToUnit((selectedLayer as any).height || 0, unit)}
-            onChange={(e: any) => handleUnitChange('height', e.target.value)}
+            label="W"
+            value={pxToUnit(selectedLayer.width, unit)}
+            onChange={(e: any) => handleUnitChange('width', e.target.value)}
             min={1}
             width="w-10 sm:w-14"
           />
-        )}
+          
+          <div className="flex flex-col items-center -mx-1 z-10">
+            <div className={`w-0.5 h-2 transition-colors ${selectedLayer.lockProportions ? 'bg-[#7d2ae8]' : 'bg-transparent'}`} />
+            <button
+              onClick={() => handleUpdateLayer({ lockProportions: !selectedLayer.lockProportions })}
+              className={`p-0.5 rounded-full transition-all border ${selectedLayer.lockProportions ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white' : 'bg-[#252627] border-gray-700 text-gray-500 hover:text-gray-300'}`}
+              title="Lock Aspect Ratio"
+            >
+              {selectedLayer.lockProportions ? <Icons.Lock className="w-2.5 h-2.5" /> : <Icons.Unlock className="w-2.5 h-2.5" />}
+            </button>
+            <div className={`w-0.5 h-2 transition-colors ${selectedLayer.lockProportions ? 'bg-[#7d2ae8]' : 'bg-transparent'}`} />
+          </div>
+
+          {selectedLayer.type !== 'text' && (
+            <CompactInput
+              label="H"
+              value={pxToUnit((selectedLayer as any).height || 0, unit)}
+              onChange={(e: any) => handleUnitChange('height', e.target.value)}
+              min={1}
+              width="w-10 sm:w-14"
+            />
+          )}
+
+          {/* Visual connected borders for #12 */}
+          {selectedLayer.lockProportions && selectedLayer.type !== 'text' && (
+            <div className="absolute -right-1 top-0 bottom-0 w-2 pointer-events-none animate-fadeIn">
+                <div className="absolute top-[20%] bottom-[20%] right-full w-4 border-y border-r border-[#7d2ae8]/50 rounded-r-md" />
+            </div>
+          )}
+        </div>
       </div>
 
       <IconButton onClick={() => setShowAdvanced(!showAdvanced)} active={showAdvanced} title="Advanced Transform">

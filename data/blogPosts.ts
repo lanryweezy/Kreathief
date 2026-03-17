@@ -10,7 +10,9 @@ export interface BlogPost {
   readTime: string;
 }
 
-export const BLOG_POSTS: BlogPost[] = [
+import { EXTRA_BLOG_POSTS } from './extraBlogPosts';
+
+const BASE_BLOG_POSTS: BlogPost[] = [
   {
     id: 'ultimate-canva-alternative-2026',
     title: 'Why Kreathief is the Ultimate Canva Alternative for 2026',
@@ -200,7 +202,7 @@ But what makes it amazing for UI designers makes it practically useless for mark
 
 Kreathief takes the highly-coveted #1 spot because it is the first platform to successfully marry Midjourney-level raw image generation with Adobe-level vector orchestration, entirely within the browser. 
 
-![Kreathief UI](/images/hero_screenshot_1772019796016.png)
+![Kreathief UI](/images/hero_screenshot_clean.png)
 
 Kreathief approaches AI not as a separate generative tool, but as a deeply integrated utility. Whether you need to generate a 3D isometric asset from scratch, instantly isolate the background of a complex photograph with our Neural Cutout engine, apply a golden-ratio typography layout, or vectorize a raster sketch—Kreathief handles it natively.
 
@@ -588,3 +590,5 @@ Once your Brand Kit is active, Kreathief's "Magic Brand" button will instantly a
   `
   }
 ];
+
+export const BLOG_POSTS: BlogPost[] = [...BASE_BLOG_POSTS, ...EXTRA_BLOG_POSTS];

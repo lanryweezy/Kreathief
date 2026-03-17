@@ -1,6 +1,13 @@
 /**
- * Logging Service
- * Provides structured logging with levels and optional remote reporting
+ * Enhanced Logging Service
+ * Provides structured logging with levels, context, and optional remote reporting
+ * 
+ * @example
+ * logger.info('User logged in', { userId: '123' });
+ * logger.error('API failed', error, { endpoint: '/users' });
+ * const end = logger.time('operation');
+ * // ... do work ...
+ * end(); // Logs duration
  */
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
@@ -11,6 +18,7 @@ interface LogEntry {
   timestamp: Date;
   context?: Record<string, unknown>;
   stack?: string;
+  source?: string;
 }
 
 interface LoggerConfig {
@@ -18,6 +26,8 @@ interface LoggerConfig {
   enableConsole: boolean;
   enableRemote: boolean;
   remoteEndpoint?: string;
+  enableStackTrace: boolean;
+  prefix: string;
 }
 
 const LOG_LEVELS: Record<LogLevel, number> = {
@@ -32,6 +42,8 @@ class Logger {
     minLevel: 'info',
     enableConsole: true,
     enableRemote: false,
+    enableStackTrace: true,
+    prefix: '[Kreathief]',
   };
 
   private logBuffer: LogEntry[] = [];

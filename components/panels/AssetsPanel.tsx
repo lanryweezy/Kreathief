@@ -5,6 +5,7 @@ import * as freepikService from '../../services/freepikService';
 import { vecteezyService } from '../../services/vecteezyService';
 import { useStore } from '../../store/useStore';
 import { v4 as uuidv4 } from 'uuid';
+import { log } from '../../utils/log';
 
 interface PhotoItem {
   id: string;
@@ -83,7 +84,7 @@ export const AssetsPanel: React.FC = () => {
             });
           });
         } catch (e) {
-          console.error('Unsplash search failed:', e);
+          log.error('[AssetsPanel] Unsplash search failed', e);
         }
       }
 

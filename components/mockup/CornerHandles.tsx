@@ -56,7 +56,7 @@ export const CornerHandles: React.FC<CornerHandlesProps> = ({
   // Global mouse move handler
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent | TouchEvent) => {
-      if (!draggingCorner || !containerRef.current) return;
+      if (!draggingCorner || !containerRef.current) {return;}
 
       const rect = containerRef.current.getBoundingClientRect();
       let clientX: number, clientY: number;
@@ -101,7 +101,7 @@ export const CornerHandles: React.FC<CornerHandlesProps> = ({
     };
   }, [draggingCorner, onCornerChange, toPercentage]);
 
-  if (!isVisible) return null;
+  if (!isVisible) {return null;}
 
   return (
     <div
