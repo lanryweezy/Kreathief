@@ -30,6 +30,6 @@
     "**/*.spec.ts",
     "**/*.spec.tsx",
     "tests",
-    "data"
+    "data/templates.ts"
   ]
 }

@@ -300,9 +300,6 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
           {activeTab === 'gradient' && (
             <GradientEditor
               onChange={(gradient) => {
-                const gradientStr = gradient.type === 'linear'
-                  ? `linear-gradient(${gradient.angle}deg, ${gradient.stops.map(s => `${s.color} ${s.position}%`).join(', ')})`
-                  : `radial-gradient(circle, ${gradient.stops.map(s => `${s.color} ${s.position}%`).join(', ')})`;
                 // Store gradient as special value (full gradient support would be in layer properties)
                 addToast(`Gradient created: ${gradient.stops.length} stops`, 'success');
               }}

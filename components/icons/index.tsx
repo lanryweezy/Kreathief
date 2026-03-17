@@ -295,6 +295,33 @@ export const AlignRight = (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement('line', { x1: '21', x2: '7', y1: '18', y2: '18' })
   );
 
+export const AlignTop = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('line', { x1: '6', x2: '6', y1: '21', y2: '3' }),
+    React.createElement('line', { x1: '12', x2: '12', y1: '21', y2: '7' }),
+    React.createElement('line', { x1: '18', x2: '18', y1: '21', y2: '3' })
+  );
+
+export const AlignMiddle = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('line', { x1: '8', x2: '8', y1: '6', y2: '18' }),
+    React.createElement('line', { x1: '16', x2: '16', y1: '6', y2: '18' }),
+    React.createElement('line', { x1: '6', x2: '18', y1: '12', y2: '12' })
+  );
+
+export const AlignBottom = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('line', { x1: '6', x2: '6', y1: '3', y2: '21' }),
+    React.createElement('line', { x1: '12', x2: '12', y1: '7', y2: '21' }),
+    React.createElement('line', { x1: '18', x2: '18', y1: '3', y2: '21' })
+  );
+
 export const ArrowLeft = (props: React.SVGProps<SVGSVGElement>) =>
   React.createElement(
     'svg',
@@ -1158,6 +1185,26 @@ export const RefreshCw = (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement('path', { d: 'M3 21v-5h5' })
   );
 
+export const Refresh = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('path', { d: 'M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8' }),
+    React.createElement('path', { d: 'M21 3v5h-5' }),
+    React.createElement('path', { d: 'M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16' }),
+    React.createElement('path', { d: 'M3 21v-5h5' })
+  );
+
+export const Spacing = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('line', { x1: '4', x2: '4', y1: '4', y2: '20' }),
+    React.createElement('line', { x1: '20', x2: '20', y1: '4', y2: '20' }),
+    React.createElement('line', { x1: '10', x2: '10', y1: '4', y2: '20' }),
+    React.createElement('line', { x1: '14', x2: '14', y1: '4', y2: '20' })
+  );
+
 export const Maximize = (props: React.SVGProps<SVGSVGElement>) =>
   React.createElement(
     'svg',
@@ -1176,6 +1223,16 @@ export const Wave = (props: React.SVGProps<SVGSVGElement>) =>
     'svg',
     { ...svgProps, ...props },
     React.createElement('path', { d: 'M3 12c3-5 5-5 9 0s6 5 9 0' })
+  );
+
+export const Arrange = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('rect', { x: '3', y: '3', width: '8', height: '8' }),
+    React.createElement('rect', { x: '13', y: '3', width: '8', height: '8' }),
+    React.createElement('rect', { x: '3', y: '13', width: '8', height: '8' }),
+    React.createElement('rect', { x: '13', y: '13', width: '8', height: '8' })
   );
 
 export const Disc = (props: React.SVGProps<SVGSVGElement>) =>

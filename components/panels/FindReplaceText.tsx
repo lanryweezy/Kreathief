@@ -19,7 +19,6 @@ export const FindReplaceText: React.FC = () => {
   const [replaceText, setReplaceText] = useState('');
   const [results, setResults] = useState<FindReplaceResult[]>([]);
   const [isCaseSensitive, setIsCaseSensitive] = useState(false);
-  const [isGlobal, setIsGlobal] = useState(true);
 
   // Get all text layers
   const allTextLayers = useMemo(() => {
@@ -156,7 +155,7 @@ export const FindReplaceText: React.FC = () => {
         <label className="flex items-center gap-2 cursor-pointer">
           <input
             type="checkbox"
-            checked={isGlobal}
+            checked={true}
             disabled
             className="accent-[#7d2ae8]"
           />
@@ -187,7 +186,7 @@ export const FindReplaceText: React.FC = () => {
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <Icons.Type className="w-3 h-3 text-gray-500" />
+                    <Icons.Text className="w-3 h-3 text-gray-500" />
                     <span className="text-xs font-bold text-white">{result.layerName}</span>
                   </div>
                   <div className="flex items-center gap-2">
