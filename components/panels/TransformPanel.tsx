@@ -22,29 +22,30 @@ export const TransformPanel: React.FC = () => {
     }
 
     const updates: Partial<Layer>[] = [];
-    const reference = selectedLayers[0];
+    const reference = selectedLayers[0] as any;
 
     selectedLayers.forEach((layer) => {
       const update: Partial<Layer> = { id: layer.id };
-      
+      const layerAny = layer as any;
+
       switch (type) {
         case 'left':
           update.x = reference.x;
           break;
         case 'center':
-          update.x = reference.x + (reference.width - layer.width) / 2;
+          update.x = reference.x + (reference.width - layerAny.width) / 2;
           break;
         case 'right':
-          update.x = reference.x + reference.width - layer.width;
+          update.x = reference.x + reference.width - layerAny.width;
           break;
         case 'top':
           update.y = reference.y;
           break;
         case 'middle':
-          update.y = reference.y + (reference.height - layer.height) / 2;
+          update.y = reference.y + (reference.height - layerAny.height) / 2;
           break;
         case 'bottom':
-          update.y = reference.y + reference.height - layer.height;
+          update.y = reference.y + reference.height - layerAny.height;
           break;
       }
       
@@ -61,30 +62,30 @@ export const TransformPanel: React.FC = () => {
       return;
     }
 
-    const sorted = [...selectedLayers].sort((a, b) => 
-      type === 'horizontal' ? a.x - b.x : a.y - b.y
+    const sorted = [...selectedLayers].sort((a, b) =>
+      type === 'horizontal' ? (a as any).x - (b as any).x : (a as any).y - (b as any).y
     );
 
     const first = sorted[0];
     const last = sorted[sorted.length - 1];
     const totalSpace = type === 'horizontal'
-      ? (last.x + last.width) - first.x
-      : (last.y + last.height) - first.y;
-    
-    const totalLayerSize = sorted.reduce((sum, layer) => 
-      sum + (type === 'horizontal' ? layer.width : layer.height), 0
+      ? ((last as any).x + (last as any).width) - (first as any).x
+      : ((last as any).y + (last as any).height) - (first as any).y;
+
+    const totalLayerSize = sorted.reduce((sum, layer) =>
+      sum + (type === 'horizontal' ? (layer as any).width : (layer as any).height), 0
     );
 
     const gap = (totalSpace - totalLayerSize) / (sorted.length - 1);
 
     const updates: Partial<Layer>[] = [];
-    let currentPosition = type === 'horizontal' ? first.x : first.y;
+    let currentPosition = type === 'horizontal' ? (first as any).x : (first as any).y;
 
     sorted.forEach((layer, index) => {
       if (index === 0) return; // Skip first layer
       
       const update: Partial<Layer> = { id: layer.id };
-      const layerSize = type === 'horizontal' ? layer.width : layer.height;
+      const layerSize = type === 'horizontal' ? (layer as any).width : (layer as any).height;
       
       if (type === 'horizontal') {
         update.x = currentPosition + gap;

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 

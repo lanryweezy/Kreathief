@@ -12,11 +12,6 @@ export const LayerEffectsPanel: React.FC<LayerEffectsPanelProps> = ({ selectedLa
   const addToast = useStore((state) => state.addToast);
 
   const [dropShadow, setDropShadow] = useState<Shadow | null>(selectedLayer?.shadow || null);
-  const [innerShadow, setInnerShadow] = useState<Shadow | null>(null);
-  const [outerGlow, setOuterGlow] = useState<any>(null);
-  const [innerGlow, setInnerGlow] = useState<any>(null);
-  const [colorOverlay, setColorOverlay] = useState<any>(null);
-  const [gradientOverlay, setGradientOverlay] = useState<any>(null);
   const [stroke, setStroke] = useState<Stroke | null>(selectedLayer?.stroke || null);
 
   const handleAddDropShadow = useCallback(() => {

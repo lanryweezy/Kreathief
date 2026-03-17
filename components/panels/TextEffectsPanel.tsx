@@ -15,7 +15,7 @@ interface TextEffectsPanelProps {
       flicker: boolean;
     };
   };
-  onChange: (effects: any) => void;
+  onChange: (effects: object) => void;
 }
 
 export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}, onChange }) => {
