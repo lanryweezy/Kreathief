@@ -8,6 +8,7 @@ import { ScrollShowcase } from './landing/ScrollShowcase';
 import { TemplateGallery } from './landing/TemplateGallery';
 import { ComparisonSection } from './landing/ComparisonSection';
 import { Stats, Pricing } from './landing/StatsAndPricing';
+import { FAQSection } from './landing/FAQSection';
 import { BlogPreview, Footer } from './landing/BlogAndFooter';
 import { SEO } from './SEO';
 
@@ -92,6 +93,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
         <Stats />
         <Pricing onPlanSelect={onGetStarted} />
+        <FAQSection />
         <BlogPreview />
       </main>
 

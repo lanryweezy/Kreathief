@@ -69,4 +69,7 @@ import fs from 'fs';
     fs.writeFileSync('error_dump.txt', 'ERROR/TIMEOUT BODY:\n' + body);
   }
   await browser.close();
-})();
+})().catch((e) => {
+  // Ignore cleanup errors - eslint-disable-next-line no-empty
+  console.debug('Cleanup error:', e);
+});

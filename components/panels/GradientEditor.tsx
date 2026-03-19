@@ -27,7 +27,7 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({ gradient, onChan
   const [selectedStop, setSelectedStop] = useState<number | null>(null);
 
   const handleAddStop = useCallback(() => {
-    if (stops.length >= 10) return;
+    if (stops.length >= 10) {return;}
     const newStop: GradientStop = {
       color: '#ffffff',
       position: 50,
@@ -40,7 +40,7 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({ gradient, onChan
 
   const handleRemoveStop = useCallback(
     (index: number) => {
-      if (stops.length <= 2) return;
+      if (stops.length <= 2) {return;}
       const newStops = stops.filter((_, i) => i !== index);
       setStops(newStops);
       onChange({ type, angle, stops: newStops });

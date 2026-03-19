@@ -257,7 +257,7 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
                   <Icons.Search className="w-8 h-8 text-gray-600" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">No templates found</h3>
-                <p className="text-gray-500 text-sm max-w-xs">Try adjusting your search or category filters to find what you're looking for.</p>
+                <p className="text-gray-500 text-sm max-w-xs">Try adjusting your search or category filters to find what you&apos;re looking for.</p>
                 <button 
                   onClick={() => { setSearchQuery(''); setActiveCategory('All'); }}
                   className="mt-6 text-[#7d2ae8] text-sm font-bold hover:underline"

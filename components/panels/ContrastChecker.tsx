@@ -20,14 +20,14 @@ export const ContrastChecker: React.FC<ContrastCheckerProps> = ({
   const suggestedColor = useMemo(() => getAccessibleTextColor(backgroundColor), [backgroundColor]);
 
   const getRatingColor = () => {
-    if (wcagResult.AAA) return 'text-green-400';
-    if (wcagResult.AA) return 'text-yellow-400';
+    if (wcagResult.AAA) {return 'text-green-400';}
+    if (wcagResult.AA) {return 'text-yellow-400';}
     return 'text-red-400';
   };
 
   const getRatingIcon = () => {
-    if (wcagResult.AAA) return '✓✓✓';
-    if (wcagResult.AA) return '✓✓';
+    if (wcagResult.AAA) {return '✓✓✓';}
+    if (wcagResult.AA) {return '✓✓';}
     return '✗';
   };
 

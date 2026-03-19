@@ -28,7 +28,7 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
   );
 
   const handleAddStop = useCallback(() => {
-    if (colors.length >= 10) return;
+    if (colors.length >= 10) {return;}
     const newStop: GradientStop = { color: '#ffffff', position: 50 };
     const newColors = [...colors, newStop].sort((a, b) => a.position - b.position);
     setColors(newColors);
@@ -37,7 +37,7 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
 
   const handleRemoveStop = useCallback(
     (index: number) => {
-      if (colors.length <= 2) return;
+      if (colors.length <= 2) {return;}
       const newColors = colors.filter((_, i) => i !== index);
       setColors(newColors);
       onChange({ enabled, type, angle, colors: newColors });

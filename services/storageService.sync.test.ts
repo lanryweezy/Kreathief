@@ -23,7 +23,7 @@ vi.mock('../authService', () => ({
 }));
 
 // Mock IndexedDB
-const mockIDB = {
+const _mockIDB = {
   transaction: vi.fn().mockReturnValue({
     objectStore: vi.fn().mockReturnValue({
       put: vi.fn(),

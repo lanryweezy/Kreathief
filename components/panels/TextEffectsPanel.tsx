@@ -1,5 +1,4 @@
 import React, { useState, useCallback } from 'react';
-import { Icons } from '../../constants';
 
 interface TextEffectsPanelProps {
   effects?: {

@@ -1,16 +1,14 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Icons } from '../../constants';
 
 interface TextOnPathProps {
   text?: string;
-  path?: string;
   curvature?: number;
   onApply: (options: { text: string; path: string; curvature: number }) => void;
 }
 
 export const TextOnPath: React.FC<TextOnPathProps> = ({
   text = 'Curved Text',
-  path = 'arc',
   curvature = 50,
   onApply,
 }) => {
@@ -43,7 +41,7 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({
         return `M ${centerX} ${centerY - radius} A ${radius} ${radius} 0 1 1 ${centerX} ${centerY + radius} A ${radius} ${radius} 0 1 1 ${centerX} ${centerY - radius}`;
       case 'wave':
         return `M 0 ${centerY} Q ${width / 4} ${centerY - curvatureValue} ${width / 2} ${centerY} T ${width} ${centerY}`;
-      case 'spiral':
+      case 'spiral': {
         let spiral = `M ${centerX} ${centerY}`;
         for (let i = 0; i < 720; i += 10) {
           const angle = (i * Math.PI) / 180;
@@ -53,6 +51,7 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({
           spiral += ` L ${x} ${y}`;
         }
         return spiral;
+      }
       default:
         return '';
     }
@@ -60,7 +59,7 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({
 
   // Generate curved text for preview
   const curvedTextPreview = useMemo(() => {
-    if (pathType !== 'arc') return inputText;
+    if (pathType !== 'arc') {return inputText;}
     
     const chars = inputText.split('');
     const totalAngle = (curvatureValue / 100) * 120 * (chars.length / 10);

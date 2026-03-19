@@ -98,8 +98,20 @@ export const Footer: React.FC = () => {
                     <div>
                         <h4 className="text-xs font-black text-white uppercase tracking-[0.3em] mb-8">Platform</h4>
                         <ul className="space-y-4">
-                            {['Design Tool', 'AI Studio', 'Features', 'Templates', 'API'].map((link) => (
-                                <li key={link}><a href="#" className="text-gray-500 hover:text-white transition-colors text-sm font-medium">{link}</a></li>
+                            {[
+                                { label: 'Design Tool', href: '/editor' },
+                                { label: 'AI Studio', href: '/dashboard' },
+                                { label: 'Features', href: '/#features' },
+                                { label: 'Templates', href: '/dashboard' },
+                                { label: 'API', href: '/api' }
+                            ].map((item) => (
+                                <li key={item.label}>
+                                    {item.href.startsWith('/') ? (
+                                        <Link to={item.href} className="text-gray-500 hover:text-white transition-colors text-sm font-medium">{item.label}</Link>
+                                    ) : (
+                                        <a href={item.href} className="text-gray-500 hover:text-white transition-colors text-sm font-medium">{item.label}</a>
+                                    )}
+                                </li>
                             ))}
                         </ul>
                     </div>
@@ -107,8 +119,20 @@ export const Footer: React.FC = () => {
                     <div>
                         <h4 className="text-xs font-black text-white uppercase tracking-[0.3em] mb-8">Resources</h4>
                         <ul className="space-y-4">
-                            {['Help Center', 'Blog', 'Tutorials', 'Changelog', 'Status'].map((link) => (
-                                <li key={link}><a href="#" className="text-gray-500 hover:text-white transition-colors text-sm font-medium">{link}</a></li>
+                            {[
+                                { label: 'Help Center', href: '/help' },
+                                { label: 'Blog', href: '/blog' },
+                                { label: 'Tutorials', href: '/blog' },
+                                { label: 'Changelog', href: '/changelog' },
+                                { label: 'Status', href: 'https://status.kreathief.com' }
+                            ].map((item) => (
+                                <li key={item.label}>
+                                    {item.href.startsWith('/') ? (
+                                        <Link to={item.href} className="text-gray-500 hover:text-white transition-colors text-sm font-medium">{item.label}</Link>
+                                    ) : (
+                                        <a href={item.href} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition-colors text-sm font-medium">{item.label}</a>
+                                    )}
+                                </li>
                             ))}
                         </ul>
                     </div>
@@ -116,8 +140,20 @@ export const Footer: React.FC = () => {
                     <div>
                         <h4 className="text-xs font-black text-white uppercase tracking-[0.3em] mb-8">Company</h4>
                         <ul className="space-y-4">
-                            {['About', 'Privacy', 'Terms', 'Security', 'Contact'].map((link) => (
-                                <li key={link}><a href="#" className="text-gray-500 hover:text-white transition-colors text-sm font-medium">{link}</a></li>
+                            {[
+                                { label: 'About', href: '/about' },
+                                { label: 'Privacy', href: '/privacy' },
+                                { label: 'Terms', href: '/terms' },
+                                { label: 'Security', href: '/security' },
+                                { label: 'Contact', href: '/contact' }
+                            ].map((item) => (
+                                <li key={item.label}>
+                                    {item.href.startsWith('/') ? (
+                                        <Link to={item.href} className="text-gray-500 hover:text-white transition-colors text-sm font-medium">{item.label}</Link>
+                                    ) : (
+                                        <a href={item.href} className="text-gray-500 hover:text-white transition-colors text-sm font-medium">{item.label}</a>
+                                    )}
+                                </li>
                             ))}
                         </ul>
                     </div>

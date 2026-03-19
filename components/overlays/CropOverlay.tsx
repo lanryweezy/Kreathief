@@ -52,11 +52,6 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
       if (cropAspectRatio) {
         // Enforce aspect ratio
         if (isResizing === 'e' || isResizing === 'w' || isResizing.includes('e') || isResizing.includes('w')) {
-          let deltaX = dx;
-          if (isResizing.includes('w')) {
-            deltaX = -deltaX;
-          }
-
           if (isResizing === 'e') {
             newArea.width = Math.max(10, startArea.width + dx);
             newArea.height = newArea.width / cropAspectRatio;

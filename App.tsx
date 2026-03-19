@@ -15,6 +15,7 @@ import { BlogList } from './components/blog/BlogList';
 import { BlogPostView } from './components/blog/BlogPostView';
 import { SEO } from './components/SEO';
 import { FeedbackModal } from './components/modals/FeedbackModal';
+import { AboutPage, PrivacyPage, TermsPage, SecurityPage, ContactPage, HelpCenterPage, ChangelogPage, APIPage } from './components/pages/StaticPages';
 
 // Lazy load main views for code splitting
 const Auth = React.lazy(() => import('./components/Auth').then((module) => ({ default: module.Auth })));
@@ -200,6 +201,15 @@ const App: React.FC = () => {
           />
           <Route path="/blog" element={<BlogList />} />
           <Route path="/blog/:id" element={<BlogPostView />} />
+          
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/security" element={<SecurityPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/help" element={<HelpCenterPage />} />
+          <Route path="/changelog" element={<ChangelogPage />} />
+          <Route path="/api" element={<APIPage />} />
         </Routes>
 
         {location.pathname === '/dashboard' && user && showWelcome && (

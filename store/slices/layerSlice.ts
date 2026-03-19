@@ -512,10 +512,12 @@ export const createLayerSlice: StateCreator<any, [], [], LayerSlice> = (set, get
     const { selectedLayerIds, activeArtboardId } = get();
     if (selectedLayerIds.length < 2) {return;}
     get().saveToHistory?.();
-    
+
     const newGroupId = `group_${Date.now()}`;
-    const groupName = `Group ${get().artboards.find((a: Artboard) => a.id === activeArtboardId)?.layers.filter((l: Layer) => l.groupId === newGroupId).length! + 1}`;
-    
+    const activeArtboard = get().artboards.find((a: Artboard) => a.id === activeArtboardId);
+    const groupCount = activeArtboard?.layers.filter((l: Layer) => l.groupId === newGroupId).length ?? 0;
+    const groupName = `Group ${groupCount + 1}`;
+
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => {
         if (a.id !== activeArtboardId) {return a;}
@@ -577,18 +579,18 @@ export const createLayerSlice: StateCreator<any, [], [], LayerSlice> = (set, get
         
         // Get all unique group IDs to ungroup
         const groupIdsToUngroup = [...new Set(layersToUngroup.map((l: Layer) => l.groupId!))];
-        
+
         // Remove group markers and remove groupId from layers
         const newLayers = a.layers
           .filter((l: Layer) => !groupIdsToUngroup.includes(l.id)) // Remove group markers
           .map((l: Layer) => {
             if (groupIdsToUngroup.includes(l.groupId!)) {
-              const { groupId, ...rest } = l;
+              const { groupId: _groupId, ...rest } = l;
               return rest as Layer;
             }
             return l;
           });
-        
+
         return { ...a, layers: newLayers };
       }),
       selectedLayerIds: [],

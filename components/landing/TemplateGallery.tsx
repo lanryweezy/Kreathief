@@ -4,12 +4,27 @@ import { Icons } from '../../constants';
 
 export const TemplateGallery: React.FC = () => {
     const templates = [
-        { id: 1, src: '/images/template_thumb_1_1772615134954.png', style: 'col-span-1 row-span-2' },
-        { id: 2, src: '/images/template_thumb_2_1772615154321.png', style: 'col-span-1 row-span-1' },
-        { id: 3, src: '/images/template_thumb_3_1772615229047.png', style: 'col-span-1 row-span-1' },
-        { id: 4, src: '/images/template_thumb_4_1772615492900.png', style: 'col-span-1 row-span-2' },
-        { id: 5, src: '/images/template_thumb_5_1772615512770.png', style: 'col-span-2 row-span-1' },
-        { id: 6, src: '/images/template_thumb_6_1772615671327.png', style: 'col-span-1 row-span-1' },
+        // Original Templates
+        { id: 1, src: '/images/template_thumb_1_1772615134954.png', style: 'md:col-span-1 md:row-span-2' },
+        { id: 2, src: '/images/template_thumb_2_1772615154321.png', style: 'md:col-span-1 md:row-span-1' },
+        { id: 3, src: '/images/template_thumb_3_1772615229047.png', style: 'md:col-span-1 md:row-span-1' },
+        { id: 4, src: '/images/template_thumb_4_1772615492900.png', style: 'md:col-span-1 md:row-span-2' },
+        { id: 5, src: '/images/template_thumb_5_1772615512770.png', style: 'md:col-span-2 md:row-span-1' },
+        { id: 6, src: '/images/template_thumb_6_1772615671327.png', style: 'md:col-span-1 md:row-span-1' },
+        
+        // New Templates
+        { id: 7, src: '/images/template_cyberpunk.png', style: 'md:col-span-1 md:row-span-2' },
+        { id: 8, src: '/images/template_minimalist.png', style: 'md:col-span-1 md:row-span-1' },
+        { id: 9, src: '/images/template_abstract.png', style: 'md:col-span-1 md:row-span-1' },
+        { id: 10, src: '/images/template_retro.png', style: 'md:col-span-1 md:row-span-2' },
+        { id: 11, src: '/images/template_fashion.png', style: 'md:col-span-2 md:row-span-1' },
+        { id: 12, src: '/images/template_hitech.png', style: 'md:col-span-1 md:row-span-1' },
+        { id: 13, src: '/images/template_cute.png', style: 'md:col-span-1 md:row-span-1' },
+        
+        // Requested by User
+        { id: 14, src: '/images/template_business.png', style: 'md:col-span-1 md:row-span-2' },
+        { id: 15, src: '/images/template_church.png', style: 'md:col-span-1 md:row-span-1' },
+        { id: 16, src: '/images/template_club.png', style: 'md:col-span-2 md:row-span-1' },
     ];
 
     return (
@@ -47,7 +62,7 @@ export const TemplateGallery: React.FC = () => {
                     </motion.button>
                 </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-4 auto-rows-[250px] gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 auto-rows-[250px] gap-6">
                     {templates.map((tpl, idx) => (
                         <motion.div
                             key={tpl.id}

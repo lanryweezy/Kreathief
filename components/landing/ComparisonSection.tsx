@@ -100,6 +100,8 @@ export const ComparisonSection: React.FC = () => {
                     </motion.div>
 
                 </div>
+
+
             </div>
         </section>
     );

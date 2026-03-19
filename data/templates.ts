@@ -1,4 +1,4 @@
-import { CanvasSize, HistoryState, Project } from '../types';
+import { CanvasSize, Project } from '../types';
 
 export interface StarterTemplate {
   id: string;
@@ -6,11 +6,19 @@ export interface StarterTemplate {
   category: 'Social' | 'Video' | 'Business' | 'Personal';
   description: string;
   size: CanvasSize;
-  state: HistoryState;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  state: any;
 }
 
-const baseState = (_size: CanvasSize): Omit<HistoryState, 'canvasSize'> => ({
-  layers: [],
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const baseState = (size: CanvasSize): any => ({
+  artboards: [{
+    id: 'default-artboard',
+    name: 'Artboard',
+    layers: [],
+    canvasSize: size,
+  }],
+  activeArtboardId: 'default-artboard',
   canvasBackgroundColor: '#0f172a',
   canvasFilters: {
     brightness: 100,

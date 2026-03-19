@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Icons } from '../../constants';
-import { Layer, Shadow, Stroke } from '../../types';
+import { Layer, Shadow, Stroke, AdvancedShadow } from '../../types';
 import { useStore } from '../../store/useStore';
 
 interface LayerEffectsPanelProps {
@@ -11,8 +11,8 @@ export const LayerEffectsPanel: React.FC<LayerEffectsPanelProps> = ({ selectedLa
   const updateLayer = useStore((state) => state.updateLayer);
   const addToast = useStore((state) => state.addToast);
 
-  const [dropShadow, setDropShadow] = useState<Shadow | null>(selectedLayer?.shadow || null);
-  const [stroke, setStroke] = useState<Stroke | null>(selectedLayer?.stroke || null);
+  const [dropShadow, setDropShadow] = useState<Shadow | undefined>(selectedLayer?.shadow);
+  const [stroke, setStroke] = useState<Stroke | undefined>(selectedLayer?.stroke);
 
   const handleAddDropShadow = useCallback(() => {
     const newShadow: Shadow = {
@@ -29,9 +29,9 @@ export const LayerEffectsPanel: React.FC<LayerEffectsPanelProps> = ({ selectedLa
   }, [selectedLayer, updateLayer, addToast]);
 
   const handleRemoveDropShadow = useCallback(() => {
-    setDropShadow(null);
+    setDropShadow(undefined);
     if (selectedLayer) {
-      updateLayer(selectedLayer.id, { shadow: null });
+      updateLayer(selectedLayer.id, { shadow: undefined });
       addToast('Drop shadow removed', 'info');
     }
   }, [selectedLayer, updateLayer, addToast]);
@@ -50,9 +50,9 @@ export const LayerEffectsPanel: React.FC<LayerEffectsPanelProps> = ({ selectedLa
   }, [selectedLayer, updateLayer, addToast]);
 
   const handleRemoveStroke = useCallback(() => {
-    setStroke(null);
+    setStroke(undefined);
     if (selectedLayer) {
-      updateLayer(selectedLayer.id, { stroke: null });
+      updateLayer(selectedLayer.id, { stroke: undefined });
       addToast('Stroke removed', 'info');
     }
   }, [selectedLayer, updateLayer, addToast]);
@@ -120,15 +120,15 @@ export const LayerEffectsPanel: React.FC<LayerEffectsPanelProps> = ({ selectedLa
             <div>
               <div className="flex justify-between text-[9px] text-gray-500 mb-1">
                 <span>Opacity</span>
-                <span>{Math.round((dropShadow.opacity || 1) * 100)}%</span>
+                <span>{Math.round(((dropShadow as AdvancedShadow).opacity || 1) * 100)}%</span>
               </div>
               <input
                 type="range"
                 min="0"
                 max="100"
-                value={(dropShadow.opacity || 1) * 100}
+                value={((dropShadow as AdvancedShadow).opacity || 1) * 100}
                 onChange={(e) => {
-                  const updated = { ...dropShadow, opacity: parseInt(e.target.value) / 100 };
+                  const updated = { ...dropShadow, opacity: parseInt(e.target.value) / 100 } as AdvancedShadow;
                   setDropShadow(updated);
                   updateLayer(selectedLayer.id, { shadow: updated });
                 }}

@@ -146,7 +146,7 @@ export const Features: React.FC = () => {
                             </div>
                             <h3 className="text-3xl font-black mb-4 tracking-tight text-white">Real-Time Multiplayer</h3>
                             <p className="text-gray-400 font-medium leading-relaxed mb-6">
-                                Invite your team, share cursor presence, and edit the same document simultaneously without conflicts. Never send a "vFinal_final.psd" again.
+                                Invite your team, share cursor presence, and edit the same document simultaneously without conflicts. Never send a &quot;vFinal_final.psd&quot; again.
                             </p>
                         </div>
 

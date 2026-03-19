@@ -151,7 +151,7 @@ export const TextStylesPanel: React.FC<TextStylesPanelProps> = ({
   const [styleName, setStyleName] = useState('');
 
   const handleSaveStyle = useCallback(() => {
-    if (!styleName.trim() || !currentStyle) return;
+    if (!styleName.trim() || !currentStyle) {return;}
 
     const newStyle: TextStyle = {
       id: `custom-${Date.now()}`,
@@ -252,8 +252,8 @@ export const TextStylesPanel: React.FC<TextStylesPanelProps> = ({
               className="w-full bg-[#252627] border border-gray-600 rounded px-3 py-2 text-sm text-white mb-4"
               autoFocus
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSaveStyle();
-                if (e.key === 'Escape') setShowSaveModal(false);
+                if (e.key === 'Enter') {handleSaveStyle();}
+                if (e.key === 'Escape') {setShowSaveModal(false);}
               }}
             />
             <div className="flex gap-2">

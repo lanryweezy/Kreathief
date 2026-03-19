@@ -94,3 +94,5 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, onTogg
   );
 });
 
+Sidebar.displayName = 'Sidebar';
+

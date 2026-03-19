@@ -160,7 +160,9 @@ export const CompactInput = React.memo(
         try {
           const result = eval(e.currentTarget.value.replace(/[^-()\d/*+.]/g, ''));
           if (!isNaN(result)) {onChange({ target: { value: result } } as any);}
-        } catch {}
+        } catch {
+          // Ignore invalid expressions
+        }
         e.currentTarget.blur();
       }
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {

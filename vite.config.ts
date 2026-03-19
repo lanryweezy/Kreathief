@@ -10,7 +10,9 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         onwarn(warning, warn) {
           // Suppress specific warnings for onnxruntime-web
-          if (warning.code === 'UNRESOLVED_IMPORT' && warning.message.includes('onnxruntime-web')) return;
+          if (warning.code === 'UNRESOLVED_IMPORT' && warning.message.includes('onnxruntime-web')) {
+            return;
+          }
           warn(warning);
         },
         output: {

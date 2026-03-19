@@ -253,7 +253,9 @@ export const useEditorLogic = (initialProject?: Project) => {
             case 'intersect': resultPath = BooleanOperations.intersect(resultPath, globalPaths[i]!); break;
             case 'exclude': resultPath = BooleanOperations.exclude(resultPath, globalPaths[i]!); break;
             }
-        } catch (e) { }
+        } catch (e) {
+          // Ignore boolean operation errors
+        }
     }
     setBooleanPreview({ path: VectorUtils.serializePath(resultPath), operation });
   };

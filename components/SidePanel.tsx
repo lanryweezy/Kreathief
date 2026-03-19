@@ -18,7 +18,7 @@ const ElementsPanel = React.lazy(() => import('./panels/ElementsPanel'));
 const TextPanel = React.lazy(() => import('./panels/TextPanel'));
 const UploadsPanel = React.lazy(() => import('./panels/UploadsPanel'));
 const AssetsPanel = React.lazy(() => import('./panels/AssetsPanel'));
-const TextEffectsPanel = React.lazy(() => import('./panels/TextEffectsPanel'));
+const TextEffectsPanel = React.lazy(() => import('./panels/TextEffectsPanel').then(module => ({ default: module.TextEffectsPanel })));
 const ArrangePanel = React.lazy(() => import('./panels/ArrangePanel'));
 const ComponentsPanel = React.lazy(() => import('./panels/ComponentsPanel'));
 const CommentsPanel = React.lazy(() => import('./panels/CommentsPanel'));
@@ -67,9 +67,6 @@ export const SidePanel = React.memo(
     const selectedLayer = layers?.find((l: any) => l?.id === selectedLayerId) || null;
     const selectedTextLayer = selectedLayer?.type === 'text' ? (selectedLayer as TextLayer) : null;
 
-    // Helper actions moved internal
-    const onUpdateTextLayer = (id: string, changes: Partial<TextLayer>) => updateLayer(id, changes);
-
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     return (
@@ -94,7 +91,7 @@ export const SidePanel = React.memo(
               {activeTab === NavTab.PHOTOS && <AssetsPanel />}
 
               {activeTab === NavTab.TEXT_EFFECTS && selectedTextLayer && (
-                <TextEffectsPanel selectedLayer={selectedTextLayer} onUpdateLayer={onUpdateTextLayer} />
+                <TextEffectsPanel effects={{}} onChange={() => {}} />
               )}
 
               {activeTab === NavTab.TEXT_EFFECTS && !selectedTextLayer && (

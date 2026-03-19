@@ -57,7 +57,7 @@ export const FindReplaceText: React.FC = () => {
   // Replace in specific layer
   const handleReplaceInLayer = useCallback((layerId: string) => {
     const layer = allTextLayers.find(l => l.id === layerId);
-    if (!layer) return;
+    if (!layer) {return;}
 
     const flags = isCaseSensitive ? 'g' : 'gi';
     const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
@@ -72,7 +72,7 @@ export const FindReplaceText: React.FC = () => {
 
   // Replace all
   const handleReplaceAll = useCallback(() => {
-    if (!findText.trim()) return;
+    if (!findText.trim()) {return;}
 
     const flags = isCaseSensitive ? 'g' : 'gi';
     const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);

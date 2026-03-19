@@ -69,7 +69,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose, onStartTour
             onClick={onClose}
             className="w-full py-3 bg-transparent hover:bg-gray-800 text-gray-400 hover:text-white rounded-xl font-medium transition-all"
           >
-            I'll figure it out myself
+            I&apos;ll figure it out myself
           </button>
         </div>
       </div>

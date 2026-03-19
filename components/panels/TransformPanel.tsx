@@ -21,12 +21,12 @@ export const TransformPanel: React.FC = () => {
       return;
     }
 
-    const updates: Partial<Layer>[] = [];
+    const updates: Record<string, Partial<Layer>> = {};
     const reference = selectedLayers[0] as any;
 
     selectedLayers.forEach((layer) => {
-      const update: Partial<Layer> = { id: layer.id };
       const layerAny = layer as any;
+      const update: Partial<Layer> = {};
 
       switch (type) {
         case 'left':
@@ -48,8 +48,8 @@ export const TransformPanel: React.FC = () => {
           update.y = reference.y + reference.height - layerAny.height;
           break;
       }
-      
-      updates.push(update);
+
+      updates[layer.id] = update;
     });
 
     updateLayers(updates);
@@ -78,22 +78,22 @@ export const TransformPanel: React.FC = () => {
 
     const gap = (totalSpace - totalLayerSize) / (sorted.length - 1);
 
-    const updates: Partial<Layer>[] = [];
+    const updates: Record<string, Partial<Layer>> = {};
     let currentPosition = type === 'horizontal' ? (first as any).x : (first as any).y;
 
     sorted.forEach((layer, index) => {
-      if (index === 0) return; // Skip first layer
-      
-      const update: Partial<Layer> = { id: layer.id };
+      if (index === 0) {return;} // Skip first layer
+
+      const update: Partial<Layer> = {};
       const layerSize = type === 'horizontal' ? (layer as any).width : (layer as any).height;
-      
+
       if (type === 'horizontal') {
         update.x = currentPosition + gap;
       } else {
         update.y = currentPosition + gap;
       }
-      
-      updates.push(update);
+
+      updates[layer.id] = update;
       currentPosition += layerSize + gap;
     });
 
@@ -107,11 +107,14 @@ export const TransformPanel: React.FC = () => {
       return;
     }
 
-    const updates = selectedLayers.map(layer => ({
-      id: layer.id,
-      flipX: axis === 'horizontal' ? !(layer as any).flipX : (layer as any).flipX,
-      flipY: axis === 'vertical' ? !(layer as any).flipY : (layer as any).flipY,
-    }));
+    const updates: Record<string, Partial<Layer>> = {};
+    selectedLayers.forEach(layer => {
+      const layerAny = layer as any;
+      updates[layer.id] = {
+        flipX: axis === 'horizontal' ? !layerAny.flipX : layerAny.flipX,
+        flipY: axis === 'vertical' ? !layerAny.flipY : layerAny.flipY,
+      };
+    });
 
     updateLayers(updates);
     addToast(`Flipped ${selectedLayers.length} layers ${axis}`, 'success');
@@ -133,7 +136,7 @@ export const TransformPanel: React.FC = () => {
               type="number"
               value={Math.round(selectedLayers[0].x)}
               onChange={(e) => {
-                updateLayers([{ id: selectedLayers[0].id, x: parseInt(e.target.value) }]);
+                updateLayers({ [selectedLayers[0].id]: { x: parseInt(e.target.value) } });
               }}
               className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1 text-xs text-white"
             />
@@ -144,7 +147,7 @@ export const TransformPanel: React.FC = () => {
               type="number"
               value={Math.round(selectedLayers[0].y)}
               onChange={(e) => {
-                updateLayers([{ id: selectedLayers[0].id, y: parseInt(e.target.value) }]);
+                updateLayers({ [selectedLayers[0].id]: { y: parseInt(e.target.value) } });
               }}
               className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1 text-xs text-white"
             />
@@ -155,7 +158,7 @@ export const TransformPanel: React.FC = () => {
               type="number"
               value={Math.round(selectedLayers[0].width)}
               onChange={(e) => {
-                updateLayers([{ id: selectedLayers[0].id, width: parseInt(e.target.value) }]);
+                updateLayers({ [selectedLayers[0].id]: { width: parseInt(e.target.value) } });
               }}
               className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1 text-xs text-white"
             />
@@ -166,7 +169,7 @@ export const TransformPanel: React.FC = () => {
               type="number"
               value={Math.round(selectedLayers[0].height)}
               onChange={(e) => {
-                updateLayers([{ id: selectedLayers[0].id, height: parseInt(e.target.value) }]);
+                updateLayers({ [selectedLayers[0].id]: { height: parseInt(e.target.value) } });
               }}
               className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1 text-xs text-white"
             />

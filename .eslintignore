@@ -9,6 +9,6 @@ coverage
 Thumbs.db
 *.local
 .env
-.env.local
 .env.*.local
 *.tsbuildinfo
+debug_error.ts
