@@ -22,23 +22,27 @@ export class AuthService {
     }
 
     // Listen to Supabase auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
       log.info('[AuthService] Auth state changed', { event, hasSession: !!session });
-      
+
       if (session?.user) {
         // Fetch profile from Supabase
-        this.fetchProfile(session.user.id).then(profile => {
-          const user: User = {
-            id: session.user.id,
-            email: session.user.email || '',
-            name: profile?.name || session.user.email?.split('@')[0] || 'User',
-            plan: profile?.plan || 'free',
-          };
-          onAuthChange(user);
-        }).catch(err => {
-          log.error('[AuthService] Failed to fetch profile', err);
-          onAuthChange(null);
-        });
+        this.fetchProfile(session.user.id)
+          .then((profile) => {
+            const user: User = {
+              id: session.user.id,
+              email: session.user.email || '',
+              name: profile?.name || session.user.email?.split('@')[0] || 'User',
+              plan: profile?.plan || 'free',
+            };
+            onAuthChange(user);
+          })
+          .catch((err) => {
+            log.error('[AuthService] Failed to fetch profile', err);
+            onAuthChange(null);
+          });
       } else {
         onAuthChange(null);
       }
@@ -53,17 +57,13 @@ export class AuthService {
    */
   private async fetchProfile(userId: string): Promise<any> {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-      
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+
       if (error) {
         log.debug('[AuthService] Profile not found, will be created on first save', { userId });
         return null;
       }
-      
+
       return data;
     } catch (err) {
       log.error('[AuthService] Error fetching profile', err);
@@ -102,9 +102,7 @@ export class AuthService {
         plan: 'free',
       };
 
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert(profileInsert);
+      const { error: profileError } = await supabase.from('profiles').insert(profileInsert);
 
       if (profileError) {
         logger.error('Failed to create profile', { error: profileError.message });
@@ -126,15 +124,15 @@ export class AuthService {
 
   /**
    * Sign in with email and password
-   * 
+   *
    * DEVELOPMENT MODE: Uses QA bypass for testing
    * PRODUCTION MODE: Uses real Supabase authentication
    */
   async signIn(email: string, password: string): Promise<AuthResult> {
     try {
       // Check if we should use QA bypass (development only)
-      const useQABypass = true; // import.meta.env.DEV && import.meta.env.VITE_USE_QA_BYPASS === 'true';
-      
+      const useQABypass = import.meta.env.DEV && import.meta.env.VITE_QA_BYPASS === 'true';
+
       if (useQABypass) {
         log.info('[AuthService] Using QA bypass for development', { email });
         const mockUser: User = {
@@ -165,7 +163,7 @@ export class AuthService {
 
       // Fetch profile
       const profile = await this.fetchProfile(data.user.id);
-      
+
       const user: User = {
         id: data.user.id,
         email: data.user.email || email,
@@ -213,10 +211,10 @@ export class AuthService {
     try {
       // Clear QA bypass if exists
       localStorage.removeItem('kreathief_qa_session');
-      
+
       // Sign out from Supabase
       await supabase.auth.signOut();
-      
+
       log.info('[AuthService] User signed out');
     } catch (err) {
       log.error('[AuthService] Sign out error', err);
@@ -237,15 +235,17 @@ export class AuthService {
       }
 
       // Check Supabase session
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (!session?.user) {
         return null;
       }
 
       // Fetch profile
       const profile = await this.fetchProfile(session.user.id);
-      
+
       const user: User = {
         id: session.user.id,
         email: session.user.email || '',
@@ -263,14 +263,14 @@ export class AuthService {
 
   /**
    * Listen for auth changes
-   * 
+   *
    * DEVELOPMENT: Returns empty function if using QA bypass
    * PRODUCTION: Listens to Supabase auth state changes
    */
   onAuthChange(callback: (user: User | null) => void): () => void {
     // Check if using QA bypass
-    const useQABypass = true; // import.meta.env.DEV && import.meta.env.VITE_USE_QA_BYPASS === 'true';
-    
+    const useQABypass = import.meta.env.DEV && import.meta.env.VITE_QA_BYPASS === 'true';
+
     if (useQABypass) {
       log.debug('[AuthService] QA bypass active - skipping Supabase auth listener');
       return () => {}; // Return empty unsubscribe function
@@ -285,16 +285,15 @@ export class AuthService {
    */
   async updateProfile(updates: Partial<Profile>): Promise<{ error: string | null }> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (!user) {
         return { error: 'Not authenticated' };
       }
 
-      const { error } = await (supabase as any)
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id);
+      const { error } = await (supabase as any).from('profiles').update(updates).eq('id', user.id);
 
       if (error) {
         logger.error('Profile update failed', { error: error.message });
