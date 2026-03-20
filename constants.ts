@@ -1,7 +1,6 @@
-// Models
-export const MODEL_FAST = 'gemini-2.5-flash-image';
-export const MODEL_PRO = 'gemini-3-pro-image-preview';
-
+// Stable model endpoints for generation
+export const MODEL_FAST = 'nano-banana-pro-preview';
+export const MODEL_PRO = 'nano-banana-pro-preview';
 // Default Configuration
 export const DEFAULT_ASPECT_RATIO = '1:1';
 export const CANVAS_W = 1080;

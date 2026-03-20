@@ -182,7 +182,7 @@ export const generateText = async (
 ): Promise<string> => {
   try {
     const ai = ensureClient();
-    const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     // Improved system prompt to ensure formatting
     const systemInstruction = `You are a creative copywriter. ${instruction}\nMaintain the original language. Keep it concise. Return ONLY the rewritten text without quotes or explanations.`;
@@ -213,7 +213,7 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
   try {
     const ai = ensureClient();
     const model = ai.getGenerativeModel({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -244,7 +244,7 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
 export const enhancePrompt = async (simplePrompt: string): Promise<string> => {
   try {
     const ai = ensureClient();
-    const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const response = await model.generateContent({
       contents: [
         {
@@ -283,7 +283,7 @@ export const generateDesignTheme = async (prompt: string): Promise<DesignTheme> 
     `;
 
     const model = ai.getGenerativeModel({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -339,7 +339,7 @@ export const analyzeDesign = async (base64Image: string, query: string): Promise
       { inlineData: { mimeType, data } },
     ];
 
-    const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const response = await model.generateContent({
       contents: [{ role: 'user', parts }],
     });
@@ -369,7 +369,7 @@ export const generateLayout = async (prompt: string): Promise<any> => {
     `;
 
     const model = ai.getGenerativeModel({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -439,7 +439,7 @@ export const generateSVGShape = async (prompt: string): Promise<string> => {
       Assume a viewBox of 0 0 100 100.
     `;
 
-    const model = ai.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+    const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const response = await model.generateContent({
       contents: [
         {
@@ -558,7 +558,7 @@ export const optimizeLayout = async (layers: any[], canvasWidth: number, canvasH
     `;
 
     const model = ai.getGenerativeModel({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {

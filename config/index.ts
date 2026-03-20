@@ -6,11 +6,11 @@
 // Environment variables with validation
 const getEnv = (key: string, defaultValue?: string): string => {
   const value = import.meta.env[key] || defaultValue;
-  
+
   if (value === undefined) {
     throw new Error(`Missing required environment variable: ${key}`);
   }
-  
+
   return value;
 };
 
@@ -41,7 +41,7 @@ export const config = {
   ai: {
     gemini: {
       apiKey: getOptionalEnv('VITE_GEMINI_API_KEY'),
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.5-flash',
       maxRetries: 3,
       timeout: 30000,
     },
