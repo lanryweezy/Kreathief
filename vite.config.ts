@@ -5,6 +5,9 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
   return {
     plugins: [react()],
+    worker: {
+      format: 'es',
+    },
     build: {
       sourcemap: false,
       rollupOptions: {
