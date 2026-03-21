@@ -20,13 +20,5 @@
         }
       ]
     }
-  ],
-  "env": {
-    "VITE_USE_QA_BYPASS": "false",
-    "VITE_SUPABASE_URL": "@supabase_url",
-    "VITE_SUPABASE_ANON_KEY": "@supabase_anon_key",
-    "VITE_GEMINI_API_KEY": "@gemini_api_key",
-    "VITE_DYNAMIC_MOCKUPS_API_KEY": "@dynamic_mockups_key",
-    "VITE_VECTEEZY_API_KEY": "@vecteezy_api_key"
-  }
+  ]
 }
