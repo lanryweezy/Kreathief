@@ -69,7 +69,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
                     transition={{ duration: 0.8, delay: 0.3 }}
                     className="text-lg md:text-2xl text-gray-400 max-w-3xl text-center mb-14 leading-relaxed font-medium"
                 >
-                    Stop fighting clunky software. Generate, edit, and orchestrate million-dollar designs in the browser with industry-leading vector precision and generative AI.
+                    For professional graphics designers who need AI speed without losing control over vectors, layers, and exports. Create client-ready logos, social sets, and pitch decks in one AI-native canvas.
                 </motion.p>
 
                 {/* CTAs */}

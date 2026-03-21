@@ -20,7 +20,7 @@ export const AboutPage = () => (
       </p>
 
       <p>
-        Join thousands of marketers, UI/UX developers, and enterprise studios who have already abandoned legacy tools. With Kreathief, you generate instantly and export anywhere in infinite 8K resolution.
+        Join thousands of marketers, UI/UX developers, and enterprise studios who have already abandoned legacy tools. With Kreathief, you orchestrate limitless layouts and hand off client-ready assets in infinite 8K resolution.
       </p>
     </div>
   </ContentPage>

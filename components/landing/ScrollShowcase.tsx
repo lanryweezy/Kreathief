@@ -6,21 +6,21 @@ export const ScrollShowcase: React.FC = () => {
         {
             subtitle: "1. Raw Power",
             subtitleColor: "text-purple-500",
-            title: "Pixel-Perfect Control.",
+            title: "Unrestricted Vector Editing.",
             desc: "Unlike basic editors, we give you professional vector tools that never compromise your vision.",
             image: "/images/screenshot_editor_main.png"
         },
         {
             subtitle: "2. AI Native",
             subtitleColor: "text-blue-500",
-            title: "Generate Instantly.",
+            title: "Prompt to SVG.",
             desc: "Describe your ideas and watch them materialize into fully editable vectors and graphics in real-time.",
             image: "/images/new_magic_panel.png" 
         },
         {
             subtitle: "3. Workflow",
             subtitleColor: "text-fuchsia-500",
-            title: "Export Anywhere.",
+            title: "Client-Ready Hand-offs.",
             desc: "Export to SVG, High-res PNG, or full PDF in one click. Web-hooks into your favorite CMS.",
             image: "/images/new_export_modal.png" 
         }

@@ -99,11 +99,11 @@ export const Footer: React.FC = () => {
                         <h4 className="text-xs font-black text-white uppercase tracking-[0.3em] mb-8">Platform</h4>
                         <ul className="space-y-4">
                             {[
-                                { label: 'Design Tool', href: '/editor' },
-                                { label: 'AI Studio', href: '/dashboard' },
+                                { label: 'Design Tool', href: '/#features' },
+                                { label: 'AI Studio', href: '/#features' },
                                 { label: 'Features', href: '/#features' },
                                 { label: 'Templates', href: '/dashboard' },
-                                { label: 'API', href: '/api' }
+                                { label: 'API (Coming soon)', href: '#' }
                             ].map((item) => (
                                 <li key={item.label}>
                                     {item.href.startsWith('/') ? (

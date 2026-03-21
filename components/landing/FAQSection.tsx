@@ -26,7 +26,7 @@ const faqs = [
 ];
 
 export const FAQSection: React.FC = () => {
-    const [openIndex, setOpenIndex] = useState<number | null>(0);
+    const [openIndex, setOpenIndex] = useState<number | null>(null);
 
     return (
         <section className="py-32 relative bg-[#050505] border-t border-white/5">
@@ -41,7 +41,7 @@ export const FAQSection: React.FC = () => {
                         Frequently Asked Questions
                     </motion.h2>
                     <p className="text-gray-400 font-medium text-lg">
-                        Everything you need to know about the product, rendering capabilities, and billing.
+                        Answers to common questions regarding commercial rights, rendering engines, and team collaboration.
                     </p>
                 </div>
 

@@ -5,8 +5,11 @@ export const LogoTicker: React.FC = () => {
     // We combine recognizable tech logos with the generated HD avatars for "Social Proof"
     const brands = [
         { name: 'Netflix', image: '/images/logos/netflix.svg' },
+        { name: 'Framer', textOnly: true },
         { name: 'Spotify', image: '/images/logos/spotify.svg' },
+        { name: 'Linear', textOnly: true },
         { name: 'Stripe', image: '/images/logos/stripe.svg' },
+        { name: 'Vercel', textOnly: true },
         { name: 'Discord', image: '/images/logos/discord.svg' },
         { name: 'Street Heart', image: '/images/logos/street_heart_logo.png', isCustomColor: true }
     ];
@@ -52,14 +55,16 @@ export const LogoTicker: React.FC = () => {
                         <React.Fragment key={i}>
                             {brands.map((brand, bIdx) => (
                                 <div key={`${i}-${bIdx}`} className="flex items-center gap-4 opacity-40 hover:opacity-100 transition-opacity cursor-pointer">
-                                    <div className="text-white/70 flex items-center justify-center w-7 h-7">
-                                        <img 
-                                            src={brand.image} 
-                                            alt={brand.name} 
-                                            className={`w-full h-full object-contain ${!brand.isCustomColor ? 'filter invert brightness-0 grayscale' : 'rounded-md shadow-sm border border-white/10 object-cover'}`} 
-                                        />
-                                    </div>
-                                    <span className="text-2xl font-black text-white/70 uppercase tracking-[0.3em]">
+                                    {brand.image && (
+                                        <div className="text-white/70 flex items-center justify-center w-7 h-7">
+                                            <img 
+                                                src={brand.image} 
+                                                alt={brand.name} 
+                                                className={`w-full h-full object-contain ${!brand.isCustomColor ? 'filter invert brightness-0 grayscale' : 'rounded-md shadow-sm border border-white/10 object-cover'}`} 
+                                            />
+                                        </div>
+                                    )}
+                                    <span className={`text-2xl font-black text-white/70 uppercase tracking-[0.3em] ${brand.textOnly ? 'opacity-80 tracking-[0.4em]' : ''}`}>
                                         {brand.name}
                                     </span>
                                 </div>

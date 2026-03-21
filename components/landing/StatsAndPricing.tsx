@@ -4,10 +4,10 @@ import { Icons } from '../../constants';
 
 export const Stats: React.FC = () => {
     const stats = [
-        { label: "AI Generations", value: "2M+", icon: Icons.Magic },
-        { label: "Active Designers", value: "50k+", icon: Icons.User },
-        { label: "Vector Assets", value: "10M+", icon: Icons.Pen },
-        { label: "Design Time Saved", value: "85%", icon: Icons.Zap }
+        { label: "AI Generations", value: "85K+", icon: Icons.Magic },
+        { label: "Active Designers", value: "12K+", icon: Icons.User },
+        { label: "Vector Assets", value: "3.2M+", icon: Icons.Pen },
+        { label: "Design Time Saved", value: "65%", icon: Icons.Zap }
     ];
 
     return (
@@ -50,7 +50,7 @@ export const Pricing: React.FC<PricingProps> = ({ onPlanSelect }) => {
         {
             name: "Professional",
             price: annualBilling ? "12" : "15",
-            features: ["Unlimited AI Generations", "Advanced AI Cut Out", "Pro Vector Suite", "Premium SVG Export", "Priority Support"],
+            features: ["Unlimited AI Generations", "Client Folders & Brand Kits", "Pro Vector Suite", "Premium SVG/PDF Export", "CMYK-ready Assets"],
             button: "Unlock Pro Power",
             accent: "border-purple-500 shadow-2xl shadow-purple-500/20",
             popular: true
@@ -106,7 +106,7 @@ export const Pricing: React.FC<PricingProps> = ({ onPlanSelect }) => {
                         >
                             {plan.popular && (
                                 <div className="absolute top-0 right-10 bg-purple-500 text-white px-4 py-2 rounded-b-xl text-[10px] font-black uppercase tracking-[0.2em]">
-                                    Most Popular
+                                    Ideal for Freelancers
                                 </div>
                             )}
 

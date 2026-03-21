@@ -41,10 +41,10 @@ export const ComparisonSection: React.FC = () => {
                         <h3 className="text-2xl font-black text-gray-500 mb-8 tracking-widest uppercase text-center">The Other Guys</h3>
                         <div className="space-y-6">
                             {[
-                                "Pay $30/month for basic AI",
-                                "Clunky, slow web performance",
-                                "Hidden fees for exports",
-                                "Requires 5 different tools",
+                                "Juggling Figma, Photoshop, & AI",
+                                "Clunky, fragmented workflows",
+                                "Hidden fees for SVG exports",
+                                "Paying for 5 different subscriptions",
                                 "No real-time collaboration"
                             ].map((item, idx) => (
                                 <div key={idx} className="flex items-center gap-4 text-gray-400 font-medium">
@@ -75,10 +75,10 @@ export const ComparisonSection: React.FC = () => {
                         <h3 className="text-3xl font-black text-white mb-8 tracking-tighter text-center">Kreathief</h3>
                         <div className="space-y-6">
                             {[
-                                "Unlimited AI Generation",
-                                "Instant WebGL performance",
-                                "Free high-res exports",
-                                "All-in-one Editor ecosystem",
+                                "One AI-native vector workspace",
+                                "Instant WebGL rendering",
+                                "Free SVG & PDF exports",
+                                "All-in-one professional ecosystem",
                                 "Multiplayer built-in natively"
                             ].map((item, idx) => (
                                 <div key={idx} className="flex items-center gap-4 text-white font-medium">
