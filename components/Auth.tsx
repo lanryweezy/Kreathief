@@ -42,12 +42,18 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError(null);
-    // For QA, also bypass Google sign in with a mock
-    const result = await authService.signIn('google-test@gmail.com', 'dummy');
-    if (result.user) {
-      onLogin(result.user);
+    
+    try {
+      const result = await authService.signInWithGoogle();
+      if (result?.error) {
+        setError(result.error);
+        setLoading(false);
+      }
+      // Valid OAuth handshakes will navigate away. No further state updates needed here.
+    } catch (err) {
+      setError('Failed to initialize Google Sign In');
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
