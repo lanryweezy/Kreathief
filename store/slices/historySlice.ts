@@ -136,9 +136,20 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
     get().saveToHistory();
 
     set({
-      layers: structuredClone(snapshot.state.layers),
+      artboards: structuredClone(snapshot.state.artboards),
+      activeArtboardId: snapshot.state.activeArtboardId,
       canvasBackgroundColor: snapshot.state.canvasBackgroundColor,
-      canvasFilters: snapshot.state.canvasFilters || { brightness: 100, contrast: 100, saturation: 100, sepia: 0, grayscale: 0, blur: 0, opacity: 1, vignette: 0, hueRotate: 0 },
+      canvasFilters: snapshot.state.canvasFilters || {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        sepia: 0,
+        grayscale: 0,
+        blur: 0,
+        opacity: 1,
+        vignette: 0,
+        hueRotate: 0,
+      },
       canvasSize: snapshot.state.canvasSize || { width: 1080, height: 1080 },
       selectedLayerIds: [],
     });

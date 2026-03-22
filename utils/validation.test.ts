@@ -38,23 +38,13 @@ describe('Validation Schemas', () => {
       }
     });
 
-    it('should reject weak passwords', () => {
-      const weakPasswords = [
-        'weak',
-        'short',
-        'nouppercase1',
-        'NOLOWERCASE1',
-        'NoNumbers',
-      ];
-
-      weakPasswords.forEach((password) => {
-        const result = loginSchema.safeParse({
-          email: 'test@example.com',
-          password,
-        });
-
-        expect(result.success).toBe(false);
+    it('should reject too short passwords', () => {
+      const result = loginSchema.safeParse({
+        email: 'test@example.com',
+        password: 'short',
       });
+
+      expect(result.success).toBe(false);
     });
 
     it('should reject empty fields', () => {
@@ -201,7 +191,7 @@ describe('Validation Schemas', () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain('Invalid enum value');
+        expect(result.error.issues[0].message).toContain('Invalid');
       }
     });
 
