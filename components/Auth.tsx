@@ -21,8 +21,13 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     setError(null);
 
     try {
-      // Use authService.signIn to handle mock persistence correctly
-      const result = await authService.signIn(email, password);
+      let result;
+      
+      if (isSignUp) {
+        result = await authService.signUp(email, password, name || email.split('@')[0]);
+      } else {
+        result = await authService.signIn(email, password);
+      }
 
       if (result.error) {
         setError(result.error);
