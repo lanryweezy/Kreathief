@@ -1,4 +1,5 @@
 import { heavyService } from '../services/heavyService';
+import { log } from './log';
 
 /**
  * Removes the background from an image using AI (via Web Worker).
@@ -9,7 +10,7 @@ export async function removeBackground(imageUrl: string): Promise<string> {
   try {
     return await heavyService.removeBackground(imageUrl);
   } catch (error) {
-    console.error('Failed to remove background:', error);
+    log.error('Failed to remove background:', error);
     throw error;
   }
 }

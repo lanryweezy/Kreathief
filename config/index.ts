@@ -40,7 +40,7 @@ export const config = {
   // AI Services
   ai: {
     gemini: {
-      apiKey: getOptionalEnv('VITE_GEMINI_API_KEY'),
+      // API Key is now handled securely on the server side via Vercel Functions
       model: 'gemini-2.5-flash',
       maxRetries: 3,
       timeout: 30000,
@@ -146,9 +146,7 @@ export const validateConfig = (): void => {
     warnings.push('Supabase credentials not configured');
   }
 
-  if (!config.ai.gemini.apiKey) {
-    warnings.push('Gemini API key not configured - AI features disabled');
-  }
+  // Gemini API key validation moved to the server-side
 
   if (!config.apis.unsplash.accessKey) {
     warnings.push('Unsplash API key not configured');

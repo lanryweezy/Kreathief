@@ -1,4 +1,3 @@
-import React from 'react';
 import { ContentPage } from './ContentPage';
 
 export const AboutPage = () => (

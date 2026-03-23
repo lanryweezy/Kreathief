@@ -418,6 +418,17 @@ class StorageService {
   async saveProject(project: Project): Promise<void> {
     const userId = await this.getUserId();
 
+    // Enforce storage quotas (Free Tier Limit: maximum 10 projects)
+    const MAX_FREE_PROJECTS = 10;
+    const existingProjects = await this.getAllProjects();
+    const isNewProject = !existingProjects.some(p => p.id === project.id);
+    
+    if (isNewProject && existingProjects.length >= MAX_FREE_PROJECTS) {
+      const errorMsg = `Storage quota exceeded. You are limited to ${MAX_FREE_PROJECTS} projects on the free plan.`;
+      logger.error('Quota exceeded', { error: errorMsg });
+      throw new Error(errorMsg);
+    }
+
     if (this.isOnline && userId) {
       try {
         const { error } = await supabase

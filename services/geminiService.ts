@@ -1,28 +1,26 @@
-import { GoogleGenerativeAI, Part, SchemaType } from '@google/generative-ai';
+import { SchemaType } from '@google/generative-ai';
 import { MODEL_FAST, MODEL_PRO, FONT_FAMILIES } from '../constants';
 import { DesignTheme, GenerationQuality } from '../types';
 import * as freepikService from './freepikService';
 import { log } from '../utils/log';
-import { ai as aiConfig } from '../config';
 
-// Helper to get fresh client instance (important for key switching)
-const getClient = () => {
-  const apiKey = aiConfig.gemini.apiKey;
-  if (!apiKey) {
-    log.debug('Gemini API key not configured');
-    return null;
-  }
-  return new GoogleGenerativeAI(apiKey);
-};
-
-const ensureClient = () => {
-  const ai = getClient();
-  if (!ai) {
-    const error = new Error('Gemini API key is missing. Please set VITE_GEMINI_API_KEY to enable AI features.');
-    log.error('Gemini client initialization failed', error);
+// Helper to call backend serverless endpoint
+const callBackendGeminiAPI = async (payload: any) => {
+  const response = await fetch('/api/gemini', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'generateContent', ...payload }),
+  });
+  
+  const data = await response.json();
+  
+  if (!response.ok) {
+    const error = new Error(data.error || 'API request failed');
+    log.error('Gemini API call failed', error);
     throw error;
   }
-  return ai;
+  
+  return data;
 };
 
 /**
@@ -60,9 +58,7 @@ export const generateImage = async (
   quality: GenerationQuality = 'standard'
 ): Promise<string> => {
   try {
-    const ai = ensureClient();
     const modelName = quality === 'hd' ? MODEL_PRO : MODEL_FAST;
-
     const config: any = {
       imageConfig: {
         aspectRatio: aspectRatio,
@@ -73,8 +69,8 @@ export const generateImage = async (
       config.imageConfig.imageSize = '1K';
     }
 
-    const model = ai.getGenerativeModel({ model: modelName });
-    const response = await model.generateContent({
+    const data = await callBackendGeminiAPI({
+      modelName,
       contents: [
         {
           role: 'user',
@@ -84,7 +80,7 @@ export const generateImage = async (
       generationConfig: config,
     });
 
-    return extractImageFromResponse(response);
+    return extractImageFromResponse(data);
   } catch (error) {
     console.error('Gemini Generation Error — trying Freepik fallback:', error);
 
@@ -113,28 +109,27 @@ export const editImage = async (
   quality: GenerationQuality = 'standard'
 ): Promise<string> => {
   try {
-    const ai = ensureClient();
-    const { data, mimeType } = cleanBase64(base64Image);
+    const { data: b64Data, mimeType } = cleanBase64(base64Image);
     const modelName = quality === 'hd' ? MODEL_PRO : MODEL_FAST;
 
-    const parts: Part[] = [
+    const parts = [
       {
         text: prompt,
       },
       {
         inlineData: {
           mimeType,
-          data,
+          data: b64Data,
         },
       },
     ];
 
-    const model = ai.getGenerativeModel({ model: modelName });
-    const response = await model.generateContent({
+    const data = await callBackendGeminiAPI({
+      modelName,
       contents: [{ role: 'user', parts }],
     });
 
-    return extractImageFromResponse(response);
+    return extractImageFromResponse(data);
   } catch (error) {
     console.error('Edit Error:', error);
     throw error;
@@ -143,20 +138,18 @@ export const editImage = async (
 
 export const removeBackground = async (base64Image: string): Promise<string> => {
   try {
-    const ai = ensureClient();
-    const { data, mimeType } = cleanBase64(base64Image);
-
+    const { data: b64Data, mimeType } = cleanBase64(base64Image);
     const prompt =
       'Extract the main subject of this image and place it on a transparent background. Isolate the subject perfectly.';
 
-    const parts: Part[] = [{ text: prompt }, { inlineData: { mimeType, data } }];
+    const parts = [{ text: prompt }, { inlineData: { mimeType, data: b64Data } }];
 
-    const model = ai.getGenerativeModel({ model: MODEL_FAST });
-    const response = await model.generateContent({
+    const data = await callBackendGeminiAPI({
+      modelName: MODEL_FAST,
       contents: [{ role: 'user', parts }],
     });
 
-    return extractImageFromResponse(response);
+    return extractImageFromResponse(data);
   } catch (error) {
     console.error('Gemini Remove BG Error — trying Freepik fallback:', error);
 
@@ -181,13 +174,10 @@ export const generateText = async (
   instruction: string = 'Rewrite this to be more creative and catchy.'
 ): Promise<string> => {
   try {
-    const ai = ensureClient();
-    const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
-    // Improved system prompt to ensure formatting
     const systemInstruction = `You are a creative copywriter. ${instruction}\nMaintain the original language. Keep it concise. Return ONLY the rewritten text without quotes or explanations.`;
 
-    const response = await model.generateContent({
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
       contents: [
         {
           role: 'user',
@@ -198,8 +188,7 @@ export const generateText = async (
     });
 
     return (
-      response.response
-        .text()
+      data.text
         ?.trim()
         .replace(/^["']|["']$/g, '') || currentText
     );
@@ -211,9 +200,8 @@ export const generateText = async (
 
 export const generateTextOptions = async (topic: string): Promise<string[]> => {
   try {
-    const ai = ensureClient();
-    const model = ai.getGenerativeModel({
-      model: 'gemini-2.5-flash',
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -221,8 +209,6 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
           items: { type: SchemaType.STRING },
         },
       },
-    });
-    const response = await model.generateContent({
       contents: [
         {
           role: 'user',
@@ -234,7 +220,7 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
         },
       ],
     });
-    return JSON.parse(response.response.text() || '[]');
+    return JSON.parse(data.text || '[]');
   } catch (error) {
     console.error('Text Options Error:', error);
     return [];
@@ -243,9 +229,8 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
 
 export const enhancePrompt = async (simplePrompt: string): Promise<string> => {
   try {
-    const ai = ensureClient();
-    const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
-    const response = await model.generateContent({
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
       contents: [
         {
           role: 'user',
@@ -261,7 +246,7 @@ export const enhancePrompt = async (simplePrompt: string): Promise<string> => {
         },
       ],
     });
-    return response.response.text()?.trim() || simplePrompt;
+    return data.text?.trim() || simplePrompt;
   } catch (error) {
     console.error('Prompt Enhancer Error:', error);
     return simplePrompt;
@@ -270,7 +255,6 @@ export const enhancePrompt = async (simplePrompt: string): Promise<string> => {
 
 export const generateDesignTheme = async (prompt: string): Promise<DesignTheme> => {
   try {
-    const ai = ensureClient();
     const availableFonts = FONT_FAMILIES.join(', ');
     const systemPrompt = `
       You are a world-class graphic designer. 
@@ -282,8 +266,8 @@ export const generateDesignTheme = async (prompt: string): Promise<DesignTheme> 
       Return JSON only.
     `;
 
-    const model = ai.getGenerativeModel({
-      model: 'gemini-2.5-flash',
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -308,8 +292,6 @@ export const generateDesignTheme = async (prompt: string): Promise<DesignTheme> 
           ],
         },
       },
-    });
-    const response = await model.generateContent({
       contents: [
         {
           role: 'user',
@@ -318,7 +300,7 @@ export const generateDesignTheme = async (prompt: string): Promise<DesignTheme> 
       ],
     });
 
-    const text = response.response.text();
+    const text = data.text;
     if (!text) {
       throw new Error('No theme generated');
     }
@@ -332,19 +314,18 @@ export const generateDesignTheme = async (prompt: string): Promise<DesignTheme> 
 
 export const analyzeDesign = async (base64Image: string, query: string): Promise<string> => {
   try {
-    const ai = ensureClient();
-    const { data, mimeType } = cleanBase64(base64Image);
-    const parts: Part[] = [
+    const { data: b64Data, mimeType } = cleanBase64(base64Image);
+    const parts = [
       { text: `You are a professional senior graphic designer. Analyze this design. ${query}` },
-      { inlineData: { mimeType, data } },
+      { inlineData: { mimeType, data: b64Data } },
     ];
 
-    const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
-    const response = await model.generateContent({
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
       contents: [{ role: 'user', parts }],
     });
 
-    return response.response.text() || "I couldn't analyze the design.";
+    return data.text || "I couldn't analyze the design.";
   } catch (error) {
     log.error('Analyze Design Error', error, { query, base64Length: base64Image?.length || 0 });
     throw error;
@@ -353,7 +334,6 @@ export const analyzeDesign = async (base64Image: string, query: string): Promise
 
 export const generateLayout = async (prompt: string): Promise<any> => {
   try {
-    const ai = ensureClient();
     const systemPrompt = `
       You are a layout generator engine. Based on the description, return a JSON object containing a list of text layers and shape layers.
       
@@ -368,8 +348,8 @@ export const generateLayout = async (prompt: string): Promise<any> => {
       Keep it simple but effective.
     `;
 
-    const model = ai.getGenerativeModel({
-      model: 'gemini-2.5-flash',
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -407,8 +387,6 @@ export const generateLayout = async (prompt: string): Promise<any> => {
           },
         },
       },
-    });
-    const response = await model.generateContent({
       contents: [
         {
           role: 'user',
@@ -417,7 +395,7 @@ export const generateLayout = async (prompt: string): Promise<any> => {
       ],
     });
 
-    const text = response.response.text();
+    const text = data.text;
     if (!text) {
       return null;
     }
@@ -430,7 +408,6 @@ export const generateLayout = async (prompt: string): Promise<any> => {
 
 export const generateSVGShape = async (prompt: string): Promise<string> => {
   try {
-    const ai = ensureClient();
     const systemPrompt = `
       You are an SVG path generator. 
       Generate a valid SVG path 'd' attribute for the shape described.
@@ -439,8 +416,8 @@ export const generateSVGShape = async (prompt: string): Promise<string> => {
       Assume a viewBox of 0 0 100 100.
     `;
 
-    const model = ai.getGenerativeModel({ model: 'gemini-2.5-flash' });
-    const response = await model.generateContent({
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
       contents: [
         {
           role: 'user',
@@ -449,7 +426,7 @@ export const generateSVGShape = async (prompt: string): Promise<string> => {
       ],
     });
 
-    let d = response.response.text()?.trim() || '';
+    let d = data.text?.trim() || '';
     // Clean up if it returned markup
     d = d
       .replace(/<[^>]*>/g, '')
@@ -505,10 +482,16 @@ export const generatePattern = async (prompt: string): Promise<string> => {
 // Helper to find the image part in the response
 const extractImageFromResponse = (response: any): string => {
   if (!response.candidates || response.candidates.length === 0) {
+    if (response.text) {
+      throw new Error(`Model Refusal/Message: ${response.text}`);
+    }
     throw new Error('No candidates returned from Gemini.');
   }
 
   const parts = response.candidates[0].content.parts;
+  if (!parts) {
+      throw new Error('No valid payload format found.');
+  }
   for (const part of parts) {
     if (part.inlineData && part.inlineData.data) {
       const mimeType = part.inlineData.mimeType || 'image/png';
@@ -516,7 +499,6 @@ const extractImageFromResponse = (response: any): string => {
     }
   }
 
-  // If we got here, maybe we only got text (error or refusal)
   for (const part of parts) {
     if (part.text) {
       throw new Error(`Model Refusal/Message: ${part.text}`);
@@ -528,7 +510,6 @@ const extractImageFromResponse = (response: any): string => {
 
 export const optimizeLayout = async (layers: any[], canvasWidth: number, canvasHeight: number): Promise<any[]> => {
   try {
-    const ai = ensureClient();
     // Simplify layer data to reduce token usage
     const simplifiedLayers = layers.map((l) => ({
       id: l.id,
@@ -557,8 +538,8 @@ export const optimizeLayout = async (layers: any[], canvasWidth: number, canvasH
       ]
     `;
 
-    const model = ai.getGenerativeModel({
-      model: 'gemini-2.5-flash',
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -576,9 +557,6 @@ export const optimizeLayout = async (layers: any[], canvasWidth: number, canvasH
           },
         },
       },
-    });
-
-    const response = await model.generateContent({
       contents: [
         {
           role: 'user',
@@ -587,7 +565,7 @@ export const optimizeLayout = async (layers: any[], canvasWidth: number, canvasH
       ],
     });
 
-    const text = response.response.text();
+    const text = data.text;
     if (!text) {
       return [];
     }
@@ -600,25 +578,19 @@ export const optimizeLayout = async (layers: any[], canvasWidth: number, canvasH
 
 export const generatePaletteFromImage = async (base64Image: string): Promise<string[]> => {
   try {
-    const ai = ensureClient();
-    // Use the fast model (Flash) as it supports vision and is quicker/cheaper
-    const model = ai.getGenerativeModel({ model: MODEL_FAST });
-
-    // Clean base64 string
-    const { data, mimeType } = cleanBase64(base64Image);
-
-    const imagePart = {
-      inlineData: {
-        data,
-        mimeType,
-      },
-    };
-
+    const { data: b64Data, mimeType } = cleanBase64(base64Image);
     const prompt =
       'Analyze this image/logo and extract the 5 most representative brand colors as HEX codes. Return ONLY a valid JSON array of strings (e.g., ["#ffffff", "#000000"]). Do not include markdown formatting.';
 
-    const result = await model.generateContent([prompt, imagePart]);
-    const text = result.response.text();
+    const data = await callBackendGeminiAPI({
+      modelName: MODEL_FAST,
+      contents: [
+        { role: 'user', parts: [{ text: prompt }, { inlineData: { data: b64Data, mimeType } }] }
+      ]
+    });
+    
+    const text = data.text;
+    if (!text) return [];
 
     // Clean up response to ensure valid JSON
     const jsonMatch = text.match(/\[.*\]/s);
@@ -637,9 +609,14 @@ export const vectorizeImage = async (
   colors: number = 4
 ): Promise<Array<{ path: string; color: string }>> => {
   try {
-    const ai = ensureClient();
-    const model = ai.getGenerativeModel({
-      model: MODEL_FAST,
+    const { data: b64Data, mimeType } = cleanBase64(base64Image);
+    const prompt = `Convert this image into a clean, minimal vector graphic with exactly ${colors} main colors.
+    Identify the main shapes and represent each as a high-quality SVG path 'd' attribute.
+    Group similar colors together. Return as a JSON array of objects with 'path' and 'color'.
+    Assume a viewBox of 0 0 100 100. Be precise with the paths.`;
+
+    const data = await callBackendGeminiAPI({
+      modelName: MODEL_FAST,
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -654,28 +631,26 @@ export const vectorizeImage = async (
           },
         },
       },
+      contents: [
+        { role: 'user', parts: [{ text: prompt }, { inlineData: { data: b64Data, mimeType } }] }
+      ]
     });
 
-    const { data, mimeType } = cleanBase64(base64Image);
-    const prompt = `Convert this image into a clean, minimal vector graphic with exactly ${colors} main colors.
-    Identify the main shapes and represent each as a high-quality SVG path 'd' attribute.
-    Group similar colors together. Return as a JSON array of objects with 'path' and 'color'.
-    Assume a viewBox of 0 0 100 100. Be precise with the paths.`;
-
-    const result = await model.generateContent([prompt, { inlineData: { data, mimeType } }]);
-
-    const text = result.response.text();
+    const text = data.text;
     return JSON.parse(text || '[]');
   } catch (error) {
     console.error('Vectorization failed', error);
     throw error;
   }
 };
+
 export const generateAIVector = async (prompt: string): Promise<Array<{ path: string; color: string }>> => {
   try {
-    const ai = ensureClient();
-    const model = ai.getGenerativeModel({
-      model: MODEL_FAST,
+    const systemPrompt = `You are a professional vector artist. Generate a clean, high-quality vector graphic based on the prompt. Represent the graphic as multiple SVG path 'd' attributes with corresponding hex colors. 
+    Assume a viewBox of 0 0 100 100. Be precise and creative. Return as a JSON array of objects.`;
+
+    const data = await callBackendGeminiAPI({
+      modelName: MODEL_FAST,
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -690,13 +665,10 @@ export const generateAIVector = async (prompt: string): Promise<Array<{ path: st
           },
         },
       },
+      contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\nPrompt: ${prompt}` }] }]
     });
-
-    const systemPrompt = `You are a professional vector artist. Generate a clean, high-quality vector graphic based on the prompt. Represent the graphic as multiple SVG path 'd' attributes with corresponding hex colors. 
-    Assume a viewBox of 0 0 100 100. Be precise and creative. Return as a JSON array of objects.`;
-
-    const result = await model.generateContent(`${systemPrompt}\n\nPrompt: ${prompt}`);
-    const text = result.response.text();
+    
+    const text = data.text;
     return JSON.parse(text || '[]');
   } catch (error) {
     console.error('AI Vector Generation failed', error);

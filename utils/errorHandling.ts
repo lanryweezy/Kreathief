@@ -3,6 +3,8 @@
  * Centralized error handling with proper logging and user feedback
  */
 
+import { log } from './log';
+
 type ErrorContext = {
   component?: string;
   action?: string;
@@ -58,7 +60,7 @@ export const logError = (error: unknown, context: ErrorContext = {}): void => {
 
   // Always log to console in development
   if (import.meta.env.DEV) {
-    console.error('[App Error]', errorInfo);
+    log.error('[App Error]', errorInfo);
   }
 
   // In production, send to error tracking service
@@ -71,7 +73,7 @@ export const logError = (error: unknown, context: ErrorContext = {}): void => {
       navigator.sendBeacon('/api/error-log', JSON.stringify(errorInfo));
     } catch (e) {
       // Fallback failed, error is lost
-      console.error('[Error Logging Failed]', e);
+      log.error('[Error Logging Failed]', e);
     }
   }
 };

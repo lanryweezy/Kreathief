@@ -3,6 +3,8 @@
  * Tracks Web Vitals and custom performance metrics
  */
 
+import { log } from './log';
+
 interface PerformanceMetric {
   name: string;
   value: number;
@@ -27,13 +29,13 @@ export const measureOperation = async <T,>(
     
     // Warn about slow operations
     if (duration > 1000) {
-      console.warn(`⚠️ Slow operation: ${name} took ${duration.toFixed(2)}ms`);
+      log.warn(`⚠️ Slow operation: ${name} took ${duration.toFixed(2)}ms`);
     }
     
     return result;
   } catch (error) {
     const duration = performance.now() - start;
-    console.error(`❌ ${name} failed after ${duration.toFixed(2)}ms`, error);
+    log.error(`❌ ${name} failed after ${duration.toFixed(2)}ms`, error);
     throw error;
   }
 };
@@ -54,13 +56,13 @@ export const measureSync = <T,>(
     logPerformance(name, duration);
     
     if (duration > 100) {
-      console.warn(`⚠️ Slow sync operation: ${name} took ${duration.toFixed(2)}ms`);
+      log.warn(`⚠️ Slow sync operation: ${name} took ${duration.toFixed(2)}ms`);
     }
     
     return result;
   } catch (error) {
     const duration = performance.now() - start;
-    console.error(`❌ ${name} failed after ${duration.toFixed(2)}ms`, error);
+    log.error(`❌ ${name} failed after ${duration.toFixed(2)}ms`, error);
     throw error;
   }
 };
@@ -81,7 +83,7 @@ function logPerformance(name: string, duration: number) {
   // Log to console in development
   if (import.meta.env.DEV) {
     const emoji = rating === 'good' ? '✅' : rating === 'needs-improvement' ? '⚠️' : '❌';
-    console.log(`${emoji} ${name}: ${duration.toFixed(2)}ms (${rating})`);
+    log.info(`${emoji} ${name}: ${duration.toFixed(2)}ms (${rating})`);
   }
   
   // Send to analytics in production
@@ -119,7 +121,7 @@ function sendToAnalytics(metric: PerformanceMetric) {
     sessionStorage.setItem('perf_metrics', JSON.stringify(metrics));
   } catch (error) {
     // Silently fail - don't break the app for analytics
-    console.error('Failed to store performance metric:', error);
+    log.error('Failed to store performance metric:', error);
   }
 }
 
@@ -181,7 +183,7 @@ export function measure(name: string, startMark: string, endMark: string) {
       logPerformance(name, measure.duration);
     }
   } catch (error) {
-    console.error('Failed to measure performance:', error);
+    log.error('Failed to measure performance:', error);
   }
 }
 
@@ -197,7 +199,7 @@ export function initWebVitals() {
     // @ts-ignore - web-vitals is optional
     import('web-vitals').then(({ onCLS, onFID, onFCP, onLCP, onTTFB }: any) => {
       onCLS((metric: any) => {
-        console.log('CLS:', metric);
+        log.info('CLS:', metric);
         sendToAnalytics({
           name: 'CLS',
           value: metric.value,
@@ -207,7 +209,7 @@ export function initWebVitals() {
       });
       
       onFID((metric: any) => {
-        console.log('FID:', metric);
+        log.info('FID:', metric);
         sendToAnalytics({
           name: 'FID',
           value: metric.value,
@@ -217,7 +219,7 @@ export function initWebVitals() {
       });
       
       onFCP((metric: any) => {
-        console.log('FCP:', metric);
+        log.info('FCP:', metric);
         sendToAnalytics({
           name: 'FCP',
           value: metric.value,
@@ -227,7 +229,7 @@ export function initWebVitals() {
       });
       
       onLCP((metric: any) => {
-        console.log('LCP:', metric);
+        log.info('LCP:', metric);
         sendToAnalytics({
           name: 'LCP',
           value: metric.value,
@@ -237,7 +239,7 @@ export function initWebVitals() {
       });
       
       onTTFB((metric: any) => {
-        console.log('TTFB:', metric);
+        log.info('TTFB:', metric);
         sendToAnalytics({
           name: 'TTFB',
           value: metric.value,

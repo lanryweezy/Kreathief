@@ -55,7 +55,6 @@ const EditableZoom = ({ zoom, onZoomChange }: { zoom: number; onZoomChange: (z: 
       className="text-xs text-gray-300 w-14 text-center font-mono cursor-edit hover:text-white transition-colors select-none"
       onClick={() => {
         setValue(String(Math.round(zoom * 100)));
-        setIsEditing(false); // Wait, should be true
         setIsEditing(true);
       }}
     >
