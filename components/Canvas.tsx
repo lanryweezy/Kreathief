@@ -121,6 +121,8 @@ const CanvasComponent: React.FC<CanvasProps> = ({
   const brushSize = useStore((state) => state.brushSize);
   const brushOpacity = useStore((state) => state.brushOpacity);
   const brushType = useStore((state) => state.brushType ?? BrushType.BASIC);
+  const brushSmoothing = useStore((state) => state.brushSmoothing ?? 50);
+  const brushJitter = useStore((state) => state.brushJitter ?? 0);
   const onDrawingComplete = useStore((state) => state.handleDrawingComplete);
   const onVectorDrawingComplete = useStore((state) => state.handleVectorDrawingComplete);
   const onAddArtboard = useStore((state) => state.addArtboard);
@@ -228,6 +230,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
   const isPanningRef = useRef(isPanning);
   isPanningRef.current = isPanning;
   const [vectorPoints, setVectorPoints] = useState<{ x: number; y: number }[]>([]);
+  const drawingBuffer = useRef<{ x: number; y: number }[]>([]);
 
   const layerRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const panContainerRef = useRef<HTMLDivElement>(null);
@@ -1372,6 +1375,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     const x = (e.clientX - rect.left),
       y = (e.clientY - rect.top);
     drawingLastPos.current = { x, y };
+    drawingBuffer.current = [{ x, y }];
     setDrawingState({ isDrawingPath: true });
     if (brushType === BrushType.VECTOR_PENCIL) {
       setVectorPoints([{ x, y }]);
@@ -1427,11 +1431,34 @@ const CanvasComponent: React.FC<CanvasProps> = ({
       return;
     }
     const rect = drawingCanvasRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left),
-      y = (e.clientY - rect.top);
+    let x = (e.clientX - rect.left);
+    let y = (e.clientY - rect.top);
+
+    // Apply Jitter
+    if (brushJitter > 0) {
+      const jitterAmount = (brushJitter / 100) * brushSize * zoom;
+      x += (Math.random() - 0.5) * jitterAmount;
+      y += (Math.random() - 0.5) * jitterAmount;
+    }
+
     const ctx = drawingCanvasRef.current.getContext('2d');
     if (!ctx) {
       return;
+    }
+
+    // Apply Smoothing/Stabilization
+    drawingBuffer.current.push({ x, y });
+    if (drawingBuffer.current.length > 1) {
+      const smoothingFactor = brushSmoothing / 100;
+      const last = drawingBuffer.current[drawingBuffer.current.length - 2]!;
+      const current = drawingBuffer.current[drawingBuffer.current.length - 1]!;
+
+      // Basic weighted average smoothing
+      x = last.x + (current.x - last.x) * (1 - smoothingFactor * 0.8);
+      y = last.y + (current.y - last.y) * (1 - smoothingFactor * 0.8);
+
+      // Update current in buffer with smoothed values
+      drawingBuffer.current[drawingBuffer.current.length - 1] = { x, y };
     }
 
     if (brushType === BrushType.VECTOR_PENCIL) {
@@ -1461,6 +1488,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
       return;
     }
     setDrawingState({ ...drawingState, isDrawingPath: false });
+    drawingBuffer.current = [];
     if (brushType === BrushType.VECTOR_PENCIL && vectorPoints.length > 2) {
       let d = `M ${vectorPoints[0]!.x} ${vectorPoints[0]!.y}`;
       for (let i = 1; i < vectorPoints.length - 1; i++) {

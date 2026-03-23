@@ -144,7 +144,7 @@ export interface LayerSlice {
   layoutLayers: (
     typeOrShapes: 'grid' | 'row' | 'col' | 'golden_v' | 'golden_h' | 'golden_grid' | Partial<ShapeLayer>[]
   ) => void;
-  addImageLayer: (src: string, name?: string) => void;
+  addImageLayer: (src: string, name?: string, x?: number, y?: number, width?: number, height?: number) => void;
   addShapeLayer: (type: ShapeLayer['type'], style?: Partial<ShapeLayer>) => void;
   copyLayer: (id: string) => void;
   pasteLayer: (style?: Partial<Layer>) => void;
@@ -812,7 +812,7 @@ export const createLayerSlice: StateCreator<any, [], [], LayerSlice> = (set, get
     }));
   },
 
-  addImageLayer: (src, name) => {
+  addImageLayer: (src, name, x, y, width, height) => {
     get().saveToHistory?.();
     const state = get();
     const artboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
@@ -823,10 +823,10 @@ export const createLayerSlice: StateCreator<any, [], [], LayerSlice> = (set, get
       type: 'image',
       name: name || 'Photo',
       src,
-      x: artboard.width / 2 - 100,
-      y: artboard.height / 2 - 100,
-      width: 200,
-      height: 200,
+      x: x !== undefined ? x : artboard.width / 2 - 100,
+      y: y !== undefined ? y : artboard.height / 2 - 100,
+      width: width !== undefined ? width : 200,
+      height: height !== undefined ? height : 200,
       rotation: 0,
       opacity: 1,
       locked: false,

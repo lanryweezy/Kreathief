@@ -250,14 +250,36 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   },
 
   handleDrawingComplete: (pathData) => {
-    get().addImageLayer(pathData, 'Drawing');
+    const { artboards, activeArtboardId, addImageLayer, setPenMode } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    if (artboard) {
+      addImageLayer(pathData, 'Drawing', 0, 0, artboard.width, artboard.height);
+    } else {
+      addImageLayer(pathData, 'Drawing');
+    }
+    setPenMode(false);
   },
 
   handleVectorDrawingComplete: (pathData, stroke) => {
-    get().addShapeLayer('path', {
-      pathData,
-      stroke,
-      color: 'transparent',
-    });
+    const { artboards, activeArtboardId, addShapeLayer, setPenMode } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    if (artboard) {
+      addShapeLayer('path', {
+        pathData,
+        stroke,
+        color: 'transparent',
+        x: 0,
+        y: 0,
+        width: artboard.width,
+        height: artboard.height,
+      });
+    } else {
+      addShapeLayer('path', {
+        pathData,
+        stroke,
+        color: 'transparent',
+      });
+    }
+    setPenMode(false);
   },
 });
