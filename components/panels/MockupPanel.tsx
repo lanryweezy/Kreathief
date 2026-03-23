@@ -16,9 +16,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface MockupPanelProps {
   onExportForMockup: () => Promise<string>;
+  variant?: 'default' | 'full';
+  onClose?: () => void;
 }
 
-export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) => {
+export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, variant = 'default', onClose }) => {
   const addLayer = useStore((state) => state.addLayer);
   const canvasSize = useStore((state) => state.canvasSize);
 
@@ -434,6 +436,306 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup }) =
   const updatePlacement = (key: keyof MockupPlacement, val: any) => {
     setPlacement((p) => ({ ...p, [key]: val }));
   };
+
+  if (variant === 'full') {
+    return (
+      <div className="flex h-full w-full bg-[#0e1318] text-white overflow-hidden relative">
+        {/* Left Column: Mockup Library */}
+        <div className="w-[320px] flex flex-col border-r border-gray-800 bg-[#13161a] shrink-0">
+           <div className="p-4 border-b border-gray-800 flex justify-between items-center">
+              <h2 className="text-sm font-black uppercase tracking-widest text-[#7d2ae8]">Smart Mockups</h2>
+              {onClose && (
+                <button onClick={onClose} className="p-1 hover:bg-white/5 rounded-md text-gray-500 hover:text-white transition-all">
+                  <Icons.X className="w-4 h-4" />
+                </button>
+              )}
+           </div>
+
+           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
+              <div className="p-3 bg-blue-900/10 border border-blue-500/20 rounded-lg">
+                <p className="text-[10px] text-blue-300/80 leading-relaxed">
+                  Automatically places your design onto high-quality product photos. Use the controls below to perfect the alignment.
+                </p>
+              </div>
+
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search mockups..."
+                  className="w-full bg-[#1e1e1e] border border-gray-700 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:border-[#7d2ae8] focus:outline-none"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+              </div>
+
+              <div className="flex items-center justify-between text-[10px] text-gray-400">
+                <span>Showing <span className="text-white font-bold">{mockups.length}</span> mockups</span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setPlacement({ ...placement, skewX: 0, skewY: 0, rotate: 0 })}
+                    className="px-2 py-1 bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#7d2ae8] transition-colors"
+                  >
+                    Reset Perspective
+                  </button>
+                  <button
+                    onClick={() => {
+                      const current = getMockupById(activeMockupId);
+                      if (current) setPlacement(current.defaultPlacement);
+                    }}
+                    className="px-2 py-1 bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#7d2ae8] transition-colors"
+                  >
+                    Reset All
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-1">
+                {MOCKUP_CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${
+                      activeCategory === cat ? 'bg-[#7d2ae8] text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-500 mt-4">Select Mockup</h3>
+
+              <div className="grid grid-cols-2 gap-2">
+                {mockups.map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => setActiveMockupId(m.id)}
+                    className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                      activeMockupId === m.id ? 'border-[#7d2ae8]' : 'border-transparent hover:border-gray-600'
+                    }`}
+                  >
+                    <img src={m.bg} alt={m.name} className="w-full h-full object-cover" />
+                    <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1.5 backdrop-blur-sm">
+                      <span className="text-[8px] font-bold text-white block truncate">{m.name}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+           </div>
+        </div>
+
+        {/* Center Column: Live Preview */}
+        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0a0a0a] relative">
+          <div
+            ref={previewContainerRef}
+            className="w-full h-full flex items-center justify-center relative max-w-4xl max-h-[80vh]"
+          >
+            {isGenerating && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-xl">
+                <div className="animate-spin w-8 h-8 border-4 border-[#7d2ae8] border-t-transparent rounded-full" />
+              </div>
+            )}
+            {generatedPreview ? (
+              <div className="relative group">
+                <img
+                  src={generatedPreview}
+                  className="max-w-full max-h-full object-contain shadow-2xl rounded-xl border border-white/5"
+                  alt="Mockup preview"
+                />
+                {useCornerPinning && cornerPoints && (
+                  <CornerHandles
+                    cornerPoints={cornerPoints}
+                    onCornerChange={handleCornerChange}
+                    containerWidth={previewContainerSize.width}
+                    containerHeight={previewContainerSize.height}
+                    isVisible={useCornerPinning}
+                  />
+                )}
+              </div>
+            ) : (
+              <span className="text-gray-600 font-bold uppercase tracking-widest animate-pulse">Generating Live Preview...</span>
+            )}
+          </div>
+
+        </div>
+
+        {/* Right Column: Controls */}
+        <div className="w-[320px] flex flex-col border-l border-gray-800 bg-[#13161a] shrink-0 overflow-y-auto custom-scrollbar">
+           <div className="p-4 border-b border-gray-800 flex justify-between items-center">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-[#7d2ae8]">Settings</h3>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleDownload}
+                  className="p-1.5 hover:bg-white/5 rounded-md text-gray-400 hover:text-white transition-all"
+                  title="Download Mockup"
+                >
+                  <Icons.Download className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleAddToCanvas}
+                  className="p-1.5 bg-[#7d2ae8]/20 hover:bg-[#7d2ae8]/30 rounded-md text-[#7d2ae8] transition-all"
+                  title="Add to Canvas"
+                >
+                  <Icons.Plus className="w-4 h-4" />
+                </button>
+              </div>
+           </div>
+
+           <div className="p-4 space-y-8">
+              {/* Corner Pinning */}
+              <div className="p-4 bg-gradient-to-br from-[#7d2ae8]/10 to-transparent border border-[#7d2ae8]/20 rounded-xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white">Corner Pinning (4-Point Perspective)</span>
+                  <button
+                    onClick={() => {
+                      setUseCornerPinning(!useCornerPinning);
+                      if (!useCornerPinning) {
+                        const defaultCorners = getDefaultCornerPoints(
+                          previewContainerSize.width,
+                          previewContainerSize.height,
+                          placement
+                        );
+                        setCornerPoints(defaultCorners);
+                      }
+                    }}
+                    className={`px-3 py-1 rounded-md text-[9px] font-black transition-all ${
+                      useCornerPinning ? 'bg-[#7d2ae8] text-white shadow-lg' : 'bg-white/5 text-gray-500'
+                    }`}
+                  >
+                    {useCornerPinning ? 'ON' : 'OFF'}
+                  </button>
+                </div>
+
+                {useCornerPinning && (
+                  <div className="space-y-4">
+                    <div className="flex gap-1.5">
+                      {(['flat', 'angled', 'curved'] as const).map((preset) => (
+                        <button
+                          key={preset}
+                          onClick={() => {
+                            setPerspectivePreset(preset);
+                            if (preset === 'flat') { setCurve(0); updatePlacement('skewX', 0); updatePlacement('skewY', 0); }
+                            else if (preset === 'angled') { updatePlacement('skewX', 10); updatePlacement('skewY', 5); }
+                            else if (preset === 'curved') { setCurve(15); }
+                          }}
+                          className={`flex-1 py-1.5 rounded-md text-[8px] font-black uppercase transition-all ${
+                            perspectivePreset === preset ? 'bg-white/10 text-white border border-white/20' : 'text-gray-500 hover:text-gray-300'
+                          }`}
+                        >
+                          {preset}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="space-y-2">
+                       <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
+                          <span>Curve Intensity</span>
+                          <span className="text-[#7d2ae8]">{curve}°</span>
+                       </div>
+                       <input
+                          type="range" min="-30" max="30" value={curve}
+                          onChange={(e) => setCurve(Number(e.target.value))}
+                          className="w-full h-1.5 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
+                       />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Adjustments */}
+              <div className="space-y-6">
+                 {/* Position */}
+                 <div className="space-y-3">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Position (X / Y)</span>
+                      <span className="text-[10px] font-mono text-[#7d2ae8]">
+                        {Math.round(placement.left)}%, {Math.round(placement.top)}%
+                      </span>
+                    </div>
+                    <div className="space-y-3">
+                      <input
+                        type="range" min="0" max="100" value={placement.left}
+                        onChange={(e) => updatePlacement('left', Number(e.target.value))}
+                        className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-white"
+                      />
+                      <input
+                        type="range" min="0" max="100" value={placement.top}
+                        onChange={(e) => updatePlacement('top', Number(e.target.value))}
+                        className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-white"
+                      />
+                    </div>
+                 </div>
+
+                 {/* Scale & Rotate */}
+                 <div className="space-y-3">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 block">Scale / Rotate</span>
+                    <div className="space-y-4">
+                       <input
+                          type="range" min="10" max="150" value={placement.width}
+                          onChange={(e) => updatePlacement('width', Number(e.target.value))}
+                          className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-white"
+                       />
+                       <input
+                          type="range" min="-180" max="180" value={placement.rotate}
+                          onChange={(e) => updatePlacement('rotate', Number(e.target.value))}
+                          className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-white"
+                       />
+                    </div>
+                 </div>
+
+                 {/* Perspective */}
+                 {!useCornerPinning && (
+                   <div className="space-y-3">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 block">Perspective (Skew X / Y)</span>
+                      <div className="space-y-4">
+                         <input
+                            type="range" min="-45" max="45" value={placement.skewX || 0}
+                            onChange={(e) => updatePlacement('skewX', Number(e.target.value))}
+                            className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#00c4cc]"
+                         />
+                         <input
+                            type="range" min="-45" max="45" value={placement.skewY || 0}
+                            onChange={(e) => updatePlacement('skewY', Number(e.target.value))}
+                            className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#00c4cc]"
+                         />
+                      </div>
+                   </div>
+                 )}
+
+                 {/* Blend Mode */}
+                 <div className="pt-4 border-t border-gray-800 space-y-3">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 block">Blend Mode</span>
+                    <select
+                      value={placement.blendMode}
+                      onChange={(e) => updatePlacement('blendMode', e.target.value)}
+                      className="w-full bg-[#1e1e1e] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#7d2ae8] appearance-none"
+                    >
+                      <option value="source-over">Normal</option>
+                      <option value="multiply">Multiply (Realistic)</option>
+                      <option value="screen">Screen (Light)</option>
+                      <option value="overlay">Overlay</option>
+                      <option value="soft-light">Soft Light</option>
+                    </select>
+                 </div>
+              </div>
+
+              <button
+                onClick={handleProRender}
+                disabled={isProGenerating}
+                className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+                  isProGenerating
+                    ? 'bg-white/5 text-gray-600'
+                    : 'bg-gradient-to-r from-[#7d2ae8] to-[#00c4cc] text-white shadow-lg shadow-purple-500/10'
+                }`}
+              >
+                {isProGenerating ? 'Rendering...' : <><Icons.Zap className="w-3.5 h-3.5 text-yellow-300" /> Pro Render</>}
+              </button>
+           </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-[#13161a]">

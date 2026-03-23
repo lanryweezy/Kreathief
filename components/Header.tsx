@@ -199,15 +199,6 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="h-4 w-px bg-gray-800 mx-1"></div>
 
         <div className="flex items-center gap-2 px-2">
-          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500">
-            <button onClick={onBack} className="hover:text-[#7d2ae8] transition-colors">
-              Home
-            </button>
-            <Icons.ArrowRight className="w-2.5 h-2.5" />
-            <span className="text-gray-400 truncate max-w-[100px]">{title}</span>
-          </div>
-          <div className="h-4 w-px bg-gray-800 mx-2"></div>
-          
           {/* Artboard Management */}
           <div className="flex items-center bg-[#1e1e1e] rounded-lg p-0.5 border border-white/5 shadow-inner">
             <button
@@ -229,25 +220,10 @@ export const Header: React.FC<HeaderProps> = ({
 
           <div className="h-4 w-px bg-gray-800 mx-2"></div>
           <div className={`sync-dot ${isSaving ? 'sync-dot-saving' : ''}`}></div>
-          <span className="hidden md:block text-[9px] uppercase tracking-wider font-bold text-gray-500">
-            {isSaving ? 'Saving...' : 'Saved'}
-          </span>
         </div>
       </div>
 
-      <div className="flex-1 flex justify-center px-4 max-w-sm">
-        <div className="relative w-full flex justify-center group">
-          <input
-            id="header-title"
-            type="text"
-            value={title}
-            onChange={(e) => onTitleChange(e.target.value)}
-            className="bg-transparent text-center font-bold text-sm text-gray-200 border-b border-transparent hover:border-gray-700 focus:border-[#7d2ae8] focus:outline-none transition-all px-2 truncate w-full"
-            placeholder="Untitled Design"
-            aria-label="Design Title"
-          />
-        </div>
-      </div>
+      <div className="flex-1" />
 
       <div className="flex items-center gap-4">
         <button
