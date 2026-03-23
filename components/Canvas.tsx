@@ -693,11 +693,16 @@ const CanvasComponent: React.FC<CanvasProps> = ({
       if (isSpacePressedRef.current || isDrawingSyncRef.current || layer.locked) {
         return;
       }
+
+      // Stop propagation to prevent handleMouseDownContainer from deselecting
       e.stopPropagation();
+
+      // Only deselect if not already selected and not using shift
+      const isAlreadySelected = selectedLayerIdsRef.current.includes(layer.id);
 
       if (e.shiftKey && onMultiSelectLayer) {
         onMultiSelectLayer(layer.id, true);
-      } else {
+      } else if (!isAlreadySelected) {
         onSelectLayer(layer.id);
       }
 
@@ -1533,55 +1538,6 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     <ErrorBoundary componentName="Canvas" variant="widget">
       <div className="flex-1 relative bg-[#13161a] overflow-hidden flex flex-col">
         <style>{ANIMATION_STYLES}</style>
-        <div className="h-10 bg-[#1e1e1e] border-b border-gray-700 flex items-center justify-between px-4 z-10 shrink-0">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onZoomChange(Math.max(0.1, zoom - 0.1))}
-              className="p-1 hover:bg-gray-700 rounded text-gray-400 transition-colors"
-              title="Zoom Out"
-            >
-              <Icons.ZoomOut className="w-4 h-4" />
-            </button>
-            {/* Editable Zoom Input for #4 */}
-            <EditableZoom zoom={zoom} onZoomChange={onZoomChange} />
-            <button
-              onClick={() => onZoomChange(Math.min(5, zoom + 0.1))}
-              className="p-1 hover:bg-gray-700 rounded text-gray-400 transition-colors"
-              title="Zoom In"
-            >
-              <Icons.ZoomIn className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => {
-                if (activeArtboard) {
-                  // Auto-fit zoom
-                  const minZoomX = viewportSize.width / activeArtboard.width;
-                  const minZoomY = viewportSize.height / activeArtboard.height;
-                  const fitZoom = Math.min(minZoomX, minZoomY, 1);
-                  onZoomChange(Math.max(0.1, fitZoom));
-                }
-              }}
-              className="ml-2 px-2 py-1 text-xs bg-[#7d2ae8]/20 text-[#7d2ae8] rounded hover:bg-[#7d2ae8]/30 transition-colors"
-              title="Fit to Screen"
-            >
-              Fit
-            </button>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onToggleGrid(!showGrid)}
-              className={`p-2 rounded ${showGrid ? 'text-[#7d2ae8] bg-[#7d2ae8]/10' : 'text-gray-400'}`}
-            >
-              <Icons.Grid className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => onToggleRulers(!showRulers)}
-              className={`p-2 rounded ${showRulers ? 'text-[#7d2ae8] bg-[#7d2ae8]/10' : 'text-gray-400'}`}
-            >
-              <Icons.Layout className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
 
         <div
           ref={viewportRef}
