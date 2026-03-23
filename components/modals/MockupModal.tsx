@@ -8,7 +8,7 @@ interface MockupModalProps {
 }
 
 export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }) => {
-  const [activeMockup, setActiveMockup] = useState<'tshirt' | 'poster' | 'tote'>('tshirt');
+  const [activeMockup, setActiveMockup] = useState<'tshirt' | 'hoodie' | 'iphone' | 'macbook' | 'poster' | 'tote'>('tshirt');
   const [isMounted, setIsMounted] = useState(false);
   const [bgLoaded, setBgLoaded] = useState(false);
   const [bgError, setBgError] = useState(false);
@@ -18,6 +18,10 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [overlayPos, setOverlayPos] = useState({ x: 0, y: 0 });
+  const [overlayScale, setOverlayScale] = useState(1);
+  const [surfaceDepth, setSurfaceDepth] = useState(0.8);
+  const [isDraggingOverlay, setIsDraggingOverlay] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const showToast = (msg: string) => {
@@ -30,6 +34,9 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
     setBgError(false);
     setZoom(1);
     setPan({ x: 0, y: 0 });
+    setOverlayPos({ x: 0, y: 0 });
+    setOverlayScale(1);
+    setSurfaceDepth(current.overlayStyle.opacity || 0.8);
   }, [activeMockup]);
 
   useEffect(() => {
@@ -47,19 +54,53 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
   const mockups = {
     tshirt: {
       id: 'tshirt',
-      name: 'Premium Cotton T-Shirt',
+      name: 'Premium T-Shirt',
       category: 'APPAREL',
       icon: Icons.Layout,
-      bg: `https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=${window.devicePixelRatio > 1 ? 1600 : 800}&q=80`,
+      bg: `https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=95`,
+      exportBg: `https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=4000&q=100`,
       aspectRatio: 'aspect-[3/4]',
       overlayStyle: { top: '30%', left: '28%', width: '45%', mixBlendMode: 'multiply', opacity: 0.9, transform: undefined }
+    },
+    hoodie: {
+      id: 'hoodie',
+      name: 'Heavyweight Hoodie',
+      category: 'APPAREL',
+      icon: Icons.Layout,
+      bg: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=85',
+      exportBg: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?ixlib=rb-4.0.3&auto=format&fit=crop&w=4000&q=100',
+      aspectRatio: 'aspect-[3/4]',
+      overlayStyle: { top: '35%', left: '32%', width: '36%', mixBlendMode: 'multiply', opacity: 0.85, transform: undefined }
+    },
+    iphone: {
+      id: 'iphone',
+      name: 'iPhone 16 Pro',
+      category: 'TECH',
+      icon: Icons.Monitor,
+      bg: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=85',
+      exportBg: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=4000&q=100',
+      aspectRatio: 'aspect-[9/16]',
+      overlayStyle: { top: '12%', left: '15%', width: '70%', mixBlendMode: 'normal', opacity: 1, borderRadius: '40px' },
+      hasReflections: true
+    },
+    macbook: {
+      id: 'macbook',
+      name: 'MacBook Air M3',
+      category: 'TECH',
+      icon: Icons.Monitor,
+      bg: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=85',
+      exportBg: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&auto=format&fit=crop&w=4000&q=100',
+      aspectRatio: 'aspect-[16/10]',
+      overlayStyle: { top: '14%', left: '18%', width: '64%', mixBlendMode: 'normal', opacity: 1 },
+      hasReflections: true
     },
     poster: {
       id: 'poster',
       name: 'A4 Matte Poster',
       category: 'PRINT',
       icon: Icons.Image,
-      bg: `https://images.unsplash.com/photo-1579762715118-a6f1d4b934f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=${window.devicePixelRatio > 1 ? 1600 : 800}&q=80`,
+      bg: `https://images.unsplash.com/photo-1579762715118-a6f1d4b934f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=85`,
+      exportBg: `https://images.unsplash.com/photo-1579762715118-a6f1d4b934f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=4000&q=100`,
       aspectRatio: 'aspect-[2/3]',
       overlayStyle: { top: '15%', left: '27%', width: '46%', transform: 'rotate(-2deg)', mixBlendMode: 'multiply', opacity: 1 }
     },
@@ -68,7 +109,8 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
       name: 'Canvas Tote Bag',
       category: 'ACCESSORIES',
       icon: Icons.Box,
-      bg: `https://images.unsplash.com/photo-1597484662317-c9253e609141?ixlib=rb-4.0.3&auto=format&fit=crop&w=${window.devicePixelRatio > 1 ? 1600 : 800}&q=80`,
+      bg: `https://images.unsplash.com/photo-1597484662317-c9253e609141?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=85`,
+      exportBg: `https://images.unsplash.com/photo-1597484662317-c9253e609141?ixlib=rb-4.0.3&auto=format&fit=crop&w=4000&q=100`,
       aspectRatio: 'aspect-square',
       overlayStyle: { top: '45%', left: '35%', width: '30%', mixBlendMode: 'multiply', opacity: 0.85, transform: undefined }
     }
@@ -90,7 +132,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
 
       const bgImg = new Image();
       bgImg.crossOrigin = 'anonymous';
-      bgImg.src = current.bg;
+      bgImg.src = (current as any).exportBg || current.bg;
       await new Promise((resolve) => {
         bgImg.onload = resolve;
       });
@@ -108,14 +150,18 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
           designImg.onload = resolve;
         });
 
-        const top = (parseFloat(current.overlayStyle.top) / 100) * canvas.height;
-        const left = (parseFloat(current.overlayStyle.left) / 100) * canvas.width;
-        const width = (parseFloat(current.overlayStyle.width) / 100) * canvas.width;
+        const baseTop = (parseFloat(current.overlayStyle.top) / 100) * canvas.height;
+        const baseLeft = (parseFloat(current.overlayStyle.left) / 100) * canvas.width;
+        const baseWidth = (parseFloat(current.overlayStyle.width) / 100) * canvas.width;
+
+        const width = baseWidth * overlayScale;
         const height = width * (designImg.naturalHeight / designImg.naturalWidth);
+        const left = baseLeft + (overlayPos.x / 100) * canvas.width;
+        const top = baseTop + (overlayPos.y / 100) * canvas.height;
 
         ctx.save();
         ctx.globalCompositeOperation = current.overlayStyle.mixBlendMode === 'multiply' ? 'multiply' : 'source-over';
-        ctx.globalAlpha = current.overlayStyle.opacity || 1;
+        ctx.globalAlpha = surfaceDepth;
 
         if (current.overlayStyle.transform) {
           const match = current.overlayStyle.transform.match(/rotate\(([-\d.]+)deg\)/);
@@ -184,11 +230,18 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
   const handlePointerMove = (e: React.PointerEvent) => {
     if (isDragging && zoom > 1) {
       setPan((p) => ({ x: p.x + e.movementX, y: p.y + e.movementY }));
+    } else if (isDraggingOverlay) {
+       const bounds = e.currentTarget.getBoundingClientRect();
+       setOverlayPos(prev => ({
+         x: prev.x + (e.movementX / bounds.width) * 100,
+         y: prev.y + (e.movementY / bounds.height) * 100
+       }));
     }
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
     setIsDragging(false);
+    setIsDraggingOverlay(false);
     e.currentTarget.releasePointerCapture(e.pointerId);
   };
 
@@ -198,14 +251,16 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
       onMouseDown={handleClose}
     >
       <div 
-        className={`bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl ${isFullscreen ? 'w-full h-full rounded-none' : 'w-[1000px] max-w-[calc(100vw-2rem)] h-[750px] max-h-[calc(100vh-2rem)]'} flex flex-col overflow-hidden transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] ${isMounted ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'}`}
+        className={`bg-[#1a1a1c] border border-white/10 rounded-2xl shadow-[0_0_100px_rgba(0,0,0,0.5)] ${isFullscreen ? 'w-full h-full rounded-none' : 'w-[1100px] max-w-[calc(100vw-2rem)] h-[800px] max-h-[calc(100vh-2rem)]'} flex flex-col overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isMounted ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'}`}
         onMouseDown={e => e.stopPropagation()}
         style={{ willChange: 'transform, opacity, width, height' }}
       >
-        <div className="h-14 border-b border-gray-700 flex items-center justify-between px-6 bg-[#252627] shadow-[inset_0_-1px_0_rgba(255,255,255,0.05)] z-10 shrink-0">
-           <div className="flex items-center gap-2">
-              <Icons.Mockup className="w-5 h-5 text-[#7d2ae8]" />
-              <h3 className="font-bold text-white">Mockup Studio</h3>
+        <div className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-[#1f1f23]/50 backdrop-blur-xl z-10 shrink-0">
+           <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-purple-600/20 flex items-center justify-center border border-purple-500/30">
+                <Icons.Mockup className="w-5 h-5 text-purple-400" />
+              </div>
+              <h3 className="font-black text-white tracking-tight uppercase text-sm">Mockup Studio</h3>
            </div>
            <button onClick={handleClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-colors" title="Close">
               <Icons.X className="w-4 h-4" />
@@ -217,37 +272,61 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
            {!isFullscreen && (
              <div 
                 ref={containerRef}
-                className="w-56 bg-[#13161a] border-r border-gray-700 p-4 flex flex-col gap-1 overflow-y-auto custom-scrollbar outline-none"
+                className="w-64 bg-[#141417] border-r border-white/5 p-6 flex flex-col gap-1 overflow-y-auto custom-scrollbar outline-none"
                 onKeyDown={handleKeyDown}
                 tabIndex={0}
              >
-                {Object.entries({
-                  'APPAREL': ['tshirt'],
-                  'PRINT': ['poster'],
-                  'ACCESSORIES': ['tote']
-                }).map(([category, itemKeys]) => (
-                  <div key={category} className="mb-4 last:mb-0">
-                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 mt-1 px-2">{category}</div>
-                    <div className="flex flex-col gap-1">
-                      {itemKeys.map((key) => {
-                        const item = mockups[key as keyof typeof mockups];
-                        const Icon = item.icon;
-                        const isActive = activeMockup === key;
-                        return (
-                          <button
-                            key={key}
-                            onMouseEnter={() => prefetch(key as keyof typeof mockups)}
-                            onClick={() => setActiveMockup(key as any)}
-                            className={`group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[#7d2ae8] focus-visible:ring-offset-1 focus-visible:ring-offset-[#13161a] ${isActive ? 'bg-[#7d2ae8]/15 text-[#7d2ae8] border-l-[3px] border-[#7d2ae8]' : 'text-gray-400 hover:bg-[#252627] hover:text-white hover:translate-x-1 border-l-[3px] border-transparent'}`}
-                          >
-                            <Icon className={`w-4 h-4 transition-opacity ${isActive ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'}`} /> 
-                            <span className="truncate">{item.name}</span>
-                          </button>
-                        );
-                      })}
+                <div className="flex-1">
+                  {Object.entries({
+                    'APPAREL': ['tshirt', 'hoodie'],
+                    'TECH': ['iphone', 'macbook'],
+                    'PRINT': ['poster'],
+                    'ACCESSORIES': ['tote']
+                  }).map(([category, itemKeys]) => (
+                    <div key={category} className="mb-4 last:mb-0">
+                      <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 mt-1 px-2">{category}</div>
+                      <div className="flex flex-col gap-1">
+                        {itemKeys.map((key) => {
+                          const item = mockups[key as keyof typeof mockups];
+                          const Icon = item.icon;
+                          const isActive = activeMockup === key;
+                          return (
+                            <button
+                              key={key}
+                              onMouseEnter={() => prefetch(key as keyof typeof mockups)}
+                              onClick={() => setActiveMockup(key as any)}
+                              className={`group flex items-center gap-3 px-4 py-3 rounded-xl text-[11px] font-black transition-all duration-300 outline-none ${isActive ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30 shadow-[0_0_20px_rgba(168,85,247,0.1)]' : 'text-gray-500 hover:bg-white/5 hover:text-white border border-transparent'}`}
+                            >
+                              <Icon className={`w-3.5 h-3.5 transition-all ${isActive ? 'scale-110 opacity-100' : 'opacity-50 group-hover:opacity-100 group-hover:scale-110'}`} />
+                              <span className="truncate uppercase tracking-widest">{item.name}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+
+                {/* Surface Controls */}
+                <div className="mt-8 pt-6 border-t border-white/5">
+                   <div className="flex items-center justify-between mb-4 px-2">
+                      <span className="text-[10px] font-black text-white tracking-widest uppercase">Surface Depth</span>
+                      <span className="text-[10px] font-mono text-purple-400">{Math.round(surfaceDepth * 100)}%</span>
+                   </div>
+                   <input
+                      type="range"
+                      min="0.1"
+                      max="1"
+                      step="0.01"
+                      value={surfaceDepth}
+                      onChange={(e) => setSurfaceDepth(parseFloat(e.target.value))}
+                      className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                   />
+                   <div className="flex justify-between mt-2 px-1">
+                      <span className="text-[8px] text-gray-600 font-bold uppercase">Soft</span>
+                      <span className="text-[8px] text-gray-600 font-bold uppercase">Opaque</span>
+                   </div>
+                </div>
              </div>
            )}
 
@@ -261,26 +340,26 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
              }}
            >
               {/* Header Actions for Export within Preview */}
-              <div className="absolute top-4 right-4 z-20 flex gap-2">
+              <div className="absolute top-6 right-6 z-20 flex gap-3">
                 <button
                   onClick={() => setIsFullscreen(!isFullscreen)}
-                  className="w-8 h-8 flex items-center justify-center bg-[#252627] hover:bg-gray-700 text-white rounded-md transition-colors shadow-lg border border-gray-700"
+                  className="w-10 h-10 flex items-center justify-center bg-[#1f1f23]/80 backdrop-blur-md hover:bg-white/10 text-white rounded-xl transition-all shadow-xl border border-white/5 active:scale-95"
                   title="Toggle Fullscreen"
                 >
-                  {isFullscreen ? <Icons.Minimize className="w-4 h-4" /> : <Icons.Maximize className="w-4 h-4" />}
+                  {isFullscreen ? <Icons.Minimize className="w-5 h-5" /> : <Icons.Maximize className="w-5 h-5" />}
                 </button>
                 <button
                   onClick={() => handleExport('copy')}
                   disabled={isExporting}
-                  className="px-3 py-1.5 bg-[#252627] hover:bg-gray-700 text-white rounded-md text-xs font-bold transition-colors flex items-center gap-1.5 shadow-lg border border-gray-700 disabled:opacity-50"
+                  className="px-4 h-10 bg-[#1f1f23]/80 backdrop-blur-md hover:bg-white/10 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-xl border border-white/5 disabled:opacity-50 active:scale-95"
                   title="Copy to Clipboard"
                 >
-                  <Icons.Copy className="w-3.5 h-3.5" /> Copy
+                  <Icons.Copy className="w-4 h-4" /> Copy
                 </button>
                 <button
                   onClick={() => handleExport('download')}
                   disabled={isExporting}
-                  className="px-4 py-1.5 bg-[#7d2ae8] hover:bg-[#6c24c9] text-white rounded-md text-xs font-bold transition-colors flex items-center gap-1.5 shadow-lg shadow-[#7d2ae8]/20 disabled:opacity-50 min-w-[140px] justify-center"
+                  className="px-6 h-10 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-[0_0_30px_rgba(139,92,246,0.3)] disabled:opacity-50 min-w-[160px] justify-center active:scale-95"
                 >
                   {isExporting ? (
                     <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -339,16 +418,53 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                    {/* Design Overlay */}
                    {bgLoaded && (
                      designImage ? (
-                       <img 
-                          src={designImage} 
-                          className="absolute object-contain pointer-events-none drop-shadow-sm blur-[0px]"
-                          style={{
-                            ...current.overlayStyle,
-                            WebkitSupports: 'mix-blend-mode: multiply'
-                          } as any}
-                          alt="Your Design"
-                          draggable={false}
-                       />
+                       <div
+                         className={`absolute cursor-move group/overlay ${isDraggingOverlay ? 'ring-2 ring-purple-500 ring-offset-2 ring-offset-transparent' : 'hover:ring-1 hover:ring-white/30'}`}
+                         onPointerDown={(e) => {
+                           e.stopPropagation();
+                           setIsDraggingOverlay(true);
+                           e.currentTarget.setPointerCapture(e.pointerId);
+                         }}
+                         style={{
+                           top: `calc(${current.overlayStyle.top} + ${overlayPos.y}%)`,
+                           left: `calc(${current.overlayStyle.left} + ${overlayPos.x}%)`,
+                           width: `calc(${current.overlayStyle.width} * ${overlayScale})`,
+                           transform: current.overlayStyle.transform,
+                           mixBlendMode: current.overlayStyle.mixBlendMode as any,
+                           opacity: surfaceDepth
+                         }}
+                       >
+                         <img
+                            src={designImage}
+                            className="w-full h-auto pointer-events-none drop-shadow-sm"
+                            alt="Your Design"
+                            draggable={false}
+                         />
+
+                         {(current as any).hasReflections && (
+                            <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-white/5 to-transparent pointer-events-none" />
+                         )}
+                         {/* Scale Handles */}
+                         <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-lg cursor-nwse-resize opacity-0 group-hover/overlay:opacity-100 transition-opacity"
+                           onPointerDown={(e) => {
+                             e.stopPropagation();
+                             const startX = e.clientX;
+                             const startScale = overlayScale;
+                             const onMove = (moveEvent: PointerEvent) => {
+                               const delta = (moveEvent.clientX - startX) / 100;
+                               setOverlayScale(Math.max(0.2, Math.min(3, startScale + delta)));
+                             };
+                             const onUp = () => {
+                               window.removeEventListener('pointermove', onMove);
+                               window.removeEventListener('pointerup', onUp);
+                             };
+                             window.addEventListener('pointermove', onMove);
+                             window.addEventListener('pointerup', onUp);
+                           }}
+                         >
+                           <div className="w-2.5 h-2.5 bg-black rounded-[2px]" />
+                         </div>
+                       </div>
                      ) : (
                        <div 
                           className="absolute border-2 border-dashed border-gray-500/50 rounded-lg flex flex-col items-center justify-center text-gray-500/50 text-xs text-center font-bold tracking-widest uppercase bg-black/20 pointer-events-none"

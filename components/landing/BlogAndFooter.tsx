@@ -8,7 +8,7 @@ export const BlogPreview: React.FC = () => {
     const recentPosts = BLOG_POSTS.slice(0, 3);
 
     return (
-        <section className="py-32 bg-[#080808] border-y border-white/5">
+        <section className="py-32 bg-[#0d0d0f] border-y border-white/5">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="flex flex-col md:flex-row items-end justify-between mb-16 gap-8">
                     <div className="max-w-xl">
@@ -44,7 +44,7 @@ export const BlogPreview: React.FC = () => {
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ delay: idx * 0.1 }}
-                            className="group relative bg-[#101010] rounded-3xl overflow-hidden border border-white/5 hover:border-purple-500/30 transition-all duration-500 hover:-translate-y-2 shadow-2xl hover:shadow-purple-500/10"
+                            className="group relative bg-[#151518] rounded-3xl overflow-hidden border border-white/5 hover:border-purple-500/30 transition-all duration-500 hover:-translate-y-2 shadow-2xl hover:shadow-purple-500/15"
                         >
                             <div className="aspect-[16/10] overflow-hidden relative">
                                 <img
@@ -73,7 +73,7 @@ export const BlogPreview: React.FC = () => {
 
 export const Footer: React.FC = () => {
     return (
-        <footer className="pt-32 pb-12 bg-[#050505]">
+        <footer className="pt-32 pb-12 bg-[#0a0a0c]">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-32">
                     <div className="col-span-1 md:col-span-1">
@@ -161,12 +161,10 @@ export const Footer: React.FC = () => {
 
                 <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="text-gray-600 text-xs font-black uppercase tracking-[0.3em]">
-                        © 2026 Kreathief Inc. Designed with Artificial Intelligence.
+                        © 2026 Kreathief Inc.
                     </div>
                     <div className="flex items-center gap-8 text-gray-700 text-[10px] font-black uppercase tracking-[0.2em]">
                         <span>Made in San Francisco</span>
-                        <span>•</span>
-                        <span>Backed by Global Vision</span>
                     </div>
                 </div>
             </div>
