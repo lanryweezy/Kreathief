@@ -4,8 +4,8 @@ import { Icons } from '../../constants';
 
 export const ComparisonSection: React.FC = () => {
     return (
-        <section className="py-32 relative bg-[#050505]">
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-red-500/20 to-transparent"></div>
+        <section className="py-32 relative bg-[var(--deep-space)]">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-red-500/40 to-transparent"></div>
 
             <div className="max-w-7xl mx-auto px-6">
                 <div className="text-center mb-24">
@@ -36,7 +36,7 @@ export const ComparisonSection: React.FC = () => {
                         initial={{ opacity: 0, x: -30 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
-                        className="flex-1 w-full bg-[#0a0a0a] border border-red-900/30 rounded-3xl p-10 opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-500"
+                        className="flex-1 w-full bg-[var(--matte-black)] border border-red-900/30 rounded-3xl p-10 opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-500"
                     >
                         <h3 className="text-2xl font-black text-gray-500 mb-8 tracking-widest uppercase text-center">The Other Guys</h3>
                         <div className="space-y-6">
@@ -64,7 +64,7 @@ export const ComparisonSection: React.FC = () => {
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="flex-1 w-full bg-gradient-to-b from-[#111111] to-[#050505] border border-purple-500/30 rounded-3xl p-10 relative overflow-hidden shadow-[0_0_80px_rgba(168,85,247,0.15)] transform scale-105 z-10"
+                        className="flex-1 w-full bg-gradient-to-b from-[#1f1f23] to-var(--deep-space) border border-purple-500/30 rounded-3xl p-10 relative overflow-hidden shadow-[0_0_80px_rgba(168,85,247,0.2)] transform scale-105 z-10"
                     >
                         <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl"></div>
 

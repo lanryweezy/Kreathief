@@ -34,7 +34,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white selection:bg-[#7d2ae8] selection:text-white font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-[var(--deep-space)] text-white selection:bg-[#8b5cf6] selection:text-white font-sans overflow-x-hidden">
       <SEO />
 
       {/* Dynamic Progress Bar */}
@@ -46,7 +46,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
       {/* Navigation */}
       <nav
         className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${scrolled
-          ? 'py-4 bg-[#050505]/80 backdrop-blur-2xl border-b border-white/5'
+          ? 'py-4 bg-[#16161a]/90 backdrop-blur-2xl border-b border-white/10'
           : 'py-8 bg-transparent'
           }`}
       >
