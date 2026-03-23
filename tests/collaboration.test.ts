@@ -19,7 +19,18 @@ describe('Collaboration Features Store', () => {
     useStore.setState({
       snapshots: [],
       comments: [],
-      layers: [], // Reset layers
+      artboards: [
+        {
+          id: 'default',
+          name: 'Artboard 1',
+          x: 0,
+          y: 0,
+          width: 1080,
+          height: 1080,
+          layers: [],
+        }
+      ],
+      activeArtboardId: 'default',
       projectId: 'test-project',
     });
   });
@@ -36,22 +47,31 @@ describe('Collaboration Features Store', () => {
     expect(snapshots[0].name).toBe('Test Snapshot');
     expect(snapshots[0].id).toBeDefined();
     expect(snapshots[0].timestamp).toBeDefined();
+    expect(snapshots[0].state.artboards).toBeDefined();
   });
 
   it('should restore a snapshot', async () => {
-    const { createSnapshot, restoreSnapshot } = useStore.getState();
+    const { createSnapshot, restoreSnapshot, addLayer } = useStore.getState();
 
     // Create initial state
     const initialLayer = {
       id: 'layer1',
       type: 'rectangle',
+      name: 'Rect',
       x: 10,
       y: 10,
       width: 100,
       height: 100,
       color: 'red',
+      rotation: 0,
+      opacity: 1,
+      visible: true,
+      locked: false,
     } as any;
-    useStore.setState({ layers: [initialLayer] });
+
+    act(() => {
+        addLayer(initialLayer);
+    });
 
     // Create snapshot
     await act(async () => {
@@ -59,8 +79,12 @@ describe('Collaboration Features Store', () => {
     });
 
     // Modify state (delete layer)
-    useStore.setState({ layers: [] });
-    expect(useStore.getState().layers).toHaveLength(0);
+    act(() => {
+        useStore.getState().deleteLayer('layer1');
+    });
+
+    const activeArtboardBefore = useStore.getState().artboards.find(a => a.id === useStore.getState().activeArtboardId);
+    expect(activeArtboardBefore?.layers).toHaveLength(0);
 
     // Restore snapshot
     const snapshotId = useStore.getState().snapshots[0].id;
@@ -69,9 +93,9 @@ describe('Collaboration Features Store', () => {
     });
 
     // Verify state restored
-    const { layers } = useStore.getState();
-    expect(layers).toHaveLength(1);
-    expect(layers[0].id).toBe('layer1');
+    const activeArtboardAfter = useStore.getState().artboards.find(a => a.id === useStore.getState().activeArtboardId);
+    expect(activeArtboardAfter?.layers).toHaveLength(1);
+    expect(activeArtboardAfter?.layers[0].id).toBe('layer1');
   });
 
   it('should add a comment', async () => {

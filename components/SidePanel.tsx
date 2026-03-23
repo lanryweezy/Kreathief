@@ -35,10 +35,11 @@ interface SidePanelProps {
   onApplyLayout: (typeOrShapes: any) => void;
   getCanvasSnapshot?: () => Promise<string>;
   uploadedImage: string | null;
+  onStartDesign?: (prompt: string) => void;
 }
 
 export const SidePanel = React.memo(
-  ({ onGenerate, onApplyTheme, onApplyLayout, getCanvasSnapshot, uploadedImage }: SidePanelProps) => {
+  ({ onGenerate, onApplyTheme, onApplyLayout, getCanvasSnapshot, uploadedImage, onStartDesign }: SidePanelProps) => {
     const artboards = useStore((state) => state.artboards);
     const activeArtboardId = useStore((state) => state.activeArtboardId);
     const activeTab = useStore((state) => state.activeTab);
@@ -71,8 +72,8 @@ export const SidePanel = React.memo(
 
     return (
       <ErrorBoundary componentName="SidePanel" variant="widget">
-        <div className="w-[320px] bg-[#13161a] border-r border-[#1f1f1f] flex flex-col z-20 shrink-0 shadow-xl relative overflow-hidden">
-          <div key={activeTab} className="h-full flex flex-col animate-panel-crossfade">
+        <div className="w-[320px] bg-[#0a0a0a] border-r border-white/5 flex flex-col z-20 shrink-0 shadow-2xl relative overflow-hidden">
+          <div key={activeTab} className="h-full flex flex-col">
             <React.Suspense fallback={<PanelLoading />}>
               {activeTab === NavTab.MAGIC && (
                 <MagicPanel onGenerate={onGenerate} uploadedImage={uploadedImage} fileInputRef={fileInputRef} />
@@ -129,7 +130,10 @@ export const SidePanel = React.memo(
               )}
 
               {activeTab === NavTab.ASSISTANT && (
-                <AssistantPanel getCanvasSnapshot={getCanvasSnapshot || (async () => '')} />
+                <AssistantPanel
+                  getCanvasSnapshot={getCanvasSnapshot || (async () => '')}
+                  onStartDesign={onStartDesign}
+                />
               )}
 
               {activeTab === NavTab.DRAW && (

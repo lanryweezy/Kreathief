@@ -119,12 +119,14 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
   };
 
   return (
-    <div className="flex items-center min-h-14 bg-[#1e1e1e] border-b border-gray-700 px-2 sm:px-4 gap-2 sm:gap-4 overflow-x-auto custom-scrollbar w-full shadow-sm z-20 py-2 flex-nowrap whitespace-nowrap">
+    <div className="flex items-center min-h-[56px] bg-[#0a0a0a] border-b border-white/5 px-4 gap-4 overflow-x-auto custom-scrollbar w-full z-20 py-2 flex-nowrap whitespace-nowrap shadow-2xl">
       {isMultiSelect ? (
         <div className="flex items-center gap-4">
-          <span className="text-[10px] font-bold text-gray-400 uppercase">Selection ({selectedLayerIds?.length})</span>
+          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-purple-400 bg-purple-500/10 px-2 py-1 rounded-md border border-purple-500/20">
+            Selection ({selectedLayerIds?.length})
+          </span>
           <Divider />
-          <div className="flex bg-[#252627] rounded border border-gray-700 p-0.5 gap-0.5">
+          <div className="flex bg-white/5 rounded-xl border border-white/5 p-1 gap-1">
             <IconButton onClick={() => onAlignLayers?.('left')} title="Align Left">
               <Icons.AlignLeft className="w-3.5 h-3.5" />
             </IconButton>

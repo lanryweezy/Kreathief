@@ -730,6 +730,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
   const handleResizeStart = useCallback(
     (e: React.MouseEvent, layer: Layer, handle: ResizeHandle) => {
+      e.preventDefault();
       e.stopPropagation();
       onInteractionStart?.();
 
@@ -1580,12 +1581,6 @@ const CanvasComponent: React.FC<CanvasProps> = ({
             >
               <Icons.Layout className="w-5 h-5" />
             </button>
-            <button
-              onClick={() => onAddArtboard()}
-              className="px-3 py-1 bg-[#7d2ae8] text-white rounded text-xs font-bold hover:bg-[#6a24c5] transition-colors"
-            >
-              + Artboard
-            </button>
           </div>
         </div>
 
@@ -1644,10 +1639,39 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                 onClick={() => useStore.getState().setActiveArtboardId(artboard.id)}
               >
                 {/* Artboard Header */}
-                <div className="absolute -top-6 left-0 flex items-center gap-2 pointer-events-none">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">
-                    {artboard.name} <span className="text-gray-600 ml-1">{artboard.width} × {artboard.height}</span>
-                  </span>
+                <div className="absolute -top-10 left-0 flex items-center gap-3 pointer-events-none">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap bg-[#1e1e1e] px-2 py-1 rounded-t-lg border-x border-t border-white/10">
+                      {artboard.name}
+                    </span>
+                    <span className="text-[9px] font-bold text-gray-500 bg-black/40 px-2 py-0.5 rounded-b-lg border-x border-b border-white/5">
+                      {artboard.width} × {artboard.height}
+                    </span>
+                  </div>
+
+                  {/* Artboard Management Buttons on Canvas */}
+                  <div className="flex items-center gap-1 pointer-events-auto">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddArtboard();
+                      }}
+                      className="w-6 h-6 flex items-center justify-center bg-[#1e1e1e] border border-white/10 rounded-lg text-gray-400 hover:text-white hover:bg-[#7d2ae8] transition-all shadow-xl"
+                      title="Add Artboard"
+                    >
+                      <Icons.Plus className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        useStore.getState().deleteArtboard(artboard.id);
+                      }}
+                      className="w-6 h-6 flex items-center justify-center bg-[#1e1e1e] border border-white/10 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-900/20 transition-all shadow-xl"
+                      title="Delete Artboard"
+                    >
+                      <Icons.Trash className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
 
                 <div

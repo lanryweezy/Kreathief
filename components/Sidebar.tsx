@@ -33,8 +33,8 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, onTogg
   ];
 
   return (
-    <div id="sidebar" className="w-[72px] bg-[#0e1318] flex flex-col items-center py-4 z-30 shrink-0 border-r border-[#1f1f1f] h-full overflow-y-auto custom-scrollbar scrollbar-hide">
-      <div className="flex flex-col items-center w-full gap-1" role="tablist">
+    <div id="sidebar" className="w-[72px] bg-[#0a0a0a] flex flex-col items-center py-6 z-30 shrink-0 border-r border-white/5 h-full overflow-y-auto custom-scrollbar scrollbar-hide shadow-2xl">
+      <div className="flex flex-col items-center w-full gap-2" role="tablist">
         {items.map((item) => {
           const isActive = activeTab === item.id && !isCollapsed;
           return (
@@ -58,11 +58,11 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, onTogg
               {isActive && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-[#7d2ae8] to-[#6b23c5] rounded-r-full" />
               )}
-              <div className={`p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-[#7d2ae8]/20 text-[#7d2ae8] shadow-[0_0_15px_rgba(125,42,232,0.15)]' : 'group-hover:bg-[#252627]'
+              <div className={`p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-purple-600 text-white shadow-[0_0_20px_rgba(125,42,232,0.4)]' : 'group-hover:bg-white/5 text-gray-500 group-hover:text-gray-300'
                 }`}>
                 <item.icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
               </div>
-              <span className={`text-[9px] font-bold tracking-tight transition-all ${isActive ? 'opacity-100 scale-100' : 'opacity-60 scale-95 group-hover:opacity-100'
+              <span className={`text-[8px] font-black uppercase tracking-wider transition-all ${isActive ? 'opacity-100 scale-100 text-purple-400' : 'opacity-40 scale-95 group-hover:opacity-100'
                 }`}>{item.label}</span>
             </button>
           );

@@ -42,6 +42,7 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   onApplyTheme,
 }) => {
   const [category, setCategory] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showReplaceWarning, setShowReplaceWarning] = useState(true);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const favoriteTemplates = useStore((state) => state.favoriteTemplates);
@@ -99,8 +100,16 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
     if (showFavoritesOnly) {
       filtered = filtered.filter((t) => favoriteTemplates.includes(t.id));
     }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter((t) =>
+        t.name.toLowerCase().includes(q) ||
+        t.category.toLowerCase().includes(q) ||
+        (t as any).description?.toLowerCase().includes(q)
+      );
+    }
     return filtered;
-  }, [category, showFavoritesOnly, favoriteTemplates]);
+  }, [category, showFavoritesOnly, favoriteTemplates, searchQuery]);
 
   return (
     <div className="flex flex-col h-full bg-[#13161a]">
@@ -146,8 +155,18 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
           <input
             type="text"
             placeholder="Search templates..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-[#1e1e1e] border border-gray-700 rounded-lg py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#7d2ae8]"
           />
+          {searchQuery && (
+            <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-2.5 text-gray-500 hover:text-white"
+            >
+                <Icons.X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-2 mt-3">

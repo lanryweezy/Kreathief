@@ -62,12 +62,15 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
   }, [effects, neonEnabled, neonColor, neonIntensity, neonSpread, neonFlicker]);
 
   return (
-    <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4 space-y-4">
-      <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Text Effects</h3>
+    <div className="bg-[#0a0a0a] rounded-2xl border border-white/5 p-5 space-y-6 shadow-2xl">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Text Effects</h3>
+        <span className="px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-[8px] font-black text-purple-400 uppercase tracking-widest">PRO</span>
+      </div>
 
       {/* Style Type */}
-      <div>
-        <label className="text-[10px] text-gray-500 block mb-2">Style Type</label>
+      <div className="space-y-3">
+        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block">Core Style</label>
         <div className="grid grid-cols-4 gap-2">
           {[
             { id: 'normal', label: 'Normal', icon: 'A' },
@@ -78,10 +81,10 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
             <button
               key={type.id}
               onClick={() => handleStyleTypeChange(type.id as any)}
-              className={`py-2 rounded text-xs font-bold transition-all ${
+              className={`h-10 rounded-xl text-sm font-black transition-all flex items-center justify-center border ${
                 styleType === type.id
-                  ? 'bg-[#7d2ae8] text-white'
-                  : 'bg-[#252627] text-gray-400 hover:text-white'
+                  ? 'bg-[#7d2ae8] text-white border-purple-400/50 shadow-[0_0_15px_rgba(125,42,232,0.3)]'
+                  : 'bg-white/5 text-gray-500 border-white/5 hover:border-white/10 hover:text-gray-300'
               }`}
             >
               {type.icon}
@@ -91,8 +94,8 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
       </div>
 
       {/* Warp Effects */}
-      <div>
-        <label className="text-[10px] text-gray-500 block mb-2">Warp / Transform</label>
+      <div className="space-y-3">
+        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block">Transformation</label>
         <div className="grid grid-cols-3 gap-2">
           {[
             { id: 'none', label: 'None' },
@@ -105,10 +108,10 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
             <button
               key={type.id}
               onClick={() => handleWarpStyleChange(type.id as any)}
-              className={`py-1.5 rounded text-[9px] font-medium transition-all ${
+              className={`py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${
                 warpStyle === type.id
-                  ? 'bg-[#7d2ae8] text-white'
-                  : 'bg-[#252627] text-gray-400 hover:text-white'
+                  ? 'bg-[#00c4cc] text-white border-cyan-400/50 shadow-[0_0_15px_rgba(0,196,204,0.3)]'
+                  : 'bg-white/5 text-gray-500 border-white/5 hover:border-white/10 hover:text-gray-300'
               }`}
             >
               {type.label}
@@ -119,23 +122,29 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
 
       {/* Curve Control */}
       {(warpStyle === 'arc' || warpStyle === 'wave') && (
-        <div>
-          <label className="text-[10px] text-gray-500 block mb-2">Curve Intensity: {curve}</label>
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Curve Intensity</label>
+            <span className="text-[9px] font-black text-white font-mono">{curve}%</span>
+          </div>
           <input
             type="range"
             min="-100"
             max="100"
             value={curve}
             onChange={(e) => handleCurveChange(parseInt(e.target.value))}
-            className="w-full accent-[#7d2ae8]"
+            className="w-full accent-[#00c4cc]"
           />
         </div>
       )}
 
       {/* Depth Control (for Lift/Echo) */}
       {(styleType === 'lift' || styleType === 'echo') && (
-        <div>
-          <label className="text-[10px] text-gray-500 block mb-2">Depth: {depth}</label>
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Effect Depth</label>
+            <span className="text-[9px] font-black text-white font-mono">{depth}px</span>
+          </div>
           <input
             type="range"
             min="0"
@@ -148,40 +157,43 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
       )}
 
       {/* Neon Glow */}
-      <div className="border-t border-gray-700 pt-4">
-        <div className="flex items-center justify-between mb-3">
-          <label className="text-[10px] text-gray-400 font-bold">Neon Glow</label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={neonEnabled}
-              onChange={(e) => {
-                setNeonEnabled(e.target.checked);
-                handleNeonChange();
-              }}
-              className="accent-[#7d2ae8]"
-            />
-            <span className="text-[10px] text-gray-500">On</span>
-          </label>
+      <div className="border-t border-white/5 pt-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Neon Aura</label>
+          <button
+            onClick={() => {
+              setNeonEnabled(!neonEnabled);
+              handleNeonChange();
+            }}
+            className={`w-10 h-5 rounded-full relative transition-colors ${neonEnabled ? 'bg-[#7d2ae8]' : 'bg-white/10'}`}
+          >
+            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${neonEnabled ? 'left-6' : 'left-1'}`} />
+          </button>
         </div>
 
         {neonEnabled && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={neonColor}
-                onChange={(e) => {
-                  setNeonColor(e.target.value);
-                  handleNeonChange();
-                }}
-                className="w-8 h-8 rounded border border-gray-600"
-              />
-              <span className="text-[10px] text-gray-400">Glow Color</span>
+          <div className="space-y-5 bg-white/5 p-4 rounded-xl border border-white/5">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Glow Color</span>
+              <div className="flex items-center gap-3">
+                <span className="text-[9px] font-black text-white font-mono uppercase">{neonColor}</span>
+                <input
+                  type="color"
+                  value={neonColor}
+                  onChange={(e) => {
+                    setNeonColor(e.target.value);
+                    handleNeonChange();
+                  }}
+                  className="w-6 h-6 rounded-lg bg-transparent border-none cursor-pointer"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="text-[10px] text-gray-500 block mb-2">Intensity: {neonIntensity}%</label>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Glow Intensity</label>
+                <span className="text-[9px] font-black text-white font-mono">{neonIntensity}%</span>
+              </div>
               <input
                 type="range"
                 min="0"
@@ -195,8 +207,11 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
               />
             </div>
 
-            <div>
-              <label className="text-[10px] text-gray-500 block mb-2">Spread: {neonSpread}px</label>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Aura Spread</label>
+                <span className="text-[9px] font-black text-white font-mono">{neonSpread}px</span>
+              </div>
               <input
                 type="range"
                 min="0"
@@ -210,34 +225,39 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={neonFlicker}
-                onChange={(e) => {
-                  setNeonFlicker(e.target.checked);
+            <div className="flex items-center justify-between">
+              <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Dynamic Flicker</label>
+              <button
+                onClick={() => {
+                  setNeonFlicker(!neonFlicker);
                   handleNeonChange();
                 }}
-                className="accent-[#7d2ae8]"
-              />
-              <label className="text-[10px] text-gray-400">Flicker Animation</label>
+                className={`w-8 h-4 rounded-full relative transition-colors ${neonFlicker ? 'bg-[#00c4cc]' : 'bg-white/10'}`}
+              >
+                <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${neonFlicker ? 'left-4.5' : 'left-0.5'}`} />
+              </button>
             </div>
           </div>
         )}
       </div>
 
       {/* Preview */}
-      <div className="border-t border-gray-700 pt-4">
-        <div
-          className="text-2xl font-black text-center py-4"
-          style={{
-            textShadow: neonEnabled
-              ? `0 0 ${neonSpread}px ${neonColor}, 0 0 ${neonSpread * 2}px ${neonColor}, 0 0 ${neonSpread * 3}px ${neonColor}`
-              : 'none',
-            transform: warpStyle === 'arc' ? `rotateX(${curve}deg)` : 'none',
-          }}
-        >
-          Neon Text
+      <div className="border-t border-white/5 pt-6">
+        <div className="bg-[#13161a] rounded-xl p-6 border border-white/5 flex items-center justify-center min-h-[100px] overflow-hidden">
+          <div
+            className="text-3xl font-black text-center transition-all duration-500 uppercase tracking-tighter"
+            style={{
+              color: neonEnabled ? '#fff' : 'inherit',
+              textShadow: neonEnabled
+                ? `0 0 ${neonSpread}px ${neonColor}, 0 0 ${neonSpread * 2}px ${neonColor}, 0 0 ${neonSpread * 3}px ${neonColor}`
+                : 'none',
+              transform: warpStyle === 'arc' ? `rotateX(${curve}deg)` : 'none',
+              WebkitTextStroke: styleType === 'hollow' ? '1px #7d2ae8' : 'none',
+              opacity: styleType === 'hollow' ? 0.8 : 1
+            }}
+          >
+            {styleType === 'hollow' ? 'HOLLOW' : 'NEON TEXT'}
+          </div>
         </div>
       </div>
     </div>

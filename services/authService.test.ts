@@ -1,16 +1,22 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { authService } from '../authService';
-import { supabase } from '../../lib/supabase/client';
+import { authService } from './authService';
+import { supabase } from '../lib/supabase/client';
 
 // Mock Supabase client
-vi.mock('../../lib/supabase/client', () => ({
+vi.mock('../lib/supabase/client', () => ({
   supabase: {
     auth: {
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),
       getSession: vi.fn(),
       signOut: vi.fn(),
-      onAuthStateChange: vi.fn(),
+      onAuthStateChange: vi.fn().mockReturnValue({
+        data: {
+          subscription: {
+            unsubscribe: vi.fn(),
+          },
+        },
+      }),
     },
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnThis(),
@@ -30,9 +36,10 @@ describe('AuthService', () => {
   describe('signIn', () => {
     it('should return user with valid credentials in QA bypass mode', async () => {
       // Set QA bypass mode
-      const originalEnv = import.meta.env.DEV;
-      import.meta.env.DEV = true;
-      import.meta.env.VITE_USE_QA_BYPASS = 'true';
+      const originalEnv = import.meta.env.MODE;
+      // @ts-ignore
+      import.meta.env.MODE = 'test';
+      import.meta.env.VITE_QA_BYPASS = 'true';
 
       const result = await authService.signIn('test@example.com', 'password');
 
@@ -42,13 +49,14 @@ describe('AuthService', () => {
       expect(result.error).toBeNull();
 
       // Restore
-      import.meta.env.DEV = originalEnv;
-      import.meta.env.VITE_USE_QA_BYPASS = undefined;
+      // @ts-ignore
+      import.meta.env.MODE = originalEnv;
+      import.meta.env.VITE_QA_BYPASS = undefined;
     });
 
     it('should authenticate with real Supabase when QA bypass disabled', async () => {
       // Disable QA bypass
-      import.meta.env.VITE_USE_QA_BYPASS = 'false';
+      import.meta.env.VITE_QA_BYPASS = 'false';
 
       const mockUser = { id: 'real-user-id', email: 'user@example.com' };
       const mockProfile = { name: 'Test User', plan: 'free' as const };
@@ -56,12 +64,12 @@ describe('AuthService', () => {
       vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({
         data: { user: mockUser },
         error: null,
-      });
+      } as any);
 
       vi.mocked(supabase.from('').select('').eq('').single).mockResolvedValue({
         data: mockProfile,
         error: null,
-      });
+      } as any);
 
       const result = await authService.signIn('user@example.com', 'Password123');
 
@@ -75,12 +83,12 @@ describe('AuthService', () => {
     });
 
     it('should handle authentication errors gracefully', async () => {
-      import.meta.env.VITE_USE_QA_BYPASS = 'false';
+      import.meta.env.VITE_QA_BYPASS = 'false';
 
       vi.mocked(supabase.auth.signInWithPassword).mockResolvedValue({
         data: { user: null },
         error: new Error('Invalid credentials'),
-      });
+      } as any);
 
       const result = await authService.signIn('wrong@email.com', 'wrongpass');
 
@@ -89,7 +97,7 @@ describe('AuthService', () => {
     });
 
     it('should handle network errors', async () => {
-      import.meta.env.VITE_USE_QA_BYPASS = 'false';
+      import.meta.env.VITE_QA_BYPASS = 'false';
 
       vi.mocked(supabase.auth.signInWithPassword).mockRejectedValue(
         new Error('Network error')
@@ -109,12 +117,12 @@ describe('AuthService', () => {
       vi.mocked(supabase.auth.signUp).mockResolvedValue({
         data: { user: mockUser },
         error: null,
-      });
+      } as any);
 
       const result = await authService.signUp(
-        'New User',
         'newuser@example.com',
-        'SecurePass123'
+        'SecurePass123',
+        'New User'
       );
 
       expect(result.user).toBeDefined();
@@ -131,12 +139,12 @@ describe('AuthService', () => {
       vi.mocked(supabase.auth.signUp).mockResolvedValue({
         data: { user: null },
         error: new Error('Email already registered'),
-      });
+      } as any);
 
       const result = await authService.signUp(
-        'Test User',
         'existing@example.com',
-        'Password123'
+        'Password123',
+        'Test User'
       );
 
       expect(result.user).toBeNull();
@@ -146,7 +154,7 @@ describe('AuthService', () => {
 
   describe('getSession', () => {
     it('should return QA session when bypass active', async () => {
-      import.meta.env.VITE_USE_QA_BYPASS = 'true';
+      import.meta.env.VITE_QA_BYPASS = 'true';
       localStorage.setItem(
         'kreathief_qa_session',
         JSON.stringify({
@@ -164,7 +172,7 @@ describe('AuthService', () => {
     });
 
     it('should return Supabase session when QA bypass disabled', async () => {
-      import.meta.env.VITE_USE_QA_BYPASS = 'false';
+      import.meta.env.VITE_QA_BYPASS = 'false';
 
       vi.mocked(supabase.auth.getSession).mockResolvedValue({
         data: {
@@ -173,7 +181,7 @@ describe('AuthService', () => {
           },
         },
         error: null,
-      });
+      } as any);
 
       const session = await authService.getSession();
 
@@ -183,12 +191,12 @@ describe('AuthService', () => {
     });
 
     it('should return null when no session exists', async () => {
-      import.meta.env.VITE_USE_QA_BYPASS = 'false';
+      import.meta.env.VITE_QA_BYPASS = 'false';
 
       vi.mocked(supabase.auth.getSession).mockResolvedValue({
         data: { session: null },
         error: null,
-      });
+      } as any);
 
       const session = await authService.getSession();
 
@@ -209,7 +217,9 @@ describe('AuthService', () => {
 
   describe('onAuthChange', () => {
     it('should return empty unsubscribe function in QA bypass mode', () => {
-      import.meta.env.VITE_USE_QA_BYPASS = 'true';
+      // @ts-ignore
+      import.meta.env.MODE = 'test';
+      import.meta.env.VITE_QA_BYPASS = 'true';
 
       const unsubscribe = authService.onAuthChange(vi.fn());
 
@@ -218,12 +228,14 @@ describe('AuthService', () => {
     });
 
     it('should setup Supabase listener when QA bypass disabled', () => {
-      import.meta.env.VITE_USE_QA_BYPASS = 'false';
+      import.meta.env.VITE_QA_BYPASS = 'false';
 
       const mockUnsubscribe = vi.fn();
       vi.mocked(supabase.auth.onAuthStateChange).mockReturnValue({
-        subscription: {
-          unsubscribe: mockUnsubscribe,
+        data: {
+          subscription: {
+            unsubscribe: mockUnsubscribe,
+          },
         },
       } as any);
 

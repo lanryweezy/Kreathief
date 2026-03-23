@@ -307,24 +307,29 @@ ${displayResult
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#13161a] p-4 overflow-y-auto custom-scrollbar">
-      <div className="mb-6 flex items-center justify-between">
-        <h3 className="font-bold text-white flex items-center gap-2 text-sm uppercase tracking-wider">
-          <Icons.Magic className="w-5 h-5 text-[#7d2ae8]" />
-          AI Vector Studio
-        </h3>
+    <div className="flex flex-col h-full bg-[#0a0a0a] p-6 overflow-y-auto custom-scrollbar border-l border-white/5 shadow-2xl">
+      <div className="mb-8 flex items-center justify-between">
+        <div className="flex flex-col gap-1">
+          <h3 className="font-black text-white flex items-center gap-3 text-xs uppercase tracking-[0.2em]">
+            <div className="w-8 h-8 rounded-xl bg-purple-600/20 flex items-center justify-center border border-purple-500/30">
+              <Icons.Magic className="w-4 h-4 text-[#7d2ae8]" />
+            </div>
+            Vector Studio
+          </h3>
+          <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest ml-11">AI-Powered Tracing</p>
+        </div>
         <div className="flex items-center gap-2">
           {/* Batch toggle */}
           <button
             onClick={() => setShowBatch(!showBatch)}
-            className={`text-[9px] px-2 py-0.5 rounded-full font-bold transition-all border ${showBatch
-              ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-              : 'bg-gray-800 text-gray-500 border-gray-700 hover:border-gray-600'
+            className={`text-[8px] px-3 py-1 rounded-full font-black uppercase tracking-widest transition-all border ${showBatch
+              ? 'bg-blue-500/20 text-blue-400 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
+              : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/20'
               }`}
           >
-            BATCH
+            Batch
           </button>
-          <div className="text-[10px] bg-[#7d2ae8]/20 text-[#7d2ae8] px-2 py-0.5 rounded-full font-bold">PRO</div>
+          <div className="text-[8px] bg-purple-500/10 border border-purple-500/20 text-purple-400 px-2 py-1 rounded-full font-black uppercase tracking-widest">PRO</div>
         </div>
       </div>
 

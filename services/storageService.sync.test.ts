@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { storageService } from '../storageService';
-import { supabase } from '../../lib/supabase/client';
-import { authService } from '../authService';
+import { storageService } from './storageService';
+import { supabase } from '../lib/supabase/client';
+import { authService } from './authService';
 
 // Mock dependencies
-vi.mock('../../lib/supabase/client', () => ({
+vi.mock('../lib/supabase/client', () => ({
   supabase: {
     from: vi.fn().mockReturnValue({
       upsert: vi.fn(),
@@ -16,7 +16,7 @@ vi.mock('../../lib/supabase/client', () => ({
   },
 }));
 
-vi.mock('../authService', () => ({
+vi.mock('./authService', () => ({
   authService: {
     getSession: vi.fn(),
   },

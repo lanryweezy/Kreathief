@@ -45,16 +45,23 @@ export const Header: React.FC<HeaderProps> = ({
   const onShowShortcuts = () => setShowShortcuts(!showShortcuts);
 
   return (
-    <header className="h-12 bg-[#0e1318] text-white flex items-center justify-between px-4 shadow-lg z-50 shrink-0 border-b border-gray-800">
-      <div className="flex items-center gap-2">
+    <header className="h-14 bg-[#0a0a0a] text-white flex items-center justify-between px-6 z-50 shrink-0 border-b border-white/5 shadow-2xl">
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 mr-2">
+          <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/20">
+            <Icons.Magic className="w-5 h-5 text-white" />
+          </div>
+          <span className="font-black text-lg tracking-tighter uppercase hidden lg:block">Kreathief</span>
+        </div>
+
         {onBack && (
           <button
             onClick={onBack}
-            className="p-2 hover:bg-white/5 rounded-md transition-all text-gray-400 hover:text-white"
-            title="Back"
+            className="p-2 hover:bg-white/5 rounded-lg transition-all text-gray-500 hover:text-white group border border-transparent hover:border-white/10"
+            title="Back to Dashboard"
             aria-label="Go back to Dashboard"
           >
-            <Icons.ArrowLeft className="w-4 h-4" />
+            <Icons.ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
           </button>
         )}
 
@@ -199,35 +206,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="h-4 w-px bg-gray-800 mx-1"></div>
 
         <div className="flex items-center gap-2 px-2">
-          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500">
-            <button onClick={onBack} className="hover:text-[#7d2ae8] transition-colors">
-              Home
-            </button>
-            <Icons.ArrowRight className="w-2.5 h-2.5" />
-            <span className="text-gray-400 truncate max-w-[100px]">{title}</span>
-          </div>
-          <div className="h-4 w-px bg-gray-800 mx-2"></div>
-          
-          {/* Artboard Management */}
-          <div className="flex items-center bg-[#1e1e1e] rounded-lg p-0.5 border border-white/5 shadow-inner">
-            <button
-              onClick={onDeleteArtboard}
-              className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-white/5 rounded-md transition-all"
-              title="Remove Artboard"
-            >
-              <Icons.Minus className="w-3 h-3" />
-            </button>
-            <div className="w-px h-3 bg-gray-800 mx-0.5" />
-            <button
-              onClick={onAddArtboard}
-              className="p-1.5 text-gray-400 hover:text-green-400 hover:bg-white/5 rounded-md transition-all"
-              title="Add Artboard"
-            >
-              <Icons.Plus className="w-3 h-3" />
-            </button>
-          </div>
-
-          <div className="h-4 w-px bg-gray-800 mx-2"></div>
+          <div className="h-4 w-px bg-white/10 mx-2"></div>
           <div className={`sync-dot ${isSaving ? 'sync-dot-saving' : ''}`}></div>
           <span className="hidden md:block text-[9px] uppercase tracking-wider font-bold text-gray-500">
             {isSaving ? 'Saving...' : 'Saved'}
@@ -235,15 +214,15 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      <div className="flex-1 flex justify-center px-4 max-w-sm">
-        <div className="relative w-full flex justify-center group">
+      <div className="flex-1 flex justify-center px-4">
+        <div className="relative max-w-xs w-full flex justify-center group">
           <input
             id="header-title"
             type="text"
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
-            className="bg-transparent text-center font-bold text-sm text-gray-200 border-b border-transparent hover:border-gray-700 focus:border-[#7d2ae8] focus:outline-none transition-all px-2 truncate w-full"
-            placeholder="Untitled Design"
+            className="bg-white/5 hover:bg-white/10 focus:bg-white/10 text-center font-black text-[10px] uppercase tracking-[0.2em] text-white rounded-full py-1.5 px-6 border border-white/5 hover:border-white/10 focus:border-purple-500/50 focus:outline-none transition-all truncate w-full"
+            placeholder="UNTITLED DESIGN"
             aria-label="Design Title"
           />
         </div>
@@ -281,16 +260,14 @@ export const Header: React.FC<HeaderProps> = ({
 
         <div className="h-4 w-px bg-gray-800"></div>
 
-        <Button
+        <button
           id="export-btn"
-          variant="secondary"
-          size="sm"
-          className="bg-[#7d2ae8] text-white hover:bg-[#6b23c5] font-bold border-none shadow-lg h-8 px-4"
           onClick={onDownload}
+          className="bg-white text-black hover:bg-[#00c4cc] hover:text-white px-5 h-9 rounded-full font-black text-[10px] uppercase tracking-widest shadow-xl transition-all flex items-center gap-2 active:scale-95"
         >
-          <Icons.Download className="w-3.5 h-3.5 md:mr-2" />
+          <Icons.Download className="w-3.5 h-3.5" />
           <span className="hidden md:inline">Export</span>
-        </Button>
+        </button>
 
         {user && (
           <div className="w-7 h-7 rounded-full border border-gray-700 flex items-center justify-center overflow-hidden shadow-sm hover:border-[#7d2ae8] transition-colors cursor-pointer">

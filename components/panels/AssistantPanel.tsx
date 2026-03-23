@@ -124,9 +124,10 @@ const LocalIcons = {
 
 interface AssistantPanelProps {
   getCanvasSnapshot: () => Promise<string>;
+  onStartDesign?: (prompt: string) => void;
 }
 
-export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapshot }) => {
+export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapshot, onStartDesign }) => {
   const addLayer = useStore((state) => state.addLayer);
   const canvasSize = useStore((state) => state.canvasSize);
 
@@ -362,15 +363,17 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapsho
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#13161a]">
-      <div className="p-4 border-b border-gray-700 bg-[#1e1e1e]">
-        <h3 className="font-bold text-white flex items-center gap-2">
-          <LocalIcons.Bot className="w-5 h-5 text-[#7d2ae8]" />
-          Design Assistant
+    <div className="flex flex-col h-full bg-[#13161a] border-l border-white/5 shadow-[-20px_0_40px_rgba(0,0,0,0.4)] z-[110]">
+      <div className="p-6 border-b border-white/5 bg-[#1e1e1e]/50 backdrop-blur-xl">
+        <h3 className="font-black text-white flex items-center gap-3 uppercase tracking-[0.2em] text-xs">
+          <div className="w-8 h-8 rounded-xl bg-[#7d2ae8] flex items-center justify-center shadow-lg shadow-purple-500/20">
+            <LocalIcons.Bot className="w-5 h-5 text-white" />
+          </div>
+          Assistant
         </h3>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-[#0e1318]/50">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
@@ -407,7 +410,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapsho
           </div>
         )}
 
-        <div className="flex gap-2 bg-[#0e1318] border border-gray-700 rounded-lg p-1">
+        <div className="flex gap-2 bg-white/[0.03] border border-white/5 rounded-2xl p-1.5 focus-within:border-[#7d2ae8]/50 transition-all">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -417,8 +420,8 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapsho
                 handleSendMessage();
               }
             }}
-            placeholder="Ask for advice or generate layouts..."
-            className="flex-1 bg-transparent border-none px-2 py-1 text-sm text-white focus:outline-none resize-none h-10 custom-scrollbar"
+            placeholder="Ask anything..."
+            className="flex-1 bg-transparent border-none px-3 py-2 text-sm text-white focus:outline-none resize-none h-12 custom-scrollbar font-medium"
             disabled={isLoading}
           />
           <div className="flex items-center gap-1 pr-1">
