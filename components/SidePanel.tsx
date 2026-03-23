@@ -35,10 +35,11 @@ interface SidePanelProps {
   onApplyLayout: (typeOrShapes: any) => void;
   getCanvasSnapshot?: () => Promise<string>;
   uploadedImage: string | null;
+  onStartDesign?: (prompt: string) => void;
 }
 
 export const SidePanel = React.memo(
-  ({ onGenerate, onApplyTheme, onApplyLayout, getCanvasSnapshot, uploadedImage }: SidePanelProps) => {
+  ({ onGenerate, onApplyTheme, onApplyLayout, getCanvasSnapshot, uploadedImage, onStartDesign }: SidePanelProps) => {
     const artboards = useStore((state) => state.artboards);
     const activeArtboardId = useStore((state) => state.activeArtboardId);
     const activeTab = useStore((state) => state.activeTab);
@@ -129,7 +130,10 @@ export const SidePanel = React.memo(
               )}
 
               {activeTab === NavTab.ASSISTANT && (
-                <AssistantPanel getCanvasSnapshot={getCanvasSnapshot || (async () => '')} />
+                <AssistantPanel
+                  getCanvasSnapshot={getCanvasSnapshot || (async () => '')}
+                  onStartDesign={onStartDesign}
+                />
               )}
 
               {activeTab === NavTab.DRAW && (

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useStore } from '../store/useStore';
 import { Icons } from '../constants';
+import { NavTab } from '../types';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -14,6 +15,8 @@ import { useFileHandler } from '../hooks/useFileHandler';
 import { shareService } from '../services/shareService';
 import { ShareModal } from './modals/ShareModal';
 import { ExportModal } from './modals/ExportModal';
+import { MockupPanel } from './panels/MockupPanel';
+import { AssistantPanel } from './panels/AssistantPanel';
 const CommunityModal = React.lazy(() => import('./modals/CommunityModal'));
 import { Toolbar } from './Toolbar';
 import { Dropdown } from './Dropdown';
@@ -29,9 +32,6 @@ interface EditorProps {
 }
 
 export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) => {
-  // Connect minimal global state needed for Layout
-  const artboards = useStore((state) => state.artboards) || [];
-  const activeArtboardId = useStore((state) => state.activeArtboardId);
   const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
   const canvasSize = useStore((state) => state.canvasSize) || { width: 1080, height: 1080, name: 'Square' };
   const activeTab = useStore((state) => state.activeTab);
@@ -57,9 +57,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const projectTitle = useStore((state) => state.projectTitle);
   const showShareModal = useStore((state) => state.showShareModal);
   const setShowShareModal = useStore((state) => state.setShowShareModal);
-  const addArtboard = useStore((state) => state.addArtboard);
-  const deleteArtboard = useStore((state) => state.deleteArtboard);
-  const addToast = useStore((state) => state.addToast);
   const applyBrandColors = useStore((state) => state.applyBrandColors);
 
   // Local UI State
@@ -96,6 +93,11 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     useStore.getState().addImageLayer(url, 'Logo');
   };
 
+  const handleStartDesign = (prompt: string) => {
+    setActiveTab(NavTab.MAGIC);
+    useStore.getState().setPrompt(prompt);
+  };
+
   const shortcuts = useMemo(() => [
     { key: 'z', ctrl: true, action: () => { undo(); haptics.light(); }, description: 'Undo' },
     { key: 'y', ctrl: true, action: () => { redo(); haptics.light(); }, description: 'Redo' },
@@ -128,15 +130,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           onDownload={() => setShowExport(true)} 
           onBack={onBack} 
           onNew={initializeProject} 
-          onAddArtboard={addArtboard}
-          onDeleteArtboard={() => {
-            if (artboards.length > 1) {
-              deleteArtboard(activeArtboardId);
-              haptics.heavy();
-            } else {
-              addToast('Cannot delete the last artboard.', 'warning');
-            }
-          }}
           onOpenCommunity={() => setShowCommunityModal(true)}
           user={user} 
         />
@@ -154,6 +147,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                 onApplyLayout={handleApplyLayout}
                 getCanvasSnapshot={handleExportDataUrl}
                 uploadedImage={uploadedImage}
+                onStartDesign={handleStartDesign}
               />
             )}
           </ErrorBoundary>
@@ -161,6 +155,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
         {/* Workspace */}
         <div className="flex-1 relative overflow-hidden bg-[#13161a] flex flex-col">
+          {activeTab === NavTab.ASSISTANT && (
+            <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 pointer-events-none" />
+          )}
+
           <Toolbar
             documentColors={documentColors}
             onBooleanOperation={handleBooleanOperation}
@@ -168,39 +166,92 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             uploadedImage={uploadedImage}
           />
           
-          <ErrorBoundary componentName="Canvas" variant="widget">
-            <Canvas
-              onDoubleClickLayer={handleLayerDoubleClick}
-              zoom={zoom}
-              onZoomChange={setZoom}
-              onFileUpload={handleFileUploads}
-              onAddLogoToCanvas={handleAddLogoToCanvas}
-              booleanPreview={booleanPreview}
-              onUpdatePath={handleUpdatePath}
-            />
-          </ErrorBoundary>
+          <div className="flex-1 relative overflow-hidden flex flex-row">
+            <ErrorBoundary componentName="Canvas" variant="widget">
+              <Canvas
+                onDoubleClickLayer={handleLayerDoubleClick}
+                zoom={zoom}
+                onZoomChange={setZoom}
+                onFileUpload={handleFileUploads}
+                onAddLogoToCanvas={handleAddLogoToCanvas}
+                booleanPreview={booleanPreview}
+                onUpdatePath={handleUpdatePath}
+              />
+            </ErrorBoundary>
 
-          {/* Zoom Controls Overlay */}
-          <div className="absolute bottom-4 left-4 z-40 bg-[#1e1e1e] border border-white/10 rounded-full shadow-xl flex items-center p-1 backdrop-blur-md hidden md:flex">
-            <button
-              onClick={() => setZoom(Math.max(0.1, zoom - 0.1))}
-              className="p-1.5 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors"
-            >
-              <Icons.Minus className="w-4 h-4" />
-            </button>
-            <button
-              ref={zoomButtonRef}
-              onClick={() => setShowZoomMenu(!showZoomMenu)}
-              className="px-2 w-14 text-center text-[10px] font-bold text-white hover:bg-white/10 rounded transition-colors"
-            >
-              {Math.round(zoom * 100)}%
-            </button>
-            <button
-              onClick={() => setZoom(Math.min(3, zoom + 0.1))}
-              className="p-1.5 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors"
-            >
-              <Icons.Plus className="w-4 h-4" />
-            </button>
+            {/* Side-by-side Mockup Preview for #3 */}
+            {activeTab === NavTab.MOCKUP && !isMobile && (
+              <div className="absolute inset-0 z-[100] bg-[#0e1318] flex animate-in fade-in slide-in-from-right duration-300">
+                <div className="flex-1 relative overflow-hidden flex flex-row">
+                   <MockupPanel
+                      onExportForMockup={handleExportDataUrl}
+                      variant="full"
+                      onClose={() => setActiveTab(NavTab.MAGIC)}
+                   />
+                </div>
+              </div>
+            )}
+
+            {/* AI Assistant Full View for #4 */}
+            {activeTab === NavTab.ASSISTANT && !isMobile && (
+              <div className="absolute top-0 right-0 bottom-0 w-[400px] z-[120] animate-in slide-in-from-right duration-500 shadow-2xl">
+                <AssistantPanel
+                  getCanvasSnapshot={handleExportDataUrl}
+                  onStartDesign={handleStartDesign}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Bottom Controls Bar */}
+          <div className="absolute bottom-4 inset-x-0 flex items-center justify-center z-40 pointer-events-none">
+            <div className="bg-[#1e1e1e]/80 border border-white/10 rounded-2xl shadow-2xl flex items-center p-1.5 backdrop-blur-xl pointer-events-auto gap-2">
+              {/* Zoom Controls */}
+              <div className="flex items-center bg-black/20 rounded-xl px-1">
+                <button
+                  onClick={() => setZoom(Math.max(0.05, zoom - 0.1))}
+                  className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+                  title="Zoom Out"
+                >
+                  <Icons.Minus className="w-4 h-4" />
+                </button>
+                <button
+                  ref={zoomButtonRef}
+                  onClick={() => setShowZoomMenu(!showZoomMenu)}
+                  className="px-2 w-16 text-center text-[11px] font-black text-white hover:bg-white/10 rounded-lg h-8 transition-colors font-mono"
+                >
+                  {Math.round(zoom * 100)}%
+                </button>
+                <button
+                  onClick={() => setZoom(Math.min(10, zoom + 0.1))}
+                  className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
+                  title="Zoom In"
+                >
+                  <Icons.Plus className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="w-px h-6 bg-white/10 mx-1" />
+
+              {/* Quick View Toggles */}
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => useStore.getState().setShowGrid(!useStore.getState().showGrid)}
+                  className={`p-2 rounded-lg transition-all ${useStore.getState().showGrid ? 'bg-[#7d2ae8] text-white shadow-[0_0_15px_rgba(125,42,232,0.4)]' : 'text-gray-400 hover:bg-white/10'}`}
+                  title="Toggle Grid"
+                >
+                  <Icons.Grid className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => useStore.getState().setShowRulers(!useStore.getState().showRulers)}
+                  className={`p-2 rounded-lg transition-all ${useStore.getState().showRulers ? 'bg-[#7d2ae8] text-white shadow-[0_0_15px_rgba(125,42,232,0.4)]' : 'text-gray-400 hover:bg-white/10'}`}
+                  title="Toggle Rulers"
+                >
+                  <Icons.Layout className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
             <Dropdown anchorRef={zoomButtonRef} isOpen={showZoomMenu} onClose={() => setShowZoomMenu(false)} align="center" offset={12}>
               <div className="bg-[#1e1e1e] border border-white/10 rounded-xl shadow-2xl overflow-hidden p-1.5 w-32">
                 {[0.25, 0.5, 0.75, 1, 1.5, 2, 3].map((z) => (
@@ -232,6 +283,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           onApplyLayout={handleApplyLayout}
           getCanvasSnapshot={handleExportDataUrl}
           uploadedImage={uploadedImage}
+          onStartDesign={handleStartDesign}
         />
       </BottomSheet>
 
