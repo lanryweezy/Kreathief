@@ -78,11 +78,10 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
   onFinishDrawing,
 }) => {
   const [recentColors, setRecentColors] = useState<string[]>([]);
-  // We'll wire these sliders to local state for now if they aren't provided by props,
-  // but keeping them visual ensures the user feels control.
-  // Ideally these would be passed down props.
-  const [smoothing, setSmoothing] = useState(50);
-  const [jitter, setJitter] = useState(0);
+  const brushSmoothing = useStore((state) => state.brushSmoothing);
+  const setBrushSmoothing = useStore((state) => state.setBrushSmoothing);
+  const brushJitter = useStore((state) => state.brushJitter);
+  const setBrushJitter = useStore((state) => state.setBrushJitter);
 
   const colors = [
     '#000000',
@@ -276,14 +275,14 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
                 <Icons.Activity className="w-3 h-3 text-blue-400" />
                 <label className="text-[10px] font-bold text-gray-400">Stabilizer</label>
               </div>
-              <span className="text-[10px] text-gray-500">{smoothing}%</span>
+              <span className="text-[10px] text-gray-500">{brushSmoothing}%</span>
             </div>
             <input
               type="range"
               min="0"
               max="100"
-              value={smoothing}
-              onChange={(e) => setSmoothing(parseInt(e.target.value))}
+              value={brushSmoothing}
+              onChange={(e) => setBrushSmoothing(parseInt(e.target.value))}
               className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
             />
           </div>
@@ -294,14 +293,14 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
                 <Icons.Zap className="w-3 h-3 text-orange-400" />
                 <label className="text-[10px] font-bold text-gray-400">Jitter</label>
               </div>
-              <span className="text-[10px] text-gray-500">{jitter}%</span>
+              <span className="text-[10px] text-gray-500">{brushJitter}%</span>
             </div>
             <input
               type="range"
               min="0"
               max="100"
-              value={jitter}
-              onChange={(e) => setJitter(parseInt(e.target.value))}
+              value={brushJitter}
+              onChange={(e) => setBrushJitter(parseInt(e.target.value))}
               className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
             />
           </div>

@@ -55,7 +55,6 @@ const EditableZoom = ({ zoom, onZoomChange }: { zoom: number; onZoomChange: (z: 
       className="text-xs text-gray-300 w-14 text-center font-mono cursor-edit hover:text-white transition-colors select-none"
       onClick={() => {
         setValue(String(Math.round(zoom * 100)));
-        setIsEditing(false); // Wait, should be true
         setIsEditing(true);
       }}
     >
@@ -122,6 +121,8 @@ const CanvasComponent: React.FC<CanvasProps> = ({
   const brushSize = useStore((state) => state.brushSize);
   const brushOpacity = useStore((state) => state.brushOpacity);
   const brushType = useStore((state) => state.brushType ?? BrushType.BASIC);
+  const brushSmoothing = useStore((state) => state.brushSmoothing);
+  const brushJitter = useStore((state) => state.brushJitter);
   const onDrawingComplete = useStore((state) => state.handleDrawingComplete);
   const onVectorDrawingComplete = useStore((state) => state.handleVectorDrawingComplete);
   const onAddArtboard = useStore((state) => state.addArtboard);
@@ -1423,8 +1424,21 @@ const CanvasComponent: React.FC<CanvasProps> = ({
       return;
     }
     const rect = drawingCanvasRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left),
-      y = (e.clientY - rect.top);
+    let x = (e.clientX - rect.left);
+    let y = (e.clientY - rect.top);
+
+    // Apply Smoothing/Stabilization (Lerp between last and current)
+    const smoothFactor = 1 - (brushSmoothing / 100) * 0.9; // 1.0 (none) to 0.1 (high)
+    x = drawingLastPos.current.x + (x - drawingLastPos.current.x) * smoothFactor;
+    y = drawingLastPos.current.y + (y - drawingLastPos.current.y) * smoothFactor;
+
+    // Apply Jitter
+    if (brushJitter > 0) {
+      const jitterAmount = (brushJitter / 100) * brushSize * zoom;
+      x += (Math.random() - 0.5) * jitterAmount;
+      y += (Math.random() - 0.5) * jitterAmount;
+    }
+
     const ctx = drawingCanvasRef.current.getContext('2d');
     if (!ctx) {
       return;

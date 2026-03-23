@@ -243,6 +243,23 @@ self.onmessage = async (e: MessageEvent) => {
             ctx.scale(scaleX, scaleY);
             ctx.fill(path);
             ctx.restore();
+          } else {
+            // Complex polygon shapes
+            const def = getShapeDefinition(layer.type);
+            if (def && def.startsWith('polygon')) {
+              const points = def.match(/[\d.]+% [\d.]+/g);
+              if (points) {
+                ctx.beginPath();
+                points.forEach((p, i) => {
+                  const [xPerc, yPerc] = p.split(' ').map((s) => parseFloat(s));
+                  const x = (xPerc / 100) * layer.width - hw;
+                  const y = (yPerc / 100) * layer.height - hh;
+                  if (i === 0) {ctx.moveTo(x, y);} else {ctx.lineTo(x, y);}
+                });
+                ctx.closePath();
+                ctx.fill();
+              }
+            }
           }
         }
         ctx.restore();

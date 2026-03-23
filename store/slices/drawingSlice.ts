@@ -8,6 +8,8 @@ export interface DrawingSlice {
   brushOpacity: number;
   brushType: BrushType;
   textureIntensity: number;
+  brushSmoothing: number;
+  brushJitter: number;
 
   setPenMode: (isDrawing: boolean) => void;
   setBrushColor: (color: string) => void;
@@ -15,6 +17,8 @@ export interface DrawingSlice {
   setBrushOpacity: (opacity: number) => void;
   setBrushType: (type: BrushType) => void;
   setTextureIntensity: (val: number) => void;
+  setBrushSmoothing: (val: number) => void;
+  setBrushJitter: (val: number) => void;
   toggleEraser: () => void;
 }
 
@@ -25,6 +29,8 @@ export const createDrawingSlice: StateCreator<DrawingSlice, [], [], DrawingSlice
   brushOpacity: 1,
   brushType: BrushType.BASIC,
   textureIntensity: 0.5,
+  brushSmoothing: 50,
+  brushJitter: 0,
 
   setPenMode: (isPenMode) => set({ isPenMode }),
   setBrushColor: (brushColor) => set({ brushColor }),
@@ -32,6 +38,8 @@ export const createDrawingSlice: StateCreator<DrawingSlice, [], [], DrawingSlice
   setBrushOpacity: (brushOpacity) => set({ brushOpacity }),
   setBrushType: (brushType) => set({ brushType }),
   setTextureIntensity: (textureIntensity) => set({ textureIntensity }),
+  setBrushSmoothing: (brushSmoothing) => set({ brushSmoothing }),
+  setBrushJitter: (brushJitter) => set({ brushJitter }),
   toggleEraser: () =>
     set((state) => ({
       brushType: state.brushType === BrushType.ERASER ? BrushType.BASIC : BrushType.ERASER,
