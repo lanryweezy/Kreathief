@@ -137,10 +137,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
       <div className={`flex flex-1 overflow-hidden relative ${hideHeaderOnMobile ? 'pb-0' : 'pb-16 md:pb-0'}`}>
         {/* Sidebar */}
-        <div className={`hidden md:flex flex-row h-full shrink-0 z-40 border-r border-gray-800 transition-all duration-300 ${isSidebarCollapsed ? 'w-[72px]' : 'w-[392px]'}`}>
+        <div className={`hidden md:flex flex-row h-full shrink-0 z-40 border-r border-gray-800 transition-all duration-300 ${isSidebarCollapsed || activeTab === NavTab.MOCKUP ? 'w-[72px]' : 'w-[392px]'}`}>
           <ErrorBoundary componentName="Sidebar" variant="widget">
-            <Sidebar isCollapsed={isSidebarCollapsed} onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
-            {!isSidebarCollapsed && (
+            <Sidebar isCollapsed={isSidebarCollapsed || activeTab === NavTab.MOCKUP} onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
+            {!isSidebarCollapsed && activeTab !== NavTab.MOCKUP && (
               <SidePanel
                 onGenerate={handleGenerate}
                 onApplyTheme={applyBrandColors}
@@ -155,7 +155,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
         {/* Workspace */}
         <div className="flex-1 relative overflow-hidden bg-[#13161a] flex flex-col">
-          {activeTab === NavTab.ASSISTANT && (
+          {activeTab === NavTab.ASSISTANT && !isMobile && (
             <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 pointer-events-none" />
           )}
 
@@ -192,15 +192,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
               </div>
             )}
 
-            {/* AI Assistant Full View for #4 */}
-            {activeTab === NavTab.ASSISTANT && !isMobile && (
-              <div className="absolute top-0 right-0 bottom-0 w-[400px] z-[120] animate-in slide-in-from-right duration-500 shadow-2xl">
-                <AssistantPanel
-                  getCanvasSnapshot={handleExportDataUrl}
-                  onStartDesign={handleStartDesign}
-                />
-              </div>
-            )}
           </div>
 
           {/* Bottom Controls Bar */}
