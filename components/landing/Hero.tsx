@@ -16,48 +16,37 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
     const y4 = useTransform(scrollY, [0, 1000], [0, -300]);
 
     return (
-        <section className="relative pt-32 pb-32 overflow-hidden min-h-[110vh] flex flex-col items-center justify-start">
+        <section className="relative pt-32 pb-32 overflow-hidden min-h-[110vh] flex flex-col items-center justify-start bg-[var(--deep-space)]">
             {/* Background Decorative Elements */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-[80vh] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-[#050505] to-[#050505] blur-3xl opacity-60"></div>
+                <div className="absolute top-0 left-0 w-full h-[80vh] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-600/25 via-transparent to-transparent blur-3xl opacity-80"></div>
                 <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 0.2, scale: 1 }}
+                    animate={{ opacity: 0.4, scale: 1.2 }}
                     transition={{ duration: 4, repeat: Infinity, repeatType: 'reverse', ease: "easeInOut" }}
-                    className="absolute top-[10%] left-[20%] w-[40vw] h-[40vw] bg-fuchsia-600/20 rounded-full blur-[120px]"
+                    className="absolute top-[5%] left-[15%] w-[45vw] h-[45vw] bg-fuchsia-500/25 rounded-full blur-[140px] pulse-glow"
                 />
                 <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 0.2, scale: 1 }}
+                    animate={{ opacity: 0.4, scale: 1.1 }}
                     transition={{ duration: 5, repeat: Infinity, repeatType: 'reverse', delay: 1, ease: "easeInOut" }}
-                    className="absolute top-[20%] right-[10%] w-[50vw] h-[50vw] bg-blue-600/20 rounded-full blur-[140px]"
+                    className="absolute top-[15%] right-[5%] w-[55vw] h-[55vw] bg-cyan-500/20 rounded-full blur-[160px] pulse-glow"
                 />
             </div>
 
             <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full flex flex-col items-center">
-
-                {/* Badge */}
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl mb-12 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer group shadow-[0_0_30px_rgba(125,42,232,0.15)]"
-                >
-                    <span className="flex h-2.5 w-2.5 rounded-full bg-purple-500 shadow-[0_0_10px_#A855F7] animate-pulse"></span>
-                    <span className="text-[11px] font-bold text-gray-200 tracking-[0.2em] relative top-[1px]">KREATHIEF 2.0 IS LIVE</span>
-                    <Icons.ArrowRight className="w-3.5 h-3.5 text-purple-400 group-hover:translate-x-1.5 transition-transform" />
-                </motion.div>
 
                 {/* Main Headline */}
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                    className="text-center w-full max-w-5xl mb-10"
+                    className="text-center w-full max-w-5xl mb-10 relative"
                 >
-                    <h1 className="text-6xl md:text-[90px] lg:text-[130px] font-black tracking-tighter leading-[0.85] text-white">
+                    <div className="absolute -inset-10 bg-purple-500/5 blur-[100px] -z-10 rounded-full"></div>
+                    <h1 className="text-6xl md:text-[90px] lg:text-[135px] font-black tracking-tighter leading-[0.85] text-white">
                         Design at the <br className="hidden md:block" />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-500 to-blue-500 drop-shadow-[0_0_40px_rgba(168,85,247,0.4)]">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-500 to-cyan-400 drop-shadow-[0_0_50px_rgba(168,85,247,0.5)]">
                             Speed of AI.
                         </span>
                     </h1>
@@ -67,9 +56,9 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.3 }}
-                    className="text-lg md:text-2xl text-gray-400 max-w-3xl text-center mb-14 leading-relaxed font-medium"
+                    className="text-lg md:text-2xl text-gray-300 max-w-3xl text-center mb-14 leading-relaxed font-medium opacity-90"
                 >
-                    For professional graphics designers who need AI speed without losing control over vectors, layers, and exports. Create client-ready logos, social sets, and pitch decks in one AI-native canvas.
+                    The world&apos;s most advanced creative engine. Professional vector tools meets generative intelligence in a high-performance WebGL canvas.
                 </motion.p>
 
                 {/* CTAs */}
@@ -88,10 +77,6 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
                             <Icons.ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </span>
                     </button>
-                    <button className="w-full sm:w-auto px-10 py-5 bg-[#111] text-white rounded-full font-bold uppercase tracking-[0.15em] text-[13px] hover:bg-[#222] border border-white/10 transition-all flex items-center justify-center gap-3 group">
-                        <Icons.Play className="w-4 h-4 group-hover:scale-110 group-hover:text-purple-400 transition-all" />
-                        Watch Demo
-                    </button>
                 </motion.div>
 
                 {/* EXPLODED UI HERO VISUAL */}
@@ -102,7 +87,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
                         initial={{ opacity: 0, y: 100, rotateX: 20, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, rotateX: 5, scale: 1 }}
                         transition={{ duration: 1.4, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                        className="absolute left-1/2 -translate-x-1/2 top-0 w-full md:w-[85%] rounded-[30px] border border-white/10 bg-[#0a0a0a]/80 backdrop-blur-3xl shadow-[0_0_100px_rgba(125,42,232,0.2)] overflow-hidden z-10 ring-1 ring-white/5"
+                        className="absolute left-1/2 -translate-x-1/2 top-0 w-full md:w-[85%] rounded-[30px] border border-white/10 bg-[#16161a]/80 backdrop-blur-3xl shadow-[0_0_120px_rgba(157,117,255,0.25)] overflow-hidden z-10 ring-1 ring-white/5"
                     >
                         <div className="h-8 bg-white/5 border-b border-white/10 flex items-center px-4 gap-2">
                             <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
@@ -172,7 +157,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
                     </motion.div>
 
                     {/* Bottom Fade Gradient for smooth transition */}
-                    <div className="absolute bottom-[-20%] inset-x-0 h-[60%] bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent z-50 pointer-events-none" />
+                    <div className="absolute bottom-[-20%] inset-x-0 h-[60%] bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/80 to-transparent z-50 pointer-events-none" />
                 </div>
             </div>
         </section>

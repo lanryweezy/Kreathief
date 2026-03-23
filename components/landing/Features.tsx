@@ -4,21 +4,11 @@ import { Icons } from '../../constants';
 
 export const Features: React.FC = () => {
     return (
-        <section id="features" className="py-32 relative bg-[#050505]">
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"></div>
+        <section id="features" className="py-32 relative bg-[var(--deep-space)]">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent"></div>
 
             <div className="max-w-[1400px] mx-auto px-6">
                 <div className="mb-20 text-center flex flex-col items-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6"
-                    >
-                        <Icons.Lightning className="w-4 h-4 text-blue-400" />
-                        <span className="text-[11px] font-bold text-blue-300 tracking-[0.2em] uppercase">Industry-Leading Tools</span>
-                    </motion.div>
-
                     <motion.h2
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -47,9 +37,9 @@ export const Features: React.FC = () => {
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "-50px" }}
-                        className="col-span-1 md:col-span-8 rounded-[32px] bg-[#0a0a0a] border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-500"
+                        className="col-span-1 md:col-span-8 rounded-[32px] bg-[var(--matte-black)] border border-white/10 relative overflow-hidden group hover:border-white/20 transition-all duration-500"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
                         <div className="p-10 relative z-10 w-full md:w-1/2">
                             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-6 shadow-2xl">
@@ -74,9 +64,9 @@ export const Features: React.FC = () => {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "-50px" }}
                         transition={{ delay: 0.1 }}
-                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[#0a0a0a] border border-white/5 relative overflow-hidden group hover:border-purple-500/40 transition-all duration-500 flex flex-col"
+                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[var(--matte-black)] border border-white/10 relative overflow-hidden group hover:border-purple-500/40 transition-all duration-500 flex flex-col"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-t from-purple-900/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-purple-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
                         <div className="p-10 relative z-10">
                             <h3 className="text-2xl font-black mb-3 tracking-tight text-white flex items-center gap-3">
@@ -107,9 +97,9 @@ export const Features: React.FC = () => {
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "-50px" }}
-                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[#0a0a0a] border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-500"
+                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[var(--matte-black)] border border-white/10 relative overflow-hidden group hover:border-white/20 transition-all duration-500"
                     >
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-fuchsia-900/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-fuchsia-600/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
                         <div className="p-10 relative z-10 h-full flex flex-col">
                             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center mb-6 shadow-2xl">
@@ -136,9 +126,9 @@ export const Features: React.FC = () => {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "-50px" }}
                         transition={{ delay: 0.1 }}
-                        className="col-span-1 md:col-span-8 rounded-[32px] bg-[#0a0a0a] border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-500"
+                        className="col-span-1 md:col-span-8 rounded-[32px] bg-[var(--matte-black)] border border-white/10 relative overflow-hidden group hover:border-white/20 transition-all duration-500"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-bl from-green-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                        <div className="absolute inset-0 bg-gradient-to-bl from-green-500/15 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
                         <div className="p-10 relative z-10 w-full md:w-1/2 flex flex-col h-full justify-center">
                             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center mb-6 shadow-2xl">
@@ -162,14 +152,14 @@ export const Features: React.FC = () => {
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "-50px" }}
-                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[#0a0a0a] border border-white/5 relative overflow-hidden group hover:border-orange-500/40 transition-all duration-500"
+                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[var(--matte-black)] border border-white/10 relative overflow-hidden group hover:border-orange-500/40 transition-all duration-500"
                     >
                         <div className="p-8 relative z-10">
                             <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center mb-6 border border-orange-500/20">
-                                <Icons.Monitor className="w-6 h-6 text-orange-400" />
+                                <Icons.Mockup className="w-6 h-6 text-orange-400" />
                             </div>
-                            <h3 className="text-xl font-black mb-2 text-white">Mockup Studio</h3>
-                            <p className="text-gray-400 text-xs font-medium">Visualize your designs on physical products instantly.</p>
+                            <h3 className="text-xl font-black mb-2 text-white">Pro Mockup Studio</h3>
+                            <p className="text-gray-400 text-xs font-medium">High-resolution 4K exports with interactive surface depth and reflections.</p>
                         </div>
                         <img
                             src="/images/feature_mockup_pro.png"
@@ -183,7 +173,7 @@ export const Features: React.FC = () => {
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "-50px" }}
-                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[#0a0a0a] border border-white/5 relative overflow-hidden group hover:border-blue-500/40 transition-all duration-500"
+                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[var(--matte-black)] border border-white/10 relative overflow-hidden group hover:border-blue-500/40 transition-all duration-500"
                     >
                         <div className="p-8 relative z-10">
                             <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20">
@@ -204,7 +194,7 @@ export const Features: React.FC = () => {
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "-50px" }}
-                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[#0a0a0a] border border-white/5 relative overflow-hidden group hover:border-purple-500/40 transition-all duration-500"
+                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[var(--matte-black)] border border-white/10 relative overflow-hidden group hover:border-purple-500/40 transition-all duration-500"
                     >
                         <div className="p-8 relative z-10">
                             <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-6 border border-purple-500/20">
