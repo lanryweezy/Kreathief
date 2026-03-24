@@ -22,6 +22,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
   const [overlayScale, setOverlayScale] = useState(1);
   const [surfaceDepth, setSurfaceDepth] = useState(0.8);
   const [shadowDepth, setShadowDepth] = useState(0.5);
+  const [environment, setEnvironment] = useState<'studio' | 'sunset' | 'office'>('studio');
   const [isDraggingOverlay, setIsDraggingOverlay] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -118,6 +119,12 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
   };
 
   const current = mockups[activeMockup];
+
+  const envFilters = {
+    studio: 'brightness(1) contrast(1)',
+    sunset: 'brightness(0.9) contrast(1.1) sepia(0.2) hue-rotate(-10deg)',
+    office: 'brightness(1.05) contrast(0.95) saturate(0.8)'
+  };
 
   const prefetch = (key: keyof typeof mockups) => {
     const img = new Image();
@@ -337,6 +344,23 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                   ))}
                 </div>
 
+                {/* Environment Presets */}
+                <div className="mt-6 pt-6 border-t border-white/5">
+                   <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4 px-2">Environment</div>
+                   <div className="grid grid-cols-3 gap-2 px-1">
+                      {(['studio', 'sunset', 'office'] as const).map((env) => (
+                        <button
+                          key={env}
+                          onClick={() => setEnvironment(env)}
+                          className={`flex flex-col items-center gap-2 p-2 rounded-lg border transition-all ${environment === env ? 'bg-white/10 border-white/20' : 'bg-black/20 border-white/5 hover:border-white/10 opacity-60 hover:opacity-100'}`}
+                        >
+                          <div className={`w-full aspect-square rounded-md ${env === 'studio' ? 'bg-gray-400' : env === 'sunset' ? 'bg-orange-400/50' : 'bg-blue-400/50'}`} />
+                          <span className="text-[8px] font-black uppercase tracking-tighter">{env}</span>
+                        </button>
+                      ))}
+                   </div>
+                </div>
+
                 {/* Surface Controls */}
                 <div className="mt-8 pt-6 border-t border-white/5">
                    <div className="flex items-center justify-between mb-4 px-2">
@@ -455,7 +479,11 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                    <img 
                       key={current.id}
                       src={current.bg} 
-                      className={`w-full h-full object-cover transition-opacity duration-300 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`} 
+                      className={`w-full h-full object-cover transition-all duration-700 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                      style={{
+                        filter: envFilters[environment],
+                        imageRendering: 'high-quality' as any
+                      }}
                       onLoad={() => setBgLoaded(true)}
                       onError={() => setBgError(true)}
                       style={{ imageRendering: 'high-quality' as any }}
@@ -479,7 +507,8 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                            width: `calc(${current.overlayStyle.width} * ${overlayScale})`,
                            transform: current.overlayStyle.transform,
                            mixBlendMode: current.overlayStyle.mixBlendMode as any,
-                           opacity: surfaceDepth
+                           opacity: surfaceDepth,
+                           filter: environment === 'sunset' ? 'sepia(0.1) brightness(0.95)' : 'none'
                          }}
                        >
                          <img

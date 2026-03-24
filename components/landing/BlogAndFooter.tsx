@@ -8,7 +8,7 @@ export const BlogPreview: React.FC = () => {
     const recentPosts = BLOG_POSTS.slice(0, 3);
 
     return (
-        <section id="blog" className="py-32 bg-[#0d0d0f] border-y border-white/5">
+        <section id="blog" className="py-32 light-section border-y border-black/5">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="flex flex-col md:flex-row items-end justify-between mb-16 gap-8">
                     <div className="max-w-xl">
@@ -16,21 +16,21 @@ export const BlogPreview: React.FC = () => {
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            className="text-4xl md:text-5xl font-black mb-6 tracking-tight"
+                            className="text-4xl md:text-5xl font-black mb-6 tracking-tight text-black"
                         >
-                            Creative <span className="text-purple-500">Insights.</span>
+                            Creative <span className="text-purple-600">Insights.</span>
                         </motion.h2>
                         <motion.p
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: 0.1 }}
-                            className="text-lg text-gray-400 font-medium"
+                            className="text-lg text-gray-600 font-medium"
                         >
-                            Master the art of AI-assisted design with our latest tutorials and industry analysis.
+                            Master the art of modern design with our latest tutorials and industry analysis.
                         </motion.p>
                     </div>
-                    <Link to="/blog" className="px-8 py-4 bg-white/5 border border-white/10 rounded-full text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2 group">
+                    <Link to="/blog" className="px-8 py-4 bg-black/5 border border-black/10 rounded-full text-xs font-black uppercase tracking-widest hover:bg-black/10 transition-all flex items-center gap-2 group text-black">
                         Visit Full Blog
                         <Icons.ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </Link>
@@ -44,22 +44,22 @@ export const BlogPreview: React.FC = () => {
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ delay: idx * 0.1 }}
-                            className="group relative bg-[#151518] rounded-3xl overflow-hidden border border-white/5 hover:border-purple-500/30 transition-all duration-500 hover:-translate-y-2 shadow-2xl hover:shadow-purple-500/15"
+                            className="group relative bg-white rounded-[32px] overflow-hidden border border-black/5 hover:border-black/10 transition-all duration-700 hover:-translate-y-2 shadow-xl hover:shadow-2xl hover:shadow-black/5"
                         >
                             <div className="aspect-[16/10] overflow-hidden relative">
                                 <img
                                     src={post.image}
                                     alt={post.title}
-                                    className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700"
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700"
                                 />
-                                <div className="absolute top-4 left-4 px-3 py-1 bg-purple-500/90 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest text-white">
+                                <div className="absolute top-4 left-4 px-4 py-1.5 bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest">
                                     {post.category}
                                 </div>
                             </div>
-                            <div className="p-8">
-                                <div className="text-xs font-black text-gray-500 mb-4 uppercase tracking-[0.2em]">{post.date} • {post.readTime}</div>
-                                <h3 className="text-xl font-black mb-4 leading-snug group-hover:text-purple-400 transition-colors uppercase tracking-tight">{post.title}</h3>
-                                <Link to={`/blog/${post.id}`} className="inline-flex items-center gap-2 text-xs font-black text-white hover:text-purple-400 transition-colors uppercase tracking-[0.2em]">
+                            <div className="p-10">
+                                <div className="text-[10px] font-black text-gray-400 mb-4 uppercase tracking-[0.2em]">{post.date} • {post.readTime}</div>
+                                <h3 className="text-xl font-black mb-6 leading-tight group-hover:text-purple-600 transition-colors uppercase tracking-tight text-black">{post.title}</h3>
+                                <Link to={`/blog/${post.id}`} className="inline-flex items-center gap-2 text-[10px] font-black text-black hover:text-purple-600 transition-colors uppercase tracking-[0.3em]">
                                     Read Post <Icons.ArrowRight className="w-4 h-4" />
                                 </Link>
                             </div>

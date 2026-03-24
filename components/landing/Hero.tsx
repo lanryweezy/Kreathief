@@ -16,21 +16,21 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
     const y4 = useTransform(scrollY, [0, 1000], [0, -300]);
 
     return (
-        <section className="relative pt-32 pb-32 overflow-hidden min-h-[110vh] flex flex-col items-center justify-start bg-[var(--deep-space)]">
+        <section className="relative pt-40 pb-32 overflow-hidden min-h-[115vh] flex flex-col items-center justify-start bg-[var(--deep-space)]">
             {/* Background Decorative Elements */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-[80vh] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-600/25 via-transparent to-transparent blur-3xl opacity-80"></div>
+                <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/40 via-transparent to-transparent blur-3xl opacity-80"></div>
                 <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 0.4, scale: 1.2 }}
-                    transition={{ duration: 4, repeat: Infinity, repeatType: 'reverse', ease: "easeInOut" }}
-                    className="absolute top-[5%] left-[15%] w-[45vw] h-[45vw] bg-fuchsia-500/25 rounded-full blur-[140px] pulse-glow"
+                    animate={{ opacity: 0.5, scale: 1.2 }}
+                    transition={{ duration: 8, repeat: Infinity, repeatType: 'reverse', ease: "easeInOut" }}
+                    className="absolute top-[-10%] left-[10%] w-[60vw] h-[60vw] bg-fuchsia-600/20 rounded-full blur-[160px] pulse-glow"
                 />
                 <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 0.4, scale: 1.1 }}
-                    transition={{ duration: 5, repeat: Infinity, repeatType: 'reverse', delay: 1, ease: "easeInOut" }}
-                    className="absolute top-[15%] right-[5%] w-[55vw] h-[55vw] bg-cyan-500/20 rounded-full blur-[160px] pulse-glow"
+                    transition={{ duration: 10, repeat: Infinity, repeatType: 'reverse', delay: 2, ease: "easeInOut" }}
+                    className="absolute top-[20%] right-[-5%] w-[70vw] h-[70vw] bg-cyan-600/15 rounded-full blur-[180px] pulse-glow"
                 />
             </div>
 
@@ -38,16 +38,16 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
 
                 {/* Main Headline */}
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                    className="text-center w-full max-w-5xl mb-10 relative"
+                    initial={{ opacity: 0, y: 40 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 1.2, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+                    className="text-center w-full max-w-6xl mb-12 relative"
                 >
-                    <div className="absolute -inset-10 bg-purple-500/5 blur-[100px] -z-10 rounded-full"></div>
-                    <h1 className="text-6xl md:text-[90px] lg:text-[135px] font-black tracking-tighter leading-[0.85] text-white">
-                        Design at the <br className="hidden md:block" />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-500 to-cyan-400 drop-shadow-[0_0_50px_rgba(168,85,247,0.5)]">
-                            Speed of AI.
+                    <div className="absolute -inset-20 bg-purple-500/10 blur-[150px] -z-10 rounded-full"></div>
+                    <h1 className="text-7xl md:text-[110px] lg:text-[160px] font-black tracking-tighter leading-[0.8] text-white">
+                        The Future <br className="hidden md:block" />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-cyan-300">
+                            of Design.
                         </span>
                     </h1>
                 </motion.div>
@@ -55,10 +55,11 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
                 <motion.p
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.3 }}
-                    className="text-lg md:text-2xl text-gray-300 max-w-3xl text-center mb-14 leading-relaxed font-medium opacity-90"
+                    transition={{ duration: 0.8, delay: 0.4 }}
+                    className="text-xl md:text-3xl text-gray-300 max-w-4xl text-center mb-16 leading-tight font-medium opacity-80 tracking-tight"
                 >
-                    The world&apos;s most advanced creative engine. Professional vector tools meets generative intelligence in a high-performance WebGL canvas.
+                    A professional-grade creative suite for the modern age. <br className="hidden md:block" />
+                    Powerful vector tools, advanced AI, and real-time collaboration.
                 </motion.p>
 
                 {/* CTAs */}
