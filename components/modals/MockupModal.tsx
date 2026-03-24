@@ -21,8 +21,6 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
   const [overlayPos, setOverlayPos] = useState({ x: 0, y: 0 });
   const [overlayScale, setOverlayScale] = useState(1);
   const [surfaceDepth, setSurfaceDepth] = useState(0.8);
-  const [shadowDepth, setShadowDepth] = useState(0.5);
-  const [environment, setEnvironment] = useState<'studio' | 'sunset' | 'office'>('studio');
   const [isDraggingOverlay, setIsDraggingOverlay] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -78,11 +76,11 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
       id: 'iphone',
       name: 'iPhone 16 Pro',
       category: 'TECH',
-      icon: Icons.Smartphone,
-      bg: 'https://images.unsplash.com/photo-1603899122634-f086ca5f5ddd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=85',
-      exportBg: 'https://images.unsplash.com/photo-1603899122634-f086ca5f5ddd?ixlib=rb-4.0.3&auto=format&fit=crop&w=4000&q=100',
+      icon: Icons.Monitor,
+      bg: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=85',
+      exportBg: 'https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=4000&q=100',
       aspectRatio: 'aspect-[9/16]',
-      overlayStyle: { top: '11.5%', left: '14.5%', width: '71%', mixBlendMode: 'normal', opacity: 1, borderRadius: '48px' },
+      overlayStyle: { top: '12%', left: '15%', width: '70%', mixBlendMode: 'normal', opacity: 1, borderRadius: '40px' },
       hasReflections: true
     },
     macbook: {
@@ -93,7 +91,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
       bg: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=85',
       exportBg: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?ixlib=rb-4.0.3&auto=format&fit=crop&w=4000&q=100',
       aspectRatio: 'aspect-[16/10]',
-      overlayStyle: { top: '10.5%', left: '16.5%', width: '67%', mixBlendMode: 'normal', opacity: 1, borderRadius: '4px' },
+      overlayStyle: { top: '14%', left: '18%', width: '64%', mixBlendMode: 'normal', opacity: 1 },
       hasReflections: true
     },
     poster: {
@@ -344,23 +342,6 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                   ))}
                 </div>
 
-                {/* Environment Presets */}
-                <div className="mt-6 pt-6 border-t border-white/5">
-                   <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4 px-2">Environment</div>
-                   <div className="grid grid-cols-3 gap-2 px-1">
-                      {(['studio', 'sunset', 'office'] as const).map((env) => (
-                        <button
-                          key={env}
-                          onClick={() => setEnvironment(env)}
-                          className={`flex flex-col items-center gap-2 p-2 rounded-lg border transition-all ${environment === env ? 'bg-white/10 border-white/20' : 'bg-black/20 border-white/5 hover:border-white/10 opacity-60 hover:opacity-100'}`}
-                        >
-                          <div className={`w-full aspect-square rounded-md ${env === 'studio' ? 'bg-gray-400' : env === 'sunset' ? 'bg-orange-400/50' : 'bg-blue-400/50'}`} />
-                          <span className="text-[8px] font-black uppercase tracking-tighter">{env}</span>
-                        </button>
-                      ))}
-                   </div>
-                </div>
-
                 {/* Surface Controls */}
                 <div className="mt-8 pt-6 border-t border-white/5">
                    <div className="flex items-center justify-between mb-4 px-2">
@@ -381,24 +362,6 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                       <span className="text-[8px] text-gray-600 font-bold uppercase">Opaque</span>
                    </div>
                 </div>
-
-                {current.category === 'APPAREL' && (
-                  <div className="mt-6 pt-6 border-t border-white/5">
-                    <div className="flex items-center justify-between mb-4 px-2">
-                        <span className="text-[10px] font-black text-white tracking-widest uppercase">Shadow Depth</span>
-                        <span className="text-[10px] font-mono text-purple-400">{Math.round(shadowDepth * 100)}%</span>
-                    </div>
-                    <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                        value={shadowDepth}
-                        onChange={(e) => setShadowDepth(parseFloat(e.target.value))}
-                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
-                    />
-                  </div>
-                )}
              </div>
            )}
 
@@ -509,6 +472,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                            mixBlendMode: current.overlayStyle.mixBlendMode as any,
                            opacity: surfaceDepth,
                            filter: environment === 'sunset' ? 'sepia(0.1) brightness(0.95)' : 'none'
+                           opacity: surfaceDepth
                          }}
                        >
                          <img
@@ -519,11 +483,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                          />
 
                          {(current as any).hasReflections && (
-                            <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-white/5 to-white/10 pointer-events-none" />
-                         )}
-                         {/* Edge Glow for realism */}
-                         {(current as any).hasReflections && (
-                            <div className="absolute inset-0 ring-1 ring-inset ring-white/20 pointer-events-none rounded-[inherit]" />
+                            <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-white/5 to-transparent pointer-events-none" />
                          )}
                          {/* Scale Handles */}
                          <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-lg cursor-nwse-resize opacity-0 group-hover/overlay:opacity-100 transition-opacity"

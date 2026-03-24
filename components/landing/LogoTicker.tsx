@@ -47,6 +47,23 @@ export const LogoTicker: React.FC = () => {
                     <div className="flex flex-col">
                         <span className="text-black font-black text-xl tracking-tight leading-none">+9,420</span>
                         <span className="text-gray-500 text-xs font-bold uppercase tracking-widest">Active Users</span>
+        <section className="py-20 relative bg-[var(--deep-space)] overflow-hidden border-t border-white/10">
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent"></div>
+
+            <div className="max-w-7xl mx-auto px-6 mb-12 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                    <h3 className="text-sm font-bold tracking-[0.2em] text-purple-400 uppercase mb-2">The New Standard</h3>
+                    <p className="text-white text-2xl font-semibold tracking-tight">Trusted by 10,000+ designers & marketing teams onboarding legacy tools.</p>
+                </div>
+
+                <div className="flex -space-x-4 mr-4">
+                    {avatars.map((avatar, idx) => (
+                        <div key={idx} className="w-14 h-14 rounded-full border-4 border-[#16161a] overflow-hidden bg-gray-800 shadow-xl relative z-10 transition-transform hover:scale-110 hover:z-20 cursor-pointer">
+                            <img src={avatar} alt={`User ${idx + 1}`} className="w-full h-full object-cover" />
+                        </div>
+                    ))}
+                    <div className="w-14 h-14 rounded-full border-4 border-[#16161a] bg-white/10 backdrop-blur-md flex items-center justify-center relative z-0">
+                        <span className="text-white font-bold text-xs uppercase">+9K</span>
                     </div>
                 </div>
             </div>
@@ -55,6 +72,8 @@ export const LogoTicker: React.FC = () => {
             <div className="relative flex overflow-x-hidden group">
                 <div className="absolute w-[150px] md:w-[300px] h-full bg-gradient-to-r from-white to-transparent left-0 z-10 pointer-events-none"></div>
                 <div className="absolute w-[150px] md:w-[300px] h-full bg-gradient-to-l from-white to-transparent right-0 z-10 pointer-events-none"></div>
+                <div className="absolute w-[150px] md:w-[300px] h-full bg-gradient-to-r from-var(--deep-space) to-transparent left-0 z-10 pointer-events-none"></div>
+                <div className="absolute w-[150px] md:w-[300px] h-full bg-gradient-to-l from-var(--deep-space) to-transparent right-0 z-10 pointer-events-none"></div>
 
                 <div className="py-8 animate-marquee whitespace-nowrap flex items-center gap-32 group-hover:[animation-play-state:paused] px-12">
                     {[...Array(3)].map((_, i) => (

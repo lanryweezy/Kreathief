@@ -158,8 +158,8 @@ export const Features: React.FC = () => {
                             <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center mb-6 border border-orange-500/20">
                                 <Icons.Mockup className="w-6 h-6 text-orange-600" />
                             </div>
-                            <h3 className="text-xl font-black mb-2 text-black">Pro Mockup Studio</h3>
-                            <p className="text-gray-600 text-xs font-medium">High-resolution 4K exports with interactive surface depth and reflections.</p>
+                            <h3 className="text-xl font-black mb-2 text-white">Mockup Studio 2.0</h3>
+                            <p className="text-gray-400 text-xs font-medium">Interactive drag & scale placement with real-time surface depth controls.</p>
                         </div>
                         <img
                             src="/images/feature_mockup_pro.png"
@@ -173,7 +173,7 @@ export const Features: React.FC = () => {
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "-50px" }}
-                        className="col-span-1 md:col-span-4 rounded-[40px] bg-white border border-black/5 relative overflow-hidden group hover:shadow-2xl hover:shadow-black/10 transition-all duration-700"
+                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[var(--matte-black)] border border-white/10 relative overflow-hidden group hover:border-blue-500/40 transition-all duration-500"
                     >
                         <div className="p-10 relative z-10">
                             <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20">
@@ -194,7 +194,7 @@ export const Features: React.FC = () => {
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: "-50px" }}
-                        className="col-span-1 md:col-span-4 rounded-[40px] bg-white border border-black/5 relative overflow-hidden group hover:shadow-2xl hover:shadow-black/10 transition-all duration-700"
+                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[var(--matte-black)] border border-white/10 relative overflow-hidden group hover:border-purple-500/40 transition-all duration-500"
                     >
                         <div className="p-10 relative z-10">
                             <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-6 border border-purple-500/20">
