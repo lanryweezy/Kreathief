@@ -147,8 +147,8 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
 
       {/* Brush Types with Previews */}
       <div className="mb-6">
-        <label className="text-xs font-bold text-gray-400 mb-3 block uppercase tracking-wider">Brush Style</label>
-        <div className="grid grid-cols-2 gap-2">
+        <label className="text-xs font-bold text-gray-400 mb-3 block uppercase tracking-wider">Creative Brushes</label>
+        <div className="grid grid-cols-2 gap-2 mb-6">
           {[
             { id: BrushType.BASIC, name: 'Basic' },
             { id: BrushType.CALLIGRAPHY, name: 'Calligraphy' },
@@ -156,13 +156,15 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
             { id: BrushType.CRAYON, name: 'Crayon' },
             { id: BrushType.PENCIL, name: 'Pencil' },
             { id: BrushType.WATERCOLOR, name: 'Watercolor' },
-            { id: BrushType.VECTOR_PENCIL, name: 'Vector Pen' },
             { id: BrushType.SPLATTER, name: 'Splatter' },
             { id: BrushType.TEXTURE, name: 'Texture' },
           ].map((type) => (
             <button
               key={type.id}
-              onClick={() => setBrushType(type.id)}
+              onClick={() => {
+                setBrushType(type.id);
+                setIsDrawing(true);
+              }}
               className={`relative h-14 p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white ring-1 ring-[#7d2ae8]' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
             >
               {/* SVG Preview Background */}
@@ -184,6 +186,35 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
                 {BRUSH_PREVIEWS[type.id]}
               </svg>
               <span className="text-[10px] font-bold relative z-10">{type.name}</span>
+            </button>
+          ))}
+        </div>
+
+        <label className="text-xs font-bold text-gray-400 mb-3 block uppercase tracking-wider">Vector Tools</label>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { id: BrushType.VECTOR_PENCIL, name: 'Vector Pen', icon: Icons.Pen },
+          ].map((type) => (
+            <button
+              key={type.id}
+              onClick={() => {
+                setBrushType(type.id);
+                setIsDrawing(true);
+              }}
+              className={`relative h-14 p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white ring-1 ring-[#7d2ae8]' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
+            >
+              {/* SVG Preview Background */}
+              <svg
+                className="absolute top-0 right-0 w-full h-full opacity-30 pointer-events-none"
+                viewBox="0 0 100 50"
+                preserveAspectRatio="none"
+              >
+                {BRUSH_PREVIEWS[type.id]}
+              </svg>
+              <div className="flex items-center gap-1.5 relative z-10">
+                <type.icon className="w-3 h-3 text-[#7d2ae8]" />
+                <span className="text-[10px] font-bold">{type.name}</span>
+              </div>
             </button>
           ))}
         </div>
