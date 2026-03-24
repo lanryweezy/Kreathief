@@ -59,6 +59,10 @@ export const SidePanel = React.memo(
     const setBrushOpacity = useStore((state) => state.setBrushOpacity);
     const brushType = useStore((state) => state.brushType);
     const setBrushType = useStore((state) => state.setBrushType);
+    const brushSmoothing = useStore((state) => state.brushSmoothing);
+    const setBrushSmoothing = useStore((state) => state.setBrushSmoothing);
+    const brushJitter = useStore((state) => state.brushJitter);
+    const setBrushJitter = useStore((state) => state.setBrushJitter);
     const setPrompt = useStore((state) => state.setPrompt);
     const setAspectRatio = useStore((state) => state.setAspectRatio);
     const setMode = useStore((state) => state.setMode);
@@ -148,6 +152,10 @@ export const SidePanel = React.memo(
                   setBrushOpacity={setBrushOpacity}
                   brushType={brushType}
                   setBrushType={setBrushType}
+                  brushSmoothing={brushSmoothing}
+                  setBrushSmoothing={setBrushSmoothing}
+                  brushJitter={brushJitter}
+                  setBrushJitter={setBrushJitter}
                   onFinishDrawing={() => {}}
                 />
               )}

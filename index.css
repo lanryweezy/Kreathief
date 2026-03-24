@@ -45,6 +45,20 @@ h1, h2, h3, h4, .font-display {
   background-attachment: fixed;
 }
 
+.light-section {
+  background: var(--off-white);
+  color: #111;
+}
+
+.light-section h2, .light-section p {
+  color: #111;
+}
+
+.light-section .glass-morphism {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
 .glass-morphism {
   background: var(--glass-white);
   backdrop-filter: blur(20px);

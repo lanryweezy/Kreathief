@@ -118,6 +118,12 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
 
   const current = mockups[activeMockup];
 
+  const envFilters = {
+    studio: 'brightness(1) contrast(1)',
+    sunset: 'brightness(0.9) contrast(1.1) sepia(0.2) hue-rotate(-10deg)',
+    office: 'brightness(1.05) contrast(0.95) saturate(0.8)'
+  };
+
   const prefetch = (key: keyof typeof mockups) => {
     const img = new Image();
     img.src = mockups[key].bg;
@@ -160,6 +166,16 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
         const top = baseTop + (overlayPos.y / 100) * canvas.height;
 
         ctx.save();
+
+        // Draw Shadow first if applicable (Apparel)
+        if (current.category === 'APPAREL') {
+          ctx.save();
+          ctx.globalAlpha = shadowDepth * 0.4;
+          ctx.filter = 'blur(10px)';
+          ctx.drawImage(designImg, left + 5, top + 5, width, height);
+          ctx.restore();
+        }
+
         ctx.globalCompositeOperation = current.overlayStyle.mixBlendMode === 'multiply' ? 'multiply' : 'source-over';
         ctx.globalAlpha = surfaceDepth;
 
@@ -174,8 +190,27 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
             ctx.drawImage(designImg, left, top, width, height);
           }
         } else {
+          if ((current.overlayStyle as any).borderRadius) {
+             const r = parseFloat((current.overlayStyle as any).borderRadius);
+             ctx.beginPath();
+             ctx.roundRect(left, top, width, height, (r / 100) * width);
+             ctx.clip();
+          }
           ctx.drawImage(designImg, left, top, width, height);
         }
+
+        // Apply reflections to export
+        if (current.hasReflections) {
+          ctx.globalCompositeOperation = 'screen';
+          ctx.globalAlpha = 0.15;
+          const grad = ctx.createLinearGradient(left, top, left + width, top + height);
+          grad.addColorStop(0, 'rgba(255,255,255,0.8)');
+          grad.addColorStop(0.5, 'rgba(255,255,255,0.2)');
+          grad.addColorStop(1, 'rgba(255,255,255,0.6)');
+          ctx.fillStyle = grad;
+          ctx.fillRect(left, top, width, height);
+        }
+
         ctx.restore();
       }
 
@@ -407,7 +442,11 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                    <img 
                       key={current.id}
                       src={current.bg} 
-                      className={`w-full h-full object-cover transition-opacity duration-300 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`} 
+                      className={`w-full h-full object-cover transition-all duration-700 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                      style={{
+                        filter: envFilters[environment],
+                        imageRendering: 'high-quality' as any
+                      }}
                       onLoad={() => setBgLoaded(true)}
                       onError={() => setBgError(true)}
                       style={{ imageRendering: 'high-quality' as any }}
@@ -431,6 +470,8 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                            width: `calc(${current.overlayStyle.width} * ${overlayScale})`,
                            transform: current.overlayStyle.transform,
                            mixBlendMode: current.overlayStyle.mixBlendMode as any,
+                           opacity: surfaceDepth,
+                           filter: environment === 'sunset' ? 'sepia(0.1) brightness(0.95)' : 'none'
                            opacity: surfaceDepth
                          }}
                        >

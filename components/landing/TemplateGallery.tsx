@@ -28,7 +28,7 @@ export const TemplateGallery: React.FC = () => {
     ];
 
     return (
-        <section className="py-32 relative bg-[#0a0a0a] overflow-hidden">
+        <section id="templates" className="py-32 relative bg-[#0f0f12] overflow-hidden">
             <div className="max-w-[1400px] mx-auto px-6">
                 <div className="flex flex-col md:flex-row items-end justify-between mb-20 gap-8">
                     <div className="max-w-2xl">

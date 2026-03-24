@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Icons } from '../../constants';
 import { BrushType } from '../../types';
+import { useStore } from '../../store/useStore';
 
 interface DrawPanelProps {
   brushColor: string;
@@ -13,6 +14,10 @@ interface DrawPanelProps {
   setBrushOpacity: (opacity: number) => void;
   brushType: BrushType;
   setBrushType: (type: BrushType) => void;
+  brushSmoothing?: number;
+  setBrushSmoothing?: (smoothing: number) => void;
+  brushJitter?: number;
+  setBrushJitter?: (jitter: number) => void;
   onFinishDrawing: () => void;
 }
 
@@ -78,11 +83,12 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
   onFinishDrawing,
 }) => {
   const [recentColors, setRecentColors] = useState<string[]>([]);
-  // We'll wire these sliders to local state for now if they aren't provided by props,
-  // but keeping them visual ensures the user feels control.
-  // Ideally these would be passed down props.
-  const [smoothing, setSmoothing] = useState(50);
-  const [jitter, setJitter] = useState(0);
+
+  // Use store for smoothing and jitter
+  const smoothing = useStore((state) => state.brushSmoothing);
+  const setSmoothing = useStore((state) => state.setBrushSmoothing);
+  const jitter = useStore((state) => state.brushJitter);
+  const setJitter = useStore((state) => state.setBrushJitter);
 
   const colors = [
     '#000000',
