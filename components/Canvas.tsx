@@ -1389,9 +1389,15 @@ const CanvasComponent: React.FC<CanvasProps> = ({
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.globalAlpha = brushOpacity;
+      ctx.setLineDash([]); // Reset line dash to prevent leakage
 
       // Brush-specific settings
       switch (brushType) {
+        case BrushType.VECTOR_PENCIL:
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = '#7d2ae8';
+          ctx.setLineDash([5, 5]);
+          break;
         case BrushType.PENCIL:
           ctx.lineWidth = brushSize * zoom * 0.5;
           ctx.globalAlpha = brushOpacity * 0.8;
@@ -1463,9 +1469,24 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
     if (brushType === BrushType.VECTOR_PENCIL) {
       setVectorPoints((prev) => [...prev, { x, y }]);
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = '#7d2ae8';
+      ctx.setLineDash([5, 5]);
       ctx.lineTo(x, y);
       ctx.stroke();
     } else {
+      // Restore appropriate style for the brush type since stroke() redraws the whole path
+      ctx.strokeStyle = brushColor;
+      ctx.globalAlpha = brushOpacity;
+
+      if (brushType === BrushType.CRAYON) {
+        ctx.setLineDash([2, 1]);
+      } else if (brushType === BrushType.TEXTURE) {
+        ctx.setLineDash([5, 3]);
+      } else {
+        ctx.setLineDash([]);
+      }
+
       // Add randomness for certain brushes
       if ([BrushType.SPLATTER, BrushType.CRAYON, BrushType.TEXTURE].includes(brushType)) {
         const randomOffset = (Math.random() - 0.5) * brushSize * zoom * 0.5;
@@ -1474,11 +1495,6 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         ctx.lineTo(x, y);
       }
       ctx.stroke();
-
-      // Reset line dash for next stroke
-      if ([BrushType.CRAYON, BrushType.TEXTURE].includes(brushType)) {
-        ctx.setLineDash([]);
-      }
     }
     drawingLastPos.current = { x, y };
   };
