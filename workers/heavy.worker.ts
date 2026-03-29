@@ -1,6 +1,5 @@
 // @ts-ignore - ignore type mismatch
 import ImageTracer from 'imagetracerjs';
-import { removeBackground as imglyRemoveBackground } from '@imgly/background-removal';
 
 /**
  * Heavy Worker
@@ -36,12 +35,6 @@ self.onmessage = async (e: MessageEvent) => {
         break;
       }
 
-      case 'RM_BG': {
-        const resultUrl = await removeBg(payload.imageUrl);
-        self.postMessage({ type: 'SUCCESS', id, payload: resultUrl });
-        break;
-      }
-
       default:
         self.postMessage({ type: 'ERROR', id, error: `Unknown task type: ${type}` });
     }
@@ -51,11 +44,6 @@ self.onmessage = async (e: MessageEvent) => {
 };
 
 // --- Task Implementations ---
-
-async function removeBg(imageUrl: string): Promise<string> {
-  const blob = await imglyRemoveBackground(imageUrl);
-  return URL.createObjectURL(blob);
-}
 
 async function vectorize(imageUrl: string, options: any): Promise<string> {
   return new Promise((resolve, reject) => {

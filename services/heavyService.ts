@@ -10,7 +10,9 @@ class HeavyService {
 
   private initializeWorker() {
     console.log('[HeavyService] Initializing worker. Caller stack:', new Error().stack);
-    if (this.worker || typeof window === 'undefined') {return;}
+    if (this.worker || typeof window === 'undefined') {
+      return;
+    }
 
     try {
       this.worker = new Worker(new URL('../workers/heavy.worker.ts', import.meta.url), { type: 'module' });
@@ -48,7 +50,9 @@ class HeavyService {
       this.initializeWorker();
 
       if (!this.worker) {
-        reject(new Error('Heavy Worker could not be initialized. This might be due to your browser or a network issue.'));
+        reject(
+          new Error('Heavy Worker could not be initialized. This might be due to your browser or a network issue.')
+        );
         return;
       }
       const id = Math.random().toString(36).substring(7);
@@ -71,10 +75,6 @@ class HeavyService {
 
   public async traceImageToSVG(imageSrc: string, colors: number = 2): Promise<any[]> {
     return this.postMessage('TRACE_SVG', { imageSrc, colors });
-  }
-
-  public async removeBackground(imageUrl: string): Promise<string> {
-    return this.postMessage('RM_BG', { imageUrl });
   }
 
   public terminate() {
