@@ -733,11 +733,17 @@ export const LayersPanel = React.memo(() => {
         onDragOver={(e) => e.preventDefault()}
       >
         {displayLayers.length === 0 && (
-          <div className="mt-8">
+          <div className="mt-4">
             <EmptyState
               icon={Icons.Layers}
               title={searchQuery ? 'No matches' : 'Canvas is empty'}
               description={searchQuery ? 'Try a different search term.' : 'Add text, shapes, or images to start designing.'}
+              onboardingCards={searchQuery ? undefined : [
+                { emoji: '✏️', title: 'Add Text', description: 'Click T in the toolbar or drag a text block', shortcut: 'T' },
+                { emoji: '⬛', title: 'Draw Shapes', description: 'Click shapes in the left sidebar to get started', shortcut: 'S' },
+                { emoji: '🖼️', title: 'Upload Image', description: 'Paste an image or use the Uploads panel', shortcut: 'Ctrl+V' },
+                { emoji: '✨', title: 'AI Generate', description: 'Use the Magic panel to generate images with AI', shortcut: 'M' },
+              ]}
             />
           </div>
         )}
