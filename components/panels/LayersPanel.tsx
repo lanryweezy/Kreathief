@@ -104,6 +104,17 @@ const areLayerPropsEqual = (prev: LayerItemProps, next: LayerItemProps) => {
   return true;
 };
 
+// Hoist to module scope — no need to recreate inside every LayerItem render
+function getLayerNameFallback(l: Layer) {
+  if (l.type === 'text') {
+    return (l as TextLayer).text.substring(0, 20) || 'Text Layer';
+  }
+  if (l.type === 'image') {
+    return 'Image Layer';
+  }
+  return (l as ShapeLayer).type.charAt(0).toUpperCase() + (l as ShapeLayer).type.slice(1);
+}
+
 const LayerItem = React.memo(
   ({
     layer,
@@ -144,15 +155,6 @@ const LayerItem = React.memo(
       setLocalExpanded(layer.isExpanded !== false);
     }, [layer.isExpanded]);
 
-    function getLayerNameFallback(l: Layer) {
-      if (l.type === 'text') {
-        return (l as TextLayer).text.substring(0, 20) || 'Text Layer';
-      }
-      if (l.type === 'image') {
-        return 'Image Layer';
-      }
-      return (l as ShapeLayer).type.charAt(0).toUpperCase() + (l as ShapeLayer).type.slice(1);
-    }
 
     const handleRename = () => {
       if (editName.trim()) {

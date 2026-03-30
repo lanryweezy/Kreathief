@@ -53,6 +53,8 @@ export const BlogPreview: React.FC = () => {
                 <img
                   src={post.image}
                   alt={post.title}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover group-hover:scale-110 transition-all duration-700"
                 />
                 <div className="absolute top-4 left-4 px-4 py-1.5 bg-black text-white rounded-full text-[10px] font-black uppercase tracking-widest">
@@ -97,10 +99,17 @@ export const Footer: React.FC = () => {
               The future of professional design, powered by generative intelligence.
             </p>
             <div className="flex items-center gap-4">
-              {[Icons.Twitter, Icons.Instagram, Icons.Facebook].map((Icon, i) => (
+              {[
+                { Icon: Icons.Twitter, label: 'Follow Kreathief on Twitter', href: 'https://twitter.com/kreathief' },
+                { Icon: Icons.Instagram, label: 'Follow Kreathief on Instagram', href: 'https://instagram.com/kreathief' },
+                { Icon: Icons.Facebook, label: 'Follow Kreathief on Facebook', href: 'https://facebook.com/kreathief' },
+              ].map(({ Icon, label, href }) => (
                 <a
-                  key={i}
-                  href="#"
+                  key={label}
+                  href={href}
+                  aria-label={label}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-10 h-10 rounded-full border border-white/5 flex items-center justify-center hover:bg-white/5 transition-all text-gray-400 hover:text-white"
                 >
                   <Icon className="w-4 h-4" />

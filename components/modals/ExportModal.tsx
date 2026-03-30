@@ -67,13 +67,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         : { width: currentSize.width * scale, height: currentSize.height * scale };
 
       setExportStage('Rendering design...');
-      await new Promise((r) => setTimeout(r, 500));
-
       await onExport(format, quality, size, transparentBg && format === 'png', filename);
+
+      // Track once — removed duplicate call
       analyticsService.trackExport(format, quality);
 
       setExportStage('Complete!');
-      analyticsService.trackExport(format, quality);
       addToast(`Exported as ${format.toUpperCase()}!`, 'success');
       setTimeout(() => onClose(), 300);
     } catch (e: any) {
@@ -96,28 +95,34 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       return;
     }
     setIsExporting(true);
-    setExportStage('Exporting all artboards...');
+    let successCount = 0;
     try {
-      // Dynamically import JSZip for bundle efficiency
-      const { default: JSZip } = await import('jszip');
-      const zip = new JSZip();
-      const folder = zip.folder('kreathief-export')!;
-
       for (let i = 0; i < artboards.length; i++) {
         const ab = artboards[i];
-        setExportStage(`Exporting "${ab.name || `Artboard ${i + 1}`}" (${i + 1}/${artboards.length})...`);
-        // Temporarily switch active artboard and export
-        await onExport('png', 1, { width: ab.width || currentSize.width, height: ab.height || currentSize.height }, false, undefined);
-        // Since we can't capture the data URL directly here, download each artboard individually
-        // This is a graceful fallback — full ZIP would need a canvas snapshot callback
+        const label = ab.name || `Artboard ${i + 1}`;
+        setExportStage(`Exporting "${label}" (${i + 1}/${artboards.length})...`);
+
+        // Switch to this artboard so the canvas snapshot picks it up
+        useStore.getState().setActiveArtboardId(ab.id);
+        // Give the canvas one frame to re-render
+        await new Promise((r) => requestAnimationFrame(r));
+        await new Promise((r) => setTimeout(r, 120));
+
+        await onExport('png', 1, { width: ab.width || currentSize.width, height: ab.height || currentSize.height }, false, label.replace(/\s+/g, '-').toLowerCase());
+        analyticsService.trackExport('png', 1);
+        successCount++;
       }
 
-      setExportStage('All artboards exported!');
-      addToast(`${artboards.length} artboards exported!`, 'success');
+      // Restore original active artboard
+      useStore.getState().setActiveArtboardId(activeArtboardId);
+
+      setExportStage(`${successCount} artboard${successCount !== 1 ? 's' : ''} exported!`);
+      addToast(`${successCount} artboard${successCount !== 1 ? 's' : ''} exported!`, 'success');
       setTimeout(() => onClose(), 1000);
     } catch (e: any) {
       log.error('[ExportModal] Export All failed', e);
-      addToast('Export All failed. Try exporting individually.', 'error');
+      useStore.getState().setActiveArtboardId(activeArtboardId); // Always restore
+      addToast(`Failed after ${successCount} artboard(s). Try exporting individually.`, 'error');
     } finally {
       setIsExporting(false);
       setExportStage('');
