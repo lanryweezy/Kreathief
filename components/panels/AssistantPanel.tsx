@@ -127,7 +127,7 @@ interface AssistantPanelProps {
   onStartDesign?: (prompt: string) => void;
 }
 
-export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapshot, onStartDesign }) => {
+export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapshot }) => {
   const addLayer = useStore((state) => state.addLayer);
   const canvasSize = useStore((state) => state.canvasSize);
 
@@ -188,6 +188,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapsho
   const selectedLayerIds = useStore((state) => state.selectedLayerIds);
   const artboards = useStore((state) => state.artboards);
   const activeArtboardId = useStore((state) => state.activeArtboardId);
+  const projectId = useStore((state) => state.projectId);
 
   // Get the currently selected layer for context injection
   const selectedLayer = React.useMemo(() => {
@@ -196,7 +197,8 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapsho
     return ab?.layers.find((l: any) => l.id === selectedLayerIds[0]) || null;
   }, [selectedLayerIds, artboards, activeArtboardId]);
 
-  const CHAT_STORAGE_KEY = `kreathief_chat_${activeArtboardId}`;
+  // Use projectId as key so history survives artboard renaming/switching
+  const CHAT_STORAGE_KEY = `kreathief_chat_${projectId || 'default'}`;
 
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
     try {

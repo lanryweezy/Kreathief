@@ -9,7 +9,6 @@ class HeavyService {
   private callbacks: Map<string, { resolve: (val: any) => void; reject: (err: any) => void }> = new Map();
 
   private initializeWorker() {
-    console.log('[HeavyService] Initializing worker. Caller stack:', new Error().stack);
     if (this.worker || typeof window === 'undefined') {
       return;
     }
@@ -73,8 +72,8 @@ class HeavyService {
     return this.postMessage('EXTRACT_PALETTE', { imageSrc, colorCount });
   }
 
-  public async traceImageToSVG(imageSrc: string, colors: number = 2): Promise<any[]> {
-    return this.postMessage('TRACE_SVG', { imageSrc, colors });
+  public async traceImageToSVG(imageSrc: string, colors: number = 2, cornerThreshold: number = 45): Promise<any[]> {
+    return this.postMessage('TRACE_SVG', { imageSrc, colors, cornerThreshold });
   }
 
   public terminate() {

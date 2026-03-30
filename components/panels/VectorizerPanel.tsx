@@ -126,9 +126,9 @@ export const VectorizerPanel = () => {
       setIsProcessing(true);
       try {
         let paths;
-        const traceOptions = { colors, stylePreset, cornerThreshold };
         if (useAlgorithm) {
-          paths = await photoService.traceImageToSVG(image, colors);
+          // Pass cornerThreshold to the algorithmic path tracer
+          paths = await photoService.traceImageToSVG(image, colors, cornerThreshold);
         } else {
           if (trials <= 0) {
             addToast('No trials remaining for AI vectorization.', 'warning');
@@ -137,7 +137,6 @@ export const VectorizerPanel = () => {
           paths = await geminiService.vectorizeImage(image, colors, stylePreset);
           setTrials(prev => prev - 1);
         }
-        void traceOptions; // acknowledged
         setResult(paths);
         addToast('Vectorization complete!', 'success');
       } catch (error) {

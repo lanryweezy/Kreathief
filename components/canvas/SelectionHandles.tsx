@@ -29,8 +29,8 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
           height: layer.height,
         }}
       >
-        {/* Dimension Badge */}
-        <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-[#7d2ae8] text-white text-[9px] font-mono px-1.5 py-0.5 rounded shadow-lg opacity-0 group-active:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none border border-white/20">
+        {/* Dimension Badge — shows on hover */}
+        <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-[#7d2ae8] text-white text-[9px] font-mono px-1.5 py-0.5 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none border border-white/20">
           {Math.round(layer.width)} × {Math.round(layer.height)}
         </div>
       </div>
