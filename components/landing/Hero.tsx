@@ -103,6 +103,8 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             <img
               src="/images/screenshot_editor_main.png"
               alt="Kreathief AI graphic design software and professional vector editor dashboard interface showing creative design tools"
+              fetchPriority="high"
+              decoding="async"
               className="w-full h-auto object-cover opacity-90 hover:opacity-100 transition-opacity duration-700"
             />
           </motion.div>
@@ -118,6 +120,8 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             <img
               src="/images/hero_abstract_glass_1772614949077.png"
               alt="3D Apple-like glassmorphism generative fill and asset engine interface used in Kreathief AI design tool"
+              loading="lazy"
+              decoding="async"
               className="w-full h-auto scale-105 group-hover:scale-110 transition-transform duration-1000"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-5">
@@ -174,17 +178,23 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
               <img
                 src="/images/avatar_1_1772614969136.png"
                 className="w-10 h-10 rounded-full border-2 border-[#111] object-cover"
-                alt="User 1"
+                loading="lazy"
+                decoding="async"
+                alt="Designer collaborating in real-time on Kreathief"
               />
               <img
                 src="/images/avatar_2_1772614992003.png"
                 className="w-10 h-10 rounded-full border-2 border-[#111] object-cover"
-                alt="User 2"
+                loading="lazy"
+                decoding="async"
+                alt="Marketer using Kreathief canvas"
               />
               <img
                 src="/images/avatar_3_1772615019487.png"
                 className="w-10 h-10 rounded-full border-2 border-[#111] object-cover"
-                alt="User 3"
+                loading="lazy"
+                decoding="async"
+                alt="Creative director reviewing designs in Kreathief"
               />
             </div>
             <span className="text-[10px] font-black tracking-widest uppercase text-white/80">3 Editing Now</span>

@@ -58,11 +58,13 @@ export const FAQSection: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              key={idx}
+              key={faq.question}
               className="bg-[#0a0a0c] border border-white/5 rounded-2xl overflow-hidden glass-edge group hover:border-white/10 transition-all duration-300 shadow-xl"
             >
               <button
                 onClick={() => setOpenIndex(openIndex === idx ? null : idx)}
+                aria-expanded={openIndex === idx}
+                aria-controls={`faq-answer-${idx}`}
                 className="w-full flex items-center justify-between p-6 text-left"
               >
                 <span className="text-lg font-bold text-white tracking-tight">{faq.question}</span>
@@ -75,6 +77,7 @@ export const FAQSection: React.FC = () => {
               <AnimatePresence>
                 {openIndex === idx && (
                   <motion.div
+                    id={`faq-answer-${idx}`}
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}

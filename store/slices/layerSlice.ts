@@ -249,7 +249,7 @@ export const createLayerSlice: StateCreator<any, [], [], LayerSlice> = (set, get
     const textContent = style.text || 'Add your text';
     const autoName = textContent.length > 20 ? textContent.slice(0, 20) + '…' : textContent;
     const newLayer: TextLayer = {
-      id: `text_${Date.now()}`,
+      id: uuidv4(),
       type: 'text',
       name: autoName,
       text: textContent,

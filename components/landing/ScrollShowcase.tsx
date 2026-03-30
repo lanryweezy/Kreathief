@@ -38,7 +38,7 @@ export const ScrollShowcase: React.FC = () => {
         <div className="flex flex-col gap-10 md:gap-32">
           {showcases.map((item, idx) => (
             <div
-              key={idx}
+              key={item.subtitle}
               className={`flex flex-col lg:flex-row gap-16 min-h-[50vh] md:min-h-[80vh] py-16 ${idx % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}
             >
               <div className="w-full lg:w-5/12 relative">
@@ -61,6 +61,8 @@ export const ScrollShowcase: React.FC = () => {
                     viewport={{ once: true, margin: '-100px' }}
                     transition={{ duration: 0.8, ease: 'easeOut' }}
                     src={item.image}
+                    loading="lazy"
+                    decoding="async"
                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                     alt={item.alt}
                   />
