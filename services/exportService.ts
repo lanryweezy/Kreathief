@@ -878,6 +878,32 @@ export const exportDesignToImage = async (
  * Exports an image data URL to a PDF file.
  */
 export const exportToPDF = async (width: number, height: number, imgDataUrl: string, fileName: string) => {
+  if (typeof Worker !== 'undefined') {
+    try {
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        const worker = new Worker(new URL('../workers/pdf.worker.ts', import.meta.url), { type: 'module' });
+        worker.onmessage = (e) => {
+          if (e.data.type === 'SUCCESS') {
+            resolve(e.data.payload);
+          } else {
+            reject(new Error(e.data.error || 'PDF Generation failed'));
+          }
+          worker.terminate();
+        };
+        worker.onerror = (err) => {
+          reject(err);
+          worker.terminate();
+        };
+        worker.postMessage({ width, height, imgDataUrl, fileName });
+      });
+      downloadBlob(blob, fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
+      return;
+    } catch (err) {
+      console.warn('PDF Worker failed, falling back to main thread', err);
+    }
+  }
+
+  // Fallback
   const orientation = width > height ? 'landscape' : 'portrait';
   const pdf = new jsPDF({
     orientation: orientation,

@@ -64,20 +64,29 @@ export const HistoryPanel: React.FC = () => {
               <p className="text-[10px] text-gray-500">No history yet</p>
             </div>
           ) : (
-            [...past].reverse().map((state, index) => {
-              const numLayers = state.artboards?.reduce((sum, a) => sum + (a.layers?.length || 0), 0) || 0;
+            [...past].reverse().map((entry, index) => {
+              const state = entry.type === 'snapshot' ? entry.state : null;
+              const numLayers =
+                state?.artboards?.reduce((sum: number, a: any) => sum + (a.layers?.length || 0), 0) || 0;
+              const actionType = entry.type === 'snapshot' ? 'Checkpoint' : 'Change';
               return (
                 <div
                   key={`hist-${past.length - index}`}
                   className="text-[10px] text-gray-400 bg-[#252627] rounded px-2 py-1.5 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-[#7d2ae8]" />
-                    <span className="font-bold text-gray-300">Action {past.length - index}</span>
+                    <div
+                      className={`w-2 h-2 rounded-full ${entry.type === 'snapshot' ? 'bg-[#7d2ae8]' : 'bg-gray-600'}`}
+                    />
+                    <span className="font-bold text-gray-300">
+                      {actionType} {past.length - index}
+                    </span>
                   </div>
-                  <span className="text-[9px] text-gray-500 bg-black/20 px-1.5 py-0.5 rounded font-mono">
-                    {numLayers} {numLayers === 1 ? 'layer' : 'layers'}
-                  </span>
+                  {state && (
+                    <span className="text-[9px] text-gray-500 bg-black/20 px-1.5 py-0.5 rounded font-mono">
+                      {numLayers} {numLayers === 1 ? 'layer' : 'layers'}
+                    </span>
+                  )}
                 </div>
               );
             })

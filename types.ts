@@ -173,6 +173,7 @@ export interface LayerBase {
   rotateY?: number;
   isProcessing?: boolean;
   lockProportions?: boolean;
+  dirty?: boolean; // For rendering optimization: true if layer needs redraw
   // Group/Folder support
   isGroup?: boolean; // True if this is a group marker (folder)
   isExpanded?: boolean; // For groups: whether children are visible in layers panel

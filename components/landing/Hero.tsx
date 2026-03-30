@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Icons } from '../../constants';
+import { MagneticButton, SuperLabel } from './LandingUtils';
 
 interface HeroProps {
   onGetStarted: () => void;
@@ -40,16 +41,12 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.8 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md mb-8"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-[pulse_2s_ease-in-out_infinite] shadow-[0_0_10px_rgba(192,132,252,0.8)]"></span>
-            <span className="text-[10px] font-bold text-purple-200 tracking-[0.2em] uppercase">
-              Kreathief Studio 2.0 is Live
-            </span>
+            <SuperLabel text="Kreathief Studio 2.0 is Live" />
           </motion.div>
 
           <div className="absolute -inset-10 bg-white/5 blur-[100px] -z-10 rounded-full"></div>
-          <h1 className="text-6xl md:text-[90px] lg:text-[120px] font-bold tracking-tighter leading-[0.9] text-white select-none">
+          <h1 className="text-6xl md:text-[90px] lg:text-[120px] font-bold tracking-tighter leading-[0.9] text-white select-none text-balance">
             Design at the <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-white to-purple-400 animate-text-gradient px-2">
               Speed of Light.
@@ -61,7 +58,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="text-lg md:text-2xl text-gray-300 max-w-3xl text-center mb-14 leading-relaxed font-medium opacity-90"
+          className="text-lg md:text-2xl text-gray-300 max-w-3xl text-center mb-14 leading-relaxed font-medium opacity-90 text-balance"
         >
           The world&apos;s most advanced creative engine. Professional vector tools meets generative intelligence in a
           high-performance engine.
@@ -74,15 +71,24 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           transition={{ duration: 0.8, delay: 0.5 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-24 z-20"
         >
-          <button
-            onClick={onGetStarted}
-            className="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-purple-600 to-cyan-500 text-white rounded-full font-bold text-sm hover:brightness-110 transition-all transform hover:scale-105 active:scale-95 flex items-center justify-center gap-3 group relative overflow-hidden shadow-[0_0_40px_rgba(168,85,247,0.4)]"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 animate-shimmer"></div>
-            <span className="relative z-10 flex items-center gap-2">
-              Start Creating Free
-              <Icons.ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </span>
+          <MagneticButton strength={30}>
+            <button
+              onClick={onGetStarted}
+              className="w-full sm:w-auto px-10 py-4 bg-white text-black rounded-full font-bold text-sm hover:bg-gray-100 transition-all transform active:scale-95 flex items-center justify-center gap-3 group relative overflow-hidden shadow-[0_0_40px_rgba(255,255,255,0.2)]"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 animate-shimmer"></div>
+              <span className="relative z-10 flex items-center gap-2">
+                Start Creating Free
+                <Icons.ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </span>
+            </button>
+          </MagneticButton>
+
+          <button className="px-10 py-4 rounded-full font-bold text-sm text-white/70 hover:text-white transition-colors flex items-center gap-2 group">
+            Watch Demo
+            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white/10 transition-colors">
+              <Icons.Play className="w-3 h-3 fill-white" />
+            </div>
           </button>
         </motion.div>
 

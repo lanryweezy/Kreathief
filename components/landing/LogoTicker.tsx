@@ -1,4 +1,5 @@
 import React from 'react';
+import { SuperLabel } from './LandingUtils';
 
 export const LogoTicker: React.FC = () => {
   // We combine recognizable tech logos with the generated HD avatars for "Social Proof"
@@ -28,10 +29,12 @@ export const LogoTicker: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-6 mb-16 flex flex-col md:flex-row items-center justify-between gap-8">
         <div className="max-w-xl">
-          <h3 className="text-sm font-bold tracking-[0.2em] text-purple-400 uppercase mb-4">The New Standard</h3>
-          <p className="text-white text-3xl md:text-4xl font-bold tracking-tight leading-tight">
+          <SuperLabel text="The New Standard" />
+          <p className="text-white text-3xl md:text-5xl font-bold tracking-tight leading-tight text-balance">
             Trusted by 10,000+ <br />
-            <span className="text-neutral-500">top-tier designers.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neutral-500 to-neutral-200">
+              top-tier designers.
+            </span>
           </p>
         </div>
 
@@ -58,10 +61,10 @@ export const LogoTicker: React.FC = () => {
 
       {/* Infinite Scroll Logo Ticker */}
       <div className="relative flex overflow-x-hidden group">
-        <div className="absolute w-[150px] md:w-[300px] h-full bg-gradient-to-r from-[#0a0a0c] to-transparent left-0 z-10 pointer-events-none"></div>
-        <div className="absolute w-[150px] md:w-[300px] h-full bg-gradient-to-l from-[#0a0a0c] to-transparent right-0 z-10 pointer-events-none"></div>
+        <div className="absolute inset-y-0 left-0 w-32 md:w-64 bg-gradient-to-r from-[#0a0a0c] via-[#0a0a0c]/80 to-transparent z-10 pointer-events-none"></div>
+        <div className="absolute inset-y-0 right-0 w-32 md:w-64 bg-gradient-to-l from-[#0a0a0c] via-[#0a0a0c]/80 to-transparent z-10 pointer-events-none"></div>
 
-        <div className="py-8 animate-marquee whitespace-nowrap flex items-center gap-32 group-hover:[animation-play-state:paused] px-12">
+        <div className="py-12 animate-marquee whitespace-nowrap flex items-center gap-32 group-hover:[animation-play-state:paused] px-12">
           {[...Array(3)].map((_, i) => (
             <React.Fragment key={i}>
               {brands.map((brand, bIdx) => (

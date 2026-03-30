@@ -1,12 +1,20 @@
 import { StateCreator } from 'zustand';
+import { compare, applyPatch, Operation } from 'fast-json-patch';
 import { HistoryState, DesignSnapshot } from '../../types';
 import { storageService } from '../../services/storageService';
 import { v4 as uuidv4 } from 'uuid';
 import { analyticsService } from '../../services/analyticsService';
 
+export interface HistoryEntry {
+  timestamp: number;
+  type: 'snapshot' | 'patch';
+  state?: HistoryState; // Full state for snapshots
+  patch?: Operation[]; // Diffs for patches
+}
+
 export interface HistorySlice {
-  past: HistoryState[];
-  future: HistoryState[];
+  past: HistoryEntry[];
+  future: HistoryEntry[];
 
   undo: () => void;
   redo: () => void;
@@ -23,11 +31,12 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
 
   saveToHistory: (() => {
     let lastSavedTimestamp = 0;
-    const DEBOUNCE_MS = 200;
-    const MAX_HISTORY = 50;
+    const DEBOUNCE_MS = 250;
+    const MAX_HISTORY = 100; // Increased because patches are small
+    const SNAPSHOT_INTERVAL = 10;
+    let lastStateSnapshot: HistoryState | null = null;
 
     return () => {
-      // Debounce: Skip if called too recently (e.g. rapid slider drags)
       const now = Date.now();
       if (now - lastSavedTimestamp < DEBOUNCE_MS) {
         return;
@@ -36,7 +45,6 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
 
       set((state: any) => {
         const currentState: HistoryState = {
-          // Only clone artboards — skip ephemeral UI state
           artboards: structuredClone(state.artboards),
           activeArtboardId: state.activeArtboardId,
           canvasBackgroundColor: state.canvasBackgroundColor,
@@ -44,69 +52,107 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
           canvasSize: state.canvasSize ? { ...state.canvasSize } : undefined,
         };
 
-        // Circular buffer: keep only the last MAX_HISTORY entries
-        const newPast = state.past.length >= MAX_HISTORY
-          ? [...state.past.slice(-MAX_HISTORY + 1), currentState]
-          : [...state.past, currentState];
+        let entry: HistoryEntry;
+        const shouldMakeSnapshot = !lastStateSnapshot || state.past.length % SNAPSHOT_INTERVAL === 0;
 
-        return {
-          past: newPast,
-          future: [], // Any new action clears redo
-        };
+        if (shouldMakeSnapshot) {
+          entry = { timestamp: now, type: 'snapshot', state: currentState };
+          lastStateSnapshot = currentState;
+        } else {
+          const patch = compare(lastStateSnapshot!, currentState);
+          entry = { timestamp: now, type: 'patch', patch };
+        }
+
+        const newPast = state.past.length >= MAX_HISTORY ? [...state.past.slice(1), entry] : [...state.past, entry];
+
+        return { past: newPast, future: [] };
       });
     };
   })(),
 
-  undo: () =>
-    set((state: any) => {
-      if (state.past.length === 0) {
-        return {};
-      }
-      const previous = state.past[state.past.length - 1]!;
-      const newPast = state.past.slice(0, -1);
-      const current: HistoryState = {
-        artboards: state.artboards,
-        activeArtboardId: state.activeArtboardId,
-        canvasBackgroundColor: state.canvasBackgroundColor,
-        canvasFilters: state.canvasFilters,
-        canvasSize: state.canvasSize,
-      };
-      return {
-        past: newPast,
-        // Prepend current to future so multiple undos can all be redone
-        future: [current, ...state.future],
-        artboards: previous.artboards,
-        activeArtboardId: previous.activeArtboardId,
-        canvasBackgroundColor: previous.canvasBackgroundColor,
-        canvasFilters: previous.canvasFilters,
-        canvasSize: previous.canvasSize || state.canvasSize,
-      };
-    }),
+  undo: () => {
+    const { past, artboards, activeArtboardId, canvasBackgroundColor, canvasFilters, canvasSize } = get();
+    if (past.length === 0) {
+      return;
+    }
 
-  redo: () =>
-    set((state: any) => {
-      if (state.future.length === 0) {
-        return {};
+    const currentFullState: HistoryState = {
+      artboards: structuredClone(artboards),
+      activeArtboardId,
+      canvasBackgroundColor,
+      canvasFilters: structuredClone(canvasFilters),
+      canvasSize: structuredClone(canvasSize),
+    };
+
+    const lastEntry = past[past.length - 1];
+    const newPast = past.slice(0, -1);
+
+    // To revert, we need to reconstruct the previous state
+    // This is simplified: in a real robust system we'd iterate from the last snapshot
+    let targetState: HistoryState;
+    if (lastEntry.type === 'snapshot') {
+      targetState = lastEntry.state!;
+    } else {
+      // For patches, we'd ideally store reverse patches, but fast-json-patch
+      // doesn't generate them easily. We'll reconstruct from the nearest snapshot.
+      let lastSnapshotIdx = -1;
+      for (let i = newPast.length - 1; i >= 0; i--) {
+        if (newPast[i].type === 'snapshot') {
+          lastSnapshotIdx = i;
+          break;
+        }
       }
-      const next = state.future[0]!;
-      const newFuture = state.future.slice(1);
-      const current: HistoryState = {
-        artboards: state.artboards,
-        activeArtboardId: state.activeArtboardId,
-        canvasBackgroundColor: state.canvasBackgroundColor,
-        canvasFilters: state.canvasFilters,
-        canvasSize: state.canvasSize,
-      };
-      return {
-        past: [...state.past, current],
-        future: newFuture,
-        artboards: next.artboards,
-        activeArtboardId: next.activeArtboardId,
-        canvasBackgroundColor: next.canvasBackgroundColor,
-        canvasFilters: next.canvasFilters,
-        canvasSize: next.canvasSize || state.canvasSize,
-      };
-    }),
+
+      if (lastSnapshotIdx === -1) {
+        return;
+      } // Should not happen
+
+      targetState = structuredClone(newPast[lastSnapshotIdx].state!);
+      for (let i = lastSnapshotIdx + 1; i < newPast.length; i++) {
+        if (newPast[i].type === 'patch') {
+          applyPatch(targetState, newPast[i].patch!);
+        }
+      }
+    }
+
+    set({
+      ...targetState,
+      past: newPast,
+      future: [{ timestamp: Date.now(), type: 'snapshot', state: currentFullState }, ...get().future],
+    });
+  },
+
+  redo: () => {
+    const { future, artboards, activeArtboardId, canvasBackgroundColor, canvasFilters, canvasSize } = get();
+    if (future.length === 0) {
+      return;
+    }
+
+    const currentFullState: HistoryState = {
+      artboards: structuredClone(artboards),
+      activeArtboardId,
+      canvasBackgroundColor,
+      canvasFilters: structuredClone(canvasFilters),
+      canvasSize: structuredClone(canvasSize),
+    };
+
+    const nextEntry = future[0];
+    const newFuture = future.slice(1);
+
+    let targetState: HistoryState;
+    if (nextEntry.type === 'snapshot') {
+      targetState = nextEntry.state!;
+    } else {
+      targetState = structuredClone(currentFullState);
+      applyPatch(targetState, nextEntry.patch!);
+    }
+
+    set({
+      ...targetState,
+      past: [...get().past, { timestamp: Date.now(), type: 'snapshot', state: currentFullState }],
+      future: newFuture,
+    });
+  },
 
   fetchSnapshots: async () => {
     const { projectId } = get();

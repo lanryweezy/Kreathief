@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+// @ts-ignore - react-window types are problematic in this environment
+import { FixedSizeList as List } from 'react-window';
 import { TextLayer, ShapeLayer, ImageLayer, Layer } from '../../types';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
@@ -24,6 +26,7 @@ interface LayerItemProps {
   onSwipeVisible?: (id: string) => void;
   onSwipeLock?: (id: string) => void;
   isSwipeOrigin?: boolean;
+  style?: React.CSSProperties;
 }
 
 const areLayerPropsEqual = (prev: LayerItemProps, next: LayerItemProps) => {
@@ -131,6 +134,7 @@ const LayerItem = React.memo(
     onDrop,
     onSwipeVisible,
     onSwipeLock,
+    style,
   }: LayerItemProps) => {
     const itemRef = useRef<HTMLDivElement>(null);
 
@@ -144,7 +148,7 @@ const LayerItem = React.memo(
     const [editName, setEditName] = useState(layer.name || '');
     const [showSettings, setShowSettings] = useState(false);
     const [dragOver, setDragOver] = useState<'top' | 'bottom' | null>(null);
-    
+
     // Group expand/collapse state
     const isGroup = layer.isGroup === true;
     const isExpanded = layer.isExpanded !== false;
@@ -154,7 +158,6 @@ const LayerItem = React.memo(
     useEffect(() => {
       setLocalExpanded(layer.isExpanded !== false);
     }, [layer.isExpanded]);
-
 
     const handleRename = () => {
       if (editName.trim()) {
@@ -243,7 +246,7 @@ const LayerItem = React.memo(
     };
 
     return (
-      <div className="flex flex-col" ref={itemRef}>
+      <div className="flex flex-col" ref={itemRef} style={style}>
         <div
           draggable={!layer.locked && !isEditing && !isGroup}
           onDragStart={handleDragStart}
@@ -268,10 +271,10 @@ const LayerItem = React.memo(
             layer.isGroup
               ? 'bg-gradient-to-r from-[#7d2ae8]/15 to-transparent border-l-4 border-l-[#7d2ae8]'
               : isMultiSelected
-              ? 'bg-[#7d2ae8]/20 border-l-2 border-l-[#7d2ae8] shadow-[inset_4px_0_12px_rgba(125,42,232,0.1)]'
-              : isSelected
-              ? 'bg-[#7d2ae8]/10 border-l-2 border-l-[#7d2ae8] scale-[1.01] z-10 shadow-lg'
-              : 'hover:bg-[#252627] border-l-2 border-l-transparent'
+                ? 'bg-[#7d2ae8]/20 border-l-2 border-l-[#7d2ae8] shadow-[inset_4px_0_12px_rgba(125,42,232,0.1)]'
+                : isSelected
+                  ? 'bg-[#7d2ae8]/10 border-l-2 border-l-[#7d2ae8] scale-[1.01] z-10 shadow-lg'
+                  : 'hover:bg-[#252627] border-l-2 border-l-transparent'
           }`}
           style={{
             paddingLeft: isGrouped && !layer.isGroup ? '32px' : '10px',
@@ -310,9 +313,7 @@ const LayerItem = React.memo(
                 <Icons.MoreVertical className="w-3 h-3 -ml-1" />
               </div>
             )}
-            {layer.isGroup && (
-              <Icons.Folder className="w-4 h-4 text-[#7d2ae8]" />
-            )}
+            {layer.isGroup && <Icons.Folder className="w-4 h-4 text-[#7d2ae8]" />}
             <input
               type="checkbox"
               checked={isMultiSelected}
@@ -380,7 +381,11 @@ const LayerItem = React.memo(
                   >
                     {layer.name || getLayerNameFallback(layer)}
                   </span>
-                  {isGrouped && <span className="text-[8px] bg-[#7d2ae8]/20 text-[#7d2ae8] px-1.5 py-0.5 rounded font-black border border-[#7d2ae8]/30">GRP</span>}
+                  {isGrouped && (
+                    <span className="text-[8px] bg-[#7d2ae8]/20 text-[#7d2ae8] px-1.5 py-0.5 rounded font-black border border-[#7d2ae8]/30">
+                      GRP
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[9px] uppercase text-gray-500 font-bold bg-white/5 px-1.5 py-0.5 rounded border border-white/5 transition-colors group-hover:bg-white/10 group-hover:text-gray-300">
@@ -470,8 +475,8 @@ LayerItem.displayName = 'LayerItem';
 export const LayersPanel = React.memo(() => {
   const artboards = useStore((state) => state.artboards);
   const activeArtboardId = useStore((state) => state.activeArtboardId);
-  const layers = useMemo(() => 
-    artboards.find(a => a.id === activeArtboardId)?.layers || [], 
+  const layers = useMemo(
+    () => artboards.find((a) => a.id === activeArtboardId)?.layers || [],
     [artboards, activeArtboardId]
   );
   const selectedLayerIds = useStore((state) => state.selectedLayerIds);
@@ -494,8 +499,10 @@ export const LayersPanel = React.memo(() => {
 
   const handleSwipeVisible = (id: string) => {
     if (!swipeState) {
-      const layer = layers.find(l => l.id === id);
-      if (layer) {setSwipeState({ type: 'visible', value: !layer.visible });}
+      const layer = layers.find((l) => l.id === id);
+      if (layer) {
+        setSwipeState({ type: 'visible', value: !layer.visible });
+      }
     } else if (swipeState.type === 'visible') {
       updateLayer(id, { visible: swipeState.value });
     }
@@ -503,8 +510,10 @@ export const LayersPanel = React.memo(() => {
 
   const handleSwipeLock = (id: string) => {
     if (!swipeState) {
-      const layer = layers.find(l => l.id === id);
-      if (layer) {setSwipeState({ type: 'lock', value: !layer.locked });}
+      const layer = layers.find((l) => l.id === id);
+      if (layer) {
+        setSwipeState({ type: 'lock', value: !layer.locked });
+      }
     } else if (swipeState.type === 'lock') {
       updateLayer(id, { locked: swipeState.value });
     }
@@ -518,74 +527,95 @@ export const LayersPanel = React.memo(() => {
 
   const selectedLayerId = selectedLayerIds.length > 0 ? selectedLayerIds[selectedLayerIds.length - 1] : null;
 
-  // Virtualization constants/state
   const ITEM_HEIGHT = 50;
-  const [scrollTop, setScrollTop] = useState(0);
+  const listRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState(600);
+
+  useEffect(() => {
+    if (!containerRef.current) {
+      return;
+    }
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerHeight(entry.contentRect.height);
+      }
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   const displayLayers = useMemo(() => {
     const result = [...layers].reverse();
-    
+
     // Filter out collapsed group children
     let skipUntilNextGroup = false;
-    
+
     const filtered = result.filter((layer) => {
       const matchesFilter = filterType === 'all' || layer.type === filterType;
       const matchesSearch =
         !searchQuery ||
         (layer.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (layer.type === 'text' && (layer as TextLayer).text.toLowerCase().includes(searchQuery.toLowerCase()));
-      
+
       if (!matchesFilter || !matchesSearch) {
         return false;
       }
-      
+
       // Handle group collapse/expand
       if (layer.isGroup) {
         skipUntilNextGroup = layer.isExpanded === false;
         return true;
       }
-      
+
       if (skipUntilNextGroup && layer.groupId) {
         return false;
       }
-      
+
       return true;
     });
 
     return filtered;
   }, [layers, searchQuery, filterType]);
 
-  const totalHeight = displayLayers.length * ITEM_HEIGHT;
-
-  const visibleLayers = useMemo(() => {
-    const start = Math.floor(scrollTop / ITEM_HEIGHT);
-    const end = Math.ceil((scrollTop + containerHeight) / ITEM_HEIGHT);
-    const buffer = 10;
-    const startIndex = Math.max(0, start - buffer);
-    const endIndex = Math.min(displayLayers.length, end + buffer);
-
-    const visible = [];
-    for (let i = startIndex; i < endIndex; i++) {
-      visible.push({
-        layer: displayLayers[i]!,
-        index: i,
-        offset: i * ITEM_HEIGHT,
-      });
+  const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
+    const layer = displayLayers[index];
+    if (!layer) {
+      return null;
     }
-    return visible;
-  }, [displayLayers, scrollTop, containerHeight]);
 
-  const getGroupStatus = (layer: Layer, index: number, array: Layer[]) => {
-    if (!layer.groupId) {
-      return { isGrouped: false };
-    }
-    const isGrouped = true;
-    const prev = array[index - 1];
-    const next = array[index + 1];
+    const isSelected = selectedLayerId === layer.id;
+    const isMultiSelected = selectedLayerIds.includes(layer.id);
+
+    // Group status
+    const prev = displayLayers[index - 1];
+    const next = displayLayers[index + 1];
+    const isGrouped = !!layer.groupId;
     const isGroupStart = !prev || prev.groupId !== layer.groupId;
     const isGroupEnd = !next || next.groupId !== layer.groupId;
-    return { isGrouped, isGroupStart, isGroupEnd };
+
+    return (
+      <LayerItem
+        style={style}
+        layer={layer}
+        index={index}
+        isSelected={isSelected}
+        isMultiSelected={isMultiSelected}
+        isGrouped={isGrouped}
+        isGroupStart={isGroupStart}
+        isGroupEnd={isGroupEnd}
+        onSelect={() => selectLayer(layer.id)}
+        onSelectMultiple={(e) => handleSelectMultiple(layer.id, e)}
+        onUpdate={(c) => updateLayer(layer.id, c)}
+        onDelete={() => deleteLayer(layer.id)}
+        onDuplicate={() => duplicateLayer(layer.id)}
+        onMove={(dir) => moveLayer(layer.id, dir)}
+        onCopy={() => copyLayer(layer.id)}
+        onDrop={handleDrop}
+        onSwipeVisible={handleSwipeVisible}
+        onSwipeLock={handleSwipeLock}
+      />
+    );
   };
 
   const handleSelectMultiple = (id: string, e: React.MouseEvent) => {
@@ -646,10 +676,11 @@ export const LayersPanel = React.memo(() => {
               <button
                 key={type}
                 onClick={() => setFilterType(type as any)}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all shrink-0 ${filterType === type
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all shrink-0 ${
+                  filterType === type
                     ? 'bg-[#7d2ae8] text-white shadow-lg shadow-[#7d2ae8]/20'
                     : 'bg-[#252627] text-gray-400 hover:text-white hover:bg-gray-700'
-                  }`}
+                }`}
               >
                 {type === 'all' ? 'All' : type === 'text' ? 'Text' : type === 'shape' ? 'Shapes' : 'Images'}
               </button>
@@ -657,15 +688,15 @@ export const LayersPanel = React.memo(() => {
           </div>
           {displayLayers.length > 0 && (
             <button
-               onClick={() => {
-                 if (selectedLayerIds.length === displayLayers.length) {
-                   setSelectedLayerIds([]);
-                 } else {
-                   setSelectedLayerIds(displayLayers.map(l => l.id));
-                 }
-               }}
-               className="p-1.5 text-gray-400 hover:text-white rounded bg-[#252627] hover:bg-gray-700 transition-colors shrink-0"
-               title={selectedLayerIds.length === displayLayers.length ? "Deselect All" : "Select All"}
+              onClick={() => {
+                if (selectedLayerIds.length === displayLayers.length) {
+                  setSelectedLayerIds([]);
+                } else {
+                  setSelectedLayerIds(displayLayers.map((l) => l.id));
+                }
+              }}
+              className="p-1.5 text-gray-400 hover:text-white rounded bg-[#252627] hover:bg-gray-700 transition-colors shrink-0"
+              title={selectedLayerIds.length === displayLayers.length ? 'Deselect All' : 'Select All'}
             >
               <Icons.CheckSquare className="w-3.5 h-3.5" />
             </button>
@@ -725,79 +756,60 @@ export const LayersPanel = React.memo(() => {
         )}
       </div>
 
-      <div
-        className="flex-1 overflow-y-auto custom-scrollbar"
-        onScroll={(e) => {
-          const target = e.currentTarget;
-          setScrollTop(target.scrollTop);
-          setContainerHeight(target.clientHeight);
-        }}
-        onDragOver={(e) => e.preventDefault()}
-      >
+      <div ref={containerRef} className="flex-1 overflow-hidden" onDragOver={(e) => e.preventDefault()}>
         {displayLayers.length === 0 && (
-          <div className="mt-4">
+          <div className="p-4">
             <EmptyState
               icon={Icons.Layers}
               title={searchQuery ? 'No matches' : 'Canvas is empty'}
-              description={searchQuery ? 'Try a different search term.' : 'Add text, shapes, or images to start designing.'}
-              onboardingCards={searchQuery ? undefined : [
-                { emoji: '✏️', title: 'Add Text', description: 'Click T in the toolbar or drag a text block', shortcut: 'T' },
-                { emoji: '⬛', title: 'Draw Shapes', description: 'Click shapes in the left sidebar to get started', shortcut: 'S' },
-                { emoji: '🖼️', title: 'Upload Image', description: 'Paste an image or use the Uploads panel', shortcut: 'Ctrl+V' },
-                { emoji: '✨', title: 'AI Generate', description: 'Use the Magic panel to generate images with AI', shortcut: 'M' },
-              ]}
+              description={
+                searchQuery ? 'Try a different search term.' : 'Add text, shapes, or images to start designing.'
+              }
+              onboardingCards={
+                searchQuery
+                  ? undefined
+                  : [
+                      {
+                        emoji: '✏️',
+                        title: 'Add Text',
+                        description: 'Click T in the toolbar or drag a text block',
+                        shortcut: 'T',
+                      },
+                      {
+                        emoji: '⬛',
+                        title: 'Draw Shapes',
+                        description: 'Click shapes in the left sidebar to get started',
+                        shortcut: 'S',
+                      },
+                      {
+                        emoji: '🖼️',
+                        title: 'Upload Image',
+                        description: 'Paste an image or use the Uploads panel',
+                        shortcut: 'Ctrl+V',
+                      },
+                      {
+                        emoji: '✨',
+                        title: 'AI Generate',
+                        description: 'Use the Magic panel to generate images with AI',
+                        shortcut: 'M',
+                      },
+                    ]
+              }
             />
           </div>
         )}
 
         {displayLayers.length > 0 && (
-          <div
-            style={{
-              height: `${totalHeight}px`,
-              position: 'relative',
-              backgroundColor: '#13161a',
-            }}
+          <List
+            ref={listRef}
+            height={containerHeight}
+            itemCount={displayLayers.length}
+            itemSize={ITEM_HEIGHT}
+            width="100%"
+            className="custom-scrollbar"
           >
-            {visibleLayers.map((layerInfo) => {
-              const { layer, index, offset } = layerInfo;
-              const { isGrouped, isGroupStart, isGroupEnd } = getGroupStatus(layer, index, displayLayers);
-              const isSelected = selectedLayerId === layer.id;
-              const isMultiSelected = selectedLayerIds.includes(layer.id);
-
-              return (
-                <div
-                  key={layer.id}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    transform: `translateY(${offset}px)`,
-                  }}
-                >
-                  <LayerItem
-                    layer={layer}
-                    index={index}
-                    isSelected={isSelected}
-                    isMultiSelected={isMultiSelected}
-                    isGrouped={isGrouped}
-                    isGroupStart={isGroupStart}
-                    isGroupEnd={isGroupEnd}
-                    onSelect={() => selectLayer(layer.id)}
-                    onSelectMultiple={(e) => handleSelectMultiple(layer.id, e)}
-                    onUpdate={(c) => updateLayer(layer.id, c)}
-                    onDelete={() => deleteLayer(layer.id)}
-                    onDuplicate={() => duplicateLayer(layer.id)}
-                    onMove={(dir) => moveLayer(layer.id, dir)}
-                    onCopy={() => copyLayer(layer.id)}
-                    onDrop={handleDrop}
-                    onSwipeVisible={handleSwipeVisible}
-                    onSwipeLock={handleSwipeLock}
-                  />
-                </div>
-              );
-            })}
-          </div>
+            {Row}
+          </List>
         )}
       </div>
     </div>

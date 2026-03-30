@@ -1,27 +1,25 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { LaserSeparator, SuperLabel } from './LandingUtils';
 
 export const ScrollShowcase: React.FC = () => {
   const showcases = [
     {
-      subtitle: '1. AI Vector Editing Software',
-      subtitleColor: 'text-purple-500',
+      subtitle: 'AI Vector Editing Software',
       title: 'Unrestricted Vector Editing.',
       desc: 'Unlike basic editors, we give you professional vector tools that never compromise your vision. Designed specifically for the modern freelance designer and marketing agency.',
       image: '/images/screenshot_editor_main.png',
       alt: 'Kreathief AI graphic design software vector editing interface demonstrating raw power',
     },
     {
-      subtitle: '2. Generative Fill Vector Engine',
-      subtitleColor: 'text-blue-500',
+      subtitle: 'Generative Fill Vector Engine',
       title: 'Prompt to SVG.',
       desc: 'Describe your ideas and watch them materialize into fully editable vectors and graphics in real-time. The ultimate AI creative engine.',
       image: '/images/new_magic_panel.png',
       alt: 'Generative AI design tool translating text prompts into editable SVG graphics',
     },
     {
-      subtitle: '3. Seamless Agency Workflow',
-      subtitleColor: 'text-fuchsia-500',
+      subtitle: 'Seamless Agency Workflow',
       title: 'Client-Ready Hand-offs.',
       desc: 'Export to SVG, High-res PNG, or full PDF in one click. Web-hooks into your favorite CMS. The premier Canva alternative for professionals.',
       image: '/images/new_export_modal.png',
@@ -31,6 +29,8 @@ export const ScrollShowcase: React.FC = () => {
 
   return (
     <section className="py-32 bg-[#0a0a0c] relative border-y border-white/5 overflow-hidden">
+      <LaserSeparator className="absolute top-0 inset-x-0" />
+
       {/* Ambient background glow */}
       <div className="absolute top-1/2 left-0 w-[800px] h-[800px] bg-blue-500/5 blur-[150px] rounded-full pointer-events-none -z-10 translate-y-[-50%]"></div>
 
@@ -43,13 +43,11 @@ export const ScrollShowcase: React.FC = () => {
             >
               <div className="w-full lg:w-5/12 relative">
                 <div className="lg:sticky lg:top-1/3">
-                  <h3 className={`${item.subtitleColor} font-bold tracking-[0.2em] text-xs uppercase mb-4 block`}>
-                    {item.subtitle}
-                  </h3>
-                  <h2 className="text-5xl xl:text-7xl font-black mb-6 tracking-tighter text-white leading-[1.1]">
+                  <SuperLabel text={`${idx + 1}. ${item.subtitle}`} className="mb-4" />
+                  <h2 className="text-5xl xl:text-7xl font-black mb-6 tracking-tighter text-white leading-[1.1] text-balance">
                     {item.title}
                   </h2>
-                  <p className="text-xl text-gray-400 font-medium leading-relaxed">{item.desc}</p>
+                  <p className="text-xl text-gray-400 font-medium leading-relaxed text-balance">{item.desc}</p>
                 </div>
               </div>
 
@@ -59,7 +57,7 @@ export const ScrollShowcase: React.FC = () => {
                     initial={{ opacity: 0, scale: 0.9, y: 30 }}
                     whileInView={{ opacity: 1, scale: 1, y: 0 }}
                     viewport={{ once: true, margin: '-100px' }}
-                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                     src={item.image}
                     loading="lazy"
                     decoding="async"

@@ -1,5 +1,5 @@
 {
-    "name": "Kreathief — AI Design Suite",
+    "name": "Kreathief - AI Design Suite",
     "short_name": "Kreathief",
     "description": "Design at the speed of light. Professional vector tools meet generative AI in a high-performance browser canvas.",
     "lang": "en",
@@ -46,3 +46,4 @@
         }
     ]
 }
+
