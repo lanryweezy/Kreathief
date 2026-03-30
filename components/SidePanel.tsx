@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavTab, TextLayer } from '../types';
+import { NavTab, TextLayer, AnimationSettings } from '../types';
 import { useStore } from '../store/useStore';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Icons } from '../constants';
@@ -22,6 +22,7 @@ const TextEffectsPanel = React.lazy(() => import('./panels/TextEffectsPanel').th
 const ArrangePanel = React.lazy(() => import('./panels/ArrangePanel'));
 const ComponentsPanel = React.lazy(() => import('./panels/ComponentsPanel'));
 const CommentsPanel = React.lazy(() => import('./panels/CommentsPanel'));
+const MotionPanel = React.lazy(() => import('./panels/MotionPanel').then(m => ({ default: m.MotionPanel })));
 
 const PanelLoading = () => (
   <div className="flex h-full w-full items-center justify-center bg-[#13161a]">
@@ -36,10 +37,11 @@ interface SidePanelProps {
   getCanvasSnapshot?: () => Promise<string>;
   uploadedImage: string | null;
   onStartDesign?: (prompt: string) => void;
+  onPreviewMotion: (settings: AnimationSettings) => void;
 }
 
 export const SidePanel = React.memo(
-  ({ onGenerate, onApplyTheme, onApplyLayout, getCanvasSnapshot, uploadedImage, onStartDesign }: SidePanelProps) => {
+  ({ onGenerate, onApplyTheme, onApplyLayout, getCanvasSnapshot, uploadedImage, onStartDesign, onPreviewMotion }: SidePanelProps) => {
     const artboards = useStore((state) => state.artboards);
     const activeArtboardId = useStore((state) => state.activeArtboardId);
     const activeTab = useStore((state) => state.activeTab);
@@ -169,6 +171,8 @@ export const SidePanel = React.memo(
               {activeTab === NavTab.VECTORIZER && <VectorizerPanel />}
 
               {activeTab === NavTab.ARRANGE && <ArrangePanel />}
+
+              {activeTab === NavTab.MOTION && <MotionPanel onPreviewMotion={onPreviewMotion} />}
             </React.Suspense>
           </div>
 

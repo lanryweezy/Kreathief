@@ -72,9 +72,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
             <div className="flex-1 h-px bg-white/5" />
           </div>
           <div className="grid grid-cols-2 gap-2 text-left">
-            {onboardingCards.map((card, i) => (
+            {onboardingCards.map((card) => (
               <button
-                key={i}
+                key={card.title}
                 onClick={card.onClick}
                 className="group p-3 bg-[#1e1e1e]/60 border border-white/5 rounded-xl hover:border-[#7d2ae8]/30 hover:bg-[#7d2ae8]/5 transition-all text-left"
               >

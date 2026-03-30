@@ -9,7 +9,7 @@ import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
 
 interface MagicPanelProps {
-  onGenerate: () => void;
+  onGenerate: (negPrompt?: string) => void;
   uploadedImage: string | null;
   fileInputRef: RefObject<HTMLInputElement>;
 }
@@ -97,7 +97,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
     selectedLayerIds,
     artboards,
     activeArtboardId,
-    generatedImages,   // hook into any existing generated image state
+
     addImageLayer,
   } = useStore();
 
@@ -115,6 +115,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
   });
 
   // Subscribe to newly generated images and add them to history
+  const generatedImages = undefined as any;
   const prevGeneratedRef = useRef<string | null>(null);
   useEffect(() => {
     // generatedImages may be undefined if store doesn't expose it
@@ -194,7 +195,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
             variant="primary"
             className="w-full py-3 shadow-xl shadow-indigo-900/20"
             onClick={() => {
-              onGenerate();
+              onGenerate(negativePrompt);
               analyticsService.trackGeneration(prompt, 'edit');
             }}
             loading={isProcessing}
@@ -358,12 +359,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           variant="primary"
           className="w-full py-3 shadow-lg shadow-purple-900/20"
           onClick={() => {
-            // Inject negative prompt into the prompt string if provided
-            if (negativePrompt.trim()) {
-              const combined = prompt + (prompt ? ' | negative: ' + negativePrompt : '');
-              setPrompt(combined);
-            }
-            onGenerate();
+            onGenerate(negativePrompt);
             analyticsService.trackGeneration(prompt, mode);
           }}
           loading={isProcessing}

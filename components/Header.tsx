@@ -29,8 +29,6 @@ export const Header: React.FC<HeaderProps> = ({
     redo,
     past,
     future,
-    projectTitle: title,
-    setProjectTitle: onTitleChange,
     isSaving,
     saveProject: onSave,
     showShortcuts,

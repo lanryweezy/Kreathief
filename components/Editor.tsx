@@ -9,14 +9,14 @@ import { SidePanel } from './SidePanel';
 import { MobileNavBar } from './MobileNavBar';
 import { BottomSheet } from './BottomSheet';
 import { Canvas } from './Canvas';
-import { User, Project } from '../types';
+import { User, Project, AnimationSettings } from '../types';
 import { useEditorLogic } from '../hooks/useEditorLogic';
 import { useFileHandler } from '../hooks/useFileHandler';
 import { shareService } from '../services/shareService';
 import { ShareModal } from './modals/ShareModal';
 import { ExportModal } from './modals/ExportModal';
 import { MockupPanel } from './panels/MockupPanel';
-import { AssistantPanel } from './panels/AssistantPanel';
+
 const CommunityModal = React.lazy(() => import('./modals/CommunityModal'));
 import { Toolbar } from './Toolbar';
 import { Dropdown } from './Dropdown';
@@ -69,6 +69,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const [showCommunityModal, setShowCommunityModal] = useState(false);
   const zoomButtonRef = useRef<HTMLButtonElement>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [previewAnimation, setPreviewAnimation] = useState<AnimationSettings | undefined>();
 
   // Use Custom Logic Hooks
   const { 
@@ -172,6 +173,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                 getCanvasSnapshot={handleExportDataUrl}
                 uploadedImage={uploadedImage}
                 onStartDesign={handleStartDesign}
+                onPreviewMotion={(settings: AnimationSettings) => {
+                  setPreviewAnimation(settings);
+                  setTimeout(() => setPreviewAnimation(undefined), settings.duration * 1000 + settings.delay * 1000 + 100);
+                }}
               />
             )}
           </ErrorBoundary>
@@ -200,6 +205,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                 onAddLogoToCanvas={handleAddLogoToCanvas}
                 booleanPreview={booleanPreview}
                 onUpdatePath={handleUpdatePath}
+                previewAnimation={previewAnimation}
               />
             </ErrorBoundary>
 
@@ -299,6 +305,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           getCanvasSnapshot={handleExportDataUrl}
           uploadedImage={uploadedImage}
           onStartDesign={handleStartDesign}
+          onPreviewMotion={(settings: AnimationSettings) => {
+            setPreviewAnimation(settings);
+            setTimeout(() => setPreviewAnimation(undefined), settings.duration * 1000 + settings.delay * 1000 + 100);
+          }}
         />
       </BottomSheet>
 
@@ -307,7 +317,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           <ExportModal
             onClose={() => setShowExport(false)}
             currentSize={canvasSize}
-            onExport={(...args) => handleConfirmExport(...args, () => setShowExport(false))}
+            onExport={(format, quality, size, transparentBg, customFilename, overrideLayers) => handleConfirmExport(format, quality, size, transparentBg, customFilename, () => setShowExport(false), overrideLayers)}
             onGetPngBlob={handleExportBlob}
           />
         )}

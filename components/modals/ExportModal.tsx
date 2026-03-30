@@ -11,7 +11,8 @@ interface ExportModalProps {
     quality: number,
     size?: { width: number; height: number },
     transparentBg?: boolean,
-    customFilename?: string
+    customFilename?: string,
+    overrideLayers?: any[]
   ) => Promise<void>;
   onGetPngBlob?: () => Promise<Blob | null>;
   currentSize: { width: number; height: number; name: string };
@@ -108,7 +109,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         await new Promise((r) => requestAnimationFrame(r));
         await new Promise((r) => setTimeout(r, 120));
 
-        await onExport('png', 1, { width: ab.width || currentSize.width, height: ab.height || currentSize.height }, false, label.replace(/\s+/g, '-').toLowerCase());
+        await onExport('png', 1, { width: ab.width || currentSize.width, height: ab.height || currentSize.height }, false, label.replace(/\s+/g, '-').toLowerCase(), ab.layers);
         analyticsService.trackExport('png', 1);
         successCount++;
       }

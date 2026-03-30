@@ -73,7 +73,8 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
       };
       return {
         past: newPast,
-        future: [current],
+        // Prepend current to future so multiple undos can all be redone
+        future: [current, ...state.future],
         artboards: previous.artboards,
         activeArtboardId: previous.activeArtboardId,
         canvasBackgroundColor: previous.canvasBackgroundColor,
@@ -173,6 +174,7 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
   },
 
   deleteSnapshot: async (snapshotId) => {
+    await storageService.deleteSnapshot(snapshotId);
     set((state: any) => ({ snapshots: state.snapshots.filter((s: DesignSnapshot) => s.id !== snapshotId) }));
   },
 });

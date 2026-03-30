@@ -4,6 +4,8 @@
  * Handles vectorization, enhancement, and palette extraction.
  */
 
+import { log } from '../utils/log';
+
 class HeavyService {
   private worker: Worker | null = null;
   private callbacks: Map<string, { resolve: (val: any) => void; reject: (err: any) => void }> = new Map();
@@ -31,12 +33,12 @@ class HeavyService {
       };
 
       this.worker.onerror = (e) => {
-        console.error('Heavy Worker Error:', e);
+        log.error('Heavy Worker Error:', e);
         // Do not block main thread, just log and allow service to try again later if needed
         this.worker = null;
       };
     } catch (err) {
-      console.error('Failed to initialize Heavy Worker:', err);
+      log.error('Failed to initialize Heavy Worker:', err);
     }
   }
 

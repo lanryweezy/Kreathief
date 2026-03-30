@@ -157,7 +157,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         <div className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12 custom-scrollbar">
           <div className="max-w-[1600px] mx-auto">
             <div className="flex items-start sm:items-center justify-between gap-4 mb-8 flex-col sm:flex-row">
-              <h2 className="text-xl md:text-2xl font-bold flex items-center gap-3 md:gap-4 overflow-x-auto whitespace-nowrap pb-2 sm:pb-0 w-full sm:w-auto custom-scrollbar" role="tablist">
+              <div className="text-xl md:text-2xl font-bold flex items-center gap-3 md:gap-4 overflow-x-auto whitespace-nowrap pb-2 sm:pb-0 w-full sm:w-auto custom-scrollbar" role="tablist">
                 <button
                   role="tab"
                   aria-selected={sidebarTab === 'projects'}
@@ -184,7 +184,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 >
                   Community
                 </button>
-              </h2>
+              </div>
               <button
                 id="create-btn"
                 onClick={handleCreateClick}

@@ -29,6 +29,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, onTogg
     { id: NavTab.COMPONENTS, icon: Icons.LayoutGrid, label: "Components" },
     { id: NavTab.LAYERS, icon: Icons.Layers, label: "Layers" },
     { id: NavTab.ARRANGE, icon: Icons.Layout, label: "Arrange" },
+    { id: NavTab.MOTION, icon: Icons.Play, label: "Motion" },
     { id: NavTab.COMMENTS, icon: Icons.MessageSquare, label: "Comments" },
   ];
 

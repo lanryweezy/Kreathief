@@ -26,42 +26,7 @@ import { ErrorBoundary } from './ErrorBoundary';
 
 // ... existing imports ...
 
-const EditableZoom = ({ zoom, onZoomChange }: { zoom: number; onZoomChange: (z: number) => void }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [value, setValue] = useState(String(Math.round(zoom * 100)));
 
-  if (isEditing) {
-    return (
-      <input
-        autoFocus
-        className="text-xs text-white bg-black/40 border border-[#7d2ae8] w-14 text-center font-mono rounded outline-none"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onBlur={() => {
-          const num = parseInt(value);
-          if (!isNaN(num)) {onZoomChange(num / 100);}
-          setIsEditing(false);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {e.currentTarget.blur();}
-          if (e.key === 'Escape') {setIsEditing(false);}
-        }}
-      />
-    );
-  }
-
-  return (
-    <span
-      className="text-xs text-gray-300 w-14 text-center font-mono cursor-edit hover:text-white transition-colors select-none"
-      onClick={() => {
-        setValue(String(Math.round(zoom * 100)));
-        setIsEditing(true);
-      }}
-    >
-      {Math.round(zoom * 100)}%
-    </span>
-  );
-};
 
 interface CanvasProps {
   zoom: number;
@@ -113,9 +78,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
   const onDuplicateLayer = useStore((state) => state.duplicateLayer);
   const selectedLayerIds = useStore((state) => state.selectedLayerIds);
   const showGrid = useStore((state) => state.showGrid);
-  const onToggleGrid = useStore((state) => state.setShowGrid);
-  const showRulers = useStore((state) => state.showRulers);
-  const onToggleRulers = useStore((state) => state.setShowRulers);
+
   const isDrawing = useStore((state) => state.isPenMode);
   const brushColor = useStore((state) => state.brushColor);
   const brushSize = useStore((state) => state.brushSize);
@@ -183,7 +146,7 @@ const CanvasComponent: React.FC<CanvasProps> = ({
   const viewportRef = useRef<HTMLDivElement>(null);
 
   // Calculate minimum zoom to fit canvas in viewport on mobile
-  const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
+
 
   const [hoveredLayerId, setHoveredLayerId] = useState<string | null>(null);
   const [dragState, setDragState] = useState<{

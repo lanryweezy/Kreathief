@@ -837,6 +837,33 @@ class StorageService {
     });
   }
 
+  async deleteSnapshot(snapshotId: string): Promise<void> {
+    const userId = await this.getUserId();
+
+    if (this.isOnline && userId) {
+      try {
+        await supabase
+          .from('project_snapshots')
+          .delete()
+          .eq('id', snapshotId)
+          .eq('user_id', userId);
+        logger.debug('Snapshot deleted from Supabase', { id: snapshotId });
+      } catch (err) {
+        logger.warn('Supabase snapshot delete error', { error: err });
+      }
+    }
+
+    const store = await this.getStore('snapshots', 'readwrite');
+    return new Promise((resolve, reject) => {
+      const request = store.delete(snapshotId);
+      request.onsuccess = () => {
+        logger.debug('Snapshot deleted from IndexedDB', { id: snapshotId });
+        resolve();
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   // ===== Comments =====
 
   async saveComment(comment: DesignComment): Promise<void> {

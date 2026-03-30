@@ -22,6 +22,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
   const [overlayScale, setOverlayScale] = useState(1);
   const [surfaceDepth, setSurfaceDepth] = useState(0.8);
   const [isDraggingOverlay, setIsDraggingOverlay] = useState(false);
+  const environment: 'studio' | 'sunset' | 'office' = 'studio';
   const containerRef = useRef<HTMLDivElement>(null);
 
   const showToast = (msg: string) => {
@@ -170,7 +171,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
         // Draw Shadow first if applicable (Apparel)
         if (current.category === 'APPAREL') {
           ctx.save();
-          ctx.globalAlpha = shadowDepth * 0.4;
+          ctx.globalAlpha = surfaceDepth * 0.4;
           ctx.filter = 'blur(10px)';
           ctx.drawImage(designImg, left + 5, top + 5, width, height);
           ctx.restore();
@@ -179,8 +180,9 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
         ctx.globalCompositeOperation = current.overlayStyle.mixBlendMode === 'multiply' ? 'multiply' : 'source-over';
         ctx.globalAlpha = surfaceDepth;
 
-        if (current.overlayStyle.transform) {
-          const match = current.overlayStyle.transform.match(/rotate\(([-\d.]+)deg\)/);
+        if ((current.overlayStyle as any).transform) {
+          const transformStr = (current.overlayStyle as any).transform as string;
+          const match = transformStr.match(/rotate\(([-\d.]+)deg\)/);
           if (match) {
             const angle = (parseFloat(match[1]) * Math.PI) / 180;
             ctx.translate(left + width / 2, top + height / 2);
@@ -200,7 +202,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
         }
 
         // Apply reflections to export
-        if (current.hasReflections) {
+        if ((current as any).hasReflections) {
           ctx.globalCompositeOperation = 'screen';
           ctx.globalAlpha = 0.15;
           const grad = ctx.createLinearGradient(left, top, left + width, top + height);
@@ -449,7 +451,6 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                       }}
                       onLoad={() => setBgLoaded(true)}
                       onError={() => setBgError(true)}
-                      style={{ imageRendering: 'high-quality' as any }}
                       alt="Mockup Background" 
                       draggable={false}
                    />
@@ -468,11 +469,10 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                            top: `calc(${current.overlayStyle.top} + ${overlayPos.y}%)`,
                            left: `calc(${current.overlayStyle.left} + ${overlayPos.x}%)`,
                            width: `calc(${current.overlayStyle.width} * ${overlayScale})`,
-                           transform: current.overlayStyle.transform,
+                           transform: (current.overlayStyle as any).transform,
                            mixBlendMode: current.overlayStyle.mixBlendMode as any,
                            opacity: surfaceDepth,
                            filter: environment === 'sunset' ? 'sepia(0.1) brightness(0.95)' : 'none'
-                           opacity: surfaceDepth
                          }}
                        >
                          <img

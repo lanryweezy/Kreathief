@@ -89,7 +89,7 @@ export const useFileHandler = () => {
     );
   };
 
-  const handleConfirmExport = async (format: any, quality: any, size: any, transparentBg: any, customFilename: any, onComplete?: () => void) => {
+  const handleConfirmExport = async (format: any, quality: any, size: any, transparentBg: any, customFilename: any, onComplete?: () => void, overrideLayers?: any[]) => {
     setIsExporting(true);
     try {
       const exportWidth = size?.width || canvasSize.width;
@@ -98,7 +98,8 @@ export const useFileHandler = () => {
       const scaleX = exportWidth / canvasSize.width;
       const scaleY = exportHeight / canvasSize.height;
       
-      const scaledLayers = layers.map(l => ({
+      const targetLayers = overrideLayers || layers;
+      const scaledLayers = targetLayers.map(l => ({
         ...l,
         x: l.x * scaleX,
         y: l.y * scaleY,

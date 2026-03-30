@@ -64,19 +64,23 @@ export const HistoryPanel: React.FC = () => {
               <p className="text-[10px] text-gray-500">No history yet</p>
             </div>
           ) : (
-            [...past].reverse().map((state, index) => (
-              <div
-                key={index}
-                className="text-[10px] text-gray-400 bg-[#252627] rounded px-2 py-1.5 flex items-center gap-2"
-              >
-                <div className="w-2 h-2 rounded-full bg-[#7d2ae8]" />
-                <span>State {past.length - index}</span>
-                <span className="text-gray-600">
-                  {state.artboards?.length || 0} artboards,
-                  {state.artboards?.reduce((sum, a) => sum + a.layers.length, 0) || 0} layers
-                </span>
-              </div>
-            ))
+            [...past].reverse().map((state, index) => {
+              const numLayers = state.artboards?.reduce((sum, a) => sum + (a.layers?.length || 0), 0) || 0;
+              return (
+                <div
+                  key={`hist-${past.length - index}`}
+                  className="text-[10px] text-gray-400 bg-[#252627] rounded px-2 py-1.5 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-[#7d2ae8]" />
+                    <span className="font-bold text-gray-300">Action {past.length - index}</span>
+                  </div>
+                  <span className="text-[9px] text-gray-500 bg-black/20 px-1.5 py-0.5 rounded font-mono">
+                    {numLayers} {numLayers === 1 ? 'layer' : 'layers'}
+                  </span>
+                </div>
+              );
+            })
           )}
         </div>
       </div>
