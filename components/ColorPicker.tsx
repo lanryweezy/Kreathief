@@ -41,13 +41,11 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
 
   // Load recent colors from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('kreathief_recent_colors');
-    if (saved) {
-      try {
-        setRecentColors(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to load recent colors', e);
-      }
+    try {
+      const saved = localStorage.getItem('kreathief_recent_colors');
+      if (saved) setRecentColors(JSON.parse(saved));
+    } catch {
+      // Silently ignore — cosmetic feature, not critical
     }
   }, []);
 
@@ -300,8 +298,11 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
           {activeTab === 'gradient' && (
             <GradientEditor
               onChange={(gradient) => {
-                // Store gradient as special value (full gradient support would be in layer properties)
-                addToast(`Gradient created: ${gradient.stops.length} stops`, 'success');
+                // Build a CSS gradient string and apply it as a special color value
+                const css = `linear-gradient(${gradient.angle ?? 90}deg, ${gradient.stops.map((s: any) => `${s.color} ${s.position}%`).join(', ')})`;
+                onChange(css);
+                setHexInput(css);
+                addToast(`Gradient applied (${gradient.stops.length} stops)`, 'success');
               }}
             />
           )}

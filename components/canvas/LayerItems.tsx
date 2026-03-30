@@ -387,10 +387,9 @@ export const TextLayerItem = React.memo(
         isInteracting,
       ]);
 
-      // Build text-shadow: layer advanced shadows + neon glow
-      const buildTextShadow = () => {
+      // Memoize text shadow computation — avoids recreating string on every render
+      const buildTextShadow = React.useCallback(() => {
         const parts: string[] = [];
-        // Advanced shadows
         if (textLayer.advancedShadows && textLayer.advancedShadows.length > 0) {
           textLayer.advancedShadows.forEach((s) => {
             parts.push(`${s.offsetX}px ${s.offsetY}px ${s.blur}px ${s.color}`);
@@ -398,7 +397,6 @@ export const TextLayerItem = React.memo(
         } else if (textLayer.shadow) {
           parts.push(`${textLayer.shadow.offsetX}px ${textLayer.shadow.offsetY}px ${textLayer.shadow.blur}px ${textLayer.shadow.color}`);
         }
-        // Neon glow effect
         if (textLayer.neonGlow?.enabled) {
           const g = textLayer.neonGlow;
           parts.push(`0 0 ${g.spread * 0.5}px ${g.color}`);
@@ -407,7 +405,7 @@ export const TextLayerItem = React.memo(
           parts.push(`0 0 ${g.spread * 3}px ${g.color}40`);
         }
         return parts.length > 0 ? parts.join(', ') : undefined;
-      };
+      }, [textLayer.advancedShadows, textLayer.shadow, textLayer.neonGlow]);
 
       const textStyle: React.CSSProperties = React.useMemo(() => ({
         fontFamily: textLayer.fontFamily,
@@ -429,18 +427,15 @@ export const TextLayerItem = React.memo(
         WebkitBackgroundClip: textLayer.gradient && textLayer.gradient.enabled ? 'text' : 'unset',
         display: 'block',
         textShadow: buildTextShadow(),
-        // Text stroke (outline)
         ...(textLayer.stroke && textLayer.stroke.width > 0
           ? {
             WebkitTextStroke: `${textLayer.stroke.width}px ${textLayer.stroke.color}`,
             paintOrder: 'stroke fill',
           } as any
           : {}),
-        // Neon flicker animation
         ...(textLayer.neonGlow?.enabled && textLayer.neonGlow.flicker
           ? { animation: 'neonFlicker 2s ease-in-out infinite alternate' }
           : {}),
-        // Apply text transformations from TextEffectsPanel
         ...(textLayer.transformType && textLayer.transformType !== 'none'
           ? {
             transform: `
