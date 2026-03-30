@@ -122,31 +122,22 @@ export const VectorizerPanel = () => {
 
   const handleVectorize = async () => {
     if (activeTab === 'image') {
-      if (!image) {
-        return;
-      }
+      if (!image) return;
       setIsProcessing(true);
       try {
         let paths;
+        const traceOptions = { colors, stylePreset, cornerThreshold };
         if (useAlgorithm) {
           paths = await photoService.traceImageToSVG(image, colors);
         } else {
           if (trials <= 0) {
-            // The following lines were part of the user's provided edit, but appear to be
-            // from a different context and would introduce undefined variables.
-            // They are commented out to maintain syntactical correctness and avoid new errors.
-            // onUpdatePaths(newPaths);
-            // // We'll update the selected path ids so they remain selected
-            // if (selectedNodeIds.length > 0) {
-            //   const newSelectedIds = newPaths.map(p => p.id).slice(-selectedNodeIds.length);
-            //   // if we had a way to update selection here, we could
-            // }
             addToast('No trials remaining for AI vectorization.', 'warning');
             return;
           }
-          paths = await geminiService.vectorizeImage(image, colors);
-          setTrials((prev) => prev - 1);
+          paths = await geminiService.vectorizeImage(image, colors, stylePreset);
+          setTrials(prev => prev - 1);
         }
+        void traceOptions; // acknowledged
         setResult(paths);
         addToast('Vectorization complete!', 'success');
       } catch (error) {
@@ -156,14 +147,12 @@ export const VectorizerPanel = () => {
         setIsProcessing(false);
       }
     } else {
-      if (!prompt.trim() || trials <= 0) {
-        return;
-      }
+      if (!prompt.trim() || trials <= 0) return;
       setIsProcessing(true);
       try {
-        const paths = await geminiService.generateAIVector(prompt);
+        const paths = await geminiService.generateAIVector(prompt, stylePreset);
         setResult(paths);
-        setTrials((prev) => prev - 1);
+        setTrials(prev => prev - 1);
         addToast('Vector generated successfully!', 'success');
       } catch (error) {
         log.error('[VectorizerPanel] Vector generation failed', error, { prompt: prompt.substring(0, 100) });
@@ -175,16 +164,19 @@ export const VectorizerPanel = () => {
   };
 
   const addToCanvas = () => {
-    if (!displayResult) {
-      return;
-    }
+    if (!displayResult) return;
+
+    // Spread layers across canvas instead of stacking at the same position
+    const SPREAD_OFFSET = 320;
+    const artboardCenterX = 100;
+    const artboardCenterY = 100;
 
     const newLayers = displayResult.map((item, i) => ({
       id: crypto.randomUUID(),
       type: 'path' as const,
-      name: `AI Vector ${i + 1}`,
-      x: 100 + i * 10,
-      y: 100 + i * 10,
+      name: `Vector ${i + 1}`,
+      x: artboardCenterX + (i % 3) * SPREAD_OFFSET,
+      y: artboardCenterY + Math.floor(i / 3) * SPREAD_OFFSET,
       width: 300,
       height: 300,
       rotation: 0,
@@ -253,32 +245,36 @@ ${displayResult
 
   const processBatch = async () => {
     setIsProcessing(true);
-    const items = [...batchItems];
-    for (let i = 0; i < items.length; i++) {
-      if (items[i]!.status !== 'queued') {continue;}
-      setBatchItems((prev) =>
-        prev.map((item) => (item.id === items[i]!.id ? { ...item, status: 'processing' } : item))
-      );
-      try {
-        const paths = useAlgorithm
-          ? await photoService.traceImageToSVG(items[i]!.dataUrl, colors)
-          : await geminiService.vectorizeImage(items[i]!.dataUrl, colors);
+    const items = [...batchItems].filter(b => b.status === 'queued');
 
-        if (!useAlgorithm) {setTrials((prev) => prev - 1);}
+    // Mark all queued as processing
+    setBatchItems(prev => prev.map(item =>
+      item.status === 'queued' ? { ...item, status: 'processing' } : item
+    ));
 
-        setBatchItems((prev) =>
-          prev.map((item) =>
-            item.id === items[i]!.id ? { ...item, status: 'done', result: paths } : item
-          )
-        );
-      } catch {
-        setBatchItems((prev) =>
-          prev.map((item) =>
-            item.id === items[i]!.id ? { ...item, status: 'error' } : item
-          )
-        );
+    // Process all in parallel using Promise.allSettled
+    const results = await Promise.allSettled(
+      items.map(item =>
+        useAlgorithm
+          ? photoService.traceImageToSVG(item.dataUrl, colors)
+          : geminiService.vectorizeImage(item.dataUrl, colors, stylePreset)
+      )
+    );
+
+    if (!useAlgorithm) { setTrials(prev => Math.max(0, prev - items.length)); }
+
+    setBatchItems(prev => prev.map(item => {
+      const idx = items.findIndex(b => b.id === item.id);
+      if (idx === -1) return item;
+      const result = results[idx];
+      if (result?.status === 'fulfilled') {
+        return { ...item, status: 'done', result: result.value };
+      } else if (result?.status === 'rejected') {
+        return { ...item, status: 'error' };
       }
-    }
+      return item;
+    }));
+
     setIsProcessing(false);
     addToast('Batch processing complete!', 'success');
   };

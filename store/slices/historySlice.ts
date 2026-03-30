@@ -21,25 +21,41 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
   past: [],
   future: [],
 
-  saveToHistory: () => {
-    set((state: any) => {
-      const currentState: HistoryState = {
-        artboards: structuredClone(state.artboards),
-        activeArtboardId: state.activeArtboardId,
-        canvasBackgroundColor: state.canvasBackgroundColor,
-        canvasFilters: { ...state.canvasFilters },
-        canvasSize: { ...state.canvasSize },
-      };
-      const newPast = [...state.past, currentState];
-      if (newPast.length > 50) {
-        newPast.shift();
+  saveToHistory: (() => {
+    let lastSavedTimestamp = 0;
+    const DEBOUNCE_MS = 200;
+    const MAX_HISTORY = 50;
+
+    return () => {
+      // Debounce: Skip if called too recently (e.g. rapid slider drags)
+      const now = Date.now();
+      if (now - lastSavedTimestamp < DEBOUNCE_MS) {
+        return;
       }
-      return {
-        past: newPast,
-        future: [],
-      };
-    });
-  },
+      lastSavedTimestamp = now;
+
+      set((state: any) => {
+        const currentState: HistoryState = {
+          // Only clone artboards — skip ephemeral UI state
+          artboards: structuredClone(state.artboards),
+          activeArtboardId: state.activeArtboardId,
+          canvasBackgroundColor: state.canvasBackgroundColor,
+          canvasFilters: state.canvasFilters ? { ...state.canvasFilters } : undefined,
+          canvasSize: state.canvasSize ? { ...state.canvasSize } : undefined,
+        };
+
+        // Circular buffer: keep only the last MAX_HISTORY entries
+        const newPast = state.past.length >= MAX_HISTORY
+          ? [...state.past.slice(-MAX_HISTORY + 1), currentState]
+          : [...state.past, currentState];
+
+        return {
+          past: newPast,
+          future: [], // Any new action clears redo
+        };
+      });
+    };
+  })(),
 
   undo: () =>
     set((state: any) => {

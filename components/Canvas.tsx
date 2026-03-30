@@ -812,9 +812,10 @@ const CanvasComponent: React.FC<CanvasProps> = ({
           initialLayers,
         });
       } else {
-        const selectionBox = (e.target as HTMLElement).closest('.group');
-        if (selectionBox) {
-          const boxRect = selectionBox.getBoundingClientRect();
+        // Find the layer's DOM element to get its bounding box
+        const layerEl = layerRefs.current[layer.id];
+        if (layerEl) {
+          const boxRect = layerEl.getBoundingClientRect();
           setRotateState({
             isRotating: true,
             startX: e.clientX,
@@ -823,6 +824,22 @@ const CanvasComponent: React.FC<CanvasProps> = ({
             centerX: boxRect.left + boxRect.width / 2,
             centerY: boxRect.top + boxRect.height / 2,
           });
+        } else {
+          // Fallback: compute center from layer canvas coords
+          const panContainerRect = panContainerRef.current?.getBoundingClientRect();
+          if (panContainerRect) {
+            const zoom = zoomRef.current;
+            const centerX = panContainerRect.left + (layer.x + layer.width / 2) * zoom;
+            const centerY = panContainerRect.top + (layer.y + ((layer as any).height || layer.width) / 2) * zoom;
+            setRotateState({
+              isRotating: true,
+              startX: e.clientX,
+              startY: e.clientY,
+              initialRotation: layer.rotation,
+              centerX,
+              centerY,
+            });
+          }
         }
       }
     },
@@ -1103,26 +1120,46 @@ const CanvasComponent: React.FC<CanvasProps> = ({
             });
             bulkDragPreviewManualRef.current = newBulkPreview;
           } else if (initialLayer && currentSelectedLayerId) {
-            const { x: ix, y: iy, width: iw } = initialLayer;
+            const { x: ix, y: iy, width: iw, rotation: iRotation } = initialLayer;
             const ih = (initialLayer as any).height || 0;
+            
+            // === OBB MATH: rotate dx/dy into local object space ===
+            const angleRad = ((iRotation || 0) * Math.PI) / 180;
+            const cosA = Math.cos(-angleRad);
+            const sinA = Math.sin(-angleRad);
+            // Project screen delta into local (object) space
+            const localDx = dx * cosA - dy * sinA;
+            const localDy = dx * sinA + dy * cosA;
+
             let nx = ix,
               ny = iy,
               nw = iw,
               nh = ih;
 
-            if (handle.includes('e')) {
-              nw += dx;
-            }
+            // Work in local space — anchor the opposite edge
+            if (handle.includes('e')) { nw = Math.max(10, iw + localDx); }
             if (handle.includes('w')) {
-              nx += dx;
-              nw -= dx;
+              nw = Math.max(10, iw - localDx);
+              // Re-project the x shift back to screen space
+              const shiftLocal = iw - nw;
+              nx = ix + shiftLocal * Math.cos(angleRad);
+              ny = iy + shiftLocal * Math.sin(angleRad);
             }
-            if (handle.includes('s')) {
-              nh += dy;
-            }
+            if (handle.includes('s')) { nh = Math.max(10, ih + localDy); }
             if (handle.includes('n')) {
-              ny += dy;
-              nh -= dy;
+              nh = Math.max(10, ih - localDy);
+              const shiftLocal = ih - nh;
+              nx = ix - shiftLocal * Math.sin(angleRad);
+              ny = iy + shiftLocal * Math.cos(angleRad);
+            }
+
+            // === TEXT SCALING: scale fontSize on corner grabs ===
+            const isCorner = handle.length === 2; // e.g. 'nw', 'se'
+            let newFontSize: number | undefined;
+            if (initialLayer.type === 'text' && isCorner && iw > 0) {
+              const scaleRatio = nw / iw;
+              const baseFontSize = (initialLayer as TextLayer).fontSize || 24;
+              newFontSize = Math.max(8, Math.round(baseFontSize * scaleRatio));
             }
 
             const { snappedX, snappedY, snappedWidth, snappedHeight, snapX, snapY } = getResizeSnapLines(
@@ -1145,6 +1182,10 @@ const CanvasComponent: React.FC<CanvasProps> = ({
               domNode.style.top = `${ny}px`;
               domNode.style.width = `${nw}px`;
               domNode.style.height = `${nh}px`;
+              if (newFontSize) {
+                const firstChild = domNode.firstChild as HTMLElement;
+                if (firstChild) { firstChild.style.fontSize = `${newFontSize}px`; }
+              }
             }
 
             if (snapVerticalRef.current) {
@@ -1160,7 +1201,9 @@ const CanvasComponent: React.FC<CanvasProps> = ({
               }
             }
 
-            bulkDragPreviewManualRef.current[currentSelectedLayerId] = { x: nx, y: ny, width: nw, height: nh } as any;
+            const preview: any = { x: nx, y: ny, width: nw, height: nh };
+            if (newFontSize) { preview.fontSize = newFontSize; }
+            bulkDragPreviewManualRef.current[currentSelectedLayerId] = preview;
           }
         }
 
@@ -1284,7 +1327,13 @@ const CanvasComponent: React.FC<CanvasProps> = ({
     const accumulatedUpdates: Record<string, any> = {};
     if (currentDragState?.isDragging || currentResizeState?.isResizing || currentRotateState?.isRotating) {
       Object.entries(currentBulkDragPreview).forEach(([id, changes]) => {
-        accumulatedUpdates[id] = changes;
+        // === SNAP TO INTEGER PIXELS on mouseUp — prevents blurry subpixel rendering in exports ===
+        const snapped: any = { ...changes };
+        if (typeof snapped.x === 'number') { snapped.x = Math.round(snapped.x); }
+        if (typeof snapped.y === 'number') { snapped.y = Math.round(snapped.y); }
+        if (typeof snapped.width === 'number') { snapped.width = Math.round(snapped.width); }
+        if (typeof snapped.height === 'number') { snapped.height = Math.round(snapped.height); }
+        accumulatedUpdates[id] = snapped;
       });
     }
 

@@ -185,19 +185,46 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapsho
       ...style,
     } as TextLayer);
   };
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
+  const selectedLayerIds = useStore((state) => state.selectedLayerIds);
+  const artboards = useStore((state) => state.artboards);
+  const activeArtboardId = useStore((state) => state.activeArtboardId);
+
+  // Get the currently selected layer for context injection
+  const selectedLayer = React.useMemo(() => {
+    if (selectedLayerIds.length !== 1) return null;
+    const ab = artboards.find((a: any) => a.id === activeArtboardId);
+    return ab?.layers.find((l: any) => l.id === selectedLayerIds[0]) || null;
+  }, [selectedLayerIds, artboards, activeArtboardId]);
+
+  const CHAT_STORAGE_KEY = `kreathief_chat_${activeArtboardId}`;
+
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    try {
+      const saved = localStorage.getItem(CHAT_STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [{
       id: 'welcome',
       role: 'assistant',
-      content: "Hi! I'm your design partner. I can critique your work, suggest layouts, or answer design questions.",
+      content: "Hi! I'm your AI design partner. I can critique your work, suggest layouts, or generate design ideas.\n\nTry asking me to **Analyze Design**, **Generate Layout**, or **Suggest Color Palette**.",
       timestamp: Date.now(),
-    },
-  ]);
+    }];
+  });
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+
+  // Persist chat history to localStorage on every message change
+  useEffect(() => {
+    try {
+      // Keep only last 50 messages to avoid localStorage bloat
+      const toSave = messages.slice(-50);
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(toSave));
+    } catch {}
+  }, [messages, CHAT_STORAGE_KEY]);
 
   useEffect(() => {
     // Initialize Speech Recognition if supported
@@ -223,6 +250,8 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapsho
         recognitionRef.current.onend = () => {
           setIsListening(false);
         };
+      } else {
+        setVoiceSupported(false);
       }
     }
   }, []);
@@ -266,21 +295,29 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapsho
     setIsLoading(true);
 
     try {
-      // Basic chat for now, but could be enhanced with context
-      // For this demo, we check if the user asked for a layout
-      if (input.toLowerCase().includes('layout') || input.toLowerCase().includes('generate')) {
+      // === Context Injection: build a rich system prompt with selected layer info ===
+      let systemContext = 'You are a helpful graphic design assistant with deep expertise in typography, color theory, composition, and visual design. Keep answers concise and actionable.';
+      
+      if (selectedLayer) {
+        const l = selectedLayer as any;
+        const layerDesc = l.type === 'text'
+          ? `Text Layer: "${l.text}" | Font: ${l.fontFamily} ${l.fontSize}px | Color: ${l.color} | Alignment: ${l.textAlign}`
+          : l.type === 'image'
+          ? `Image Layer: ${l.name} | Size: ${l.width}×${(l.height || l.width)}px`
+          : `Shape: ${l.type} | Color: ${l.color} | Size: ${l.width}×${(l.height || l.width)}px`;
+        systemContext += `\n\nThe user currently has this layer selected: [${layerDesc}]. Incorporate this context into your answer when relevant.`;
+      }
+
+      // Check for layout generation request
+      if (input.toLowerCase().includes('layout') || input.toLowerCase().includes('generate') || input.toLowerCase().includes('create')) {
         const layoutData = await geminiService.generateLayout(input);
         if (layoutData) {
-          if (layoutData.textLayers) {
-            layoutData.textLayers.forEach((l: any) => onAddText(l));
-          }
-          if (layoutData.shapeLayers) {
-            layoutData.shapeLayers.forEach((l: any) => onAddShape(l.type, l));
-          }
+          if (layoutData.textLayers) { layoutData.textLayers.forEach((l: any) => onAddText(l)); }
+          if (layoutData.shapeLayers) { layoutData.shapeLayers.forEach((l: any) => onAddShape(l.type, l)); }
           const aiMsg: ChatMessage = {
             id: Date.now().toString() + '_ai',
             role: 'assistant',
-            content: "I've added a layout suggestion to your canvas based on your description!",
+            content: "✅ Layout added to canvas! I've placed the elements based on your description. Click on each to refine.",
             timestamp: Date.now(),
           };
           setMessages((prev) => [...prev, aiMsg]);
@@ -288,14 +325,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapsho
           throw new Error('Failed to generate layout');
         }
       } else {
-        // Fallback to text chat if no specific command detected or just general chat
-        // We reuse generateText for simple response for now or call a new chat endpoint
-        // Using analyzeDesign logic but without image if not analyzing
-        // For simplicity, let's just use generateText with a system prompt context
-        const response = await geminiService.generateText(
-          input,
-          'You are a helpful graphic design assistant. Keep answers concise and helpful.'
-        );
+        const response = await geminiService.generateText(input, systemContext);
         const aiMsg: ChatMessage = {
           id: Date.now().toString() + '_ai',
           role: 'assistant',
@@ -391,24 +421,37 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapsho
       </div>
 
       <div className="p-4 border-t border-gray-700 bg-[#1e1e1e]">
-        {messages.length < 3 && (
-          <div className="flex gap-2 mb-3 overflow-x-auto pb-1 no-scrollbar">
-            <button
-              onClick={handleAnalyze}
-              disabled={isLoading}
-              className="whitespace-nowrap px-3 py-1.5 bg-indigo-900/30 text-indigo-300 border border-indigo-500/30 rounded-full text-xs font-medium hover:bg-indigo-900/50 transition-colors flex items-center gap-1.5"
-            >
-              <LocalIcons.Eye className="w-3 h-3" /> Analyze Design
-            </button>
-            <button
-              onClick={() => setInput('Generate a layout for a modern coffee shop menu')}
-              disabled={isLoading}
-              className="whitespace-nowrap px-3 py-1.5 bg-emerald-900/30 text-emerald-300 border border-emerald-500/30 rounded-full text-xs font-medium hover:bg-emerald-900/50 transition-colors flex items-center gap-1.5"
-            >
-              <LocalIcons.LayoutGrid className="w-3 h-3" /> Generate Layout
-            </button>
+        {/* Selected layer context indicator */}
+        {selectedLayer && (
+          <div className="mb-2 flex items-center gap-1.5 px-2 py-1 bg-[#7d2ae8]/10 border border-[#7d2ae8]/20 rounded-lg">
+            <div className="w-2 h-2 rounded-full bg-[#7d2ae8] animate-pulse" />
+            <span className="text-[10px] text-[#a855f7] font-bold uppercase tracking-wider truncate">
+              Context: {(selectedLayer as any).type} "{(selectedLayer as any).name || (selectedLayer as any).text?.slice(0, 20) || 'Layer'}"
+            </span>
           </div>
         )}
+
+        {/* Quick suggestion chips — always visible */}
+        <div className="grid grid-cols-2 gap-1.5 mb-3">
+          {[
+            { label: 'Analyze Design', icon: LocalIcons.Eye, color: 'indigo', onClick: handleAnalyze },
+            { label: 'Generate Layout', icon: LocalIcons.LayoutGrid, color: 'emerald', onClick: () => setInput('Generate a modern layout for me') },
+            { label: 'Color Palette', icon: LocalIcons.Bot, color: 'pink', onClick: () => setInput('Suggest a beautiful color palette for this design') },
+            { label: 'Improve Typography', icon: LocalIcons.ArrowUp, color: 'amber', onClick: () => setInput('How can I improve the typography in this design?') },
+            { label: 'Make it Viral', icon: LocalIcons.Bot, color: 'rose', onClick: () => setInput('What changes would make this design go viral on social media?') },
+            { label: 'Critique', icon: LocalIcons.Eye, color: 'sky', onClick: () => setInput('Give me a brutally honest critique of this design') },
+          ].map(({ label, icon: Icon, color, onClick }) => (
+            <button
+              key={label}
+              onClick={onClick}
+              disabled={isLoading}
+              className={`flex items-center gap-1.5 px-2 py-1.5 bg-${color}-900/20 text-${color}-300 border border-${color}-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wide hover:bg-${color}-900/40 transition-all disabled:opacity-40 truncate`}
+            >
+              <Icon className="w-3 h-3 shrink-0" />
+              <span className="truncate">{label}</span>
+            </button>
+          ))}
+        </div>
 
         <div className="flex gap-2 bg-white/[0.03] border border-white/5 rounded-2xl p-1.5 focus-within:border-[#7d2ae8]/50 transition-all">
           <textarea
@@ -426,9 +469,12 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ getCanvasSnapsho
           />
           <div className="flex items-center gap-1 pr-1">
             <button
-              onClick={toggleListening}
-              className={`p-2 rounded-md transition-colors ${isListening ? 'bg-red-500 text-white animate-pulse' : 'text-gray-400 hover:text-white hover:bg-gray-700'}`}
-              title={isListening ? 'Stop listening' : 'Start voice input'}
+              onClick={voiceSupported ? toggleListening : undefined}
+              className={`p-2 rounded-md transition-colors ${
+                !voiceSupported ? 'text-gray-700 cursor-not-allowed' :
+                isListening ? 'bg-red-500 text-white animate-pulse' : 'text-gray-400 hover:text-white hover:bg-gray-700'
+              }`}
+              title={!voiceSupported ? 'Voice input requires Chrome or Edge' : isListening ? 'Stop listening' : 'Start voice input'}
             >
               {isListening ? <LocalIcons.MicOff className="w-4 h-4" /> : <LocalIcons.Mic className="w-4 h-4" />}
             </button>

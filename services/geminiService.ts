@@ -606,11 +606,20 @@ export const generatePaletteFromImage = async (base64Image: string): Promise<str
 
 export const vectorizeImage = async (
   base64Image: string,
-  colors: number = 4
+  colors: number = 4,
+  stylePreset: string = 'default'
 ): Promise<Array<{ path: string; color: string }>> => {
   try {
     const { data: b64Data, mimeType } = cleanBase64(base64Image);
+    const styleGuide = {
+      'default': 'precise, clean vector tracing',
+      'minimal': 'simplified flat shapes with minimal nodes',
+      'detailed': 'high-fidelity paths with fine detail',
+      'artistic': 'stylized artistic interpretation',
+    }[stylePreset] || 'precise, clean vector tracing';
+    
     const prompt = `Convert this image into a clean, minimal vector graphic with exactly ${colors} main colors.
+    Style: ${styleGuide}.
     Identify the main shapes and represent each as a high-quality SVG path 'd' attribute.
     Group similar colors together. Return as a JSON array of objects with 'path' and 'color'.
     Assume a viewBox of 0 0 100 100. Be precise with the paths.`;
@@ -644,9 +653,16 @@ export const vectorizeImage = async (
   }
 };
 
-export const generateAIVector = async (prompt: string): Promise<Array<{ path: string; color: string }>> => {
+export const generateAIVector = async (prompt: string, stylePreset: string = 'default'): Promise<Array<{ path: string; color: string }>> => {
   try {
-    const systemPrompt = `You are a professional vector artist. Generate a clean, high-quality vector graphic based on the prompt. Represent the graphic as multiple SVG path 'd' attributes with corresponding hex colors. 
+    const styleGuide = {
+      'default': 'Use precise, clean paths.',
+      'minimal': 'Use simplified flat shapes with minimal nodes for a clean minimal look.',
+      'detailed': 'Use high-fidelity paths with fine detail and many anchor points.',
+      'artistic': 'Use a stylized, artistic interpretation with expressive shapes.',
+    }[stylePreset] || 'Use precise, clean paths.';
+    
+    const systemPrompt = `You are a professional vector artist. Generate a clean, high-quality vector graphic based on the prompt. Represent the graphic as multiple SVG path 'd' attributes with corresponding hex colors. ${styleGuide}
     Assume a viewBox of 0 0 100 100. Be precise and creative. Return as a JSON array of objects.`;
 
     const data = await callBackendGeminiAPI({

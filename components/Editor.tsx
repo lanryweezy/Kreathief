@@ -101,20 +101,44 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const shortcuts = useMemo(() => [
     { key: 'z', ctrl: true, action: () => { undo(); haptics.light(); }, description: 'Undo' },
     { key: 'y', ctrl: true, action: () => { redo(); haptics.light(); }, description: 'Redo' },
+    { key: 'z', ctrl: true, shift: true, action: () => { redo(); haptics.light(); }, description: 'Redo (Alt)' },
     { key: 'c', ctrl: true, action: () => { if (selectedLayerId) { copyLayer(selectedLayerId); haptics.selection(); } }, description: 'Copy Layer' },
     { key: 'v', ctrl: true, action: () => { pasteLayer(); haptics.medium(); }, description: 'Paste Layer' },
     { key: 'd', ctrl: true, action: () => { if (selectedLayerIds.length > 0) { duplicateSelected(); haptics.medium(); } }, description: 'Duplicate Layer(s)' },
     { key: 'Delete', action: () => { if (selectedLayerIds.length > 0) { deleteSelected(); haptics.heavy(); } }, description: 'Delete Layer(s)' },
+    { key: 'Backspace', action: () => { if (selectedLayerIds.length > 0) { deleteSelected(); haptics.heavy(); } }, description: 'Delete Layer(s)' },
     { key: 's', ctrl: true, action: () => { saveProject(); haptics.light(); }, description: 'Save Project' },
     { key: 'e', ctrl: true, action: () => { setShowExport(true); haptics.light(); }, description: 'Export Design' },
     { key: 'g', ctrl: true, action: () => { if (selectedLayerIds.length > 1) { groupSelected(); haptics.medium(); } }, description: 'Group Layers' },
-    { key: 'g', ctrl: true, shift: true, action: () => { if (selectedLayerIds.length > 0) {ungroupSelected();} }, description: 'Ungroup Layers' },
-    { key: 'ArrowUp', action: () => { if (selectedLayerId) {nudgeLayer(selectedLayerId, 0, -1);} }, description: 'Nudge Up' },
-    { key: 'ArrowDown', action: () => { if (selectedLayerId) {nudgeLayer(selectedLayerId, 0, 1);} }, description: 'Nudge Down' },
-    { key: 'ArrowLeft', action: () => { if (selectedLayerId) {nudgeLayer(selectedLayerId, -1, 0);} }, description: 'Nudge Left' },
-    { key: 'ArrowRight', action: () => { if (selectedLayerId) {nudgeLayer(selectedLayerId, 1, 0);} }, description: 'Nudge Right' },
+    { key: 'g', ctrl: true, shift: true, action: () => { if (selectedLayerIds.length > 0) { ungroupSelected(); } }, description: 'Ungroup Layers' },
+    { key: 'ArrowUp', action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, 0, -1); } }, description: 'Nudge Up' },
+    { key: 'ArrowDown', action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, 0, 1); } }, description: 'Nudge Down' },
+    { key: 'ArrowLeft', action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, -1, 0); } }, description: 'Nudge Left' },
+    { key: 'ArrowRight', action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, 1, 0); } }, description: 'Nudge Right' },
+    { key: 'ArrowUp', shift: true, action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, 0, -10); } }, description: 'Nudge Up 10px' },
+    { key: 'ArrowDown', shift: true, action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, 0, 10); } }, description: 'Nudge Down 10px' },
+    { key: 'ArrowLeft', shift: true, action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, -10, 0); } }, description: 'Nudge Left 10px' },
+    { key: 'ArrowRight', shift: true, action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, 10, 0); } }, description: 'Nudge Right 10px' },
+    // Select All / Deselect
+    { key: 'a', ctrl: true, action: () => {
+      const layers = useStore.getState().artboards.find((a: any) => a.id === useStore.getState().activeArtboardId)?.layers || [];
+      useStore.getState().setSelectedLayerIds(layers.map((l: any) => l.id));
+    }, description: 'Select All' },
+    { key: 'Escape', action: () => { useStore.getState().setSelectedLayerIds([]); }, description: 'Deselect All' },
+    // Zoom
+    { key: '0', ctrl: true, action: () => { setZoom(1); }, description: 'Zoom to 100%' },
+    { key: '=', ctrl: true, action: () => { setZoom(Math.min(10, zoom + 0.25)); }, description: 'Zoom In' },
+    { key: '-', ctrl: true, action: () => { setZoom(Math.max(0.05, zoom - 0.25)); }, description: 'Zoom Out' },
+    // Layer Ordering
+    { key: ']', ctrl: true, shift: true, action: () => { if (selectedLayerId) useStore.getState().moveLayer(selectedLayerId, 'front'); }, description: 'Bring to Front' },
+    { key: '[', ctrl: true, shift: true, action: () => { if (selectedLayerId) useStore.getState().moveLayer(selectedLayerId, 'back'); }, description: 'Send to Back' },
+    { key: ']', ctrl: true, action: () => { if (selectedLayerId) useStore.getState().moveLayer(selectedLayerId, 'forward'); }, description: 'Bring Forward' },
+    { key: '[', ctrl: true, action: () => { if (selectedLayerId) useStore.getState().moveLayer(selectedLayerId, 'backward'); }, description: 'Send Backward' },
+    // Flip
+    { key: 'h', action: () => { if (selectedLayerId) useStore.getState().updateLayer(selectedLayerId, { flipX: !(useStore.getState().artboards.find((a: any) => a.id === useStore.getState().activeArtboardId)?.layers.find((l: any) => l.id === selectedLayerId) as any)?.flipX }); }, description: 'Flip Horizontal' },
+    { key: 'v', action: () => { if (selectedLayerId) useStore.getState().updateLayer(selectedLayerId, { flipY: !(useStore.getState().artboards.find((a: any) => a.id === useStore.getState().activeArtboardId)?.layers.find((l: any) => l.id === selectedLayerId) as any)?.flipY }); }, description: 'Flip Vertical' },
     { key: '?', shift: true, action: () => setShowShortcuts(!showShortcuts), description: 'Shortcuts' }
-  ], [undo, redo, copyLayer, pasteLayer, saveProject, selectedLayerIds, selectedLayerId, duplicateSelected, deleteSelected, groupSelected, ungroupSelected, setShowShortcuts, showShortcuts, nudgeLayer]);
+  ], [undo, redo, copyLayer, pasteLayer, saveProject, selectedLayerIds, selectedLayerId, duplicateSelected, deleteSelected, groupSelected, ungroupSelected, setShowShortcuts, showShortcuts, nudgeLayer, zoom, setZoom]);
 
   useKeyboardShortcuts({ shortcuts, enabled: true });
 
