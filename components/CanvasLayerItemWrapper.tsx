@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { Layer, TextLayer, ShapeLayer, ImageLayer, AnimationSettings } from '../types';
-import { ImageLayerItem, ShapeLayerItem, TextLayerItem } from './canvas/LayerItems';
+import { ImageLayerItem, ShapeLayerItem, TextLayerItem, AdjustmentLayerItem } from './canvas/LayerItems';
 import { useLayerMask } from '../hooks/useLayerWorker';
 
 interface CanvasLayerItemWrapperProps {
@@ -126,6 +126,22 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
             />
           )}
         </React.Fragment>
+      );
+    }
+
+    if (l.type === 'adjustment') {
+      return (
+        <AdjustmentLayerItem
+          ref={(el) => setLayerRef(l.id, el)}
+          layer={l}
+          isSelected={isSelected}
+          isHovered={hoveredLayerId === l.id}
+          onMouseDown={handleMouseDownLayer}
+          onResize={handleResizeStart}
+          onRotate={handleRotateStart}
+          onContextMenu={handleContextMenu}
+          previewAnimation={previewAnimation}
+        />
       );
     }
 

@@ -299,6 +299,8 @@ export interface ShapeLayer extends LayerBase {
   backgroundGradient?: Gradient;
   flipX?: boolean;
   flipY?: boolean;
+  strokeProfile?: 'uniform' | 'taper-start' | 'taper-end' | 'taper-both';
+  pathEffects?: { roughen?: { amount: number }; zigzag?: { amplitude: number; frequency: number }; offset?: { distance: number } };
 }
 
 export interface ImageLayer extends LayerBase {
@@ -315,9 +317,25 @@ export interface ImageLayer extends LayerBase {
   maskPath?: string; // SVG path data for lasso cutouts
   maskDataURL?: string; // Base64 data for refined bitmap masks
   maskType?: 'none' | 'lasso' | 'ai' | 'bitmap';
+  altText?: string; // Accessibility alt text for exports and a11y
 }
 
-export type Layer = TextLayer | ImageLayer | ShapeLayer;
+export interface AdjustmentLayer extends LayerBase {
+  type: 'adjustment';
+  width: number;
+  height: number;
+  adjustmentFilters: {
+    brightness: number;
+    contrast: number;
+    saturation: number;
+    blur: number;
+    hueRotate: number;
+    sepia: number;
+    invert: number;
+  };
+}
+
+export type Layer = TextLayer | ImageLayer | ShapeLayer | AdjustmentLayer;
 
 export interface Artboard {
   id: string;
@@ -461,3 +479,4 @@ export interface Toast {
   };
   details?: string;
 }
+

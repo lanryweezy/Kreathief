@@ -49,11 +49,16 @@ export interface UISlice {
   snapshots: any[];
   tags: string[];
   isPublished: boolean;
+  isCommandPaletteOpen: boolean;
+  showPresentation: boolean;
+  showVersionDiff: boolean;
+  versionDiffSnapshotId: string | null;
 
   setActiveTab: (tab: NavTab) => void;
   setMode: (mode: AppMode) => void;
   setIsProcessing: (isProcessing: boolean) => void;
   setIsExporting: (isExporting: boolean) => void;
+  setCommandPaletteOpen: (isOpen: boolean) => void;
   setHistory: (history: GeneratedImage[] | ((prev: GeneratedImage[]) => GeneratedImage[])) => void;
   clearHistory: () => void;
   handleFileUpload: (files: File[]) => void;
@@ -67,6 +72,8 @@ export interface UISlice {
   setShowShortcuts: (show: boolean) => void;
   setShowShareModal: (show: boolean) => void;
   setShowFeedbackModal: (show: boolean) => void;
+  setShowPresentation: (show: boolean) => void;
+  setShowVersionDiff: (show: boolean, snapshotId?: string | null) => void;
   setPreviewFontFamily: (font: string | null) => void;
   addCustomFont: (font: string) => void;
   setShowGoldenRatio: (show: boolean) => void;
@@ -136,10 +143,15 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   lassoPoints: [],
   refineBrushMode: 'none',
   refineBrushSize: 30,
+  isCommandPaletteOpen: false,
+  showPresentation: false,
+  showVersionDiff: false,
+  versionDiffSnapshotId: null,
 
   favoriteTemplates: [],
   favoriteProjects: [],
 
+  setCommandPaletteOpen: (isCommandPaletteOpen) => set({ isCommandPaletteOpen }),
   setActiveTab: (activeTab) => set({ activeTab }),
   setMode: (mode) => set({ mode }),
   setIsProcessing: (isProcessing) => set({ isProcessing }),
@@ -172,6 +184,8 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   setShowShortcuts: (show) => set({ showShortcuts: show }),
   setShowShareModal: (show) => set({ showShareModal: show }),
   setShowFeedbackModal: (show) => set({ showFeedbackModal: show }),
+  setShowPresentation: (show) => set({ showPresentation: show }),
+  setShowVersionDiff: (show: boolean, snapshotId: string | null = null) => set({ showVersionDiff: show, versionDiffSnapshotId: snapshotId }),
   setPreviewFontFamily: (font) => set({ fontPreview: font }),
   addCustomFont: (font: string) => set((state: any) => ({ customFonts: [...state.customFonts, font] })),
   setShowGoldenRatio: (show) => set({ showGoldenRatio: show }),
@@ -393,3 +407,4 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
         : [...state.favoriteProjects, id],
     })),
 });
+

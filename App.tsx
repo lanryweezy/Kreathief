@@ -15,6 +15,8 @@ import { BlogList } from './components/blog/BlogList';
 import { BlogPostView } from './components/blog/BlogPostView';
 import { SEO } from './components/SEO';
 import { FeedbackModal } from './components/modals/FeedbackModal';
+import { PresentationModal } from './components/modals/PresentationModal';
+import { VersionDiffModal } from './components/modals/VersionDiffModal';
 import { AboutPage, PrivacyPage, TermsPage, SecurityPage, ContactPage, HelpCenterPage, ChangelogPage, APIPage } from './components/pages/StaticPages';
 
 // Lazy load main views for code splitting
@@ -238,6 +240,8 @@ const App: React.FC = () => {
       </Suspense>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       <FeedbackModal />
+      <PresentationModal />
+      <VersionDiffModal />
     </ErrorBoundary>
   );
 };

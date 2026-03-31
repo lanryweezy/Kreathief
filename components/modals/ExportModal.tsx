@@ -70,7 +70,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       setExportStage('Rendering design...');
       await onExport(format, quality, size, transparentBg && format === 'png', filename);
 
-      // Track once â€” removed duplicate call
+      // Track once — removed duplicate call
       analyticsService.trackExport(format, quality);
 
       setExportStage('Complete!');
@@ -166,7 +166,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       }
       // Fallback: export as PNG then copy
       await onExport('png', 0.95, { width: currentSize.width, height: currentSize.height });
-      addToast('Image downloaded â€” clipboard copy requires a modern browser.', 'info');
+      addToast('Image downloaded — clipboard copy requires a modern browser.', 'info');
     } catch (e) {
       log.error('[ExportModal] Clipboard copy failed', e);
       addToast('Could not copy to clipboard. Try downloading instead.', 'error');
@@ -179,6 +179,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="export-modal-title"
     >
       <div
         className="bg-[#1e1e1e] border border-gray-700 rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col md:flex-row relative"
@@ -193,7 +196,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
           <div className="w-12 h-12 bg-[#7d2ae8] rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-purple-900/20">
             <Icons.Download className="w-6 h-6 text-white" />
           </div>
-          <h2 className="text-xl font-bold text-white mb-2">Export Design</h2>
+          <h2 id="export-modal-title" className="text-xl font-bold text-white mb-2">Export Design</h2>
           <p className="text-gray-400 text-sm leading-relaxed mb-8">
             Download your creation in professional formats. Choose a preset or stick with your current canvas size.
           </p>
@@ -279,6 +282,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                   onChange={(e) => setFilename(e.target.value)}
                   className="flex-1 bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-[#7d2ae8] outline-none transition-colors"
                   placeholder="design-name"
+                  autoFocus
                 />
                 <span className="text-gray-500 text-sm font-mono">.{format}</span>
               </div>
@@ -392,3 +396,4 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     </div>
   );
 };
+

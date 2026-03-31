@@ -845,7 +845,7 @@ export const exportDesignToImage = async (
       await drawImageLayerToContext(ctx, layer);
     } else if (layer.type === 'text') {
       drawTextLayerToContext(ctx, layer);
-    } else {
+    } else if (layer.type !== 'adjustment') {
       drawShapeToContext(ctx, layer);
     }
   }

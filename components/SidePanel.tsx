@@ -9,7 +9,6 @@ const MagicPanel = React.lazy(() => import('./panels/MagicPanel'));
 const TemplatesPanel = React.lazy(() => import('./panels/TemplatesPanel'));
 const BrandPanel = React.lazy(() => import('./panels/BrandPanel'));
 const TexturesPanel = React.lazy(() => import('./panels/TexturesPanel'));
-const MockupPanel = React.lazy(() => import('./panels/MockupPanel'));
 const AssistantPanel = React.lazy(() => import('./panels/AssistantPanel'));
 const VectorizerPanel = React.lazy(() => import('./panels/VectorizerPanel'));
 const LayersPanel = React.lazy(() => import('./panels/LayersPanel'));
@@ -23,6 +22,7 @@ const ArrangePanel = React.lazy(() => import('./panels/ArrangePanel'));
 const ComponentsPanel = React.lazy(() => import('./panels/ComponentsPanel'));
 const CommentsPanel = React.lazy(() => import('./panels/CommentsPanel'));
 const MotionPanel = React.lazy(() => import('./panels/MotionPanel').then(m => ({ default: m.MotionPanel })));
+import { MockupPanel } from './panels/MockupPanel';
 
 const PanelLoading = () => (
   <div className="flex h-full w-full items-center justify-center bg-[#13161a]">

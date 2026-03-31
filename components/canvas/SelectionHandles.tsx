@@ -29,7 +29,7 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
           height: layer.height,
         }}
       >
-        {/* Dimension Badge — always visible when selected */}
+        {/* Dimension Badge � always visible when selected */}
         <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-[#7d2ae8] text-white text-[10px] font-mono px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap z-50 pointer-events-none border border-[#6b23c5]">
           {Math.round(layer.width)} × {Math.round(layer.height)}
         </div>
@@ -134,3 +134,5 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
 });
 
 SelectionHandles.displayName = 'SelectionHandles';
+
+

@@ -198,6 +198,85 @@ export const generateText = async (
   }
 };
 
+/**
+ * Generate a background scene image for a given orientation.
+ * Uses aspect ratio hints to better match the destination artboard.
+ */
+export const generateBackground = async (
+  prompt: string,
+  width: number,
+  height: number,
+  quality: GenerationQuality = 'standard'
+): Promise<string> => {
+  // Map dimensions to a coarse aspect keyword the backend understands
+  const ratio = width / Math.max(1, height);
+  const aspect = ratio > 1.2 ? 'landscape' : ratio < 0.85 ? 'portrait' : 'square';
+  const enhancedPrompt = `${prompt}. Ultra-clean background for product shots, cohesive lighting, no text, no watermark.`;
+  return generateImage(enhancedPrompt, aspect, quality);
+};
+
+/**
+ * Generate a concise, meaningful layer name based on a description of its properties.
+ */
+export const generateLayerName = async (description: string): Promise<string> => {
+  try {
+    const systemInstruction = 'You are a helpful naming assistant. Return a short, human-friendly layer name (2-4 words, Title Case). No quotes.';
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
+      contents: [
+        { role: 'user', parts: [{ text: `Describe: ${description}\nName:` }] },
+      ],
+      systemInstruction,
+    });
+    return (data.text?.trim().replace(/^["']|["']$/g, '') || 'Layer');
+  } catch (error) {
+    console.error('generateLayerName error:', error);
+    return 'Layer';
+  }
+};
+
+/**
+ * Generate alt text for an image given its src (data URL or URL).
+ */
+export const generateAltText = async (src: string): Promise<string> => {
+  try {
+    let b64: { data: string; mimeType: string } | null = null;
+    if (src.startsWith('data:')) {
+      b64 = cleanBase64(src);
+    } else {
+      // Try to fetch and convert to base64 via canvas (may require CORS-enabled images)
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      const loaded = await new Promise<HTMLImageElement>((resolve, reject) => {
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+      });
+      const canvas = document.createElement('canvas');
+      canvas.width = loaded.naturalWidth;
+      canvas.height = loaded.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas 2D context unavailable');
+      ctx.drawImage(loaded, 0, 0);
+      const dataUrl = canvas.toDataURL('image/png');
+      b64 = cleanBase64(dataUrl);
+    }
+
+    const parts = [
+      { text: 'Generate a concise, descriptive alt text for accessibility. No trailing punctuation.' },
+      { inlineData: { mimeType: b64!.mimeType, data: b64!.data } },
+    ];
+    const data = await callBackendGeminiAPI({
+      modelName: MODEL_FAST,
+      contents: [{ role: 'user', parts }],
+    });
+    return (data.text?.trim().replace(/[.!?]+$/, '') || 'Image');
+  } catch (error) {
+    console.error('generateAltText error:', error);
+    return 'Image';
+  }
+};
+
 export const generateTextOptions = async (topic: string): Promise<string[]> => {
   try {
     const data = await callBackendGeminiAPI({
@@ -718,4 +797,63 @@ export const retouchImage = async (base64Image: string): Promise<string> => {
     base64Image,
     'Retouch this portrait. Whiten teeth, remove blemishes, and smooth skin while maintaining a natural look.'
   );
+};
+
+export const suggestFontPairing = async (primaryFont: string): Promise<string> => {
+  try {
+    const availableFonts = FONT_FAMILIES.join(', ');
+    const prompt = `Given the primary font "${primaryFont}", suggest one perfect complementary secondary font from this list: ${availableFonts}. 
+    Consider visual contrast, hierarchy, and harmony. Return ONLY the font name, nothing else.`;
+
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    });
+
+    return data.text?.trim() || primaryFont;
+  } catch (error) {
+    console.error('Font pairing suggestion failed', error);
+    return primaryFont;
+  }
+};
+
+export const generateAutoLayoutSuggestions = async (layers: any[], width: number, height: number): Promise<any[]> => {
+  try {
+    const simplifiedLayers = layers.map(l => ({ id: l.id, type: l.type, name: l.name }));
+    const prompt = `Act as a senior UI/UX designer. Given these layers: ${JSON.stringify(simplifiedLayers)}, generate 5 distinct professional layout variations for a ${width}x${height} canvas. 
+    Use design principles like the Golden Ratio, Rule of Thirds, and F-pattern. 
+    Return a JSON array of objects, where each object is a map of layer IDs to new {x, y, width, height} coordinates.`;
+
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: 'application/json' }
+    });
+
+    return JSON.parse(data.text || '[]');
+  } catch (error) {
+    console.error('Auto-layout failed', error);
+    return [];
+  }
+};
+
+export const extractStyleFromImage = async (base64Image: string): Promise<DesignTheme> => {
+  try {
+    const { data: b64Data, mimeType } = cleanBase64(base64Image);
+    const availableFonts = FONT_FAMILIES.join(', ');
+    const prompt = `Analyze this reference image and extract its design system. 
+    Pick the most similar fonts from this list: ${availableFonts}.
+    Return a JSON object with: name, backgroundColor, primaryColor, secondaryColor, accentColor, headingFont, bodyFont.`;
+
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.0-pro-exp-02-05',
+      contents: [{ role: 'user', parts: [{ text: prompt }, { inlineData: { data: b64Data, mimeType } }] }],
+      generationConfig: { responseMimeType: 'application/json' }
+    });
+
+    return JSON.parse(data.text || '{}');
+  } catch (error) {
+    console.error('Style extraction failed', error);
+    throw error;
+  }
 };

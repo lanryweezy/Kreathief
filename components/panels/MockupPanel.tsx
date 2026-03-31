@@ -199,6 +199,12 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     canvas.width = bgImg.naturalWidth;
     canvas.height = bgImg.naturalHeight;
     ctx.drawImage(bgImg, 0, 0);
+    // Ambient shadow under product (soft vignette)
+    const shadow = ctx.createRadialGradient(canvas.width*0.5, canvas.height*0.5, 10, canvas.width*0.5, canvas.height*0.5, Math.max(canvas.width, canvas.height)*0.6);
+    shadow.addColorStop(0, 'rgba(0,0,0,0.0)');
+    shadow.addColorStop(1, 'rgba(0,0,0,0.06)');
+    ctx.fillStyle = shadow;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
 
     // 2. Load Design
     const designImg = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -256,6 +262,23 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       ctx.globalCompositeOperation = blendMode;
 
       ctx.drawImage(designImg, x, y, w, h);
+    }
+
+    // Add a soft AO under product based on placement
+    {
+      const aoCanvas = document.createElement('canvas');
+      aoCanvas.width = canvas.width; aoCanvas.height = canvas.height;
+      const actx = aoCanvas.getContext('2d')!;
+      const cx = (placement.left/100)*canvas.width + ((placement.width/100)*canvas.width)/2;
+      const cy = (placement.top/100)*canvas.height + (((placement.width/100)*canvas.width)/(designImg.width/designImg.height))/2;
+      const rx = (placement.width/100)*canvas.width * 0.55;
+      const ry = rx * 0.35;
+      const g = actx.createRadialGradient(cx, cy, Math.min(rx,ry)*0.2, cx, cy, Math.max(rx,ry));
+      g.addColorStop(0, 'rgba(0,0,0,0.18)');
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      actx.fillStyle = g; actx.beginPath(); actx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2); actx.fill();
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.drawImage(aoCanvas, 0, 0);
     }
 
     ctx.restore();
@@ -1344,3 +1367,4 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   );
 };
 export default MockupPanel;
+

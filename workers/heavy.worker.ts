@@ -30,7 +30,7 @@ self.onmessage = async (e: MessageEvent) => {
       }
 
       case 'TRACE_SVG': {
-        const traceResults = await traceImageToSVG(payload.imageSrc, payload.colors, payload.cornerThreshold);
+        const traceResults = await traceImageToSVG(payload.imageSrc, payload.colors);
         self.postMessage({ type: 'SUCCESS', id, payload: traceResults });
         break;
       }
@@ -203,7 +203,7 @@ async function extractPalette(imageSrc: string, colorCount: number = 5): Promise
     });
 }
 
-async function traceImageToSVG(imageSrc: string, colors: number = 2, cornerThreshold: number = 45): Promise<any[]> {
+async function traceImageToSVG(imageSrc: string, colors: number = 2): Promise<any[]> {
   const bitmap = await fetchImageBitmap(imageSrc);
   const size = 64;
   const canvas = new OffscreenCanvas(size, (bitmap.height / bitmap.width) * size);

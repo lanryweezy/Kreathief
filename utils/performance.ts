@@ -29,13 +29,13 @@ export const measureOperation = async <T,>(
     
     // Warn about slow operations
     if (duration > 1000) {
-      log.warn(`⚠️ Slow operation: ${name} took ${duration.toFixed(2)}ms`);
+      log.warn(`Slow operation: ${name} took ${duration.toFixed(2)}ms`);
     }
     
     return result;
   } catch (error) {
     const duration = performance.now() - start;
-    log.error(`❌ ${name} failed after ${duration.toFixed(2)}ms`, error);
+    log.error(`${name} failed after ${duration.toFixed(2)}ms`, error);
     throw error;
   }
 };
@@ -56,13 +56,13 @@ export const measureSync = <T,>(
     logPerformance(name, duration);
     
     if (duration > 100) {
-      log.warn(`⚠️ Slow sync operation: ${name} took ${duration.toFixed(2)}ms`);
+      log.warn(`Slow sync operation: ${name} took ${duration.toFixed(2)}ms`);
     }
     
     return result;
   } catch (error) {
     const duration = performance.now() - start;
-    log.error(`❌ ${name} failed after ${duration.toFixed(2)}ms`, error);
+    log.error(`${name} failed after ${duration.toFixed(2)}ms`, error);
     throw error;
   }
 };
@@ -82,8 +82,8 @@ function logPerformance(name: string, duration: number) {
   
   // Log to console in development
   if (import.meta.env.DEV) {
-    const emoji = rating === 'good' ? '✅' : rating === 'needs-improvement' ? '⚠️' : '❌';
-    log.info(`${emoji} ${name}: ${duration.toFixed(2)}ms (${rating})`);
+    const tag = rating === 'good' ? '[OK]' : rating === 'needs-improvement' ? '[WARN]' : '[ERR]';
+    log.info(`${tag} ${name}: ${duration.toFixed(2)}ms (${rating})`);
   }
   
   // Send to analytics in production
@@ -252,3 +252,4 @@ export function initWebVitals() {
     });
   }
 }
+

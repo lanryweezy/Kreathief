@@ -472,7 +472,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                            transform: (current.overlayStyle as any).transform,
                            mixBlendMode: current.overlayStyle.mixBlendMode as any,
                            opacity: surfaceDepth,
-                           filter: environment === 'sunset' ? 'sepia(0.1) brightness(0.95)' : 'none'
+                           filter: (environment as string) === 'sunset' ? 'sepia(0.1) brightness(0.95)' : 'none'
                          }}
                        >
                          <img

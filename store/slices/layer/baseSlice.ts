@@ -14,12 +14,14 @@ export interface LayerSlice {
   addArtboard: (name?: string, width?: number, height?: number) => void;
   deleteArtboard: (id: string) => void;
   updateArtboard: (id: string, partial: Partial<Artboard>) => void;
+  magicResize: (newWidth: number, newHeight: number, newName?: string) => void;
 
   // Layer Actions
   setLayers: (layers: Layer[] | ((prev: Layer[]) => Layer[])) => void;
   addLayer: (layer: Layer) => void;
   addLayers: (layers: Layer[]) => void;
   addTextLayer: (style?: Partial<TextLayer>) => void;
+  addAdjustmentLayer: () => void;
   updateLayer: (id: string, partial: Partial<Layer>) => void;
   updateLayers: (updates: Record<string, Partial<Layer>>) => void;
   deleteLayer: (id: string) => void;
@@ -55,6 +57,7 @@ export interface LayerSlice {
   detachInstance: (id: string) => void;
   resetOverrides: (id: string) => void;
   resetDirty: (id: string) => void;
+  autoNameLayer: (id: string) => Promise<void>;
 }
 
 export const initialLayerState = {

@@ -14,7 +14,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, onTogg
   const setActiveTab = useStore(state => state.setActiveTab);
 
   const items = [
-    { id: NavTab.ASSISTANT, icon: Icons.Bot, label: "Ask AI" },
+    { id: NavTab.ASSISTANT, icon: Icons.Bot, label: "Design Agents" },
     { id: NavTab.MAGIC, icon: Icons.Magic, label: "AI Magic" },
     { id: NavTab.VECTORIZER, icon: Icons.Union, label: "AI Vectorizer" },
     { id: NavTab.ELEMENTS, icon: Icons.Shapes, label: "Elements" },

@@ -65,7 +65,6 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
   editingPathId,
   onUpdatePath,
   previewAnimation,
-  isInteracting,
   selectedLayerId,
   selectedLayerIds,
   hoveredLayerId,
@@ -146,7 +145,6 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
               onUpdatePath={onUpdatePath || (() => {})}
               zoom={zoom}
               previewAnimation={previewAnimation}
-              isInteracting={isInteracting}
             />
 
             {activeArtboardId === artboard.id && (
@@ -208,3 +206,4 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
     </>
   );
 };
+

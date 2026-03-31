@@ -1,6 +1,4 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-// @ts-ignore - react-window types are problematic in this environment
-import { FixedSizeList as List } from 'react-window';
 import { TextLayer, ShapeLayer, ImageLayer, Layer } from '../../types';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
@@ -800,16 +798,17 @@ export const LayersPanel = React.memo(() => {
         )}
 
         {displayLayers.length > 0 && (
-          <List
+          <div
             ref={listRef}
-            height={containerHeight}
-            itemCount={displayLayers.length}
-            itemSize={ITEM_HEIGHT}
-            width="100%"
-            className="custom-scrollbar"
+            style={{ height: containerHeight }}
+            className="custom-scrollbar overflow-y-auto"
           >
-            {Row}
-          </List>
+            {displayLayers.map((layer, index) => (
+              <div key={layer.id} style={{ height: ITEM_HEIGHT }}>
+                <Row index={index} style={{}} />
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>

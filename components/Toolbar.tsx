@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useStore } from '../store/useStore';
+import { selectedLayerSelector } from '../store/selectors';
 import { NavTab, TextLayer } from '../types';
 import { Icons } from '../constants';
 import * as geminiService from '../services/geminiService';
@@ -41,8 +42,6 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
 
   // Store Actions
   const {
-    artboards,
-    activeArtboardId,
     selectedLayerIds,
     updateLayer,
     deleteLayer: onDeleteLayer,
@@ -78,12 +77,7 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
   const doneLasso = () => setIsLassoMode(false);
   const cancelLasso = () => setIsLassoMode(false);
 
-  const layers = React.useMemo(() => 
-    (artboards || []).find((a: any) => a.id === activeArtboardId)?.layers || [],
-    [artboards, activeArtboardId]
-  );
-
-  const selectedLayer = layers.find((l: any) => l && selectedLayerIds && selectedLayerIds.includes(l.id)) || null;
+  const selectedLayer = useStore(selectedLayerSelector);
   const isMultiSelect = selectedLayerIds && selectedLayerIds.length > 1;
 
   // Listen for "open effects panel" event from QuickTextEffects

@@ -1,5 +1,6 @@
 import { StateCreator } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
+import * as geminiService from '../../../services/geminiService';
 import { Layer, TextLayer, ShapeLayer, Artboard, ImageLayer } from '../../../types';
 import { LayerSlice } from './baseSlice';
 import { DEFAULT_LAYER_FILTERS } from './utils';
@@ -14,6 +15,58 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
     set((state: any) => ({
       artboards: [...state.artboards, { id, name, x, y: 0, width, height, layers: [] }],
       activeArtboardId: id,
+    }));
+  },
+
+  magicResize: (newWidth: number, newHeight: number, newName?: string) => {
+    get().saveToHistory?.();
+    const state = get();
+    const currentArtboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
+    if (!currentArtboard) return;
+
+    const id = uuidv4();
+    const lastArtboard = state.artboards[state.artboards.length - 1];
+    const x = lastArtboard ? lastArtboard.x + lastArtboard.width + 100 : 0;
+
+    const scaleX = newWidth / currentArtboard.width;
+    const scaleY = newHeight / currentArtboard.height;
+    
+    // For smart scale, we use the minimum scale to avoid distortion, then center
+    const scale = Math.min(scaleX, scaleY);
+    const offsetX = (newWidth - (currentArtboard.width * scale)) / 2;
+    const offsetY = (newHeight - (currentArtboard.height * scale)) / 2;
+
+    const newLayers = currentArtboard.layers.map((l: Layer) => {
+      const cloned = structuredClone(l);
+      cloned.id = uuidv4();
+      cloned.x = (cloned.x * scale) + offsetX;
+      cloned.y = (cloned.y * scale) + offsetY;
+      
+      if ((cloned as any).width) (cloned as any).width *= scale;
+      if ((cloned as any).height) (cloned as any).height *= scale;
+      if (cloned.type === 'text') {
+        const textLayer = cloned as TextLayer;
+        textLayer.fontSize *= scale;
+      }
+      return cloned;
+    });
+
+    set((state: any) => ({
+      artboards: [
+        ...state.artboards, 
+        { 
+          id, 
+          name: newName || `${currentArtboard.name} (Resized)`, 
+          x, 
+          y: 0, 
+          width: newWidth, 
+          height: newHeight, 
+          layers: newLayers,
+          backgroundColor: currentArtboard.backgroundColor
+        }
+      ],
+      activeArtboardId: id,
+      selectedLayerIds: [],
     }));
   },
 
@@ -98,6 +151,43 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
 
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) =>
+        a.id === state.activeArtboardId ? { ...a, layers: [...a.layers, newLayer] } : a
+      ),
+      selectedLayerIds: [newLayer.id],
+    }));
+  },
+
+  addAdjustmentLayer: () => {
+    get().saveToHistory?.();
+    const state = get();
+    const artboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
+    if (!artboard) return;
+
+    const newLayer = {
+      id: `adj_${Date.now()}`,
+      type: 'adjustment' as const,
+      name: 'Adjustment Layer',
+      x: 0,
+      y: 0,
+      width: artboard.width,
+      height: artboard.height,
+      rotation: 0,
+      opacity: 1,
+      locked: false,
+      visible: true,
+      adjustmentFilters: {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        blur: 0,
+        hueRotate: 0,
+        sepia: 0,
+        invert: 0,
+      }
+    };
+
+    set((state: any) => ({
+      artboards: state.artboards.map((a: Artboard) => 
         a.id === state.activeArtboardId ? { ...a, layers: [...a.layers, newLayer] } : a
       ),
       selectedLayerIds: [newLayer.id],
@@ -339,5 +429,28 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
       ),
       selectedLayerIds: [newLayer.id],
     }));
+  },
+
+  autoNameLayer: async (id: string) => {
+    const { artboards, updateLayer } = get();
+    let layer: Layer | undefined;
+    artboards.forEach((a: Artboard) => {
+      const found = a.layers.find((l) => l.id === id);
+      if (found) {
+        layer = found;
+      }
+    });
+
+    if (!layer) {
+      return;
+    }
+
+    try {
+      const description = `Type: ${layer.type}, Pos: ${layer.x},${layer.y}, Size: ${(layer as any).width}x${(layer as any).height}`;
+      const newName = await geminiService.generateLayerName(description);
+      updateLayer(id, { name: newName });
+    } catch (error) {
+      console.error('Auto-naming failed', error);
+    }
   },
 });

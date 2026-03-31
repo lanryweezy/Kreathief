@@ -19,6 +19,8 @@ export interface HistorySlice {
   undo: () => void;
   redo: () => void;
   saveToHistory: () => void;
+  beginBatch: () => void;
+  endBatch: () => void;
   fetchSnapshots: () => Promise<void>;
   createSnapshot: (name: string, thumbnail?: string) => Promise<void>;
   restoreSnapshot: (snapshotId: string) => Promise<void>;
@@ -28,6 +30,8 @@ export interface HistorySlice {
 export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set, get) => ({
   past: [],
   future: [],
+  __batchDepth: 0,
+  __hasPendingBatchChange: false,
 
   saveToHistory: (() => {
     let lastSavedTimestamp = 0;
@@ -37,6 +41,11 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
     let lastStateSnapshot: HistoryState | null = null;
 
     return () => {
+      // If batching, mark pending change and exit; we'll snapshot on endBatch
+      if ((get() as any).__batchDepth > 0) {
+        set({ __hasPendingBatchChange: true } as any);
+        return;
+      }
       const now = Date.now();
       if (now - lastSavedTimestamp < DEBOUNCE_MS) {
         return;
@@ -69,6 +78,34 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
       });
     };
   })(),
+
+  beginBatch: () => {
+    const depth = ((get() as any).__batchDepth || 0) + 1;
+    set({ __batchDepth: depth } as any);
+  },
+
+  endBatch: () => {
+    const depth = Math.max(0, ((get() as any).__batchDepth || 0) - 1);
+    const hadPending = (get() as any).__hasPendingBatchChange;
+    set({ __batchDepth: depth } as any);
+    if (depth === 0 && hadPending) {
+      // Take a single snapshot of current state to represent the batch
+      const now = Date.now();
+      set((state: any) => {
+        const currentState: HistoryState = {
+          artboards: structuredClone(state.artboards),
+          activeArtboardId: state.activeArtboardId,
+          canvasBackgroundColor: state.canvasBackgroundColor,
+          canvasFilters: state.canvasFilters ? { ...state.canvasFilters } : undefined,
+          canvasSize: state.canvasSize ? { ...state.canvasSize } : undefined,
+        };
+        const entry: HistoryEntry = { timestamp: now, type: 'snapshot', state: currentState };
+        const MAX_HISTORY = 100;
+        const newPast = state.past.length >= MAX_HISTORY ? [...state.past.slice(1), entry] : [...state.past, entry];
+        return { past: newPast, future: [], __hasPendingBatchChange: false };
+      });
+    }
+  },
 
   undo: () => {
     const { past, artboards, activeArtboardId, canvasBackgroundColor, canvasFilters, canvasSize } = get();

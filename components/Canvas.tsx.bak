@@ -1,6 +1,5 @@
 import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { useStore } from '../store/useStore';
-import { activeArtboardSelector, selectedLayerIdSelector, selectedLayersSelector } from '../store/selectors';
 import { TextLayer, ShapeLayer, ImageLayer, Layer, AnimationSettings } from '../types';
 import { ANIMATION_STYLES } from './canvas/CanvasConstants';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -40,14 +39,16 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 
   // Essential store state
   const artboards = useStore((state) => state.artboards);
-  const activeArtboard = useStore(activeArtboardSelector);
-  const activeArtboardId = activeArtboard?.id || (artboards[0]?.id ?? '');
+  const activeArtboardId = useStore((state) => state.activeArtboardId);
+  const activeArtboard = useMemo(
+    () => (artboards || []).find((a) => a.id === activeArtboardId) || (artboards || [])[0],
+    [artboards, activeArtboardId]
+  );
 
   const canvasBackgroundColor = useStore((state) => state.canvasBackgroundColor);
   const canvasFilters = useStore((state) => state.canvasFilters);
   const layers = useMemo(() => activeArtboard?.layers || [], [activeArtboard]);
-  const allLayers = useMemo(() => artboards.flatMap(a => a.layers), [artboards]);
-  const selectedLayers = useStore(selectedLayersSelector);
+  const allLayers = useMemo(() => artboards.flatMap((a) => a.layers), [artboards]);
 
   const onUpdateLayers = useStore((state) => state.updateLayers);
   const onSelectLayer = useStore((state) => state.selectLayer);
@@ -81,7 +82,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   // Use props.previewAnimation to avoid unused warning
   const currentPreviewAnimation = props.previewAnimation;
 
-  const selectedLayerId = useStore(selectedLayerIdSelector);
+  const selectedLayerId = selectedLayerIds[selectedLayerIds.length - 1] || null;
 
   // Handlers
   const handleContextMenu = useCallback((e: React.MouseEvent, layerId: string) => {
@@ -104,7 +105,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
         useStore.getState().saveToHistory();
         const updates: Partial<TextLayer> = {
           text: newText,
-          name: newText.length > 20 ? newText.slice(0, 20) + '�' : newText,
+          name: newText.length > 20 ? newText.slice(0, 20) + '…' : newText,
         };
         onUpdateLayers?.({ [editingTextId]: updates });
       }
@@ -174,9 +175,9 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               booleanPreview={booleanPreview}
             />
 
-                        <CanvasControls
+            <CanvasControls
               selectedLayerIds={selectedLayerIds}
-              selectedLayers={selectedLayers}
+              allLayers={allLayers}
               zoom={zoom}
               handleResizeStart={() => {}}
               handleRotateStart={() => {}}
@@ -193,9 +194,4 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 };
 
 export const Canvas = React.memo(CanvasComponent);
-
-
-
-
-
 

@@ -18,7 +18,7 @@ interface UseKeyboardShortcutsProps {
 
 export const useKeyboardShortcuts = ({ shortcuts, enabled = true }: UseKeyboardShortcutsProps) => {
   const handleKeyDown = useCallback(
-    (event: KeyboardEvent) => {
+    (event: KeyboardEvent) => { if (event.defaultPrevented) { return; }
       if (!enabled) {
         return;
       }
@@ -68,3 +68,4 @@ export const formatShortcut = (shortcut: KeyboardShortcut): string => {
   parts.push(shortcut.key.toUpperCase());
   return parts.join('+');
 };
+

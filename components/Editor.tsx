@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useStore } from '../store/useStore';
+import { selectedLayerSelector } from '../store/selectors';
 import { Icons } from '../constants';
 import { NavTab } from '../types';
 import { Header } from './Header';
@@ -18,6 +19,7 @@ import { ExportModal } from './modals/ExportModal';
 import { MockupPanel } from './panels/MockupPanel';
 
 const CommunityModal = React.lazy(() => import('./modals/CommunityModal'));
+const CommandPalette = React.lazy(() => import('./modals/CommandPalette').then(module => ({ default: module.CommandPalette })));
 import { Toolbar } from './Toolbar';
 import { Dropdown } from './Dropdown';
 import { ShortcutOverlay } from './ShortcutOverlay';
@@ -33,6 +35,7 @@ interface EditorProps {
 
 export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) => {
   const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
+  const selectedLayer = useStore(selectedLayerSelector);
   const canvasSize = useStore((state) => state.canvasSize) || { width: 1080, height: 1080, name: 'Square' };
   const activeTab = useStore((state) => state.activeTab);
   const setActiveTab = useStore((state) => state.setActiveTab);
@@ -120,26 +123,23 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     { key: 'ArrowDown', shift: true, action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, 0, 10); } }, description: 'Nudge Down 10px' },
     { key: 'ArrowLeft', shift: true, action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, -10, 0); } }, description: 'Nudge Left 10px' },
     { key: 'ArrowRight', shift: true, action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, 10, 0); } }, description: 'Nudge Right 10px' },
-    // Select All / Deselect
     { key: 'a', ctrl: true, action: () => {
       const layers = useStore.getState().artboards.find((a: any) => a.id === useStore.getState().activeArtboardId)?.layers || [];
       useStore.getState().setSelectedLayerIds(layers.map((l: any) => l.id));
     }, description: 'Select All' },
     { key: 'Escape', action: () => { useStore.getState().setSelectedLayerIds([]); }, description: 'Deselect All' },
-    // Zoom
     { key: '0', ctrl: true, action: () => { setZoom(1); }, description: 'Zoom to 100%' },
     { key: '=', ctrl: true, action: () => { setZoom(Math.min(10, zoom + 0.25)); }, description: 'Zoom In' },
     { key: '-', ctrl: true, action: () => { setZoom(Math.max(0.05, zoom - 0.25)); }, description: 'Zoom Out' },
-    // Layer Ordering
     { key: ']', ctrl: true, shift: true, action: () => { if (selectedLayerId) useStore.getState().moveLayer(selectedLayerId, 'front'); }, description: 'Bring to Front' },
     { key: '[', ctrl: true, shift: true, action: () => { if (selectedLayerId) useStore.getState().moveLayer(selectedLayerId, 'back'); }, description: 'Send to Back' },
     { key: ']', ctrl: true, action: () => { if (selectedLayerId) useStore.getState().moveLayer(selectedLayerId, 'forward'); }, description: 'Bring Forward' },
     { key: '[', ctrl: true, action: () => { if (selectedLayerId) useStore.getState().moveLayer(selectedLayerId, 'backward'); }, description: 'Send Backward' },
-    // Flip
-    { key: 'h', action: () => { if (selectedLayerId) useStore.getState().updateLayer(selectedLayerId, { flipX: !(useStore.getState().artboards.find((a: any) => a.id === useStore.getState().activeArtboardId)?.layers.find((l: any) => l.id === selectedLayerId) as any)?.flipX }); }, description: 'Flip Horizontal' },
-    { key: 'v', action: () => { if (selectedLayerId) useStore.getState().updateLayer(selectedLayerId, { flipY: !(useStore.getState().artboards.find((a: any) => a.id === useStore.getState().activeArtboardId)?.layers.find((l: any) => l.id === selectedLayerId) as any)?.flipY }); }, description: 'Flip Vertical' },
+    { key: 'h', action: () => { if (selectedLayer && selectedLayer.type !== 'text') { useStore.getState().updateLayer(selectedLayer.id, { flipX: !(selectedLayer as any).flipX }); } }, description: 'Flip Horizontal' },
+    { key: 'v', action: () => { if (selectedLayer && selectedLayer.type !== 'text') { useStore.getState().updateLayer(selectedLayer.id, { flipY: !(selectedLayer as any).flipY }); } }, description: 'Flip Vertical' },
+    { key: 'k', ctrl: true, action: () => { useStore.getState().setCommandPaletteOpen(true); haptics.light(); }, description: 'Command Palette' },
     { key: '?', shift: true, action: () => setShowShortcuts(!showShortcuts), description: 'Shortcuts' }
-  ], [undo, redo, copyLayer, pasteLayer, saveProject, selectedLayerIds, selectedLayerId, duplicateSelected, deleteSelected, groupSelected, ungroupSelected, setShowShortcuts, showShortcuts, nudgeLayer, zoom, setZoom]);
+  ], [undo, redo, copyLayer, pasteLayer, saveProject, selectedLayerIds, selectedLayerId, duplicateSelected, deleteSelected, groupSelected, ungroupSelected, setShowShortcuts, showShortcuts, nudgeLayer, zoom, setZoom, selectedLayer]);
 
   useKeyboardShortcuts({ shortcuts, enabled: true });
 
@@ -161,7 +161,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       )}
 
       <div className={`flex flex-1 overflow-hidden relative ${hideHeaderOnMobile ? 'pb-0' : 'pb-16 md:pb-0'}`}>
-        {/* Sidebar */}
         <div className={`hidden md:flex flex-row h-full shrink-0 z-40 border-r border-gray-800 transition-all duration-300 ${isSidebarCollapsed || activeTab === NavTab.MOCKUP ? 'w-[72px]' : 'w-[392px]'}`}>
           <ErrorBoundary componentName="Sidebar" variant="widget">
             <Sidebar isCollapsed={isSidebarCollapsed || activeTab === NavTab.MOCKUP} onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
@@ -182,7 +181,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           </ErrorBoundary>
         </div>
 
-        {/* Workspace */}
         <div className="flex-1 relative overflow-hidden bg-[#13161a] flex flex-col">
           {activeTab === NavTab.ASSISTANT && !isMobile && (
             <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 pointer-events-none" />
@@ -209,7 +207,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
               />
             </ErrorBoundary>
 
-            {/* Side-by-side Mockup Preview for #3 */}
             {activeTab === NavTab.MOCKUP && !isMobile && (
               <div className="absolute inset-0 z-[100] bg-[#0e1318] flex animate-in fade-in slide-in-from-right duration-300">
                 <div className="flex-1 relative overflow-hidden flex flex-row">
@@ -221,13 +218,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                 </div>
               </div>
             )}
-
           </div>
 
-          {/* Bottom Controls Bar */}
           <div className="absolute bottom-4 inset-x-0 flex items-center justify-center z-40 pointer-events-none">
             <div className="bg-[#1e1e1e]/80 border border-white/10 rounded-2xl shadow-2xl flex items-center p-1.5 backdrop-blur-xl pointer-events-auto gap-2">
-              {/* Zoom Controls */}
               <div className="flex items-center bg-black/20 rounded-xl px-1">
                 <button
                   onClick={() => setZoom(Math.max(0.05, zoom - 0.1))}
@@ -254,7 +248,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
               <div className="w-px h-6 bg-white/10 mx-1" />
 
-              {/* Quick View Toggles */}
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => useStore.getState().setShowGrid(!useStore.getState().showGrid)}
@@ -337,6 +330,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         {showCommunityModal && (
           <CommunityModal onClose={() => setShowCommunityModal(false)} />
         )}
+        <CommandPalette />
       </React.Suspense>
     </div>
   );

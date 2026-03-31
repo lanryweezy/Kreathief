@@ -5,7 +5,7 @@ import { ContextMenu } from '../ContextMenu';
 
 interface CanvasControlsProps {
   selectedLayerIds: string[];
-  allLayers: Layer[];
+  selectedLayers: Layer[];
   zoom: number;
   handleResizeStart: (e: React.MouseEvent, layer: Layer, handle: any) => void;
   handleRotateStart: (e: React.MouseEvent, layer: Layer) => void;
@@ -15,14 +15,13 @@ interface CanvasControlsProps {
 
 export const CanvasControls: React.FC<CanvasControlsProps> = ({
   selectedLayerIds,
-  allLayers,
+  selectedLayers,
   zoom,
   handleResizeStart,
   handleRotateStart,
   contextMenu,
   setContextMenu,
 }) => {
-  const selectedLayers = allLayers.filter((l) => selectedLayerIds.includes(l.id));
 
   return (
     <>

@@ -7,6 +7,7 @@ import React, { useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import { Layer, TextLayer, ShapeLayer, ImageLayer, AnimationSettings, ResizeHandle } from '../../types';
 import { getLayerClipPath, getAnimationStyle } from '../../utils/layerRendering';
+import { buildVariableStrokeOutline, profileWidthFn } from '../../utils/variableStroke';
 import { SelectionHandles } from './SelectionHandles';
 
 interface LayerItemProps {
@@ -256,7 +257,58 @@ export const ShapeLayerItem = React.memo(
           <div className="w-full h-full relative" style={innerStyle}>
             {shapeLayer.type === 'path' && (
               <svg width="100%" height="100%" viewBox={shapeLayer.viewBox} style={{ overflow: 'visible' }}>
-                <path d={shapeLayer.pathData} fill={shapeLayer.color} />
+                <defs>
+                  {(shapeLayer as any).pathEffects?.roughen?.amount > 0 && (
+                    <filter id={`roughen-${shapeLayer.id}`}>
+                      <feTurbulence type="turbulence" baseFrequency="0.8" numOctaves="1" result="noise" />
+                      <feDisplacementMap in="SourceGraphic" in2="noise" scale={(shapeLayer as any).pathEffects.roughen.amount} xChannelSelector="R" yChannelSelector="G" />
+                    </filter>
+                  )}
+                  {(shapeLayer as any).pathEffects?.zigzag?.amplitude > 0 && (
+                    <filter id={`zigzag-${shapeLayer.id}`}>
+                      <feTurbulence type="turbulence" baseFrequency={(shapeLayer as any).pathEffects.zigzag.frequency/100} numOctaves="1" result="noise" />
+                      <feDisplacementMap in="SourceGraphic" in2="noise" scale={(shapeLayer as any).pathEffects.zigzag.amplitude} xChannelSelector="R" yChannelSelector="G" />
+                    </filter>
+                  )}
+                  {((shapeLayer as any).strokeProfile && (shapeLayer as any).strokeProfile !== 'uniform') && (
+                    <>
+                      <linearGradient id={`taper-mask-${shapeLayer.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                        {((shapeLayer as any).strokeProfile==='taper-start' || (shapeLayer as any).strokeProfile==='taper-both') ? <stop offset="0%" stopColor="#000" stopOpacity="0"/> : <stop offset="0%" stopColor="#000" stopOpacity="1"/>}
+                        <stop offset="50%" stopColor="#000" stopOpacity="1"/>
+                        {((shapeLayer as any).strokeProfile==='taper-end' || (shapeLayer as any).strokeProfile==='taper-both') ? <stop offset="100%" stopColor="#000" stopOpacity="0"/> : <stop offset="100%" stopColor="#000" stopOpacity="1"/>}
+                      </linearGradient>
+                      <mask id={`taper-${shapeLayer.id}`}>
+                        <rect width="100%" height="100%" fill={`url(#taper-mask-${shapeLayer.id})`} />
+                      </mask>
+                    </>
+                  )}
+                </defs>
+                {(shapeLayer as any).pathEffects?.offset?.distance > 0 && (
+                  <path d={shapeLayer.pathData} fill="none" stroke={shapeLayer.color} strokeWidth={(shapeLayer as any).pathEffects.offset.distance*2} opacity={0.35} />
+                )}
+                <path d={shapeLayer.pathData}
+                  fill={shapeLayer.color}
+                  filter={(shapeLayer as any).pathEffects?.zigzag?.amplitude>0 ? `url(#zigzag-${shapeLayer.id})` : (shapeLayer as any).pathEffects?.roughen?.amount>0 ? `url(#roughen-${shapeLayer.id})` : undefined}
+                />
+                {(() => {
+                  const stroke = (shapeLayer as any).stroke;
+                  const profile = (shapeLayer as any).strokeProfile || 'uniform';
+                  const w = (stroke?.width || 0);
+                  if (w <= 0) return null;
+                  if (profile === 'uniform') {
+                    // Draw as normal stroke
+                    return (
+                      <path d={shapeLayer.pathData} fill="none" stroke={stroke?.color || shapeLayer.color} strokeWidth={w} strokeLinecap={stroke?.cap || 'round'} strokeLinejoin={stroke?.join || 'round'} />
+                    );
+                  } else {
+                    // Build variable-width outline
+                    const widthFn = profileWidthFn(profile, w);
+                    const samples = ((shapeLayer as any).strokeQuality==='fast') ? 48 : 128;
+                    const outline = buildVariableStrokeOutline(shapeLayer.pathData!, widthFn, samples);
+                    if (!outline) return null;
+                    return <path d={outline} fill={stroke?.color || shapeLayer.color} />;
+                  }
+                })()}
               </svg>
             )}
           </div>
@@ -340,3 +392,80 @@ export const TextLayerItem = React.memo(
 );
 
 TextLayerItem.displayName = 'TextLayerItem';
+
+/**
+ * Adjustment Layer Item
+ * Applies non-destructive CSS backdrop-filters to elements below it.
+ */
+export const AdjustmentLayerItem = React.memo(
+  React.forwardRef<HTMLDivElement, LayerItemProps>(
+    (
+      {
+        layer,
+        isSelected,
+        isHovered,
+        onMouseDown,
+        onResize,
+        onRotate,
+        onContextMenu,
+      },
+      ref
+    ) => {
+      const resetDirty = useStore(state => state.resetDirty);
+      
+      useEffect(() => {
+        if (layer.dirty) {
+          resetDirty(layer.id);
+        }
+      }, [layer.dirty, layer.id, resetDirty]);
+
+      const adjLayer = layer as any; // Using any to avoid type complaints before sync
+      const filters = adjLayer.adjustmentFilters || { brightness: 100, contrast: 100, saturation: 100, blur: 0, hueRotate: 0, sepia: 0, invert: 0 };
+      
+      // We apply a backdrop filter to affect everything rendered underneath
+      const backdropFilter = `
+        brightness(${filters.brightness}%) 
+        contrast(${filters.contrast}%) 
+        saturate(${filters.saturation}%) 
+        blur(${filters.blur}px) 
+        hue-rotate(${filters.hueRotate}deg) 
+        sepia(${filters.sepia}%) 
+        invert(${filters.invert}%)
+      `;
+
+      return (
+        <div
+          ref={ref}
+          onMouseDown={(e) => onMouseDown(e, adjLayer)}
+          onContextMenu={(e) => onContextMenu(e, adjLayer.id)}
+          className="absolute cursor-move group adjustment-layer-item z-50 pointer-events-auto"
+          style={{
+            left: adjLayer.x,
+            top: adjLayer.y,
+            width: adjLayer.width,
+            height: adjLayer.height,
+            transform: `rotate(${adjLayer.rotation}deg)`,
+            opacity: adjLayer.opacity,
+            backdropFilter: backdropFilter,
+            WebkitBackdropFilter: backdropFilter, // For Safari support
+            // Visual indicator when selected/hovered so it's not completely invisible
+            backgroundColor: isSelected || isHovered ? 'rgba(125, 42, 232, 0.05)' : 'transparent',
+            border: isSelected ? '1px dashed rgba(125, 42, 232, 0.5)' : isHovered ? '1px dashed rgba(125, 42, 232, 0.3)' : 'none',
+          }}
+        >
+          {isSelected && (
+            <div className="absolute top-2 left-2 bg-[#7d2ae8] text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow">
+              ADJUSTMENT
+            </div>
+          )}
+          {isSelected && <SelectionHandles layer={adjLayer} onResize={onResize} onRotate={onRotate} scale={1} />}
+        </div>
+      );
+    }
+  ),
+  layerPropsAreEqual
+);
+
+AdjustmentLayerItem.displayName = 'AdjustmentLayerItem';
+
+
