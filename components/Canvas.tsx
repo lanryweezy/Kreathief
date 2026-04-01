@@ -5,7 +5,6 @@ import { TextLayer, ShapeLayer, ImageLayer, Layer, AnimationSettings } from '../
 import { ANIMATION_STYLES } from './canvas/CanvasConstants';
 import { ErrorBoundary } from './ErrorBoundary';
 import { useTouchGestures } from '../hooks/useTouchGestures';
-import { haptics } from '../utils/haptics';
 
 // Specialized Sub-components & Hooks
 import { useCanvasInteractions } from './canvas/useCanvasInteractions';
@@ -99,12 +98,12 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 
   useTouchGestures(viewportRef, {
     enabled: isMobile,
-    onPinchZoom: (scale, center) => {
+    onPinchZoom: (scale) => {
       const newZoom = initialZoom.current * scale;
       const clampedZoom = Math.max(0.1, Math.min(10, newZoom));
       onZoomChange(clampedZoom);
     },
-    onRotate: (angle, center) => {
+    onRotate: (angle) => {
       if (selectedLayerIds.length === 1) {
         const selectedLayer = layers.find(l => l.id === selectedLayerIds[0]);
         if (selectedLayer && selectedLayer.type !== 'text') {
@@ -113,7 +112,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
         }
       }
     },
-    onPan: (deltaX, deltaY) => {
+    onPan: (_deltaX, _deltaY) => {
       // Pan handled by useCanvasInteractions
     },
     minZoom: 0.1,

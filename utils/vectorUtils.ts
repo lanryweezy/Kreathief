@@ -126,7 +126,6 @@ export class VectorUtils {
 
     let currentX = 0;
     let currentY = 0;
-    let lastCommand = ''; // Track last command for relative calculations
 
     commands.forEach((cmdStr) => {
       const type = cmdStr[0];

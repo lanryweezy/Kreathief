@@ -75,7 +75,6 @@ export class BezierMath {
     for (let ref = 0; ref < MAX_REFINEMENTS; ref++) {
       range /= 2;
       const start = Math.max(0, bestT - range);
-      const end = Math.min(1, bestT + range);
       const STEPS = 5; // Reduced from 10
 
       // FIX: Skip endpoints (already checked in previous iteration)
