@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useStore } from '../store/useStore';
 import { Icons } from '../constants';
 import { Dropdown } from './Dropdown';
@@ -7,7 +7,7 @@ import { ColorHarmonyGenerator } from './panels/ColorHarmonyGenerator';
 import { PaletteGenerator } from './panels/PaletteGenerator';
 import { GradientEditor } from './panels/GradientEditor';
 import { ContrastChecker } from './panels/ContrastChecker';
-import { rgbToHex } from '../utils/colorUtils';
+import { rgbToHex, rgbToCmyk, parseColor, cmykToRgb, getCMYKGamutWarning, isWithinCMYKGamut } from '../utils/colorUtils';
 
 interface ColorPickerProps {
   value: string;
@@ -36,14 +36,37 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
   const [recentColors, setRecentColors] = useState<string[]>([]);
   const [showEyedropper, setShowEyedropper] = useState(false);
   const [activeTab, setActiveTab] = useState<'picker' | 'harmony' | 'palette' | 'gradient' | 'contrast'>('picker');
+  const [cmykMode, setCmykMode] = useState(false);
+  const [cmykValues, setCmykValues] = useState({ c: 0, m: 0, y: 0, k: 0 });
   const addToast = useStore((state) => state.addToast);
   const popoverRef = useRef<HTMLButtonElement>(null);
+
+  // CMYK Readout and gamut warning
+  const cmyk = useMemo(() => {
+    if (value === 'transparent') {return null;}
+    try {
+      const rgb = parseColor(value);
+      const cmykData = rgbToCmyk(rgb.r, rgb.g, rgb.b);
+      const gamutWarning = getCMYKGamutWarning(rgb.r, rgb.g, rgb.b);
+      const withinGamut = isWithinCMYKGamut(rgb.r, rgb.g, rgb.b);
+      return { ...cmykData, gamutWarning, withinGamut };
+    } catch {
+      return null;
+    }
+  }, [value]);
+
+  // Sync CMYK values when color changes
+  useEffect(() => {
+    if (cmyk) {
+      setCmykValues({ c: cmyk.c, m: cmyk.m, y: cmyk.y, k: cmyk.k });
+    }
+  }, [cmyk]);
 
   // Load recent colors from localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem('kreathief_recent_colors');
-      if (saved) setRecentColors(JSON.parse(saved));
+      if (saved) {setRecentColors(JSON.parse(saved));}
     } catch {
       // Silently ignore — cosmetic feature, not critical
     }
@@ -211,6 +234,143 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
               </div>
             </div>
           </div>
+
+          {/* CMYK Mode Toggle & Gamut Warning */}
+          {cmyk && (
+            <>
+              <div className="flex items-center justify-between mb-2">
+                <button
+                  onClick={() => setCmykMode(!cmykMode)}
+                  className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded transition-colors ${
+                    cmykMode
+                      ? 'bg-[#7d2ae8]/20 text-[#7d2ae8]'
+                      : 'bg-black/40 text-gray-500 hover:text-white'
+                  }`}
+                >
+                  {cmykMode ? '✓ CMYK Mode' : 'CMYK Mode'}
+                </button>
+                {!cmyk.withinGamut && (
+                  <div className={`flex items-center gap-1 px-2 py-1 rounded text-[9px] font-bold ${
+                    cmyk.gamutWarning === 'critical'
+                      ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                      : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                  }`}>
+                    <Icons.AlertTriangle className="w-3 h-3" />
+                    {cmyk.gamutWarning === 'critical' ? 'Out of Gamut' : 'Print Warning'}
+                  </div>
+                )}
+              </div>
+
+              {/* CMYK Input Fields or Readout */}
+              {cmykMode ? (
+                <div className="grid grid-cols-4 gap-2 mb-4">
+                  <div className="space-y-1">
+                    <label className="text-[8px] text-cyan-400 font-black uppercase block text-center">C</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={cmykValues.c}
+                      onChange={(e) => {
+                        const newCmyk = {
+                          ...cmykValues,
+                          c: Math.max(0, Math.min(100, parseInt(e.target.value) || 0))
+                        };
+                        setCmykValues(newCmyk);
+                        const rgb = cmykToRgb(newCmyk.c, newCmyk.m, newCmyk.y, newCmyk.k);
+                        const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+                        onChange(hex);
+                        setHexInput(hex);
+                      }}
+                      className="w-full bg-[#252627] border border-cyan-500/30 rounded p-1.5 text-xs text-cyan-400 font-mono font-bold text-center focus:border-cyan-500 outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[8px] text-pink-400 font-black uppercase block text-center">M</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={cmykValues.m}
+                      onChange={(e) => {
+                        const newCmyk = {
+                          ...cmykValues,
+                          m: Math.max(0, Math.min(100, parseInt(e.target.value) || 0))
+                        };
+                        setCmykValues(newCmyk);
+                        const rgb = cmykToRgb(newCmyk.c, newCmyk.m, newCmyk.y, newCmyk.k);
+                        const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+                        onChange(hex);
+                        setHexInput(hex);
+                      }}
+                      className="w-full bg-[#252627] border border-pink-500/30 rounded p-1.5 text-xs text-pink-400 font-mono font-bold text-center focus:border-pink-500 outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[8px] text-yellow-400 font-black uppercase block text-center">Y</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={cmykValues.y}
+                      onChange={(e) => {
+                        const newCmyk = {
+                          ...cmykValues,
+                          y: Math.max(0, Math.min(100, parseInt(e.target.value) || 0))
+                        };
+                        setCmykValues(newCmyk);
+                        const rgb = cmykToRgb(newCmyk.c, newCmyk.m, newCmyk.y, newCmyk.k);
+                        const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+                        onChange(hex);
+                        setHexInput(hex);
+                      }}
+                      className="w-full bg-[#252627] border border-yellow-500/30 rounded p-1.5 text-xs text-yellow-400 font-mono font-bold text-center focus:border-yellow-500 outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[8px] text-white font-black uppercase block text-center">K</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={cmykValues.k}
+                      onChange={(e) => {
+                        const newCmyk = {
+                          ...cmykValues,
+                          k: Math.max(0, Math.min(100, parseInt(e.target.value) || 0))
+                        };
+                        setCmykValues(newCmyk);
+                        const rgb = cmykToRgb(newCmyk.c, newCmyk.m, newCmyk.y, newCmyk.k);
+                        const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+                        onChange(hex);
+                        setHexInput(hex);
+                      }}
+                      className="w-full bg-[#252627] border border-white/30 rounded p-1.5 text-xs text-white font-mono font-bold text-center focus:border-white outline-none"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 gap-1 mb-4">
+                  <div className="bg-black/40 rounded p-1.5 border border-white/5 flex flex-col items-center">
+                    <span className="text-[8px] text-gray-500 font-black uppercase">C</span>
+                    <span className="text-[10px] text-cyan-400 font-mono font-bold">{cmyk.c}%</span>
+                  </div>
+                  <div className="bg-black/40 rounded p-1.5 border border-white/5 flex flex-col items-center">
+                    <span className="text-[8px] text-gray-500 font-black uppercase">M</span>
+                    <span className="text-[10px] text-pink-400 font-mono font-bold">{cmyk.m}%</span>
+                  </div>
+                  <div className="bg-black/40 rounded p-1.5 border border-white/5 flex flex-col items-center">
+                    <span className="text-[8px] text-gray-500 font-black uppercase">Y</span>
+                    <span className="text-[10px] text-yellow-400 font-mono font-bold">{cmyk.y}%</span>
+                  </div>
+                  <div className="bg-black/40 rounded p-1.5 border border-white/5 flex flex-col items-center">
+                    <span className="text-[8px] text-gray-500 font-black uppercase">K</span>
+                    <span className="text-[10px] text-white font-mono font-bold">{cmyk.k}%</span>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
 
           {/* Recent Colors */}
           {recentColors.length > 0 && (

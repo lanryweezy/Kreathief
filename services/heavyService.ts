@@ -66,6 +66,10 @@ class HeavyService {
     return this.postMessage('VECTORIZE', { imageUrl, options });
   }
 
+  public async removeBackground(imageUrl: string): Promise<string> {
+    return this.postMessage('REMOVE_BACKGROUND', { imageUrl });
+  }
+
   public async algorithmicEnhance(imageSrc: string): Promise<string> {
     return this.postMessage('ENHANCE', { imageSrc });
   }

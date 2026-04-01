@@ -282,6 +282,104 @@ export function cmykToRgb(c: number, m: number, y: number, k: number): RGB {
   };
 }
 
+/**
+ * Check if an RGB color is within CMYK printable gamut
+ * Returns true if the color can be accurately reproduced in print
+ */
+export function isWithinCMYKGamut(r: number, g: number, b: number): boolean {
+  const cmyk = rgbToCmyk(r, g, b);
+  
+  // Check for extreme CMYK values that indicate out-of-gamut
+  // Bright/neon colors typically have very low K and extreme C/M/Y
+  const totalInk = cmyk.c + cmyk.m + cmyk.y + cmyk.k;
+  
+  // Out of gamut if:
+  // - Very bright colors (low K, low total ink but high RGB)
+  // - Neon colors (extreme individual channels)
+  if (cmyk.k < 5 && totalInk < 100) {
+    // Very bright colors may not print accurately
+    if (r > 200 || g > 200 || b > 200) {
+      return false;
+    }
+  }
+  
+  // Check for pure RGB primaries which are out of CMYK gamut
+  if ((r === 255 && g === 0 && b === 0) ||
+      (r === 0 && g === 255 && b === 0) ||
+      (r === 0 && g === 0 && b === 255)) {
+    return false;
+  }
+  
+  return true;
+}
+
+/**
+ * Get CMYK gamut warning level
+ * Returns: 'safe' | 'warning' | 'critical'
+ */
+export function getCMYKGamutWarning(r: number, g: number, b: number): 'safe' | 'warning' | 'critical' {
+  if (isWithinCMYKGamut(r, g, b)) {
+    return 'safe';
+  }
+  
+  const cmyk = rgbToCmyk(r, g, b);
+  const totalInk = cmyk.c + cmyk.m + cmyk.y + cmyk.k;
+  
+  // Critical: Pure RGB colors that will shift significantly
+  if ((r === 255 && g === 0 && b === 0) ||
+      (r === 0 && g === 255 && b === 0) ||
+      (r === 0 && g === 0 && b === 255) ||
+      (r === 255 && g === 255 && b === 0) ||
+      (r === 0 && g === 255 && b === 255) ||
+      (r === 255 && g === 0 && b === 255)) {
+    return 'critical';
+  }
+  
+  // Warning: Very bright colors
+  if (cmyk.k < 5 && totalInk < 100) {
+    return 'warning';
+  }
+  
+  return 'warning';
+}
+
+/**
+ * Convert RGB to CMYK with total ink limit (TIL) for professional printing
+ * Standard TIL is 240-300% depending on paper stock
+ */
+export function rgbToCmykWithTIL(r: number, g: number, b: number, maxTotalInk: number = 280): CMYK {
+  const cmyk = rgbToCmyk(r, g, b);
+  const totalInk = cmyk.c + cmyk.m + cmyk.y + cmyk.k;
+  
+  if (totalInk > maxTotalInk) {
+    const scale = maxTotalInk / totalInk;
+    return {
+      c: Math.round(cmyk.c * scale),
+      m: Math.round(cmyk.m * scale),
+      y: Math.round(cmyk.y * scale),
+      k: Math.round(cmyk.k * scale),
+    };
+  }
+  
+  return cmyk;
+}
+
+/**
+ * Get the closest printable CMYK color for an RGB value
+ */
+export function getClosestPrintableCMYK(r: number, g: number, b: number): CMYK {
+  // For out-of-gamut colors, reduce saturation
+  const hsl = rgbToHsl(r, g, b);
+  
+  // Reduce saturation for very bright colors
+  if (hsl.l > 85 || hsl.s > 90) {
+    const adjusted = hslToRgb(hsl.h, Math.min(75, hsl.s), Math.min(80, hsl.l));
+    return rgbToCmyk(adjusted.r, adjusted.g, adjusted.b);
+  }
+  
+  return rgbToCmyk(r, g, b);
+}
+
 // ============ STRING PARSING ============
 
 /**

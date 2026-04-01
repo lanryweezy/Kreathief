@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { AppMode, AspectRatio, ShapeLayer } from '../../types';
 import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
 import { analyticsService } from '../../services/analyticsService';
 import { STARTER_TEMPLATES } from '../../data/templates';
+import { communityService, CommunityTemplate } from '../../services/communityService';
 
 interface TemplatesPanelProps {
   setPrompt: (s: string) => void;
@@ -45,8 +46,33 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [showReplaceWarning, setShowReplaceWarning] = useState(true);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [activeTab, setActiveTab] = useState<'starter' | 'community'>('starter');
+  const [communityTemplates, setCommunityTemplates] = useState<CommunityTemplate[]>([]);
+  const [isLoadingCommunity, setIsLoadingCommunity] = useState(false);
+
   const favoriteTemplates = useStore((state) => state.favoriteTemplates);
   const toggleFavoriteTemplate = useStore((state) => state.toggleFavoriteTemplate);
+  const initializeProject = useStore((state) => state.initializeProject);
+
+  useEffect(() => {
+    if (activeTab === 'community') {
+      loadCommunity();
+    }
+  }, [activeTab, category, searchQuery]);
+
+  const loadCommunity = async () => {
+    setIsLoadingCommunity(true);
+    const data = await communityService.fetchTemplates(category, searchQuery);
+    setCommunityTemplates(data);
+    setIsLoadingCommunity(false);
+  };
+
+  const handleApplyCommunity = (tmpl: CommunityTemplate) => {
+    const proceed = !showReplaceWarning || window.confirm('Apply community template? This will replace your current project.');
+    if (proceed) {
+      initializeProject(tmpl.state);
+    }
+  };
 
   const activeCategoryLabel = DESIGN_CATEGORIES.find((c) => c.id === category)?.label || 'All Designs';
 
@@ -113,7 +139,7 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-[#13161a]">
-      {/* New Header with Categories */}
+      {/* Header with Categories */}
       <div className="p-4 border-b border-gray-700 bg-[#13161a] sticky top-0 z-10">
         {category === 'All' ? (
           <div className="mb-2">
@@ -159,14 +185,6 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-[#1e1e1e] border border-gray-700 rounded-lg py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#7d2ae8]"
           />
-          {searchQuery && (
-            <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-2.5 text-gray-500 hover:text-white"
-            >
-                <Icons.X className="w-3.5 h-3.5" />
-            </button>
-          )}
         </div>
 
         <div className="flex items-center gap-2 mt-3">
@@ -182,183 +200,162 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
             Favorites Only
           </button>
         </div>
+
+        {/* Community Tabs */}
+        <div className="flex gap-1 mt-4 p-0.5 bg-black/20 rounded-lg border border-white/5">
+          <button
+            onClick={() => setActiveTab('starter')}
+            className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+              activeTab === 'starter' ? 'bg-[#7d2ae8] text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
+            }`}
+          >
+            Starter
+          </button>
+          <button
+            onClick={() => setActiveTab('community')}
+            className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+              activeTab === 'community' ? 'bg-orange-500 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
+            }`}
+          >
+            Community ✦
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-6">
-        {/* Themes Section */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-xs font-bold text-gray-400 uppercase">Color Themes</h4>
-          </div>
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-            {THEMES.map((theme, i) => (
-              <button
-                key={i}
-                onClick={() => onApplyTheme && onApplyTheme(theme.colors)}
-                className="flex-shrink-0 group flex flex-col gap-1 w-12"
-                title={theme.name}
-              >
-                <div className="h-12 w-12 rounded-full overflow-hidden border border-gray-700 group-hover:border-white transition-colors relative flex flex-wrap">
-                  {theme.colors.map((c, ci) => (
-                    <div key={ci} style={{ backgroundColor: c }} className="w-1/2 h-1/2"></div>
+        {activeTab === 'starter' ? (
+          <>
+            {/* Themes Section */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-xs font-bold text-gray-400 uppercase">Color Themes</h4>
+              </div>
+              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                {THEMES.map((theme, i) => (
+                  <button
+                    key={i}
+                    onClick={() => onApplyTheme && onApplyTheme(theme.colors)}
+                    className="flex-shrink-0 group flex flex-col gap-1 w-12"
+                    title={theme.name}
+                  >
+                    <div className="h-12 w-12 rounded-full overflow-hidden border border-gray-700 group-hover:border-white transition-colors relative flex flex-wrap">
+                      {theme.colors.map((c, ci) => (
+                        <div key={ci} style={{ backgroundColor: c }} className="w-1/2 h-1/2"></div>
+                      ))}
+                    </div>
+                    <span className="text-[9px] text-gray-500 text-center truncate group-hover:text-gray-300">
+                      {theme.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Layouts Section */}
+            <div>
+              <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Quick Layouts</h4>
+              <div className="grid grid-cols-4 gap-2">
+                {grids.map((g, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      if (g.layout) {
+                        onApplyLayout && (onApplyLayout as any)(g.layout);
+                      } else {
+                        onApplyLayout && onApplyLayout(g.shapes as any);
+                      }
+                    }}
+                    className="aspect-square bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#00c4cc] flex flex-col items-center justify-center text-gray-500 hover:text-white transition-all hover:bg-[#252627] gap-1"
+                    title={g.name}
+                  >
+                    <g.icon className="w-5 h-5" />
+                    <span className="text-[8px] font-medium hidden sm:block truncate w-full text-center px-1">
+                      {g.name.split(' ')[0]}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Starter Templates */}
+            {starterTemplates.length > 0 && (
+              <div>
+                <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Professional Templates</h4>
+                <div className="grid grid-cols-1 gap-4">
+                  {starterTemplates.map((tmpl) => (
+                    <button
+                      key={tmpl.id}
+                      onClick={() => {
+                        if (!onApplyTemplate) {return;}
+                        const proceed = !showReplaceWarning || window.confirm('Apply template? This will replace your current design.');
+                        if (proceed) {
+                          onApplyTemplate(tmpl.id, showReplaceWarning);
+                        }
+                      }}
+                      className="cursor-pointer group relative aspect-video rounded-lg overflow-hidden bg-[#1e1e1e] border border-gray-700 hover:border-[#7d2ae8] transition-all shadow-lg text-left"
+                    >
+                      <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                        <Icons.Layout className="w-12 h-12" />
+                      </div>
+                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
+                      <div className="absolute bottom-0 left-0 right-0 p-3 bg-black/60 backdrop-blur-sm flex items-center justify-between">
+                        <span className="font-semibold text-xs text-white truncate">{tmpl.name}</span>
+                        <span className="text-[9px] text-gray-400">{tmpl.size.width}×{tmpl.size.height}</span>
+                      </div>
+                    </button>
                   ))}
                 </div>
-                <span className="text-[9px] text-gray-500 text-center truncate group-hover:text-gray-300">
-                  {theme.name}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Layouts Section */}
-        <div>
-          <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Quick Layouts</h4>
-          <div className="grid grid-cols-4 gap-2">
-            {grids.map((g, i) => (
-              <button
-                key={i}
-                onClick={() => {
-                  if (g.layout) {
-                    onApplyLayout && (onApplyLayout as any)(g.layout);
-                  } else {
-                    onApplyLayout && onApplyLayout(g.shapes as any);
-                  }
-                }}
-                className="aspect-square bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#00c4cc] flex flex-col items-center justify-center text-gray-500 hover:text-white transition-all hover:bg-[#252627] gap-1"
-                title={g.name}
-              >
-                <g.icon className="w-5 h-5" />
-                <span className="text-[8px] font-medium hidden sm:block truncate w-full text-center px-1">
-                  {g.name.split(' ')[0]}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Starter Templates */}
-        {starterTemplates.length > 0 && (
-          <div>
-            <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Professional Templates</h4>
+              </div>
+            )}
+          </>
+        ) : (
+          /* Community View */
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center justify-between">
+              Community Creations
+              {isLoadingCommunity && <Icons.Loader className="w-3 h-3 animate-spin text-orange-500" />}
+            </h4>
+            
             <div className="grid grid-cols-1 gap-4">
-              {starterTemplates.map((tmpl) => (
-                <button
+              {communityTemplates.map((tmpl) => (
+                <div
                   key={tmpl.id}
-                  onClick={() => {
-                    if (!onApplyTemplate) {
-                      return;
-                    }
-                    const proceed =
-                      !showReplaceWarning ||
-                      window.confirm(
-                        'Apply template? This will replace your current canvas size, background, and layers.'
-                      );
-                    if (!proceed) {
-                      return;
-                    }
-                    onApplyTemplate(tmpl.id, showReplaceWarning);
-                    analyticsService.trackTemplateApply(tmpl.id, tmpl.name);
-                  }}
-                  draggable={false}
-                  onDragStart={(e) => e.preventDefault()}
-                  className="cursor-pointer group relative aspect-video rounded-lg overflow-hidden bg-[#1e1e1e] border border-gray-700 hover:border-[#7d2ae8] transition-all shadow-lg text-left select-none"
+                  onClick={() => handleApplyCommunity(tmpl)}
+                  className="bg-[#1e1e1e] border border-gray-800 rounded-xl overflow-hidden group cursor-pointer hover:border-orange-500 transition-all shadow-lg"
                 >
-                  {/* Mini SVG preview — renders template layers as scaled colored blocks */}
-                  <div
-                    className="absolute inset-0 overflow-hidden"
-                    style={{ backgroundColor: tmpl.state.canvasBackgroundColor || '#1a1a2e' }}
-                  >
-                    <svg
-                      viewBox={`0 0 ${tmpl.size.width} ${tmpl.size.height}`}
-                      preserveAspectRatio="xMidYMid slice"
-                      className="w-full h-full"
-                      style={{ opacity: 0.9 }}
-                    >
-                      {(tmpl.state.artboards?.[0]?.layers || []).slice(0, 12).map((layer: any, li: number) => {
-                        if (layer.type === 'image') {
-                          return (
-                            <rect
-                              key={li}
-                              x={layer.x}
-                              y={layer.y}
-                              width={layer.width}
-                              height={layer.height}
-                              fill="#ffffff22"
-                              rx={4}
-                            />
-                          );
-                        }
-                        if (layer.type === 'text') {
-                          return (
-                            <rect
-                              key={li}
-                              x={layer.x}
-                              y={layer.y}
-                              width={Math.min(layer.width || 200, tmpl.size.width * 0.7)}
-                              height={layer.fontSize ? layer.fontSize * 1.2 : 20}
-                              fill={layer.color || '#ffffff'}
-                              opacity={0.85}
-                              rx={2}
-                            />
-                          );
-                        }
-                        if (layer.type === 'circle') {
-                          return (
-                            <ellipse
-                              key={li}
-                              cx={layer.x + layer.width / 2}
-                              cy={layer.y + (layer.height || layer.width) / 2}
-                              rx={layer.width / 2}
-                              ry={(layer.height || layer.width) / 2}
-                              fill={layer.color || '#7d2ae8'}
-                              opacity={layer.opacity ?? 0.9}
-                            />
-                          );
-                        }
-                        return (
-                          <rect
-                            key={li}
-                            x={layer.x}
-                            y={layer.y}
-                            width={layer.width}
-                            height={layer.height || layer.width}
-                            fill={layer.color || '#7d2ae8'}
-                            opacity={layer.opacity ?? 0.9}
-                            rx={layer.cornerRadius || 0}
-                          />
-                        );
-                      })}
-                    </svg>
+                  <div className="aspect-video bg-black/40 relative">
+                    <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                      <Icons.Layout className="w-12 h-12" />
+                    </div>
+                    <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-1 rounded-full border border-white/5">
+                      <Icons.Heart className="w-3 h-3 text-orange-500 fill-orange-500" />
+                      <span className="text-[10px] text-white font-black">{tmpl.likes}</span>
+                    </div>
                   </div>
-
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-
-                  <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity translate-y-[-5px] group-hover:translate-y-0 duration-300 z-10">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavoriteTemplate(tmpl.id);
-                      }}
-                      className="p-1.5 bg-black/60 hover:bg-black text-red-500 rounded-lg backdrop-blur-md transition-all shadow-lg"
-                    >
-                      <Icons.Heart className={`w-3 h-3 ${favoriteTemplates.includes(tmpl.id) ? 'fill-current' : ''}`} />
-                    </button>
+                  <div className="p-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <h4 className="text-sm font-bold text-white truncate">{tmpl.name}</h4>
+                      <span className="text-[9px] font-black text-orange-500 uppercase tracking-wider">{tmpl.category}</span>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-white/5 pt-2 mt-2">
+                      <span className="text-[9px] text-gray-400">by <span className="text-orange-400">{tmpl.userName}</span></span>
+                      <span className="text-[9px] text-gray-600 font-mono">{new Date(tmpl.createdAt).toLocaleDateString()}</span>
+                    </div>
                   </div>
-
-                  <div className="absolute bottom-0 left-0 right-0 p-3 bg-black/60 backdrop-blur-sm flex items-center justify-between border-t border-white/5">
-                    <span className="font-semibold text-xs text-white truncate">{tmpl.name}</span>
-                    <span className="text-[9px] text-gray-400">
-                      {tmpl.size.width}×{tmpl.size.height}
-                    </span>
-                  </div>
-                </button>
+                </div>
               ))}
+
+              {communityTemplates.length === 0 && !isLoadingCommunity && (
+                <div className="text-center py-12 px-4 border-2 border-dashed border-gray-800 rounded-2xl">
+                  <Icons.Users className="w-10 h-10 text-gray-700 mx-auto mb-3" />
+                  <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">No designs found</p>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        <div className="flex items-center gap-2 mb-2 p-2 bg-[#1e1e1e] rounded border border-gray-700">
+        <div className="flex items-center gap-2 p-2 bg-black/20 rounded border border-white/5">
           <input
             id="warn-replace"
             type="checkbox"
@@ -366,8 +363,8 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
             onChange={(e) => setShowReplaceWarning(e.target.checked)}
             className="accent-[#7d2ae8]"
           />
-          <label htmlFor="warn-replace" className="text-[11px] text-gray-400 cursor-pointer select-none">
-            Confirm before replacing canvas
+          <label htmlFor="warn-replace" className="text-[10px] text-gray-500 cursor-pointer select-none">
+            Confirm before replacing design
           </label>
         </div>
       </div>

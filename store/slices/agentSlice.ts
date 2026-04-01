@@ -55,7 +55,7 @@ export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get
       const state = get();
       const canvasSize = state.canvasSize || { width: 1080, height: 1080 };
       const activeArtboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
-      if (!activeArtboard) throw new Error("No active artboard");
+      if (!activeArtboard) {throw new Error("No active artboard");}
 
       const targetLayers = activeArtboard.layers.filter((l: Layer) => layerIds.includes(l.id));
       const contextLayers = activeArtboard.layers.filter((l: Layer) => !layerIds.includes(l.id));
@@ -83,13 +83,13 @@ export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get
   applyAgentVariant: (variantId: string) => {
     const state = get();
     const variant = state.agentVariants.find((v: AgentVariant) => v.id === variantId);
-    if (!variant || !state.activeArtboardId) return;
+    if (!variant || !state.activeArtboardId) {return;}
 
     // Use the user's new batching system for a smooth Undo experience
-    if (state.beginBatch) state.beginBatch();
+    if (state.beginBatch) {state.beginBatch();}
 
     const activeArtboardIndex = state.artboards.findIndex((a: any) => a.id === state.activeArtboardId);
-    if (activeArtboardIndex === -1) return;
+    if (activeArtboardIndex === -1) {return;}
 
     const newArtboards = [...state.artboards];
     const artboard = newArtboards[activeArtboardIndex];
@@ -113,7 +113,7 @@ export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get
     }
 
     set({ artboards: newArtboards });
-    if (state.endBatch) state.endBatch();
+    if (state.endBatch) {state.endBatch();}
   },
 
   resetAgentState: () => {

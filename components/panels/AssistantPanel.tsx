@@ -63,7 +63,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
   }, [agentStatus]);
 
   const handleStartWorkflow = () => {
-    if (!input.trim()) return;
+    if (!input.trim()) {return;}
     if (isRefining) {
       runAgenticRefine(input, selectedLayerIds);
     } else {

@@ -618,7 +618,24 @@ export const LayersPanel = React.memo(() => {
 
   const handleSelectMultiple = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    multiSelectLayer(id, e.shiftKey || e.ctrlKey || e.metaKey);
+    const isModifier = e.shiftKey || e.ctrlKey || e.metaKey;
+    
+    if (e.shiftKey && selectedLayerIds.length > 0) {
+      // Range Selection Logic
+      const lastSelectedId = selectedLayerIds[selectedLayerIds.length - 1];
+      const lastIdx = displayLayers.findIndex(l => l.id === lastSelectedId);
+      const currentIdx = displayLayers.findIndex(l => l.id === id);
+      
+      if (lastIdx !== -1 && currentIdx !== -1) {
+        const start = Math.min(lastIdx, currentIdx);
+        const end = Math.max(lastIdx, currentIdx);
+        const rangeIds = displayLayers.slice(start, end + 1).map(l => l.id);
+        setSelectedLayerIds(Array.from(new Set([...selectedLayerIds, ...rangeIds])));
+        return;
+      }
+    }
+    
+    multiSelectLayer(id, isModifier);
   };
 
   const handleBatchVisibility = (visible: boolean) => {

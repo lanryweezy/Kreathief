@@ -17,13 +17,13 @@ export const VersionDiffModal: React.FC = () => {
   const [rightAbIndex] = useState(0);
 
   useEffect(() => {
-    if (show && projectId) fetchSnapshots();
+    if (show && projectId) {fetchSnapshots();}
   }, [show, projectId, fetchSnapshots]);
 
   const leftSnapshot = useMemo(() => (leftId==='live' ? null : snapshots?.find(s => s.id === leftId) || null), [snapshots, leftId]);
   const rightSnapshot = useMemo(() => snapshots?.find((s) => s.id === rightId) || snapshots?.[0], [snapshots, rightId]);
 
-  if (!show) return null;
+  if (!show) {return null;}
 
   const leftState:any = leftSnapshot ? leftSnapshot.state : { artboards };
   const rightState:any = rightSnapshot?.state;
@@ -31,15 +31,15 @@ export const VersionDiffModal: React.FC = () => {
   const rightAb = rightState?.artboards?.[rightAbIndex] || rightState?.artboards?.[0];
 
   const diffs = useMemo(() => {
-    if (!leftAb || !rightAb) return [];
+    if (!leftAb || !rightAb) {return [];}
     const leftLayers = (leftAb?.layers || []).map((l:any)=>({id:l.id,name:l.name,type:l.type,w:l.width,h:l.height,x:l.x,y:l.y}));
     const rightLayers = (rightAb?.layers || []).map((l:any)=>({id:l.id,name:l.name,type:l.type,w:l.width,h:l.height,x:l.x,y:l.y,rot:l.rotation,op:l.opacity,col:(l.color||l.fill||''),vis:l.visible}));
     const leftMap = new Map(leftLayers.map((l:any)=>[l.id,l]));
     const rightMap = new Map(rightLayers.map((l:any)=>[l.id,l]));
     const results: string[] = [];
-    leftLayers.forEach((l:any)=>{ if(!rightMap.has(l.id)) results.push(`Removed: ${l.name||l.type}`); });
-    rightLayers.forEach((r:any)=>{ if(!leftMap.has(r.id)) results.push(`Added: ${r.name||r.type}`); });
-    leftLayers.forEach((l:any)=>{ const r = rightMap.get(l.id) as any; if(r){ if(l.x!==r.x||l.y!==r.y) results.push(`Moved: ${l.name||l.type}`); if(l.w!==r.w||l.h!==r.h) results.push(`Resized: ${l.name||l.type}`);} });
+    leftLayers.forEach((l:any)=>{ if(!rightMap.has(l.id)) {results.push(`Removed: ${l.name||l.type}`);} });
+    rightLayers.forEach((r:any)=>{ if(!leftMap.has(r.id)) {results.push(`Added: ${r.name||r.type}`);} });
+    leftLayers.forEach((l:any)=>{ const r = rightMap.get(l.id) as any; if(r){ if(l.x!==r.x||l.y!==r.y) {results.push(`Moved: ${l.name||l.type}`);} if(l.w!==r.w||l.h!==r.h) {results.push(`Resized: ${l.name||l.type}`);}} });
     return results.slice(0, 24);
   }, [leftAb, rightAb]);
 

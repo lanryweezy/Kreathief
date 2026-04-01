@@ -21,7 +21,7 @@ export const aiModelsService = {
    * FLUX.1 [dev] - Top-tier Text-to-Image
    */
   async generateFluxImage(prompt: string, aspectRatio: string = '1:1') {
-    if (!this.isConfigured()) throw new Error('Fal.ai API Key missing');
+    if (!this.isConfigured()) {throw new Error('Fal.ai API Key missing');}
 
     const response = await fetch('https://fal.run/fal-ai/flux/dev', {
       method: 'POST',
@@ -35,7 +35,7 @@ export const aiModelsService = {
       }),
     });
 
-    if (!response.ok) throw new Error('Flux Generation failed');
+    if (!response.ok) {throw new Error('Flux Generation failed');}
     const data: FalResponse = await response.json();
     return data.images?.[0]?.url || data.image?.url;
   },
@@ -44,7 +44,7 @@ export const aiModelsService = {
    * Stable Diffusion XL - Inpainting / Generative Fill
    */
   async generativeFillSDXL(baseImage: string, maskImage: string, prompt: string) {
-    if (!this.isConfigured()) throw new Error('Fal.ai API Key missing');
+    if (!this.isConfigured()) {throw new Error('Fal.ai API Key missing');}
 
     const response = await fetch('https://fal.run/fal-ai/sdxl/inpainting', {
       method: 'POST',
@@ -59,7 +59,7 @@ export const aiModelsService = {
       }),
     });
 
-    if (!response.ok) throw new Error('SDXL Inpainting failed');
+    if (!response.ok) {throw new Error('SDXL Inpainting failed');}
     const data: FalResponse = await response.json();
     return data.images?.[0]?.url || data.image?.url;
   },
@@ -68,7 +68,7 @@ export const aiModelsService = {
    * Recraft V3 - Vector (SVG) generation
    */
   async generateVectorRecraft(prompt: string) {
-    if (!this.isConfigured()) throw new Error('Fal.ai API Key missing');
+    if (!this.isConfigured()) {throw new Error('Fal.ai API Key missing');}
 
     const response = await fetch('https://fal.run/fal-ai/recraft-v3/vector', {
       method: 'POST',
@@ -82,7 +82,7 @@ export const aiModelsService = {
       }),
     });
 
-    if (!response.ok) throw new Error('Recraft Vector Generation failed');
+    if (!response.ok) {throw new Error('Recraft Vector Generation failed');}
     const data: FalResponse = await response.json();
     return data.vector_svg || data.images?.[0]?.url;
   },
@@ -91,7 +91,7 @@ export const aiModelsService = {
    * AuraSR - Super Resolution Upscaler (up to 4K)
    */
   async upscaleImage(imageUrl: string) {
-    if (!this.isConfigured()) throw new Error('Fal.ai API Key missing');
+    if (!this.isConfigured()) {throw new Error('Fal.ai API Key missing');}
 
     const response = await fetch('https://fal.run/fal-ai/aura-sr', {
       method: 'POST',
@@ -104,7 +104,7 @@ export const aiModelsService = {
       }),
     });
 
-    if (!response.ok) throw new Error('Upscaling failed');
+    if (!response.ok) {throw new Error('Upscaling failed');}
     const data: any = await response.json();
     return data.image?.url;
   }

@@ -91,11 +91,24 @@ const App: React.FC = () => {
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, [location.pathname, navigate]);
 
   const handleLogin = (user: User) => {
     setUser(user);
     navigate('/dashboard');
+  };
+
+  const handleGuestEntry = () => {
+    const guestUser: User = {
+      id: `guest_${Math.random().toString(36).slice(2, 9)}`,
+      email: 'guest@kreathief.local',
+      name: 'Guest Creator',
+      avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=guest`,
+      plan: 'free',
+      isGuest: true
+    };
+    setUser(guestUser);
+    navigate('/editor');
   };
 
   const handleLogout = async () => {
@@ -182,7 +195,15 @@ const App: React.FC = () => {
       <SEO />
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
-          <Route path="/" element={<LandingPage onGetStarted={() => navigate('/auth')} />} />
+          <Route 
+            path="/" 
+            element={
+              <LandingPage 
+                onGetStarted={handleGuestEntry} 
+                onTryGuest={handleGuestEntry}
+              />
+            } 
+          />
           <Route path="/auth" element={<Auth onLogin={handleLogin} />} />
           <Route
             path="/dashboard"

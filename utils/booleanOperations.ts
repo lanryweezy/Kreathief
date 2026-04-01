@@ -1,12 +1,11 @@
 import paper from 'paper/dist/paper-core';
-import { VectorPath } from '../types';
+import { VectorPath, VectorPoint } from '../types';
 import { VectorUtils } from './vectorUtils';
 
 let paperInitialized = false;
 
 function initPaper() {
   if (!paperInitialized) {
-    // Size doesn't matter for pure vector math
     paper.setup(new paper.Size(1, 1));
     paperInitialized = true;
   }
@@ -14,49 +13,121 @@ function initPaper() {
 
 export class BooleanOperations {
   /**
-   * Run a Paper.js boolean operation
+   * Converts our internal VectorPath to a Paper.js PathItem
    */
-  private static runBoolean(pathA: VectorPath, pathB: VectorPath, operation: 'unite' | 'subtract' | 'intersect' | 'exclude'): VectorPath {
+  private static vectorPathToPaper(path: VectorPath): paper.PathItem {
     initPaper();
+    const paperPath = new paper.Path();
     
-    // Import SVG data into Paper.js
-    const svgA = `<svg><path d="${VectorUtils.serializePath(pathA)}" /></svg>`;
-    const svgB = `<svg><path d="${VectorUtils.serializePath(pathB)}" /></svg>`;
+    path.points.forEach((point, i) => {
+      if (i === 0 || point.isMove) {
+        paperPath.moveTo(new paper.Point(point.x, point.y));
+      } else {
+        const prev = path.points[i - 1];
+        if (prev && (prev.handleOut || point.handleIn)) {
+          const cp1 = prev.handleOut ? new paper.Point(prev.handleOut.x, prev.handleOut.y) : new paper.Point(0, 0);
+          const cp2 = point.handleIn ? new paper.Point(point.handleIn.x, point.handleIn.y) : new paper.Point(0, 0);
+          paperPath.cubicCurveTo(
+            new paper.Point(prev.x, prev.y).add(cp1),
+            new paper.Point(point.x, point.y).add(cp2),
+            new paper.Point(point.x, point.y)
+          );
+        } else {
+          paperPath.lineTo(new paper.Point(point.x, point.y));
+        }
+      }
+    });
+
+    if (path.isClosed) {
+      paperPath.closed = true;
+    }
+
+    return paperPath;
+  }
+
+  /**
+   * Converts a Paper.js PathItem back to our internal VectorPath
+   */
+  private static paperToVectorPath(pathItem: paper.PathItem): VectorPath {
+    const points: VectorPoint[] = [];
     
-    const groupA = paper.project.importSVG(svgA) as paper.Group;
-    const groupB = paper.project.importSVG(svgB) as paper.Group;
-    
-    // Extract paths from groups
-    const itemA = groupA.children[0] as paper.PathItem;
-    const itemB = groupB.children[0] as paper.PathItem;
-    
-    if (!itemA || !itemB) {
-      if (groupA) {groupA.remove();}
-      if (groupB) {groupB.remove();}
+    if (pathItem instanceof paper.Path) {
+      pathItem.segments.forEach((segment) => {
+        const pt = VectorUtils.createPoint(segment.point.x, segment.point.y);
+        if (segment.handleIn.x !== 0 || segment.handleIn.y !== 0) {
+          pt.handleIn = { x: segment.handleIn.x, y: segment.handleIn.y };
+        }
+        if (segment.handleOut.x !== 0 || segment.handleOut.y !== 0) {
+          pt.handleOut = { x: segment.handleOut.x, y: segment.handleOut.y };
+        }
+        points.push(pt);
+      });
+      
+      return {
+        points,
+        isClosed: pathItem.closed
+      };
+    } else if (pathItem instanceof paper.CompoundPath) {
+      // Handle compound paths (e.g. shapes with holes)
+      // For now, we flatten or take the first child to maintain compatibility 
+      // with the single-path layer system, or use isMove for sub-paths.
+      pathItem.children.forEach((child: any) => {
+        if (child instanceof paper.Path) {
+          child.segments.forEach((segment, i) => {
+            const pt = VectorUtils.createPoint(segment.point.x, segment.point.y);
+            if (i === 0 && points.length > 0) {pt.isMove = true;}
+            if (segment.handleIn.x !== 0 || segment.handleIn.y !== 0) {
+              pt.handleIn = { x: segment.handleIn.x, y: segment.handleIn.y };
+            }
+            if (segment.handleOut.x !== 0 || segment.handleOut.y !== 0) {
+              pt.handleOut = { x: segment.handleOut.x, y: segment.handleOut.y };
+            }
+            points.push(pt);
+          });
+        }
+      });
+      return {
+        points,
+        isClosed: true
+      };
+    }
+
+    return { points: [], isClosed: false };
+  }
+
+  private static runBoolean(pathA: VectorPath, pathB: VectorPath, operation: 'unite' | 'subtract' | 'intersect' | 'exclude'): VectorPath {
+    const itemA = this.vectorPathToPaper(pathA);
+    const itemB = this.vectorPathToPaper(pathB);
+
+    // FIX: Use try-finally for guaranteed cleanup
+    try {
+      const result = itemA[operation](itemB);
+      const vectorResult = this.paperToVectorPath(result);
+
+      // FIX: Defer cleanup to avoid race conditions
+      setTimeout(() => {
+        try {
+          itemA.remove();
+          itemB.remove();
+          result.remove();
+        } catch (e) {
+          // Items may already be removed
+        }
+      }, 0);
+
+      return vectorResult;
+    } catch (e) {
+      // FIX: Ensure cleanup on error too
+      setTimeout(() => {
+        try {
+          itemA.remove();
+          itemB.remove();
+        } catch (cleanupError) {
+          // Ignore cleanup errors
+        }
+      }, 0);
       return pathA;
     }
-    
-    // Perform operation
-    const result = itemA[operation](itemB);
-    
-    // Convert resulting PathItem to SVG path data string
-    const resultSvgString = result.exportSVG({ asString: true }) as string;
-    
-    // Clean up memory
-    groupA.remove();
-    groupB.remove();
-    itemA.remove();
-    itemB.remove();
-    result.remove();
-    
-    // Extract 'd' attribute using a simple regex since it's an isolated shape
-    const match = resultSvgString.match(/d="([^"]+)"/);
-    if (!match || !match[1]) {
-      return pathA; 
-    }
-    
-    // Parse it back to our unified VectorPath format (now with sub-path support via isMove)
-    return VectorUtils.parsePath(match[1]);
   }
 
   static union(pathA: VectorPath, pathB: VectorPath): VectorPath {
@@ -75,9 +146,6 @@ export class BooleanOperations {
     return this.runBoolean(pathA, pathB, 'exclude');
   }
 
-  /**
-   * Flattens a Bézier path into a series of line segments with adaptive sampling
-   */
   static flatten(path: VectorPath, _tolerance = 1.0): { x: number; y: number }[] {
     if (path.points.length === 0) {return [];}
     const flattened: { x: number; y: number }[] = [];

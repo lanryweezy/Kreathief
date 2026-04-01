@@ -20,14 +20,28 @@ export const ComparisonSection: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-6 relative z-30">
         <div className="text-center mb-24">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-block mb-6"
+          >
+            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20">
+              <Icons.X className="w-3 h-3 text-red-400" />
+              <span className="text-xs font-black uppercase tracking-[0.2em] text-red-400">Stop Overpaying</span>
+            </div>
+          </motion.div>
+
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-4xl md:text-6xl font-black mb-6 tracking-tighter text-white"
+            className="text-5xl md:text-7xl font-black mb-6 tracking-tighter text-white"
           >
-            Enough with the <br />
-            <span className="text-red-500">Subscription Trap.</span>
+            One tool. <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400">
+              Not five subscriptions.
+            </span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -36,8 +50,7 @@ export const ComparisonSection: React.FC = () => {
             transition={{ delay: 0.1 }}
             className="text-xl text-gray-400 font-medium max-w-2xl mx-auto"
           >
-            Other tools lock you into expensive monthly fees just to access basic features. We believe in empowering
-            creators, not taxing them.
+            Stop juggling Figma, Photoshop, Midjourney, and three other tools. Everything you need in one place.
           </motion.p>
         </div>
 
@@ -49,8 +62,8 @@ export const ComparisonSection: React.FC = () => {
             viewport={{ once: true }}
             className="flex-1 w-full bg-[#0a0a0c] border border-red-900/30 rounded-3xl p-10 opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-500"
           >
-            <h3 className="text-2xl font-bold text-gray-500 mb-8 tracking-widest uppercase text-center">
-              The Other Guys
+            <h3 className="text-2xl font-black text-gray-500 mb-8 tracking-widest uppercase text-center line-through">
+              Traditional Workflow
             </h3>
             <div className="space-y-6">
               {[
@@ -67,8 +80,10 @@ export const ComparisonSection: React.FC = () => {
               ))}
             </div>
             <div className="mt-10 pt-10 border-t border-red-900/20 text-center">
-              <span className="text-4xl font-black text-gray-300">$360</span>
+              <div className="text-sm text-gray-500 mb-2 uppercase tracking-wider">Total Cost</div>
+              <span className="text-5xl font-black text-gray-300 line-through">$360</span>
               <span className="text-gray-500 ml-2">/ year</span>
+              <p className="text-xs text-gray-600 mt-3">Figma + Adobe + Midjourney + Storage</p>
             </div>
           </motion.div>
 
@@ -103,10 +118,15 @@ export const ComparisonSection: React.FC = () => {
               ))}
             </div>
             <div className="mt-10 pt-10 border-t border-purple-500/20 text-center">
-              <span className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
-                Free
+              <div className="text-sm text-purple-400 mb-2 uppercase tracking-wider font-black">All-In-One Price</div>
+              <span className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                $192
               </span>
-              <span className="text-gray-400 ml-2 font-medium">to get started</span>
+              <span className="text-gray-400 ml-2 font-medium">/ year</span>
+              <p className="text-xs text-gray-500 mt-3">Everything included. No hidden fees.</p>
+              <div className="mt-4 inline-block px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full">
+                <span className="text-green-400 font-black text-sm">Save $168/year</span>
+              </div>
             </div>
 
             <button className="w-full mt-8 py-4 bg-white text-black rounded-xl font-bold uppercase tracking-widest text-[11px] hover:bg-gray-200 transition-all">

@@ -3,6 +3,7 @@ import { Icons } from '../../constants';
 import * as unsplashService from '../../services/unsplashService';
 import * as freepikService from '../../services/freepikService';
 import { vecteezyService } from '../../services/vecteezyService';
+import { iconScoutService, IconScoutAssetType } from '../../services/iconScoutService';
 import { useStore } from '../../store/useStore';
 import { v4 as uuidv4 } from 'uuid';
 import { log } from '../../utils/log';
@@ -14,18 +15,19 @@ interface PhotoItem {
   alt: string;
   author: string;
   authorLink?: string;
-  source: 'unsplash' | 'freepik' | 'vecteezy';
+  source: 'unsplash' | 'freepik' | 'vecteezy' | 'iconscout';
+  type?: string;
 }
 
 export const AssetsPanel: React.FC = () => {
   const addLayer = useStore((state) => state.addLayer);
   const canvasSize = useStore((state) => state.canvasSize);
 
-  const onAddImageLayer = (src: string) => {
+  const onAddImageLayer = (src: string, type: string = 'image') => {
     addLayer({
       id: uuidv4(),
-      type: 'image',
-      name: 'Photo',
+      type: type as any,
+      name: type === 'lottie' ? 'Animation' : 'Asset',
       src,
       x: canvasSize.width / 2 - 150,
       y: canvasSize.height / 2 - 150,
@@ -35,32 +37,19 @@ export const AssetsPanel: React.FC = () => {
       opacity: 1,
       locked: false,
       visible: true,
-      flipX: false,
-      flipY: false,
       blendMode: 'normal',
-      filters: {
-        brightness: 100,
-        contrast: 100,
-        saturation: 100,
-        grayscale: 0,
-        blur: 0,
-        sepia: 0,
-        hueRotate: 0,
-        vignette: 0,
-        opacity: 1,
-      },
-      skewX: 0,
-      skewY: 0,
     } as any);
   };
+
   const [query, setQuery] = useState('');
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [activeSource, setActiveSource] = useState<'all' | 'unsplash' | 'freepik' | 'vecteezy'>('all');
+  const [activeSource, setActiveSource] = useState<'all' | 'unsplash' | 'freepik' | 'vecteezy' | 'iconscout'>('all');
+  const [iconScoutType, setIconScoutType] = useState<IconScoutAssetType>('3d');
 
   useEffect(() => {
-    handleSearch('nature');
+    handleSearch('abstract');
   }, []);
 
   const handleSearch = async (searchQuery: string) => {
@@ -68,6 +57,25 @@ export const AssetsPanel: React.FC = () => {
     setHasSearched(true);
     try {
       const combined: PhotoItem[] = [];
+
+      if (activeSource === 'all' || activeSource === 'iconscout') {
+        try {
+          const isResults = await iconScoutService.search(searchQuery || 'trending', iconScoutType);
+          isResults.forEach(asset => {
+            combined.push({
+              id: `is-${asset.uuid}`,
+              url: asset.previewUrl,
+              thumbnail: asset.previewUrl,
+              alt: asset.name,
+              author: asset.author,
+              source: 'iconscout',
+              type: asset.type === 'lottie' ? 'lottie' : 'image'
+            });
+          });
+        } catch (e) {
+          log.error('IconScout search failed', e);
+        }
+      }
 
       if (activeSource === 'all' || activeSource === 'unsplash') {
         try {
@@ -102,7 +110,7 @@ export const AssetsPanel: React.FC = () => {
             });
           });
         } catch (e) {
-          console.error('Freepik search failed:', e);
+          log.error('Freepik search failed', e);
         }
       }
 
@@ -120,18 +128,22 @@ export const AssetsPanel: React.FC = () => {
             });
           });
         } catch (e) {
-          console.error('Vecteezy search failed:', e);
+          log.error('Vecteezy search failed', e);
         }
       }
 
       // Interleave results from all active sources for variety
       if (activeSource === 'all' && combined.length > 0) {
+        const iconscout = combined.filter((p) => p.source === 'iconscout');
         const unsplash = combined.filter((p) => p.source === 'unsplash');
         const freepik = combined.filter((p) => p.source === 'freepik');
         const vecteezy = combined.filter((p) => p.source === 'vecteezy');
         const interleaved: PhotoItem[] = [];
-        const maxLen = Math.max(unsplash.length, freepik.length, vecteezy.length);
+        const maxLen = Math.max(iconscout.length, unsplash.length, freepik.length, vecteezy.length);
         for (let i = 0; i < maxLen; i++) {
+          if (i < iconscout.length) {
+            interleaved.push(iconscout[i]);
+          }
           if (i < unsplash.length) {
             interleaved.push(unsplash[i]);
           }
@@ -147,7 +159,7 @@ export const AssetsPanel: React.FC = () => {
         setPhotos(combined);
       }
     } catch (e) {
-      console.error(e);
+      log.error('Search error', e);
     } finally {
       setIsLoading(false);
     }
@@ -155,9 +167,17 @@ export const AssetsPanel: React.FC = () => {
 
   const sources = [
     { id: 'all' as const, label: 'All' },
+    { id: 'iconscout' as const, label: 'IconScout' },
     { id: 'unsplash' as const, label: 'Unsplash' },
     { id: 'freepik' as const, label: 'Freepik' },
     { id: 'vecteezy' as const, label: 'Vecteezy' },
+  ];
+
+  const iconScoutTypes: { id: IconScoutAssetType; label: string }[] = [
+    { id: '3d', label: '3D' },
+    { id: 'icon', label: 'Icons' },
+    { id: 'illustration', label: 'Illustrations' },
+    { id: 'lottie', label: 'Lottie' },
   ];
 
   return (
@@ -168,7 +188,7 @@ export const AssetsPanel: React.FC = () => {
       </h3>
 
       {/* Source Tabs */}
-      <div className="flex gap-1 mb-4 p-0.5 bg-[#1a1a1a] rounded-lg">
+      <div className="flex gap-1 mb-3 p-0.5 bg-[#1a1a1a] rounded-lg">
         {sources.map((src) => (
           <button
             key={src.id}
@@ -186,6 +206,28 @@ export const AssetsPanel: React.FC = () => {
           </button>
         ))}
       </div>
+
+      {/* IconScout Type Selector */}
+      {(activeSource === 'iconscout' || activeSource === 'all') && (
+        <div className="flex gap-1 mb-4 p-0.5 bg-[#1a1a1a] rounded-lg">
+          {iconScoutTypes.map((type) => (
+            <button
+              key={type.id}
+              onClick={() => {
+                setIconScoutType(type.id);
+                if (hasSearched) {
+                  handleSearch(query || 'trending');
+                }
+              }}
+              className={`flex-1 py-1.5 rounded-md text-[9px] font-medium transition-all ${
+                iconScoutType === type.id ? 'bg-[#00c4cc]/20 text-[#00c4cc] border border-[#00c4cc]' : 'text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              {type.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="relative mb-4">
         <input
@@ -239,14 +281,16 @@ export const AssetsPanel: React.FC = () => {
                     </div>
                     <span
                       className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${
-                        photo.source === 'unsplash'
-                          ? 'bg-white/20 text-white'
-                          : photo.source === 'freepik'
-                            ? 'bg-emerald-500/30 text-emerald-300'
-                            : 'bg-orange-500/30 text-orange-300'
+                        photo.source === 'iconscout'
+                          ? 'bg-blue-500/30 text-blue-300'
+                          : photo.source === 'unsplash'
+                            ? 'bg-white/20 text-white'
+                            : photo.source === 'freepik'
+                              ? 'bg-emerald-500/30 text-emerald-300'
+                              : 'bg-orange-500/30 text-orange-300'
                       }`}
                     >
-                      {photo.source === 'unsplash' ? 'U' : photo.source === 'freepik' ? 'F' : 'V'}
+                      {photo.source === 'iconscout' ? 'IS' : photo.source === 'unsplash' ? 'U' : photo.source === 'freepik' ? 'F' : 'V'}
                     </span>
                   </div>
                 </div>

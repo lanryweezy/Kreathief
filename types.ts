@@ -43,6 +43,15 @@ export enum BrushType {
   SPLATTER = 'splatter',
   TEXTURE = 'texture',
   ERASER = 'eraser',
+  CUSTOM = 'custom',
+}
+
+export interface CustomBrush {
+  id: string;
+  name: string;
+  tipData: string; // Base64 sampled bitmap
+  size: number;
+  spacing: number;
 }
 
 export enum AspectRatio {
@@ -183,6 +192,11 @@ export interface LayerBase {
   overrides?: string[]; // Properties that are overridden from the Master
   // Auto-Layout
   autoLayout?: AutoLayoutSettings;
+  // Layout Constraints for Semantic Resizing
+  constraints?: {
+    horizontal: 'start' | 'end' | 'center' | 'scale' | 'both';
+    vertical: 'start' | 'end' | 'center' | 'scale' | 'both';
+  };
 }
 
 export interface TextLayer extends LayerBase {
@@ -367,13 +381,6 @@ export interface GenerationConfig {
   referenceImage?: string; // Base64 string for editing
 }
 
-export interface GeneratedImage {
-  id: string;
-  url: string;
-  prompt: string;
-  timestamp: number;
-}
-
 export interface HistoryState {
   artboards: Artboard[];
   activeArtboardId?: string;
@@ -465,6 +472,7 @@ export interface User {
   email: string;
   plan: UserPlan;
   avatar?: string;
+  isGuest?: boolean;
 }
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';

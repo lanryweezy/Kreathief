@@ -83,8 +83,9 @@ export class SnappingOracle {
 
     const adjustedThreshold = threshold / zoom;
 
-    // 3. Find closest snaps for X
+    // 3. FIX: Find closest snaps for X - track best snap separately
     let bestDiffX = adjustedThreshold;
+    let bestSnapX: { value: number; origin: number; extent: number } | null = null;
     const selectionXEdges = [minX, maxX, selectionCenterX];
 
     selectionXEdges.forEach((edge) => {
@@ -92,20 +93,25 @@ export class SnappingOracle {
         const diff = Math.abs(edge - target.value);
         if (diff < bestDiffX) {
           bestDiffX = diff;
+          bestSnapX = target;
           result.x = target.value - (edge - minX);
-          result.lines = result.lines.filter((l) => l.type !== 'vertical');
-          result.lines.push({
-            type: 'vertical',
-            value: target.value,
-            origin: Math.min(minY, target.origin),
-            extent: Math.max(maxY, target.origin + target.extent) - Math.min(minY, target.origin),
-          });
         }
       });
     });
 
-    // 4. Find closest snaps for Y
+    // FIX: Add snap line AFTER finding best snap (not during iteration)
+    if (bestSnapX) {
+      result.lines.push({
+        type: 'vertical',
+        value: bestSnapX.value,
+        origin: Math.min(minY, bestSnapX.origin),
+        extent: Math.max(maxY, bestSnapX.origin + bestSnapX.extent) - Math.min(minY, bestSnapX.origin),
+      });
+    }
+
+    // 4. FIX: Find closest snaps for Y - track best snap separately
     let bestDiffY = adjustedThreshold;
+    let bestSnapY: { value: number; origin: number; extent: number } | null = null;
     const selectionYEdges = [minY, maxY, selectionCenterY];
 
     selectionYEdges.forEach((edge) => {
@@ -113,17 +119,21 @@ export class SnappingOracle {
         const diff = Math.abs(edge - target.value);
         if (diff < bestDiffY) {
           bestDiffY = diff;
+          bestSnapY = target;
           result.y = target.value - (edge - minY);
-          result.lines = result.lines.filter((l) => l.type !== 'horizontal');
-          result.lines.push({
-            type: 'horizontal',
-            value: target.value,
-            origin: Math.min(minX, target.origin),
-            extent: Math.max(maxX, target.origin + target.extent) - Math.min(minX, target.origin),
-          });
         }
       });
     });
+
+    // FIX: Add snap line AFTER finding best snap (not during iteration)
+    if (bestSnapY) {
+      result.lines.push({
+        type: 'horizontal',
+        value: bestSnapY.value,
+        origin: Math.min(minX, bestSnapY.origin),
+        extent: Math.max(maxX, bestSnapY.origin + bestSnapY.extent) - Math.min(minX, bestSnapY.origin),
+      });
+    }
 
     return result;
   }

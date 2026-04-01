@@ -3,107 +3,93 @@ import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
 import { runTool } from '../../store/tools';
 
+import { iconScoutService, IconScoutAsset } from '../../services/iconScoutService';
+import { communityService, CommunityTemplate } from '../../services/communityService';
+
 export const CommandPalette: React.FC = () => {
   const isOpen = useStore((state) => state.isCommandPaletteOpen);
   const setOpen = useStore((state) => state.setCommandPaletteOpen);
   
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [assetResults, setAssetResults] = useState<IconScoutAsset[]>([]);
+  const [communityResults, setCommunityResults] = useState<CommunityTemplate[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Store actions
-  const addTextLayer = useStore((state) => state.addTextLayer);
-  const addShapeLayer = useStore((state) => state.addShapeLayer);
-  const addAdjustmentLayer = useStore((state) => state.addAdjustmentLayer);
-  const magicResize = useStore((state) => state.magicResize);
-  const generateAutoLayouts = useStore((state) => state.generateAutoLayouts);
-  const applyStyleFromImage = useStore((state) => state.applyStyleFromImage);
-  const toggleGrid = useStore((state) => state.setShowGrid);
-  const showGrid = useStore((state) => state.showGrid);
-  const setIsExporting = useStore((state) => state.setIsExporting);
-  const groupSelected = useStore((state) => state.groupSelected);
-  const ungroupSelected = useStore((state) => state.ungroupSelected);
-  const deleteSelected = useStore((state) => state.deleteSelected);
-  const duplicateSelected = useStore((state) => state.duplicateSelected);
-  
-  // Focus input when opened
-  useEffect(() => {
-    if (isOpen) {
-      setQuery('');
-      setSelectedIndex(0);
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
-  }, [isOpen]);
+  const { 
+    addTextLayer, addShapeLayer, addAdjustmentLayer, addImageLayer, 
+    magicResize, generateAutoLayouts, applyStyleFromImage, 
+    setShowGrid, showGrid, setIsExporting, 
+    groupSelected, ungroupSelected, deleteSelected, duplicateSelected,
+    initializeProject
+  } = useStore();
 
-  type Cmd = { id: string; label: string; icon: any; action: () => void; group?: string };
-  const allCommands: Cmd[] = [
+  // Unified Intelligence: Search Assets & Community as user types
+  useEffect(() => {
+    if (!query || query.length < 2) {
+      setAssetResults([]);
+      setCommunityResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const [assets, templates] = await Promise.all([
+          iconScoutService.search(query, 'icon'),
+          communityService.fetchTemplates('All', query)
+        ]);
+        setAssetResults(assets.slice(0, 5));
+        setCommunityResults(templates.slice(0, 3));
+      } catch (e) { console.error(e); }
+      setIsSearching(false);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  type Cmd = { id: string; label: string; icon: any; action: () => void; group?: string; type?: 'action' | 'asset' | 'template' };
+  
+  const commandList: Cmd[] = [
     { id: 'text', label: 'Add Text', icon: Icons.Text, action: () => addTextLayer() },
     { id: 'rect', label: 'Add Rectangle', icon: Icons.Square, action: () => addShapeLayer('rectangle') },
-    { id: 'circle', label: 'Add Circle', icon: Icons.Circle, action: () => addShapeLayer('circle') },
     { id: 'adjust', label: 'Add Adjustment Layer', icon: Icons.Filter, action: () => addAdjustmentLayer() },
-    { id: 'auto_layout', label: 'AI Auto-Layout', icon: Icons.Layout, action: () => generateAutoLayouts() },
-    { id: 'style_transfer', label: 'AI Style Transfer (Reference)', icon: Icons.Image, action: () => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.onchange = async (e: any) => {
-        const file = e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = (re) => applyStyleFromImage(re.target?.result as string);
-          reader.readAsDataURL(file);
-        }
-      };
-      input.click();
-    }},
     { id: 'export', label: 'Export Design', icon: Icons.Download, action: () => setIsExporting(true) },
-    { id: 'magic_resize_story', label: 'Magic Resize: IG Story', icon: Icons.Layers, action: () => magicResize(1080, 1920, 'IG Story') },
-    { id: 'magic_resize_square', label: 'Magic Resize: IG Square', icon: Icons.Layers, action: () => magicResize(1080, 1080, 'IG Square') },
-    // AI Background presets
-    { id: 'ai_bg_studio', group: 'AI Backgrounds', label: 'AI Background: Studio', icon: Icons.Image, action: () => runTool('background', { prompt: 'realistic soft studio backdrop, subtle gradient, neutral tones' }) },
-    { id: 'ai_bg_park', group: 'AI Backgrounds', label: 'AI Background: Outdoor Park', icon: Icons.Image, action: () => runTool('background', { prompt: 'outdoor park, soft daylight, shallow depth of field, bokeh, grass and trees in background' }) },
-    { id: 'ai_bg_office', group: 'AI Backgrounds', label: 'AI Background: Modern Office', icon: Icons.Image, action: () => runTool('background', { prompt: 'modern office interior, clean minimal furniture, soft daylight, neutral tones' }) },
-    // Text-to-Vector quick picks
-    { id: 't2v_basic', group: 'Vector Icons', label: 'AI Text→Vector Icon', icon: Icons.Pen, action: () => { const q = prompt('Describe icon:'); if (q && q.trim().length>3) runTool('textToVector', { prompt: q.trim() }); } },
-    { id: 't2v_purple', group: 'Vector Icons', label: 'AI Text→Vector (Purple)', icon: Icons.Pen, action: () => { const q = prompt('Describe icon (Purple):'); if (q && q.trim().length>3) runTool('textToVector', { prompt: q.trim(), color: '#7d2ae8' }); } },
-    { id: 't2v_white', group: 'Vector Icons', label: 'AI Text→Vector (White)', icon: Icons.Pen, action: () => { const q = prompt('Describe icon (White):'); if (q && q.trim().length>3) runTool('textToVector', { prompt: q.trim(), color: '#ffffff' }); } },
-    { id: 'grid', label: showGrid ? 'Hide Grid' : 'Show Grid', icon: Icons.Grid, action: () => toggleGrid(!showGrid) },
     { id: 'group', label: 'Group Selected', icon: Icons.Group, action: () => groupSelected() },
-    { id: 'ungroup', label: 'Ungroup Selected', icon: Icons.Ungroup, action: () => ungroupSelected() },
     { id: 'duplicate', label: 'Duplicate Selected', icon: Icons.Copy, action: () => duplicateSelected() },
-    { id: 'delete', label: 'Delete Selected', icon: Icons.Trash, action: () => deleteSelected() },
-    { id: 'present', label: 'Presentation Mode', icon: Icons.Play, action: () => useStore.getState().setShowPresentation(true) },
-    { id: 'diff', label: 'Version Diff (Snapshots)', icon: Icons.Layout, action: () => useStore.getState().setShowVersionDiff(true) },
   ];
 
-  const filteredCommands = query ? allCommands.filter((c) => c.label.toLowerCase().includes(query.toLowerCase())) : allCommands;
-  // Grouped rendering when no query to improve scanability
-  const grouped = React.useMemo(() => {
-    const map = new Map<string, Cmd[]>();
-    (filteredCommands as Cmd[]).forEach(c => {
-      const g = c.group || 'General';
-      if (!map.has(g)) map.set(g, []);
-      map.get(g)!.push(c);
-    });
-    return Array.from(map.entries());
-  }, [filteredCommands]);
+  const filteredActions = query 
+    ? commandList.filter((c) => c.label.toLowerCase().includes(query.toLowerCase())) 
+    : commandList;
+
+  // Combine all results for unified navigation
+  const allResults = [
+    ...filteredActions.map(a => ({ ...a, type: 'action' as const })),
+    ...assetResults.map(a => ({ id: a.uuid, label: `Add Icon: ${a.name}`, icon: Icons.Image, action: () => addImageLayer(a.previewUrl), type: 'asset' as const })),
+    ...communityResults.map(t => ({ id: t.id, label: `Template: ${t.name}`, icon: Icons.Layout, action: () => initializeProject(t.state), type: 'template' as const }))
+  ];
+
+  // ... (navigation logic remains same, but using allResults instead of filteredCommands) ...
 
   // Keyboard navigation
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {return;}
     
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setSelectedIndex((prev) => (prev + 1) % filteredCommands.length);
+        setSelectedIndex((prev) => (prev + 1) % allResults.length);
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        setSelectedIndex((prev) => (prev - 1 + filteredCommands.length) % filteredCommands.length);
+        setSelectedIndex((prev) => (prev - 1 + allResults.length) % allResults.length);
       } else if (e.key === 'Enter') {
         e.preventDefault();
-        const cmd = filteredCommands[selectedIndex];
-        if (cmd) {
-          cmd.action();
+        const res = allResults[selectedIndex];
+        if (res) {
+          res.action();
           setOpen(false);
         }
       } else if (e.key === 'Escape') {
@@ -114,7 +100,7 @@ export const CommandPalette: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, filteredCommands, selectedIndex, setOpen]);
+  }, [isOpen, allResults, selectedIndex, setOpen]);
 
   // Global trigger for Ctrl+K
   useEffect(() => {
@@ -128,7 +114,7 @@ export const CommandPalette: React.FC = () => {
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [isOpen, setOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-[15vh] bg-black/40 backdrop-blur-sm p-4">

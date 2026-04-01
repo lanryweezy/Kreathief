@@ -1,5 +1,11 @@
 import { StateCreator } from 'zustand';
-import { BrushType } from '../../types';
+import { BrushType, CustomBrush } from '../../types';
+
+// FIX: Add brush size limits to prevent performance issues
+const BRUSH_SIZE_MIN = 1;
+const BRUSH_SIZE_MAX = 500; // Reasonable max to prevent browser lag
+const BRUSH_VALUE_MIN = 0;
+const BRUSH_VALUE_MAX = 100;
 
 export interface DrawingSlice {
   isPenMode: boolean;
@@ -10,6 +16,8 @@ export interface DrawingSlice {
   brushSmoothing: number;
   brushJitter: number;
   textureIntensity: number;
+  customBrushes: CustomBrush[];
+  selectedCustomBrushId: string | null;
 
   setPenMode: (isDrawing: boolean) => void;
   setBrushColor: (color: string) => void;
@@ -19,6 +27,8 @@ export interface DrawingSlice {
   setBrushSmoothing: (smoothing: number) => void;
   setBrushJitter: (jitter: number) => void;
   setTextureIntensity: (val: number) => void;
+  addCustomBrushes: (brushes: CustomBrush[]) => void;
+  setSelectedCustomBrushId: (id: string | null) => void;
   toggleEraser: () => void;
 }
 
@@ -31,15 +41,36 @@ export const createDrawingSlice: StateCreator<DrawingSlice, [], [], DrawingSlice
   brushSmoothing: 50,
   brushJitter: 0,
   textureIntensity: 0.5,
+  customBrushes: [],
+  selectedCustomBrushId: null,
 
   setPenMode: (isPenMode) => set({ isPenMode }),
   setBrushColor: (brushColor) => set({ brushColor }),
-  setBrushSize: (brushSize) => set({ brushSize }),
+  
+  // FIX: Clamp brush size to valid range
+  setBrushSize: (brushSize) => {
+    const clampedSize = Math.max(BRUSH_SIZE_MIN, Math.min(BRUSH_SIZE_MAX, brushSize));
+    set({ brushSize: clampedSize });
+  },
+  
   setBrushOpacity: (brushOpacity) => set({ brushOpacity }),
   setBrushType: (brushType) => set({ brushType }),
-  setBrushSmoothing: (brushSmoothing) => set({ brushSmoothing }),
-  setBrushJitter: (brushJitter) => set({ brushJitter }),
+  
+  // FIX: Clamp smoothing to 0-100
+  setBrushSmoothing: (brushSmoothing) => {
+    const clamped = Math.max(BRUSH_VALUE_MIN, Math.min(BRUSH_VALUE_MAX, brushSmoothing));
+    set({ brushSmoothing: clamped });
+  },
+  
+  // FIX: Clamp jitter to 0-100
+  setBrushJitter: (brushJitter) => {
+    const clamped = Math.max(BRUSH_VALUE_MIN, Math.min(BRUSH_VALUE_MAX, brushJitter));
+    set({ brushJitter: clamped });
+  },
+  
   setTextureIntensity: (textureIntensity) => set({ textureIntensity }),
+  addCustomBrushes: (brushes) => set((state) => ({ customBrushes: [...state.customBrushes, ...brushes] })),
+  setSelectedCustomBrushId: (selectedCustomBrushId) => set({ selectedCustomBrushId }),
   toggleEraser: () =>
     set((state) => ({
       brushType: state.brushType === BrushType.ERASER ? BrushType.BASIC : BrushType.ERASER,

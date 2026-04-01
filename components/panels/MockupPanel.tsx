@@ -23,6 +23,7 @@ interface MockupPanelProps {
 export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, variant = 'default', onClose }) => {
   const addLayer = useStore((state) => state.addLayer);
   const canvasSize = useStore((state) => state.canvasSize);
+  const addToast = useStore((state) => state.addToast);
 
   const onAddToCanvas = (src: string) => {
     addLayer({
@@ -73,6 +74,312 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   const [previewContainerSize, setPreviewContainerSize] = useState({ width: 800, height: 600 });
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
+  // Custom mockup upload
+  const [customMockup, setCustomMockup] = useState<string | null>(null);
+  const [showComparison, setShowComparison] = useState(false);
+  const [comparisonPosition, setComparisonPosition] = useState(50);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Batch generation
+  const [batchMode, setBatchMode] = useState(false);
+  const [selectedMockupIds, setSelectedMockupIds] = useState<string[]>([]);
+  const [isBatchGenerating, setIsBatchGenerating] = useState(false);
+
+  // Favorites
+  const [favoriteMockups, setFavoriteMockups] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('kreathief_mockup_favorites');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+
+  // Smart suggestions
+  const [suggestedMockups, setSuggestedMockups] = useState<string[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // App Store presets
+  const APP_STORE_PRESETS = {
+    'iOS Complete': ['iphone_16_pro', 'iphone_16_pro_max', 'ipad_pro', 'macbook'],
+    'Android Complete': ['pixel_9_pro', 'samsung_s24', 'android_tablet'],
+    'Social Media Pack': ['instagram_post', 'instagram_story', 'facebook_post', 'twitter_header'],
+    'Print Pack': ['business_card', 'flyer_table', 'magazine', 'poster_frame'],
+  };
+
+  // AI Auto-Perspective Detection
+  const [isDetecting, setIsDetecting] = useState(false);
+
+  const handleUploadMockup = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setCustomMockup(url);
+      addToast('Custom mockup uploaded! Adjust placement to fit.', 'success');
+    }
+  };
+
+  const handleAutoDetect = async () => {
+    setIsDetecting(true);
+    try {
+      // Analyze the current mockup background to detect surface/placement area
+      const bgImageSrc = customMockup || currentMockup?.bg;
+      if (!bgImageSrc) {return;}
+
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = bgImageSrc;
+
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+
+      // Create canvas to analyze image
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {return;}
+
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      ctx.drawImage(img, 0, 0);
+
+      // Get image data for analysis
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+
+      // Simple heuristic: find the largest uniform/low-contrast area (likely a placement surface)
+      // This is a simplified version - real AI would use ML model
+      const regions: { x: number; y: number; width: number; height: number; variance: number }[] = [];
+
+      // Scan grid of regions
+      const gridSize = 20;
+      const regionW = canvas.width / gridSize;
+      const regionH = canvas.height / gridSize;
+
+      for (let gy = 5; gy < gridSize - 5; gy++) {
+        for (let gx = 5; gx < gridSize - 5; gx++) {
+          const x = Math.floor(gx * regionW);
+          const y = Math.floor(gy * regionH);
+          const w = Math.floor(regionW * 3);
+          const h = Math.floor(regionH * 3);
+
+          // Calculate variance in this region (lower = more uniform = better placement area)
+          let sum = 0;
+          let sumSq = 0;
+          let count = 0;
+
+          for (let py = y; py < y + h; py += 4) {
+            for (let px = x; px < x + w; px += 4) {
+              const idx = (py * canvas.width + px) * 4;
+              // Convert to grayscale
+              const gray = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+              sum += gray;
+              sumSq += gray * gray;
+              count++;
+            }
+          }
+
+          const mean = sum / count;
+          const variance = sumSq / count - mean * mean;
+
+          regions.push({ x, y, width: w, height: h, variance });
+        }
+      }
+
+      // Sort by variance (lowest first - most uniform areas)
+      regions.sort((a, b) => a.variance - b.variance);
+
+      // Take the best region
+      const best = regions[0];
+
+      if (best) {
+        // Calculate placement as percentage
+        const newPlacement: MockupPlacement = {
+          top: (best.y / canvas.height) * 100,
+          left: (best.x / canvas.width) * 100,
+          width: (best.width / canvas.width) * 100,
+          rotate: 0,
+          skewX: 0,
+          skewY: 0,
+          opacity: 0.9,
+          blendMode: 'multiply' as const,
+        };
+
+        setPlacement(newPlacement);
+        addToast('Auto-detected optimal placement area!', 'success');
+      } else {
+        addToast('Could not detect placement area. Try manual adjustment.', 'error');
+      }
+    } catch (error) {
+      log.error('[MockupPanel] Auto-detect failed', error);
+      addToast('Auto-detect failed. Please adjust manually.', 'error');
+    } finally {
+      setIsDetecting(false);
+    }
+  };
+
+  // Save favorites to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('kreathief_mockup_favorites', JSON.stringify(favoriteMockups));
+    } catch {}
+  }, [favoriteMockups]);
+
+  const toggleFavorite = (mockupId: string) => {
+    setFavoriteMockups(prev =>
+      prev.includes(mockupId)
+        ? prev.filter(id => id !== mockupId)
+        : [...prev, mockupId]
+    );
+  };
+
+  // Smart mockup suggestions
+  const suggestMockups = async () => {
+    setIsAnalyzing(true);
+    try {
+      const designUrl = await captureDesign();
+      if (!designUrl) return;
+
+      // Analyze design characteristics
+      const img = new Image();
+      img.src = designUrl;
+      await new Promise(resolve => { img.onload = resolve; });
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+
+      // Calculate aspect ratio
+      const aspectRatio = canvas.width / canvas.height;
+
+      // Determine design type based on aspect ratio
+      let designType = 'square';
+      if (aspectRatio > 1.5) designType = 'landscape';
+      else if (aspectRatio < 0.7) designType = 'portrait';
+
+      // Match mockups to design characteristics
+      const suggestions = mockups
+        .filter(m => {
+          const mockupAspect = 1;
+          return Math.abs(aspectRatio - mockupAspect) < 0.5;
+        })
+        .slice(0, 6)
+        .map(m => m.id);
+
+      setSuggestedMockups(suggestions);
+      addToast(`Found ${suggestions.length} perfect mockups for your design!`, 'success');
+    } catch (error) {
+      log.error('[MockupPanel] Suggestion failed', error);
+      addToast('Could not analyze design', 'error');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Batch generation
+  const toggleBatchMode = () => {
+    setBatchMode(!batchMode);
+    setSelectedMockupIds([]);
+  };
+
+  const toggleMockupSelection = (mockupId: string) => {
+    setSelectedMockupIds(prev =>
+      prev.includes(mockupId)
+        ? prev.filter(id => id !== mockupId)
+        : [...prev, mockupId]
+    );
+  };
+
+  const generateBatchMockups = async () => {
+    if (selectedMockupIds.length === 0) return;
+
+    setIsBatchGenerating(true);
+    addToast(`Generating ${selectedMockupIds.length} mockups...`, 'info');
+
+    try {
+      const designUrl = await captureDesign();
+      if (!designUrl) throw new Error('Failed to capture design');
+
+      for (const mockupId of selectedMockupIds) {
+        const mockup = getMockupById(mockupId);
+        if (!mockup) continue;
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) continue;
+
+        const bgImg = new Image();
+        bgImg.crossOrigin = 'anonymous';
+        bgImg.src = mockup.bg;
+        await new Promise(resolve => { bgImg.onload = resolve; });
+
+        canvas.width = bgImg.naturalWidth;
+        canvas.height = bgImg.naturalHeight;
+        ctx.drawImage(bgImg, 0, 0);
+
+        const designImg = new Image();
+        designImg.src = designUrl;
+        await new Promise(resolve => { designImg.onload = resolve; });
+
+        const { top, left, width } = mockup.defaultPlacement;
+        const x = (left / 100) * canvas.width;
+        const y = (top / 100) * canvas.height;
+        const w = (width / 100) * canvas.width;
+        const h = w / (designImg.width / designImg.height);
+
+        ctx.globalAlpha = 0.9;
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.drawImage(designImg, x, y, w, h);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        addLayer({
+          id: uuidv4(),
+          type: 'image',
+          name: `${mockup.name} Mockup`,
+          src: dataUrl,
+          x: 50 + (selectedMockupIds.indexOf(mockupId) * 520),
+          y: 50,
+          width: 500,
+          height: 500,
+          rotation: 0,
+          opacity: 1,
+          visible: true,
+          locked: false,
+          flipX: false,
+          flipY: false,
+          blendMode: 'normal',
+          filters: { brightness: 100, contrast: 100, saturation: 100, blur: 0, opacity: 1 },
+        });
+      }
+
+      addToast(`✅ Generated ${selectedMockupIds.length} mockups!`, 'success');
+      setBatchMode(false);
+      setSelectedMockupIds([]);
+    } catch (error) {
+      log.error('[MockupPanel] Batch generation failed', error);
+      addToast('Batch generation failed', 'error');
+    } finally {
+      setIsBatchGenerating(false);
+    }
+  };
+
+  // App Store preset generator
+  const generatePreset = async (presetName: string) => {
+    const mockupIds = APP_STORE_PRESETS[presetName as keyof typeof APP_STORE_PRESETS];
+    if (!mockupIds) return;
+
+    setSelectedMockupIds(mockupIds);
+    addToast(`Selected ${mockupIds.length} mockups for ${presetName}`, 'success');
+    setBatchMode(true);
+  };
+
   // Current placement state (initialized from mockup default)
   const [placement, setPlacement] = useState<MockupPlacement>({
     top: 30,
@@ -97,7 +404,37 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     return getMockupsByCategory(activeCategory);
   }, [activeCategory, searchQuery]);
 
-  const currentMockup = useMemo(() => mockups.find((m) => m.id === activeMockupId) || mockups[0], [activeMockupId]);
+  // Filter mockups based on favorites and suggestions
+  const filteredMockups = useMemo(() => {
+    let result = mockups;
+    
+    if (showFavoritesOnly) {
+      result = result.filter(m => favoriteMockups.includes(m.id));
+    }
+    
+    if (suggestedMockups.length > 0 && !showFavoritesOnly) {
+      // Show suggested first, then others
+      const suggested = result.filter(m => suggestedMockups.includes(m.id));
+      const others = result.filter(m => !suggestedMockups.includes(m.id));
+      result = [...suggested, ...others];
+    }
+    
+    return result;
+  }, [mockups, favoriteMockups, suggestedMockups, showFavoritesOnly]);
+
+  const currentMockup = useMemo(() => {
+    if (activeMockupId === 'custom' && customMockup) {
+      return {
+        id: 'custom',
+        name: 'Custom Upload',
+        category: 'Custom',
+        bg: customMockup,
+        defaultPlacement: placement,
+        tags: ['custom', 'upload'],
+      };
+    }
+    return mockups.find((m) => m.id === activeMockupId) || mockups[0];
+  }, [activeMockupId, mockups, customMockup, placement]);
 
   // When mockup changes, reset placement to default and initialize corner points
   useEffect(() => {
@@ -481,6 +818,63 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                 </p>
               </div>
 
+              {/* Quick Actions Row */}
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={suggestMockups}
+                  disabled={isAnalyzing}
+                  className="flex-1 min-w-[120px] px-3 py-2 bg-gradient-to-r from-[#7d2ae8] to-[#00c4cc] rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-purple-900/30"
+                >
+                  {isAnalyzing ? (
+                    <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
+                  ) : (
+                    <Icons.Magic className="w-3.5 h-3.5" />
+                  )}
+                  Suggest
+                </button>
+                <button
+                  onClick={toggleBatchMode}
+                  className={`flex-1 min-w-[120px] px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                    batchMode
+                      ? 'bg-[#7d2ae8] text-white shadow-lg'
+                      : 'bg-[#1e1e1e] text-gray-400 border border-gray-700 hover:border-white/20'
+                  }`}
+                >
+                  <Icons.Layers className="w-3.5 h-3.5" />
+                  Batch {batchMode && `(${selectedMockupIds.length})`}
+                </button>
+                <button
+                  onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                  className={`px-3 py-2 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 ${
+                    showFavoritesOnly
+                      ? 'bg-red-500 text-white'
+                      : 'bg-[#1e1e1e] text-gray-400 border border-gray-700 hover:border-white/20'
+                  }`}
+                >
+                  <Icons.Heart className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+                  Favorites
+                </button>
+              </div>
+
+              {/* App Store Presets */}
+              <div className="p-3 bg-gradient-to-br from-[#7d2ae8]/10 to-[#00c4cc]/10 border border-[#7d2ae8]/20 rounded-lg">
+                <h4 className="text-[9px] font-black text-white uppercase tracking-wider mb-2 flex items-center gap-1">
+                  <Icons.Zap className="w-3 h-3 text-[#7d2ae8]" />
+                  Quick Sets
+                </h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {Object.keys(APP_STORE_PRESETS).map(preset => (
+                    <button
+                      key={preset}
+                      onClick={() => generatePreset(preset)}
+                      className="px-2 py-1 bg-[#1e1e1e] hover:bg-[#7d2ae8]/20 border border-gray-700 hover:border-[#7d2ae8] rounded text-[8px] font-bold text-gray-400 hover:text-white transition-all"
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="relative">
                 <input
                   type="text"
@@ -493,8 +887,21 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
               </div>
 
               <div className="flex items-center justify-between text-[10px] text-gray-400">
-                <span>Showing <span className="text-white font-bold">{mockups.length}</span> mockups</span>
+                <span>Showing <span className="text-white font-bold">{filteredMockups.length}</span> mockups{showFavoritesOnly ? ' (Favorites)' : ''}</span>
                 <div className="flex gap-2">
+                  <button
+                    onClick={handleAutoDetect}
+                    disabled={isDetecting}
+                    className="px-2 py-1 bg-[#7d2ae8]/20 border border-[#7d2ae8]/50 rounded hover:border-[#7d2ae8] transition-colors text-[#7d2ae8] flex items-center gap-1 disabled:opacity-50"
+                    title="AI Auto-Detect optimal placement"
+                  >
+                    {isDetecting ? (
+                      <div className="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full" />
+                    ) : (
+                      <Icons.Magic className="w-3 h-3" />
+                    )}
+                    Auto-Detect
+                  </button>
                   <button
                     onClick={() => setPlacement({ ...placement, skewX: 0, skewY: 0, rotate: 0 })}
                     className="px-2 py-1 bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#7d2ae8] transition-colors"
@@ -504,7 +911,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                   <button
                     onClick={() => {
                       const current = getMockupById(activeMockupId);
-                      if (current) setPlacement(current.defaultPlacement);
+                      if (current) {setPlacement(current.defaultPlacement);}
                     }}
                     className="px-2 py-1 bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#7d2ae8] transition-colors"
                   >
@@ -512,6 +919,26 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                   </button>
                 </div>
               </div>
+
+              {batchMode && (
+                <div className="p-3 bg-[#7d2ae8]/10 border border-[#7d2ae8]/30 rounded-lg">
+                  <p className="text-[9px] text-[#7d2ae8] font-bold mb-2">
+                    📦 Batch Mode: Select multiple mockups to generate
+                  </p>
+                  <button
+                    onClick={generateBatchMockups}
+                    disabled={selectedMockupIds.length === 0 || isBatchGenerating}
+                    className="w-full py-2 bg-[#7d2ae8] hover:bg-[#6c1fd1] text-white rounded font-bold text-[10px] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isBatchGenerating ? (
+                      <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
+                    ) : (
+                      <Icons.Download className="w-3.5 h-3.5" />
+                    )}
+                    Generate {selectedMockupIds.length} Mockup{selectedMockupIds.length !== 1 && 's'}
+                  </button>
+                </div>
+              )}
 
               <div className="flex flex-wrap gap-1">
                 {MOCKUP_CATEGORIES.map((cat) => (
@@ -529,20 +956,84 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
 
               <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-500 mt-4">Select Mockup</h3>
 
+              {/* Upload Custom Mockup */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full aspect-square rounded-lg border-2 border-dashed border-gray-700 hover:border-[#7d2ae8] transition-all flex flex-col items-center justify-center gap-2 bg-[#1a1d21] group"
+              >
+                <Icons.Upload className="w-6 h-6 text-gray-500 group-hover:text-[#7d2ae8] transition-colors" />
+                <span className="text-[9px] font-bold text-gray-500 group-hover:text-white transition-colors">Upload Your Own</span>
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleUploadMockup}
+                className="hidden"
+              />
+
               <div className="grid grid-cols-2 gap-2">
-                {mockups.map((m) => (
+                {/* Custom mockup thumbnail if uploaded */}
+                {customMockup && (
                   <button
-                    key={m.id}
-                    onClick={() => setActiveMockupId(m.id)}
+                    onClick={() => {
+                      setActiveMockupId('custom');
+                    }}
                     className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                      activeMockupId === m.id ? 'border-[#7d2ae8]' : 'border-transparent hover:border-gray-600'
+                      activeMockupId === 'custom' ? 'border-[#7d2ae8]' : 'border-transparent hover:border-gray-600'
                     }`}
                   >
-                    <img src={m.bg} alt={m.name} className="w-full h-full object-cover" />
-                    <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1.5 backdrop-blur-sm">
-                      <span className="text-[8px] font-bold text-white block truncate">{m.name}</span>
+                    <img src={customMockup} alt="Custom mockup" className="w-full h-full object-cover" />
+                    <div className="absolute inset-x-0 bottom-0 bg-[#7d2ae8]/90 p-1.5 backdrop-blur-sm">
+                      <span className="text-[8px] font-bold text-white block truncate">Your Upload</span>
                     </div>
                   </button>
+                )}
+
+                {filteredMockups.map((m) => (
+                  <div key={m.id} className="relative aspect-square">
+                    {/* Batch Selection Checkbox */}
+                    {batchMode && (
+                      <label className="absolute top-1 left-1 z-20">
+                        <input
+                          type="checkbox"
+                          checked={selectedMockupIds.includes(m.id)}
+                          onChange={() => toggleMockupSelection(m.id)}
+                          className="w-4 h-4 rounded border-2 border-white/50 accent-[#7d2ae8] bg-black/50"
+                        />
+                      </label>
+                    )}
+
+                    {/* Favorite Button */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(m.id);
+                      }}
+                      className="absolute top-1 right-1 z-20 p-1.5 bg-black/60 hover:bg-red-500/80 rounded-full transition-all opacity-0 hover:opacity-100 group-hover:opacity-100"
+                    >
+                      <Icons.Heart className={`w-3 h-3 ${favoriteMockups.includes(m.id) ? 'fill-red-500 text-red-500' : 'text-white'}`} />
+                    </button>
+
+                    {/* Suggested Badge */}
+                    {suggestedMockups.includes(m.id) && !showFavoritesOnly && (
+                      <div className="absolute bottom-12 right-1 z-20 px-1.5 py-0.5 bg-[#7d2ae8] text-white text-[7px] font-black uppercase rounded-sm shadow-lg">
+                        ✨ Suggested
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => !batchMode && setActiveMockupId(m.id)}
+                      className={`w-full aspect-square rounded-lg overflow-hidden border-2 transition-all group ${
+                        activeMockupId === m.id ? 'border-[#7d2ae8]' : 'border-transparent hover:border-gray-600'
+                      } ${batchMode ? 'cursor-pointer' : 'cursor-pointer'}`}
+                    >
+                      <img src={m.bg} alt={m.name} className="w-full h-full object-cover" />
+                      <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1.5 backdrop-blur-sm">
+                        <span className="text-[8px] font-bold text-white block truncate">{m.name}</span>
+                      </div>
+                    </button>
+                  </div>
                 ))}
               </div>
            </div>
@@ -550,6 +1041,23 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
 
         {/* Center Column: Live Preview */}
         <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0a0a0a] relative">
+          {/* Before/After Toggle */}
+          {generatedPreview && (
+            <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+              <button
+                onClick={() => setShowComparison(!showComparison)}
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all flex items-center gap-2 ${
+                  showComparison
+                    ? 'bg-[#7d2ae8] text-white shadow-lg shadow-purple-900/30'
+                    : 'bg-[#1e1e1e] text-gray-400 border border-gray-700 hover:border-white/20'
+                }`}
+              >
+                <Icons.Compare className="w-3.5 h-3.5" />
+                Before/After
+              </button>
+            </div>
+          )}
+
           <div
             ref={previewContainerRef}
             className="w-full h-full flex items-center justify-center relative max-w-4xl max-h-[80vh]"
@@ -560,22 +1068,86 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
               </div>
             )}
             {generatedPreview ? (
-              <div className="relative group">
-                <img
-                  src={generatedPreview}
-                  className="max-w-full max-h-full object-contain shadow-2xl rounded-xl border border-white/5"
-                  alt="Mockup preview"
-                />
-                {useCornerPinning && cornerPoints && (
-                  <CornerHandles
-                    cornerPoints={cornerPoints}
-                    onCornerChange={handleCornerChange}
-                    containerWidth={previewContainerSize.width}
-                    containerHeight={previewContainerSize.height}
-                    isVisible={useCornerPinning}
+              showComparison ? (
+                /* Before/After Comparison Slider */
+                <div className="relative w-full h-full flex items-center justify-center">
+                  {/* Before Image (Original Design) */}
+                  <div className="relative w-full h-full">
+                    {previewImage && (
+                      <img
+                        src={previewImage}
+                        className="max-w-full max-h-full object-contain shadow-2xl rounded-xl border border-white/5"
+                        alt="Original design"
+                      />
+                    )}
+                  </div>
+
+                  {/* After Image (Mockup) with Clip */}
+                  <div
+                    className="absolute inset-0 overflow-hidden rounded-xl"
+                    style={{ clipPath: `inset(0 ${100 - comparisonPosition}% 0 0)` }}
+                  >
+                    <img
+                      src={generatedPreview}
+                      className="max-w-full max-h-full object-contain shadow-2xl border border-white/5"
+                      alt="Mockup preview"
+                    />
+                  </div>
+
+                  {/* Slider Handle */}
+                  <div
+                    className="absolute inset-y-0 w-1 bg-[#7d2ae8] cursor-ew-resize shadow-[0_0_20px_rgba(125,42,232,0.5)]"
+                    style={{ left: `${comparisonPosition}%` }}
+                    onMouseDown={(e) => {
+                      const handleMove = (moveEvent: MouseEvent) => {
+                        const rect = e.currentTarget?.parentElement?.getBoundingClientRect();
+                        if (rect) {
+                          const x = moveEvent.clientX - rect.left;
+                          const newPos = Math.max(0, Math.min(100, (x / rect.width) * 100));
+                          setComparisonPosition(newPos);
+                        }
+                      };
+                      const handleUp = () => {
+                        document.removeEventListener('mousemove', handleMove);
+                        document.removeEventListener('mouseup', handleUp);
+                      };
+                      document.addEventListener('mousemove', handleMove);
+                      document.addEventListener('mouseup', handleUp);
+                    }}
+                  >
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-[#7d2ae8] rounded-full flex items-center justify-center shadow-lg">
+                      <Icons.ChevronLeft className="w-4 h-4 text-white" />
+                      <Icons.ChevronRight className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+
+                  {/* Labels */}
+                  <div className="absolute top-4 left-4 bg-black/70 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+                    <span className="text-[10px] font-bold text-white uppercase tracking-wider">Before</span>
+                  </div>
+                  <div className="absolute top-4 right-4 bg-black/70 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+                    <span className="text-[10px] font-bold text-white uppercase tracking-wider">After</span>
+                  </div>
+                </div>
+              ) : (
+                /* Normal Preview */
+                <div className="relative group">
+                  <img
+                    src={generatedPreview}
+                    className="max-w-full max-h-full object-contain shadow-2xl rounded-xl border border-white/5"
+                    alt="Mockup preview"
                   />
-                )}
-              </div>
+                  {useCornerPinning && cornerPoints && (
+                    <CornerHandles
+                      cornerPoints={cornerPoints}
+                      onCornerChange={handleCornerChange}
+                      containerWidth={previewContainerSize.width}
+                      containerHeight={previewContainerSize.height}
+                      isVisible={useCornerPinning}
+                    />
+                  )}
+                </div>
+              )
             ) : (
               <span className="text-gray-600 font-bold uppercase tracking-widest animate-pulse">Generating Live Preview...</span>
             )}

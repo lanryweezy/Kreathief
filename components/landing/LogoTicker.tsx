@@ -29,11 +29,11 @@ export const LogoTicker: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-6 mb-16 flex flex-col md:flex-row items-center justify-between gap-8">
         <div className="max-w-xl">
-          <SuperLabel text="The New Standard" />
-          <p className="text-white text-3xl md:text-5xl font-bold tracking-tight leading-tight text-balance">
-            Trusted by 10,000+ <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neutral-500 to-neutral-200">
-              top-tier designers.
+          <SuperLabel text="Trusted Worldwide" />
+          <p className="text-white text-3xl md:text-5xl font-black tracking-tighter leading-tight text-balance">
+            Join 10,000+ creators <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+              shipping faster.
             </span>
           </p>
         </div>

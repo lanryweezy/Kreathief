@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Layer, Artboard } from '../../types';
+import { useStore } from '../../store/useStore';
 import { SnappingOracle, SnapLine } from '../../utils/snappingOracle';
 import { SNAP_THRESHOLD } from './CanvasConstants';
 
@@ -36,6 +37,7 @@ export const useCanvasInteractions = ({
   const [isPanning, setIsPanning] = useState(false);
   const [snapLines, setSnapLines] = useState<SnapLine[]>([]);
   const [isSpacePressed, setIsSpacePressed] = useState(false);
+  const [selectionBox, setSelectionBox] = useState<{ start: { x: number; y: number }; end: { x: number; y: number } } | null>(null);
 
   const [dragState, setDragState] = useState<{
     isDragging: boolean;
@@ -54,6 +56,7 @@ export const useCanvasInteractions = ({
   const panStartRef = useRef({ x: 0, y: 0 });
   const bulkDragPreviewRef = useRef<Record<string, Partial<Layer>>>({});
   const layerRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const staticLayersRef = useRef<Layer[]>([]); // Drag Optimization: Cache non-moving layers
 
   const zoomRef = useRef(zoom);
   useEffect(() => {
@@ -76,10 +79,16 @@ export const useCanvasInteractions = ({
         setIsPanning(true);
         panStartRef.current = { x: e.clientX, y: e.clientY };
       } else {
+        const rect = viewportRef.current?.getBoundingClientRect();
+        if (rect) {
+          const x = (e.clientX - rect.left - panOffsetRef.current.x) / zoomRef.current;
+          const y = (e.clientY - rect.top - panOffsetRef.current.y) / zoomRef.current;
+          setSelectionBox({ start: { x, y }, end: { x, y } });
+        }
         onSelectLayer(null);
       }
     },
-    [isSpacePressed, onSelectLayer]
+    [isSpacePressed, onSelectLayer, viewportRef]
   );
 
   const handleMouseDownLayer = useCallback(
@@ -117,11 +126,17 @@ export const useCanvasInteractions = ({
         isShift || isAlreadySelected ? Array.from(new Set([...selectedLayerIds, layer.id])) : [layer.id];
 
       const initialPositions: Record<string, { x: number; y: number }> = {};
+      const staticLayers: Layer[] = [];
+      
       layers.forEach((l) => {
         if (idsToMove.includes(l.id)) {
           initialPositions[l.id] = { x: l.x, y: l.y };
+        } else {
+          staticLayers.push(l);
         }
       });
+
+      staticLayersRef.current = staticLayers;
 
       setDragState({
         isDragging: true,
@@ -158,10 +173,21 @@ export const useCanvasInteractions = ({
         return;
       }
 
+      if (selectionBox) {
+        const rect = viewportRef.current?.getBoundingClientRect();
+        if (rect) {
+          const x = (e.clientX - rect.left - panOffsetRef.current.x) / zoomRef.current;
+          const y = (e.clientY - rect.top - panOffsetRef.current.y) / zoomRef.current;
+          setSelectionBox((prev) => prev ? { ...prev, end: { x, y } } : null);
+        }
+        return;
+      }
+
       if (dragState?.isDragging && activeArtboard) {
         const dx = (e.clientX - dragState.startX) / zoomRef.current;
         const dy = (e.clientY - dragState.startY) / zoomRef.current;
 
+        // Optimization: Use cached initial positions and static layers
         const movingLayers = layers.filter((l) => dragState.initialPositions[l.id]);
         const currentMovingLayers = movingLayers.map((l) => ({
           ...l,
@@ -171,7 +197,7 @@ export const useCanvasInteractions = ({
 
         const snap = SnappingOracle.calculateSnaps(
           currentMovingLayers,
-          layers,
+          staticLayersRef.current, // Use cached static layers
           activeArtboard,
           SNAP_THRESHOLD,
           zoomRef.current
@@ -190,10 +216,36 @@ export const useCanvasInteractions = ({
         bulkDragPreviewRef.current = updates;
       }
     },
-    [isPanning, dragState, activeArtboard, layers]
+    [isPanning, selectionBox, dragState, activeArtboard, layers, viewportRef]
   );
 
   const handleMouseUp = useCallback(() => {
+    if (selectionBox) {
+      const x1 = Math.min(selectionBox.start.x, selectionBox.end.x);
+      const y1 = Math.min(selectionBox.start.y, selectionBox.end.y);
+      const x2 = Math.max(selectionBox.start.x, selectionBox.end.x);
+      const y2 = Math.max(selectionBox.start.y, selectionBox.end.y);
+
+      const layersInBox = layers.filter((l) => {
+        if (l.locked) {return false;}
+        const lw = (l as any).width || 0;
+        const lh = (l as any).height || 0;
+        return (
+          l.x >= x1 &&
+          l.y >= y1 &&
+          l.x + lw <= x2 &&
+          l.y + lh <= y2
+        );
+      });
+
+      if (layersInBox.length > 0) {
+        layersInBox.forEach((l, idx) => {
+          onMultiSelectLayer(l.id, idx > 0 || selectedLayerIds.length > 0);
+        });
+      }
+      setSelectionBox(null);
+    }
+
     if (Object.keys(bulkDragPreviewRef.current).length > 0) {
       onUpdateLayers(bulkDragPreviewRef.current);
       bulkDragPreviewRef.current = {};
@@ -205,7 +257,79 @@ export const useCanvasInteractions = ({
     setDragState(null);
     setIsPanning(false);
     setSnapLines([]);
-  }, [onUpdateLayers]);
+  }, [selectionBox, layers, onMultiSelectLayer, selectedLayerIds, onUpdateLayers]);
+
+  // DRAWING LOGIC
+  const isDrawingRef = useRef(false);
+  const currentPathRef = useRef<{ x: number; y: number }[]>([]);
+
+  const handleDrawingMouseDown = useCallback((e: React.MouseEvent) => {
+    isDrawingRef.current = true;
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    const x = (e.clientX - rect.left) / zoomRef.current;
+    const y = (e.clientY - rect.top) / zoomRef.current;
+    currentPathRef.current = [{ x, y }];
+    
+    const ctx = (e.target as HTMLCanvasElement).getContext('2d');
+    if (ctx) {
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    }
+  }, []);
+
+  const handleDrawingMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDrawingRef.current) {return;}
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    const x = (e.clientX - rect.left) / zoomRef.current;
+    const y = (e.clientY - rect.top) / zoomRef.current;
+    
+    currentPathRef.current.push({ x, y });
+    
+    const ctx = (e.target as HTMLCanvasElement).getContext('2d');
+    if (ctx) {
+      const { brushColor, brushSize, brushOpacity } = useStore.getState();
+      ctx.strokeStyle = brushColor;
+      ctx.lineWidth = brushSize / zoomRef.current;
+      ctx.globalAlpha = brushOpacity;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
+  }, []);
+
+  const handleDrawingMouseUp = useCallback((e: React.MouseEvent) => {
+    if (!isDrawingRef.current) {return;}
+    isDrawingRef.current = false;
+    
+    const { brushType, brushColor, brushSize, addLayer, activeArtboardId } = useStore.getState();
+    
+    // Convert path to VectorPath
+    const pathData = `M ${currentPathRef.current.map(p => `${p.x} ${p.y}`).join(' L ')}`;
+    
+    addLayer({
+      id: `draw_${Date.now()}`,
+      type: 'path',
+      name: `${brushType} Stroke`,
+      x: 0,
+      y: 0,
+      width: 1, // Will be recalculated by VectorUtils
+      height: 1,
+      rotation: 0,
+      opacity: 1,
+      locked: false,
+      visible: true,
+      pathData,
+      color: brushColor,
+      stroke: { color: brushColor, width: brushSize },
+    } as any);
+
+    // Clear temporary canvas
+    const ctx = (e.target as HTMLCanvasElement).getContext('2d');
+    if (ctx) {
+      ctx.clearRect(0, 0, (e.target as HTMLCanvasElement).width, (e.target as HTMLCanvasElement).height);
+    }
+  }, []);
 
   useEffect(() => {
     window.addEventListener('mousemove', handleMouseMove);
@@ -261,7 +385,11 @@ export const useCanvasInteractions = ({
     setIsSpacePressed,
     handleMouseDownContainer,
     handleMouseDownLayer,
+    handleDrawingMouseDown,
+    handleDrawingMouseMove,
+    handleDrawingMouseUp,
     layerRefs,
     snapLines,
+    selectionBox,
   };
 };

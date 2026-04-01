@@ -39,38 +39,63 @@ export class BezierMath {
 
   /**
    * Finds the closest t on a cubic Bezier curve to a given point
+   * Optimized with adaptive sampling and early exit
    */
-  static getClosestT(p0: Point, p1: Point, p2: Point, p3: Point, point: Point): { t: number; dist: number } {
-    const SCANS = 20;
+  static getClosestT(
+    p0: Point, p1: Point, p2: Point, p3: Point,
+    point: Point,
+    tolerance: number = 0.5
+  ): { t: number; dist: number } {
+    const INITIAL_SCANS = 10; // Reduced from 20 for performance
     let bestT = 0;
-    let minMsg = Infinity;
+    let minDist = Infinity;
+    const toleranceSquared = tolerance * tolerance;
 
-    // Coarse scan
-    for (let i = 0; i <= SCANS; i++) {
-      const t = i / SCANS;
+    // Coarse scan with early exit
+    for (let i = 0; i <= INITIAL_SCANS; i++) {
+      const t = i / INITIAL_SCANS;
       const p = this.getPointOnCubic(p0, p1, p2, p3, t);
       const dist = (p.x - point.x) ** 2 + (p.y - point.y) ** 2;
-      if (dist < minMsg) {
-        minMsg = dist;
+
+      if (dist < minDist) {
+        minDist = dist;
         bestT = t;
+
+        // FIX: Early exit if within tolerance
+        if (dist < toleranceSquared) {
+          return { t, dist: Math.sqrt(dist) };
+        }
       }
     }
 
-    // Refine around bestT
-    const start = Math.max(0, bestT - 0.05);
-    const end = Math.min(1, bestT + 0.05);
-    const STEPS = 10;
+    // FIX: Adaptive refinement with limited iterations
+    let range = 1 / INITIAL_SCANS;
+    const MAX_REFINEMENTS = 3;
 
-    for (let i = 0; i <= STEPS; i++) {
-      const t = start + (end - start) * (i / STEPS);
-      const p = this.getPointOnCubic(p0, p1, p2, p3, t);
-      const dist = (p.x - point.x) ** 2 + (p.y - point.y) ** 2;
-      if (dist < minMsg) {
-        minMsg = dist;
-        bestT = t;
+    for (let ref = 0; ref < MAX_REFINEMENTS; ref++) {
+      range /= 2;
+      const start = Math.max(0, bestT - range);
+      const end = Math.min(1, bestT + range);
+      const STEPS = 5; // Reduced from 10
+
+      // FIX: Skip endpoints (already checked in previous iteration)
+      for (let i = 1; i < STEPS; i++) {
+        const t = start + range * (i / STEPS);
+        const p = this.getPointOnCubic(p0, p1, p2, p3, t);
+        const dist = (p.x - point.x) ** 2 + (p.y - point.y) ** 2;
+
+        if (dist < minDist) {
+          minDist = dist;
+          bestT = t;
+
+          // FIX: Early exit at any refinement level
+          if (dist < toleranceSquared) {
+            return { t, dist: Math.sqrt(dist) };
+          }
+        }
       }
     }
 
-    return { t: bestT, dist: Math.sqrt(minMsg) };
+    return { t: bestT, dist: Math.sqrt(minDist) };
   }
 }

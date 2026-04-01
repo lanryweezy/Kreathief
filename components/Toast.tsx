@@ -1,51 +1,57 @@
 import React from 'react';
-
+import { motion, AnimatePresence } from 'framer-motion';
 import { Toast, ToastType } from '../types';
+import { Icons } from '../constants';
 
 interface ToastItemProps {
   toast: Toast;
   onRemove: (id: string) => void;
 }
 
-const ICONS: Record<ToastType, string> = {
-  success: '✓',
-  error: '✕',
-  info: 'ℹ',
-  warning: '⚠',
+const ICONS: Record<ToastType, any> = {
+  success: Icons.Check,
+  error: Icons.XCircle,
+  info: Icons.Info,
+  warning: Icons.AlertTriangle,
 };
 
 const COLORS: Record<ToastType, string> = {
-  success: 'bg-emerald-600 border-emerald-500',
-  error: 'bg-red-600 border-red-500',
-  info: 'bg-blue-600 border-blue-500',
-  warning: 'bg-amber-600 border-amber-500',
+  success: 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-emerald-500/10',
+  error: 'bg-red-500/10 border-red-500/50 text-red-400 shadow-red-500/10',
+  info: 'bg-blue-500/10 border-blue-500/50 text-blue-400 shadow-blue-500/10',
+  warning: 'bg-amber-500/10 border-amber-500/50 text-amber-400 shadow-amber-500/10',
 };
 
 const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
+  const Icon = ICONS[toast.type];
+
   return (
-    <div
-      className={`flex flex-col gap-2 p-4 rounded-xl border shadow-2xl text-white text-sm font-medium
-        animate-slide-in-right backdrop-blur-sm min-w-[280px] max-w-[400px] ${COLORS[toast.type]}`}
+    <motion.div
+      initial={{ x: 50, opacity: 0, scale: 0.9 }}
+      animate={{ x: 0, opacity: 1, scale: 1 }}
+      exit={{ x: 20, opacity: 0, scale: 0.95 }}
+      transition={{ type: 'spring', damping: 20, stiffness: 200 }}
+      className={`flex flex-col gap-2 p-4 rounded-2xl border backdrop-blur-xl shadow-2xl min-w-[300px] max-w-[400px] ${COLORS[toast.type]}`}
       role="alert"
     >
       <div className="flex items-start gap-3">
-        <span className="text-base font-bold shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-white/20 mt-0.5">
-          {ICONS[toast.type]}
-        </span>
-        <div className="flex-1 flex flex-col gap-1">
-          <span className="leading-snug font-bold">{toast.message}</span>
+        <div className="shrink-0 mt-0.5">
+          <Icon className="w-5 h-5" />
+        </div>
+        <div className="flex-1 flex flex-col gap-0.5">
+          <span className="text-sm font-black tracking-tight leading-snug">{toast.message}</span>
           {toast.details && (
-            <p className="text-[11px] text-white/80 leading-tight">
+            <p className="text-[11px] opacity-70 leading-tight">
               {toast.details}
             </p>
           )}
         </div>
         <button
           onClick={() => onRemove(toast.id)}
-          className="shrink-0 text-white/60 hover:text-white transition-colors text-xl leading-none"
+          className="shrink-0 opacity-40 hover:opacity-100 transition-opacity"
           aria-label="Dismiss"
         >
-          ×
+          <Icons.X className="w-4 h-4" />
         </button>
       </div>
 
@@ -55,32 +61,25 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
             toast.action?.onClick();
             onRemove(toast.id);
           }}
-          className="mt-1 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-xs font-black uppercase tracking-widest transition-all text-center"
+          className="mt-1 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all text-center border border-white/5"
         >
           {toast.action.label}
         </button>
       )}
-    </div>
+    </motion.div>
   );
 };
 
-interface ToastContainerProps {
-  toasts: Toast[];
-  onRemove: (id: string) => void;
-}
-
 export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onRemove }) => {
-  if (toasts.length === 0) {
-    return null;
-  }
-
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-2 pointer-events-none" aria-live="polite">
-      {toasts.map((toast) => (
-        <div key={toast.id} className="pointer-events-auto">
-          <ToastItem toast={toast} onRemove={onRemove} />
-        </div>
-      ))}
+    <div className="fixed bottom-8 right-8 z-[9999] flex flex-col gap-3 pointer-events-none" aria-live="polite">
+      <AnimatePresence mode="popLayout">
+        {toasts.map((toast) => (
+          <div key={toast.id} className="pointer-events-auto">
+            <ToastItem toast={toast} onRemove={onRemove} />
+          </div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 };

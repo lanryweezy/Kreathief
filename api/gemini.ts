@@ -71,8 +71,8 @@ export default async function handler(req: Request) {
 
     if (action === 'generateContent') {
       const modelConfig: any = { model: modelName };
-      if (generationConfig) modelConfig.generationConfig = generationConfig;
-      if (systemInstruction) modelConfig.systemInstruction = systemInstruction;
+      if (generationConfig) {modelConfig.generationConfig = generationConfig;}
+      if (systemInstruction) {modelConfig.systemInstruction = systemInstruction;}
 
       const model = ai.getGenerativeModel(modelConfig);
       let response;

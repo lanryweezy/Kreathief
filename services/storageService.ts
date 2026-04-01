@@ -155,20 +155,23 @@ class StorageService {
         });
       } catch (err) {
         failCount++;
-        log.error('[Storage] Sync failed for project', err, { 
+        const baseDelay = 2000;
+        const retryDelay = baseDelay * Math.pow(2, op.retryCount);
+
+        log.error('[Storage] Sync failed, retrying later', err, { 
           projectId: op.projectId,
-          retryCount: op.retryCount 
+          retryCount: op.retryCount,
+          nextRetryIn: `${retryDelay}ms`
         });
 
-        // Retry with exponential backoff (max 3 retries)
-        if (op.retryCount < 3) {
+        if (op.retryCount < 5) {
           op.retryCount++;
           this.pendingChanges.set(op.projectId, op);
+          setTimeout(() => {
+            if (this.isOnline && !this.isSyncing) {this.syncOfflineChanges();}
+          }, retryDelay);
         } else {
           this.pendingChanges.delete(op.projectId);
-          log.error('[Storage] Max retries reached, dropping operation', { 
-            projectId: op.projectId 
-          });
         }
       }
     }
@@ -345,6 +348,11 @@ class StorageService {
         if (!db.objectStoreNames.contains('comments')) {
           const commentsStore = db.createObjectStore('comments', { keyPath: 'id' });
           commentsStore.createIndex('projectId', 'projectId', { unique: false });
+        }
+
+        // Crash Recovery Mirror
+        if (!db.objectStoreNames.contains('session_mirror')) {
+          db.createObjectStore('session_mirror', { keyPath: 'key' });
         }
 
         // Sync queue for offline changes
@@ -979,6 +987,35 @@ class StorageService {
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
+  }
+
+  // ===== Session Mirror (Crash Recovery) =====
+
+  async saveSessionMirror(projectId: string, state: HistoryState): Promise<void> {
+    const store = await this.getStore('session_mirror', 'readwrite');
+    return new Promise((resolve, reject) => {
+      const request = store.put({ key: 'last_active_session', projectId, state, timestamp: Date.now() });
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async getSessionMirror(): Promise<{ projectId: string; state: HistoryState; timestamp: number } | null> {
+    try {
+      const store = await this.getStore('session_mirror', 'readonly');
+      return new Promise((resolve, reject) => {
+        const request = store.get('last_active_session');
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  async clearSessionMirror(): Promise<void> {
+    const store = await this.getStore('session_mirror', 'readwrite');
+    await this.clearStore(store);
   }
 
   // ===== Shares =====

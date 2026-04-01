@@ -22,30 +22,95 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
     get().saveToHistory?.();
     const state = get();
     const currentArtboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
-    if (!currentArtboard) return;
+    if (!currentArtboard) {return;}
+
+    const oldWidth = currentArtboard.width;
+    const oldHeight = currentArtboard.height;
 
     const id = uuidv4();
     const lastArtboard = state.artboards[state.artboards.length - 1];
     const x = lastArtboard ? lastArtboard.x + lastArtboard.width + 100 : 0;
 
-    const scaleX = newWidth / currentArtboard.width;
-    const scaleY = newHeight / currentArtboard.height;
-    
-    // For smart scale, we use the minimum scale to avoid distortion, then center
-    const scale = Math.min(scaleX, scaleY);
-    const offsetX = (newWidth - (currentArtboard.width * scale)) / 2;
-    const offsetY = (newHeight - (currentArtboard.height * scale)) / 2;
-
     const newLayers = currentArtboard.layers.map((l: Layer) => {
       const cloned = structuredClone(l);
       cloned.id = uuidv4();
-      cloned.x = (cloned.x * scale) + offsetX;
-      cloned.y = (cloned.y * scale) + offsetY;
       
-      if ((cloned as any).width) (cloned as any).width *= scale;
-      if ((cloned as any).height) (cloned as any).height *= scale;
+      const constraints = l.constraints || { horizontal: 'scale', vertical: 'scale' };
+      let lx = l.x;
+      let ly = l.y;
+      let lw = (l as any).width || 0;
+      let lh = (l as any).height || 0;
+
+      // Horizontal Constraints
+      switch (constraints.horizontal) {
+        case 'start': break;
+        case 'end': {
+          const rightDist = oldWidth - (lx + lw);
+          lx = newWidth - lw - rightDist;
+          break;
+        }
+        case 'center': {
+          const centerX = lx + lw / 2;
+          const relCenterX = centerX / oldWidth;
+          lx = (relCenterX * newWidth) - lw / 2;
+          break;
+        }
+        case 'both': {
+          const leftDistBoth = lx;
+          const rightDistBoth = oldWidth - (lx + lw);
+          lx = leftDistBoth;
+          lw = newWidth - leftDistBoth - rightDistBoth;
+          break;
+        }
+        case 'scale':
+        default: {
+          const relX = lx / oldWidth;
+          const relW = lw / oldWidth;
+          lx = relX * newWidth;
+          lw = relW * newWidth;
+          break;
+        }
+      }
+
+      // Vertical Constraints
+      switch (constraints.vertical) {
+        case 'start': break;
+        case 'end': {
+          const bottomDist = oldHeight - (ly + lh);
+          ly = newHeight - lh - bottomDist;
+          break;
+        }
+        case 'center': {
+          const centerY = ly + lh / 2;
+          const relCenterY = centerY / oldHeight;
+          ly = (relCenterY * newHeight) - lh / 2;
+          break;
+        }
+        case 'both': {
+          const topDistBoth = ly;
+          const bottomDistBoth = oldHeight - (ly + lh);
+          ly = topDistBoth;
+          lh = newHeight - topDistBoth - bottomDistBoth;
+          break;
+        }
+        case 'scale':
+        default: {
+          const relY = ly / oldHeight;
+          const relH = lh / oldHeight;
+          ly = relY * newHeight;
+          lh = relH * newHeight;
+          break;
+        }
+      }
+
+      cloned.x = lx;
+      cloned.y = ly;
+      if ((cloned as any).width !== undefined) {(cloned as any).width = Math.max(1, lw);}
+      if ((cloned as any).height !== undefined) {(cloned as any).height = Math.max(1, lh);}
+      
       if (cloned.type === 'text') {
         const textLayer = cloned as TextLayer;
+        const scale = Math.min(newWidth / oldWidth, newHeight / oldHeight);
         textLayer.fontSize *= scale;
       }
       return cloned;
@@ -161,7 +226,7 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
     get().saveToHistory?.();
     const state = get();
     const artboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
-    if (!artboard) return;
+    if (!artboard) {return;}
 
     const newLayer = {
       id: `adj_${Date.now()}`,
@@ -276,8 +341,18 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
 
   updateLayer: (id, partial) =>
     set((state: any) => {
-      let masterComponentId = '';
+      // Resilience: Sanity Guard for numeric inputs
+      const MAX_SAFE_VAL = 10000;
+      const MIN_SAFE_VAL = -10000;
+      const sanitizedPartial = { ...partial };
 
+      if (partial.x !== undefined) {sanitizedPartial.x = Math.max(MIN_SAFE_VAL, Math.min(MAX_SAFE_VAL, partial.x));}
+      if (partial.y !== undefined) {sanitizedPartial.y = Math.max(MIN_SAFE_VAL, Math.min(MAX_SAFE_VAL, partial.y));}
+      if ((partial as any).width !== undefined) {(sanitizedPartial as any).width = Math.max(1, Math.min(MAX_SAFE_VAL, (partial as any).width));}
+      if ((partial as any).height !== undefined) {(sanitizedPartial as any).height = Math.max(1, Math.min(MAX_SAFE_VAL, (partial as any).height));}
+      if (partial.opacity !== undefined) {sanitizedPartial.opacity = Math.max(0, Math.min(1, partial.opacity));}
+
+      let masterComponentId = '';
       state.artboards.forEach((a: Artboard) => {
         const l = a.layers.find((ly: Layer) => ly.id === id);
         if (l?.componentId) {
@@ -290,33 +365,24 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
           ...a,
           layers: a.layers.map((l: Layer) => {
             if (l.id === id) {
-              const overrides = l.masterId ? [...(l.overrides || []), ...Object.keys(partial)] : l.overrides;
-              return { ...l, ...partial, overrides, dirty: true };
+              const overrides = l.masterId ? [...(l.overrides || []), ...Object.keys(sanitizedPartial)] : l.overrides;
+              return { ...l, ...sanitizedPartial, overrides, dirty: true };
             }
             if (masterComponentId && l.masterId === masterComponentId) {
               const overrides = l.overrides || [];
-              const syncPartial = { ...partial };
+              const syncPartial = { ...sanitizedPartial };
               Object.keys(syncPartial).forEach((key) => {
                 if (overrides.includes(key)) {
                   delete (syncPartial as any)[key];
                 }
               });
-              return { ...l, ...syncPartial };
+              return { ...l, ...syncPartial, dirty: true };
             }
             return l;
           }),
         })),
       };
     }),
-
-  updateLayers: (updates) =>
-    set((state: any) => ({
-      artboards: state.artboards.map((a: Artboard) => ({
-        ...a,
-        layers: a.layers.map((l: Layer) => (updates[l.id] ? { ...l, ...updates[l.id], dirty: true } : l)),
-      })),
-    })),
-
   deleteLayer: (id) => {
     get().saveToHistory?.();
     set((state: any) => ({

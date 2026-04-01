@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { NavTab, TextLayer, AnimationSettings } from '../types';
 import { useStore } from '../store/useStore';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -78,103 +79,117 @@ export const SidePanel = React.memo(
 
     return (
       <ErrorBoundary componentName="SidePanel" variant="widget">
-        <div className="w-[320px] bg-[#13161a] border-r border-[#1f1f1f] flex flex-col z-20 shrink-0 shadow-xl relative overflow-hidden">
-          <div key={activeTab} className="h-full flex flex-col animate-panel-crossfade">
-            <React.Suspense fallback={<PanelLoading />}>
-              {activeTab === NavTab.MAGIC && (
-                <MagicPanel onGenerate={onGenerate} uploadedImage={uploadedImage} fileInputRef={fileInputRef} />
-              )}
+        <motion.div 
+          initial={{ x: -20, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 120 }}
+          className="w-[320px] bg-[#13161a]/95 backdrop-blur-xl border-r border-white/5 flex flex-col z-20 shrink-0 shadow-2xl relative overflow-hidden"
+        >
+          <AnimatePresence mode="wait">
+            <motion.div 
+              key={activeTab} 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              transition={{ duration: 0.2, ease: 'easeInOut' }}
+              className="h-full flex flex-col"
+            >
+              <React.Suspense fallback={<PanelLoading />}>
+                {activeTab === NavTab.MAGIC && (
+                  <MagicPanel onGenerate={onGenerate} uploadedImage={uploadedImage} fileInputRef={fileInputRef} />
+                )}
 
-              {activeTab === NavTab.LAYERS && <LayersPanel />}
+                {activeTab === NavTab.LAYERS && <LayersPanel />}
 
-              {activeTab === NavTab.TEXT && <TextPanel />}
+                {activeTab === NavTab.TEXT && <TextPanel />}
 
-              {activeTab === NavTab.ELEMENTS && <ElementsPanel />}
+                {activeTab === NavTab.ELEMENTS && <ElementsPanel />}
 
-              {activeTab === NavTab.UPLOADS && (
-                <UploadsPanel />
-              )}
+                {activeTab === NavTab.UPLOADS && (
+                  <UploadsPanel />
+                )}
 
-              {activeTab === NavTab.PHOTOS && <AssetsPanel />}
+                {activeTab === NavTab.PHOTOS && <AssetsPanel />}
 
-              {activeTab === NavTab.TEXT_EFFECTS && selectedTextLayer && (
-                <TextEffectsPanel effects={{}} onChange={() => {}} />
-              )}
+                {activeTab === NavTab.TEXT_EFFECTS && selectedTextLayer && (
+                  <TextEffectsPanel effects={{}} onChange={() => {}} />
+                )}
 
-              {activeTab === NavTab.TEXT_EFFECTS && !selectedTextLayer && (
-                <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                  <Icons.Zap className="w-12 h-12 text-gray-600 mb-4" />
-                  <h3 className="text-lg font-bold text-white mb-2">Text Effects</h3>
-                  <p className="text-sm text-gray-400">Select a text layer to unlock amazing text effects like transformations, shadows, 3D depth, and textures.</p>
-                </div>
-              )}
+                {activeTab === NavTab.TEXT_EFFECTS && !selectedTextLayer && (
+                  <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                    <Icons.Zap className="w-12 h-12 text-gray-600 mb-4" />
+                    <h3 className="text-lg font-bold text-white mb-2">Text Effects</h3>
+                    <p className="text-sm text-gray-400">Select a text layer to unlock amazing text effects like transformations, shadows, 3D depth, and textures.</p>
+                  </div>
+                )}
 
-              {activeTab === NavTab.TEMPLATES && (
-                <TemplatesPanel
-                  onApplyTemplate={handleApplyTemplate}
-                  setPrompt={setPrompt}
-                  setAspectRatio={setAspectRatio}
-                  onSetMode={setMode}
-                  onApplyLayout={onApplyLayout}
-                  onApplyTheme={onApplyTheme}
-                />
-              )}
+                {activeTab === NavTab.TEMPLATES && (
+                  <TemplatesPanel
+                    onApplyTemplate={handleApplyTemplate}
+                    setPrompt={setPrompt}
+                    setAspectRatio={setAspectRatio}
+                    onSetMode={setMode}
+                    onApplyLayout={onApplyLayout}
+                    onApplyTheme={onApplyTheme}
+                  />
+                )}
 
-              {activeTab === NavTab.BRAND && <BrandPanel />}
+                {activeTab === NavTab.BRAND && <BrandPanel />}
 
-              {activeTab === NavTab.TEXTURES && (
-                <TexturesPanel
-                  onRemoveTexture={() => {
-                    if (selectedTextLayer) {
-                      updateLayer(selectedTextLayer.id, {
-                        decorations: { ...selectedTextLayer.decorations, textures: [] },
-                      } as Partial<TextLayer>);
-                    }
-                  }}
-                  currentTexture={selectedTextLayer?.decorations?.textures?.[0]}
-                />
-              )}
+                {activeTab === NavTab.TEXTURES && (
+                  <TexturesPanel
+                    onRemoveTexture={() => {
+                      if (selectedTextLayer) {
+                        updateLayer(selectedTextLayer.id, {
+                          decorations: { ...selectedTextLayer.decorations, textures: [] },
+                        } as Partial<TextLayer>);
+                      }
+                    }}
+                    currentTexture={selectedTextLayer?.decorations?.textures?.[0]}
+                  />
+                )}
 
-              {activeTab === NavTab.ASSISTANT && (
-                <AssistantPanel
-                  getCanvasSnapshot={getCanvasSnapshot || (async () => '')}
-                  onStartDesign={onStartDesign}
-                />
-              )}
+                {activeTab === NavTab.ASSISTANT && (
+                  <AssistantPanel
+                    getCanvasSnapshot={getCanvasSnapshot || (async () => '')}
+                    onStartDesign={onStartDesign}
+                  />
+                )}
 
-              {activeTab === NavTab.DRAW && (
-                <DrawPanel
-                  brushColor={brushColor}
-                  setBrushColor={setBrushColor}
-                  brushSize={brushSize}
-                  setBrushSize={setBrushSize}
-                  isDrawing={isPenMode}
-                  setIsDrawing={setPenMode}
-                  brushOpacity={brushOpacity}
-                  setBrushOpacity={setBrushOpacity}
-                  brushType={brushType}
-                  setBrushType={setBrushType}
-                  brushSmoothing={brushSmoothing}
-                  setBrushSmoothing={setBrushSmoothing}
-                  brushJitter={brushJitter}
-                  setBrushJitter={setBrushJitter}
-                  onFinishDrawing={() => {}}
-                />
-              )}
+                {activeTab === NavTab.DRAW && (
+                  <DrawPanel
+                    brushColor={brushColor}
+                    setBrushColor={setBrushColor}
+                    brushSize={brushSize}
+                    setBrushSize={setBrushSize}
+                    isDrawing={isPenMode}
+                    setIsDrawing={setPenMode}
+                    brushOpacity={brushOpacity}
+                    setBrushOpacity={setBrushOpacity}
+                    brushType={brushType}
+                    setBrushType={setBrushType}
+                    brushSmoothing={brushSmoothing}
+                    setBrushSmoothing={setBrushSmoothing}
+                    brushJitter={brushJitter}
+                    setBrushJitter={setBrushJitter}
+                    onFinishDrawing={() => {}}
+                  />
+                )}
 
-              {activeTab === NavTab.MOCKUP && <MockupPanel onExportForMockup={getCanvasSnapshot || (async () => '')} />}
+                {activeTab === NavTab.MOCKUP && <MockupPanel onExportForMockup={getCanvasSnapshot || (async () => '')} />}
 
-              {activeTab === NavTab.COMPONENTS && <ComponentsPanel />}
+                {activeTab === NavTab.COMPONENTS && <ComponentsPanel />}
 
-              {activeTab === NavTab.COMMENTS && <CommentsPanel />}
+                {activeTab === NavTab.COMMENTS && <CommentsPanel />}
 
-              {activeTab === NavTab.VECTORIZER && <VectorizerPanel />}
+                {activeTab === NavTab.VECTORIZER && <VectorizerPanel />}
 
-              {activeTab === NavTab.ARRANGE && <ArrangePanel />}
+                {activeTab === NavTab.ARRANGE && <ArrangePanel />}
 
-              {activeTab === NavTab.MOTION && <MotionPanel onPreviewMotion={onPreviewMotion} />}
-            </React.Suspense>
-          </div>
+                {activeTab === NavTab.MOTION && <MotionPanel onPreviewMotion={onPreviewMotion} />}
+              </React.Suspense>
+            </motion.div>
+          </AnimatePresence>
 
           <input
             type="file"
@@ -184,11 +199,11 @@ export const SidePanel = React.memo(
             multiple
             onChange={(e) => {
               if (e.target.files && e.target.files.length > 0) {
-                // handleFileUpload is now used directly in UploadsPanel, this input is unused but kept for compatibility
+                // handleFileUpload is now used directly in UploadsPanel
               }
             }}
           />
-        </div>
+        </motion.div>
       </ErrorBoundary>
     );
   }

@@ -48,7 +48,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
 
   generateImage: async () => {
     const { prompt, aspectRatio, quality, addImageLayer } = get();
-    if (!prompt) return;
+    if (!prompt) {return;}
 
     set({ isGenerating: true });
     try {
@@ -81,7 +81,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   vectorizeLayer: async (id, options) => {
     const { layers, deleteLayer, addLayers, saveToHistory, updateLayer } = get();
     const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') return;
+    if (!layer || layer.type !== 'image') {return;}
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -163,11 +163,11 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
 
   onRemix: async (id) => {
     const prompt = window.prompt('Enter a style or description to remix this image:');
-    if (!prompt) return;
+    if (!prompt) {return;}
 
     const { layers, updateLayer, saveToHistory } = get();
     const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') return;
+    if (!layer || layer.type !== 'image') {return;}
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -205,7 +205,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   onMagicExpand: async (id) => {
     const { layers, updateLayer, saveToHistory } = get();
     const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') return;
+    if (!layer || layer.type !== 'image') {return;}
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -243,7 +243,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   onRmBg: async (id) => {
     const { layers, updateLayer, saveToHistory } = get();
     const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') return;
+    if (!layer || layer.type !== 'image') {return;}
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -262,7 +262,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   onEnhance: async (id) => {
     const { layers, updateLayer, saveToHistory } = get();
     const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') return;
+    if (!layer || layer.type !== 'image') {return;}
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -281,7 +281,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   onUpscale: async (id) => {
     const { layers, updateLayer, saveToHistory } = get();
     const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') return;
+    if (!layer || layer.type !== 'image') {return;}
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -300,7 +300,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   onRetouch: async (id) => {
     const { layers, updateLayer, saveToHistory } = get();
     const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') return;
+    if (!layer || layer.type !== 'image') {return;}
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -319,7 +319,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   suggestFontPairing: async (textLayerId) => {
     const { layers, updateLayer, saveToHistory } = get();
     const layer = layers.find((l: Layer) => l.id === textLayerId) as TextLayer;
-    if (!layer || layer.type !== 'text') return;
+    if (!layer || layer.type !== 'text') {return;}
 
     set({ isGenerating: true });
     try {
@@ -339,7 +339,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
 
   generateAutoLayouts: async () => {
     const { layers, canvasSize, updateLayers, saveToHistory } = get();
-    if (layers.length === 0) return;
+    if (layers.length === 0) {return;}
 
     set({ isGenerating: true });
     try {

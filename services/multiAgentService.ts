@@ -252,7 +252,7 @@ You MUST return the identical schema structure for variants but with improved va
     // Map refined properties back into the original variant structure to preserve ID and internal structure
     return variants.map(v => {
       const rf = refined.find((r: any) => r.id === v.id);
-      if (!rf) return v;
+      if (!rf) {return v;}
 
       return {
         ...v,

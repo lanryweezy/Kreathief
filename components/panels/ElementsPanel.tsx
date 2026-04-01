@@ -4,6 +4,7 @@ import { ShapeLayer, ImageLayer } from '../../types';
 import * as freepikService from '../../services/freepikService';
 import * as streamlineService from '../../services/streamlineService';
 import { SHAPE_LIBRARY } from '../../constants/shapeLibrary';
+import { ElementSkeleton } from '../Skeleton';
 
 import { useStore } from '../../store/useStore';
 import { v4 as uuidv4 } from 'uuid';
@@ -348,15 +349,21 @@ export const ElementsPanel = () => {
         </>
       ) : (
         <div className="space-y-4">
-          {hasSearched ? (
+          {_isSearching ? (
+            <div className="grid grid-cols-3 gap-3">
+              {[...Array(6)].map((_, i) => (
+                <ElementSkeleton key={i} />
+              ))}
+            </div>
+          ) : hasSearched ? (
             <div className="grid grid-cols-3 gap-3">
               {remoteIcons.map((icon) => (
                 <button
                   key={icon.id}
                   onClick={() => handleAddRemoteIcon(icon)}
-                  className="aspect-square bg-[#1e1e1e] border border-gray-800 rounded-xl hover:border-[#7d2ae8] flex items-center justify-center p-2"
+                  className="aspect-square bg-[#1e1e1e] border border-gray-800 rounded-xl hover:border-[#7d2ae8] flex items-center justify-center p-2 group"
                 >
-                  <img src={icon.thumbnailUrl} alt={icon.name} className="w-full h-full object-contain" />
+                  <img src={icon.thumbnailUrl} alt={icon.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform" />
                 </button>
               ))}
             </div>

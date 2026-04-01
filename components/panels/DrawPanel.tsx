@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Icons } from '../../constants';
 import { BrushType } from '../../types';
 import { useStore } from '../../store/useStore';
+import { AbrParser } from '../../utils/abrParser';
+import { v4 as uuidv4 } from 'uuid';
 
 interface DrawPanelProps {
   brushColor: string;
@@ -20,6 +22,22 @@ interface DrawPanelProps {
   setBrushJitter?: (jitter: number) => void;
   onFinishDrawing: () => void;
 }
+
+// FIX: Add CSS animations for brush previews
+const BRUSH_PREVIEW_ANIMATIONS: Record<string, React.CSSProperties> = {
+  [BrushType.WATERCOLOR]: {
+    animation: 'brushPulse 2s ease-in-out infinite',
+  },
+  [BrushType.OIL]: {
+    animation: 'brushSkew 1.5s ease-in-out infinite alternate',
+  },
+  [BrushType.SPLATTER]: {
+    animation: 'brushFloat 3s ease-in-out infinite',
+  },
+  [BrushType.TEXTURE]: {
+    animation: 'brushPulse 2.5s ease-in-out infinite',
+  },
+};
 
 const BRUSH_PREVIEWS: Record<string, React.ReactNode> = {
   [BrushType.BASIC]: (
@@ -83,6 +101,11 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
   onFinishDrawing,
 }) => {
   const [recentColors, setRecentColors] = useState<string[]>([]);
+  const customBrushes = useStore((state) => state.customBrushes) || [];
+  const addCustomBrushes = useStore((state) => state.addCustomBrushes);
+  const selectedCustomBrushId = useStore((state) => state.selectedCustomBrushId);
+  const setSelectedCustomBrushId = useStore((state) => state.setSelectedCustomBrushId);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Use store for smoothing and jitter
   const smoothing = useStore((state) => state.brushSmoothing);
@@ -91,18 +114,8 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
   const setJitter = useStore((state) => state.setBrushJitter);
 
   const colors = [
-    '#000000',
-    '#ffffff',
-    '#ff0000',
-    '#00ff00',
-    '#0000ff',
-    '#ffff00',
-    '#ff00ff',
-    '#00ffff',
-    '#7d2ae8',
-    '#00c4cc',
-    '#ff9900',
-    '#ff66b2',
+    '#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff', '#ffff00',
+    '#ff00ff', '#00ffff', '#7d2ae8', '#00c4cc', '#ff9900', '#ff66b2',
   ];
 
   const handleColorChange = (color: string) => {
@@ -112,12 +125,50 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
     }
   };
 
+  const handleAbrImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {return;}
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const parser = new AbrParser(buffer);
+      const brushes = parser.parse();
+      
+      const newBrushes = brushes.map(b => ({
+        ...b,
+        id: uuidv4()
+      }));
+
+      addCustomBrushes(newBrushes);
+      useStore.getState().addToast?.(`Imported ${newBrushes.length} brushes`, 'success');
+    } catch (err) {
+      console.error(err);
+      useStore.getState().addToast?.('Failed to parse ABR file', 'error');
+    }
+  };
+
   return (
     <div className="flex flex-col h-full p-4 overflow-y-auto custom-scrollbar pb-10">
-      <h3 className="font-bold text-white mb-6 flex items-center gap-2">
-        <Icons.Brush className="w-5 h-5 text-[#7d2ae8]" />
-        Creative Drawing
-      </h3>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="font-bold text-white flex items-center gap-2">
+          <Icons.Brush className="w-5 h-5 text-[#7d2ae8]" />
+          Creative Drawing
+        </h3>
+        <button 
+          onClick={() => fileInputRef.current?.click()}
+          className="p-1.5 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 rounded-lg transition-all"
+          title="Import ABR Brushes"
+        >
+          <Icons.Plus className="w-4 h-4" />
+        </button>
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          accept=".abr" 
+          className="hidden" 
+          onChange={handleAbrImport} 
+        />
+      </div>
 
       {/* Drawing Status Card */}
       <div className="mb-6 p-4 bg-[#252627] rounded-lg border border-gray-700 relative overflow-hidden">
@@ -151,6 +202,52 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
         </div>
       </div>
 
+      <style>{`
+        @keyframes brushPulse {
+          0%, 100% { opacity: 0.3; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(1.05); }
+        }
+        @keyframes brushSkew {
+          0% { transform: skewX(0deg); }
+          100% { transform: skewX(-10deg); }
+        }
+        @keyframes brushFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-3px); }
+        }
+      `}</style>
+
+      {/* Custom Brushes */}
+      {customBrushes.length > 0 && (
+        <div className="mb-6">
+          <label className="text-xs font-bold text-gray-400 mb-3 block uppercase tracking-wider">Imported Brushes</label>
+          <div className="grid grid-cols-4 gap-2">
+            {customBrushes.map((brush) => (
+              <button
+                key={brush.id}
+                onClick={() => {
+                  setBrushType(BrushType.CUSTOM);
+                  setSelectedCustomBrushId(brush.id);
+                  setIsDrawing(true);
+                }}
+                className={`aspect-square rounded-lg border flex items-center justify-center p-1 transition-all ${
+                  selectedCustomBrushId === brush.id
+                    ? 'bg-orange-500/20 border-orange-500 ring-1 ring-orange-500'
+                    : 'bg-[#252627] border-gray-700 text-gray-500 hover:border-gray-600'
+                }`}
+                title={brush.name}
+              >
+                {brush.tipData ? (
+                  <img src={brush.tipData} className="w-full h-full object-contain invert grayscale brightness-200" alt="" />
+                ) : (
+                  <Icons.Brush className="w-4 h-4" />
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Brush Types with Previews */}
       <div className="mb-6">
         <label className="text-xs font-bold text-gray-400 mb-3 block uppercase tracking-wider">Creative Brushes</label>
@@ -169,15 +266,16 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
               key={type.id}
               onClick={() => {
                 setBrushType(type.id);
+                setSelectedCustomBrushId(null);
                 setIsDrawing(true);
               }}
-              className={`relative h-14 p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white ring-1 ring-[#7d2ae8]' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
+              className={`relative h-14 p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id && !selectedCustomBrushId ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white ring-1 ring-[#7d2ae8]' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
             >
-              {/* SVG Preview Background */}
               <svg
                 className="absolute top-0 right-0 w-full h-full opacity-30 pointer-events-none"
                 viewBox="0 0 100 50"
                 preserveAspectRatio="none"
+                style={BRUSH_PREVIEW_ANIMATIONS[type.id]}
               >
                 <defs>
                   <filter id="oilFilter">
@@ -205,15 +303,16 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
               key={type.id}
               onClick={() => {
                 setBrushType(type.id);
+                setSelectedCustomBrushId(null);
                 setIsDrawing(true);
               }}
-              className={`relative h-14 p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white ring-1 ring-[#7d2ae8]' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
+              className={`relative h-14 p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id && !selectedCustomBrushId ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white ring-1 ring-[#7d2ae8]' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
             >
-              {/* SVG Preview Background */}
               <svg
                 className="absolute top-0 right-0 w-full h-full opacity-30 pointer-events-none"
                 viewBox="0 0 100 50"
                 preserveAspectRatio="none"
+                style={BRUSH_PREVIEW_ANIMATIONS[type.id]}
               >
                 {BRUSH_PREVIEWS[type.id]}
               </svg>

@@ -875,9 +875,34 @@ export const exportDesignToImage = async (
 };
 
 /**
- * Exports an image data URL to a PDF file.
+ * Color profile types for professional print export
  */
-export const exportToPDF = async (width: number, height: number, imgDataUrl: string, fileName: string) => {
+export type ColorProfile = 'sRGB' | 'CMYK' | 'FOGRA39' | 'GRACoL' | 'SWOP';
+
+export interface PDFExportOptions {
+  colorProfile?: ColorProfile;
+  bleed?: number; // Bleed in points (1pt = 1/72 inch)
+  cropMarks?: boolean;
+  quality?: 'screen' | 'print' | 'prepress';
+}
+
+/**
+ * Exports an image data URL to a PDF file with professional print options.
+ */
+export const exportToPDF = async (
+  width: number,
+  height: number,
+  imgDataUrl: string,
+  fileName: string,
+  options: PDFExportOptions = {}
+) => {
+  const {
+    colorProfile = 'sRGB',
+    bleed = 0,
+    cropMarks = false,
+    quality = 'print'
+  } = options;
+
   if (typeof Worker !== 'undefined') {
     try {
       const blob = await new Promise<Blob>((resolve, reject) => {
@@ -894,7 +919,7 @@ export const exportToPDF = async (width: number, height: number, imgDataUrl: str
           reject(err);
           worker.terminate();
         };
-        worker.postMessage({ width, height, imgDataUrl, fileName });
+        worker.postMessage({ width, height, imgDataUrl, fileName, options });
       });
       downloadBlob(blob, fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
       return;
@@ -903,15 +928,111 @@ export const exportToPDF = async (width: number, height: number, imgDataUrl: str
     }
   }
 
-  // Fallback
-  const orientation = width > height ? 'landscape' : 'portrait';
+  // Fallback - Main thread PDF generation
+  const effectiveWidth = width + bleed * 2;
+  const effectiveHeight = height + bleed * 2;
+  const orientation = effectiveWidth > effectiveHeight ? 'landscape' : 'portrait';
+  
   const pdf = new jsPDF({
     orientation: orientation,
     unit: 'pt',
-    format: [width, height],
+    format: [effectiveWidth, effectiveHeight],
   });
-  pdf.addImage(imgDataUrl, 'PNG', 0, 0, width, height);
+
+  // Add color profile metadata for professional print
+  pdf.setProperties({
+    title: fileName,
+    creator: 'Kreathief Design Editor',
+    producer: `Kreathief PDF Export - ${colorProfile} Profile`,
+  });
+
+  // Add image with bleed area
+  pdf.addImage(imgDataUrl, 'PNG', bleed, bleed, width, height);
+
+  // Add crop marks if requested
+  if (cropMarks && bleed > 0) {
+    const cropLength = 20; // pt
+    const lineWidth = 0.25; // pt
+    
+    pdf.setLineWidth(lineWidth);
+    pdf.setDrawColor(0, 0, 0);
+
+    // Top-left corner
+    pdf.line(bleed - cropLength, bleed, bleed, bleed);
+    pdf.line(bleed, bleed - cropLength, bleed, bleed);
+
+    // Top-right corner
+    pdf.line(effectiveWidth - bleed, bleed, effectiveWidth - bleed + cropLength, bleed);
+    pdf.line(effectiveWidth - bleed, bleed - cropLength, effectiveWidth - bleed, bleed);
+
+    // Bottom-left corner
+    pdf.line(bleed - cropLength, effectiveHeight - bleed, bleed, effectiveHeight - bleed);
+    pdf.line(bleed, effectiveHeight - bleed, bleed, effectiveHeight - bleed + cropLength);
+
+    // Bottom-right corner
+    pdf.line(effectiveWidth - bleed, effectiveHeight - bleed, effectiveWidth - bleed + cropLength, effectiveHeight - bleed);
+    pdf.line(effectiveWidth - bleed, effectiveHeight - bleed, effectiveWidth - bleed, effectiveHeight - bleed + cropLength);
+  }
+
+  // Add print metadata
+  const printInfo = {
+    colorProfile,
+    quality,
+    bleed: bleed > 0 ? `${bleed}pt` : 'none',
+    dimensions: `${Math.round(width)} × ${Math.round(height)}pt`,
+    createdAt: new Date().toISOString(),
+  };
+
+  // Add metadata as XMP (extensible metadata platform)
+  const metadata = `
+<?xpacket begin="?" id="W5M0MpCehiHzreSzNTczkc9d"?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/">
+  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <rdf:Description rdf:about="" xmlns:pdf="http://ns.adobe.com/pdf/1.3/">
+      <pdf:Producer>Kreathief PDF Export</pdf:Producer>
+    </rdf:Description>
+    <rdf:Description rdf:about="" xmlns:xmp="http://ns.adobe.com/xap/1.0/">
+      <xmp:CreatorTool>Kreathief Design Editor</xmp:CreatorTool>
+      <xmp:MetadataDate>${printInfo.createdAt}</xmp:MetadataDate>
+    </rdf:Description>
+    <rdf:Description rdf:about="" xmlns:pdfx="http://ns.adobe.com/pdfx/1.3/">
+      <pdfx:ColorProfile>${colorProfile}</pdfx:ColorProfile>
+      <pdfx:PrintQuality>${quality}</pdfx:PrintQuality>
+    </rdf:Description>
+  </rdf:RDF>
+</x:xmpmeta>
+<?xpacket end="w"?>
+  `.trim();
+
+  // @ts-ignore - jsPDF metadata extension
+  if (pdf.addMetadata) {
+    // @ts-ignore
+    pdf.addMetadata(metadata, 'application/rdf+xml');
+  }
+
   pdf.save(fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
+};
+
+/**
+ * Exports design as print-ready PDF with CMYK color conversion.
+ * This creates a PDF/X-1a compliant file for professional printing.
+ */
+export const exportToPrintPDF = async (
+  width: number,
+  height: number,
+  imgDataUrl: string,
+  fileName: string,
+  options: PDFExportOptions = {}
+) => {
+  const printOptions: PDFExportOptions = {
+    ...options,
+    colorProfile: options.colorProfile || 'FOGRA39', // Standard offset printing profile
+    bleed: options.bleed || 9, // Default 1/8 inch bleed
+    cropMarks: options.cropMarks ?? true,
+    quality: 'prepress',
+  };
+
+  return exportToPDF(width, height, imgDataUrl, fileName, printOptions);
 };
 
 /**

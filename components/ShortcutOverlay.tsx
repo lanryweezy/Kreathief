@@ -7,7 +7,7 @@ interface ShortcutOverlayProps {
 }
 
 export const ShortcutOverlay: React.FC<ShortcutOverlayProps> = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
+  if (!isOpen) {return null;}
 
   const shortcutGroups = [
     {

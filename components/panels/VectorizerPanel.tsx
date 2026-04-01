@@ -122,7 +122,7 @@ export const VectorizerPanel = () => {
 
   const handleVectorize = async () => {
     if (activeTab === 'image') {
-      if (!image) return;
+      if (!image) {return;}
       setIsProcessing(true);
       try {
         let paths;
@@ -146,7 +146,7 @@ export const VectorizerPanel = () => {
         setIsProcessing(false);
       }
     } else {
-      if (!prompt.trim() || trials <= 0) return;
+      if (!prompt.trim() || trials <= 0) {return;}
       setIsProcessing(true);
       try {
         const paths = await geminiService.generateAIVector(prompt, stylePreset);
@@ -163,7 +163,7 @@ export const VectorizerPanel = () => {
   };
 
   const addToCanvas = () => {
-    if (!displayResult) return;
+    if (!displayResult) {return;}
 
     // Spread layers across canvas instead of stacking at the same position
     const SPREAD_OFFSET = 320;
@@ -264,7 +264,7 @@ ${displayResult
 
     setBatchItems(prev => prev.map(item => {
       const idx = items.findIndex(b => b.id === item.id);
-      if (idx === -1) return item;
+      if (idx === -1) {return item;}
       const result = results[idx];
       if (result?.status === 'fulfilled') {
         return { ...item, status: 'done', result: result.value };

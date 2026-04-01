@@ -19,7 +19,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
     duplicateLayer, deleteLayer, moveLayer, updateLayer,
     artboards, activeArtboardId,
     convertToComponent, instantiateComponent, detachInstance, resetOverrides,
-    addToast, applyMask,
+    addToast, applyMask, groupSelected, ungroupSelected,
   } = useStore();
 
   const clipboardLayer = useStore(s => s.clipboardLayer);
@@ -34,18 +34,18 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
   const isLocked = layer?.locked || false;
 
   useEffect(() => {
-    if (layer) setRenameValue(layer.name || '');
+    if (layer) {setRenameValue(layer.name || '');}
   }, [layer]);
 
   useEffect(() => {
-    if (isRenaming) setTimeout(() => renameInputRef.current?.select(), 50);
+    if (isRenaming) {setTimeout(() => renameInputRef.current?.select(), 50);}
   }, [isRenaming]);
 
   useEffect(() => {
     const handleOut = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) onClose();
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {onClose();}
     };
-    const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') {onClose();} };
     document.addEventListener('mousedown', handleOut);
     document.addEventListener('keydown', handleEsc);
     return () => {
@@ -55,7 +55,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
   }, [onClose]);
 
   const handleRename = () => {
-    if (renameValue.trim()) updateLayer(layerId, { name: renameValue.trim() });
+    if (renameValue.trim()) {updateLayer(layerId, { name: renameValue.trim() });}
     setIsRenaming(false);
     onClose();
   };
@@ -120,7 +120,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
             ref={renameInputRef}
             value={renameValue}
             onChange={e => setRenameValue(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') handleRename(); if (e.key === 'Escape') { setIsRenaming(false); onClose(); } }}
+            onKeyDown={e => { if (e.key === 'Enter') {handleRename();} if (e.key === 'Escape') { setIsRenaming(false); onClose(); } }}
             onBlur={handleRename}
             className="w-full bg-[#0e1318] border border-[#7d2ae8] rounded-lg px-3 py-1.5 text-xs text-white outline-none"
             autoFocus
@@ -141,6 +141,18 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
       <MI onClick={() => { duplicateLayer(layerId); onClose(); }} icon={Icons.Copy} label="Duplicate">
         Duplicate <span className="ml-auto text-[9px] text-gray-600 font-mono">Ctrl+D</span>
       </MI>
+      
+      <Div />
+
+      <MI onClick={() => { groupSelected(); onClose(); }} icon={Icons.Group}>
+        Group Selection <span className="ml-auto text-[9px] text-gray-600 font-mono">Ctrl+G</span>
+      </MI>
+      <MI onClick={() => { ungroupSelected(); onClose(); }} icon={Icons.Ungroup}>
+        Ungroup <span className="ml-auto text-[9px] text-gray-600 font-mono">⇧Ctrl+G</span>
+      </MI>
+
+      <Div />
+
       <MI onClick={() => { pasteLayer(); onClose(); }} icon={Icons.Copy} disabled={!clipboardLayer}>
         Paste Above
       </MI>

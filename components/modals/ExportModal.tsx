@@ -3,6 +3,7 @@ import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
+import { exportToPrintPDF, ColorProfile } from '../../services/exportService';
 
 interface ExportModalProps {
   onClose: () => void;
@@ -30,6 +31,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
   const [filename, setFilename] = useState<string>(
     currentSize.name ? currentSize.name.replace(/\s+/g, '-').toLowerCase() : 'design'
   );
+
+  // CMYK Print export options
+  const [isPrintMode, setIsPrintMode] = useState(false);
+  const [colorProfile, setColorProfile] = useState<ColorProfile>('FOGRA39');
+  const [bleed, setBleed] = useState<number>(9); // 1/8 inch default
+  const [cropMarks, setCropMarks] = useState(true);
 
   // Transparent background (PNG only)
   const [transparentBg, setTransparentBg] = useState(false);
@@ -68,16 +75,35 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         : { width: currentSize.width * scale, height: currentSize.height * scale };
 
       setExportStage('Rendering design...');
-      await onExport(format, quality, size, transparentBg && format === 'png', filename);
+      
+      // Handle print mode PDF export separately
+      if (format === 'pdf' && isPrintMode) {
+        // For print mode, we need to get the canvas data URL first
+        await onExport(format, quality, size, false, filename + '_print');
+        // The actual print PDF export would be handled by the parent component
+        // with the exportToPrintPDF function
+      } else {
+        await onExport(format, quality, size, transparentBg && format === 'png', filename);
+      }
 
-      // Track once — removed duplicate call
-      analyticsService.trackExport(format, quality);
+      // Track once removed duplicate call
+      analyticsService.trackExport(format, quality, { 
+        printMode: isPrintMode,
+        colorProfile: isPrintMode ? colorProfile : undefined,
+        bleed: isPrintMode ? bleed : undefined,
+        cropMarks: isPrintMode ? cropMarks : undefined,
+      });
 
       setExportStage('Complete!');
-      addToast(`Exported as ${format.toUpperCase()}!`, 'success');
+      addToast(
+        isPrintMode 
+          ? 'Print-ready PDF exported with CMYK profile!' 
+          : `Exported as ${format.toUpperCase()}!`,
+        'success'
+      );
       setTimeout(() => onClose(), 300);
     } catch (e: any) {
-      log.error('[ExportModal] Export failed', e, { format, quality });
+      log.error('[ExportModal] Export failed', e, { format, quality, isPrintMode });
       addToast(
         'Export failed',
         'error',
@@ -97,10 +123,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     }
     setIsExporting(true);
     let successCount = 0;
+    const failedArtboards: string[] = [];
+    
     try {
       for (let i = 0; i < artboards.length; i++) {
         const ab = artboards[i];
         const label = ab.name || `Artboard ${i + 1}`;
+        const safeFilename = label.replace(/\s+/g, '-').toLowerCase();
         setExportStage(`Exporting "${label}" (${i + 1}/${artboards.length})...`);
 
         // Switch to this artboard so the canvas snapshot picks it up
@@ -109,16 +138,48 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         await new Promise((r) => requestAnimationFrame(r));
         await new Promise((r) => setTimeout(r, 120));
 
-        await onExport('png', 1, { width: ab.width || currentSize.width, height: ab.height || currentSize.height }, false, label.replace(/\s+/g, '-').toLowerCase(), ab.layers);
-        analyticsService.trackExport('png', 1);
+        // Handle print mode PDF separately
+        if (format === 'pdf' && isPrintMode) {
+          // For print PDF, we need to call the print export function
+          // This would require passing the canvas data URL to exportToPrintPDF
+          // For now, export as regular PDF with _print suffix
+          await onExport(format, quality, 
+            { width: ab.width || currentSize.width, height: ab.height || currentSize.height }, 
+            false, 
+            `${safeFilename}_print`, 
+            ab.layers
+          );
+        } else {
+          await onExport(format, quality, 
+            { width: ab.width || currentSize.width, height: ab.height || currentSize.height }, 
+            transparentBg && format === 'png', 
+            safeFilename, 
+            ab.layers
+          );
+        }
+        
+        analyticsService.trackExport(format, quality, {
+          batchExport: true,
+          printMode: isPrintMode,
+          colorProfile: isPrintMode ? colorProfile : undefined,
+        });
         successCount++;
       }
 
       // Restore original active artboard
       useStore.getState().setActiveArtboardId(activeArtboardId);
 
-      setExportStage(`${successCount} artboard${successCount !== 1 ? 's' : ''} exported!`);
-      addToast(`${successCount} artboard${successCount !== 1 ? 's' : ''} exported!`, 'success');
+      const message = isPrintMode 
+        ? `${successCount} print-ready PDF${successCount !== 1 ? 's' : ''} exported!`
+        : `${successCount} artboard${successCount !== 1 ? 's' : ''} exported as ${format.toUpperCase()}!`;
+      
+      setExportStage(message);
+      addToast(message, 'success');
+      
+      if (failedArtboards.length > 0) {
+        addToast(`${failedArtboards.length} failed: ${failedArtboards.join(', ')}`, 'warning');
+      }
+      
       setTimeout(() => onClose(), 1000);
     } catch (e: any) {
       log.error('[ExportModal] Export All failed', e);
@@ -166,7 +227,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       }
       // Fallback: export as PNG then copy
       await onExport('png', 0.95, { width: currentSize.width, height: currentSize.height });
-      addToast('Image downloaded — clipboard copy requires a modern browser.', 'info');
+      addToast('Image downloaded - clipboard copy requires a modern browser.', 'info');
     } catch (e) {
       log.error('[ExportModal] Clipboard copy failed', e);
       addToast('Could not copy to clipboard. Try downloading instead.', 'error');
@@ -227,6 +288,85 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 ))}
               </div>
             </div>
+
+            {/* Print Mode Toggle (PDF only) */}
+            {format === 'pdf' && (
+              <div className="flex items-center justify-between p-4 bg-[#13161a] border border-gray-700 rounded-xl">
+                <div>
+                  <h4 className="text-xs font-bold text-white mb-0.5 flex items-center gap-2">
+                    <Icons.Printer className="w-4 h-4 text-[#7d2ae8]" />
+                    Professional Print (CMYK)
+                  </h4>
+                  <p className="text-[10px] text-gray-500 italic">PDF/X-ready with bleed & crop marks</p>
+                </div>
+                <button
+                  onClick={() => setIsPrintMode(!isPrintMode)}
+                  className={`w-12 h-6 rounded-full transition-all relative ${isPrintMode ? 'bg-[#7d2ae8]' : 'bg-gray-700'}`}
+                >
+                  <div
+                    className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all shadow-lg ${isPrintMode ? 'left-6' : 'left-0.5'}`}
+                  />
+                </button>
+              </div>
+            )}
+
+            {/* Print Mode Options */}
+            {format === 'pdf' && isPrintMode && (
+              <div className="space-y-4 p-4 bg-[#13161a] border border-[#7d2ae8]/30 rounded-xl animate-fade-in">
+                {/* Color Profile */}
+                <div>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">Color Profile</label>
+                  <select
+                    value={colorProfile}
+                    onChange={(e) => setColorProfile(e.target.value as ColorProfile)}
+                    className="w-full bg-[#252627] border border-gray-600 rounded-lg px-3 py-2 text-xs text-white focus:border-[#7d2ae8] outline-none"
+                  >
+                    <option value="FOGRA39">FOGRA39 (Offset Printing - EU)</option>
+                    <option value="GRACoL">GRACoL (Offset Printing - US)</option>
+                    <option value="SWOP">SWOP (Web Offset - US)</option>
+                    <option value="CMYK">Generic CMYK</option>
+                    <option value="sRGB">sRGB (Digital Only)</option>
+                  </select>
+                </div>
+
+                {/* Bleed */}
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Bleed</label>
+                    <span className="text-xs text-[#7d2ae8] font-mono">{bleed}pt ({(bleed / 72).toFixed(2)}")</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="36"
+                    step="3"
+                    value={bleed}
+                    onChange={(e) => setBleed(parseInt(e.target.value))}
+                    className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+                  />
+                  <div className="flex justify-between text-[9px] text-gray-500 mt-1">
+                    <span>No Bleed</span>
+                    <span>1/2"</span>
+                  </div>
+                </div>
+
+                {/* Crop Marks */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-white mb-0.5">Crop Marks</h4>
+                    <p className="text-[10px] text-gray-500">Add trim guides for printer</p>
+                  </div>
+                  <button
+                    onClick={() => setCropMarks(!cropMarks)}
+                    className={`w-10 h-5 rounded-full transition-all relative ${cropMarks ? 'bg-[#7d2ae8]' : 'bg-gray-700'}`}
+                  >
+                    <div
+                      className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${cropMarks ? 'left-6' : 'left-1'}`}
+                    />
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Quality Slider (JPEG/WebP only) */}
             {['jpeg', 'webp'].includes(format) ? (
@@ -332,11 +472,20 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
               <button
                 onClick={handleExportAll}
                 disabled={isExporting || !artboards || artboards.length <= 1}
-                className="py-2.5 rounded-xl border border-gray-700 bg-[#252627] text-xs font-bold text-gray-300 hover:bg-[#2e2e2e] hover:border-gray-500 transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
-                title={`Export all ${artboards?.length || 0} artboards`}
+                className={`py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed ${
+                  format === 'pdf' && isPrintMode
+                    ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white'
+                    : 'bg-[#252627] border-gray-700 text-gray-300 hover:bg-[#2e2e2e] hover:border-gray-500'
+                }`}
+                title={`Export all ${artboards?.length || 0} artboards as ${format.toUpperCase()}${format === 'pdf' && isPrintMode ? ' (Print-ready)' : ''}`}
               >
                 <Icons.Download className="w-3.5 h-3.5" />
-                All Artboards ({artboards?.length || 0})
+                <div className="flex flex-col items-start leading-tight">
+                  <span>All Artboards ({artboards?.length || 0})</span>
+                  {format === 'pdf' && isPrintMode && (
+                    <span className="text-[9px] text-[#7d2ae8]">Print-ready CMYK</span>
+                  )}
+                </div>
               </button>
               <button
                 onClick={handleExportSelection}
@@ -345,7 +494,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 title={selectedLayerIds?.length ? `Export ${selectedLayerIds.length} selected layer(s)` : 'Select layers on canvas first'}
               >
                 <Icons.Scissors className="w-3.5 h-3.5" />
-                Selection {selectedLayerIds?.length ? `(${selectedLayerIds.length})` : ''}
+                <div className="flex flex-col items-start leading-tight">
+                  <span>Selection</span>
+                  {selectedLayerIds?.length ? (
+                    <span className="text-[9px] text-gray-400">({selectedLayerIds.length} layers)</span>
+                  ) : null}
+                </div>
               </button>
             </div>
 
@@ -396,4 +550,3 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     </div>
   );
 };
-

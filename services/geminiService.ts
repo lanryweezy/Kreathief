@@ -6,7 +6,8 @@ import { log } from '../utils/log';
 
 // Helper to call backend serverless endpoint
 const callBackendGeminiAPI = async (payload: any) => {
-  const response = await fetch('/api/gemini', {
+  const endpoint = process.env.NODE_ENV === 'test' ? 'http://localhost:3000/api/gemini' : '/api/gemini';
+  const response = await fetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action: 'generateContent', ...payload }),
@@ -82,7 +83,7 @@ export const generateImage = async (
 
     return extractImageFromResponse(data);
   } catch (error) {
-    console.error('Gemini Generation Error — trying Freepik fallback:', error);
+    log.error('[GeminiService] Image generation failed, attempting Freepik fallback', error);
 
     // Freepik fallback
     if (freepikService.isConfigured()) {
@@ -256,7 +257,7 @@ export const generateAltText = async (src: string): Promise<string> => {
       canvas.width = loaded.naturalWidth;
       canvas.height = loaded.naturalHeight;
       const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Canvas 2D context unavailable');
+      if (!ctx) {throw new Error('Canvas 2D context unavailable');}
       ctx.drawImage(loaded, 0, 0);
       const dataUrl = canvas.toDataURL('image/png');
       b64 = cleanBase64(dataUrl);
@@ -669,7 +670,7 @@ export const generatePaletteFromImage = async (base64Image: string): Promise<str
     });
     
     const text = data.text;
-    if (!text) return [];
+    if (!text) {return [];}
 
     // Clean up response to ensure valid JSON
     const jsonMatch = text.match(/\[.*\]/s);

@@ -16,7 +16,7 @@ export const PresentationModal: React.FC = () => {
 
   const ab = artboards[index] || artboards[0];
   const scale = useMemo(() => {
-    if (!ab) return 1;
+    if (!ab) {return 1;}
     const vw = Math.min(window.innerWidth, 1280) - 160;
     const vh = Math.min(window.innerHeight, 800) - 200;
     const sx = vw / Math.max(1, ab.width || 1080);
@@ -27,17 +27,17 @@ export const PresentationModal: React.FC = () => {
   const onClose = useCallback(() => setShow(false), [setShow]);
 
   useEffect(() => {
-    if (!show) return;
+    if (!show) {return;}
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowRight') setIndex((i) => Math.min((artboards.length - 1), i + 1));
-      if (e.key === 'ArrowLeft') setIndex((i) => Math.max(0, i - 1));
+      if (e.key === 'Escape') {onClose();}
+      if (e.key === 'ArrowRight') {setIndex((i) => Math.min((artboards.length - 1), i + 1));}
+      if (e.key === 'ArrowLeft') {setIndex((i) => Math.max(0, i - 1));}
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [show, onClose, artboards.length]);
 
-  if (!show || !ab) return null;
+  if (!show || !ab) {return null;}
 
   return (
     <div className="fixed inset-0 z-[2000] bg-black/95 text-white flex flex-col" onClick={onClose}>

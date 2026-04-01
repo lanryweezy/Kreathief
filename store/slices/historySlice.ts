@@ -35,7 +35,7 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
 
   saveToHistory: (() => {
     let lastSavedTimestamp = 0;
-    const DEBOUNCE_MS = 250;
+    const DEBOUNCE_MS = process.env.NODE_ENV === 'test' ? 0 : 250;
     const MAX_HISTORY = 100; // Increased because patches are small
     const SNAPSHOT_INTERVAL = 10;
     let lastStateSnapshot: HistoryState | null = null;
@@ -54,7 +54,7 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
 
       set((state: any) => {
         const currentState: HistoryState = {
-          artboards: structuredClone(state.artboards),
+          artboards: state.artboards.map((a: Artboard) => ({ ...a, layers: [...a.layers] })),
           activeArtboardId: state.activeArtboardId,
           canvasBackgroundColor: state.canvasBackgroundColor,
           canvasFilters: state.canvasFilters ? { ...state.canvasFilters } : undefined,
@@ -73,6 +73,16 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
         }
 
         const newPast = state.past.length >= MAX_HISTORY ? [...state.past.slice(1), entry] : [...state.past, entry];
+
+        // Hardening: Mirror session to IndexedDB for crash recovery
+        if (state.projectId) {
+          storageService.saveSessionMirror(state.projectId, currentState).catch(err => 
+            console.error('[Resilience] Session mirror failed', err)
+          );
+        }
+
+        // Mark as having unsaved changes
+        state.setHasUnsavedChanges?.(true);
 
         return { past: newPast, future: [] };
       });
@@ -93,7 +103,7 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
       const now = Date.now();
       set((state: any) => {
         const currentState: HistoryState = {
-          artboards: structuredClone(state.artboards),
+          artboards: state.artboards.map((a: Artboard) => ({ ...a, layers: [...a.layers] })),
           activeArtboardId: state.activeArtboardId,
           canvasBackgroundColor: state.canvasBackgroundColor,
           canvasFilters: state.canvasFilters ? { ...state.canvasFilters } : undefined,
@@ -114,11 +124,11 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
     }
 
     const currentFullState: HistoryState = {
-      artboards: structuredClone(artboards),
+      artboards: artboards.map((a: Artboard) => ({ ...a, layers: [...a.layers] })),
       activeArtboardId,
       canvasBackgroundColor,
-      canvasFilters: structuredClone(canvasFilters),
-      canvasSize: structuredClone(canvasSize),
+      canvasFilters: canvasFilters ? { ...canvasFilters } : undefined,
+      canvasSize: canvasSize ? { ...canvasSize } : undefined,
     };
 
     const lastEntry = past[past.length - 1];
@@ -145,9 +155,9 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
       } // Should not happen
 
       targetState = structuredClone(newPast[lastSnapshotIdx].state!);
-      for (let i = lastSnapshotIdx + 1; i < newPast.length; i++) {
-        if (newPast[i].type === 'patch') {
-          applyPatch(targetState, newPast[i].patch!);
+      for (let i = lastSnapshotIdx + 1; i < past.length; i++) {
+        if (past[i].type === 'patch') {
+          applyPatch(targetState, past[i].patch!);
         }
       }
     }
@@ -157,6 +167,7 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
       past: newPast,
       future: [{ timestamp: Date.now(), type: 'snapshot', state: currentFullState }, ...get().future],
     });
+    get().addToast?.('Action Undone', 'info');
   },
 
   redo: () => {
@@ -189,6 +200,7 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
       past: [...get().past, { timestamp: Date.now(), type: 'snapshot', state: currentFullState }],
       future: newFuture,
     });
+    get().addToast?.('Action Redone', 'info');
   },
 
   fetchSnapshots: async () => {

@@ -133,6 +133,8 @@ export const ImageLayerItem = React.memo(
       return (
         <div
           ref={ref}
+          role="img"
+          aria-label={imgLayer.name || 'Image layer'}
           onMouseDown={(e) => onMouseDown(e, imgLayer)}
           onContextMenu={(e) => onContextMenu(e, imgLayer.id)}
           className="absolute cursor-move group image-layer-item"
@@ -246,6 +248,8 @@ export const ShapeLayerItem = React.memo(
       return (
         <div
           ref={ref}
+          role="img"
+          aria-label={shapeLayer.name || 'Shape layer'}
           onMouseDown={(e) => onMouseDown(e, shapeLayer)}
           onContextMenu={(e) => onContextMenu(e, shapeLayer.id)}
           className="absolute cursor-move group shape-layer-item"
@@ -294,7 +298,7 @@ export const ShapeLayerItem = React.memo(
                   const stroke = (shapeLayer as any).stroke;
                   const profile = (shapeLayer as any).strokeProfile || 'uniform';
                   const w = (stroke?.width || 0);
-                  if (w <= 0) return null;
+                  if (w <= 0) {return null;}
                   if (profile === 'uniform') {
                     // Draw as normal stroke
                     return (
@@ -305,7 +309,7 @@ export const ShapeLayerItem = React.memo(
                     const widthFn = profileWidthFn(profile, w);
                     const samples = ((shapeLayer as any).strokeQuality==='fast') ? 48 : 128;
                     const outline = buildVariableStrokeOutline(shapeLayer.pathData!, widthFn, samples);
-                    if (!outline) return null;
+                    if (!outline) {return null;}
                     return <path d={outline} fill={stroke?.color || shapeLayer.color} />;
                   }
                 })()}
@@ -356,6 +360,8 @@ export const TextLayerItem = React.memo(
       return (
         <div
           ref={ref}
+          role="textbox"
+          aria-label={textLayer.name || 'Text layer'}
           onMouseDown={(e) => onMouseDown(e, textLayer)}
           onContextMenu={(e) => onContextMenu(e, textLayer.id)}
           onDoubleClick={(e) => onDoubleClick && onDoubleClick(e, textLayer)}

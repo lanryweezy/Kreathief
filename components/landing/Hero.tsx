@@ -42,14 +42,17 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.8 }}
           >
-            <SuperLabel text="Kreathief Studio 2.0 is Live" />
+            <div className="flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 backdrop-blur-sm">
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+              <span className="text-sm font-black uppercase tracking-[0.2em] text-white">10x Faster Than Figma</span>
+            </div>
           </motion.div>
 
           <div className="absolute -inset-10 bg-white/5 blur-[100px] -z-10 rounded-full"></div>
-          <h1 className="text-6xl md:text-[90px] lg:text-[120px] font-bold tracking-tighter leading-[0.9] text-white select-none text-balance">
-            Design at the <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-white to-purple-400 animate-text-gradient px-2">
-              Speed of Light.
+          <h1 className="text-6xl md:text-[90px] lg:text-[140px] font-black tracking-tighter leading-[0.85] text-white select-none text-balance">
+            From idea to design <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 animate-text-gradient">
+              in 30 seconds.
             </span>
           </h1>
         </motion.div>
@@ -58,11 +61,34 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="text-lg md:text-2xl text-gray-300 max-w-3xl text-center mb-14 leading-relaxed font-medium opacity-90 text-balance"
+          className="text-xl md:text-3xl text-gray-300 max-w-4xl text-center mb-8 leading-relaxed font-semibold text-balance"
         >
-          The world&apos;s most advanced creative engine. Professional vector tools meets generative intelligence in a
-          high-performance engine.
+          AI + vector tools + real-time engine. <br className="hidden md:block" />
+          Replace Figma, Canva, and Midjourney with one system.
         </motion.p>
+
+        {/* Trust Badges */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="flex flex-wrap items-center justify-center gap-8 mb-12 text-base text-gray-400 font-medium"
+        >
+          <div className="flex items-center gap-2">
+            <Icons.Check className="w-5 h-5 text-green-400" />
+            <span>No credit card</span>
+          </div>
+          <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
+          <div className="flex items-center gap-2">
+            <Icons.Zap className="w-5 h-5 text-yellow-400" />
+            <span>10x faster than Figma</span>
+          </div>
+          <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
+          <div className="flex items-center gap-2">
+            <Icons.Users className="w-5 h-5 text-purple-400" />
+            <span>10,000+ creators</span>
+          </div>
+        </motion.div>
 
         {/* CTAs */}
         <motion.div
@@ -74,21 +100,21 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           <MagneticButton strength={30}>
             <button
               onClick={onGetStarted}
-              className="w-full sm:w-auto px-10 py-4 bg-white text-black rounded-full font-bold text-sm hover:bg-gray-100 transition-all transform active:scale-95 flex items-center justify-center gap-3 group relative overflow-hidden shadow-[0_0_40px_rgba(255,255,255,0.2)]"
+              className="w-full sm:w-auto px-12 py-5 bg-white text-black rounded-full font-black text-base hover:bg-gray-100 transition-all transform active:scale-95 flex items-center justify-center gap-3 group relative overflow-hidden shadow-[0_0_60px_rgba(255,255,255,0.3)]"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 animate-shimmer"></div>
-              <span className="relative z-10 flex items-center gap-2">
-                Start Creating Free
-                <Icons.ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              <span className="relative z-10 flex items-center gap-2 uppercase tracking-wide">
+                Create in 30 seconds
+                <Icons.ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </span>
             </button>
           </MagneticButton>
 
-          <button className="px-10 py-4 rounded-full font-bold text-sm text-white/70 hover:text-white transition-colors flex items-center gap-2 group">
-            Watch Demo
-            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-              <Icons.Play className="w-3 h-3 fill-white" />
+          <button className="px-10 py-5 rounded-full font-bold text-base text-white/70 hover:text-white transition-colors flex items-center gap-3 group border border-white/20 hover:border-white/40">
+            <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <Icons.Play className="w-4 h-4 fill-white" />
             </div>
+            See it in action
           </button>
         </motion.div>
 

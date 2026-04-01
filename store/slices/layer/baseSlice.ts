@@ -8,6 +8,11 @@ export interface LayerSlice {
   clipboardLayer: Layer | null;
   editingPathId: string | null;
 
+  // FIX: Layer cache for O(1) lookups
+  layerCache: Map<string, Layer> | null;
+  rebuildLayerCache: () => void;
+  getLayerById: (id: string) => Layer | undefined;
+
   // Artboard Actions
   setArtboards: (artboards: Artboard[]) => void;
   setActiveArtboardId: (id: string) => void;
@@ -76,12 +81,44 @@ export const initialLayerState = {
   selectedLayerIds: [],
   clipboardLayer: null,
   editingPathId: null,
+  layerCache: null,
 };
 
-export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (set) => ({
+export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (set, get) => ({
   ...initialLayerState,
 
-  setArtboards: (artboards) => set({ artboards }),
+  // FIX: Layer cache methods for O(1) lookups
+  rebuildLayerCache: () => {
+    const state = get();
+    const allLayers = state.artboards.flatMap(a => a.layers);
+    const cache = new Map<string, Layer>();
+    
+    allLayers.forEach(layer => {
+      cache.set(layer.id, layer);
+    });
+    
+    set({ layerCache: cache });
+  },
+
+  getLayerById: (id: string) => {
+    const cache = get().layerCache;
+    if (cache?.has(id)) {
+      return cache.get(id);
+    }
+    
+    // Fallback to slow path and rebuild cache
+    const allLayers = get().artboards.flatMap(a => a.layers);
+    const layer = allLayers.find(l => l.id === id);
+    
+    // Rebuild cache after fallback
+    get().rebuildLayerCache();
+    
+    return layer;
+  },
+
+  setArtboards: (artboards) => {
+    set({ artboards, layerCache: null }); // Invalidate cache on change
+  },
   setActiveArtboardId: (activeArtboardId) => set({ activeArtboardId, selectedLayerIds: [] }),
 
   updateArtboard: (id, partial) =>
@@ -96,8 +133,10 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
         return {};
       }
       const layers = typeof input === 'function' ? input(artboard.layers) : input;
+      // FIX: Invalidate cache when layers change
       return {
         artboards: state.artboards.map((a: Artboard) => (a.id === state.activeArtboardId ? { ...a, layers } : a)),
+        layerCache: null,
       };
     }),
 
@@ -107,5 +146,6 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
         ...a,
         layers: a.layers.map((l: Layer) => (l.id === id ? { ...l, dirty: false } : l)),
       })),
+      layerCache: null, // FIX: Invalidate cache
     })),
 });

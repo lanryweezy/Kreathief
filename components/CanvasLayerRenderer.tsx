@@ -24,7 +24,23 @@ interface CanvasLayerRendererProps {
   onUpdatePath: (id: string, changes: Partial<Layer>) => void;
   zoom: number;
   previewAnimation?: AnimationSettings;
+  viewportBounds: { x: number; y: number; width: number; height: number } | null;
 }
+
+const isLayerVisible = (layer: Layer, viewport: { x: number; y: number; width: number; height: number } | null) => {
+  if (!viewport) {return true;}
+  
+  const buffer = 50; // Extra padding
+  const lw = (layer as any).width || 0;
+  const lh = (layer as any).height || 0;
+  
+  return (
+    layer.x + lw > viewport.x - buffer &&
+    layer.x < viewport.x + viewport.width + buffer &&
+    layer.y + lh > viewport.y - buffer &&
+    layer.y < viewport.y + viewport.height + buffer
+  );
+};
 
 export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.memo(
   ({
@@ -49,11 +65,12 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
     onUpdatePath,
     zoom,
     previewAnimation,
+    viewportBounds,
   }) => {
     return (
       <>
         {effectiveLayers
-          .filter((l) => !l.groupId)
+          .filter((l) => !l.groupId && isLayerVisible(l, viewportBounds))
           .map((l) => (
             <CanvasLayerItemWrapper
               key={l.id}

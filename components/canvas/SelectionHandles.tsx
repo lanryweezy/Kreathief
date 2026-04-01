@@ -19,34 +19,34 @@ interface SelectionHandlesProps {
 export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: SelectionHandlesProps) => {
   return (
     <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 50 }}>
-      {/* Selection Box Outline */}
+      {/* Primary Selection Border */}
       <div
-        className="absolute border border-[#7d2ae8] pointer-events-none group-active:border-2 transition-colors"
-        style={{
-          left: 0,
-          top: 0,
-          width: layer.width,
-          height: layer.height,
-        }}
-      >
-        {/* Dimension Badge � always visible when selected */}
-        <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-[#7d2ae8] text-white text-[10px] font-mono px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap z-50 pointer-events-none border border-[#6b23c5]">
-          {Math.round(layer.width)} × {Math.round(layer.height)}
-        </div>
-      </div>
-      {/* Border */}
-      <div
-        className={`absolute -inset-0.5 border-2 ${
+        className={`absolute -inset-[1px] border-[1.5px] shadow-[0_0_15px_rgba(125,42,232,0.3)] transition-all ${
           layer.locked 
-            ? 'border-red-400 border-dashed' 
+            ? 'border-red-500 border-dashed opacity-50' 
             : layer.componentId 
               ? 'border-[#a855f7]' 
               : layer.masterId 
                 ? 'border-[#c084fc] border-dashed'
-                : 'border-[#00c4cc]'
-        } ${layer.componentId || layer.masterId ? 'shadow-[0_0_12px_rgba(168,85,247,0.4)]' : 'shadow-[0_0_8px_rgba(0,196,204,0.25)]'}`}
-        style={{ borderRadius: `${(layer as any).cornerRadius || 0}px` }}
-      />
+                : 'border-[#7d2ae8] ring-1 ring-[#7d2ae8]/20'
+        }`}
+        style={{ 
+          borderRadius: `${(layer as any).cornerRadius || 0}px`,
+          animation: layer.locked ? 'none' : 'selectionPulse 2s ease-in-out infinite' 
+        }}
+      >
+        {/* Dimension Pill  high contrast, subtle */}
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-md text-white text-[9px] font-black font-mono px-2 py-0.5 rounded-full shadow-2xl border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[60]">
+          {Math.round(layer.width)} × {Math.round(layer.height)}
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes selectionPulse {
+          0%, 100% { border-color: #7d2ae8; box-shadow: 0 0 10px rgba(125,42,232,0.2); }
+          50% { border-color: #9d50ff; box-shadow: 0 0 20px rgba(125,42,232,0.4); }
+        }
+      `}</style>
 
       {(layer.locked || layer.componentId || layer.masterId) && (
         <div 

@@ -3,6 +3,8 @@
  * Centralized configuration management for all environment variables and constants
  */
 
+import { log } from '../utils/log';
+
 // Environment variables with validation
 const getEnv = (key: string, defaultValue?: string): string => {
   const value = import.meta.env[key] || defaultValue;
@@ -69,6 +71,11 @@ export const config = {
     dynamicMockups: {
       apiKey: getOptionalEnv('VITE_DYNAMIC_MOCKUPS_API_KEY'),
       baseUrl: 'https://api.dynamicmockups.com',
+    },
+    iconScout: {
+      clientId: getOptionalEnv('VITE_ICONSCOUT_CLIENT_ID'),
+      secretKey: getOptionalEnv('VITE_ICONSCOUT_SECRET_KEY'),
+      baseUrl: 'https://api.iconscout.com/v3',
     },
   },
 
@@ -153,7 +160,7 @@ export const validateConfig = (): void => {
   }
 
   if (warnings.length > 0) {
-    console.warn('[Config Validation]', ...warnings);
+    log.warn('[ConfigValidation] Missing optional configurations', { warnings });
   }
 };
 

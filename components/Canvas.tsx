@@ -1,15 +1,18 @@
-import React, { useState, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { activeArtboardSelector, selectedLayerIdSelector, selectedLayersSelector } from '../store/selectors';
 import { TextLayer, ShapeLayer, ImageLayer, Layer, AnimationSettings } from '../types';
 import { ANIMATION_STYLES } from './canvas/CanvasConstants';
 import { ErrorBoundary } from './ErrorBoundary';
+import { useTouchGestures } from '../hooks/useTouchGestures';
+import { haptics } from '../utils/haptics';
 
 // Specialized Sub-components & Hooks
 import { useCanvasInteractions } from './canvas/useCanvasInteractions';
 import { CanvasRenderer } from './canvas/CanvasRenderer';
 import { CanvasControls } from './canvas/CanvasControls';
 import { CanvasGuides } from './canvas/CanvasGuides';
+import { ContextualToolbar } from './canvas/ContextualToolbar';
 
 interface CanvasProps {
   zoom: number;
@@ -62,8 +65,19 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   const refineCanvasRef = useRef<HTMLCanvasElement>(null);
 
   // Interaction Hook
-  const { panOffset, isPanning, isSpacePressed, handleMouseDownContainer, handleMouseDownLayer, layerRefs, snapLines } =
-    useCanvasInteractions({
+  const { 
+    panOffset, 
+    isPanning, 
+    isSpacePressed, 
+    handleMouseDownContainer, 
+    handleMouseDownLayer, 
+    layerRefs, 
+    snapLines,
+    handleDrawingMouseDown,
+    handleDrawingMouseMove,
+    handleDrawingMouseUp,
+    selectionBox
+  } = useCanvasInteractions({
       zoom,
       onZoomChangeValue: onZoomChange,
       activeArtboard,
@@ -77,6 +91,54 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
       isDrawing,
       viewportRef,
     });
+
+  // Mobile Touch Gestures Integration
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const initialZoom = useRef(zoom);
+  const initialRotation = useRef(0);
+
+  useTouchGestures(viewportRef, {
+    enabled: isMobile,
+    onPinchZoom: (scale, center) => {
+      const newZoom = initialZoom.current * scale;
+      const clampedZoom = Math.max(0.1, Math.min(10, newZoom));
+      onZoomChange(clampedZoom);
+    },
+    onRotate: (angle, center) => {
+      if (selectedLayerIds.length === 1) {
+        const selectedLayer = layers.find(l => l.id === selectedLayerIds[0]);
+        if (selectedLayer && selectedLayer.type !== 'text') {
+          const newRotation = (initialRotation.current + angle) % 360;
+          onUpdateLayers({ [selectedLayer.id]: { rotation: newRotation } });
+        }
+      }
+    },
+    onPan: (deltaX, deltaY) => {
+      // Pan handled by useCanvasInteractions
+    },
+    minZoom: 0.1,
+    maxZoom: 10,
+  });
+
+  // Reset initial values on gesture end
+  useEffect(() => {
+    const handleTouchEnd = () => {
+      initialZoom.current = zoom;
+      if (selectedLayerIds.length === 1) {
+        const selectedLayer = layers.find(l => l.id === selectedLayerIds[0]);
+        if (selectedLayer) {
+          initialRotation.current = (selectedLayer as any).rotation || 0;
+        }
+      }
+    };
+
+    if (isMobile && viewportRef.current) {
+      viewportRef.current.addEventListener('touchend', handleTouchEnd);
+      return () => {
+        viewportRef.current?.removeEventListener('touchend', handleTouchEnd);
+      };
+    }
+  }, [zoom, selectedLayerIds, layers, isMobile]);
 
   // Use props.previewAnimation to avoid unused warning
   const currentPreviewAnimation = props.previewAnimation;
@@ -96,6 +158,31 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     setTimeout(() => textEditRef.current?.focus(), 0);
   }, []);
 
+  // FIX: Add rotation handler with snapping
+  const handleRotateStart = useCallback((e: React.MouseEvent, layer: Layer) => {
+    e.stopPropagation();
+    
+    const ROTATION_SNAP_ANGLE = 15;
+    const ROTATION_SNAP_SHIFT_ANGLE = 45;
+    
+    const centerX = layer.x + (layer as any).width / 2;
+    const centerY = layer.y + (layer as any).height / 2;
+    
+    const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+    
+    // FIX: Add rotation snapping
+    const isShiftKey = e.shiftKey;
+    const snapAngle = isShiftKey ? ROTATION_SNAP_SHIFT_ANGLE : ROTATION_SNAP_ANGLE;
+    
+    // Snap to nearest increment
+    const snappedAngle = Math.round(angle / snapAngle) * snapAngle;
+    
+    // Apply snapped rotation
+    const finalRotation = snappedAngle;
+    
+    onUpdateLayers({ [layer.id]: { rotation: finalRotation } });
+  }, [onUpdateLayers]);
+
   const finishEditingText = useCallback(() => {
     if (editingTextId && textEditRef.current) {
       const newText = textEditRef.current.innerText || textEditRef.current.textContent || '';
@@ -111,6 +198,20 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     }
     setEditingTextId(null);
   }, [editingTextId, allLayers, onUpdateLayers]);
+
+  // Calculate Viewport Bounds for Culling
+  const viewportBounds = useMemo(() => {
+    const el = viewportRef.current;
+    if (!el) {return null;}
+    
+    // Convert screen viewport to canvas coordinates
+    return {
+      x: -panOffset.x / zoom,
+      y: -panOffset.y / zoom,
+      width: el.clientWidth / zoom,
+      height: el.clientHeight / zoom,
+    };
+  }, [panOffset, zoom]);
 
   // Simplified render
   return (
@@ -137,13 +238,14 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               canvasBackgroundColor={canvasBackgroundColor}
               canvasFilters={canvasFilters}
               zoom={zoom}
+              viewportBounds={viewportBounds}
               getEffectiveLayer={(l) => l}
               onLayerRef={(id, el) => {
                 layerRefs.current[id] = el;
               }}
               handleMouseDownLayer={handleMouseDownLayer}
               handleResizeStart={() => {}}
-              handleRotateStart={() => {}}
+              handleRotateStart={handleRotateStart}
               handleContextMenu={handleContextMenu}
               handleTextDoubleClick={handleTextDoubleClick}
               handleDropShape={() => {}}
@@ -166,9 +268,9 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               isRefining={false}
               drawingCanvasRef={drawingCanvasRef}
               refineCanvasRef={refineCanvasRef}
-              handleDrawingMouseDown={() => {}}
-              handleDrawingMouseMove={() => {}}
-              handleDrawingMouseUp={() => {}}
+              handleDrawingMouseDown={handleDrawingMouseDown}
+              handleDrawingMouseMove={handleDrawingMouseMove}
+              handleDrawingMouseUp={handleDrawingMouseUp}
               isLassoMode={false}
               localLassoPoints={[]}
               booleanPreview={booleanPreview}
@@ -185,6 +287,26 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
             />
 
             <CanvasGuides snapLines={snapLines} />
+
+            <ContextualToolbar
+              selectedLayerIds={selectedLayerIds}
+              layers={allLayers}
+              zoom={zoom}
+            />
+
+            {/* Selection Marquee */}
+            {selectionBox && (
+              <div
+                className="absolute border border-[#7d2ae8] bg-[#7d2ae8]/10 z-[100] pointer-events-none"
+                style={{
+                  left: Math.min(selectionBox.start.x, selectionBox.end.x),
+                  top: Math.min(selectionBox.start.y, selectionBox.end.y),
+                  width: Math.abs(selectionBox.end.x - selectionBox.start.x),
+                  height: Math.abs(selectionBox.end.y - selectionBox.start.y),
+                  borderStyle: 'dashed',
+                }}
+              />
+            )}
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
-// @ts-ignore - ignore type mismatch
 import ImageTracer from 'imagetracerjs';
+import { removeBackground as imglyRemoveBackground } from '@imgly/background-removal';
 
 /**
  * Heavy Worker
@@ -11,6 +11,18 @@ self.onmessage = async (e: MessageEvent) => {
 
   try {
     switch (type) {
+      case 'REMOVE_BACKGROUND': {
+        const resultBlob = await imglyRemoveBackground(payload.imageUrl);
+        const reader = new FileReader();
+        const base64: string = await new Promise((resolve, reject) => {
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(resultBlob);
+        });
+        self.postMessage({ type: 'SUCCESS', id, payload: base64 });
+        break;
+      }
+
       case 'VECTORIZE': {
         const svgString = await vectorize(payload.imageUrl, payload.options);
         self.postMessage({ type: 'SUCCESS', id, payload: svgString });

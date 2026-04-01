@@ -119,7 +119,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
   const prevGeneratedRef = useRef<string | null>(null);
   useEffect(() => {
     // generatedImages may be undefined if store doesn't expose it
-    if (!generatedImages || generatedImages === prevGeneratedRef.current) return;
+    if (!generatedImages || generatedImages === prevGeneratedRef.current) {return;}
     prevGeneratedRef.current = generatedImages;
     const item: GenerationHistoryItem = {
       id: Date.now().toString(),
@@ -135,7 +135,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
   }, [generatedImages, prompt]);
 
   const handleEnhancePrompt = async () => {
-    if (!prompt.trim()) return;
+    if (!prompt.trim()) {return;}
     setIsEnhancing(true);
     try {
       const enhanced = await geminiService.enhancePrompt(prompt);

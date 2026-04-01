@@ -1,4 +1,5 @@
 import { StateCreator } from 'zustand';
+import { v4 as uuidv4 } from 'uuid';
 import { Layer, Artboard } from '../../../types';
 import { LayerSlice } from './baseSlice';
 
@@ -10,10 +11,17 @@ export const createGroupingSlice: StateCreator<any, [], [], Partial<LayerSlice>>
     }
     get().saveToHistory?.();
 
-    const newGroupId = `group_${Date.now()}`;
+    // FIX: Use UUID instead of Date.now() to prevent race conditions
+    const newGroupId = `group_${uuidv4()}`;
     const activeArtboard = get().artboards.find((a: Artboard) => a.id === activeArtboardId);
     const groupCount = activeArtboard?.layers.filter((l: Layer) => l.groupId === newGroupId).length ?? 0;
     const groupName = `Group ${groupCount + 1}`;
+
+    // FIX: Cache layer indices lookup for performance
+    const layerIndexMap = new Map<string, number>();
+    activeArtboard?.layers.forEach((l: Layer, idx: number) => {
+      layerIndexMap.set(l.id, idx);
+    });
 
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => {
@@ -21,7 +29,15 @@ export const createGroupingSlice: StateCreator<any, [], [], Partial<LayerSlice>>
           return a;
         }
 
-        const indices = selectedLayerIds.map((id: string) => a.layers.findIndex((l: Layer) => l.id === id));
+        // FIX: Use cached indices for better performance
+        const indices = selectedLayerIds
+          .map((id: string) => layerIndexMap.get(id))
+          .filter((idx): idx is number => idx !== undefined);
+        
+        if (indices.length === 0) {
+          return a;
+        }
+
         const minIndex = Math.min(...indices);
 
         const groupMarker: Layer = {
@@ -78,7 +94,8 @@ export const createGroupingSlice: StateCreator<any, [], [], Partial<LayerSlice>>
           return a;
         }
 
-        const groupIdsToUngroup = [...new Set(layersToUngroup.map((l: Layer) => l.groupId!))];
+        // FIX: Use Array.from instead of spread for better TypeScript compatibility
+        const groupIdsToUngroup = Array.from(new Set(layersToUngroup.map((l: Layer) => l.groupId!)));
 
         const newLayers = a.layers
           .filter((l: Layer) => !groupIdsToUngroup.includes(l.id))

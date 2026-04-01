@@ -198,7 +198,7 @@ describe('useStore', () => {
       const { result } = renderHook(() => useStore());
 
       act(() => {
-        result.current.addArtboard();
+        result.current.addArtboard('A1');
         result.current.addLayer({
           id: 'undo-test',
           type: 'text' as const,
@@ -219,6 +219,9 @@ describe('useStore', () => {
           filters: {} as any,
           blendMode: 'normal' as const,
         });
+      });
+
+      act(() => {
         result.current.undo();
       });
 

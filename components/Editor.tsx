@@ -26,6 +26,11 @@ import { ShortcutOverlay } from './ShortcutOverlay';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { haptics } from '../utils/haptics';
 import { FeedbackModal } from './modals/FeedbackModal';
+import { MobileQuickActions } from './MobileQuickActions';
+import { useShakeToUndo } from '../hooks/useShakeToUndo';
+import { MobileToolbar } from './MobileToolbar';
+import { MobileOnboarding } from './MobileOnboarding';
+import { MobileContextMenu } from './MobileContextMenu';
 
 interface EditorProps {
   initialProject?: Project;
@@ -73,6 +78,25 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const zoomButtonRef = useRef<HTMLButtonElement>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [previewAnimation, setPreviewAnimation] = useState<AnimationSettings | undefined>();
+  const [showMobileContextMenu, setShowMobileContextMenu] = useState(false);
+  const [contextMenuLayerId, setContextMenuLayerId] = useState<string | null>(null);
+
+  // Mobile detection
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+  // Shake to Undo on Mobile
+  useShakeToUndo({
+    onShake: () => {
+      undo();
+      // Show toast notification
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-24 left-1/2 -translate-x-1/2 bg-purple-500 text-white px-6 py-3 rounded-2xl shadow-lg z-[500] font-semibold';
+      toast.textContent = 'Undo';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 1500);
+    },
+    enabled: isMobile,
+  });
 
   // Use Custom Logic Hooks
   const { 
@@ -115,6 +139,17 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     { key: 'e', ctrl: true, action: () => { setShowExport(true); haptics.light(); }, description: 'Export Design' },
     { key: 'g', ctrl: true, action: () => { if (selectedLayerIds.length > 1) { groupSelected(); haptics.medium(); } }, description: 'Group Layers' },
     { key: 'g', ctrl: true, shift: true, action: () => { if (selectedLayerIds.length > 0) { ungroupSelected(); } }, description: 'Ungroup Layers' },
+    
+    // Single-Key Tool Shortcuts (Pro Design Workflow)
+    { key: 'v', action: () => { useStore.getState().setSelectedLayerIds([]); useStore.getState().setPenMode(false); }, description: 'Select Tool' },
+    { key: 't', action: () => { useStore.getState().setActiveTab(NavTab.TEXT); useStore.getState().addTextLayer(); }, description: 'Text Tool' },
+    { key: 'r', action: () => { useStore.getState().setActiveTab(NavTab.ELEMENTS); useStore.getState().addShapeLayer('rectangle'); }, description: 'Rectangle Tool' },
+    { key: 'o', action: () => { useStore.getState().setActiveTab(NavTab.ELEMENTS); useStore.getState().addShapeLayer('circle'); }, description: 'Oval Tool' },
+    { key: 'p', action: () => { useStore.getState().setActiveTab(NavTab.DRAW); useStore.getState().setPenMode(true); }, description: 'Draw Tool' },
+    { key: 'm', action: () => useStore.getState().setActiveTab(NavTab.MAGIC), description: 'Magic/AI Panel' },
+    { key: 'l', action: () => useStore.getState().setActiveTab(NavTab.LAYERS), description: 'Layers Panel' },
+    { key: 'b', action: () => useStore.getState().setActiveTab(NavTab.BRAND), description: 'Brand Kit' },
+
     { key: 'ArrowUp', action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, 0, -1); } }, description: 'Nudge Up' },
     { key: 'ArrowDown', action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, 0, 1); } }, description: 'Nudge Down' },
     { key: 'ArrowLeft', action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, -1, 0); } }, description: 'Nudge Left' },
@@ -131,10 +166,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     { key: '0', ctrl: true, action: () => { setZoom(1); }, description: 'Zoom to 100%' },
     { key: '=', ctrl: true, action: () => { setZoom(Math.min(10, zoom + 0.25)); }, description: 'Zoom In' },
     { key: '-', ctrl: true, action: () => { setZoom(Math.max(0.05, zoom - 0.25)); }, description: 'Zoom Out' },
-    { key: ']', ctrl: true, shift: true, action: () => { if (selectedLayerId) useStore.getState().moveLayer(selectedLayerId, 'front'); }, description: 'Bring to Front' },
-    { key: '[', ctrl: true, shift: true, action: () => { if (selectedLayerId) useStore.getState().moveLayer(selectedLayerId, 'back'); }, description: 'Send to Back' },
-    { key: ']', ctrl: true, action: () => { if (selectedLayerId) useStore.getState().moveLayer(selectedLayerId, 'forward'); }, description: 'Bring Forward' },
-    { key: '[', ctrl: true, action: () => { if (selectedLayerId) useStore.getState().moveLayer(selectedLayerId, 'backward'); }, description: 'Send Backward' },
+    { key: ']', ctrl: true, shift: true, action: () => { if (selectedLayerId) {useStore.getState().moveLayer(selectedLayerId, 'front');} }, description: 'Bring to Front' },
+    { key: '[', ctrl: true, shift: true, action: () => { if (selectedLayerId) {useStore.getState().moveLayer(selectedLayerId, 'back');} }, description: 'Send to Back' },
+    { key: ']', ctrl: true, action: () => { if (selectedLayerId) {useStore.getState().moveLayer(selectedLayerId, 'forward');} }, description: 'Bring Forward' },
+    { key: '[', ctrl: true, action: () => { if (selectedLayerId) {useStore.getState().moveLayer(selectedLayerId, 'backward');} }, description: 'Send Backward' },
     { key: 'h', action: () => { if (selectedLayer && selectedLayer.type !== 'text') { useStore.getState().updateLayer(selectedLayer.id, { flipX: !(selectedLayer as any).flipX }); } }, description: 'Flip Horizontal' },
     { key: 'v', action: () => { if (selectedLayer && selectedLayer.type !== 'text') { useStore.getState().updateLayer(selectedLayer.id, { flipY: !(selectedLayer as any).flipY }); } }, description: 'Flip Vertical' },
     { key: 'k', ctrl: true, action: () => { useStore.getState().setCommandPaletteOpen(true); haptics.light(); }, description: 'Command Palette' },
@@ -145,7 +180,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
   const handleApplyLayout = (type: any) => useStore.getState().layoutLayers(type);
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
   const hideHeaderOnMobile = isMobile && selectedLayerIds.length > 0;
 
   return (
@@ -288,8 +322,75 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         onSelectTab={(tab) => {
           setActiveTab(tab);
           setIsBottomSheetOpen(true);
+          haptics.selection();
         }}
       />
+      
+      {/* Mobile Quick Actions FAB */}
+      <MobileQuickActions />
+
+      {/* Mobile Toolbar */}
+      {isMobile && (
+        <MobileToolbar
+          onAddText={() => {
+            useStore.getState().addTextLayer();
+            haptics.success();
+          }}
+          onAddShape={(shape) => {
+            useStore.getState().addShapeLayer(shape);
+            haptics.success();
+          }}
+          onAddImage={() => {
+            // Trigger file upload
+            haptics.light();
+          }}
+          onDraw={() => {
+            useStore.getState().setPenMode(true);
+            setActiveTab(NavTab.DRAW);
+            haptics.light();
+          }}
+        />
+      )}
+
+      {/* Mobile Context Menu */}
+      {isMobile && contextMenuLayerId && (
+        <MobileContextMenu
+          isOpen={showMobileContextMenu}
+          onClose={() => {
+            setShowMobileContextMenu(false);
+            setContextMenuLayerId(null);
+          }}
+          layerId={contextMenuLayerId}
+          onDuplicate={() => {
+            if (contextMenuLayerId) {
+              duplicateSelected();
+              haptics.success();
+            }
+          }}
+          onDelete={() => {
+            if (contextMenuLayerId) {
+              deleteSelected();
+              haptics.heavy();
+            }
+          }}
+          onBringToFront={() => {
+            if (contextMenuLayerId) {
+              useStore.getState().moveLayer(contextMenuLayerId, 'front');
+              haptics.medium();
+            }
+          }}
+          onSendToBack={() => {
+            if (contextMenuLayerId) {
+              useStore.getState().moveLayer(contextMenuLayerId, 'back');
+              haptics.medium();
+            }
+          }}
+        />
+      )}
+
+      {/* Mobile Onboarding */}
+      {isMobile && <MobileOnboarding />}
+      
       <BottomSheet isOpen={isBottomSheetOpen} onClose={() => setIsBottomSheetOpen(false)} title={activeTab}>
         <SidePanel
           onGenerate={handleGenerate}

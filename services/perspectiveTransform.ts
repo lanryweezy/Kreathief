@@ -106,6 +106,23 @@ function gaussianElimination(A: number[][], b: number[]): number[] {
 }
 
 /**
+ * Returns a 4x4 matrix for CSS matrix3d transform
+ */
+export function getMatrix3d(src: CornerPoints, dst: CornerPoints): string {
+  const h = getPerspectiveTransform(src, dst);
+  // Convert 3x3 homography matrix [h0, h1, h2, h3, h4, h5, h6, h7, h8=1]
+  // to 4x4 CSS matrix3d [a1, a2, a3, a4, b1, b2, b3, b4, c1, c2, c3, c4, d1, d2, d3, d4]
+  // Note: CSS uses column-major order
+  const matrix = [
+    h[0], h[3], 0, h[6],
+    h[1], h[4], 0, h[7],
+    0,    0,    1, 0,
+    h[2], h[5], 0, 1
+  ];
+  return `matrix3d(${matrix.join(',')})`;
+}
+
+/**
  * Calculate default corner points from placement
  */
 export function getDefaultCornerPoints(
