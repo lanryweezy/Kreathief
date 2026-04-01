@@ -30,7 +30,66 @@ export const TransformPanel: React.FC = () => {
     updateLayers(updates);
   }, [selectedLayers, updateLayers]);
 
-  // ... (align/distribute/flip logic remain same)
+  const handleAlign = useCallback((type: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => {
+    if (selectedLayers.length < 2) {
+      addToast?.('Select multiple layers to align', 'info');
+      return;
+    }
+    const updates: Record<string, Partial<Layer>> = {};
+    const first = selectedLayers[0];
+    
+    selectedLayers.forEach(l => {
+      let x = l.x;
+      let y = l.y;
+      
+      if (type === 'left') {x = first.x;}
+      if (type === 'center') {x = first.x + ((first as any).width - (l as any).width) / 2;}
+      if (type === 'right') {x = first.x + (first as any).width - (l as any).width;}
+      if (type === 'top') {y = first.y;}
+      if (type === 'middle') {y = first.y + ((first as any).height - (l as any).height) / 2;}
+      if (type === 'bottom') {y = first.y + (first as any).height - (l as any).height;}
+      
+      updates[l.id] = { x, y };
+    });
+    updateLayers(updates);
+  }, [selectedLayers, updateLayers, addToast]);
+
+  const handleDistribute = useCallback((type: 'horizontal' | 'vertical') => {
+    if (selectedLayers.length < 3) {
+      addToast?.('Select 3+ layers to distribute', 'info');
+      return;
+    }
+    // Simple distribution logic
+    const sorted = [...selectedLayers].sort((a, b) => type === 'horizontal' ? a.x - b.x : a.y - b.y);
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+    const totalDist = type === 'horizontal' 
+      ? last.x - first.x 
+      : last.y - first.y;
+    const spacing = totalDist / (sorted.length - 1);
+    
+    const updates: Record<string, Partial<Layer>> = {};
+    sorted.forEach((l, i) => {
+      if (type === 'horizontal') {
+        updates[l.id] = { x: first.x + (spacing * i) };
+      } else {
+        updates[l.id] = { y: first.y + (spacing * i) };
+      }
+    });
+    updateLayers(updates);
+  }, [selectedLayers, updateLayers, addToast]);
+
+  const handleFlip = useCallback((type: 'horizontal' | 'vertical') => {
+    const updates: Record<string, Partial<Layer>> = {};
+    selectedLayers.forEach(l => {
+      if (type === 'horizontal') {
+        updates[l.id] = { flipX: !(l as any).flipX };
+      } else {
+        updates[l.id] = { flipY: !(l as any).flipY };
+      }
+    });
+    updateLayers(updates);
+  }, [selectedLayers, updateLayers]);
 
   return (
     <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4 space-y-4">

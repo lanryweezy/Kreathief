@@ -4,6 +4,7 @@ import { Icons } from '../constants';
 import { haptics } from '../utils/haptics';
 import { useLongPress } from '../hooks/useLongPress';
 import { motion } from 'framer-motion';
+import { useStore } from '../store/useStore';
 
 interface MobileLayerItemProps {
   layer: Layer;
@@ -40,18 +41,19 @@ export const MobileLayerItem: React.FC<MobileLayerItemProps> = ({
     switch (layer.type) {
       case 'text':
         return Icons.Text;
-      case 'shape':
-        return Icons.Shapes;
       case 'image':
         return Icons.Image;
       case 'group':
         return Icons.Folder;
+      case 'adjustment':
+        return Icons.Sliders;
       default:
-        return Icons.Square;
+        return Icons.Shapes;
     }
   };
 
   const LayerIcon = getLayerIcon();
+  const updateLayer = useStore((state) => state.updateLayer);
 
   return (
     <motion.div
@@ -95,7 +97,7 @@ export const MobileLayerItem: React.FC<MobileLayerItemProps> = ({
         onClick={(e) => {
           e.stopPropagation();
           haptics.light();
-          // Toggle visibility
+          updateLayer(layer.id, { visible: layer.visible === false });
         }}
         className="p-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 transition-all"
       >

@@ -120,6 +120,29 @@ export const VectorizerPanel = () => {
     reader.readAsDataURL(file);
   };
 
+  const handleStyleChange = (id: string) => {
+    setStylePreset(id);
+    // Auto-simplify based on preset
+    switch (id) {
+      case 'minimal':
+        setSimplifyTolerance(0.6);
+        setColors(4);
+        break;
+      case 'detailed':
+        setSimplifyTolerance(0.05);
+        setColors(12);
+        break;
+      case 'artistic':
+        setSimplifyTolerance(0.3);
+        setColors(8);
+        break;
+      default:
+        setSimplifyTolerance(0.15);
+        setColors(6);
+        break;
+    }
+  };
+
   const handleVectorize = async () => {
     if (activeTab === 'image') {
       if (!image) {return;}
@@ -476,7 +499,7 @@ ${displayResult
               {STYLE_PRESETS.map((preset) => (
                 <button
                   key={preset.id}
-                  onClick={() => setStylePreset(preset.id)}
+                  onClick={() => handleStyleChange(preset.id)}
                   className={`p-2 rounded-xl border text-left transition-all ${stylePreset === preset.id
                     ? 'bg-[#7d2ae8]/15 border-[#7d2ae8]/50 text-[#7d2ae8]'
                     : 'bg-[#1e1e1e] border-gray-800 text-gray-500 hover:border-gray-700'

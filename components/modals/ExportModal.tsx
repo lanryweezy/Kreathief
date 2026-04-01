@@ -3,7 +3,7 @@ import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
-import { exportToPrintPDF, ColorProfile } from '../../services/exportService';
+import { ColorProfile } from '../../services/exportService';
 
 interface ExportModalProps {
   onClose: () => void;

@@ -2,7 +2,6 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { AppMode, AspectRatio, ShapeLayer } from '../../types';
 import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
-import { analyticsService } from '../../services/analyticsService';
 import { STARTER_TEMPLATES } from '../../data/templates';
 import { communityService, CommunityTemplate } from '../../services/communityService';
 
@@ -51,7 +50,6 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   const [isLoadingCommunity, setIsLoadingCommunity] = useState(false);
 
   const favoriteTemplates = useStore((state) => state.favoriteTemplates);
-  const toggleFavoriteTemplate = useStore((state) => state.toggleFavoriteTemplate);
   const initializeProject = useStore((state) => state.initializeProject);
 
   useEffect(() => {

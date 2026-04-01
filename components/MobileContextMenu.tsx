@@ -109,7 +109,7 @@ export const MobileContextMenu: React.FC<MobileContextMenuProps> = ({
             </div>
 
             {/* Menu Items */}
-            <div className="p-4 space-y-2">
+            <div className="p-4 space-y-3">
               {menuItems.map((item, index) => (
                 <motion.button
                   key={item.label}
@@ -118,14 +118,14 @@ export const MobileContextMenu: React.FC<MobileContextMenuProps> = ({
                   transition={{ delay: index * 0.05 }}
                   onClick={() => handleAction(item.action)}
                   className={`
-                    w-full flex items-center gap-4 px-5 py-4 rounded-2xl
+                    w-full flex items-center gap-5 px-6 py-5 rounded-2xl
                     bg-gradient-to-r ${item.color}
-                    text-white font-medium text-base
+                    text-white font-bold text-lg
                     active:scale-95 transition-all duration-200
                     shadow-lg
                   `}
                 >
-                  <item.icon className="w-6 h-6" />
+                  <item.icon className="w-7 h-7" />
                   <span>{item.label}</span>
                 </motion.button>
               ))}

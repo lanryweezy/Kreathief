@@ -39,6 +39,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; layerId: string } | null>(null);
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [hoveredLayerId, setHoveredLayerId] = useState<string | null>(null);
+  const [previousZoom, setPreviousZoom] = useState<number | null>(null);
 
   // Essential store state
   const artboards = useStore((state) => state.artboards);
@@ -137,6 +138,8 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
         viewportRef.current?.removeEventListener('touchend', handleTouchEnd);
       };
     }
+    // Return an empty cleanup function if conditions are not met
+    return () => {};
   }, [zoom, selectedLayerIds, layers, isMobile]);
 
   // Use props.previewAnimation to avoid unused warning
@@ -153,9 +156,11 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 
   const handleTextDoubleClick = useCallback((e: React.MouseEvent, layer: TextLayer) => {
     e.stopPropagation();
+    setPreviousZoom(zoom);
+    onZoomChange(Math.max(1.5, zoom)); // Focus zoom
     setEditingTextId(layer.id);
     setTimeout(() => textEditRef.current?.focus(), 0);
-  }, []);
+  }, [zoom, onZoomChange]);
 
   // FIX: Add rotation handler with snapping
   const handleRotateStart = useCallback((e: React.MouseEvent, layer: Layer) => {
@@ -190,13 +195,17 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
         useStore.getState().saveToHistory();
         const updates: Partial<TextLayer> = {
           text: newText,
-          name: newText.length > 20 ? newText.slice(0, 20) + '�' : newText,
+          name: newText.length > 20 ? newText.slice(0, 20) + '...' : newText,
         };
         onUpdateLayers?.({ [editingTextId]: updates });
       }
     }
     setEditingTextId(null);
-  }, [editingTextId, allLayers, onUpdateLayers]);
+    if (previousZoom !== null) {
+      onZoomChange(previousZoom);
+      setPreviousZoom(null);
+    }
+  }, [editingTextId, allLayers, onUpdateLayers, previousZoom, onZoomChange]);
 
   // Calculate Viewport Bounds for Culling
   const viewportBounds = useMemo(() => {
@@ -269,7 +278,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               refineCanvasRef={refineCanvasRef}
               handleDrawingMouseDown={handleDrawingMouseDown}
               handleDrawingMouseMove={handleDrawingMouseMove}
-              handleDrawingMouseUp={handleDrawingMouseUp}
+              handleDrawingMouseUp={() => (handleDrawingMouseUp as any)()}
               isLassoMode={false}
               localLassoPoints={[]}
               booleanPreview={booleanPreview}
@@ -314,9 +323,3 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 };
 
 export const Canvas = React.memo(CanvasComponent);
-
-
-
-
-
-

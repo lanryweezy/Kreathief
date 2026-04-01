@@ -164,6 +164,8 @@ export interface LayerBase {
   name?: string;
   x: number; // Local to Artboard
   y: number; // Local to Artboard
+  width: number;
+  height: number;
   rotation: number;
   opacity: number;
   locked: boolean;
@@ -202,8 +204,6 @@ export interface LayerBase {
 export interface TextLayer extends LayerBase {
   type: 'text';
   text: string;
-  width: number;
-  height: number;
   fontSize: number;
   fontWeight: string;
   fontStyle: 'normal' | 'italic';
@@ -297,8 +297,6 @@ export type ShapeType =
 
 export interface ShapeLayer extends LayerBase {
   type: ShapeType;
-  width: number;
-  height: number;
   color: string;
   cornerRadius: number;
   gradient?: Gradient;
@@ -320,8 +318,6 @@ export interface ShapeLayer extends LayerBase {
 export interface ImageLayer extends LayerBase {
   type: 'image';
   src: string;
-  width: number;
-  height: number;
   flipX: boolean;
   flipY: boolean;
   cornerRadius?: number;
@@ -336,8 +332,6 @@ export interface ImageLayer extends LayerBase {
 
 export interface AdjustmentLayer extends LayerBase {
   type: 'adjustment';
-  width: number;
-  height: number;
   adjustmentFilters: {
     brightness: number;
     contrast: number;
@@ -349,7 +343,12 @@ export interface AdjustmentLayer extends LayerBase {
   };
 }
 
-export type Layer = TextLayer | ImageLayer | ShapeLayer | AdjustmentLayer;
+export interface GroupLayer extends LayerBase {
+  type: 'group';
+  children: string[]; // IDs of child layers
+}
+
+export type Layer = TextLayer | ImageLayer | ShapeLayer | AdjustmentLayer | GroupLayer;
 
 export interface Artboard {
   id: string;

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { haptics } from '../utils/haptics';
 
 interface TouchGestureOptions {
@@ -57,7 +57,7 @@ export const useTouchGestures = (
   };
 
   useEffect(() => {
-    if (!enabled || !elementRef.current) return;
+    if (!enabled || !elementRef.current) {return;}
 
     const element = elementRef.current;
 

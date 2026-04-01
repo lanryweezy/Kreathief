@@ -9,14 +9,14 @@ interface PublishModalProps {
 }
 
 export const PublishModal: React.FC<PublishModalProps> = ({ onClose }) => {
-  const { artboards, canvasBackgroundColor, canvasFilters, canvasSize, projectTitle, user } = useStore((state) => ({
+  const { artboards, canvasBackgroundColor, canvasFilters, canvasSize, projectTitle } = useStore((state) => ({
     artboards: state.artboards,
     canvasBackgroundColor: state.canvasBackgroundColor,
     canvasFilters: state.canvasFilters,
     canvasSize: state.canvasSize,
     projectTitle: state.projectTitle,
-    user: state.user,
   }));
+  const user = useStore((state) => state.user);
 
   const [name, setName] = useState(projectTitle || '');
   const [description, setDescription] = useState('');

@@ -32,7 +32,7 @@ export const createGroupingSlice: StateCreator<any, [], [], Partial<LayerSlice>>
         // FIX: Use cached indices for better performance
         const indices = selectedLayerIds
           .map((id: string) => layerIndexMap.get(id))
-          .filter((idx): idx is number => idx !== undefined);
+          .filter((idx: number | undefined): idx is number => idx !== undefined);
         
         if (indices.length === 0) {
           return a;

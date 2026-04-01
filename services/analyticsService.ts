@@ -36,8 +36,8 @@ class AnalyticsService {
     }
   }
 
-  trackExport(format: string, quality?: number) {
-    this.track('export_design', { format, quality });
+  trackExport(format: string, quality?: number, properties?: Record<string, any>) {
+    this.track('export_design', { format, quality, ...properties });
   }
 
   trackGeneration(prompt: string, mode: string) {

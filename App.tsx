@@ -34,10 +34,9 @@ const LoadingFallback = () => (
 const App: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [user, setUser] = useState<User | null>(null);
+  const { user, setUser, toasts, removeToast } = useStore();
   const [currentProject, setCurrentProject] = useState<Project | undefined>(undefined);
   const [loading, setLoading] = useState(true);
-  const { toasts, removeToast } = useStore();
 
   const [showWelcome, setShowWelcome] = useState(false);
   const [activeTour, setActiveTour] = useState<'dashboard' | 'editor' | null>(null);

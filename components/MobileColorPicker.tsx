@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { haptics } from '../utils/haptics';
 import { motion } from 'framer-motion';
+import { useStore } from '../store/useStore';
 
 interface MobileColorPickerProps {
   value: string;
@@ -35,6 +36,21 @@ export const MobileColorPicker: React.FC<MobileColorPickerProps> = ({
     const updated = [color, ...recentColors.filter(c => c !== color)].slice(0, 8);
     setRecentColors(updated);
     localStorage.setItem('recent-colors', JSON.stringify(updated));
+  };
+
+  const selectedLayerIds = useStore((state) => state.selectedLayerIds);
+  const updateLayer = useStore((state) => state.updateLayer);
+
+  const handleGradientSelect = (gradient: string) => {
+    haptics.selection();
+    if (selectedLayerIds.length > 0) {
+      const id = selectedLayerIds[selectedLayerIds.length - 1];
+      // Basic gradient support - this might need more complex parsing if the store expects a specific object
+      // For now, let's assume we can pass the string to a 'fill' or 'color' prop if it supports CSS strings
+      // or a specific gradient object if the store is structured that way.
+      // Looking at common patterns, let's try updating 'color' for shapes or 'background'
+      updateLayer(id, { color: gradient } as any);
+    }
   };
 
   return (
@@ -138,10 +154,7 @@ export const MobileColorPicker: React.FC<MobileColorPickerProps> = ({
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: index * 0.05 }}
-              onClick={() => {
-                haptics.selection();
-                // Handle gradient selection
-              }}
+              onClick={() => handleGradientSelect(gradient)}
               className="h-16 rounded-2xl border-2 border-white/20 active:scale-95 transition-all"
               style={{ background: gradient }}
             />

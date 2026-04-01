@@ -155,7 +155,6 @@ export class VectorUtils {
             const pt = this.createPoint(currentX, currentY);
             if (points.length > 0) {pt.isMove = true;}
             points.push(pt);
-            lastCommand = 'M';
           }
           break;
         case 'L':
@@ -169,7 +168,6 @@ export class VectorUtils {
               currentY = args[1];
             }
             points.push(this.createPoint(currentX, currentY));
-            lastCommand = 'L';
           }
           break;
         case 'C':
@@ -198,7 +196,6 @@ export class VectorUtils {
               const next = this.createPoint(currentX, currentY);
               next.handleIn = { x: cp2x - currentX, y: cp2y - currentY };
               points.push(next);
-              lastCommand = 'C';
             }
           }
           break;
@@ -232,13 +229,11 @@ export class VectorUtils {
               const next = this.createPoint(currentX, currentY);
               next.handleIn = { x: cp2x - currentX, y: cp2y - currentY };
               points.push(next);
-              lastCommand = 'Q';
             }
           }
           break;
         case 'Z':
           // Close path - no action needed, handled by isClosed flag
-          lastCommand = 'Z';
           break;
       }
     });

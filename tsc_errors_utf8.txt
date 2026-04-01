@@ -1,5 +1,0 @@
-﻿
-> kreathief@1.0.0 type-check
-> tsc --noEmit
-
-components/pages/StaticPages.tsx(1,1): error TS6133: 'React' is declared but its value is never read.

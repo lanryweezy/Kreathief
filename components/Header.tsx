@@ -51,15 +51,15 @@ export const Header: React.FC<HeaderProps> = ({
   const onShowShortcuts = () => setShowShortcuts(!showShortcuts);
 
   const getSaveStatus = () => {
-    if (isSaving) return 'Saving...';
-    if (hasUnsavedChanges) return 'Unsaved changes';
+    if (isSaving) {return 'Saving...';}
+    if (hasUnsavedChanges) {return 'Unsaved changes';}
     if (lastSaved) {
       const now = Date.now();
       const diff = now - lastSaved.getTime();
       const minutes = Math.floor(diff / 60000);
-      if (minutes < 1) return 'Saved just now';
-      if (minutes === 1) return 'Saved 1 min ago';
-      if (minutes < 60) return `Saved ${minutes} mins ago`;
+      if (minutes < 1) {return 'Saved just now';}
+      if (minutes === 1) {return 'Saved 1 min ago';}
+      if (minutes < 60) {return `Saved ${minutes} mins ago`;}
       return 'Saved';
     }
     return 'Not saved';
@@ -228,8 +228,8 @@ export const Header: React.FC<HeaderProps> = ({
               onChange={(e) => setProjectTitle(e.target.value)}
               onBlur={() => setIsEditingTitle(false)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') setIsEditingTitle(false);
-                if (e.key === 'Escape') setIsEditingTitle(false);
+                if (e.key === 'Enter') {setIsEditingTitle(false);}
+                if (e.key === 'Escape') {setIsEditingTitle(false);}
               }}
               autoFocus
               className="bg-transparent border-b border-purple-500 text-white text-sm font-medium px-2 py-1 outline-none w-48"

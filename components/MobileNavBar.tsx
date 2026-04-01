@@ -35,7 +35,7 @@ export const MobileNavBar: React.FC<MobileNavBarProps> = ({ activeTab, onSelectT
             {/* Backdrop blur effect */}
             <div className="absolute inset-0 backdrop-blur-xl bg-[#0e1318]/95 border-t border-white/5" />
             
-            <div className="relative flex justify-around items-center h-20 px-4 pb-safe">
+            <div className="relative flex justify-around items-center h-16 px-4 pb-safe">
                 {navItems.map(({ id, icon: Icon, label, gradient }) => {
                     const isActive = activeTab === id;
                     return (
@@ -43,8 +43,8 @@ export const MobileNavBar: React.FC<MobileNavBarProps> = ({ activeTab, onSelectT
                             key={id}
                             onClick={() => handleTabSelect(id)}
                             className={`
-                                flex flex-col items-center justify-center gap-1.5
-                                min-w-[72px] min-h-[56px] px-3 py-2 rounded-2xl
+                                flex flex-col items-center justify-center gap-1
+                                min-w-[64px] min-h-[48px] px-2 py-1 rounded-xl
                                 transition-all duration-300 ease-out
                                 active:scale-95
                                 ${isActive
@@ -60,12 +60,12 @@ export const MobileNavBar: React.FC<MobileNavBarProps> = ({ activeTab, onSelectT
                                 ${isActive ? 'scale-110' : 'scale-100'}
                             `}>
                                 <Icon 
-                                    className={`w-6 h-6 ${isActive ? 'text-white drop-shadow-lg' : ''}`} 
+                                    className={`w-5 h-5 ${isActive ? 'text-white drop-shadow-lg' : ''}`} 
                                     aria-hidden="true" 
                                 />
                             </div>
                             <span className={`
-                                text-[11px] font-semibold tracking-wide
+                                text-[10px] font-bold tracking-tight
                                 ${isActive ? 'text-white' : 'text-gray-400'}
                             `}>
                                 {label}

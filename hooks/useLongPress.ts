@@ -26,7 +26,7 @@ export const useLongPress = (options: LongPressOptions) => {
 
   const start = useCallback(
     (e: React.TouchEvent | React.MouseEvent) => {
-      if (!enabled) return;
+      if (!enabled) {return;}
 
       isLongPress.current = false;
       target.current = e.target;

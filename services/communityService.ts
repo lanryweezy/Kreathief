@@ -49,7 +49,7 @@ export const communityService = {
 
   async publishTemplate(template: Omit<CommunityTemplate, 'likes' | 'createdAt'>): Promise<boolean> {
     try {
-      const { error } = await supabase.from('community_templates').insert({
+      const { error } = await (supabase.from('community_templates') as any).insert({
         id: template.id,
         name: template.name,
         category: template.category,
@@ -72,7 +72,7 @@ export const communityService = {
   async likeTemplate(id: string): Promise<void> {
     try {
       // RPC call to increment likes atomically
-      await supabase.rpc('increment_template_likes', { template_id: id });
+      await (supabase.rpc as any)('increment_template_likes', { template_id: id });
     } catch (error) {
       log.error('[CommunityService] Like failed', error);
     }

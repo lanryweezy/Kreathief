@@ -70,8 +70,8 @@ export class AbrParser {
       // Photoshop sampled brushes store bitmaps as RLE or raw
       // This is a complex internal format, we'll look for the 'Nm  ' (Name) block
       
-      let name = 'Imported Brush';
-      let diameter = 0;
+      const name = 'Imported Brush';
+      const diameter = 0;
 
       // Skip internal headers to find Sampled Data
       this.offset += 8; // Unknown

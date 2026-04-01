@@ -27,7 +27,7 @@ export const useShakeToUndo = (options: ShakeToUndoOptions) => {
 
     const handleDeviceMotion = (event: DeviceMotionEvent) => {
       const acceleration = event.accelerationIncludingGravity;
-      if (!acceleration) return;
+      if (!acceleration) {return;}
 
       const currentTime = Date.now();
       const timeDiff = currentTime - lastTime.current;

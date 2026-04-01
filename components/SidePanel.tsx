@@ -83,7 +83,7 @@ export const SidePanel = React.memo(
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ type: 'spring', damping: 25, stiffness: 120 }}
-          className="w-[320px] bg-[#13161a]/95 backdrop-blur-xl border-r border-white/5 flex flex-col z-20 shrink-0 shadow-2xl relative overflow-hidden"
+          className="w-full md:w-[320px] bg-transparent md:bg-[#13161a]/95 md:backdrop-blur-xl border-r border-white/5 flex flex-col z-20 shrink-0 shadow-2xl relative overflow-hidden"
         >
           <AnimatePresence mode="wait">
             <motion.div 

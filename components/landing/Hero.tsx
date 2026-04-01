@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Icons } from '../../constants';
-import { MagneticButton, SuperLabel } from './LandingUtils';
+import { MagneticButton } from './LandingUtils';
 
 interface HeroProps {
   onGetStarted: () => void;

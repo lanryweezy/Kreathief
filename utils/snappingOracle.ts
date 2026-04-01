@@ -101,11 +101,12 @@ export class SnappingOracle {
 
     // FIX: Add snap line AFTER finding best snap (not during iteration)
     if (bestSnapX) {
+      const snap = bestSnapX as any;
       result.lines.push({
         type: 'vertical',
-        value: bestSnapX.value,
-        origin: Math.min(minY, bestSnapX.origin),
-        extent: Math.max(maxY, bestSnapX.origin + bestSnapX.extent) - Math.min(minY, bestSnapX.origin),
+        value: snap.value,
+        origin: Math.min(minY, snap.origin),
+        extent: Math.max(maxY, snap.origin + snap.extent) - Math.min(minY, snap.origin),
       });
     }
 
@@ -127,11 +128,12 @@ export class SnappingOracle {
 
     // FIX: Add snap line AFTER finding best snap (not during iteration)
     if (bestSnapY) {
+      const snap = bestSnapY as any;
       result.lines.push({
         type: 'horizontal',
-        value: bestSnapY.value,
-        origin: Math.min(minX, bestSnapY.origin),
-        extent: Math.max(maxX, bestSnapY.origin + bestSnapY.extent) - Math.min(minX, bestSnapY.origin),
+        value: snap.value,
+        origin: Math.min(minX, snap.origin),
+        extent: Math.max(maxX, snap.origin + snap.extent) - Math.min(minX, snap.origin),
       });
     }
 

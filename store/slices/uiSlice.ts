@@ -20,6 +20,7 @@ export interface UISlice {
   isExpanding: boolean;
   isEraserActive: boolean;
   isShapeBuilderActive: boolean;
+  showPresentation: boolean;
   zoom: number;
   showGrid: boolean;
   showRulers: boolean;
@@ -50,12 +51,13 @@ export interface UISlice {
   tags: string[];
   isPublished: boolean;
   isCommandPaletteOpen: boolean;
-  showPresentation: boolean;
   showVersionDiff: boolean;
   versionDiffSnapshotId: string | null;
+  user: any | null;
 
   setActiveTab: (tab: NavTab) => void;
   setMode: (mode: AppMode) => void;
+  setUser: (user: any | null) => void;
   setIsProcessing: (isProcessing: boolean) => void;
   setIsExporting: (isExporting: boolean) => void;
   setCommandPaletteOpen: (isOpen: boolean) => void;
@@ -65,6 +67,7 @@ export interface UISlice {
   deleteUpload: (index: number) => void;
   setIsShapeBuilderActive: (active: boolean) => void;
   setZoom: (zoom: number | ((prev: number) => number)) => void;
+  resetZoom: () => void;
   setShowGrid: (show: boolean) => void;
   setShowRulers: (show: boolean) => void;
   setSnapToGrid: (snap: boolean) => void;
@@ -147,10 +150,12 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   showPresentation: false,
   showVersionDiff: false,
   versionDiffSnapshotId: null,
+  user: null,
 
   favoriteTemplates: [],
   favoriteProjects: [],
 
+  setUser: (user) => set({ user }),
   setCommandPaletteOpen: (isCommandPaletteOpen) => set({ isCommandPaletteOpen }),
   setActiveTab: (activeTab) => set({ activeTab }),
   setMode: (mode) => set({ mode }),
@@ -177,6 +182,7 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     }),
   setIsShapeBuilderActive: (isShapeBuilderActive) => set({ isShapeBuilderActive }),
   setZoom: (zoom) => set((state: any) => ({ zoom: typeof zoom === 'function' ? zoom(state.zoom) : zoom })),
+  resetZoom: () => set({ zoom: 0.8 }),
   setShowGrid: (show) => set({ showGrid: show }),
   setShowRulers: (show) => set({ showRulers: show }),
   setSnapToGrid: (snap) => set({ snapToGrid: snap }),

@@ -298,11 +298,11 @@ export const useCanvasInteractions = ({
     }
   }, []);
 
-  const handleDrawingMouseUp = useCallback((e: React.MouseEvent) => {
+  const handleDrawingMouseUp = useCallback((e?: React.MouseEvent) => {
     if (!isDrawingRef.current) {return;}
     isDrawingRef.current = false;
     
-    const { brushType, brushColor, brushSize, addLayer, activeArtboardId } = useStore.getState();
+    const { brushType, brushColor, brushSize, addLayer } = useStore.getState();
     
     // Convert path to VectorPath
     const pathData = `M ${currentPathRef.current.map(p => `${p.x} ${p.y}`).join(' L ')}`;
@@ -325,9 +325,11 @@ export const useCanvasInteractions = ({
     } as any);
 
     // Clear temporary canvas
-    const ctx = (e.target as HTMLCanvasElement).getContext('2d');
-    if (ctx) {
-      ctx.clearRect(0, 0, (e.target as HTMLCanvasElement).width, (e.target as HTMLCanvasElement).height);
+    if (e && e.target) {
+      const ctx = (e.target as HTMLCanvasElement).getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, (e.target as HTMLCanvasElement).width, (e.target as HTMLCanvasElement).height);
+      }
     }
   }, []);
 

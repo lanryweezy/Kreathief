@@ -20,55 +20,55 @@ export const MobilePanelWrapper: React.FC<MobilePanelWrapperProps> = ({ children
         {children}
       </div>
 
-      <style jsx>{`
-        .mobile-panel-wrapper :global(button) {
+      <style dangerouslySetInnerHTML={{ __html: `
+        .mobile-panel-wrapper button {
           min-height: 48px;
           padding: 12px 16px;
           font-size: 15px;
         }
 
-        .mobile-panel-wrapper :global(input),
-        .mobile-panel-wrapper :global(textarea) {
+        .mobile-panel-wrapper input,
+        .mobile-panel-wrapper textarea {
           min-height: 48px;
           padding: 12px 16px;
           font-size: 15px;
         }
 
-        .mobile-panel-wrapper :global(.grid) {
+        .mobile-panel-wrapper .grid {
           gap: 16px;
         }
 
-        .mobile-panel-wrapper :global(label) {
+        .mobile-panel-wrapper label {
           font-size: 14px;
           font-weight: 600;
           margin-bottom: 8px;
         }
 
-        .mobile-panel-wrapper :global(.text-xs) {
+        .mobile-panel-wrapper .text-xs {
           font-size: 13px;
         }
 
-        .mobile-panel-wrapper :global(.text-sm) {
+        .mobile-panel-wrapper .text-sm {
           font-size: 14px;
         }
 
         /* Larger touch targets for mobile */
-        .mobile-panel-wrapper :global(.icon-button) {
+        .mobile-panel-wrapper .icon-button {
           min-width: 48px;
           min-height: 48px;
         }
 
         /* Better spacing for cards */
-        .mobile-panel-wrapper :global(.card),
-        .mobile-panel-wrapper :global([class*="rounded"]) {
+        .mobile-panel-wrapper .card,
+        .mobile-panel-wrapper [class*="rounded"] {
           padding: 16px;
         }
 
         /* Scrollable areas with better padding */
-        .mobile-panel-wrapper :global(.overflow-y-auto) {
+        .mobile-panel-wrapper .overflow-y-auto {
           padding-bottom: 24px;
         }
-      `}</style>
+      `}} />
     </div>
   );
 };

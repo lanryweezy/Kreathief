@@ -7,7 +7,7 @@
  * Detect if device is mobile
  */
 export const isMobileDevice = (): boolean => {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined') {return false;}
   return window.innerWidth < 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 };
 
@@ -15,7 +15,7 @@ export const isMobileDevice = (): boolean => {
  * Detect if device is iOS
  */
 export const isIOS = (): boolean => {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined') {return false;}
   return /iPad|iPhone|iPod/.test(navigator.userAgent);
 };
 
@@ -23,7 +23,7 @@ export const isIOS = (): boolean => {
  * Detect if device is Android
  */
 export const isAndroid = (): boolean => {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined') {return false;}
   return /Android/.test(navigator.userAgent);
 };
 
@@ -31,7 +31,7 @@ export const isAndroid = (): boolean => {
  * Get device pixel ratio for high-DPI displays
  */
 export const getDevicePixelRatio = (): number => {
-  if (typeof window === 'undefined') return 1;
+  if (typeof window === 'undefined') {return 1;}
   return window.devicePixelRatio || 1;
 };
 
@@ -108,7 +108,7 @@ export const cancelAnimationFramePolyfill = (id: number): void => {
  * Optimize image loading for mobile
  */
 export const optimizeImageForMobile = (url: string, maxWidth: number = 1024): string => {
-  if (!isMobileDevice()) return url;
+  if (!isMobileDevice()) {return url;}
   
   // If using a CDN with image optimization, append parameters
   // Example: Cloudinary, Imgix, etc.
@@ -124,7 +124,7 @@ export const optimizeImageForMobile = (url: string, maxWidth: number = 1024): st
  * Reduce motion for accessibility and performance
  */
 export const shouldReduceMotion = (): boolean => {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined') {return false;}
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 };
 
@@ -132,8 +132,8 @@ export const shouldReduceMotion = (): boolean => {
  * Get optimal animation duration based on device
  */
 export const getOptimalAnimationDuration = (baseDuration: number): number => {
-  if (shouldReduceMotion()) return 0;
-  if (isMobileDevice()) return baseDuration * 0.8; // Slightly faster on mobile
+  if (shouldReduceMotion()) {return 0;}
+  if (isMobileDevice()) {return baseDuration * 0.8;} // Slightly faster on mobile
   return baseDuration;
 };
 
@@ -175,7 +175,7 @@ export const preventDoubleTapZoom = (element: HTMLElement): void => {
  * Enable momentum scrolling on iOS
  */
 export const enableMomentumScrolling = (element: HTMLElement): void => {
-  element.style.webkitOverflowScrolling = 'touch';
+  (element.style as any).webkitOverflowScrolling = 'touch';
   element.style.overflowY = 'auto';
 };
 
@@ -183,7 +183,7 @@ export const enableMomentumScrolling = (element: HTMLElement): void => {
  * Get safe area insets
  */
 export const getSafeAreaInsets = () => {
-  if (typeof window === 'undefined') return { top: 0, right: 0, bottom: 0, left: 0 };
+  if (typeof window === 'undefined') {return { top: 0, right: 0, bottom: 0, left: 0 };}
   
   const style = getComputedStyle(document.documentElement);
   return {

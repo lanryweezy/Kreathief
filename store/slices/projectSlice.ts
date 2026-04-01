@@ -63,7 +63,7 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
   },
 
   startAutoSave: () => {
-    if (autoSaveTimer) clearInterval(autoSaveTimer);
+    if (autoSaveTimer) {clearInterval(autoSaveTimer);}
     
     autoSaveTimer = setInterval(() => {
       const state = get();

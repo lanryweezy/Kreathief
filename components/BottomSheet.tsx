@@ -38,7 +38,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
+    if (!isDragging) {return;}
     const currentY = e.touches[0].clientY;
     const diff = currentY - startY.current;
     

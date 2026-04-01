@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
-import { runTool } from '../../store/tools';
 
 import { iconScoutService, IconScoutAsset } from '../../services/iconScoutService';
 import { communityService, CommunityTemplate } from '../../services/communityService';
@@ -21,7 +20,7 @@ export const CommandPalette: React.FC = () => {
   const { 
     addTextLayer, addShapeLayer, addAdjustmentLayer, addImageLayer, 
     magicResize, generateAutoLayouts, applyStyleFromImage, 
-    setShowGrid, showGrid, setIsExporting, 
+    setIsExporting, 
     groupSelected, ungroupSelected, deleteSelected, duplicateSelected,
     initializeProject
   } = useStore();
@@ -53,12 +52,17 @@ export const CommandPalette: React.FC = () => {
   type Cmd = { id: string; label: string; icon: any; action: () => void; group?: string; type?: 'action' | 'asset' | 'template' };
   
   const commandList: Cmd[] = [
-    { id: 'text', label: 'Add Text', icon: Icons.Text, action: () => addTextLayer() },
-    { id: 'rect', label: 'Add Rectangle', icon: Icons.Square, action: () => addShapeLayer('rectangle') },
-    { id: 'adjust', label: 'Add Adjustment Layer', icon: Icons.Filter, action: () => addAdjustmentLayer() },
-    { id: 'export', label: 'Export Design', icon: Icons.Download, action: () => setIsExporting(true) },
-    { id: 'group', label: 'Group Selected', icon: Icons.Group, action: () => groupSelected() },
-    { id: 'duplicate', label: 'Duplicate Selected', icon: Icons.Copy, action: () => duplicateSelected() },
+    { id: 'text', label: 'Add Text', icon: Icons.Text, action: () => addTextLayer(), group: 'Creation' },
+    { id: 'rect', label: 'Add Rectangle', icon: Icons.Square, action: () => addShapeLayer('rectangle'), group: 'Creation' },
+    { id: 'adjust', label: 'Add Adjustment Layer', icon: Icons.Filter, action: () => addAdjustmentLayer(), group: 'Effects' },
+    { id: 'export', label: 'Export Design', icon: Icons.Download, action: () => setIsExporting(true), group: 'General' },
+    { id: 'group', label: 'Group Selected', icon: Icons.Group, action: () => groupSelected(), group: 'Arrange' },
+    { id: 'ungroup', label: 'Ungroup Selected', icon: Icons.Ungroup, action: () => ungroupSelected(), group: 'Arrange' },
+    { id: 'duplicate', label: 'Duplicate Selected', icon: Icons.Copy, action: () => duplicateSelected(), group: 'Arrange' },
+    { id: 'delete', label: 'Delete Selected', icon: Icons.Trash, action: () => deleteSelected(), group: 'Arrange' },
+    { id: 'resize', label: 'AI Magic Resize', icon: Icons.Sparkles, action: () => magicResize(1080, 1080, 'Instagram Post'), group: 'AI' },
+    { id: 'autolayout', label: 'Generate Auto Layout', icon: Icons.Layout, action: () => generateAutoLayouts(), group: 'AI' },
+    { id: 'style', label: 'Apply Style from Image', icon: Icons.Droplet, action: () => applyStyleFromImage(''), group: 'AI' },
   ];
 
   const filteredActions = query 
@@ -66,13 +70,35 @@ export const CommandPalette: React.FC = () => {
     : commandList;
 
   // Combine all results for unified navigation
-  const allResults = [
+  const allResults: Cmd[] = [
     ...filteredActions.map(a => ({ ...a, type: 'action' as const })),
-    ...assetResults.map(a => ({ id: a.uuid, label: `Add Icon: ${a.name}`, icon: Icons.Image, action: () => addImageLayer(a.previewUrl), type: 'asset' as const })),
-    ...communityResults.map(t => ({ id: t.id, label: `Template: ${t.name}`, icon: Icons.Layout, action: () => initializeProject(t.state), type: 'template' as const }))
+    ...assetResults.map(a => ({ 
+      id: a.uuid, 
+      label: `Add Icon: ${a.name}`, 
+      icon: Icons.Image, 
+      action: () => addImageLayer(a.previewUrl), 
+      type: 'asset' as const,
+      group: 'Icons'
+    })),
+    ...communityResults.map(t => ({ 
+      id: t.id, 
+      label: `Template: ${t.name}`, 
+      icon: Icons.Layout, 
+      action: () => initializeProject(t.state), 
+      type: 'template' as const,
+      group: 'Community'
+    }))
   ];
 
-  // ... (navigation logic remains same, but using allResults instead of filteredCommands) ...
+  // Grouping for the initial state (when query is empty)
+  const grouped = Array.from(
+    allResults.reduce((acc, cmd) => {
+      const group = cmd.group || 'Other';
+      if (!acc.has(group)) {acc.set(group, []);}
+      acc.get(group)!.push(cmd);
+      return acc;
+    }, new Map<string, Cmd[]>())
+  );
 
   // Keyboard navigation
   useEffect(() => {
@@ -114,6 +140,11 @@ export const CommandPalette: React.FC = () => {
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [isOpen, setOpen]);
 
+  // Reset selection when query changes
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [query]);
+
   if (!isOpen) {return null;}
 
   return (
@@ -133,11 +164,12 @@ export const CommandPalette: React.FC = () => {
             className="flex-1 bg-transparent text-white text-lg outline-none placeholder-gray-500"
             placeholder="Search commands..."
             value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setSelectedIndex(0);
-            }}
+            autoFocus
+            onChange={(e) => setQuery(e.target.value)}
           />
+          {isSearching && (
+            <div className="mr-3 animate-spin w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full" />
+          )}
           <div className="flex gap-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-[#0a0a0c] px-2 py-1 rounded">
             <span>ESC</span> to close
           </div>
@@ -145,21 +177,26 @@ export const CommandPalette: React.FC = () => {
 
         {/* Command List */}
         <div className="max-h-[60vh] overflow-y-auto custom-scrollbar p-2">
-                    {filteredCommands.length === 0 ? (
+          {allResults.length === 0 ? (
             <div className="px-4 py-8 text-center text-gray-500 text-sm">No commands found for &quot;{query}&quot;</div>
           ) : query ? (
             <div className="flex flex-col gap-1">
-              {filteredCommands.map((cmd, index) => {
-                const Icon = cmd.icon; const isSelected = index === selectedIndex;
+              {allResults.map((cmd, index) => {
+                const Icon = cmd.icon;
+                const isSelected = index === selectedIndex;
                 return (
-                  <button key={cmd.id} onMouseEnter={() => setSelectedIndex(index)} onClick={() => { cmd.action(); setOpen(false); }}
-                    className={`flex items-center w-full px-3 py-3 rounded-lg text-left transition-colors ${isSelected ? 'bg-[#7d2ae8]/20 text-white' : 'text-gray-400 hover:bg-white/5'}`}>
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-md mr-3 ${isSelected ? 'bg-[#7d2ae8]/40 text-[#7d2ae8]' : 'bg-[#1a1d21] text-gray-500'}`}>
+                  <button 
+                    key={cmd.id} 
+                    onMouseEnter={() => setSelectedIndex(index)} 
+                    onClick={() => { cmd.action(); setOpen(false); }}
+                    className={`flex items-center w-full px-3 py-3 rounded-lg text-left transition-colors ${isSelected ? 'bg-purple-500/20 text-white' : 'text-gray-400 hover:bg-white/5'}`}
+                  >
+                    <div className={`flex items-center justify-center w-8 h-8 rounded-md mr-3 ${isSelected ? 'bg-purple-500/40 text-purple-400' : 'bg-[#1a1d21] text-gray-500'}`}>
                       <Icon className="w-4 h-4" />
                     </div>
                     <span className="font-medium text-sm flex-1">{cmd.label}</span>
-                    {cmd.group && <span className="text-[10px] text-gray-500 ml-2">{cmd.group}</span>}
-                    {isSelected && <span className="ml-auto text-[10px] font-bold tracking-widest uppercase text-[#7d2ae8]">Return</span>}
+                    {cmd.group && <span className="text-[10px] text-gray-500 ml-2 bg-gray-800/50 px-1.5 py-0.5 rounded">{cmd.group}</span>}
+                    {isSelected && <span className="ml-auto text-[10px] font-bold tracking-widest uppercase text-purple-500">Return</span>}
                   </button>
                 );
               })}
@@ -171,16 +208,21 @@ export const CommandPalette: React.FC = () => {
                   <div className="px-3 py-1 text-[10px] font-black text-gray-600 uppercase tracking-widest">{group}</div>
                   <div className="flex flex-col gap-1">
                     {cmds.map((cmd) => {
-                      const index = filteredCommands.indexOf(cmd as any);
-                      const Icon = cmd.icon; const isSelected = index === selectedIndex;
+                      const index = allResults.indexOf(cmd);
+                      const Icon = cmd.icon;
+                      const isSelected = index === selectedIndex;
                       return (
-                        <button key={cmd.id} onMouseEnter={() => setSelectedIndex(index)} onClick={() => { cmd.action(); setOpen(false); }}
-                          className={`flex items-center w-full px-3 py-3 rounded-lg text-left transition-colors ${isSelected ? 'bg-[#7d2ae8]/20 text-white' : 'text-gray-400 hover:bg-white/5'}`}>
-                          <div className={`flex items-center justify-center w-8 h-8 rounded-md mr-3 ${isSelected ? 'bg-[#7d2ae8]/40 text-[#7d2ae8]' : 'bg-[#1a1d21] text-gray-500'}`}>
+                        <button 
+                          key={cmd.id} 
+                          onMouseEnter={() => setSelectedIndex(index)} 
+                          onClick={() => { cmd.action(); setOpen(false); }}
+                          className={`flex items-center w-full px-3 py-3 rounded-lg text-left transition-colors ${isSelected ? 'bg-purple-500/20 text-white' : 'text-gray-400 hover:bg-white/5'}`}
+                        >
+                          <div className={`flex items-center justify-center w-8 h-8 rounded-md mr-3 ${isSelected ? 'bg-purple-500/40 text-purple-400' : 'bg-[#1a1d21] text-gray-500'}`}>
                             <Icon className="w-4 h-4" />
                           </div>
                           <span className="font-medium text-sm flex-1">{cmd.label}</span>
-                          {isSelected && <span className="ml-auto text-[10px] font-bold tracking-widest uppercase text-[#7d2ae8]">Return</span>}
+                          {isSelected && <span className="ml-auto text-[10px] font-bold tracking-widest uppercase text-purple-500">Return</span>}
                         </button>
                       );
                     })}

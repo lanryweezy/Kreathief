@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import { compare, applyPatch, Operation } from 'fast-json-patch';
-import { HistoryState, DesignSnapshot } from '../../types';
+import { HistoryState, DesignSnapshot, Artboard } from '../../types';
 import { storageService } from '../../services/storageService';
 import { v4 as uuidv4 } from 'uuid';
 import { analyticsService } from '../../services/analyticsService';

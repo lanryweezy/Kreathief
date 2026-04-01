@@ -15,8 +15,11 @@ export const MobileQuickActions: React.FC = () => {
   const duplicateSelected = useStore((state) => state.duplicateSelected);
   const undo = useStore((state) => state.undo);
   const redo = useStore((state) => state.redo);
+  const resetZoom = useStore((state) => state.resetZoom);
+  const moveLayer = useStore((state) => state.moveLayer);
 
   const hasSelection = selectedLayerIds.length > 0;
+  const singleSelection = selectedLayerIds.length === 1;
 
   const handleToggle = () => {
     haptics.medium();
@@ -31,24 +34,38 @@ export const MobileQuickActions: React.FC = () => {
 
   const quickActions = [
     {
+      icon: Icons.Search,
+      label: 'Reset Zoom',
+      action: resetZoom,
+      color: 'from-blue-500 to-indigo-500',
+      show: true,
+    },
+    {
       icon: Icons.Undo,
       label: 'Undo',
       action: undo,
-      color: 'from-blue-500 to-cyan-500',
+      color: 'from-gray-500 to-gray-600',
       show: true,
     },
     {
       icon: Icons.Redo,
       label: 'Redo',
       action: redo,
-      color: 'from-purple-500 to-pink-500',
+      color: 'from-gray-500 to-gray-600',
       show: true,
+    },
+    {
+      icon: Icons.ArrowUp,
+      label: 'Bring to Front',
+      action: () => singleSelection && moveLayer(selectedLayerIds[0], 'front'),
+      color: 'from-emerald-500 to-teal-500',
+      show: singleSelection,
     },
     {
       icon: Icons.Copy,
       label: 'Duplicate',
       action: duplicateSelected,
-      color: 'from-green-500 to-emerald-500',
+      color: 'from-purple-500 to-pink-500',
       show: hasSelection,
     },
     {

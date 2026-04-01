@@ -136,7 +136,8 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
       
       const newBrushes = brushes.map(b => ({
         ...b,
-        id: uuidv4()
+        id: uuidv4(),
+        tipData: b.tipData || ''
       }));
 
       addCustomBrushes(newBrushes);

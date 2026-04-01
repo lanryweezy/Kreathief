@@ -70,11 +70,21 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
   );
 };
 
+interface ToastContainerProps {
+  toasts: Toast[];
+  onRemove: (id: string) => void;
+}
+
+interface ToastContainerProps {
+  toasts: Toast[];
+  onRemove: (id: string) => void;
+}
+
 export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onRemove }) => {
   return (
     <div className="fixed bottom-8 right-8 z-[9999] flex flex-col gap-3 pointer-events-none" aria-live="polite">
       <AnimatePresence mode="popLayout">
-        {toasts.map((toast) => (
+        {toasts.map((toast: Toast) => (
           <div key={toast.id} className="pointer-events-auto">
             <ToastItem toast={toast} onRemove={onRemove} />
           </div>

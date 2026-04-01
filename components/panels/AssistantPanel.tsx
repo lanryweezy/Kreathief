@@ -3,35 +3,17 @@ import { Button } from '../Button';
 import { useStore } from '../../store/useStore';
 import { VariantCard } from '../agent/VariantCard';
 
-// Icons for the Agentic Loop
-const AgentIcons = {
-  Sparkles: (props: any) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-      <path d="m5 3 1 1" /><path d="m19 21 1 1" /><path d="m21 3-1 1" /><path d="m3 21 1-1" />
-    </svg>
-  ),
-  Search: (props: any) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
-    </svg>
-  ),
-  Zap: (props: any) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 14.71 12 2.6l1.29 11.4H20l-8 12.11L10.71 14.7H4z" />
-    </svg>
-  ),
-  Check: (props: any) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 6 9 17l-5-5" />
-    </svg>
-  ),
-  ArrowRight: (props: any) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-    </svg>
-  ),
-};
+import { Icons as AgentIcons } from '../../constants';
+
+const CriticBubble = ({ text, isVisible }: { text: string; isVisible: boolean }) => (
+  <div className={`absolute -top-12 left-12 right-0 bg-[#7d2ae8] text-white p-3 rounded-2xl rounded-bl-none shadow-2xl transition-all duration-500 transform origin-bottom-left z-[120] border border-white/20 ${isVisible ? 'scale-100 opacity-100 translate-y-0' : 'scale-0 opacity-0 translate-y-4 pointer-events-none'}`}>
+    <div className="flex items-center gap-2 mb-1">
+      <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+      <span className="text-[8px] font-black uppercase tracking-widest opacity-70">Critic Observation</span>
+    </div>
+    <p className="text-[10px] font-bold leading-tight italic">"{text}"</p>
+  </div>
+);
 
 interface AssistantPanelProps {
   getCanvasSnapshot: () => Promise<string>;
@@ -78,6 +60,12 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
       { id: 'performance', label: 'Growth Agent', sub: 'Performance Scoring', icon: AgentIcons.Zap },
     ];
 
+    const criticPhrases = {
+      creative: "Analyzing visual hierarchy for better balance...",
+      critic: "Optimizing negative space and alignment...",
+      performance: "Ensuring high-conversion visual cues...",
+    };
+
     return (
       <div className="space-y-4 py-8">
         {steps.map((step, i) => {
@@ -87,24 +75,30 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
                          agentStatus === 'done' && i === 2;
 
           return (
-            <div key={step.id} className={`flex items-center gap-4 transition-all duration-500 ${isActive ? 'opacity-100 scale-100' : 'opacity-40 scale-95'}`}>
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl relative ${isActive ? 'bg-[#7d2ae8] text-white animate-pulse' : isDone ? 'bg-emerald-500/20 text-emerald-500' : 'bg-white/5 text-gray-500'}`}>
-                {isDone ? <AgentIcons.Check className="w-5 h-5" /> : <step.icon className="w-5 h-5" />}
+            <div key={step.id} className="relative">
+              <CriticBubble 
+                text={criticPhrases[agentStatus as keyof typeof criticPhrases] || "Processing..."} 
+                isVisible={isActive && agentStatus !== 'done'} 
+              />
+              <div className={`flex items-center gap-4 transition-all duration-500 ${isActive ? 'opacity-100 scale-100' : 'opacity-40 scale-95'}`}>
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl relative ${isActive ? 'bg-[#7d2ae8] text-white animate-pulse' : isDone ? 'bg-emerald-500/20 text-emerald-500' : 'bg-white/5 text-gray-500'}`}>
+                  {isDone ? <AgentIcons.Check className="w-5 h-5" /> : <step.icon className="w-5 h-5" />}
+                  {isActive && (
+                    <div className="absolute inset-0 rounded-2xl border-2 border-[#7d2ae8] animate-ping opacity-20" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h4 className={`text-xs font-black uppercase tracking-widest ${isActive ? 'text-white' : 'text-gray-400'}`}>{step.label}</h4>
+                  <p className="text-[10px] text-gray-500 font-medium">{isActive ? step.sub : isDone ? 'Task Completed' : 'Pending Queue'}</p>
+                </div>
                 {isActive && (
-                   <div className="absolute inset-0 rounded-2xl border-2 border-[#7d2ae8] animate-ping opacity-20" />
+                  <div className="flex gap-1">
+                    <div className="w-1 h-1 rounded-full bg-[#7d2ae8] animate-bounce" style={{ animationDelay: '0s' }} />
+                    <div className="w-1 h-1 rounded-full bg-[#7d2ae8] animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    <div className="w-1 h-1 rounded-full bg-[#7d2ae8] animate-bounce" style={{ animationDelay: '0.4s' }} />
+                  </div>
                 )}
               </div>
-              <div className="flex-1">
-                <h4 className={`text-xs font-black uppercase tracking-widest ${isActive ? 'text-white' : 'text-gray-400'}`}>{step.label}</h4>
-                <p className="text-[10px] text-gray-500 font-medium">{isActive ? step.sub : isDone ? 'Task Completed' : 'Pending Queue'}</p>
-              </div>
-              {isActive && (
-                <div className="flex gap-1">
-                  <div className="w-1 h-1 rounded-full bg-[#7d2ae8] animate-bounce" style={{ animationDelay: '0s' }} />
-                  <div className="w-1 h-1 rounded-full bg-[#7d2ae8] animate-bounce" style={{ animationDelay: '0.2s' }} />
-                  <div className="w-1 h-1 rounded-full bg-[#7d2ae8] animate-bounce" style={{ animationDelay: '0.4s' }} />
-                </div>
-              )}
             </div>
           );
         })}

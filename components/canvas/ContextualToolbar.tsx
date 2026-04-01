@@ -34,7 +34,7 @@ export const ContextualToolbar: React.FC<ContextualToolbarProps> = ({
     }
   }, [selectedLayerIds, selectedLayers]);
 
-  if (selectedLayerIds.length === 0) return null;
+  if (selectedLayerIds.length === 0) {return null;}
 
   const bounds = GeometryOracle.getGroupBounds(selectedLayers);
   

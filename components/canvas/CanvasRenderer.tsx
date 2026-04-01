@@ -181,8 +181,7 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(({
                       height={artboard.height}
                       onMouseDown={isRefining ? undefined : handleDrawingMouseDown}
                       onMouseMove={isRefining ? handleDrawingMouseMove : handleDrawingMouseMove}
-                      onMouseUp={isRefining ? handleDrawingMouseUp : handleDrawingMouseUp}
-                    />
+                      onMouseUp={isRefining ? () => handleDrawingMouseUp() : () => handleDrawingMouseUp()}                    />
                   )}
 
                   {isLassoMode && (

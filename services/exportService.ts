@@ -845,8 +845,8 @@ export const exportDesignToImage = async (
       await drawImageLayerToContext(ctx, layer);
     } else if (layer.type === 'text') {
       drawTextLayerToContext(ctx, layer);
-    } else if (layer.type !== 'adjustment') {
-      drawShapeToContext(ctx, layer);
+    } else if (layer.type !== 'adjustment' && layer.type !== 'group') {
+      drawShapeToContext(ctx, layer as ShapeLayer);
     }
   }
 
@@ -943,7 +943,6 @@ export const exportToPDF = async (
   pdf.setProperties({
     title: fileName,
     creator: 'Kreathief Design Editor',
-    producer: `Kreathief PDF Export - ${colorProfile} Profile`,
   });
 
   // Add image with bleed area

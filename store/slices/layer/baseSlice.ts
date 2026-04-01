@@ -90,10 +90,10 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
   // FIX: Layer cache methods for O(1) lookups
   rebuildLayerCache: () => {
     const state = get();
-    const allLayers = state.artboards.flatMap(a => a.layers);
+    const allLayers = state.artboards.flatMap((a: Artboard) => a.layers);
     const cache = new Map<string, Layer>();
     
-    allLayers.forEach(layer => {
+    allLayers.forEach((layer: Layer) => {
       cache.set(layer.id, layer);
     });
     
@@ -107,8 +107,8 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
     }
     
     // Fallback to slow path and rebuild cache
-    const allLayers = get().artboards.flatMap(a => a.layers);
-    const layer = allLayers.find(l => l.id === id);
+    const allLayers = get().artboards.flatMap((a: Artboard) => a.layers);
+    const layer = allLayers.find((l: Layer) => l.id === id);
     
     // Rebuild cache after fallback
     get().rebuildLayerCache();

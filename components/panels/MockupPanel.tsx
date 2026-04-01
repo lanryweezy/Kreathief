@@ -58,12 +58,12 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     });
   };
   const [activeCategory, setActiveCategory] = useState('All');
+  const [activeTab, setActiveTab] = useState<'placement' | 'effects' | 'presets'>('placement');
   const [activeMockupId, setActiveMockupId] = useState<string>('tshirt_flat');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [generatedPreview, setGeneratedPreview] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLive, setIsLive] = useState(false); // Auto-update toggle
-  const [proRenderUrl, setProRenderUrl] = useState<string | null>(null);
   const [isProGenerating, setIsProGenerating] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -238,7 +238,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     setIsAnalyzing(true);
     try {
       const designUrl = await captureDesign();
-      if (!designUrl) return;
+      if (!designUrl) {return;}
 
       // Analyze design characteristics
       const img = new Image();
@@ -247,31 +247,23 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
 
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      if (!ctx) return;
+      if (!ctx) {return;}
 
       canvas.width = img.width;
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
 
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imageData.data;
-
       // Calculate aspect ratio
       const aspectRatio = canvas.width / canvas.height;
 
-      // Determine design type based on aspect ratio
-      let designType = 'square';
-      if (aspectRatio > 1.5) designType = 'landscape';
-      else if (aspectRatio < 0.7) designType = 'portrait';
-
       // Match mockups to design characteristics
       const suggestions = mockups
-        .filter(m => {
+        .filter((_m) => {
           const mockupAspect = 1;
           return Math.abs(aspectRatio - mockupAspect) < 0.5;
         })
         .slice(0, 6)
-        .map(m => m.id);
+        .map((m) => m.id);
 
       setSuggestedMockups(suggestions);
       addToast(`Found ${suggestions.length} perfect mockups for your design!`, 'success');
@@ -298,22 +290,22 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   };
 
   const generateBatchMockups = async () => {
-    if (selectedMockupIds.length === 0) return;
+    if (selectedMockupIds.length === 0) {return;}
 
     setIsBatchGenerating(true);
     addToast(`Generating ${selectedMockupIds.length} mockups...`, 'info');
 
     try {
       const designUrl = await captureDesign();
-      if (!designUrl) throw new Error('Failed to capture design');
+      if (!designUrl) {throw new Error('Failed to capture design');}
 
       for (const mockupId of selectedMockupIds) {
         const mockup = getMockupById(mockupId);
-        if (!mockup) continue;
+        if (!mockup) {continue;}
 
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        if (!ctx) continue;
+        if (!ctx) {continue;}
 
         const bgImg = new Image();
         bgImg.crossOrigin = 'anonymous';
@@ -355,7 +347,17 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
           flipX: false,
           flipY: false,
           blendMode: 'normal',
-          filters: { brightness: 100, contrast: 100, saturation: 100, blur: 0, opacity: 1 },
+          filters: { 
+            brightness: 100, 
+            contrast: 100, 
+            saturation: 100, 
+            blur: 0, 
+            opacity: 1,
+            grayscale: 0,
+            sepia: 0,
+            hueRotate: 0,
+            vignette: 0
+          },
         });
       }
 
@@ -373,7 +375,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   // App Store preset generator
   const generatePreset = async (presetName: string) => {
     const mockupIds = APP_STORE_PRESETS[presetName as keyof typeof APP_STORE_PRESETS];
-    if (!mockupIds) return;
+    if (!mockupIds) {return;}
 
     setSelectedMockupIds(mockupIds);
     addToast(`Selected ${mockupIds.length} mockups for ${presetName}`, 'success');
@@ -759,7 +761,6 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
 
   const handleProRender = async () => {
     setIsProGenerating(true);
-    setProRenderUrl(null);
     try {
       const designUrl = await captureDesign();
       if (!designUrl) {
@@ -778,7 +779,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       });
 
       if (result) {
-        setProRenderUrl(result);
+        console.log('Pro Render URL:', result);
       }
     } catch (e) {
       log.error('[MockupPanel] Pro mockup render failed', e);
@@ -1502,388 +1503,185 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
             )}
           </div>
 
-          {/* Adjustments */}
-          <div className="p-4 space-y-4 bg-[#1a1d21]">
-            {/* Quick Actions */}
-            <div className="flex flex-wrap gap-2 pb-2 border-b border-gray-700/50">
-              <button
-                onClick={() => {
-                  // Auto-fit: Reset to default placement for current mockup
-                  const current = getMockupById(activeMockupId);
-                  if (current) {
-                    setPlacement(current.defaultPlacement);
-                  }
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#7d2ae8]/20 border border-[#7d2ae8]/50 text-[#7d2ae8] rounded-lg text-[10px] font-bold hover:bg-[#7d2ae8]/30 transition-all"
-                title="Auto-fit to mockup default position"
-              >
-                <Icons.Magic className="w-3.5 h-3.5" />
-                Auto-Fit
-              </button>
-              <button
-                onClick={() => {
-                  // Smart blend: Set optimal blend mode based on mockup category
-                  const current = getMockupById(activeMockupId);
-                  if (current) {
-                    const isApparel = current.category === 'Apparel';
-                    const isPrint = current.category === 'Print';
-                    updatePlacement(
-                      'blendMode',
-                      isApparel ? 'multiply' : isPrint ? 'multiply' : 'source-over'
-                    );
-                  }
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#00c4cc]/20 border border-[#00c4cc]/50 text-[#00c4cc] rounded-lg text-[10px] font-bold hover:bg-[#00c4cc]/30 transition-all"
-                title="Apply smart blend mode for this mockup type"
-              >
-                <Icons.Layers className="w-3.5 h-3.5" />
-                Smart Blend
-              </button>
-              <button
-                onClick={() => {
-                  // Reset perspective only
-                  setPlacement({ ...placement, skewX: 0, skewY: 0, rotate: 0 });
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-700/50 border border-gray-600 text-gray-300 rounded-lg text-[10px] font-bold hover:bg-gray-700 transition-all"
-                title="Reset perspective adjustments"
-              >
-                <Icons.RefreshCw className="w-3.5 h-3.5" />
-                Reset View
-              </button>
-            </div>
-
-            {/* Corner Pinning Toggle */}
-            <div className="p-3 bg-gradient-to-r from-purple-900/20 to-blue-900/20 border border-purple-500/30 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Icons.Grid className="w-4 h-4 text-purple-400" />
-                  <span className="text-[10px] font-bold text-purple-300 uppercase tracking-wider">
-                    Corner Pinning (4-Point Perspective)
-                  </span>
-                </div>
+          {/* Tabbed Adjustments */}
+          <div className="bg-[#1a1d21]">
+            <div className="flex border-b border-gray-800 bg-[#0e1318]">
+              {(['placement', 'effects', 'presets'] as const).map((tab) => (
                 <button
-                  onClick={() => {
-                    setUseCornerPinning(!useCornerPinning);
-                    if (!useCornerPinning) {
-                      // Initialize corner points when enabling
-                      const defaultCorners = getDefaultCornerPoints(
-                        previewContainerSize.width - 32,
-                        previewContainerSize.height - 32,
-                        placement
-                      );
-                      setCornerPoints(defaultCorners);
-                    }
-                  }}
-                  className={`px-3 py-1.5 rounded text-[10px] font-bold border transition-all ${
-                    useCornerPinning
-                      ? 'bg-purple-600 border-purple-500 text-white'
-                      : 'bg-gray-700 border-gray-600 text-gray-300 hover:border-purple-500/50'
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${
+                    activeTab === tab ? 'text-[#7d2ae8] border-b-2 border-[#7d2ae8] bg-[#7d2ae8]/5' : 'text-gray-500 hover:text-gray-300'
                   }`}
                 >
-                  {useCornerPinning ? 'ON' : 'OFF'}
+                  {tab}
                 </button>
-              </div>
+              ))}
+            </div>
 
-              {useCornerPinning && (
-                <div className="space-y-3">
-                  {/* Perspective Presets */}
-                  <div className="flex gap-2">
-                    {(['flat', 'angled', 'curved'] as const).map((preset) => (
+            <div className="p-4 space-y-4 min-h-[300px]">
+              {activeTab === 'placement' && (
+                <div className="space-y-6 animate-in fade-in duration-300">
+                  {/* Position */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-[10px]">
+                      <span className="text-gray-400 font-bold uppercase tracking-wider">Position (X / Y)</span>
+                      <span className="text-gray-500 font-mono">
+                        {Math.round(placement.left)}%, {Math.round(placement.top)}%
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="range" min="0" max="100" value={placement.left}
+                        onChange={(e) => updatePlacement('left', Number(e.target.value))}
+                        className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+                      />
+                      <input
+                        type="range" min="0" max="100" value={placement.top}
+                        onChange={(e) => updatePlacement('top', Number(e.target.value))}
+                        className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Scale & Rotate */}
+                  <div className="space-y-3">
+                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Scale / Rotate</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="range" min="10" max="150" value={placement.width}
+                        onChange={(e) => updatePlacement('width', Number(e.target.value))}
+                        className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+                      />
+                      <input
+                        type="range" min="-180" max="180" value={placement.rotate}
+                        onChange={(e) => updatePlacement('rotate', Number(e.target.value))}
+                        className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Corner Pinning Toggle */}
+                  <div className="p-3 bg-gradient-to-r from-purple-900/20 to-blue-900/20 border border-purple-500/30 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[9px] font-bold text-purple-300 uppercase tracking-wider">
+                        4-Point Perspective
+                      </span>
                       <button
-                        key={preset}
                         onClick={() => {
-                          setPerspectivePreset(preset);
-                          if (preset === 'flat') {
-                            setCurve(0);
-                            setPlacement({ ...placement, skewX: 0, skewY: 0 });
-                          } else if (preset === 'angled') {
-                            setPlacement({ ...placement, skewX: 10, skewY: 5 });
-                          } else if (preset === 'curved') {
-                            setCurve(15);
+                          setUseCornerPinning(!useCornerPinning);
+                          if (!useCornerPinning) {
+                            const defaultCorners = getDefaultCornerPoints(
+                              previewContainerSize.width - 32,
+                              previewContainerSize.height - 32,
+                              placement
+                            );
+                            setCornerPoints(defaultCorners);
                           }
                         }}
-                        className={`flex-1 py-1.5 rounded text-[9px] font-bold uppercase transition-all ${
-                          perspectivePreset === preset
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                        className={`px-3 py-1 rounded text-[9px] font-bold border transition-all ${
+                          useCornerPinning ? 'bg-purple-600 border-purple-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300'
                         }`}
                       >
-                        {preset}
+                        {useCornerPinning ? 'ON' : 'OFF'}
                       </button>
-                    ))}
+                    </div>
+                    {useCornerPinning && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-[8px] text-gray-500 uppercase">Cylindrical Curve</span>
+                          <span className="text-[8px] text-white">{curve}°</span>
+                        </div>
+                        <input
+                          type="range" min="-30" max="30" value={curve}
+                          onChange={(e) => setCurve(Number(e.target.value))}
+                          className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'effects' && (
+                <div className="space-y-6 animate-in fade-in duration-300">
+                  <div className="space-y-3">
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Blend Mode</label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {['source-over', 'multiply', 'screen', 'overlay', 'soft-light'].map((mode) => (
+                        <button
+                          key={mode}
+                          onClick={() => updatePlacement('blendMode', mode)}
+                          className={`px-3 py-2 text-[10px] font-bold rounded-lg border transition-all text-left flex justify-between items-center ${
+                            placement.blendMode === mode ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white' : 'bg-black border-gray-800 text-gray-500 hover:border-gray-600'
+                          }`}
+                        >
+                          <span className="capitalize">{mode.replace('-', ' ')}</span>
+                          {placement.blendMode === mode && <Icons.Check className="w-3 h-3 text-[#7d2ae8]" />}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
-                  {/* Curve Control */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-[9px] text-gray-400 font-bold uppercase">Curve (Cylindrical)</span>
-                      <span className="text-[9px] text-white font-mono">{curve}°</span>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center text-[10px]">
+                      <span className="text-gray-400 font-bold uppercase tracking-wider">Design Opacity</span>
+                      <span className="text-white font-mono">{Math.round((placement.opacity || 0.9) * 100)}%</span>
                     </div>
                     <input
-                      type="range"
-                      min="-30"
-                      max="30"
-                      value={curve}
-                      onChange={(e) => setCurve(Number(e.target.value))}
-                      className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                      type="range" min="0" max="1" step="0.01" value={placement.opacity || 0.9}
+                      onChange={(e) => updatePlacement('opacity', Number(e.target.value))}
+                      className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-white"
                     />
                   </div>
+                </div>
+              )}
 
-                  {/* Corner Controls */}
-                  <div className="grid grid-cols-2 gap-2 text-[9px]">
-                    <div className="bg-gray-800/50 p-2 rounded">
-                      <span className="text-gray-500 block mb-1">Top Left</span>
-                      <div className="space-y-1">
-                        <input
-                          type="number"
-                          value={cornerPoints?.topLeft.x.toFixed(0) || '0'}
-                          onChange={(e) => {
-                            if (cornerPoints) {
-                              setCornerPoints({
-                                ...cornerPoints,
-                                topLeft: { ...cornerPoints.topLeft, x: Number(e.target.value) },
-                              });
-                            }
-                          }}
-                          className="w-full bg-gray-700 border border-gray-600 rounded px-1 py-0.5 text-white"
-                          placeholder="X"
-                        />
-                        <input
-                          type="number"
-                          value={cornerPoints?.topLeft.y.toFixed(0) || '0'}
-                          onChange={(e) => {
-                            if (cornerPoints) {
-                              setCornerPoints({
-                                ...cornerPoints,
-                                topLeft: { ...cornerPoints.topLeft, y: Number(e.target.value) },
-                              });
-                            }
-                          }}
-                          className="w-full bg-gray-700 border border-gray-600 rounded px-1 py-0.5 text-white"
-                          placeholder="Y"
-                        />
-                      </div>
+              {activeTab === 'presets' && (
+                <div className="space-y-4 animate-in fade-in duration-300">
+                  <div className="p-3 bg-blue-900/10 border border-blue-500/20 rounded-lg space-y-3">
+                    <h4 className="text-[10px] font-black text-blue-300 uppercase tracking-widest">Smart Alignment</h4>
+                    <div className="grid grid-cols-1 gap-2">
+                      <button
+                        onClick={() => {
+                          const current = getMockupById(activeMockupId);
+                          if (current) {setPlacement(current.defaultPlacement);}
+                        }}
+                        className="w-full py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/30 rounded-lg text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all"
+                      >
+                        <Icons.Magic className="w-3 h-3" />
+                        Reset to Mockup Default
+                      </button>
+                      <button
+                        onClick={() => {
+                          const current = getMockupById(activeMockupId);
+                          if (current) {
+                            const isApparel = current.category === 'Apparel';
+                            updatePlacement('blendMode', isApparel ? 'multiply' : 'source-over');
+                            updatePlacement('opacity', isApparel ? 0.85 : 1);
+                          }
+                        }}
+                        className="w-full py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/30 rounded-lg text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all"
+                      >
+                        <Icons.Zap className="w-3 h-3" />
+                        Apply Smart Realistic Blend
+                      </button>
                     </div>
-                    <div className="bg-gray-800/50 p-2 rounded">
-                      <span className="text-gray-500 block mb-1">Top Right</span>
-                      <div className="space-y-1">
-                        <input
-                          type="number"
-                          value={cornerPoints?.topRight.x.toFixed(0) || '0'}
-                          onChange={(e) => {
-                            if (cornerPoints) {
-                              setCornerPoints({
-                                ...cornerPoints,
-                                topRight: { ...cornerPoints.topRight, x: Number(e.target.value) },
-                              });
-                            }
-                          }}
-                          className="w-full bg-gray-700 border border-gray-600 rounded px-1 py-0.5 text-white"
-                          placeholder="X"
-                        />
-                        <input
-                          type="number"
-                          value={cornerPoints?.topRight.y.toFixed(0) || '0'}
-                          onChange={(e) => {
-                            if (cornerPoints) {
-                              setCornerPoints({
-                                ...cornerPoints,
-                                topRight: { ...cornerPoints.topRight, y: Number(e.target.value) },
-                              });
-                            }
-                          }}
-                          className="w-full bg-gray-700 border border-gray-600 rounded px-1 py-0.5 text-white"
-                          placeholder="Y"
-                        />
-                      </div>
-                    </div>
-                    <div className="bg-gray-800/50 p-2 rounded">
-                      <span className="text-gray-500 block mb-1">Bottom Left</span>
-                      <div className="space-y-1">
-                        <input
-                          type="number"
-                          value={cornerPoints?.bottomLeft.x.toFixed(0) || '0'}
-                          onChange={(e) => {
-                            if (cornerPoints) {
-                              setCornerPoints({
-                                ...cornerPoints,
-                                bottomLeft: { ...cornerPoints.bottomLeft, x: Number(e.target.value) },
-                              });
-                            }
-                          }}
-                          className="w-full bg-gray-700 border border-gray-600 rounded px-1 py-0.5 text-white"
-                          placeholder="X"
-                        />
-                        <input
-                          type="number"
-                          value={cornerPoints?.bottomLeft.y.toFixed(0) || '0'}
-                          onChange={(e) => {
-                            if (cornerPoints) {
-                              setCornerPoints({
-                                ...cornerPoints,
-                                bottomLeft: { ...cornerPoints.bottomLeft, y: Number(e.target.value) },
-                              });
-                            }
-                          }}
-                          className="w-full bg-gray-700 border border-gray-600 rounded px-1 py-0.5 text-white"
-                          placeholder="Y"
-                        />
-                      </div>
-                    </div>
-                    <div className="bg-gray-800/50 p-2 rounded">
-                      <span className="text-gray-500 block mb-1">Bottom Right</span>
-                      <div className="space-y-1">
-                        <input
-                          type="number"
-                          value={cornerPoints?.bottomRight.x.toFixed(0) || '0'}
-                          onChange={(e) => {
-                            if (cornerPoints) {
-                              setCornerPoints({
-                                ...cornerPoints,
-                                bottomRight: { ...cornerPoints.bottomRight, x: Number(e.target.value) },
-                              });
-                            }
-                          }}
-                          className="w-full bg-gray-700 border border-gray-600 rounded px-1 py-0.5 text-white"
-                          placeholder="X"
-                        />
-                        <input
-                          type="number"
-                          value={cornerPoints?.bottomRight.y.toFixed(0) || '0'}
-                          onChange={(e) => {
-                            if (cornerPoints) {
-                              setCornerPoints({
-                                ...cornerPoints,
-                                bottomRight: { ...cornerPoints.bottomRight, y: Number(e.target.value) },
-                              });
-                            }
-                          }}
-                          className="w-full bg-gray-700 border border-gray-600 rounded px-1 py-0.5 text-white"
-                          placeholder="Y"
-                        />
-                      </div>
-                    </div>
+                  </div>
+
+                  <div className="p-3 bg-gray-800/20 border border-gray-700 rounded-lg space-y-3">
+                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Transform Reset</h4>
+                    <button
+                      onClick={() => setPlacement({ ...placement, skewX: 0, skewY: 0, rotate: 0 })}
+                      className="w-full py-2 bg-gray-700/50 hover:bg-gray-700 text-gray-300 border border-gray-600 rounded-lg text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all"
+                    >
+                      <Icons.RefreshCw className="w-3 h-3" />
+                      Clear Rotation & Skew
+                    </button>
                   </div>
                 </div>
               )}
             </div>
-
-            {/* Position */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center text-[10px]">
-                <span className="text-gray-400">Position (X / Y)</span>
-                <span className="text-gray-500">
-                  {Math.round(placement.left)}%, {Math.round(placement.top)}%
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={placement.left}
-                  onChange={(e) => updatePlacement('left', Number(e.target.value))}
-                  className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
-                />
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={placement.top}
-                  onChange={(e) => updatePlacement('top', Number(e.target.value))}
-                  className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
-                />
-              </div>
-            </div>
-
-            {/* Scale & Rotate */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center text-[10px]">
-                <span className="text-gray-400">Scale / Rotate</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="range"
-                  min="10"
-                  max="150"
-                  value={placement.width}
-                  onChange={(e) => updatePlacement('width', Number(e.target.value))}
-                  className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
-                  title="Scale"
-                />
-                <input
-                  type="range"
-                  min="-180"
-                  max="180"
-                  value={placement.rotate}
-                  onChange={(e) => updatePlacement('rotate', Number(e.target.value))}
-                  className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
-                  title="Rotate"
-                />
-              </div>
-            </div>
-
-            {/* Perspective (Skew) */}
-            <div className="space-y-3">
-              <div className="flex justify-between items-center text-[10px]">
-                <span className="text-gray-400">Perspective (Skew X / Y)</span>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="range"
-                  min="-45"
-                  max="45"
-                  value={placement.skewX || 0}
-                  onChange={(e) => updatePlacement('skewX', Number(e.target.value))}
-                  className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
-                />
-                <input
-                  type="range"
-                  min="-45"
-                  max="45"
-                  value={placement.skewY || 0}
-                  onChange={(e) => updatePlacement('skewY', Number(e.target.value))}
-                  className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
-                />
-              </div>
-            </div>
-
-            {/* Opacity & Blend */}
-            <div className="space-y-3 pt-2 border-t border-gray-700/50">
-              <div className="flex justify-between items-center">
-                <label className="text-[10px] text-gray-400">Blend Mode</label>
-                <select
-                  value={placement.blendMode}
-                  onChange={(e) => updatePlacement('blendMode', e.target.value)}
-                  className="bg-black border border-gray-700 rounded px-2 py-1 text-[10px] text-white focus:outline-none focus:border-[#7d2ae8]"
-                >
-                  <option value="source-over">Normal</option>
-                  <option value="multiply">Multiply (Realistic)</option>
-                  <option value="screen">Screen (Light)</option>
-                  <option value="overlay">Overlay</option>
-                  <option value="soft-light">Soft Light</option>
-                </select>
-              </div>
-            </div>
-
-            {proRenderUrl && (
-              <div className="mt-4 p-2 bg-[#1e252e] rounded-lg border border-[#7d2ae8]/30 overflow-hidden">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] text-[#7d2ae8] font-bold">PRO RENDER RESULTS</span>
-                  <button onClick={() => setProRenderUrl(null)} className="text-gray-500 hover:text-white">
-                    <Icons.X className="w-3 h-3" />
-                  </button>
-                </div>
-                <img src={proRenderUrl} className="w-full rounded shadow-lg" alt="Pro Mockup" />
-                <a
-                  href={proRenderUrl}
-                  download="mockup_pro.png"
-                  className="mt-2 w-full py-1.5 bg-green-600 hover:bg-green-700 text-white rounded text-[10px] font-bold flex items-center justify-center gap-1"
-                >
-                  <Icons.Download className="w-3 h-3" /> Save Render
-                </a>
-              </div>
-            )}
           </div>
 
           {/* Actions */}
