@@ -24,5 +24,8 @@
         }
       ]
     }
-  ]
+  ],
+  "env": {
+    "VITE_USE_QA_BYPASS": "false"
+  }
 }
