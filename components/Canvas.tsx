@@ -35,6 +35,12 @@ interface CanvasProps {
 const CanvasComponent: React.FC<CanvasProps> = (props) => {
   const { zoom, onZoomChange, onDoubleClickLayer, onInteractionStart, booleanPreview = null } = props;
 
+  // Defensive check for required props
+  if (!onZoomChange) {
+    console.error('[Canvas] onZoomChange is required');
+    return null;
+  }
+
   // Local state for specialized modes
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; layerId: string } | null>(null);
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
@@ -42,49 +48,49 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   const [previousZoom, setPreviousZoom] = useState<number | null>(null);
 
   // Essential store state
-  const artboards = useStore((state) => state.artboards);
+  const artboards = useStore((state) => state.artboards) || [];
   const activeArtboard = useStore(activeArtboardSelector);
   const activeArtboardId = activeArtboard?.id || (artboards[0]?.id ?? '');
 
-  const canvasBackgroundColor = useStore((state) => state.canvasBackgroundColor);
-  const canvasFilters = useStore((state) => state.canvasFilters);
+  const canvasBackgroundColor = useStore((state) => state.canvasBackgroundColor) || '#ffffff';
+  const canvasFilters = useStore((state) => state.canvasFilters) || {};
   const layers = useMemo(() => activeArtboard?.layers || [], [activeArtboard]);
-  const allLayers = useMemo(() => artboards.flatMap(a => a.layers), [artboards]);
-  const selectedLayers = useStore(selectedLayersSelector);
+  const allLayers = useMemo(() => artboards?.flatMap(a => a.layers || []) || [], [artboards]);
+  const selectedLayers = useStore(selectedLayersSelector) || [];
 
   const onUpdateLayers = useStore((state) => state.updateLayers);
   const onSelectLayer = useStore((state) => state.selectLayer);
   const onMultiSelectLayer = useStore((state) => state.multiSelectLayer);
-  const selectedLayerIds = useStore((state) => state.selectedLayerIds);
-  const showGrid = useStore((state) => state.showGrid);
-  const isDrawing = useStore((state) => state.isPenMode);
+  const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
+  const showGrid = useStore((state) => state.showGrid) || false;
+  const isDrawing = useStore((state) => state.isPenMode) || false;
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const textEditRef = useRef<HTMLDivElement>(null);
   const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
   const refineCanvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Interaction Hook
-  const { 
-    panOffset, 
-    isPanning, 
-    isSpacePressed, 
-    handleMouseDownContainer, 
-    handleMouseDownLayer, 
-    layerRefs, 
+  // Interaction Hook - with defensive checks
+  const {
+    panOffset,
+    isPanning,
+    isSpacePressed,
+    handleMouseDownContainer,
+    handleMouseDownLayer,
+    layerRefs,
     snapLines,
     handleDrawingMouseDown,
     handleDrawingMouseMove,
     handleDrawingMouseUp,
     selectionBox
   } = useCanvasInteractions({
-      zoom,
-      onZoomChangeValue: onZoomChange,
+      zoom: zoom || 1,
+      onZoomChangeValue: onZoomChange || (() => {}),
       activeArtboard,
       layers,
       selectedLayerIds,
       onUpdateLayers,
-      onSelectLayer: (id) => onSelectLayer?.(id),
+      onSelectLayer: (id) => onSelectLayer?.(id) || null,
       onMultiSelectLayer,
       onInteractionStart,
       onContextMenu: (pos, id) => setContextMenu({ x: pos.clientX, y: pos.clientY, layerId: id }),
