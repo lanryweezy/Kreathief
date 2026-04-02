@@ -10,10 +10,10 @@ interface SEOProps {
 }
 
 export const SEO: React.FC<SEOProps> = ({
-  title = 'Kreathief | Design at the Speed of Light',
-  description = "The world's most advanced AI-native creative engine. Professional vector tools meet generative intelligence in a high-performance WebGL canvas.",
-  image = 'https://kreathief.app/og-image.png',
-  url = 'https://kreathief.app',
+  title = 'Kreathief | Your AI Creative Director',
+  description = "The world's most advanced Agentic AI creative engine. Move from intent to scalable reality instantly with privacy-first professional vector tools and high-fidelity mockups.",
+  image = 'https://www.kreathief.com/og-image.png',
+  url = 'https://www.kreathief.com',
   type = 'website',
 }) => {
   const siteTitle = title.includes('Kreathief') ? title : `${title} | Kreathief`;

@@ -5,6 +5,7 @@ import { LogoTicker } from './landing/LogoTicker';
 import { ReplacementNarrative } from './landing/ReplacementNarrative';
 import { SpeedProof } from './landing/SpeedProof';
 import { Features } from './landing/Features';
+import { TrustEthics } from './landing/TrustEthics';
 import { ScrollShowcase } from './landing/ScrollShowcase';
 import { TemplateGallery } from './landing/TemplateGallery';
 import { ComparisonSection } from './landing/ComparisonSection';
@@ -110,6 +111,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
         <ReplacementNarrative />
         <SpeedProof />
         <Features />
+        <TrustEthics />
         <ScrollShowcase />
         <TemplateGallery />
         <CommunityShowcase />
