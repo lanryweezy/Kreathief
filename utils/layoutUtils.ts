@@ -227,3 +227,57 @@ export const tidyUpLayers = (layers: Layer[]): { id: string; changes: Partial<La
     return result;
   });
 };
+
+/**
+ * Resolves high-level constraints into precise coordinates.
+ */
+export const resolveConstraints = (
+  layer: Partial<Layer>,
+  canvasSize: { width: number; height: number }
+): { x: number; y: number; width?: number; height?: number } => {
+  let { x = 0, y = 0, width = 100, constraints = [] } = layer;
+  const height = (layer as any).height || 100;
+  
+  const resolved = { x, y };
+
+  if (constraints.includes('fill')) {
+    return { x: 0, y: 0, width: canvasSize.width, height: canvasSize.height };
+  }
+
+  if (constraints.includes('center-h')) {
+    resolved.x = (canvasSize.width - width) / 2;
+  } else if (constraints.includes('pin-left')) {
+    resolved.x = 20; // 20px margin
+  } else if (constraints.includes('pin-right')) {
+    resolved.x = canvasSize.width - width - 20;
+  }
+
+  if (constraints.includes('center-v')) {
+    resolved.y = (canvasSize.height - height) / 2;
+  } else if (constraints.includes('pin-top')) {
+    resolved.y = 20;
+  } else if (constraints.includes('pin-bottom')) {
+    resolved.y = canvasSize.height - height - 20;
+  }
+
+  return resolved;
+};
+
+/**
+ * Translates simple AI constraints into structured LayerBase constraints.
+ */
+export const resolveSemanticConstraints = (
+  simpleConstraints: string[]
+): { horizontal: 'start' | 'end' | 'center' | 'scale' | 'both'; vertical: 'start' | 'end' | 'center' | 'scale' | 'both' } => {
+  const result: any = { horizontal: 'start', vertical: 'start' };
+
+  if (simpleConstraints.includes('center-h')) result.horizontal = 'center';
+  if (simpleConstraints.includes('pin-right')) result.horizontal = 'end';
+  if (simpleConstraints.includes('fill')) result.horizontal = 'scale';
+
+  if (simpleConstraints.includes('center-v')) result.vertical = 'center';
+  if (simpleConstraints.includes('pin-bottom')) result.vertical = 'end';
+  if (simpleConstraints.includes('fill')) result.vertical = 'scale';
+
+  return result;
+};
