@@ -174,6 +174,64 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
       );
     }
 
+    if (l.type === 'group') {
+      const group = l as any; // Cast to any for now to access children
+      return (
+        <LayerErrorBoundary layerId={l.id}>
+          <div
+            ref={(el) => setLayerRef(l.id, el)}
+            className="absolute group-layer-container"
+            onMouseDown={(e) => handleMouseDownLayer(e, l)}
+            onContextMenu={(e) => handleContextMenu(e, l.id)}
+            style={{
+              left: l.x,
+              top: l.y,
+              width: l.width,
+              height: l.height,
+              transform: `rotate(${l.rotation}deg)`,
+              opacity: l.opacity,
+              zIndex: isSelected ? 100 : 1,
+            }}
+          >
+            {/* Recursive render: child layers within this group */}
+            {group.children?.map((childId: string) => {
+              const childLayer = allLayers.find((layer) => layer.id === childId);
+              if (!childLayer) {return null;}
+              return (
+                <CanvasLayerItemWrapper
+                  key={childId}
+                  layer={childLayer}
+                  allLayers={allLayers}
+                  selectedLayerId={selectedLayerId}
+                  selectedLayerIds={selectedLayerIds}
+                  hoveredLayerId={hoveredLayerId}
+                  setHoveredLayerId={() => {}} // No-op nested hover for now
+                  setLayerRef={setLayerRef}
+                  handleMouseDownLayer={handleMouseDownLayer}
+                  handleResizeStart={handleResizeStart}
+                  handleRotateStart={handleRotateStart}
+                  handleContextMenu={handleContextMenu}
+                  handleTextDoubleClick={handleTextDoubleClick}
+                  onDoubleClickLayer={onDoubleClickLayer}
+                  editingTextId={editingTextId}
+                  textEditRef={textEditRef}
+                  finishEditingText={finishEditingText}
+                  editingPathId={editingPathId}
+                  onUpdatePath={onUpdatePath}
+                  zoom={zoom}
+                  previewAnimation={previewAnimation}
+                />
+              );
+            })}
+            
+            {isSelected && (
+              <div className="absolute inset-0 border border-[#7d2ae8] ring-1 ring-[#7d2ae8]/20 pointer-events-none" />
+            )}
+          </div>
+        </LayerErrorBoundary>
+      );
+    }
+
     return (
       <LayerErrorBoundary layerId={l.id}>
         <ShapeLayerItem

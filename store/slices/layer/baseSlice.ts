@@ -121,31 +121,59 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
   },
   setActiveArtboardId: (activeArtboardId) => set({ activeArtboardId, selectedLayerIds: [] }),
 
-  updateArtboard: (id, partial) =>
-    set((state: any) => ({
-      artboards: state.artboards.map((a: Artboard) => (a.id === id ? { ...a, ...partial } : a)),
-    })),
-
-  setLayers: (input) =>
+  updateLayer: (id, partial) =>
     set((state: any) => {
-      const artboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
-      if (!artboard) {
-        return {};
-      }
-      const layers = typeof input === 'function' ? input(artboard.layers) : input;
-      // FIX: Invalidate cache when layers change
-      return {
-        artboards: state.artboards.map((a: Artboard) => (a.id === state.activeArtboardId ? { ...a, layers } : a)),
-        layerCache: null,
-      };
+      const artboards = state.artboards.map((a: Artboard) => ({
+        ...a,
+        layers: a.layers.map((l: any) => {
+          if (l.id === id) {
+            const updated = { ...l, ...partial, dirty: true };
+            // Update cache incrementally
+            if (state.layerCache) {
+              state.layerCache.set(id, updated);
+            }
+            return updated;
+          }
+          return l;
+        }),
+      }));
+      return { artboards };
+    }),
+
+  updateLayers: (updates) =>
+    set((state: any) => {
+      const artboards = state.artboards.map((a: Artboard) => ({
+        ...a,
+        layers: a.layers.map((l: any) => {
+          if (updates[l.id]) {
+            const updated = { ...l, ...updates[l.id], dirty: true };
+            // Update cache incrementally
+            if (state.layerCache) {
+              state.layerCache.set(l.id, updated);
+            }
+            return updated;
+          }
+          return l;
+        }),
+      }));
+      return { artboards };
     }),
 
   resetDirty: (id) =>
-    set((state: any) => ({
-      artboards: state.artboards.map((a: Artboard) => ({
+    set((state: any) => {
+      const artboards = state.artboards.map((a: Artboard) => ({
         ...a,
-        layers: a.layers.map((l: Layer) => (l.id === id ? { ...l, dirty: false } : l)),
-      })),
-      layerCache: null, // FIX: Invalidate cache
-    })),
+        layers: a.layers.map((l: any) => {
+          if (l.id === id) {
+            const updated = { ...l, dirty: false };
+            if (state.layerCache) {
+              state.layerCache.set(id, updated);
+            }
+            return updated;
+          }
+          return l;
+        }),
+      }));
+      return { artboards };
+    }),
 });
