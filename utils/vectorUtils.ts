@@ -476,4 +476,25 @@ export class VectorUtils {
       points: newPoints,
     };
   }
+
+  /**
+   * Joins two paths into a single one by adding a line segment between them
+   */
+  static joinPaths(pathA: VectorPath, pathB: VectorPath): VectorPath {
+    if (pathA.points.length === 0) {return pathB;}
+    if (pathB.points.length === 0) {return pathA;}
+
+    const points = [...pathA.points];
+    const bPoints = [...pathB.points];
+
+    // Mark the first point of pathB as a move to indicate sub-path or separate segment
+    if (bPoints[0]) {
+      bPoints[0] = { ...bPoints[0], isMove: true };
+    }
+
+    return {
+      points: [...points, ...bPoints],
+      isClosed: false, // Joining usually results in an open composite path
+    };
+  }
 }

@@ -183,6 +183,14 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-[#1e1e1e] border border-gray-700 rounded-lg py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#7d2ae8]"
           />
+          {searchQuery && (
+            <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-2.5 text-gray-500 hover:text-white"
+            >
+                <Icons.X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-2 mt-3">

@@ -270,10 +270,68 @@ export const useEditorLogic = (initialProject?: Project) => {
     }
   }, [setEditingPathId, setSelectedLayerIds]);
 
+  const toggleShapeBuilder = useCallback(() => {
+    const active = useStore.getState().isShapeBuilderActive;
+    useStore.getState().setIsShapeBuilderActive(!active);
+    addToast(active ? 'Shape Builder deactivated.' : 'Shape Builder activated (BETA).', 'info');
+  }, [addToast]);
+
+  useEffect(() => {
+    (window as any).toggleShapeBuilder = toggleShapeBuilder;
+    return () => { delete (window as any).toggleShapeBuilder; };
+  }, [toggleShapeBuilder]);
+
+  const handleJoinPaths = () => {
+    const selectedPaths = layers.filter((l: any) => selectedLayerIds.includes(l.id) && l.type === 'path') as ShapeLayer[];
+    if (selectedPaths.length < 2) {
+      addToast('Select at least two path layers to join.', 'warning');
+      return;
+    }
+    saveToHistory();
+    const selectedIndices = selectedPaths.map((p) => layers.findIndex((l: any) => l.id === p.id));
+    const lowestIndex = Math.min(...selectedIndices);
+    const baseLayer = selectedPaths[0]!;
+
+    // Parse the paths in global space
+    const globalPaths = selectedPaths.map((layer) => {
+      const path = VectorUtils.parsePath(layer.pathData || '');
+      return { ...path, points: path.points.map((p) => ({ ...p, x: p.x + layer.x, y: p.y + layer.y })) };
+    });
+
+    // Join them sequentially
+    let resultPath = globalPaths[0]!;
+    for (let i = 1; i < globalPaths.length; i++) {
+      resultPath = VectorUtils.joinPaths(resultPath, globalPaths[i]!);
+    }
+
+    // Recenter result
+    const bounds = VectorUtils.getBounds(resultPath);
+    const localPath = { ...resultPath, points: resultPath.points.map((p) => ({ ...p, x: p.x - bounds.x, y: p.y - bounds.y })) };
+
+    const newLayer: ShapeLayer = {
+      ...baseLayer,
+      id: uuidv4(),
+      type: 'path',
+      x: bounds.x,
+      y: bounds.y,
+      width: bounds.width,
+      height: bounds.height,
+      pathData: VectorUtils.serializePath(localPath),
+      name: 'Joined Path',
+    };
+
+    const newLayers = layers.filter((l: any) => !selectedLayerIds.includes(l.id));
+    newLayers.splice(lowestIndex, 0, newLayer);
+    setLayers(newLayers);
+    setSelectedLayerIds([newLayer.id]);
+    addToast('Paths joined successfully.', 'success');
+  };
+
   return {
     documentColors,
     booleanPreview,
     handleGenerate,
+    handleJoinPaths,
     handleUpdatePath,
     handleBooleanOperation,
     handleBooleanHover,

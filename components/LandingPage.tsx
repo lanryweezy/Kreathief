@@ -25,6 +25,7 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGuest }) => {
   const [scrolled, setScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
@@ -101,8 +102,42 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
             >
               Get Started
             </button>
+
+            {/* Mobile Menu Toggle */}
+            <button
+              className="md:hidden p-2 text-gray-400 hover:text-white transition-colors"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <GlobalIcons.X className="w-6 h-6" /> : <GlobalIcons.Menu className="w-6 h-6" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu Overlay */}
+        <motion.div
+          initial={false}
+          animate={isMobileMenuOpen ? { height: 'auto', opacity: 1 } : { height: 0, opacity: 0 }}
+          className="md:hidden overflow-hidden bg-[#0a0a0a] border-b border-white/5 px-6"
+        >
+          <div className="flex flex-col py-8 gap-6">
+            {['Features', 'Templates', 'Pricing', 'Blog'].map((item) => (
+              <a
+                key={item}
+                href={`#${item.toLowerCase()}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-lg font-black uppercase tracking-[0.2em] text-gray-400 hover:text-white transition-colors"
+              >
+                {item}
+              </a>
+            ))}
+            <button
+              onClick={onGetStarted}
+              className="w-full py-4 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-white"
+            >
+              Log In
+            </button>
+          </div>
+        </motion.div>
       </nav>
 
       <main>

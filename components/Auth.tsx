@@ -62,21 +62,94 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0e1318] flex items-center justify-center relative overflow-hidden py-12 px-6">
+    <div className="min-h-screen w-full bg-[#050505] flex items-center justify-center relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/10 rounded-full blur-[120px]"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-900/10 rounded-full blur-[120px]"></div>
+        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-purple-900/10 rounded-full blur-[140px] animate-pulse-slow"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-900/10 rounded-full blur-[140px] animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <div className="w-full max-w-md p-6 sm:p-8 bg-[#1e1e1e]/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl relative z-10 transition-all">
-        <div className="flex flex-col items-center mb-6 sm:mb-8">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#00c4cc] to-[#7d2ae8] rounded-xl flex items-center justify-center mb-3 sm:mb-4 shadow-lg shadow-purple-500/20">
-            <Icons.Magic className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+      {/* Back to Home */}
+      <a
+        href="/"
+        className="absolute top-8 left-8 z-50 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-white transition-colors group"
+      >
+        <Icons.ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+        Back to Home
+      </a>
+
+      <div className="flex w-full max-w-[1200px] h-[800px] bg-[#0a0a0a] rounded-[32px] border border-white/5 shadow-2xl relative z-10 overflow-hidden m-6">
+        {/* Left Side: Illustration/Text (Desktop Only) */}
+        <div className="hidden lg:flex flex-1 bg-[#111] relative overflow-hidden p-16 flex-col justify-between border-r border-white/5">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_20%,_var(--tw-gradient-stops))] from-purple-500/10 via-transparent to-transparent"></div>
+            <img
+              src="/images/hero_abstract_glass_1772614949077.png"
+              className="absolute -right-20 -bottom-20 w-[120%] h-auto opacity-20 grayscale"
+              alt="Decorative"
+            />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-display font-bold text-white mb-1 sm:mb-2">Kreathief</h1>
-          <p className="text-gray-400 text-xs sm:text-sm">The AI-Powered Design Suite</p>
+
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-12">
+              <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
+                <Icons.Magic className="w-6 h-6 text-white" />
+              </div>
+              <span className="font-black text-2xl tracking-tighter uppercase">Kreathief</span>
+            </div>
+
+            <h2 className="text-5xl font-black tracking-tighter text-white mb-6 leading-[0.9]">
+              The future of <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">Design is AI.</span>
+            </h2>
+            <p className="text-gray-400 text-lg max-w-sm leading-relaxed font-medium">
+              Join thousands of professionals creating high-end graphics at the speed of thought.
+            </p>
+          </div>
+
+          <div className="relative z-10">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="flex -space-x-3">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="w-10 h-10 rounded-full border-2 border-[#111] bg-gray-800 flex items-center justify-center text-[10px] font-black">
+                    {i}
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+                Trusted by 50k+ Creators
+              </p>
+            </div>
+
+            <div className="flex items-center gap-6">
+              {['Design', 'AI', 'Export'].map(f => (
+                <div key={f} className="flex items-center gap-2">
+                  <Icons.Check className="w-3.5 h-3.5 text-purple-500" />
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{f}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
+
+        {/* Right Side: Auth Form */}
+        <div className="flex-1 flex flex-col items-center justify-center p-8 sm:p-16 relative bg-[#0a0a0a]">
+          <div className="w-full max-w-md">
+          <div className="lg:hidden flex flex-col items-center mb-10">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#7d2ae8] to-[#00c4cc] rounded-2xl flex items-center justify-center mb-4 shadow-xl">
+              <Icons.Magic className="w-7 h-7 text-white" />
+            </div>
+            <h1 className="text-3xl font-black tracking-tighter text-white uppercase">Kreathief</h1>
+          </div>
+
+          <div className="mb-10">
+            <h3 className="text-3xl font-black text-white tracking-tighter mb-2">
+              {isSignUp ? 'Create your account' : 'Welcome back'}
+            </h3>
+            <p className="text-gray-500 font-medium">
+              {isSignUp ? 'Start your 14-day free trial of Pro.' : 'Enter your details to access your workspace.'}
+            </p>
+          </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -166,16 +239,18 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           Google
         </button>
 
-        <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500">
-            {isSignUp ? 'Already have an account?' : "Don't have an account?"}
-            <button
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="ml-2 text-[#00c4cc] hover:text-[#7d2ae8] font-bold transition-all underline underline-offset-4 decoration-[#00c4cc]/20 hover:decoration-[#7d2ae8]/20"
-            >
-              {isSignUp ? 'Log In' : 'Sign Up'}
-            </button>
-          </p>
+            <div className="mt-10 text-center">
+              <p className="text-sm text-gray-500 font-medium">
+                {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+                <button
+                  onClick={() => setIsSignUp(!isSignUp)}
+                  className="ml-2 text-white hover:text-[#00c4cc] font-black transition-all underline underline-offset-4 decoration-white/20 hover:decoration-[#00c4cc]/20"
+                >
+                  {isSignUp ? 'Log In' : 'Sign Up'}
+                </button>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -104,6 +104,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     booleanPreview, 
     handleGenerate,
     handleUpdatePath,
+    handleJoinPaths,
     handleBooleanOperation, 
     handleBooleanHover, 
     handleLayerDoubleClick 
@@ -223,6 +224,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           <Toolbar
             documentColors={documentColors}
             onBooleanOperation={handleBooleanOperation}
+            onJoinPaths={handleJoinPaths}
             onBooleanHover={handleBooleanHover}
             uploadedImage={uploadedImage}
           />

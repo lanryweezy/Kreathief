@@ -413,14 +413,14 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
                 <Icons.Activity className="w-3 h-3 text-blue-400" />
                 <label className="text-[10px] font-bold text-gray-400">Stabilizer</label>
               </div>
-              <span className="text-[10px] text-gray-500">{smoothing}%</span>
+              <span className="text-[10px] text-gray-500">{brushSmoothing}%</span>
             </div>
             <input
               type="range"
               min="0"
               max="100"
-              value={smoothing}
-              onChange={(e) => setSmoothing(parseInt(e.target.value))}
+              value={brushSmoothing}
+              onChange={(e) => setBrushSmoothing(parseInt(e.target.value))}
               className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
             />
           </div>
@@ -431,14 +431,14 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
                 <Icons.Zap className="w-3 h-3 text-orange-400" />
                 <label className="text-[10px] font-bold text-gray-400">Jitter</label>
               </div>
-              <span className="text-[10px] text-gray-500">{jitter}%</span>
+              <span className="text-[10px] text-gray-500">{brushJitter}%</span>
             </div>
             <input
               type="range"
               min="0"
               max="100"
-              value={jitter}
-              onChange={(e) => setJitter(parseInt(e.target.value))}
+              value={brushJitter}
+              onChange={(e) => setBrushJitter(parseInt(e.target.value))}
               className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
             />
           </div>
