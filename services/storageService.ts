@@ -155,20 +155,23 @@ class StorageService {
         });
       } catch (err) {
         failCount++;
-        log.error('[Storage] Sync failed for project', err, { 
+        const baseDelay = 2000;
+        const retryDelay = baseDelay * Math.pow(2, op.retryCount);
+
+        log.error('[Storage] Sync failed, retrying later', err, { 
           projectId: op.projectId,
-          retryCount: op.retryCount 
+          retryCount: op.retryCount,
+          nextRetryIn: `${retryDelay}ms`
         });
 
-        // Retry with exponential backoff (max 3 retries)
-        if (op.retryCount < 3) {
+        if (op.retryCount < 5) {
           op.retryCount++;
           this.pendingChanges.set(op.projectId, op);
+          setTimeout(() => {
+            if (this.isOnline && !this.isSyncing) {this.syncOfflineChanges();}
+          }, retryDelay);
         } else {
           this.pendingChanges.delete(op.projectId);
-          log.error('[Storage] Max retries reached, dropping operation', { 
-            projectId: op.projectId 
-          });
         }
       }
     }
@@ -347,6 +350,11 @@ class StorageService {
           commentsStore.createIndex('projectId', 'projectId', { unique: false });
         }
 
+        // Crash Recovery Mirror
+        if (!db.objectStoreNames.contains('session_mirror')) {
+          db.createObjectStore('session_mirror', { keyPath: 'key' });
+        }
+
         // Sync queue for offline changes
         if (!db.objectStoreNames.contains('sync_queue')) {
           const queueStore = db.createObjectStore('sync_queue', { keyPath: 'id' });
@@ -417,6 +425,17 @@ class StorageService {
 
   async saveProject(project: Project): Promise<void> {
     const userId = await this.getUserId();
+
+    // Enforce storage quotas (Free Tier Limit: maximum 10 projects)
+    const MAX_FREE_PROJECTS = 10;
+    const existingProjects = await this.getAllProjects();
+    const isNewProject = !existingProjects.some(p => p.id === project.id);
+    
+    if (isNewProject && existingProjects.length >= MAX_FREE_PROJECTS) {
+      const errorMsg = `Storage quota exceeded. You are limited to ${MAX_FREE_PROJECTS} projects on the free plan.`;
+      logger.error('Quota exceeded', { error: errorMsg });
+      throw new Error(errorMsg);
+    }
 
     if (this.isOnline && userId) {
       try {
@@ -826,6 +845,33 @@ class StorageService {
     });
   }
 
+  async deleteSnapshot(snapshotId: string): Promise<void> {
+    const userId = await this.getUserId();
+
+    if (this.isOnline && userId) {
+      try {
+        await supabase
+          .from('project_snapshots')
+          .delete()
+          .eq('id', snapshotId)
+          .eq('user_id', userId);
+        logger.debug('Snapshot deleted from Supabase', { id: snapshotId });
+      } catch (err) {
+        logger.warn('Supabase snapshot delete error', { error: err });
+      }
+    }
+
+    const store = await this.getStore('snapshots', 'readwrite');
+    return new Promise((resolve, reject) => {
+      const request = store.delete(snapshotId);
+      request.onsuccess = () => {
+        logger.debug('Snapshot deleted from IndexedDB', { id: snapshotId });
+        resolve();
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   // ===== Comments =====
 
   async saveComment(comment: DesignComment): Promise<void> {
@@ -941,6 +987,35 @@ class StorageService {
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
+  }
+
+  // ===== Session Mirror (Crash Recovery) =====
+
+  async saveSessionMirror(projectId: string, state: HistoryState): Promise<void> {
+    const store = await this.getStore('session_mirror', 'readwrite');
+    return new Promise((resolve, reject) => {
+      const request = store.put({ key: 'last_active_session', projectId, state, timestamp: Date.now() });
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async getSessionMirror(): Promise<{ projectId: string; state: HistoryState; timestamp: number } | null> {
+    try {
+      const store = await this.getStore('session_mirror', 'readonly');
+      return new Promise((resolve, reject) => {
+        const request = store.get('last_active_session');
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  async clearSessionMirror(): Promise<void> {
+    const store = await this.getStore('session_mirror', 'readwrite');
+    await this.clearStore(store);
   }
 
   // ===== Shares =====

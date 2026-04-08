@@ -8,11 +8,18 @@ export interface ProjectSlice {
   projectId: string;
   projectTitle: string;
   isSaving: boolean;
+  lastSaved: Date | null;
+  hasUnsavedChanges: boolean;
+  autoSaveEnabled: boolean;
 
   setProjectId: (id: string) => void;
   setProjectTitle: (title: string) => void;
   setIsSaving: (isSaving: boolean) => void;
+  setHasUnsavedChanges: (hasChanges: boolean) => void;
+  setAutoSaveEnabled: (enabled: boolean) => void;
   saveProject: () => Promise<void>;
+  startAutoSave: () => void;
+  stopAutoSave: () => void;
   createProject: (name: string, size?: CanvasSize) => Promise<string>;
   deleteProject: (id: string) => Promise<void>;
   duplicateProject: (project: Project) => Promise<void>;
@@ -29,15 +36,49 @@ export interface ProjectSlice {
   updateCanvasComment: (id: string, content: string) => void;
 }
 
+let autoSaveTimer: NodeJS.Timeout | null = null;
+
 export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set, get) => ({
   projects: [],
   projectId: `proj_${Date.now()}`,
   projectTitle: 'Untitled Design',
   isSaving: false,
+  lastSaved: null,
+  hasUnsavedChanges: false,
+  autoSaveEnabled: true,
 
   setProjectId: (projectId) => set({ projectId }),
-  setProjectTitle: (projectTitle) => set({ projectTitle }),
+  setProjectTitle: (projectTitle) => {
+    set({ projectTitle, hasUnsavedChanges: true });
+  },
   setIsSaving: (isSaving) => set({ isSaving }),
+  setHasUnsavedChanges: (hasUnsavedChanges) => set({ hasUnsavedChanges }),
+  setAutoSaveEnabled: (autoSaveEnabled) => {
+    set({ autoSaveEnabled });
+    if (autoSaveEnabled) {
+      get().startAutoSave();
+    } else {
+      get().stopAutoSave();
+    }
+  },
+
+  startAutoSave: () => {
+    if (autoSaveTimer) {clearInterval(autoSaveTimer);}
+    
+    autoSaveTimer = setInterval(() => {
+      const state = get();
+      if (state.projectId && state.hasUnsavedChanges && !state.isSaving && state.autoSaveEnabled) {
+        state.saveProject();
+      }
+    }, 30000); // Auto-save every 30 seconds
+  },
+
+  stopAutoSave: () => {
+    if (autoSaveTimer) {
+      clearInterval(autoSaveTimer);
+      autoSaveTimer = null;
+    }
+  },
 
   saveProject: async () => {
     const { projectId, projectTitle, artboards, activeArtboardId, canvasBackgroundColor, canvasFilters, canvasSize } = get();
@@ -63,11 +104,15 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
       await storageService.saveProject(updatedProject);
       set((state: any) => ({
         isSaving: false,
+        lastSaved: new Date(),
+        hasUnsavedChanges: false,
         projects: state.projects.map((p: Project) => (p.id === projectId ? updatedProject : p)),
       }));
     } catch (e) {
       console.error('Save failed', e);
       set({ isSaving: false });
+      // Show error toast
+      get().addToast?.({ message: 'Failed to save project', type: 'error' });
     }
   },
 
@@ -186,7 +231,12 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
       selectedLayerIds: [],
       showGrid: project.state?.showGrid || false,
       showRulers: project.state?.showRulers || false,
+      lastSaved: new Date(project.updatedAt),
+      hasUnsavedChanges: false,
     });
+
+    // Start auto-save
+    get().startAutoSave();
   },
 
   // Comments Actions

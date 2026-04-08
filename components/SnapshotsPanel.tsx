@@ -1,172 +1,157 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../store/useStore';
+import { Icons } from '../constants';
 
 const SnapshotsPanel: React.FC = () => {
-  const { snapshots, createSnapshot, restoreSnapshot, deleteSnapshot, fetchSnapshots, projectId } = useStore();
+  const {
+    snapshots,
+    createSnapshot,
+    restoreSnapshot,
+    deleteSnapshot,
+    fetchSnapshots,
+    projectId,
+    addToast,
+  } = useStore();
   const [newSnapshotName, setNewSnapshotName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [confirmRestoreId, setConfirmRestoreId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSnapshots();
   }, [projectId, fetchSnapshots]);
 
   const handleCreate = async () => {
-    if (!newSnapshotName.trim()) {
-      return;
-    }
+    const name = newSnapshotName.trim() || `Version ${new Date().toLocaleTimeString()}`;
     setIsCreating(true);
-    // In a real app, we'd generate a thumbnail here
-    await createSnapshot(newSnapshotName, undefined);
+    await createSnapshot(name, undefined);
     setNewSnapshotName('');
     setIsCreating(false);
+    addToast?.(`Saved "${name}"`, 'success');
+  };
+
+  const handleRestore = async (id: string) => {
+    if (confirmRestoreId === id) {
+      await restoreSnapshot(id);
+      setConfirmRestoreId(null);
+      addToast?.('Version restored', 'success');
+    } else {
+      setConfirmRestoreId(id);
+      setTimeout(() => setConfirmRestoreId(null), 3000);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteSnapshot(id);
+    addToast?.('Version deleted', 'info');
   };
 
   return (
-    <div className="h-full flex flex-col bg-slate-900 text-white">
-      <div className="p-4 border-b border-slate-700">
-        <h3 className="font-bold text-lg flex items-center gap-2">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
-          </svg>
-          Version History
-        </h3>
-        <p className="text-xs text-slate-400 mt-1">Save checkpoints of your design to restore later.</p>
+    <div className="h-full flex flex-col bg-[#13161a] text-white">
+      {/* Header */}
+      <div className="p-4 border-b border-gray-800">
+        <div className="flex items-center gap-2 mb-1">
+          <Icons.History className="w-4 h-4 text-[#7d2ae8]" />
+          <h3 className="text-sm font-black text-white uppercase tracking-wider">Version History</h3>
+        </div>
+        <p className="text-[10px] text-gray-500">Save checkpoints to restore your design anytime.</p>
       </div>
 
-      <div className="p-4 border-b border-slate-700 bg-slate-800/50">
+      {/* Create Snapshot */}
+      <div className="p-4 border-b border-gray-800 bg-[#1e1e1e]/60">
         <div className="flex gap-2">
           <input
             type="text"
             value={newSnapshotName}
             onChange={(e) => setNewSnapshotName(e.target.value)}
-            placeholder="Version name (e.g. 'Draft 1')"
-            className="flex-1 bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+            placeholder="e.g. Draft 1, Before client review..."
+            className="flex-1 bg-[#252627] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-[#7d2ae8] transition-colors"
             onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
           />
           <button
             onClick={handleCreate}
-            disabled={!newSnapshotName.trim() || isCreating}
-            className="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white p-2 rounded transition-colors"
-            title="Create Snapshot"
+            disabled={isCreating}
+            className="px-3 py-2 bg-[#7d2ae8] hover:bg-[#6b23c5] disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 whitespace-nowrap"
+            title="Save current state"
           >
             {isCreating ? (
-              <span className="animate-spin inline-block">⌛</span>
+              <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
             ) : (
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
+              <Icons.Plus className="w-3.5 h-3.5" />
             )}
+            Save
           </button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+      {/* Snapshot List */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
         {snapshots.length === 0 ? (
-          <div className="text-center text-slate-500 py-8 flex flex-col items-center">
-            <svg
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mb-2 opacity-50"
-            >
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-              <circle cx="12" cy="13" r="4"></circle>
-            </svg>
-            <p>No snapshots yet.</p>
-            <p className="text-xs">Create one to save your progress.</p>
+          <div className="text-center py-12 flex flex-col items-center opacity-60">
+            <Icons.History className="w-10 h-10 mb-3 text-gray-700" />
+            <p className="text-sm font-bold text-gray-500">No saved versions yet</p>
+            <p className="text-[10px] text-gray-600 mt-1 max-w-[160px] leading-relaxed">
+              Save a version to create a restore point you can jump back to.
+            </p>
           </div>
         ) : (
-          snapshots.map((snapshot) => (
-            <div
-              key={snapshot.id}
-              className="bg-slate-800 rounded-lg p-3 border border-slate-700 hover:border-slate-600 transition-colors group"
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h4 className="font-medium text-sm text-slate-200">{snapshot.name}</h4>
-                  <p className="text-xs text-slate-500">{new Date(snapshot.timestamp).toLocaleString()}</p>
+          snapshots.map((snapshot: any) => {
+            const layerCount = snapshot.state.artboards
+              ? snapshot.state.artboards.reduce((acc: number, a: any) => acc + (a.layers?.length || 0), 0)
+              : (snapshot.state.layers?.length || 0);
+            const artboardCount = snapshot.state.artboards?.length || 1;
+            const date = new Date(snapshot.timestamp);
+            const isConfirming = confirmRestoreId === snapshot.id;
+
+            return (
+              <div
+                key={snapshot.id}
+                className={`bg-[#1e1e1e] rounded-xl p-3 border transition-all ${isConfirming ? 'border-amber-500/60 shadow-lg shadow-amber-500/10' : 'border-gray-800 hover:border-gray-700'}`}
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-xs text-white truncate pr-2">{snapshot.name}</h4>
+                    <p className="text-[10px] text-gray-500 mt-0.5">
+                      {date.toLocaleDateString()} · {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                  <div className="flex gap-1 shrink-0">
+                    <button
+                      onClick={() => handleRestore(snapshot.id)}
+                      className={`px-2 py-1 rounded text-[10px] font-bold transition-all flex items-center gap-1 ${
+                        isConfirming
+                          ? 'bg-amber-500 text-black hover:bg-amber-400 animate-pulse'
+                          : 'bg-[#252627] text-blue-400 hover:bg-blue-600 hover:text-white'
+                      }`}
+                      title={isConfirming ? 'Click again to confirm restore' : 'Restore this version'}
+                    >
+                      <Icons.RotateCw className="w-3 h-3" />
+                      {isConfirming ? 'Confirm?' : 'Restore'}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(snapshot.id)}
+                      className="p-1 rounded text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                      title="Delete snapshot"
+                    >
+                      <Icons.Trash className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => restoreSnapshot(snapshot.id)}
-                    className="p-1.5 hover:bg-slate-700 text-blue-400 rounded"
-                    title="Restore this version"
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="1 4 1 10 7 10"></polyline>
-                      <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => deleteSnapshot(snapshot.id)}
-                    className="p-1.5 hover:bg-slate-700 text-red-400 rounded"
-                    title="Delete snapshot"
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="3 6 5 6 21 6"></polyline>
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                      <line x1="10" y1="11" x2="10" y2="17"></line>
-                      <line x1="14" y1="11" x2="14" y2="17"></line>
-                    </svg>
-                  </button>
+                <div className="flex items-center gap-3 text-[10px] text-gray-600">
+                  <span className="flex items-center gap-1">
+                    <Icons.Layers className="w-2.5 h-2.5" />
+                    {layerCount} layers
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Icons.LayoutGrid className="w-2.5 h-2.5" />
+                    {artboardCount} artboard{artboardCount !== 1 ? 's' : ''}
+                  </span>
+                  <span className="ml-auto bg-[#252627] px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider">
+                    {snapshot.state.canvasSize?.name || 'Custom'}
+                  </span>
                 </div>
               </div>
-              <div className="text-xs text-slate-500 flex justify-between">
-                <span>
-                  {snapshot.state.artboards
-                    ? snapshot.state.artboards.reduce((acc: number, a: any) => acc + (a.layers?.length || 0), 0)
-                    : (snapshot.state.layers?.length || 0)
-                  } layers
-                </span>
-                <span className="bg-slate-900 px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider">
-                  {snapshot.state.canvasSize?.name || 'Custom'}
-                </span>
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

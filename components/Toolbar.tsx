@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
+import { selectedLayerSelector } from '../store/selectors';
 import { NavTab, TextLayer } from '../types';
 import { Icons } from '../constants';
 import * as geminiService from '../services/geminiService';
@@ -42,8 +44,6 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onJoin
 
   // Store Actions
   const {
-    artboards,
-    activeArtboardId,
     selectedLayerIds,
     updateLayer,
     deleteLayer: onDeleteLayer,
@@ -68,7 +68,6 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onJoin
     setRefineBrushSize,
   } = useStore();
 
-  // Store State
   const isRemovingBgStore = useStore((state) => state.isRemovingBg);
   const isExpandingStore = useStore((state) => state.isExpanding);
   const isEraserActiveStore = useStore((state) => state.isEraserActive);
@@ -79,28 +78,19 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onJoin
   const doneLasso = () => setIsLassoMode(false);
   const cancelLasso = () => setIsLassoMode(false);
 
-  const layers = React.useMemo(() => 
-    (artboards || []).find((a: any) => a.id === activeArtboardId)?.layers || [],
-    [artboards, activeArtboardId]
-  );
+  const selectedLayer = useStore(selectedLayerSelector);
+  const isMultiSelect = (selectedLayerIds || []).length > 1;
 
-  const selectedLayer = layers.find((l: any) => l && selectedLayerIds && selectedLayerIds.includes(l.id)) || null;
-  const isMultiSelect = selectedLayerIds && selectedLayerIds.length > 1;
-
-  // Listen for "open effects panel" event from QuickTextEffects
+  // Listen for "open effects panel" event
   useEffect(() => {
-    const handleOpenEffects = () => {
-      setActiveTab(NavTab.TEXT_EFFECTS);
-    };
+    const handleOpenEffects = () => setActiveTab(NavTab.TEXT_EFFECTS);
     window.addEventListener('open-effects-panel', handleOpenEffects);
     return () => window.removeEventListener('open-effects-panel', handleOpenEffects);
   }, [setActiveTab]);
 
   const handleUpdateLayer = useCallback(
     (changes: any) => {
-      if (!selectedLayer) {
-        return;
-      }
+      if (!selectedLayer) {return;}
       updateLayer(selectedLayer.id, changes);
     },
     [selectedLayer, updateLayer]
@@ -113,147 +103,150 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onJoin
       const newText = await geminiService.generateText((selectedLayer as TextLayer).text, instruction);
       updateLayer(id, { text: newText });
     } catch (error) {
-      log.error('[Toolbar] Text rewrite failed', error, { layerId: id, instruction: instruction.substring(0, 100) });
+      log.error('[Toolbar] Text rewrite failed', error, { layerId: id });
     } finally {
       setIsProcessing(false);
     }
   };
 
   return (
-    <div className="flex items-center min-h-[56px] bg-[#0a0a0a] border-b border-white/5 px-4 gap-4 overflow-x-auto custom-scrollbar w-full z-20 py-2 flex-nowrap whitespace-nowrap shadow-2xl">
-      {isMultiSelect ? (
-        <div className="flex items-center gap-4">
-          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-purple-400 bg-purple-500/10 px-2 py-1 rounded-md border border-purple-500/20">
-            Selection ({selectedLayerIds?.length})
-          </span>
-          <Divider />
-          <div className="flex bg-white/5 rounded-xl border border-white/5 p-1 gap-1">
-            <IconButton onClick={() => onAlignLayers?.('left')} title="Align Left">
-              <Icons.AlignLeft className="w-3.5 h-3.5" />
-            </IconButton>
-            <IconButton onClick={() => onAlignLayers?.('center')} title="Align Center">
-              <Icons.AlignCenter className="w-3.5 h-3.5" />
-            </IconButton>
-            <IconButton onClick={() => onAlignLayers?.('right')} title="Align Right">
-              <Icons.AlignRight className="w-3.5 h-3.5" />
-            </IconButton>
-          </div>
-          <div className="flex items-center gap-1 shrink-0 flex-nowrap whitespace-nowrap">
-            <IconButton onClick={onGroup} title="Group" shortcut="Ctrl+G">
-              <Icons.Group className="w-3.5 h-3.5" />
-            </IconButton>
-            <IconButton onClick={onUngroup} title="Ungroup" shortcut="Ctrl+Shift+G">
-              <Icons.Ungroup className="w-3.5 h-3.5" />
-            </IconButton>
-          </div>
-          <Divider />
-          <div className="flex items-center gap-1">
-            <IconButton onClick={() => selectedLayerIds.forEach((id) => onDeleteLayer(id))} title="Delete All">
-              <Icons.Trash className="w-3.5 h-3.5" />
-            </IconButton>
-          </div>
+    <AnimatePresence>
+      <motion.div 
+        initial={{ y: 20, opacity: 0, scale: 0.95 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: 20, opacity: 0, scale: 0.95 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] flex items-center min-h-[56px] bg-[#1e1e1e]/90 backdrop-blur-xl border border-white/10 px-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] gap-4"
+      >
+        <div className="flex items-center gap-4 overflow-x-auto no-scrollbar max-w-[85vw] py-1">
+          {isMultiSelect ? (
+            <div className="flex items-center gap-4">
+              <span className="text-[10px] font-black text-[#7d2ae8] uppercase tracking-widest">Selected ({(selectedLayerIds || []).length})</span>
+              <Divider />
+              <div className="flex bg-black/40 rounded-xl border border-white/5 p-1 gap-1">
+                <IconButton onClick={() => onAlignLayers?.('left')} title="Align Left">
+                  <Icons.AlignLeft className="w-4 h-4" />
+                </IconButton>
+                <IconButton onClick={() => onAlignLayers?.('center')} title="Align Center">
+                  <Icons.AlignCenter className="w-4 h-4" />
+                </IconButton>
+                <IconButton onClick={() => onAlignLayers?.('right')} title="Align Right">
+                  <Icons.AlignRight className="w-4 h-4" />
+                </IconButton>
+              </div>
+              <div className="flex items-center gap-1">
+                <IconButton onClick={onGroup} title="Group" shortcut="Ctrl+G">
+                  <Icons.Group className="w-4 h-4" />
+                </IconButton>
+                <IconButton onClick={onUngroup} title="Ungroup" shortcut="Ctrl+Shift+G">
+                  <Icons.Ungroup className="w-4 h-4" />
+                </IconButton>
+              </div>
+              <Divider />
+              <IconButton onClick={() => (selectedLayerIds || []).forEach((id) => onDeleteLayer(id))} title="Delete All">
+                <Icons.Trash className="w-4 h-4 text-red-400" />
+              </IconButton>
+            </div>
+          ) : !selectedLayer ? (
+            <CanvasTools documentColors={documentColors} />
+          ) : (
+            <>
+              <div className="flex items-center gap-4">
+                {((selectedLayer as any).type === 'path' || (selectedLayer as any).vectorPath) && (
+                  <VectorTools
+                    layer={selectedLayer}
+                    handleUpdateLayer={handleUpdateLayer}
+                    onCompletePath={onCompletePath}
+                    onBooleanOperation={onBooleanOperation}
+                    onBooleanHover={onBooleanHover}
+                    documentColors={documentColors}
+                  />
+                )}
+                {selectedLayer.type === 'text' && (
+                  <TextTools
+                    layer={selectedLayer as TextLayer}
+                    onUpdateTextLayer={(id, changes) => updateLayer(id, changes)}
+                    documentColors={documentColors}
+                    onMagicWrite={() => {}}
+                    showFontPicker={showFontPicker}
+                    setShowFontPicker={setShowFontPicker}
+                    fontSearch={fontSearch}
+                    setFontSearch={setFontSearch}
+                    showRewriteTones={showRewriteTones}
+                    setShowRewriteTones={setShowRewriteTones}
+                    rewriteRef={rewriteRef}
+                    handleToneRewrite={handleToneRewrite}
+                    showGlyphs={showGlyphs}
+                    setShowGlyphs={setShowGlyphs}
+                  />
+                )}
+                {selectedLayer.type !== 'text' && selectedLayer.type !== 'image' && (
+                  <ShapeTools
+                    layer={selectedLayer as any}
+                    handleUpdateLayer={handleUpdateLayer}
+                    documentColors={documentColors}
+                  />
+                )}
+                {selectedLayer.type === 'image' && (
+                  <ImageTools
+                    layer={selectedLayer as any}
+                    isPro={true}
+                    isRemovingBg={isRemovingBgStore}
+                    isExpanding={isExpandingStore}
+                    isEraserActive={isEraserActiveStore}
+                    handleRemoveBackground={() => onRmBg(selectedLayer.id)}
+                    handleEraserClick={toggleEraser}
+                    handleMagicExpand={() => onMagicExpand(selectedLayer.id)}
+                    onRemix={onRemix}
+                    handleUpdateLayer={handleUpdateLayer}
+                    showFilters={showFilters}
+                    setShowFilters={setShowFilters}
+                    onUpscale={() => onUpscale(selectedLayer.id)}
+                    onEnhance={() => onEnhance(selectedLayer.id)}
+                    onRetouch={() => onRetouch(selectedLayer.id)}
+                    onCrop={() => {
+                      onCropAction(selectedLayer.id);
+                      setIsLassoMode(false);
+                    }}
+                    showResize={showResize}
+                    setShowResize={setShowResize}
+                    setIsLassoMode={(active) => {
+                      setIsLassoMode(active);
+                      if (active) {
+                        useStore.setState({ croppingLayerId: selectedLayer.id } as any);
+                      }
+                    }}
+                    isLassoMode={isLassoModeStore}
+                    refineBrushMode={refineBrushModeStore}
+                    setRefineBrushMode={setRefineBrushMode}
+                    refineBrushSize={refineBrushSizeStore}
+                    setRefineBrushSize={setRefineBrushSize}
+                    doneLasso={doneLasso}
+                    cancelLasso={cancelLasso}
+                    _onVectorize={() => vectorizeLayer(selectedLayer.id, {})}
+                  />
+                )}
+              </div>
+
+              <Divider />
+
+              <div className="flex items-center gap-4">
+                <AutoLayoutTools selectedLayer={selectedLayer} handleUpdateLayer={handleUpdateLayer} />
+                <TransformTools selectedLayer={selectedLayer} />
+                <CommonActions
+                  selectedLayer={selectedLayer}
+                  handleUpdateLayer={handleUpdateLayer}
+                  documentColors={documentColors}
+                  onMoveLayer={onMoveLayer}
+                  onDuplicateLayer={onDuplicateLayer}
+                  onDeleteLayer={onDeleteLayer}
+                />
+              </div>
+            </>
+          )}
         </div>
-      ) : !selectedLayer ? (
-        <CanvasTools documentColors={documentColors} />
-      ) : (
-        <>
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0 flex-nowrap whitespace-nowrap">
-            {((selectedLayer as any).type === 'path' || (selectedLayer as any).vectorPath) && (
-              <VectorTools
-                layer={selectedLayer}
-                handleUpdateLayer={handleUpdateLayer}
-                onCompletePath={onCompletePath}
-                onJoinPaths={onJoinPaths}
-                onBooleanOperation={onBooleanOperation}
-                onBooleanHover={onBooleanHover}
-                documentColors={documentColors}
-              />
-            )}
-            {selectedLayer.type === 'text' && (
-              <TextTools
-                layer={selectedLayer as TextLayer}
-                onUpdateTextLayer={(id, changes) => updateLayer(id, changes)}
-                documentColors={documentColors}
-                onMagicWrite={() => {
-                  /* logic handled in component or store */
-                }}
-                showFontPicker={showFontPicker}
-                setShowFontPicker={setShowFontPicker}
-                fontSearch={fontSearch}
-                setFontSearch={setFontSearch}
-                showRewriteTones={showRewriteTones}
-                setShowRewriteTones={setShowRewriteTones}
-                rewriteRef={rewriteRef}
-                handleToneRewrite={handleToneRewrite}
-                showGlyphs={showGlyphs}
-                setShowGlyphs={setShowGlyphs}
-              />
-            )}
-            {selectedLayer.type !== 'text' && selectedLayer.type !== 'image' && (
-              <ShapeTools
-                layer={selectedLayer as any}
-                handleUpdateLayer={handleUpdateLayer}
-                documentColors={documentColors}
-              />
-            )}
-            {selectedLayer.type === 'image' && (
-              <ImageTools
-                layer={selectedLayer as any}
-                isPro={true}
-                isRemovingBg={isRemovingBgStore}
-                isExpanding={isExpandingStore}
-                isEraserActive={isEraserActiveStore}
-                handleRemoveBackground={() => onRmBg(selectedLayer.id)}
-                handleEraserClick={toggleEraser}
-                handleMagicExpand={() => onMagicExpand(selectedLayer.id)}
-                onRemix={onRemix}
-                handleUpdateLayer={handleUpdateLayer}
-                showFilters={showFilters}
-                setShowFilters={setShowFilters}
-                onUpscale={() => onUpscale(selectedLayer.id)}
-                onEnhance={() => onEnhance(selectedLayer.id)}
-                onRetouch={() => onRetouch(selectedLayer.id)}
-                onCrop={() => {
-                  onCropAction(selectedLayer.id);
-                  setIsLassoMode(false);
-                }}
-                showResize={showResize}
-                setShowResize={setShowResize}
-                setIsLassoMode={(active) => {
-                  setIsLassoMode(active);
-                  if (active) {
-                    useStore.setState({ croppingLayerId: selectedLayer.id } as any);
-                  }
-                }}
-                isLassoMode={isLassoModeStore}
-                refineBrushMode={refineBrushModeStore}
-                setRefineBrushMode={setRefineBrushMode}
-                refineBrushSize={refineBrushSizeStore}
-                setRefineBrushSize={setRefineBrushSize}
-                doneLasso={doneLasso}
-                cancelLasso={cancelLasso}
-                _onVectorize={() => vectorizeLayer(selectedLayer.id, {})}
-              />
-            )}
-          </div>
-
-          <div className="h-8 w-px bg-gray-700 mx-1 sm:mx-2 shrink-0 hidden md:block"></div>
-
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0 flex-nowrap whitespace-nowrap min-w-max">
-            <AutoLayoutTools selectedLayer={selectedLayer} handleUpdateLayer={handleUpdateLayer} />
-            <TransformTools selectedLayer={selectedLayer} />
-            <CommonActions
-              selectedLayer={selectedLayer}
-              handleUpdateLayer={handleUpdateLayer}
-              documentColors={documentColors}
-              onMoveLayer={onMoveLayer}
-              onDuplicateLayer={onDuplicateLayer}
-              onDeleteLayer={onDeleteLayer}
-            />
-          </div>
-        </>
-      )}
-    </div>
+      </motion.div>
+    </AnimatePresence>
   );
 });
 

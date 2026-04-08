@@ -1,4 +1,5 @@
 import { Project } from '../types';
+import { log } from './log';
 
 /**
  * Serializes and compresses a Project into a shareable URL string.
@@ -42,7 +43,7 @@ export const generateShareLink = async (project: Project): Promise<string> => {
 
     return url.toString();
   } catch (err) {
-    console.error('Failed to generate share link:', err);
+    log.error('Failed to generate share link:', err);
     throw new Error('Could not generate share link.');
   }
 };
@@ -95,7 +96,7 @@ export const parseShareLink = async (currentUrl: string): Promise<Project | null
       state: data.state,
     } as Project;
   } catch (err) {
-    console.error('Failed to parse share link:', err);
+    log.error('Failed to parse share link:', err);
     return null;
   }
 };

@@ -4,6 +4,7 @@ import { Button } from './Button';
 import { User, Project } from '../types';
 import { DropdownMenu } from './DropdownMenu';
 import { useStore } from '../store/useStore';
+import { PublishModal } from './modals/PublishModal';
 
 interface HeaderProps {
   onDownload: () => void;
@@ -29,20 +30,40 @@ export const Header: React.FC<HeaderProps> = ({
     redo,
     past,
     future,
-    projectTitle: title,
-    setProjectTitle: onTitleChange,
     isSaving,
+    lastSaved,
+    hasUnsavedChanges,
+    projectTitle,
+    setProjectTitle,
     saveProject: onSave,
     showShortcuts,
     setShowShortcuts,
     setShowShareModal,
   } = useStore();
 
+  const [showPublishModal, setShowPublishModal] = React.useState(false);
+  const [isEditingTitle, setIsEditingTitle] = React.useState(false);
+
   const onShare = () => setShowShareModal(true);
 
   const canUndo = past.length > 0;
   const canRedo = future.length > 0;
   const onShowShortcuts = () => setShowShortcuts(!showShortcuts);
+
+  const getSaveStatus = () => {
+    if (isSaving) {return 'Saving...';}
+    if (hasUnsavedChanges) {return 'Unsaved changes';}
+    if (lastSaved) {
+      const now = Date.now();
+      const diff = now - lastSaved.getTime();
+      const minutes = Math.floor(diff / 60000);
+      if (minutes < 1) {return 'Saved just now';}
+      if (minutes === 1) {return 'Saved 1 min ago';}
+      if (minutes < 60) {return `Saved ${minutes} mins ago`;}
+      return 'Saved';
+    }
+    return 'Not saved';
+  };
 
   return (
     <header className="h-14 bg-[#0a0a0a] text-white flex items-center justify-between px-6 z-50 shrink-0 border-b border-white/5 shadow-2xl">
@@ -206,27 +227,72 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="h-4 w-px bg-gray-800 mx-1"></div>
 
         <div className="flex items-center gap-2 px-2">
-          <div className="h-4 w-px bg-white/10 mx-2"></div>
-          <div className={`sync-dot ${isSaving ? 'sync-dot-saving' : ''}`}></div>
-          <span className="hidden md:block text-[9px] uppercase tracking-wider font-bold text-gray-500">
-            {isSaving ? 'Saving...' : 'Saved'}
-          </span>
+          {/* Project Title */}
+          {isEditingTitle ? (
+            <input
+              type="text"
+              value={projectTitle}
+              onChange={(e) => setProjectTitle(e.target.value)}
+              onBlur={() => setIsEditingTitle(false)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {setIsEditingTitle(false);}
+                if (e.key === 'Escape') {setIsEditingTitle(false);}
+              }}
+              autoFocus
+              className="bg-transparent border-b border-purple-500 text-white text-sm font-medium px-2 py-1 outline-none w-48"
+            />
+          ) : (
+            <button
+              onClick={() => setIsEditingTitle(true)}
+              className="text-sm font-medium text-white hover:text-purple-400 transition-colors px-2 py-1 rounded hover:bg-white/5"
+              title="Click to rename"
+            >
+              {projectTitle}
+            </button>
+          )}
+
+          {/* Save Status */}
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            {isSaving ? (
+              <>
+                <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+                <span>Saving...</span>
+              </>
+            ) : hasUnsavedChanges ? (
+              <>
+                <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                <span>Unsaved</span>
+              </>
+            ) : (
+              <>
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <span>{getSaveStatus()}</span>
+              </>
+            )}
+          </div>
+
+          {/* Artboard Management */}
+          <div className="flex items-center bg-[#1e1e1e] rounded-lg p-0.5 border border-white/5 shadow-inner ml-4">
+            <button
+              onClick={onDeleteArtboard}
+              className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-white/5 rounded-md transition-all"
+              title="Remove Artboard"
+            >
+              <Icons.Minus className="w-3 h-3" />
+            </button>
+            <div className="w-px h-3 bg-gray-800 mx-0.5" />
+            <button
+              onClick={onAddArtboard}
+              className="p-1.5 text-gray-400 hover:text-green-400 hover:bg-white/5 rounded-md transition-all"
+              title="Add Artboard"
+            >
+              <Icons.Plus className="w-3 h-3" />
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 flex justify-center px-4">
-        <div className="relative max-w-xs w-full flex justify-center group">
-          <input
-            id="header-title"
-            type="text"
-            value={title}
-            onChange={(e) => onTitleChange(e.target.value)}
-            className="bg-white/5 hover:bg-white/10 focus:bg-white/10 text-center font-black text-[10px] uppercase tracking-[0.2em] text-white rounded-full py-1.5 px-6 border border-white/5 hover:border-white/10 focus:border-purple-500/50 focus:outline-none transition-all truncate w-full"
-            placeholder="UNTITLED DESIGN"
-            aria-label="Design Title"
-          />
-        </div>
-      </div>
+      <div className="flex-1" />
 
       <div className="flex items-center gap-4">
         <button
@@ -247,6 +313,15 @@ export const Header: React.FC<HeaderProps> = ({
           aria-label="Show keyboard shortcuts"
         >
           <Icons.Help className="w-4 h-4" />
+        </button>
+
+        <button
+          onClick={() => setShowPublishModal(true)}
+          className="p-2 text-gray-400 hover:text-orange-500 transition-colors"
+          title="Publish to Community"
+          aria-label="Publish design"
+        >
+          <Icons.Globe className="w-4 h-4" />
         </button>
 
         <button
@@ -275,6 +350,8 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         )}
       </div>
+
+      {showPublishModal && <PublishModal onClose={() => setShowPublishModal(false)} />}
     </header>
   );
 };

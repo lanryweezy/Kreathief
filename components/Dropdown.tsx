@@ -79,7 +79,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition, true);
     };
-  }, [isOpen, align, offset, mounted]);
+  }, [isOpen, align, offset, mounted, anchorRef]);
 
   // Handle escape key and click outside
   useEffect(() => {

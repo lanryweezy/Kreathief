@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
 import { IconButton, CompactInput } from './ToolbarShared';
@@ -14,19 +14,55 @@ export const TransformTools = React.memo(({ selectedLayer }: TransformToolsProps
   const onUpdateLayers = useStore((state) => state.updateLayers);
   const unit = useStore((state) => state.unit);
 
-  const handleUpdateLayer = (changes: any) => {
-    if (selectedLayer && onUpdateLayers) {
-      onUpdateLayers({ [selectedLayer.id]: changes });
-    }
-  };
+  // FIX: Add debouncing for transform inputs
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingChanges = useRef<Record<string, any>>({});
 
-  const handleUnitChange = (key: string, value: string) => {
+  const handleUpdateLayer = useCallback((changes: any) => {
+    if (selectedLayer && onUpdateLayers) {
+      // Batch changes
+      pendingChanges.current = {
+        ...pendingChanges.current,
+        [selectedLayer.id]: {
+          ...pendingChanges.current[selectedLayer.id],
+          ...changes
+        }
+      };
+
+      // Clear existing debounce
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+
+      // Debounce update (150ms)
+      debounceRef.current = setTimeout(() => {
+        onUpdateLayers(pendingChanges.current);
+        pendingChanges.current = {};
+      }, 150);
+    }
+  }, [selectedLayer, onUpdateLayers]);
+
+  // FIX: Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        // Flush pending changes on unmount
+        if (Object.keys(pendingChanges.current).length > 0) {
+          onUpdateLayers(pendingChanges.current);
+          pendingChanges.current = {};
+        }
+      }
+    };
+  }, [onUpdateLayers]);
+
+  const handleUnitChange = useCallback((key: string, value: string) => {
     const floatVal = parseFloat(value);
     if (!isNaN(floatVal)) {
       const pxVal = unitToPx(floatVal, unit);
       handleUpdateLayer({ [key]: pxVal });
     }
-  };
+  }, [unit, handleUpdateLayer]);
 
   return (
     <div className="flex items-center gap-3">

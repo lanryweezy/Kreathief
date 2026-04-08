@@ -15,6 +15,8 @@ import { BlogList } from './components/blog/BlogList';
 import { BlogPostView } from './components/blog/BlogPostView';
 import { SEO } from './components/SEO';
 import { FeedbackModal } from './components/modals/FeedbackModal';
+import { PresentationModal } from './components/modals/PresentationModal';
+import { VersionDiffModal } from './components/modals/VersionDiffModal';
 import { AboutPage, PrivacyPage, TermsPage, SecurityPage, ContactPage, HelpCenterPage, ChangelogPage, APIPage } from './components/pages/StaticPages';
 
 // Lazy load main views for code splitting
@@ -32,10 +34,9 @@ const LoadingFallback = () => (
 const App: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [user, setUser] = useState<User | null>(null);
+  const { user, setUser, toasts, removeToast } = useStore();
   const [currentProject, setCurrentProject] = useState<Project | undefined>(undefined);
   const [loading, setLoading] = useState(true);
-  const { toasts, removeToast } = useStore();
 
   const [showWelcome, setShowWelcome] = useState(false);
   const [activeTour, setActiveTour] = useState<'dashboard' | 'editor' | null>(null);
@@ -89,11 +90,24 @@ const App: React.FC = () => {
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, [location.pathname, navigate]);
 
   const handleLogin = (user: User) => {
     setUser(user);
     navigate('/dashboard');
+  };
+
+  const handleGuestEntry = () => {
+    const guestUser: User = {
+      id: `guest_${Math.random().toString(36).slice(2, 9)}`,
+      email: 'guest@kreathief.local',
+      name: 'Guest Creator',
+      avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=guest`,
+      plan: 'free',
+      isGuest: true
+    };
+    setUser(guestUser);
+    navigate('/editor');
   };
 
   const handleLogout = async () => {
@@ -180,7 +194,15 @@ const App: React.FC = () => {
       <SEO />
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
-          <Route path="/" element={<LandingPage onGetStarted={() => navigate('/auth')} />} />
+          <Route 
+            path="/" 
+            element={
+              <LandingPage 
+                onGetStarted={handleGuestEntry} 
+                onTryGuest={handleGuestEntry}
+              />
+            } 
+          />
           <Route path="/auth" element={<Auth onLogin={handleLogin} />} />
           <Route
             path="/dashboard"
@@ -238,6 +260,8 @@ const App: React.FC = () => {
       </Suspense>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       <FeedbackModal />
+      <PresentationModal />
+      <VersionDiffModal />
     </ErrorBoundary>
   );
 };

@@ -118,3 +118,4 @@ export const MultiSelectionHandles = React.memo(({ layers, onResize, onRotate }:
 });
 
 MultiSelectionHandles.displayName = 'MultiSelectionHandles';
+

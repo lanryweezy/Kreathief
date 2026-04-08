@@ -6,6 +6,10 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
@@ -20,5 +24,8 @@
         }
       ]
     }
-  ]
+  ],
+  "env": {
+    "VITE_USE_QA_BYPASS": "false"
+  }
 }

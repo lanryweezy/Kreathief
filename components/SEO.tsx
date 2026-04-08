@@ -2,42 +2,62 @@ import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
 interface SEOProps {
-    title?: string;
-    description?: string;
-    image?: string;
-    url?: string;
-    type?: string;
+  title?: string;
+  description?: string;
+  image?: string;
+  url?: string;
+  type?: string;
 }
 
 export const SEO: React.FC<SEOProps> = ({
-    title = 'Kreathief | Design at the Speed of AI',
-    description = 'Professional graphics, logos, and marketing materials in seconds. The power of generative AI meets the precision of vector design.',
-    image = 'https://kreathief.app/og-image.png',
-    url = 'https://kreathief.app',
-    type = 'website',
+  title = 'Kreathief | Your AI Creative Director',
+  description = "The world's most advanced Agentic AI creative engine. Move from intent to scalable reality instantly with privacy-first professional vector tools and high-fidelity mockups.",
+  image = 'https://www.kreathief.com/og-image.png',
+  url = 'https://www.kreathief.com',
+  type = 'website',
 }) => {
-    const siteTitle = title.includes('Kreathief') ? title : `${title} | Kreathief`;
+  const siteTitle = title.includes('Kreathief') ? title : `${title} | Kreathief`;
 
-    return (
-        <Helmet>
-            {/* Basic Meta Tags */}
-            <title>{siteTitle}</title>
-            <meta name="description" content={description} />
-            <link rel="canonical" href={url} />
+  return (
+    <Helmet>
+      {/* Basic Meta Tags */}
+      <title>{siteTitle}</title>
+      <meta name="description" content={description} />
+      <link rel="canonical" href={url} />
 
-            {/* Open Graph / Facebook */}
-            <meta property="og:type" content={type} />
-            <meta property="og:url" content={url} />
-            <meta property="og:title" content={siteTitle} />
-            <meta property="og:description" content={description} />
-            <meta property="og:image" content={image} />
+      {/* Open Graph / Facebook */}
+      <meta property="og:type" content={type} />
+      <meta property="og:url" content={url} />
+      <meta property="og:title" content={siteTitle} />
+      <meta property="og:description" content={description} />
+      <meta property="og:image" content={image} />
 
-            {/* Twitter */}
-            <meta name="twitter:card" content="summary_large_image" />
-            <meta name="twitter:url" content={url} />
-            <meta name="twitter:title" content={siteTitle} />
-            <meta name="twitter:description" content={description} />
-            <meta name="twitter:image" content={image} />
-        </Helmet>
-    );
+      {/* Twitter */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:url" content={url} />
+      <meta name="twitter:title" content={siteTitle} />
+      <meta name="twitter:description" content={description} />
+      <meta name="twitter:image" content={image} />
+
+      {/* Structured Data (Schema.org) */}
+      <script type="application/ld+json">
+        {`
+                {
+                    "@context": "https://schema.org",
+                    "@type": "SoftwareApplication",
+                    "name": "Kreathief",
+                    "operatingSystem": "Web browser, Windows, macOS",
+                    "applicationCategory": "DesignApplication",
+                    "offers": {
+                        "@type": "Offer",
+                        "price": "0",
+                        "priceCurrency": "USD"
+                    },
+                    "description": "${description}",
+                    "screenshot": "${image}"
+                }
+                `}
+      </script>
+    </Helmet>
+  );
 };

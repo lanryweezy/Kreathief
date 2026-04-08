@@ -17,36 +17,46 @@ interface SelectionHandlesProps {
 }
 
 export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: SelectionHandlesProps) => {
+  const rotation = layer.rotation || 0;
+  
+  // Style to keep handles upright
+  const handleContainerStyle = {
+    transform: `rotate(${-rotation}deg)`,
+  };
+
   return (
     <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 50 }}>
-      {/* Selection Box Outline */}
+      {/* Primary Selection Border */}
       <div
-        className="absolute border border-[#7d2ae8] pointer-events-none group-active:border-2 transition-colors"
-        style={{
-          left: 0,
-          top: 0,
-          width: layer.width,
-          height: layer.height,
-        }}
-      >
-        {/* Dimension Badge */}
-        <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-[#7d2ae8] text-white text-[9px] font-mono px-1.5 py-0.5 rounded shadow-lg opacity-0 group-active:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none border border-white/20">
-          {Math.round(layer.width)} × {Math.round(layer.height)}
-        </div>
-      </div>
-      {/* Border */}
-      <div
-        className={`absolute -inset-0.5 border-2 ${
+        className={`absolute -inset-[1px] border-[1.5px] shadow-[0_0_15px_rgba(125,42,232,0.3)] transition-all ${
           layer.locked 
-            ? 'border-red-400 border-dashed' 
+            ? 'border-red-500 border-dashed opacity-50' 
             : layer.componentId 
               ? 'border-[#a855f7]' 
               : layer.masterId 
                 ? 'border-[#c084fc] border-dashed'
-                : 'border-[#00c4cc]'
-        } ${layer.componentId || layer.masterId ? 'shadow-[0_0_12px_rgba(168,85,247,0.4)]' : 'shadow-[0_0_8px_rgba(0,196,204,0.25)]'}`}
-        style={{ borderRadius: `${(layer as any).cornerRadius || 0}px` }}
-      />
+                : 'border-[#7d2ae8] ring-1 ring-[#7d2ae8]/20'
+        }`}
+        style={{ 
+          borderRadius: `${(layer as any).cornerRadius || 0}px`,
+          animation: layer.locked ? 'none' : 'selectionPulse 2s ease-in-out infinite' 
+        }}
+      >
+        {/* Dimension Pill  high contrast, subtle */}
+        <div 
+          className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-md text-white text-[9px] font-black font-mono px-2 py-0.5 rounded-full shadow-2xl border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[60]"
+          style={handleContainerStyle}
+        >
+          {Math.round(layer.width)} × {Math.round(layer.height)}
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes selectionPulse {
+          0%, 100% { border-color: #7d2ae8; box-shadow: 0 0 10px rgba(125,42,232,0.2); }
+          50% { border-color: #9d50ff; box-shadow: 0 0 20px rgba(125,42,232,0.4); }
+        }
+      `}</style>
 
       {(layer.locked || layer.componentId || layer.masterId) && (
         <div 
@@ -55,6 +65,7 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
               ? 'bg-red-100 text-red-500 border-red-200' 
               : 'bg-[#a855f7] text-white border-[#9333ea]'
           }`}
+          style={handleContainerStyle}
           title={layer.componentId ? 'Master Component' : layer.masterId ? 'Component Instance' : 'Locked'}
         >
           {layer.locked ? <Icons.Lock className="w-3 h-3" /> : <Icons.LayoutGrid className="w-3 h-3" />}
@@ -66,18 +77,22 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
           {/* Corner Handles */}
           <div
             onMouseDown={(e) => onResize(e, layer, 'nw')}
+            style={handleContainerStyle}
             className="absolute -top-1.5 -left-1.5 w-3.5 h-3.5 bg-white border-2 border-[#00c4cc] rounded-full pointer-events-auto cursor-nw-resize shadow-md hover:scale-125 transition-transform z-50"
           />
           <div
             onMouseDown={(e) => onResize(e, layer, 'ne')}
+            style={handleContainerStyle}
             className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-white border-2 border-[#00c4cc] rounded-full pointer-events-auto cursor-ne-resize shadow-md hover:scale-125 transition-transform z-50"
           />
           <div
             onMouseDown={(e) => onResize(e, layer, 'sw')}
+            style={handleContainerStyle}
             className="absolute -bottom-1.5 -left-1.5 w-3.5 h-3.5 bg-white border-2 border-[#00c4cc] rounded-full pointer-events-auto cursor-sw-resize shadow-md hover:scale-125 transition-transform z-50"
           />
           <div
             onMouseDown={(e) => onResize(e, layer, 'se')}
+            style={handleContainerStyle}
             className="absolute -bottom-1.5 -right-1.5 w-3.5 h-3.5 bg-white border-2 border-[#00c4cc] rounded-full pointer-events-auto cursor-se-resize shadow-md hover:scale-125 transition-transform z-50"
           />
 
@@ -86,10 +101,12 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
             <>
               <div
                 onMouseDown={(e) => onResize(e, layer, 'n')}
+                style={handleContainerStyle}
                 className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-white border border-[#00c4cc] rounded-full pointer-events-auto cursor-ns-resize shadow-sm hover:scale-110 transition-transform z-40"
               />
               <div
                 onMouseDown={(e) => onResize(e, layer, 's')}
+                style={handleContainerStyle}
                 className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-white border border-[#00c4cc] rounded-full pointer-events-auto cursor-ns-resize shadow-sm hover:scale-110 transition-transform z-40"
               />
             </>
@@ -99,26 +116,27 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
             <>
               <div
                 onMouseDown={(e) => onResize(e, layer, 'w')}
+                style={handleContainerStyle}
                 className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-1.5 h-6 bg-white border border-[#00c4cc] rounded-full pointer-events-auto cursor-ew-resize shadow-sm hover:scale-110 transition-transform z-40"
               />
               <div
                 onMouseDown={(e) => onResize(e, layer, 'e')}
+                style={handleContainerStyle}
                 className="absolute top-1/2 -translate-y-1/2 -right-1.5 w-1.5 h-6 bg-white border border-[#00c4cc] rounded-full pointer-events-auto cursor-ew-resize shadow-sm hover:scale-110 transition-transform z-40"
               />
             </>
           )}
 
           {/* Rotate Handle */}
-          <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 pointer-events-auto group/rotate z-50">
+          <div 
+            className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 pointer-events-auto group/rotate z-50"
+            style={handleContainerStyle}
+          >
             <div className="w-px h-6 bg-[#7d2ae8]" />
             <div
               onMouseDown={(e) => onRotate(e, layer)}
               onDoubleClick={(e) => {
                 e.stopPropagation();
-                // We don't have direct access to handleUpdateLayer here,
-                // so we trigger rotation start with a specific flag or just handle it if passed.
-                // Assuming onRotate can handle a reset or we need another prop.
-                // Let's modify SelectionHandlesProps to include onResetRotation.
                 (window as any).dispatchEvent(new CustomEvent('canvas-reset-rotation', { detail: { id: layer.id } }));
               }}
               className="w-7 h-7 bg-white border-2 border-[#7d2ae8] rounded-full cursor-grab flex items-center justify-center hover:bg-[#7d2ae8] hover:text-white shadow-lg transition-all active:cursor-grabbing hover:scale-110"
@@ -134,3 +152,5 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
 });
 
 SelectionHandles.displayName = 'SelectionHandles';
+
+

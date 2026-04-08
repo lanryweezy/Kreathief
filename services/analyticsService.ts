@@ -1,3 +1,6 @@
+import { log } from '../utils/log';
+import { config } from '../config';
+
 export type AnalyticsEvent = 
   | 'export_design'
   | 'generate_image'
@@ -11,21 +14,30 @@ export type AnalyticsEvent =
   | 'feedback_submitted';
 
 class AnalyticsService {
-  private isDevelopment = true; // Defaulting to true for now for visibility
+  private isProduction = config.app.isProduction;
 
   track(event: AnalyticsEvent, properties?: Record<string, any>) {
-    if (this.isDevelopment) {
-      console.log(`%c[Analytics] 📊 ${event}`, 'color: #00c4cc; font-weight: bold;', properties);
+    // Development logging
+    if (config.app.isDevelopment) {
+      log.info('[Analytics] Event tracked', { event, properties });
     }
 
-    // This is where integration with a real provider like Plausible would go:
-    // if (typeof window !== 'undefined' && (window as any).plausible) {
-    //   (window as any).plausible(event, { props: properties });
-    // }
+    // Production analytics integration
+    if (this.isProduction && typeof window !== 'undefined') {
+      // Plausible Analytics (privacy-friendly, GDPR compliant)
+      if ((window as any).plausible) {
+        (window as any).plausible(event, { props: properties });
+      }
+      
+      // Google Analytics (if using)
+      if ((window as any).gtag) {
+        (window as any).gtag('event', event, properties);
+      }
+    }
   }
 
-  trackExport(format: string, quality?: number) {
-    this.track('export_design', { format, quality });
+  trackExport(format: string, quality?: number, properties?: Record<string, any>) {
+    this.track('export_design', { format, quality, ...properties });
   }
 
   trackGeneration(prompt: string, mode: string) {

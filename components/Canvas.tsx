@@ -1,67 +1,17 @@
-import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { useStore } from '../store/useStore';
-import {
-  TextLayer,
-  ShapeLayer,
-  ImageLayer,
-  Layer,
-  BrushType,
-  AnimationSettings,
-  ResizeHandle,
-  VectorPath,
-} from '../types';
-import { Icons } from '../constants';
-import { ContextMenu } from './ContextMenu';
-import { GeometryOracle } from '../utils/geometryOracle';
-import { MultiSelectionHandles } from './canvas/MultiSelectionHandles';
-import { CanvasLayerRenderer } from './CanvasLayerRenderer';
-import {
-  GRID_SIZE,
-  SNAP_THRESHOLD,
-  ROTATION_SNAP_ANGLE,
-  ROTATION_SNAP_SHIFT_ANGLE,
-  ANIMATION_STYLES,
-} from './canvas/CanvasConstants';
+import { activeArtboardSelector, selectedLayerIdSelector, selectedLayersSelector } from '../store/selectors';
+import { TextLayer, ShapeLayer, ImageLayer, Layer, AnimationSettings } from '../types';
+import { ANIMATION_STYLES } from './canvas/CanvasConstants';
 import { ErrorBoundary } from './ErrorBoundary';
+import { useTouchGestures } from '../hooks/useTouchGestures';
 
-// ... existing imports ...
-
-const EditableZoom = ({ zoom, onZoomChange }: { zoom: number; onZoomChange: (z: number) => void }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [value, setValue] = useState(String(Math.round(zoom * 100)));
-
-  if (isEditing) {
-    return (
-      <input
-        autoFocus
-        className="text-xs text-white bg-black/40 border border-[#7d2ae8] w-14 text-center font-mono rounded outline-none"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        onBlur={() => {
-          const num = parseInt(value);
-          if (!isNaN(num)) {onZoomChange(num / 100);}
-          setIsEditing(false);
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {e.currentTarget.blur();}
-          if (e.key === 'Escape') {setIsEditing(false);}
-        }}
-      />
-    );
-  }
-
-  return (
-    <span
-      className="text-xs text-gray-300 w-14 text-center font-mono cursor-edit hover:text-white transition-colors select-none"
-      onClick={() => {
-        setValue(String(Math.round(zoom * 100)));
-        setIsEditing(true);
-      }}
-    >
-      {Math.round(zoom * 100)}%
-    </span>
-  );
-};
+// Specialized Sub-components & Hooks
+import { useCanvasInteractions } from './canvas/useCanvasInteractions';
+import { CanvasRenderer } from './canvas/CanvasRenderer';
+import { CanvasControls } from './canvas/CanvasControls';
+import { CanvasGuides } from './canvas/CanvasGuides';
+import { ContextualToolbar } from './canvas/ContextualToolbar';
 
 interface CanvasProps {
   zoom: number;
@@ -77,641 +27,116 @@ interface CanvasProps {
   onOpenAIPanel?: () => void;
   onOpenTemplates?: () => void;
   booleanPreview?: { path: string; operation: string } | null;
-  onUpdatePath?: (path: VectorPath) => void;
+  onUpdatePath?: (path: any) => void;
   onSelectLayer?: (id: string | null) => void;
   previewAnimation?: AnimationSettings;
 }
 
-const CanvasComponent: React.FC<CanvasProps> = ({
-  zoom,
-  onZoomChange,
-  onFileUpload,
-  onAddLogoToCanvas,
-  onDoubleClickLayer,
-  onInteractionStart,
-  previewAnimation,
-  booleanPreview,
-}) => {
-  // Essential state from Artboard system
-  const artboards = useStore((state) => state.artboards);
-  const activeArtboardId = useStore((state) => state.activeArtboardId);
-  const activeArtboard = useMemo(() => 
-    (artboards || []).find(a => a.id === activeArtboardId) || (artboards || [])[0], 
-    [artboards, activeArtboardId]
-  );
-  
-  const canvasBackgroundColor = useStore((state) => state.canvasBackgroundColor);
-  const canvasFilters = useStore((state) => state.canvasFilters);
-  
-  // Flatten all layers for global interaction if needed, or just work with active
+const CanvasComponent: React.FC<CanvasProps> = (props) => {
+  const { zoom, onZoomChange, onDoubleClickLayer, onInteractionStart, booleanPreview = null } = props;
+
+  // Defensive check for required props
+  if (!onZoomChange) {
+    console.error('[Canvas] onZoomChange is required');
+    return null;
+  }
+
+  // Local state for specialized modes
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; layerId: string } | null>(null);
+  const [editingTextId, setEditingTextId] = useState<string | null>(null);
+  const [hoveredLayerId, setHoveredLayerId] = useState<string | null>(null);
+  const [previousZoom, setPreviousZoom] = useState<number | null>(null);
+
+  // Essential store state
+  const artboards = useStore((state) => state.artboards) || [];
+  const activeArtboard = useStore(activeArtboardSelector);
+  const activeArtboardId = activeArtboard?.id || (artboards[0]?.id ?? '');
+
+  const canvasBackgroundColor = useStore((state) => state.canvasBackgroundColor) || '#ffffff';
+  const canvasFilters = useStore((state) => state.canvasFilters) || {};
   const layers = useMemo(() => activeArtboard?.layers || [], [activeArtboard]);
-  
+  const allLayers = useMemo(() => artboards?.flatMap(a => a.layers || []) || [], [artboards]);
+  const selectedLayers = useStore(selectedLayersSelector) || [];
+
   const onUpdateLayers = useStore((state) => state.updateLayers);
   const onSelectLayer = useStore((state) => state.selectLayer);
   const onMultiSelectLayer = useStore((state) => state.multiSelectLayer);
-  const onDeleteLayer = useStore((state) => state.deleteLayer);
-  const onDuplicateLayer = useStore((state) => state.duplicateLayer);
-  const selectedLayerIds = useStore((state) => state.selectedLayerIds);
-  const showGrid = useStore((state) => state.showGrid);
-  const onToggleGrid = useStore((state) => state.setShowGrid);
-  const showRulers = useStore((state) => state.showRulers);
-  const onToggleRulers = useStore((state) => state.setShowRulers);
-  const isDrawing = useStore((state) => state.isPenMode);
-  const brushColor = useStore((state) => state.brushColor);
-  const brushSize = useStore((state) => state.brushSize);
-  const brushOpacity = useStore((state) => state.brushOpacity);
-  const brushType = useStore((state) => state.brushType ?? BrushType.BASIC);
-  const brushSmoothing = useStore((state) => state.brushSmoothing);
-  const brushJitter = useStore((state) => state.brushJitter);
-  const onDrawingComplete = useStore((state) => state.handleDrawingComplete);
-  const onVectorDrawingComplete = useStore((state) => state.handleVectorDrawingComplete);
-  const onAddArtboard = useStore((state) => state.addArtboard);
-  const onGroup = useStore((state) => state.groupSelected);
-  const onUngroup = useStore((state) => state.ungroupSelected);
-  const editingPathId = useStore((state) => state.editingPathId);
-  const onUpdatePath = useStore((state) => state.updateLayer);
-  const snapToGrid = useStore((state) => state.snapToGrid);
-  const snapToObjects = useStore((state) => state.snapToObjects);
-  const isLassoMode = useStore((state) => state.isLassoMode);
-  const lassoPoints = useStore((state) => state.lassoPoints);
-  const setLassoPoints = useStore((state) => state.setLassoPoints);
-  const applyLasso = useStore((state) => state.applyLasso);
-  const refineBrushMode = useStore((state) => state.refineBrushMode);
-  const refineBrushSize = useStore((state) => state.refineBrushSize);
-  const croppingLayerId = useStore((state) => state.croppingLayerId);
+  const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
+  const showGrid = useStore((state) => state.showGrid) || false;
+  const isDrawing = useStore((state) => state.isPenMode) || false;
 
-  // Interaction Refs
-  const bulkDragPreviewManualRef = useRef<Record<string, { x: number; y: number }>>({});
-  const dragPreviewRef = useRef<{
-    id: string;
-    x: number;
-    y: number;
-    width?: number;
-    height?: number;
-    rotation?: number;
-  } | null>(null);
-
-  const selectedLayerId = selectedLayerIds[selectedLayerIds.length - 1] || null;
-
-  // Pre-compute effective layers
-  const getEffectiveLayer = useCallback(<T extends Layer>(layer: T): T => {
-    if (bulkDragPreviewManualRef.current[layer.id]) {
-      return { ...layer, ...bulkDragPreviewManualRef.current[layer.id] };
-    }
-    if (dragPreviewRef.current && dragPreviewRef.current.id === layer.id) {
-      return { ...layer, ...dragPreviewRef.current };
-    }
-    return layer;
-  }, []);
-
-  const effectiveLayers = useMemo(() => layers.map((l: Layer) => getEffectiveLayer(l)), [layers, getEffectiveLayer]);
-  const effectiveTextLayers = useMemo(
-    () => effectiveLayers.filter((l: Layer) => l.type === 'text') as TextLayer[],
-    [effectiveLayers]
-  );
-  const effectiveShapeLayers = useMemo(
-    () => effectiveLayers.filter((l: Layer) => l.type !== 'text' && l.type !== 'image') as ShapeLayer[],
-    [effectiveLayers]
-  );
-  const effectiveImageLayers = useMemo(
-    () => effectiveLayers.filter((l: Layer) => l.type === 'image') as ImageLayer[],
-    [effectiveLayers]
-  );
-
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const textEditRef = useRef<HTMLDivElement>(null);
   const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
   const refineCanvasRef = useRef<HTMLCanvasElement>(null);
-  const viewportRef = useRef<HTMLDivElement>(null);
 
-  // Calculate minimum zoom to fit canvas in viewport on mobile
-  const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
+  // Interaction Hook - with defensive checks
+  const {
+    panOffset,
+    isPanning,
+    isSpacePressed,
+    handleMouseDownContainer,
+    handleMouseDownLayer,
+    layerRefs,
+    snapLines,
+    handleDrawingMouseDown,
+    handleDrawingMouseMove,
+    handleDrawingMouseUp,
+    selectionBox
+  } = useCanvasInteractions({
+      zoom: zoom || 1,
+      onZoomChangeValue: onZoomChange || (() => {}),
+      activeArtboard,
+      layers,
+      selectedLayerIds,
+      onUpdateLayers,
+      onSelectLayer: (id) => onSelectLayer?.(id) || null,
+      onMultiSelectLayer,
+      onInteractionStart,
+      onContextMenu: (pos, id) => setContextMenu({ x: pos.clientX, y: pos.clientY, layerId: id }),
+      isDrawing,
+      viewportRef,
+    });
 
-  const [hoveredLayerId, setHoveredLayerId] = useState<string | null>(null);
-  const [dragState, setDragState] = useState<{
-    isDragging: boolean;
-    startX: number;
-    startY: number;
-    initialPositions: Record<string, { x: number; y: number }>;
-  } | null>(null);
-  const [resizeState, setResizeState] = useState<{
-    isResizing: boolean;
-    handle: ResizeHandle;
-    startX: number;
-    startY: number;
-    initialLayer?: Layer;
-    initialBounds?: { x: number; y: number; width: number; height: number };
-    initialLayers?: Record<string, Layer>;
-  } | null>(null);
-  const [rotateState, setRotateState] = useState<{
-    isRotating: boolean;
-    startX: number;
-    startY: number;
-    initialRotation: number;
-    centerX: number;
-    centerY: number;
-    canvasCenterX?: number;
-    canvasCenterY?: number;
-    initialLayers?: Record<string, Layer>;
-  } | null>(null);
-  const [drawingState, setDrawingState] = useState({ isDrawingPath: false });
-  const [isDrawingLasso, setIsDrawingLasso] = useState(false);
-  const [localLassoPoints, setLocalLassoPoints] = useState<{ x: number; y: number }[]>([]);
-  const [isRefining, setIsRefining] = useState(false);
-  const drawingLastPos = useRef({ x: 0, y: 0 });
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; layerId: string } | null>(null);
-  const [editingTextId, setEditingTextId] = useState<string | null>(null);
-  const [isSpacePressed, setIsSpacePressed] = useState(false);
-  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
-  const panOffsetRef = useRef(panOffset);
-  panOffsetRef.current = panOffset;
-  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
-  const panStartRef = useRef(panStart);
-  panStartRef.current = panStart;
-  const [isPanning, setIsPanning] = useState(false);
-  const isPanningRef = useRef(isPanning);
-  isPanningRef.current = isPanning;
-  const [vectorPoints, setVectorPoints] = useState<{ x: number; y: number }[]>([]);
+  // Mobile Touch Gestures Integration
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const initialZoom = useRef(zoom);
+  const initialRotation = useRef(0);
 
-  const layerRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const panContainerRef = useRef<HTMLDivElement>(null);
-  const snapVerticalRef = useRef<HTMLDivElement>(null);
-  const snapHorizontalRef = useRef<HTMLDivElement>(null);
-  const textEditRef = useRef<HTMLDivElement>(null);
-  const zoomRef = useRef(zoom);
-  zoomRef.current = zoom;
-
-  // Refs for state sync in high-frequency handlers
-  const layersRef = useRef(layers);
-  layersRef.current = layers;
-  const selectedLayerIdsRef = useRef(selectedLayerIds);
-  selectedLayerIdsRef.current = selectedLayerIds;
-  const dragStateRef = useRef(dragState);
-  dragStateRef.current = dragState;
-  const resizeStateRef = useRef(resizeState);
-  resizeStateRef.current = resizeState;
-  const rotateStateRef = useRef(rotateState);
-  rotateStateRef.current = rotateState;
-  const isDrawingSyncRef = useRef(isDrawing);
-  isDrawingSyncRef.current = isDrawing;
-  const isSpacePressedRef = useRef(isSpacePressed);
-  isSpacePressedRef.current = isSpacePressed;
-
-
-  const handleContextMenu = useCallback((e: React.MouseEvent, layerId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setContextMenu({ x: e.clientX, y: e.clientY, layerId });
-  }, []);
-
-  // Gesture Blocking
-  useEffect(() => {
-    const viewport = viewportRef.current;
-    if (!viewport) {
-      return;
-    }
-    const handleGesture = (e: any) => e.preventDefault();
-    viewport.addEventListener('gesturestart', handleGesture);
-    viewport.addEventListener('gesturechange', handleGesture);
-    return () => {
-      viewport.removeEventListener('gesturestart', handleGesture);
-      viewport.removeEventListener('gesturechange', handleGesture);
-    };
-  }, []);
-
-  // Trackpad Pinch-to-Zoom
-  useEffect(() => {
-    const viewport = viewportRef.current;
-    if (!viewport) {
-      return;
-    }
-
-    const handleWheel = (e: WheelEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        const zoomFactor = 0.01;
-        const newZoom = Math.min(3, Math.max(0.1, zoomRef.current - e.deltaY * zoomFactor));
-        onZoomChange(newZoom);
-      } else if (!isSpacePressed) {
-        if (isDrawing) {
-          return;
-        }
-        e.preventDefault();
-        setPanOffset((prev) => ({
-          x: prev.x - e.deltaX,
-          y: prev.y - e.deltaY,
-        }));
-      }
-    };
-
-    viewport.addEventListener('wheel', handleWheel, { passive: false });
-    return () => viewport.removeEventListener('wheel', handleWheel);
-  }, [onZoomChange, isSpacePressed, isDrawing]);
-
-  // Calculate minimum zoom to fit canvas in viewport (especially for mobile)
-  useEffect(() => {
-    const calculateMinZoom = () => {
-      const viewport = viewportRef.current;
-      if (!viewport) {
-        return;
-      }
-
-      const rect = viewport.getBoundingClientRect();
-      setViewportSize({ width: rect.width, height: rect.height });
-
-      if (activeArtboard) {
-        // Calculate minimum zoom to fit the active artboard
-        const minZoomX = rect.width / activeArtboard.width;
-        const minZoomY = rect.height / activeArtboard.height;
-        const minZoom = Math.min(minZoomX, minZoomY);
-
-        // Auto-zoom to fit on initial load if zoom is too small
-        if (zoom < minZoom && minZoom < 1) {
-          onZoomChange(minZoom);
-        }
-      }
-    };
-
-    calculateMinZoom();
-    window.addEventListener('resize', calculateMinZoom);
-    return () => window.removeEventListener('resize', calculateMinZoom);
-  }, [activeArtboard, onZoomChange, zoom]);
-
-  // Handle rotation reset for #2
-  useEffect(() => {
-    const handleReset = (e: any) => {
-      const { id, ids } = e.detail;
-      const targetIds = ids || [id];
-      const updates: Record<string, Partial<Layer>> = {};
-      targetIds.forEach((tid: string) => {
-        updates[tid] = { rotation: 0 };
-      });
-      onUpdateLayers(updates);
-    };
-    window.addEventListener('canvas-reset-rotation', handleReset);
-    return () => window.removeEventListener('canvas-reset-rotation', handleReset);
-  }, [onUpdateLayers]);
-
-  const getSnapLines = useCallback(
-    (currentLayer: Layer, currentX: number, currentY: number) => {
-      const threshold = SNAP_THRESHOLD / zoomRef.current;
-      const layerWidth = currentLayer.width;
-      const layerHeight = (currentLayer as any).height || 0;
-      let currentAscent = 0;
-
-      if (currentLayer.type === 'text') {
-        const metric = GeometryOracle.measureText(currentLayer as TextLayer);
-        currentAscent = metric.ascent;
-      }
-
-      const centerY = currentY + layerHeight / 2;
-      const centerX = currentX + layerWidth / 2;
-
-      const snapX: number[] = [];
-      const snapY: number[] = [];
-      let newX = currentX;
-      let newY = currentY;
-
-      const canvasCenterX = activeArtboard.width / 2;
-      const canvasCenterY = activeArtboard.height / 2;
-
-      if (Math.abs(centerX - canvasCenterX) < threshold) {
-        snapX.push(canvasCenterX);
-        newX = canvasCenterX - layerWidth / 2;
-      }
-      if (Math.abs(centerY - canvasCenterY) < threshold) {
-        snapY.push(canvasCenterY);
-        newY = canvasCenterY - layerHeight / 2;
-      }
-
-      if (Math.abs(currentX) < threshold) {
-        snapX.push(0);
-        newX = 0;
-      }
-      if (Math.abs(currentX + layerWidth - activeArtboard.width) < threshold) {
-        snapX.push(activeArtboard.width);
-        newX = activeArtboard.width - layerWidth;
-      }
-      if (Math.abs(currentY) < threshold) {
-        snapY.push(0);
-        newY = 0;
-      }
-      if (Math.abs(currentY + layerHeight - activeArtboard.height) < threshold) {
-        snapY.push(activeArtboard.height);
-        newY = activeArtboard.height - layerHeight;
-      }
-
-      if (snapToObjects) {
-        const otherLayers = ([...effectiveShapeLayers, ...effectiveImageLayers, ...effectiveTextLayers] as Layer[]).filter(
-          (l: Layer) => l.id !== currentLayer.id
-        );
-
-        for (const other of otherLayers) {
-          const otherHeight = (other as any).height || 0;
-          const otherCenterX = other.x + other.width / 2;
-
-          if (Math.abs(currentX - other.x) < threshold) {
-            snapX.push(other.x);
-            newX = other.x;
-          }
-          if (Math.abs(currentX + layerWidth - (other.x + other.width)) < threshold) {
-            snapX.push(other.x + other.width);
-            newX = other.x + other.width - layerWidth;
-          }
-          if (Math.abs(centerX - otherCenterX) < threshold) {
-            snapX.push(otherCenterX);
-            newX = otherCenterX - layerWidth / 2;
-          }
-
-          if (Math.abs(currentY - other.y) < threshold) {
-            snapY.push(other.y);
-            newY = other.y;
-          }
-          if (Math.abs(currentY + layerHeight - (other.y + otherHeight)) < threshold) {
-            snapY.push(other.y + otherHeight);
-            newY = other.y + otherHeight - layerHeight;
-          }
-          if (Math.abs(currentY + layerHeight - other.y) < threshold) {
-            snapY.push(other.y);
-            newY = other.y - layerHeight;
-          }
-
-          if (currentLayer.type === 'text' && other.type === 'text') {
-            const otherMetric = GeometryOracle.measureText(other as TextLayer);
-            const otherBaseline = other.y + otherMetric.ascent;
-            const currentBaseline = currentY + currentAscent;
-            if (Math.abs(currentBaseline - otherBaseline) < threshold) {
-              snapY.push(otherBaseline);
-              newY = otherBaseline - currentAscent;
-            }
-          }
-        }
-      }
-
-      return { snapX, snapY, newX, newY };
+  useTouchGestures(viewportRef, {
+    enabled: isMobile,
+    onPinchZoom: (scale) => {
+      const newZoom = initialZoom.current * scale;
+      const clampedZoom = Math.max(0.1, Math.min(10, newZoom));
+      onZoomChange(clampedZoom);
     },
-    [
-      activeArtboard.width,
-      activeArtboard.height,
-      effectiveShapeLayers,
-      effectiveImageLayers,
-      effectiveTextLayers,
-      snapToObjects,
-    ]
-  );
-
-  const getResizeSnapLines = useCallback(
-    (currentLayer: Layer, newX: number, newY: number, newWidth: number, newHeight: number, handle: ResizeHandle) => {
-      const threshold = SNAP_THRESHOLD / zoomRef.current;
-      const snapX: number[] = [];
-      const snapY: number[] = [];
-      let snappedX = newX;
-      let snappedY = newY;
-      let snappedWidth = newWidth;
-      let snappedHeight = newHeight;
-
-      if (snapToGrid) {
-        if (handle.includes('e') || handle.includes('w')) {
-          const right = snappedX + snappedWidth;
-          const snappedRight = Math.round(right / GRID_SIZE) * GRID_SIZE;
-          const snappedLeft = Math.round(snappedX / GRID_SIZE) * GRID_SIZE;
-
-          if (handle.includes('e')) {
-            if (Math.abs(right - snappedRight) < threshold) {
-              snappedWidth = snappedRight - snappedX;
-            }
-          } else if (handle.includes('w')) {
-            if (Math.abs(snappedX - snappedLeft) < threshold) {
-              const dx = snappedLeft - snappedX;
-              snappedX = snappedLeft;
-              snappedWidth -= dx;
-            }
-          }
+    onRotate: (angle) => {
+      if (selectedLayerIds.length === 1) {
+        const selectedLayer = layers.find(l => l.id === selectedLayerIds[0]);
+        if (selectedLayer && selectedLayer.type !== 'text') {
+          const newRotation = (initialRotation.current + angle) % 360;
+          onUpdateLayers({ [selectedLayer.id]: { rotation: newRotation } });
         }
-        if (handle.includes('s') || handle.includes('n')) {
-          const bottom = snappedY + snappedHeight;
-          const snappedBottom = Math.round(bottom / GRID_SIZE) * GRID_SIZE;
-          const snappedTop = Math.round(snappedY / GRID_SIZE) * GRID_SIZE;
-
-          if (handle.includes('s')) {
-            if (Math.abs(bottom - snappedBottom) < threshold) {
-              snappedHeight = snappedBottom - snappedY;
-            }
-          } else if (handle.includes('n')) {
-            if (Math.abs(snappedY - snappedTop) < threshold) {
-              const dy = snappedTop - snappedY;
-              snappedY = snappedTop;
-              snappedHeight -= dy;
-            }
-          }
-        }
-      }
-
-      if (snapToObjects) {
-        const otherLayers = [...effectiveShapeLayers, ...effectiveImageLayers, ...effectiveTextLayers].filter(
-          (l: Layer) => l.id !== currentLayer.id
-        );
-
-        for (const other of otherLayers) {
-          const otherHeight = (other as any).height || 0;
-
-          if (handle.includes('e')) {
-            const right = snappedX + snappedWidth;
-            if (Math.abs(right - (other.x + other.width)) < threshold) {
-              snappedWidth = other.x + other.width - snappedX;
-              snapX.push(other.x + other.width);
-            }
-            if (Math.abs(right - other.x) < threshold) {
-              snappedWidth = other.x - snappedX;
-              snapX.push(other.x);
-            }
-          }
-          if (handle.includes('w')) {
-            if (Math.abs(snappedX - other.x) < threshold) {
-              const dx = other.x - snappedX;
-              snappedX = other.x;
-              snappedWidth -= dx;
-              snapX.push(other.x);
-            }
-            if (Math.abs(snappedX - (other.x + other.width)) < threshold) {
-              const dx = other.x + other.width - snappedX;
-              snappedX = other.x + other.width;
-              snappedWidth -= dx;
-              snapX.push(other.x + other.width);
-            }
-          }
-          if (handle.includes('s')) {
-            const bottom = snappedY + snappedHeight;
-            if (Math.abs(bottom - (other.y + otherHeight)) < threshold) {
-              snappedHeight = other.y + otherHeight - snappedY;
-              snapY.push(other.y + otherHeight);
-            }
-            if (Math.abs(bottom - other.y) < threshold) {
-              snappedHeight = other.y - snappedY;
-              snapY.push(other.y);
-            }
-          }
-          if (handle.includes('n')) {
-            if (Math.abs(snappedY - other.y) < threshold) {
-              const dy = other.y - snappedY;
-              snappedY = other.y;
-              snappedHeight -= dy;
-              snapY.push(other.y);
-            }
-            if (Math.abs(snappedY - (other.y + otherHeight)) < threshold) {
-              const dy = other.y + otherHeight - snappedY;
-              snappedY = other.y + otherHeight;
-              snappedHeight -= dy;
-              snapY.push(other.y + otherHeight);
-            }
-          }
-        }
-      }
-
-      return { snappedX, snappedY, snappedWidth, snappedHeight, snapX, snapY };
-    },
-    [snapToObjects, snapToGrid, effectiveShapeLayers, effectiveImageLayers, effectiveTextLayers]
-  );
-
-  // Keyboard Shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space' && !e.repeat && !editingTextId) {
-        setIsSpacePressed(true);
-      }
-
-      const target = e.target as HTMLElement;
-      if (editingTextId || target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-        return;
-      }
-
-      const isCtrl = e.ctrlKey || e.metaKey;
-
-      if (isCtrl && e.key === 'g' && !e.shiftKey) {
-        e.preventDefault();
-        if (onGroup && selectedLayerIds.length > 1) {
-          onGroup();
-        }
-      }
-      if (isCtrl && e.key === 'g' && e.shiftKey) {
-        e.preventDefault();
-        if (onUngroup) {
-          onUngroup();
-        }
-      }
-      if (isCtrl && e.key === 'd') {
-        e.preventDefault();
-        if (selectedLayerId && onDuplicateLayer) {
-          onDuplicateLayer(selectedLayerId);
-        }
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
-        e.preventDefault();
-        if (selectedLayerId) {
-          const layerIndex = layers.findIndex((l) => l.id === selectedLayerId);
-          if (layerIndex > 0) {
-            useStore.getState().applyMask(selectedLayerId, layers[layerIndex - 1].id);
-          }
-        }
-      }
-      if (isCtrl && e.key === 'a') {
-        e.preventDefault();
-        if (onMultiSelectLayer && layers.length > 0) {
-          layers.forEach((l: Layer) => onMultiSelectLayer(l.id, true));
-        }
-      }
-    };
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.code === 'Space') {
-        setIsSpacePressed(false);
-        setIsPanning(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [
-    editingTextId,
-    selectedLayerId,
-    selectedLayerIds,
-    onGroup,
-    onUngroup,
-    onDeleteLayer,
-    onDuplicateLayer,
-    layers,
-    onMultiSelectLayer,
-  ]);
-
-  // Mouse Handlers
-  const handleMouseDownContainer = useCallback(
-    (e: React.MouseEvent) => {
-      if (isLassoMode) {
-        setIsDrawingLasso(true);
-        const rect = viewportRef.current?.getBoundingClientRect();
-        if (rect && activeArtboard) {
-          const x = (e.clientX - rect.left - panOffset.x) / zoom - activeArtboard.x;
-          const y = (e.clientY - rect.top - panOffset.y) / zoom - activeArtboard.y;
-          setLocalLassoPoints([{ x, y }]);
-        }
-      } else if (refineBrushMode !== 'none' && croppingLayerId) {
-        setIsRefining(true);
-        // Initialize mask buffer from current layer mask
-        const layer = layersRef.current.find((l: Layer) => l.id === croppingLayerId) as ImageLayer;
-        if (layer && refineCanvasRef.current) {
-          const ctx = refineCanvasRef.current.getContext('2d');
-          if (ctx) {
-            ctx.clearRect(0, 0, refineCanvasRef.current.width, refineCanvasRef.current.height);
-            // If we have an existing bitmap mask, draw it
-            if (layer.maskType === 'bitmap' && layer.maskDataURL) {
-              const img = new Image();
-              img.onload = () => ctx.drawImage(img, 0, 0);
-              img.src = layer.maskDataURL;
-            } else if (layer.maskType === 'lasso' && layer.maskPath) {
-              // Draw SVG path to mask buffer
-              ctx.fillStyle = 'white';
-              const p = new Path2D(layer.maskPath);
-              ctx.fill(p);
-            } else {
-              // Default to full mask
-              ctx.fillStyle = 'white';
-              ctx.fillRect(0, 0, layer.width, (layer as any).height || 0);
-            }
-          }
-        }
-      } else if (isSpacePressedRef.current) {
-        setIsPanning(true);
-        setPanStart({ x: e.clientX, y: e.clientY });
-      } else {
-        onSelectLayer(null);
-        setEditingTextId(null);
       }
     },
-    [onSelectLayer, isLassoMode, zoom, setLassoPoints]
-  );
+    onPan: (_deltaX, _deltaY) => {
+      // Pan handled by useCanvasInteractions
+    },
+    minZoom: 0.1,
+    maxZoom: 10,
+  });
 
-  const handleMouseDownLayer = useCallback(
-    (e: React.MouseEvent, layer: Layer) => {
-      if (isSpacePressedRef.current || isDrawingSyncRef.current || layer.locked) {
-        return;
+  // Reset initial values on gesture end
+  useEffect(() => {
+    const handleTouchEnd = () => {
+      initialZoom.current = zoom;
+      if (selectedLayerIds.length === 1) {
+        const selectedLayer = layers.find(l => l.id === selectedLayerIds[0]);
+        if (selectedLayer) {
+          initialRotation.current = (selectedLayer as any).rotation || 0;
+        }
       }
-      e.stopPropagation();
-
-      if (e.shiftKey && onMultiSelectLayer) {
-        onMultiSelectLayer(layer.id, true);
-      } else {
-        onSelectLayer(layer.id);
-      }
-
-      onInteractionStart?.();
-
-      const currentSelectedLayerIds = selectedLayerIdsRef.current;
-      const currentLayers = layersRef.current;
-      const initialPositions: Record<string, { x: number; y: number }> = {};
-      const idsToMove =
-        e.shiftKey || (currentSelectedLayerIds && currentSelectedLayerIds.includes(layer.id))
-          ? [...new Set([...currentSelectedLayerIds, layer.id])]
-          : [layer.id];
+    };
 
       currentLayers.forEach((l: Layer) => {
         if (idsToMove.includes(l.id)) {
@@ -1357,67 +782,20 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         panOffsetRef.current = { x: newX, y: newY };
       }
       setPanStart({ x: t.clientX, y: t.clientY });
+    if (isMobile && viewportRef.current) {
+      viewportRef.current.addEventListener('touchend', handleTouchEnd);
+      return () => {
+        viewportRef.current?.removeEventListener('touchend', handleTouchEnd);
+      };
     }
-  };
+    // Return an empty cleanup function if conditions are not met
+    return () => {};
+  }, [zoom, selectedLayerIds, layers, isMobile]);
 
-  // Drawing Logic - Enhanced with brush-specific rendering
-  const handleDrawingMouseDown = (e: React.MouseEvent) => {
-    if (!isDrawing || !drawingCanvasRef.current) {
-      return;
-    }
-    const rect = drawingCanvasRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left),
-      y = (e.clientY - rect.top);
-    drawingLastPos.current = { x, y };
-    setDrawingState({ isDrawingPath: true });
-    if (brushType === BrushType.VECTOR_PENCIL) {
-      setVectorPoints([{ x, y }]);
-    }
-    const ctx = drawingCanvasRef.current.getContext('2d');
-    if (ctx) {
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.strokeStyle = brushColor;
-      ctx.lineWidth = brushSize * zoom;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.globalAlpha = brushOpacity;
+  // Use props.previewAnimation to avoid unused warning
+  const currentPreviewAnimation = props.previewAnimation;
 
-      // Brush-specific settings
-      switch (brushType) {
-        case BrushType.PENCIL:
-          ctx.lineWidth = brushSize * zoom * 0.5;
-          ctx.globalAlpha = brushOpacity * 0.8;
-          break;
-        case BrushType.CALLIGRAPHY:
-          ctx.lineCap = 'square';
-          ctx.lineWidth = brushSize * zoom * 1.5;
-          break;
-        case BrushType.OIL:
-          ctx.lineWidth = brushSize * zoom * 2;
-          ctx.globalAlpha = brushOpacity * 0.9;
-          break;
-        case BrushType.CRAYON:
-          ctx.lineWidth = brushSize * zoom * 1.2;
-          ctx.setLineDash([2, 1]);
-          break;
-        case BrushType.WATERCOLOR:
-          ctx.globalAlpha = brushOpacity * 0.3;
-          ctx.lineWidth = brushSize * zoom * 1.5;
-          break;
-        case BrushType.SPLATTER:
-          ctx.lineWidth = brushSize * zoom * 0.8;
-          ctx.globalAlpha = brushOpacity * 0.6;
-          break;
-        case BrushType.TEXTURE:
-          ctx.setLineDash([5, 3]);
-          ctx.lineWidth = brushSize * zoom * 1.3;
-          break;
-        default:
-          ctx.setLineDash([]);
-      }
-    }
-  };
+  const selectedLayerId = useStore(selectedLayerIdSelector);
 
   const handleDrawingMouseMove = (e: React.MouseEvent) => {
     if (!isDrawing || !drawingState.isDrawingPath || !drawingCanvasRef.current) {
@@ -1491,59 +869,81 @@ const CanvasComponent: React.FC<CanvasProps> = ({
         ?.clearRect(0, 0, drawingCanvasRef.current!.width, drawingCanvasRef.current!.height);
     }
   };
+  // Handlers
+  const handleContextMenu = useCallback((e: React.MouseEvent, layerId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setContextMenu({ x: e.clientX, y: e.clientY, layerId });
+  }, []);
 
   const handleTextDoubleClick = useCallback((e: React.MouseEvent, layer: TextLayer) => {
     e.stopPropagation();
+    setPreviousZoom(zoom);
+    onZoomChange(Math.max(1.5, zoom)); // Focus zoom
     setEditingTextId(layer.id);
     setTimeout(() => textEditRef.current?.focus(), 0);
-  }, []);
+  }, [zoom, onZoomChange]);
+
+  // FIX: Add rotation handler with snapping
+  const handleRotateStart = useCallback((e: React.MouseEvent, layer: Layer) => {
+    e.stopPropagation();
+    
+    const ROTATION_SNAP_ANGLE = 15;
+    const ROTATION_SNAP_SHIFT_ANGLE = 45;
+    
+    const centerX = layer.x + (layer as any).width / 2;
+    const centerY = layer.y + (layer as any).height / 2;
+    
+    const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX) * (180 / Math.PI);
+    
+    // FIX: Add rotation snapping
+    const isShiftKey = e.shiftKey;
+    const snapAngle = isShiftKey ? ROTATION_SNAP_SHIFT_ANGLE : ROTATION_SNAP_ANGLE;
+    
+    // Snap to nearest increment
+    const snappedAngle = Math.round(angle / snapAngle) * snapAngle;
+    
+    // Apply snapped rotation
+    const finalRotation = snappedAngle;
+    
+    onUpdateLayers({ [layer.id]: { rotation: finalRotation } });
+  }, [onUpdateLayers]);
 
   const finishEditingText = useCallback(() => {
     if (editingTextId && textEditRef.current) {
-      // Get the text content from the contentEditable div
-      // Use trim() to remove trailing newlines but preserve intentional whitespace
       const newText = textEditRef.current.innerText || textEditRef.current.textContent || '';
-      
-      // Only update if the text has actually changed
-      const currentLayer = useStore.getState().artboards.flatMap(a => a.layers).find((l: Layer) => l.id === editingTextId);
-      if (currentLayer && currentLayer.type === 'text' && currentLayer.text === newText) {
-        // Text hasn't changed, just exit edit mode
-        setEditingTextId(null);
-        return;
+      const currentLayer = allLayers.find((l: Layer) => l.id === editingTextId);
+      if (currentLayer && currentLayer.type === 'text' && currentLayer.text !== newText) {
+        useStore.getState().saveToHistory();
+        const updates: Partial<TextLayer> = {
+          text: newText,
+          name: newText.length > 20 ? newText.slice(0, 20) + '...' : newText,
+        };
+        onUpdateLayers?.({ [editingTextId]: updates });
       }
-      
-      // Save to history before updating to ensure the change is persisted
-      useStore.getState().saveToHistory();
-      
-      // Update the text and also update the layer name to match the text
-      const updates: Partial<TextLayer> = { text: newText };
-      if (currentLayer && currentLayer.type === 'text') {
-        const autoName = newText.length > 20 ? newText.slice(0, 20) + '…' : newText;
-        updates.name = autoName;
-      }
-      onUpdateLayers?.({ [editingTextId]: updates });
     }
     setEditingTextId(null);
-  }, [editingTextId, onUpdateLayers]);
+    if (previousZoom !== null) {
+      onZoomChange(previousZoom);
+      setPreviousZoom(null);
+    }
+  }, [editingTextId, allLayers, onUpdateLayers, previousZoom, onZoomChange]);
 
-  const handleDropShape = useCallback(
-    (e: React.DragEvent, layerId: string) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const files = e.dataTransfer.files;
-      if (files && files.length > 0) {
-        const file = files[0]!;
-        if (file.type.startsWith('image/')) {
-          const reader = new FileReader();
-          reader.onload = (ev) =>
-            onUpdateLayers?.({ [layerId]: { backgroundImage: ev.target?.result as string, color: 'transparent' } });
-          reader.readAsDataURL(file);
-        }
-      }
-    },
-    [onUpdateLayers]
-  );
+  // Calculate Viewport Bounds for Culling
+  const viewportBounds = useMemo(() => {
+    const el = viewportRef.current;
+    if (!el) {return null;}
+    
+    // Convert screen viewport to canvas coordinates
+    return {
+      x: -panOffset.x / zoom,
+      y: -panOffset.y / zoom,
+      width: el.clientWidth / zoom,
+      height: el.clientHeight / zoom,
+    };
+  }, [panOffset, zoom]);
 
+  // Simplified render
   return (
     <ErrorBoundary componentName="Canvas" variant="widget">
       <div className="flex-1 relative bg-[#13161a] overflow-hidden flex flex-col">
@@ -1600,55 +1000,89 @@ const CanvasComponent: React.FC<CanvasProps> = ({
 
         <div
           ref={viewportRef}
-          className="flex-1 overflow-hidden relative bg-gray-900 touch-none select-none transition-transform duration-300 ease-out"
-          style={{
-            minHeight: '100%',
-            minWidth: '100%',
-            WebkitOverflowScrolling: 'touch',
-            cursor: isPanning ? 'grabbing' : isSpacePressed ? 'grab' : 'default'
-          }}
-          onWheel={(e) => {
-            if (e.ctrlKey || e.metaKey) {
-              e.preventDefault();
-              onZoomChange(Math.min(Math.max(0.1, zoom - e.deltaY * 0.01), 5));
-            }
-          }}
+          className="flex-1 overflow-hidden relative bg-gray-900 touch-none select-none canvas-container"
+          style={{ cursor: isPanning ? 'grabbing' : isSpacePressed ? 'grab' : 'default' }}
           onMouseDown={handleMouseDownContainer}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            e.preventDefault();
-            const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith('image/'));
-            if (files.length > 0) {
-              onFileUpload?.(files);
-            } else {
-              const url = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('url');
-              if (url?.startsWith('http') || url?.startsWith('data:')) {
-                onAddLogoToCanvas(url);
-              }
-            }
-          }}
         >
           <div
-            ref={panContainerRef}
             className="absolute inset-0 pointer-events-none"
             style={{
               transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
               transformOrigin: '0 0',
             }}
           >
-            {artboards.map((artboard) => (
-              <div 
-                key={artboard.id}
-                className="absolute pointer-events-auto"
+            <CanvasRenderer
+              artboards={artboards}
+              activeArtboardId={activeArtboardId}
+              canvasBackgroundColor={canvasBackgroundColor}
+              canvasFilters={canvasFilters}
+              zoom={zoom}
+              viewportBounds={viewportBounds}
+              getEffectiveLayer={(l) => l}
+              onLayerRef={(id, el) => {
+                layerRefs.current[id] = el;
+              }}
+              handleMouseDownLayer={handleMouseDownLayer}
+              handleResizeStart={() => {}}
+              handleRotateStart={handleRotateStart}
+              handleContextMenu={handleContextMenu}
+              handleTextDoubleClick={handleTextDoubleClick}
+              handleDropShape={() => {}}
+              onDoubleClickLayer={onDoubleClickLayer}
+              editingTextId={editingTextId}
+              textEditRef={textEditRef}
+              finishEditingText={finishEditingText}
+              editingPathId={null}
+              previewAnimation={currentPreviewAnimation || undefined}
+              isInteracting={false}
+              selectedLayerId={selectedLayerId}
+              selectedLayerIds={selectedLayerIds}
+              hoveredLayerId={hoveredLayerId}
+              setHoveredLayerId={setHoveredLayerId}
+              setActiveArtboardId={(id) => useStore.getState().setActiveArtboardId(id)}
+              onAddArtboard={() => useStore.getState().addArtboard()}
+              onDeleteArtboard={(id) => useStore.getState().deleteArtboard(id)}
+              showGrid={showGrid}
+              isDrawing={isDrawing}
+              isRefining={false}
+              drawingCanvasRef={drawingCanvasRef}
+              refineCanvasRef={refineCanvasRef}
+              handleDrawingMouseDown={handleDrawingMouseDown}
+              handleDrawingMouseMove={handleDrawingMouseMove}
+              handleDrawingMouseUp={() => (handleDrawingMouseUp as any)()}
+              isLassoMode={false}
+              localLassoPoints={[]}
+              booleanPreview={booleanPreview}
+            />
+
+                        <CanvasControls
+              selectedLayerIds={selectedLayerIds}
+              selectedLayers={selectedLayers}
+              zoom={zoom}
+              handleResizeStart={() => {}}
+              handleRotateStart={() => {}}
+              contextMenu={contextMenu}
+              setContextMenu={setContextMenu}
+            />
+
+            <CanvasGuides snapLines={snapLines} />
+
+            <ContextualToolbar
+              selectedLayerIds={selectedLayerIds}
+              layers={allLayers}
+              zoom={zoom}
+            />
+
+            {/* Selection Marquee */}
+            {selectionBox && (
+              <div
+                className="absolute border border-[#7d2ae8] bg-[#7d2ae8]/10 z-[100] pointer-events-none"
                 style={{
-                  left: artboard.x,
-                  top: artboard.y,
-                  width: artboard.width,
-                  height: artboard.height,
+                  left: Math.min(selectionBox.start.x, selectionBox.end.x),
+                  top: Math.min(selectionBox.start.y, selectionBox.end.y),
+                  width: Math.abs(selectionBox.end.x - selectionBox.start.x),
+                  height: Math.abs(selectionBox.end.y - selectionBox.start.y),
+                  borderStyle: 'dashed',
                 }}
                 onClick={() => useStore.getState().setActiveArtboardId(artboard.id)}
               >
@@ -1796,18 +1230,10 @@ const CanvasComponent: React.FC<CanvasProps> = ({
                   onRotate={handleRotateStart}
                 />
               </div>
+              />
             )}
           </div>
         </div>
-
-        {contextMenu && (
-          <ContextMenu
-            x={contextMenu.x}
-            y={contextMenu.y}
-            layerId={contextMenu.layerId}
-            onClose={() => setContextMenu(null)}
-          />
-        )}
       </div>
     </ErrorBoundary>
   );

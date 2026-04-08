@@ -4,6 +4,8 @@ import { IconButton, Divider, CompactInput } from './ToolbarShared';
 import { FILTER_PRESETS } from './ToolbarConstants';
 import { ImageLayer } from '../../types';
 import { Dropdown } from '../Dropdown';
+import { useStore } from '../../store/useStore';
+import { NavTab } from '../../types';
 
 interface ImageToolsProps {
   layer: ImageLayer;
@@ -66,6 +68,16 @@ export const ImageTools = React.memo(
   }: ImageToolsProps) => {
     const filtersButtonRef = useRef<HTMLButtonElement>(null);
     const resizeButtonRef = useRef<HTMLButtonElement>(null);
+    const mockupButtonRef = useRef<HTMLButtonElement>(null);
+    const [showMockupQuickSelect, setShowMockupQuickSelect] = React.useState(false);
+    const setActiveTab = useStore((state) => state.setActiveTab);
+
+    const handleApplyMockup = () => {
+      // Select the current image layer before opening mockup panel
+      useStore.getState().selectLayer(layer.id);
+      setActiveTab(NavTab.MOCKUP);
+      setShowMockupQuickSelect(false);
+    };
 
     return (
       <div className="flex items-center gap-3 flex-nowrap">
@@ -210,6 +222,60 @@ export const ImageTools = React.memo(
         <IconButton onClick={() => onRemix && onRemix(layer.id)} title="Remix">
           <Icons.RefreshCw className="w-4 h-4 text-emerald-400" />
         </IconButton>
+
+        <Divider />
+
+        {/* Apply Mockup - Contextual Button */}
+        <div className="relative">
+          <button
+            ref={mockupButtonRef}
+            onClick={() => setShowMockupQuickSelect(!showMockupQuickSelect)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-white/10 bg-gradient-to-r from-[#7d2ae8]/20 to-[#00c4cc]/20 text-white hover:border-[#7d2ae8] transition-all shadow-lg shadow-purple-900/20"
+            title="Apply Mockup"
+          >
+            <Icons.Image className="w-4 h-4 text-[#7d2ae8]" />
+            <span className="uppercase tracking-wider">Mockup</span>
+          </button>
+          <Dropdown
+            anchorRef={mockupButtonRef}
+            isOpen={showMockupQuickSelect}
+            onClose={() => setShowMockupQuickSelect(false)}
+            align="left"
+          >
+            <div className="w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-4 animate-fadeIn backdrop-blur-xl">
+              <h4 className="text-[11px] font-bold text-white uppercase tracking-widest mb-3 flex items-center gap-2">
+                <Icons.Image className="w-4 h-4 text-[#7d2ae8]" />
+                Quick Mockups
+              </h4>
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                {[
+                  { id: 'tshirt_flat', name: 'T-Shirt', icon: '👕' },
+                  { id: 'mug', name: 'Coffee Mug', icon: '☕' },
+                  { id: 'iphone_mockup', name: 'iPhone', icon: '📱' },
+                  { id: 'macbook', name: 'MacBook', icon: '💻' },
+                  { id: 'tote_bag', name: 'Tote Bag', icon: '👜' },
+                  { id: 'poster_wall', name: 'Poster', icon: '🖼️' },
+                ].map((mockup) => (
+                  <button
+                    key={mockup.id}
+                    onClick={handleApplyMockup}
+                    className="p-2 bg-[#252627] hover:bg-[#7d2ae8]/20 border border-gray-700 hover:border-[#7d2ae8] rounded-lg transition-all text-left"
+                  >
+                    <span className="text-lg block mb-1">{mockup.icon}</span>
+                    <span className="text-[9px] font-bold text-gray-300">{mockup.name}</span>
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={handleApplyMockup}
+                className="w-full py-2 bg-[#7d2ae8] hover:bg-[#6c1fd1] text-white text-[10px] font-bold rounded-lg transition-all flex items-center justify-center gap-2"
+              >
+                <Icons.Grid className="w-3.5 h-3.5" />
+                View All 50+ Mockups
+              </button>
+            </div>
+          </Dropdown>
+        </div>
 
         <Divider />
 

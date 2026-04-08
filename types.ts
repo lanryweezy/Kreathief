@@ -43,6 +43,15 @@ export enum BrushType {
   SPLATTER = 'splatter',
   TEXTURE = 'texture',
   ERASER = 'eraser',
+  CUSTOM = 'custom',
+}
+
+export interface CustomBrush {
+  id: string;
+  name: string;
+  tipData: string; // Base64 sampled bitmap
+  size: number;
+  spacing: number;
 }
 
 export enum AspectRatio {
@@ -155,6 +164,8 @@ export interface LayerBase {
   name?: string;
   x: number; // Local to Artboard
   y: number; // Local to Artboard
+  width: number;
+  height: number;
   rotation: number;
   opacity: number;
   locked: boolean;
@@ -173,6 +184,7 @@ export interface LayerBase {
   rotateY?: number;
   isProcessing?: boolean;
   lockProportions?: boolean;
+  dirty?: boolean; // For rendering optimization: true if layer needs redraw
   // Group/Folder support
   isGroup?: boolean; // True if this is a group marker (folder)
   isExpanded?: boolean; // For groups: whether children are visible in layers panel
@@ -182,13 +194,16 @@ export interface LayerBase {
   overrides?: string[]; // Properties that are overridden from the Master
   // Auto-Layout
   autoLayout?: AutoLayoutSettings;
+  // Layout Constraints for Semantic Resizing
+  constraints?: {
+    horizontal: 'start' | 'end' | 'center' | 'scale' | 'both';
+    vertical: 'start' | 'end' | 'center' | 'scale' | 'both';
+  };
 }
 
 export interface TextLayer extends LayerBase {
   type: 'text';
   text: string;
-  width: number;
-  height: number;
   fontSize: number;
   fontWeight: string;
   fontStyle: 'normal' | 'italic';
@@ -282,8 +297,6 @@ export type ShapeType =
 
 export interface ShapeLayer extends LayerBase {
   type: ShapeType;
-  width: number;
-  height: number;
   color: string;
   cornerRadius: number;
   gradient?: Gradient;
@@ -298,13 +311,13 @@ export interface ShapeLayer extends LayerBase {
   backgroundGradient?: Gradient;
   flipX?: boolean;
   flipY?: boolean;
+  strokeProfile?: 'uniform' | 'taper-start' | 'taper-end' | 'taper-both';
+  pathEffects?: { roughen?: { amount: number }; zigzag?: { amplitude: number; frequency: number }; offset?: { distance: number } };
 }
 
 export interface ImageLayer extends LayerBase {
   type: 'image';
   src: string;
-  width: number;
-  height: number;
   flipX: boolean;
   flipY: boolean;
   cornerRadius?: number;
@@ -314,9 +327,28 @@ export interface ImageLayer extends LayerBase {
   maskPath?: string; // SVG path data for lasso cutouts
   maskDataURL?: string; // Base64 data for refined bitmap masks
   maskType?: 'none' | 'lasso' | 'ai' | 'bitmap';
+  altText?: string; // Accessibility alt text for exports and a11y
 }
 
-export type Layer = TextLayer | ImageLayer | ShapeLayer;
+export interface AdjustmentLayer extends LayerBase {
+  type: 'adjustment';
+  adjustmentFilters: {
+    brightness: number;
+    contrast: number;
+    saturation: number;
+    blur: number;
+    hueRotate: number;
+    sepia: number;
+    invert: number;
+  };
+}
+
+export interface GroupLayer extends LayerBase {
+  type: 'group';
+  children: string[]; // IDs of child layers
+}
+
+export type Layer = TextLayer | ImageLayer | ShapeLayer | AdjustmentLayer | GroupLayer;
 
 export interface Artboard {
   id: string;
@@ -346,13 +378,6 @@ export interface GenerationConfig {
   prompt: string;
   aspectRatio: AspectRatio;
   referenceImage?: string; // Base64 string for editing
-}
-
-export interface GeneratedImage {
-  id: string;
-  url: string;
-  prompt: string;
-  timestamp: number;
 }
 
 export interface HistoryState {
@@ -446,6 +471,7 @@ export interface User {
   email: string;
   plan: UserPlan;
   avatar?: string;
+  isGuest?: boolean;
 }
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
@@ -460,3 +486,4 @@ export interface Toast {
   };
   details?: string;
 }
+

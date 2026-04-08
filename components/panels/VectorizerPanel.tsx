@@ -120,32 +120,45 @@ export const VectorizerPanel = () => {
     reader.readAsDataURL(file);
   };
 
+  const handleStyleChange = (id: string) => {
+    setStylePreset(id);
+    // Auto-simplify based on preset
+    switch (id) {
+      case 'minimal':
+        setSimplifyTolerance(0.6);
+        setColors(4);
+        break;
+      case 'detailed':
+        setSimplifyTolerance(0.05);
+        setColors(12);
+        break;
+      case 'artistic':
+        setSimplifyTolerance(0.3);
+        setColors(8);
+        break;
+      default:
+        setSimplifyTolerance(0.15);
+        setColors(6);
+        break;
+    }
+  };
+
   const handleVectorize = async () => {
     if (activeTab === 'image') {
-      if (!image) {
-        return;
-      }
+      if (!image) {return;}
       setIsProcessing(true);
       try {
         let paths;
         if (useAlgorithm) {
-          paths = await photoService.traceImageToSVG(image, colors);
+          // Pass cornerThreshold to the algorithmic path tracer
+          paths = await photoService.traceImageToSVG(image, colors, cornerThreshold);
         } else {
           if (trials <= 0) {
-            // The following lines were part of the user's provided edit, but appear to be
-            // from a different context and would introduce undefined variables.
-            // They are commented out to maintain syntactical correctness and avoid new errors.
-            // onUpdatePaths(newPaths);
-            // // We'll update the selected path ids so they remain selected
-            // if (selectedNodeIds.length > 0) {
-            //   const newSelectedIds = newPaths.map(p => p.id).slice(-selectedNodeIds.length);
-            //   // if we had a way to update selection here, we could
-            // }
             addToast('No trials remaining for AI vectorization.', 'warning');
             return;
           }
-          paths = await geminiService.vectorizeImage(image, colors);
-          setTrials((prev) => prev - 1);
+          paths = await geminiService.vectorizeImage(image, colors, stylePreset);
+          setTrials(prev => prev - 1);
         }
         setResult(paths);
         addToast('Vectorization complete!', 'success');
@@ -156,14 +169,12 @@ export const VectorizerPanel = () => {
         setIsProcessing(false);
       }
     } else {
-      if (!prompt.trim() || trials <= 0) {
-        return;
-      }
+      if (!prompt.trim() || trials <= 0) {return;}
       setIsProcessing(true);
       try {
-        const paths = await geminiService.generateAIVector(prompt);
+        const paths = await geminiService.generateAIVector(prompt, stylePreset);
         setResult(paths);
-        setTrials((prev) => prev - 1);
+        setTrials(prev => prev - 1);
         addToast('Vector generated successfully!', 'success');
       } catch (error) {
         log.error('[VectorizerPanel] Vector generation failed', error, { prompt: prompt.substring(0, 100) });
@@ -175,16 +186,19 @@ export const VectorizerPanel = () => {
   };
 
   const addToCanvas = () => {
-    if (!displayResult) {
-      return;
-    }
+    if (!displayResult) {return;}
+
+    // Spread layers across canvas instead of stacking at the same position
+    const SPREAD_OFFSET = 320;
+    const artboardCenterX = 100;
+    const artboardCenterY = 100;
 
     const newLayers = displayResult.map((item, i) => ({
       id: crypto.randomUUID(),
       type: 'path' as const,
-      name: `AI Vector ${i + 1}`,
-      x: 100 + i * 10,
-      y: 100 + i * 10,
+      name: `Vector ${i + 1}`,
+      x: artboardCenterX + (i % 3) * SPREAD_OFFSET,
+      y: artboardCenterY + Math.floor(i / 3) * SPREAD_OFFSET,
       width: 300,
       height: 300,
       rotation: 0,
@@ -253,32 +267,36 @@ ${displayResult
 
   const processBatch = async () => {
     setIsProcessing(true);
-    const items = [...batchItems];
-    for (let i = 0; i < items.length; i++) {
-      if (items[i]!.status !== 'queued') {continue;}
-      setBatchItems((prev) =>
-        prev.map((item) => (item.id === items[i]!.id ? { ...item, status: 'processing' } : item))
-      );
-      try {
-        const paths = useAlgorithm
-          ? await photoService.traceImageToSVG(items[i]!.dataUrl, colors)
-          : await geminiService.vectorizeImage(items[i]!.dataUrl, colors);
+    const items = [...batchItems].filter(b => b.status === 'queued');
 
-        if (!useAlgorithm) {setTrials((prev) => prev - 1);}
+    // Mark all queued as processing
+    setBatchItems(prev => prev.map(item =>
+      item.status === 'queued' ? { ...item, status: 'processing' } : item
+    ));
 
-        setBatchItems((prev) =>
-          prev.map((item) =>
-            item.id === items[i]!.id ? { ...item, status: 'done', result: paths } : item
-          )
-        );
-      } catch {
-        setBatchItems((prev) =>
-          prev.map((item) =>
-            item.id === items[i]!.id ? { ...item, status: 'error' } : item
-          )
-        );
+    // Process all in parallel using Promise.allSettled
+    const results = await Promise.allSettled(
+      items.map(item =>
+        useAlgorithm
+          ? photoService.traceImageToSVG(item.dataUrl, colors)
+          : geminiService.vectorizeImage(item.dataUrl, colors, stylePreset)
+      )
+    );
+
+    if (!useAlgorithm) { setTrials(prev => Math.max(0, prev - items.length)); }
+
+    setBatchItems(prev => prev.map(item => {
+      const idx = items.findIndex(b => b.id === item.id);
+      if (idx === -1) {return item;}
+      const result = results[idx];
+      if (result?.status === 'fulfilled') {
+        return { ...item, status: 'done', result: result.value };
+      } else if (result?.status === 'rejected') {
+        return { ...item, status: 'error' };
       }
-    }
+      return item;
+    }));
+
     setIsProcessing(false);
     addToast('Batch processing complete!', 'success');
   };
@@ -486,7 +504,7 @@ ${displayResult
               {STYLE_PRESETS.map((preset) => (
                 <button
                   key={preset.id}
-                  onClick={() => setStylePreset(preset.id)}
+                  onClick={() => handleStyleChange(preset.id)}
                   className={`p-2 rounded-xl border text-left transition-all ${stylePreset === preset.id
                     ? 'bg-[#7d2ae8]/15 border-[#7d2ae8]/50 text-[#7d2ae8]'
                     : 'bg-[#1e1e1e] border-gray-800 text-gray-500 hover:border-gray-700'

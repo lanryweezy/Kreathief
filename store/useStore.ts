@@ -7,6 +7,7 @@ import { createProjectSlice, ProjectSlice } from './slices/projectSlice';
 import { createHistorySlice, HistorySlice } from './slices/historySlice';
 import { createAISlice, AISlice } from './slices/aiSlice';
 import { createBrandSlice, BrandSlice } from './slices/brandSlice';
+import { createAgentSlice, AgentSlice } from './slices/agentSlice';
 
 // Merged type for the full store state
 export type StoreState = UISlice &
@@ -16,7 +17,8 @@ export type StoreState = UISlice &
   ProjectSlice &
   HistorySlice &
   AISlice &
-  BrandSlice & {
+  BrandSlice &
+  AgentSlice & {
     reset: () => void;
   };
 
@@ -30,10 +32,12 @@ export const useStore = create<StoreState>()((set, get, store) => ({
   ...createHistorySlice(set, get, store),
   ...createAISlice(set, get, store),
   ...createBrandSlice(set, get, store),
+  ...createAgentSlice(set, get, store),
 
   // Common action to reset the store
   reset: () => {
     set({
+      activeArtboardId: undefined,
       artboards: [],
       selectedLayerIds: [],
       canvasBackgroundColor: '#ffffff',

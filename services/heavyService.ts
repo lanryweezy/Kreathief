@@ -4,13 +4,16 @@
  * Handles vectorization, enhancement, and palette extraction.
  */
 
+import { log } from '../utils/log';
+
 class HeavyService {
   private worker: Worker | null = null;
   private callbacks: Map<string, { resolve: (val: any) => void; reject: (err: any) => void }> = new Map();
 
   private initializeWorker() {
-    console.log('[HeavyService] Initializing worker. Caller stack:', new Error().stack);
-    if (this.worker || typeof window === 'undefined') {return;}
+    if (this.worker || typeof window === 'undefined') {
+      return;
+    }
 
     try {
       this.worker = new Worker(new URL('../workers/heavy.worker.ts', import.meta.url), { type: 'module' });
@@ -30,12 +33,12 @@ class HeavyService {
       };
 
       this.worker.onerror = (e) => {
-        console.error('Heavy Worker Error:', e);
+        log.error('Heavy Worker Error:', e);
         // Do not block main thread, just log and allow service to try again later if needed
         this.worker = null;
       };
     } catch (err) {
-      console.error('Failed to initialize Heavy Worker:', err);
+      log.error('Failed to initialize Heavy Worker:', err);
     }
   }
 
@@ -48,7 +51,9 @@ class HeavyService {
       this.initializeWorker();
 
       if (!this.worker) {
-        reject(new Error('Heavy Worker could not be initialized. This might be due to your browser or a network issue.'));
+        reject(
+          new Error('Heavy Worker could not be initialized. This might be due to your browser or a network issue.')
+        );
         return;
       }
       const id = Math.random().toString(36).substring(7);
@@ -61,6 +66,10 @@ class HeavyService {
     return this.postMessage('VECTORIZE', { imageUrl, options });
   }
 
+  public async removeBackground(imageUrl: string): Promise<string> {
+    return this.postMessage('REMOVE_BACKGROUND', { imageUrl });
+  }
+
   public async algorithmicEnhance(imageSrc: string): Promise<string> {
     return this.postMessage('ENHANCE', { imageSrc });
   }
@@ -69,12 +78,8 @@ class HeavyService {
     return this.postMessage('EXTRACT_PALETTE', { imageSrc, colorCount });
   }
 
-  public async traceImageToSVG(imageSrc: string, colors: number = 2): Promise<any[]> {
-    return this.postMessage('TRACE_SVG', { imageSrc, colors });
-  }
-
-  public async removeBackground(imageUrl: string): Promise<string> {
-    return this.postMessage('RM_BG', { imageUrl });
+  public async traceImageToSVG(imageSrc: string, colors: number = 2, cornerThreshold: number = 45): Promise<any[]> {
+    return this.postMessage('TRACE_SVG', { imageSrc, colors, cornerThreshold });
   }
 
   public terminate() {

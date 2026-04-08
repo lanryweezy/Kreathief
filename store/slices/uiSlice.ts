@@ -20,6 +20,7 @@ export interface UISlice {
   isExpanding: boolean;
   isEraserActive: boolean;
   isShapeBuilderActive: boolean;
+  showPresentation: boolean;
   zoom: number;
   showGrid: boolean;
   showRulers: boolean;
@@ -49,17 +50,24 @@ export interface UISlice {
   snapshots: any[];
   tags: string[];
   isPublished: boolean;
+  isCommandPaletteOpen: boolean;
+  showVersionDiff: boolean;
+  versionDiffSnapshotId: string | null;
+  user: any | null;
 
   setActiveTab: (tab: NavTab) => void;
   setMode: (mode: AppMode) => void;
+  setUser: (user: any | null) => void;
   setIsProcessing: (isProcessing: boolean) => void;
   setIsExporting: (isExporting: boolean) => void;
+  setCommandPaletteOpen: (isOpen: boolean) => void;
   setHistory: (history: GeneratedImage[] | ((prev: GeneratedImage[]) => GeneratedImage[])) => void;
   clearHistory: () => void;
   handleFileUpload: (files: File[]) => void;
   deleteUpload: (index: number) => void;
   setIsShapeBuilderActive: (active: boolean) => void;
   setZoom: (zoom: number | ((prev: number) => number)) => void;
+  resetZoom: () => void;
   setShowGrid: (show: boolean) => void;
   setShowRulers: (show: boolean) => void;
   setSnapToGrid: (snap: boolean) => void;
@@ -67,6 +75,8 @@ export interface UISlice {
   setShowShortcuts: (show: boolean) => void;
   setShowShareModal: (show: boolean) => void;
   setShowFeedbackModal: (show: boolean) => void;
+  setShowPresentation: (show: boolean) => void;
+  setShowVersionDiff: (show: boolean, snapshotId?: string | null) => void;
   setPreviewFontFamily: (font: string | null) => void;
   addCustomFont: (font: string) => void;
   setShowGoldenRatio: (show: boolean) => void;
@@ -136,10 +146,17 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   lassoPoints: [],
   refineBrushMode: 'none',
   refineBrushSize: 30,
+  isCommandPaletteOpen: false,
+  showPresentation: false,
+  showVersionDiff: false,
+  versionDiffSnapshotId: null,
+  user: null,
 
   favoriteTemplates: [],
   favoriteProjects: [],
 
+  setUser: (user) => set({ user }),
+  setCommandPaletteOpen: (isCommandPaletteOpen) => set({ isCommandPaletteOpen }),
   setActiveTab: (activeTab) => set({ activeTab }),
   setMode: (mode) => set({ mode }),
   setIsProcessing: (isProcessing) => set({ isProcessing }),
@@ -165,6 +182,7 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     }),
   setIsShapeBuilderActive: (isShapeBuilderActive) => set({ isShapeBuilderActive }),
   setZoom: (zoom) => set((state: any) => ({ zoom: typeof zoom === 'function' ? zoom(state.zoom) : zoom })),
+  resetZoom: () => set({ zoom: 0.8 }),
   setShowGrid: (show) => set({ showGrid: show }),
   setShowRulers: (show) => set({ showRulers: show }),
   setSnapToGrid: (snap) => set({ snapToGrid: snap }),
@@ -172,6 +190,8 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   setShowShortcuts: (show) => set({ showShortcuts: show }),
   setShowShareModal: (show) => set({ showShareModal: show }),
   setShowFeedbackModal: (show) => set({ showFeedbackModal: show }),
+  setShowPresentation: (show) => set({ showPresentation: show }),
+  setShowVersionDiff: (show: boolean, snapshotId: string | null = null) => set({ showVersionDiff: show, versionDiffSnapshotId: snapshotId }),
   setPreviewFontFamily: (font) => set({ fontPreview: font }),
   addCustomFont: (font: string) => set((state: any) => ({ customFonts: [...state.customFonts, font] })),
   setShowGoldenRatio: (show) => set({ showGoldenRatio: show }),
@@ -200,8 +220,13 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
 
   // Crop Implementation
   onCrop: async (id) => {
-    const { layers } = get();
-    const layer = layers.find((l: any) => l.id === id);
+    const state = get();
+    // Find the layer across all artboards
+    let layer: any = null;
+    for (const ab of state.artboards) {
+      const found = ab.layers.find((l: any) => l.id === id);
+      if (found) { layer = found; break; }
+    }
     if (!layer || layer.type !== 'image') {
       return;
     }
@@ -218,7 +243,10 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
 
     if (!(layer as ImageLayer).naturalWidth) {
       set((state: any) => ({
-        layers: state.layers.map((l: any) => (l.id === id ? { ...l, naturalWidth, naturalHeight } : l)),
+        artboards: state.artboards.map((a: any) => ({
+          ...a,
+          layers: a.layers.map((l: any) => l.id === id ? { ...l, naturalWidth, naturalHeight } : l),
+        })),
       }));
     }
 
@@ -240,12 +268,17 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   setCropArea: (cropArea) => set({ cropArea }),
 
   applyCrop: async () => {
-    const { croppingLayerId, cropArea, layers, saveToHistory } = get();
+    const { croppingLayerId, cropArea, artboards, saveToHistory } = get();
     if (!croppingLayerId) {
       return;
     }
 
-    const layer = layers.find((l: any) => l.id === croppingLayerId) as ImageLayer;
+    // Find layer in artboards
+    let layer: any = null;
+    for (const ab of artboards) {
+      const found = ab.layers.find((l: any) => l.id === croppingLayerId);
+      if (found) { layer = found; break; }
+    }
     if (!layer || layer.type !== 'image') {
       return;
     }
@@ -257,23 +290,26 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     const canvasScale = layer.width / previousCropWidth;
 
     set((state: any) => ({
-      layers: state.layers.map((l: any) => {
-        if (l.id !== croppingLayerId || l.type !== 'image') {
-          return l;
-        }
-        const il = l as ImageLayer;
-        const oldCropX = il.crop?.x || 0;
-        const oldCropY = il.crop?.y || 0;
+      artboards: state.artboards.map((a: any) => ({
+        ...a,
+        layers: a.layers.map((l: any) => {
+          if (l.id !== croppingLayerId || l.type !== 'image') {
+            return l;
+          }
+          const il = l as ImageLayer;
+          const oldCropX = il.crop?.x || 0;
+          const oldCropY = il.crop?.y || 0;
 
-        return {
-          ...il,
-          crop: { ...cropArea },
-          x: il.x + (cropArea.x - oldCropX) * canvasScale,
-          y: il.y + (cropArea.y - oldCropY) * canvasScale,
-          width: cropArea.width * canvasScale,
-          height: cropArea.height * canvasScale,
-        };
-      }),
+          return {
+            ...il,
+            crop: { ...cropArea },
+            x: il.x + (cropArea.x - oldCropX) * canvasScale,
+            y: il.y + (cropArea.y - oldCropY) * canvasScale,
+            width: cropArea.width * canvasScale,
+            height: cropArea.height * canvasScale,
+          };
+        }),
+      })),
       isCropMode: false,
       croppingLayerId: null,
     }));
@@ -285,14 +321,20 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   setIsLassoMode: (isLassoMode) => set({ isLassoMode, lassoPoints: [] }),
   setLassoPoints: (lassoPoints) => set({ lassoPoints }),
   applyLasso: async () => {
-    const { croppingLayerId, lassoPoints, layers, saveToHistory } = get();
+    const { croppingLayerId, lassoPoints, artboards, saveToHistory } = get();
     if (!croppingLayerId || lassoPoints.length < 3) {
       set({ isLassoMode: false, lassoPoints: [] });
       return;
     }
 
-    const layer = layers.find((l: any) => l.id === croppingLayerId) as ImageLayer;
+    // Find layer in artboards
+    let layer: any = null;
+    for (const ab of artboards) {
+      const found = ab.layers.find((l: any) => l.id === croppingLayerId);
+      if (found) { layer = found; break; }
+    }
     if (!layer || layer.type !== 'image') {
+      set({ isLassoMode: false, lassoPoints: [], croppingLayerId: null });
       return;
     }
 
@@ -303,9 +345,12 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
       lassoPoints.slice(1).map((p: { x: number; y: number }) => `L ${p.x} ${p.y}`).join(' ') + ' Z';
 
     set((state: any) => ({
-      layers: state.layers.map((l: any) =>
-        l.id === croppingLayerId ? { ...l, maskPath: pathData, maskType: 'lasso' } : l
-      ),
+      artboards: state.artboards.map((a: any) => ({
+        ...a,
+        layers: a.layers.map((l: any) =>
+          l.id === croppingLayerId ? { ...l, maskPath: pathData, maskType: 'lasso' } : l
+        ),
+      })),
       isLassoMode: false,
       lassoPoints: [],
       croppingLayerId: null,
@@ -368,3 +413,4 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
         : [...state.favoriteProjects, id],
     })),
 });
+

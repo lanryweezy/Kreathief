@@ -41,40 +41,62 @@ export const CommonActions = React.memo(
             align="right"
           >
             <div className="w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-4 animate-fadeIn space-y-4 backdrop-blur-xl">
-            <div className="space-y-2">
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Opacity</span>
-                <span className="text-[10px] text-white font-mono">{Math.round(selectedLayer.opacity * 100)}%</span>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Opacity</span>
+                  <span className="text-[10px] text-white font-mono">{Math.round(selectedLayer.opacity * 100)}%</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={selectedLayer.opacity}
+                  onChange={(e) => handleUpdateLayer({ opacity: parseFloat(e.target.value) })}
+                  className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                />
               </div>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={selectedLayer.opacity}
-                onChange={(e) => handleUpdateLayer({ opacity: parseFloat(e.target.value) })}
-                className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-              />
+              <div className="pt-3 border-t border-white/5">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">
+                  Blend Mode
+                </span>
+                <select
+                  value={selectedLayer.blendMode || 'normal'}
+                  onChange={(e) => handleUpdateLayer({ blendMode: e.target.value })}
+                  className="w-full bg-black/40 border border-white/10 rounded-lg text-xs text-white p-2 outline-none focus:border-indigo-500/50 transition-all cursor-pointer"
+                >
+                  <optgroup label="Normal">
+                    <option value="normal">Normal</option>
+                  </optgroup>
+                  <optgroup label="Darken">
+                    <option value="darken">Darken</option>
+                    <option value="multiply">Multiply</option>
+                    <option value="color-burn">Color Burn</option>
+                  </optgroup>
+                  <optgroup label="Lighten">
+                    <option value="lighten">Lighten</option>
+                    <option value="screen">Screen</option>
+                    <option value="color-dodge">Color Dodge</option>
+                  </optgroup>
+                  <optgroup label="Contrast">
+                    <option value="overlay">Overlay</option>
+                    <option value="soft-light">Soft Light</option>
+                    <option value="hard-light">Hard Light</option>
+                  </optgroup>
+                  <optgroup label="Inversion">
+                    <option value="difference">Difference</option>
+                    <option value="exclusion">Exclusion</option>
+                  </optgroup>
+                  <optgroup label="Component">
+                    <option value="hue">Hue</option>
+                    <option value="saturation">Saturation</option>
+                    <option value="color">Color</option>
+                    <option value="luminosity">Luminosity</option>
+                  </optgroup>
+                </select>
+              </div>
             </div>
-            <div className="pt-3 border-t border-white/5">
-              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">
-                Blend Mode
-              </span>
-              <select
-                value={selectedLayer.blendMode || 'normal'}
-                onChange={(e) => handleUpdateLayer({ blendMode: e.target.value })}
-                className="w-full bg-black/40 border border-white/10 rounded-lg text-xs text-white p-2 outline-none focus:border-indigo-500/50 transition-all cursor-pointer appearance-none"
-              >
-                <option value="normal">Normal</option>
-                <option value="multiply">Multiply</option>
-                <option value="screen">Screen</option>
-                <option value="overlay">Overlay</option>
-                <option value="darken">Darken</option>
-                <option value="lighten">Lighten</option>
-              </select>
-            </div>
-          </div>
-        </Dropdown>
+          </Dropdown>
       </div>
 
       <Divider />

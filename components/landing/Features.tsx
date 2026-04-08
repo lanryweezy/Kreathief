@@ -1,227 +1,369 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Icons } from '../../constants';
+import { MouseSpotlight, SuperLabel, LaserSeparator } from './LandingUtils';
 
 export const Features: React.FC = () => {
-    return (
-        <section id="features" className="py-32 relative bg-[#050505]">
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"></div>
+  return (
+    <section id="features" className="py-32 relative">
+      <LaserSeparator className="absolute top-0 inset-x-0" />
 
-            <div className="max-w-[1400px] mx-auto px-6">
-                <div className="mb-20 text-center flex flex-col items-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6"
-                    >
-                        <Icons.Lightning className="w-4 h-4 text-blue-400" />
-                        <span className="text-[11px] font-bold text-blue-300 tracking-[0.2em] uppercase">Industry-Leading Tools</span>
-                    </motion.div>
+      <div className="max-w-[1400px] mx-auto px-6">
+        <div className="mb-32 text-center flex flex-col items-center">
+          <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <SuperLabel text="Core Capabilities" />
+          </motion.div>
 
-                    <motion.h2
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="text-5xl md:text-7xl font-black mb-8 tracking-tighter text-white"
-                    >
-                        Everything you need <br className="hidden md:block" />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-purple-600">to create masterpieces.</span>
-                    </motion.h2>
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.2 }}
-                        className="text-xl text-gray-400 max-w-3xl mx-auto font-medium leading-relaxed"
-                    >
-                        Combining the creative freedom of AI with the structural power of professional design software. Uncompromising speed and precision in the browser.
-                    </motion.p>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-6xl md:text-8xl font-black mb-6 tracking-tighter text-white text-balance leading-[0.95]"
+          >
+            Everything you need <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neutral-200 to-neutral-500">
+              to create masterpieces.
+            </span>
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="text-xl text-neutral-400 max-w-3xl mx-auto font-medium leading-relaxed text-balance"
+          >
+            Combining the creative freedom of AI with the structural power of professional design software.
+            Uncompromising speed and precision in the browser.
+          </motion.p>
+        </div>
+
+        {/* Ambient Grid Pattern */}
+        <div className="absolute inset-0 bg-dot-pattern opacity-[0.15] [mask-image:radial-gradient(ellipse_at_center,white,transparent_70%)] pointer-events-none -z-20 mt-32"></div>
+
+        {/* Atmospheric Glow */}
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[80vw] max-w-[1000px] h-[800px] bg-purple-500/10 blur-[120px] rounded-full pointer-events-none -z-10" />
+
+        {/* AI FEATURES CATEGORY */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-12"
+        >
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-purple-400">AI</h3>
+          </div>
+          <h4 className="text-5xl md:text-6xl font-black tracking-tighter text-white mb-4">
+            Think bigger, create faster
+          </h4>
+          <p className="text-lg text-neutral-400 max-w-2xl font-medium">
+            Leverage the best AI models to generate and refine images, then continue designing with your creations in one seamless workspace.
+          </p>
+        </motion.div>
+
+        {/* AI BENTO GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[400px] mb-32">
+          {/* BENTO 1: Vector Engine (Large 8 cols) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            className="col-span-1 md:col-span-8 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+          >
+            <MouseSpotlight color="rgba(168, 85, 247, 0.1)" className="h-full flex flex-col">
+              <div className="p-12 relative z-10">
+                <h3 className="text-3xl font-black mb-3 tracking-tight text-white flex items-center gap-3">
+                  Image generation
+                </h3>
+                <p className="text-neutral-400 font-medium text-base max-w-xl">
+                  Your project deserves better visuals. Generate images that perfectly fit your campaign, or edit existing images to match your guidelines. Create designs with them on an infinite canvas.
+                </p>
+              </div>
+
+              <div className="flex-1 w-full relative mt-auto px-6 pb-6">
+                <div className="w-full h-full rounded-2xl overflow-hidden border border-white/10 relative">
+                  <img
+                    src="/images/feature_gen_fill_pro.png"
+                    alt="AI Image Generation"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                  />
                 </div>
+              </div>
+            </MouseSpotlight>
+          </motion.div>
 
-                {/* MASSIVE BENTO GRID */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[400px]">
+          {/* BENTO 2: AI Generative Fill (4 cols) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ delay: 0.1 }}
+            className="col-span-1 md:col-span-4 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700 flex flex-col"
+          >
+            <MouseSpotlight color="rgba(168, 85, 247, 0.1)" className="h-full flex flex-col">
+              <div className="p-12 relative z-10">
+                <h3 className="text-2xl font-black mb-3 tracking-tight text-white flex items-center gap-3">
+                  Remove background
+                </h3>
+                <p className="text-neutral-400 font-medium text-sm">
+                  Instantly remove backgrounds from your images with professional-grade precision.
+                </p>
+              </div>
 
-                    {/* BENTO 1: Vector Engine (Large 8 cols) */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-50px" }}
-                        className="col-span-1 md:col-span-8 rounded-[32px] bg-[#0a0a0a] border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-500"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-                        <div className="p-10 relative z-10 w-full md:w-1/2">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-6 shadow-2xl">
-                                <Icons.Pen className="w-6 h-6 text-white" />
-                            </div>
-                            <h3 className="text-3xl font-black mb-4 tracking-tight text-white">Pro Vector Engine</h3>
-                            <p className="text-gray-400 font-medium leading-relaxed">
-                                Full control over bezier curves, anchor points, and boolean operations. Import SVGs or vectorize raster images instantly with pixel-perfect precision.
-                            </p>
-                        </div>
-
-                        <img
-                            src="/images/feature_vector_pro.png"
-                            alt="Vector Tool"
-                            className="absolute -bottom-10 -right-10 w-[80%] md:w-[65%] h-auto rounded-tl-3xl shadow-2xl transition-transform duration-700 group-hover:scale-105 group-hover:-translate-x-4 group-hover:-translate-y-4"
-                        />
-                    </motion.div>
-
-                    {/* BENTO 2: AI Generative Fill (4 cols) */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-50px" }}
-                        transition={{ delay: 0.1 }}
-                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[#0a0a0a] border border-white/5 relative overflow-hidden group hover:border-purple-500/40 transition-all duration-500 flex flex-col"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-t from-purple-900/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-                        <div className="p-10 relative z-10">
-                            <h3 className="text-2xl font-black mb-3 tracking-tight text-white flex items-center gap-3">
-                                <Icons.Magic className="w-6 h-6 text-purple-400" />
-                                Generative Fill
-                            </h3>
-                            <p className="text-gray-400 font-medium text-sm">
-                                Describe what you want and watch AI seamlessly blend new elements into your existing compositions.
-                            </p>
-                        </div>
-
-                        <div className="flex-1 w-full relative mt-auto px-6 pb-6">
-                            <div className="w-full h-full rounded-2xl overflow-hidden border border-white/10 relative">
-                                <img
-                                    src="/images/feature_gen_fill_pro.png"
-                                    alt="Generative Fill"
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
-                                />
-                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[80%] h-10 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center px-4">
-                                    <span className="text-[10px] text-white/70 font-mono typing-animation">add glowing cyberpunk city...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    {/* BENTO 3: 1-Click Cutout (4 cols) */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-50px" }}
-                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[#0a0a0a] border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-500"
-                    >
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-fuchsia-900/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-                        <div className="p-10 relative z-10 h-full flex flex-col">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center mb-6 shadow-2xl">
-                                <Icons.Scissors className="w-6 h-6 text-white" />
-                            </div>
-                            <h3 className="text-2xl font-black mb-3 tracking-tight text-white">AI Subject Isolation</h3>
-                            <p className="text-gray-400 font-medium text-sm mb-6">
-                                Professional-grade cutouts in a single click. Our neural engine perfectly handles complex edges like hair, fur, and glass.
-                            </p>
-
-                            <div className="relative mt-auto w-[120%] -ml-[10%] aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/10 group-hover:-translate-y-2 transition-transform duration-500">
-                                <img
-                                    src="/images/feature_cutout_mockup_1772615585150.png"
-                                    alt="AI Background Removal"
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    {/* BENTO 4: Realtime Collaboration (8 cols) */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-50px" }}
-                        transition={{ delay: 0.1 }}
-                        className="col-span-1 md:col-span-8 rounded-[32px] bg-[#0a0a0a] border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-500"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-bl from-green-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-                        <div className="p-10 relative z-10 w-full md:w-1/2 flex flex-col h-full justify-center">
-                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center mb-6 shadow-2xl">
-                                <Icons.Users className="w-6 h-6 text-white" />
-                            </div>
-                            <h3 className="text-3xl font-black mb-4 tracking-tight text-white">Real-Time Multiplayer</h3>
-                            <p className="text-gray-400 font-medium leading-relaxed mb-6">
-                                Invite your team, share cursor presence, and edit the same document simultaneously without conflicts. Never send a &quot;vFinal_final.psd&quot; again.
-                            </p>
-                        </div>
-
-                        <img
-                            src="/images/feature_collab_pro.png"
-                            alt="Multiplayer Collaboration"
-                            className="absolute top-1/2 -translate-y-1/2 -right-5 w-[75%] md:w-[60%] h-auto shadow-[0_30px_60px_rgba(0,0,0,0.6)] border border-white/10 rounded-2xl transition-transform duration-700 group-hover:-translate-x-4 group-hover:scale-105"
-                        />
-                    </motion.div>
-
-                    {/* BENTO 5: Mockup Studio (4 cols) */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-50px" }}
-                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[#0a0a0a] border border-white/5 relative overflow-hidden group hover:border-orange-500/40 transition-all duration-500"
-                    >
-                        <div className="p-8 relative z-10">
-                            <div className="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center mb-6 border border-orange-500/20">
-                                <Icons.Monitor className="w-6 h-6 text-orange-400" />
-                            </div>
-                            <h3 className="text-xl font-black mb-2 text-white">Mockup Studio</h3>
-                            <p className="text-gray-400 text-xs font-medium">Visualize your designs on physical products instantly.</p>
-                        </div>
-                        <img
-                            src="/images/feature_mockup_pro.png"
-                            className="absolute -bottom-4 left-0 w-full h-auto object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-700 shadow-2xl"
-                            alt="Mockup Studio"
-                        />
-                    </motion.div>
-
-                    {/* BENTO 6: Brand Kits (4 cols) */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-50px" }}
-                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[#0a0a0a] border border-white/5 relative overflow-hidden group hover:border-blue-500/40 transition-all duration-500"
-                    >
-                        <div className="p-8 relative z-10">
-                            <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20">
-                                <Icons.Brand className="w-6 h-6 text-blue-400" />
-                            </div>
-                            <h3 className="text-xl font-black mb-2 text-white">Smart Brand Kits</h3>
-                            <p className="text-gray-400 text-xs font-medium">Keep your identity consistent across every asset.</p>
-                        </div>
-                        <img
-                            src="/images/landing_feature_brand_kit.png"
-                            className="absolute -bottom-4 right-0 w-[90%] h-auto rounded-tl-2xl border-l border-t border-white/10 group-hover:-translate-x-2 transition-transform duration-500"
-                            alt="Brand Kits"
-                        />
-                    </motion.div>
-
-                    {/* BENTO 7: AI Suggestions (4 cols) */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-50px" }}
-                        className="col-span-1 md:col-span-4 rounded-[32px] bg-[#0a0a0a] border border-white/5 relative overflow-hidden group hover:border-purple-500/40 transition-all duration-500"
-                    >
-                        <div className="p-8 relative z-10">
-                            <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center mb-6 border border-purple-500/20">
-                                <Icons.Zap className="w-6 h-6 text-purple-400" />
-                            </div>
-                            <h3 className="text-xl font-black mb-2 text-white">AI Copilot</h3>
-                            <p className="text-gray-400 text-xs font-medium">Intelligent layout and content suggestions as you work.</p>
-                        </div>
-                        <img
-                            src="/images/landing_feature_suggestions.png"
-                            className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-[85%] h-auto rounded-t-2xl shadow-2xl"
-                            alt="AI Suggestions"
-                        />
-                    </motion.div>
-
+              <div className="flex-1 w-full relative mt-auto px-6 pb-6">
+                <div className="w-full h-full rounded-2xl overflow-hidden border border-white/10 relative">
+                  <img
+                    src="/images/feature_cutout_mockup_1772615585150.png"
+                    alt="Background Removal"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                  />
                 </div>
-            </div>
-        </section>
-    );
+              </div>
+            </MouseSpotlight>
+          </motion.div>
+
+          {/* BENTO 3: Upscale (4 cols) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            className="col-span-1 md:col-span-4 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+          >
+            <MouseSpotlight color="rgba(251, 113, 133, 0.1)" className="h-full">
+              <div className="p-12 relative z-10 h-full flex flex-col">
+                <h3 className="text-2xl font-black mb-3 tracking-tight text-white">Upscale</h3>
+                <p className="text-neutral-400 font-medium text-sm mb-6">
+                  Make the resolution of your images sharper and bigger with AI enhancement.
+                </p>
+              </div>
+            </MouseSpotlight>
+          </motion.div>
+
+          {/* BENTO 4: Generative Fill (8 cols) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ delay: 0.1 }}
+            className="col-span-1 md:col-span-8 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+          >
+            <MouseSpotlight color="rgba(168, 85, 247, 0.1)" radius={600} className="h-full">
+              <div className="p-16 relative z-10 w-full md:w-1/2 flex flex-col h-full justify-center">
+                <h3 className="text-3xl font-black mb-4 tracking-tight text-white">Generative Fill</h3>
+                <p className="text-neutral-400 font-medium leading-relaxed mb-6">
+                  Describe what you want and watch AI seamlessly blend new elements into your existing compositions. Perfect for extending images or replacing objects.
+                </p>
+              </div>
+
+              <div className="absolute top-1/2 -translate-y-1/2 -right-5 w-[75%] md:w-[50%] h-[70%] rounded-2xl overflow-hidden border border-white/10 relative transition-transform duration-700 group-hover:-translate-x-4 group-hover:scale-105">
+                <img
+                  src="/images/feature_gen_fill_pro.png"
+                  alt="Generative Fill"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[80%] h-10 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center px-4">
+                  <span className="text-[10px] text-white/70 font-mono typing-animation">
+                    add glowing cyberpunk city...
+                  </span>
+                </div>
+              </div>
+            </MouseSpotlight>
+          </motion.div>
+        </div>
+
+        {/* DESIGN TOOLS CATEGORY */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-12"
+        >
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-1 h-8 bg-gradient-to-b from-cyan-500 to-blue-500 rounded-full"></div>
+            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-cyan-400">Design Tools</h3>
+          </div>
+          <h4 className="text-5xl md:text-6xl font-black tracking-tighter text-white mb-4">
+            Professional design power
+          </h4>
+          <p className="text-lg text-neutral-400 max-w-2xl font-medium">
+            A powerful infinite canvas for creation and ideation, giving you complete control with your brand assets and styles always at hand.
+          </p>
+        </motion.div>
+
+        {/* DESIGN TOOLS BENTO GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[400px] mb-32">
+          {/* Vector Engine */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            className="col-span-1 md:col-span-8 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+          >
+            <MouseSpotlight color="rgba(34, 211, 238, 0.1)" radius={500} className="h-full">
+              <div className="p-16 relative z-10 w-full md:w-1/2">
+                <h3 className="text-3xl font-black mb-4 tracking-tight text-white">Vector and raster together</h3>
+                <p className="text-neutral-400 font-medium leading-relaxed">
+                  Create and edit vector and raster content on a single, powerful infinite canvas focused on the essential tools for professional design and editing.
+                </p>
+              </div>
+
+              <img
+                src="/images/feature_vector_pro.png"
+                alt="Vector Tool"
+                className="absolute -bottom-10 -right-10 w-[80%] md:w-[65%] h-auto rounded-tl-3xl shadow-2xl transition-transform duration-700 group-hover:scale-105 group-hover:-translate-x-4 group-hover:-translate-y-4"
+              />
+            </MouseSpotlight>
+          </motion.div>
+
+          {/* BENTO 5: Infinite Resources (4 cols) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            className="col-span-1 md:col-span-4 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+          >
+            <MouseSpotlight color="rgba(34, 211, 238, 0.1)" className="h-full">
+              <div className="p-12 relative z-10">
+                <h3 className="text-xl font-black mb-2 text-white">Advanced typography</h3>
+                <p className="text-neutral-400 text-sm font-medium">
+                  Upload custom fonts, add text on paths or turn text layers into editable vectors.
+                </p>
+              </div>
+            </MouseSpotlight>
+          </motion.div>
+
+          {/* BENTO 6: Professional CMYK (4 cols) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ delay: 0.1 }}
+            className="col-span-1 md:col-span-4 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+          >
+            <MouseSpotlight color="rgba(236, 72, 153, 0.1)" className="h-full">
+              <div className="p-12 relative z-10">
+                <h3 className="text-xl font-black mb-2 text-white">Brand guideline creation</h3>
+                <p className="text-neutral-400 text-sm font-medium">
+                  Bring all your brand assets into one place. Store and organize media and styles to easily adopt your branded content.
+                </p>
+              </div>
+            </MouseSpotlight>
+          </motion.div>
+
+          {/* Collaboration */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ delay: 0.1 }}
+            className="col-span-1 md:col-span-8 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+          >
+            <MouseSpotlight color="rgba(34, 197, 94, 0.1)" radius={600} className="h-full">
+              <div className="p-16 relative z-10 w-full md:w-1/2 flex flex-col h-full justify-center">
+                <h3 className="text-3xl font-black mb-4 tracking-tight text-white">Real-Time Multiplayer</h3>
+                <p className="text-neutral-400 font-medium leading-relaxed mb-6">
+                  Invite your team, share cursor presence, and edit the same document simultaneously without conflicts.
+                  Never send a &quot;vFinal_final.psd&quot; again.
+                </p>
+              </div>
+
+              <img
+                src="/images/feature_collab_pro.png"
+                alt="Multiplayer Collaboration"
+                className="absolute top-1/2 -translate-y-1/2 -right-5 w-[75%] md:w-[60%] h-auto shadow-[0_30px_60px_rgba(0,0,0,0.6)] border border-white/10 rounded-2xl transition-transform duration-700 group-hover:-translate-x-4 group-hover:scale-105"
+              />
+            </MouseSpotlight>
+          </motion.div>
+        </div>
+
+        {/* RESOURCES CATEGORY */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-12 mt-32"
+        >
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-1 h-8 bg-gradient-to-b from-orange-500 to-red-500 rounded-full"></div>
+            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-orange-400">Resources</h3>
+          </div>
+          <h4 className="text-5xl md:text-6xl font-black tracking-tighter text-white mb-4">
+            Everything at your fingertips
+          </h4>
+          <p className="text-lg text-neutral-400 max-w-2xl font-medium">
+            Access millions of professional assets and resources directly in your workspace.
+          </p>
+        </motion.div>
+
+        {/* RESOURCES BENTO GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[300px]">
+          {/* BENTO: Infinite Resources (4 cols) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            className="col-span-1 md:col-span-4 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+          >
+            <MouseSpotlight color="rgba(34, 211, 238, 0.1)" className="h-full">
+              <div className="p-12 relative z-10">
+                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-6 border border-white/10">
+                  <Icons.Grid className="w-6 h-6 text-cyan-400" />
+                </div>
+                <h3 className="text-xl font-black mb-2 text-white">11M+ Assets</h3>
+                <p className="text-neutral-400 text-sm font-medium">
+                  Access professional 3D icons, Lottie animations, and 1,500+ Google Fonts directly in-editor.
+                </p>
+              </div>
+              <div className="absolute -bottom-4 left-0 w-full h-1/2 bg-gradient-to-t from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            </MouseSpotlight>
+          </motion.div>
+
+          {/* BENTO: Professional CMYK (4 cols) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ delay: 0.1 }}
+            className="col-span-1 md:col-span-4 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+          >
+            <MouseSpotlight color="rgba(236, 72, 153, 0.1)" className="h-full">
+              <div className="p-12 relative z-10">
+                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-6 border border-white/10">
+                  <Icons.Filter className="w-6 h-6 text-pink-500" />
+                </div>
+                <h3 className="text-xl font-black mb-2 text-white">Print-Ready CMYK</h3>
+                <p className="text-neutral-400 text-sm font-medium">
+                  Professional color space support with live CMYK readouts for perfect physical production.
+                </p>
+              </div>
+              <div className="absolute -bottom-4 left-0 w-full h-1/2 bg-gradient-to-t from-pink-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            </MouseSpotlight>
+          </motion.div>
+
+          {/* BENTO 7: ABR Brush Import (4 cols) */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ delay: 0.2 }}
+            className="col-span-1 md:col-span-4 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+          >
+            <MouseSpotlight color="rgba(249, 115, 22, 0.1)" className="h-full">
+              <div className="p-12 relative z-10">
+                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center mb-6 border border-white/10">
+                  <Icons.Brush className="w-6 h-6 text-orange-500" />
+                </div>
+                <h3 className="text-xl font-black mb-2 text-white">ABR Brush Import</h3>
+                <p className="text-neutral-400 text-sm font-medium">
+                  Import your favorite Photoshop .abr libraries and create with your custom artistic tools.
+                </p>
+              </div>
+              <div className="absolute -bottom-4 left-0 w-full h-1/2 bg-gradient-to-t from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            </MouseSpotlight>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
 };

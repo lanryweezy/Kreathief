@@ -18,31 +18,48 @@ export const createBrandSlice: StateCreator<any, [], [], BrandSlice> = (set, get
     set((state: any) => ({
       brandKits: state.brandKits.map((k: BrandKit) => (k.id === id ? { ...k, ...updates } : k)),
     })),
-  applyBrandColors: (colors) => {
-    if (!colors || colors.length === 0) {
-      return;
-    }
+  applyBrandColors: (colors: string[]) => {
+    if (!colors || colors.length === 0) {return;}
     get().saveToHistory?.();
 
+    // WCAG Contrast Utilities
+    const getLuminance = (hex: string) => {
+      const rgb = hex.replace(/^#/, '').match(/.{2}/g)?.map(x => parseInt(x, 16) / 255) || [0, 0, 0];
+      const res = rgb.map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+      return 0.2126 * res[0] + 0.7152 * res[1] + 0.0722 * res[2];
+    };
+
+    const getContrast = (c1: string, c2: string) => {
+      const l1 = getLuminance(c1) + 0.05;
+      const l2 = getLuminance(c2) + 0.05;
+      return l1 > l2 ? l1 / l2 : l2 / l1;
+    };
+
+    const getBestContrast = (bg: string, pool: string[]) => {
+      return pool.reduce((best, current) => 
+        getContrast(bg, current) > getContrast(bg, best) ? current : best
+      );
+    };
+
     const background = colors[0];
-    const primary = colors[2] || colors[1] || colors[0];
-    const secondary = colors[1] || colors[0];
-    const accent = colors[3] || colors[2] || colors[1];
+    const colorPool = colors.slice(1).length > 0 ? colors.slice(1) : colors;
 
     set((state: any) => ({
       canvasBackgroundColor: background,
-      layers: state.layers.map((l: Layer, i: number) => {
-        if (['rectangle', 'circle', 'triangle', 'path', 'star'].includes(l.type)) {
-          const colors_pool = [primary, accent, secondary];
-          return { ...l, color: colors_pool[i % colors_pool.length] };
-        }
-        if (l.type === 'text') {
-          const tl = l as TextLayer;
-          const color = tl.fontSize > 30 ? primary : accent;
-          return { ...l, color };
-        }
-        return l;
-      }),
+      artboards: state.artboards.map((artboard: any) => ({
+        ...artboard,
+        backgroundColor: background,
+        layers: artboard.layers.map((l: Layer) => {
+          if (l.type === 'text') {
+            return { ...l, color: getBestContrast(background, colorPool), dirty: true };
+          }
+          if (['rectangle', 'circle', 'triangle', 'path', 'star'].includes(l.type)) {
+            // Use a diverse but legible choice for shapes
+            return { ...l, color: colorPool[Math.floor(Math.random() * colorPool.length)], dirty: true };
+          }
+          return l;
+        })
+      }))
     }));
   },
   applyBrandFonts: (heading, body) => {

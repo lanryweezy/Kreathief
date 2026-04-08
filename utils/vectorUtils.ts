@@ -6,9 +6,66 @@ export class VectorUtils {
   static lastPathData: string = '';
 
   /**
+   * Validates a VectorPath for rendering safety
+   * FIX: Prevents crashes from malformed paths
+   */
+  static validatePath(path: VectorPath): boolean {
+    if (!path || !Array.isArray(path.points)) {
+      return false;
+    }
+
+    if (path.points.length === 0) {
+      return false;
+    }
+
+    // Check for NaN/Infinity coordinates
+    for (const point of path.points) {
+      if (
+        !point ||
+        typeof point.x !== 'number' ||
+        typeof point.y !== 'number' ||
+        !isFinite(point.x) ||
+        !isFinite(point.y)
+      ) {
+        return false;
+      }
+
+      if (point.handleIn) {
+        if (
+          typeof point.handleIn.x !== 'number' ||
+          typeof point.handleIn.y !== 'number' ||
+          !isFinite(point.handleIn.x) ||
+          !isFinite(point.handleIn.y)
+        ) {
+          return false;
+        }
+      }
+
+      if (point.handleOut) {
+        if (
+          typeof point.handleOut.x !== 'number' ||
+          typeof point.handleOut.y !== 'number' ||
+          !isFinite(point.handleOut.x) ||
+          !isFinite(point.handleOut.y)
+        ) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * Serializes a VectorPath into an SVG path data string ('d')
    */
   static serializePath(path: VectorPath): string {
+    // FIX: Validate path before serialization
+    if (!this.validatePath(path)) {
+      console.warn('Invalid path detected in serializePath');
+      return '';
+    }
+
     if (path.points.length === 0) {
       return '';
     }
@@ -60,9 +117,11 @@ export class VectorUtils {
 
   /**
    * Basic SVG path parser to structured VectorPath
+   * FIX: Added support for relative commands (lowercase) and quadratic curves (Q)
    */
   static parsePath(d: string): VectorPath {
     const points: VectorPoint[] = [];
+    // FIX: Improved regex to capture all commands including relative
     const commands = d.match(/([MLCQZmlcqz])[^MLCQZmlcqz]*/g) || [];
 
     let currentX = 0;
@@ -73,6 +132,7 @@ export class VectorUtils {
       if (!type) {
         return;
       }
+      const isRelative = type === type.toLowerCase();
       const args = (
         cmdStr
           .substring(1)
@@ -84,8 +144,14 @@ export class VectorUtils {
       switch (type.toUpperCase()) {
         case 'M':
           if (args[0] !== undefined && args[1] !== undefined) {
-            currentX = args[0];
-            currentY = args[1];
+            // FIX: Handle relative move
+            if (isRelative) {
+              currentX += args[0];
+              currentY += args[1];
+            } else {
+              currentX = args[0];
+              currentY = args[1];
+            }
             const pt = this.createPoint(currentX, currentY);
             if (points.length > 0) {pt.isMove = true;}
             points.push(pt);
@@ -93,8 +159,14 @@ export class VectorUtils {
           break;
         case 'L':
           if (args[0] !== undefined && args[1] !== undefined) {
-            currentX = args[0];
-            currentY = args[1];
+            // FIX: Handle relative line
+            if (isRelative) {
+              currentX += args[0];
+              currentY += args[1];
+            } else {
+              currentX = args[0];
+              currentY = args[1];
+            }
             points.push(this.createPoint(currentX, currentY));
           }
           break;
@@ -110,14 +182,58 @@ export class VectorUtils {
               args[2] !== undefined &&
               args[3] !== undefined
             ) {
-              prev.handleOut = { x: args[0] - prev.x, y: args[1] - prev.y };
-              currentX = args[4];
-              currentY = args[5];
+              // FIX: Handle relative cubic bezier
+              const cp1x = isRelative ? prev.x + args[0] : args[0];
+              const cp1y = isRelative ? prev.y + args[1] : args[1];
+              const cp2x = isRelative ? currentX + args[2] : args[2];
+              const cp2y = isRelative ? currentY + args[3] : args[3];
+              const endX = isRelative ? currentX + args[4] : args[4];
+              const endY = isRelative ? currentY + args[5] : args[5];
+
+              prev.handleOut = { x: cp1x - prev.x, y: cp1y - prev.y };
+              currentX = endX;
+              currentY = endY;
               const next = this.createPoint(currentX, currentY);
-              next.handleIn = { x: args[2] - currentX, y: args[3] - currentY };
+              next.handleIn = { x: cp2x - currentX, y: cp2y - currentY };
               points.push(next);
             }
           }
+          break;
+        // FIX: Add quadratic curve support
+        case 'Q':
+          if (points.length > 0 && args.length >= 4) {
+            const prev = points[points.length - 1];
+            if (
+              prev &&
+              args[0] !== undefined &&
+              args[1] !== undefined &&
+              args[2] !== undefined &&
+              args[3] !== undefined
+            ) {
+              // Convert quadratic to cubic for compatibility
+              // Cubic CP1 = P0 + 2/3 * (QCP1 - P0)
+              // Cubic CP2 = P2 + 2/3 * (QCP1 - P2)
+              const qcpX = isRelative ? currentX + args[0] : args[0];
+              const qcpY = isRelative ? currentY + args[1] : args[1];
+              const endX = isRelative ? currentX + args[2] : args[2];
+              const endY = isRelative ? currentY + args[3] : args[3];
+
+              const cp1x = prev.x + (qcpX - prev.x) * (2 / 3);
+              const cp1y = prev.y + (qcpY - prev.y) * (2 / 3);
+              const cp2x = endX + (qcpX - endX) * (2 / 3);
+              const cp2y = endY + (qcpY - endY) * (2 / 3);
+
+              prev.handleOut = { x: cp1x - prev.x, y: cp1y - prev.y };
+              currentX = endX;
+              currentY = endY;
+              const next = this.createPoint(currentX, currentY);
+              next.handleIn = { x: cp2x - currentX, y: cp2y - currentY };
+              points.push(next);
+            }
+          }
+          break;
+        case 'Z':
+          // Close path - no action needed, handled by isClosed flag
           break;
       }
     });

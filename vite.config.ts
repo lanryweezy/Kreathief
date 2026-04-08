@@ -12,25 +12,22 @@ export default defineConfig(({ mode }) => {
       sourcemap: false,
       rollupOptions: {
         onwarn(warning, warn) {
-          // Suppress specific warnings for onnxruntime-web
+          // Suppress specific warnings for onnxruntime-web and dynamic imports
           if (warning.code === 'UNRESOLVED_IMPORT' && warning.message.includes('onnxruntime-web')) {
             return;
           }
+          if (warning.code === 'DYNAMIC_IMPORT') {
+            return;
+          }
           warn(warning);
-        },
-        output: {
-          manualChunks: {
-            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-            'vendor-ai': ['@google/generative-ai'],
-            'vendor-utils': ['uuid', 'zustand'],
-            'vendor-export': ['jspdf', 'ag-psd', 'imagetracerjs'],
-            'vendor-graphics': ['opentype.js', '@imgly/background-removal'],
-          },
         },
       },
     },
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || env.API_KEY || ''),
+    },
+    optimizeDeps: {
+      exclude: ['@imgly/background-removal'],
     },
   };
 });

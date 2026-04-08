@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
+import { NavTab, BrushType } from '../../types';
 import { IconButton, Divider } from './ToolbarShared';
 import { CANVAS_EFFECT_PRESETS } from './ToolbarConstants';
 import { CanvasSizePicker } from '../CanvasSizePicker';
@@ -23,10 +24,41 @@ export const CanvasTools = React.memo(
     const setCanvasSize = useStore((state) => state.setCanvasSize);
     const isPenMode = useStore((state) => state.isPenMode);
     const setPenMode = useStore((state) => state.setPenMode);
+    const brushType = useStore((state) => state.brushType);
+    const setBrushType = useStore((state) => state.setBrushType);
+    const setActiveTab = useStore((state) => state.setActiveTab);
 
     return (
       <div className="flex items-center gap-3 flex-nowrap overflow-x-auto no-scrollbar py-1">
-        <IconButton onClick={() => setPenMode(!isPenMode)} active={isPenMode} title="Pen Tool (P)">
+        <IconButton
+          onClick={() => {
+            if (!isPenMode || brushType === BrushType.VECTOR_PENCIL) {
+              setPenMode(true);
+              setBrushType(BrushType.BASIC);
+              setActiveTab(NavTab.DRAW);
+            } else {
+              setPenMode(false);
+            }
+          }}
+          active={isPenMode && brushType !== BrushType.VECTOR_PENCIL}
+          title="Brush Tool (B)"
+        >
+          <Icons.Brush className="w-4 h-4" />
+        </IconButton>
+
+        <IconButton
+          onClick={() => {
+            if (!isPenMode || brushType !== BrushType.VECTOR_PENCIL) {
+              setPenMode(true);
+              setBrushType(BrushType.VECTOR_PENCIL);
+              setActiveTab(NavTab.DRAW);
+            } else {
+              setPenMode(false);
+            }
+          }}
+          active={isPenMode && brushType === BrushType.VECTOR_PENCIL}
+          title="Vector Pen (P)"
+        >
           <Icons.Pen className="w-4 h-4" />
         </IconButton>
         <Divider />

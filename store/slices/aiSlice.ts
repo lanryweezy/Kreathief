@@ -1,6 +1,7 @@
 import { StateCreator } from 'zustand';
-import { AspectRatio, GenerationQuality, ShapeLayer, ImageLayer, Layer } from '../../types';
+import { AspectRatio, GenerationQuality, ShapeLayer, ImageLayer, Layer, TextLayer } from '../../types';
 import { vectorizerService, VectorizeOptions } from '../../services/vectorizerService';
+import { aiModelsService } from '../../services/aiModelsService';
 import { removeBackground } from '../../utils/imageProcessor';
 import * as geminiService from '../../services/geminiService';
 import { v4 as uuidv4 } from 'uuid';
@@ -9,107 +10,242 @@ export interface AISlice {
   prompt: string;
   aspectRatio: AspectRatio;
   quality: GenerationQuality;
+  isGenerating: boolean;
 
   setPrompt: (prompt: string) => void;
   setAspectRatio: (ratio: AspectRatio) => void;
   setQuality: (quality: GenerationQuality) => void;
-  handleConvertToPath: (id: string) => void;
+  
+  // Refactored Core AI Actions with redundancy
+  generateImage: () => Promise<void>;
   vectorizeLayer: (id: string, options: VectorizeOptions) => Promise<void>;
   onRmBg: (id: string) => Promise<void>;
+  onRemix: (id: string) => Promise<void>;
+  onMagicExpand: (id: string) => Promise<void>;
+  onEnhance: (id: string) => Promise<void>;
+  onUpscale: (id: string) => Promise<void>;
+  onRetouch: (id: string) => Promise<void>;
+  suggestFontPairing: (textLayerId: string) => Promise<void>;
+  generateAutoLayouts: () => Promise<void>;
+  applyStyleFromImage: (base64Image: string) => Promise<void>;
+
+  handleConvertToPath: (id: string) => void;
   handleUpdateCanvasSize: (size: any) => void;
   handleApplyTemplate: (template: any) => void;
   handleDrawingComplete: (pathData: string) => void;
   handleVectorDrawingComplete: (pathData: string, stroke: any) => void;
-  onEnhance: (id: string) => Promise<void>;
-  onUpscale: (id: string) => Promise<void>;
-  onRetouch: (id: string) => Promise<void>;
-  onRemix: (id: string) => Promise<void>;
-  onMagicExpand: (id: string) => Promise<void>;
 }
 
 export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => ({
   prompt: '',
   aspectRatio: AspectRatio.SQUARE,
   quality: 'standard',
+  isGenerating: false,
 
   setPrompt: (prompt) => set({ prompt }),
   setAspectRatio: (aspectRatio) => set({ aspectRatio }),
   setQuality: (quality) => set({ quality }),
 
-  handleConvertToPath: (_id) => {},
+  generateImage: async () => {
+    const { prompt, aspectRatio, quality, addImageLayer } = get();
+    if (!prompt) {return;}
+
+    set({ isGenerating: true });
+    try {
+      let imageUrl: string | undefined;
+      
+      // Primary: High-End Flux.1
+      if (aiModelsService.isConfigured()) {
+        try {
+          imageUrl = await aiModelsService.generateFluxImage(prompt, aspectRatio);
+        } catch (e) {
+          console.warn('Flux failed, falling back to Gemini', e);
+        }
+      }
+
+      // Fallback: Gemini / Freepik
+      if (!imageUrl) {
+        imageUrl = await geminiService.generateImage(prompt, aspectRatio, quality);
+      }
+
+      if (imageUrl) {
+        addImageLayer(imageUrl, `AI: ${prompt.slice(0, 20)}...`);
+      }
+    } catch (error) {
+      console.error('All Generation methods failed', error);
+    } finally {
+      set({ isGenerating: false });
+    }
+  },
 
   vectorizeLayer: async (id, options) => {
     const { layers, deleteLayer, addLayers, saveToHistory, updateLayer } = get();
     const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {
-      return;
-    }
+    if (!layer || layer.type !== 'image') {return;}
 
-    set({ isProcessing: true });
+    set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
     try {
-      const svgString = await vectorizerService.traceImage(layer.src, options);
-      const pathElements = vectorizerService.extractPaths(svgString);
+      let result: string | undefined;
 
-      if (pathElements.length === 0) {
-        throw new Error('No paths generated');
+      // Primary: Recraft V3 Vector (Professional quality)
+      if (aiModelsService.isConfigured()) {
+        try {
+          // We prompt the AI to reconstruct the image as a vector
+          const prompt = `Convert this image perfectly into a vector: ${layer.name || 'graphic'}`;
+          result = await aiModelsService.generateVectorRecraft(prompt);
+        } catch (e) {
+          console.warn('Recraft failed, falling back to local tracer', e);
+        }
       }
 
       saveToHistory();
-      const groupId = uuidv4();
-      const newPaths: ShapeLayer[] = pathElements.map((p) => ({
-        id: uuidv4(),
-        type: 'path',
-        name: 'Vector Path',
-        pathData: p.d,
-        color: p.fill,
-        x: layer.x,
-        y: layer.y,
-        width: layer.width,
-        height: layer.height,
-        rotation: layer.rotation,
-        opacity: layer.opacity,
-        visible: true,
-        locked: false,
-        groupId: groupId,
-        cornerRadius: 0,
-        filters: {
-          brightness: 100,
-          contrast: 100,
-          saturation: 100,
-          grayscale: 0,
-          blur: 0,
-          sepia: 0,
-          hueRotate: 0,
-          vignette: 0,
-          opacity: 1,
-        },
-        blendMode: 'normal',
-        skewX: 0,
-        skewY: 0,
-        perspective: 0,
-        rotateX: 0,
-        rotateY: 0,
-      }));
-
-      deleteLayer(id);
-      addLayers(newPaths);
+      
+      if (result && !result.startsWith('http')) {
+        // Raw SVG from Recraft
+        addLayers([{
+          id: uuidv4(),
+          type: 'path',
+          name: 'AI Vector Path',
+          pathData: result,
+          color: '#000000',
+          x: layer.x,
+          y: layer.y,
+          width: layer.width,
+          height: layer.height,
+          rotation: layer.rotation,
+          opacity: layer.opacity,
+          visible: true,
+          locked: false,
+          cornerRadius: 0,
+          blendMode: 'normal',
+        } as any]);
+        deleteLayer(id);
+      } else {
+        // Fallback: Local ImageTracer
+        const svgString = await vectorizerService.traceImage(layer.src, options);
+        const pathElements = vectorizerService.extractPaths(svgString);
+        
+        const groupId = uuidv4();
+        const newPaths: ShapeLayer[] = pathElements.map((p) => ({
+          id: uuidv4(),
+          type: 'path',
+          name: 'Vector Path',
+          pathData: p.d,
+          color: p.fill,
+          x: layer.x,
+          y: layer.y,
+          width: layer.width,
+          height: layer.height,
+          rotation: layer.rotation,
+          opacity: layer.opacity,
+          visible: true,
+          locked: false,
+          groupId: groupId,
+          cornerRadius: 0,
+          filters: { 
+            brightness: 100, contrast: 100, saturation: 100, grayscale: 0, blur: 0, sepia: 0, hueRotate: 0, vignette: 0, opacity: 1,
+            ...(layer.filters || {})
+          },
+          blendMode: 'normal',
+          skewX: 0, skewY: 0, perspective: 0, rotateX: 0, rotateY: 0,
+        }));
+        deleteLayer(id);
+        addLayers(newPaths);
+      }
     } catch (e) {
       console.error('Vectorization failed', e);
       updateLayer(id, { isProcessing: false });
     } finally {
-      set({ isProcessing: false });
+      set({ isGenerating: false });
+    }
+  },
+
+  onRemix: async (id) => {
+    const prompt = window.prompt('Enter a style or description to remix this image:');
+    if (!prompt) {return;}
+
+    const { layers, updateLayer, saveToHistory } = get();
+    const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
+    if (!layer || layer.type !== 'image') {return;}
+
+    set({ isGenerating: true });
+    updateLayer(id, { isProcessing: true });
+    try {
+      let newSrc: string | undefined;
+
+      // Primary: SDXL / Flux Edit
+      if (aiModelsService.isConfigured()) {
+        try {
+          // Using generative fill with a full mask acts as a remix
+          const fullWhiteMask = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+          newSrc = await aiModelsService.generativeFillSDXL(layer.src, fullWhiteMask, prompt);
+        } catch (e) {
+          console.warn('High-end remix failed, falling back to Gemini', e);
+        }
+      }
+
+      // Fallback: Gemini
+      if (!newSrc) {
+        newSrc = await geminiService.editImage(layer.src, prompt);
+      }
+
+      if (newSrc) {
+        saveToHistory();
+        updateLayer(id, { src: newSrc, isProcessing: false });
+      }
+    } catch (error) {
+      console.error('Remix failed', error);
+      updateLayer(id, { isProcessing: false });
+    } finally {
+      set({ isGenerating: false });
+    }
+  },
+
+  onMagicExpand: async (id) => {
+    const { layers, updateLayer, saveToHistory } = get();
+    const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
+    if (!layer || layer.type !== 'image') {return;}
+
+    set({ isGenerating: true });
+    updateLayer(id, { isProcessing: true });
+    try {
+      let newSrc: string | undefined;
+
+      // Primary: SDXL Outpainting (The industry standard for expansion)
+      if (aiModelsService.isConfigured()) {
+        try {
+          const prompt = 'Extend the background naturally, maintaining style and lighting.';
+          // SDXL Outpainting logic would go here, using generative fill service
+          newSrc = await aiModelsService.generativeFillSDXL(layer.src, '', prompt);
+        } catch (e) {
+          console.warn('SDXL Expand failed, falling back to Gemini', e);
+        }
+      }
+
+      // Fallback: Gemini / Freepik
+      if (!newSrc) {
+        newSrc = await geminiService.expandImage(layer.src);
+      }
+
+      if (newSrc) {
+        saveToHistory();
+        updateLayer(id, { src: newSrc, isProcessing: false });
+      }
+    } catch (error) {
+      console.error('Magic Expand failed', error);
+      updateLayer(id, { isProcessing: false });
+    } finally {
+      set({ isGenerating: false });
     }
   },
 
   onRmBg: async (id) => {
     const { layers, updateLayer, saveToHistory } = get();
     const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {
-      return;
-    }
+    if (!layer || layer.type !== 'image') {return;}
 
-    set({ isProcessing: true, isRemovingBg: true });
+    set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
     try {
       const result = await removeBackground(layer.src);
@@ -119,18 +255,16 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
       console.error('BG Removal failed', e);
       updateLayer(id, { isProcessing: false });
     } finally {
-      set({ isProcessing: false, isRemovingBg: false });
+      set({ isGenerating: false });
     }
   },
 
   onEnhance: async (id) => {
     const { layers, updateLayer, saveToHistory } = get();
     const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {
-      return;
-    }
+    if (!layer || layer.type !== 'image') {return;}
 
-    set({ isProcessing: true });
+    set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
     try {
       const newSrc = await geminiService.enhanceImage(layer.src);
@@ -140,18 +274,16 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
       console.error('Enhance failed', error);
       updateLayer(id, { isProcessing: false });
     } finally {
-      set({ isProcessing: false });
+      set({ isGenerating: false });
     }
   },
 
   onUpscale: async (id) => {
     const { layers, updateLayer, saveToHistory } = get();
     const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {
-      return;
-    }
+    if (!layer || layer.type !== 'image') {return;}
 
-    set({ isProcessing: true });
+    set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
     try {
       const newSrc = await geminiService.upscaleImage(layer.src);
@@ -161,18 +293,16 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
       console.error('Upscale failed', error);
       updateLayer(id, { isProcessing: false });
     } finally {
-      set({ isProcessing: false });
+      set({ isGenerating: false });
     }
   },
 
   onRetouch: async (id) => {
     const { layers, updateLayer, saveToHistory } = get();
     const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {
-      return;
-    }
+    if (!layer || layer.type !== 'image') {return;}
 
-    set({ isProcessing: true });
+    set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
     try {
       const newSrc = await geminiService.retouchImage(layer.src);
@@ -182,62 +312,82 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
       console.error('Retouch failed', error);
       updateLayer(id, { isProcessing: false });
     } finally {
-      set({ isProcessing: false });
+      set({ isGenerating: false });
     }
   },
 
-  onRemix: async (id) => {
-    const prompt = window.prompt('Enter a style or description to remix this image:');
-    if (!prompt) {
-      return;
-    }
-
+  suggestFontPairing: async (textLayerId) => {
     const { layers, updateLayer, saveToHistory } = get();
-    const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {
-      return;
-    }
+    const layer = layers.find((l: Layer) => l.id === textLayerId) as TextLayer;
+    if (!layer || layer.type !== 'text') {return;}
 
-    set({ isProcessing: true });
-    updateLayer(id, { isProcessing: true });
+    set({ isGenerating: true });
     try {
-      const newSrc = await geminiService.editImage(layer.src, prompt);
-      saveToHistory();
-      updateLayer(id, { src: newSrc, isProcessing: false });
+      const suggestedFont = await geminiService.suggestFontPairing(layer.fontFamily);
+      if (suggestedFont && suggestedFont !== layer.fontFamily) {
+        // We don't replace the current font, we might want to add a new text layer or just notify
+        // For now, let's update the current one to show the result
+        saveToHistory();
+        updateLayer(textLayerId, { fontFamily: suggestedFont });
+      }
     } catch (error) {
-      console.error('Remix failed', error);
-      updateLayer(id, { isProcessing: false });
+      console.error('Font pairing failed', error);
     } finally {
-      set({ isProcessing: false });
+      set({ isGenerating: false });
     }
   },
 
-  onMagicExpand: async (id) => {
-    const { layers, updateLayer, saveToHistory } = get();
-    const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {
-      return;
-    }
+  generateAutoLayouts: async () => {
+    const { layers, canvasSize, updateLayers, saveToHistory } = get();
+    if (layers.length === 0) {return;}
 
-    set({ isExpanding: true, isProcessing: true });
-    updateLayer(id, { isProcessing: true });
+    set({ isGenerating: true });
     try {
-      const newSrc = await geminiService.expandImage(layer.src);
-      saveToHistory();
-      updateLayer(id, { src: newSrc, isProcessing: false });
+      const suggestions = await geminiService.generateAutoLayoutSuggestions(layers, canvasSize.width, canvasSize.height);
+      if (suggestions && suggestions.length > 0) {
+        // For simplicity, we apply the first one immediately.
+        // In a real UI, we would show a carousel of options.
+        saveToHistory();
+        updateLayers(suggestions[0]);
+      }
     } catch (error) {
-      console.error('Magic Expand failed', error);
-      updateLayer(id, { isProcessing: false });
+      console.error('Auto-layout suggestion failed', error);
     } finally {
-      set({ isExpanding: false, isProcessing: false });
+      set({ isGenerating: false });
     }
   },
 
-  handleUpdateCanvasSize: (size) => {
-    get().saveToHistory();
-    set({ canvasSize: size });
+  applyStyleFromImage: async (base64Image) => {
+    const { setCanvasBackgroundColor, updateLayer, layers, saveToHistory } = get();
+    
+    set({ isGenerating: true });
+    try {
+      const theme = await geminiService.extractStyleFromImage(base64Image);
+      if (theme) {
+        saveToHistory();
+        setCanvasBackgroundColor(theme.backgroundColor);
+        
+        // Map theme to layers
+        layers.forEach((l: any) => {
+          if (l.type === 'text') {
+            updateLayer(l.id, { 
+              color: theme.primaryColor, 
+              fontFamily: (l as TextLayer).fontSize > 30 ? theme.headingFont : theme.bodyFont 
+            });
+          } else if (l.type !== 'image' && l.type !== 'adjustment') {
+            updateLayer(l.id, { color: theme.secondaryColor });
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Style transfer failed', error);
+    } finally {
+      set({ isGenerating: false });
+    }
   },
 
+  handleConvertToPath: (_id) => {},
+  handleUpdateCanvasSize: (size) => { get().saveToHistory(); set({ canvasSize: size }); },
   handleApplyTemplate: (template) => {
     get().saveToHistory();
     set({
@@ -248,16 +398,20 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
       selectedLayerIds: [],
     });
   },
-
   handleDrawingComplete: (pathData) => {
-    get().addImageLayer(pathData, 'Drawing');
+    const { artboards, activeArtboardId, addImageLayer, setPenMode } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    if (artboard) { addImageLayer(pathData, 'Drawing', 0, 0, artboard.width, artboard.height); } else { addImageLayer(pathData, 'Drawing'); }
+    setPenMode(false);
   },
-
   handleVectorDrawingComplete: (pathData, stroke) => {
-    get().addShapeLayer('path', {
-      pathData,
-      stroke,
-      color: 'transparent',
-    });
+    const { artboards, activeArtboardId, addShapeLayer, setPenMode } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    if (artboard) {
+      addShapeLayer('path', { pathData, stroke, color: 'transparent', x: 0, y: 0, width: artboard.width, height: artboard.height });
+    } else {
+      addShapeLayer('path', { pathData, stroke, color: 'transparent' });
+    }
+    setPenMode(false);
   },
 });

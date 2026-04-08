@@ -142,8 +142,9 @@ export const useEditorLogic = (initialProject?: Project) => {
   }, [layers, canvasBackgroundColor, brandKits]);
 
   // AI Generation
-  const handleGenerate = async () => {
+  const handleGenerate = async (negativePrompt?: string) => {
     if (!prompt.trim()) {return;}
+    const apiPrompt = prompt + (negativePrompt?.trim() ? ` | negative: ${negativePrompt.trim()}` : '');
     setIsProcessing(true);
     const tempId = `gen_${Date.now()}`;
     try {
@@ -171,7 +172,7 @@ export const useEditorLogic = (initialProject?: Project) => {
           skewX: 0,
           skewY: 0,
         });
-        const resultBase64 = await geminiService.generateImage(prompt, aspectRatio, quality);
+        const resultBase64 = await geminiService.generateImage(apiPrompt, aspectRatio, quality);
         deleteLayer(tempId);
         addImageLayer(resultBase64, 'AI Generated');
       }

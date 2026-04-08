@@ -3,6 +3,8 @@
  * Centralized configuration management for all environment variables and constants
  */
 
+import { log } from '../utils/log';
+
 // Environment variables with validation
 const getEnv = (key: string, defaultValue?: string): string => {
   const value = import.meta.env[key] || defaultValue;
@@ -40,7 +42,7 @@ export const config = {
   // AI Services
   ai: {
     gemini: {
-      apiKey: getOptionalEnv('VITE_GEMINI_API_KEY'),
+      // API Key is now handled securely on the server side via Vercel Functions
       model: 'gemini-2.5-flash',
       maxRetries: 3,
       timeout: 30000,
@@ -69,6 +71,11 @@ export const config = {
     dynamicMockups: {
       apiKey: getOptionalEnv('VITE_DYNAMIC_MOCKUPS_API_KEY'),
       baseUrl: 'https://api.dynamicmockups.com',
+    },
+    iconScout: {
+      clientId: getOptionalEnv('VITE_ICONSCOUT_CLIENT_ID'),
+      secretKey: getOptionalEnv('VITE_ICONSCOUT_SECRET_KEY'),
+      baseUrl: 'https://api.iconscout.com/v3',
     },
   },
 
@@ -146,16 +153,14 @@ export const validateConfig = (): void => {
     warnings.push('Supabase credentials not configured');
   }
 
-  if (!config.ai.gemini.apiKey) {
-    warnings.push('Gemini API key not configured - AI features disabled');
-  }
+  // Gemini API key validation moved to the server-side
 
   if (!config.apis.unsplash.accessKey) {
     warnings.push('Unsplash API key not configured');
   }
 
   if (warnings.length > 0) {
-    console.warn('[Config Validation]', ...warnings);
+    log.warn('[ConfigValidation] Missing optional configurations', { warnings });
   }
 };
 

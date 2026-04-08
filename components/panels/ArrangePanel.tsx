@@ -8,7 +8,7 @@ import { useStore } from '../../store/useStore';
 interface ArrangePanelProps { }
 
 export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
-  const { artboards, selectedLayerIds, canvasSize, updateLayers, moveLayer: onMoveLayer } = useStore();
+  const { artboards, selectedLayerIds, canvasSize, updateLayers, moveLayer: onMoveLayer, showGrid, setShowGrid, snapToObjects, setSnapToObjects, snapToGrid, setSnapToGrid } = useStore();
 
   const allLayers = artboards.flatMap(a => a.layers);
   const selectedLayers = allLayers.filter((l) => selectedLayerIds.includes(l.id));
@@ -252,8 +252,8 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
               <input
                 type="checkbox"
                 className="sr-only peer"
-                checked={useStore.getState().showGrid}
-                onChange={(e) => useStore.getState().setShowGrid(e.target.checked)}
+                checked={!!showGrid}
+                onChange={(e) => setShowGrid(e.target.checked)}
               />
               <div className="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#7d2ae8]"></div>
             </div>
@@ -264,8 +264,8 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
               <input
                 type="checkbox"
                 className="sr-only peer"
-                checked={useStore.getState().snapToObjects}
-                onChange={(e) => useStore.getState().setSnapToObjects(e.target.checked)}
+                checked={!!snapToObjects}
+                onChange={(e) => setSnapToObjects(e.target.checked)}
               />
               <div className="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#7d2ae8]"></div>
             </div>
@@ -276,8 +276,8 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
               <input
                 type="checkbox"
                 className="sr-only peer"
-                checked={useStore.getState().snapToGrid}
-                onChange={(e) => useStore.getState().setSnapToGrid(e.target.checked)}
+                checked={!!snapToGrid}
+                onChange={(e) => setSnapToGrid(e.target.checked)}
               />
               <div className="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#7d2ae8]"></div>
             </div>

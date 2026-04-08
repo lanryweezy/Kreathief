@@ -11,6 +11,7 @@ vi.mock('../services/storageService', () => ({
     saveComment: vi.fn(),
     getComments: vi.fn().mockResolvedValue([]),
     saveProject: vi.fn(),
+    saveSessionMirror: vi.fn().mockResolvedValue(undefined),
   },
 }));
 

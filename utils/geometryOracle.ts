@@ -1,4 +1,5 @@
 import { Layer, TextLayer } from '../types';
+import { log } from './log';
 
 export class GeometryOracle {
   private static canvas: HTMLCanvasElement | null = null;
@@ -56,7 +57,7 @@ export class GeometryOracle {
     try {
       totalLength = path.getTotalLength();
     } catch (e) {
-      console.error('Invalid path data for measurement', e);
+      log.error('Invalid path data for measurement', e);
       return { totalLength: 0, getPointAt: (_d: number) => ({ x: 0, y: 0, angle: 0 }) };
     }
 
