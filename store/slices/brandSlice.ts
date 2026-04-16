@@ -12,11 +12,18 @@ export interface BrandSlice {
 
 export const createBrandSlice: StateCreator<any, [], [], BrandSlice> = (set, get) => ({
   brandKits: [],
-  addBrandKit: (kit) => set((state: any) => ({ brandKits: [...state.brandKits, kit] })),
-  deleteBrandKit: (id) => set((state: any) => ({ brandKits: state.brandKits.filter((k: BrandKit) => k.id !== id) })),
+  addBrandKit: (kit) => set((state: any) => ({
+    brandKits: [...state.brandKits, kit],
+    hasUnsavedChanges: true
+  })),
+  deleteBrandKit: (id) => set((state: any) => ({
+    brandKits: state.brandKits.filter((k: BrandKit) => k.id !== id),
+    hasUnsavedChanges: true
+  })),
   updateBrandKit: (id, updates) =>
     set((state: any) => ({
       brandKits: state.brandKits.map((k: BrandKit) => (k.id === id ? { ...k, ...updates } : k)),
+      hasUnsavedChanges: true
     })),
   applyBrandColors: (colors: string[]) => {
     if (!colors || colors.length === 0) {return;}
@@ -51,11 +58,11 @@ export const createBrandSlice: StateCreator<any, [], [], BrandSlice> = (set, get
         backgroundColor: background,
         layers: artboard.layers.map((l: Layer) => {
           if (l.type === 'text') {
-            return { ...l, color: getBestContrast(background, colorPool), dirty: true };
+            return { ...l, color: getBestContrast(background, colorPool) };
           }
           if (['rectangle', 'circle', 'triangle', 'path', 'star'].includes(l.type)) {
             // Use a diverse but legible choice for shapes
-            return { ...l, color: colorPool[Math.floor(Math.random() * colorPool.length)], dirty: true };
+            return { ...l, color: colorPool[Math.floor(Math.random() * colorPool.length)] };
           }
           return l;
         })
@@ -64,11 +71,13 @@ export const createBrandSlice: StateCreator<any, [], [], BrandSlice> = (set, get
   },
   applyBrandFonts: (heading, body) => {
     get().saveToHistory?.();
-    const { layers, updateLayer } = get();
-    layers.forEach((l: Layer) => {
-      if (l.type === 'text') {
-        updateLayer(l.id, { fontFamily: (l as TextLayer).fontWeight === '700' ? heading : body });
-      }
+    const { artboards, updateLayer } = get();
+    artboards.forEach((artboard: any) => {
+      artboard.layers.forEach((l: Layer) => {
+        if (l.type === 'text') {
+          updateLayer(l.id, { fontFamily: (l as TextLayer).fontWeight === '700' ? heading : body });
+        }
+      });
     });
   },
 });

@@ -16,7 +16,7 @@ test.describe('Templates Features', () => {
     // Mock authenticated user
     await page.addInitScript(() => {
       localStorage.setItem(
-        'kreathief_user',
+        'kreathief_qa_session',
         JSON.stringify({
           id: 'test-user',
           name: 'Test Designer',
@@ -26,37 +26,57 @@ test.describe('Templates Features', () => {
         })
       );
       localStorage.setItem('kreathief_onboarding_seen', 'true');
+      (window as any).VITE_QA_BYPASS = true;
     });
 
     await dashboard.goto();
   });
 
-  test('should open templates panel', async () => {
+  test('should open templates panel', async ({ page }) => {
+    // Need to open a project first to access the editor's templates panel
+    await dashboard.switchToTemplates();
+    await page.getByTestId(/dashboard-template-btn-/).first().click();
+    await editor.waitForCanvasReady();
+
     await templates.openTemplatesPanel();
     await expect(templates.templatesPanel).toBeVisible();
   });
 
-  test('should display templates grid', async () => {
+  test('should display templates grid', async ({ page }) => {
+    // Need to open a project first to access the editor's templates panel
+    await dashboard.switchToTemplates();
+    await page.waitForLoadState('networkidle');
+    await page.getByTestId(/dashboard-template-btn-/).first().click();
+    await editor.waitForCanvasReady();
+
     await templates.verifyTemplatesLoaded();
   });
 
-  test('should search templates', async () => {
-    await templates.searchTemplates('Instagram');
+  test('should search templates', async ({ page }) => {
+    // Search on dashboard
+    await templates.dashboardSearch('Instagram');
 
-    // Verify search results
-    const templateCount = await templates.getTemplateCount();
+    // Verify search results on dashboard
+    const templateCount = await templates.getDashboardTemplateCount();
     expect(templateCount).toBeGreaterThanOrEqual(0);
   });
 
-  test('should filter templates by category', async () => {
+  test('should filter templates by category', async ({ page }) => {
+    // Need to open a project first
+    await dashboard.switchToTemplates();
+    await page.waitForLoadState('networkidle');
+    await page.getByTestId(/dashboard-template-btn-/).first().click();
+    await editor.waitForCanvasReady();
+
     await templates.filterByCategory('Social');
     await templates.verifyCategoryFilter('Social');
   });
 
-  test('should select and open template', async () => {
-    // Open first template
-    await templates.openTemplatesPanel();
-    const templateBtn = templates.templatesGrid.locator('button').first();
+  test('should select and open template', async ({ page }) => {
+    // Navigate to templates first on DASHBOARD
+    await dashboard.switchToTemplates();
+    await page.waitForLoadState('networkidle');
+    const templateBtn = dashboard.templatesGrid.locator('button').first();
     const templateName = await templateBtn.textContent();
 
     if (templateName) {
@@ -68,9 +88,10 @@ test.describe('Templates Features', () => {
     }
   });
 
-  test('should verify template exists', async () => {
-    await templates.openTemplatesPanel();
-    const templateBtn = templates.templatesGrid.locator('button').first();
+  test('should verify template exists', async ({ page }) => {
+    await dashboard.switchToTemplates();
+    await page.waitForLoadState('networkidle');
+    const templateBtn = dashboard.templatesGrid.locator('button').first();
     const templateName = await templateBtn.textContent();
 
     if (templateName) {
@@ -78,36 +99,45 @@ test.describe('Templates Features', () => {
     }
   });
 
-  test('should get template count', async () => {
-    const templateCount = await templates.getTemplateCount();
+  test('should get template count', async ({ page }) => {
+    await dashboard.switchToTemplates();
+    await page.waitForLoadState('networkidle');
+    const templateCount = await templates.getDashboardTemplateCount();
     expect(templateCount).toBeGreaterThan(0);
   });
 
   test('should handle empty search results', async ({ page }) => {
-    await templates.searchTemplates('NonExistentTemplate12345');
+    await page.waitForLoadState('networkidle');
+    await templates.dashboardSearch('NonExistentTemplate12345');
     await page.waitForTimeout(1000);
 
     // Verify no templates or "no results" message
-    const templateCount = await templates.getTemplateCount();
+    const templateCount = await templates.getDashboardTemplateCount();
     // Either 0 templates or a "no results" message should be visible
     expect(templateCount).toBeLessThanOrEqual(0);
   });
 
   test('should reset search', async ({ page }) => {
+    await page.waitForLoadState('networkidle');
     // Search for something
-    await templates.searchTemplates('Instagram');
-    const searchCount = await templates.getTemplateCount();
+    await templates.dashboardSearch('Instagram');
+    const searchCount = await templates.getDashboardTemplateCount();
 
     // Clear search
-    await templates.searchInput.clear();
+    await templates.dashboardSearchInput.clear();
     await page.waitForTimeout(500);
 
     // Verify all templates shown again
-    const allCount = await templates.getTemplateCount();
+    const allCount = await templates.getDashboardTemplateCount();
     expect(allCount).toBeGreaterThanOrEqual(searchCount);
   });
 
   test('should navigate templates with keyboard', async ({ page }) => {
+    await dashboard.switchToTemplates();
+    await page.waitForLoadState('networkidle');
+    await page.getByTestId(/dashboard-template-btn-/).first().click();
+    await editor.waitForCanvasReady();
+
     await templates.openTemplatesPanel();
 
     // Use arrow keys to navigate
@@ -124,7 +154,12 @@ test.describe('Templates Features', () => {
     await editor.verifyEditorLoaded();
   });
 
-  test('should verify template categories', async () => {
+  test('should verify template categories', async ({ page }) => {
+    await dashboard.switchToTemplates();
+    await page.waitForLoadState('networkidle');
+    await page.getByTestId(/dashboard-template-btn-/).first().click();
+    await editor.waitForCanvasReady();
+
     await templates.openTemplatesPanel();
 
     // Verify category filters exist
@@ -136,7 +171,10 @@ test.describe('Templates Features', () => {
   });
 
   test('should switch between categories', async ({ page }) => {
-    await templates.openTemplatesPanel();
+    await dashboard.switchToTemplates();
+    await page.waitForLoadState('networkidle');
+    await page.getByTestId(/dashboard-template-btn-/).first().click();
+    await editor.waitForCanvasReady();
 
     // Get initial category
     await templates.getTemplateCount();
@@ -157,10 +195,11 @@ test.describe('Templates Features', () => {
     expect(businessCount).toBeGreaterThanOrEqual(0);
   });
 
-  test('should load template in editor', async () => {
-    // Open first template
-    await templates.openTemplatesPanel();
-    const templateBtn = templates.templatesGrid.locator('button').first();
+  test('should load template in editor', async ({ page }) => {
+    // Open first template from dashboard
+    await dashboard.switchToTemplates();
+    await page.waitForLoadState('networkidle');
+    const templateBtn = dashboard.templatesGrid.locator('button').first();
     await templateBtn.click();
 
     // Wait for editor

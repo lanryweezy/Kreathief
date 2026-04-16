@@ -46,3 +46,7 @@ export const useStore = create<StoreState>()((set, get, store) => ({
     });
   },
 }));
+
+if (typeof window !== 'undefined') {
+  (window as any).useStore = useStore;
+}

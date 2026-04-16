@@ -264,7 +264,7 @@ export const ElementsPanel = () => {
       : ['business', 'technology', 'nature', 'food', 'sport', 'music', 'travel', 'health'];
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-5">
+    <div data-testid="elements-panel" className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-5">
       {/* Tabs */}
       <div className="flex gap-1 p-1 bg-[#1a1a1a] rounded-xl border border-gray-800">
         {sources.map((src) => (
@@ -312,7 +312,9 @@ export const ElementsPanel = () => {
             {filteredShapes.map((item, idx) => (
               <button
                 key={idx}
-                onClick={() => internalAddShape(item.type, item.props)}
+                data-testid={`shape-btn-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+                id={`shape-btn-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+                onClick={() => internalAddShape(item.type, { ...item.props, name: item.name })}
                 className="aspect-square bg-[#1e1e1e] border border-gray-800 rounded-xl hover:border-[#7d2ae8] flex flex-col items-center justify-center gap-1 group"
               >
                 <div className="w-8 h-8 flex items-center justify-center">

@@ -95,7 +95,8 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(({
         return (
           <div
             key={artboard.id}
-            className="absolute pointer-events-auto"
+            data-artboard-id={artboard.id}
+            className="absolute pointer-events-auto design-artboard"
             style={{
               left: artboard.x,
               top: artboard.y,

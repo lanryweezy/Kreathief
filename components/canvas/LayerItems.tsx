@@ -3,8 +3,7 @@
  * Individual wrappers for different layer types with interaction logic
  */
 
-import React, { useEffect } from 'react';
-import { useStore } from '../../store/useStore';
+import React from 'react';
 import { Layer, TextLayer, ShapeLayer, ImageLayer, AnimationSettings, ResizeHandle } from '../../types';
 import { getLayerClipPath, getAnimationStyle } from '../../utils/layerRendering';
 import { buildVariableStrokeOutline, profileWidthFn } from '../../utils/variableStroke';
@@ -32,9 +31,6 @@ interface LayerItemProps {
  * Custom equality check for Dirty Rectangle Tracking
  */
 const layerPropsAreEqual = (prevProps: LayerItemProps, nextProps: LayerItemProps) => {
-  if (nextProps.layer.dirty) {
-    return false;
-  }
   if (prevProps.isSelected !== nextProps.isSelected) {
     return false;
   }
@@ -54,17 +50,41 @@ const layerPropsAreEqual = (prevProps: LayerItemProps, nextProps: LayerItemProps
   const p = prevProps.layer;
   const n = nextProps.layer;
 
+  // Helper for shallow object comparison
+  const shallowObjEqual = (o1: any, o2: any) => {
+    if (o1 === o2) return true;
+    if (!o1 || !o2) return false;
+    const keys1 = Object.keys(o1);
+    const keys2 = Object.keys(o2);
+    if (keys1.length !== keys2.length) return false;
+    return keys1.every(key => o1[key] === o2[key]);
+  };
+
+  // Comprehensive comparison to replace the 'dirty' flag logic
   return (
     p.id === n.id &&
     p.x === n.x &&
     p.y === n.y &&
-    p.width === n.width &&
-    p.height === n.height &&
+    (p as any).width === (n as any).width &&
+    (p as any).height === (n as any).height &&
     p.rotation === n.rotation &&
     p.opacity === n.opacity &&
     p.visible === n.visible &&
     p.locked === n.locked &&
-    p.blendMode === n.blendMode
+    p.blendMode === n.blendMode &&
+    shallowObjEqual(p.filters, n.filters) &&
+    shallowObjEqual(p.stroke, n.stroke) &&
+    shallowObjEqual(p.shadow, n.shadow) &&
+    (p as any).text === (n as any).text &&
+    (p as any).fontFamily === (n as any).fontFamily &&
+    (p as any).fontSize === (n as any).fontSize &&
+    (p as any).pathData === (n as any).pathData &&
+    (p as any).src === (n as any).src &&
+    (p as any).cornerRadius === (n as any).cornerRadius &&
+    (p as any).color === (n as any).color &&
+    (p as any).maskPath === (n as any).maskPath &&
+    (p as any).maskType === (n as any).maskType &&
+    (p as any).maskLayerId === (n as any).maskLayerId
   );
 };
 
@@ -77,14 +97,6 @@ export const ImageLayerItem = React.memo(
       { layer, isSelected, isHovered, onMouseDown, onResize, onRotate, onContextMenu, previewAnimation, maskPath },
       ref
     ) => {
-      const resetDirty = useStore((state) => state.resetDirty);
-
-      useEffect(() => {
-        if (layer.dirty) {
-          resetDirty(layer.id);
-        }
-      }, [layer.dirty, layer.id, resetDirty]);
-
       const imgLayer = layer as ImageLayer;
       const scaleX = imgLayer.flipX ? -1 : 1;
       const scaleY = imgLayer.flipY ? -1 : 1;
@@ -183,14 +195,6 @@ export const ShapeLayerItem = React.memo(
       { layer, isSelected, isHovered, onMouseDown, onResize, onRotate, onContextMenu, previewAnimation, maskPath },
       ref
     ) => {
-      const resetDirty = useStore((state) => state.resetDirty);
-
-      useEffect(() => {
-        if (layer.dirty) {
-          resetDirty(layer.id);
-        }
-      }, [layer.dirty, layer.id, resetDirty]);
-
       const shapeLayer = layer as ShapeLayer;
       const clipPath = getLayerClipPath(shapeLayer);
       const animStyle = getAnimationStyle(isSelected && previewAnimation ? previewAnimation : shapeLayer.animation);
@@ -249,10 +253,12 @@ export const ShapeLayerItem = React.memo(
         <div
           ref={ref}
           role="img"
+          data-testid={`shape-layer-${shapeLayer.id}`}
+          data-layer-id={shapeLayer.id}
           aria-label={shapeLayer.name || 'Shape layer'}
           onMouseDown={(e) => onMouseDown(e, shapeLayer)}
           onContextMenu={(e) => onContextMenu(e, shapeLayer.id)}
-          className="absolute cursor-move group shape-layer-item"
+          className="absolute cursor-move group shape-layer-item shape-layer"
           style={containerStyle}
         >
           {isHovered && !isSelected && !shapeLayer.locked && (
@@ -346,14 +352,6 @@ export const TextLayerItem = React.memo(
       },
       ref
     ) => {
-      const resetDirty = useStore((state) => state.resetDirty);
-
-      useEffect(() => {
-        if (layer.dirty) {
-          resetDirty(layer.id);
-        }
-      }, [layer.dirty, layer.id, resetDirty]);
-
       const textLayer = layer as TextLayer;
       const animStyle = getAnimationStyle(isSelected && previewAnimation ? previewAnimation : textLayer.animation);
 
@@ -361,11 +359,13 @@ export const TextLayerItem = React.memo(
         <div
           ref={ref}
           role="textbox"
+          data-testid={`text-layer-${textLayer.id}`}
+          data-layer-id={textLayer.id}
           aria-label={textLayer.name || 'Text layer'}
           onMouseDown={(e) => onMouseDown(e, textLayer)}
           onContextMenu={(e) => onContextMenu(e, textLayer.id)}
           onDoubleClick={(e) => onDoubleClick && onDoubleClick(e, textLayer)}
-          className="absolute cursor-move group text-layer-item"
+          className="absolute cursor-move group text-layer-item text-layer"
           style={{
             left: textLayer.x,
             top: textLayer.y,
@@ -417,14 +417,6 @@ export const AdjustmentLayerItem = React.memo(
       },
       ref
     ) => {
-      const resetDirty = useStore(state => state.resetDirty);
-      
-      useEffect(() => {
-        if (layer.dirty) {
-          resetDirty(layer.id);
-        }
-      }, [layer.dirty, layer.id, resetDirty]);
-
       const adjLayer = layer as any; // Using any to avoid type complaints before sync
       const filters = adjLayer.adjustmentFilters || { brightness: 100, contrast: 100, saturation: 100, blur: 0, hueRotate: 0, sepia: 0, invert: 0 };
       
@@ -473,5 +465,3 @@ export const AdjustmentLayerItem = React.memo(
 );
 
 AdjustmentLayerItem.displayName = 'AdjustmentLayerItem';
-
-

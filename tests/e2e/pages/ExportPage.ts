@@ -14,24 +14,29 @@ export class ExportPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.exportBtn = page.locator('button:has-text("Export"), [data-testid="export-btn"]');
-    this.exportModal = page.locator('[data-testid="export-modal"], .export-modal');
-    this.pngBtn = page.locator('button:has-text("PNG"), [data-testid="export-png"]');
-    this.jpegBtn = page.locator('button:has-text("JPG"), button:has-text("JPEG"), [data-testid="export-jpeg"]');
-    this.webpBtn = page.locator('button:has-text("WEBP"), [data-testid="export-webp"]');
-    this.pdfBtn = page.locator('button:has-text("PDF"), [data-testid="export-pdf"]');
-    this.psdBtn = page.locator('button:has-text("PSD"), [data-testid="export-psd"]');
-    this.qualitySlider = page.locator('input[type="range"][aria-label*="Quality"], input[aria-label*="quality"]');
-    this.downloadBtn = page.locator('button:has-text("Download"), button:has-text("Export")');
+    this.exportBtn = page.getByTestId('export-btn');
+    this.exportModal = page.getByTestId('export-modal');
+    this.pngBtn = page.getByTestId('export-png-btn');
+    this.jpegBtn = page.getByTestId('export-jpeg-btn');
+    this.webpBtn = page.getByTestId('export-webp-btn');
+    this.pdfBtn = page.getByTestId('export-pdf-btn');
+    this.psdBtn = page.getByTestId('export-psd-btn');
+    this.qualitySlider = page.getByTestId('export-quality-slider');
+    this.downloadBtn = page.getByTestId('download-btn');
   }
 
   async openExportModal() {
-    await this.exportBtn.click();
-    await expect(this.exportModal).toBeVisible({ timeout: 5000 });
+    const isVisible = await this.exportModal.isVisible();
+    if (!isVisible) {
+      await this.exportBtn.click();
+    }
+    await expect(this.exportModal).toBeVisible({ timeout: 10000 });
+    // Wait for animation
+    await this.page.waitForTimeout(500);
   }
 
   async closeExportModal() {
-    const closeBtn = this.exportModal.locator('button[aria-label="Close"], button:has-text("Cancel")');
+    const closeBtn = this.page.getByTestId('close-export-modal');
     await closeBtn.click();
   }
 
@@ -39,33 +44,41 @@ export class ExportPage {
     await this.openExportModal();
     await this.pngBtn.click();
     await this.downloadBtn.click();
+    await expect(this.exportModal).not.toBeVisible({ timeout: 10000 });
   }
 
   async exportJPEG() {
     await this.openExportModal();
     await this.jpegBtn.click();
     await this.downloadBtn.click();
+    await expect(this.exportModal).not.toBeVisible({ timeout: 10000 });
   }
 
   async exportWEBP() {
     await this.openExportModal();
     await this.webpBtn.click();
     await this.downloadBtn.click();
+    await expect(this.exportModal).not.toBeVisible({ timeout: 10000 });
   }
 
   async exportPDF() {
     await this.openExportModal();
     await this.pdfBtn.click();
     await this.downloadBtn.click();
+    await expect(this.exportModal).not.toBeVisible({ timeout: 10000 });
   }
 
   async exportPSD() {
     await this.openExportModal();
     await this.psdBtn.click();
     await this.downloadBtn.click();
+    await expect(this.exportModal).not.toBeVisible({ timeout: 10000 });
   }
 
   async setQuality(quality: number) {
+    // Quality slider only appears for JPEG and WEBP
+    await this.jpegBtn.click();
+    await expect(this.qualitySlider).toBeVisible();
     await this.qualitySlider.fill(quality.toString());
   }
 

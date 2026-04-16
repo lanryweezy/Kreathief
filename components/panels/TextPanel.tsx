@@ -261,7 +261,7 @@ export const TextPanel: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#13161a] p-4 overflow-y-auto custom-scrollbar">
+    <div data-testid="text-panel" className="flex flex-col h-full bg-[#13161a] p-4 overflow-y-auto custom-scrollbar">
       <h3 className="font-bold text-white mb-4 flex items-center gap-2">
         <Icons.Text className="w-5 h-5 text-[#7d2ae8]" />
         Typography
@@ -350,18 +350,21 @@ export const TextPanel: React.FC = () => {
         <>
       <div className="flex flex-col gap-2 mb-6">
         <button
+          data-testid="add-heading-btn"
           onClick={() => handleAddText({ text: 'Heading', fontSize: 62, fontWeight: '800' })}
           className="w-full py-3 bg-[#252627] hover:bg-[#333] border border-gray-700 hover:border-gray-500 rounded-lg text-left px-4 transition-colors"
         >
           <span className="text-2xl font-extrabold text-white">Add a heading</span>
         </button>
         <button
+          data-testid="add-subheading-btn"
           onClick={() => handleAddText({ text: 'Subheading', fontSize: 38, fontWeight: '600' })}
           className="w-full py-2.5 bg-[#252627] hover:bg-[#333] border border-gray-700 hover:border-gray-500 rounded-lg text-left px-4 transition-colors"
         >
           <span className="text-lg font-semibold text-gray-200">Add a subheading</span>
         </button>
         <button
+          data-testid="add-body-text-btn"
           onClick={() => handleAddText({ text: 'Body text', fontSize: 24, fontWeight: '400' })}
           className="w-full py-2 bg-[#252627] hover:bg-[#333] border border-gray-700 hover:border-gray-500 rounded-lg text-left px-4 transition-colors"
         >

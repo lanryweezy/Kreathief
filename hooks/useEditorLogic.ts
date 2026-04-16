@@ -62,13 +62,15 @@ export const useEditorLogic = (initialProject?: Project) => {
   const [booleanPreview, setBooleanPreview] = useState<{ path: string; operation: string } | null>(null);
 
   // Sync Initial Project
+  const initializedRef = useRef<string | null>(null);
   useEffect(() => {
-    if (initialProject && initialProject.id !== projectId) {
+    if (initialProject && initialProject.id !== initializedRef.current) {
+      initializedRef.current = initialProject.id;
       setProjectId(initialProject.id);
       setProjectTitle(initialProject.name);
       initializeProject(initialProject);
     }
-  }, [initialProject, projectId, setProjectId, setProjectTitle, initializeProject]);
+  }, [initialProject, setProjectId, setProjectTitle, initializeProject]);
 
   // Autosave Recovery
   useEffect(() => {

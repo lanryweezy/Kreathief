@@ -16,7 +16,7 @@ test.describe('Export Features', () => {
     // Mock authenticated user
     await page.addInitScript(() => {
       localStorage.setItem(
-        'kreathief_user',
+        'kreathief_qa_session',
         JSON.stringify({
           id: 'test-user',
           name: 'Test Designer',
@@ -30,7 +30,9 @@ test.describe('Export Features', () => {
 
     // Navigate to editor
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('nav-templates').click();
+    await page.waitForLoadState('networkidle');
+    await page.getByTestId(/dashboard-template-btn-/).first().click();
     await editor.waitForCanvasReady();
   });
 
@@ -125,16 +127,16 @@ test.describe('Export Features', () => {
 
   test('should export with multiple layers', async ({ page }) => {
     // Add text layer
-    const textTab = editor.sidebar.locator('button[aria-label="Text"]');
+    const textTab = page.getByTestId('sidebar-tab-text');
     await textTab.click();
-    const addHeading = page.locator('button:has-text("Heading")');
+    const addHeading = page.getByTestId('add-heading-btn');
     await addHeading.click();
     await page.waitForTimeout(500);
 
     // Add shape
-    const elementsTab = editor.sidebar.locator('button[aria-label="Elements"]');
+    const elementsTab = page.getByTestId('sidebar-tab-elements');
     await elementsTab.click();
-    const shapeBtn = page.locator('.shape-btn').first();
+    const shapeBtn = page.getByTestId(/shape-btn-/).first();
     if (await shapeBtn.isVisible()) {
       await shapeBtn.click();
       await page.waitForTimeout(500);
@@ -157,9 +159,9 @@ test.describe('Export Features', () => {
     await editor.setProjectTitle('Export Test Design');
 
     // Add text
-    const textTab = editor.sidebar.locator('button[aria-label="Text"]');
+    const textTab = page.getByTestId('sidebar-tab-text');
     await textTab.click();
-    await page.locator('button:has-text("Heading")').click();
+    await page.getByTestId('add-heading-btn').click();
     await page.waitForTimeout(500);
 
     // Save first

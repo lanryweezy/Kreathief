@@ -14,6 +14,7 @@ import { User, Project, AnimationSettings } from '../types';
 import { useEditorLogic } from '../hooks/useEditorLogic';
 import { useFileHandler } from '../hooks/useFileHandler';
 import { shareService } from '../services/shareService';
+import { storageService } from '../services/storageService';
 import { ShareModal } from './modals/ShareModal';
 import { ExportModal } from './modals/ExportModal';
 import { MockupPanel } from './panels/MockupPanel';
@@ -49,6 +50,11 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const showShortcuts = useStore((state) => state.showShortcuts);
   const setShowShortcuts = useStore((state) => state.setShowShortcuts);
   
+  // Expose store to window for E2E tests
+  React.useEffect(() => {
+    (window as any).useStore = useStore;
+  }, []);
+
   // Connect actions needed for Header/UI
   const initializeProject = useStore((state) => state.initializeProject);
   const undo = useStore((state) => state.undo);
@@ -108,6 +114,19 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     handleBooleanHover, 
     handleLayerDoubleClick 
   } = useEditorLogic(initialProject);
+
+  // Sync Project from URL ID
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (id && id !== projectId) {
+      storageService.getProject(id).then(project => {
+        if (project) {
+          initializeProject(project);
+        }
+      });
+    }
+  }, [projectId, initializeProject]);
 
   const {
     handleFileUploads,
@@ -183,7 +202,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const hideHeaderOnMobile = isMobile && selectedLayerIds.length > 0;
 
   return (
-    <div className="flex flex-col h-screen bg-[#0e1318] overflow-hidden text-[#e5e7eb] font-sans">
+    <div id="editor-root" className="flex flex-col h-screen bg-[#0e1318] overflow-hidden text-[#e5e7eb] font-sans">
       {!hideHeaderOnMobile && (
         <Header 
           onDownload={() => setShowExport(true)} 
@@ -195,9 +214,19 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       )}
 
       <div className={`flex flex-1 overflow-hidden relative ${hideHeaderOnMobile ? 'pb-0' : 'pb-16 md:pb-0'}`}>
-        <div className={`hidden md:flex flex-row h-full shrink-0 z-40 border-r border-gray-800 transition-all duration-300 ${isSidebarCollapsed || activeTab === NavTab.MOCKUP ? 'w-[72px]' : 'w-[392px]'}`}>
+        <div id="sidebar-container" className={`hidden md:flex flex-row h-full shrink-0 z-40 border-r border-gray-800 transition-all duration-300 ${isSidebarCollapsed || activeTab === NavTab.MOCKUP ? 'w-[72px]' : 'w-[392px]'}`}>
           <ErrorBoundary componentName="Sidebar" variant="widget">
-            <Sidebar isCollapsed={isSidebarCollapsed || activeTab === NavTab.MOCKUP} onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
+            <Sidebar
+              isCollapsed={isSidebarCollapsed}
+              isAutoCollapsed={activeTab === NavTab.MOCKUP}
+              onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              onExpand={() => {
+                if (activeTab === NavTab.MOCKUP) {
+                  setActiveTab(NavTab.MAGIC);
+                }
+                setIsSidebarCollapsed(false);
+              }}
+            />
             {!isSidebarCollapsed && activeTab !== NavTab.MOCKUP && (
               <SidePanel
                 onGenerate={handleGenerate}

@@ -13,6 +13,8 @@ interface CanvasControlsProps {
   setContextMenu: (menu: { x: number; y: number; layerId: string } | null) => void;
 }
 
+import { ContextualToolbar } from './ContextualToolbar';
+
 export const CanvasControls: React.FC<CanvasControlsProps> = ({
   selectedLayerIds,
   selectedLayers,
@@ -22,7 +24,6 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
   contextMenu,
   setContextMenu,
 }) => {
-
   return (
     <>
       {/* Global Multi-selection handles */}
@@ -35,6 +36,15 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
             onRotate={handleRotateStart}
           />
         </div>
+      )}
+
+      {/* Contextual Toolbar */}
+      {selectedLayerIds.length > 0 && (
+        <ContextualToolbar
+          selectedLayerIds={selectedLayerIds}
+          layers={selectedLayers}
+          zoom={zoom}
+        />
       )}
 
       {/* Context Menu */}

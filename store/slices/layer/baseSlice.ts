@@ -8,11 +8,6 @@ export interface LayerSlice {
   clipboardLayer: Layer | null;
   editingPathId: string | null;
 
-  // FIX: Layer cache for O(1) lookups
-  layerCache: Map<string, Layer> | null;
-  rebuildLayerCache: () => void;
-  getLayerById: (id: string) => Layer | undefined;
-
   // Artboard Actions
   setArtboards: (artboards: Artboard[]) => void;
   setActiveArtboardId: (id: string) => void;
@@ -61,7 +56,6 @@ export interface LayerSlice {
   instantiateComponent: (masterId: string) => void;
   detachInstance: (id: string) => void;
   resetOverrides: (id: string) => void;
-  resetDirty: (id: string) => void;
   autoNameLayer: (id: string) => Promise<void>;
 }
 
@@ -87,37 +81,8 @@ export const initialLayerState = {
 export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (set, get) => ({
   ...initialLayerState,
 
-  // FIX: Layer cache methods for O(1) lookups
-  rebuildLayerCache: () => {
-    const state = get();
-    const allLayers = state.artboards.flatMap((a: Artboard) => a.layers);
-    const cache = new Map<string, Layer>();
-    
-    allLayers.forEach((layer: Layer) => {
-      cache.set(layer.id, layer);
-    });
-    
-    set({ layerCache: cache });
-  },
-
-  getLayerById: (id: string) => {
-    const cache = get().layerCache;
-    if (cache?.has(id)) {
-      return cache.get(id);
-    }
-    
-    // Fallback to slow path and rebuild cache
-    const allLayers = get().artboards.flatMap((a: Artboard) => a.layers);
-    const layer = allLayers.find((l: Layer) => l.id === id);
-    
-    // Rebuild cache after fallback
-    get().rebuildLayerCache();
-    
-    return layer;
-  },
-
   setArtboards: (artboards) => {
-    set({ artboards, layerCache: null }); // Invalidate cache on change
+    set({ artboards });
   },
   setActiveArtboardId: (activeArtboardId) => set({ activeArtboardId, selectedLayerIds: [] }),
 
@@ -133,19 +98,9 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
         return {};
       }
       const layers = typeof input === 'function' ? input(artboard.layers) : input;
-      // FIX: Invalidate cache when layers change
       return {
         artboards: state.artboards.map((a: Artboard) => (a.id === state.activeArtboardId ? { ...a, layers } : a)),
-        layerCache: null,
       };
     }),
 
-  resetDirty: (id) =>
-    set((state: any) => ({
-      artboards: state.artboards.map((a: Artboard) => ({
-        ...a,
-        layers: a.layers.map((l: Layer) => (l.id === id ? { ...l, dirty: false } : l)),
-      })),
-      layerCache: null, // FIX: Invalidate cache
-    })),
 });

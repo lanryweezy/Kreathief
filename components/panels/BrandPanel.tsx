@@ -163,7 +163,7 @@ export const BrandPanel = () => {
   };
 
   return (
-    <div className="flex flex-col h-full p-4 overflow-hidden bg-[#13161a]">
+    <div data-testid="brand-panel" className="flex flex-col h-full p-4 overflow-hidden bg-[#13161a]">
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <h3 className="font-bold text-white flex items-center gap-2">
           <Icons.Brand className="w-5 h-5 text-[#7d2ae8]" />
@@ -180,6 +180,7 @@ export const BrandPanel = () => {
           </button>
           {!isCreating && (
             <button
+              data-testid="add-brand-kit-btn"
               onClick={() => setIsCreating(true)}
               className="text-xs bg-[#7d2ae8] hover:bg-[#6b23c5] text-white px-2 py-1 rounded font-bold shadow-lg shadow-purple-900/20"
             >
@@ -190,8 +191,9 @@ export const BrandPanel = () => {
       </div>
 
       {isCreating && (
-        <div className="bg-[#1e1e1e] p-4 rounded-lg border border-gray-700 mb-6 animate-fadeIn flex-shrink-0 relative">
+        <div data-testid="create-brand-kit-form" className="bg-[#1e1e1e] p-4 rounded-lg border border-gray-700 mb-6 animate-fadeIn flex-shrink-0 relative">
           <input
+            data-testid="brand-kit-name-input"
             type="text"
             placeholder="Brand Name (e.g. Acme Corp)"
             className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1.5 text-sm text-white mb-4 focus:border-[#7d2ae8] outline-none"
@@ -240,13 +242,14 @@ export const BrandPanel = () => {
 
           <div className="mb-4">
             <label className="text-[10px] text-gray-500 uppercase font-bold mb-2 block">Palette</label>
-            <div className="flex gap-2 flex-wrap">
+            <div data-testid="brand-colors-edit" className="flex gap-2 flex-wrap">
               {newColors.map((c, i) => (
                 <div
                   key={i}
                   className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-600 cursor-pointer hover:scale-110 transition-transform group"
                 >
                   <input
+                    data-testid={`brand-color-input-${i}`}
                     type="color"
                     value={c}
                     onChange={(e) => updateNewColor(i, e.target.value)}
@@ -274,10 +277,11 @@ export const BrandPanel = () => {
 
           <div className="mb-4">
             <label className="text-[10px] text-gray-500 uppercase font-bold mb-2 block">Typography</label>
-            <div className="space-y-2">
+            <div data-testid="brand-fonts-edit" className="space-y-2">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] text-gray-400 w-12">Headings</span>
                 <select
+                  data-testid="brand-font-heading-select"
                   className="flex-1 bg-[#252627] border border-gray-600 rounded px-2 py-1 text-xs text-white"
                   value={newFonts[0]}
                   onChange={(e) => setNewFonts([e.target.value, newFonts[1]])}
@@ -292,6 +296,7 @@ export const BrandPanel = () => {
               <div className="flex items-center gap-2">
                 <span className="text-[10px] text-gray-400 w-12">Body</span>
                 <select
+                  data-testid="brand-font-body-select"
                   className="flex-1 bg-[#252627] border border-gray-600 rounded px-2 py-1 text-xs text-white"
                   value={newFonts[1]}
                   onChange={(e) => setNewFonts([newFonts[0], e.target.value])}
@@ -307,7 +312,7 @@ export const BrandPanel = () => {
           </div>
 
           <div className="flex gap-2 pt-2 border-t border-gray-700">
-            <Button size="sm" onClick={handleCreate} disabled={!newKitName.trim()}>
+            <Button data-testid="save-brand-kit-btn" size="sm" onClick={handleCreate} disabled={!newKitName.trim()}>
               Save Kit
             </Button>
             <Button
@@ -345,12 +350,14 @@ export const BrandPanel = () => {
           brandKits.map((kit) => (
             <div
               key={kit.id}
+              data-testid={`brand-kit-item-${kit.name.toLowerCase().replace(/\s+/g, '-')}`}
               className="bg-[#1e1e1e] border border-gray-700 rounded-lg p-3 group relative hover:border-gray-600 transition-colors"
             >
               <div className="flex justify-between items-start mb-3">
                 <h4 className="font-bold text-sm text-white">{kit.name}</h4>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
+                    data-testid="export-brand-kit-btn"
                     onClick={() => handleExportKit(kit)}
                     className="text-gray-500 hover:text-white p-1"
                     title="Export Kit"
@@ -358,6 +365,7 @@ export const BrandPanel = () => {
                     <Icons.Download className="w-3 h-3" />
                   </button>
                   <button
+                    data-testid="delete-brand-kit-btn"
                     onClick={() => onDeleteBrandKit(kit.id)}
                     className="text-gray-500 hover:text-red-400 p-1"
                     title="Delete Kit"
@@ -368,7 +376,7 @@ export const BrandPanel = () => {
               </div>
 
               {/* Colors */}
-              <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+              <div data-testid="brand-colors-display" className="flex items-center gap-1.5 mb-3 flex-wrap">
                 {kit.colors.map((c, i) => (
                   <div
                     key={i}
@@ -378,6 +386,7 @@ export const BrandPanel = () => {
                   />
                 ))}
                 <button
+                  data-testid="apply-brand-colors-btn"
                   onClick={() => onApplyBrandColors(kit.colors)}
                   className="ml-auto text-[10px] bg-[#7d2ae8]/10 hover:bg-[#7d2ae8]/20 text-[#7d2ae8] px-2 py-0.5 rounded border border-[#7d2ae8]/20 transition-colors font-bold"
                 >
@@ -386,10 +395,11 @@ export const BrandPanel = () => {
               </div>
 
               {/* Typography */}
-              <div className="bg-[#252627] rounded p-2 mb-3 border border-gray-800">
+              <div data-testid="brand-fonts-display" className="bg-[#252627] rounded p-2 mb-3 border border-gray-800">
                 <div className="flex justify-between items-center border-b border-gray-700 pb-1 mb-1">
                   <span className="text-[10px] font-bold text-gray-500 uppercase">Typography</span>
                   <button
+                    data-testid="apply-brand-fonts-btn"
                     onClick={() => onApplyBrandFonts(kit.fonts[0], kit.fonts[1])}
                     className="text-[10px] text-[#7d2ae8] hover:text-white transition-colors"
                   >

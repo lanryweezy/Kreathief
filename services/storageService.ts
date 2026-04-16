@@ -593,6 +593,9 @@ class StorageService {
           hueRotate: 0,
         },
         canvasSize: dbProject.canvas_size || { width: 1080, height: 1080, name: 'Square (IG Post)' },
+        brandKits: dbProject.state?.brandKits || [],
+        showGrid: dbProject.state?.showGrid || false,
+        showRulers: dbProject.state?.showRulers || false,
       },
     };
 

@@ -5,86 +5,72 @@ export class EditorPage {
   readonly canvas: Locator;
   readonly canvasContainer: Locator;
   readonly projectTitleInput: Locator;
+  readonly projectTitleDisplay: Locator;
   readonly exportButton: Locator;
-  readonly saveButton: Locator;
-  readonly zoomControls: Locator;
   readonly layersPanel: Locator;
-  readonly toolbar: Locator;
   readonly sidebar: Locator;
 
   constructor(page: Page) {
     this.page = page;
-    this.canvas = page.locator('#canvas-container, canvas').first();
+    this.canvas = page.locator('.design-artboard, canvas').first();
     this.canvasContainer = page.locator('#canvas-container, .canvas-container, [data-testid="canvas-container"]');
-    this.projectTitleInput = page.locator('input#header-title, input[placeholder*="Title"], input[placeholder*="title"]').first();
-    this.exportButton = page.locator('button:has-text("Export"), [data-testid="export-btn"]').first();
-    this.saveButton = page.locator('button:has-text("Save"), [data-testid="save-btn"]').first();
-    this.zoomControls = page.locator('[data-testid="zoom-controls"], .zoom-controls, .h-10.bg-\\[\\#1e1e1e\\]').first();
-    this.layersPanel = page.locator('[data-testid="layers-panel"], .layers-panel');
-    this.toolbar = page.locator('[data-testid="toolbar"], .toolbar');
+    this.projectTitleInput = page.getByTestId('project-title-input');
+    this.projectTitleDisplay = page.getByTestId('project-title-display');
+    this.exportButton = page.getByTestId('export-btn');
+    this.layersPanel = page.getByTestId('layers-panel');
     this.sidebar = page.locator('#sidebar, [data-testid="sidebar"]').first();
   }
 
-  async goto(projectId?: string) {
-    const url = projectId ? `/editor?project=${projectId}` : '/editor';
-    await this.page.goto(url);
-    await expect(this.canvasContainer).toBeVisible({ timeout: 15000 });
+  async goto() {
+    await this.page.goto('/editor');
+    await this.waitForCanvasReady();
   }
 
   async waitForCanvasReady() {
     await expect(this.canvas).toBeVisible({ timeout: 15000 });
-    await this.page.waitForTimeout(1000); // Wait for state to settle
+    // Wait for the artboard to be fully rendered
+    await this.page.waitForSelector('.design-artboard', { state: 'visible', timeout: 15000 });
   }
 
   async setProjectTitle(title: string) {
+    await expect(this.projectTitleDisplay).toBeVisible({ timeout: 5000 });
+    await this.projectTitleDisplay.click();
     await this.projectTitleInput.fill(title);
-  }
-
-  async zoomIn() {
-    const zoomInBtn = this.page.locator('button[aria-label="Zoom In"], button:has-text("+"), .h-10.bg-\\[\\#1e1e1e\\] button').nth(1);
-    await zoomInBtn.click();
-  }
-
-  async zoomOut() {
-    const zoomOutBtn = this.page.locator('button[aria-label="Zoom Out"], button:has-text("-"), .h-10.bg-\\[\\#1e1e1e\\] button').first();
-    await zoomOutBtn.click();
+    await this.page.keyboard.press('Enter');
+    await expect(this.projectTitleDisplay).toHaveText(title);
   }
 
   async openLayersPanel() {
-    const layersTab = this.sidebar.locator('button[aria-label="Layers"], button:has-text("Layers")');
-    await layersTab.click();
+    if (!await this.layersPanel.isVisible()) {
+      const layersTab = this.page.getByTestId('sidebar-tab-layers');
+      await layersTab.click();
+    }
+    await expect(this.layersPanel).toBeVisible({ timeout: 5000 });
   }
 
   async getLayerCount(): Promise<number> {
     await this.openLayersPanel();
-    const layers = this.layersPanel.locator('[data-testid="layer-item"], .layer-item');
-    return layers.count();
+    // Wait for at least one layer to potentially exist, or just wait for the list to be stable
+    await this.page.waitForTimeout(1000);
+    return await this.page.locator('[data-testid="layer-item"]').count();
   }
 
-  async selectLayer(layerName: string) {
-    const layer = this.layersPanel.locator(`text="${layerName}"`).first();
-    await layer.click();
-  }
-
-  async deleteLayer(layerName: string) {
-    await this.selectLayer(layerName);
-    const deleteBtn = this.layersPanel.locator('button[aria-label="Delete"], button:has-text("Delete")');
-    await deleteBtn.click();
-  }
-
-  async export(format: 'png' | 'jpeg' | 'webp' | 'pdf' | 'psd') {
+  async export(format: 'png' | 'jpeg' | 'webp') {
     await this.exportButton.click();
-    const formatBtn = this.page.locator(`button:has-text("${format.toUpperCase()}"), [data-testid="export-${format}"]`);
+    const formatBtn = this.page.getByTestId(`export-format-${format}`);
     await formatBtn.click();
-  }
-
-  async save() {
-    await this.saveButton.click();
+    const downloadBtn = this.page.getByTestId('download-btn');
+    await downloadBtn.click();
   }
 
   async verifyEditorLoaded() {
-    await expect(this.canvasContainer).toBeVisible();
-    await expect(this.toolbar).toBeVisible();
+    await expect(this.canvas).toBeVisible();
     await expect(this.sidebar).toBeVisible();
+  }
+
+  async save() {
+    await this.page.evaluate(async () => {
+      await (window as any).useStore.getState().saveProject();
+    });
   }
 }

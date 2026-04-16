@@ -80,7 +80,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     }
 
     const newProject = createProjectFromTemplate(template);
-    const newProjectId = await createProject(newProject.name, newProject.state.canvasSize);
+    const newProjectId = await createProject(newProject.name, newProject.state.canvasSize, newProject.state);
 
     // Wait for store to update, then open the new project
     setTimeout(() => {
@@ -101,6 +101,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     return matchesSearch && matchesFavorites;
   });
 
+  const filteredTemplates = STARTER_TEMPLATES.filter((t) => {
+    const matchesSearch = t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          t.category.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSearch;
+  });
+
   return (
     <div className="min-h-screen dashboard-background text-white flex flex-col relative z-0">
       {/* Header */}
@@ -119,6 +126,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               aria-hidden="true"
             />
             <input
+              data-testid="dashboard-search-input"
               type="text"
               placeholder="Search designs..."
               value={searchQuery}
@@ -160,6 +168,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               <div className="text-xl md:text-2xl font-bold flex items-center gap-3 md:gap-4 overflow-x-auto whitespace-nowrap pb-2 sm:pb-0 w-full sm:w-auto custom-scrollbar" role="tablist">
                 <button
                   role="tab"
+                  data-testid="nav-projects"
                   aria-selected={sidebarTab === 'projects'}
                   onClick={() => setSidebarTab('projects')}
                   className={`transition-all ${sidebarTab === 'projects' ? 'text-white border-b-2 border-[#7d2ae8] pb-1' : 'text-gray-500 hover:text-gray-300'}`}
@@ -169,6 +178,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 <div className="h-6 w-px bg-gray-800 shrink-0" aria-hidden="true" />
                 <button
                   role="tab"
+                  data-testid="nav-templates"
                   aria-selected={sidebarTab === 'templates'}
                   onClick={() => setSidebarTab('templates')}
                   className={`transition-all ${sidebarTab === 'templates' ? 'text-white border-b-2 border-[#7d2ae8] pb-1' : 'text-gray-500 hover:text-gray-300'}`}
@@ -178,6 +188,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 <div className="h-6 w-px bg-gray-800 shrink-0" aria-hidden="true" />
                 <button
                   role="tab"
+                  data-testid="nav-community"
                   aria-selected={sidebarTab === 'community'}
                   onClick={() => setSidebarTab('community')}
                   className={`transition-all ${sidebarTab === 'community' ? 'text-white border-b-2 border-[#7d2ae8] pb-1' : 'text-gray-500 hover:text-gray-300'}`}
@@ -196,8 +207,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
 
             {/* Filter Controls (for Projects) */}
             {sidebarTab === 'projects' && (
-              <div className="flex items-center gap-4 mb-6">
+              <div data-testid="dashboard-category-filters" className="flex items-center gap-4 mb-6">
                 <button
+                  data-testid="dashboard-favorites-filter"
                   onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border ${
                     showFavoritesOnly 
@@ -213,18 +225,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
 
             {/* Templates Tab */}
             {sidebarTab === 'templates' && (
-              <div className="mb-10">
+              <div data-testid="dashboard-templates-panel" className="mb-10">
                 <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
                   <Icons.Templates className="w-4 h-4 text-[#00c4cc]" />
                   Quick templates
                 </h3>
                 <div
                   id="templates-grid"
+                  data-testid="dashboard-templates-grid"
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 staggered-entry"
                 >
-                  {STARTER_TEMPLATES.map((tmpl) => (
+                  {filteredTemplates.map((tmpl) => (
                     <button
                       key={tmpl.id}
+                      data-testid={`dashboard-template-btn-${tmpl.id}`}
                       onClick={() => handleStartFromTemplate(tmpl.id)}
                       className="group glass-card rounded-xl overflow-hidden text-left shadow-lg"
                     >
@@ -263,6 +277,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 {/* Create New Card */}
                 <div
                   onClick={handleCreateClick}
+                  data-testid="blank-canvas-card"
+                  role="button"
+                  aria-label="Create new blank canvas"
                   className="aspect-[4/3] glass-card-premium border-2 border-dashed border-gray-700/50 rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all hover:border-[#7d2ae8]/50 group"
                 >
                   <div className="w-16 h-16 rounded-2xl bg-gray-800/50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform group-hover:bg-[#7d2ae8]/10 group-hover:text-[#7d2ae8] text-gray-500 shadow-xl group-hover:shadow-[0_0_20px_rgba(125,42,232,0.2)]">
@@ -277,6 +294,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 {filteredProjects.map((project) => (
                   <div
                     key={project.id}
+                    data-testid={`project-card-${project.id}`}
+                    id={`project-card-${project.id}`}
+                    role="button"
+                    aria-label={`Open ${project.name}`}
                     onClick={() => {
                       loadProject(project.id);
                       onOpenProject(project);
