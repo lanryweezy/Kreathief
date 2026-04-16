@@ -105,25 +105,40 @@ export const useCanvasInteractions = ({
         e.stopPropagation();
       }
 
+      // Group-First Selection: Find the top-most parent group that is not locked
+      let targetToSelect = layer;
+      const findTopMostGroup = (l: Layer): Layer => {
+        if (!l.groupId) return l;
+        const parent = layers.find(p => p.id === l.groupId);
+        if (parent && !parent.locked) {
+          return findTopMostGroup(parent);
+        }
+        return l;
+      };
+
+      if (!isShift) {
+        targetToSelect = findTopMostGroup(layer);
+      }
+
       if ('touches' in e) {
         longPressTimerRef.current = setTimeout(() => {
           triggerHaptic(20);
-          onContextMenu?.({ clientX, clientY }, layer.id);
+          onContextMenu?.({ clientX, clientY }, targetToSelect.id);
           longPressTimerRef.current = null;
         }, 600);
       }
 
-      const isAlreadySelected = selectedLayerIds.includes(layer.id);
+      const isAlreadySelected = selectedLayerIds.includes(targetToSelect.id);
       if (isShift) {
-        onMultiSelectLayer(layer.id, true);
+        onMultiSelectLayer(targetToSelect.id, true);
       } else if (!isAlreadySelected) {
-        onSelectLayer(layer.id);
+        onSelectLayer(targetToSelect.id);
       }
 
       onInteractionStart?.();
 
       const idsToMove =
-        isShift || isAlreadySelected ? Array.from(new Set([...selectedLayerIds, layer.id])) : [layer.id];
+        isShift || isAlreadySelected ? Array.from(new Set([...selectedLayerIds, targetToSelect.id])) : [targetToSelect.id];
 
       const initialPositions: Record<string, { x: number; y: number }> = {};
       const staticLayers: Layer[] = [];

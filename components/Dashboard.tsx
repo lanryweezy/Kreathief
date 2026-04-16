@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { Project, User } from '../types';
 import { Icons } from '../constants';
 import { STARTER_TEMPLATES, createProjectFromTemplate } from '../data/templates';
@@ -109,17 +110,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   });
 
   return (
-    <div className="min-h-screen dashboard-background text-white flex flex-col relative z-0">
+    <div className="min-h-screen bg-[#050505] text-white flex flex-col relative z-0">
       {/* Header */}
-      <header className="h-16 bg-[#13161a] border-b border-white/5 flex items-center justify-between px-6 sticky top-0 z-30 backdrop-blur-xl shadow-2xl">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-gradient-to-br from-[#7d2ae8] to-[#00c4cc] rounded-xl flex items-center justify-center shadow-lg shadow-purple-900/20">
-            <Icons.Magic className="w-5 h-5 text-white" />
+      <header className="h-20 bg-[#0a0a0a]/80 border-b border-white/5 flex items-center justify-between px-8 sticky top-0 z-30 backdrop-blur-2xl">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
+            <Icons.Magic className="w-6 h-6 text-white" />
           </div>
-          <span className="font-display font-black text-lg md:text-2xl tracking-tighter text-white">Kreathief</span>
+          <span className="font-black text-2xl tracking-tighter uppercase">Kreathief</span>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
           <div className="relative hidden md:block group">
             <Icons.Search
               className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#7d2ae8] transition-colors"
@@ -132,26 +133,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               aria-label="Search designs"
-              className="bg-[#252627] border border-gray-700 rounded-full pl-10 pr-4 py-2 text-sm w-64 focus:outline-none focus:border-[#7d2ae8] focus:w-80 transition-all font-medium"
+              className="bg-white/5 border border-white/10 rounded-full pl-10 pr-4 py-2.5 text-xs uppercase tracking-widest font-black w-64 focus:outline-none focus:border-purple-500 focus:w-80 transition-all"
             />
           </div>
 
           <div className="h-8 w-px bg-gray-700 mx-2"></div>
 
-          <div className="flex items-center gap-3 group relative cursor-pointer">
+          <div className="flex items-center gap-4 group relative cursor-pointer">
             <div className="text-right hidden sm:block">
-              <div className="text-sm font-bold">{user.name}</div>
-              <div className="text-[10px] text-gray-400 uppercase font-bold">{user.plan} Plan</div>
+              <div className="text-xs font-black uppercase tracking-widest text-white">{user.name}</div>
+              <div className="text-[9px] text-purple-400 uppercase font-black tracking-widest">{user.plan} Plan</div>
             </div>
-            <img
-              src={user.avatar}
-              className="w-9 h-9 rounded-full border-2 border-gray-700 group-hover:border-[#7d2ae8] transition-colors"
-            />
+            <div className="w-10 h-10 rounded-full border-2 border-white/10 group-hover:border-purple-500 transition-colors overflow-hidden p-0.5">
+              <img
+                src={user.avatar}
+                className="w-full h-full rounded-full object-cover"
+                alt="Profile"
+              />
+            </div>
 
-            <div className="absolute right-0 top-full mt-2 w-48 bg-[#252627] border border-gray-700 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all transform origin-top-right z-50">
+            <div className="absolute right-0 top-full mt-4 w-56 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all transform origin-top-right z-50 p-2">
               <button
                 onClick={onLogout}
-                className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-white/5 rounded-lg flex items-center gap-2"
+                className="w-full text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-400 hover:bg-red-500/10 rounded-xl flex items-center gap-3 transition-colors"
               >
                 <Icons.MicOff className="w-4 h-4" /> Sign Out
               </button>
@@ -171,29 +175,30 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   data-testid="nav-projects"
                   aria-selected={sidebarTab === 'projects'}
                   onClick={() => setSidebarTab('projects')}
-                  className={`transition-all ${sidebarTab === 'projects' ? 'text-white border-b-2 border-[#7d2ae8] pb-1' : 'text-gray-500 hover:text-gray-300'}`}
+                  className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all relative py-2 ${sidebarTab === 'projects' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
                 >
                   My Projects
+                  {sidebarTab === 'projects' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-purple-500 rounded-full" />}
                 </button>
-                <div className="h-6 w-px bg-gray-800 shrink-0" aria-hidden="true" />
                 <button
                   role="tab"
                   data-testid="nav-templates"
                   aria-selected={sidebarTab === 'templates'}
                   onClick={() => setSidebarTab('templates')}
-                  className={`transition-all ${sidebarTab === 'templates' ? 'text-white border-b-2 border-[#7d2ae8] pb-1' : 'text-gray-500 hover:text-gray-300'}`}
+                  className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all relative py-2 ${sidebarTab === 'templates' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
                 >
                   Templates
+                  {sidebarTab === 'templates' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-purple-500 rounded-full" />}
                 </button>
-                <div className="h-6 w-px bg-gray-800 shrink-0" aria-hidden="true" />
                 <button
                   role="tab"
                   data-testid="nav-community"
                   aria-selected={sidebarTab === 'community'}
                   onClick={() => setSidebarTab('community')}
-                  className={`transition-all ${sidebarTab === 'community' ? 'text-white border-b-2 border-[#7d2ae8] pb-1' : 'text-gray-500 hover:text-gray-300'}`}
+                  className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all relative py-2 ${sidebarTab === 'community' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
                 >
                   Community
+                  {sidebarTab === 'community' && <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-1 bg-purple-500 rounded-full" />}
                 </button>
               </div>
               <button
@@ -275,24 +280,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 staggered-entry">
                 {/* Create New Card */}
-                <div
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={handleCreateClick}
                   data-testid="blank-canvas-card"
                   role="button"
                   aria-label="Create new blank canvas"
                   className="aspect-[4/3] glass-card-premium border-2 border-dashed border-gray-700/50 rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all hover:border-[#7d2ae8]/50 group"
                 >
-                  <div className="w-16 h-16 rounded-2xl bg-gray-800/50 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform group-hover:bg-[#7d2ae8]/10 group-hover:text-[#7d2ae8] text-gray-500 shadow-xl group-hover:shadow-[0_0_20px_rgba(125,42,232,0.2)]">
-                    <Icons.FolderPlus className="w-8 h-8" />
+                  <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform group-hover:bg-purple-500/20 group-hover:text-purple-400 text-gray-500 shadow-xl group-hover:shadow-[0_0_20px_rgba(168,85,247,0.2)]">
+                    <Icons.Plus className="w-8 h-8" />
                   </div>
-                  <span className="font-black text-xs text-gray-500 group-hover:text-white uppercase tracking-widest transition-colors">
+                  <span className="font-black text-[10px] text-gray-500 group-hover:text-white uppercase tracking-[0.2em] transition-colors">
                     Blank Canvas
                   </span>
-                </div>
+                </motion.div>
 
                 {/* Project Cards */}
                 {filteredProjects.map((project) => (
-                  <div
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
                     key={project.id}
                     data-testid={`project-card-${project.id}`}
                     id={`project-card-${project.id}`}
@@ -302,7 +312,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                       loadProject(project.id);
                       onOpenProject(project);
                     }}
-                    className="group glass-card-premium rounded-2xl overflow-hidden cursor-pointer relative"
+                    className="group bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden cursor-pointer relative hover:border-white/20 transition-all duration-300 shadow-xl"
                   >
                     <div className="aspect-[4/3] bg-[#13161a] relative overflow-hidden flex items-center justify-center">
                       {project.thumbnail ? (
@@ -350,7 +360,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                         </button>
                       </div>
                     </div>
-                    <div className="p-4 bg-[#1e1e1e]/80 backdrop-blur-md">
+                    <div className="p-5 bg-[#0a0a0a]">
                       {editingProjectId === project.id ? (
                         <input
                           autoFocus
@@ -367,17 +377,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                           {project.name}
                         </h3>
                       )}
-                      <div className="flex justify-between items-center text-[10px] text-gray-500 font-medium">
-                        <span className="flex items-center gap-1">
+                      <div className="flex justify-between items-center text-[9px] text-gray-500 font-black uppercase tracking-widest">
+                        <span className="flex items-center gap-1.5">
                           <Icons.History className="w-3 h-3" />
                           {new Date(project.updatedAt).toLocaleDateString()}
                         </span>
-                        <span className="bg-gray-800/50 px-1.5 py-0.5 rounded border border-gray-700/50">
-                          {project.state.canvasSize?.width}x{project.state.canvasSize?.height}
+                        <span className="bg-white/5 px-2 py-0.5 rounded-full border border-white/10">
+                          {project.state.canvasSize?.width} × {project.state.canvasSize?.height}
                         </span>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
               )

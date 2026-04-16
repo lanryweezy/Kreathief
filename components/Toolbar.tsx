@@ -24,12 +24,13 @@ interface ToolbarProps {
   onToggleEraser?: () => void;
   isEraserActive?: boolean;
   onCompletePath?: () => void;
+  onJoinPaths?: () => void;
   onBooleanOperation?: (operation: 'union' | 'subtract' | 'intersect' | 'exclude') => void;
   onBooleanHover?: (operation: 'union' | 'subtract' | 'intersect' | 'exclude' | null) => void;
   onCrop?: (id: string) => void;
 }
 
-export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBooleanOperation, onBooleanHover }: ToolbarProps) => {
+export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onJoinPaths, onBooleanOperation, onBooleanHover }: ToolbarProps) => {
   // UI State
   const [showFilters, setShowFilters] = useState(false);
   const [showResize, setShowResize] = useState(false);

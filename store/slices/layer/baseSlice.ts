@@ -86,12 +86,26 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
   },
   setActiveArtboardId: (activeArtboardId) => set({ activeArtboardId, selectedLayerIds: [] }),
 
-  updateArtboard: (id, partial) =>
-    set((state: any) => ({
-      artboards: state.artboards.map((a: Artboard) => (a.id === id ? { ...a, ...partial } : a)),
-    })),
+  updateLayer: (id, partial) =>
+    set((state: any) => {
+      const artboards = state.artboards.map((a: Artboard) => ({
+        ...a,
+        layers: a.layers.map((l: any) => {
+          if (l.id === id) {
+            const updated = { ...l, ...partial, dirty: true };
+            // Update cache incrementally
+            if (state.layerCache) {
+              state.layerCache.set(id, updated);
+            }
+            return updated;
+          }
+          return l;
+        }),
+      }));
+      return { artboards };
+    }),
 
-  setLayers: (input) =>
+  updateLayers: (updates) =>
     set((state: any) => {
       const artboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
       if (!artboard) {

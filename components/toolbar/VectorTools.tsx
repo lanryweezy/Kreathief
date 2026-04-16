@@ -9,6 +9,7 @@ interface VectorToolsProps {
   layer: Layer;
   handleUpdateLayer: (changes: any) => void;
   onCompletePath?: () => void;
+  onJoinPaths?: () => void;
   onBooleanOperation?: (operation: 'union' | 'subtract' | 'intersect' | 'exclude') => void;
   onBooleanHover?: (operation: 'union' | 'subtract' | 'intersect' | 'exclude' | null) => void;
   isPro?: boolean;
@@ -21,6 +22,7 @@ export const VectorTools = React.memo(
     layer,
     handleUpdateLayer,
     onCompletePath,
+    onJoinPaths,
     onBooleanOperation,
     onBooleanHover,
     isPro,
@@ -62,6 +64,12 @@ export const VectorTools = React.memo(
           title="Exclude"
         >
           <Icons.Exclude className="w-4 h-4" />
+        </IconButton>
+        <IconButton
+          onClick={onJoinPaths}
+          title="Join Paths"
+        >
+          <Icons.Link className="w-4 h-4" />
         </IconButton>
         <Divider />
         <IconButton
