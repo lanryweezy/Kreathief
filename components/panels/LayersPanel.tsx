@@ -251,6 +251,10 @@ const LayerItem = React.memo(
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
+          data-testid="layer-item"
+          data-layer-id={layer.id}
+          data-layer-type={layer.type}
+          data-selected={isSelected || isMultiSelected}
           onClick={(e) => {
             if (isGroup) {
               // Toggle group expansion on click
@@ -325,6 +329,7 @@ const LayerItem = React.memo(
           </div>
 
           <button
+            data-testid="layer-visibility"
             onMouseDown={(e) => {
               e.stopPropagation();
               onUpdate({ visible: !layer.visible });
@@ -338,6 +343,7 @@ const LayerItem = React.memo(
           </button>
 
           <button
+            data-testid="layer-lock"
             onMouseDown={(e) => {
               e.stopPropagation();
               onUpdate({ locked: !layer.locked });
@@ -396,6 +402,7 @@ const LayerItem = React.memo(
 
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
+              data-testid="layer-settings-btn"
               onClick={(e) => {
                 e.stopPropagation();
                 setShowSettings(!showSettings);
@@ -442,6 +449,7 @@ const LayerItem = React.memo(
             </div>
             <div className="mt-2 flex gap-2 border-t border-gray-700/50 pt-2 justify-end">
               <button
+                data-testid="duplicate-layer-btn"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDuplicate();
@@ -452,6 +460,7 @@ const LayerItem = React.memo(
                 <Icons.Copy className="w-3 h-3" /> Duplicate
               </button>
               <button
+                data-testid="delete-layer-btn"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete();
@@ -663,7 +672,7 @@ export const LayersPanel = React.memo(() => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#13161a]">
+    <div data-testid="layers-panel" className="flex flex-col h-full bg-[#13161a]">
       <div className="p-4 border-b border-gray-700 flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-white text-sm tracking-wide flex items-center gap-2 uppercase">
@@ -719,10 +728,11 @@ export const LayersPanel = React.memo(() => {
         </div>
 
         {selectedLayerIds.length > 0 && (
-          <div className="bg-[#7d2ae8]/10 border border-[#7d2ae8]/30 rounded-lg p-2 flex items-center justify-between animate-fade-in">
+          <div data-testid="layers-batch-actions" className="bg-[#7d2ae8]/10 border border-[#7d2ae8]/30 rounded-lg p-2 flex items-center justify-between animate-fade-in">
             <span className="text-xs font-bold text-[#7d2ae8]">{selectedLayerIds.length} selected</span>
             <div className="flex gap-1">
               <button
+                data-testid="batch-group-btn"
                 onClick={() => groupSelected()}
                 className="px-2 py-1 hover:bg-gray-700 rounded text-gray-400 text-[10px] font-bold uppercase"
                 title="Group"
@@ -731,6 +741,7 @@ export const LayersPanel = React.memo(() => {
                 <Icons.Group className="w-3.5 h-3.5" />
               </button>
               <button
+                data-testid="batch-ungroup-btn"
                 onClick={() => ungroupSelected()}
                 className="px-2 py-1 hover:bg-gray-700 rounded text-gray-400 text-[10px] font-bold uppercase"
                 title="Ungroup"
@@ -739,6 +750,7 @@ export const LayersPanel = React.memo(() => {
               </button>
               <div className="w-px h-4 bg-gray-700 mx-1 self-center" />
               <button
+                data-testid="batch-show-btn"
                 onClick={() => handleBatchVisibility(true)}
                 className="p-1 hover:bg-gray-700 rounded text-gray-400"
                 title="Show"
@@ -746,6 +758,7 @@ export const LayersPanel = React.memo(() => {
                 <Icons.Eye className="w-3.5 h-3.5" />
               </button>
               <button
+                data-testid="batch-hide-btn"
                 onClick={() => handleBatchVisibility(false)}
                 className="p-1 hover:bg-gray-700 rounded text-gray-400"
                 title="Hide"
@@ -753,6 +766,7 @@ export const LayersPanel = React.memo(() => {
                 <Icons.EyeOff className="w-3.5 h-3.5" />
               </button>
               <button
+                data-testid="batch-lock-btn"
                 onClick={() => handleBatchLock(true)}
                 className="p-1 hover:bg-gray-700 rounded text-gray-400"
                 title="Lock"
@@ -760,6 +774,7 @@ export const LayersPanel = React.memo(() => {
                 <Icons.Lock className="w-3.5 h-3.5" />
               </button>
               <button
+                data-testid="batch-delete-btn"
                 onClick={() => deleteSelected()}
                 className="p-1 hover:bg-red-900/30 rounded text-gray-400 hover:text-red-400"
                 title="Delete"

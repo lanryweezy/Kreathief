@@ -247,7 +247,8 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
         {/* Input Area */}
         <div className="relative mb-2">
           <textarea
-            className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-white placeholder-gray-600 focus:border-[#7d2ae8]/50 focus:ring-1 focus:ring-[#7d2ae8]/20 outline-none resize-none custom-scrollbar transition-all font-medium"
+            data-testid="magic-prompt-input"
+            className="w-full h-28 bg-[#1e1e1e] border border-gray-600 rounded-lg p-3 text-sm text-white placeholder-gray-500 focus:border-[#7d2ae8] focus:ring-1 focus:ring-[#7d2ae8] outline-none resize-none custom-scrollbar shadow-inner"
             placeholder={mode === AppMode.GENERATE ? 'A futuristic city with flying cars...' : 'Describe changes...'}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}

@@ -8,55 +8,94 @@ export class TemplatesPage {
   readonly searchInput: Locator;
   readonly categoryFilters: Locator;
 
+  // Dashboard specific locators
+  readonly dashboardTemplatesTab: Locator;
+  readonly dashboardTemplatesGrid: Locator;
+  readonly dashboardSearchInput: Locator;
+
   constructor(page: Page) {
     this.page = page;
-    this.templatesTab = page.locator(
-      '#sidebar button[aria-label="Designs"], button:has-text("Templates"), button:has-text("Designs")'
-    );
-    this.templatesPanel = page.locator('[data-testid="templates-panel"], .templates-panel');
-    this.templatesGrid = this.templatesPanel.locator('#templates-grid, [data-testid="templates-grid"]');
-    this.searchInput = this.templatesPanel.locator(
-      'input[placeholder*="Search templates"], input[aria-label*="Search templates"]'
-    );
-    this.categoryFilters = this.templatesPanel.locator('[data-testid="category-filters"], .category-filters');
+    // Editor Side Panel
+    this.templatesTab = page.getByTestId('sidebar-tab-templates');
+    this.templatesPanel = page.getByTestId('templates-panel');
+    this.templatesGrid = page.getByTestId('template-panel-grid');
+    this.searchInput = page.getByTestId('template-panel-search-input');
+    this.categoryFilters = page.getByTestId('template-panel-category-filters');
+
+    // Dashboard
+    this.dashboardTemplatesTab = page.getByTestId('nav-templates');
+    this.dashboardTemplatesGrid = page.getByTestId('dashboard-templates-grid');
+    this.dashboardSearchInput = page.getByTestId('dashboard-search-input');
   }
 
   async openTemplatesPanel() {
-    await this.templatesTab.click();
-    await expect(this.templatesPanel).toBeVisible({ timeout: 5000 });
+    const isVisible = await this.templatesPanel.isVisible();
+    if (!isVisible) {
+      await this.templatesTab.click();
+    }
+    await expect(this.templatesPanel).toBeVisible({ timeout: 10000 });
   }
 
   async searchTemplates(query: string) {
     await this.openTemplatesPanel();
-    await this.searchInput.fill(query);
+    await this.searchInput.fill(query, { force: true });
+    await this.page.waitForTimeout(500);
+  }
+
+  async dashboardSearch(query: string) {
+    await this.dashboardTemplatesTab.click();
+    await this.dashboardSearchInput.fill(query, { force: true });
     await this.page.waitForTimeout(500);
   }
 
   async filterByCategory(category: string) {
     await this.openTemplatesPanel();
-    const categoryBtn = this.categoryFilters.locator(
-      `button:has-text("${category}"), button[aria-label="${category}"]`
-    );
+
+    // Check if we need to go back to "All" first to see the category buttons
+    const backBtn = this.page.getByTestId('template-panel-back-btn');
+    if (await backBtn.isVisible()) {
+        await backBtn.click();
+        await expect(this.page.getByTestId('template-panel-category-filters')).toBeVisible();
+    }
+
+    const categoryBtn = this.page.getByTestId(`template-panel-category-btn-${category.toLowerCase()}`);
+    await expect(categoryBtn).toBeVisible({ timeout: 5000 });
     await categoryBtn.click();
     await this.page.waitForTimeout(500);
   }
 
   async getTemplateCount(): Promise<number> {
-    await this.openTemplatesPanel();
     const templates = this.templatesGrid.locator('button, [role="button"]');
     return templates.count();
   }
 
+  async getDashboardTemplateCount(): Promise<number> {
+    const templates = this.dashboardTemplatesGrid.locator('button, [role="button"]');
+    return templates.count();
+  }
+
   async selectTemplate(templateName: string) {
-    await this.openTemplatesPanel();
-    const template = this.templatesGrid.locator(`button:has-text("${templateName}")`).first();
-    await template.click();
+    // If we're on dashboard
+    if (await this.dashboardTemplatesGrid.isVisible()) {
+      const template = this.dashboardTemplatesGrid.locator(`button:has-text("${templateName}")`).first();
+      await template.click();
+    } else {
+      await this.openTemplatesPanel();
+      const template = this.templatesGrid.locator(`button:has-text("${templateName}")`).first();
+      await template.click();
+    }
   }
 
   async verifyTemplateExists(templateName: string) {
-    await this.openTemplatesPanel();
-    const template = this.templatesGrid.locator(`button:has-text("${templateName}")`).first();
-    await expect(template).toBeVisible({ timeout: 5000 });
+    // If we're on dashboard
+    if (await this.dashboardTemplatesGrid.isVisible()) {
+      const template = this.dashboardTemplatesGrid.locator(`button:has-text("${templateName}")`).first();
+      await expect(template).toBeVisible({ timeout: 10000 });
+    } else {
+      await this.openTemplatesPanel();
+      const template = this.templatesGrid.locator(`button:has-text("${templateName}")`).first();
+      await expect(template).toBeVisible({ timeout: 10000 });
+    }
   }
 
   async verifyTemplatesLoaded() {
@@ -67,8 +106,7 @@ export class TemplatesPage {
 
   async verifyCategoryFilter(category: string) {
     await this.openTemplatesPanel();
-    const activeFilter = this.categoryFilters.locator('button.active, button[aria-pressed="true"]');
-    const activeText = await activeFilter.textContent();
-    expect(activeText).toContain(category);
+    const categoryTitle = this.page.getByTestId('template-panel-category-title');
+    await expect(categoryTitle).toContainText(category, { ignoreCase: true });
   }
 }

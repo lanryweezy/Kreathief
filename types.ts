@@ -388,6 +388,7 @@ export interface HistoryState {
   canvasSize?: { width: number; height: number; name: string };
   showGrid?: boolean;
   showRulers?: boolean;
+  brandKits?: BrandKit[];
 }
 
 export interface DesignComment {

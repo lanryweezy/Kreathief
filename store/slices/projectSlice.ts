@@ -20,7 +20,7 @@ export interface ProjectSlice {
   saveProject: () => Promise<void>;
   startAutoSave: () => void;
   stopAutoSave: () => void;
-  createProject: (name: string, size?: CanvasSize) => Promise<string>;
+  createProject: (name: string, size?: CanvasSize, initialState?: any) => Promise<string>;
   deleteProject: (id: string) => Promise<void>;
   duplicateProject: (project: Project) => Promise<void>;
   updateProject: (id: string, updates: Partial<Project>) => Promise<void>;
@@ -81,7 +81,18 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
   },
 
   saveProject: async () => {
-    const { projectId, projectTitle, artboards, activeArtboardId, canvasBackgroundColor, canvasFilters, canvasSize } = get();
+    const {
+      projectId,
+      projectTitle,
+      artboards,
+      activeArtboardId,
+      canvasBackgroundColor,
+      canvasFilters,
+      canvasSize,
+      brandKits,
+      showGrid,
+      showRulers
+    } = get();
     if (!projectId) {
       return;
     }
@@ -98,6 +109,9 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
           canvasBackgroundColor,
           canvasFilters,
           canvasSize,
+          brandKits,
+          showGrid,
+          showRulers,
         },
         comments: get().projects.find((p: Project) => p.id === projectId)?.comments || [],
       };
@@ -116,7 +130,7 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
     }
   },
 
-  createProject: async (name, size) => {
+  createProject: async (name, size, initialState) => {
     const id = uuidv4();
     const defaultArtboard: Artboard = {
       id: 'default',
@@ -133,7 +147,7 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
       name,
       updatedAt: Date.now(),
       comments: [],
-      state: {
+      state: initialState || {
         artboards: [defaultArtboard],
         activeArtboardId: 'default',
         canvasBackgroundColor: '#ffffff',
@@ -218,6 +232,12 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
         layers: (project.state as any).layers || [],
       }];
       activeArtboardId = 'default';
+    } else if (artboards.length > 0 && artboards[0].layers.length === 0 && (project.state as any).layers?.length > 0) {
+      // Handle templates where layers are at the root state level but artboards exist
+      artboards = [{
+        ...artboards[0],
+        layers: (project.state as any).layers
+      }, ...artboards.slice(1)];
     }
 
     set({
@@ -228,6 +248,7 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
       canvasBackgroundColor: project.state.canvasBackgroundColor || '#ffffff',
       canvasFilters: project.state.canvasFilters,
       canvasSize: project.state.canvasSize,
+      brandKits: project.state.brandKits || [],
       selectedLayerIds: [],
       showGrid: project.state?.showGrid || false,
       showRulers: project.state?.showRulers || false,

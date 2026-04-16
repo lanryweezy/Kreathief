@@ -13,7 +13,7 @@ test.describe('Brand Kit Features', () => {
     // Mock authenticated user
     await page.addInitScript(() => {
       localStorage.setItem(
-        'kreathief_user',
+        'kreathief_qa_session',
         JSON.stringify({
           id: 'test-user',
           name: 'Test Designer',
@@ -27,7 +27,12 @@ test.describe('Brand Kit Features', () => {
 
     // Navigate to editor
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    // Switch to templates tab on dashboard to see starter templates
+    await page.getByTestId('nav-templates').click();
+    await page.waitForLoadState('networkidle');
+    const templateBtn = page.getByTestId(/dashboard-template-btn-/).first();
+    await expect(templateBtn).toBeVisible({ timeout: 15000 });
+    await templateBtn.click();
     await editor.waitForCanvasReady();
   });
 
@@ -41,47 +46,51 @@ test.describe('Brand Kit Features', () => {
     await brandKit.verifyBrandKitExists('Test Brand');
   });
 
-  test('should add brand color', async () => {
+  test('should add brand color', async ({ page }) => {
     await brandKit.openBrandPanel();
     await brandKit.addBrandColor('#ff0000');
 
-    // Verify color added
-    const colorInput = brandKit.brandColors.locator('input[type="color"]').first();
+    // Verify color added in the form
+    const colorInput = page.getByTestId('brand-color-input-0');
     const color = await colorInput.inputValue();
     expect(color.toLowerCase()).toBe('#ff0000');
   });
 
-  test('should add brand font', async () => {
+  test('should add brand font', async ({ page }) => {
     await brandKit.openBrandPanel();
-    await brandKit.addBrandFont('Arial');
+    await brandKit.addBrandFont('Inter');
 
-    // Verify font selected
-    const fontSelect = brandKit.brandFonts.locator('select').first();
+    // Verify font selected in the form
+    const fontSelect = page.getByTestId('brand-font-heading-select');
     const selectedValue = await fontSelect.inputValue();
-    expect(selectedValue).toContain('Arial');
+    expect(selectedValue).toContain('Inter');
   });
 
   test('should apply brand colors to design', async ({ page }) => {
+    // Create brand kit first
+    await brandKit.addBrandKit('Apply Color Brand');
+
     // Add a shape first
-    const elementsTab = editor.sidebar.locator('button[aria-label="Elements"]');
-    await elementsTab.click();
-    const shapeBtn = page.locator('.shape-btn').first();
-    if (await shapeBtn.isVisible()) {
-      await shapeBtn.click();
-      await page.waitForTimeout(500);
-    }
+    await page.getByTestId('sidebar-tab-elements').click();
+    const shapeBtn = page.getByTestId(/shape-btn-/).first();
+    await expect(shapeBtn).toBeVisible();
+    await shapeBtn.click();
+    await page.waitForTimeout(500);
 
     // Apply brand colors
     await brandKit.applyBrandColors();
     await page.waitForTimeout(1000);
 
     // Verify colors applied (check if shape color changed)
+    // The layer might be a path or a basic shape
     const shapeLayer = page.locator('.canvas-container .shape-layer').last();
     const fillColor = await shapeLayer.evaluate((el) => {
       const svg = el.querySelector('svg');
       if (svg) {
+        const path = svg.querySelector('path');
         const rect = svg.querySelector('rect');
-        return rect?.getAttribute('fill');
+        const circle = svg.querySelector('circle');
+        return path?.getAttribute('fill') || rect?.getAttribute('fill') || circle?.getAttribute('fill');
       }
       return el.style.backgroundColor;
     });
@@ -90,10 +99,12 @@ test.describe('Brand Kit Features', () => {
   });
 
   test('should apply brand fonts to design', async ({ page }) => {
+    // Create brand kit first
+    await brandKit.addBrandKit('Apply Font Brand');
+
     // Add text first
-    const textTab = editor.sidebar.locator('button[aria-label="Text"]');
-    await textTab.click();
-    const addHeading = page.locator('button:has-text("Heading")');
+    await page.getByTestId('sidebar-tab-text').click();
+    const addHeading = page.getByTestId('add-heading-btn');
     await addHeading.click();
     await page.waitForTimeout(500);
 
@@ -124,13 +135,19 @@ test.describe('Brand Kit Features', () => {
 
   test('should save brand kit', async ({ page }) => {
     // Create and configure brand kit
-    await brandKit.addBrandKit('Saved Brand');
+    await brandKit.openBrandPanel();
+    // Start creating to show the form
+    await page.getByTestId('add-brand-kit-btn').click();
     await brandKit.addBrandColor('#00ff00');
-    await brandKit.addBrandFont('Arial');
+    await brandKit.addBrandFont('Inter');
+    await brandKit.addBrandKit('Saved Brand');
+
+    await brandKit.verifyBrandKitExists('Saved Brand');
 
     // Save
     await editor.save();
     await page.waitForTimeout(1000);
+    await page.waitForFunction(() => !(window as any).useStore.getState().hasUnsavedChanges);
 
     // Reload and verify
     await page.reload();

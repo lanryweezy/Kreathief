@@ -28,7 +28,10 @@ export class AIMagicPage {
   }
 
   async openMagicPanel() {
-    await this.magicTab.click();
+    const isVisible = await this.magicPanel.isVisible();
+    if (!isVisible) {
+      await this.magicTab.click();
+    }
     await expect(this.magicPanel).toBeVisible({ timeout: 5000 });
   }
 

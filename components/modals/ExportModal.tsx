@@ -20,7 +20,7 @@ interface ExportModalProps {
 }
 
 export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onGetPngBlob, currentSize }) => {
-  const { addToast, artboards, activeArtboardId, selectedLayerIds } = useStore();
+  const { addToast, artboards, activeArtboardId, selectedLayerIds, projectTitle } = useStore();
   const [format, setFormat] = useState<'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd'>('png');
   const [quality, setQuality] = useState(0.95);
   const [activePreset, setActivePreset] = useState<string>('current');
@@ -29,7 +29,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
   const [exportStage, setExportStage] = useState<string>('');
   const [exportScale, setExportScale] = useState<number>(1);
   const [filename, setFilename] = useState<string>(
-    currentSize.name ? currentSize.name.replace(/\s+/g, '-').toLowerCase() : 'design'
+    projectTitle && projectTitle !== 'Untitled Design'
+      ? projectTitle.replace(/\s+/g, '-').toLowerCase()
+      : currentSize.name
+      ? currentSize.name.replace(/\s+/g, '-').toLowerCase()
+      : 'design'
   );
 
   // CMYK Print export options
@@ -248,7 +252,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         className="bg-[#1e1e1e] border border-gray-700 rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col md:flex-row relative"
         onClick={(e) => e.stopPropagation()}
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white z-10 p-2">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-white z-10 p-2"
+          id="close-export-modal"
+          data-testid="close-export-modal"
+          aria-label="Close"
+        >
           <div className="text-2xl leading-none">&times;</div>
         </button>
 
@@ -271,7 +281,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         </div>
 
         {/* Controls Side */}
-        <div className="flex-1 p-8">
+        <div data-testid="export-modal" className="flex-1 p-8">
           <div className="space-y-6">
             {/* Format Selection */}
             <div>
@@ -280,6 +290,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 {(['png', 'jpeg', 'webp', 'svg', 'pdf', 'psd'] as const).map((f) => (
                   <button
                     key={f}
+                    data-testid={`export-${f}-btn`}
                     onClick={() => setFormat(f)}
                     className={`py-2 rounded-lg text-xs font-bold transition-all border ${format === f ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500'}`}
                   >
@@ -376,13 +387,15 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                   <span className="text-xs font-medium text-[#7d2ae8]">{Math.round(quality * 100)}%</span>
                 </div>
                 <input
+                  data-testid="export-quality-slider"
                   type="range"
-                  min="0.1"
-                  max="1"
-                  step="0.05"
-                  value={quality}
-                  onChange={(e) => setQuality(parseFloat(e.target.value))}
+                  min="1"
+                  max="100"
+                  step="1"
+                  value={Math.round(quality * 100)}
+                  onChange={(e) => setQuality(parseFloat(e.target.value) / 100)}
                   className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+                  aria-label="Quality"
                 />
               </div>
             ) : (
@@ -507,6 +520,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
             <div className="flex gap-3 mt-4">
               {/* Copy to Clipboard */}
               <button
+                data-testid="copy-png-btn"
                 onClick={handleCopyToClipboard}
                 disabled={isCopying || isExporting}
                 className="flex-1 py-3 rounded-xl font-bold border border-gray-600 bg-[#252627] hover:bg-[#2e2e2e] hover:border-gray-500 text-gray-300 text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
@@ -522,6 +536,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
               {/* Download */}
               <button
+                data-testid="download-btn"
                 onClick={handleExportClick}
                 disabled={isExporting || isCopying}
                 className={`flex-[2] py-3 rounded-xl font-bold shadow-lg transform transition-all flex flex-col items-center justify-center gap-1 ${isExporting ? 'bg-gray-800' : 'bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] hover:scale-[1.02] active:scale-[0.98] shadow-purple-900/40'}`}

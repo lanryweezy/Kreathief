@@ -11,7 +11,7 @@ test.describe('Dashboard Core Features', () => {
     // Mock authenticated user
     await page.addInitScript(() => {
       localStorage.setItem(
-        'kreathief_user',
+        'kreathief_qa_session',
         JSON.stringify({
           id: 'test-user',
           name: 'Test Designer',
@@ -28,6 +28,7 @@ test.describe('Dashboard Core Features', () => {
 
   test('should load dashboard and display templates', async () => {
     await dashboard.verifyDashboardLoaded();
+    await dashboard.switchToTemplates();
     await expect(dashboard.templatesGrid).toBeVisible();
 
     // Verify templates are visible
@@ -38,6 +39,9 @@ test.describe('Dashboard Core Features', () => {
   test('should create new project from template', async ({ page }) => {
     const editor = new EditorPage(page);
 
+    // Switch to templates tab first
+    await dashboard.switchToTemplates();
+
     // Open first template
     await dashboard.openTemplate('Instagram Post');
 
@@ -47,6 +51,9 @@ test.describe('Dashboard Core Features', () => {
   });
 
   test('should search projects', async ({ page }) => {
+    // Switch to templates tab first
+    await dashboard.switchToTemplates();
+
     // Create a project first
     await dashboard.openTemplate('Instagram Post');
     const editor = new EditorPage(page);
@@ -67,10 +74,17 @@ test.describe('Dashboard Core Features', () => {
   });
 
   test('should open existing project', async ({ page }) => {
+    // Switch to templates tab first
+    await dashboard.switchToTemplates();
+
     // Create a project
     await dashboard.openTemplate('Instagram Post');
     const editor = new EditorPage(page);
     await editor.waitForCanvasReady();
+
+    // Set a unique title
+    const uniqueTitle = `Project ${Date.now()}`;
+    await editor.setProjectTitle(uniqueTitle);
     await editor.save();
 
     // Go back and reopen
@@ -78,14 +92,19 @@ test.describe('Dashboard Core Features', () => {
     await dashboard.verifyDashboardLoaded();
 
     // Open the project we just created
-    const projectCard = dashboard.projectsList.locator('button, [role="button"]').first();
+    const projectCard = page.locator(`button:has-text("${uniqueTitle}"), [data-testid^="project-card-"]:has-text("${uniqueTitle}")`).first();
+    await expect(projectCard).toBeVisible({ timeout: 15000 });
     await projectCard.click();
 
     // Verify editor loads with saved content
     await editor.verifyEditorLoaded();
+    await expect(page.getByTestId('project-title-display')).toHaveText(uniqueTitle);
   });
 
   test('should delete project', async ({ page }) => {
+    // Switch to templates tab first
+    await dashboard.switchToTemplates();
+
     // Create a project
     await dashboard.openTemplate('Instagram Post');
     const editor = new EditorPage(page);

@@ -1,6 +1,10 @@
 
 import { test, expect } from '@playwright/test';
 
+test.use({
+    viewport: { width: 1920, height: 1080 },
+});
+
 test.describe('Component Functionality', () => {
     test.beforeEach(async ({ page }) => {
         page.on('console', msg => console.log(`BROWSER_LOG: ${msg.text()}`));
@@ -8,7 +12,7 @@ test.describe('Component Functionality', () => {
 
         // Mock authenticated user
         await page.addInitScript(() => {
-            localStorage.setItem('kreathief_user', JSON.stringify({
+            localStorage.setItem('kreathief_qa_session', JSON.stringify({
                 id: 'test-user',
                 name: 'Test Tester',
                 email: 'test@example.com',
@@ -18,23 +22,11 @@ test.describe('Component Functionality', () => {
             localStorage.setItem('kreathief_onboarding_seen', 'true'); // Skip onboarding
         });
 
-        // Navigate to root (which will redirect to Dashboard)
-        await page.goto('http://localhost:5175/');
+        // Navigate directly to editor
+        await page.goto('/editor');
 
-        // Wait for Dashboard
-        await expect(page.locator('text=New Design')).toBeVisible({ timeout: 10000 });
-
-        // Click "New Design" button to open modal
-        await page.locator('text=New Design').click();
-
-        // Wait for "Launch Editor" button in modal
-        await expect(page.locator('text=Launch Editor')).toBeVisible({ timeout: 5000 });
-
-        // Click "Launch Editor"
-        await page.locator('text=Launch Editor').click();
-
-        // Now wait for canvas
-        await expect(page.locator('canvas')).toBeVisible({ timeout: 20000 });
+        // Now wait for editor workspace
+        await expect(page.locator('[data-artboard-id]')).toBeVisible({ timeout: 20000 });
     });
 
     test('Canvas loads without error', async ({ page }) => {
@@ -49,37 +41,72 @@ test.describe('Component Functionality', () => {
     });
 
     test('Text Panel adds text', async ({ page }) => {
-        // Open Text Tab using specific selector
-        await page.locator('#sidebar button[aria-label="Text"]').click();
+        // Open Text Tab using data-testid
+        await page.getByTestId('sidebar-tab-text').click();
 
         // Wait for "Add a heading"
-        await expect(page.locator('text=Add a heading')).toBeVisible({ timeout: 5000 });
+        await expect(page.getByText('Add a heading')).toBeVisible({ timeout: 10000 });
 
         // Click "Add a heading"
-        await page.locator('text=Add a heading').click();
+        await page.getByText('Add a heading').click();
+
+        // Brief wait for state update
+        await page.waitForTimeout(2000);
 
         // Verify text appears on canvas (indirect verification)
         // Check Layers Tab
-        const layersTab = page.locator('#sidebar button[aria-label="Layers"]');
-        if (await layersTab.isVisible()) {
-            await layersTab.click();
-            await expect(page.getByText('Heading')).toBeVisible({ timeout: 5000 });
-        }
+        await page.getByTestId('sidebar-tab-layers').click();
+
+        // Take a screenshot to debug
+        await page.screenshot({ path: 'debug_layers_text.png' });
+
+        // The layer name for "Heading" is "Heading" based on the code
+        // Use a more specific locator for the side panel
+        await expect(page.getByTestId('side-panel').getByText('Heading')).toBeVisible({ timeout: 10000 });
     });
 
     test('Elements Panel adds shape', async ({ page }) => {
         // Open Elements Tab
-        await page.locator('#sidebar button[aria-label="Elements"]').click();
-        await expect(page.getByText('Shapes')).toBeVisible({ timeout: 5000 });
+        await page.getByTestId('sidebar-tab-elements').click();
+
+        // Ensure we are on Shapes tab
+        const shapesTab = page.locator('button:has-text("Shapes")').first();
+        await shapesTab.click();
+
+        // Wait for shape buttons to be available
+        await page.waitForSelector('.grid button');
+
+        // Click a shape (first one in the grid - "Square")
+        await page.locator('.grid button').first().click();
+
+        // Brief wait for state update
+        await page.waitForTimeout(2000);
+
+        // Verify shape added to layers
+        // Ensure sidebar is scrolled if needed
+        const layersTab = page.getByTestId('sidebar-tab-layers');
+        await layersTab.scrollIntoViewIfNeeded();
+        await layersTab.click();
+
+        // Wait for Layers panel to be active
+        await expect(page.getByTestId('side-panel').getByText('Layers').first()).toBeVisible({ timeout: 5000 });
+
+        // Check for "Square" layer name specifically in the side-panel's layer list
+        // It might be nested in a span with other text, so we use a locator that targets the side-panel
+        const layerItem = page.getByTestId('side-panel').locator('span').filter({ hasText: /^Square$/ }).first();
+        await expect(layerItem).toBeVisible({ timeout: 10000 });
+
+        // Take a screenshot to debug
+        await page.screenshot({ path: 'debug_layers_shape_fixed.png' });
     });
 
     test('Uploads Panel opens', async ({ page }) => {
-        await page.locator('#sidebar button[aria-label="Uploads"]').click();
+        await page.getByTestId('sidebar-tab-uploads').click();
         await expect(page.getByText('Upload Media')).toBeVisible({ timeout: 5000 });
     });
 
     test('Templates Panel loads', async ({ page }) => {
-        await page.locator('#sidebar button[aria-label="Designs"]').click();
+        await page.getByTestId('sidebar-tab-templates').click();
         await expect(page.getByText('Templates')).toBeVisible({ timeout: 5000 });
     });
 });

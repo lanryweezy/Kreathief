@@ -226,7 +226,7 @@ export const useCanvasInteractions = ({
 
         const updates: Record<string, Partial<Layer>> = {};
         Object.entries(dragState.initialPositions).forEach(([id, pos]) => {
-          updates[id] = { x: pos.x + finalDx, y: pos.y + finalDy, dirty: true };
+          updates[id] = { x: pos.x + finalDx, y: pos.y + finalDy };
         });
         bulkDragPreviewRef.current = updates;
       }

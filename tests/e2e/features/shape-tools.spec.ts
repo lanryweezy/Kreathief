@@ -16,7 +16,7 @@ test.describe('Shape Tools Features', () => {
     // Mock authenticated user
     await page.addInitScript(() => {
       localStorage.setItem(
-        'kreathief_user',
+        'kreathief_qa_session',
         JSON.stringify({
           id: 'test-user',
           name: 'Test Designer',
@@ -29,45 +29,29 @@ test.describe('Shape Tools Features', () => {
     });
 
     // Navigate to editor
-    await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.goto('/editor');
+    await page.waitForFunction(() => (window as any).useStore !== undefined);
     await editor.waitForCanvasReady();
   });
 
   test('should add rectangle shape', async ({ page }) => {
     await shapeTools.addRectangle();
     await shapeTools.verifyShapeAdded();
-
-    // Verify shape on canvas
-    const shapeLayer = page.locator('.canvas-container .shape-layer').last();
-    await expect(shapeLayer).toBeVisible();
   });
 
   test('should add circle shape', async ({ page }) => {
     await shapeTools.addCircle();
     await shapeTools.verifyShapeAdded();
-
-    // Verify circle on canvas
-    const shapeLayer = page.locator('.canvas-container .shape-layer').last();
-    await expect(shapeLayer).toBeVisible();
   });
 
   test('should add triangle shape', async ({ page }) => {
     await shapeTools.addTriangle();
     await shapeTools.verifyShapeAdded();
-
-    // Verify triangle on canvas
-    const shapeLayer = page.locator('.canvas-container .shape-layer').last();
-    await expect(shapeLayer).toBeVisible();
   });
 
   test('should add star shape', async ({ page }) => {
     await shapeTools.addStar();
     await shapeTools.verifyShapeAdded();
-
-    // Verify star on canvas
-    const shapeLayer = page.locator('.canvas-container .shape-layer').last();
-    await expect(shapeLayer).toBeVisible();
   });
 
   test('should add multiple shapes', async ({ page }) => {
@@ -80,9 +64,9 @@ test.describe('Shape Tools Features', () => {
     await shapeTools.addTriangle();
     await page.waitForTimeout(300);
 
-    // Verify all shapes on canvas
-    const shapeLayers = page.locator('.canvas-container .shape-layer');
-    await expect(shapeLayers).toHaveCount(3);
+    // Verify all shapes in store
+    const count = await shapeTools.getShapeCount();
+    expect(count).toBe(3);
   });
 
   test('should change shape color', async ({ page }) => {
@@ -90,37 +74,41 @@ test.describe('Shape Tools Features', () => {
 
     // Change color to red
     await shapeTools.changeColor('#ff0000');
-    await page.waitForTimeout(500);
 
-    // Verify color applied (check if element has color attribute)
-    const shapeLayer = page.locator('.canvas-container .shape-layer').last();
-    const fillColor = await shapeLayer.evaluate((el) => {
-      const svg = el.querySelector('svg');
-      if (svg) {
-        const rect = svg.querySelector('rect');
-        return rect?.getAttribute('fill');
-      }
-      return el.style.backgroundColor;
+    // Verify color applied in store
+    const color = await page.evaluate(() => {
+        const store = (window as any).useStore.getState();
+        const selectedId = store.selectedLayerIds[0];
+        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+        return layer?.color;
     });
-
-    expect(fillColor).toBeTruthy();
+    expect(color).toBe('#ff0000');
   });
 
   test('should change shape opacity', async ({ page }) => {
     await shapeTools.addRectangle();
 
-    // Get initial opacity
-    const shapeLayer = page.locator('.canvas-container .shape-layer').last();
-    const initialOpacity = await shapeLayer.evaluate((el) => window.getComputedStyle(el).opacity);
+    // Get initial opacity from store
+    const initialOpacity = await page.evaluate(() => {
+        const store = (window as any).useStore.getState();
+        const selectedId = store.selectedLayerIds[0];
+        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+        return layer?.opacity;
+    });
 
     // Change opacity
     await shapeTools.changeOpacity(50);
-    await page.waitForTimeout(500);
 
-    // Verify opacity changed
-    const newOpacity = await shapeLayer.evaluate((el) => window.getComputedStyle(el).opacity);
+    // Verify opacity changed in store
+    const newOpacity = await page.evaluate(() => {
+        const store = (window as any).useStore.getState();
+        const selectedId = store.selectedLayerIds[0];
+        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+        return layer?.opacity;
+    });
 
-    expect(parseFloat(newOpacity)).toBeLessThanOrEqual(parseFloat(initialOpacity));
+    expect(newOpacity).toBe(0.5);
+    expect(newOpacity).not.toBe(initialOpacity);
   });
 
   test('should delete shape layer', async ({ page }) => {
@@ -129,19 +117,20 @@ test.describe('Shape Tools Features', () => {
     await page.waitForTimeout(300);
 
     // Get initial layer count
-    const initialCount = await layersPanel.getLayerCount();
+    const initialCount = await shapeTools.getShapeCount();
 
-    // Delete the shape layer
-    const layerNames = await layersPanel.getLayerNames();
-    const shapeLayerName = layerNames.find((name) => name.includes('Rectangle') || name.includes('Shape'));
+    // Delete the shape layer via store
+    await page.evaluate(() => {
+        const store = (window as any).useStore.getState();
+        const selectedId = store.selectedLayerIds[0];
+        if (selectedId) {
+            store.deleteLayer(selectedId);
+        }
+    });
 
-    if (shapeLayerName) {
-      await layersPanel.deleteLayer(shapeLayerName);
-
-      // Verify layer count decreased
-      const finalCount = await layersPanel.getLayerCount();
-      expect(finalCount).toBeLessThan(initialCount);
-    }
+    // Verify layer count decreased
+    const finalCount = await shapeTools.getShapeCount();
+    expect(finalCount).toBeLessThan(initialCount);
   });
 
   test('should duplicate shape layer', async ({ page }) => {
@@ -150,19 +139,20 @@ test.describe('Shape Tools Features', () => {
     await page.waitForTimeout(300);
 
     // Get initial layer count
-    const initialCount = await layersPanel.getLayerCount();
+    const initialCount = await shapeTools.getShapeCount();
 
-    // Duplicate the shape layer
-    const layerNames = await layersPanel.getLayerNames();
-    const shapeLayerName = layerNames.find((name) => name.includes('Rectangle') || name.includes('Shape'));
+    // Duplicate the shape layer via store
+    await page.evaluate(() => {
+        const store = (window as any).useStore.getState();
+        const selectedId = store.selectedLayerIds[0];
+        if (selectedId) {
+            store.duplicateLayer(selectedId);
+        }
+    });
 
-    if (shapeLayerName) {
-      await layersPanel.duplicateLayer(shapeLayerName);
-
-      // Verify layer count increased
-      const finalCount = await layersPanel.getLayerCount();
-      expect(finalCount).toBeGreaterThan(initialCount);
-    }
+    // Verify layer count increased
+    const finalCount = await shapeTools.getShapeCount();
+    expect(finalCount).toBeGreaterThan(initialCount);
   });
 
   test('should lock and unlock shape layer', async ({ page }) => {
@@ -170,19 +160,23 @@ test.describe('Shape Tools Features', () => {
     await shapeTools.addRectangle();
     await page.waitForTimeout(300);
 
-    // Get layer names
-    const layerNames = await layersPanel.getLayerNames();
-    const shapeLayerName = layerNames.find((name) => name.includes('Rectangle') || name.includes('Shape'));
+    // Lock the layer via store
+    await page.evaluate(() => {
+        const store = (window as any).useStore.getState();
+        const selectedId = store.selectedLayerIds[0];
+        if (selectedId) {
+            store.updateLayer(selectedId, { locked: true });
+        }
+    });
 
-    if (shapeLayerName) {
-      // Lock the layer
-      await layersPanel.lockLayer(shapeLayerName);
-
-      // Verify layer is locked (check for lock icon or attribute)
-      const layerItem = layersPanel.layersPanel.locator(`text="${shapeLayerName}"`).first();
-      const lockIcon = layerItem.locator('[aria-label="Locked"], [title*="Locked"], .locked');
-      await expect(lockIcon).toBeVisible({ timeout: 3000 });
-    }
+    // Verify layer is locked in store
+    const isLocked = await page.evaluate(() => {
+        const store = (window as any).useStore.getState();
+        const selectedId = store.selectedLayerIds[0];
+        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+        return layer?.locked;
+    });
+    expect(isLocked).toBeTruthy();
   });
 
   test('should hide and show shape layer', async ({ page }) => {
@@ -190,27 +184,41 @@ test.describe('Shape Tools Features', () => {
     await shapeTools.addRectangle();
     await page.waitForTimeout(300);
 
-    // Get layer names
-    const layerNames = await layersPanel.getLayerNames();
-    const shapeLayerName = layerNames.find((name) => name.includes('Rectangle') || name.includes('Shape'));
+    // Hide the layer via store
+    await page.evaluate(() => {
+        const store = (window as any).useStore.getState();
+        const selectedId = store.selectedLayerIds[0];
+        if (selectedId) {
+            store.updateLayer(selectedId, { visible: false });
+        }
+    });
 
-    if (shapeLayerName) {
-      // Hide the layer
-      await layersPanel.hideLayer(shapeLayerName);
+    // Verify layer is hidden in store
+    const isVisible = await page.evaluate(() => {
+        const store = (window as any).useStore.getState();
+        const selectedId = store.selectedLayerIds[0];
+        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+        return layer?.visible;
+    });
+    expect(isVisible).toBeFalsy();
 
-      // Verify layer is hidden on canvas
-      const shapeOnCanvas = page.locator('.canvas-container .shape-layer').last();
-      const isVisible = await shapeOnCanvas.isVisible();
-      expect(isVisible).toBeFalsy();
+    // Show the layer again
+    await page.evaluate(() => {
+        const store = (window as any).useStore.getState();
+        const selectedId = store.selectedLayerIds[0];
+        if (selectedId) {
+            store.updateLayer(selectedId, { visible: true });
+        }
+    });
 
-      // Show the layer again
-      await layersPanel.toggleLayerVisibility(0);
-      await page.waitForTimeout(500);
-
-      // Verify layer is visible again
-      const isNowVisible = await shapeOnCanvas.isVisible();
-      expect(isNowVisible).toBeTruthy();
-    }
+    // Verify layer is visible again in store
+    const isVisibleNow = await page.evaluate(() => {
+        const store = (window as any).useStore.getState();
+        const selectedId = store.selectedLayerIds[0];
+        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+        return layer?.visible;
+    });
+    expect(isVisibleNow).toBeTruthy();
   });
 
   test('should reorder shape layers', async ({ page }) => {

@@ -218,7 +218,22 @@ const App: React.FC = () => {
           <Route
             path="/editor"
             element={user ? (
-              <Editor initialProject={currentProject} onBack={handleBackToDashboard} user={user} />
+              <Editor
+                initialProject={currentProject || (location.pathname === '/editor' ? (useStore.getState().projectId ? undefined : {
+                  id: 'default',
+                  name: 'Untitled',
+                  updatedAt: Date.now(),
+                  state: {
+                    artboards: [{ id: 'default', name: 'Artboard 1', x: 0, y: 0, width: 1080, height: 1080, layers: [] }],
+                    activeArtboardId: 'default',
+                    canvasBackgroundColor: '#ffffff',
+                    canvasFilters: { brightness: 100, contrast: 100, saturation: 100, sepia: 0, grayscale: 0, blur: 0, opacity: 1, vignette: 0, hueRotate: 0 },
+                    canvasSize: { width: 1080, height: 1080, name: 'Square' }
+                  }
+                } as any) : undefined)}
+                onBack={handleBackToDashboard}
+                user={user}
+              />
             ) : <Navigate to="/auth" />}
           />
           <Route path="/blog" element={<BlogList />} />

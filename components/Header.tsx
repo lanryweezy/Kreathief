@@ -230,6 +230,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Project Title */}
           {isEditingTitle ? (
             <input
+              data-testid="project-title-input"
               type="text"
               value={projectTitle}
               onChange={(e) => setProjectTitle(e.target.value)}
@@ -243,6 +244,7 @@ export const Header: React.FC<HeaderProps> = ({
             />
           ) : (
             <button
+              data-testid="project-title-display"
               onClick={() => setIsEditingTitle(true)}
               className="text-sm font-medium text-white hover:text-purple-400 transition-colors px-2 py-1 rounded hover:bg-white/5"
               title="Click to rename"
@@ -337,6 +339,10 @@ export const Header: React.FC<HeaderProps> = ({
 
         <button
           id="export-btn"
+          data-testid="export-btn"
+          variant="secondary"
+          size="sm"
+          className="bg-[#7d2ae8] text-white hover:bg-[#6b23c5] font-bold border-none shadow-lg h-8 px-4"
           onClick={onDownload}
           className="bg-white text-black hover:bg-[#00c4cc] hover:text-white px-5 h-9 rounded-full font-black text-[10px] uppercase tracking-widest shadow-xl transition-all flex items-center gap-2 active:scale-95"
         >

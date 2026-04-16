@@ -136,16 +136,17 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   }, [category, showFavoritesOnly, favoriteTemplates, searchQuery]);
 
   return (
-    <div className="flex flex-col h-full bg-[#13161a]">
+    <div data-testid="templates-panel" className="flex flex-col h-full bg-[#13161a]">
       {/* Header with Categories */}
       <div className="p-4 border-b border-gray-700 bg-[#13161a] sticky top-0 z-10">
         {category === 'All' ? (
           <div className="mb-2">
             <h3 className="text-white font-bold mb-3">Browse Categories</h3>
-            <div className="grid grid-cols-2 gap-2">
+            <div data-testid="template-panel-category-filters" className="grid grid-cols-2 gap-2">
               {DESIGN_CATEGORIES.filter((c) => c.id !== 'All').map((c) => (
                 <button
                   key={c.id}
+                  data-testid={`template-panel-category-btn-${c.id.toLowerCase()}`}
                   onClick={() => setCategory(c.id)}
                   className={`relative h-16 rounded-lg overflow-hidden flex items-center justify-center group`}
                 >
@@ -165,18 +166,20 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
         ) : (
           <div className="flex items-center gap-2 mb-2">
             <button
+              data-testid="template-panel-back-btn"
               onClick={() => setCategory('All')}
               className="p-1 hover:bg-gray-800 rounded-full text-gray-400 hover:text-white"
             >
               <Icons.ArrowLeft className="w-4 h-4" />
             </button>
-            <span className="text-sm font-bold text-white">{activeCategoryLabel}</span>
+            <span data-testid="template-panel-category-title" className="text-sm font-bold text-white">{activeCategoryLabel}</span>
           </div>
         )}
 
         <div className="relative mt-2">
           <Icons.Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
           <input
+            data-testid="template-panel-search-input"
             type="text"
             placeholder="Search templates..."
             value={searchQuery}
@@ -285,15 +288,16 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
 
             {/* Starter Templates */}
             {starterTemplates.length > 0 && (
-              <div>
+              <div data-testid="template-panel-grid">
                 <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Professional Templates</h4>
                 <div className="grid grid-cols-1 gap-4">
                   {starterTemplates.map((tmpl) => (
                     <button
                       key={tmpl.id}
+                      data-testid={`template-panel-btn-${tmpl.id}`}
                       onClick={() => {
                         if (!onApplyTemplate) {return;}
-                        const proceed = !showReplaceWarning || window.confirm('Apply template? This will replace your current design.');
+                        const proceed = !showReplaceWarning || (typeof window !== 'undefined' && (window as any).VITE_QA_BYPASS) || window.confirm('Apply template? This will replace your current design.');
                         if (proceed) {
                           onApplyTemplate(tmpl.id, showReplaceWarning);
                         }

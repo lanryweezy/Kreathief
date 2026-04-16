@@ -6,10 +6,12 @@ import { useStore } from '../store/useStore';
 
 interface SidebarProps {
   isCollapsed: boolean;
+  isAutoCollapsed?: boolean;
   onToggleCollapse: () => void;
+  onExpand: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, onToggleCollapse }) => {
+export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, isAutoCollapsed, onToggleCollapse, onExpand }) => {
   const activeTab = useStore(state => state.activeTab);
   const setActiveTab = useStore(state => state.setActiveTab);
 
@@ -26,6 +28,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, onTogg
     {
       name: 'Library',
       items: [
+        { id: NavTab.TEMPLATES, icon: Icons.Templates, label: "Templates" },
         { id: NavTab.ELEMENTS, icon: Icons.Shapes, label: "Elements" },
         { id: NavTab.UPLOADS, icon: Icons.Uploads, label: "Uploads" },
         { id: NavTab.PHOTOS, icon: Icons.Image, label: "Photos" },
@@ -64,6 +67,9 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, onTogg
               return (
                 <button
                   key={item.id}
+                  id={`sidebar-tab-${item.id.toLowerCase()}`}
+                  data-testid={`sidebar-tab-${item.id.toLowerCase()}`}
+                  name={`sidebar-tab-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                   role="tab"
                   aria-selected={isActive}
                   onClick={() => {
@@ -71,7 +77,9 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, onTogg
                       onToggleCollapse();
                     } else {
                       setActiveTab(item.id);
-                      if (isCollapsed) {onToggleCollapse();}
+                      if (isCollapsed || isAutoCollapsed) {
+                        onExpand();
+                      }
                     }
                   }}
                   className={`w-full flex flex-col items-center justify-center gap-1 py-2.5 transition-all relative group shrink-0 tooltip-trigger ${isActive ? 'text-white' : 'text-gray-500 hover:text-gray-200'

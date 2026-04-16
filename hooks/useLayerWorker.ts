@@ -12,7 +12,17 @@ export const useLayerMask = (layer: Layer | null) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    if (!layer || layer.type === 'text' || layer.type === 'image') {
+    const layerId = layer?.id;
+    const layerType = layer?.type;
+    const pathData = layer && 'pathData' in layer ? (layer as any).pathData : undefined;
+
+    if (!layer || !layerId || !layerType || layerType === 'text' || layerType === 'image') {
+      setMaskPath(undefined);
+      return;
+    }
+
+    // Safety check for path-based layers
+    if (layerType === 'path' && !pathData) {
       setMaskPath(undefined);
       return;
     }
@@ -38,7 +48,7 @@ export const useLayerMask = (layer: Layer | null) => {
     return () => {
       isMounted = false;
     };
-  }, [layer?.id, layer?.type, (layer as any).pathData]);
+  }, [layer?.id, layer?.type, (layer as any)?.pathData]);
 
   return { maskPath, isProcessing };
 };

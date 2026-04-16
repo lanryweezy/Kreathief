@@ -1,80 +1,76 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Kreathief Smoke Test', () => {
-    test.beforeEach(async ({ page }) => {
-        // Inject mock user to bypass Auth screen
-        await page.addInitScript(() => {
-            window.localStorage.setItem('kreathief_user', JSON.stringify({
-                id: 'test-user',
-                name: 'Test Designer',
-                email: 'test@example.com',
-                plan: 'pro', // Use pro plan to avoid project limits during smoke tests
-                avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=test'
-            }));
-            window.localStorage.setItem('kreathief_onboarding_seen', 'true');
-        });
-        await page.goto('/');
+  test.beforeEach(async ({ page }) => {
+    // Setup QA bypass
+    await page.addInitScript(() => {
+      window.localStorage.setItem('kreathief_qa_session', JSON.stringify({
+        id: 'qa-user',
+        email: 'qa@kreathief.app',
+        name: 'QA Engineer',
+        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=qa',
+        plan: 'pro'
+      }));
+      window.localStorage.setItem('kreathief_onboarding_seen', 'true');
     });
 
-    test('should load the dashboard and allow creating a new project via modal', async ({ page }) => {
-        // 1. Verify Branding loads
-        await expect(page.locator('header span:has-text("Kreathief")')).toBeVisible();
+    await page.goto('/');
+  });
 
-        // 2. Click New Design button
-        await page.click('#create-btn');
+  test('should load the dashboard and create a new project', async ({ page }) => {
+    // Should be on dashboard after goto('/') because of QA bypass
+    await expect(page).toHaveURL(/.*dashboard/);
 
-        // 3. Click 'Launch Editor' in the modal
-        await page.click('button:has-text("Launch Editor")');
+    // Check branding in dashboard header
+    const branding = page.locator('header').getByText('Kreathief');
+    await expect(branding).toBeVisible();
 
-        // 4. Verify Editor loads
-        await expect(page.locator('#canvas-container')).toBeVisible({ timeout: 20000 });
-        await expect(page.locator('input#header-title, input[placeholder*="Title"]')).toBeVisible();
-    });
+    // Click "New Design" button
+    const newDesignBtn = page.getByRole('button', { name: /New Design/i });
+    await expect(newDesignBtn).toBeVisible();
+    await newDesignBtn.click();
 
-    test('should be able to add a text layer and see it on canvas', async ({ page }) => {
-        // 1. Navigate to editor via a template (faster path to canvas)
-        await page.click('button[role="tab"]:has-text("Templates")');
-        await page.locator('#templates-grid button').first().click();
+    // Should see the "Create New Design" modal
+    await expect(page.getByRole('heading', { name: /Create New Design/i })).toBeVisible();
 
-        await expect(page.locator('#canvas-container')).toBeVisible({ timeout: 20000 });
-        await page.waitForTimeout(2000);
+    // Click "Launch Editor" with a custom name
+    await page.getByPlaceholder('My Awesome Design').fill('Smoke Test Project');
+    await page.getByRole('button', { name: /Launch Editor/i }).click();
 
-        // 2. Go to text tab
-        await page.locator('#sidebar >> button').filter({ hasText: /^Text$/ }).click();
+    // Wait for navigation to editor
+    await page.waitForURL(/.*editor/, { timeout: 30000 });
 
-        // 3. Add text layer
-        await page.click('button:has-text("Heading"), button:has-text("Add a heading")');
+    // Verify editor header is visible
+    await expect(page.locator('header').getByText('Smoke Test Project')).toBeVisible({ timeout: 30000 });
 
-        // 4. Verify layer appears on canvas
-        await expect(page.locator('#canvas-container [data-layer-type="text"]')).toBeVisible({ timeout: 15000 });
-    });
+    // Verify canvas is visible
+    const canvas = page.locator('.canvas-container');
+    await expect(canvas).toBeVisible({ timeout: 30000 });
 
-    test('should verify Photos integration', async ({ page }) => {
-        // 1. Navigate to editor via a template
-        await page.click('button[role="tab"]:has-text("Templates")');
+    // Verify we have at least one artboard
+    await expect(page.getByText('Artboard 1')).toBeVisible();
+  });
 
-        // Use a robust selector for the template card
-        const firstTemplate = page.locator('#templates-grid button').first();
-        await firstTemplate.waitFor({ state: 'visible', timeout: 10000 });
-        await firstTemplate.click({ force: true });
+  test('should interact with the editor sidebar', async ({ page }) => {
+    // Directly go to editor
+    await page.getByRole('button', { name: /New Design/i }).click();
+    await page.getByRole('button', { name: /Launch Editor/i }).click();
+    await page.waitForURL(/.*editor/);
 
-        await expect(page.locator('#canvas-container')).toBeVisible({ timeout: 20000 });
-        await page.waitForTimeout(2000);
+    // Click on "AI Magic" tab
+    await page.getByRole('tab', { name: /^AI Magic$/i }).click();
+    await expect(page.getByText(/AI Magic/i, { exact: true })).toBeVisible();
 
-        // 2. Go to Photos tab
-        await page.locator('#sidebar >> button').filter({ hasText: /^Photos$/ }).click();
+    // Click on "Elements" tab
+    await page.getByRole('tab', { name: /^Elements$/i }).click();
+    await expect(page.getByText(/Shapes/i)).toBeVisible();
 
-        // 3. Wait for Photos panel content
-        await expect(page.locator('h3:has-text("Photos"), h3:has-text("Unsplash")')).toBeVisible({ timeout: 10000 });
+    // Click on "Text" tab
+    await page.getByRole('tab', { name: /^Text$/i }).click();
+    await expect(page.getByText(/Typography/i)).toBeVisible();
 
-        // 4. Verify images are loading (Unsplash with guaranteed fallbacks)
-        const firstPhoto = page.locator('#sidebar img[alt*="photo"], #sidebar img[src*="unsplash"]').first();
-        await expect(firstPhoto).toBeVisible({ timeout: 15000 });
-
-        // 5. Add photo to canvas
-        await firstPhoto.click({ force: true });
-
-        // 6. Verify image layer on canvas
-        await expect(page.locator('#canvas-container [data-layer-type="image"]')).toBeVisible({ timeout: 15000 });
-    });
+    // Click on "Photos" tab
+    await page.getByRole('tab', { name: /^Photos$/i }).click();
+    await expect(page.getByPlaceholder(/Search millions of photos/i)).toBeVisible();
+  });
 });

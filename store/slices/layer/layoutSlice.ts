@@ -8,7 +8,7 @@ export const createLayoutSlice: StateCreator<any, [], [], Partial<LayerSlice>> =
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => ({
         ...a,
-        layers: a.layers.map((l) => (l.id === id ? { ...l, x: l.x + dx, y: l.y + dy, dirty: true } : l)),
+        layers: a.layers.map((l) => (l.id === id ? { ...l, x: l.x + dx, y: l.y + dy } : l)),
       })),
     })),
 

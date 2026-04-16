@@ -13,12 +13,12 @@ export class DashboardPage {
   constructor(page: Page) {
     this.page = page;
     this.createProjectButton = page.locator('button#create-btn, button:has-text("New Design")');
-    this.templatesGrid = page.locator('#templates-grid');
+    this.templatesGrid = page.getByTestId('dashboard-templates-grid');
     this.projectsList = page.locator('.grid-cols-1, .grid-cols-2, .grid-cols-3, .grid-cols-4');
-    this.searchInput = page.locator('input[placeholder*="Search designs"]');
+    this.searchInput = page.getByTestId('dashboard-search-input');
     this.userMenu = page.locator('header .profile-section, header .flex.items-center.gap-3.group');
     this.logoutButton = page.locator('button:has-text("Sign Out")');
-    this.templatesTab = page.locator('button[role="tab"]:has-text("Templates")');
+    this.templatesTab = page.getByTestId('nav-templates');
   }
 
   async goto() {
@@ -51,6 +51,22 @@ export class DashboardPage {
 
   async verifyDashboardLoaded() {
     await expect(this.createProjectButton).toBeVisible();
+    // Default tab might be "My Projects", so templates-grid might not be visible initially.
+    // If we want to check templates, we should switch to templates tab.
+  }
+
+  async switchToTemplates() {
+    await this.templatesTab.click();
     await expect(this.templatesGrid).toBeVisible();
+  }
+
+  async searchTemplates(query: string) {
+    await this.switchToTemplates();
+    await this.searchInput.fill(query);
+    await this.page.waitForTimeout(500);
+  }
+
+  async getTemplateCount(): Promise<number> {
+    return await this.templatesGrid.locator('button, [role="button"]').count();
   }
 }

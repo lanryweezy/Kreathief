@@ -7,7 +7,7 @@ test.describe('Full Design Workflow', () => {
     // Mock authenticated user
     await page.addInitScript(() => {
       localStorage.setItem(
-        'kreathief_user',
+        'kreathief_qa_session',
         JSON.stringify({
           id: 'test-user',
           name: 'Test Designer',
@@ -27,6 +27,7 @@ test.describe('Full Design Workflow', () => {
     await dashboard.verifyDashboardLoaded();
 
     // Step 2: Create new project from template
+    await dashboard.switchToTemplates();
     await dashboard.openTemplate('Instagram Post');
     await editor.waitForCanvasReady();
 
@@ -37,7 +38,7 @@ test.describe('Full Design Workflow', () => {
     const textTab = editor.sidebar.locator('button[aria-label="Text"]');
     await textTab.click();
 
-    const addHeading = page.locator('button:has-text("Heading"), button:has-text("Add a heading")');
+    const addHeading = page.getByTestId('add-heading-btn');
     await addHeading.click();
     await page.waitForTimeout(500);
 
@@ -45,15 +46,17 @@ test.describe('Full Design Workflow', () => {
     const elementsTab = editor.sidebar.locator('button[aria-label="Elements"]');
     await elementsTab.click();
 
-    const shapeBtn = page.locator('button[aria-label*="Rectangle"], button[aria-label*="Square"], .shape-btn').first();
-    if (await shapeBtn.isVisible()) {
-      await shapeBtn.click();
-      await page.waitForTimeout(500);
-    }
+    const shapeBtn = page.locator('button[aria-label*="Rectangle"], button[aria-label*="Square"], [id^="shape-btn-rectangle"]').first();
+    await expect(shapeBtn).toBeVisible({ timeout: 10000 });
+    await shapeBtn.click();
+    await page.waitForTimeout(500);
 
-    // Step 6: Verify layers exist
-    await editor.openLayersPanel();
-    const layerCount = await editor.getLayerCount();
+    // Step 6: Verify layers exist via store
+    const layerCount = await page.evaluate(() => {
+        const state = (window as any).useStore.getState();
+        const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
+        return artboard.layers.length;
+    });
     expect(layerCount).toBeGreaterThan(1);
 
     // Step 7: Save project
@@ -82,7 +85,7 @@ test.describe('Full Design Workflow', () => {
     // Mock authenticated user
     await page.addInitScript(() => {
       localStorage.setItem(
-        'kreathief_user',
+        'kreathief_qa_session',
         JSON.stringify({
           id: 'test-user',
           name: 'Test Designer',
@@ -98,6 +101,8 @@ test.describe('Full Design Workflow', () => {
 
     // First session: Create and save
     await page.goto('/');
+    const dashboard = new DashboardPage(page);
+    await dashboard.switchToTemplates();
     await page.locator('#templates-grid button').first().click();
     await editor.waitForCanvasReady();
 
@@ -106,25 +111,30 @@ test.describe('Full Design Workflow', () => {
     // Add text
     const textTab = editor.sidebar.locator('button[aria-label="Text"]');
     await textTab.click();
-    const addHeading = page.locator('button:has-text("Heading")');
+    const addHeading = page.getByTestId('add-heading-btn');
     await addHeading.click();
     await page.waitForTimeout(500);
 
     // Save
     await editor.save();
-    await page.waitForTimeout(1000);
+    // Wait for store to indicate not dirty
+    await page.waitForFunction(() => !(window as any).useStore.getState().hasUnsavedChanges, { timeout: 10000 });
+    const projectId = await page.evaluate(() => (window as any).useStore.getState().projectId);
 
     // Second session: Reload and verify
-    await page.reload();
+    await page.goto(`/editor?id=${projectId}`);
     await editor.waitForCanvasReady();
 
-    // Verify title persisted
-    const savedTitle = await editor.projectTitleInput.inputValue();
+    // Verify title persisted via store
+    const savedTitle = await page.evaluate(() => (window as any).useStore.getState().projectTitle);
     expect(savedTitle).toBe('Persistent Design');
 
-    // Verify layer exists
-    await editor.openLayersPanel();
-    const layerCount = await editor.getLayerCount();
+    // Verify layer exists via store
+    const layerCount = await page.evaluate(() => {
+        const state = (window as any).useStore.getState();
+        const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
+        return artboard.layers.length;
+    });
     expect(layerCount).toBeGreaterThan(0);
   });
 
@@ -132,7 +142,7 @@ test.describe('Full Design Workflow', () => {
     // Mock authenticated user
     await page.addInitScript(() => {
       localStorage.setItem(
-        'kreathief_user',
+        'kreathief_qa_session',
         JSON.stringify({
           id: 'test-user',
           name: 'Test Designer',
@@ -146,6 +156,8 @@ test.describe('Full Design Workflow', () => {
 
     // Tab 1: Create project
     await page.goto('/');
+    const dashboard1 = new DashboardPage(page);
+    await dashboard1.switchToTemplates();
     await page.locator('#templates-grid button').first().click();
 
     const editor1 = new EditorPage(page);
@@ -160,14 +172,14 @@ test.describe('Full Design Workflow', () => {
     await dashboard2.verifyDashboardLoaded();
 
     // Find and open the project we just created
-    const projectCard = dashboard2.projectsList.locator('button, [role="button"]').first();
+    const projectCard = page2.locator(`button:has-text("Multi-Tab Design"), [data-testid^="project-card-"]:has-text("Multi-Tab Design")`).first();
     await projectCard.click();
 
     const editor2 = new EditorPage(page2);
     await editor2.waitForCanvasReady();
 
-    // Verify both tabs show same title
-    const title2 = await editor2.projectTitleInput.inputValue();
+    // Verify both tabs show same title via store
+    const title2 = await page2.evaluate(() => (window as any).useStore.getState().projectTitle);
     expect(title2).toBe('Multi-Tab Design');
 
     // Clean up

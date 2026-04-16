@@ -366,7 +366,7 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
           layers: a.layers.map((l: Layer) => {
             if (l.id === id) {
               const overrides = l.masterId ? [...(l.overrides || []), ...Object.keys(sanitizedPartial)] : l.overrides;
-              return { ...l, ...sanitizedPartial, overrides, dirty: true };
+              return { ...l, ...sanitizedPartial, overrides };
             }
             if (masterComponentId && l.masterId === masterComponentId) {
               const overrides = l.overrides || [];
@@ -376,7 +376,7 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
                   delete (syncPartial as any)[key];
                 }
               });
-              return { ...l, ...syncPartial, dirty: true };
+              return { ...l, ...syncPartial };
             }
             return l;
           }),
