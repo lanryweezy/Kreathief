@@ -23,6 +23,7 @@ import { AboutPage, PrivacyPage, TermsPage, SecurityPage, ContactPage, HelpCente
 const Auth = React.lazy(() => import('./components/Auth').then((module) => ({ default: module.Auth })));
 const Dashboard = React.lazy(() => import('./components/Dashboard').then((module) => ({ default: module.Dashboard })));
 const Editor = React.lazy(() => import('./components/Editor').then((module) => ({ default: module.Editor })));
+const AuthCallback = React.lazy(() => import('./components/AuthCallback').then((module) => ({ default: module.AuthCallback })));
 
 const LoadingFallback = () => (
   <div className="flex h-screen w-full items-center justify-center bg-[#1f1f1f] flex-col gap-4">
@@ -91,6 +92,28 @@ const App: React.FC = () => {
       unsubscribe();
     };
   }, [location.pathname, navigate]);
+
+  // Local-First: Background Persistence
+  // Mirror state to IndexedDB every 2 seconds if changes detected
+  useEffect(() => {
+    const state = useStore.getState();
+    if (!state.projectId) return;
+
+    const timeout = setTimeout(() => {
+      const mirrorState = {
+        artboards: state.artboards,
+        canvasBackgroundColor: state.canvasBackgroundColor,
+        canvasFilters: state.canvasFilters,
+        canvasSize: state.canvasSize,
+        brandKits: state.brandKits,
+        showGrid: state.showGrid,
+        showRulers: state.showRulers,
+      };
+      storageService.saveSessionMirror(state.projectId, mirrorState as any);
+    }, 2000);
+
+    return () => clearTimeout(timeout);
+  }, [location.pathname]); // Triggered on navigation and initial load, more fine-grained updates should ideally be in store middleware
 
   const handleLogin = (user: User) => {
     setUser(user);
@@ -204,6 +227,7 @@ const App: React.FC = () => {
             } 
           />
           <Route path="/auth" element={<Auth onLogin={handleLogin} />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route
             path="/dashboard"
             element={user ? (
@@ -251,6 +275,7 @@ const App: React.FC = () => {
 
         {location.pathname === '/dashboard' && user && showWelcome && (
           <WelcomeModal
+            isOpen={showWelcome}
             onClose={() => {
               setShowWelcome(false);
               localStorage.setItem('kreathief_onboarding_seen', 'true');

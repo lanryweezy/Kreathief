@@ -10,6 +10,8 @@ import { log } from '../../utils/log';
 
 export const BrandPanel = () => {
   const brandKits = useStore((state) => state.brandKits);
+  const activeBrandKitId = useStore((state) => state.activeBrandKitId);
+  const setActiveBrandKit = useStore((state) => state.setActiveBrandKit);
   const onAddBrandKit = useStore((state) => state.addBrandKit);
   const onDeleteBrandKit = useStore((state) => state.deleteBrandKit);
   const onApplyBrandColors = useStore((state) => state.applyBrandColors);
@@ -387,20 +389,26 @@ export const BrandPanel = () => {
                 ))}
                 <button
                   data-testid="apply-brand-colors-btn"
-                  onClick={() => onApplyBrandColors(kit.colors)}
-                  className="ml-auto text-[10px] bg-[#7d2ae8]/10 hover:bg-[#7d2ae8]/20 text-[#7d2ae8] px-2 py-0.5 rounded border border-[#7d2ae8]/20 transition-colors font-bold"
+                  onClick={() => {
+                    onApplyBrandColors(kit.colors, kit.id);
+                    setActiveBrandKit(kit.id);
+                  }}
+                  className={`ml-auto text-[10px] px-2 py-0.5 rounded border transition-colors font-bold ${activeBrandKitId === kit.id ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/20' : 'bg-[#7d2ae8]/10 hover:bg-[#7d2ae8]/20 text-[#7d2ae8] border-[#7d2ae8]/20'}`}
                 >
-                  Apply
+                  {activeBrandKitId === kit.id ? 'Live' : 'Apply'}
                 </button>
               </div>
 
               {/* Typography */}
               <div data-testid="brand-fonts-display" className="bg-[#252627] rounded p-2 mb-3 border border-gray-800">
                 <div className="flex justify-between items-center border-b border-gray-700 pb-1 mb-1">
-                  <span className="text-[10px] font-bold text-gray-500 uppercase">Typography</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase">Typography</span>
+                    {activeBrandKitId === kit.id && <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />}
+                  </div>
                   <button
                     data-testid="apply-brand-fonts-btn"
-                    onClick={() => onApplyBrandFonts(kit.fonts[0], kit.fonts[1])}
+                    onClick={() => onApplyBrandFonts(kit.fonts[0], kit.fonts[1], kit.id)}
                     className="text-[10px] text-[#7d2ae8] hover:text-white transition-colors"
                   >
                     Apply

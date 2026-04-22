@@ -19,7 +19,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
     duplicateLayer, deleteLayer, moveLayer, updateLayer,
     artboards, activeArtboardId,
     convertToComponent, instantiateComponent, detachInstance, resetOverrides,
-    addToast, applyMask, groupSelected, ungroupSelected,
+    addToast, groupSelected, ungroupSelected,
   } = useStore();
 
   const clipboardLayer = useStore(s => s.clipboardLayer);
@@ -171,17 +171,29 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
 
       <Div />
 
-      <MI
-        onClick={() => {
-          const idx = layers.findIndex((l: any) => l.id === layerId);
-          if (idx > 0) { applyMask(layerId, layers[idx - 1].id); }
-          onClose();
-        }}
-        icon={Icons.Layers}
-        disabled={layers.findIndex((l: any) => l.id === layerId) === 0}
-      >
-        Mask with Layer Below
-      </MI>
+      {layer?.isMasking ? (
+         <MI
+          onClick={() => {
+            updateLayer(layerId, { isMasking: false });
+            onClose();
+          }}
+          icon={Icons.Layers}
+          purple
+        >
+          Release Mask
+        </MI>
+      ) : (
+        <MI
+          onClick={() => {
+            updateLayer(layerId, { isMasking: true, clippingMaskType: 'clipping' });
+            onClose();
+          }}
+          icon={Icons.Layers}
+          disabled={layers.findIndex((l: any) => l.id === layerId) === layers.length - 1}
+        >
+          Use as Clipping Mask
+        </MI>
+      )}
 
       <Div />
 

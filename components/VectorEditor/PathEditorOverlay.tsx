@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { VectorPath, VectorPoint } from '../../types';
 import { PenToolbar } from '../toolbar/PenToolbar';
+import { GRID_SIZE } from '../canvas/CanvasConstants';
 
 interface PathEditorOverlayProps {
   path: VectorPath;
@@ -63,6 +64,15 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
   const strokeW = 1.5 * s;
   const hitAreaSize = 12 * s;
 
+  // Utility to round coordinates for "pixel perfect" feel
+  const snapCoord = useCallback((val: number) => {
+    if (penOptions.snapToGrid) {
+      return Math.round(val / GRID_SIZE) * GRID_SIZE;
+    }
+    // Sub-pixel precision: round to 0.5 for sharpness
+    return Math.round(val * 2) / 2;
+  }, [penOptions.snapToGrid]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -111,6 +121,10 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
           setActiveTool((prev) => (prev === 'add' ? 'select' : 'add'));
         }
       }
+      // G to toggle grid snap
+      if (e.key === 'g' || e.key === 'G') {
+        setPenOptions(prev => ({ ...prev, snapToGrid: !prev.snapToGrid }));
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -129,8 +143,10 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
       if (!svg) {return;}
 
       const rect = svg.getBoundingClientRect();
-      const clickX = (e.clientX - rect.left) / zoom;
-      const clickY = (e.clientY - rect.top) / zoom;
+      const rawX = (e.clientX - rect.left) / zoom;
+      const rawY = (e.clientY - rect.top) / zoom;
+      const clickX = snapCoord(rawX);
+      const clickY = snapCoord(rawY);
 
       const startX = e.clientX;
       const startY = e.clientY;
@@ -149,10 +165,13 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
       setIsDrawingCurve(true);
 
       const handleMouseMove = (moveEvent: MouseEvent) => {
-        const dx = (moveEvent.clientX - startX) / zoom;
-        const dy = (moveEvent.clientY - startY) / zoom;
+        const dxRaw = (moveEvent.clientX - startX) / zoom;
+        const dyRaw = (moveEvent.clientY - startY) / zoom;
+        // Handles also snapped for "pixel perfect" geometry
+        const dx = snapCoord(dxRaw);
+        const dy = snapCoord(dyRaw);
 
-        if (Math.abs(dx) > 2 * s || Math.abs(dy) > 2 * s) {
+        if (Math.abs(dx) > 1 * s || Math.abs(dy) > 1 * s) {
 
           // Create symmetric handles
           const updatedPoints = [...newPoints];
@@ -175,7 +194,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     },
-    [activeTool, path, zoom, onUpdate, onSelectPoint, s]
+    [activeTool, path, zoom, onUpdate, onSelectPoint, s, snapCoord]
   );
 
   // PEN TOOL: Close path by clicking first point
@@ -200,12 +219,14 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
       const svg = svgRef.current;
       if (!svg) {return;}
       const rect = svg.getBoundingClientRect();
+      const rawX = (e.clientX - rect.left) / zoom;
+      const rawY = (e.clientY - rect.top) / zoom;
       setPenPreviewPoint({
-        x: (e.clientX - rect.left) / zoom,
-        y: (e.clientY - rect.top) / zoom,
+        x: snapCoord(rawX),
+        y: snapCoord(rawY),
       });
     },
-    [activeTool, path.points.length, zoom]
+    [activeTool, path.points.length, zoom, snapCoord]
   );
 
   // REMOVE POINT TOOL: click to delete
@@ -260,12 +281,17 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
       const indicesToMove = selectedPointIndices.includes(index) ? selectedPointIndices : [index];
 
       const handleMouseMove = (moveEvent: MouseEvent) => {
-        const dx = (moveEvent.clientX - startX) / zoom;
-        const dy = (moveEvent.clientY - startY) / zoom;
+        const dxRaw = (moveEvent.clientX - startX) / zoom;
+        const dyRaw = (moveEvent.clientY - startY) / zoom;
+        
         const newPoints = path.points.map((p, i) => {
           if (indicesToMove.includes(i)) {
             const orig = pointsBefore[i]!;
-            return { ...p, x: orig.x + dx, y: orig.y + dy };
+            return { 
+              ...p, 
+              x: snapCoord(orig.x + dxRaw), 
+              y: snapCoord(orig.y + dyRaw) 
+            };
           }
           return p;
         });
@@ -281,7 +307,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     },
-    [path, zoom, selectedPointIndices, onSelectPoint, onUpdate, activeTool, handleRemovePointClick, handlePenCloseClick]
+    [path, zoom, selectedPointIndices, onSelectPoint, onUpdate, activeTool, handleRemovePointClick, handlePenCloseClick, snapCoord]
   );
 
   // ==================================
@@ -302,9 +328,12 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
       const origY = origHandle?.y ?? 0;
 
       const handleMouseMove = (moveEvent: MouseEvent) => {
-        const dx = (moveEvent.clientX - startX) / zoom;
-        const dy = (moveEvent.clientY - startY) / zoom;
-        const newHandle = { x: origX + dx, y: origY + dy };
+        const dxRaw = (moveEvent.clientX - startX) / zoom;
+        const dyRaw = (moveEvent.clientY - startY) / zoom;
+        const newHandle = { 
+          x: snapCoord(origX + dxRaw), 
+          y: snapCoord(origY + dyRaw) 
+        };
 
         const newPoints = [...path.points];
         const pt = { ...newPoints[pointIndex]! };
@@ -353,7 +382,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     },
-    [path, zoom, onUpdate]
+    [path, zoom, onUpdate, snapCoord]
   );
 
   // ==================================

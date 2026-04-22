@@ -23,6 +23,7 @@ export enum NavTab {
   AI_SUGGESTIONS = 'AI_SUGGESTIONS',
   SMART_CONTENT = 'SMART_CONTENT',
   QUALITY_SCORE = 'QUALITY_SCORE',
+  ACCESSIBILITY = 'ACCESSIBILITY',
   VECTORIZER = 'VECTORIZER',
   TEXT_EFFECTS = 'TEXT_EFFECTS',
   ARRANGE = 'ARRANGE',
@@ -159,6 +160,12 @@ export interface AutoLayoutSettings {
   alignment: 'start' | 'center' | 'end' | 'space-between';
 }
 
+export interface DesignTokenRef {
+  kitId: string;
+  type: 'color' | 'font';
+  path: string; // e.g., 'colors.0' or 'fonts.heading'
+}
+
 export interface LayerBase {
   id: string;
   name?: string;
@@ -171,7 +178,11 @@ export interface LayerBase {
   locked: boolean;
   visible: boolean;
   maskLayerId?: string;
+  isMasking?: boolean; // True if this layer masks the one(s) above it
+  clippingMaskType?: 'clipping' | 'alpha' | 'luminance';
   groupId?: string;
+  colorToken?: DesignTokenRef;
+  fontToken?: DesignTokenRef;
   animation?: AnimationSettings;
   filters?: LayerFilters;
   blendMode?: string;

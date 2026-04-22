@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
 import { ImageLayer } from '../../types';
+import { haptics } from '../../utils/haptics';
 
 interface CropOverlayProps {
   zoom: number;
@@ -150,10 +151,13 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
     return null;
   }
 
-  const handleMouseDown = (e: React.MouseEvent, handle: ResizeHandle) => {
+  const handleMouseDown = (e: React.MouseEvent | React.TouchEvent, handle: ResizeHandle) => {
     e.stopPropagation();
+    haptics.selection();
     setIsResizing(handle);
-    setStartPos({ x: e.clientX, y: e.clientY });
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    setStartPos({ x: clientX, y: clientY });
     setStartArea({ ...activeArea });
   };
 
@@ -231,41 +235,79 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
         }}
       >
         <div style={cropBoxStyle}>
+          {/* NW Handle */}
           <div
             onMouseDown={(e) => handleMouseDown(e, 'nw')}
-            className="absolute -top-1.5 -left-1.5 w-3.5 h-3.5 bg-white border-2 border-[#7d2ae8] rounded-full cursor-nw-resize z-50 shadow-md"
-          ></div>
+            onTouchStart={(e) => handleMouseDown(e, 'nw')}
+            className="absolute -top-4 -left-4 w-8 h-8 flex items-center justify-center z-50 pointer-events-auto cursor-nw-resize"
+          >
+             <div className="w-4 h-4 bg-white border-2 border-[#7d2ae8] rounded-full shadow-md" />
+          </div>
+
+          {/* NE Handle */}
           <div
             onMouseDown={(e) => handleMouseDown(e, 'ne')}
-            className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-white border-2 border-[#7d2ae8] rounded-full cursor-ne-resize z-50 shadow-md"
-          ></div>
+            onTouchStart={(e) => handleMouseDown(e, 'ne')}
+            className="absolute -top-4 -right-4 w-8 h-8 flex items-center justify-center z-50 pointer-events-auto cursor-ne-resize"
+          >
+             <div className="w-4 h-4 bg-white border-2 border-[#7d2ae8] rounded-full shadow-md" />
+          </div>
+
+          {/* SW Handle */}
           <div
             onMouseDown={(e) => handleMouseDown(e, 'sw')}
-            className="absolute -bottom-1.5 -left-1.5 w-3.5 h-3.5 bg-white border-2 border-[#7d2ae8] rounded-full cursor-sw-resize z-50 shadow-md"
-          ></div>
+            onTouchStart={(e) => handleMouseDown(e, 'sw')}
+            className="absolute -bottom-4 -left-4 w-8 h-8 flex items-center justify-center z-50 pointer-events-auto cursor-sw-resize"
+          >
+             <div className="w-4 h-4 bg-white border-2 border-[#7d2ae8] rounded-full shadow-md" />
+          </div>
+
+          {/* SE Handle */}
           <div
             onMouseDown={(e) => handleMouseDown(e, 'se')}
-            className="absolute -bottom-1.5 -right-1.5 w-3.5 h-3.5 bg-white border-2 border-[#7d2ae8] rounded-full cursor-se-resize z-50 shadow-md"
-          ></div>
+            onTouchStart={(e) => handleMouseDown(e, 'se')}
+            className="absolute -bottom-4 -right-4 w-8 h-8 flex items-center justify-center z-50 pointer-events-auto cursor-se-resize"
+          >
+             <div className="w-4 h-4 bg-white border-2 border-[#7d2ae8] rounded-full shadow-md" />
+          </div>
 
           {!cropAspectRatio && (
             <>
+              {/* N Handle */}
               <div
                 onMouseDown={(e) => handleMouseDown(e, 'n')}
-                className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-white border border-[#7d2ae8] rounded-full cursor-ns-resize z-40 shadow-sm"
-              ></div>
+                onTouchStart={(e) => handleMouseDown(e, 'n')}
+                className="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-8 flex items-center justify-center z-40 pointer-events-auto cursor-ns-resize"
+              >
+                 <div className="w-8 h-1.5 bg-white border border-[#7d2ae8] rounded-full shadow-sm" />
+              </div>
+
+              {/* S Handle */}
               <div
                 onMouseDown={(e) => handleMouseDown(e, 's')}
-                className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-white border border-[#7d2ae8] rounded-full cursor-ns-resize z-40 shadow-sm"
-              ></div>
+                onTouchStart={(e) => handleMouseDown(e, 's')}
+                className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-12 h-8 flex items-center justify-center z-40 pointer-events-auto cursor-ns-resize"
+              >
+                 <div className="w-8 h-1.5 bg-white border border-[#7d2ae8] rounded-full shadow-sm" />
+              </div>
+
+              {/* W Handle */}
               <div
                 onMouseDown={(e) => handleMouseDown(e, 'w')}
-                className="absolute top-1/2 -translate-y-1/2 -left-1 w-1.5 h-8 bg-white border border-[#7d2ae8] rounded-full cursor-ew-resize z-40 shadow-sm"
-              ></div>
+                onTouchStart={(e) => handleMouseDown(e, 'w')}
+                className="absolute top-1/2 -translate-y-1/2 -left-4 w-8 h-12 flex items-center justify-center z-40 pointer-events-auto cursor-ew-resize"
+              >
+                 <div className="w-1.5 h-8 bg-white border border-[#7d2ae8] rounded-full shadow-sm" />
+              </div>
+
+              {/* E Handle */}
               <div
                 onMouseDown={(e) => handleMouseDown(e, 'e')}
-                className="absolute top-1/2 -translate-y-1/2 -right-1 w-1.5 h-8 bg-white border border-[#7d2ae8] rounded-full cursor-ew-resize z-40 shadow-sm"
-              ></div>
+                onTouchStart={(e) => handleMouseDown(e, 'e')}
+                className="absolute top-1/2 -translate-y-1/2 -right-4 w-8 h-12 flex items-center justify-center z-40 pointer-events-auto cursor-ew-resize"
+              >
+                 <div className="w-1.5 h-8 bg-white border border-[#7d2ae8] rounded-full shadow-sm" />
+              </div>
             </>
           )}
 

@@ -81,9 +81,22 @@ class StorageService {
   }
 
   private async getUserId(): Promise<string | null> {
-    const user = await authService.getSession();
-    return user?.id || null;
-  }
+    try {
+      const user = await authService.getSession();
+      if (user?.id) {return user.id;}
+      
+      // Local development fallback to prevent 401 blockers
+      if (import.meta.env.DEV && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        return 'local_guest_user';
+      }
+
+      return null;
+      } catch (err) {
+      if (import.meta.env.DEV && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        return 'local_guest_user';
+      }
+      return null;
+      }  }
 
   /**
    * Load pending changes from IndexedDB on startup
@@ -363,11 +376,46 @@ class StorageService {
           queueStore.createIndex('status', 'status', { unique: false });
         }
 
+        if (!db.objectStoreNames.contains('assets')) {
+          db.createObjectStore('assets', { keyPath: 'id' });
+        }
+
         logger.info('IndexedDB schema updated');
       };
     });
 
     return this.initPromise;
+  }
+
+  // ===== Asset Caching =====
+
+  async cacheAsset(url: string): Promise<string> {
+    if (!url || url.startsWith('data:') || url.startsWith('blob:')) {return url;}
+    
+    try {
+      const store = await this.getStore('assets', 'readwrite');
+      const id = btoa(url).substring(0, 32); // Simple hash for ID
+      
+      const cached = await new Promise<any>((resolve) => {
+        const req = store.get(id);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+      });
+
+      if (cached) {
+        return URL.createObjectURL(cached.blob);
+      }
+
+      // Not cached, fetch and store
+      const response = await fetch(url);
+      const blob = await response.blob();
+      await this.addToStore(store, { id, url, blob, timestamp: Date.now() });
+      
+      return URL.createObjectURL(blob);
+    } catch (err) {
+      log.warn('[Storage] Failed to cache asset', { url, error: err });
+      return url;
+    }
   }
 
   private async getStore(storeName: string, mode: IDBTransactionMode = 'readonly'): Promise<IDBObjectStore> {

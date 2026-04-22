@@ -1,52 +1,91 @@
 import { StateCreator } from 'zustand';
-import { BrandKit, TextLayer, Layer } from '../../types';
+import { BrandKit, Layer, Artboard } from '../../types';
 
 export interface BrandSlice {
   brandKits: BrandKit[];
+  activeBrandKitId: string | null;
   addBrandKit: (kit: BrandKit) => void;
   deleteBrandKit: (id: string) => void;
   updateBrandKit: (id: string, updates: Partial<BrandKit>) => void;
-  applyBrandColors: (colors: string[]) => void;
-  applyBrandFonts: (heading: string, body: string) => void;
+  applyBrandColors: (colors: string[], kitId?: string) => void;
+  applyBrandFonts: (heading: string, body: string, kitId?: string) => void;
+  setActiveBrandKit: (id: string | null) => void;
+  syncLayersWithTokens: () => void;
 }
 
 export const createBrandSlice: StateCreator<any, [], [], BrandSlice> = (set, get) => ({
   brandKits: [],
+  activeBrandKitId: null,
+  
+  setActiveBrandKit: (id) => set({ activeBrandKitId: id }),
+
   addBrandKit: (kit) => set((state: any) => ({
     brandKits: [...state.brandKits, kit],
     hasUnsavedChanges: true
   })),
+
   deleteBrandKit: (id) => set((state: any) => ({
     brandKits: state.brandKits.filter((k: BrandKit) => k.id !== id),
+    activeBrandKitId: state.activeBrandKitId === id ? null : state.activeBrandKitId,
     hasUnsavedChanges: true
   })),
-  updateBrandKit: (id, updates) =>
+
+  updateBrandKit: (id, updates) => {
     set((state: any) => ({
       brandKits: state.brandKits.map((k: BrandKit) => (k.id === id ? { ...k, ...updates } : k)),
       hasUnsavedChanges: true
-    })),
-  applyBrandColors: (colors: string[]) => {
+    }));
+    // Pro: Auto-sync any layers using tokens from this kit
+    get().syncLayersWithTokens();
+  },
+
+  syncLayersWithTokens: () => {
+    const { artboards, brandKits } = get();
+    if (!brandKits.length) return;
+
+    const newArtboards = artboards.map((artboard: Artboard) => ({
+      ...artboard,
+      layers: artboard.layers.map((l: any) => {
+        let updatedLayer = { ...l };
+        let changed = false;
+
+        // Resolve Color Token
+        if (l.colorToken) {
+          const kit = brandKits.find((k: any) => k.id === l.colorToken.kitId);
+          if (kit) {
+            // path 'colors.0' -> kit.colors[0]
+            const [type, index] = l.colorToken.path.split('.');
+            const newValue = (kit as any)[type]?.[parseInt(index)];
+            if (newValue && l.color !== newValue) {
+              updatedLayer.color = newValue;
+              changed = true;
+            }
+          }
+        }
+
+        // Resolve Font Token
+        if (l.fontToken) {
+          const kit = brandKits.find((k: any) => k.id === l.fontToken.kitId);
+          if (kit) {
+            const [type, index] = l.fontToken.path.split('.');
+            const newValue = (kit as any)[type]?.[parseInt(index)];
+            if (newValue && l.fontFamily !== newValue) {
+              updatedLayer.fontFamily = newValue;
+              changed = true;
+            }
+          }
+        }
+
+        return changed ? updatedLayer : l;
+      })
+    }));
+
+    set({ artboards: newArtboards });
+  },
+
+  applyBrandColors: (colors: string[], kitId?: string) => {
     if (!colors || colors.length === 0) {return;}
     get().saveToHistory?.();
-
-    // WCAG Contrast Utilities
-    const getLuminance = (hex: string) => {
-      const rgb = hex.replace(/^#/, '').match(/.{2}/g)?.map(x => parseInt(x, 16) / 255) || [0, 0, 0];
-      const res = rgb.map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
-      return 0.2126 * res[0] + 0.7152 * res[1] + 0.0722 * res[2];
-    };
-
-    const getContrast = (c1: string, c2: string) => {
-      const l1 = getLuminance(c1) + 0.05;
-      const l2 = getLuminance(c2) + 0.05;
-      return l1 > l2 ? l1 / l2 : l2 / l1;
-    };
-
-    const getBestContrast = (bg: string, pool: string[]) => {
-      return pool.reduce((best, current) => 
-        getContrast(bg, current) > getContrast(bg, best) ? current : best
-      );
-    };
 
     const background = colors[0];
     const colorPool = colors.slice(1).length > 0 ? colors.slice(1) : colors;
@@ -58,26 +97,45 @@ export const createBrandSlice: StateCreator<any, [], [], BrandSlice> = (set, get
         backgroundColor: background,
         layers: artboard.layers.map((l: Layer) => {
           if (l.type === 'text') {
-            return { ...l, color: getBestContrast(background, colorPool) };
+            return { 
+              ...l, 
+              color: colorPool[0], 
+              colorToken: kitId ? { kitId, type: 'color', path: 'colors.1' } : undefined 
+            };
           }
           if (['rectangle', 'circle', 'triangle', 'path', 'star'].includes(l.type)) {
-            // Use a diverse but legible choice for shapes
-            return { ...l, color: colorPool[Math.floor(Math.random() * colorPool.length)] };
+            const idx = Math.floor(Math.random() * colorPool.length);
+            return { 
+              ...l, 
+              color: colorPool[idx],
+              colorToken: kitId ? { kitId, type: 'color', path: `colors.${idx + 1}` } : undefined
+            };
           }
           return l;
         })
       }))
     }));
   },
-  applyBrandFonts: (heading, body) => {
+
+  applyBrandFonts: (heading, body, kitId?: string) => {
     get().saveToHistory?.();
-    const { artboards, updateLayer } = get();
-    artboards.forEach((artboard: any) => {
-      artboard.layers.forEach((l: Layer) => {
-        if (l.type === 'text') {
-          updateLayer(l.id, { fontFamily: (l as TextLayer).fontWeight === '700' ? heading : body });
-        }
-      });
-    });
+    set((state: any) => ({
+      artboards: state.artboards.map((artboard: any) => ({
+        ...artboard,
+        layers: artboard.layers.map((l: any) => {
+          if (l.type === 'text') {
+            const isHeading = l.fontWeight === '700' || l.fontSize > 32;
+            return {
+              ...l,
+              fontFamily: isHeading ? heading : body,
+              fontToken: kitId ? { kitId, type: 'font', path: isHeading ? 'fonts.0' : 'fonts.1' } : undefined
+            };
+          }
+          return l;
+        })
+      }))
+    }));
   },
 });
+
+

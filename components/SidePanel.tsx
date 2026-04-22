@@ -23,13 +23,33 @@ const ArrangePanel = React.lazy(() => import('./panels/ArrangePanel'));
 const ComponentsPanel = React.lazy(() => import('./panels/ComponentsPanel'));
 const CommentsPanel = React.lazy(() => import('./panels/CommentsPanel'));
 const MotionPanel = React.lazy(() => import('./panels/MotionPanel').then(m => ({ default: m.MotionPanel })));
+const AccessibilityPanel = React.lazy(() => import('./panels/AccessibilityPanel').then(m => ({ default: m.AccessibilityPanel })));
 import { MockupPanel } from './panels/MockupPanel';
+import { ListSkeleton, GridSkeleton, CardSkeleton } from './Skeleton';
 
-const PanelLoading = () => (
-  <div className="flex h-full w-full items-center justify-center bg-[#13161a]">
-    <div className="w-6 h-6 rounded-full border-2 border-[#7d2ae8] border-t-transparent animate-spin"></div>
-  </div>
-);
+const PanelLoading = ({ tab }: { tab: NavTab }) => {
+  switch (tab) {
+    case NavTab.LAYERS:
+    case NavTab.ARRANGE:
+    case NavTab.BRAND:
+      return <ListSkeleton items={8} />;
+    case NavTab.TEMPLATES:
+    case NavTab.ELEMENTS:
+    case NavTab.PHOTOS:
+    case NavTab.TEXTURES:
+      return <GridSkeleton items={6} />;
+    case NavTab.MAGIC:
+    case NavTab.MOCKUP:
+    case NavTab.ASSISTANT:
+      return <div className="space-y-4 pt-4"><CardSkeleton /><CardSkeleton /></div>;
+    default:
+      return (
+        <div className="flex h-full w-full items-center justify-center bg-[#13161a]">
+          <div className="w-6 h-6 rounded-full border-2 border-[#7d2ae8] border-t-transparent animate-spin"></div>
+        </div>
+      );
+  }
+};
 
 interface SidePanelProps {
   onGenerate: () => void;
@@ -96,7 +116,7 @@ export const SidePanel = React.memo(
               transition={{ duration: 0.2, ease: 'easeInOut' }}
               className="h-full flex flex-col"
             >
-              <React.Suspense fallback={<PanelLoading />}>
+              <React.Suspense fallback={<PanelLoading tab={activeTab} />}>
                 {activeTab === NavTab.MAGIC && (
                   <MagicPanel onGenerate={onGenerate} uploadedImage={uploadedImage} fileInputRef={fileInputRef} />
                 )}
@@ -189,6 +209,8 @@ export const SidePanel = React.memo(
                 {activeTab === NavTab.ARRANGE && <ArrangePanel />}
 
                 {activeTab === NavTab.MOTION && <MotionPanel onPreviewMotion={onPreviewMotion} />}
+
+                {activeTab === NavTab.ACCESSIBILITY && <AccessibilityPanel />}
               </React.Suspense>
             </motion.div>
           </AnimatePresence>

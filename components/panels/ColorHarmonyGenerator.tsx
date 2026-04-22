@@ -44,17 +44,17 @@ export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({
   const getHarmonyColors = (): string[] => {
     switch (activeHarmony) {
       case 'complementary':
-        return [baseColor, harmonies.complementary];
+        return [baseColor, (harmonies as any).complementary];
       case 'analogous':
-        return [harmonies.analogous[0], baseColor, harmonies.analogous[1]];
+        return [(harmonies as any).analogous[0], baseColor, (harmonies as any).analogous[1]];
       case 'triadic':
-        return [baseColor, harmonies.triadic[0], harmonies.triadic[1]];
+        return [baseColor, (harmonies as any).triadic[0], (harmonies as any).triadic[1]];
       case 'split':
-        return [baseColor, harmonies.splitComplementary[0], harmonies.splitComplementary[1]];
+        return [baseColor, (harmonies as any).splitComplementary[0], (harmonies as any).splitComplementary[1]];
       case 'tetradic':
-        return [baseColor, harmonies.tetradic[0], harmonies.tetradic[1], harmonies.tetradic[2]];
+        return [baseColor, (harmonies as any).tetradic[0], (harmonies as any).tetradic[1], (harmonies as any).tetradic[2]];
       case 'monochromatic':
-        return [baseColor, ...harmonies.monochromatic];
+        return [baseColor, ...(harmonies as any).monochromatic];
       default:
         return [baseColor];
     }

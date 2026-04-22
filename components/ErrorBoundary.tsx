@@ -94,21 +94,33 @@ export class ErrorBoundary extends Component<Props, State> {
     const { hasError, error, recoveryAttempts } = this.state;
     const { children, fallback, variant, maxAutoRecoveryAttempts = 3 } = this.props;
 
-    // If we've exhausted recovery attempts or have no error, show fallback
-    if (hasError && error && recoveryAttempts >= maxAutoRecoveryAttempts) {
-      if (fallback) {
-        return fallback;
+    // If there's an error, don't render children.
+    if (hasError && error) {
+      // If we've exhausted recovery attempts, show the full fallback
+      if (recoveryAttempts >= maxAutoRecoveryAttempts) {
+        if (fallback) {
+          return fallback;
+        }
+
+        return (
+          <ErrorFallback
+            error={error}
+            resetErrorBoundary={() => {
+              this.setState({ recoveryAttempts: 0 });
+              this.resetErrorBoundary();
+            }}
+            variant={variant}
+          />
+        );
       }
 
+      // During recovery attempts, show a subtle loading or blank state to prevent loops
       return (
-        <ErrorFallback
-          error={error}
-          resetErrorBoundary={() => {
-            this.setState({ recoveryAttempts: 0 }); // Reset attempts on manual click
-            this.resetErrorBoundary();
-          }}
-          variant={variant}
-        />
+        <div className="flex items-center justify-center w-full h-full bg-[#1e1e1e]/50 backdrop-blur-sm animate-pulse">
+          <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">
+            Recovering {recoveryAttempts}/{maxAutoRecoveryAttempts}...
+          </div>
+        </div>
       );
     }
 

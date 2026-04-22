@@ -1,10 +1,21 @@
 import { useStore } from '../store/useStore';
 import { ImageLayer } from '../types';
 import * as exportService from '../services/exportService';
-import * as psdService from '../services/psdService';
+import { storageService } from '../services/storageService';
 import { v4 as uuidv4 } from 'uuid';
 import { log } from '../utils/log';
 import { haptics } from '../utils/haptics';
+
+export interface ExportOptions {
+  format: 'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd';
+  quality: number;
+  size?: { width: number; height: number };
+  transparentBg?: boolean;
+  customFilename?: string;
+  onComplete?: () => void;
+  overrideLayers?: any[];
+  printOptions?: exportService.PDFExportOptions;
+}
 
 export const useFileHandler = () => {
   const uploads = useStore((state) => state.uploads) || [];
@@ -31,13 +42,16 @@ export const useFileHandler = () => {
       })
     );
 
-    Promise.all(readers).then((urls) => {
+    Promise.all(readers).then(async (urls: string[]) => {
       const validUrls = urls.filter((u) => u);
       if (validUrls.length > 0) {
-        addLayers(validUrls.map(url => ({
+        // Local-First: Cache assets in IndexedDB
+        const cachedUrls = await Promise.all(validUrls.map(url => storageService.cacheAsset(url)));
+
+        addLayers(cachedUrls.map((url: string, idx: number) => ({
           id: uuidv4(),
           type: 'image',
-          name: 'Image',
+          name: `Image ${idx + 1}`,
           src: url,
           x: canvasSize.width / 2 - 100,
           y: canvasSize.height / 2 - 100,
@@ -89,12 +103,17 @@ export const useFileHandler = () => {
     );
   };
 
-  const handleConfirmExport = async (format: any, quality: any, size: any, transparentBg: any, customFilename: any, onComplete?: () => void, overrideLayers?: any[]) => {
+  const handleConfirmExport = async (options: ExportOptions) => {
+    const { 
+      format, quality, size, transparentBg, customFilename, 
+      onComplete, overrideLayers, printOptions 
+    } = options;
+
     setIsExporting(true);
     try {
       const exportWidth = size?.width || canvasSize.width;
       const exportHeight = size?.height || canvasSize.height;
-      const fileName = customFilename ? `${customFilename}.${format}` : `design-${Date.now()}.${format}`;
+      const fileName = customFilename ? customFilename : `design-${Date.now()}`;
       const scaleX = exportWidth / canvasSize.width;
       const scaleY = exportHeight / canvasSize.height;
       
@@ -104,29 +123,43 @@ export const useFileHandler = () => {
         x: l.x * scaleX,
         y: l.y * scaleY,
         width: l.width * scaleX,
-        height: (l as any).height ? (l as any).height * scaleY : l.width * scaleX,
+        height: (l as any).height ? (l as any).height * scaleY : (l.type === 'text' ? (l as any).fontSize * 1.2 : l.width * scaleX),
         ...(l.type === 'text' ? { fontSize: (l as any).fontSize * scaleY } : {}),
       })) as any[];
 
       const bgColor = transparentBg && format === 'png' ? 'transparent' : canvasBackgroundColor;
-      let downloadUrl = '';
 
       if (format === 'psd') {
-        const psdBlob = await psdService.exportLayersToPsd(exportWidth, exportHeight, scaledLayers);
-        downloadUrl = URL.createObjectURL(psdBlob);
+        await exportService.exportToLayeredPSD(exportWidth, exportHeight, scaledLayers, fileName);
+      } else if (format === 'pdf' && printOptions) {
+        // High-end Print Export
+        const imgDataUrl = await exportService.exportDesignToImage(
+          exportWidth, exportHeight, bgColor, activeImage?.url || uploadedImage || null, scaledLayers, canvasFilters, 'png', 1
+        );
+        await exportService.exportToPrintPDF(exportWidth, exportHeight, imgDataUrl, fileName, printOptions);
       } else if (format === 'svg') {
         const svgString = await exportService.exportToSVG(exportWidth, exportHeight, bgColor, scaledLayers);
-        downloadUrl = URL.createObjectURL(new Blob([svgString], { type: 'image/svg+xml' }));
+        const blob = new Blob([svgString], { type: 'image/svg+xml' });
+        exportService.downloadBlob(blob, `${fileName}.svg`);
       } else {
-        downloadUrl = await exportService.exportDesignToImage(
-          exportWidth, exportHeight, bgColor, activeImage?.url || uploadedImage || null, scaledLayers, canvasFilters, format, quality
+        const imgFormat = format === 'pdf' ? 'png' : format;
+        const downloadUrl = await exportService.exportDesignToImage(
+          exportWidth, exportHeight, bgColor, activeImage?.url || uploadedImage || null, scaledLayers, canvasFilters, imgFormat, quality
         );
+
+        if (format === 'pdf') {
+          // Legacy/Fallback PDF
+          await exportService.exportToPrintPDF(exportWidth, exportHeight, downloadUrl, fileName, { 
+             colorProfile: 'sRGB', bleed: 0, cropMarks: false 
+          });
+        } else {
+          const link = document.createElement('a');
+          link.href = downloadUrl;
+          link.download = `${fileName}.${format}`;
+          link.click();
+        }
       }
 
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = fileName;
-      link.click();
       if (onComplete) {onComplete();}
       haptics.success();
     } catch (error) {
@@ -136,6 +169,7 @@ export const useFileHandler = () => {
       setIsExporting(false);
     }
   };
+
 
   return {
     handleFileUploads,

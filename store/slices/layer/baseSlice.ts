@@ -78,7 +78,7 @@ export const initialLayerState = {
   layerCache: null,
 };
 
-export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (set, get) => ({
+export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (set, _get) => ({
   ...initialLayerState,
 
   setArtboards: (artboards) => {
@@ -111,7 +111,7 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
       if (!artboard) {
         return {};
       }
-      const layers = typeof input === 'function' ? input(artboard.layers) : input;
+      const layers = typeof updates === 'function' ? (updates as any)(artboard.layers) : updates;
       return {
         artboards: state.artboards.map((a: Artboard) => (a.id === state.activeArtboardId ? { ...a, layers } : a)),
       };

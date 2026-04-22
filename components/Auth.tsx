@@ -14,6 +14,8 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,8 +23,18 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     setError(null);
 
     try {
+      if (isForgotPassword) {
+        const { error: resetError } = await authService.resetPassword(email);
+        if (resetError) {
+          setError(resetError);
+        } else {
+          setResetEmailSent(true);
+        }
+        setLoading(false);
+        return;
+      }
+
       let result;
-      
       if (isSignUp) {
         result = await authService.signUp(email, password, name || email.split('@')[0]);
       } else {
@@ -144,109 +156,158 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
           <div className="mb-10">
             <h3 className="text-3xl font-black text-white tracking-tighter mb-2">
-              {isSignUp ? 'Create your account' : 'Welcome back'}
+              {isForgotPassword ? 'Reset Password' : isSignUp ? 'Create your account' : 'Welcome back'}
             </h3>
-            <p className="text-gray-500 font-medium">
-              {isSignUp ? 'Start your 14-day free trial of Pro.' : 'Enter your details to access your workspace.'}
+            <p className="text-gray-500 font-medium leading-relaxed">
+              {resetEmailSent 
+                ? 'Check your inbox for a recovery link.' 
+                : isForgotPassword 
+                  ? 'Enter your email to receive a password reset link.'
+                  : isSignUp 
+                    ? 'Start your 14-day free trial of Pro.' 
+                    : 'Enter your details to access your workspace.'}
             </p>
           </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3 text-red-400 text-sm animate-shake">
-              {error}
-            </div>
-          )}
+        {resetEmailSent ? (
+          <button
+            onClick={() => { setIsForgotPassword(false); setResetEmailSent(false); }}
+            className="w-full py-4 bg-white/5 border border-white/10 text-white rounded-xl font-bold hover:bg-white/10 transition-all"
+          >
+            Back to Sign In
+          </button>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-xs font-bold animate-shake flex items-center gap-3">
+                <Icons.AlertTriangle className="w-4 h-4 shrink-0" />
+                {error}
+              </div>
+            )}
 
-          {isSignUp && (
+            {isSignUp && (
+              <div>
+                <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 ml-1 tracking-[0.2em]">Full Name</label>
+                <div className="relative group">
+                  <Icons.Bot className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-[#00c4cc] transition-colors" />
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full bg-[#13161a] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-[#00c4cc] focus:ring-4 focus:ring-[#00c4cc]/5 transition-all font-medium"
+                    placeholder="John Doe"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1.5 ml-1 tracking-wider">Full Name</label>
+              <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 ml-1 tracking-[0.2em]">Email Address</label>
               <div className="relative group">
-                <Icons.Bot className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#00c4cc] transition-colors" />
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 text-xs font-black group-focus-within:text-[#00c4cc] transition-colors">@</span>
                 <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-[#13161a] border border-gray-700/50 rounded-lg py-2 pl-10 pr-4 text-white text-sm focus:outline-none focus:border-[#00c4cc] focus:ring-1 focus:ring-[#00c4cc]/20 transition-all"
-                  placeholder="John Doe"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-[#13161a] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-[#00c4cc] focus:ring-4 focus:ring-[#00c4cc]/5 transition-all font-medium"
+                  placeholder="you@example.com"
                   required
                 />
               </div>
             </div>
-          )}
 
-          <div>
-            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1.5 ml-1 tracking-wider">Email Address</label>
-            <div className="relative group">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs group-focus-within:text-[#00c4cc] transition-colors">@</span>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#13161a] border border-gray-700/50 rounded-lg py-2 pl-10 pr-4 text-white text-sm focus:outline-none focus:border-[#00c4cc] focus:ring-1 focus:ring-[#00c4cc]/20 transition-all"
-                placeholder="you@example.com"
-                required
-              />
+            {!isForgotPassword && (
+              <div>
+                <div className="flex justify-between items-center mb-2 ml-1">
+                   <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Password</label>
+                   {!isSignUp && (
+                     <button 
+                      type="button" 
+                      onClick={() => setIsForgotPassword(true)}
+                      className="text-[9px] font-black text-[#7d2ae8] hover:text-[#00c4cc] uppercase tracking-widest transition-colors"
+                     >
+                       Forgot?
+                     </button>
+                   )}
+                </div>
+                <div className="relative group">
+                  <Icons.Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-[#7d2ae8] transition-colors" />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-[#13161a] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-[#7d2ae8] focus:ring-4 focus:ring-[#7d2ae8]/5 transition-all font-medium"
+                    placeholder="••••••••"
+                    required
+                    minLength={8}
+                  />
+                </div>
+                {isSignUp && (
+                  <p className="mt-2 text-[9px] text-gray-600 font-medium ml-1 uppercase tracking-wider">Must be at least 8 characters</p>
+                )}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-white text-black hover:bg-[#00c4cc] hover:text-white font-black uppercase tracking-[0.2em] py-4 rounded-xl shadow-2xl transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-6"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+              ) : (
+                <>
+                  {isForgotPassword ? 'Send Reset Link' : isSignUp ? 'Create My Account' : 'Sign into Workspace'}
+                  <Icons.ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+        )}
+
+        {!isForgotPassword && (
+          <>
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-white/5"></div>
+              </div>
+              <div className="relative flex justify-center text-[9px] uppercase font-black tracking-[0.3em] leading-none">
+                <span className="bg-[#0a0a0a] px-4 text-gray-600">Secure Gateway</span>
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1.5 ml-1 tracking-wider">Password</label>
-            <div className="relative group">
-              <Icons.Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#7d2ae8] transition-colors" />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#13161a] border border-gray-700/50 rounded-lg py-2 pl-10 pr-4 text-white text-sm focus:outline-none focus:border-[#7d2ae8] focus:ring-1 focus:ring-[#7d2ae8]/20 transition-all"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-          </div>
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="w-full bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl py-4 px-6 text-white text-xs font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-4 disabled:opacity-50 group"
+            >
+              <svg className="w-5 h-5 transition-transform group-hover:scale-110" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Continue with Google
+            </button>
+          </>
+        )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] hover:brightness-110 text-white font-bold py-2.5 sm:py-3 rounded-lg shadow-lg shadow-purple-900/20 transition-all transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
-          >
-            {loading && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-            {isSignUp ? 'Create Account' : 'Sign In'}
-          </button>
-        </form>
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-800"></div>
-          </div>
-          <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-widest leading-none">
-            <span className="bg-[#1e1e1e] px-3 text-gray-600">Or continue with</span>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleGoogleSignIn}
-          disabled={loading}
-          className="w-full bg-[#13161a] hover:bg-[#1a1d21] border border-gray-800 rounded-lg py-2.5 sm:py-3 px-4 text-white text-sm font-medium transition-all flex items-center justify-center gap-3 disabled:opacity-50 group"
-        >
-          <svg className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:scale-110" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-            <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-          </svg>
-          Google
-        </button>
-
-            <div className="mt-10 text-center">
-              <p className="text-sm text-gray-500 font-medium">
-                {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+            <div className="mt-12 text-center">
+              <p className="text-xs text-gray-600 font-bold uppercase tracking-widest">
+                {isForgotPassword 
+                  ? 'Remember your password?' 
+                  : isSignUp ? 'Already a creator?' : "New to Kreathief?"}
                 <button
-                  onClick={() => setIsSignUp(!isSignUp)}
-                  className="ml-2 text-white hover:text-[#00c4cc] font-black transition-all underline underline-offset-4 decoration-white/20 hover:decoration-[#00c4cc]/20"
+                  onClick={() => {
+                    if (isForgotPassword) setIsForgotPassword(false);
+                    else setIsSignUp(!isSignUp);
+                    setError(null);
+                  }}
+                  className="ml-3 text-white hover:text-[#00c4cc] font-black transition-all underline underline-offset-4 decoration-white/10 hover:decoration-[#00c4cc]/40"
                 >
-                  {isSignUp ? 'Log In' : 'Sign Up'}
+                  {isForgotPassword ? 'Sign In' : isSignUp ? 'Log In' : 'Sign Up'}
                 </button>
               </p>
             </div>

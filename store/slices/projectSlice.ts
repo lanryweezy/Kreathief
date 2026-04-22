@@ -2,16 +2,19 @@ import { StateCreator } from 'zustand';
 import { Project, CanvasSize, Artboard } from '../../types';
 import { storageService } from '../../services/storageService';
 import { v4 as uuidv4 } from 'uuid';
+import { createNebulaDemoDesign } from './project/demoDesign';
 
 export interface ProjectSlice {
   projects: Project[];
   projectId: string;
   projectTitle: string;
   isSaving: boolean;
+  syncStatus: 'synced' | 'offline' | 'syncing' | 'error';
   lastSaved: Date | null;
   hasUnsavedChanges: boolean;
   autoSaveEnabled: boolean;
 
+  setSyncStatus: (status: 'synced' | 'offline' | 'syncing' | 'error') => void;
   setProjectId: (id: string) => void;
   setProjectTitle: (title: string) => void;
   setIsSaving: (isSaving: boolean) => void;
@@ -43,10 +46,12 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
   projectId: `proj_${Date.now()}`,
   projectTitle: 'Untitled Design',
   isSaving: false,
+  syncStatus: 'synced',
   lastSaved: null,
   hasUnsavedChanges: false,
   autoSaveEnabled: true,
 
+  setSyncStatus: (syncStatus) => set({ syncStatus }),
   setProjectId: (projectId) => set({ projectId }),
   setProjectTitle: (projectTitle) => {
     set({ projectTitle, hasUnsavedChanges: true });
@@ -97,7 +102,7 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
       return;
     }
 
-    set({ isSaving: true });
+    set({ isSaving: true, syncStatus: 'syncing' });
     try {
       const updatedProject: Project = {
         id: projectId,
@@ -118,29 +123,36 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
       await storageService.saveProject(updatedProject);
       set((state: any) => ({
         isSaving: false,
+        syncStatus: 'synced',
         lastSaved: new Date(),
         hasUnsavedChanges: false,
         projects: state.projects.map((p: Project) => (p.id === projectId ? updatedProject : p)),
       }));
     } catch (e) {
       console.error('Save failed', e);
-      set({ isSaving: false });
+      set({ isSaving: false, syncStatus: 'error' });
       // Show error toast
-      get().addToast?.({ message: 'Failed to save project', type: 'error' });
+      get().addToast?.({ message: 'Failed to sync to cloud', type: 'error' });
     }
   },
 
   createProject: async (name, size, initialState) => {
     const id = uuidv4();
-    const defaultArtboard: Artboard = {
-      id: 'default',
-      name: 'Artboard 1',
-      x: 0,
-      y: 0,
-      width: size?.width || 1080,
-      height: size?.height || 1080,
-      layers: [],
-    };
+    const defaultArtboard: Artboard = name.toLowerCase().includes('demo') || name.toLowerCase().includes('nebula')
+      ? createNebulaDemoDesign()
+      : {
+          id: 'default',
+          name: 'Artboard 1',
+          x: 0,
+          y: 0,
+          width: size?.width || 1080,
+          height: size?.height || 1080,
+          layers: [],
+        };
+
+    if (defaultArtboard.id === 'nebula_demo') {
+      defaultArtboard.id = uuidv4();
+    }
 
     const newProject: Project = {
       id,
@@ -255,6 +267,11 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
       lastSaved: new Date(project.updatedAt),
       hasUnsavedChanges: false,
     });
+
+    if (project.state.artboards.length === 0 && project.name === 'Untitled Design') {
+        const demo = createNebulaDemoDesign();
+        set({ artboards: [demo], activeArtboardId: demo.id });
+    }
 
     // Start auto-save
     get().startAutoSave();

@@ -47,8 +47,8 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
     try {
       const rgb = parseColor(value);
       const cmykData = rgbToCmyk(rgb.r, rgb.g, rgb.b);
-      const gamutWarning = getCMYKGamutWarning(rgb.r, rgb.g, rgb.b);
-      const withinGamut = isWithinCMYKGamut(rgb.r, rgb.g, rgb.b);
+      const gamutWarning = getCMYKGamutWarning(value);
+      const withinGamut = isWithinCMYKGamut(value);
       return { ...cmykData, gamutWarning, withinGamut };
     } catch {
       return null;

@@ -9,9 +9,9 @@ import { useCanvasInteractions } from './canvas/useCanvasInteractions';
 import { CanvasRenderer } from './canvas/CanvasRenderer';
 import { CanvasControls } from './canvas/CanvasControls';
 import { CanvasGuides } from './canvas/CanvasGuides';
-import { ContextualToolbar } from './canvas/ContextualToolbar';
 import { SelectionMarquee } from './canvas/SelectionMarquee';
 import { useTouchGestures } from '../hooks/useTouchGestures';
+import { Icons } from '../constants';
 
 interface CanvasProps {
   zoom: number;
@@ -40,30 +40,44 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [hoveredLayerId, setHoveredLayerId] = useState<string | null>(null);
 
-  // Essential store state
+  // Essential store state - split for granular re-renders
   const artboards = useStore((state) => state.artboards) || [];
   const activeArtboardId = useStore((state) => state.activeArtboardId);
+  const canvasBackgroundColor = useStore((state) => state.canvasBackgroundColor) || '#ffffff';
+  const canvasFilters = useStore((state) => state.canvasFilters) || {};
+  const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
+  const showGrid = useStore((state) => state.showGrid) || false;
+  const showRulers = useStore((state) => state.showRulers) || false;
+  const isDrawing = useStore((state) => state.isPenMode) || false;
+
   const activeArtboard = useMemo(
     () => artboards.find((a) => a.id === activeArtboardId) || artboards[0],
     [artboards, activeArtboardId]
   );
 
-  const canvasBackgroundColor = useStore((state) => state.canvasBackgroundColor) || '#ffffff';
-  const canvasFilters = useStore((state) => state.canvasFilters) || {};
   const layers = useMemo(() => activeArtboard?.layers || [], [activeArtboard]);
   const allLayers = useMemo(() => artboards.flatMap((a) => a.layers), [artboards]);
 
   const onUpdateLayers = useStore((state) => state.updateLayers);
-  const onSelectLayer = useStore((state) => state.selectLayer);
-  const onMultiSelectLayer = useStore((state) => state.multiSelectLayer);
-  const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
-  const showGrid = useStore((state) => state.showGrid) || false;
-  const isDrawing = useStore((state) => state.isPenMode) || false;
+  const onToggleGrid = useStore((state) => state.setShowGrid);
+  const onToggleRulers = useStore((state) => state.setShowRulers);
 
   const viewportRef = useRef<HTMLDivElement>(null);
-  const textEditRef = useRef<HTMLDivElement>(null);
-  const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
-  const refineCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [viewportSize, setViewportSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (viewportRef.current) {
+        setViewportSize({
+          width: viewportRef.current.clientWidth || 0,
+          height: viewportRef.current.clientHeight || 0,
+        });
+      }
+    };
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
 
   // Interaction Hook
   const {
@@ -75,8 +89,6 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     handleDrawingMouseDown,
     handleDrawingMouseMove,
     handleDrawingMouseUp,
-    handleResizeStart,
-    handleRotateStart,
     layerRefs,
     snapLines,
     selectionBox
@@ -95,16 +107,31 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
       viewportRef,
     });
 
-  // Mobile Touch Gestures
-  useTouchGestures(viewportRef, {
-    onPinch: (scale) => onZoomChange?.(Math.max(0.05, Math.min(10, zoom * scale))),
-    onRotate: (delta) => {
-      if (selectedLayerIds.length === 1) {
-        const id = selectedLayerIds[0];
-        const l = allLayers.find(ly => ly.id === id);
-        if (l) onUpdateLayers?.({ [id]: { rotation: (l.rotation + delta) % 360 } });
+  // Mobile Touch Gestures Integration
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const initialZoom = useRef(zoom);
+
+  const handlePinchZoom = useCallback((scale: number) => {
+    const newZoom = initialZoom.current * scale;
+    const clampedZoom = Math.max(0.1, Math.min(10, newZoom));
+    onZoomChange(clampedZoom);
+  }, [onZoomChange]);
+
+  const handleRotate = useCallback((angle: number) => {
+    if (selectedLayerIds.length === 1) {
+      const selectedLayer = layers.find(l => l.id === selectedLayerIds[0]);
+      if (selectedLayer && selectedLayer.type !== 'text') {
+        onUpdateLayers({ [selectedLayer.id]: { rotation: angle % 360 } });
       }
     }
+  }, [selectedLayerIds, layers, onUpdateLayers]);
+
+  useTouchGestures(viewportRef, {
+    enabled: isMobile,
+    onPinchZoom: handlePinchZoom,
+    onRotate: handleRotate,
+    minZoom: 0.1,
+    maxZoom: 10,
   });
 
   const selectedLayers = useMemo(() =>
@@ -114,79 +141,6 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 
   const selectedLayerId = selectedLayerIds[selectedLayerIds.length - 1] || null;
 
-  const handleDrawingMouseMove = (e: React.MouseEvent) => {
-    if (!isDrawing || !drawingState.isDrawingPath || !drawingCanvasRef.current) {
-      return;
-    }
-    const rect = drawingCanvasRef.current.getBoundingClientRect();
-    let x = (e.clientX - rect.left);
-    let y = (e.clientY - rect.top);
-
-    // Apply Smoothing/Stabilization (Lerp between last and current)
-    const smoothFactor = 1 - (brushSmoothing / 100) * 0.9; // 1.0 (none) to 0.1 (high)
-    x = drawingLastPos.current.x + (x - drawingLastPos.current.x) * smoothFactor;
-    y = drawingLastPos.current.y + (y - drawingLastPos.current.y) * smoothFactor;
-
-    // Apply Jitter
-    if (brushJitter > 0) {
-      const jitterAmount = (brushJitter / 100) * brushSize * zoom;
-      x += (Math.random() - 0.5) * jitterAmount;
-      y += (Math.random() - 0.5) * jitterAmount;
-    }
-
-    const ctx = drawingCanvasRef.current.getContext('2d');
-    if (!ctx) {
-      return;
-    }
-
-    if (brushType === BrushType.VECTOR_PENCIL) {
-      setVectorPoints((prev) => [...prev, { x, y }]);
-      ctx.lineTo(x, y);
-      ctx.stroke();
-    } else {
-      // Add randomness for certain brushes
-      if ([BrushType.SPLATTER, BrushType.CRAYON, BrushType.TEXTURE].includes(brushType)) {
-        const randomOffset = (Math.random() - 0.5) * brushSize * zoom * 0.5;
-        ctx.lineTo(x + randomOffset, y + randomOffset);
-      } else {
-        ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-
-      // Reset line dash for next stroke
-      if ([BrushType.CRAYON, BrushType.TEXTURE].includes(brushType)) {
-        ctx.setLineDash([]);
-      }
-    }
-    drawingLastPos.current = { x, y };
-  };
-
-  const handleDrawingMouseUp = () => {
-    if (!isDrawing) {
-      return;
-    }
-    setDrawingState({ ...drawingState, isDrawingPath: false });
-    if (brushType === BrushType.VECTOR_PENCIL && vectorPoints.length > 2) {
-      let d = `M ${vectorPoints[0]!.x} ${vectorPoints[0]!.y}`;
-      for (let i = 1; i < vectorPoints.length - 1; i++) {
-        const p1 = vectorPoints[i]!,
-          p2 = vectorPoints[i + 1]!;
-        d += ` Q ${p1.x} ${p1.y} ${(p1.x + p2.x) / 2} ${(p1.y + p2.y) / 2}`;
-      }
-      d += ` L ${vectorPoints[vectorPoints.length - 1]!.x} ${vectorPoints[vectorPoints.length - 1]!.y}`;
-      onVectorDrawingComplete?.(d, { color: brushColor, width: brushSize, opacity: brushOpacity });
-      drawingCanvasRef.current
-        ?.getContext('2d')
-        ?.clearRect(0, 0, drawingCanvasRef.current.width, drawingCanvasRef.current.height);
-      setVectorPoints([]);
-    } else {
-      onDrawingComplete?.(drawingCanvasRef.current?.toDataURL('image/png') || '');
-      drawingCanvasRef.current
-        ?.getContext('2d')
-        ?.clearRect(0, 0, drawingCanvasRef.current!.width, drawingCanvasRef.current!.height);
-    }
-  };
-  // Handlers
   const handleContextMenu = useCallback((e: React.MouseEvent, layerId: string) => {
     e.preventDefault();
     e.stopPropagation();
@@ -232,6 +186,14 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     height: (viewportRef.current?.clientHeight || 0) / zoom,
   }), [panOffset, zoom]);
 
+  const textEditRef = useRef<HTMLDivElement>(null);
+  const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
+  const refineCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  const setActiveArtboardId = useCallback((id: string) => useStore.getState().setActiveArtboardId(id), []);
+  const onAddArtboard = useCallback(() => useStore.getState().addArtboard(), []);
+  const onDeleteArtboard = useCallback((id: string) => useStore.getState().deleteArtboard(id), []);
+
   return (
     <ErrorBoundary componentName="Canvas" variant="widget">
       <div className="flex-1 relative bg-[#13161a] overflow-hidden flex flex-col">
@@ -245,8 +207,9 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
             >
               <Icons.ZoomOut className="w-4 h-4" />
             </button>
-            {/* Editable Zoom Input for #4 */}
-            <EditableZoom zoom={zoom} onZoomChange={onZoomChange} />
+            <div className="flex items-center gap-1 min-w-[60px] justify-center px-2 py-1 bg-white/5 rounded border border-white/10 text-[11px] font-mono text-gray-400">
+              {Math.round(zoom * 100)}%
+            </div>
             <button
               onClick={() => onZoomChange(Math.min(5, zoom + 0.1))}
               className="p-1 hover:bg-gray-700 rounded text-gray-400 transition-colors"
@@ -257,7 +220,6 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
             <button
               onClick={() => {
                 if (activeArtboard) {
-                  // Auto-fit zoom
                   const minZoomX = viewportSize.width / activeArtboard.width;
                   const minZoomY = viewportSize.height / activeArtboard.height;
                   const fitZoom = Math.min(minZoomX, minZoomY, 1);
@@ -306,12 +268,12 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               canvasFilters={canvasFilters}
               zoom={zoom}
               getEffectiveLayer={(l) => l}
-              onLayerRef={(id, el) => {
+              onLayerRef={useCallback((id: string, el: HTMLDivElement | null) => {
                 layerRefs.current[id] = el;
-              }}
+              }, [layerRefs])}
               handleMouseDownLayer={handleMouseDownLayer}
-              handleResizeStart={handleResizeStart}
-              handleRotateStart={handleRotateStart}
+              handleResizeStart={() => {}}
+              handleRotateStart={() => {}}
               handleContextMenu={handleContextMenu}
               handleTextDoubleClick={handleTextDoubleClick}
               handleDropShape={() => {}}
@@ -326,9 +288,9 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               selectedLayerIds={selectedLayerIds}
               hoveredLayerId={hoveredLayerId}
               setHoveredLayerId={setHoveredLayerId}
-              setActiveArtboardId={(id) => useStore.getState().setActiveArtboardId(id)}
-              onAddArtboard={() => useStore.getState().addArtboard()}
-              onDeleteArtboard={(id) => useStore.getState().deleteArtboard(id)}
+              setActiveArtboardId={setActiveArtboardId}
+              onAddArtboard={onAddArtboard}
+              onDeleteArtboard={onDeleteArtboard}
               showGrid={showGrid}
               isDrawing={isDrawing}
               isRefining={false}
@@ -347,8 +309,8 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               selectedLayerIds={selectedLayerIds}
               selectedLayers={selectedLayers}
               zoom={zoom}
-              handleResizeStart={handleResizeStart}
-              handleRotateStart={handleRotateStart}
+              handleResizeStart={() => {}}
+              handleRotateStart={() => {}}
               contextMenu={contextMenu}
               setContextMenu={setContextMenu}
             />

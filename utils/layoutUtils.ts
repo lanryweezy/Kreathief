@@ -235,28 +235,29 @@ export const resolveConstraints = (
   layer: Partial<Layer>,
   canvasSize: { width: number; height: number }
 ): { x: number; y: number; width?: number; height?: number } => {
-  let { x = 0, y = 0, width = 100, constraints = [] } = layer;
+  let { x = 0, y = 0, width = 100, constraints = { horizontal: 'start', vertical: 'start' } } = layer;
   const height = (layer as any).height || 100;
   
   const resolved = { x, y };
 
-  if (constraints.includes('fill')) {
+  if (constraints.horizontal === 'scale' && constraints.vertical === 'scale') {
     return { x: 0, y: 0, width: canvasSize.width, height: canvasSize.height };
   }
 
-  if (constraints.includes('center-h')) {
+  if (constraints.horizontal === 'center') {
     resolved.x = (canvasSize.width - width) / 2;
-  } else if (constraints.includes('pin-left')) {
-    resolved.x = 20; // 20px margin
-  } else if (constraints.includes('pin-right')) {
+  } else if (constraints.horizontal === 'start') {
+    // default, usually handled by absolute positioning but we can pin it
+    resolved.x = 20; 
+  } else if (constraints.horizontal === 'end') {
     resolved.x = canvasSize.width - width - 20;
   }
 
-  if (constraints.includes('center-v')) {
+  if (constraints.vertical === 'center') {
     resolved.y = (canvasSize.height - height) / 2;
-  } else if (constraints.includes('pin-top')) {
+  } else if (constraints.vertical === 'start') {
     resolved.y = 20;
-  } else if (constraints.includes('pin-bottom')) {
+  } else if (constraints.vertical === 'end') {
     resolved.y = canvasSize.height - height - 20;
   }
 

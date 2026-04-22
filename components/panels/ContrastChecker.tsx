@@ -28,6 +28,7 @@ export const ContrastChecker: React.FC<ContrastCheckerProps> = ({
   const getRatingIcon = () => {
     if (wcagResult.AAA) {return '✓✓✓';}
     if (wcagResult.AA) {return '✓✓';}
+    if (wcagResult.largeAA) {return '✓';}
     return '✗';
   };
 

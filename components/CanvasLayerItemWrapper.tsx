@@ -6,24 +6,29 @@
 import React from 'react';
 import { Layer, TextLayer, ShapeLayer, ImageLayer, AnimationSettings } from '../types';
 import { ImageLayerItem, ShapeLayerItem, TextLayerItem, AdjustmentLayerItem } from './canvas/LayerItems';
-import { useLayerMask } from '../hooks/useLayerWorker';
+import { useLayerMask, useProcessedImage } from '../hooks/useLayerWorker';
 import { Icons } from '../constants';
 
 // Resilience: Layer-level Error Boundary to isolate rendering failures
-class LayerErrorBoundary extends React.Component<{ children: React.ReactNode; layerId: string }, { hasError: boolean }> {
+class LayerErrorBoundary extends React.Component<{ layerId: string; children: React.ReactNode }, { hasError: boolean }> {
   constructor(props: any) {
     super(props);
     this.state = { hasError: false };
   }
-  static getDerivedStateFromError() { return { hasError: true }; }
-  componentDidCatch(error: any, errorInfo: any) {
-    console.error(`[Resilience] Layer ${this.props.layerId} failed:`, error, errorInfo);
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
   }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error(`[LayerError] ID: ${this.props.layerId}`, error, errorInfo);
+  }
+
   render() {
     if (this.state.hasError) {
       return (
-        <div className="absolute flex items-center justify-center border border-red-500/50 bg-red-500/10 rounded overflow-hidden" style={{ left: 0, top: 0, width: 50, height: 50 }}>
-          <Icons.AlertTriangle className="w-4 h-4 text-red-500 opacity-50" />
+        <div className="absolute inset-0 flex items-center justify-center bg-red-500/10 border border-red-500/20 rounded">
+          <Icons.Help className="w-4 h-4 text-red-500" />
         </div>
       );
     }
@@ -34,6 +39,7 @@ class LayerErrorBoundary extends React.Component<{ children: React.ReactNode; la
 interface CanvasLayerItemWrapperProps {
   layer: Layer;
   allLayers: Layer[];
+  maskLayerOverride?: Layer; // Support for sibling-based masking (Advanced)
   selectedLayerId: string | null;
   selectedLayerIds: string[];
   hoveredLayerId: string | null;
@@ -56,199 +62,127 @@ interface CanvasLayerItemWrapperProps {
 }
 
 export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = React.memo(
-  ({
-    layer: l,
-    allLayers,
-    selectedLayerId,
-    selectedLayerIds,
-    hoveredLayerId,
-    setLayerRef,
-    handleMouseDownLayer,
-    handleResizeStart,
-    handleRotateStart,
-    handleContextMenu,
-    handleTextDoubleClick,
-    onDoubleClickLayer,
-    editingTextId,
-    textEditRef,
-    finishEditingText,
-    onUpdatePath,
-    zoom,
-    previewAnimation,
-  }) => {
-    const maskLayer = (l.maskLayerId ? allLayers.find((ml) => ml.id === l.maskLayerId) : null) || null;
-    const { maskPath } = useLayerMask(maskLayer);
-    const isSelected = selectedLayerId === l.id || selectedLayerIds.includes(l.id);
+  (props) => {
+    const l = props.layer;
+    const {
+      allLayers,
+      maskLayerOverride,
+      selectedLayerId,
+      selectedLayerIds,
+      hoveredLayerId,
+      setLayerRef,
+      handleMouseDownLayer,
+      handleResizeStart,
+      handleRotateStart,
+      handleContextMenu,
+      handleTextDoubleClick,
+      handleDropShape,
+      onDoubleClickLayer,
+      editingTextId,
+      textEditRef,
+      finishEditingText,
+      editingPathId,
+      onUpdatePath,
+      zoom,
+      previewAnimation,
+    } = props;
 
-    if (l.type === 'image') {
-      return (
-        <LayerErrorBoundary layerId={l.id}>
-          <ImageLayerItem
-            ref={(el) => setLayerRef(l.id, el)}
-            layer={l as ImageLayer}
-            isSelected={isSelected}
-            isHovered={hoveredLayerId === l.id}
-            onMouseDown={handleMouseDownLayer}
-            onResize={handleResizeStart}
-            onRotate={handleRotateStart}
-            onContextMenu={handleContextMenu}
-            previewAnimation={previewAnimation}
-            maskPath={maskPath}
-          />
-        </LayerErrorBoundary>
-      );
-    }
+    // Advanced Masking: Use explicit mask property OR sibling mask from props
+    const effectiveMaskLayer = maskLayerOverride || 
+      (l.maskLayerId && allLayers ? allLayers.find((ml) => ml.id === l.maskLayerId) : null) || 
+      null;
 
-    if (l.type === 'text') {
-      return (
-        <LayerErrorBoundary layerId={l.id} key={l.id}>
-          <React.Fragment>
-            {editingTextId === l.id ? (
-              <div
-                ref={textEditRef}
-                contentEditable
-                suppressContentEditableWarning
-                onBlur={finishEditingText}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    textEditRef.current?.blur();
-                  }
-                }}
-                className="absolute bg-transparent border-2 border-[#7d2ae8] outline-none z-[100] cursor-text min-w-[50px] text-layer-item"
-                data-layer-type="text"
-                data-is-editing="true"
-                data-initial-text={(l as TextLayer).text}
-                style={{
-                  left: l.x,
-                  top: l.y,
-                  width: l.width,
-                  fontSize: (l as TextLayer).fontSize,
-                  fontFamily: (l as TextLayer).fontFamily,
-                  fontWeight: (l as TextLayer).fontWeight,
-                  textAlign: (l as TextLayer).textAlign,
-                  color: (l as TextLayer).color,
-                  transform: `rotate(${l.rotation}deg)`,
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
-                  clipPath: maskPath,
-                }}
-              >
-                {(l as TextLayer).text}
+    const { maskPath } = useLayerMask(effectiveMaskLayer);
+    const { processedUrl, isProcessing: isFiltering } = useProcessedImage(l.type === 'image' ? (l as ImageLayer) : null);
+    
+    const isSelected = selectedLayerId === l.id || (selectedLayerIds || []).includes(l.id);
+
+    // Dynamic Masking Style
+    const maskStyle: React.CSSProperties = maskPath ? {
+      clipPath: maskPath,
+      WebkitClipPath: maskPath
+    } : {};
+
+    const commonProps = {
+      isSelected,
+      isHovered: hoveredLayerId === l.id,
+      onMouseDown: handleMouseDownLayer,
+      onResize: handleResizeStart,
+      onRotate: handleRotateStart,
+      onContextMenu: handleContextMenu,
+      previewAnimation: previewAnimation,
+      maskPath: maskPath, // Backward compatibility
+      zoom: zoom,
+    };
+
+    const handleDoubleClick = (_e: React.MouseEvent, layer: any) => {
+      if (onDoubleClickLayer) onDoubleClickLayer(layer);
+    };
+
+    const renderItem = () => {
+      if (l.type === 'image') {
+        return (
+          <div className="relative h-full w-full" style={maskStyle}>
+            {isFiltering && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/10 backdrop-blur-[1px] rounded-lg animate-pulse pointer-events-none">
+                <Icons.Magic className="w-5 h-5 text-white/40 animate-spin" />
               </div>
-            ) : (
-              <TextLayerItem
-                ref={(el) => setLayerRef(l.id, el)}
-                layer={l as TextLayer}
-                isSelected={isSelected}
-                isHovered={hoveredLayerId === l.id}
-                onMouseDown={handleMouseDownLayer}
-                onResize={handleResizeStart}
-                onRotate={handleRotateStart}
-                onContextMenu={handleContextMenu}
-                onDoubleClick={handleTextDoubleClick}
-                previewAnimation={previewAnimation}
-                maskPath={maskPath}
-              />
             )}
-          </React.Fragment>
-        </LayerErrorBoundary>
-      );
-    }
+            <ImageLayerItem
+              ref={(el) => setLayerRef(l.id, el)}
+              layer={l as ImageLayer}
+              {...commonProps}
+              optimizedSrc={processedUrl}
+            />
+          </div>
+        );
+      }
 
-    if (l.type === 'adjustment') {
-      return (
-        <LayerErrorBoundary layerId={l.id}>
+      if (l.type === 'text') {
+        return (
+          <div style={maskStyle}>
+            <TextLayerItem
+              ref={(el) => setLayerRef(l.id, el)}
+              layer={l as TextLayer}
+              {...commonProps}
+              onDoubleClick={handleTextDoubleClick as any}
+              isEditing={editingTextId === l.id}
+              textEditRef={textEditRef}
+              onFinishEditing={finishEditingText}
+            />
+          </div>
+        );
+      }
+
+      if (l.type === 'adjustment') {
+        return (
           <AdjustmentLayerItem
             ref={(el) => setLayerRef(l.id, el)}
-            layer={l}
-            isSelected={isSelected}
-            isHovered={hoveredLayerId === l.id}
-            onMouseDown={handleMouseDownLayer}
-            onResize={handleResizeStart}
-            onRotate={handleRotateStart}
-            onContextMenu={handleContextMenu}
-            previewAnimation={previewAnimation}
+            layer={l as any}
+            {...commonProps}
           />
-        </LayerErrorBoundary>
-      );
-    }
+        );
+      }
 
-    if (l.type === 'group') {
-      const group = l as any; // Cast to any for now to access children
+      // Default: Shape Layer
       return (
-        <LayerErrorBoundary layerId={l.id}>
-          <div
+        <div style={maskStyle}>
+          <ShapeLayerItem
             ref={(el) => setLayerRef(l.id, el)}
-            className="absolute group-layer-container"
-            onMouseDown={(e) => handleMouseDownLayer(e, l)}
-            onContextMenu={(e) => handleContextMenu(e, l.id)}
-            style={{
-              left: l.x,
-              top: l.y,
-              width: l.width,
-              height: l.height,
-              transform: `rotate(${l.rotation}deg)`,
-              opacity: l.opacity,
-              zIndex: isSelected ? 100 : 1,
-            }}
-          >
-            {/* Recursive render: child layers within this group */}
-            {group.children?.map((childId: string) => {
-              const childLayer = allLayers.find((layer) => layer.id === childId);
-              if (!childLayer) {return null;}
-              return (
-                <CanvasLayerItemWrapper
-                  key={childId}
-                  layer={childLayer}
-                  allLayers={allLayers}
-                  selectedLayerId={selectedLayerId}
-                  selectedLayerIds={selectedLayerIds}
-                  hoveredLayerId={hoveredLayerId}
-                  setHoveredLayerId={() => {}} // No-op nested hover for now
-                  setLayerRef={setLayerRef}
-                  handleMouseDownLayer={handleMouseDownLayer}
-                  handleResizeStart={handleResizeStart}
-                  handleRotateStart={handleRotateStart}
-                  handleContextMenu={handleContextMenu}
-                  handleTextDoubleClick={handleTextDoubleClick}
-                  onDoubleClickLayer={onDoubleClickLayer}
-                  editingTextId={editingTextId}
-                  textEditRef={textEditRef}
-                  finishEditingText={finishEditingText}
-                  editingPathId={editingPathId}
-                  onUpdatePath={onUpdatePath}
-                  zoom={zoom}
-                  previewAnimation={previewAnimation}
-                />
-              );
-            })}
-            
-            {isSelected && (
-              <div className="absolute inset-0 border border-[#7d2ae8] ring-1 ring-[#7d2ae8]/20 pointer-events-none" />
-            )}
-          </div>
-        </LayerErrorBoundary>
+            layer={l as ShapeLayer}
+            {...commonProps}
+            onDrop={handleDropShape}
+            onDoubleClick={handleDoubleClick}
+            editingPathId={editingPathId}
+            onUpdatePath={onUpdatePath}
+          />
+        </div>
       );
-    }
+    };
 
     return (
       <LayerErrorBoundary layerId={l.id}>
-        <ShapeLayerItem
-          ref={(el) => setLayerRef(l.id, el)}
-          layer={l as ShapeLayer}
-          isSelected={isSelected}
-          isHovered={hoveredLayerId === l.id}
-          onMouseDown={handleMouseDownLayer}
-          onResize={handleResizeStart}
-          onRotate={handleRotateStart}
-          onContextMenu={handleContextMenu}
-          onDoubleClick={(_e, layer) => onDoubleClickLayer?.(layer)}
-          onUpdatePath={onUpdatePath}
-          zoom={zoom}
-          previewAnimation={previewAnimation}
-          maskPath={maskPath}
-        />
+        {renderItem()}
       </LayerErrorBoundary>
     );
   }

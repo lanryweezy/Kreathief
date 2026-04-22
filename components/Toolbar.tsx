@@ -30,7 +30,7 @@ interface ToolbarProps {
   onCrop?: (id: string) => void;
 }
 
-export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onJoinPaths, onBooleanOperation, onBooleanHover }: ToolbarProps) => {
+export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBooleanOperation, onBooleanHover }: ToolbarProps) => {
   // UI State
   const [showFilters, setShowFilters] = useState(false);
   const [showResize, setShowResize] = useState(false);

@@ -5,16 +5,6 @@ import { VariantCard } from '../agent/VariantCard';
 
 import { Icons as AgentIcons } from '../../constants';
 
-const CriticBubble = ({ text, isVisible }: { text: string; isVisible: boolean }) => (
-  <div className={`absolute -top-12 left-12 right-0 bg-[#7d2ae8] text-white p-3 rounded-2xl rounded-bl-none shadow-2xl transition-all duration-500 transform origin-bottom-left z-[120] border border-white/20 ${isVisible ? 'scale-100 opacity-100 translate-y-0' : 'scale-0 opacity-0 translate-y-4 pointer-events-none'}`}>
-    <div className="flex items-center gap-2 mb-1">
-      <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-      <span className="text-[8px] font-black uppercase tracking-widest opacity-70">Critic Observation</span>
-    </div>
-    <p className="text-[10px] font-bold leading-tight italic">"{text}"</p>
-  </div>
-);
-
 interface AssistantPanelProps {
   getCanvasSnapshot: () => Promise<string>;
   onStartDesign?: (prompt: string) => void;
@@ -26,6 +16,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
     agentVariants, 
     agentError, 
     agentIntent, 
+    thinkingLog,
     runAgenticWorkflow, 
     runAgenticRefine,
     applyAgentVariant,
@@ -37,12 +28,19 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
 
   const [input, setInput] = useState(agentIntent || '');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const logEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (agentStatus === 'done' && scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [agentStatus]);
+
+  useEffect(() => {
+    if (logEndRef.current) {
+      logEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [thinkingLog]);
 
   const handleStartWorkflow = () => {
     if (!input.trim()) {return;}
@@ -60,48 +58,56 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
       { id: 'performance', label: 'Growth Agent', sub: 'Performance Scoring', icon: AgentIcons.Zap },
     ];
 
-    const criticPhrases = {
-      creative: "Analyzing visual hierarchy for better balance...",
-      critic: "Optimizing negative space and alignment...",
-      performance: "Ensuring high-conversion visual cues...",
-    };
-
     return (
-      <div className="space-y-4 py-8">
-        {steps.map((step, i) => {
-          const isActive = agentStatus === step.id;
-          const isDone = ['critic', 'performance', 'done'].includes(agentStatus) && i === 0 || 
-                         ['performance', 'done'].includes(agentStatus) && i === 1 ||
-                         agentStatus === 'done' && i === 2;
+      <div className="space-y-6 py-4">
+        <div className="space-y-4">
+          {steps.map((step, i) => {
+            const isActive = agentStatus === step.id;
+            const isDone = ['critic', 'performance', 'done'].includes(agentStatus) && i === 0 || 
+                           ['performance', 'done'].includes(agentStatus) && i === 1 ||
+                           agentStatus === 'done' && i === 2;
 
-          return (
-            <div key={step.id} className="relative">
-              <CriticBubble 
-                text={criticPhrases[agentStatus as keyof typeof criticPhrases] || "Processing..."} 
-                isVisible={isActive && agentStatus !== 'done'} 
-              />
-              <div className={`flex items-center gap-4 transition-all duration-500 ${isActive ? 'opacity-100 scale-100' : 'opacity-40 scale-95'}`}>
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl relative ${isActive ? 'bg-[#7d2ae8] text-white animate-pulse' : isDone ? 'bg-emerald-500/20 text-emerald-500' : 'bg-white/5 text-gray-500'}`}>
-                  {isDone ? <AgentIcons.Check className="w-5 h-5" /> : <step.icon className="w-5 h-5" />}
-                  {isActive && (
-                    <div className="absolute inset-0 rounded-2xl border-2 border-[#7d2ae8] animate-ping opacity-20" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <h4 className={`text-xs font-black uppercase tracking-widest ${isActive ? 'text-white' : 'text-gray-400'}`}>{step.label}</h4>
-                  <p className="text-[10px] text-gray-500 font-medium">{isActive ? step.sub : isDone ? 'Task Completed' : 'Pending Queue'}</p>
-                </div>
-                {isActive && (
-                  <div className="flex gap-1">
-                    <div className="w-1 h-1 rounded-full bg-[#7d2ae8] animate-bounce" style={{ animationDelay: '0s' }} />
-                    <div className="w-1 h-1 rounded-full bg-[#7d2ae8] animate-bounce" style={{ animationDelay: '0.2s' }} />
-                    <div className="w-1 h-1 rounded-full bg-[#7d2ae8] animate-bounce" style={{ animationDelay: '0.4s' }} />
+            return (
+              <div key={step.id} className="relative group">
+                <div className={`flex items-center gap-4 transition-all duration-500 ${isActive ? 'opacity-100 scale-100' : 'opacity-40 scale-95'}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-xl relative ${isActive ? 'bg-[#7d2ae8] text-white animate-pulse' : isDone ? 'bg-emerald-500/20 text-emerald-500' : 'bg-white/5 text-gray-500'}`}>
+                    {isDone ? <AgentIcons.Check className="w-4 h-4" /> : <step.icon className="w-4 h-4" />}
+                    {isActive && (
+                      <div className="absolute inset-0 rounded-xl border-2 border-[#7d2ae8] animate-ping opacity-20" />
+                    )}
                   </div>
-                )}
+                  <div className="flex-1">
+                    <h4 className={`text-[10px] font-black uppercase tracking-widest ${isActive ? 'text-white' : 'text-gray-400'}`}>{step.label}</h4>
+                    <p className="text-[9px] text-gray-500 font-medium">{isActive ? step.sub : isDone ? 'Task Completed' : 'Pending Queue'}</p>
+                  </div>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+
+        {/* Live Thinking Log */}
+        <div className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-3 max-h-[200px] overflow-y-auto no-scrollbar shadow-inner">
+           <div className="flex items-center justify-between mb-1">
+              <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Logic Trace</span>
+              <div className="flex gap-1">
+                 <div className="w-1 h-1 rounded-full bg-purple-500 animate-pulse" />
+                 <div className="w-1 h-1 rounded-full bg-purple-500 animate-pulse delay-75" />
+              </div>
+           </div>
+           <div className="space-y-2">
+              {thinkingLog.map((event: any) => (
+                <div key={event.id} className="flex gap-3 animate-in fade-in slide-in-from-left-2 duration-300">
+                   <div className="w-1 bg-purple-500/30 rounded-full shrink-0" />
+                   <div>
+                      <span className="text-[8px] font-black text-purple-400 uppercase tracking-tighter block mb-0.5">{event.agent}</span>
+                      <p className="text-[10px] text-gray-300 font-medium leading-relaxed">{event.message}</p>
+                   </div>
+                </div>
+              ))}
+              <div ref={logEndRef} />
+           </div>
+        </div>
       </div>
     );
   };

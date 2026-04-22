@@ -18,7 +18,7 @@ export const PaletteGenerator: React.FC<PaletteGeneratorProps> = ({ onPaletteSel
     setIsProcessing(true);
     try {
       const imageData = await loadImage(file);
-      const colors = extractPalette(imageData, 5);
+      const colors = await extractPalette(imageData, 5);
       setExtractedColors(colors);
       onPaletteSelect(colors);
     } catch (error) {

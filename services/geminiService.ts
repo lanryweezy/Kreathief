@@ -5,7 +5,7 @@ import * as freepikService from './freepikService';
 import { log } from '../utils/log';
 
 // Helper to call backend serverless endpoint
-const callBackendGeminiAPI = async (payload: any) => {
+export const callBackendGeminiAPI = async (payload: any) => {
   const endpoint = process.env.NODE_ENV === 'test' ? 'http://localhost:3000/api/gemini' : '/api/gemini';
   const response = await fetch(endpoint, {
     method: 'POST',

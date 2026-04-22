@@ -25,6 +25,11 @@ interface LayerItemProps {
   onUpdatePath?: (id: string, updates: any) => void;
   zoom?: number;
   isInteracting?: boolean;
+  optimizedSrc?: string | null;
+  // Text specific
+  isEditing?: boolean;
+  textEditRef?: React.RefObject<HTMLDivElement>;
+  onFinishEditing?: () => void;
 }
 
 /**
@@ -94,7 +99,7 @@ const layerPropsAreEqual = (prevProps: LayerItemProps, nextProps: LayerItemProps
 export const ImageLayerItem = React.memo(
   React.forwardRef<HTMLDivElement, LayerItemProps>(
     (
-      { layer, isSelected, isHovered, onMouseDown, onResize, onRotate, onContextMenu, previewAnimation, maskPath },
+      { layer, isSelected, isHovered, onMouseDown, onResize, onRotate, onContextMenu, previewAnimation, maskPath, optimizedSrc },
       ref
     ) => {
       const imgLayer = layer as ImageLayer;
@@ -135,11 +140,11 @@ export const ImageLayerItem = React.memo(
           height: naturalHeight * imgScale,
           transform: `translate(${-crop.x * imgScale}px, ${-crop.y * imgScale}px) scale(${scaleX}, ${scaleY})`,
           transformOrigin: 'top left',
-          filter: imgLayer.filters
+          filter: (imgLayer.filters && !optimizedSrc)
             ? `${imgLayer.filters.artisticFilter ? `url(#${imgLayer.filters.artisticFilter}) ` : ''}brightness(${imgLayer.filters.brightness}%) contrast(${imgLayer.filters.contrast}%) saturate(${imgLayer.filters.saturation}%) grayscale(${imgLayer.filters.grayscale}%) blur(${imgLayer.filters.blur}px) sepia(${imgLayer.filters.sepia}%) hue-rotate(${imgLayer.filters.hueRotate}deg)`
             : 'none',
         }),
-        [naturalWidth, imgScale, crop.x, crop.y, scaleX, scaleY, imgLayer.filters]
+        [naturalWidth, imgScale, crop.x, crop.y, scaleX, scaleY, imgLayer.filters, optimizedSrc]
       );
 
       return (
@@ -173,7 +178,7 @@ export const ImageLayerItem = React.memo(
           )}
 
           <div className="w-full h-full overflow-hidden" style={maskWrapperStyle}>
-            <img src={imgLayer.src} className="pointer-events-none block" alt="" style={imgStyle} />
+            <img src={optimizedSrc || imgLayer.src} className="pointer-events-none block" alt="" style={imgStyle} />
           </div>
 
           {isSelected && <SelectionHandles layer={imgLayer} onResize={onResize} onRotate={onRotate} scale={1} />}
@@ -271,13 +276,13 @@ export const ShapeLayerItem = React.memo(
                   {(shapeLayer as any).pathEffects?.roughen?.amount > 0 && (
                     <filter id={`roughen-${shapeLayer.id}`}>
                       <feTurbulence type="turbulence" baseFrequency="0.8" numOctaves="1" result="noise" />
-                      <feDisplacementMap in="SourceGraphic" in2="noise" scale={(shapeLayer as any).pathEffects.roughen.amount} xChannelSelector="R" yChannelSelector="G" />
+                      <feDisplacementMap in="SourceGraphic" in2="noise" scale={(shapeLayer as any).pathEffects?.roughen?.amount || 0} xChannelSelector="R" yChannelSelector="G" />
                     </filter>
                   )}
                   {(shapeLayer as any).pathEffects?.zigzag?.amplitude > 0 && (
                     <filter id={`zigzag-${shapeLayer.id}`}>
-                      <feTurbulence type="turbulence" baseFrequency={(shapeLayer as any).pathEffects.zigzag.frequency/100} numOctaves="1" result="noise" />
-                      <feDisplacementMap in="SourceGraphic" in2="noise" scale={(shapeLayer as any).pathEffects.zigzag.amplitude} xChannelSelector="R" yChannelSelector="G" />
+                      <feTurbulence type="turbulence" baseFrequency={((shapeLayer as any).pathEffects?.zigzag?.frequency || 1) / 100} numOctaves="1" result="noise" />
+                      <feDisplacementMap in="SourceGraphic" in2="noise" scale={(shapeLayer as any).pathEffects?.zigzag?.amplitude || 0} xChannelSelector="R" yChannelSelector="G" />
                     </filter>
                   )}
                   {((shapeLayer as any).strokeProfile && (shapeLayer as any).strokeProfile !== 'uniform') && (
@@ -294,7 +299,7 @@ export const ShapeLayerItem = React.memo(
                   )}
                 </defs>
                 {(shapeLayer as any).pathEffects?.offset?.distance > 0 && (
-                  <path d={shapeLayer.pathData} fill="none" stroke={shapeLayer.color} strokeWidth={(shapeLayer as any).pathEffects.offset.distance*2} opacity={0.35} />
+                  <path d={shapeLayer.pathData} fill="none" stroke={shapeLayer.color} strokeWidth={((shapeLayer as any).pathEffects?.offset?.distance || 0) * 2} opacity={0.35} />
                 )}
                 <path d={shapeLayer.pathData}
                   fill={shapeLayer.color}

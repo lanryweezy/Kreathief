@@ -31,7 +31,6 @@ export const useEditorLogic = (initialProject?: Project) => {
   const canvasSize = useStore((state) => state.canvasSize) || { width: 1080, height: 1080, name: 'Square' };
   const canvasFilters = useStore((state) => state.canvasFilters) || DEFAULT_FILTERS;
   const projectTitle = useStore((state) => state.projectTitle);
-  const projectId = useStore((state) => state.projectId);
   const brandKits = useStore((state) => state.brandKits) || [];
   const mode = useStore((state) => state.mode);
   const prompt = useStore((state) => state.prompt);

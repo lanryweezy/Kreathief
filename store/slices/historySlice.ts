@@ -15,6 +15,7 @@ export interface HistoryEntry {
 export interface HistorySlice {
   past: HistoryEntry[];
   future: HistoryEntry[];
+  __lastStateSnapshot: HistoryState | null;
 
   undo: () => void;
   redo: () => void;
@@ -32,16 +33,16 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
   future: [],
   __batchDepth: 0,
   __hasPendingBatchChange: false,
+  __lastStateSnapshot: null,
 
   saveToHistory: (() => {
     let lastSavedTimestamp = 0;
     const DEBOUNCE_MS = process.env.NODE_ENV === 'test' ? 0 : 250;
-    const MAX_HISTORY = 100; // Increased because patches are small
+    const MAX_HISTORY = 100;
     const SNAPSHOT_INTERVAL = 10;
-    let lastStateSnapshot: HistoryState | null = null;
 
     return () => {
-      // If batching, mark pending change and exit; we'll snapshot on endBatch
+      // If batching, mark pending change and exit
       if ((get() as any).__batchDepth > 0) {
         set({ __hasPendingBatchChange: true } as any);
         return;
@@ -62,29 +63,30 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
         };
 
         let entry: HistoryEntry;
-        const shouldMakeSnapshot = !lastStateSnapshot || state.past.length % SNAPSHOT_INTERVAL === 0;
+        const lastSnapshot = state.__lastStateSnapshot;
+        const shouldMakeSnapshot = !lastSnapshot || state.past.length % SNAPSHOT_INTERVAL === 0;
+
+        let nextSnapshot = lastSnapshot;
 
         if (shouldMakeSnapshot) {
           entry = { timestamp: now, type: 'snapshot', state: currentState };
-          lastStateSnapshot = currentState;
+          nextSnapshot = currentState;
         } else {
-          const patch = compare(lastStateSnapshot!, currentState);
+          const patch = compare(lastSnapshot, currentState);
           entry = { timestamp: now, type: 'patch', patch };
         }
 
         const newPast = state.past.length >= MAX_HISTORY ? [...state.past.slice(1), entry] : [...state.past, entry];
 
-        // Hardening: Mirror session to IndexedDB for crash recovery
         if (state.projectId) {
           storageService.saveSessionMirror(state.projectId, currentState).catch(err => 
             console.error('[Resilience] Session mirror failed', err)
           );
         }
 
-        // Mark as having unsaved changes
         state.setHasUnsavedChanges?.(true);
 
-        return { past: newPast, future: [] };
+        return { past: newPast, future: [], __lastStateSnapshot: nextSnapshot };
       });
     };
   })(),
@@ -99,7 +101,6 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
     const hadPending = (get() as any).__hasPendingBatchChange;
     set({ __batchDepth: depth } as any);
     if (depth === 0 && hadPending) {
-      // Take a single snapshot of current state to represent the batch
       const now = Date.now();
       set((state: any) => {
         const currentState: HistoryState = {
@@ -112,7 +113,7 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
         const entry: HistoryEntry = { timestamp: now, type: 'snapshot', state: currentState };
         const MAX_HISTORY = 100;
         const newPast = state.past.length >= MAX_HISTORY ? [...state.past.slice(1), entry] : [...state.past, entry];
-        return { past: newPast, future: [], __hasPendingBatchChange: false };
+        return { past: newPast, future: [], __hasPendingBatchChange: false, __lastStateSnapshot: currentState };
       });
     }
   },
@@ -134,14 +135,25 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
     const lastEntry = past[past.length - 1];
     const newPast = past.slice(0, -1);
 
-    // To revert, we need to reconstruct the previous state
-    // This is simplified: in a real robust system we'd iterate from the last snapshot
     let targetState: HistoryState;
+    let nextLastSnapshot = get().__lastStateSnapshot;
+
     if (lastEntry.type === 'snapshot') {
       targetState = lastEntry.state!;
+      // Need to find the previous snapshot to update __lastStateSnapshot
+      let prevSnapshotIdx = -1;
+      for (let i = newPast.length - 1; i >= 0; i--) {
+        if (newPast[i].type === 'snapshot') {
+          prevSnapshotIdx = i;
+          break;
+        }
+      }
+      if (prevSnapshotIdx !== -1) {
+        nextLastSnapshot = newPast[prevSnapshotIdx].state!;
+      } else {
+        nextLastSnapshot = null;
+      }
     } else {
-      // For patches, we'd ideally store reverse patches, but fast-json-patch
-      // doesn't generate them easily. We'll reconstruct from the nearest snapshot.
       let lastSnapshotIdx = -1;
       for (let i = newPast.length - 1; i >= 0; i--) {
         if (newPast[i].type === 'snapshot') {
@@ -152,12 +164,13 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
 
       if (lastSnapshotIdx === -1) {
         return;
-      } // Should not happen
+      } 
 
       targetState = structuredClone(newPast[lastSnapshotIdx].state!);
-      for (let i = lastSnapshotIdx + 1; i < past.length; i++) {
-        if (past[i].type === 'patch') {
-          applyPatch(targetState, past[i].patch!);
+      // Fix: Iterate up to newPast.length, NOT past.length
+      for (let i = lastSnapshotIdx + 1; i < newPast.length; i++) {
+        if (newPast[i].type === 'patch') {
+          applyPatch(targetState, newPast[i].patch!);
         }
       }
     }
@@ -166,6 +179,7 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
       ...targetState,
       past: newPast,
       future: [{ timestamp: Date.now(), type: 'snapshot', state: currentFullState }, ...get().future],
+      __lastStateSnapshot: nextLastSnapshot
     });
     get().addToast?.('Action Undone', 'info');
   },

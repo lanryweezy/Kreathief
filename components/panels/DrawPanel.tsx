@@ -108,10 +108,10 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Use store for smoothing and jitter
-  const smoothing = useStore((state) => state.brushSmoothing);
-  const setSmoothing = useStore((state) => state.setBrushSmoothing);
-  const jitter = useStore((state) => state.brushJitter);
-  const setJitter = useStore((state) => state.setBrushJitter);
+  const brushSmoothing = useStore((state) => state.brushSmoothing);
+  const setBrushSmoothing = useStore((state) => state.setBrushSmoothing);
+  const brushJitter = useStore((state) => state.brushJitter);
+  const setBrushJitter = useStore((state) => state.setBrushJitter);
 
   const colors = [
     '#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff', '#ffff00',

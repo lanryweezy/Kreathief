@@ -13,7 +13,8 @@ interface ExportModalProps {
     size?: { width: number; height: number },
     transparentBg?: boolean,
     customFilename?: string,
-    overrideLayers?: any[]
+    overrideLayers?: any[],
+    printOptions?: { colorProfile: ColorProfile; bleed: number; cropMarks: boolean }
   ) => Promise<void>;
   onGetPngBlob?: () => Promise<Blob | null>;
   currentSize: { width: number; height: number; name: string };
@@ -344,7 +345,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 <div>
                   <div className="flex justify-between items-center mb-2">
                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Bleed</label>
-                    <span className="text-xs text-[#7d2ae8] font-mono">{bleed}pt ({(bleed / 72).toFixed(2)}")</span>
+                    <span className="text-xs text-[#7d2ae8] font-mono">{bleed}pt ({(bleed / 72).toFixed(2)}&quot;)</span>
                   </div>
                   <input
                     type="range"
@@ -357,7 +358,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                   />
                   <div className="flex justify-between text-[9px] text-gray-500 mt-1">
                     <span>No Bleed</span>
-                    <span>1/2"</span>
+                    <span>1/2&quot;</span>
                   </div>
                 </div>
 

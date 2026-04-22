@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Icons } from '../constants';
 import { haptics } from '../utils/haptics';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useStore } from '../store/useStore';
 
 interface MobileToolbarProps {
   onAddText: () => void;
@@ -10,10 +11,6 @@ interface MobileToolbarProps {
   onDraw: () => void;
 }
 
-/**
- * Mobile Toolbar - Horizontal scrollable toolbar
- * Quick access to essential design tools on mobile
- */
 export const MobileToolbar: React.FC<MobileToolbarProps> = ({
   onAddText,
   onAddShape,
@@ -21,6 +18,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
   onDraw,
 }) => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const setCommandPaletteOpen = useStore((state) => state.setCommandPaletteOpen);
 
   const handleToolClick = (action: () => void, category?: string) => {
     haptics.selection();
@@ -34,6 +32,12 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
 
   const tools = [
     {
+      icon: Icons.Search,
+      label: 'Search',
+      action: () => setCommandPaletteOpen(true),
+      gradient: 'from-purple-600 to-indigo-600',
+    },
+    {
       icon: Icons.Text,
       label: 'Text',
       action: onAddText,
@@ -43,7 +47,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
       icon: Icons.Shapes,
       label: 'Shapes',
       category: 'shapes',
-      gradient: 'from-purple-500 to-pink-500',
+      gradient: 'from-orange-500 to-red-500',
     },
     {
       icon: Icons.Image,
@@ -52,77 +56,84 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
       gradient: 'from-green-500 to-emerald-500',
     },
     {
-      icon: Icons.Pen,
+      icon: Icons.Brush,
       label: 'Draw',
       action: onDraw,
-      gradient: 'from-orange-500 to-red-500',
+      gradient: 'from-pink-500 to-rose-500',
     },
   ];
 
   const shapes = [
-    { type: 'rectangle' as const, icon: Icons.Square, label: 'Rectangle' },
+    { type: 'rectangle' as const, icon: Icons.Square, label: 'Square' },
     { type: 'circle' as const, icon: Icons.Circle, label: 'Circle' },
     { type: 'triangle' as const, icon: Icons.Triangle, label: 'Triangle' },
+    { type: 'star' as const, icon: Icons.Star, label: 'Star' },
   ];
 
   return (
-    <div className="fixed top-20 left-0 right-0 z-40 md:hidden">
-      {/* Main Toolbar */}
-      <div className="px-4">
-        <div className="bg-[#1a1d21]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-2">
-          <div className="flex gap-2 overflow-x-auto no-scrollbar">
-            {tools.map((tool) => (
-              <button
-                key={tool.label}
-                onClick={() => handleToolClick(tool.action || (() => {}), tool.category)}
-                className={`
-                  flex flex-col items-center justify-center gap-1.5
-                  min-w-[72px] px-4 py-3 rounded-xl
-                  transition-all duration-200
-                  active:scale-95
-                  ${activeCategory === tool.category
-                    ? `bg-gradient-to-br ${tool.gradient} shadow-lg`
-                    : 'bg-white/5 hover:bg-white/10'
-                  }
-                `}
-              >
-                <tool.icon className={`w-6 h-6 ${activeCategory === tool.category ? 'text-white' : 'text-gray-300'}`} />
-                <span className={`text-xs font-medium ${activeCategory === tool.category ? 'text-white' : 'text-gray-400'}`}>
-                  {tool.label}
-                </span>
-              </button>
-            ))}
-          </div>
+    <div className="fixed top-16 left-0 right-0 z-[100] md:hidden px-4">
+      {/* Main Toolbar Container */}
+      <div className="bg-[#1a1d21]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden">
+        <div className="flex items-center p-1 overflow-x-auto no-scrollbar">
+          {tools.map((tool) => (
+            <button
+              key={tool.label}
+              onClick={() => handleToolClick(tool.action || (() => {}), tool.category)}
+              className={`
+                flex flex-col items-center justify-center gap-1
+                min-w-[64px] h-14 rounded-xl
+                transition-all duration-300
+                active:scale-90
+                ${activeCategory === tool.category
+                  ? `bg-gradient-to-br ${tool.gradient} text-white shadow-lg`
+                  : 'text-gray-400 hover:text-white'
+                }
+              `}
+            >
+              <tool.icon className="w-5 h-5" />
+              <span className="text-[9px] font-black uppercase tracking-tighter">{tool.label}</span>
+            </button>
+          ))}
+          
+          <div className="w-px h-8 bg-white/5 mx-1" />
+          
+          <button
+            onClick={() => {
+               haptics.heavy();
+               if(confirm('Clear all layers?')) useStore.getState().setLayers([]);
+            }}
+            className="flex flex-col items-center justify-center gap-1 min-w-[64px] h-14 text-red-500/50 active:text-red-500 transition-colors"
+          >
+             <Icons.Trash className="w-5 h-5" />
+             <span className="text-[9px] font-black uppercase tracking-tighter">Clear</span>
+          </button>
         </div>
       </div>
 
-      {/* Shape Submenu */}
+      {/* Expanded Category Submenu */}
       <AnimatePresence>
         {activeCategory === 'shapes' && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="px-4 mt-2"
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="mt-2"
           >
-            <div className="bg-[#1a1d21]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-3">
-              <div className="flex gap-2">
-                {shapes.map((shape) => (
-                  <button
-                    key={shape.type}
-                    onClick={() => {
-                      haptics.selection();
-                      onAddShape(shape.type);
-                      setActiveCategory(null);
-                    }}
-                    className="flex-1 flex flex-col items-center gap-2 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 transition-all"
-                  >
-                    <shape.icon className="w-8 h-8 text-purple-400" />
-                    <span className="text-xs font-medium text-gray-300">{shape.label}</span>
-                  </button>
-                ))}
-              </div>
+            <div className="bg-[#1a1d21]/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 grid grid-cols-4 gap-2 shadow-2xl">
+              {shapes.map((shape) => (
+                <button
+                  key={shape.type}
+                  onClick={() => {
+                    haptics.success();
+                    onAddShape(shape.type as any);
+                    setActiveCategory(null);
+                  }}
+                  className="flex flex-col items-center justify-center gap-2 h-20 rounded-xl bg-white/5 border border-white/5 active:bg-[#7d2ae8] active:border-[#7d2ae8] transition-all group"
+                >
+                  <shape.icon className="w-6 h-6 text-gray-400 group-active:text-white transition-colors" />
+                  <span className="text-[9px] font-bold text-gray-500 group-active:text-white uppercase">{shape.label}</span>
+                </button>
+              ))}
             </div>
           </motion.div>
         )}

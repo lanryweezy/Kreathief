@@ -1,37 +1,48 @@
+import { createSelector } from 'reselect';
 import { StoreState } from './useStore';
 import { Artboard, Layer } from '../types';
 
-export const activeArtboardSelector = (state: StoreState): Artboard | undefined => {
-  const { artboards, activeArtboardId } = state as any;
-  if (!Array.isArray(artboards) || artboards.length === 0) {
-    return undefined;
-  }
-  return artboards.find((a: Artboard) => a.id === activeArtboardId) || artboards[0];
-};
+const getArtboards = (state: StoreState) => state.artboards || [];
+const getActiveArtboardId = (state: StoreState) => state.activeArtboardId;
+const getSelectedLayerIds = (state: StoreState) => state.selectedLayerIds || [];
 
-export const selectedLayerIdSelector = (state: StoreState): string | null => {
-  const ids = (state as any).selectedLayerIds as string[] | undefined;
-  if (!ids || ids.length === 0) {
-    return null;
+export const activeArtboardSelector = createSelector(
+  [getArtboards, getActiveArtboardId],
+  (artboards, activeArtboardId) => {
+    if (!Array.isArray(artboards) || artboards.length === 0) {
+      return undefined;
+    }
+    return artboards.find((a: Artboard) => a.id === activeArtboardId) || artboards[0];
   }
-  return ids[ids.length - 1] || null;
-};
+);
 
-export const selectedLayerSelector = (state: StoreState): Layer | null => {
-  const artboard = activeArtboardSelector(state);
-  const id = selectedLayerIdSelector(state);
-  if (!artboard || !id) {
-    return null;
+export const selectedLayerIdSelector = createSelector(
+  [getSelectedLayerIds],
+  (ids) => {
+    if (!ids || ids.length === 0) {
+      return null;
+    }
+    return ids[ids.length - 1] || null;
   }
-  return (artboard.layers || []).find((l: Layer) => l.id === id) || null;
-};
+);
 
-export const selectedLayersSelector = (state: StoreState): Layer[] => {
-  const artboard = activeArtboardSelector(state);
-  const ids = ((state as any).selectedLayerIds as string[]) || [];
-  if (!artboard || ids.length === 0) {
-    return [];
+export const selectedLayerSelector = createSelector(
+  [activeArtboardSelector, selectedLayerIdSelector],
+  (artboard, id) => {
+    if (!artboard || !id) {
+      return null;
+    }
+    return (artboard.layers || []).find((l: Layer) => l.id === id) || null;
   }
-  const idSet = new Set(ids);
-  return (artboard.layers || []).filter((l: Layer) => idSet.has(l.id));
-};
+);
+
+export const selectedLayersSelector = createSelector(
+  [activeArtboardSelector, getSelectedLayerIds],
+  (artboard, ids) => {
+    if (!artboard || ids.length === 0) {
+      return [];
+    }
+    const idSet = new Set(ids);
+    return (artboard.layers || []).filter((l: Layer) => idSet.has(l.id));
+  }
+);

@@ -2,14 +2,22 @@ import { SchemaType } from '@google/generative-ai';
 import { Layer, ShapeLayer, TextLayer } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { resolveConstraints, resolveSemanticConstraints } from '../utils/layoutUtils';
+import { callBackendGeminiAPI } from './geminiService';
 
-// ... (AgentVariant interface and callBackendGeminiAPI remain same)
+export interface AgentVariant {
+  id: string;
+  themeIdea: string;
+  layers: Layer[];
+  performanceScore?: number;
+  performanceReasoning?: string;
+  criticFeedback?: string[];
+}
 
 /**
  * Stage 1: Creative Agent
  * Generates N layout variants based on the user's intent.
  */
-export const creativeAgentDraft = async (intent: string, canvasSize: { width: number; height: number }, variantCount: number = 3): Promise<AgentVariant[]> => {
+export const creativeAgentDraft = async (_intent: string, canvasSize: { width: number; height: number }, _variantCount: number = 3): Promise<AgentVariant[]> => {
   // ... (systemPrompt and layerSchema remain same)
 
   const data = await callBackendGeminiAPI({
@@ -170,7 +178,7 @@ You MUST return the identical schema structure for variants but with improved va
   const simplifiedInput = variants.map(v => ({
     id: v.id,
     themeIdea: v.themeIdea,
-    layers: v.layers.map(l => ({
+    layers: v.layers.map((l: any) => ({
       id: l.id, type: l.type, x: l.x, y: l.y, color: (l as ShapeLayer | TextLayer).color, 
       text: (l as TextLayer).text, fontSize: (l as TextLayer).fontSize, width: l.width, height: l.height
     }))
@@ -196,7 +204,7 @@ You MUST return the identical schema structure for variants but with improved va
       return {
         ...v,
         criticFeedback: rf.criticFeedback || ["Self-corrected layout spacing."],
-        layers: v.layers.map(l => {
+        layers: v.layers.map((l: any) => {
           const refinedLayer = rf.layers.find((rl: any) => rl.id === l.id);
           if (refinedLayer) {
             return { ...l, ...refinedLayer };
@@ -227,7 +235,7 @@ Only return an array of objects containing { id, score, reasoning }.`;
   const simplifiedInput = variants.map(v => ({
     id: v.id,
     themeIdea: v.themeIdea,
-    layersSummary: v.layers.map(l => ({ type: l.type, x: l.x, y: l.y, text: (l as TextLayer).text }))
+    layersSummary: v.layers.map((l: any) => ({ type: l.type, x: l.x, y: l.y, text: (l as TextLayer).text }))
   }));
 
   const data = await callBackendGeminiAPI({

@@ -1,7 +1,6 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useStore } from '../store/useStore';
 import { selectedLayerSelector } from '../store/selectors';
-import { Icons } from '../constants';
 import { NavTab } from '../types';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
@@ -22,7 +21,6 @@ import { MockupPanel } from './panels/MockupPanel';
 const CommunityModal = React.lazy(() => import('./modals/CommunityModal'));
 const CommandPalette = React.lazy(() => import('./modals/CommandPalette').then(module => ({ default: module.CommandPalette })));
 import { Toolbar } from './Toolbar';
-import { Dropdown } from './Dropdown';
 import { ShortcutOverlay } from './ShortcutOverlay';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { haptics } from '../utils/haptics';
@@ -32,6 +30,7 @@ import { useShakeToUndo } from '../hooks/useShakeToUndo';
 import { MobileToolbar } from './MobileToolbar';
 import { MobileOnboarding } from './MobileOnboarding';
 import { MobileContextMenu } from './MobileContextMenu';
+import { MobileTransformController } from './MobileTransformController';
 
 interface EditorProps {
   initialProject?: Project;
@@ -49,7 +48,13 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const setZoom = useStore((state) => state.setZoom);
   const showShortcuts = useStore((state) => state.showShortcuts);
   const setShowShortcuts = useStore((state) => state.setShowShortcuts);
-  
+  const showRulers = useStore((state) => state.showRulers);
+  const showGrid = useStore((state) => state.showGrid);
+  const onToggleGrid = useStore((state) => state.setShowGrid);
+  const onToggleRulers = useStore((state) => state.setShowRulers);
+  const addArtboard = useStore((state) => state.addArtboard);
+  const deleteArtboard = useStore((state) => state.deleteArtboard);
+
   // Expose store to window for E2E tests
   React.useEffect(() => {
     (window as any).useStore = useStore;
@@ -79,9 +84,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     : null;
   const [showExport, setShowExport] = useState(false);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
-  const [showZoomMenu, setShowZoomMenu] = useState(false);
   const [showCommunityModal, setShowCommunityModal] = useState(false);
-  const zoomButtonRef = useRef<HTMLButtonElement>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [previewAnimation, setPreviewAnimation] = useState<AnimationSettings | undefined>();
   const [showMobileContextMenu, setShowMobileContextMenu] = useState(false);
@@ -211,6 +214,14 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           onNew={initializeProject} 
           onOpenCommunity={() => setShowCommunityModal(true)}
           user={user} 
+          zoom={zoom}
+          onZoomChange={setZoom}
+          showGrid={showGrid}
+          onToggleGrid={onToggleGrid}
+          showRulers={showRulers}
+          onToggleRulers={onToggleRulers}
+          onAddArtboard={() => addArtboard()}
+          onDeleteArtboard={() => deleteArtboard(useStore.getState().activeArtboardId)}
         />
       )}
 
@@ -284,67 +295,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
               </div>
             )}
           </div>
-
-          <div className="absolute bottom-4 inset-x-0 flex items-center justify-center z-40 pointer-events-none">
-            <div className="bg-[#1e1e1e]/80 border border-white/10 rounded-2xl shadow-2xl flex items-center p-1.5 backdrop-blur-xl pointer-events-auto gap-2">
-              <div className="flex items-center bg-black/20 rounded-xl px-1">
-                <button
-                  onClick={() => setZoom(Math.max(0.05, zoom - 0.1))}
-                  className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
-                  title="Zoom Out"
-                >
-                  <Icons.Minus className="w-4 h-4" />
-                </button>
-                <button
-                  ref={zoomButtonRef}
-                  onClick={() => setShowZoomMenu(!showZoomMenu)}
-                  className="px-2 w-16 text-center text-[11px] font-black text-white hover:bg-white/10 rounded-lg h-8 transition-colors font-mono"
-                >
-                  {Math.round(zoom * 100)}%
-                </button>
-                <button
-                  onClick={() => setZoom(Math.min(10, zoom + 0.1))}
-                  className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors"
-                  title="Zoom In"
-                >
-                  <Icons.Plus className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="w-px h-6 bg-white/10 mx-1" />
-
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => useStore.getState().setShowGrid(!useStore.getState().showGrid)}
-                  className={`p-2 rounded-lg transition-all ${useStore.getState().showGrid ? 'bg-[#7d2ae8] text-white shadow-[0_0_15px_rgba(125,42,232,0.4)]' : 'text-gray-400 hover:bg-white/10'}`}
-                  title="Toggle Grid"
-                >
-                  <Icons.Grid className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => useStore.getState().setShowRulers(!useStore.getState().showRulers)}
-                  className={`p-2 rounded-lg transition-all ${useStore.getState().showRulers ? 'bg-[#7d2ae8] text-white shadow-[0_0_15px_rgba(125,42,232,0.4)]' : 'text-gray-400 hover:bg-white/10'}`}
-                  title="Toggle Rulers"
-                >
-                  <Icons.Layout className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            <Dropdown anchorRef={zoomButtonRef} isOpen={showZoomMenu} onClose={() => setShowZoomMenu(false)} align="center" offset={12}>
-              <div className="bg-[#1e1e1e] border border-white/10 rounded-xl shadow-2xl overflow-hidden p-1.5 w-32">
-                {[0.25, 0.5, 0.75, 1, 1.5, 2, 3].map((z) => (
-                  <button
-                    key={z}
-                    onClick={() => { setZoom(z); setShowZoomMenu(false); }}
-                    className={`w-full text-left px-3 py-2 text-xs transition-colors rounded-lg ${zoom === z ? 'bg-[#7d2ae8] text-white font-bold' : 'text-gray-300 hover:bg-white/10'}`}
-                  >
-                    {z * 100}%
-                  </button>
-                ))}
-              </div>
-            </Dropdown>
-          </div>
         </div>
       </div>
 
@@ -357,6 +307,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         }}
       />
       
+      {/* Mobile Transform Controller (Quick Edit) */}
+      {isMobile && <MobileTransformController />}
+
       {/* Mobile Quick Actions FAB */}
       <MobileQuickActions />
 
@@ -442,7 +395,18 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           <ExportModal
             onClose={() => setShowExport(false)}
             currentSize={canvasSize}
-            onExport={(format, quality, size, transparentBg, customFilename, overrideLayers) => handleConfirmExport(format, quality, size, transparentBg, customFilename, () => setShowExport(false), overrideLayers)}
+            onExport={(format, quality, size, transparentBg, customFilename, overrideLayers, printOptions) => 
+              handleConfirmExport({
+                format,
+                quality,
+                size,
+                transparentBg,
+                customFilename,
+                onComplete: () => setShowExport(false),
+                overrideLayers,
+                printOptions
+              })
+            }
             onGetPngBlob={handleExportBlob}
           />
         )}

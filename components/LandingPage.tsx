@@ -17,6 +17,7 @@ import { FAQSection } from './landing/FAQSection';
 import { FinalCTA } from './landing/FinalCTA';
 import { BlogPreview, Footer } from './landing/BlogAndFooter';
 import { SEO } from './SEO';
+import { Icons } from '../constants';
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -108,7 +109,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
               className="md:hidden p-2 text-gray-400 hover:text-white transition-colors"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              {isMobileMenuOpen ? <GlobalIcons.X className="w-6 h-6" /> : <GlobalIcons.Menu className="w-6 h-6" />}
+              {isMobileMenuOpen ? <Icons.X className="w-6 h-6" /> : <Icons.Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>

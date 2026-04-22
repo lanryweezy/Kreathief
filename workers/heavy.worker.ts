@@ -47,6 +47,13 @@ self.onmessage = async (e: MessageEvent) => {
         break;
       }
 
+      case 'APPLY_FILTERS': {
+        const { imageSrc, filters } = payload;
+        const processedUrl = await applyFiltersToImage(imageSrc, filters);
+        self.postMessage({ type: 'SUCCESS', id, payload: processedUrl });
+        break;
+      }
+
       default:
         self.postMessage({ type: 'ERROR', id, error: `Unknown task type: ${type}` });
     }
@@ -56,6 +63,35 @@ self.onmessage = async (e: MessageEvent) => {
 };
 
 // --- Task Implementations ---
+
+async function applyFiltersToImage(imageSrc: string, filters: any): Promise<string> {
+  const bitmap = await fetchImageBitmap(imageSrc);
+  const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Offscreen context failed');
+
+  // Apply filters using Canvas context for speed where possible
+  const filterStr = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%) sepia(${filters.sepia}%) grayscale(${filters.grayscale}%) blur(${filters.blur}px)`;
+  ctx.filter = filterStr;
+  ctx.drawImage(bitmap, 0, 0);
+
+  // If vignette is requested, apply it manually via pixel manipulation or radial gradient
+  if (filters.vignette > 0) {
+    const radius = Math.max(canvas.width, canvas.height) / 1.5;
+    const gradient = ctx.createRadialGradient(
+      canvas.width / 2, canvas.height / 2, 0,
+      canvas.width / 2, canvas.height / 2, radius
+    );
+    gradient.addColorStop(0, 'rgba(0,0,0,0)');
+    gradient.addColorStop(1, `rgba(0,0,0,${filters.vignette / 100})`);
+    ctx.filter = 'none';
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  const blob = await canvas.convertToBlob({ type: 'image/png' });
+  return URL.createObjectURL(blob);
+}
 
 async function vectorize(imageUrl: string, options: any): Promise<string> {
   return new Promise((resolve, reject) => {

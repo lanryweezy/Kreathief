@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { Icons } from '../constants';
+import { haptics } from '../utils/haptics';
 
 interface CommentsOverlayProps {
   zoom: number;
@@ -63,12 +64,13 @@ export const CommentsOverlay: React.FC<CommentsOverlayProps> = ({ zoom }) => {
           }}
           onClick={(e) => {
             e.stopPropagation();
+            haptics.selection();
             setActiveCommentId(comment.id === activeCommentId ? null : comment.id);
             setNewCommentPos(null);
           }}
         >
-          {/* Pin */}
-          <div className="relative cursor-pointer group">
+          {/* Pin Container with larger hit area */}
+          <div className="w-12 h-12 flex items-center justify-center cursor-pointer group pointer-events-auto">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white shadow-lg border-2 transition-transform ${
               comment.resolved 
                 ? 'bg-gray-500 border-white/50 opacity-70 group-hover:opacity-100' 
