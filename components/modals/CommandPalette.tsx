@@ -37,16 +37,20 @@ export const CommandPalette: React.FC = () => {
     }
 
     const timer = setTimeout(async () => {
+      if (!query || query.length < 2) return;
       setIsSearching(true);
       try {
         const [assets, templates] = await Promise.all([
-          iconScoutService.search(query, 'icon'),
-          communityService.fetchTemplates('All', query)
+          iconScoutService.search(query, 'icon').catch(() => []),
+          communityService.fetchTemplates('All', query).catch(() => [])
         ]);
-        setAssetResults(assets.slice(0, 5));
-        setCommunityResults(templates.slice(0, 3));
-      } catch (e) { console.error(e); }
-      setIsSearching(false);
+        setAssetResults(Array.isArray(assets) ? assets.slice(0, 5) : []);
+        setCommunityResults(Array.isArray(templates) ? templates.slice(0, 3) : []);
+      } catch (e) { 
+        console.error('[CommandPalette] Search error:', e); 
+      } finally {
+        setIsSearching(false);
+      }
     }, 300);
 
     return () => clearTimeout(timer);

@@ -54,13 +54,7 @@ export const ContextualToolbar: React.FC<ContextualToolbarProps> = ({
 
   return (
     <div 
-      className="absolute z-[100] flex items-center gap-1 bg-[#1e1e1e]/90 backdrop-blur-md border border-white/10 p-1.5 rounded-xl shadow-2xl animate-fadeIn pointer-events-auto"
-      style={{
-        top: toolbarTop,
-        left: toolbarLeft,
-        transform: `translateX(-50%) scale(${Math.max(0.7, 1 / zoom)})`,
-        transformOrigin: 'bottom center',
-      }}
+      className="flex items-center gap-1 bg-[#1e1e1e]/60 backdrop-blur-xl border-x border-white/5 px-3 py-1 animate-in fade-in slide-in-from-top-1 duration-200"
     >
       {/* Opacity Control */}
       <div className="flex items-center gap-2 px-2 border-r border-white/10 mr-1">

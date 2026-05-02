@@ -5,7 +5,7 @@ import { CanvasSize } from '../../types';
 interface CreateProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (size: CanvasSize) => void;
+  onCreate: (size: CanvasSize, initialState?: any) => void;
 }
 
 const PRESET_SIZES: (CanvasSize & { icon: string })[] = [
@@ -17,21 +17,48 @@ const PRESET_SIZES: (CanvasSize & { icon: string })[] = [
   { width: 1500, height: 500, name: 'Twitter Header', icon: 'Twitter' },
 ];
 
+const VISUAL_DIRECTIONS = [
+  { id: 'default', name: 'Standard Light', desc: 'All-around clean white background', bgColor: '#ffffff' },
+  { id: 'minimal', name: 'Modern Minimal', desc: 'Premium tech slate dark mode', bgColor: '#12141a' },
+  { id: 'editorial', name: 'Warm Editorial', desc: 'Literary print soft cream', bgColor: '#f7f4ef' },
+  { id: 'brutalist', name: 'Tech Brutalist', desc: 'Raw information density', bgColor: '#faf9f6' },
+  { id: 'midnight', name: 'Midnight Premium', desc: 'Ultra-premium space background', bgColor: '#090d12' }
+];
+
 export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose, onCreate }) => {
   const [customWidth, setCustomWidth] = useState('1080');
   const [customHeight, setCustomHeight] = useState('1080');
   const [customName, setCustomName] = useState('Untitled Design');
+  const [selectedDirection, setSelectedDirection] = useState('default');
 
   if (!isOpen) {
     return null;
   }
+
+  const getInitialState = (dirId: string) => {
+    const dir = VISUAL_DIRECTIONS.find(d => d.id === dirId) || VISUAL_DIRECTIONS[0];
+    return {
+      canvasBackgroundColor: dir.bgColor,
+      canvasFilters: {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        sepia: 0,
+        grayscale: 0,
+        blur: 0,
+        opacity: 1,
+        vignette: 0,
+        hueRotate: 0,
+      }
+    };
+  };
 
   const handleCustomCreate = () => {
     onCreate({
       width: parseInt(customWidth) || 1080,
       height: parseInt(customHeight) || 1080,
       name: customName || 'Custom Design',
-    });
+    }, getInitialState(selectedDirection));
   };
 
   const getIcon = (iconName: string) => {
@@ -70,7 +97,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
               {PRESET_SIZES.map((size) => (
                 <button
                   key={size.name}
-                  onClick={() => onCreate(size)}
+                  onClick={() => onCreate(size, getInitialState(selectedDirection))}
                   className="flex items-center justify-between p-4 bg-[#13161a]/50 border border-gray-800 rounded-2xl hover:border-[#7d2ae8]/50 hover:bg-[#252627] transition-all group overflow-hidden relative"
                 >
                   <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-[#7d2ae8] to-[#00c4cc] opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -136,6 +163,31 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                       onChange={(e) => setCustomHeight(e.target.value)}
                       className="w-full bg-black/30 border border-gray-700/50 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#7d2ae8] transition-all"
                     />
+                  </div>
+                </div>
+
+                <div className="group pt-2">
+                  <label className="text-[10px] font-black text-gray-500 uppercase mb-2 block tracking-wider transition-colors">
+                    Visual Direction & Tone
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {VISUAL_DIRECTIONS.map((dir) => (
+                      <button
+                        key={dir.id}
+                        type="button"
+                        onClick={() => setSelectedDirection(dir.id)}
+                        className={`flex flex-col p-2.5 rounded-xl border text-left transition-all ${
+                          selectedDirection === dir.id
+                            ? 'bg-[#7d2ae8]/15 border-[#7d2ae8] text-white shadow-lg shadow-purple-500/5'
+                            : 'bg-black/20 border-gray-700/40 text-gray-400 hover:border-gray-600/60'
+                        }`}
+                      >
+                        <span className="text-xs font-bold text-gray-200">
+                          {dir.name}
+                        </span>
+                        <span className="text-[9px] text-gray-500 font-semibold mt-0.5 leading-tight">{dir.desc}</span>
+                      </button>
+                    ))}
                   </div>
                 </div>
               </div>

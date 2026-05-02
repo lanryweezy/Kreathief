@@ -174,7 +174,7 @@ export const TextPanel: React.FC = () => {
   const addCustomFont = useStore((state) => state.addCustomFont);
   const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
   const artboards = useStore((state) => state.artboards) || [];
-  const layers = artboards.flatMap(a => a.layers);
+  const layers = useMemo(() => artboards.flatMap(a => a.layers || []), [artboards]);
   const addToast = useStore((state) => state.addToast);
 
   const [fontSearch, _setFontSearch] = useState('');
@@ -633,8 +633,8 @@ export const TextPanel: React.FC = () => {
               textTransform: style.textTransform,
             });
           }}
-          onSaveStyle={(name, style) => {
-            console.log('Saved style:', name, style);
+          onSaveStyle={(_name, _style) => {
+            // Save style logic
           }}
         />
       )}

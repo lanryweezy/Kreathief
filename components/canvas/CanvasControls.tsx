@@ -38,14 +38,7 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
         </div>
       )}
 
-      {/* Contextual Toolbar */}
-      {selectedLayerIds.length > 0 && (
-        <ContextualToolbar
-          selectedLayerIds={selectedLayerIds}
-          layers={selectedLayers}
-          zoom={zoom}
-        />
-      )}
+
 
       {/* Context Menu */}
       {contextMenu && (

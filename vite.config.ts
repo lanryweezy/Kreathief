@@ -22,12 +22,33 @@ export default defineConfig(({ mode }) => {
           warn(warning);
         },
       },
+      commonjsOptions: {
+        include: [/onnxruntime-web/, /node_modules/],
+      },
+    },
+    resolve: {
+      alias: {
+        'onnxruntime-web/webgpu': 'onnxruntime-web',
+      },
+    },
+    server: {
+      proxy: {
+        '/api': {
+          target: 'http://localhost:3000',
+          changeOrigin: true,
+          rewrite: (path) => path,
+        },
+      },
     },
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || env.API_KEY || ''),
     },
     optimizeDeps: {
+      include: ['onnxruntime-web'],
       exclude: ['@imgly/background-removal'],
+    },
+    ssr: {
+      noExternal: ['onnxruntime-web'],
     },
   };
 });

@@ -4,6 +4,7 @@ import { useStore } from '../../store/useStore';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
 import { ColorProfile } from '../../services/exportService';
+import { isWithinCMYKGamut, getClosestCMYKSafeColor } from '../../utils/colorUtils';
 
 interface ExportModalProps {
   onClose: () => void;
@@ -43,8 +44,35 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
   const [bleed, setBleed] = useState<number>(9); // 1/8 inch default
   const [cropMarks, setCropMarks] = useState(true);
 
-  // Transparent background (PNG only)
   const [transparentBg, setTransparentBg] = useState(false);
+
+  // Gamut Validation for Print
+  const outOfGamutCount = React.useMemo(() => {
+    if (format !== 'pdf' || !isPrintMode) return 0;
+    const activeArtboard = artboards.find(a => a.id === activeArtboardId);
+    if (!activeArtboard) return 0;
+    // @ts-ignore - color may exist on layer
+    return activeArtboard.layers.filter(l => l.color && !isWithinCMYKGamut(l.color)).length;
+  }, [format, isPrintMode, artboards, activeArtboardId]);
+
+  const handleSnapAllToSafe = () => {
+    const activeArtboard = artboards.find(a => a.id === activeArtboardId);
+    if (!activeArtboard) return;
+
+    const updates: Record<string, any> = {};
+    activeArtboard.layers.forEach(l => {
+      // @ts-ignore - color may exist on layer
+      if (l.color && !isWithinCMYKGamut(l.color)) {
+        // @ts-ignore
+        updates[l.id] = { color: getClosestCMYKSafeColor(l.color) };
+      }
+    });
+
+    if (Object.keys(updates).length > 0) {
+      useStore.getState().updateLayers(updates);
+      addToast(`Optimized ${Object.keys(updates).length} layers for print`, 'success');
+    }
+  };
 
   // Format-aware quality reset for #20
   React.useEffect(() => {
@@ -325,6 +353,48 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
             {/* Print Mode Options */}
             {format === 'pdf' && isPrintMode && (
               <div className="space-y-4 p-4 bg-[#13161a] border border-[#7d2ae8]/30 rounded-xl animate-fade-in">
+                {/* Gamut Guard Alert */}
+                {outOfGamutCount > 0 && (
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 flex flex-col gap-2">
+                    <div className="flex items-start gap-2">
+                       <Icons.AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                       <div className="flex-1">
+                          <p className="text-[10px] text-amber-200 font-bold uppercase tracking-tight">Gamut Warning</p>
+                          <p className="text-[9px] text-amber-500/70 leading-relaxed font-medium">
+                             {outOfGamutCount} layer{outOfGamutCount > 1 ? 's' : ''} contain colors that cannot be reproduced in print.
+                          </p>
+                       </div>
+                    </div>
+                    <button 
+                      onClick={handleSnapAllToSafe}
+                      className="w-full py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-md text-[9px] font-black uppercase tracking-widest transition-all"
+                    >
+                       Auto-Fix Gamut Issues
+                    </button>
+                  </div>
+                )}
+
+                {/* Color Profile */}
+                {outOfGamutCount > 0 && (
+                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 flex flex-col gap-2">
+                    <div className="flex items-start gap-2">
+                       <Icons.AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                       <div className="flex-1">
+                          <p className="text-[10px] text-amber-200 font-bold uppercase tracking-tight">Gamut Warning</p>
+                          <p className="text-[9px] text-amber-500/70 leading-relaxed font-medium">
+                             {outOfGamutCount} layer{outOfGamutCount > 1 ? 's' : ''} contain colors that cannot be reproduced in print.
+                          </p>
+                       </div>
+                    </div>
+                    <button 
+                      onClick={handleSnapAllToSafe}
+                      className="w-full py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-md text-[9px] font-black uppercase tracking-widest transition-all"
+                    >
+                       Auto-Fix Gamut Issues
+                    </button>
+                  </div>
+                )}
+
                 {/* Color Profile */}
                 <div>
                   <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">Color Profile</label>

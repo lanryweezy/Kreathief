@@ -1,18 +1,22 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import { Layer, Artboard } from '../../types';
-import { useStore } from '../../store/useStore';
-import { SnappingOracle, SnapLine } from '../../utils/snappingOracle';
-import { SNAP_THRESHOLD } from './CanvasConstants';
+import { useCanvasPanning } from '../../hooks/canvas/useCanvasPanning';
+import { useCanvasSelection } from '../../hooks/canvas/useCanvasSelection';
+import { useLayerDragging } from '../../hooks/canvas/useLayerDragging';
+import { useLayerTransformation } from '../../hooks/canvas/useLayerTransformation';
+import { useDrawingMode } from '../../hooks/canvas/useDrawingMode';
 
 interface UseCanvasInteractionsProps {
   zoom: number;
   onZoomChangeValue: (z: number) => void;
   activeArtboard: Artboard | undefined;
+  artboards: Artboard[];
   layers: Layer[];
   selectedLayerIds: string[];
   onUpdateLayers: (updates: Record<string, Partial<Layer>>) => void;
   onSelectLayer: (id: string | null) => void;
   onMultiSelectLayer: (id: string, shift: boolean) => void;
+  setSelectedLayerIds: (ids: string[]) => void;
   onInteractionStart?: () => void;
   onContextMenu?: (e: { clientX: number; clientY: number }, layerId: string) => void;
   isDrawing: boolean;
@@ -23,57 +27,21 @@ export const useCanvasInteractions = ({
   zoom,
   onZoomChangeValue,
   activeArtboard,
+  artboards,
   layers,
   selectedLayerIds,
   onUpdateLayers,
   onSelectLayer,
   onMultiSelectLayer,
+  setSelectedLayerIds,
   onInteractionStart,
   onContextMenu,
   isDrawing,
   viewportRef,
 }: UseCanvasInteractionsProps) => {
-  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
-  const [isPanning, setIsPanning] = useState(false);
-  const [snapLines, setSnapLines] = useState<SnapLine[]>([]);
-  const [isSpacePressed, setIsSpacePressed] = useState(false);
-  const [selectionBox, setSelectionBox] = useState<{ start: { x: number; y: number }; end: { x: number; y: number } } | null>(null);
-
-  const [dragState, setDragState] = useState<{
-    isDragging: boolean;
-    startX: number;
-    startY: number;
-    initialPositions: Record<string, { x: number; y: number }>;
-  } | null>(null);
-
-  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const lastPinchDistanceRef = useRef<number | null>(null);
-  const panOffsetRef = useRef(panOffset);
-  useEffect(() => {
-    panOffsetRef.current = panOffset;
-  }, [panOffset]);
-
-  const panStartRef = useRef({ x: 0, y: 0 });
-  const bulkDragPreviewRef = useRef<Record<string, Partial<Layer>>>({});
-  const dragUpdateBuffer = useRef<Record<string, Partial<Layer>>>({});
+  
   const layerRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const staticLayersRef = useRef<Layer[]>([]); // Drag Optimization: Cache non-moving layers
-
-  const zoomRef = useRef(zoom);
-  const isPanningRef = useRef(isPanning);
-  const selectionBoxRef = useRef(selectionBox);
-  const dragStateRef = useRef(dragState);
-  const activeArtboardRef = useRef(activeArtboard);
-  const layersRef = useRef(layers);
-
-  useEffect(() => {
-    zoomRef.current = zoom;
-    isPanningRef.current = isPanning;
-    selectionBoxRef.current = selectionBox;
-    dragStateRef.current = dragState;
-    activeArtboardRef.current = activeArtboard;
-    layersRef.current = layers;
-  }, [zoom, isPanning, selectionBox, dragState, activeArtboard, layers]);
+  const lastPinchDistanceRef = useRef<number | null>(null);
 
   const triggerHaptic = useCallback((pattern: number | number[] = 10) => {
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
@@ -85,22 +53,89 @@ export const useCanvasInteractions = ({
     }
   }, []);
 
+  // 1. Panning Hook
+  const {
+    panOffset,
+    setPanOffset: _setPanOffset,
+    isPanning,
+    setIsPanning: _setIsPanning,
+    isSpacePressed,
+    setIsSpacePressed,
+    startPanning,
+    updatePanning,
+    stopPanning,
+    panOffsetRef: _panOffsetRef
+  } = useCanvasPanning();
+
+  const {
+    selectionBox,
+    startSelection,
+    updateSelection,
+    finalizeSelection,
+    selectionBoxRef
+  } = useCanvasSelection({
+    artboards,
+    onSelectLayer,
+    setSelectedLayerIds,
+    zoom,
+    panOffset,
+    viewportRef,
+  });
+
+  // 3. Dragging Hook
+  const {
+    dragState: _dragState,
+    snapLines,
+    startDragging,
+    updateDragging,
+    finalizeDragging,
+    dragStateRef
+  } = useLayerDragging({
+    layers,
+    selectedLayerIds,
+    activeArtboard,
+    zoom,
+    onUpdateLayers,
+    onSelectLayer,
+    onMultiSelectLayer,
+    onInteractionStart,
+    onContextMenu,
+    triggerHaptic
+  });
+
+  // 4. Transformation Hook
+  const {
+    transformState,
+    handleResizeStart,
+    handleRotateStart,
+    updateTransformation,
+    finalizeTransformation
+  } = useLayerTransformation({
+    layers,
+    zoom,
+    onUpdateLayers
+  });
+
+  // 5. Drawing Hook
+  const {
+    handleDrawingMouseDown,
+    handleDrawingMouseMove,
+    handleDrawingMouseUp,
+    isDrawingInternalRef: _isDrawingInternalRef
+  } = useDrawingMode({ zoom, isDrawing });
+
+  // ORCHESTRATION LOGIC
   const handleMouseDownContainer = useCallback(
     (e: React.MouseEvent) => {
       if (isSpacePressed) {
-        setIsPanning(true);
-        panStartRef.current = { x: e.clientX, y: e.clientY };
+        startPanning(e);
+      } else if (isDrawing) {
+        handleDrawingMouseDown(e);
       } else {
-        const rect = viewportRef.current?.getBoundingClientRect();
-        if (rect) {
-          const x = (e.clientX - rect.left - panOffsetRef.current.x) / zoomRef.current;
-          const y = (e.clientY - rect.top - panOffsetRef.current.y) / zoomRef.current;
-          setSelectionBox({ start: { x, y }, end: { x, y } });
-        }
-        onSelectLayer(null);
+        startSelection(e);
       }
     },
-    [isSpacePressed, onSelectLayer, viewportRef]
+    [isSpacePressed, isDrawing, startPanning, startSelection, handleDrawingMouseDown]
   );
 
   const handleMouseDownLayer = useCallback(
@@ -108,264 +143,61 @@ export const useCanvasInteractions = ({
       if (isSpacePressed || isDrawing || layer.locked) {
         return;
       }
-
-      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-      const isShift = 'shiftKey' in e ? e.shiftKey : false;
-
-      if (!('touches' in e)) {
-        e.stopPropagation();
-      }
-
-      // Group-First Selection: Find the top-most parent group that is not locked
-      let targetToSelect = layer;
-      const findTopMostGroup = (l: Layer): Layer => {
-        if (!l.groupId) return l;
-        const parent = layersRef.current.find(p => p.id === l.groupId);
-        if (parent && !parent.locked) {
-          return findTopMostGroup(parent);
-        }
-        return l;
-      };
-
-      if (!isShift) {
-        targetToSelect = findTopMostGroup(layer);
-      }
-
-      if ('touches' in e) {
-        longPressTimerRef.current = setTimeout(() => {
-          triggerHaptic(20);
-          onContextMenu?.({ clientX, clientY }, targetToSelect.id);
-          longPressTimerRef.current = null;
-        }, 600);
-      }
-
-      const isAlreadySelected = selectedLayerIds.includes(targetToSelect.id);
-      if (isShift) {
-        onMultiSelectLayer(targetToSelect.id, true);
-      } else if (!isAlreadySelected) {
-        onSelectLayer(targetToSelect.id);
-      }
-
-      onInteractionStart?.();
-
-      const idsToMove =
-        isShift || isAlreadySelected ? Array.from(new Set([...selectedLayerIds, targetToSelect.id])) : [targetToSelect.id];
-
-      const initialPositions: Record<string, { x: number; y: number }> = {};
-      const staticLayers: Layer[] = [];
-      
-      layersRef.current.forEach((l) => {
-        if (idsToMove.includes(l.id)) {
-          initialPositions[l.id] = { x: l.x, y: l.y };
-        } else {
-          staticLayers.push(l);
-        }
-      });
-
-      staticLayersRef.current = staticLayers;
-
-      setDragState({
-        isDragging: true,
-        startX: clientX,
-        startY: clientY,
-        initialPositions,
-      });
+      startDragging(e, layer);
     },
-    [
-      isSpacePressed,
-      isDrawing,
-      selectedLayerIds,
-      onMultiSelectLayer,
-      onSelectLayer,
-      onInteractionStart,
-      onContextMenu,
-      triggerHaptic,
-    ]
+    [isSpacePressed, isDrawing, startDragging]
   );
 
   const handleMouseMoveInternal = useCallback(
     (e: MouseEvent) => {
-      if (isPanningRef.current) {
-        const dx = e.clientX - panStartRef.current.x;
-        const dy = e.clientY - panStartRef.current.y;
-        const newOffset = {
-          x: panOffsetRef.current.x + dx,
-          y: panOffsetRef.current.y + dy,
-        };
-        setPanOffset(newOffset);
-        panOffsetRef.current = newOffset;
-        panStartRef.current = { x: e.clientX, y: e.clientY };
+      if (isPanning) {
+        updatePanning(e);
         return;
       }
 
       if (selectionBoxRef.current) {
-        const rect = viewportRef.current?.getBoundingClientRect();
-        if (rect) {
-          const x = (e.clientX - rect.left - panOffsetRef.current.x) / zoomRef.current;
-          const y = (e.clientY - rect.top - panOffsetRef.current.y) / zoomRef.current;
-          setSelectionBox((prev) => prev ? { ...prev, end: { x, y } } : null);
-        }
+        updateSelection(e);
         return;
       }
 
-      const currentDragState = dragStateRef.current;
-      const currentActiveArtboard = activeArtboardRef.current;
-      if (currentDragState?.isDragging && currentActiveArtboard) {
-        const dx = (e.clientX - currentDragState.startX) / zoomRef.current;
-        const dy = (e.clientY - currentDragState.startY) / zoomRef.current;
+      if (dragStateRef.current?.isDragging) {
+        updateDragging(e);
+        return;
+      }
 
-        // Optimization: Use cached initial positions and static layers
-        const movingLayers = layersRef.current.filter((l) => currentDragState.initialPositions[l.id]);
-        const currentMovingLayers = movingLayers.map((l) => ({
-          ...l,
-          x: currentDragState.initialPositions[l.id].x + dx,
-          y: currentDragState.initialPositions[l.id].y + dy,
-        }));
+      if (isDrawing) {
+        handleDrawingMouseMove(e);
+        return;
+      }
 
-        const snap = SnappingOracle.calculateSnaps(
-          currentMovingLayers,
-          staticLayersRef.current, // Use cached static layers
-          currentActiveArtboard,
-          SNAP_THRESHOLD,
-          zoomRef.current
-        );
-
-        setSnapLines(snap.lines);
-
-        const pivotId = movingLayers[0]?.id;
-        const finalDx = dx + (snap.x !== null && pivotId ? snap.x - (currentDragState.initialPositions[pivotId].x + dx) : 0);
-        const finalDy = dy + (snap.y !== null && pivotId ? snap.y - (currentDragState.initialPositions[pivotId].y + dy) : 0);
-
-        // Object pooling: Reuse dragUpdateBuffer instead of creating new object
-        const buffer = dragUpdateBuffer.current;
-        // Clear previous entries efficiently
-        for (const key in buffer) { delete buffer[key]; }
-        
-        Object.entries(currentDragState.initialPositions).forEach(([id, pos]) => {
-          buffer[id] = { x: pos.x + finalDx, y: pos.y + finalDy };
-        });
-        bulkDragPreviewRef.current = { ...buffer };
+      if (transformState) {
+        updateTransformation(e);
       }
     },
-    [viewportRef]
+    [isPanning, updatePanning, updateSelection, updateDragging, updateTransformation, selectionBoxRef, dragStateRef, transformState, isDrawing, handleDrawingMouseMove]
   );
 
   const handleMouseUpInternal = useCallback(() => {
-    const currentSelectionBox = selectionBoxRef.current;
-    if (currentSelectionBox) {
-      const x1 = Math.min(currentSelectionBox.start.x, currentSelectionBox.end.x);
-      const y1 = Math.min(currentSelectionBox.start.y, currentSelectionBox.end.y);
-      const x2 = Math.max(currentSelectionBox.start.x, currentSelectionBox.end.x);
-      const y2 = Math.max(currentSelectionBox.start.y, currentSelectionBox.end.y);
-
-      const layersInBox = layersRef.current.filter((l) => {
-        if (l.locked) {return false;}
-        const lw = (l as any).width || 0;
-        const lh = (l as any).height || 0;
-        return (
-          l.x >= x1 &&
-          l.y >= y1 &&
-          l.x + lw <= x2 &&
-          l.y + lh <= y2
-        );
-      });
-
-      if (layersInBox.length > 0) {
-        layersInBox.forEach((l, idx) => {
-          onMultiSelectLayer(l.id, idx > 0 || selectedLayerIds.length > 0);
-        });
-      }
-      setSelectionBox(null);
+    if (selectionBoxRef.current) {
+      finalizeSelection(selectedLayerIds);
     }
 
-    if (Object.keys(bulkDragPreviewRef.current).length > 0) {
-      onUpdateLayers(bulkDragPreviewRef.current);
-      bulkDragPreviewRef.current = {};
+    if (dragStateRef.current?.isDragging) {
+      finalizeDragging();
     }
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
+
+    if (transformState) {
+      finalizeTransformation();
     }
-    setDragState(null);
-    setIsPanning(false);
-    setSnapLines([]);
-  }, [onMultiSelectLayer, selectedLayerIds, onUpdateLayers]);
 
-  // DRAWING LOGIC
-  const isDrawingRef = useRef(false);
-  const currentPathRef = useRef<{ x: number; y: number }[]>([]);
-
-  const handleDrawingMouseDown = useCallback((e: React.MouseEvent) => {
-    isDrawingRef.current = true;
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    const x = (e.clientX - rect.left) / zoomRef.current;
-    const y = (e.clientY - rect.top) / zoomRef.current;
-    currentPathRef.current = [{ x, y }];
-    
-    const ctx = (e.target as HTMLCanvasElement).getContext('2d');
-    if (ctx) {
-      ctx.beginPath();
-      ctx.moveTo(x, y);
+    if (isDrawing) {
+      handleDrawingMouseUp();
     }
-  }, []);
+    
+    stopPanning();
+  }, [selectedLayerIds, finalizeSelection, finalizeDragging, finalizeTransformation, stopPanning, selectionBoxRef, dragStateRef, transformState, isDrawing, handleDrawingMouseUp]);
 
-  const handleDrawingMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDrawingRef.current) {return;}
-    const rect = (e.target as HTMLElement).getBoundingClientRect();
-    const x = (e.clientX - rect.left) / zoomRef.current;
-    const y = (e.clientY - rect.top) / zoomRef.current;
-    
-    currentPathRef.current.push({ x, y });
-    
-    const ctx = (e.target as HTMLCanvasElement).getContext('2d');
-    if (ctx) {
-      const { brushColor, brushSize, brushOpacity } = useStore.getState();
-      ctx.strokeStyle = brushColor;
-      ctx.lineWidth = brushSize / zoomRef.current;
-      ctx.globalAlpha = brushOpacity;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.lineTo(x, y);
-      ctx.stroke();
-    }
-  }, []);
-
-  const handleDrawingMouseUp = useCallback((e?: React.MouseEvent) => {
-    if (!isDrawingRef.current) {return;}
-    isDrawingRef.current = false;
-    
-    const { brushType, brushColor, brushSize, addLayer } = useStore.getState();
-    
-    // Convert path to VectorPath
-    const pathData = `M ${currentPathRef.current.map(p => `${p.x} ${p.y}`).join(' L ')}`;
-    
-    addLayer({
-      id: `draw_${Date.now()}`,
-      type: 'path',
-      name: `${brushType} Stroke`,
-      x: 0,
-      y: 0,
-      width: 1, // Will be recalculated by VectorUtils
-      height: 1,
-      rotation: 0,
-      opacity: 1,
-      locked: false,
-      visible: true,
-      pathData,
-      color: brushColor,
-      stroke: { color: brushColor, width: brushSize },
-    } as any);
-
-    // Clear temporary canvas
-    if (e && e.target) {
-      const ctx = (e.target as HTMLCanvasElement).getContext('2d');
-      if (ctx) {
-        ctx.clearRect(0, 0, (e.target as HTMLCanvasElement).width, (e.target as HTMLCanvasElement).height);
-      }
-    }
-  }, []);
-
+  // Global Event Listeners
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => handleMouseMoveInternal(e);
     const onMouseUp = () => handleMouseUpInternal();
@@ -378,51 +210,78 @@ export const useCanvasInteractions = ({
     };
   }, [handleMouseMoveInternal, handleMouseUpInternal]);
 
+  // Mobile Pinch/Zoom
   useEffect(() => {
     const el = viewportRef.current;
-    if (!el) {
+    if (!el) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        
+        // ZOOM AT CURSOR POSITION
+        const zoomFactor = 1.05; // More precise zoom
+        const newZoom = e.deltaY > 0 
+          ? Math.max(0.1, zoom / zoomFactor) 
+          : Math.min(10, zoom * zoomFactor);
+        
+        if (newZoom !== zoom && viewportRef.current) {
+          const rect = viewportRef.current.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
+
+          const worldX = (mouseX - panOffset.x) / zoom;
+          const worldY = (mouseY - panOffset.y) / zoom;
+
+          const newPanX = mouseX - worldX * newZoom;
+          const newPanY = mouseY - worldY * newZoom;
+
+          onZoomChangeValue(newZoom);
+          useStore.getState().setPanOffset({ x: newPanX, y: newPanY });
+        }
+      } else {
+        // SCROLL PANNING
+        e.preventDefault();
+        const scrollSpeed = 0.8;
+        if (e.shiftKey) {
+          useStore.getState().setPanOffset(prev => ({
+            x: prev.x - e.deltaY * scrollSpeed,
+            y: prev.y - e.deltaX * scrollSpeed
+          }));
+        } else {
+          useStore.getState().setPanOffset(prev => ({
+            x: prev.x - e.deltaX * scrollSpeed,
+            y: prev.y - e.deltaY * scrollSpeed
+          }));
+        }
+      }
+    };
+
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      el.removeEventListener('wheel', handleWheel);
+    };
+  }, [viewportRef, onZoomChangeValue, zoom, panOffset]);
+
+  const handleMouseDownCombined = useCallback((e: React.MouseEvent) => {
+    // Middle mouse button (button 1) always pans
+    if (e.button === 1) {
+      e.preventDefault();
+      startPanning(e);
       return;
     }
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (e.touches.length === 2) {
-        e.preventDefault();
-        const dist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-
-        if (lastPinchDistanceRef.current !== null) {
-          const delta = dist - lastPinchDistanceRef.current;
-          onZoomChangeValue(Math.max(0.1, Math.min(5, zoomRef.current + delta * 0.01)));
-        }
-        lastPinchDistanceRef.current = dist;
-      }
-    };
-
-    const handleTouchEnd = () => {
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current);
-        longPressTimerRef.current = null;
-      }
-      lastPinchDistanceRef.current = null;
-    };
-
-    el.addEventListener('touchmove', handleTouchMove, { passive: false });
-    el.addEventListener('touchend', handleTouchEnd);
-    return () => {
-      el.removeEventListener('touchmove', handleTouchMove);
-      el.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [viewportRef, onZoomChangeValue]);
+    handleMouseDownContainer(e);
+  }, [handleMouseDownContainer, startPanning]);
 
   return {
     panOffset,
     isPanning,
     isSpacePressed,
     setIsSpacePressed,
-    handleMouseDownContainer,
+    handleMouseDownCombined,
     handleMouseDownLayer,
+    handleResizeStart,
+    handleRotateStart,
     handleDrawingMouseDown,
     handleDrawingMouseMove,
     handleDrawingMouseUp,

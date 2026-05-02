@@ -68,21 +68,21 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, isAuto
             }
           }
         }}
-        className={`w-full flex flex-col items-center justify-center gap-1 py-2.5 transition-all relative group shrink-0 tooltip-trigger ${isActive ? 'text-white' : 'text-gray-500 hover:text-gray-200'}`}
+        className={`w-full flex flex-col items-center justify-center gap-1.5 py-3 transition-all relative group shrink-0 tooltip-trigger ${isActive ? 'text-white' : 'text-gray-500 hover:text-gray-200'}`}
         data-tooltip={item.label}
         aria-label={item.label}
       >
         {isActive && (
           <motion.div 
             layoutId="sidebar-active-indicator"
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-[#7d2ae8] to-[#6b23c5] rounded-r-full" 
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-gradient-to-b from-[#7d2ae8] via-[#00c4cc] to-[#ff00ff] rounded-r-full shadow-[0_0_15px_rgba(125,42,232,0.5)]" 
           />
         )}
-        <div className={`p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-[#7d2ae8]/20 text-[#7d2ae8] shadow-[0_0_15px_rgba(125,42,232,0.15)]' : 'group-hover:bg-[#252627]'}`}>
-          <item.icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
+        <div className={`p-2.5 rounded-[14px] transition-all duration-500 ${isActive ? 'bg-gradient-to-br from-[#7d2ae8]/30 to-pink-500/20 text-white shadow-[0_8px_20px_rgba(125,42,232,0.25)] border border-white/10' : 'group-hover:bg-white/5 group-hover:scale-110'}`}>
+          <item.icon className={`w-5 h-5 transition-all duration-500 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' : 'group-hover:text-gray-100'}`} />
         </div>
         {!isCollapsed && (
-          <span className={`text-[9px] font-bold tracking-tight transition-all ${isActive ? 'opacity-100 scale-100' : 'opacity-60 scale-95 group-hover:opacity-100'}`}>
+          <span className={`text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${isActive ? 'opacity-100 scale-100 text-white' : 'opacity-40 scale-90 group-hover:opacity-100 group-hover:scale-100'}`}>
             {item.label}
           </span>
         )}
@@ -91,8 +91,11 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, isAuto
   };
 
   return (
-    <div id="sidebar" className="w-[72px] bg-[#0e1318] flex flex-col items-center py-4 z-30 shrink-0 border-r border-[#1f1f1f] h-full overflow-y-auto no-scrollbar">
-      <div className="flex flex-col items-center w-full gap-2">
+    <div id="sidebar" className="w-[78px] bg-[#0c0c0e]/90 backdrop-blur-3xl flex flex-col items-center py-6 z-30 shrink-0 border-r border-white/5 h-full overflow-y-auto no-scrollbar relative shadow-[20px_0_50px_rgba(0,0,0,0.5)]">
+      {/* Visual Accent */}
+      <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-[#7d2ae8]/5 to-transparent pointer-events-none" />
+      
+      <div className="flex flex-col items-center w-full gap-3.5 px-2">
         <AnimatePresence mode="popLayout">
           {primaryTools.map((item) => (
             <motion.div
@@ -101,7 +104,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, isAuto
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 400 }}
               className="w-full"
             >
               {renderTool(item)}
@@ -109,23 +112,23 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, isAuto
           ))}
         </AnimatePresence>
 
-        <div className="w-8 h-px bg-white/5 my-2" />
+        <div className="w-10 h-[1px] bg-white/5 my-3" />
         
         <button
           onClick={() => setShowAllTools(!showAllTools)}
-          className={`p-2 rounded-xl transition-all ${showAllTools ? 'text-[#7d2ae8] bg-[#7d2ae8]/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+          className={`p-3.5 rounded-2xl transition-all duration-500 relative group ${showAllTools ? 'text-white bg-white/10 shadow-[0_0_20px_rgba(255,255,255,0.05)] border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
           title="All Tools"
         >
-          <Icons.LayoutGrid className="w-5 h-5" />
+          <Icons.LayoutGrid className={`w-5 h-5 transition-transform duration-700 ${showAllTools ? 'rotate-90' : 'group-hover:rotate-12'}`} />
         </button>
 
         <AnimatePresence>
           {showAllTools && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="w-full overflow-hidden flex flex-col gap-1"
+              initial={{ height: 0, opacity: 0, y: -10 }}
+              animate={{ height: 'auto', opacity: 1, y: 0 }}
+              exit={{ height: 0, opacity: 0, y: -10 }}
+              className="w-full overflow-hidden flex flex-col gap-1.5"
             >
               {secondaryTools.map(renderTool)}
             </motion.div>
@@ -133,10 +136,10 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, isAuto
         </AnimatePresence>
       </div>
       
-      <div className="mt-auto pt-4 border-t border-[#1f1f1f] w-full flex flex-col items-center gap-2">
+      <div className="mt-auto pt-6 border-t border-white/5 w-full flex flex-col items-center gap-4 px-2">
         <button
           onClick={onToggleCollapse}
-          className={`p-2.5 rounded-xl transition-all relative group tooltip-trigger ${isCollapsed ? 'text-[#7d2ae8] bg-[#7d2ae8]/10' : 'text-gray-500 hover:text-white hover:bg-[#252627]'}`}
+          className={`p-3.5 rounded-2xl transition-all duration-300 relative group tooltip-trigger ${isCollapsed ? 'text-[#00c4cc] bg-[#00c4cc]/10 shadow-[0_0_25px_rgba(0,196,204,0.15)] border border-[#00c4cc]/20' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
           data-tooltip={isCollapsed ? "Expand Panel" : "Collapse Panel"}
         >
           {isCollapsed ? <Icons.ArrowRight className="w-5 h-5" /> : <Icons.ArrowLeft className="w-5 h-5" />}
@@ -144,10 +147,11 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, isAuto
 
         <button
           onClick={() => useStore.getState().setShowFeedbackModal(true)}
-          className="p-2.5 rounded-xl transition-all relative group text-gray-500 hover:text-[#00c4cc] hover:bg-[#00c4cc]/10 tooltip-trigger"
+          className="p-3.5 rounded-2xl transition-all relative group text-gray-500 hover:text-pink-500 hover:bg-pink-500/10 hover:shadow-[0_0_25px_rgba(236,72,153,0.15)] border border-transparent hover:border-pink-500/20 tooltip-trigger"
           data-tooltip="Send Feedback"
         >
           <Icons.MessageSquare className="w-5 h-5" />
+          <span className="absolute top-3 right-3 w-2 h-2 bg-pink-500 rounded-full border-2 border-[#0c0c0e] animate-pulse"></span>
         </button>
       </div>
     </div>

@@ -91,8 +91,8 @@ const LayerItem = React.memo(
                else onSelect();
             }
           }}
-          className={`group relative flex items-center gap-3 p-2 border-b border-gray-800/50 cursor-pointer transition-all ${isSelected ? 'bg-[#7d2ae8]/10 border-l-2 border-l-[#7d2ae8]' : 'hover:bg-[#252627]'}`}
-          style={{ paddingLeft: isGrouped && !layer.isGroup ? '32px' : '10px' }}
+          className={`group relative flex items-center gap-3 px-4 py-3 border-b border-white/[0.03] cursor-pointer transition-all duration-200 ${isSelected ? 'bg-white/[0.05] border-l-4 border-l-[#7d2ae8] shadow-inner' : 'hover:bg-white/[0.03]'}`}
+          style={{ paddingLeft: isGrouped && !layer.isGroup ? '42px' : '16px' }}
         >
           {/* Mask Indicator Logic */}
           <div className="w-8 h-8 rounded bg-[#13161a] border border-gray-700 flex items-center justify-center overflow-hidden shrink-0 relative shadow-sm">
@@ -124,21 +124,22 @@ const LayerItem = React.memo(
         </div>
 
         {showSettings && (
-          <div className="bg-[#1a1d21] p-3 border-b border-gray-800 space-y-3 text-[10px]">
+          <div className="bg-white/5 backdrop-blur-xl p-4 border-b border-white/10 space-y-4 text-[11px] animate-in slide-in-from-top-1 duration-200">
             <div className="grid grid-cols-2 gap-4">
-               <div>
-                  <label className="text-gray-500 uppercase font-black">Opacity {Math.round(layer.opacity * 100)}%</label>
-                  <input type="range" min="0" max="1" step="0.01" value={layer.opacity} onChange={(e) => onUpdate({ opacity: parseFloat(e.target.value) })} className="w-full accent-[#7d2ae8]" />
+               <div className="space-y-2">
+                  <label className="text-gray-500 uppercase font-black tracking-widest text-[9px]">Opacity {Math.round(layer.opacity * 100)}%</label>
+                  <input type="range" min="0" max="1" step="0.01" value={layer.opacity} onChange={(e) => onUpdate({ opacity: parseFloat(e.target.value) })} className="w-full accent-[#7d2ae8] h-1 bg-white/10 rounded-full appearance-none cursor-pointer" />
                </div>
-               <div>
-                  <label className="text-gray-500 uppercase font-black">Masking</label>
-                  <button onClick={() => onUpdate({ isMasking: !layer.isMasking, clippingMaskType: 'clipping' })} className={`w-full py-1 rounded border transition-all ${layer.isMasking ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white' : 'border-gray-700 text-gray-400'}`}>
-                     {layer.isMasking ? 'Clipping Active' : 'Use as Mask'}
+               <div className="space-y-2">
+                  <label className="text-gray-500 uppercase font-black tracking-widest text-[9px]">Masking</label>
+                  <button onClick={() => onUpdate({ isMasking: !layer.isMasking, clippingMaskType: 'clipping' })} className={`w-full py-1.5 rounded-lg border text-[10px] font-bold uppercase transition-all ${layer.isMasking ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white shadow-lg' : 'border-white/10 text-gray-400 hover:border-white/20'}`}>
+                     {layer.isMasking ? 'Masking Active' : 'Use as Mask'}
                   </button>
                </div>
             </div>
-            <div className="flex justify-end pt-2 border-t border-gray-800">
-               <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="text-red-400 hover:text-red-300 font-bold uppercase tracking-tighter">Delete Layer</button>
+            <div className="flex justify-between items-center pt-3 border-t border-white/5">
+               <span className="text-gray-600 text-[9px] uppercase font-bold">Layer ID: {layer.id.substring(0, 8)}...</span>
+               <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="text-red-400 hover:text-red-300 font-black uppercase tracking-tighter transition-colors">Delete</button>
             </div>
           </div>
         )}
@@ -154,12 +155,14 @@ export const LayersPanel = () => {
   const layers = useMemo(() => artboards.find((a: Artboard) => a.id === activeArtboardId)?.layers || [], [artboards, activeArtboardId]);
 
   return (
-    <div className="flex flex-col h-full bg-[#13161a] border-l border-white/5">
-      <div className="p-4 border-b border-white/5 flex items-center justify-between">
-         <h3 className="text-[10px] font-black uppercase tracking-widest text-white">Layers List</h3>
-         <span className="text-[9px] font-mono text-gray-500">{layers.length} Total</span>
+    <div className="flex flex-col h-full bg-transparent">
+      <div className="p-5 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+         <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-white/90">Layers List</h3>
+         <div className="flex items-center gap-2">
+           <span className="text-[10px] font-mono text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">{layers.length}</span>
+         </div>
       </div>
-      <div className="flex-1 overflow-y-auto no-scrollbar">
+      <div className="flex-1 overflow-y-auto no-scrollbar py-2">
         {[...layers].reverse().map((layer, idx) => (
           <LayerItem
             key={layer.id}

@@ -7,7 +7,7 @@ export const createNebulaDemoDesign = (): Artboard => {
     // Background Decoration 1
     {
       id: uuidv4(),
-      type: 'shape',
+      type: 'circle',
       name: 'Nebula Glow Left',
       x: -200,
       y: -100,
@@ -17,14 +17,13 @@ export const createNebulaDemoDesign = (): Artboard => {
       opacity: 0.4,
       visible: true,
       locked: true,
-      shapeType: 'ellipse',
-      fill: { color: '#7d2ae8', opacity: 0.3 },
+      color: '#7d2ae8',
       filters: { blur: 120 }
     } as any,
     // Background Decoration 2
     {
       id: uuidv4(),
-      type: 'shape',
+      type: 'circle',
       name: 'Nebula Glow Right',
       x: 700,
       y: 300,
@@ -34,8 +33,7 @@ export const createNebulaDemoDesign = (): Artboard => {
       opacity: 0.3,
       visible: true,
       locked: true,
-      shapeType: 'ellipse',
-      fill: { color: '#00f2ff', opacity: 0.2 },
+      color: '#00f2ff',
       filters: { blur: 100 }
     } as any,
     // Navbar Logo
@@ -116,19 +114,18 @@ export const createNebulaDemoDesign = (): Artboard => {
     // CTA Button Background
     {
       id: uuidv4(),
-      type: 'shape',
+      type: 'rectangle',
       name: 'CTA Button',
       x: 60,
       y: 490,
       width: 200,
       height: 60,
       rotation: 0,
-      opacity: 1,
       visible: true,
       locked: false,
-      shapeType: 'rectangle',
       cornerRadius: 12,
-      fill: { color: '#7d2ae8', opacity: 1 },
+      color: '#7d2ae8',
+      opacity: 1,
       stroke: { color: '#ffffff', width: 0, opacity: 0 }
     } as any,
     // CTA Button Text
@@ -159,19 +156,18 @@ export const createNebulaDemoDesign = (): Artboard => {
     // Glass Card Background
     {
       id: uuidv4(),
-      type: 'shape',
+      type: 'rectangle',
       name: 'Glass Card',
       x: 750,
       y: 200,
       width: 400,
       height: 260,
       rotation: -5,
-      opacity: 1,
       visible: true,
       locked: false,
-      shapeType: 'rectangle',
       cornerRadius: 24,
-      fill: { color: '#ffffff', opacity: 0.05 },
+      color: '#ffffff',
+      opacity: 0.05,
       stroke: { color: '#ffffff', width: 1, opacity: 0.2 },
       filters: { backdropBlur: 20, blur: 0, brightness: 100, contrast: 100, saturation: 100, grayscale: 0, sepia: 0, hueRotate: 0, opacity: 1 }
     } as any,
@@ -228,18 +224,17 @@ export const createNebulaDemoDesign = (): Artboard => {
     // Card Chips/Elements
     {
       id: uuidv4(),
-      type: 'shape',
+      type: 'circle',
       name: 'Card Glow',
       x: 1000,
       y: 230,
       width: 100,
       height: 100,
       rotation: 0,
-      opacity: 0.4,
       visible: true,
       locked: true,
-      shapeType: 'ellipse',
-      fill: { color: '#00f2ff', opacity: 0.4 },
+      color: '#00f2ff',
+      opacity: 0.4,
       filters: { blur: 40 }
     } as any,
   ];

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { ToastContainer } from './components/Toast';
 import { useStore } from './store/useStore';
@@ -6,6 +6,7 @@ import { authService } from './services/authService';
 import { storageService } from './services/storageService';
 import { User, Project } from './types';
 import { performanceService } from './services/performanceService';
+import { log } from './utils/log';
 
 import { WelcomeModal } from './components/modals/WelcomeModal';
 import { GuidedTour, TourStep } from './components/modals/GuidedTour';
@@ -18,12 +19,14 @@ import { FeedbackModal } from './components/modals/FeedbackModal';
 import { PresentationModal } from './components/modals/PresentationModal';
 import { VersionDiffModal } from './components/modals/VersionDiffModal';
 import { AboutPage, PrivacyPage, TermsPage, SecurityPage, ContactPage, HelpCenterPage, ChangelogPage, APIPage } from './components/pages/StaticPages';
+import { parseShareLink } from './utils/shareUtils';
 
 // Lazy load main views for code splitting
 const Auth = React.lazy(() => import('./components/Auth').then((module) => ({ default: module.Auth })));
 const Dashboard = React.lazy(() => import('./components/Dashboard').then((module) => ({ default: module.Dashboard })));
 const Editor = React.lazy(() => import('./components/Editor').then((module) => ({ default: module.Editor })));
 const AuthCallback = React.lazy(() => import('./components/AuthCallback').then((module) => ({ default: module.AuthCallback })));
+import { EditorSkeleton } from './components/EditorSkeleton';
 
 const LoadingFallback = () => (
   <div className="flex h-screen w-full items-center justify-center bg-[#1f1f1f] flex-col gap-4">
@@ -35,7 +38,10 @@ const LoadingFallback = () => (
 const App: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, setUser, toasts, removeToast } = useStore();
+  const user = useStore((state) => state.user);
+  const setUser = useStore((state) => state.setUser);
+  const toasts = useStore((state) => state.toasts);
+  const removeToast = useStore((state) => state.removeToast);
   const [currentProject, setCurrentProject] = useState<Project | undefined>(undefined);
   const [loading, setLoading] = useState(true);
 
@@ -44,42 +50,38 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const initApp = async () => {
-      // Initialize performance and storage
-      performanceService.init();
-      await storageService.init();
+      // Safety timeout to ensure app always boots
+      const safetyTimeout = setTimeout(() => {
+        setLoading(false);
+        console.warn('App initialization timed out, forcing mount');
+      }, 5000);
 
-      // Check Supabase auth session
-      const savedUser = await authService.getSession();
-      if (savedUser) {
-        setUser(savedUser);
-        if (location.pathname === '/' || location.pathname === '/auth') {
-          navigate('/dashboard');
+      try {
+        // Initialize performance and storage
+        performanceService.init();
+        await storageService.init();
+
+        // Check Supabase auth session
+        const savedUser = await authService.getSession();
+        if (savedUser) {
+          setUser(savedUser);
         }
-      }
-
-      // Handle share links
-      if (window.location.search.includes('share=')) {
-        const { parseShareLink } = await import('./utils/shareUtils');
-        const sharedProject = await parseShareLink(window.location.href);
-        if (sharedProject) {
-          setCurrentProject(sharedProject);
-          if (!savedUser) {
-            setUser({ id: 'guest', name: 'Guest', email: 'guest@kreathief.app', plan: 'free' });
-          }
-          navigate('/editor');
-          window.history.replaceState({}, '', window.location.pathname);
+        
+        const seenOnboarding = localStorage.getItem('kreathief_onboarding_seen');
+        if (!seenOnboarding) {
+          setShowWelcome(true);
         }
+      } catch (error) {
+        console.error('App initialization failed:', error);
+      } finally {
+        clearTimeout(safetyTimeout);
+        setLoading(false);
       }
-
-      const seenOnboarding = localStorage.getItem('kreathief_onboarding_seen');
-      if (!seenOnboarding) {
-        setShowWelcome(true);
-      }
-
-      setLoading(false);
     };
     initApp();
+  }, [setUser]); // Only run on mount (setUser is stable)
 
+  useEffect(() => {
     // Listen for auth state changes
     const unsubscribe = authService.onAuthChange((updatedUser) => {
       setUser(updatedUser);
@@ -88,14 +90,43 @@ const App: React.FC = () => {
       }
     });
 
+    if (window.location.search.includes('share=')) {
+      const handleShare = async () => {
+        try {
+          const sharedProject = await parseShareLink(window.location.href);
+          if (sharedProject) {
+            setCurrentProject(sharedProject);
+            // Auto-login guest if needed
+            if (!useStore.getState().user) {
+              setUser({ id: 'guest', name: 'Guest', email: 'guest@kreathief.app', plan: 'free' });
+            }
+            navigate('/editor');
+            window.history.replaceState({}, '', window.location.pathname);
+          }
+        } catch (shareErr) {
+          log.error('Failed to parse share link:', shareErr);
+        }
+      };
+      handleShare();
+    }
+
     return () => {
       unsubscribe();
     };
-  }, [location.pathname, navigate]);
+  }, [location.pathname, navigate, setUser]);
+
+  // Local-First: Background Persistence
+  useEffect(() => {
+    // Redirect if already logged in and on landing/auth pages
+    if (user && (location.pathname === '/' || location.pathname === '/auth')) {
+      navigate('/dashboard');
+    }
+  }, [user, location.pathname, navigate]);
 
   // Local-First: Background Persistence
   // Mirror state to IndexedDB every 2 seconds if changes detected
   useEffect(() => {
+    if (!user) return;
     const state = useStore.getState();
     if (!state.projectId) return;
 
@@ -113,7 +144,7 @@ const App: React.FC = () => {
     }, 2000);
 
     return () => clearTimeout(timeout);
-  }, [location.pathname]); // Triggered on navigation and initial load, more fine-grained updates should ideally be in store middleware
+  }, [location.pathname, user]); 
 
   const handleLogin = (user: User) => {
     setUser(user);
@@ -208,6 +239,22 @@ const App: React.FC = () => {
     },
   ];
 
+  const defaultProject = useMemo(() => {
+    if (location.pathname !== '/editor' || useStore.getState().projectId) return undefined;
+    return {
+      id: 'default',
+      name: 'Untitled',
+      updatedAt: Date.now(),
+      state: {
+        artboards: [{ id: 'default', name: 'Artboard 1', x: 0, y: 0, width: 1080, height: 1080, layers: [] }],
+        activeArtboardId: 'default',
+        canvasBackgroundColor: '#ffffff',
+        canvasFilters: { brightness: 100, contrast: 100, saturation: 100, sepia: 0, grayscale: 0, blur: 0, opacity: 1, vignette: 0, hueRotate: 0 },
+        canvasSize: { width: 1080, height: 1080, name: 'Square' }
+      }
+    } as any;
+  }, [location.pathname]);
+
   if (loading) {
     return <LoadingFallback />;
   }
@@ -242,22 +289,13 @@ const App: React.FC = () => {
           <Route
             path="/editor"
             element={user ? (
-              <Editor
-                initialProject={currentProject || (location.pathname === '/editor' ? (useStore.getState().projectId ? undefined : {
-                  id: 'default',
-                  name: 'Untitled',
-                  updatedAt: Date.now(),
-                  state: {
-                    artboards: [{ id: 'default', name: 'Artboard 1', x: 0, y: 0, width: 1080, height: 1080, layers: [] }],
-                    activeArtboardId: 'default',
-                    canvasBackgroundColor: '#ffffff',
-                    canvasFilters: { brightness: 100, contrast: 100, saturation: 100, sepia: 0, grayscale: 0, blur: 0, opacity: 1, vignette: 0, hueRotate: 0 },
-                    canvasSize: { width: 1080, height: 1080, name: 'Square' }
-                  }
-                } as any) : undefined)}
-                onBack={handleBackToDashboard}
-                user={user}
-              />
+              <Suspense fallback={<EditorSkeleton />}>
+                <Editor
+                  initialProject={currentProject || defaultProject}
+                  onBack={handleBackToDashboard}
+                  user={user}
+                />
+              </Suspense>
             ) : <Navigate to="/auth" />}
           />
           <Route path="/blog" element={<BlogList />} />

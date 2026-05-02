@@ -12,6 +12,7 @@ import { CanvasGuides } from './canvas/CanvasGuides';
 import { SelectionMarquee } from './canvas/SelectionMarquee';
 import { useTouchGestures } from '../hooks/useTouchGestures';
 import { Icons } from '../constants';
+import { ContextualToolbar } from './canvas/ContextualToolbar';
 
 interface CanvasProps {
   zoom: number;
@@ -56,7 +57,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   );
 
   const layers = useMemo(() => activeArtboard?.layers || [], [activeArtboard]);
-  const allLayers = useMemo(() => artboards.flatMap((a) => a.layers), [artboards]);
+  const allLayers = useMemo(() => artboards.flatMap((a) => a.layers || []), [artboards]);
 
   const onUpdateLayers = useStore((state) => state.updateLayers);
   const onToggleGrid = useStore((state) => state.setShowGrid);
@@ -84,38 +85,70 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     panOffset,
     isPanning,
     isSpacePressed,
-    handleMouseDownContainer,
+    handleMouseDownCombined,
     handleMouseDownLayer,
     handleDrawingMouseDown,
     handleDrawingMouseMove,
     handleDrawingMouseUp,
     layerRefs,
     snapLines,
-    selectionBox
+    selectionBox,
+    handleResizeStart,
+    handleRotateStart,
   } = useCanvasInteractions({
       zoom: zoom || 1,
       onZoomChangeValue: onZoomChange || (() => {}),
       activeArtboard,
+      artboards,
       layers,
       selectedLayerIds,
       onUpdateLayers: (updates) => useStore.getState().updateLayers(updates),
       onSelectLayer: (id) => useStore.getState().selectLayer(id),
       onMultiSelectLayer: (id, shift) => useStore.getState().multiSelectLayer(id, shift),
+      setSelectedLayerIds: (ids) => useStore.getState().setSelectedLayerIds(ids),
       onInteractionStart,
       onContextMenu: (pos, id) => setContextMenu({ x: pos.clientX, y: pos.clientY, layerId: id }),
       isDrawing,
       viewportRef,
     });
 
-  // Mobile Touch Gestures Integration
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-  const initialZoom = useRef(zoom);
+  // Initial Centering
+  useEffect(() => {
+    if (activeArtboard && viewportRef.current) {
+      const v = viewportRef.current;
+      const nx = v.clientWidth / 2 - (activeArtboard.x + activeArtboard.width / 2) * zoom;
+      const ny = v.clientHeight / 2 - (activeArtboard.y + activeArtboard.height / 2) * zoom;
+      useStore.getState().setPanOffset({ x: nx, y: ny });
+    }
+  }, []); // Only once on mount
 
-  const handlePinchZoom = useCallback((scale: number) => {
+  const initialZoom = useRef(zoom);
+  
+  // Update initialZoom when zoom changes but not currently pinching
+  // (We'll assume pinching if touch count > 1)
+  useEffect(() => {
+    initialZoom.current = zoom;
+  }, [zoom]);
+
+  const handlePinchZoom = useCallback((scale: number, center: { x: number; y: number }) => {
     const newZoom = initialZoom.current * scale;
     const clampedZoom = Math.max(0.1, Math.min(10, newZoom));
-    onZoomChange(clampedZoom);
-  }, [onZoomChange]);
+    
+    if (clampedZoom !== zoom && viewportRef.current) {
+      const rect = viewportRef.current.getBoundingClientRect();
+      const mouseX = center.x - rect.left;
+      const mouseY = center.y - rect.top;
+
+      const worldX = (mouseX - panOffset.x) / zoom;
+      const worldY = (mouseY - panOffset.y) / zoom;
+
+      const newPanX = mouseX - worldX * clampedZoom;
+      const newPanY = mouseY - worldY * clampedZoom;
+
+      onZoomChange(clampedZoom);
+      useStore.getState().setPanOffset({ x: newPanX, y: newPanY });
+    }
+  }, [onZoomChange, zoom, panOffset]);
 
   const handleRotate = useCallback((angle: number) => {
     if (selectedLayerIds.length === 1) {
@@ -127,7 +160,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   }, [selectedLayerIds, layers, onUpdateLayers]);
 
   useTouchGestures(viewportRef, {
-    enabled: isMobile,
+    enabled: true, // Support touch on all platforms (tablets, laptops)
     onPinchZoom: handlePinchZoom,
     onRotate: handleRotate,
     minZoom: 0.1,
@@ -147,10 +180,12 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     setContextMenu({ x: e.clientX, y: e.clientY, layerId });
   }, []);
 
-  const handleTextDoubleClick = useCallback((e: React.MouseEvent, layer: TextLayer) => {
-    e.stopPropagation();
-    setEditingTextId(layer.id);
-    setTimeout(() => textEditRef.current?.focus(), 0);
+  const handleTextDoubleClick = useCallback((e: React.MouseEvent, layer: Layer) => {
+    if (layer.type === 'text') {
+      e.stopPropagation();
+      setEditingTextId(layer.id);
+      setTimeout(() => textEditRef.current?.focus(), 0);
+    }
   }, []);
 
   const finishEditingText = useCallback(() => {
@@ -198,62 +233,28 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     <ErrorBoundary componentName="Canvas" variant="widget">
       <div className="flex-1 relative bg-[#13161a] overflow-hidden flex flex-col">
         <style>{ANIMATION_STYLES}</style>
-        <div className="h-10 bg-[#1e1e1e] border-b border-gray-700 flex items-center justify-between px-4 z-10 shrink-0">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onZoomChange(Math.max(0.1, zoom - 0.1))}
-              className="p-1 hover:bg-gray-700 rounded text-gray-400 transition-colors"
-              title="Zoom Out"
-            >
-              <Icons.ZoomOut className="w-4 h-4" />
-            </button>
-            <div className="flex items-center gap-1 min-w-[60px] justify-center px-2 py-1 bg-white/5 rounded border border-white/10 text-[11px] font-mono text-gray-400">
-              {Math.round(zoom * 100)}%
-            </div>
-            <button
-              onClick={() => onZoomChange(Math.min(5, zoom + 0.1))}
-              className="p-1 hover:bg-gray-700 rounded text-gray-400 transition-colors"
-              title="Zoom In"
-            >
-              <Icons.ZoomIn className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => {
-                if (activeArtboard) {
-                  const minZoomX = viewportSize.width / activeArtboard.width;
-                  const minZoomY = viewportSize.height / activeArtboard.height;
-                  const fitZoom = Math.min(minZoomX, minZoomY, 1);
-                  onZoomChange(Math.max(0.1, fitZoom));
-                }
-              }}
-              className="ml-2 px-2 py-1 text-xs bg-[#7d2ae8]/20 text-[#7d2ae8] rounded hover:bg-[#7d2ae8]/30 transition-colors"
-              title="Fit to Screen"
-            >
-              Fit
-            </button>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onToggleGrid(!showGrid)}
-              className={`p-2 rounded ${showGrid ? 'text-[#7d2ae8] bg-[#7d2ae8]/10' : 'text-gray-400'}`}
-            >
-              <Icons.Grid className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => onToggleRulers(!showRulers)}
-              className={`p-2 rounded ${showRulers ? 'text-[#7d2ae8] bg-[#7d2ae8]/10' : 'text-gray-400'}`}
-            >
-              <Icons.Layout className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
 
+        
         <div
           ref={viewportRef}
-          className="flex-1 overflow-hidden relative bg-gray-900 touch-none select-none canvas-container"
-          style={{ cursor: isPanning ? 'grabbing' : isSpacePressed ? 'grab' : 'default' }}
-          onMouseDown={handleMouseDownContainer}
+          className="flex-1 overflow-hidden relative bg-[#13161a] touch-none select-none canvas-container"
+           style={{ cursor: isPanning ? 'grabbing' : isSpacePressed ? 'grab' : isDrawing ? 'crosshair' : 'default' }}
+          onMouseDown={handleMouseDownCombined}
         >
+          {/* Global Workspace Grid - Responds to Zoom */}
+          {showGrid && (
+            <div 
+              className="absolute inset-0 pointer-events-none opacity-[0.03]"
+              style={{
+                backgroundImage: `
+                  linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)
+                `,
+                backgroundSize: `${100 * zoom}px ${100 * zoom}px`,
+                backgroundPosition: `${panOffset.x}px ${panOffset.y}px`,
+              }}
+            />
+          )}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -272,8 +273,8 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
                 layerRefs.current[id] = el;
               }, [layerRefs])}
               handleMouseDownLayer={handleMouseDownLayer}
-              handleResizeStart={() => {}}
-              handleRotateStart={() => {}}
+              handleResizeStart={handleResizeStart}
+              handleRotateStart={handleRotateStart}
               handleContextMenu={handleContextMenu}
               handleTextDoubleClick={handleTextDoubleClick}
               handleDropShape={() => {}}
@@ -309,8 +310,8 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               selectedLayerIds={selectedLayerIds}
               selectedLayers={selectedLayers}
               zoom={zoom}
-              handleResizeStart={() => {}}
-              handleRotateStart={() => {}}
+              handleResizeStart={handleResizeStart}
+              handleRotateStart={handleRotateStart}
               contextMenu={contextMenu}
               setContextMenu={setContextMenu}
             />

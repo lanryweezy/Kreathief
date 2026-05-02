@@ -34,8 +34,9 @@ export class AuthService {
             const user: User = {
               id: session.user.id,
               email: session.user.email || '',
-              name: profile?.name || session.user.email?.split('@')[0] || 'User',
+              name: profile?.name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
               plan: profile?.plan || 'free',
+              avatar: profile?.avatar || session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture || `https://api.dicebear.com/7.x/bottts/svg?seed=${session.user.id}`,
             };
             onAuthChange(user);
           })
@@ -249,8 +250,9 @@ export class AuthService {
       const user: User = {
         id: session.user.id,
         email: session.user.email || '',
-        name: profile?.name || session.user.email?.split('@')[0] || 'User',
+        name: profile?.name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
         plan: profile?.plan || 'free',
+        avatar: profile?.avatar || session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture || `https://api.dicebear.com/7.x/bottts/svg?seed=${session.user.id}`,
       };
 
       log.debug('[AuthService] Retrieved Supabase session', { userId: user.id });

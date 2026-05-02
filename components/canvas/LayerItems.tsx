@@ -55,17 +55,20 @@ const layerPropsAreEqual = (prevProps: LayerItemProps, nextProps: LayerItemProps
   const p = prevProps.layer;
   const n = nextProps.layer;
 
-  // Helper for shallow object comparison
-  const shallowObjEqual = (o1: any, o2: any) => {
+  // Deep equality helper for nested objects (filters, stroke, shadow)
+  const deepEqual = (o1: any, o2: any) => {
     if (o1 === o2) return true;
-    if (!o1 || !o2) return false;
+    if (!o1 || !o2 || typeof o1 !== 'object' || typeof o2 !== 'object') return o1 === o2;
     const keys1 = Object.keys(o1);
     const keys2 = Object.keys(o2);
     if (keys1.length !== keys2.length) return false;
-    return keys1.every(key => o1[key] === o2[key]);
+    for (const key of keys1) {
+      if (!deepEqual(o1[key], o2[key])) return false;
+    }
+    return true;
   };
 
-  // Comprehensive comparison to replace the 'dirty' flag logic
+  // Comprehensive comparison
   return (
     p.id === n.id &&
     p.x === n.x &&
@@ -77,9 +80,10 @@ const layerPropsAreEqual = (prevProps: LayerItemProps, nextProps: LayerItemProps
     p.visible === n.visible &&
     p.locked === n.locked &&
     p.blendMode === n.blendMode &&
-    shallowObjEqual(p.filters, n.filters) &&
-    shallowObjEqual(p.stroke, n.stroke) &&
-    shallowObjEqual(p.shadow, n.shadow) &&
+    p.groupId === n.groupId &&
+    deepEqual(p.filters, n.filters) &&
+    deepEqual(p.stroke, n.stroke) &&
+    deepEqual(p.shadow, n.shadow) &&
     (p as any).text === (n as any).text &&
     (p as any).fontFamily === (n as any).fontFamily &&
     (p as any).fontSize === (n as any).fontSize &&
@@ -130,6 +134,8 @@ export const ImageLayerItem = React.memo(
               : maskPath
                 ? { clipPath: maskPath }
                 : {}),
+          backdropFilter: imgLayer.filters?.backdropBlur ? `blur(${imgLayer.filters.backdropBlur}px)` : 'none',
+          WebkitBackdropFilter: imgLayer.filters?.backdropBlur ? `blur(${imgLayer.filters.backdropBlur}px)` : 'none',
         }),
         [imgLayer.cornerRadius, animStyle, imgLayer.maskType, imgLayer.maskPath, imgLayer.maskDataURL, maskPath]
       );
@@ -141,7 +147,7 @@ export const ImageLayerItem = React.memo(
           transform: `translate(${-crop.x * imgScale}px, ${-crop.y * imgScale}px) scale(${scaleX}, ${scaleY})`,
           transformOrigin: 'top left',
           filter: (imgLayer.filters && !optimizedSrc)
-            ? `${imgLayer.filters.artisticFilter ? `url(#${imgLayer.filters.artisticFilter}) ` : ''}brightness(${imgLayer.filters.brightness}%) contrast(${imgLayer.filters.contrast}%) saturate(${imgLayer.filters.saturation}%) grayscale(${imgLayer.filters.grayscale}%) blur(${imgLayer.filters.blur}px) sepia(${imgLayer.filters.sepia}%) hue-rotate(${imgLayer.filters.hueRotate}deg)`
+            ? `${imgLayer.filters.artisticFilter ? `url(#${imgLayer.filters.artisticFilter}) ` : ''}brightness(${imgLayer.filters.brightness ?? 100}%) contrast(${imgLayer.filters.contrast ?? 100}%) saturate(${imgLayer.filters.saturation ?? 100}%) grayscale(${imgLayer.filters.grayscale ?? 0}%) blur(${imgLayer.filters.blur ?? 0}px) sepia(${imgLayer.filters.sepia ?? 0}%) hue-rotate(${imgLayer.filters.hueRotate ?? 0}deg)`
             : 'none',
         }),
         [naturalWidth, imgScale, crop.x, crop.y, scaleX, scaleY, imgLayer.filters, optimizedSrc]
@@ -237,19 +243,24 @@ export const ShapeLayerItem = React.memo(
       const innerStyle = React.useMemo(
         () => ({
           ...animStyle,
-          backgroundColor: shapeLayer.color,
-          backgroundImage: shapeLayer.imageFill
-            ? `url(${shapeLayer.imageFill.src})`
-            : shapeLayer.backgroundImage
-              ? `url(${shapeLayer.backgroundImage})`
-              : 'none',
+          backgroundColor: shapeLayer.type === 'path' ? 'transparent' : shapeLayer.color,
+          backgroundImage: shapeLayer.type === 'path' 
+            ? 'none' 
+            : shapeLayer.imageFill
+              ? `url(${shapeLayer.imageFill.src})`
+              : shapeLayer.backgroundImage
+                ? `url(${shapeLayer.backgroundImage})`
+                : 'none',
           backgroundSize: shapeLayer.imageFill?.fit === 'contain' ? 'contain' : 'cover',
-          borderRadius: shapeLayer.type !== 'path' ? `${shapeLayer.cornerRadius}px` : undefined,
+          borderRadius: shapeLayer.type === 'circle' ? '50%' : shapeLayer.type !== 'path' ? `${shapeLayer.cornerRadius}px` : undefined,
           clipPath: shapeLayer.type === 'path' ? undefined : clipPath,
+          WebkitClipPath: shapeLayer.type === 'path' ? undefined : clipPath,
           filter: shapeLayer.filters
-            ? `brightness(${shapeLayer.filters.brightness}%) contrast(${shapeLayer.filters.contrast}%) saturate(${shapeLayer.filters.saturation}%) grayscale(${shapeLayer.filters.grayscale}%) blur(${shapeLayer.filters.blur}px)`
+            ? `brightness(${shapeLayer.filters.brightness ?? 100}%) contrast(${shapeLayer.filters.contrast ?? 100}%) saturate(${shapeLayer.filters.saturation ?? 100}%) grayscale(${shapeLayer.filters.grayscale ?? 0}%) blur(${shapeLayer.filters.blur ?? 0}px)`
             : 'none',
-          ...(maskPath ? { clipPath: maskPath } : {}),
+          backdropFilter: shapeLayer.filters?.backdropBlur ? `blur(${shapeLayer.filters.backdropBlur}px)` : 'none',
+          WebkitBackdropFilter: shapeLayer.filters?.backdropBlur ? `blur(${shapeLayer.filters.backdropBlur}px)` : 'none',
+          ...(maskPath ? { clipPath: maskPath, WebkitClipPath: maskPath } : {}),
         }),
         [animStyle, shapeLayer, clipPath, maskPath]
       );
@@ -260,6 +271,8 @@ export const ShapeLayerItem = React.memo(
           role="img"
           data-testid={`shape-layer-${shapeLayer.id}`}
           data-layer-id={shapeLayer.id}
+          data-debug-type={shapeLayer.type}
+          data-debug-path={shapeLayer.pathData}
           aria-label={shapeLayer.name || 'Shape layer'}
           onMouseDown={(e) => onMouseDown(e, shapeLayer)}
           onContextMenu={(e) => onContextMenu(e, shapeLayer.id)}
@@ -270,9 +283,34 @@ export const ShapeLayerItem = React.memo(
             <div className="absolute -inset-0.5 border border-cyan-400/50 rounded-sm pointer-events-none z-40"></div>
           )}
           <div className="w-full h-full relative" style={innerStyle}>
-            {shapeLayer.type === 'path' && (
-              <svg width="100%" height="100%" viewBox={shapeLayer.viewBox} style={{ overflow: 'visible' }}>
+            {shapeLayer.pathData && (
+              <svg 
+                width="100%" 
+                height="100%" 
+                viewBox={shapeLayer.viewBox || `0 0 ${shapeLayer.width} ${shapeLayer.height}`} 
+                style={{ overflow: 'visible' }}
+                preserveAspectRatio="none"
+              >
                 <defs>
+                  {shapeLayer.gradient && shapeLayer.gradient.enabled && (
+                    shapeLayer.gradient.type === 'radial' ? (
+                      <radialGradient id={`gradient-${shapeLayer.id}`} cx="50%" cy="50%" r="50%">
+                        {shapeLayer.gradient.colors.map((c: any, idx: number) => (
+                          <stop key={idx} offset={`${c.position * 100}%`} stopColor={c.color} />
+                        ))}
+                      </radialGradient>
+                    ) : (
+                      <linearGradient 
+                        id={`gradient-${shapeLayer.id}`} 
+                        x1="0%" y1="0%" x2="100%" y2="0%"
+                        gradientTransform={shapeLayer.gradient.angle ? `rotate(${shapeLayer.gradient.angle}, 0.5, 0.5)` : undefined}
+                      >
+                        {shapeLayer.gradient.colors.map((c: any, idx: number) => (
+                          <stop key={idx} offset={`${c.position * 100}%`} stopColor={c.color} />
+                        ))}
+                      </linearGradient>
+                    )
+                  )}
                   {(shapeLayer as any).pathEffects?.roughen?.amount > 0 && (
                     <filter id={`roughen-${shapeLayer.id}`}>
                       <feTurbulence type="turbulence" baseFrequency="0.8" numOctaves="1" result="noise" />
@@ -302,7 +340,7 @@ export const ShapeLayerItem = React.memo(
                   <path d={shapeLayer.pathData} fill="none" stroke={shapeLayer.color} strokeWidth={((shapeLayer as any).pathEffects?.offset?.distance || 0) * 2} opacity={0.35} />
                 )}
                 <path d={shapeLayer.pathData}
-                  fill={shapeLayer.color}
+                  fill={shapeLayer.id?.startsWith('draw_') || (shapeLayer as any).brushType ? 'none' : (shapeLayer.gradient && shapeLayer.gradient.enabled ? `url(#gradient-${shapeLayer.id})` : (shapeLayer.color || '#7d2ae8'))}
                   filter={(shapeLayer as any).pathEffects?.zigzag?.amplitude>0 ? `url(#zigzag-${shapeLayer.id})` : (shapeLayer as any).pathEffects?.roughen?.amount>0 ? `url(#roughen-${shapeLayer.id})` : undefined}
                 />
                 {(() => {
@@ -354,6 +392,9 @@ export const TextLayerItem = React.memo(
         onDoubleClick,
         previewAnimation,
         maskPath,
+        isEditing,
+        textEditRef,
+        onFinishEditing,
       },
       ref
     ) => {
@@ -367,10 +408,18 @@ export const TextLayerItem = React.memo(
           data-testid={`text-layer-${textLayer.id}`}
           data-layer-id={textLayer.id}
           aria-label={textLayer.name || 'Text layer'}
-          onMouseDown={(e) => onMouseDown(e, textLayer)}
+          onMouseDown={(e) => {
+            if (isEditing) {
+              e.stopPropagation();
+              return;
+            }
+            onMouseDown(e, textLayer);
+          }}
           onContextMenu={(e) => onContextMenu(e, textLayer.id)}
-          onDoubleClick={(e) => onDoubleClick && onDoubleClick(e, textLayer)}
-          className="absolute cursor-move group text-layer-item text-layer"
+          onDoubleClick={(e) => {
+            if (onDoubleClick) onDoubleClick(e, textLayer);
+          }}
+          className={`absolute group text-layer-item text-layer ${isEditing ? 'cursor-text select-text z-50' : 'cursor-move'}`}
           style={{
             left: textLayer.x,
             top: textLayer.y,
@@ -384,17 +433,30 @@ export const TextLayerItem = React.memo(
             <div className="absolute -inset-0.5 border border-cyan-400/50 rounded-sm pointer-events-none z-40"></div>
           )}
           <div
+            ref={isEditing ? textEditRef : undefined}
+            contentEditable={isEditing}
+            suppressContentEditableWarning={true}
+            onBlur={onFinishEditing}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                onFinishEditing?.();
+              }
+            }}
+            className={isEditing ? 'outline-none border-b border-dashed border-[#7d2ae8] min-w-[30px] bg-black/10' : ''}
             style={{
               fontFamily: textLayer.fontFamily,
               fontSize: `${textLayer.fontSize}px`,
               color: textLayer.color,
               textAlign: textLayer.textAlign,
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
               ...(maskPath ? { clipPath: maskPath } : {}),
             }}
           >
-            {textLayer.text}
+            {String(textLayer.text)}
           </div>
-          {isSelected && <SelectionHandles layer={textLayer} onResize={onResize} onRotate={onRotate} scale={1} />}
+          {isSelected && !isEditing && <SelectionHandles layer={textLayer} onResize={onResize} onRotate={onRotate} scale={1} />}
         </div>
       );
     }

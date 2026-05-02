@@ -27,23 +27,25 @@ interface CanvasLayerRendererProps {
   viewportBounds: { x: number; y: number; width: number; height: number } | null;
 }
 
-const isLayerVisible = (layer: Layer, viewport: { x: number; y: number; width: number; height: number } | null, zoom: number) => {
-  if (!viewport) return false;
+const isLayerVisible = (layer: Layer, viewport: { x: number; y: number; width: number; height: number } | null, zoom: number, selectedLayerIds: string[] = []) => {
+  if (!viewport || viewport.width === 0 || viewport.height === 0) return true;
   
-  const buffer = 50 / zoom; // Adjust buffer based on zoom
+  // Selected layers or adjustment layers should always be active
+  if (selectedLayerIds.includes(layer.id) || layer.type === 'adjustment') return true;
+
+  const buffer = Math.min(1000, 200 / Math.max(0.1, zoom)); // Clamp buffer
   const lw = (layer as any).width || 0;
   const lh = (layer as any).height || 0;
   
-  // Size-based culling: skip layers that are too small to see at current zoom
-  const screenWidth = lw * zoom;
-  const screenHeight = lh * zoom;
-  if (screenWidth < 0.5 && screenHeight < 0.5) return false;
+  // For groups, we should be more lenient with culling as they might have large children
+  const isGroup = (layer as any).isGroup;
+  const checkBuffer = isGroup ? buffer * 5 : buffer;
 
   return (
-    layer.x + lw > viewport.x - buffer &&
-    layer.x < viewport.x + viewport.width + buffer &&
-    layer.y + lh > viewport.y - buffer &&
-    layer.y < viewport.y + viewport.height + buffer
+    layer.x + lw > viewport.x - checkBuffer &&
+    layer.x < viewport.x + viewport.width + checkBuffer &&
+    layer.y + lh > viewport.y - checkBuffer &&
+    layer.y < viewport.y + viewport.height + checkBuffer
   );
 };
 
@@ -72,51 +74,100 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
     previewAnimation,
     viewportBounds,
   }) => {
+    // Pre-calculate mask associations in a single pass to avoid O(N^2) lookups
+    // CRITICAL: Must use the full layers list to maintain correct masking indices
+    const layerMasks = React.useMemo(() => {
+      const masks = new Map<string, Layer>();
+      if (!layers) return masks;
+      for (let i = 1; i < layers.length; i++) {
+        const potentialMask = layers[i - 1];
+        if (potentialMask && potentialMask.isMasking) {
+          masks.set(layers[i].id, potentialMask);
+        }
+      }
+      return masks;
+    }, [layers]);
+
     return (
       <>
         {effectiveLayers
-          .filter((l) => !l.groupId && isLayerVisible(l, viewportBounds, zoom))
-          .map((l) => {
-            // Masking Logic: A layer with isMasking=true masks the first visible layer ABOVE it (higher index)
-            if (l.isMasking) return null;
+          .filter((l) => {
+            // 1. Must be a top-level layer (or the group marker itself)
+            if (l.groupId) return false;
+            
+            // 2. Must be visible
+            if (l.visible === false) return false;
 
-            // Find if there's a mask layer below this one
-            // We use effectiveLayers for index lookup since it's the ordered render list
-            let maskLayer: Layer | undefined;
-            const actualIdx = effectiveLayers.findIndex(el => el.id === l.id);
-            if (actualIdx > 0) {
-              const potentialMask = effectiveLayers[actualIdx - 1];
-              if (potentialMask && potentialMask.isMasking) {
-                maskLayer = potentialMask;
-              }
-            }
+            // 3. Size-based and viewport-based culling
+            if (!isLayerVisible(l, viewportBounds, zoom, selectedLayerIds)) return false;
+
+            return true;
+          })
+          .map((l) => {
+            if (l.isMasking) return null;
+            const maskLayer = layerMasks.get(l.id);
+
+            // If it's a group, we need to render its children too
+            // Note: In this architecture, children are filtered out of the top-level list
+            // but the Group Marker renders them as its own "content" or just alongside.
+            const children = l.isGroup 
+              ? layers.filter(child => child.groupId === l.id && child.visible !== false)
+              : [];
 
             return (
-              <CanvasLayerItemWrapper
-                key={l.id}
-                layer={l}
-                allLayers={layers}
-                maskLayerOverride={maskLayer}
-                selectedLayerId={selectedLayerId}
-                selectedLayerIds={selectedLayerIds}
-                hoveredLayerId={hoveredLayerId}
-                setHoveredLayerId={setHoveredLayerId}
-                setLayerRef={setLayerRef}
-                handleMouseDownLayer={handleMouseDownLayer}
-                handleResizeStart={handleResizeStart}
-                handleRotateStart={handleRotateStart}
-                handleContextMenu={handleContextMenu}
-                handleTextDoubleClick={handleTextDoubleClick}
-                handleDropShape={handleDropShape}
-                onDoubleClickLayer={onDoubleClickLayer}
-                editingTextId={editingTextId}
-                textEditRef={textEditRef}
-                finishEditingText={finishEditingText}
-                editingPathId={editingPathId}
-                onUpdatePath={onUpdatePath}
-                zoom={zoom}
-                previewAnimation={previewAnimation}
-              />
+              <React.Fragment key={l.id}>
+                <CanvasLayerItemWrapper
+                  layer={l}
+                  allLayers={layers}
+                  maskLayerOverride={maskLayer}
+                  selectedLayerId={selectedLayerId}
+                  selectedLayerIds={selectedLayerIds}
+                  hoveredLayerId={hoveredLayerId}
+                  setHoveredLayerId={setHoveredLayerId}
+                  setLayerRef={setLayerRef}
+                  handleMouseDownLayer={handleMouseDownLayer}
+                  handleResizeStart={handleResizeStart}
+                  handleRotateStart={handleRotateStart}
+                  handleContextMenu={handleContextMenu}
+                  handleTextDoubleClick={handleTextDoubleClick}
+                  handleDropShape={handleDropShape}
+                  onDoubleClickLayer={onDoubleClickLayer}
+                  editingTextId={editingTextId}
+                  textEditRef={textEditRef}
+                  finishEditingText={finishEditingText}
+                  editingPathId={editingPathId}
+                  onUpdatePath={onUpdatePath}
+                  zoom={zoom}
+                  previewAnimation={previewAnimation}
+                />
+                {children.map(child => (
+                  <CanvasLayerItemWrapper
+                    key={child.id}
+                    layer={child}
+                    allLayers={layers}
+                    maskLayerOverride={layerMasks.get(child.id)}
+                    selectedLayerId={selectedLayerId}
+                    selectedLayerIds={selectedLayerIds}
+                    hoveredLayerId={hoveredLayerId}
+                    setHoveredLayerId={setHoveredLayerId}
+                    setLayerRef={setLayerRef}
+                    handleMouseDownLayer={handleMouseDownLayer}
+                    handleResizeStart={handleResizeStart}
+                    handleRotateStart={handleRotateStart}
+                    handleContextMenu={handleContextMenu}
+                    handleTextDoubleClick={handleTextDoubleClick}
+                    handleDropShape={handleDropShape}
+                    onDoubleClickLayer={onDoubleClickLayer}
+                    editingTextId={editingTextId}
+                    textEditRef={textEditRef}
+                    finishEditingText={finishEditingText}
+                    editingPathId={editingPathId}
+                    onUpdatePath={onUpdatePath}
+                    zoom={zoom}
+                    previewAnimation={previewAnimation}
+                  />
+                ))}
+              </React.Fragment>
             );
           })}
       </>

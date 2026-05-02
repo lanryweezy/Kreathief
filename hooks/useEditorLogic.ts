@@ -16,19 +16,26 @@ const DEFAULT_FILTERS: CanvasFilters = {
   sepia: 0, grayscale: 0, blur: 0, opacity: 1, vignette: 0, hueRotate: 0,
 };
 
-export const useEditorLogic = (initialProject?: Project) => {
-  const artboards = useStore((state) => state.artboards) || [];
-  const activeArtboardId = useStore((state) => state.activeArtboardId);
-  
-  const layers = useMemo(() => {
-    if (!artboards || !Array.isArray(artboards)) {return [];}
-    const active = artboards.find((a: any) => a.id === activeArtboardId);
-    return active?.layers || [];
-  }, [artboards, activeArtboardId]);
+const EMPTY_ARRAY: any[] = [];
+const DEFAULT_SIZE = { width: 1080, height: 1080 };
 
-  const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
+export const useEditorLogic = (initialProject?: Project) => {
+  const layers = useStore((state) => {
+    const active = state.artboards.find((a: any) => a.id === state.activeArtboardId);
+    return active?.layers || EMPTY_ARRAY;
+  });
+  
+  const selectedLayerIds = useStore((state) => state.selectedLayerIds) || EMPTY_ARRAY;
   const canvasBackgroundColor = useStore((state) => state.canvasBackgroundColor) || '#ffffff';
-  const canvasSize = useStore((state) => state.canvasSize) || { width: 1080, height: 1080, name: 'Square' };
+  
+  const activeArtboard = useStore((state) => 
+    state.artboards.find((a: any) => a.id === state.activeArtboardId)
+  );
+
+  const canvasSize = useMemo(() => 
+    activeArtboard ? { width: activeArtboard.width, height: activeArtboard.height } : DEFAULT_SIZE
+  , [activeArtboard]);
+
   const canvasFilters = useStore((state) => state.canvasFilters) || DEFAULT_FILTERS;
   const projectTitle = useStore((state) => state.projectTitle);
   const brandKits = useStore((state) => state.brandKits) || [];
@@ -147,7 +154,7 @@ export const useEditorLogic = (initialProject?: Project) => {
     if (!prompt.trim()) {return;}
     const apiPrompt = prompt + (negativePrompt?.trim() ? ` | negative: ${negativePrompt.trim()}` : '');
     setIsProcessing(true);
-    const tempId = `gen_${Date.now()}`;
+    const tempId = uuidv4();
     try {
       if (mode === AppMode.THEME) {
         const theme = await geminiService.generateDesignTheme(prompt);
@@ -170,9 +177,13 @@ export const useEditorLogic = (initialProject?: Project) => {
           flipY: false,
           isProcessing: true,
           filters: DEFAULT_FILTERS,
+          blendMode: 'normal',
           skewX: 0,
           skewY: 0,
-        });
+          perspective: 0,
+          rotateX: 0,
+          rotateY: 0,
+        } as any);
         const resultBase64 = await geminiService.generateImage(apiPrompt, aspectRatio, quality);
         deleteLayer(tempId);
         addImageLayer(resultBase64, 'AI Generated');
@@ -229,9 +240,13 @@ export const useEditorLogic = (initialProject?: Project) => {
       pathData: VectorUtils.serializePath(localPath),
       name: 'Boolean Result',
     };
-    const newLayers = layers.filter((l: any) => !selectedLayerIds.includes(l.id));
-    newLayers.splice(lowestIndex, 0, newLayer);
-    setLayers(newLayers);
+
+    setLayers((prev) => {
+      const filtered = prev.filter((l) => !selectedLayerIds.includes(l.id));
+      const next = [...filtered];
+      next.splice(lowestIndex, 0, newLayer);
+      return next;
+    });
     setSelectedLayerIds([newLayer.id]);
   };
 
@@ -321,9 +336,12 @@ export const useEditorLogic = (initialProject?: Project) => {
       name: 'Joined Path',
     };
 
-    const newLayers = layers.filter((l: any) => !selectedLayerIds.includes(l.id));
-    newLayers.splice(lowestIndex, 0, newLayer);
-    setLayers(newLayers);
+    setLayers((prev) => {
+      const filtered = prev.filter((l) => !selectedLayerIds.includes(l.id));
+      const next = [...filtered];
+      next.splice(lowestIndex, 0, newLayer);
+      return next;
+    });
     setSelectedLayerIds([newLayer.id]);
     addToast('Paths joined successfully.', 'success');
   };

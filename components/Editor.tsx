@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
+import { motion, AnimatePresence } from 'framer-motion';
 import { selectedLayerSelector } from '../store/selectors';
 import { NavTab } from '../types';
 import { Header } from './Header';
@@ -58,6 +60,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   // Expose store to window for E2E tests
   React.useEffect(() => {
     (window as any).useStore = useStore;
+    return () => {
+      delete (window as any).useStore;
+    };
   }, []);
 
   // Connect actions needed for Header/UI
@@ -87,8 +92,17 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const [showCommunityModal, setShowCommunityModal] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [previewAnimation, setPreviewAnimation] = useState<AnimationSettings | undefined>();
+  const previewTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const [showMobileContextMenu, setShowMobileContextMenu] = useState(false);
   const [contextMenuLayerId, setContextMenuLayerId] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (previewTimeoutRef.current) {
+        clearTimeout(previewTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Mobile detection
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
@@ -139,6 +153,19 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     handleConfirmExport,
     uploadedImage
   } = useFileHandler();
+
+  const handleBack = async () => {
+    try {
+      await useStore.getState().saveProject();
+      const thumb = await handleExportDataUrl();
+      if (projectId) {
+        await useStore.getState().updateProject(projectId, { thumbnail: thumb });
+      }
+    } catch (err) {
+      console.error('Failed to capture thumbnail on back', err);
+    }
+    onBack();
+  };
 
   const handleAddLogoToCanvas = (url: string) => {
     useStore.getState().addImageLayer(url, 'Logo');
@@ -210,7 +237,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       {!hideHeaderOnMobile && (
         <Header 
           onDownload={() => setShowExport(true)} 
-          onBack={onBack} 
+          onBack={handleBack} 
           onNew={initializeProject} 
           onOpenCommunity={() => setShowCommunityModal(true)}
           user={user} 
@@ -248,8 +275,12 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                 uploadedImage={uploadedImage}
                 onStartDesign={handleStartDesign}
                 onPreviewMotion={(settings: AnimationSettings) => {
+                  if (previewTimeoutRef.current) clearTimeout(previewTimeoutRef.current);
                   setPreviewAnimation(settings);
-                  setTimeout(() => setPreviewAnimation(undefined), settings.duration * 1000 + settings.delay * 1000 + 100);
+                  previewTimeoutRef.current = setTimeout(() => {
+                    setPreviewAnimation(undefined);
+                    previewTimeoutRef.current = null;
+                  }, settings.duration * 1000 + settings.delay * 1000 + 100);
                 }}
               />
             )}
@@ -261,13 +292,20 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 pointer-events-none" />
           )}
 
-          <Toolbar
-            documentColors={documentColors}
-            onBooleanOperation={handleBooleanOperation}
-            onJoinPaths={handleJoinPaths}
-            onBooleanHover={handleBooleanHover}
-            uploadedImage={uploadedImage}
-          />
+          <div 
+            data-testid="toolbar"
+            className="h-11 bg-[#0f0f0f]/90 border-b border-white/5 flex items-center z-30 w-full shrink-0 px-4 gap-4 backdrop-blur-md"
+          >
+            <div className="flex items-center gap-4 w-full h-full">
+              <Toolbar
+                documentColors={documentColors}
+                onBooleanOperation={handleBooleanOperation}
+                onJoinPaths={handleJoinPaths}
+                onBooleanHover={handleBooleanHover}
+                uploadedImage={uploadedImage}
+              />
+            </div>
+          </div>
           
           <div className="flex-1 relative overflow-hidden flex flex-row">
             <ErrorBoundary componentName="Canvas" variant="widget">
@@ -282,6 +320,48 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                 previewAnimation={previewAnimation}
               />
             </ErrorBoundary>
+
+            {/* Floating Zoom & View Controls at bottom right corner */}
+            <div className="absolute bottom-4 right-4 z-[90] flex items-center bg-[#1e1e1e]/90 backdrop-blur-md rounded-xl p-1 border border-white/10 shadow-2xl">
+              <div className="flex items-center px-1">
+                <button
+                  onClick={() => setZoom(Math.max(0.1, zoom - 0.1))}
+                  className="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-colors"
+                  title="Zoom Out"
+                >
+                  <Icons.Minus className="w-3.5 h-3.5" />
+                </button>
+                <span className="px-2 min-w-[50px] text-center text-[10px] font-black text-gray-300 font-mono">
+                  {Math.round(zoom * 100)}%
+                </span>
+                <button
+                  onClick={() => setZoom(Math.min(10, zoom + 0.1))}
+                  className="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-colors"
+                  title="Zoom In"
+                >
+                  <Icons.Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="w-px h-4 bg-gray-800 mx-1" />
+
+              <div className="flex items-center gap-1 px-1">
+                <button
+                  onClick={() => onToggleGrid(!showGrid)}
+                  className={`p-1.5 rounded-md transition-all ${showGrid ? 'bg-[#7d2ae8]/20 text-[#7d2ae8]' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                  title="Toggle Grid"
+                >
+                  <Icons.Grid className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => onToggleRulers(!showRulers)}
+                  className={`p-1.5 rounded-md transition-all ${showRulers ? 'bg-[#7d2ae8]/20 text-[#7d2ae8]' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                  title="Toggle Rulers"
+                >
+                  <Icons.Layout className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
 
             {activeTab === NavTab.MOCKUP && !isMobile && (
               <div className="absolute inset-0 z-[100] bg-[#0e1318] flex animate-in fade-in slide-in-from-right duration-300">
@@ -383,10 +463,14 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           getCanvasSnapshot={handleExportDataUrl}
           uploadedImage={uploadedImage}
           onStartDesign={handleStartDesign}
-          onPreviewMotion={(settings: AnimationSettings) => {
-            setPreviewAnimation(settings);
-            setTimeout(() => setPreviewAnimation(undefined), settings.duration * 1000 + settings.delay * 1000 + 100);
-          }}
+        onPreviewMotion={(settings: AnimationSettings) => {
+          if (previewTimeoutRef.current) clearTimeout(previewTimeoutRef.current);
+          setPreviewAnimation(settings);
+          previewTimeoutRef.current = setTimeout(() => {
+            setPreviewAnimation(undefined);
+            previewTimeoutRef.current = null;
+          }, settings.duration * 1000 + settings.delay * 1000 + 100);
+        }}
         />
       </BottomSheet>
 

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
+import { heavyWorkerService } from '../../services/heavyWorkerService';
 
 interface TexturesPanelProps {
   onRemoveTexture: () => void;
@@ -11,11 +12,17 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
   const applyTexture = useStore((state) => state.applyTexture);
   const setTextureIntensity = useStore((state) => state.setTextureIntensity);
   const textureIntensity = useStore((state) => state.textureIntensity);
+  const canvasFilters = useStore((state) => state.canvasFilters);
+  const setCanvasFilters = useStore((state: any) => state.setCanvasFilters);
+  const canvasSize = useStore((state) => state.canvasSize);
 
   const [intensity, setIntensity] = useState(textureIntensity);
+  const [noiseLevel, setNoiseLevel] = useState(canvasFilters.noise || 0);
+  const [grainScale, setGrainScale] = useState(canvasFilters.grainScale || 50);
+  const [isGeneratingGrain, setIsGeneratingGrain] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // SVG Presets with placeholder logic for replacements
+  // SVG Presets
   const PRESETS = [
     {
       name: 'Vintage Paper',
@@ -48,21 +55,6 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
       preview: 'bg-indigo-400',
     },
     {
-      name: 'Brushed Metal',
-      url: 'https://images.unsplash.com/photo-1530514104649-e59ec601dff0?auto=format&fit=crop&w=400&q=80',
-      preview: 'bg-zinc-400',
-    },
-    {
-      name: 'Carbon Fiber',
-      url: 'https://images.unsplash.com/photo-1550684847-75bdda21cc95?auto=format&fit=crop&w=400&q=80',
-      preview: 'bg-zinc-900',
-    },
-    {
-      name: 'Water Color',
-      url: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&w=400&q=80',
-      preview: 'bg-blue-300',
-    },
-    {
       name: 'Crumpled Paper',
       url: 'https://images.unsplash.com/photo-1614036417651-efe591214972?auto=format&fit=crop&w=400&q=80',
       preview: 'bg-gray-300',
@@ -78,25 +70,49 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
     setTextureIntensity(val);
   };
 
+  const handleNoiseChange = async (val: number) => {
+    setNoiseLevel(val);
+    if (val === 0) {
+      setCanvasFilters({ ...canvasFilters, noise: 0, overlayTexture: undefined });
+      return;
+    }
+
+    setIsGeneratingGrain(true);
+    try {
+      const grainUrl = await heavyWorkerService.generateGrain(
+        canvasSize.width, 
+        canvasSize.height, 
+        val, 
+        (105 - grainScale) / 10
+      );
+      setCanvasFilters({ 
+        ...canvasFilters, 
+        noise: val, 
+        grainScale,
+        overlayTexture: grainUrl 
+      });
+    } catch (e) {
+      console.error('Grain generation failed', e);
+    } finally {
+      setIsGeneratingGrain(false);
+    }
+  };
+
   const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
 
-  // Re-apply when intensity changes if we have an active template
   useEffect(() => {
     if (activeTemplate) {
       applyPreset(activeTemplate, intensity);
     }
   }, [intensity, activeTemplate]);
 
-  // Update local intensity state when store's textureIntensity changes
   useEffect(() => {
     setIntensity(textureIntensity);
   }, [textureIntensity]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -111,27 +127,77 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
   };
 
   return (
-    <div className="flex flex-col h-full p-4 bg-[#13161a]">
-      <h3 className="font-bold text-white mb-4 flex items-center gap-2">
+    <div className="flex flex-col h-full p-4 bg-[#13161a] overflow-y-auto no-scrollbar">
+      <h3 className="font-bold text-white mb-4 flex items-center gap-2 shrink-0">
         <Icons.Texture className="w-5 h-5 text-[#7d2ae8]" />
-        Textures & Patterns
+        Textures & Grain
       </h3>
 
-      <div className="mb-6">
-        <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Upload Custom Texture</h4>
-        <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-700 rounded-xl p-6 hover:border-[#7d2ae8] hover:bg-[#7d2ae8]/5 cursor-pointer transition-all group">
-          <Icons.Upload className="w-8 h-8 text-gray-500 mb-2 group-hover:text-[#7d2ae8]" />
-          <span className="text-xs font-bold text-gray-400 group-hover:text-white">Click to upload</span>
-          <span className="text-[10px] text-gray-600 mt-1">PNG, JPG or SVG</span>
+      {/* Organic Grain Engine */}
+      <div className="mb-6 bg-gradient-to-br from-indigo-900/20 to-purple-900/20 p-4 rounded-2xl border border-purple-500/20 shrink-0">
+         <div className="flex items-center justify-between mb-4">
+            <h4 className="text-[10px] font-black text-purple-300 uppercase tracking-[0.2em]">Procedural Grain</h4>
+            {isGeneratingGrain && <div className="w-3 h-3 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />}
+         </div>
+         
+         <div className="space-y-4">
+            <div className="space-y-2">
+               <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
+                  <span>Intensity</span>
+                  <span className="text-white">{noiseLevel}%</span>
+               </div>
+               <input 
+                  type="range" min="0" max="100" step="1" 
+                  value={noiseLevel} 
+                  onChange={(e) => handleNoiseChange(parseInt(e.target.value))}
+                  className="w-full h-1 bg-white/5 rounded-full appearance-none accent-purple-500"
+               />
+            </div>
+
+            <div className="space-y-2">
+               <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
+                  <span>Scale</span>
+                  <span className="text-white">{grainScale}%</span>
+               </div>
+               <input 
+                  type="range" min="10" max="100" step="5" 
+                  value={grainScale} 
+                  onChange={(e) => {
+                    setGrainScale(parseInt(e.target.value));
+                    if (noiseLevel > 0) handleNoiseChange(noiseLevel);
+                  }}
+                  className="w-full h-1 bg-white/5 rounded-full appearance-none accent-indigo-500"
+               />
+            </div>
+
+            <div className="flex gap-2">
+               {(['overlay', 'multiply', 'soft-light'] as const).map(mode => (
+                 <button 
+                  key={mode}
+                  onClick={() => setCanvasFilters({ ...canvasFilters, textureBlendMode: mode })}
+                  className={`flex-1 py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${canvasFilters.textureBlendMode === mode ? 'bg-purple-600 border-purple-500 text-white' : 'bg-black/20 border-white/5 text-gray-500 hover:text-gray-300'}`}
+                 >
+                   {mode}
+                 </button>
+               ))}
+            </div>
+         </div>
+      </div>
+
+      <div className="mb-6 shrink-0">
+        <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Material Overlays</h4>
+        <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-700 rounded-xl p-4 hover:border-[#7d2ae8] hover:bg-[#7d2ae8]/5 cursor-pointer transition-all group">
+          <Icons.Upload className="w-6 h-6 text-gray-500 mb-2 group-hover:text-[#7d2ae8]" />
+          <span className="text-[10px] font-bold text-gray-400 group-hover:text-white uppercase tracking-tighter">Upload Texture</span>
           <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
         </label>
       </div>
 
       {/* Intensity Slider */}
-      <div className="mb-4 bg-[#1e1e1e] p-3 rounded-lg border border-gray-700">
+      <div className="mb-4 bg-[#1e1e1e] p-3 rounded-xl border border-gray-700 shrink-0">
         <div className="flex justify-between mb-1.5">
-          <label className="text-[10px] font-bold text-gray-400 uppercase">Intensity / Opacity</label>
-          <span className="text-[10px] text-gray-500 bg-gray-800 px-1.5 rounded">{Math.round(intensity * 100)}%</span>
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Material Opacity</label>
+          <span className="text-[10px] font-mono text-purple-400">{Math.round(intensity * 100)}%</span>
         </div>
         <input
           type="range"
@@ -141,51 +207,41 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
           value={intensity}
           onChange={(e) => handleIntensityChange(parseFloat(e.target.value))}
           disabled={!currentTexture}
-          className={`w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8] ${!currentTexture ? 'opacity-50 cursor-not-allowed' : ''}`}
+          className={`w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8] ${!currentTexture ? 'opacity-30 cursor-not-allowed' : ''}`}
         />
       </div>
 
-      <div className="mb-4">
-        {currentTexture && (
-          <button
-            onClick={() => {
-              onRemoveTexture();
-              setActiveTemplate(null);
-            }}
-            className="w-full py-2 bg-red-900/20 text-red-400 border border-red-900/50 rounded text-xs font-bold hover:bg-red-900/40 transition-colors"
-          >
-            Remove Texture
-          </button>
-        )}
-      </div>
+      {currentTexture && (
+        <button
+          onClick={() => {
+            onRemoveTexture();
+            setActiveTemplate(null);
+          }}
+          className="mb-4 w-full py-2 bg-red-900/10 text-red-500 border border-red-900/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-900/20 transition-all"
+        >
+          Clear Overlay
+        </button>
+      )}
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar pb-10">
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="aspect-square rounded-lg border-2 border-dashed border-gray-700 hover:border-[#7d2ae8] transition-colors flex flex-col items-center justify-center text-gray-500 hover:text-[#7d2ae8] bg-[#1e1e1e]"
-          >
-            <Icons.Plus className="w-6 h-6 mb-1" />
-            <span className="text-[10px] font-bold">Upload</span>
-          </button>
-
+      <div className="flex-1 overflow-y-auto no-scrollbar pb-20">
+        <div className="grid grid-cols-2 gap-3">
           {PRESETS.map((tex, i) => (
             <button
               key={i}
               onClick={() => {
                 setActiveTemplate(tex.url);
-                applyTexture(tex.url);
+                applyPreset(tex.url, intensity);
               }}
-              className={`relative aspect-square rounded-lg border-2 overflow-hidden group transition-all ${activeTemplate === tex.url ? 'border-[#7d2ae8] ring-2 ring-[#7d2ae8]/20' : 'border-gray-700 hover:border-gray-500'}`}
+              className={`relative aspect-square rounded-xl border-2 overflow-hidden group transition-all ${activeTemplate === tex.url ? 'border-[#7d2ae8] ring-4 ring-[#7d2ae8]/10' : 'border-gray-800 hover:border-gray-600 shadow-lg'}`}
             >
-              <div className={`absolute inset-0 ${tex.preview}`}></div>
+              <div className={`absolute inset-0 ${tex.preview} opacity-20`}></div>
               <img
                 src={tex.url}
-                className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity"
+                className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-100 transition-opacity"
                 alt={tex.name}
               />
-              <div className="absolute inset-0 flex items-end p-2 bg-gradient-to-t from-black/80 to-transparent">
-                <span className="text-xs font-bold text-white shadow-black drop-shadow-md">{tex.name}</span>
+              <div className="absolute inset-0 flex items-end p-2.5 bg-gradient-to-t from-black/90 to-transparent">
+                <span className="text-[9px] font-black text-white uppercase tracking-tighter">{tex.name}</span>
               </div>
             </button>
           ))}
@@ -194,4 +250,5 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
     </div>
   );
 };
+
 export default TexturesPanel;

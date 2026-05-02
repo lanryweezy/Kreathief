@@ -24,6 +24,8 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   const addLayer = useStore((state) => state.addLayer);
   const canvasSize = useStore((state) => state.canvasSize);
   const addToast = useStore((state) => state.addToast);
+  const artboards = useStore((state) => state.artboards);
+  const canvasBackgroundColor = useStore((state) => state.canvasBackgroundColor);
 
   const onAddToCanvas = (src: string) => {
     addLayer({
@@ -382,7 +384,6 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     setBatchMode(true);
   };
 
-  // Current placement state (initialized from mockup default)
   const [placement, setPlacement] = useState<MockupPlacement>({
     top: 30,
     left: 30,
@@ -395,6 +396,11 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     useCornerPinning: false,
     curve: 0,
   });
+
+  const [shadowIntensity, setShadowIntensity] = useState(1);
+  const [reflectionIntensity, setReflectionIntensity] = useState(0);
+  const [lightingContrast, setLightingContrast] = useState(100);
+  const [lightingBrightness, setLightingBrightness] = useState(100);
 
   const liveIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -491,11 +497,11 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     }
   };
 
-  // Initial load
+  // Initial load & refresh on canvas updates
   useEffect(() => {
     captureDesign();
     return () => stopLive();
-  }, []);
+  }, [artboards, canvasBackgroundColor]);
 
   const stopLive = () => {
     if (liveIntervalRef.current) {
@@ -584,6 +590,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       // Apply perspective transform using corner pinning
       ctx.globalAlpha = opacity;
       ctx.globalCompositeOperation = blendMode;
+      ctx.filter = `brightness(${lightingBrightness}%) contrast(${lightingContrast}%)`;
 
       // Use advanced warping with corner points
       warpImageToCorners(ctx, designCanvas, curvedCorners);
@@ -599,9 +606,12 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
 
       ctx.globalAlpha = opacity;
       ctx.globalCompositeOperation = blendMode;
+      ctx.filter = `brightness(${lightingBrightness}%) contrast(${lightingContrast}%)`;
 
       ctx.drawImage(designImg, x, y, w, h);
     }
+
+    ctx.filter = 'none';
 
     // Add a soft AO under product based on placement
     {
@@ -613,11 +623,28 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       const rx = (placement.width/100)*canvas.width * 0.55;
       const ry = rx * 0.35;
       const g = actx.createRadialGradient(cx, cy, Math.min(rx,ry)*0.2, cx, cy, Math.max(rx,ry));
-      g.addColorStop(0, 'rgba(0,0,0,0.18)');
+      g.addColorStop(0, `rgba(0,0,0,${0.18 * shadowIntensity})`);
       g.addColorStop(1, 'rgba(0,0,0,0)');
       actx.fillStyle = g; actx.beginPath(); actx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2); actx.fill();
       ctx.globalCompositeOperation = 'multiply';
       ctx.drawImage(aoCanvas, 0, 0);
+    }
+
+    // Add realistic 3D reflection highlight layer
+    if (reflectionIntensity > 0) {
+      const refCanvas = document.createElement('canvas');
+      refCanvas.width = canvas.width; refCanvas.height = canvas.height;
+      const rctx = refCanvas.getContext('2d')!;
+      const cx = (placement.left/100)*canvas.width + ((placement.width/100)*canvas.width)/2;
+      const cy = (placement.top/100)*canvas.height + (((placement.width/100)*canvas.width)/(designImg.width/designImg.height))/2;
+      const r = (placement.width/100)*canvas.width * 0.75;
+      const g = rctx.createRadialGradient(cx, cy, 1, cx, cy, r);
+      g.addColorStop(0, 'rgba(255,255,255,0.35)');
+      g.addColorStop(1, 'rgba(255,255,255,0.0)');
+      rctx.fillStyle = g; rctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'screen';
+      ctx.globalAlpha = reflectionIntensity;
+      ctx.drawImage(refCanvas, 0, 0);
     }
 
     ctx.restore();
@@ -779,7 +806,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       });
 
       if (result) {
-        console.log('Pro Render URL:', result);
+        // Log removed for production
       }
     } catch (e) {
       log.error('[MockupPanel] Pro mockup render failed', e);
@@ -1299,10 +1326,67 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                    </div>
                  )}
 
-                 {/* Blend Mode */}
-                 <div className="pt-4 border-t border-gray-800 space-y-3">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 block">Blend Mode</span>
-                    <select
+                 
+                 
+                    
+
+
+                  {/* 3D Lighting & Shadows */}
+                  <div className="pt-4 border-t border-gray-800 space-y-4 mb-4">
+                     <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 block">3D Lighting & Shadows</span>
+                     
+                     <div className="space-y-2">
+                        <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
+                           <span>Shadow Intensity</span>
+                           <span className="text-white">{shadowIntensity}x</span>
+                        </div>
+                        <input
+                           type="range" min="0" max="2" step="0.1" value={shadowIntensity}
+                           onChange={(e) => setShadowIntensity(Number(e.target.value))}
+                           className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
+                        />
+                     </div>
+
+                     <div className="space-y-2">
+                        <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
+                           <span>Reflection Gloss</span>
+                           <span className="text-white">{Math.round(reflectionIntensity * 100)}%</span>
+                        </div>
+                        <input
+                           type="range" min="0" max="1" step="0.05" value={reflectionIntensity}
+                           onChange={(e) => setReflectionIntensity(Number(e.target.value))}
+                           className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
+                        />
+                     </div>
+
+                     <div className="space-y-2">
+                        <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
+                           <span>Brightness</span>
+                           <span className="text-white">{lightingBrightness}%</span>
+                        </div>
+                        <input
+                           type="range" min="50" max="150" step="1" value={lightingBrightness}
+                           onChange={(e) => setLightingBrightness(Number(e.target.value))}
+                           className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
+                        />
+                     </div>
+
+                     <div className="space-y-2">
+                        <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
+                           <span>Contrast</span>
+                           <span className="text-white">{lightingContrast}%</span>
+                        </div>
+                        <input
+                           type="range" min="50" max="150" step="1" value={lightingContrast}
+                           onChange={(e) => setLightingContrast(Number(e.target.value))}
+                           className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
+                        />
+                     </div>
+                  </div>
+                  {/* Blend Mode */}
+                  <div className="pt-4 border-t border-gray-800 space-y-3 mb-4">
+                     <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 block">Blend Mode</span>
+                     <select
                       value={placement.blendMode}
                       onChange={(e) => updatePlacement('blendMode', e.target.value)}
                       className="w-full bg-[#1e1e1e] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#7d2ae8] appearance-none"

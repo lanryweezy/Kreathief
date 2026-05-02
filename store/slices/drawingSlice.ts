@@ -17,8 +17,9 @@ export interface DrawingSlice {
   brushJitter: number;
   textureIntensity: number;
   customBrushes: CustomBrush[];
+  autoSelectAfterDraw: boolean;
   selectedCustomBrushId: string | null;
-
+  setAutoSelectAfterDraw: (autoSelectAfterDraw: boolean) => void;
   setPenMode: (isDrawing: boolean) => void;
   setBrushColor: (color: string) => void;
   setBrushSize: (size: number) => void;
@@ -44,6 +45,9 @@ export const createDrawingSlice: StateCreator<DrawingSlice, [], [], DrawingSlice
   customBrushes: [],
   selectedCustomBrushId: null,
 
+  autoSelectAfterDraw: true,
+
+  setAutoSelectAfterDraw: (autoSelectAfterDraw: boolean) => set({ autoSelectAfterDraw }),
   setPenMode: (isPenMode) => set({ isPenMode }),
   setBrushColor: (brushColor) => set({ brushColor }),
   

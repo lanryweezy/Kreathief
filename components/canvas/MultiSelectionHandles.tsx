@@ -28,8 +28,8 @@ export const MultiSelectionHandles = React.memo(({ layers, onResize, onRotate }:
     return null;
   }
 
-  // Create a proxy layer representing the group for the handles
-  const groupLayer: Layer = {
+  // Create a memoized proxy layer representing the group for the handles
+  const groupLayer: Layer = useMemo(() => ({
     id: 'group_proxy',
     type: 'rectangle',
     x: bounds.x,
@@ -42,7 +42,7 @@ export const MultiSelectionHandles = React.memo(({ layers, onResize, onRotate }:
     visible: true,
     cornerRadius: 0,
     color: 'transparent',
-  } as any;
+  } as any), [bounds.x, bounds.y, bounds.width, bounds.height]);
 
   return (
     <div id="multi-selection-box" className="absolute inset-0 pointer-events-none" style={{ zIndex: 50 }}>

@@ -104,17 +104,25 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 animate-shimmer"></div>
               <span className="relative z-10 flex items-center gap-2 uppercase tracking-wide">
-                Create in 30 seconds
+                Get Started
                 <Icons.ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </span>
             </button>
           </MagneticButton>
 
-          <button className="px-10 py-5 rounded-full font-bold text-base text-white/70 hover:text-white transition-colors flex items-center gap-3 group border border-white/20 hover:border-white/40">
+          <button 
+            onClick={onGetStarted}
+            className="px-10 py-5 rounded-full font-bold text-base text-white/70 hover:text-white transition-colors flex items-center gap-3 group border border-white/20 hover:border-white/40 bg-white/5 backdrop-blur-sm"
+          >
+            <Icons.User className="w-5 h-5 text-purple-400" />
+            Try as Guest
+          </button>
+
+          <button className="hidden lg:flex px-10 py-5 rounded-full font-bold text-base text-white/70 hover:text-white transition-colors items-center gap-3 group border border-white/20 hover:border-white/40">
             <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center group-hover:bg-white/20 transition-colors">
               <Icons.Play className="w-4 h-4 fill-white" />
             </div>
-            See it in action
+            Watch Demo
           </button>
         </motion.div>
 

@@ -193,8 +193,12 @@ export const SidePanel = React.memo(
                     brushSmoothing={brushSmoothing}
                     setBrushSmoothing={setBrushSmoothing}
                     brushJitter={brushJitter}
-                    setBrushJitter={setBrushJitter}
-                    onFinishDrawing={() => {}}
+                    onFinishDrawing={() => {
+                      if (useStore.getState().autoSelectAfterDraw) {
+                        setPenMode(false);
+                        useStore.getState().setActiveTab(NavTab.LAYERS);
+                      }
+                    }}
                   />
                 )}
 

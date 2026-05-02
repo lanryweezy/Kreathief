@@ -7,7 +7,11 @@ import { ColorHarmonyGenerator } from './panels/ColorHarmonyGenerator';
 import { PaletteGenerator } from './panels/PaletteGenerator';
 import { GradientEditor } from './panels/GradientEditor';
 import { ContrastChecker } from './panels/ContrastChecker';
-import { rgbToHex, rgbToCmyk, parseColor, cmykToRgb, getCMYKGamutWarning, isWithinCMYKGamut } from '../utils/colorUtils';
+import { 
+  rgbToHex, rgbToCmyk, parseColor, cmykToRgb, 
+  getCMYKGamutWarning, isWithinCMYKGamut, getClosestCMYKSafeColor 
+} from '../utils/colorUtils';
+import { haptics } from '../utils/haptics';
 
 interface ColorPickerProps {
   value: string;
@@ -38,8 +42,12 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
   const [activeTab, setActiveTab] = useState<'picker' | 'harmony' | 'palette' | 'gradient' | 'contrast'>('picker');
   const [cmykMode, setCmykMode] = useState(false);
   const [cmykValues, setCmykValues] = useState({ c: 0, m: 0, y: 0, k: 0 });
+  const [isCopied, setIsCopied] = useState(false);
   const addToast = useStore((state) => state.addToast);
   const popoverRef = useRef<HTMLButtonElement>(null);
+  const dropdownContainerRef = useRef<HTMLDivElement>(null);
+
+  const hasEyeDropper = typeof window !== 'undefined' && 'EyeDropper' in window;
 
   // CMYK Readout and gamut warning
   const cmyk = useMemo(() => {
@@ -95,10 +103,33 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
     }
   };
 
+  const handleNativeEyeDropper = async () => {
+    if (!hasEyeDropper) {
+      setShowEyedropper(true);
+      setIsOpen(false);
+      return;
+    }
+
+    try {
+      // @ts-ignore - EyeDropper is a new API
+      const eyeDropper = new window.EyeDropper();
+      const result = await eyeDropper.open();
+      const color = result.sRGBHex;
+      onChange(color);
+      setHexInput(color);
+      addToRecent(color);
+      haptics.success();
+    } catch (e) {
+      // User cancelled or error
+    }
+  };
+
   const copyToClipboard = () => {
     // Click-to-copy hex for #15
     navigator.clipboard.writeText(value).then(() => {
+      setIsCopied(true);
       addToast('Color copied to clipboard', 'success');
+      setTimeout(() => setIsCopied(false), 2000);
     });
   };
 
@@ -121,12 +152,26 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
         onClose={() => setIsOpen(false)}
         align="left"
       >
-        <div className="bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-2xl p-3 w-80 animate-fadeIn">
+        <div 
+          ref={dropdownContainerRef}
+          className="bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-2xl p-3 w-[360px] max-h-[calc(100vh-140px)] overflow-y-auto overflow-x-hidden animate-fade-in focus:outline-none"
+          tabIndex={-1}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              setIsOpen(false);
+              popoverRef.current?.focus();
+            }
+            if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+              setIsOpen(false);
+              popoverRef.current?.focus();
+            }
+          }}
+        >
           {/* Tabs */}
           <div className="flex gap-1 mb-3 bg-[#0e1318] rounded-lg p-1">
             <button
               onClick={() => setActiveTab('picker')}
-              className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+              className={`flex-1 px-2 py-1.5 rounded-md text-[10px] font-bold transition-all ${
                 activeTab === 'picker'
                   ? 'bg-[#7d2ae8] text-white shadow-lg'
                   : 'text-gray-400 hover:text-white hover:bg-gray-700'
@@ -136,7 +181,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
             </button>
             <button
               onClick={() => setActiveTab('harmony')}
-              className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+              className={`flex-1 px-2 py-1.5 rounded-md text-[10px] font-bold transition-all ${
                 activeTab === 'harmony'
                   ? 'bg-[#7d2ae8] text-white shadow-lg'
                   : 'text-gray-400 hover:text-white hover:bg-gray-700'
@@ -146,7 +191,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
             </button>
             <button
               onClick={() => setActiveTab('palette')}
-              className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+              className={`flex-1 px-2 py-1.5 rounded-md text-[10px] font-bold transition-all ${
                 activeTab === 'palette'
                   ? 'bg-[#7d2ae8] text-white shadow-lg'
                   : 'text-gray-400 hover:text-white hover:bg-gray-700'
@@ -156,7 +201,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
             </button>
             <button
               onClick={() => setActiveTab('gradient')}
-              className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+              className={`flex-1 px-2 py-1.5 rounded-md text-[10px] font-bold transition-all ${
                 activeTab === 'gradient'
                   ? 'bg-[#7d2ae8] text-white shadow-lg'
                   : 'text-gray-400 hover:text-white hover:bg-gray-700'
@@ -166,7 +211,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
             </button>
             <button
               onClick={() => setActiveTab('contrast')}
-              className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+              className={`flex-1 px-2 py-1.5 rounded-md text-[10px] font-bold transition-all ${
                 activeTab === 'contrast'
                   ? 'bg-[#7d2ae8] text-white shadow-lg'
                   : 'text-gray-400 hover:text-white hover:bg-gray-700'
@@ -176,16 +221,17 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
             </button>
           </div>
 
+
           {activeTab === 'picker' && (
             <>
           {/* Eyedropper Button */}
           <div className="mb-3">
             <button
-              onClick={() => { setShowEyedropper(true); setIsOpen(false); }}
-              className="w-full px-3 py-2 bg-[#252627] hover:bg-gray-700 rounded-lg text-[10px] font-bold text-gray-300 transition-colors flex items-center justify-center gap-2"
+              onClick={handleNativeEyeDropper}
+              className="w-full px-3 py-2 bg-[#252627] hover:bg-gray-700 rounded-lg text-[10px] font-bold text-gray-300 transition-colors flex items-center justify-center gap-2 border border-white/5 hover:border-white/10"
             >
-              <Icons.EyeDropper className="w-4 h-4" />
-              Pick Color from Screen
+              <Icons.EyeDropper className="w-4 h-4 text-[#7d2ae8]" />
+              {hasEyeDropper ? 'Pick Color from Screen' : 'Simulate Eyedropper'}
             </button>
           </div>
 
@@ -202,10 +248,10 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
             <div className="relative flex-[1.5]">
               <button 
                 onClick={copyToClipboard}
-                className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs hover:text-[#7d2ae8] transition-colors"
+                className={`absolute left-2 top-1/2 -translate-y-1/2 text-xs transition-colors ${isCopied ? 'text-green-400' : 'text-gray-500 hover:text-[#7d2ae8]'}`}
                 title="Copy Hex"
               >
-                #
+                {isCopied ? <Icons.Check className="w-3 h-3" /> : '#'}
               </button>
               <input
                 type="text"
@@ -239,25 +285,52 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
           {/* CMYK Mode Toggle & Gamut Warning */}
           {cmyk && (
             <>
-              <div className="flex items-center justify-between mb-2">
-                <button
-                  onClick={() => setCmykMode(!cmykMode)}
-                  className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded transition-colors ${
-                    cmykMode
-                      ? 'bg-[#7d2ae8]/20 text-[#7d2ae8]'
-                      : 'bg-black/40 text-gray-500 hover:text-white'
-                  }`}
-                >
-                  {cmykMode ? '✓ CMYK Mode' : 'CMYK Mode'}
-                </button>
+              <div className="flex flex-col gap-2 mb-4">
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => setCmykMode(!cmykMode)}
+                    className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded transition-colors ${
+                      cmykMode
+                        ? 'bg-[#7d2ae8]/20 text-[#7d2ae8]'
+                        : 'bg-black/40 text-gray-500 hover:text-white'
+                    }`}
+                  >
+                    {cmykMode ? '✓ CMYK Mode' : 'CMYK Mode'}
+                  </button>
+                  
+                  {!cmyk.withinGamut && (
+                    <div className={`flex items-center gap-1.5 px-2 py-1 rounded text-[9px] font-black uppercase tracking-tighter ${
+                      cmyk.gamutWarning === 'critical'
+                        ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                        : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                    }`}>
+                      <Icons.AlertTriangle className="w-3 h-3" />
+                      {cmyk.gamutWarning === 'critical' ? 'Out of Gamut' : 'Gamut Warning'}
+                    </div>
+                  )}
+                </div>
+
                 {!cmyk.withinGamut && (
-                  <div className={`flex items-center gap-1 px-2 py-1 rounded text-[9px] font-bold ${
+                  <div className={`p-2 rounded-xl border flex items-center justify-between gap-3 animate-in slide-in-from-top-2 duration-300 ${
                     cmyk.gamutWarning === 'critical'
-                      ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                      : 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                      ? 'bg-red-500/5 border-red-500/10'
+                      : 'bg-yellow-500/5 border-yellow-500/10'
                   }`}>
-                    <Icons.AlertTriangle className="w-3 h-3" />
-                    {cmyk.gamutWarning === 'critical' ? 'Out of Gamut' : 'Print Warning'}
+                    <span className="text-[8px] text-gray-400 font-medium leading-tight">
+                       This color may look dull when printed.
+                    </span>
+                    <button 
+                      onClick={() => {
+                        const safe = getClosestCMYKSafeColor(value);
+                        onChange(safe);
+                        setHexInput(safe);
+                        haptics.success();
+                        addToast('Snapped to closest printable color', 'info');
+                      }}
+                      className="whitespace-nowrap px-2 py-1 bg-white/5 hover:bg-white/10 rounded-lg text-[9px] font-black uppercase text-white transition-all border border-white/5"
+                    >
+                       Snap to Safe
+                    </button>
                   </div>
                 )}
               </div>

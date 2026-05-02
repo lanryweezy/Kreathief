@@ -62,9 +62,6 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       this.recoveryTimeout = setTimeout(() => {
-        console.log(
-          `[ErrorBoundary:${componentName}] Attempting auto-recovery (${recoveryAttempts + 1}/${maxAutoRecoveryAttempts})...`
-        );
         this.resetErrorBoundary();
       }, delay);
 

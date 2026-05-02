@@ -84,7 +84,12 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
   setArtboards: (artboards) => {
     set({ artboards });
   },
-  setActiveArtboardId: (activeArtboardId) => set({ activeArtboardId, selectedLayerIds: [] }),
+  setActiveArtboardId: (id) => set((state: any) => {
+    if (state.activeArtboardId === id) {
+      return { activeArtboardId: id };
+    }
+    return { activeArtboardId: id, selectedLayerIds: [] };
+  }),
 
   updateLayer: (id, partial) =>
     set((state: any) => {
@@ -105,15 +110,34 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
       return { artboards };
     }),
 
+  setLayers: (layersOrFn) =>
+    set((state: any) => {
+      const artboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
+      if (!artboard) { return {}; }
+      const newLayers = typeof layersOrFn === 'function' ? layersOrFn(artboard.layers) : layersOrFn;
+      return {
+        artboards: state.artboards.map((a: Artboard) =>
+          a.id === state.activeArtboardId ? { ...a, layers: newLayers } : a
+        ),
+      };
+    }),
+
   updateLayers: (updates) =>
     set((state: any) => {
       const artboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
-      if (!artboard) {
-        return {};
-      }
-      const layers = typeof updates === 'function' ? (updates as any)(artboard.layers) : updates;
+      if (!artboard) { return {}; }
+      
+      const newLayers = artboard.layers.map((l: Layer) => {
+        if (updates[l.id]) {
+          return { ...l, ...updates[l.id], dirty: true };
+        }
+        return l;
+      });
+
       return {
-        artboards: state.artboards.map((a: Artboard) => (a.id === state.activeArtboardId ? { ...a, layers } : a)),
+        artboards: state.artboards.map((a: Artboard) =>
+          a.id === state.activeArtboardId ? { ...a, layers: newLayers } : a
+        ),
       };
     }),
 

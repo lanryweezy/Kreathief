@@ -132,6 +132,7 @@ export interface LayerFilters {
   hueRotate: number; // 0 default
   vignette: number; // 0 default
   opacity: number; // 1 default
+  backdropBlur: number; // 0 default
   artisticFilter?: string; // Optional SVG filter ID (e.g. 'watercolor')
 }
 
@@ -236,7 +237,7 @@ export interface TextLayer extends LayerBase {
   // Text transform effects
   transformType?: string;
   transformIntensity?: number;
-  transformDirection?: number; // Changed from string to number
+  transformDirection?: number;
   // Advanced shadows
   advancedShadows?: AdvancedShadow[];
   decorations?: {
@@ -338,7 +339,7 @@ export interface ImageLayer extends LayerBase {
   maskPath?: string; // SVG path data for lasso cutouts
   maskDataURL?: string; // Base64 data for refined bitmap masks
   maskType?: 'none' | 'lasso' | 'ai' | 'bitmap';
-  altText?: string; // Accessibility alt text for exports and a11y
+  altText?: string;
 }
 
 export interface AdjustmentLayer extends LayerBase {
@@ -370,6 +371,30 @@ export interface Artboard {
   height: number;
   layers: Layer[];
   backgroundColor?: string;
+  
+  storyNode?: {
+    id: string;
+    connections: string[]; // IDs of other artboards
+    notes?: string;
+    duration?: number;
+    transition?: 'fade' | 'slide' | 'zoom' | 'none';
+  };
+}
+
+export interface StoryEdge {
+  id: string;
+  fromId: string;
+  toIndex: string;
+  label?: string;
+  type?: 'linear' | 'branch' | 'loop';
+}
+
+export interface StoryArc {
+  enabled: boolean;
+  nodes: string[]; // Artboard IDs in order
+  edges: StoryEdge[];
+  zoom: number;
+  pan: { x: number; y: number };
 }
 
 export interface CanvasFilters {
@@ -382,6 +407,10 @@ export interface CanvasFilters {
   opacity: number; // 0-1
   vignette: number; // 0-100
   hueRotate: number; // deg
+  noise?: number; // 0-100
+  grainScale?: number; // 0-100
+  textureBlendMode?: 'multiply' | 'screen' | 'overlay' | 'soft-light';
+  artisticFilter?: string;
   overlayTexture?: string; // CSS url or data URI for vintage texture overlay
 }
 
@@ -498,4 +527,3 @@ export interface Toast {
   };
   details?: string;
 }
-

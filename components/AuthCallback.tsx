@@ -13,7 +13,6 @@ export const AuthCallback: React.FC = () => {
       const { data, error } = await supabase.auth.getSession();
       
       if (error) {
-        console.error('Auth callback error:', error);
         addToast('Authentication failed. Please try again.', 'error');
         navigate('/auth');
         return;

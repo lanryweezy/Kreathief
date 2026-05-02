@@ -442,6 +442,19 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
               className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
             />
           </div>
+
+          <div className="pt-2 border-t border-gray-800">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-bold text-gray-400">Auto Select Tool on Finish</label>
+              <input
+                type="checkbox"
+                checked={useStore.getState().autoSelectAfterDraw}
+                onChange={(e) => useStore.getState().setAutoSelectAfterDraw(e.target.checked)}
+                className="w-3 h-3 accent-[#7d2ae8] bg-gray-800 rounded border-gray-700 focus:ring-[#7d2ae8]"
+              />
+            </div>
+            <span className="text-[9px] text-gray-500 leading-none block mt-1">Switches back to Move/Select tool after clicking Done</span>
+          </div>
         </div>
       </div>
     </div>

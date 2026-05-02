@@ -1,6 +1,8 @@
 import React from 'react';
+import { useStore } from '../../store/useStore';
 import { Artboard, Layer, AnimationSettings, CanvasFilters, ResizeHandle } from '../../types';
 import { CanvasLayerRenderer } from '../CanvasLayerRenderer';
+import { ArtisticFilters } from '../ArtisticFilters';
 
 interface CanvasRendererProps {
   artboards: Artboard[];
@@ -85,7 +87,7 @@ interface ArtboardItemProps {
   viewportBounds: { x: number; y: number; width: number; height: number } | null;
 }
 
-const ArtboardItem: React.FC<ArtboardItemProps> = ({
+const ArtboardItem = React.memo(({
   artboard,
   activeArtboardId,
   canvasBackgroundColor,
@@ -123,12 +125,18 @@ const ArtboardItem: React.FC<ArtboardItemProps> = ({
   localLassoPoints,
   booleanPreview,
   viewportBounds,
-}) => {
+}: ArtboardItemProps) => {
   const effectiveLayers = React.useMemo(() => {
     const layers = artboard.layers || [];
-    return getEffectiveLayer 
-      ? layers.map(l => getEffectiveLayer(l))
-      : layers;
+    // Skip map if getEffectiveLayer is basically an identity function
+    const isIdentity = !getEffectiveLayer || (layers.length > 0 && getEffectiveLayer(layers[0]) === layers[0]);
+    if (isIdentity) {
+      return layers;
+    }
+    // Map to effective layers (e.g. groups) and remove duplicates and nulls
+    const mapped = layers.map(l => getEffectiveLayer(l)).filter(Boolean) as Layer[];
+    const unique = Array.from(new Map(mapped.map(l => [l.id, l])).values());
+    return unique;
   }, [artboard.layers, getEffectiveLayer]);
 
   return (
@@ -145,10 +153,18 @@ const ArtboardItem: React.FC<ArtboardItemProps> = ({
       onClick={() => setActiveArtboardId(artboard.id)}
     >
       {/* Artboard Header */}
-      <div className="absolute -top-10 left-0 flex items-center gap-3 pointer-events-none">
+      <div className="absolute -top-10 left-0 flex items-center gap-3 pointer-events-auto">
         <div className="flex flex-col">
-          <span className="text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap bg-[#1e1e1e] px-2 py-1 rounded-t-lg border-x border-t border-white/10">
+          <span className="text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap bg-[#1e1e1e] px-2 py-1 rounded-t-lg border-x border-t border-white/10 flex items-center gap-2">
             {artboard.name}
+            <button
+              onClick={(e) => { e.stopPropagation(); useStore.getState().addArtboard(); }}
+              className="w-3.5 h-3.5 flex items-center justify-center bg-green-500/20 text-green-400 border border-green-500/30 rounded hover:bg-green-500 hover:text-white transition-all cursor-pointer"
+              title="Add Canvas"
+              type="button"
+            >
+              +
+            </button>
           </span>
           <span className="text-[9px] font-bold text-gray-500 bg-black/40 px-2 py-0.5 rounded-b-lg border-x border-b border-white/5">
             {artboard.width} × {artboard.height}
@@ -199,6 +215,20 @@ const ArtboardItem: React.FC<ArtboardItemProps> = ({
             y: viewportBounds.y - artboard.y
           } : null}
         />
+
+        {/* Global Texture/Grain Overlay */}
+        {(canvasFilters.overlayTexture || (canvasFilters as any).overlayTexture) && (
+          <div 
+            className="absolute inset-0 pointer-events-none z-[100]"
+            style={{
+              backgroundImage: `url(${canvasFilters.overlayTexture || (canvasFilters as any).overlayTexture})`,
+              backgroundSize: 'cover',
+              backgroundRepeat: 'no-repeat',
+              mixBlendMode: (canvasFilters.textureBlendMode || 'overlay') as any,
+              opacity: canvasFilters.opacity,
+            }}
+          />
+        )}
 
         {activeArtboardId === artboard.id && (
           <>
@@ -255,7 +285,7 @@ const ArtboardItem: React.FC<ArtboardItemProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(({
   artboards,
@@ -298,6 +328,7 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(({
 }) => {
   return (
     <>
+      <ArtisticFilters />
       {artboards.map((artboard) => (
         <ArtboardItem
           key={artboard.id}

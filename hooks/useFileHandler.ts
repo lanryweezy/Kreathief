@@ -80,7 +80,18 @@ export const useFileHandler = () => {
   };
 
   const handleExportDataUrl = async (): Promise<string> => {
+    const store = useStore.getState();
+    const artboards = store.artboards || [];
+    const layers = artboards.flatMap((a: any) => a.layers || []);
+    const canvasSize = store.canvasSize || { width: 1080, height: 1080 };
+    const canvasBackgroundColor = store.canvasBackgroundColor || '#ffffff';
+    const canvasFilters = store.canvasFilters;
+    const history = store.history || [];
+    const uploads = store.uploads || [];
+    const activeImage = history.length > 0 ? history[history.length - 1] || null : null;
+    const uploadedImage = uploads.length > 0 ? uploads[uploads.length - 1] || null : null;
     const backgroundImageUrl = activeImage?.url || uploadedImage || null;
+
     return await exportService.exportDesignToImage(
       canvasSize.width,
       canvasSize.height,
@@ -92,7 +103,18 @@ export const useFileHandler = () => {
   };
 
   const handleExportBlob = async (): Promise<Blob | null> => {
+    const store = useStore.getState();
+    const artboards = store.artboards || [];
+    const layers = artboards.flatMap((a: any) => a.layers || []);
+    const canvasSize = store.canvasSize || { width: 1080, height: 1080 };
+    const canvasBackgroundColor = store.canvasBackgroundColor || '#ffffff';
+    const canvasFilters = store.canvasFilters;
+    const history = store.history || [];
+    const uploads = store.uploads || [];
+    const activeImage = history.length > 0 ? history[history.length - 1] || null : null;
+    const uploadedImage = uploads.length > 0 ? uploads[uploads.length - 1] || null : null;
     const backgroundImageUrl = activeImage?.url || uploadedImage || null;
+
     return await exportService.exportDesignToBlob(
       canvasSize.width,
       canvasSize.height,

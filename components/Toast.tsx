@@ -39,7 +39,9 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
           <Icon className="w-5 h-5" />
         </div>
         <div className="flex-1 flex flex-col gap-0.5">
-          <span className="text-sm font-black tracking-tight leading-snug">{toast.message}</span>
+          <span className="text-sm font-black tracking-tight leading-snug">
+            {typeof toast.message === 'object' ? JSON.stringify(toast.message) : toast.message}
+          </span>
           {toast.details && (
             <p className="text-[11px] opacity-70 leading-tight">
               {toast.details}

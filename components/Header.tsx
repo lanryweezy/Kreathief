@@ -243,19 +243,20 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-2 px-2">
           {/* Project Title */}
           {isEditingTitle ? (
-            <input
-              data-testid="project-title-input"
-              type="text"
-              value={projectTitle}
-              onChange={(e) => setProjectTitle(e.target.value)}
-              onBlur={() => setIsEditingTitle(false)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {setIsEditingTitle(false);}
-                if (e.key === 'Escape') {setIsEditingTitle(false);}
-              }}
-              autoFocus
-              className="bg-transparent border-b border-purple-500 text-white text-sm font-medium px-2 py-1 outline-none w-48"
-            />
+              <input
+                data-testid="project-title-input"
+                type="text"
+                value={projectTitle}
+                onChange={(e) => setProjectTitle(e.target.value)}
+                onFocus={(e) => e.target.select()}
+                onBlur={() => setIsEditingTitle(false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {setIsEditingTitle(false);}
+                  if (e.key === 'Escape') {setIsEditingTitle(false);}
+                }}
+                autoFocus
+                className="bg-[#1e1e1e] border-b-2 border-purple-500 text-white text-sm font-bold px-2 py-1 outline-none w-48 rounded-t shadow-lg"
+              />
           ) : (
             <button
               data-testid="project-title-display"
@@ -292,75 +293,6 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-4">
-        {/* View Controls Group */}
-        <div className="flex items-center bg-[#1e1e1e] rounded-xl p-0.5 border border-white/5 shadow-inner">
-          <div className="flex items-center px-1">
-            <button
-              onClick={() => onZoomChange(Math.max(0.1, zoom - 0.1))}
-              className="p-1.5 hover:bg-white/5 rounded-md text-gray-400 hover:text-white transition-colors"
-              title="Zoom Out"
-            >
-              <Icons.Minus className="w-3.5 h-3.5" />
-            </button>
-            <button
-              ref={zoomButtonRef}
-              onClick={() => setShowZoomMenu(!showZoomMenu)}
-              className="px-2 min-w-[50px] text-center text-[10px] font-black text-gray-300 hover:text-white hover:bg-white/5 rounded-md h-7 transition-colors font-mono"
-            >
-              {Math.round(zoom * 100)}%
-            </button>
-            <button
-              onClick={() => onZoomChange(Math.min(5, zoom + 0.1))}
-              className="p-1.5 hover:bg-white/5 rounded-md text-gray-400 hover:text-white transition-colors"
-              title="Zoom In"
-            >
-              <Icons.Plus className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          <div className="w-px h-4 bg-gray-800 mx-0.5" />
-
-          <div className="flex items-center gap-0.5 px-0.5">
-            <button
-              onClick={() => onToggleGrid(!showGrid)}
-              className={`p-1.5 rounded-md transition-all ${showGrid ? 'bg-[#7d2ae8]/20 text-[#7d2ae8]' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
-              title="Toggle Grid"
-            >
-              <Icons.Grid className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => onToggleRulers(!showRulers)}
-              className={`p-1.5 rounded-md transition-all ${showRulers ? 'bg-[#7d2ae8]/20 text-[#7d2ae8]' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
-              title="Toggle Rulers"
-            >
-              <Icons.Layout className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
-        <div className="h-4 w-px bg-gray-800"></div>
-
-        {/* Artboard Management */}
-        <div className="flex items-center bg-[#1e1e1e] rounded-xl p-0.5 border border-white/5 shadow-inner">
-          <button
-            onClick={onDeleteArtboard}
-            className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-white/5 rounded-md transition-all"
-            title="Remove Artboard"
-          >
-            <Icons.Minus className="w-3.5 h-3.5" />
-          </button>
-          <div className="w-px h-3 bg-gray-800 mx-0.5" />
-          <button
-            onClick={onAddArtboard}
-            className="p-1.5 text-gray-400 hover:text-green-400 hover:bg-white/5 rounded-md transition-all"
-            title="Add Artboard"
-          >
-            <Icons.Plus className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        <div className="h-4 w-px bg-gray-800"></div>
-
         <button
           onClick={onOpenCommunity}
           className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/5 transition-all border border-white/5"
@@ -414,7 +346,30 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         {user && (
-          <div className="w-7 h-7 rounded-full border border-gray-700 flex items-center justify-center overflow-hidden shadow-sm hover:border-[#7d2ae8] transition-colors cursor-pointer">
+          <div 
+            onClick={() => {
+              const input = document.createElement('input');
+              input.type = 'file';
+              input.accept = 'image/*';
+              input.onchange = (e: any) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onload = (evt) => {
+                    const avatarUrl = evt.target?.result as string;
+                    useStore.getState().setUser({
+                      ...user,
+                      avatar: avatarUrl
+                    });
+                  };
+                  reader.readAsDataURL(file);
+                }
+              };
+              input.click();
+            }}
+            className="w-7 h-7 rounded-full border border-gray-700 flex items-center justify-center overflow-hidden shadow-sm hover:border-[#7d2ae8] transition-colors cursor-pointer relative"
+            title="Click to update profile image"
+          >
             <img src={user.avatar} className="w-full h-full object-cover" alt={user.name} />
           </div>
         )}

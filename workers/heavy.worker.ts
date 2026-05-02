@@ -54,6 +54,13 @@ self.onmessage = async (e: MessageEvent) => {
         break;
       }
 
+      case 'GENERATE_GRAIN': {
+        const { width, height, noise, scale } = payload;
+        const grainUrl = await generateGrainTexture(width, height, noise, scale);
+        self.postMessage({ type: 'SUCCESS', id, payload: grainUrl });
+        break;
+      }
+
       default:
         self.postMessage({ type: 'ERROR', id, error: `Unknown task type: ${type}` });
     }
@@ -63,6 +70,27 @@ self.onmessage = async (e: MessageEvent) => {
 };
 
 // --- Task Implementations ---
+
+async function generateGrainTexture(width: number, height: number, noise: number, scale: number): Promise<string> {
+  const canvas = new OffscreenCanvas(width / scale, height / scale);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Offscreen context failed');
+
+  const imageData = ctx.createImageData(canvas.width, canvas.height);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const val = Math.random() * 255;
+    data[i] = val;     // R
+    data[i + 1] = val; // G
+    data[i + 2] = val; // B
+    data[i + 3] = noise * 2.55; // Alpha based on noise intensity
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+  const blob = await canvas.convertToBlob({ type: 'image/png' });
+  return URL.createObjectURL(blob);
+}
 
 async function applyFiltersToImage(imageSrc: string, filters: any): Promise<string> {
   const bitmap = await fetchImageBitmap(imageSrc);

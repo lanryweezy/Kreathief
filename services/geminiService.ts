@@ -7,21 +7,42 @@ import { log } from '../utils/log';
 // Helper to call backend serverless endpoint
 export const callBackendGeminiAPI = async (payload: any) => {
   const endpoint = process.env.NODE_ENV === 'test' ? 'http://localhost:3000/api/gemini' : '/api/gemini';
-  const response = await fetch(endpoint, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'generateContent', ...payload }),
-  });
   
-  const data = await response.json();
-  
-  if (!response.ok) {
-    const error = new Error(data.error || 'API request failed');
-    log.error('Gemini API call failed', error);
-    throw error;
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'generateContent', ...payload }),
+    });
+    
+    if (response.ok) {
+      return await response.json();
+    }
+  } catch (e) {
+    console.warn('[GeminiService] Backend API unavailable, attempting direct client-side call', e);
   }
+
+  // Fallback to direct client-side call if backend fails (useful for local dev)
+  const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('Gemini API key not configured');
+  }
+
+  const { GoogleGenerativeAI } = await import('@google/generative-ai');
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({ 
+    model: payload.modelName,
+    generationConfig: payload.generationConfig,
+    systemInstruction: payload.systemInstruction,
+  });
+
+  const result = await model.generateContent(payload.contents);
+  const response = await result.response;
   
-  return data;
+  return {
+    text: response.text(),
+    candidates: response.candidates,
+  };
 };
 
 /**

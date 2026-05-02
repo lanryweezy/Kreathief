@@ -479,7 +479,9 @@ class StorageService {
     const existingProjects = await this.getAllProjects();
     const isNewProject = !existingProjects.some(p => p.id === project.id);
     
-    if (isNewProject && existingProjects.length >= MAX_FREE_PROJECTS) {
+    const isDev = import.meta.env.DEV && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+    if (isNewProject && existingProjects.length >= MAX_FREE_PROJECTS && !isDev) {
       const errorMsg = `Storage quota exceeded. You are limited to ${MAX_FREE_PROJECTS} projects on the free plan.`;
       logger.error('Quota exceeded', { error: errorMsg });
       throw new Error(errorMsg);
@@ -594,16 +596,20 @@ class StorageService {
 
     if (this.isOnline && userId) {
       try {
-        await supabase
+        const { error } = await supabase
           .from('projects')
           .delete()
           .eq('id', id)
           .eq('user_id', userId);
-        logger.debug('Project deleted from Supabase', { id });
-        // Remove from pending changes
-        this.pendingChanges.delete(id);
-        await this.persistPendingChanges();
-        return;
+        
+        if (!error) {
+          logger.debug('Project deleted from Supabase', { id });
+          // Remove from pending changes
+          this.pendingChanges.delete(id);
+          await this.persistPendingChanges();
+          return;
+        }
+        logger.warn('Supabase delete failed, falling back to IndexedDB', { error: error.message });
       } catch (err) {
         logger.warn('Supabase delete error', { error: err });
       }

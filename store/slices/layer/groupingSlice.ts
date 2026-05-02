@@ -29,7 +29,6 @@ export const createGroupingSlice: StateCreator<any, [], [], Partial<LayerSlice>>
           return a;
         }
 
-        // FIX: Use cached indices for better performance
         const indices = selectedLayerIds
           .map((id: string) => layerIndexMap.get(id))
           .filter((idx: number | undefined): idx is number => idx !== undefined);
@@ -39,15 +38,31 @@ export const createGroupingSlice: StateCreator<any, [], [], Partial<LayerSlice>>
         }
 
         const minIndex = Math.min(...indices);
+        const selectedLayers = a.layers.filter(l => selectedLayerIds.includes(l.id));
+
+        // Calculate bounding box
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+
+        selectedLayers.forEach(l => {
+          const lw = (l as any).width || 0;
+          const lh = (l as any).height || 0;
+          minX = Math.min(minX, l.x);
+          minY = Math.min(minY, l.y);
+          maxX = Math.max(maxX, l.x + lw);
+          maxY = Math.max(maxY, l.y + lh);
+        });
 
         const groupMarker: Layer = {
           id: newGroupId,
           type: 'shape',
           name: groupName,
-          x: 0,
-          y: 0,
-          width: 0,
-          height: 0,
+          x: minX,
+          y: minY,
+          width: maxX - minX,
+          height: maxY - minY,
           rotation: 0,
           opacity: 1,
           locked: false,
@@ -55,7 +70,7 @@ export const createGroupingSlice: StateCreator<any, [], [], Partial<LayerSlice>>
           groupId: undefined,
           isGroup: true,
           isExpanded: true,
-          color: '#7d2ae8',
+          color: 'transparent', // Group marker should be invisible content-wise
         } as any;
 
         const remainingLayers = a.layers.filter((l: Layer) => !selectedLayerIds.includes(l.id));

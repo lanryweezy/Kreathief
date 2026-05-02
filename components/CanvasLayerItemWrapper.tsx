@@ -64,6 +64,11 @@ interface CanvasLayerItemWrapperProps {
 export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = React.memo(
   (props) => {
     const l = props.layer;
+    if (!l) {
+      console.warn('[Canvas] Skipping null layer render');
+      return null;
+    }
+
     const {
       allLayers,
       maskLayerOverride,
@@ -111,7 +116,7 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
       onRotate: handleRotateStart,
       onContextMenu: handleContextMenu,
       previewAnimation: previewAnimation,
-      maskPath: maskPath, // Backward compatibility
+      maskPath: maskStyle.clipPath as string,
       zoom: zoom,
     };
 
@@ -122,7 +127,7 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
     const renderItem = () => {
       if (l.type === 'image') {
         return (
-          <div className="relative h-full w-full" style={maskStyle}>
+          <div className="relative h-full w-full">
             {isFiltering && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/10 backdrop-blur-[1px] rounded-lg animate-pulse pointer-events-none">
                 <Icons.Magic className="w-5 h-5 text-white/40 animate-spin" />
@@ -140,17 +145,15 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
 
       if (l.type === 'text') {
         return (
-          <div style={maskStyle}>
-            <TextLayerItem
-              ref={(el) => setLayerRef(l.id, el)}
-              layer={l as TextLayer}
-              {...commonProps}
-              onDoubleClick={handleTextDoubleClick as any}
-              isEditing={editingTextId === l.id}
-              textEditRef={textEditRef}
-              onFinishEditing={finishEditingText}
-            />
-          </div>
+          <TextLayerItem
+            ref={(el) => setLayerRef(l.id, el)}
+            layer={l as TextLayer}
+            {...commonProps}
+            onDoubleClick={handleTextDoubleClick as any}
+            isEditing={editingTextId === l.id}
+            textEditRef={textEditRef}
+            onFinishEditing={finishEditingText}
+          />
         );
       }
 
@@ -166,17 +169,15 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
 
       // Default: Shape Layer
       return (
-        <div style={maskStyle}>
-          <ShapeLayerItem
-            ref={(el) => setLayerRef(l.id, el)}
-            layer={l as ShapeLayer}
-            {...commonProps}
-            onDrop={handleDropShape}
-            onDoubleClick={handleDoubleClick}
-            editingPathId={editingPathId}
-            onUpdatePath={onUpdatePath}
-          />
-        </div>
+        <ShapeLayerItem
+          ref={(el) => setLayerRef(l.id, el)}
+          layer={l as ShapeLayer}
+          {...commonProps}
+          onDrop={handleDropShape}
+          onDoubleClick={handleDoubleClick}
+          editingPathId={editingPathId}
+          onUpdatePath={onUpdatePath}
+        />
       );
     };
 
@@ -185,6 +186,27 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
         {renderItem()}
       </LayerErrorBoundary>
     );
+  },
+  (prev, next) => {
+    // High-performance comparison
+    if (prev.layer !== next.layer) return false;
+    if (prev.zoom !== next.zoom) return false;
+    if (prev.hoveredLayerId !== next.hoveredLayerId) return false;
+    if (prev.editingTextId !== next.editingTextId) return false;
+    if (prev.editingPathId !== next.editingPathId) return false;
+    if (prev.maskLayerOverride !== next.maskLayerOverride) return false;
+    if (prev.previewAnimation !== next.previewAnimation) return false;
+    
+    // Selection check: only re-render if THIS layer's selection status changes
+    const prevSelected = prev.selectedLayerId === prev.layer.id || (prev.selectedLayerIds || []).includes(prev.layer.id);
+    const nextSelected = next.selectedLayerId === next.layer.id || (next.selectedLayerIds || []).includes(next.layer.id);
+    if (prevSelected !== nextSelected) return false;
+
+    // Masking check: if this layer has a mask, we must re-render if allLayers changes
+    // (since the mask might be a sibling that was modified)
+    if (prev.layer.maskLayerId && prev.allLayers !== next.allLayers) return false;
+
+    return true;
   }
 );
 

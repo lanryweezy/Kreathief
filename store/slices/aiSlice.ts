@@ -11,6 +11,7 @@ export interface AISlice {
   aspectRatio: AspectRatio;
   quality: GenerationQuality;
   isGenerating: boolean;
+  lastGeneratedImageUrl: string | null;
 
   setPrompt: (prompt: string) => void;
   setAspectRatio: (ratio: AspectRatio) => void;
@@ -41,6 +42,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   aspectRatio: AspectRatio.SQUARE,
   quality: 'standard',
   isGenerating: false,
+  lastGeneratedImageUrl: null,
 
   setPrompt: (prompt) => set({ prompt }),
   setAspectRatio: (aspectRatio) => set({ aspectRatio }),
@@ -69,6 +71,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
       }
 
       if (imageUrl) {
+        set({ lastGeneratedImageUrl: imageUrl });
         addImageLayer(imageUrl, `AI: ${prompt.slice(0, 20)}...`);
       }
     } catch (error) {
@@ -79,8 +82,9 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   },
 
   vectorizeLayer: async (id, options) => {
-    const { layers, deleteLayer, addLayers, saveToHistory, updateLayer } = get();
-    const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
+    const { artboards, activeArtboardId, deleteLayer, addLayers, saveToHistory, updateLayer } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
     if (!layer || layer.type !== 'image') {return;}
 
     set({ isGenerating: true });
@@ -165,8 +169,9 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
     const prompt = window.prompt('Enter a style or description to remix this image:');
     if (!prompt) {return;}
 
-    const { layers, updateLayer, saveToHistory } = get();
-    const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
+    const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
     if (!layer || layer.type !== 'image') {return;}
 
     set({ isGenerating: true });
@@ -203,8 +208,9 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   },
 
   onMagicExpand: async (id) => {
-    const { layers, updateLayer, saveToHistory } = get();
-    const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
+    const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
     if (!layer || layer.type !== 'image') {return;}
 
     set({ isGenerating: true });
@@ -241,8 +247,9 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   },
 
   onRmBg: async (id) => {
-    const { layers, updateLayer, saveToHistory } = get();
-    const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
+    const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
     if (!layer || layer.type !== 'image') {return;}
 
     set({ isGenerating: true });
@@ -260,8 +267,9 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   },
 
   onEnhance: async (id) => {
-    const { layers, updateLayer, saveToHistory } = get();
-    const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
+    const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
     if (!layer || layer.type !== 'image') {return;}
 
     set({ isGenerating: true });
@@ -279,8 +287,9 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   },
 
   onUpscale: async (id) => {
-    const { layers, updateLayer, saveToHistory } = get();
-    const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
+    const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
     if (!layer || layer.type !== 'image') {return;}
 
     set({ isGenerating: true });
@@ -298,8 +307,9 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   },
 
   onRetouch: async (id) => {
-    const { layers, updateLayer, saveToHistory } = get();
-    const layer = layers.find((l: Layer) => l.id === id) as ImageLayer;
+    const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
     if (!layer || layer.type !== 'image') {return;}
 
     set({ isGenerating: true });
@@ -317,8 +327,9 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   },
 
   suggestFontPairing: async (textLayerId) => {
-    const { layers, updateLayer, saveToHistory } = get();
-    const layer = layers.find((l: Layer) => l.id === textLayerId) as TextLayer;
+    const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    const layer = artboard?.layers.find((l: Layer) => l.id === textLayerId) as TextLayer;
     if (!layer || layer.type !== 'text') {return;}
 
     set({ isGenerating: true });
@@ -338,12 +349,13 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   },
 
   generateAutoLayouts: async () => {
-    const { layers, canvasSize, updateLayers, saveToHistory } = get();
-    if (layers.length === 0) {return;}
+    const { artboards, activeArtboardId, updateLayers, saveToHistory } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    if (!artboard || artboard.layers.length === 0) {return;}
 
     set({ isGenerating: true });
     try {
-      const suggestions = await geminiService.generateAutoLayoutSuggestions(layers, canvasSize.width, canvasSize.height);
+      const suggestions = await geminiService.generateAutoLayoutSuggestions(artboard.layers, artboard.width, artboard.height);
       if (suggestions && suggestions.length > 0) {
         // For simplicity, we apply the first one immediately.
         // In a real UI, we would show a carousel of options.
@@ -358,8 +370,10 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   },
 
   applyStyleFromImage: async (base64Image) => {
-    const { setCanvasBackgroundColor, updateLayer, layers, saveToHistory } = get();
-    
+    const { setCanvasBackgroundColor, updateLayer, artboards, activeArtboardId, saveToHistory } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    if (!artboard) {return;}
+
     set({ isGenerating: true });
     try {
       const theme = await geminiService.extractStyleFromImage(base64Image);
@@ -368,7 +382,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
         setCanvasBackgroundColor(theme.backgroundColor);
         
         // Map theme to layers
-        layers.forEach((l: any) => {
+        artboard.layers.forEach((l: any) => {
           if (l.type === 'text') {
             updateLayer(l.id, { 
               color: theme.primaryColor, 

@@ -111,17 +111,61 @@ const ShapeLayerContent = React.memo(({ layer }: { layer: ShapeLayer }) => {
 
   // Custom SVG path
   if (type === 'path' && pathData) {
+    const isDrawingPath = layer.id.startsWith('draw_');
+    const brushType = (layer as any).brushType;
+
+    let fill: string | undefined = gradient?.enabled ? undefined : color;
+    let strokeColor = layer.stroke?.color || color;
+    let strokeWidth = layer.stroke?.width || 1;
+    let strokeDasharray: string | undefined = undefined;
+    let strokeLinecap: 'butt' | 'round' | 'square' | undefined = 'round';
+    let opacity = layer.opacity;
+
+    if (isDrawingPath) {
+      fill = 'none'; // Drawing paths must not be filled
+      switch (brushType) {
+        case 'calligraphy':
+          strokeLinecap = 'butt';
+          strokeWidth = strokeWidth * 1.5;
+          break;
+        case 'oil':
+          strokeWidth = strokeWidth * 1.8;
+          break;
+        case 'crayon':
+          strokeDasharray = '2,5';
+          break;
+        case 'pencil':
+          strokeWidth = 1;
+          opacity = 0.7;
+          break;
+        case 'watercolor':
+          strokeWidth = strokeWidth * 2.5;
+          opacity = 0.4;
+          break;
+        case 'vector_pencil':
+          strokeWidth = strokeWidth * 0.75;
+          strokeLinecap = 'square';
+          break;
+        default:
+          break;
+      }
+    }
+
     return (
-      <svg width={width} height={height} viewBox={viewBox || `0 0 ${width} ${height}`} style={{ overflow: 'visible' }}>
+      <svg width={width} height={height} viewBox={viewBox || `0 0 ${width} ${height}`} style={{ overflow: 'visible', opacity }}>
         <path
           d={pathData}
-          fill={gradient?.enabled ? undefined : color}
-          stroke={layer.stroke?.color}
-          strokeWidth={layer.stroke?.width}
+          fill={fill}
+          stroke={strokeColor}
+          strokeWidth={strokeWidth}
+          strokeDasharray={strokeDasharray}
+          strokeLinecap={strokeLinecap}
+          strokeLinejoin="round"
         />
       </svg>
     );
   }
+
 
   // Image fill
   if (imageFill?.src) {

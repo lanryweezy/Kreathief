@@ -13,11 +13,15 @@ export const ContrastChecker: React.FC<ContrastCheckerProps> = ({
 }) => {
   const [foregroundColor, setForegroundColor] = useState('#000000');
 
-  const contrastRatio = useMemo(() => getContrastRatio(backgroundColor, foregroundColor), [backgroundColor, foregroundColor]);
+  // Ensure colors are valid hex for internal logic
+  const safeBackground = backgroundColor.startsWith('#') ? backgroundColor : '#ffffff';
+  const safeForeground = foregroundColor.startsWith('#') ? foregroundColor : '#000000';
+
+  const contrastRatio = useMemo(() => getContrastRatio(safeBackground, safeForeground), [safeBackground, safeForeground]);
   
-  const wcagResult = useMemo(() => checkWCAG(backgroundColor, foregroundColor), [backgroundColor, foregroundColor]);
+  const wcagResult = useMemo(() => checkWCAG(safeBackground, safeForeground), [safeBackground, safeForeground]);
   
-  const suggestedColor = useMemo(() => getAccessibleTextColor(backgroundColor), [backgroundColor]);
+  const suggestedColor = useMemo(() => getAccessibleTextColor(safeBackground), [safeBackground]);
 
   const getRatingColor = () => {
     if (wcagResult.AAA) {return 'text-green-400';}
@@ -44,7 +48,7 @@ export const ContrastChecker: React.FC<ContrastCheckerProps> = ({
       {/* Preview */}
       <div
         className="w-full h-32 rounded-lg flex items-center justify-center p-4"
-        style={{ backgroundColor }}
+        style={{ backgroundColor: safeBackground }}
       >
         <p
           className="text-center font-medium"
@@ -57,43 +61,44 @@ export const ContrastChecker: React.FC<ContrastCheckerProps> = ({
       </div>
 
       {/* Color Pickers */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
+      <div className="grid grid-cols-2 gap-3 min-w-0">
+        <div className="min-w-0">
           <label className="text-[10px] text-gray-500 block mb-2">Background</label>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
             <input
               type="color"
               value={backgroundColor}
               onChange={(e) => onBackgroundChange?.(e.target.value)}
-              className="w-10 h-10 rounded border border-gray-600 cursor-pointer"
+              className="w-10 h-10 rounded border border-gray-600 cursor-pointer flex-shrink-0"
             />
             <input
               type="text"
               value={backgroundColor}
               onChange={(e) => onBackgroundChange?.(e.target.value)}
-              className="flex-1 bg-[#252627] border border-gray-600 rounded px-2 py-1 text-xs text-white font-mono uppercase"
+              className="flex-1 min-w-0 w-full bg-[#252627] border border-gray-600 rounded px-1.5 py-1 text-[10px] text-white font-mono uppercase"
             />
           </div>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <label className="text-[10px] text-gray-500 block mb-2">Foreground</label>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
             <input
               type="color"
               value={foregroundColor}
               onChange={(e) => setForegroundColor(e.target.value)}
-              className="w-10 h-10 rounded border border-gray-600 cursor-pointer"
+              className="w-10 h-10 rounded border border-gray-600 cursor-pointer flex-shrink-0"
             />
             <input
               type="text"
               value={foregroundColor}
               onChange={(e) => setForegroundColor(e.target.value)}
-              className="flex-1 bg-[#252627] border border-gray-600 rounded px-2 py-1 text-xs text-white font-mono uppercase"
+              className="flex-1 min-w-0 w-full bg-[#252627] border border-gray-600 rounded px-1.5 py-1 text-[10px] text-white font-mono uppercase"
             />
           </div>
         </div>
       </div>
+
 
       {/* Contrast Ratio */}
       <div className="text-center py-3 bg-black/30 rounded-lg">

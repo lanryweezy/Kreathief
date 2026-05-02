@@ -20,9 +20,17 @@ export interface RGB {
  * Converts Hex string to RGB
  */
 export const hexToRGB = (hex: string): RGB => {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
+  // Handle invalid hex or shorthand
+  let h = hex.replace('#', '');
+  if (h.length === 3) {
+    h = h.split('').map(char => char + char).join('');
+  }
+  // Ensure we have at least 6 chars for parsing
+  if (h.length < 6) h = h.padEnd(6, '0');
+  
+  const r = parseInt(h.slice(0, 2), 16) || 0;
+  const g = parseInt(h.slice(2, 4), 16) || 0;
+  const b = parseInt(h.slice(4, 6), 16) || 0;
   return { r, g, b };
 };
 
@@ -138,6 +146,59 @@ export const getAccessibleTextColor = (backgroundColor: string): string => {
 };
 
 /**
+ * HSL Conversion Utilities
+ */
+export interface HSL {
+  h: number;
+  s: number;
+  l: number;
+}
+
+export const rgbToHSL = (r: number, g: number, b: number): HSL => {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0, l = (max + min) / 2;
+
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+
+  return { h: h * 360, s: s * 100, l: l * 100 };
+};
+
+export const hslToRGB = (h: number, s: number, l: number): RGB => {
+  h /= 360; s /= 100; l /= 100;
+  let r, g, b;
+
+  if (s === 0) {
+    r = g = b = l;
+  } else {
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+
+  return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+};
+
+/**
  * Color Harmony Generation
  */
 export interface Harmonies {
@@ -150,32 +211,156 @@ export interface Harmonies {
 }
 
 export const generateHarmonies = (hex: string): Harmonies => {
+  const rgb = parseColor(hex);
+  const hsl = rgbToHSL(rgb.r, rgb.g, rgb.b);
+
+  const getHex = (h: number, s: number, l: number) => {
+    const r = hslToRGB((h + 360) % 360, s, l);
+    return rgbToHex(r.r, r.g, r.b);
+  };
+
   return {
-    complementary: hex, // Simulation
-    analogous: [hex, hex],
-    triadic: [hex, hex],
-    splitComplementary: [hex, hex],
-    tetradic: [hex, hex, hex],
-    monochromatic: [hex, hex, hex]
-  }; 
+    complementary: getHex(hsl.h + 180, hsl.s, hsl.l),
+    analogous: [
+      getHex(hsl.h - 30, hsl.s, hsl.l),
+      getHex(hsl.h + 30, hsl.s, hsl.l)
+    ],
+    triadic: [
+      getHex(hsl.h + 120, hsl.s, hsl.l),
+      getHex(hsl.h + 240, hsl.s, hsl.l)
+    ],
+    splitComplementary: [
+      getHex(hsl.h + 150, hsl.s, hsl.l),
+      getHex(hsl.h + 210, hsl.s, hsl.l)
+    ],
+    tetradic: [
+      getHex(hsl.h + 90, hsl.s, hsl.l),
+      getHex(hsl.h + 180, hsl.s, hsl.l),
+      getHex(hsl.h + 270, hsl.s, hsl.l)
+    ],
+    monochromatic: [
+      getHex(hsl.h, hsl.s, Math.max(10, hsl.l - 20)),
+      getHex(hsl.h, Math.max(10, hsl.s - 20), hsl.l),
+      getHex(hsl.h, hsl.s, Math.min(90, hsl.l + 20))
+    ]
+  };
 };
 
-export const generateTints = (hex: string, count: number = 5) => Array(count).fill(hex);
-export const generateShades = (hex: string, count: number = 5) => Array(count).fill(hex);
-export const generateTones = (hex: string, count: number = 5) => Array(count).fill(hex);
+export const generateTints = (hex: string, count: number = 5): string[] => {
+  const rgb = parseColor(hex);
+  const hsl = rgbToHSL(rgb.r, rgb.g, rgb.b);
+  return Array.from({ length: count }, (_, i) => {
+    const l = hsl.l + (100 - hsl.l) * ((i + 1) / (count + 1));
+    const r = hslToRGB(hsl.h, hsl.s, l);
+    return rgbToHex(r.r, r.g, r.b);
+  });
+};
+
+export const generateShades = (hex: string, count: number = 5): string[] => {
+  const rgb = parseColor(hex);
+  const hsl = rgbToHSL(rgb.r, rgb.g, rgb.b);
+  return Array.from({ length: count }, (_, i) => {
+    const l = hsl.l * (1 - (i + 1) / (count + 1));
+    const r = hslToRGB(hsl.h, hsl.s, l);
+    return rgbToHex(r.r, r.g, r.b);
+  });
+};
+
+export const generateTones = (hex: string, count: number = 5): string[] => {
+  const rgb = parseColor(hex);
+  const hsl = rgbToHSL(rgb.r, rgb.g, rgb.b);
+  return Array.from({ length: count }, (_, i) => {
+    const s = hsl.s * (1 - (i + 1) / (count + 1));
+    const r = hslToRGB(hsl.h, s, hsl.l);
+    return rgbToHex(r.r, r.g, r.b);
+  });
+};
 
 /**
  * Palette Extraction (Mock)
  */
-export const extractPalette = async (_imgUrl: string | ImageData, count: number = 5): Promise<string[]> => {
-  return Array(count).fill('#7d2ae8');
+/**
+ * Palette Extraction using Color Quantization (Simple version)
+ */
+export const extractPalette = async (imgData: ImageData, count: number = 5): Promise<string[]> => {
+  const pixels = imgData.data;
+  const pixelCount = pixels.length / 4;
+  const colorMap: Record<string, number> = {};
+
+  // Sample every 10th pixel for performance
+  for (let i = 0; i < pixels.length; i += 40) {
+    const r = pixels[i];
+    const g = pixels[i + 1];
+    const b = pixels[i + 2];
+    
+    // Group similar colors by rounding
+    const rounded = `${Math.round(r / 10) * 10},${Math.round(g / 10) * 10},${Math.round(b / 10) * 10}`;
+    colorMap[rounded] = (colorMap[rounded] || 0) + 1;
+  }
+
+  // Sort by frequency and get top colors
+  const sortedColors = Object.entries(colorMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, count)
+    .map(([colorStr]) => {
+      const [r, g, b] = colorStr.split(',').map(Number);
+      return rgbToHex(r, g, b);
+    });
+
+  return sortedColors;
 };
 
 /**
- * Gamut Warnings
+ * Gamut Warnings & Snapping
  */
-export const isWithinCMYKGamut = (_r: number | string, _g?: number, _b?: number): boolean => true;
-export const getCMYKGamutWarning = (_r: number | string, _g?: number, _b?: number): string | null => null;
+export const isWithinCMYKGamut = (hex: string): boolean => {
+  if (!hex || hex === 'transparent' || !hex.startsWith('#')) return true;
+  const rgb = parseColor(hex);
+  
+  // High-end Gamut Check: 
+  // Standard RGB (sRGB) covers colors that CMYK (Offset) cannot reproduce.
+  // We check if the saturation or brightness is in the "Danger Zone" (Neons/Brights)
+  const max = Math.max(rgb.r, rgb.g, rgb.b);
+  const min = Math.min(rgb.r, rgb.g, rgb.b);
+  const saturation = max === 0 ? 0 : (max - min) / max;
+  const brightness = max / 255;
+
+  // Rule of thumb: If saturation > 85% and brightness > 85%, it's likely out of gamut
+  if (saturation > 0.85 && brightness > 0.85) return false;
+  
+  // Specific Danger: Pure Blue (0,0,255) and Pure Green (0,255,0) are always out of gamut
+  if (rgb.b > 230 && rgb.r < 50 && rgb.g < 50) return false;
+  if (rgb.g > 230 && rgb.r < 50 && rgb.b < 50) return false;
+
+  return true;
+};
+
+export const getCMYKGamutWarning = (hex: string): 'warning' | 'critical' | null => {
+  if (isWithinCMYKGamut(hex)) return null;
+  const rgb = parseColor(hex);
+  // Critical if it's a neon or extremely saturated blue/green
+  return (rgb.g > 240 || rgb.b > 240) ? 'critical' : 'warning';
+};
+
+export const getClosestCMYKSafeColor = (hex: string): string => {
+  const rgb = parseColor(hex);
+  
+  // Simple "Snapping" algorithm: Desaturate and slightly darken until safe
+  let r = rgb.r;
+  let g = rgb.g;
+  let b = rgb.b;
+
+  // Reduce neons to printable levels
+  r = Math.min(r, 220);
+  g = Math.min(g, 220);
+  b = Math.min(b, 210);
+
+  // If it was a very bright blue/green, pull it back further
+  if (rgb.b > 200) b *= 0.85;
+  if (rgb.g > 200) g *= 0.85;
+
+  return rgbToHex(Math.round(r), Math.round(g), Math.round(b));
+};
 
 /**
  * Optimizes black for print (Rich Black)

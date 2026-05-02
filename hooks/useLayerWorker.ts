@@ -14,7 +14,9 @@ export const useProcessedImage = (layer: ImageLayer | null) => {
 
   const filterKey = useMemo(() => {
     if (!layer?.filters) return '';
-    return JSON.stringify(layer.filters);
+    const f = layer.filters;
+    // Fast hash of filter values to avoid JSON.stringify overhead
+    return `${f.brightness}-${f.contrast}-${f.saturation}-${f.sepia}-${f.grayscale}-${f.blur}-${f.vignette || 0}`;
   }, [layer?.filters]);
 
   useEffect(() => {
@@ -99,7 +101,7 @@ export const useLayerMask = (layer: Layer | null) => {
     return () => {
       isMounted = false;
     };
-  }, [layer?.id, layer?.type, (layer as any)?.pathData]);
+  }, [layer?.id, layer?.type, (layer as any)?.pathData, (layer as any)?.width, (layer as any)?.height]);
 
   return { maskPath, isProcessing };
 };

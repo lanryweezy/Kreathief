@@ -55,6 +55,10 @@ class HeavyWorkerService {
   async applyFilters(imageSrc: string, filters: CanvasFilters): Promise<string> {
     return this.postTask('APPLY_FILTERS', { imageSrc, filters });
   }
+
+  async generateGrain(width: number, height: number, noise: number, scale: number): Promise<string> {
+    return this.postTask('GENERATE_GRAIN', { width, height, noise, scale });
+  }
 }
 
 export const heavyWorkerService = new HeavyWorkerService();

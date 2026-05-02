@@ -29,6 +29,9 @@ export const getAnimationStyle = (anim?: AnimationSettings): React.CSSProperties
  */
 export const getLayerClipPath = (layer: Layer): string | undefined => {
   switch (layer.type) {
+    case 'circle':
+      return 'circle(50% at 50% 50%)';
+
     case 'triangle':
       return 'polygon(50% 0%, 0% 100%, 100% 100%)';
 

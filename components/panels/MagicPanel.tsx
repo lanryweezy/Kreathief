@@ -7,6 +7,7 @@ import * as geminiService from '../../services/geminiService';
 import { useStore } from '../../store/useStore';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
+import { v4 as uuidv4 } from 'uuid';
 
 interface MagicPanelProps {
   onGenerate: (negPrompt?: string) => void;
@@ -99,6 +100,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
     activeArtboardId,
 
     addImageLayer,
+    lastGeneratedImageUrl,
   } = useStore();
 
   const layers = artboards?.find((a) => a.id === activeArtboardId)?.layers || [];
@@ -107,6 +109,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [negativePrompt, setNegativePrompt] = useState('');
   const [showNegative, setShowNegative] = useState(false);
+  const [antiAiSlop, setAntiAiSlop] = useState(true);
   const [genHistory, setGenHistory] = useState<GenerationHistoryItem[]>(() => {
     try {
       const saved = localStorage.getItem('kreathief_gen_history');
@@ -115,15 +118,13 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
   });
 
   // Subscribe to newly generated images and add them to history
-  const generatedImages = undefined as any;
   const prevGeneratedRef = useRef<string | null>(null);
   useEffect(() => {
-    // generatedImages may be undefined if store doesn't expose it
-    if (!generatedImages || generatedImages === prevGeneratedRef.current) {return;}
-    prevGeneratedRef.current = generatedImages;
+    if (!lastGeneratedImageUrl || lastGeneratedImageUrl === prevGeneratedRef.current) {return;}
+    prevGeneratedRef.current = lastGeneratedImageUrl;
     const item: GenerationHistoryItem = {
-      id: Date.now().toString(),
-      imageUrl: generatedImages,
+      id: uuidv4(),
+      imageUrl: lastGeneratedImageUrl,
       prompt: prompt || 'Generated image',
       timestamp: Date.now(),
     };
@@ -132,7 +133,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
       try { localStorage.setItem('kreathief_gen_history', JSON.stringify(next)); } catch {}
       return next;
     });
-  }, [generatedImages, prompt]);
+  }, [lastGeneratedImageUrl, prompt]);
 
   const handleEnhancePrompt = async () => {
     if (!prompt.trim()) {return;}
@@ -226,7 +227,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
         <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
           <button
             onClick={() => onSetMode(AppMode.GENERATE)}
-            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${mode === AppMode.GENERATE ? 'bg-[#7d2ae8] text-white shadow-[0_0_15px_rgba(125,42,232,0.3)]' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`flex-1 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${mode === AppMode.GENERATE ? 'bg-[#7d2ae8] text-white shadow-[0_4px_20px_rgba(125,42,232,0.4)]' : 'text-gray-500 hover:text-gray-300'}`}
           >
             Imagine
           </button>
@@ -256,12 +257,12 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           <button
             onClick={handleEnhancePrompt}
             disabled={isEnhancing || !prompt.trim()}
-            className="absolute bottom-3 right-3 text-[9px] font-black uppercase tracking-widest bg-black border border-white/10 text-purple-400 px-3 py-1.5 rounded-lg flex items-center gap-2 hover:bg-[#7d2ae8]/10 hover:border-purple-500/30 transition-all shadow-xl"
+            className="absolute bottom-3 right-3 text-[11px] font-black uppercase tracking-widest bg-black/80 backdrop-blur-md border border-white/10 text-purple-400 px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-[#7d2ae8]/20 hover:border-purple-500/30 transition-all shadow-2xl"
           >
-            {isEnhancing ? (
-              <div className="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full" />
+            {isProcessing ? (
+              <div className="animate-spin w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full" />
             ) : (
-              <Icons.Sparkles className="w-3 h-3" />
+              <Icons.Sparkles className="w-3.5 h-3.5" />
             )}
             Enhance
           </button>
@@ -291,32 +292,32 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
         {/* Settings Row */}
         <div className="flex gap-4">
           <div className="flex-1 space-y-2">
-            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block">Quality Engine</label>
-            <div className="flex bg-white/5 rounded-xl border border-white/5 p-1">
+            <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest block">Quality Engine</label>
+            <div className="flex bg-white/5 rounded-xl border border-white/5 p-1.5">
               <button
                 onClick={() => setQuality('standard')}
-                className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${quality === 'standard' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${quality === 'standard' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}
               >
                 Turbo
               </button>
               <button
                 onClick={() => setQuality('hd')}
-                className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${quality === 'hd' ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${quality === 'hd' ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
               >
-                HD <Icons.Star className="w-2.5 h-2.5" />
+                HD <Icons.Star className="w-3 h-3" />
               </button>
             </div>
           </div>
 
           {mode === AppMode.GENERATE && (
-            <div className="flex-1">
-              <label className="text-[9px] font-bold text-gray-500 uppercase mb-1 block">Ratio</label>
-              <div className="flex bg-[#1e1e1e] rounded border border-gray-700 p-0.5 gap-0.5 overflow-x-auto">
+            <div className="flex-1 space-y-2">
+              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest block">Ratio</label>
+              <div className="flex bg-white/5 rounded-xl border border-white/5 p-1.5 gap-1 overflow-x-auto no-scrollbar">
                 {ASPECT_RATIOS.map((r) => (
                   <button
                     key={r.label}
                     onClick={() => setAspectRatio(r.value)}
-                    className={`flex-shrink-0 px-1.5 py-1 rounded text-[9px] font-bold whitespace-nowrap ${aspectRatio === r.value ? 'bg-gray-600 text-white' : 'text-gray-400'}`}
+                    className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${aspectRatio === r.value ? 'bg-white/20 text-white shadow-sm' : 'text-gray-400 hover:text-gray-200'}`}
                     title={r.label}
                   >
                     {r.label}
@@ -355,12 +356,34 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           </div>
         )}
 
+        <div className="flex items-center justify-between mb-4 bg-white/5 p-2 rounded-xl border border-white/5">
+          <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">
+            ✨ Anti-AI-Slop & Quality Control
+          </span>
+          <button
+            onClick={() => setAntiAiSlop(!antiAiSlop)}
+            className={`w-9 h-5 flex items-center rounded-full p-0.5 transition-all duration-300 ${
+              antiAiSlop ? 'bg-[#7d2ae8]' : 'bg-gray-800'
+            }`}
+          >
+            <span
+              className={`w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-300 ${
+                antiAiSlop ? 'translate-x-4' : 'translate-x-0'
+              }`}
+            />
+          </button>
+        </div>
+
         <Button
           variant="primary"
           className="w-full py-3 shadow-lg shadow-purple-900/20"
           onClick={() => {
+            const finalPrompt = antiAiSlop
+              ? `${prompt} (Anti-AI-Slop: avoid flat vectors, uncurated purple/blue gradients, generic 3D icons, or generic digital illustrations. Use premium editorial contrast, high-fidelity real-world textures, and high-contrast professional design tokens.)`
+              : prompt;
+            useStore.getState().setPrompt(finalPrompt);
             onGenerate(negativePrompt);
-            analyticsService.trackGeneration(prompt, mode);
+            analyticsService.trackGeneration(finalPrompt, mode);
           }}
           loading={isProcessing}
           disabled={!prompt.trim() || (mode === AppMode.EDIT && !uploadedImage)}
@@ -406,7 +429,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
         <h4 className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-4 sticky top-0 bg-[#0a0a0a] py-2 z-10">
           Curated Styles
         </h4>
-        <div className="grid grid-cols-2 gap-2 pb-10">
+        <div className="grid grid-cols-2 gap-3 pb-10">
           {STYLE_PRESETS.map((item) => (
             <button
               key={item.name}
@@ -414,20 +437,21 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                 setPrompt(prompt ? `${prompt}, ${item.style}` : item.style);
                 analyticsService.track('generate_image', { mode: 'apply_style', style: item.name });
               }}
-              className="group relative h-16 rounded-xl overflow-hidden hover:scale-[1.03] transition-all duration-200 hover:shadow-lg hover:shadow-black/40"
+              className="group relative h-20 rounded-2xl overflow-hidden hover:scale-[1.05] transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20 active:scale-95"
             >
               {/* Gradient background as visual preview */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-90`} />
+              <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-80`} />
               {/* Subtle texture overlay */}
-              <div className="absolute inset-0 opacity-20 mix-blend-overlay" style={{
+              <div className="absolute inset-0 opacity-30 mix-blend-overlay" style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
               }} />
-              <div className="absolute inset-0 flex flex-col items-start justify-end p-2 bg-gradient-to-t from-black/60 to-transparent">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-base leading-none">{item.icon}</span>
-                  <span className="text-xs font-bold text-white group-hover:text-white/90 drop-shadow">{item.name}</span>
+              <div className="absolute inset-0 flex flex-col items-start justify-end p-3 bg-gradient-to-t from-black/80 via-black/20 to-transparent">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg leading-none transform group-hover:scale-110 transition-transform">{item.icon}</span>
+                  <span className="text-[13px] font-black text-white tracking-tight drop-shadow-lg">{item.name}</span>
                 </div>
               </div>
+              <div className="absolute inset-0 border border-white/10 group-hover:border-white/20 rounded-2xl transition-colors" />
             </button>
           ))}
         </div>

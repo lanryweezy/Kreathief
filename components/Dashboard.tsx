@@ -139,12 +139,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
 
           <div className="h-8 w-px bg-gray-700 mx-2"></div>
 
-          <div className="flex items-center gap-4 group relative cursor-pointer">
+          <div className="flex items-center gap-4 group relative">
             <div className="text-right hidden sm:block">
               <div className="text-xs font-black uppercase tracking-widest text-white">{user.name}</div>
               <div className="text-[9px] text-purple-400 uppercase font-black tracking-widest">{user.plan} Plan</div>
             </div>
-            <div className="w-10 h-10 rounded-full border-2 border-white/10 group-hover:border-purple-500 transition-colors overflow-hidden p-0.5">
+            <div 
+              onClick={() => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = 'image/*';
+                input.onchange = (e: any) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (evt) => {
+                      const avatarUrl = evt.target?.result as string;
+                      useStore.getState().setUser({
+                        ...user,
+                        avatar: avatarUrl
+                      });
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                };
+                input.click();
+              }}
+              className="w-10 h-10 rounded-full border-2 border-white/10 group-hover:border-purple-500 transition-colors overflow-hidden p-0.5 cursor-pointer relative"
+              title="Click to update profile image"
+            >
               <img
                 src={user.avatar}
                 className="w-full h-full rounded-full object-cover"
@@ -416,8 +439,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       <CreateProjectModal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        onCreate={async (size) => {
-          const newProjectId = await createProject(size.name || 'Untitled Design', size);
+        onCreate={async (size, initialState) => {
+          const newProjectId = await createProject(size.name || 'Untitled Design', size, initialState);
           setCreateModalOpen(false);
           // Wait a tick for store to update, then get the new project
           setTimeout(() => {

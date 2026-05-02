@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 export interface EmptyStateProps {
   icon: React.ComponentType<{ className?: string }>;
@@ -12,7 +13,6 @@ export interface EmptyStateProps {
     label: string;
     onClick: () => void;
   };
-  // Optional onboarding cards shown beneath the main action
   onboardingCards?: Array<{
     emoji: string;
     title: string;
@@ -31,24 +31,47 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   onboardingCards,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4 text-center h-full w-full max-w-xl mx-auto animate-fade-in">
-      {/* Icon */}
-      <div className="relative mb-6">
-        <div className="absolute inset-0 bg-[#7d2ae8]/20 blur-[60px] rounded-full animate-pulse-slow" />
-        <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-[#1e1e1e] to-[#13161a] border border-white/10 flex items-center justify-center shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500 group">
-          <Icon className="w-9 h-9 text-[#7d2ae8] group-hover:scale-110 group-hover:text-[#a855f7] transition-all duration-300" />
-        </div>
+    <div className="flex flex-col items-center justify-center py-16 px-6 text-center h-full w-full max-w-2xl mx-auto overflow-hidden">
+      {/* Dynamic Background Glow */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#7d2ae8]/5 blur-[120px] rounded-full animate-pulse" />
       </div>
 
-      <h3 className="text-xl font-black text-white mb-2 tracking-tight">{title}</h3>
-      <p className="text-gray-500 mb-8 text-sm leading-relaxed max-w-xs">{description}</p>
+      {/* Floating Icon Stage */}
+      <motion.div 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+        className="relative mb-10"
+      >
+        <div className="absolute inset-0 bg-[#7d2ae8]/20 blur-[40px] rounded-full" />
+        <div className="relative w-24 h-24 rounded-[32px] bg-gradient-to-br from-[#1e1e1e] to-[#0a0a0c] border border-white/10 flex items-center justify-center shadow-2xl transform rotate-6 hover:rotate-0 transition-transform duration-700 cursor-help group">
+          <Icon className="w-10 h-10 text-[#7d2ae8] group-hover:scale-110 group-hover:text-white transition-all duration-500" />
+        </div>
+      </motion.div>
 
-      {/* Primary / Secondary Actions */}
-      <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mb-10">
+      <motion.div
+        initial={{ y: 10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.1 }}
+      >
+        <h3 className="text-3xl font-black text-white mb-3 tracking-tighter uppercase italic">{title}</h3>
+        <p className="text-gray-500 mb-10 text-base leading-relaxed max-w-sm mx-auto font-medium">
+          {description}
+        </p>
+      </motion.div>
+
+      {/* Action Hub */}
+      <motion.div 
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto mb-16 relative z-10"
+      >
         {action && (
           <button
             onClick={action.onClick}
-            className="px-8 py-3 bg-gradient-to-r from-[#7d2ae8] to-[#a855f7] text-white font-black uppercase tracking-widest text-[10px] rounded-xl hover:shadow-lg hover:shadow-purple-500/30 transition-all active:scale-95 whitespace-nowrap"
+            className="px-10 py-4 bg-white text-black font-black uppercase tracking-[0.2em] text-[11px] rounded-2xl hover:bg-[#00c4cc] hover:text-white hover:shadow-[0_0_30px_rgba(0,196,204,0.3)] transition-all transform hover:-translate-y-1 active:translate-y-0.5 whitespace-nowrap"
           >
             {action.label}
           </button>
@@ -56,45 +79,55 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         {secondaryAction && (
           <button
             onClick={secondaryAction.onClick}
-            className="px-8 py-3 bg-[#252627] text-gray-400 font-black uppercase tracking-widest text-[10px] rounded-xl border border-gray-700 hover:border-gray-500 hover:text-white transition-all active:scale-95 whitespace-nowrap"
+            className="px-10 py-4 bg-[#1a1d21] text-gray-400 font-black uppercase tracking-[0.2em] text-[11px] rounded-2xl border border-white/5 hover:border-white/20 hover:text-white transition-all active:scale-95 whitespace-nowrap"
           >
             {secondaryAction.label}
           </button>
         )}
-      </div>
+      </motion.div>
 
-      {/* Onboarding Hint Cards */}
+      {/* Artistic "First Step" Cards */}
       {onboardingCards && onboardingCards.length > 0 && (
-        <div className="w-full">
-          <div className="flex items-center gap-2 mb-4">
+        <div className="w-full relative px-2">
+          <div className="flex items-center gap-3 mb-6">
             <div className="flex-1 h-px bg-white/5" />
-            <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">How to get started</span>
+            <span className="text-[9px] font-black text-gray-600 uppercase tracking-[0.3em]">Ignite Creativity</span>
             <div className="flex-1 h-px bg-white/5" />
           </div>
-          <div className="grid grid-cols-2 gap-2 text-left">
-            {onboardingCards.map((card) => (
-              <button
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+            {onboardingCards.map((card, idx) => (
+              <motion.button
                 key={card.title}
+                initial={{ x: idx % 2 === 0 ? -20 : 20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.3 + idx * 0.1, type: 'spring' }}
                 onClick={card.onClick}
-                className="group p-3 bg-[#1e1e1e]/60 border border-white/5 rounded-xl hover:border-[#7d2ae8]/30 hover:bg-[#7d2ae8]/5 transition-all text-left"
+                className="group relative p-5 bg-[#0a0a0c]/40 border border-white/5 rounded-[24px] hover:border-[#7d2ae8]/40 hover:bg-[#7d2ae8]/5 transition-all overflow-hidden"
               >
-                <div className="text-xl mb-2 group-hover:scale-110 transition-transform duration-200 w-fit">
-                  {card.emoji}
+                <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-100 group-hover:rotate-12 transition-all">
+                   <div className="text-3xl grayscale group-hover:grayscale-0">{card.emoji}</div>
                 </div>
-                <div className="text-xs font-bold text-gray-300 group-hover:text-white mb-1">
-                  {card.title}
-                </div>
-                <div className="text-[10px] text-gray-600 leading-tight">
-                  {card.description}
-                </div>
-                {card.shortcut && (
-                  <div className="mt-2">
-                    <kbd className="px-1.5 py-0.5 bg-black/40 border border-white/10 rounded text-[9px] text-gray-500 font-mono">
-                      {card.shortcut}
-                    </kbd>
+                
+                <div className="relative z-10">
+                  <div className="text-xs font-black text-white uppercase tracking-wider mb-1.5 flex items-center gap-2">
+                    {card.title}
+                    <div className="w-1 h-1 rounded-full bg-[#7d2ae8] opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                )}
-              </button>
+                  <div className="text-[10px] text-gray-500 font-medium leading-relaxed group-hover:text-gray-400 pr-8">
+                    {card.description}
+                  </div>
+                  
+                  {card.shortcut && (
+                    <div className="mt-4 flex items-center justify-between">
+                      <kbd className="px-2 py-1 bg-black/60 border border-white/10 rounded-lg text-[9px] text-gray-600 font-mono tracking-tighter group-hover:text-[#7d2ae8]">
+                        {card.shortcut}
+                      </kbd>
+                      <span className="text-[9px] font-black text-[#7d2ae8] opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all">START ↗</span>
+                    </div>
+                  )}
+                </div>
+              </motion.button>
             ))}
           </div>
         </div>
@@ -102,3 +135,4 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     </div>
   );
 };
+

@@ -32,7 +32,7 @@ export const selectedLayerSelector = createSelector(
     if (!artboard || !id) {
       return null;
     }
-    return (artboard.layers || []).find((l: Layer) => l.id === id) || null;
+    return (artboard?.layers || []).find((l: Layer) => l.id === id) || null;
   }
 );
 
@@ -43,6 +43,6 @@ export const selectedLayersSelector = createSelector(
       return [];
     }
     const idSet = new Set(ids);
-    return (artboard.layers || []).filter((l: Layer) => idSet.has(l.id));
+    return (artboard?.layers || []).filter((l: Layer) => idSet.has(l.id));
   }
 );

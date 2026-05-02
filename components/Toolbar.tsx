@@ -110,16 +110,8 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
   };
 
   return (
-    <AnimatePresence>
-      <motion.div 
-        data-testid="toolbar"
-        initial={{ y: 20, opacity: 0, scale: 0.95 }}
-        animate={{ y: 0, opacity: 1, scale: 1 }}
-        exit={{ y: 20, opacity: 0, scale: 0.95 }}
-        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] flex items-center min-h-[56px] bg-[#1e1e1e]/90 backdrop-blur-xl border border-white/10 px-4 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] gap-4"
-      >
-        <div className="flex items-center gap-4 overflow-x-auto no-scrollbar max-w-[85vw] py-1">
+    <div className="flex items-center gap-4 w-full h-full">
+      <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-1">
           {isMultiSelect ? (
             <div className="flex items-center gap-4">
               <span className="text-[10px] font-black text-[#7d2ae8] uppercase tracking-widest">Selected ({(selectedLayerIds || []).length})</span>
@@ -245,9 +237,8 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
               </div>
             </>
           )}
-        </div>
-      </motion.div>
-    </AnimatePresence>
+      </div>
+    </div>
   );
 });
 

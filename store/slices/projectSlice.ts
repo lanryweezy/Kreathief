@@ -104,9 +104,11 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
 
     set({ isSaving: true, syncStatus: 'syncing' });
     try {
+      const existingProject = get().projects.find((p: Project) => p.id === projectId);
       const updatedProject: Project = {
         id: projectId,
         name: projectTitle,
+        thumbnail: existingProject?.thumbnail,
         updatedAt: Date.now(),
         state: {
           artboards,
@@ -118,7 +120,7 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
           showGrid,
           showRulers,
         },
-        comments: get().projects.find((p: Project) => p.id === projectId)?.comments || [],
+        comments: existingProject?.comments || [],
       };
       await storageService.saveProject(updatedProject);
       set((state: any) => ({
@@ -161,7 +163,7 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
       comments: [],
       state: initialState || {
         artboards: [defaultArtboard],
-        activeArtboardId: 'default',
+        activeArtboardId: defaultArtboard.id,
         canvasBackgroundColor: '#ffffff',
         canvasFilters: {
           brightness: 100,
