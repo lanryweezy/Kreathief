@@ -443,7 +443,7 @@ export const TextLayerItem = React.memo(
                 onFinishEditing?.();
               }
             }}
-            className={isEditing ? 'outline-none border-b border-dashed border-[#7d2ae8] min-w-[30px] bg-black/10' : ''}
+            className={isEditing ? 'outline-none min-w-[30px] select-text' : ''}
             style={{
               fontFamily: textLayer.fontFamily,
               fontSize: `${textLayer.fontSize}px`,

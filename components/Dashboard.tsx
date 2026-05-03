@@ -17,7 +17,7 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCreateProject, onLogout }) => {
-  const { projects, loadAllProjects, deleteProject, duplicateProject, updateProject, createProject, loadProject, favoriteProjects, toggleFavoriteProject } =
+  const { projects, loadAllProjects, deleteProject, duplicateProject, updateProject, createProject, loadProject, favoriteProjects, toggleFavoriteProject, shareToCommunity } =
     useStore();
 
   const [sidebarTab, setSidebarTab] = useState<'projects' | 'templates' | 'community'>('projects');
@@ -81,7 +81,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     }
 
     const newProject = createProjectFromTemplate(template);
-    const newProjectId = await createProject(newProject.name, newProject.state.canvasSize, newProject.state);
+    const remixedState = {
+      artboards: newProject.state.artboards || [{
+        id: 'default',
+        name: 'Artboard 1',
+        x: 0,
+        y: 0,
+        width: newProject.state.canvasSize?.width || 1080,
+        height: newProject.state.canvasSize?.height || 1080,
+        layers: newProject.state.layers || [],
+      }],
+      activeArtboardId: newProject.state.activeArtboardId || 'default',
+      canvasBackgroundColor: newProject.state.canvasBackgroundColor || '#ffffff',
+      canvasFilters: newProject.state.canvasFilters || { brightness: 100, contrast: 100, saturation: 100, blur: 0, opacity: 1, vignette: 0, sepia: 0, grayscale: 0, hueRotate: 0 },
+      canvasSize: newProject.state.canvasSize || { width: 1080, height: 1080, name: 'Instagram Post' }
+    };
+    const newProjectId = await createProject(newProject.name, newProject.state.canvasSize, remixedState);
 
     // Wait for store to update, then open the new project
     setTimeout(() => {
@@ -268,18 +283,150 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                       key={tmpl.id}
                       data-testid={`dashboard-template-btn-${tmpl.id}`}
                       onClick={() => handleStartFromTemplate(tmpl.id)}
-                      className="group glass-card rounded-xl overflow-hidden text-left shadow-lg"
+                      className="group bg-[#0a0a0c] border border-white/5 rounded-2xl overflow-hidden text-left hover:border-white/20 transition-all duration-300 shadow-xl relative"
                     >
-                      <div className="aspect-[4/3] bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center relative overflow-hidden">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-black/40 px-2 py-1 rounded-full absolute top-3 left-3">
-                          {tmpl.category}
-                        </span>
-                        <span className="text-xs text-gray-500 group-hover:text-gray-300 transition-colors">
-                          {tmpl.size.name}
-                        </span>
+                      <div className="aspect-[4/3] bg-[#0a0a0c] flex items-center justify-center relative overflow-hidden group-hover:bg-[#121216] transition-colors border-b border-white/5">
+                        {/* High-fidelity Miniature Render of the template */}
+                        <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-3 select-none pointer-events-none">
+                          <div 
+                            style={{
+                              width: `${tmpl.size.width || 1080}px`,
+                              height: `${tmpl.size.height || 1080}px`,
+                              transform: `scale(${Math.min(260 / (tmpl.size.width || 1080), 195 / (tmpl.size.height || 1080))})`,
+                              transformOrigin: 'center center',
+                              backgroundColor: tmpl.state?.canvasBackgroundColor || '#0f172a',
+                            }}
+                            className="relative flex-shrink-0 shadow-2xl rounded-sm border border-white/5 overflow-hidden"
+                          >
+                            {tmpl.state?.layers?.map((l: any, idx: number) => {
+                              if (l.type === 'rectangle') {
+                                return (
+                                  <div
+                                    key={l.id || idx}
+                                    style={{
+                                      position: 'absolute',
+                                      left: `${l.x}px`,
+                                      top: `${l.y}px`,
+                                      width: `${l.width}px`,
+                                      height: `${l.height}px`,
+                                      backgroundColor: l.color || '#fff',
+                                      borderRadius: `${l.cornerRadius || 0}px`,
+                                      opacity: l.opacity ?? 1,
+                                      transform: `rotate(${l.rotation || 0}deg) skew(${l.skewX || 0}deg, ${l.skewY || 0}deg)`,
+                                    }}
+                                  />
+                                );
+                              }
+                              if (l.type === 'circle') {
+                                return (
+                                  <div
+                                    key={l.id || idx}
+                                    style={{
+                                      position: 'absolute',
+                                      left: `${l.x}px`,
+                                      top: `${l.y}px`,
+                                      width: `${l.width}px`,
+                                      height: `${l.height}px`,
+                                      backgroundColor: l.color || '#fff',
+                                      borderRadius: '50%',
+                                      opacity: l.opacity ?? 1,
+                                      transform: `rotate(${l.rotation || 0}deg)`,
+                                    }}
+                                  />
+                                );
+                              }
+                              if (l.type === 'text') {
+                                return (
+                                  <div
+                                    key={l.id || idx}
+                                    style={{
+                                      position: 'absolute',
+                                      left: `${l.x}px`,
+                                      top: `${l.y}px`,
+                                      width: `${l.width}px`,
+                                      height: `${l.height}px`,
+                                      color: l.color || '#fff',
+                                      fontSize: `${l.fontSize || 16}px`,
+                                      fontFamily: l.fontFamily || 'sans-serif',
+                                      fontWeight: l.fontWeight || '400',
+                                      textAlign: l.textAlign || 'left',
+                                      opacity: l.opacity ?? 1,
+                                      transform: `rotate(${l.rotation || 0}deg) skew(${l.skewX || 0}deg, ${l.skewY || 0}deg)`,
+                                      whiteSpace: 'pre-wrap',
+                                      overflow: 'hidden',
+                                    }}
+                                  >
+                                    {l.text}
+                                  </div>
+                                );
+                              }
+                              if (l.type === 'path' || l.type === 'svg' || l.pathData) {
+                                const isDrawing = l.id?.startsWith('draw_') || l.brushType;
+                                const strokeColor = l.stroke?.color || l.color || '#fff';
+                                const strokeWidth = l.stroke?.width || 2;
+                                return (
+                                  <svg
+                                    key={l.id || idx}
+                                    style={{
+                                      position: 'absolute',
+                                      left: `${l.x}px`,
+                                      top: `${l.y}px`,
+                                      width: `${l.width}px`,
+                                      height: `${l.height}px`,
+                                      opacity: l.opacity ?? 1,
+                                      transform: `rotate(${l.rotation || 0}deg)`,
+                                      overflow: 'visible',
+                                    }}
+                                    viewBox={l.viewBox || `0 0 ${l.width || 512} ${l.height || 512}`}
+                                  >
+                                    <path 
+                                      d={l.pathData || l.path || l.d} 
+                                      fill={isDrawing ? 'none' : (l.color || '#fff')} 
+                                      stroke={isDrawing ? strokeColor : 'none'}
+                                      strokeWidth={isDrawing ? strokeWidth : 0}
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                );
+                              }
+                              if (l.type === 'image') {
+                                return (
+                                  <img
+                                    key={l.id || idx}
+                                    src={l.src}
+                                    style={{
+                                      position: 'absolute',
+                                      left: `${l.x}px`,
+                                      top: `${l.y}px`,
+                                      width: `${l.width}px`,
+                                      height: `${l.height}px`,
+                                      opacity: l.opacity ?? 1,
+                                      transform: `rotate(${l.rotation || 0}deg)`,
+                                      objectFit: 'cover',
+                                    }}
+                                  />
+                                );
+                              }
+                              return null;
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Top Overlays */}
+                        <div className="absolute inset-x-0 top-0 p-3 flex justify-between items-center bg-gradient-to-b from-black/60 to-transparent pointer-events-none select-none">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-white bg-[#7d2ae8] px-2 py-0.5 rounded shadow-lg border border-white/10">
+                            {tmpl.category}
+                          </span>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded border border-white/5">
+                            {tmpl.size.name}
+                          </span>
+                        </div>
                       </div>
-                      <div className="p-3">
-                        <div className="text-sm font-semibold text-white truncate mb-1">{tmpl.name}</div>
+                      <div className="p-4 bg-[#0a0a0a]">
+                        <div className="text-sm font-bold text-white truncate mb-1 group-hover:text-[#00c4cc] transition-colors">
+                          {tmpl.name}
+                        </div>
                         <div className="text-[11px] text-gray-400 line-clamp-2">{tmpl.description}</div>
                       </div>
                     </button>
@@ -344,8 +491,132 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                           className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
                         />
                       ) : (
-                        <div className="w-full h-full opacity-60 group-hover:scale-105 transition-transform duration-700 flex items-center justify-center bg-gradient-to-br from-[#1e293b] to-[#0f172a]">
-                          <Icons.Magic className="w-12 h-12 text-white/5 opacity-20" />
+                        /* Fallback Miniature Render for Projects without thumbnails */
+                        <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-4 select-none pointer-events-none group-hover:scale-105 transition-transform duration-700 bg-gradient-to-br from-[#1e293b] to-[#0f172a]">
+                          <div 
+                            style={{
+                              width: `${project.state.canvasSize?.width || 1080}px`,
+                              height: `${project.state.canvasSize?.height || 1080}px`,
+                              transform: `scale(${Math.min(260 / (project.state.canvasSize?.width || 1080), 195 / (project.state.canvasSize?.height || 1080))})`,
+                              transformOrigin: 'center center',
+                              backgroundColor: project.state.canvasBackgroundColor || '#ffffff',
+                            }}
+                            className="relative flex-shrink-0 shadow-2xl rounded-sm border border-white/5 overflow-hidden"
+                          >
+                            {project.state.layers?.map((l: any, idx: number) => {
+                              if (!l.visible) return null;
+                              if (l.type === 'rectangle') {
+                                return (
+                                  <div
+                                    key={l.id || idx}
+                                    style={{
+                                      position: 'absolute',
+                                      left: `${l.x}px`,
+                                      top: `${l.y}px`,
+                                      width: `${l.width}px`,
+                                      height: `${l.height}px`,
+                                      backgroundColor: l.color || '#fff',
+                                      borderRadius: `${l.cornerRadius || 0}px`,
+                                      opacity: l.opacity ?? 1,
+                                      transform: `rotate(${l.rotation || 0}deg)`,
+                                    }}
+                                  />
+                                );
+                              }
+                              if (l.type === 'circle') {
+                                return (
+                                  <div
+                                    key={l.id || idx}
+                                    style={{
+                                      position: 'absolute',
+                                      left: `${l.x}px`,
+                                      top: `${l.y}px`,
+                                      width: `${l.width}px`,
+                                      height: `${l.height}px`,
+                                      backgroundColor: l.color || '#fff',
+                                      borderRadius: '50%',
+                                      opacity: l.opacity ?? 1,
+                                      transform: `rotate(${l.rotation || 0}deg)`,
+                                    }}
+                                  />
+                                );
+                              }
+                              if (l.type === 'text') {
+                                return (
+                                  <div
+                                    key={l.id || idx}
+                                    style={{
+                                      position: 'absolute',
+                                      left: `${l.x}px`,
+                                      top: `${l.y}px`,
+                                      width: `${l.width}px`,
+                                      height: `${l.height}px`,
+                                      color: l.color || '#fff',
+                                      fontSize: `${l.fontSize || 16}px`,
+                                      fontFamily: l.fontFamily || 'sans-serif',
+                                      fontWeight: l.fontWeight || '400',
+                                      textAlign: l.textAlign || 'left',
+                                      opacity: l.opacity ?? 1,
+                                      transform: `rotate(${l.rotation || 0}deg)`,
+                                      whiteSpace: 'pre-wrap',
+                                      overflow: 'hidden',
+                                    }}
+                                  >
+                                    {l.text}
+                                  </div>
+                                );
+                              }
+                              if (l.type === 'path' || l.type === 'svg' || l.pathData) {
+                                const isDrawing = l.id?.startsWith('draw_') || l.brushType;
+                                const strokeColor = l.stroke?.color || l.color || '#fff';
+                                const strokeWidth = l.stroke?.width || 2;
+                                return (
+                                  <svg
+                                    key={l.id || idx}
+                                    style={{
+                                      position: 'absolute',
+                                      left: `${l.x}px`,
+                                      top: `${l.y}px`,
+                                      width: `${l.width}px`,
+                                      height: `${l.height}px`,
+                                      opacity: l.opacity ?? 1,
+                                      transform: `rotate(${l.rotation || 0}deg)`,
+                                      overflow: 'visible',
+                                    }}
+                                    viewBox={l.viewBox || `0 0 ${l.width || 512} ${l.height || 512}`}
+                                  >
+                                    <path 
+                                      d={l.pathData || l.path || l.d} 
+                                      fill={isDrawing ? 'none' : (l.color || '#fff')} 
+                                      stroke={isDrawing ? strokeColor : 'none'}
+                                      strokeWidth={isDrawing ? strokeWidth : 0}
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                );
+                              }
+                              if (l.type === 'image') {
+                                return (
+                                  <img
+                                    key={l.id || idx}
+                                    src={l.src}
+                                    style={{
+                                      position: 'absolute',
+                                      left: `${l.x}px`,
+                                      top: `${l.y}px`,
+                                      width: `${l.width}px`,
+                                      height: `${l.height}px`,
+                                      opacity: l.opacity ?? 1,
+                                      transform: `rotate(${l.rotation || 0}deg)`,
+                                      objectFit: 'cover',
+                                    }}
+                                  />
+                                );
+                              }
+                              return null;
+                            })}
+                          </div>
                         </div>
                       )}
 
@@ -373,6 +644,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                           className="p-2 bg-black/60 hover:bg-[#00c4cc] text-white rounded-lg backdrop-blur-md transition-all shadow-lg"
                         >
                           <Icons.Plus className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            shareToCommunity(project);
+                            alert('Design shared successfully with the community!');
+                          }}
+                          title="Share with Community"
+                          aria-label={`Share ${project.name} to Community`}
+                          className="p-2 bg-black/60 hover:bg-green-500 text-white rounded-lg backdrop-blur-md transition-all shadow-lg"
+                        >
+                          <Icons.Cloud className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={(e) => handleDelete(e, project.id)}
@@ -418,8 +701,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
 
             {/* Community Tab */}
             {sidebarTab === 'community' && (
-              <div className="bg-[#1e1e1e] rounded-3xl overflow-hidden border border-white/5 min-h-[600px]">
-                <CommunityTemplates />
+              <div className="rounded-3xl overflow-hidden border border-white/5 min-h-[600px]">
+                <CommunityTemplates onOpenProject={onOpenProject} />
               </div>
             )}
           </div>

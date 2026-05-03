@@ -287,7 +287,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           </ErrorBoundary>
         </div>
 
-        <div className="flex-1 relative overflow-hidden bg-[#13161a] flex flex-col">
+        <div className="flex-1 relative overflow-hidden bg-[#000000] flex flex-col">
           {activeTab === NavTab.ASSISTANT && !isMobile && (
             <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 pointer-events-none" />
           )}

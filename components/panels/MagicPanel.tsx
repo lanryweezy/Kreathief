@@ -289,38 +289,40 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           </div>
         )}
 
-        {/* Settings Row */}
-        <div className="flex gap-4">
-          <div className="flex-1 space-y-2">
+        {/* Settings Block */}
+        <div className="space-y-4 select-none">
+          {/* Quality Row */}
+          <div className="space-y-2">
             <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest block">Quality Engine</label>
-            <div className="flex bg-white/5 rounded-xl border border-white/5 p-1.5">
+            <div className="flex bg-white/5 rounded-xl border border-white/5 p-1">
               <button
                 onClick={() => setQuality('standard')}
-                className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${quality === 'standard' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${quality === 'standard' ? 'bg-[#7d2ae8] text-white shadow-lg shadow-purple-500/20' : 'text-gray-500 hover:text-gray-300'}`}
               >
                 Turbo
               </button>
               <button
                 onClick={() => setQuality('hd')}
-                className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${quality === 'hd' ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${quality === 'hd' ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
               >
                 HD <Icons.Star className="w-3 h-3" />
               </button>
             </div>
           </div>
 
+          {/* Aspect Ratio Row */}
           {mode === AppMode.GENERATE && (
-            <div className="flex-1 space-y-2">
-              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-widest block">Ratio</label>
-              <div className="flex bg-white/5 rounded-xl border border-white/5 p-1.5 gap-1 overflow-x-auto no-scrollbar">
+            <div className="space-y-2">
+              <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest block">Aspect Ratio</label>
+              <div className="flex bg-white/5 rounded-xl border border-white/5 p-1 gap-1 overflow-x-auto no-scrollbar select-none">
                 {ASPECT_RATIOS.map((r) => (
                   <button
                     key={r.label}
                     onClick={() => setAspectRatio(r.value)}
-                    className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${aspectRatio === r.value ? 'bg-white/20 text-white shadow-sm' : 'text-gray-400 hover:text-gray-200'}`}
-                    title={r.label}
+                    className={`flex-1 min-w-[54px] flex-shrink-0 whitespace-nowrap py-2 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${aspectRatio === r.value ? 'bg-[#7d2ae8] text-white shadow-lg shadow-purple-500/20' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
                   >
-                    {r.label}
+                    <span>{r.icon}</span>
+                    <span>{r.label}</span>
                   </button>
                 ))}
               </div>

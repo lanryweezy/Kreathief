@@ -31,7 +31,7 @@ export const callBackendGeminiAPI = async (payload: any) => {
   const { GoogleGenerativeAI } = await import('@google/generative-ai');
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({ 
-    model: payload.modelName,
+    model: payload.modelName || MODEL_FAST,
     generationConfig: payload.generationConfig,
     systemInstruction: payload.systemInstruction,
   });

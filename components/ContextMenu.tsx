@@ -46,10 +46,10 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {onClose();}
     };
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') {onClose();} };
-    document.addEventListener('mousedown', handleOut);
+    document.addEventListener('click', handleOut);
     document.addEventListener('keydown', handleEsc);
     return () => {
-      document.removeEventListener('mousedown', handleOut);
+      document.removeEventListener('click', handleOut);
       document.removeEventListener('keydown', handleEsc);
     };
   }, [onClose]);
@@ -77,21 +77,21 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
     onClose();
   };
 
-  const adjustedX = Math.min(x, window.innerWidth - 232);
-  const adjustedY = Math.min(y, window.innerHeight - 420);
+  const adjustedX = Math.min(x, window.innerWidth - 272);
+  const adjustedY = Math.min(y, window.innerHeight - 450);
 
   const MI = ({ onClick, icon: Icon, children, red = false, purple = false, disabled = false }: any) => (
     <button
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
-      className={`w-full flex items-center gap-2.5 px-3 py-1.5 text-xs transition-all text-left rounded mx-1 group/mi ${
+      className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-sm transition-all text-left rounded-lg mx-1 group/mi ${
         disabled ? 'text-gray-700 cursor-not-allowed' :
         red ? 'text-red-400 hover:bg-red-500/15 hover:text-red-300' :
         purple ? 'text-[#a855f7] hover:bg-[#a855f7]/15 hover:text-[#c084fc]' :
         'text-gray-300 hover:bg-[#7d2ae8] hover:text-white'}`}
       style={{ width: 'calc(100% - 8px)' }}
     >
-      <Icon className="w-3.5 h-3.5 shrink-0 opacity-70 group-hover/mi:opacity-100" />
+      <Icon className="w-4 h-4 shrink-0 opacity-70 group-hover/mi:opacity-100" />
       <span className="flex-1">{children}</span>
     </button>
   );
@@ -102,53 +102,53 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
   return (
     <div
       ref={menuRef}
-      className="fixed z-[300] w-56 bg-[#181818]/95 border border-white/10 rounded-xl shadow-2xl py-2 flex flex-col backdrop-blur-xl overflow-hidden"
+      className="fixed z-[9999] w-72 bg-[#1e1e1e]/98 border border-white/10 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] py-4 flex flex-col backdrop-blur-2xl overflow-hidden select-none"
       style={{ top: adjustedY, left: adjustedX }}
       onContextMenu={e => e.preventDefault()}
     >
       {/* Header */}
-      <div className="px-3 pb-2 mb-1 border-b border-white/5">
-        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest truncate">
-          {layer?.type || 'layer'} · {layer?.name || layerId.slice(0, 8)}
+      <div className="px-5 pb-3 mb-2 border-b border-white/5">
+        <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] truncate italic">
+          {layer?.type || 'CORE NODE'} · {layer?.name || layerId.slice(0, 8)}
         </p>
       </div>
 
       {/* Rename */}
       {isRenaming ? (
-        <div className="px-2 pb-2">
+        <div className="px-4 pb-3">
           <input
             ref={renameInputRef}
             value={renameValue}
             onChange={e => setRenameValue(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') {handleRename();} if (e.key === 'Escape') { setIsRenaming(false); onClose(); } }}
             onBlur={handleRename}
-            className="w-full bg-[#0e1318] border border-[#7d2ae8] rounded-lg px-3 py-1.5 text-xs text-white outline-none"
+            className="w-full bg-black/40 border border-[#7d2ae8] rounded-xl px-4 py-2.5 text-sm text-white outline-none font-bold"
             autoFocus
           />
         </div>
       ) : (
         <button
           onClick={() => setIsRenaming(true)}
-          className="w-full flex items-center gap-2.5 px-3 py-1.5 text-xs text-gray-300 hover:bg-[#7d2ae8] hover:text-white transition-all rounded mx-1 text-left"
-          style={{ width: 'calc(100% - 8px)' }}
+          className="w-full flex items-center gap-3.5 px-5 py-3 text-xs font-black uppercase tracking-widest text-slate-400 hover:bg-[#7d2ae8] hover:text-white transition-all rounded-xl mx-2 group"
+          style={{ width: 'calc(100% - 16px)' }}
         >
-          <Icons.Edit className="w-3.5 h-3.5 shrink-0 opacity-70" />
+          <Icons.Edit className="w-4 h-4 shrink-0 opacity-50 group-hover:opacity-100" />
           <span className="flex-1">Rename</span>
-          <span className="text-[9px] text-gray-600 font-mono">F2</span>
+          <span className="text-[10px] text-slate-600 font-mono group-hover:text-white/50">F2</span>
         </button>
       )}
 
-      <MI onClick={() => { duplicateLayer(layerId); onClose(); }} icon={Icons.Copy} label="Duplicate">
-        Duplicate <span className="ml-auto text-[9px] text-gray-600 font-mono">Ctrl+D</span>
+      <MI onClick={() => { duplicateLayer(layerId); onClose(); }} icon={Icons.Copy}>
+        Duplicate <span className="ml-auto text-[10px] text-slate-600 font-mono group-hover/mi:text-white/50">Ctrl+D</span>
       </MI>
       
       <Div />
 
       <MI onClick={() => { groupSelected(); onClose(); }} icon={Icons.Group}>
-        Group Selection <span className="ml-auto text-[9px] text-gray-600 font-mono">Ctrl+G</span>
+        Group <span className="ml-auto text-[10px] text-slate-600 font-mono group-hover/mi:text-white/50">Ctrl+G</span>
       </MI>
       <MI onClick={() => { ungroupSelected(); onClose(); }} icon={Icons.Ungroup}>
-        Ungroup <span className="ml-auto text-[9px] text-gray-600 font-mono">⇧Ctrl+G</span>
+        Ungroup <span className="ml-auto text-[10px] text-slate-600 font-mono group-hover/mi:text-white/50">⇧Ctrl+G</span>
       </MI>
 
       <Div />
@@ -156,17 +156,15 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
       <MI onClick={() => { pasteLayer(); onClose(); }} icon={Icons.Copy} disabled={!clipboardLayer}>
         Paste Above
       </MI>
-      <MI onClick={handleExportAsPng} icon={Icons.Download}>Export as PNG</MI>
+      <MI onClick={handleExportAsPng} icon={Icons.Download}>Snap as PNG</MI>
 
       <Div />
 
       <MI onClick={() => { moveLayer(layerId, 'front'); onClose(); }} icon={Icons.ArrowUp}>
-        Bring to Front <span className="ml-auto text-[9px] text-gray-600 font-mono">⇧]</span>
+        Bring to Front <span className="ml-auto text-[10px] text-slate-600 font-mono group-hover/mi:text-white/50">⇧]</span>
       </MI>
-      <MI onClick={() => { moveLayer(layerId, 'forward'); onClose(); }} icon={Icons.ChevronUp}>Bring Forward</MI>
-      <MI onClick={() => { moveLayer(layerId, 'backward'); onClose(); }} icon={Icons.ChevronDown}>Send Backward</MI>
       <MI onClick={() => { moveLayer(layerId, 'back'); onClose(); }} icon={Icons.ArrowDown}>
-        Send to Back <span className="ml-auto text-[9px] text-gray-600 font-mono">⇧[</span>
+        Send to Back <span className="ml-auto text-[10px] text-slate-600 font-mono group-hover/mi:text-white/50">⇧[</span>
       </MI>
 
       <Div />
@@ -191,35 +189,14 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
           icon={Icons.Layers}
           disabled={layers.findIndex((l: any) => l.id === layerId) === layers.length - 1}
         >
-          Use as Clipping Mask
+          Use as Mask
         </MI>
-      )}
-
-      <Div />
-
-      <MI onClick={() => { updateLayer(layerId, { locked: !isLocked }); onClose(); }} icon={isLocked ? Icons.Unlock : Icons.Lock}>
-        {isLocked ? 'Unlock Layer' : 'Lock Layer'}
-      </MI>
-
-      {layer && !layer.componentId && !layer.masterId && (
-        <MI onClick={() => { convertToComponent(layerId); onClose(); }} icon={Icons.LayoutGrid} purple>
-          Convert to Component
-        </MI>
-      )}
-      {layer?.componentId && (
-        <MI onClick={() => { instantiateComponent(layer.componentId!); onClose(); }} icon={Icons.Plus}>Create Instance</MI>
-      )}
-      {layer?.masterId && (
-        <>
-          <MI onClick={() => { resetOverrides(layerId); onClose(); }} icon={Icons.Undo}>Reset Overrides</MI>
-          <MI onClick={() => { detachInstance(layerId); onClose(); }} icon={Icons.Scissors}>Detach Instance</MI>
-        </>
       )}
 
       <Div />
 
       <MI onClick={() => { deleteLayer(layerId); onClose(); }} icon={Icons.Trash} red>
-        Delete <span className="ml-auto text-[9px] text-gray-600 font-mono">Del</span>
+        Delete Node <span className="ml-auto text-[10px] text-slate-600 font-mono group-hover/mi:text-white/50">Del</span>
       </MI>
     </div>
   );

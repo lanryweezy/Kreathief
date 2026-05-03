@@ -13,6 +13,8 @@ export interface ProjectSlice {
   lastSaved: Date | null;
   hasUnsavedChanges: boolean;
   autoSaveEnabled: boolean;
+  communityProjects: any[];
+  shareToCommunity: (project: Project) => void;
 
   setSyncStatus: (status: 'synced' | 'offline' | 'syncing' | 'error') => void;
   setProjectId: (id: string) => void;
@@ -50,6 +52,25 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
   lastSaved: null,
   hasUnsavedChanges: false,
   autoSaveEnabled: true,
+  communityProjects: [],
+  shareToCommunity: (project: Project) => {
+    set((state: any) => ({
+      communityProjects: [
+        {
+          id: `tpl_shared_${Date.now()}`,
+          title: project.name,
+          author: 'You',
+          likes: 0,
+          downloads: 0,
+          thumbnail: project.thumbnail || 'https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=800&q=80',
+          tags: ['Community', 'Shared'],
+          category: 'Social',
+          state: project.state
+        },
+        ...state.communityProjects,
+      ]
+    }));
+  },
 
   setSyncStatus: (syncStatus) => set({ syncStatus }),
   setProjectId: (projectId) => set({ projectId }),

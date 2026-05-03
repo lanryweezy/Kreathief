@@ -21,7 +21,9 @@ export const useFileHandler = () => {
   const uploads = useStore((state) => state.uploads) || [];
   const history = useStore((state) => state.history) || [];
   const artboards = useStore((state) => state.artboards) || [];
-  const layers = artboards.flatMap(a => a.layers);
+  const activeArtboardId = useStore((state) => state.activeArtboardId);
+  const activeArtboard = artboards.find(a => a.id === activeArtboardId) || artboards[0];
+  const layers = activeArtboard ? activeArtboard.layers : [];
   const canvasSize = useStore((state) => state.canvasSize) || { width: 1080, height: 1080, name: 'Square' };
   const canvasBackgroundColor = useStore((state) => state.canvasBackgroundColor) || '#ffffff';
   const canvasFilters = useStore((state) => state.canvasFilters);
@@ -82,7 +84,8 @@ export const useFileHandler = () => {
   const handleExportDataUrl = async (): Promise<string> => {
     const store = useStore.getState();
     const artboards = store.artboards || [];
-    const layers = artboards.flatMap((a: any) => a.layers || []);
+    const activeArtboard = artboards.find((a: any) => a.id === store.activeArtboardId) || artboards[0];
+    const layers = activeArtboard ? activeArtboard.layers || [] : [];
     const canvasSize = store.canvasSize || { width: 1080, height: 1080 };
     const canvasBackgroundColor = store.canvasBackgroundColor || '#ffffff';
     const canvasFilters = store.canvasFilters;
@@ -105,7 +108,8 @@ export const useFileHandler = () => {
   const handleExportBlob = async (): Promise<Blob | null> => {
     const store = useStore.getState();
     const artboards = store.artboards || [];
-    const layers = artboards.flatMap((a: any) => a.layers || []);
+    const activeArtboard = artboards.find((a: any) => a.id === store.activeArtboardId) || artboards[0];
+    const layers = activeArtboard ? activeArtboard.layers || [] : [];
     const canvasSize = store.canvasSize || { width: 1080, height: 1080 };
     const canvasBackgroundColor = store.canvasBackgroundColor || '#ffffff';
     const canvasFilters = store.canvasFilters;
@@ -133,13 +137,15 @@ export const useFileHandler = () => {
 
     setIsExporting(true);
     try {
+      const store = useStore.getState();
       const exportWidth = size?.width || canvasSize.width;
       const exportHeight = size?.height || canvasSize.height;
       const fileName = customFilename ? customFilename : `design-${Date.now()}`;
       const scaleX = exportWidth / canvasSize.width;
       const scaleY = exportHeight / canvasSize.height;
       
-      const targetLayers = overrideLayers || layers;
+      const activeArtboard = store.artboards.find((a: any) => a.id === store.activeArtboardId) || store.artboards[0];
+      const targetLayers = overrideLayers || (activeArtboard ? activeArtboard.layers || [] : []);
       const scaledLayers = targetLayers.map(l => ({
         ...l,
         x: l.x * scaleX,

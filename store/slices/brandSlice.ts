@@ -14,8 +14,16 @@ export interface BrandSlice {
 }
 
 export const createBrandSlice: StateCreator<any, [], [], BrandSlice> = (set, get) => ({
-  brandKits: [],
-  activeBrandKitId: null,
+  brandKits: [
+    {
+      id: 'automotive_procurement',
+      name: 'Automotive Procurement (SAP Ariba, Coupa)',
+      colors: ['#0b1a30', '#008080', '#ff5722', '#e0e6ed'],
+      fonts: ['Space Grotesk', 'Inter'],
+      logos: ['https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=100&q=80']
+    }
+  ],
+  activeBrandKitId: 'automotive_procurement',
   
   setActiveBrandKit: (id) => set({ activeBrandKitId: id }),
 

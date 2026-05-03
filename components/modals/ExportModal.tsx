@@ -271,19 +271,19 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="export-modal-title"
     >
       <div
-        className="bg-[#1e1e1e] border border-gray-700 rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col md:flex-row relative"
+        className="bg-[#1e1e1e] border border-white/10 rounded-[32px] shadow-2xl max-w-5xl w-full overflow-hidden flex flex-col md:flex-row relative max-h-[82vh]"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white z-10 p-2"
+          className="absolute top-6 right-6 text-gray-400 hover:text-white z-20 p-2 bg-white/5 rounded-full transition-all"
           id="close-export-modal"
           data-testid="close-export-modal"
           aria-label="Close"
@@ -292,26 +292,27 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         </button>
 
         {/* Info/Preview Side */}
-        <div className="md:w-1/3 bg-[#13161a] p-8 border-r border-gray-700 hidden md:flex flex-col">
-          <div className="w-12 h-12 bg-[#7d2ae8] rounded-xl flex items-center justify-center mb-6 shadow-lg shadow-purple-900/20">
-            <Icons.Download className="w-6 h-6 text-white" />
+        <div className="md:w-[28%] bg-[#13161a] p-10 border-r border-white/5 hidden md:flex flex-col select-none relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-transparent pointer-events-none" />
+          <div className="w-16 h-16 bg-[#7d2ae8] rounded-2xl flex items-center justify-center mb-8 shadow-2xl shadow-purple-900/40 relative z-10">
+            <Icons.Download className="w-8 h-8 text-white" />
           </div>
-          <h2 id="export-modal-title" className="text-xl font-bold text-white mb-2">Export Design</h2>
-          <p className="text-gray-400 text-sm leading-relaxed mb-8">
-            Download your creation in professional formats. Choose a preset or stick with your current canvas size.
+          <h2 id="export-modal-title" className="text-2xl font-black text-white mb-4 tracking-tighter italic relative z-10 uppercase">Export Design</h2>
+          <p className="text-gray-400 text-[11px] leading-relaxed mb-10 font-medium relative z-10">
+            Download your creation in professional formats. Choose a preset or maintain your native canvas coordinates.
           </p>
 
-          <div className="mt-auto p-4 bg-purple-900/10 border border-purple-500/20 rounded-xl">
-            <h4 className="text-[10px] font-bold text-purple-400 uppercase tracking-widest mb-1">Pro Tip</h4>
-            <p className="text-[10px] text-gray-400">
-              For the best quality on Instagram, use PNG format and the Instagram Post preset.
+          <div className="mt-auto p-6 bg-white/5 border border-white/5 rounded-2xl relative z-10 backdrop-blur-md">
+            <h4 className="text-[10px] font-black text-purple-400 uppercase tracking-[0.2em] mb-2">Neural Optimization</h4>
+            <p className="text-[10px] text-gray-500 font-medium leading-relaxed">
+              Our export engine automatically optimizes PNG buffers for maximum compatibility with Adobe Creative Cloud.
             </p>
           </div>
         </div>
 
         {/* Controls Side */}
-        <div data-testid="export-modal" className="flex-1 p-8">
-          <div className="space-y-6">
+        <div data-testid="export-modal" className="flex-1 p-10 overflow-y-auto max-h-[80vh] custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+          <div className="space-y-10">
             {/* Format Selection */}
             <div>
               <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 block">Format</label>

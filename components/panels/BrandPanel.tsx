@@ -248,28 +248,37 @@ export const BrandPanel = () => {
               {newColors.map((c, i) => (
                 <div
                   key={i}
-                  className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-600 cursor-pointer hover:scale-110 transition-transform group"
+                  className="flex items-center gap-1.5 bg-[#252627] border border-gray-700 rounded-lg p-1 animate-fadeIn shrink-0"
                 >
+                  <div className="relative w-6 h-6 rounded-md overflow-hidden border border-gray-600 cursor-pointer shrink-0">
+                    <input
+                      data-testid={`brand-color-input-${i}`}
+                      type="color"
+                      value={c}
+                      onChange={(e) => updateNewColor(i, e.target.value)}
+                      className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
+                    />
+                    <div className="w-full h-full" style={{ backgroundColor: c }} />
+                  </div>
                   <input
-                    data-testid={`brand-color-input-${i}`}
-                    type="color"
+                    type="text"
                     value={c}
                     onChange={(e) => updateNewColor(i, e.target.value)}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    className="w-16 bg-transparent border-none text-xs text-white outline-none font-mono"
                   />
-                  <div className="w-full h-full" style={{ backgroundColor: c }} />
                   <button
                     onClick={() => setNewColors((prev) => prev.filter((_, idx) => idx !== i))}
-                    className="absolute inset-0 m-auto text-white opacity-0 group-hover:opacity-100 flex items-center justify-center bg-black/50"
+                    className="text-gray-500 hover:text-red-400 p-0.5"
+                    title="Remove color"
                   >
-                    &times;
+                    <Icons.X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ))}
               {newColors.length < 8 && (
                 <button
                   onClick={() => setNewColors([...newColors, '#000000'])}
-                  className="w-8 h-8 rounded-full border border-dashed border-gray-600 flex items-center justify-center text-gray-500 hover:text-white hover:border-gray-400"
+                  className="w-8 h-8 rounded-full border border-dashed border-gray-600 flex items-center justify-center text-gray-500 hover:text-white hover:border-gray-400 self-center"
                 >
                   <Icons.Plus className="w-3 h-3" />
                 </button>
@@ -314,19 +323,24 @@ export const BrandPanel = () => {
           </div>
 
           <div className="flex gap-2 pt-2 border-t border-gray-700">
-            <Button data-testid="save-brand-kit-btn" size="sm" onClick={handleCreate} disabled={!newKitName.trim()}>
+            <button
+              data-testid="save-brand-kit-btn"
+              onClick={handleCreate}
+              disabled={!newKitName.trim()}
+              title={!newKitName.trim() ? "Please enter a brand name to save" : "Save Brand Kit"}
+              className="px-3 py-1.5 text-xs font-bold text-white bg-[#7d2ae8] hover:bg-[#6b23c5] rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md shadow-purple-900/10"
+            >
               Save Kit
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
+            </button>
+            <button
               onClick={() => {
                 setIsCreating(false);
                 resetForm();
               }}
+              className="px-3 py-1.5 text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
             >
               Cancel
-            </Button>
+            </button>
           </div>
         </div>
       )}

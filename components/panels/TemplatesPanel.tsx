@@ -79,26 +79,26 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
       name: '2-Up Horizontal',
       icon: Icons.LayoutRow,
       shapes: [
-        { type: 'rectangle', x: 20, y: 156, width: 226, height: 200, color: '#2a2a2a' },
-        { type: 'rectangle', x: 266, y: 156, width: 226, height: 200, color: '#2a2a2a' },
+        { type: 'rectangle', x: 20, y: 20, width: 226, height: 472, color: '#2a2a2a' },
+        { type: 'rectangle', x: 266, y: 20, width: 226, height: 472, color: '#2a2a2a' },
       ],
     },
     {
       name: '3-Column',
       icon: Icons.LayoutCol,
       shapes: [
-        { type: 'rectangle', x: 10, y: 56, width: 157, height: 400, color: '#2a2a2a' },
-        { type: 'rectangle', x: 177, y: 56, width: 158, height: 400, color: '#333' },
-        { type: 'rectangle', x: 345, y: 56, width: 157, height: 400, color: '#2a2a2a' },
+        { type: 'rectangle', x: 20, y: 20, width: 144, height: 472, color: '#2a2a2a' },
+        { type: 'rectangle', x: 184, y: 20, width: 144, height: 472, color: '#333' },
+        { type: 'rectangle', x: 348, y: 20, width: 144, height: 472, color: '#2a2a2a' },
       ],
     },
     {
       name: 'Hero Split',
       icon: Icons.LayoutRow,
       shapes: [
-        { type: 'rectangle', x: 0, y: 0, width: 512, height: 256, color: '#222' },
-        { type: 'rectangle', x: 0, y: 256, width: 256, height: 256, color: '#333' },
-        { type: 'rectangle', x: 256, y: 256, width: 256, height: 256, color: '#444' },
+        { type: 'rectangle', x: 20, y: 20, width: 472, height: 226, color: '#222' },
+        { type: 'rectangle', x: 20, y: 266, width: 226, height: 226, color: '#333' },
+        { type: 'rectangle', x: 266, y: 266, width: 226, height: 226, color: '#444' },
       ],
     },
     {

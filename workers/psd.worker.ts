@@ -1,4 +1,4 @@
-import { readPsd, writePsd, Psd, Layer as PsdLayer } from 'ag-psd';
+import { readPsd, writePsd, initializeCanvas, Psd, Layer as PsdLayer } from 'ag-psd';
 import { v4 as uuidv4 } from 'uuid';
 
 // Define simplified layer types for the worker to avoid circular dependencies with main app types
@@ -52,9 +52,9 @@ self.onmessage = async (e: MessageEvent) => {
 async function parsePsdToLayers(buffer: ArrayBuffer): Promise<WorkerLayer[]> {
   // initializeCanvas is needed for ag-psd to handle image data in a worker
   // @ts-ignore - ignore type mismatch
-  if (typeof OffscreenCanvas !== 'undefined') {
+  if (typeof OffscreenCanvas !== 'undefined' && initializeCanvas) {
     // @ts-ignore - ignore type mismatch
-    readPsd.initializeCanvas((width, height) => new OffscreenCanvas(width, height));
+    initializeCanvas((width, height) => new OffscreenCanvas(width, height));
   }
 
   const psd = readPsd(buffer, { skipLayerImageData: false, skipThumbnail: true });
@@ -239,9 +239,9 @@ async function parsePsdToLayers(buffer: ArrayBuffer): Promise<WorkerLayer[]> {
  */
 async function exportLayersToPsd(width: number, height: number, layers: WorkerLayer[]): Promise<Blob> {
   // @ts-ignore - ignore type mismatch
-  if (typeof OffscreenCanvas !== 'undefined') {
+  if (typeof OffscreenCanvas !== 'undefined' && initializeCanvas) {
     // @ts-ignore - ignore type mismatch
-    writePsd.initializeCanvas((width, height) => new OffscreenCanvas(width, height));
+    initializeCanvas((width, height) => new OffscreenCanvas(width, height));
   }
 
   const psd: Psd = {
@@ -361,9 +361,30 @@ async function exportLayersToPsd(width: number, height: number, layers: WorkerLa
         const bitmap = await createImageBitmap(blob);
         ctx.drawImage(bitmap, 0, 0, layerWidth, layerHeight);
       } else if (isShape) {
-        // Simple rect fallback for shapes
+        ctx.save();
         ctx.fillStyle = layer.color || '#000000';
-        ctx.fillRect(0, 0, layerWidth, layerHeight);
+        
+        // Handle specialized shape rendering in worker
+        if (layer.type === 'path' && (layer as any).pathData) {
+          const p = new Path2D((layer as any).pathData);
+          if (layer.id?.startsWith('draw_') || (layer as any).brushType) {
+            ctx.strokeStyle = layer.stroke?.color || layer.color;
+            ctx.lineWidth = layer.stroke?.width || 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.stroke(p);
+          } else {
+            ctx.fill(p);
+          }
+        } else if (layer.type === 'circle') {
+          ctx.beginPath();
+          ctx.arc(layerWidth / 2, layerHeight / 2, Math.min(layerWidth, layerHeight) / 2, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          // Default to rectangle
+          ctx.fillRect(0, 0, layerWidth, layerHeight);
+        }
+        ctx.restore();
       }
 
       return {

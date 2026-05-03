@@ -213,47 +213,6 @@ export const TextTools = React.memo(
         documentColors={documentColors}
       />
 
-      <div className="relative">
-        <div className="flex bg-gradient-to-r from-[#7d2ae8]/20 to-[#00c4cc]/20 border border-white/10 rounded-lg overflow-hidden group">
-          <button
-            onClick={() => onMagicWrite(layer.id)}
-            className="px-3 py-1.5 hover:bg-[#7d2ae8]/20 text-[#7d2ae8] text-[10px] font-bold transition-all flex items-center gap-1.5"
-          >
-            <Icons.Magic className="w-3.5 h-3.5" /> AI Rewrite
-          </button>
-          <button
-            ref={rewriteRef as any}
-            onClick={() => setShowRewriteTones(!showRewriteTones)}
-            className="px-1.5 py-1.5 border-l border-white/10 hover:bg-white/5 text-gray-400 hover:text-white transition-all"
-          >
-            <Icons.ChevronDown className="w-3.5 h-3.5" />
-          </button>
-        </div>
-        <Dropdown
-          anchorRef={rewriteRef as any}
-          isOpen={showRewriteTones}
-          onClose={() => setShowRewriteTones(false)}
-          align="right"
-        >
-          <div className="w-40 bg-[#1e1e1e] border border-white/10 rounded-xl shadow-2xl p-1.5 animate-fadeIn backdrop-blur-xl">
-            {[
-              { label: 'Magic', icon: Icons.Magic, instruction: 'Rewrite this to be more creative and catchy.' },
-              { label: 'Shorten', icon: Icons.Minus, instruction: 'Rewrite this to be shorter and more concise.' },
-              { label: 'Expand', icon: Icons.Plus, instruction: 'Rewrite this to be longer and more descriptive.' },
-              { label: 'Pro', icon: Icons.Check, instruction: 'Rewrite this to be more professional and corporate.' },
-              { label: 'Funny', icon: Icons.Bot, instruction: 'Rewrite this to be funny and witty.' },
-            ].map((tone) => (
-              <button
-                key={tone.label}
-                onClick={() => handleToneRewrite(layer.id, tone.instruction)}
-                className="w-full text-left px-3 py-2 text-[10px] text-gray-400 hover:bg-[#7d2ae8] hover:text-white rounded-lg flex items-center gap-2.5 transition-all font-medium"
-              >
-                <tone.icon className="w-3.5 h-3.5" /> {tone.label}
-              </button>
-            ))}
-          </div>
-        </Dropdown>
-        </div>
       </div>
     );
   }

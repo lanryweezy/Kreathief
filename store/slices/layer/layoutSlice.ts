@@ -140,8 +140,8 @@ export const createLayoutSlice: StateCreator<any, [], [], Partial<LayerSlice>> =
       return;
     }
 
-    const CANVAS_W = artboard.width;
-    const CANVAS_H = artboard.height;
+    const CANVAS_W = state.canvasSize?.width || artboard.width || 512;
+    const CANVAS_H = state.canvasSize?.height || artboard.height || 512;
     const phi = 0.61803398875;
 
     if (Array.isArray(typeOrShapes)) {

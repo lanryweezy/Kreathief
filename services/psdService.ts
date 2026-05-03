@@ -28,7 +28,7 @@ class PsdService {
     }
   }
 
-  private postMessage(type: string, payload: any): Promise<any> {
+  private postMessage(type: string, payload: any, transfer?: Transferable[]): Promise<any> {
     return new Promise((resolve, reject) => {
       if (!this.worker) {
         reject(new Error('Worker not initialized'));
@@ -36,13 +36,18 @@ class PsdService {
       }
       const id = Math.random().toString(36).substring(7);
       this.callbacks.set(id, { resolve, reject });
-      this.worker.postMessage({ type, payload, id });
+      
+      if (transfer) {
+        this.worker.postMessage({ type, payload, id }, transfer);
+      } else {
+        this.worker.postMessage({ type, payload, id });
+      }
     });
   }
 
   public async parsePsdToLayers(buffer: ArrayBuffer): Promise<Layer[]> {
-    // We might need to transfer the buffer for performance, but simple post for now
-    return this.postMessage('PARSE', { buffer });
+    // Transfer the buffer to the worker for high performance
+    return this.postMessage('PARSE', { buffer }, [buffer]);
   }
 
   public async exportLayersToPsd(width: number, height: number, layers: Layer[]): Promise<Blob> {

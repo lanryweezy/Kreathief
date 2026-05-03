@@ -228,6 +228,27 @@ const drawTextLayerToContext = (ctx: CanvasRenderingContext2D, layer: TextLayer)
 };
 
 const drawShapeToContext = (ctx: CanvasRenderingContext2D, layer: ShapeLayer) => {
+  if (layer.type === 'path' && layer.pathData) {
+    ctx.save();
+    ctx.translate(layer.x, layer.y);
+    ctx.rotate((layer.rotation * Math.PI) / 180);
+    ctx.globalAlpha = layer.opacity;
+
+    const p = new Path2D(layer.pathData);
+    if (layer.id?.startsWith('draw_') || (layer as any).brushType) {
+      ctx.strokeStyle = layer.stroke?.color || layer.color;
+      ctx.lineWidth = layer.stroke?.width || 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke(p);
+    } else {
+      ctx.fillStyle = layer.color || '#333333';
+      ctx.fill(p);
+    }
+    ctx.restore();
+    return;
+  }
+
   ctx.save();
   ctx.translate(layer.x + layer.width / 2, layer.y + layer.height / 2);
   ctx.rotate((layer.rotation * Math.PI) / 180);

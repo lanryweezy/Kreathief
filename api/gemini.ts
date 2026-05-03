@@ -70,7 +70,7 @@ export default async function handler(req: Request) {
     const ai = new GoogleGenerativeAI(apiKey);
 
     if (action === 'generateContent') {
-      const modelConfig: any = { model: modelName };
+      const modelConfig: any = { model: modelName || 'gemini-2.0-flash' };
       if (generationConfig) {modelConfig.generationConfig = generationConfig;}
       if (systemInstruction) {modelConfig.systemInstruction = systemInstruction;}
 

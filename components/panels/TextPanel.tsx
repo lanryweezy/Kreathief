@@ -372,47 +372,6 @@ export const TextPanel: React.FC = () => {
         </button>
       </div>
 
-      {/* Magic Writer */}
-      <div className="mb-6 bg-gradient-to-r from-purple-900/20 to-blue-900/20 p-4 rounded-lg border border-purple-500/30">
-        <h4 className="text-xs font-bold text-purple-200 mb-2 flex items-center gap-2">
-          <Icons.Magic className="w-3 h-3" />
-          Magic Writer
-        </h4>
-        <div className="flex gap-2 mb-2">
-          <input
-            type="text"
-            placeholder="Topic: e.g. Coffee Sale"
-            className="flex-1 bg-[#0e1318] border border-gray-600 rounded px-2 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500"
-            value={textGenPrompt}
-            onChange={(e) => setTextGenPrompt(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleMagicText()}
-          />
-          <button
-            onClick={handleMagicText}
-            disabled={isGeneratingText || !textGenPrompt.trim()}
-            className="bg-purple-600 hover:bg-purple-500 text-white p-1.5 rounded disabled:opacity-50 transition-colors"
-          >
-            {isGeneratingText ? (
-              <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
-            ) : (
-              <Icons.Zap className="w-4 h-4" />
-            )}
-          </button>
-        </div>
-        {textGenResults.length > 0 && (
-          <div className="flex flex-col gap-1.5 mt-2 max-h-32 overflow-y-auto custom-scrollbar">
-            {textGenResults.map((res, i) => (
-              <button
-                key={i}
-                onClick={() => handleAddText({ text: res, fontSize: 32, fontWeight: 'bold' })}
-                className="bg-[#252627] hover:bg-purple-500 hover:text-white border border-gray-600 text-gray-300 text-[10px] px-2 py-1.5 rounded transition-colors text-left"
-              >
-                {res}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 pb-10">
         {/* Text Presets Grid */}

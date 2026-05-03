@@ -4,7 +4,6 @@ import { User, Project } from '../types';
 import { DropdownMenu } from './DropdownMenu';
 import { useStore } from '../store/useStore';
 import { PublishModal } from './modals/PublishModal';
-import { SyncStatus } from './SyncStatus';
 
 interface HeaderProps {
   onDownload: () => void;
@@ -80,7 +79,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="h-14 bg-[#0a0a0a] text-white flex items-center justify-between px-6 z-50 shrink-0 border-b border-white/5 shadow-2xl">
+    <header className="h-14 bg-[#0a0a0a] text-white flex items-center justify-between px-6 z-50 shrink-0 border-b border-white/5 shadow-2xl relative">
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 mr-2">
           <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/20">
@@ -100,122 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         )}
 
-        <div className="hidden md:flex items-center gap-1 px-2">
-          <DropdownMenu
-            label="File"
-            items={[
-              {
-                label: 'New Design',
-                icon: <Icons.FolderPlus className="w-3.5 h-3.5" />,
-                onClick: () => {
-                  if (onNew) {
-                    onNew({
-                      id: `project_${Date.now()}`,
-                      name: 'Untitled Design',
-                      updatedAt: Date.now(),
-                      state: {
-                        artboards: [{
-                          id: 'artboard_1',
-                          name: 'Artboard 1',
-                          x: 0,
-                          y: 0,
-                          width: 1080,
-                          height: 1080,
-                          layers: [],
-                        }],
-                        canvasBackgroundColor: '#ffffff',
-                        canvasFilters: {
-                          brightness: 100,
-                          contrast: 100,
-                          saturation: 100,
-                          sepia: 0,
-                          grayscale: 0,
-                          blur: 0,
-                          opacity: 1,
-                          vignette: 0,
-                          hueRotate: 0,
-                        },
-                        canvasSize: { width: 1080, height: 1080, name: 'Square (IG Post)' },
-                      },
-                    });
-                  }
-                },
-              },
-              {
-                label: 'Save (Ctrl+S)',
-                icon: <Icons.CheckSquare className="w-3.5 h-3.5" />,
-                onClick: onSave || (() => {}),
-              },
-              { divider: true, label: '' },
-              { label: 'Export...', icon: <Icons.Download className="w-3.5 h-3.5" />, onClick: onDownload },
-            ]}
-          />
-          <DropdownMenu
-            label="Edit"
-            items={[
-              {
-                label: 'Undo',
-                icon: <Icons.Undo className="w-3.5 h-3.5" />,
-                shortcut: 'Ctrl+Z',
-                disabled: !canUndo,
-                onClick: undo || (() => {}),
-              },
-              {
-                label: 'Redo',
-                icon: <Icons.Redo className="w-3.5 h-3.5" />,
-                shortcut: 'Ctrl+Y',
-                disabled: !canRedo,
-                onClick: redo || (() => {}),
-              },
-              { divider: true, label: '' },
-              {
-                label: 'Keyboard Shortcuts',
-                icon: <Icons.Help className="w-3.5 h-3.5" />,
-                shortcut: '?',
-                onClick: onShowShortcuts || (() => {}),
-              },
-            ]}
-          />
-          <DropdownMenu
-            label="View"
-            items={[
-              {
-                label: 'Zoom In',
-                icon: <Icons.Plus className="w-3.5 h-3.5" />,
-                shortcut: 'Ctrl++',
-                onClick: () => onZoomChange(Math.min(5, zoom + 0.1)),
-              },
-              {
-                label: 'Zoom Out',
-                icon: <Icons.Minus className="w-3.5 h-3.5" />,
-                shortcut: 'Ctrl+-',
-                onClick: () => onZoomChange(Math.max(0.1, zoom - 0.1)),
-              },
-              {
-                label: 'Reset Zoom',
-                onClick: () => onZoomChange(1),
-              },
-              { divider: true, label: '' },
-              {
-                label: 'Toggle Rulers',
-                icon: <Icons.Layout className="w-3.5 h-3.5" />,
-                onClick: () => onToggleRulers(!showRulers),
-              },
-              {
-                label: 'Toggle Grid',
-                icon: <Icons.Grid className="w-3.5 h-3.5" />,
-                onClick: () => onToggleGrid(!showGrid),
-              },
-              {
-                label: 'Toggle Golden Ratio',
-                icon: <Icons.Maximize className="w-3.5 h-3.5" />,
-                onClick: () => (window as any).dispatchEvent(new CustomEvent('editor-toggle-golden-ratio')),
-              },
-            ]}
-          />
-        </div>
 
-        <div className="hidden md:block h-4 w-px bg-gray-800 mx-1"></div>
 
         <div className="flex items-center gap-0.5">
           <button
@@ -238,58 +122,25 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
-        <div className="h-4 w-px bg-gray-800 mx-1"></div>
-
-        <div className="flex items-center gap-2 px-2">
-          {/* Project Title */}
-          {isEditingTitle ? (
-              <input
-                data-testid="project-title-input"
-                type="text"
-                value={projectTitle}
-                onChange={(e) => setProjectTitle(e.target.value)}
-                onFocus={(e) => e.target.select()}
-                onBlur={() => setIsEditingTitle(false)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {setIsEditingTitle(false);}
-                  if (e.key === 'Escape') {setIsEditingTitle(false);}
-                }}
-                autoFocus
-                className="bg-[#1e1e1e] border-b-2 border-purple-500 text-white text-sm font-bold px-2 py-1 outline-none w-48 rounded-t shadow-lg"
-              />
+        <div className="flex items-center gap-2 text-[11px] text-gray-400 ml-2 select-none shrink-0 font-medium tracking-wide">
+          {isSaving ? (
+            <>
+              <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></div>
+              <span>Saving...</span>
+            </>
+          ) : hasUnsavedChanges ? (
+            <>
+              <div className="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
+              <span>Unsaved</span>
+            </>
           ) : (
-            <button
-              data-testid="project-title-display"
-              onClick={() => setIsEditingTitle(true)}
-              className="text-sm font-medium text-white hover:text-purple-400 transition-colors px-2 py-1 rounded hover:bg-white/5"
-              title="Click to rename"
-            >
-              {projectTitle}
-            </button>
+            <>
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+              <span>{getSaveStatus()}</span>
+            </>
           )}
-
-          {/* Save Status */}
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            {isSaving ? (
-              <>
-                <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
-                <span>Saving...</span>
-              </>
-            ) : hasUnsavedChanges ? (
-              <>
-                <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                <span>Unsaved</span>
-              </>
-            ) : (
-              <>
-                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                <span>{getSaveStatus()}</span>
-              </>
-            )}
-          </div>
         </div>
 
-        <SyncStatus />
       </div>
 
       <div className="flex items-center gap-4">
@@ -402,6 +253,35 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
       )}
+
+      {/* Centered Project Title */}
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-auto">
+        {isEditingTitle ? (
+          <input
+            data-testid="project-title-input"
+            type="text"
+            value={projectTitle}
+            onChange={(e) => setProjectTitle(e.target.value)}
+            onFocus={(e) => e.target.select()}
+            onBlur={() => setIsEditingTitle(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {setIsEditingTitle(false);}
+              if (e.key === 'Escape') {setIsEditingTitle(false);}
+            }}
+            autoFocus
+            className="bg-[#1e1e1e] border-b-2 border-purple-500 text-white text-sm font-bold px-2 py-1 outline-none w-48 rounded-t shadow-lg text-center"
+          />
+        ) : (
+          <button
+            data-testid="project-title-display"
+            onClick={() => setIsEditingTitle(true)}
+            className="text-sm font-medium text-white hover:text-purple-400 transition-colors px-2 py-1 rounded hover:bg-white/5 text-center"
+            title="Click to rename"
+          >
+            {projectTitle}
+          </button>
+        )}
+      </div>
 
       {showPublishModal && <PublishModal onClose={() => setShowPublishModal(false)} />}
     </header>

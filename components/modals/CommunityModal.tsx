@@ -210,12 +210,12 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
                       />
                       
                       {/* Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6">
+                      <div className="absolute inset-0 flex flex-col justify-end p-6 pointer-events-none z-10">
                         <motion.button
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => onRemix(template)}
-                          className="w-full py-4 bg-[#7d2ae8] text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(125,42,232,0.5)] flex items-center justify-center gap-3 translate-y-4 group-hover:translate-y-0 transition-transform duration-500"
+                          className="w-full py-3 bg-[#7d2ae8] text-white rounded-xl font-black text-xs uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(125,42,232,0.5)] flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 pointer-events-auto"
                         >
                           <Icons.Magic className="w-4 h-4" />
                           Remix Design

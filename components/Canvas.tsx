@@ -231,13 +231,13 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 
   return (
     <ErrorBoundary componentName="Canvas" variant="widget">
-      <div className="flex-1 relative bg-[#13161a] overflow-hidden flex flex-col">
+      <div className="flex-1 relative bg-[#000000] overflow-hidden flex flex-col">
         <style>{ANIMATION_STYLES}</style>
 
         
         <div
           ref={viewportRef}
-          className="flex-1 overflow-hidden relative bg-[#13161a] touch-none select-none canvas-container"
+          className="flex-1 overflow-hidden relative bg-[#000000] touch-none select-none canvas-container"
            style={{ cursor: isPanning ? 'grabbing' : isSpacePressed ? 'grab' : isDrawing ? 'crosshair' : 'default' }}
           onMouseDown={handleMouseDownCombined}
         >

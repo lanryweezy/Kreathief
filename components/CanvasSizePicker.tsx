@@ -1,9 +1,9 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Icons, CANVAS_SIZE_PRESETS } from '../constants';
 import { CanvasSize } from '../types';
 import { useStore } from '../store/useStore';
 import { pxToUnit } from '../utils/unitUtils';
+import { Dropdown } from './Dropdown';
 
 interface CanvasSizePickerProps {
     currentSize: CanvasSize;
@@ -12,19 +12,9 @@ interface CanvasSizePickerProps {
 
 export const CanvasSizePicker: React.FC<CanvasSizePickerProps> = ({ currentSize, onSizeChange }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
+    const buttonRef = useRef<HTMLButtonElement>(null);
     const unit = useStore(state => state.unit);
     const setUnit = useStore(state => state.setUnit);
-
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     const getCategoryIcon = (category: string) => {
         switch (category) {
@@ -38,8 +28,9 @@ export const CanvasSizePicker: React.FC<CanvasSizePickerProps> = ({ currentSize,
     const categories = Array.from(new Set(CANVAS_SIZE_PRESETS.map(p => p.category)));
 
     return (
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative">
             <button
+                ref={buttonRef}
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-2 px-3 py-1.5 bg-[#252627] border border-gray-700 rounded hover:border-[#7d2ae8] transition-all group"
             >
@@ -52,8 +43,13 @@ export const CanvasSizePicker: React.FC<CanvasSizePickerProps> = ({ currentSize,
                 <Icons.ChevronDown className={`w-3.5 h-3.5 text-gray-400 group-hover:text-white transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            {isOpen && (
-                <div className="absolute top-full left-0 mt-2 w-72 bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-2xl z-[100] p-1 animate-fadeIn overflow-hidden flex flex-col">
+            <Dropdown
+                anchorRef={buttonRef}
+                isOpen={isOpen}
+                onClose={() => setIsOpen(false)}
+                align="left"
+            >
+                <div className="w-72 bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-2xl p-1 animate-fadeIn overflow-hidden flex flex-col">
                     {/* Unit Selector */}
                     <div className="p-2 border-b border-gray-800 bg-[#252627]/30 flex items-center justify-between">
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Units</span>
@@ -70,7 +66,7 @@ export const CanvasSizePicker: React.FC<CanvasSizePickerProps> = ({ currentSize,
                         </div>
                     </div>
 
-                    <div className="max-h-[60vh] overflow-y-auto custom-scrollbar p-1">
+                    <div className="max-h-[50vh] overflow-y-auto custom-scrollbar p-1">
                         {categories.map(cat => (
                             <div key={cat} className="mb-2">
                                 <div className="px-3 py-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2 bg-[#252627]/50 rounded mb-1">
@@ -106,7 +102,7 @@ export const CanvasSizePicker: React.FC<CanvasSizePickerProps> = ({ currentSize,
                         ))}
                     </div>
                 </div>
-            )}
+            </Dropdown>
         </div>
     );
 };

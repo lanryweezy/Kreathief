@@ -56,9 +56,15 @@ export const useLayerDragging = ({
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
     const isShift = 'shiftKey' in e ? e.shiftKey : false;
+    const isRightClick = !('touches' in e) && e.button === 2;
 
     if (!('touches' in e)) {
       e.stopPropagation();
+    }
+
+    if (isRightClick) {
+      onContextMenu?.({ clientX, clientY }, layer.id);
+      return;
     }
 
     const isLockedRecursive = (l: Layer): boolean => {
@@ -71,10 +77,6 @@ export const useLayerDragging = ({
     };
 
     if (isLockedRecursive(layer) && !isShift) {
-      // Still allow context menu on locked layers
-      if (!('touches' in e) && e.button === 2) {
-        onContextMenu?.({ clientX, clientY }, layer.id);
-      }
       return;
     }
 
@@ -191,8 +193,9 @@ export const useLayerDragging = ({
         buffer[id] = { x: pos.x + finalDx, y: pos.y + finalDy };
       });
       bulkDragPreviewRef.current = { ...buffer };
+      onUpdateLayers(bulkDragPreviewRef.current);
     }
-  }, []);
+  }, [onUpdateLayers]);
 
   const finalizeDragging = useCallback(() => {
     if (Object.keys(bulkDragPreviewRef.current).length > 0) {
