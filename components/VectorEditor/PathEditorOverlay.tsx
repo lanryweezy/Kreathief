@@ -57,6 +57,13 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
   });
   const svgRef = useRef<SVGSVGElement>(null);
 
+  // Default to pen tool if path is empty
+  useEffect(() => {
+    if (path.points.length === 0) {
+      setActiveTool('pen');
+    }
+  }, []);
+
   // Scale factor for crisp visuals at any zoom
   const s = 1 / zoom;
   const pointRadius = 5 * s;
@@ -140,9 +147,9 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
       e.stopPropagation();
 
       const svg = svgRef.current;
-      if (!svg) {return;}
-
-      const rect = svg.getBoundingClientRect();
+      const interceptDiv = (e.currentTarget as HTMLElement);
+      const rect = (svg ?? interceptDiv).getBoundingClientRect();
+      // rect.left = panX in screen pixels; rawX = screen offset from transform origin / zoom
       const rawX = (e.clientX - rect.left) / zoom;
       const rawY = (e.clientY - rect.top) / zoom;
       const clickX = snapCoord(rawX);
@@ -567,7 +574,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
     <>
       {/* Full-screen click-away layer */}
       <div
-        className="absolute inset-0 z-[90]"
+        className="absolute inset-0 z-[90] pointer-events-auto"
         style={{ cursor: getCursorStyle() }}
         onMouseDown={(e) => {
           if ((e.target as Element).closest('.path-editor-overlay')) {return;}

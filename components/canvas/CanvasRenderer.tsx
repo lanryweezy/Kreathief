@@ -36,6 +36,7 @@ interface CanvasRendererProps {
   showGrid: boolean;
   isDrawing: boolean;
   isRefining: boolean;
+  isVectorPenMode?: boolean;
   drawingCanvasRef: React.RefObject<HTMLCanvasElement>;
   refineCanvasRef: React.RefObject<HTMLCanvasElement>;
   handleDrawingMouseDown: (e: React.MouseEvent) => void;
@@ -76,6 +77,7 @@ interface ArtboardItemProps {
   showGrid: boolean;
   isDrawing: boolean;
   isRefining: boolean;
+  isVectorPenMode?: boolean;
   drawingCanvasRef: React.RefObject<HTMLCanvasElement>;
   refineCanvasRef: React.RefObject<HTMLCanvasElement>;
   handleDrawingMouseDown: (e: React.MouseEvent) => void;
@@ -116,6 +118,7 @@ const ArtboardItem = React.memo(({
   showGrid,
   isDrawing,
   isRefining,
+  isVectorPenMode = false,
   drawingCanvasRef,
   refineCanvasRef,
   handleDrawingMouseDown,
@@ -243,7 +246,7 @@ const ArtboardItem = React.memo(({
               />
             )}
 
-            {(isDrawing || isRefining) && (
+            {(isDrawing || isRefining) && !isVectorPenMode && (
               <canvas
                 ref={isRefining ? refineCanvasRef : drawingCanvasRef}
                 className="absolute inset-0 z-[70] cursor-crosshair touch-none"
@@ -251,7 +254,8 @@ const ArtboardItem = React.memo(({
                 height={artboard.height}
                 onMouseDown={isRefining ? undefined : handleDrawingMouseDown}
                 onMouseMove={isRefining ? handleDrawingMouseMove : handleDrawingMouseMove}
-                onMouseUp={isRefining ? () => handleDrawingMouseUp() : () => handleDrawingMouseUp()}              />
+                onMouseUp={isRefining ? () => handleDrawingMouseUp() : () => handleDrawingMouseUp()}
+              />
             )}
 
             {isLassoMode && (

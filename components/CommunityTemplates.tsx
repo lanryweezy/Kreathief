@@ -286,7 +286,7 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
       const matchesSearch =
         t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         t.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+        t.tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesCategory = selectedCategory === 'All' || t.category === selectedCategory;
       return matchesSearch && matchesCategory;
     })
@@ -503,7 +503,7 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
 
               {/* Tag Overlays */}
               <div className="absolute top-3 left-3 flex gap-1 flex-wrap pointer-events-none z-10">
-                {template.tags.slice(0, 2).map((tag) => (
+                {template.tags.slice(0, 2).map((tag: string) => (
                   <span
                     key={tag}
                     className="text-[9px] font-black uppercase tracking-wider text-white bg-black/60 backdrop-blur-md px-2 py-1 rounded border border-white/10"

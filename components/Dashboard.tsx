@@ -89,7 +89,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         y: 0,
         width: newProject.state.canvasSize?.width || 1080,
         height: newProject.state.canvasSize?.height || 1080,
-        layers: newProject.state.layers || [],
+        layers: (newProject.state as any).layers || [],
       }],
       activeArtboardId: newProject.state.activeArtboardId || 'default',
       canvasBackgroundColor: newProject.state.canvasBackgroundColor || '#ffffff',
@@ -503,7 +503,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                             }}
                             className="relative flex-shrink-0 shadow-2xl rounded-sm border border-white/5 overflow-hidden"
                           >
-                            {project.state.layers?.map((l: any, idx: number) => {
+                            {(project.state as any).layers?.map((l: any, idx: number) => {
                               if (!l.visible) return null;
                               if (l.type === 'rectangle') {
                                 return (

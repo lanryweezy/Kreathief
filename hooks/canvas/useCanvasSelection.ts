@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Layer } from '../../types';
+import { Layer, Artboard } from '../../types';
 
 interface UseCanvasSelectionProps {
   artboards: Artboard[];

@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Icons } from '../../constants';
-import { dynamicMockupsService } from '../../services/dynamicMockupsService';
+import { vecteezyService, VecteezyResource } from '../../services/vecteezyService';
 import { MockupModal } from '../modals/MockupModal';
 import { CornerHandles } from '../mockup/CornerHandles';
 import { MOCKUP_CATEGORIES, getMockupsByCategory, searchMockups, getMockupById, MockupPlacement } from '../../services/enhancedMockupsLibrary';
 import { log } from '../../utils/log';
+import { dynamicMockupsService } from '../../services/dynamicMockupsService';
 import {
   getDefaultCornerPoints,
   applyCurveToCorners,
@@ -96,9 +97,28 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   });
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
+  // Vecteezy integration
+  const [vecteezyResults, setVecteezyResults] = useState<VecteezyResource[]>([]);
+  const [isSearchingVecteezy, setIsSearchingVecteezy] = useState(false);
+
   // Smart suggestions
   const [suggestedMockups, setSuggestedMockups] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // Search Vecteezy when query changes
+  useEffect(() => {
+    if (!searchQuery.trim() || !vecteezyService.isConfigured()) {
+      setVecteezyResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsSearchingVecteezy(true);
+      const results = await vecteezyService.searchResources(searchQuery + ' mockup blank');
+      setVecteezyResults(results);
+      setIsSearchingVecteezy(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // App Store presets
   const APP_STORE_PRESETS = {
@@ -441,8 +461,21 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
         tags: ['custom', 'upload'],
       };
     }
+    const vecteezyMatch = vecteezyResults.find((v) => v.id === activeMockupId);
+    if (vecteezyMatch) {
+      return {
+        id: vecteezyMatch.id,
+        name: vecteezyMatch.title,
+        category: 'Vecteezy',
+        bg: vecteezyMatch.preview_url,
+        defaultPlacement: {
+          top: 30, left: 30, width: 40, rotate: 0, skewX: 0, skewY: 0, opacity: 0.9, blendMode: 'multiply' as const
+        },
+        tags: ['vecteezy'],
+      };
+    }
     return mockups.find((m) => m.id === activeMockupId) || mockups[0];
-  }, [activeMockupId, mockups, customMockup, placement]);
+  }, [activeMockupId, mockups, customMockup, placement, vecteezyResults]);
 
   // When mockup changes, reset placement to default and initialize corner points
   useEffect(() => {
@@ -520,240 +553,72 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     return () => stopLive();
   }, [isLive]);
 
-  // Generate the composite image with corner pinning support
+  // Generate the composite image using Web Worker
   const generateComposite = async (): Promise<string | null> => {
     if (!previewImage) {
       return null;
     }
 
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      return null;
-    }
+    return new Promise(async (resolve, reject) => {
+      try {
+        const worker = new Worker(new URL('../../workers/mockup.worker.ts', import.meta.url), { type: 'module' });
 
-    // 1. Load Background
-    const bgImg = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = currentMockup.bg;
-    });
+        // Load Background
+        const bgImg = await new Promise<HTMLImageElement>((res, rej) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => res(img);
+          img.onerror = rej;
+          img.src = currentMockup.bg;
+        });
 
-    canvas.width = bgImg.naturalWidth;
-    canvas.height = bgImg.naturalHeight;
-    ctx.drawImage(bgImg, 0, 0);
-    // Ambient shadow under product (soft vignette)
-    const shadow = ctx.createRadialGradient(canvas.width*0.5, canvas.height*0.5, 10, canvas.width*0.5, canvas.height*0.5, Math.max(canvas.width, canvas.height)*0.6);
-    shadow.addColorStop(0, 'rgba(0,0,0,0.0)');
-    shadow.addColorStop(1, 'rgba(0,0,0,0.06)');
-    ctx.fillStyle = shadow;
-    ctx.fillRect(0,0,canvas.width,canvas.height);
+        // Load Design
+        const designImg = await new Promise<HTMLImageElement>((res, rej) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => res(img);
+          img.onerror = rej;
+          img.src = previewImage;
+        });
 
-    // 2. Load Design
-    const designImg = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = previewImage;
-    });
+        // Create bitmaps for worker
+        const bgBitmap = await createImageBitmap(bgImg);
+        const designBitmap = await createImageBitmap(designImg);
 
-    // 3. Draw Design with transformations
-    ctx.save();
-    const { top, left, width, rotate, skewX, skewY, opacity, blendMode } = placement;
-
-    // Calculate pixel data
-    const x = (left / 100) * canvas.width;
-    const y = (top / 100) * canvas.height;
-    const w = (width / 100) * canvas.width;
-    // Maintain aspect ratio of design
-    const aspect = designImg.width / designImg.height;
-    const h = w / aspect;
-
-    // Use corner pinning if enabled
-    if (useCornerPinning && cornerPoints) {
-      // Apply curve if present
-      const curvedCorners = curve !== 0
-        ? applyCurveToCorners(cornerPoints, curve, canvas.width, canvas.height)
-        : cornerPoints;
-
-      // Create offscreen canvas for design
-      const designCanvas = document.createElement('canvas');
-      designCanvas.width = designImg.width;
-      designCanvas.height = designImg.height;
-      const designCtx = designCanvas.getContext('2d');
-      if (designCtx) {
-        designCtx.drawImage(designImg, 0, 0);
-      }
-
-      // Apply perspective transform using corner pinning
-      ctx.globalAlpha = opacity;
-      ctx.globalCompositeOperation = blendMode;
-      ctx.filter = `brightness(${lightingBrightness}%) contrast(${lightingContrast}%)`;
-
-      // Use advanced warping with corner points
-      warpImageToCorners(ctx, designCanvas, curvedCorners);
-    } else {
-      // Traditional transform method
-      const centerX = x + w / 2;
-      const centerY = y + h / 2;
-
-      ctx.translate(centerX, centerY);
-      ctx.rotate((rotate * Math.PI) / 180);
-      ctx.transform(1, (skewY * Math.PI) / 180, (skewX * Math.PI) / 180, 1, 0, 0);
-      ctx.translate(-centerX, -centerY);
-
-      ctx.globalAlpha = opacity;
-      ctx.globalCompositeOperation = blendMode;
-      ctx.filter = `brightness(${lightingBrightness}%) contrast(${lightingContrast}%)`;
-
-      ctx.drawImage(designImg, x, y, w, h);
-    }
-
-    ctx.filter = 'none';
-
-    // Add a soft AO under product based on placement
-    {
-      const aoCanvas = document.createElement('canvas');
-      aoCanvas.width = canvas.width; aoCanvas.height = canvas.height;
-      const actx = aoCanvas.getContext('2d')!;
-      const cx = (placement.left/100)*canvas.width + ((placement.width/100)*canvas.width)/2;
-      const cy = (placement.top/100)*canvas.height + (((placement.width/100)*canvas.width)/(designImg.width/designImg.height))/2;
-      const rx = (placement.width/100)*canvas.width * 0.55;
-      const ry = rx * 0.35;
-      const g = actx.createRadialGradient(cx, cy, Math.min(rx,ry)*0.2, cx, cy, Math.max(rx,ry));
-      g.addColorStop(0, `rgba(0,0,0,${0.18 * shadowIntensity})`);
-      g.addColorStop(1, 'rgba(0,0,0,0)');
-      actx.fillStyle = g; actx.beginPath(); actx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2); actx.fill();
-      ctx.globalCompositeOperation = 'multiply';
-      ctx.drawImage(aoCanvas, 0, 0);
-    }
-
-    // Add realistic 3D reflection highlight layer
-    if (reflectionIntensity > 0) {
-      const refCanvas = document.createElement('canvas');
-      refCanvas.width = canvas.width; refCanvas.height = canvas.height;
-      const rctx = refCanvas.getContext('2d')!;
-      const cx = (placement.left/100)*canvas.width + ((placement.width/100)*canvas.width)/2;
-      const cy = (placement.top/100)*canvas.height + (((placement.width/100)*canvas.width)/(designImg.width/designImg.height))/2;
-      const r = (placement.width/100)*canvas.width * 0.75;
-      const g = rctx.createRadialGradient(cx, cy, 1, cx, cy, r);
-      g.addColorStop(0, 'rgba(255,255,255,0.35)');
-      g.addColorStop(1, 'rgba(255,255,255,0.0)');
-      rctx.fillStyle = g; rctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.globalCompositeOperation = 'screen';
-      ctx.globalAlpha = reflectionIntensity;
-      ctx.drawImage(refCanvas, 0, 0);
-    }
-
-    ctx.restore();
-
-    return canvas.toDataURL('image/jpeg', 0.9);
-  };
-
-  // Advanced corner pinning warp function
-  const warpImageToCorners = (
-    ctx: CanvasRenderingContext2D,
-    image: HTMLImageElement | HTMLCanvasElement,
-    corners: CornerPoints
-  ) => {
-    const width = ctx.canvas.width;
-    const height = ctx.canvas.height;
-
-    // Create temporary canvas for pixel manipulation
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = width;
-    tempCanvas.height = height;
-    const tempCtx = tempCanvas.getContext('2d');
-    if (!tempCtx) {return;}
-
-    // Draw image to temp canvas
-    tempCtx.drawImage(image, 0, 0);
-
-    // Get image data
-    const imageData = tempCtx.getImageData(0, 0, image.width, image.height);
-    const srcData = imageData.data;
-
-    // Create output image data
-    const outputImageData = ctx.createImageData(width, height);
-    const destData = outputImageData.data;
-
-    // Simple bilinear interpolation for warping
-    for (let py = 0; py < height; py++) {
-      for (let px = 0; px < width; px++) {
-        // Find corresponding source coordinate
-        const src = getBilinearCoordinate(px, py, corners, width, height, image.width, image.height);
-
-        if (src.x >= 0 && src.x < image.width - 1 && src.y >= 0 && src.y < image.height - 1) {
-          // Bilinear interpolation
-          const x0 = Math.floor(src.x);
-          const y0 = Math.floor(src.y);
-          const x1 = x0 + 1;
-          const y1 = y0 + 1;
-
-          const dx = src.x - x0;
-          const dy = src.y - y0;
-
-          const idx00 = (y0 * image.width + x0) * 4;
-          const idx10 = (y0 * image.width + x1) * 4;
-          const idx01 = (y1 * image.width + x0) * 4;
-          const idx11 = (y1 * image.width + x1) * 4;
-
-          const destIdx = (py * width + px) * 4;
-
-          for (let c = 0; c < 3; c++) {
-            const val =
-              srcData[idx00 + c] * (1 - dx) * (1 - dy) +
-              srcData[idx10 + c] * dx * (1 - dy) +
-              srcData[idx01 + c] * (1 - dx) * dy +
-              srcData[idx11 + c] * dx * dy;
-            destData[destIdx + c] = val;
+        worker.onmessage = (e) => {
+          if (e.data.type === 'SUCCESS') {
+            const url = URL.createObjectURL(e.data.payload);
+            resolve(url);
+          } else {
+            reject(new Error(e.data.error));
           }
+          worker.terminate();
+        };
 
-          // Alpha channel
-          const alpha =
-            srcData[idx00 + 3] * (1 - dx) * (1 - dy) +
-            srcData[idx10 + 3] * dx * (1 - dy) +
-            srcData[idx01 + 3] * (1 - dx) * dy +
-            srcData[idx11 + 3] * dx * dy;
-          destData[destIdx + 3] = alpha;
-        }
+        worker.onerror = (err) => {
+          reject(err);
+          worker.terminate();
+        };
+
+        worker.postMessage({
+          bgBitmap,
+          designBitmap,
+          placement: { ...placement, useCornerPinning },
+          cornerPoints: useCornerPinning ? cornerPoints : undefined,
+          shadowIntensity,
+          reflectionIntensity,
+          lightingBrightness,
+          lightingContrast,
+        }, [bgBitmap, designBitmap]); // Transfer ownership of bitmaps
+
+      } catch (err) {
+        log.error('Mockup Worker setup failed', err);
+        resolve(null); // return null rather than crash
       }
-    }
-
-    ctx.putImageData(outputImageData, 0, 0);
+    });
   };
 
-  // Bilinear interpolation helper
-  const getBilinearCoordinate = (
-    x: number,
-    y: number,
-    corners: CornerPoints,
-    canvasWidth: number,
-    canvasHeight: number,
-    imageWidth: number,
-    imageHeight: number
-  ): { x: number; y: number } => {
-    // Normalize to 0-1
-    const u = x / canvasWidth;
-    const v = y / canvasHeight;
-
-    // Bilinear interpolation of corner points
-    const leftX = corners.topLeft.x + (corners.bottomLeft.x - corners.topLeft.x) * v;
-    const leftY = corners.topLeft.y + (corners.bottomLeft.y - corners.topLeft.y) * v;
-    const rightX = corners.topRight.x + (corners.bottomRight.x - corners.topRight.x) * v;
-    const rightY = corners.topRight.y + (corners.bottomRight.y - corners.topRight.y) * v;
-
-    const targetX = leftX + (rightX - leftX) * u;
-    const targetY = leftY + (rightY - leftY) * u;
-
-    // Map back to source image coordinates
-    const srcX = (targetX / canvasWidth) * imageWidth;
-    const srcY = (targetY / canvasHeight) * imageHeight;
-
-    return { x: srcX, y: srcY };
-  };
+  // Removed slow main-thread warp logic since it's now handled by the worker
 
   // Update preview when placement or source images change
   useEffect(() => {
@@ -1059,6 +924,30 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                       <img src={m.bg} alt={m.name} className="w-full h-full object-cover" />
                       <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1.5 backdrop-blur-sm">
                         <span className="text-[8px] font-bold text-white block truncate">{m.name}</span>
+                      </div>
+                    </button>
+                  </div>
+                ))}
+
+                {/* Vecteezy Results */}
+                {vecteezyResults.length > 0 && (
+                  <div className="col-span-2 pt-2 border-t border-gray-800 mt-2">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-2 flex items-center gap-1">
+                      <Icons.Globe className="w-3 h-3" /> Vecteezy Results
+                    </h4>
+                  </div>
+                )}
+                {vecteezyResults.map((v) => (
+                  <div key={v.id} className="relative aspect-square">
+                    <button
+                      onClick={() => !batchMode && setActiveMockupId(v.id)}
+                      className={`w-full aspect-square rounded-lg overflow-hidden border-2 transition-all group ${
+                        activeMockupId === v.id ? 'border-blue-400' : 'border-transparent hover:border-blue-500/50'
+                      }`}
+                    >
+                      <img src={v.preview_url} alt={v.title} className="w-full h-full object-cover" />
+                      <div className="absolute inset-x-0 bottom-0 bg-black/80 p-1.5 backdrop-blur-sm">
+                        <span className="text-[8px] font-bold text-white block truncate">{v.title}</span>
                       </div>
                     </button>
                   </div>

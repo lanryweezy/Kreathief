@@ -116,12 +116,12 @@ export const AssetsPanel: React.FC = () => {
 
       if (activeSource === 'all' || activeSource === 'vecteezy') {
         try {
-          const vecteezyResults = await vecteezyService.search(searchQuery || 'trending');
+          const vecteezyResults = await vecteezyService.searchResources(searchQuery || 'trending');
           vecteezyResults.forEach((r) => {
             combined.push({
               id: `vz-${r.id}`,
-              url: r.downloadUrl,
-              thumbnail: r.previewUrl,
+              url: r.preview_url,
+              thumbnail: r.thumbnail_url || r.preview_url,
               alt: r.title,
               author: 'Vecteezy',
               source: 'vecteezy',

@@ -5,6 +5,7 @@ import { useCanvasSelection } from '../../hooks/canvas/useCanvasSelection';
 import { useLayerDragging } from '../../hooks/canvas/useLayerDragging';
 import { useLayerTransformation } from '../../hooks/canvas/useLayerTransformation';
 import { useDrawingMode } from '../../hooks/canvas/useDrawingMode';
+import { useStore } from '../../store/useStore';
 
 interface UseCanvasInteractionsProps {
   zoom: number;
@@ -166,7 +167,7 @@ export const useCanvasInteractions = ({
       }
 
       if (isDrawing) {
-        handleDrawingMouseMove(e);
+        handleDrawingMouseMove(e as any);
         return;
       }
 
@@ -244,12 +245,12 @@ export const useCanvasInteractions = ({
         e.preventDefault();
         const scrollSpeed = 0.8;
         if (e.shiftKey) {
-          useStore.getState().setPanOffset(prev => ({
+          useStore.getState().setPanOffset((prev: { x: number; y: number }) => ({
             x: prev.x - e.deltaY * scrollSpeed,
             y: prev.y - e.deltaX * scrollSpeed
           }));
         } else {
-          useStore.getState().setPanOffset(prev => ({
+          useStore.getState().setPanOffset((prev: { x: number; y: number }) => ({
             x: prev.x - e.deltaX * scrollSpeed,
             y: prev.y - e.deltaY * scrollSpeed
           }));

@@ -68,17 +68,12 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, isAuto
             }
           }
         }}
-        className={`w-full flex flex-col items-center justify-center gap-1.5 py-3 transition-all relative group shrink-0 tooltip-trigger ${isActive ? 'text-white' : 'text-gray-500 hover:text-gray-200'}`}
+        className={`w-full flex flex-col items-center justify-center gap-1 py-1.5 transition-all relative group shrink-0 tooltip-trigger ${isActive ? 'text-white' : 'text-gray-500 hover:text-gray-200'}`}
         data-tooltip={item.label}
         aria-label={item.label}
       >
-        {isActive && (
-          <motion.div 
-            layoutId="sidebar-active-indicator"
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-gradient-to-b from-[#7d2ae8] via-[#00c4cc] to-[#ff00ff] rounded-r-full shadow-[0_0_15px_rgba(125,42,232,0.5)]" 
-          />
-        )}
-        <div className={`p-2.5 rounded-[14px] transition-all duration-500 ${isActive ? 'bg-gradient-to-br from-[#7d2ae8]/30 to-pink-500/20 text-white shadow-[0_8px_20px_rgba(125,42,232,0.25)] border border-white/10' : 'group-hover:bg-white/5 group-hover:scale-110'}`}>
+
+        <div className={`p-2 rounded-[14px] transition-all duration-500 ${isActive ? 'bg-gradient-to-br from-[#7d2ae8]/30 to-pink-500/20 text-white shadow-[0_8px_20px_rgba(125,42,232,0.25)] border border-white/10' : 'group-hover:bg-white/5 group-hover:scale-110'}`}>
           <item.icon className={`w-5 h-5 transition-all duration-500 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' : 'group-hover:text-gray-100'}`} />
         </div>
         {!isCollapsed && (
@@ -95,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, isAuto
       {/* Visual Accent */}
       <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-[#7d2ae8]/5 to-transparent pointer-events-none" />
       
-      <div className="flex flex-col items-center w-full gap-3.5 px-2">
+      <div className="flex flex-col items-center w-full gap-2 px-2">
         <AnimatePresence mode="popLayout">
           {primaryTools.map((item) => (
             <motion.div
@@ -128,7 +123,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, isAuto
               initial={{ height: 0, opacity: 0, y: -10 }}
               animate={{ height: 'auto', opacity: 1, y: 0 }}
               exit={{ height: 0, opacity: 0, y: -10 }}
-              className="w-full overflow-hidden flex flex-col gap-1.5"
+              className="w-full overflow-hidden flex flex-col gap-1"
             >
               {secondaryTools.map(renderTool)}
             </motion.div>

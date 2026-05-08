@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase/client';
+import { db as supabase } from '../lib/supabase/client';
 import { useStore } from '../store/useStore';
 
 export const AuthCallback: React.FC = () => {

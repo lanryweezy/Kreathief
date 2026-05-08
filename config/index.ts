@@ -37,7 +37,7 @@ export const config = {
   supabase: {
     url: getEnv('VITE_SUPABASE_URL'),
     anonKey: getEnv('VITE_SUPABASE_ANON_KEY'),
-    schema: 'kreathief',
+    schema: 'public',
     useQABypass: getOptionalEnv('VITE_USE_QA_BYPASS', 'false') === 'true',
   },
 

@@ -153,16 +153,16 @@ export const createLayoutSlice: StateCreator<any, [], [], Partial<LayerSlice>> =
       const newLayers = typeOrShapes.map((shape) => ({
         id: uuidv4(),
         type: 'rectangle',
+        ...shape,
         x: (shape.x || 0) * scaleX,
         y: (shape.y || 0) * scaleY,
         width: (shape.width || 100) * scaleX,
         height: (shape.height || 100) * scaleY,
-        rotation: 0,
-        opacity: 1,
-        visible: true,
-        locked: false,
+        rotation: shape.rotation || 0,
+        opacity: shape.opacity ?? 1,
+        visible: shape.visible ?? true,
+        locked: shape.locked ?? false,
         color: shape.color || '#333333',
-        ...shape,
       })) as Layer[];
 
       set((state: any) => ({

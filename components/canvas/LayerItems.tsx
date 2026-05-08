@@ -8,6 +8,7 @@ import { Layer, TextLayer, ShapeLayer, ImageLayer, AnimationSettings, ResizeHand
 import { getLayerClipPath, getAnimationStyle } from '../../utils/layerRendering';
 import { buildVariableStrokeOutline, profileWidthFn } from '../../utils/variableStroke';
 import { SelectionHandles } from './SelectionHandles';
+import { BrushStrokeRenderer } from '../../services/brushEngine';
 
 interface LayerItemProps {
   layer: Layer;
@@ -283,87 +284,109 @@ export const ShapeLayerItem = React.memo(
             <div className="absolute -inset-0.5 border border-cyan-400/50 rounded-sm pointer-events-none z-40"></div>
           )}
           <div className="w-full h-full relative" style={innerStyle}>
-            {shapeLayer.pathData && (
-              <svg 
-                width="100%" 
-                height="100%" 
-                viewBox={shapeLayer.viewBox || `0 0 ${shapeLayer.width} ${shapeLayer.height}`} 
-                style={{ overflow: 'visible' }}
-                preserveAspectRatio="none"
-              >
-                <defs>
-                  {shapeLayer.gradient && shapeLayer.gradient.enabled && (
-                    shapeLayer.gradient.type === 'radial' ? (
-                      <radialGradient id={`gradient-${shapeLayer.id}`} cx="50%" cy="50%" r="50%">
-                        {shapeLayer.gradient.colors.map((c: any, idx: number) => (
-                          <stop key={idx} offset={`${c.position * 100}%`} stopColor={c.color} />
-                        ))}
-                      </radialGradient>
-                    ) : (
-                      <linearGradient 
-                        id={`gradient-${shapeLayer.id}`} 
-                        x1="0%" y1="0%" x2="100%" y2="0%"
-                        gradientTransform={shapeLayer.gradient.angle ? `rotate(${shapeLayer.gradient.angle}, 0.5, 0.5)` : undefined}
-                      >
-                        {shapeLayer.gradient.colors.map((c: any, idx: number) => (
-                          <stop key={idx} offset={`${c.position * 100}%`} stopColor={c.color} />
-                        ))}
-                      </linearGradient>
-                    )
+            {shapeLayer.pathData && (() => {
+              const brushType = (shapeLayer as any).brushType;
+              const isDrawingPath = shapeLayer.id?.startsWith('draw_') || !!brushType;
+
+              if (isDrawingPath) {
+                return (
+                  <BrushStrokeRenderer
+                    id={shapeLayer.id}
+                    pathData={shapeLayer.pathData}
+                    width={shapeLayer.width}
+                    height={shapeLayer.height}
+                    viewBox={shapeLayer.viewBox}
+                    brushType={brushType}
+                    color={shapeLayer.color}
+                    strokeWidth={(shapeLayer as any).stroke?.width}
+                    opacity={shapeLayer.opacity}
+                    mode="canvas"
+                  />
+                );
+              }
+
+              return (
+                <svg 
+                  width="100%" 
+                  height="100%" 
+                  viewBox={shapeLayer.viewBox || `0 0 ${shapeLayer.width} ${shapeLayer.height}`} 
+                  style={{ overflow: 'visible' }}
+                  preserveAspectRatio="none"
+                >
+                  <defs>
+                    {shapeLayer.gradient && shapeLayer.gradient.enabled && (
+                      shapeLayer.gradient.type === 'radial' ? (
+                        <radialGradient id={`gradient-${shapeLayer.id}`} cx="50%" cy="50%" r="50%">
+                          {shapeLayer.gradient.colors.map((c: any, idx: number) => (
+                            <stop key={idx} offset={`${c.position * 100}%`} stopColor={c.color} />
+                          ))}
+                        </radialGradient>
+                      ) : (
+                        <linearGradient 
+                          id={`gradient-${shapeLayer.id}`} 
+                          x1="0%" y1="0%" x2="100%" y2="0%"
+                          gradientTransform={shapeLayer.gradient.angle ? `rotate(${shapeLayer.gradient.angle}, 0.5, 0.5)` : undefined}
+                        >
+                          {shapeLayer.gradient.colors.map((c: any, idx: number) => (
+                            <stop key={idx} offset={`${c.position * 100}%`} stopColor={c.color} />
+                          ))}
+                        </linearGradient>
+                      )
+                    )}
+                    {(shapeLayer as any).pathEffects?.roughen?.amount > 0 && (
+                      <filter id={`roughen-${shapeLayer.id}`}>
+                        <feTurbulence type="turbulence" baseFrequency="0.8" numOctaves="1" result="noise" />
+                        <feDisplacementMap in="SourceGraphic" in2="noise" scale={(shapeLayer as any).pathEffects?.roughen?.amount || 0} xChannelSelector="R" yChannelSelector="G" />
+                      </filter>
+                    )}
+                    {(shapeLayer as any).pathEffects?.zigzag?.amplitude > 0 && (
+                      <filter id={`zigzag-${shapeLayer.id}`}>
+                        <feTurbulence type="turbulence" baseFrequency={((shapeLayer as any).pathEffects?.zigzag?.frequency || 1) / 100} numOctaves="1" result="noise" />
+                        <feDisplacementMap in="SourceGraphic" in2="noise" scale={(shapeLayer as any).pathEffects?.zigzag?.amplitude || 0} xChannelSelector="R" yChannelSelector="G" />
+                      </filter>
+                    )}
+                    {((shapeLayer as any).strokeProfile && (shapeLayer as any).strokeProfile !== 'uniform') && (
+                      <>
+                        <linearGradient id={`taper-mask-${shapeLayer.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                          {((shapeLayer as any).strokeProfile==='taper-start' || (shapeLayer as any).strokeProfile==='taper-both') ? <stop offset="0%" stopColor="#000" stopOpacity="0"/> : <stop offset="0%" stopColor="#000" stopOpacity="1"/>}
+                          <stop offset="50%" stopColor="#000" stopOpacity="1"/>
+                          {((shapeLayer as any).strokeProfile==='taper-end' || (shapeLayer as any).strokeProfile==='taper-both') ? <stop offset="100%" stopColor="#000" stopOpacity="0"/> : <stop offset="100%" stopColor="#000" stopOpacity="1"/>}
+                        </linearGradient>
+                        <mask id={`taper-${shapeLayer.id}`}>
+                          <rect width="100%" height="100%" fill={`url(#taper-mask-${shapeLayer.id})`} />
+                        </mask>
+                      </>
+                    )}
+                  </defs>
+                  {(shapeLayer as any).pathEffects?.offset?.distance > 0 && (
+                    <path d={shapeLayer.pathData} fill="none" stroke={shapeLayer.color} strokeWidth={((shapeLayer as any).pathEffects?.offset?.distance || 0) * 2} opacity={0.35} />
                   )}
-                  {(shapeLayer as any).pathEffects?.roughen?.amount > 0 && (
-                    <filter id={`roughen-${shapeLayer.id}`}>
-                      <feTurbulence type="turbulence" baseFrequency="0.8" numOctaves="1" result="noise" />
-                      <feDisplacementMap in="SourceGraphic" in2="noise" scale={(shapeLayer as any).pathEffects?.roughen?.amount || 0} xChannelSelector="R" yChannelSelector="G" />
-                    </filter>
-                  )}
-                  {(shapeLayer as any).pathEffects?.zigzag?.amplitude > 0 && (
-                    <filter id={`zigzag-${shapeLayer.id}`}>
-                      <feTurbulence type="turbulence" baseFrequency={((shapeLayer as any).pathEffects?.zigzag?.frequency || 1) / 100} numOctaves="1" result="noise" />
-                      <feDisplacementMap in="SourceGraphic" in2="noise" scale={(shapeLayer as any).pathEffects?.zigzag?.amplitude || 0} xChannelSelector="R" yChannelSelector="G" />
-                    </filter>
-                  )}
-                  {((shapeLayer as any).strokeProfile && (shapeLayer as any).strokeProfile !== 'uniform') && (
-                    <>
-                      <linearGradient id={`taper-mask-${shapeLayer.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                        {((shapeLayer as any).strokeProfile==='taper-start' || (shapeLayer as any).strokeProfile==='taper-both') ? <stop offset="0%" stopColor="#000" stopOpacity="0"/> : <stop offset="0%" stopColor="#000" stopOpacity="1"/>}
-                        <stop offset="50%" stopColor="#000" stopOpacity="1"/>
-                        {((shapeLayer as any).strokeProfile==='taper-end' || (shapeLayer as any).strokeProfile==='taper-both') ? <stop offset="100%" stopColor="#000" stopOpacity="0"/> : <stop offset="100%" stopColor="#000" stopOpacity="1"/>}
-                      </linearGradient>
-                      <mask id={`taper-${shapeLayer.id}`}>
-                        <rect width="100%" height="100%" fill={`url(#taper-mask-${shapeLayer.id})`} />
-                      </mask>
-                    </>
-                  )}
-                </defs>
-                {(shapeLayer as any).pathEffects?.offset?.distance > 0 && (
-                  <path d={shapeLayer.pathData} fill="none" stroke={shapeLayer.color} strokeWidth={((shapeLayer as any).pathEffects?.offset?.distance || 0) * 2} opacity={0.35} />
-                )}
-                <path d={shapeLayer.pathData}
-                  fill={shapeLayer.id?.startsWith('draw_') || (shapeLayer as any).brushType ? 'none' : (shapeLayer.gradient && shapeLayer.gradient.enabled ? `url(#gradient-${shapeLayer.id})` : (shapeLayer.color || '#7d2ae8'))}
-                  filter={(shapeLayer as any).pathEffects?.zigzag?.amplitude>0 ? `url(#zigzag-${shapeLayer.id})` : (shapeLayer as any).pathEffects?.roughen?.amount>0 ? `url(#roughen-${shapeLayer.id})` : undefined}
-                />
-                {(() => {
-                  const stroke = (shapeLayer as any).stroke;
-                  const profile = (shapeLayer as any).strokeProfile || 'uniform';
-                  const w = (stroke?.width || 0);
-                  if (w <= 0) {return null;}
-                  if (profile === 'uniform') {
-                    // Draw as normal stroke
-                    return (
-                      <path d={shapeLayer.pathData} fill="none" stroke={stroke?.color || shapeLayer.color} strokeWidth={w} strokeLinecap={stroke?.cap || 'round'} strokeLinejoin={stroke?.join || 'round'} />
-                    );
-                  } else {
-                    // Build variable-width outline
-                    const widthFn = profileWidthFn(profile, w);
-                    const samples = ((shapeLayer as any).strokeQuality==='fast') ? 48 : 128;
-                    const outline = buildVariableStrokeOutline(shapeLayer.pathData!, widthFn, samples);
-                    if (!outline) {return null;}
-                    return <path d={outline} fill={stroke?.color || shapeLayer.color} />;
-                  }
-                })()}
-              </svg>
-            )}
+                  <path 
+                    d={shapeLayer.pathData}
+                    fill={shapeLayer.gradient && shapeLayer.gradient.enabled ? `url(#gradient-${shapeLayer.id})` : (shapeLayer.color || '#7d2ae8')}
+                    filter={(shapeLayer as any).pathEffects?.zigzag?.amplitude > 0 ? `url(#zigzag-${shapeLayer.id})` : (shapeLayer as any).pathEffects?.roughen?.amount > 0 ? `url(#roughen-${shapeLayer.id})` : undefined}
+                  />
+                  {(() => {
+                    const stroke = (shapeLayer as any).stroke;
+                    const w = stroke?.width || 0;
+                    if (w <= 0) return null;
+                    const profile = (shapeLayer as any).strokeProfile || 'uniform';
+                    
+                    if (profile === 'uniform') {
+                      return (
+                        <path d={shapeLayer.pathData} fill="none" stroke={stroke?.color || shapeLayer.color} strokeWidth={w} strokeLinecap={stroke?.cap || 'round'} strokeLinejoin={stroke?.join || 'round'} />
+                      );
+                    } else {
+                      const widthFn = profileWidthFn(profile, w);
+                      const samples = ((shapeLayer as any).strokeQuality==='fast') ? 48 : 128;
+                      const outline = buildVariableStrokeOutline(shapeLayer.pathData!, widthFn, samples);
+                      if (!outline) return null;
+                      return <path d={outline} fill={stroke?.color || shapeLayer.color} />;
+                    }
+                  })()}
+                </svg>
+              );
+            })()}
           </div>
           {isSelected && <SelectionHandles layer={shapeLayer} onResize={onResize} onRotate={onRotate} scale={1} />}
         </div>

@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 // Define simplified layer types for the worker to avoid circular dependencies with main app types
 interface WorkerLayer {
   id: string;
-  type: 'text' | 'image' | 'shape' | 'group' | 'path';
+  type: 'text' | 'image' | 'shape' | 'group' | 'path' | 'circle';
   name: string;
   x: number;
   y: number;

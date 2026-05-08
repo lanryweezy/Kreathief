@@ -24,8 +24,11 @@ export const downloadBlob = (blob: Blob, filename: string) => {
   URL.revokeObjectURL(url);
 };
 
+import { supabase } from '../lib/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
+
 /**
- * Exports the design as a print-ready PDF via Worker.
+ * Exports the design as a print-ready PDF via Worker or Serverless API.
  */
 export const exportToPrintPDF = async (
   width: number,
@@ -34,7 +37,70 @@ export const exportToPrintPDF = async (
   fileName: string,
   options: PDFExportOptions
 ) => {
+  // If CMYK is selected, we must use the true ICC conversion serverless backend
+  if (options.colorProfile === 'CMYK' || options.colorProfile === 'FOGRA39' || options.colorProfile === 'SWOP' || options.colorProfile === 'GRACoL') {
+    return new Promise<void>(async (resolve, reject) => {
+      try {
+        let imageUrlToProcess = imgDataUrl;
+        
+        // 1. Convert Data URL to Blob
+        const response = await fetch(imgDataUrl);
+        const blob = await response.blob();
+        
+        // 2. To bypass Vercel's 4.5MB request limit, upload to Supabase Storage if possible
+        if (blob.size > 2 * 1024 * 1024) { // If larger than 2MB
+          const tempFileName = `temp_${uuidv4()}.png`;
+          const { error } = await supabase.storage
+            .from('exports')
+            .upload(tempFileName, blob, { contentType: 'image/png' });
+            
+          if (!error) {
+            const { data } = supabase.storage.from('exports').getPublicUrl(tempFileName);
+            imageUrlToProcess = data.publicUrl;
+          }
+        }
+
+        // 3. Call Serverless API
+        const apiResponse = await fetch('/api/export-cmyk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            imageUrl: imageUrlToProcess,
+            bleed: options.bleed
+          })
+        });
+
+        if (!apiResponse.ok) {
+          throw new Error('CMYK Conversion failed on server');
+        }
+
+        // 4. Download Result
+        const pdfBlob = await apiResponse.blob();
+        downloadBlob(pdfBlob, fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
+        resolve();
+      } catch (err) {
+        console.error('Serverless CMYK Export Error:', err);
+        // Fallback to client-side simulation worker if server fails
+        fallbackToWorker(width, height, imgDataUrl, fileName, options, resolve, reject);
+      }
+    });
+  }
+
+  // Standard sRGB export uses the client-side worker
   return new Promise<void>((resolve, reject) => {
+    fallbackToWorker(width, height, imgDataUrl, fileName, options, resolve, reject);
+  });
+};
+
+const fallbackToWorker = (
+  width: number,
+  height: number,
+  imgDataUrl: string,
+  fileName: string,
+  options: PDFExportOptions,
+  resolveOuter: () => void,
+  rejectOuter: (reason?: any) => void
+) => {
     try {
       const worker = new Worker(new URL('../workers/pdf.worker.ts', import.meta.url), { type: 'module' });
       
@@ -43,23 +109,22 @@ export const exportToPrintPDF = async (
         if (type === 'SUCCESS') {
           downloadBlob(payload, fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
           worker.terminate();
-          resolve();
+          resolveOuter();
         } else {
           worker.terminate();
-          reject(new Error(error || 'PDF Generation failed'));
+          rejectOuter(new Error(error || 'PDF Generation failed'));
         }
       };
 
       worker.onerror = (err) => {
         worker.terminate();
-        reject(err);
+        rejectOuter(err);
       };
 
       worker.postMessage({ width, height, imgDataUrl, fileName, options });
     } catch (err) {
-      reject(err);
+      rejectOuter(err);
     }
-  });
 };
 
 /**

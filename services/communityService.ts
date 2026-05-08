@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase/client';
+import { db as supabase } from '../lib/supabase/client';
 import { StarterTemplate } from '../data/templates';
 import { log } from '../utils/log';
 

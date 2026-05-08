@@ -13,6 +13,10 @@ import { SelectionMarquee } from './canvas/SelectionMarquee';
 import { useTouchGestures } from '../hooks/useTouchGestures';
 import { Icons } from '../constants';
 import { ContextualToolbar } from './canvas/ContextualToolbar';
+import { PathEditorOverlay } from './VectorEditor/PathEditorOverlay';
+import { VectorPath } from '../types';
+import { v4 as uuidv4 } from 'uuid';
+import { BrushFilters } from '../services/brushEngine';
 
 interface CanvasProps {
   zoom: number;
@@ -50,6 +54,85 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   const showGrid = useStore((state) => state.showGrid) || false;
   const showRulers = useStore((state) => state.showRulers) || false;
   const isDrawing = useStore((state) => state.isPenMode) || false;
+  const setPenMode = useStore((state) => state.setPenMode);
+  const brushType = useStore((state) => state.brushType);
+  const brushColor = useStore((state) => state.brushColor) || '#000000';
+  const brushSize = useStore((state) => state.brushSize) || 2;
+  
+  const [activeVectorPath, setActiveVectorPath] = useState<VectorPath | null>(null);
+  const [selectedVectorPointIndices, setSelectedVectorPointIndices] = useState<number[]>([]);
+
+  useEffect(() => {
+    if (isDrawing && brushType === ('vector_pencil' as any)) {
+      if (!activeVectorPath) {
+        setActiveVectorPath({
+          points: [],
+          isClosed: false,
+        });
+      }
+    } else if (!isDrawing) {
+      if (activeVectorPath && activeVectorPath.points.length > 1) {
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+        activeVectorPath.points.forEach(p => {
+           minX = Math.min(minX, p.x);
+           minY = Math.min(minY, p.y);
+           maxX = Math.max(maxX, p.x);
+           maxY = Math.max(maxY, p.y);
+        });
+        
+        if (minX !== Infinity) {
+           const width = Math.max(1, maxX - minX);
+           const height = Math.max(1, maxY - minY);
+           const shiftedPoints = activeVectorPath.points.map(p => ({
+             ...p,
+             x: p.x - minX,
+             y: p.y - minY,
+           }));
+
+           const newLayer: ShapeLayer = {
+             id: `path_${uuidv4()}`,
+             type: 'path',
+             name: 'Vector Path',
+             x: minX,
+             y: minY,
+             width,
+             height,
+             rotation: 0,
+             opacity: 1,
+             locked: false,
+             visible: true,
+             color: brushColor,
+             cornerRadius: 0,
+             viewBox: `0 0 ${width} ${height}`,
+             vectorPath: { points: shiftedPoints, isClosed: activeVectorPath.isClosed },
+             pathData: '',
+             filters: {
+               brightness: 100,
+               contrast: 100,
+               saturation: 100,
+               grayscale: 0,
+               sepia: 0,
+               blur: 0,
+               hueRotate: 0,
+               vignette: 0,
+               opacity: 1,
+             },
+             blendMode: 'normal',
+             skewX: 0,
+             skewY: 0,
+             perspective: 0,
+             rotateX: 0,
+             rotateY: 0,
+           };
+           useStore.getState().addLayer(newLayer);
+        }
+      }
+      setActiveVectorPath(null);
+    }
+  }, [isDrawing, brushType]);
 
   const activeArtboard = useMemo(
     () => artboards.find((a) => a.id === activeArtboardId) || artboards[0],
@@ -239,7 +322,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
           ref={viewportRef}
           className="flex-1 overflow-hidden relative bg-[#000000] touch-none select-none canvas-container"
            style={{ cursor: isPanning ? 'grabbing' : isSpacePressed ? 'grab' : isDrawing ? 'crosshair' : 'default' }}
-          onMouseDown={handleMouseDownCombined}
+          onMouseDown={isDrawing && brushType === 'vector_pencil' ? undefined : handleMouseDownCombined}
         >
           {/* Global Workspace Grid - Responds to Zoom */}
           {showGrid && (
@@ -294,6 +377,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               onDeleteArtboard={onDeleteArtboard}
               showGrid={showGrid}
               isDrawing={isDrawing}
+              isVectorPenMode={isDrawing && brushType === 'vector_pencil'}
               isRefining={false}
               drawingCanvasRef={drawingCanvasRef}
               refineCanvasRef={refineCanvasRef}
@@ -321,6 +405,28 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
             {selectionBox && <SelectionMarquee box={selectionBox} />}
           </div>
         </div>
+
+        {/* PathEditorOverlay is rendered OUTSIDE the zoom transform — coordinates are computed manually */}
+        {isDrawing && brushType === 'vector_pencil' && activeVectorPath && (
+          <div
+            className="absolute inset-0 z-[200] pointer-events-none"
+            style={{
+              transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
+              transformOrigin: '0 0',
+            }}
+          >
+            <PathEditorOverlay
+              path={activeVectorPath}
+              zoom={zoom}
+              onUpdate={(newPath) => setActiveVectorPath(newPath as VectorPath)}
+              onSelectPoint={setSelectedVectorPointIndices}
+              selectedPointIndices={selectedVectorPointIndices}
+              onClose={() => setPenMode(false)}
+            />
+          </div>
+        )}
+        {/* Centralized stable SVG filters */}
+        <BrushFilters />
       </div>
     </ErrorBoundary>
   );

@@ -132,7 +132,7 @@ export interface LayerFilters {
   hueRotate: number; // 0 default
   vignette: number; // 0 default
   opacity: number; // 1 default
-  backdropBlur: number; // 0 default
+  backdropBlur?: number; // 0 default
   artisticFilter?: string; // Optional SVG filter ID (e.g. 'watercolor')
 }
 

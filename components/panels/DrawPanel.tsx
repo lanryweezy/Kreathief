@@ -171,6 +171,19 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
         />
       </div>
 
+      <svg width="0" height="0" className="absolute pointer-events-none">
+        <defs>
+          <filter id="oilFilter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="3" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" />
+          </filter>
+          <filter id="watercolorFilter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="5" />
+            <feGaussianBlur stdDeviation="2" />
+          </filter>
+        </defs>
+      </svg>
+
       {/* Drawing Status Card */}
       <div className="mb-6 p-4 bg-[#252627] rounded-lg border border-gray-700 relative overflow-hidden">
         <div
@@ -254,14 +267,14 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
         <label className="text-xs font-bold text-gray-400 mb-3 block uppercase tracking-wider">Creative Brushes</label>
         <div className="grid grid-cols-2 gap-2 mb-6">
           {[
-            { id: BrushType.BASIC, name: 'Basic' },
-            { id: BrushType.CALLIGRAPHY, name: 'Calligraphy' },
-            { id: BrushType.OIL, name: 'Oil Brush' },
-            { id: BrushType.CRAYON, name: 'Crayon' },
-            { id: BrushType.PENCIL, name: 'Pencil' },
-            { id: BrushType.WATERCOLOR, name: 'Watercolor' },
-            { id: BrushType.SPLATTER, name: 'Splatter' },
-            { id: BrushType.TEXTURE, name: 'Texture' },
+            { id: BrushType.BASIC, name: 'Basic', color: 'text-blue-400' },
+            { id: BrushType.CALLIGRAPHY, name: 'Calligraphy', color: 'text-purple-400' },
+            { id: BrushType.OIL, name: 'Oil Brush', color: 'text-orange-400' },
+            { id: BrushType.CRAYON, name: 'Crayon', color: 'text-yellow-400' },
+            { id: BrushType.PENCIL, name: 'Pencil', color: 'text-gray-300' },
+            { id: BrushType.WATERCOLOR, name: 'Watercolor', color: 'text-cyan-400' },
+            { id: BrushType.SPLATTER, name: 'Splatter', color: 'text-pink-400' },
+            { id: BrushType.TEXTURE, name: 'Texture', color: 'text-emerald-400' },
           ].map((type) => (
             <button
               key={type.id}
@@ -273,21 +286,11 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
               className={`relative h-14 p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id && !selectedCustomBrushId ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white ring-1 ring-[#7d2ae8]' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
             >
               <svg
-                className="absolute top-0 right-0 w-full h-full opacity-30 pointer-events-none"
+                className={`absolute top-0 right-0 w-full h-full opacity-40 pointer-events-none ${type.color}`}
                 viewBox="0 0 100 50"
                 preserveAspectRatio="none"
                 style={BRUSH_PREVIEW_ANIMATIONS[type.id]}
               >
-                <defs>
-                  <filter id="oilFilter">
-                    <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="3" result="noise" />
-                    <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" />
-                  </filter>
-                  <filter id="watercolorFilter">
-                    <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="5" />
-                    <feGaussianBlur stdDeviation="2" />
-                  </filter>
-                </defs>
                 {BRUSH_PREVIEWS[type.id]}
               </svg>
               <span className="text-[10px] font-bold relative z-10">{type.name}</span>
@@ -310,7 +313,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
               className={`relative h-14 p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id && !selectedCustomBrushId ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white ring-1 ring-[#7d2ae8]' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
             >
               <svg
-                className="absolute top-0 right-0 w-full h-full opacity-30 pointer-events-none"
+                className="absolute top-0 right-0 w-full h-full opacity-30 pointer-events-none text-white"
                 viewBox="0 0 100 50"
                 preserveAspectRatio="none"
                 style={BRUSH_PREVIEW_ANIMATIONS[type.id]}

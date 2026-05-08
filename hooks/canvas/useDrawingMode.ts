@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import { v4 as uuidv4 } from 'uuid';
+import { StrokeSmoother } from '../../utils/variableStroke';
 
 interface UseDrawingModeProps {
   zoom: number;
@@ -17,24 +18,75 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
     zoomRef.current = zoom;
   }, [zoom]);
 
+  const redrawCanvas = useCallback((ctx: CanvasRenderingContext2D, previewX?: number, previewY?: number) => {
+    const { brushColor, brushSize, brushType } = useStore.getState();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    if (currentPathRef.current.length === 0) return;
+
+    ctx.strokeStyle = brushColor;
+    ctx.lineWidth = brushSize * 0.75;
+    ctx.lineCap = 'square';
+    ctx.lineJoin = 'miter';
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+    ctx.setLineDash([]);
+
+    ctx.beginPath();
+    ctx.moveTo(currentPathRef.current[0].x, currentPathRef.current[0].y);
+    for (let i = 1; i < currentPathRef.current.length; i++) {
+      ctx.lineTo(currentPathRef.current[i].x, currentPathRef.current[i].y);
+    }
+    if (previewX !== undefined && previewY !== undefined) {
+      ctx.lineTo(previewX, previewY);
+    }
+    ctx.stroke();
+    
+    // Draw anchor points for vector pencil
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = brushColor;
+    ctx.lineWidth = 1.5;
+    currentPathRef.current.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    });
+  }, []);
+
+  const smootherRef = useRef<StrokeSmoother | null>(null);
+
   const handleDrawingMouseDown = useCallback((e: React.MouseEvent) => {
     if (!isDrawing) return;
     const canvas = e.target as HTMLCanvasElement;
     if (!canvas) return;
-    isDrawingInternalRef.current = true;
-    canvasRef.current = canvas;
-
+    
+    const { brushType } = useStore.getState();
     const rect = canvas.getBoundingClientRect();
     const x = (e.clientX - rect.left) / zoomRef.current;
     const y = (e.clientY - rect.top) / zoomRef.current;
-    currentPathRef.current = [{ x, y }];
-    
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.beginPath();
-      ctx.moveTo(x, y);
+
+    if (brushType === 'vector_pencil') {
+      return; // Handled by PathEditorOverlay
+    } else {
+      isDrawingInternalRef.current = true;
+      canvasRef.current = canvas;
+      
+      // Initialize the physical velocity stroke smoother (40% smoothing)
+      smootherRef.current = new StrokeSmoother(40);
+      const smoothed = smootherRef.current.addPoint(x, y);
+      currentPathRef.current = [smoothed || { x, y }];
+      
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+      }
     }
-  }, [isDrawing]);
+  }, [isDrawing, redrawCanvas]);
 
   const handleDrawingMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDrawingInternalRef.current || !canvasRef.current) return;
@@ -43,18 +95,34 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
     const x = (e.clientX - rect.left) / zoomRef.current;
     const y = (e.clientY - rect.top) / zoomRef.current;
     
+    const { brushColor, brushSize, brushOpacity, brushType } = useStore.getState();
+    const ctx = canvas.getContext('2d');
+
+    if (brushType === 'vector_pencil') {
+      return; // Handled by PathEditorOverlay
+    }
+    
+    // Smooth out the coordinate stream using velocity-based weighted averaging
+    let drawX = x;
+    let drawY = y;
+    if (smootherRef.current) {
+      const smoothed = smootherRef.current.addPoint(x, y);
+      if (smoothed) {
+        drawX = smoothed.x;
+        drawY = smoothed.y;
+      }
+    }
+
     // De-duplicate points if the distance is too close to avoid bloated vector paths
     const lastPoint = currentPathRef.current[currentPathRef.current.length - 1];
     if (lastPoint) {
-      const dist = Math.hypot(x - lastPoint.x, y - lastPoint.y);
+      const dist = Math.hypot(drawX - lastPoint.x, drawY - lastPoint.y);
       if (dist < 1.5) return;
     }
 
-    currentPathRef.current.push({ x, y });
+    currentPathRef.current.push({ x: drawX, y: drawY });
     
-    const ctx = canvas.getContext('2d');
     if (ctx) {
-      const { brushColor, brushSize, brushOpacity, brushType } = useStore.getState();
       ctx.strokeStyle = brushColor;
       ctx.lineWidth = brushSize;
       ctx.globalAlpha = brushOpacity;
@@ -87,10 +155,6 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
           ctx.shadowBlur = 10;
           ctx.shadowColor = brushColor;
           break;
-        case 'vector_pencil':
-          ctx.lineWidth = brushSize * 0.75;
-          ctx.lineCap = 'square';
-          break;
         case 'splatter':
           ctx.lineWidth = 1;
           ctx.fillStyle = brushColor;
@@ -105,14 +169,18 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
       ctx.lineTo(x, y);
       ctx.stroke();
     }
-  }, []);
+  }, [redrawCanvas]);
 
-
-  const handleDrawingMouseUp = useCallback((e?: React.MouseEvent) => {
+  const handleDrawingMouseUp = useCallback((e?: React.MouseEvent, forceFinish: boolean = false) => {
     if (!isDrawingInternalRef.current) return;
-    isDrawingInternalRef.current = false;
     
     const { brushType, brushColor, brushSize, addLayer } = useStore.getState();
+    
+    if (brushType === 'vector_pencil') {
+      return; // Handled by PathEditorOverlay
+    }
+    
+    isDrawingInternalRef.current = false;
     
     if (currentPathRef.current.length < 2) {
       currentPathRef.current = [];
@@ -140,6 +208,14 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
       if (points.length < 2) return '';
       if (points.length === 2) {
         return `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)} L ${points[1].x.toFixed(2)} ${points[1].y.toFixed(2)}`;
+      }
+
+      if ((brushType as any) === 'vector_pencil') {
+        let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+        for (let i = 1; i < points.length; i++) {
+           d += ` L ${points[i].x.toFixed(2)} ${points[i].y.toFixed(2)}`;
+        }
+        return d;
       }
 
       let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
@@ -179,7 +255,6 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
       stroke: { color: brushColor, width: brushSize },
     } as any);
 
-
     // Clear temporary canvas
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d');
@@ -189,7 +264,18 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
     }
     currentPathRef.current = [];
     canvasRef.current = null;
+    if (smootherRef.current) {
+      smootherRef.current.reset();
+      smootherRef.current = null;
+    }
   }, []);
+
+  useEffect(() => {
+    // When drawing mode is turned off, finish any active vector_pencil paths
+    if (!isDrawing && isDrawingInternalRef.current) {
+      handleDrawingMouseUp(undefined, true);
+    }
+  }, [isDrawing, handleDrawingMouseUp]);
 
   return {
     handleDrawingMouseDown,

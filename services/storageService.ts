@@ -6,7 +6,7 @@
 import { logger } from './logger';
 import { log } from '../utils/log';
 import type { Project, HistoryState } from '../types';
-import { supabase } from '../lib/supabase/client';
+import { db as supabase } from '../lib/supabase/client';
 import { authService } from './authService';
 import { storage as storageConfig } from '../config';
 
@@ -573,7 +573,7 @@ class StorageService {
           .order('updated_at', { ascending: false });
 
         if (!error && data) {
-          return data.map(p => this.supabaseProjectToLocal(p));
+          return data.map((p: any) => this.supabaseProjectToLocal(p));
         }
       } catch (err) {
         logger.warn('Supabase error, using IndexedDB', { error: err });

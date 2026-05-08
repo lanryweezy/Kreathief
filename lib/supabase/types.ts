@@ -1,4 +1,4 @@
-// Supabase Database Types for Kreathief
+// Supabase Database Types for public
 
 export type Json =
   | string
@@ -9,7 +9,7 @@ export type Json =
   | Json[];
 
 export interface Database {
-  kreathief: {
+  public: {
     Tables: {
       profiles: {
         Row: {
@@ -276,28 +276,28 @@ export interface Database {
 }
 
 // Type helpers
-export type Profile = Database['kreathief']['Tables']['profiles']['Row'];
-export type Project = Database['kreathief']['Tables']['projects']['Row'];
-export type ProjectVersion = Database['kreathief']['Tables']['project_versions']['Row'];
-export type ProjectSnapshot = Database['kreathief']['Tables']['project_snapshots']['Row'];
-export type Comment = Database['kreathief']['Tables']['comments']['Row'];
-export type BrandKit = Database['kreathief']['Tables']['brand_kits']['Row'];
-export type Template = Database['kreathief']['Tables']['templates']['Row'];
+export type Profile = Database['public']['Tables']['profiles']['Row'];
+export type Project = Database['public']['Tables']['projects']['Row'];
+export type ProjectVersion = Database['public']['Tables']['project_versions']['Row'];
+export type ProjectSnapshot = Database['public']['Tables']['project_snapshots']['Row'];
+export type Comment = Database['public']['Tables']['comments']['Row'];
+export type BrandKit = Database['public']['Tables']['brand_kits']['Row'];
+export type Template = Database['public']['Tables']['templates']['Row'];
 
 // Insert types
-export type ProfileInsert = Database['kreathief']['Tables']['profiles']['Insert'];
-export type ProjectInsert = Database['kreathief']['Tables']['projects']['Insert'];
-export type ProjectVersionInsert = Database['kreathief']['Tables']['project_versions']['Insert'];
-export type ProjectSnapshotInsert = Database['kreathief']['Tables']['project_snapshots']['Insert'];
-export type CommentInsert = Database['kreathief']['Tables']['comments']['Insert'];
-export type BrandKitInsert = Database['kreathief']['Tables']['brand_kits']['Insert'];
-export type TemplateInsert = Database['kreathief']['Tables']['templates']['Insert'];
+export type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
+export type ProjectInsert = Database['public']['Tables']['projects']['Insert'];
+export type ProjectVersionInsert = Database['public']['Tables']['project_versions']['Insert'];
+export type ProjectSnapshotInsert = Database['public']['Tables']['project_snapshots']['Insert'];
+export type CommentInsert = Database['public']['Tables']['comments']['Insert'];
+export type BrandKitInsert = Database['public']['Tables']['brand_kits']['Insert'];
+export type TemplateInsert = Database['public']['Tables']['templates']['Insert'];
 
 // Update types
-export type ProfileUpdate = Database['kreathief']['Tables']['profiles']['Update'];
-export type ProjectUpdate = Database['kreathief']['Tables']['projects']['Update'];
-export type ProjectVersionUpdate = Database['kreathief']['Tables']['project_versions']['Update'];
-export type ProjectSnapshotUpdate = Database['kreathief']['Tables']['project_snapshots']['Update'];
-export type CommentUpdate = Database['kreathief']['Tables']['comments']['Update'];
-export type BrandKitUpdate = Database['kreathief']['Tables']['brand_kits']['Update'];
-export type TemplateUpdate = Database['kreathief']['Tables']['templates']['Update'];
+export type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
+export type ProjectUpdate = Database['public']['Tables']['projects']['Update'];
+export type ProjectVersionUpdate = Database['public']['Tables']['project_versions']['Update'];
+export type ProjectSnapshotUpdate = Database['public']['Tables']['project_snapshots']['Update'];
+export type CommentUpdate = Database['public']['Tables']['comments']['Update'];
+export type BrandKitUpdate = Database['public']['Tables']['brand_kits']['Update'];
+export type TemplateUpdate = Database['public']['Tables']['templates']['Update'];

@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase/client';
+import { db as supabase } from '../lib/supabase/client';
 import type { User } from '../types';
 import type { Profile } from '../lib/supabase/types';
 import { logger } from './logger';
@@ -24,7 +24,7 @@ export class AuthService {
     // Listen to Supabase auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange((event: any, session: any) => {
       log.info('[AuthService] Auth state changed', { event, hasSession: !!session });
 
       if (session?.user) {

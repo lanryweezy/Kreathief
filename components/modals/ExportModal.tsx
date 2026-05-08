@@ -22,7 +22,7 @@ interface ExportModalProps {
 }
 
 export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onGetPngBlob, currentSize }) => {
-  const { addToast, artboards, activeArtboardId, selectedLayerIds, projectTitle } = useStore();
+  const { addToast, artboards, activeArtboardId, selectedLayerIds, projectTitle, user } = useStore();
   const [format, setFormat] = useState<'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd'>('png');
   const [quality, setQuality] = useState(0.95);
   const [activePreset, setActivePreset] = useState<string>('current');
@@ -337,11 +337,20 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                   <h4 className="text-xs font-bold text-white mb-0.5 flex items-center gap-2">
                     <Icons.Printer className="w-4 h-4 text-[#7d2ae8]" />
                     Professional Print (CMYK)
+                    {(!user || user.plan === 'free') && (
+                      <span className="bg-yellow-500/20 text-yellow-500 text-[9px] px-1.5 py-0.5 rounded font-black tracking-widest uppercase">PRO</span>
+                    )}
                   </h4>
-                  <p className="text-[10px] text-gray-500 italic">PDF/X-ready with bleed & crop marks</p>
+                  <p className="text-[10px] text-gray-500 italic">True ICC CMYK conversion with bleed & crop marks</p>
                 </div>
                 <button
-                  onClick={() => setIsPrintMode(!isPrintMode)}
+                  onClick={() => {
+                    if (!user || user.plan === 'free') {
+                      addToast('True CMYK Export is a Pro Feature.', 'warning');
+                      return;
+                    }
+                    setIsPrintMode(!isPrintMode);
+                  }}
                   className={`w-12 h-6 rounded-full transition-all relative ${isPrintMode ? 'bg-[#7d2ae8]' : 'bg-gray-700'}`}
                 >
                   <div

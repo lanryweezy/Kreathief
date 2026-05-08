@@ -12,7 +12,7 @@ export const supabase = createClient<Database>(
   supabaseConfig.anonKey || 'placeholder-key',
   {
     db: {
-      schema: supabaseConfig.schema,
+      schema: 'public',
     },
     auth: {
       persistSession: true,
@@ -21,3 +21,6 @@ export const supabase = createClient<Database>(
     },
   }
 );
+
+// Untyped alias used by services for runtime dynamic queries
+export const db = supabase as any;
