@@ -18,10 +18,64 @@ export interface AgentVariant {
  * Generates N layout variants based on the user's intent.
  */
 export const creativeAgentDraft = async (_intent: string, canvasSize: { width: number; height: number }, _variantCount: number = 3): Promise<AgentVariant[]> => {
-  // ... (systemPrompt and layerSchema remain same)
+  const systemPrompt = `You are a Master Creative Design Director Engine. 
+Generate ${_variantCount} highly distinct, professional layout variants based on the user's core intent/prompt.
+Canvas dimensions are ${canvasSize.width}x${canvasSize.height}.
+
+For each variant, provide:
+1. A creative "themeIdea" string.
+2. An array of "layers" specifying:
+   - "type": "text" or "rectangle" or "circle"
+   - "constraints": an array of semantic constraints like "center-x", "center-y", "top", "bottom", "left", "right", "full-width", "inset-20"
+   - "width": number
+   - "height": number
+   - "color": Hex string
+   - "text": string (if text type)
+   - "fontSize": number (if text type)
+
+Ensure perfect visual composition and contrast.`;
+
+  const layerSchema = {
+    type: SchemaType.OBJECT,
+    properties: {
+      type: { type: SchemaType.STRING },
+      constraints: { 
+        type: SchemaType.ARRAY, 
+        items: { type: SchemaType.STRING } 
+      },
+      width: { type: SchemaType.NUMBER },
+      height: { type: SchemaType.NUMBER },
+      color: { type: SchemaType.STRING },
+      text: { type: SchemaType.STRING },
+      fontSize: { type: SchemaType.NUMBER },
+    },
+    required: ['type', 'constraints', 'width', 'height', 'color'],
+  };
 
   const data = await callBackendGeminiAPI({
-    // ... (model details remain same)
+    modelName: 'gemini-2.5-flash',
+    systemInstruction: systemPrompt,
+    generationConfig: {
+      responseMimeType: 'application/json',
+      responseSchema: {
+        type: SchemaType.ARRAY,
+        items: {
+          type: SchemaType.OBJECT,
+          properties: {
+            themeIdea: { type: SchemaType.STRING },
+            layers: { type: SchemaType.ARRAY, items: layerSchema },
+          },
+          required: ['themeIdea', 'layers'],
+        },
+      },
+      temperature: 0.85,
+    },
+    contents: [
+      {
+        role: 'user',
+        parts: [{ text: `Creative Intent: "${_intent}"` }],
+      },
+    ],
   });
 
   try {

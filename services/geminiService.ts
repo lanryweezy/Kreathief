@@ -36,7 +36,7 @@ export const callBackendGeminiAPI = async (payload: any) => {
     systemInstruction: payload.systemInstruction,
   });
 
-  const result = await model.generateContent(payload.contents);
+  const result = await model.generateContent({ contents: payload.contents });
   const response = await result.response;
   
   return {

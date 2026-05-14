@@ -120,10 +120,11 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, isAuto
         <AnimatePresence>
           {showAllTools && (
             <motion.div
-              initial={{ height: 0, opacity: 0, y: -10 }}
-              animate={{ height: 'auto', opacity: 1, y: 0 }}
-              exit={{ height: 0, opacity: 0, y: -10 }}
-              className="w-full overflow-hidden flex flex-col gap-1"
+              initial={{ opacity: 0, scale: 0.9, y: -5 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -5 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="w-full flex flex-col gap-1 mt-1"
             >
               {secondaryTools.map(renderTool)}
             </motion.div>

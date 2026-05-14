@@ -5,13 +5,14 @@ import { useStore } from '../store/useStore';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Icons } from '../constants';
 
-// Lazy load all panels
+import TemplatesPanel from './panels/TemplatesPanel';
+import BrandPanel from './panels/BrandPanel';
+import VectorizerPanel from './panels/VectorizerPanel';
+
+// Lazy load other panels
 const MagicPanel = React.lazy(() => import('./panels/MagicPanel'));
-const TemplatesPanel = React.lazy(() => import('./panels/TemplatesPanel'));
-const BrandPanel = React.lazy(() => import('./panels/BrandPanel'));
 const TexturesPanel = React.lazy(() => import('./panels/TexturesPanel'));
 const AssistantPanel = React.lazy(() => import('./panels/AssistantPanel'));
-const VectorizerPanel = React.lazy(() => import('./panels/VectorizerPanel'));
 const LayersPanel = React.lazy(() => import('./panels/LayersPanel'));
 const DrawPanel = React.lazy(() => import('./panels/DrawPanel'));
 const ElementsPanel = React.lazy(() => import('./panels/ElementsPanel'));
