@@ -53,9 +53,9 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
 
   const renderStatus = () => {
     const steps = [
-      { id: 'creative', label: 'Creative Agent', sub: 'Ideating Layouts', icon: AgentIcons.Sparkles },
-      { id: 'critic', label: 'Critic Agent', sub: 'Optimizing Spacing', icon: AgentIcons.Search },
-      { id: 'performance', label: 'Growth Agent', sub: 'Performance Scoring', icon: AgentIcons.Zap },
+      { id: 'creative', label: 'Layout Generator', sub: 'Ideating Layouts', icon: AgentIcons.Sparkles },
+      { id: 'critic', label: 'Design Reviewer', sub: 'Optimizing Spacing', icon: AgentIcons.Search },
+      { id: 'performance', label: 'Performance Check', sub: 'Performance Scoring', icon: AgentIcons.Zap },
     ];
 
     return (

@@ -8,13 +8,11 @@ import { Features } from './landing/Features';
 import { TrustEthics } from './landing/TrustEthics';
 import { ScrollShowcase } from './landing/ScrollShowcase';
 import { TemplateGallery } from './landing/TemplateGallery';
-import { ComparisonSection } from './landing/ComparisonSection';
-import { CommunityShowcase } from './landing/CommunityShowcase';
 import { Stats, Pricing } from './landing/StatsAndPricing';
 import { Testimonials } from './landing/Testimonials';
 import { FeatureComparison } from './landing/FeatureComparison';
 import { FAQSection } from './landing/FAQSection';
-import { FinalCTA } from './landing/FinalCTA';
+
 import { BlogPreview, Footer } from './landing/BlogAndFooter';
 import { SEO } from './SEO';
 import { Icons } from '../constants';
@@ -27,12 +25,7 @@ interface LandingPageProps {
 export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGuest }) => {
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001,
-  });
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,8 +41,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
       <div className="fixed inset-0 pointer-events-none z-[999] bg-noise opacity-[0.025] mix-blend-overlay"></div>
       <SEO />
 
-      {/* Dynamic Progress Bar */}
-      <motion.div className="fixed top-0 left-0 right-0 h-1 bg-purple-500 origin-left z-[100]" style={{ scaleX }} />
+
 
       {/* Navigation */}
       <nav
@@ -87,13 +79,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
           </div>
 
           <div className="flex items-center gap-4">
-            <button 
-              onClick={onTryGuest}
-              className="hidden sm:block text-sm font-bold text-gray-400 hover:text-white transition-colors"
-            >
-              Try Free
-            </button>
-            <div className="h-4 w-px bg-white/10 hidden sm:block"></div>
+
             <button className="hidden sm:block text-sm font-bold text-gray-400 hover:text-white transition-colors">
               Sign In
             </button>
@@ -144,20 +130,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
       <main>
         <Hero onGetStarted={onTryGuest || onGetStarted} />
         <LogoTicker />
-        <ReplacementNarrative />
-        <SpeedProof />
         <Features />
-        <TrustEthics />
         <ScrollShowcase />
         <TemplateGallery />
-        <CommunityShowcase />
-        <ComparisonSection />
         <Testimonials />
-        <FeatureComparison />
-        <Stats />
         <Pricing onPlanSelect={onGetStarted} />
-        <FAQSection />
-        <FinalCTA onGetStarted={onTryGuest || onGetStarted} />
         <BlogPreview />
       </main>
 

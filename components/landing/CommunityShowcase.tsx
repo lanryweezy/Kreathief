@@ -22,7 +22,7 @@ export const CommunityShowcase: React.FC = () => {
   return (
     <section className="py-32 relative bg-[#0a0a0c] overflow-hidden">
       <div className="max-w-[1400px] mx-auto px-6 mb-20 text-center flex flex-col items-center">
-        <SuperLabel text="Community Driven" />
+
         <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tight mb-6">
           Inspired by <span className="text-orange-500">Thousands.</span>
         </h2>

@@ -28,30 +28,6 @@ export const Testimonials: React.FC = () => {
       avatar: "/images/avatar_3_1772615019487.png",
       rating: 5,
     },
-    {
-      quote: "Cut our design production time by 60%. The AI generation + editing workflow is seamless. Game changer.",
-      author: "David Kim",
-      role: "Design Lead",
-      company: "Notion",
-      avatar: "/images/avatar_4_1772615076735.png",
-      rating: 5,
-    },
-    {
-      quote: "Finally, a tool that doesn't feel like it's fighting me. The UX is incredible and the performance is unmatched.",
-      author: "Lisa Park",
-      role: "Freelance Designer",
-      company: "Independent",
-      avatar: "/images/avatar_5_1772615099721.png",
-      rating: 5,
-    },
-    {
-      quote: "We switched our entire agency to Kreathief. Saved $12k/year on subscriptions and our team is more productive.",
-      author: "James Miller",
-      role: "Agency Owner",
-      company: "Pixel Perfect Studio",
-      avatar: "/images/avatar_6_1772615117433.png",
-      rating: 5,
-    },
   ];
 
   return (
@@ -69,10 +45,7 @@ export const Testimonials: React.FC = () => {
             viewport={{ once: true }}
             className="inline-block mb-6"
           >
-            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/20">
-              <Icons.Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-              <span className="text-xs font-black uppercase tracking-[0.2em] text-yellow-400">5-Star Reviews</span>
-            </div>
+
           </motion.div>
 
           <motion.h2
@@ -138,20 +111,7 @@ export const Testimonials: React.FC = () => {
           ))}
         </div>
 
-        {/* Bottom CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mt-16"
-        >
-          <p className="text-gray-400 text-sm mb-4">Join 10,000+ creators already using Kreathief</p>
-          <div className="flex items-center justify-center gap-2 text-yellow-400">
-            <Icons.Star className="w-5 h-5 fill-yellow-400" />
-            <span className="text-2xl font-black">4.9</span>
-            <span className="text-gray-500">/5 from 2,400+ reviews</span>
-          </div>
-        </motion.div>
+
       </div>
     </section>
   );

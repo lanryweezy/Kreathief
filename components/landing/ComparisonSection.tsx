@@ -20,17 +20,8 @@ export const ComparisonSection: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-6 relative z-30">
         <div className="text-center mb-24">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-block mb-6"
-          >
-            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20">
-              <Icons.X className="w-3 h-3 text-red-400" />
-              <span className="text-xs font-black uppercase tracking-[0.2em] text-red-400">Stop Overpaying</span>
-            </div>
-          </motion.div>
+
+
 
           <motion.h2
             initial={{ opacity: 0, y: 20 }}

@@ -11,7 +11,7 @@ export const Features: React.FC = () => {
       <div className="max-w-[1400px] mx-auto px-6">
         <div className="mb-32 text-center flex flex-col items-center">
           <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <SuperLabel text="Core Capabilities" />
+
           </motion.div>
 
           <motion.h2

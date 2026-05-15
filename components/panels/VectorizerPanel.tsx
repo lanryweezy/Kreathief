@@ -633,7 +633,7 @@ ${displayResult
               <div className="flex items-center gap-2">
                 <Icons.Zap className={`w-3.5 h-3.5 ${useAlgorithm ? 'text-emerald-500' : 'text-amber-500'}`} />
                 <span className="text-[10px] font-bold text-gray-300 uppercase tracking-tight">
-                  {useAlgorithm ? 'Fast Algorithmic engine' : 'Magic AI engine'}
+                  {useAlgorithm ? 'Fast Trace' : 'AI Trace'}
                 </span>
                 {useAlgorithm && (
                   <span className="text-[8px] bg-emerald-500/20 text-emerald-500 px-1.5 py-0.5 rounded-md font-black uppercase tracking-tighter animate-pulse">
@@ -692,7 +692,7 @@ ${displayResult
         ) : (
           <Icons.Zap className="w-4 h-4" />
         )}
-        {activeTab === 'image' ? 'Vectorize' : 'Generate Vector'}
+        {activeTab === 'image' ? 'Convert to Shape' : 'Create Shape'}
       </button>
 
       <div className="mt-3 text-center">

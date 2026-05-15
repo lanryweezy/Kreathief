@@ -68,7 +68,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       }
       // Valid OAuth handshakes will navigate away. No further state updates needed here.
     } catch (err) {
-      setError('Failed to initialize Google Sign In');
+      setError('Failed to start Google Sign In');
       setLoading(false);
     }
   };
@@ -90,7 +90,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         Back to Home
       </a>
 
-      <div className="flex w-full max-w-[1200px] h-[800px] bg-[#0a0a0a] rounded-[32px] border border-white/5 shadow-2xl relative z-10 overflow-hidden m-6">
+      <div className="flex w-full max-w-[1000px] h-[700px] bg-[#0a0a0a] rounded-[32px] border border-white/5 shadow-2xl relative z-10 overflow-hidden m-6">
         {/* Left Side: Illustration/Text (Desktop Only) */}
         <div className="hidden lg:flex flex-1 bg-[#111] relative overflow-hidden p-16 flex-col justify-between border-r border-white/5">
           <div className="absolute inset-0 pointer-events-none">
@@ -165,7 +165,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                   ? 'Enter your email to receive a password reset link.'
                   : isSignUp 
                     ? 'Start your 14-day free trial of Pro.' 
-                    : 'Enter your details to access your workspace.'}
+                    : ''}
             </p>
           </div>
 
@@ -258,7 +258,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
               ) : (
                 <>
-                  {isForgotPassword ? 'Send Reset Link' : isSignUp ? 'Create My Account' : 'Sign into Workspace'}
+                  {isForgotPassword ? 'Send Reset Link' : isSignUp ? 'Create My Account' : 'Sign In'}
                   <Icons.ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -273,7 +273,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 <div className="w-full border-t border-white/5"></div>
               </div>
               <div className="relative flex justify-center text-[9px] uppercase font-black tracking-[0.3em] leading-none">
-                <span className="bg-[#0a0a0a] px-4 text-gray-600">Secure Gateway</span>
+                <span className="bg-[#0a0a0a] px-4 text-gray-600">Or continue with</span>
               </div>
             </div>
 

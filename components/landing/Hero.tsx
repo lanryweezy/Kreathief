@@ -37,16 +37,6 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           className="text-center w-full max-w-5xl mb-10 relative flex flex-col items-center"
         >
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.8 }}
-          >
-            <div className="flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 backdrop-blur-sm">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
-              <span className="text-sm font-black uppercase tracking-[0.2em] text-white">10x Faster Than Figma</span>
-            </div>
-          </motion.div>
 
           <div className="absolute -inset-10 bg-white/5 blur-[100px] -z-10 rounded-full"></div>
           <h1 className="text-6xl md:text-[90px] lg:text-[140px] font-black tracking-tighter leading-[0.85] text-white select-none text-balance">
@@ -78,11 +68,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             <Icons.Check className="w-5 h-5 text-green-400" />
             <span>No credit card</span>
           </div>
-          <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
-          <div className="flex items-center gap-2">
-            <Icons.Zap className="w-5 h-5 text-yellow-400" />
-            <span>10x faster than Figma</span>
-          </div>
+
           <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
           <div className="flex items-center gap-2">
             <Icons.Users className="w-5 h-5 text-purple-400" />
@@ -110,20 +96,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             </button>
           </MagneticButton>
 
-          <button 
-            onClick={onGetStarted}
-            className="px-10 py-5 rounded-full font-bold text-base text-white/70 hover:text-white transition-colors flex items-center gap-3 group border border-white/20 hover:border-white/40 bg-white/5 backdrop-blur-sm"
-          >
-            <Icons.User className="w-5 h-5 text-purple-400" />
-            Try as Guest
-          </button>
 
-          <button className="hidden lg:flex px-10 py-5 rounded-full font-bold text-base text-white/70 hover:text-white transition-colors items-center gap-3 group border border-white/20 hover:border-white/40">
-            <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-              <Icons.Play className="w-4 h-4 fill-white" />
-            </div>
-            Watch Demo
-          </button>
         </motion.div>
 
         {/* EXPLODED UI HERO VISUAL */}

@@ -65,7 +65,7 @@ export const CommandPalette: React.FC = () => {
     { id: 'nav_templates', label: 'Browse Templates', icon: Icons.Templates, action: () => setActiveTab(NavTab.TEMPLATES), group: 'Panels' },
     { id: 'nav_layers', label: 'Open Layers Panel', icon: Icons.Layers, action: () => setActiveTab(NavTab.LAYERS), group: 'Panels', shortcut: 'L' },
     { id: 'nav_brand', label: 'Open Brand Kit', icon: Icons.Brand, action: () => setActiveTab(NavTab.BRAND), group: 'Panels', shortcut: 'B' },
-    { id: 'nav_vector', label: 'Open AI Vectorizer', icon: Icons.Union, action: () => setActiveTab(NavTab.VECTORIZER), group: 'Panels' },
+    { id: 'nav_vector', label: 'Open Image Trace', icon: Icons.Union, action: () => setActiveTab(NavTab.VECTORIZER), group: 'Panels' },
     { id: 'nav_mockup', label: 'Open Mockup Studio', icon: Icons.Mockup, action: () => setActiveTab(NavTab.MOCKUP), group: 'Panels' },
     { id: 'nav_draw', label: 'Open Draw Tool', icon: Icons.Brush, action: () => { setPenMode(true); setActiveTab(NavTab.DRAW); }, group: 'Panels', shortcut: 'P' },
     { id: 'nav_arrange', label: 'Open Arrange & Layout', icon: Icons.Layout, action: () => setActiveTab(NavTab.ARRANGE), group: 'Panels' },

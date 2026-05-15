@@ -406,7 +406,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                    {bgError && (
                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm z-50 text-white">
                         <Icons.AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
-                        <span className="font-black uppercase text-xs">Render Error</span>
+                        <span className="font-black uppercase text-xs">Creation Error</span>
                      </div>
                    )}
 

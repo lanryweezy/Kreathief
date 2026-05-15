@@ -20,9 +20,9 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, isAuto
   const [showAllTools, setShowAllTools] = useState(false);
 
   const allTabs = [
-    { id: NavTab.ASSISTANT, icon: Icons.Bot, label: "Design Agents", group: 'Create' },
+    { id: NavTab.ASSISTANT, icon: Icons.Bot, label: "AI Assistants", group: 'Create' },
     { id: NavTab.MAGIC, icon: Icons.Magic, label: "AI Magic", group: 'Create' },
-    { id: NavTab.VECTORIZER, icon: Icons.Union, label: "AI Vectorizer", group: 'Create' },
+    { id: NavTab.VECTORIZER, icon: Icons.Union, label: "Image Trace", group: 'Create' },
     { id: NavTab.DRAW, icon: Icons.Brush, label: "Draw", group: 'Create' },
     { id: NavTab.TEMPLATES, icon: Icons.Templates, label: "Templates", group: 'Library' },
     { id: NavTab.ELEMENTS, icon: Icons.Shapes, label: "Elements", group: 'Library' },

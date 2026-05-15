@@ -144,7 +144,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
       useStore.getState().addToast?.(`Imported ${newBrushes.length} brushes`, 'success');
     } catch (err) {
       console.error(err);
-      useStore.getState().addToast?.('Failed to parse ABR file', 'error');
+      useStore.getState().addToast?.('Failed to read brush file', 'error');
     }
   };
 

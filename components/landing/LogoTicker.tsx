@@ -4,14 +4,14 @@ import { SuperLabel } from './LandingUtils';
 export const LogoTicker: React.FC = () => {
   // We combine recognizable tech logos with the generated HD avatars for "Social Proof"
   const brands = [
-    { name: 'Netflix', image: '/images/logos/netflix.svg' },
-    { name: 'Framer', textOnly: true },
-    { name: 'Spotify', image: '/images/logos/spotify.svg' },
-    { name: 'Linear', textOnly: true },
+    { name: 'Linear', image: '/images/logos/linear.svg' },
     { name: 'Stripe', image: '/images/logos/stripe.svg' },
-    { name: 'Vercel', textOnly: true },
+    { name: 'Vercel', image: '/images/logos/vercel.svg' },
     { name: 'Discord', image: '/images/logos/discord.svg' },
     { name: 'Street Heart', image: '/images/logos/street_heart_logo.png', isCustomColor: true },
+    { name: 'Paystack', textOnly: true },
+    { name: 'Flutterwave', textOnly: true },
+    { name: 'Andela', textOnly: true },
   ];
 
   const avatars = [

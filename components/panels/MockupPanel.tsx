@@ -1298,7 +1298,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                     : 'bg-gradient-to-r from-[#7d2ae8] to-[#00c4cc] text-white shadow-lg shadow-purple-500/10'
                 }`}
               >
-                {isProGenerating ? 'Rendering...' : <><Icons.Zap className="w-3.5 h-3.5 text-yellow-300" /> Pro Render</>}
+                {isProGenerating ? 'Creating...' : <><Icons.Zap className="w-3.5 h-3.5 text-yellow-300" /> Create Mockup</>}
               </button>
            </div>
         </div>
