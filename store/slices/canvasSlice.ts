@@ -32,14 +32,20 @@ export interface CanvasSlice {
   setPanOffset: (offset: { x: number; y: number } | ((prev: { x: number; y: number }) => { x: number; y: number })) => void;
 }
 
-export const createCanvasSlice: StateCreator<CanvasSlice, [], [], CanvasSlice> = (set) => ({
+export const createCanvasSlice: StateCreator<any, [], [], CanvasSlice> = (set, get) => ({
   canvasSize: DEFAULT_CANVAS_SIZE,
   canvasBackgroundColor: '#ffffff',
   canvasFilters: DEFAULT_CANVAS_FILTERS,
   unit: 'px',
   panOffset: { x: 0, y: 0 },
 
-  setCanvasSize: (canvasSize) => set({ canvasSize }),
+  setCanvasSize: (canvasSize) => {
+    set({ canvasSize });
+    const state = get();
+    if (state.activeArtboardId && state.updateArtboard) {
+      state.updateArtboard(state.activeArtboardId, { width: canvasSize.width, height: canvasSize.height });
+    }
+  },
   setCanvasBackgroundColor: (canvasBackgroundColor) => set({ canvasBackgroundColor }),
   setCanvasFilters: (input) =>
     set((state) => ({

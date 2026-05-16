@@ -313,7 +313,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           {/* Aspect Ratio Row */}
           {mode === AppMode.GENERATE && (
             <div className="space-y-2">
-              <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest block">Aspect Ratio</label>
+              <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest block">AI Generation Ratio</label>
               <div className="flex bg-white/5 rounded-xl border border-white/5 p-1 gap-1 overflow-x-auto no-scrollbar select-none">
                 {ASPECT_RATIOS.map((r) => (
                   <button

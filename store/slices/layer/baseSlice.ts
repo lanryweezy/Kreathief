@@ -91,6 +91,13 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
     return { activeArtboardId: id, selectedLayerIds: [] };
   }),
 
+  updateArtboard: (id, partial) =>
+    set((state: any) => ({
+      artboards: state.artboards.map((a: Artboard) =>
+        a.id === id ? { ...a, ...partial } : a
+      ),
+    })),
+
   updateLayer: (id, partial) =>
     set((state: any) => {
       const artboards = state.artboards.map((a: Artboard) => ({
