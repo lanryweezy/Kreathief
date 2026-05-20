@@ -48,12 +48,12 @@ export const createCanvasSlice: StateCreator<any, [], [], CanvasSlice> = (set, g
   },
   setCanvasBackgroundColor: (canvasBackgroundColor) => set({ canvasBackgroundColor }),
   setCanvasFilters: (input) =>
-    set((state) => ({
+    set((state: CanvasSlice) => ({
       canvasFilters: typeof input === 'function' ? input(state.canvasFilters) : input,
     })),
   setUnit: (unit) => set({ unit }),
   setPanOffset: (input) =>
-    set((state) => ({
+    set((state: CanvasSlice) => ({
       panOffset: typeof input === 'function' ? input(state.panOffset) : input,
     })),
 });
