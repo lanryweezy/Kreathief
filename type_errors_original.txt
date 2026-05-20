@@ -1,0 +1,6 @@
+
+> kreathief@1.0.0 type-check
+> tsc --noEmit
+
+store/slices/canvasSlice.ts(51,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
+store/slices/canvasSlice.ts(56,10): error TS7006: Parameter 'state' implicitly has an 'any' type.
