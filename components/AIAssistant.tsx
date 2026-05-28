@@ -130,7 +130,12 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
       console.error('AI Assistant error:', error);
       setMessages((prev) => [
         ...prev,
-        { id: `msg_${Date.now()}_error`, role: 'assistant', content: 'Sorry, I encountered an error. Please try again.', timestamp: Date.now() },
+        {
+          id: `msg_${Date.now()}_error`,
+          role: 'assistant',
+          content: 'Sorry, I encountered an error. Please try again.',
+          timestamp: Date.now(),
+        },
       ]);
     } finally {
       setIsLoading(false);
@@ -207,6 +212,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
               onClick={() => handleSendMessage(input)}
               disabled={!input.trim() || isLoading || isProcessing}
               className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 text-white px-3 py-2 rounded transition-colors disabled:cursor-not-allowed"
+              aria-label="Send message"
             >
               <Icons.Send className="w-4 h-4" />
             </button>
@@ -216,4 +222,3 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
     </div>
   );
 };
-
