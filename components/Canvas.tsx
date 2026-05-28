@@ -37,6 +37,10 @@ interface CanvasProps {
   previewAnimation?: AnimationSettings;
 }
 
+// ⚡ Bolt Optimization: Extracted stable identity function outside of the component to prevent
+// CanvasRenderer from re-rendering unnecessarily due to a new function reference on every render.
+const identityLayer = (l: Layer) => l;
+
 const CanvasComponent: React.FC<CanvasProps> = (props) => {
   const { zoom, onZoomChange, onDoubleClickLayer, onInteractionStart, booleanPreview = null } = props;
 
@@ -308,6 +312,12 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
   const refineCanvasRef = useRef<HTMLCanvasElement>(null);
 
+  // ⚡ Bolt Optimization: Memoized the layer ref callback instead of re-creating it
+  // inline inside the JSX on every render, significantly reducing child re-renders.
+  const handleLayerRef = useCallback((id: string, el: HTMLDivElement | null) => {
+    layerRefs.current[id] = el;
+  }, [layerRefs]);
+
   const setActiveArtboardId = useCallback((id: string) => useStore.getState().setActiveArtboardId(id), []);
   const onAddArtboard = useCallback(() => useStore.getState().addArtboard(), []);
   const onDeleteArtboard = useCallback((id: string) => useStore.getState().deleteArtboard(id), []);
@@ -351,10 +361,8 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               canvasBackgroundColor={canvasBackgroundColor}
               canvasFilters={canvasFilters}
               zoom={zoom}
-              getEffectiveLayer={(l) => l}
-              onLayerRef={useCallback((id: string, el: HTMLDivElement | null) => {
-                layerRefs.current[id] = el;
-              }, [layerRefs])}
+              getEffectiveLayer={identityLayer}
+              onLayerRef={handleLayerRef}
               handleMouseDownLayer={handleMouseDownLayer}
               handleResizeStart={handleResizeStart}
               handleRotateStart={handleRotateStart}
