@@ -4,6 +4,8 @@ import { Artboard, Layer, AnimationSettings, CanvasFilters, ResizeHandle } from 
 import { CanvasLayerRenderer } from '../CanvasLayerRenderer';
 import { ArtisticFilters } from '../ArtisticFilters';
 
+const noop = () => {};
+
 interface CanvasRendererProps {
   artboards: Artboard[];
   activeArtboardId: string;
@@ -209,7 +211,7 @@ const ArtboardItem = React.memo(({
           textEditRef={textEditRef}
           finishEditingText={finishEditingText}
           editingPathId={editingPathId}
-          onUpdatePath={onUpdatePath || (() => {})}
+          onUpdatePath={onUpdatePath || noop}
           zoom={zoom}
           previewAnimation={previewAnimation}
           viewportBounds={viewportBounds ? {

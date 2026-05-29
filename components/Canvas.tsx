@@ -40,6 +40,8 @@ interface CanvasProps {
 // ⚡ Bolt Optimization: Extracted stable identity function outside of the component to prevent
 // CanvasRenderer from re-rendering unnecessarily due to a new function reference on every render.
 const identityLayer = (l: Layer) => l;
+const noop = () => {};
+const emptyLassoPoints: { x: number; y: number }[] = [];
 
 const CanvasComponent: React.FC<CanvasProps> = (props) => {
   const { zoom, onZoomChange, onDoubleClickLayer, onInteractionStart, booleanPreview = null } = props;
@@ -368,7 +370,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               handleRotateStart={handleRotateStart}
               handleContextMenu={handleContextMenu}
               handleTextDoubleClick={handleTextDoubleClick}
-              handleDropShape={() => {}}
+              handleDropShape={noop}
               onDoubleClickLayer={onDoubleClickLayer}
               editingTextId={editingTextId}
               textEditRef={textEditRef}
@@ -391,9 +393,9 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               refineCanvasRef={refineCanvasRef}
               handleDrawingMouseDown={handleDrawingMouseDown}
               handleDrawingMouseMove={handleDrawingMouseMove}
-              handleDrawingMouseUp={() => (handleDrawingMouseUp as any)()}
+              handleDrawingMouseUp={handleDrawingMouseUp}
               isLassoMode={false}
-              localLassoPoints={[]}
+              localLassoPoints={emptyLassoPoints}
               booleanPreview={booleanPreview}
               viewportBounds={viewportBounds}
             />
