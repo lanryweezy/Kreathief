@@ -35,6 +35,7 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({
               : 'bg-[#252627] text-gray-400 hover:text-white hover:bg-gray-700'
           }`}
           title="Open Path"
+          aria-label="Open Path"
         >
           <Icons.Path className="w-4 h-4" />
         </button>
@@ -46,6 +47,7 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({
               : 'bg-[#252627] text-gray-400 hover:text-white hover:bg-gray-700'
           }`}
           title="Closed Path"
+          aria-label="Closed Path"
         >
           <Icons.Circle className="w-4 h-4" />
         </button>
@@ -61,6 +63,7 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({
               : 'border-gray-600 bg-[#252627] hover:border-gray-500'
           }`}
           title="Toggle Fill"
+          aria-label="Toggle Fill"
         >
           <div
             className="w-5 h-5 rounded"
@@ -91,6 +94,7 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({
               : 'border-gray-600 bg-[#252627] hover:border-gray-500'
           }`}
           title="Toggle Stroke"
+          aria-label="Toggle Stroke"
         >
           <div
             className="w-5 h-5 rounded border-2"
@@ -133,6 +137,7 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({
               : 'bg-[#252627] text-gray-400 hover:text-white hover:bg-gray-700'
           }`}
           title="Snap to Grid"
+          aria-label="Snap to Grid"
         >
           <Icons.Snap className="w-4 h-4" />
           <span>Snap</span>
@@ -149,6 +154,7 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({
               : 'bg-[#252627] text-gray-400 hover:text-white hover:bg-gray-700'
           }`}
           title="Show Preview"
+          aria-label="Show Preview"
         >
           <Icons.Eye className="w-4 h-4" />
           <span>Preview</span>
@@ -160,6 +166,7 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({
         onClick={onClose}
         className="ml-2 p-2 rounded-lg hover:bg-red-900/30 text-gray-400 hover:text-red-400 transition-colors"
         title="Close Pen Tool"
+        aria-label="Close Pen Tool"
       >
         <Icons.X className="w-4 h-4" />
       </button>
