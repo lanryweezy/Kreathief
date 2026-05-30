@@ -1,0 +1,4 @@
+## 2026-05-29 - [Removed Cross-Site Scripting (XSS) Vulnerability in MobilePanelWrapper]
+**Vulnerability:** A `dangerouslySetInnerHTML` React attribute was used to inject arbitrary CSS content inline inside `components/MobilePanelWrapper.tsx`.
+**Learning:** Hardcoded CSS injected via `dangerouslySetInnerHTML` exposes the React components to Cross-Site Scripting (XSS) vulnerabilities. While in this instance the string was hardcoded, relying on this API increases the risk of accidental string concatenation allowing execution of malicious scripts if user data ever gets evaluated here.
+**Prevention:** Always use external standard CSS files like `index.css` to define component styles. React inline styles object `style={{}}` could also be used but global CSS classes keep styling unified and secure without relying on raw DOM mutation via `dangerouslySetInnerHTML`.
