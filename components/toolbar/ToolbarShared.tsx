@@ -1,6 +1,13 @@
 import React from 'react';
 import { Icons } from '../../constants';
 
+const safeEvaluate = (expr: string): number => {
+  const sanitized = expr.replace(/[^-()\d/*+.]/g, '');
+  if (!sanitized) {
+    return NaN;
+  }
+  return new Function('"use strict"; return (' + sanitized + ')')();
+};
 
 export const Divider = React.memo(() => (
   <div className="h-6 w-px bg-gray-700/50 mx-1 sm:mx-2 shrink-0 hidden sm:block"></div>
@@ -16,7 +23,9 @@ export const IconButton = React.memo(
     };
 
     const handleMouseLeave = () => {
-      if (timeoutRef.current) {clearTimeout(timeoutRef.current);}
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       setShowTooltip(false);
     };
 
@@ -26,7 +35,13 @@ export const IconButton = React.memo(
         disabled={disabled || loading}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        data-testid={ariaLabel ? `icon-button-${ariaLabel.toLowerCase().replace(/\s+/g, '-')}` : title ? `icon-button-${title.toLowerCase().replace(/\s+/g, '-')}` : undefined}
+        data-testid={
+          ariaLabel
+            ? `icon-button-${ariaLabel.toLowerCase().replace(/\s+/g, '-')}`
+            : title
+              ? `icon-button-${title.toLowerCase().replace(/\s+/g, '-')}`
+              : undefined
+        }
         aria-label={ariaLabel || title}
         aria-pressed={active}
         className={`p-2 rounded-lg transition-all flex items-center justify-center relative group/btn ${
@@ -35,12 +50,8 @@ export const IconButton = React.memo(
             : 'text-gray-400 hover:bg-white/10 hover:text-white'
         } ${disabled || loading ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
       >
-        {loading ? (
-          <Icons.RotateCw className="w-3.5 h-3.5 animate-spin text-purple-400" />
-        ) : (
-          children
-        )}
-        
+        {loading ? <Icons.RotateCw className="w-3.5 h-3.5 animate-spin text-purple-400" /> : children}
+
         {title && showTooltip && (
           <div
             className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-gray-900 text-white text-[10px] rounded-md border border-gray-800 shadow-2xl z-[100] animate-scale-in flex flex-col items-center gap-1 min-w-max"
@@ -63,40 +74,45 @@ export const NumberInput = React.memo(({ value, onChange, title, icon: Icon, uni
   const [isScrubbing, setIsScrubbing] = React.useState(false);
   const scrubRef = React.useRef<{ startX: number; startVal: number } | null>(null);
 
-  const handleMouseDown = React.useCallback((e: React.MouseEvent) => {
-    setIsScrubbing(true);
-    scrubRef.current = { startX: e.clientX, startVal: value };
-    document.body.style.cursor = 'ew-resize';
-    
-    const handleMouseMove = (me: MouseEvent) => {
-      if (!scrubRef.current) {return;}
-      const dx = me.clientX - scrubRef.current.startX;
-      const newVal = scrubRef.current.startVal + dx * step;
-      onChange({ target: { value: newVal } } as any);
-    };
+  const handleMouseDown = React.useCallback(
+    (e: React.MouseEvent) => {
+      setIsScrubbing(true);
+      scrubRef.current = { startX: e.clientX, startVal: value };
+      document.body.style.cursor = 'ew-resize';
 
-    const handleMouseUp = () => {
-      setIsScrubbing(false);
-      scrubRef.current = null;
-      document.body.style.cursor = 'default';
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
+      const handleMouseMove = (me: MouseEvent) => {
+        if (!scrubRef.current) {
+          return;
+        }
+        const dx = me.clientX - scrubRef.current.startX;
+        const newVal = scrubRef.current.startVal + dx * step;
+        onChange({ target: { value: newVal } } as any);
+      };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-  }, [value, onChange, step]);
+      const handleMouseUp = () => {
+        setIsScrubbing(false);
+        scrubRef.current = null;
+        document.body.style.cursor = 'default';
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    },
+    [value, onChange, step]
+  );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       try {
         // Simple math evaluation for #10
-        const result = eval(e.currentTarget.value.replace(/[^-()\d/*+.]/g, ''));
+        const result = safeEvaluate(e.currentTarget.value);
         if (!isNaN(result)) {
           onChange({ target: { value: result } } as any);
         }
       } catch {
-        // Fallback to original if eval fails
+        // Fallback to original if safeEvaluate fails
       }
       e.currentTarget.blur();
     }
@@ -104,7 +120,7 @@ export const NumberInput = React.memo(({ value, onChange, title, icon: Icon, uni
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       const delta = e.shiftKey ? 10 : 1;
       const direction = e.key === 'ArrowUp' ? 1 : -1;
-      onChange({ target: { value: Number(value) + (delta * direction * step) } } as any);
+      onChange({ target: { value: Number(value) + delta * direction * step } } as any);
       e.preventDefault();
     }
   };
@@ -115,11 +131,14 @@ export const NumberInput = React.memo(({ value, onChange, title, icon: Icon, uni
       title={title}
     >
       {Icon && (
-        <div 
+        <div
           onMouseDown={handleMouseDown}
           className="cursor-ew-resize flex items-center justify-center p-0.5 rounded hover:bg-white/10"
         >
-          <Icon className="w-3 h-3 text-gray-500 group-hover/input:text-gray-300 transition-colors" aria-hidden="true" />
+          <Icon
+            className="w-3 h-3 text-gray-500 group-hover/input:text-gray-300 transition-colors"
+            aria-hidden="true"
+          />
         </div>
       )}
       <input
@@ -135,8 +154,10 @@ export const NumberInput = React.memo(({ value, onChange, title, icon: Icon, uni
         }}
         onBlur={(e) => {
           try {
-            const result = eval(e.target.value.replace(/[^-()\d/*+.]/g, ''));
-            if (!isNaN(result)) {onChange({ target: { value: result } } as any);}
+            const result = safeEvaluate(e.target.value);
+            if (!isNaN(result)) {
+              onChange({ target: { value: result } } as any);
+            }
           } catch {
             e.target.value = String(Math.round(value));
           }
@@ -155,12 +176,14 @@ export const NumberInput = React.memo(({ value, onChange, title, icon: Icon, uni
 export const CompactInput = React.memo(
   ({ value, onChange, min, max, label, width = 'w-12', step = 1, onFocus }: any) => {
     const id = React.useMemo(() => `compact-input-${Math.random().toString(36).substr(2, 9)}`, []);
-    
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter') {
         try {
-          const result = eval(e.currentTarget.value.replace(/[^-()\d/*+.]/g, ''));
-          if (!isNaN(result)) {onChange({ target: { value: result } } as any);}
+          const result = safeEvaluate(e.currentTarget.value);
+          if (!isNaN(result)) {
+            onChange({ target: { value: result } } as any);
+          }
         } catch {
           // Ignore invalid expressions
         }
@@ -169,7 +192,7 @@ export const CompactInput = React.memo(
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         const delta = e.shiftKey ? 10 : 1;
         const direction = e.key === 'ArrowUp' ? 1 : -1;
-        onChange({ target: { value: Number(value) + (delta * direction * step) } } as any);
+        onChange({ target: { value: Number(value) + delta * direction * step } } as any);
         e.preventDefault();
       }
     };
@@ -202,8 +225,10 @@ export const CompactInput = React.memo(
           }}
           onBlur={(e) => {
             try {
-              const result = eval(e.target.value.replace(/[^-()\d/*+.]/g, ''));
-              if (!isNaN(result)) {onChange({ target: { value: result } } as any);}
+              const result = safeEvaluate(e.target.value);
+              if (!isNaN(result)) {
+                onChange({ target: { value: result } } as any);
+              }
             } catch {
               e.target.value = String(Math.round(value));
             }
