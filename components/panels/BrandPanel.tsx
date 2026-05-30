@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { BrandKit } from '../../types';
 import { Icons, FONT_FAMILIES } from '../../constants';
-import { Button } from '../Button';
 import * as photoService from '../../services/photoService';
 
 import { useStore } from '../../store/useStore';
@@ -177,6 +176,7 @@ export const BrandPanel = () => {
             onClick={() => importInputRef.current?.click()}
             className="text-xs bg-[#252627] hover:bg-[#333] border border-gray-700 text-gray-300 px-2 py-1 rounded flex items-center gap-1"
             title="Import JSON Kit"
+            aria-label="Import JSON Kit"
           >
             <Icons.Plus className="w-3 h-3 rotate-45" /> Import
           </button>
@@ -193,7 +193,10 @@ export const BrandPanel = () => {
       </div>
 
       {isCreating && (
-        <div data-testid="create-brand-kit-form" className="bg-[#1e1e1e] p-4 rounded-lg border border-gray-700 mb-6 animate-fadeIn flex-shrink-0 relative">
+        <div
+          data-testid="create-brand-kit-form"
+          className="bg-[#1e1e1e] p-4 rounded-lg border border-gray-700 mb-6 animate-fadeIn flex-shrink-0 relative"
+        >
           <input
             data-testid="brand-kit-name-input"
             type="text"
@@ -228,6 +231,7 @@ export const BrandPanel = () => {
                   <button
                     onClick={() => setNewLogos((prev) => prev.filter((_, idx) => idx !== i))}
                     className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label="Remove logo"
                   >
                     <Icons.X className="w-2.5 h-2.5" />
                   </button>
@@ -270,6 +274,7 @@ export const BrandPanel = () => {
                     onClick={() => setNewColors((prev) => prev.filter((_, idx) => idx !== i))}
                     className="text-gray-500 hover:text-red-400 p-0.5"
                     title="Remove color"
+                    aria-label="Remove color"
                   >
                     <Icons.X className="w-3.5 h-3.5" />
                   </button>
@@ -279,6 +284,7 @@ export const BrandPanel = () => {
                 <button
                   onClick={() => setNewColors([...newColors, '#000000'])}
                   className="w-8 h-8 rounded-full border border-dashed border-gray-600 flex items-center justify-center text-gray-500 hover:text-white hover:border-gray-400 self-center"
+                  aria-label="Add new color"
                 >
                   <Icons.Plus className="w-3 h-3" />
                 </button>
@@ -327,7 +333,7 @@ export const BrandPanel = () => {
               data-testid="save-brand-kit-btn"
               onClick={handleCreate}
               disabled={!newKitName.trim()}
-              title={!newKitName.trim() ? "Please enter a brand name to save" : "Save Brand Kit"}
+              title={!newKitName.trim() ? 'Please enter a brand name to save' : 'Save Brand Kit'}
               className="px-3 py-1.5 text-xs font-bold text-white bg-[#7d2ae8] hover:bg-[#6b23c5] rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md shadow-purple-900/10"
             >
               Save Kit
@@ -377,6 +383,7 @@ export const BrandPanel = () => {
                     onClick={() => handleExportKit(kit)}
                     className="text-gray-500 hover:text-white p-1"
                     title="Export Kit"
+                    aria-label="Export Brand Kit"
                   >
                     <Icons.Download className="w-3 h-3" />
                   </button>
@@ -385,6 +392,7 @@ export const BrandPanel = () => {
                     onClick={() => onDeleteBrandKit(kit.id)}
                     className="text-gray-500 hover:text-red-400 p-1"
                     title="Delete Kit"
+                    aria-label="Delete Brand Kit"
                   >
                     <Icons.Trash className="w-3 h-3" />
                   </button>
@@ -418,7 +426,9 @@ export const BrandPanel = () => {
                 <div className="flex justify-between items-center border-b border-gray-700 pb-1 mb-1">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-gray-500 uppercase">Typography</span>
-                    {activeBrandKitId === kit.id && <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />}
+                    {activeBrandKitId === kit.id && (
+                      <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                    )}
                   </div>
                   <button
                     data-testid="apply-brand-fonts-btn"
@@ -460,6 +470,7 @@ export const BrandPanel = () => {
                         key={i}
                         onClick={() => onAddLogoToCanvas(logo)}
                         className="aspect-square rounded border border-gray-700 bg-black/20 p-1 flex items-center justify-center hover:border-[#7d2ae8] transition-colors"
+                        aria-label="Add logo to canvas"
                       >
                         <img src={logo} className="max-w-full max-h-full object-contain pointer-events-none" />
                       </button>
