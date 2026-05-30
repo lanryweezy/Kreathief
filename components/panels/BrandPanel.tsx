@@ -193,7 +193,10 @@ export const BrandPanel = () => {
       </div>
 
       {isCreating && (
-        <div data-testid="create-brand-kit-form" className="bg-[#1e1e1e] p-4 rounded-lg border border-gray-700 mb-6 animate-fadeIn flex-shrink-0 relative">
+        <div
+          data-testid="create-brand-kit-form"
+          className="bg-[#1e1e1e] p-4 rounded-lg border border-gray-700 mb-6 animate-fadeIn flex-shrink-0 relative"
+        >
           <input
             data-testid="brand-kit-name-input"
             type="text"
@@ -330,7 +333,7 @@ export const BrandPanel = () => {
               data-testid="save-brand-kit-btn"
               onClick={handleCreate}
               disabled={!newKitName.trim()}
-              title={!newKitName.trim() ? "Please enter a brand name to save" : "Save Brand Kit"}
+              title={!newKitName.trim() ? 'Please enter a brand name to save' : 'Save Brand Kit'}
               className="px-3 py-1.5 text-xs font-bold text-white bg-[#7d2ae8] hover:bg-[#6b23c5] rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md shadow-purple-900/10"
             >
               Save Kit
@@ -423,7 +426,9 @@ export const BrandPanel = () => {
                 <div className="flex justify-between items-center border-b border-gray-700 pb-1 mb-1">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-gray-500 uppercase">Typography</span>
-                    {activeBrandKitId === kit.id && <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />}
+                    {activeBrandKitId === kit.id && (
+                      <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                    )}
                   </div>
                   <button
                     data-testid="apply-brand-fonts-btn"
