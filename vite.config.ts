@@ -41,7 +41,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     define: {
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || env.API_KEY || ''),
+      'process.env.API_KEY': JSON.stringify(''),
     },
     optimizeDeps: {
       include: ['onnxruntime-web'],

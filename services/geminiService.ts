@@ -22,27 +22,9 @@ export const callBackendGeminiAPI = async (payload: any) => {
     console.warn('[GeminiService] Backend API unavailable, attempting direct client-side call', e);
   }
 
-  // Fallback to direct client-side call if backend fails (useful for local dev)
-  const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error('Gemini API key not configured');
-  }
-
-  const { GoogleGenerativeAI } = await import('@google/generative-ai');
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ 
-    model: payload.modelName || MODEL_FAST,
-    generationConfig: payload.generationConfig,
-    systemInstruction: payload.systemInstruction,
-  });
-
-  const result = await model.generateContent({ contents: payload.contents });
-  const response = await result.response;
-  
-  return {
-    text: response.text(),
-    candidates: response.candidates,
-  };
+  // If backend fails, we do NOT fallback to client-side GoogleGenerativeAI
+  // to avoid exposing the API key in the client bundle.
+  throw new Error('Gemini API key not configured or backend unavailable');
 };
 
 /**
