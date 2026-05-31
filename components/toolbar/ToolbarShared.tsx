@@ -1,4 +1,5 @@
 import React from 'react';
+import { evaluate } from 'mathjs';
 import { Icons } from '../../constants';
 
 const safeEvaluate = (expr: string): number => {
@@ -6,7 +7,12 @@ const safeEvaluate = (expr: string): number => {
   if (!sanitized) {
     return NaN;
   }
-  return new Function('"use strict"; return (' + sanitized + ')')();
+  try {
+    const result = evaluate(sanitized);
+    return typeof result === 'number' ? result : Number(result);
+  } catch {
+    return NaN;
+  }
 };
 
 export const Divider = React.memo(() => (
