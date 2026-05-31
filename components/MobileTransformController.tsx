@@ -63,18 +63,18 @@ export const MobileTransformController: React.FC = () => {
            <div className="flex items-center gap-1 bg-black/40 p-2 rounded-2xl border border-white/5">
               <div className="grid grid-cols-3 gap-1">
                  <div />
-                 <button onClick={() => handleNudge(0, -1)} className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-lg active:bg-purple-500 transition-colors">
+                 <button aria-label="Nudge up" onClick={() => handleNudge(0, -1)} className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-lg active:bg-purple-500 transition-colors">
                     <Icons.ChevronUp className="w-5 h-5 text-white" />
                  </button>
                  <div />
                  
-                 <button onClick={() => handleNudge(-1, 0)} className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-lg active:bg-purple-500 transition-colors">
+                 <button aria-label="Nudge left" onClick={() => handleNudge(-1, 0)} className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-lg active:bg-purple-500 transition-colors">
                     <Icons.ChevronLeft className="w-5 h-5 text-white" />
                  </button>
-                 <button onClick={() => handleNudge(0, 1)} className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-lg active:bg-purple-500 transition-colors">
+                 <button aria-label="Nudge down" onClick={() => handleNudge(0, 1)} className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-lg active:bg-purple-500 transition-colors">
                     <Icons.ChevronDown className="w-5 h-5 text-white" />
                  </button>
-                 <button onClick={() => handleNudge(1, 0)} className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-lg active:bg-purple-500 transition-colors">
+                 <button aria-label="Nudge right" onClick={() => handleNudge(1, 0)} className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-lg active:bg-purple-500 transition-colors">
                     <Icons.ChevronRight className="w-5 h-5 text-white" />
                  </button>
               </div>
@@ -87,10 +87,10 @@ export const MobileTransformController: React.FC = () => {
            {/* Quick Actions */}
            <div className="flex flex-col gap-2">
               <div className="flex gap-2">
-                 <button onClick={() => updateLayer(selectedLayer.id, { locked: !selectedLayer.locked })} className={`w-12 h-12 flex items-center justify-center rounded-2xl border transition-all ${selectedLayer.locked ? 'bg-orange-500/20 border-orange-500/30 text-orange-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>
+                 <button aria-label={selectedLayer.locked ? "Unlock layer" : "Lock layer"} onClick={() => updateLayer(selectedLayer.id, { locked: !selectedLayer.locked })} className={`w-12 h-12 flex items-center justify-center rounded-2xl border transition-all ${selectedLayer.locked ? 'bg-orange-500/20 border-orange-500/30 text-orange-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>
                     {selectedLayer.locked ? <Icons.Lock className="w-5 h-5" /> : <Icons.Unlock className="w-5 h-5" />}
                  </button>
-                 <button onClick={() => updateLayer(selectedLayer.id, { visible: !selectedLayer.visible })} className={`w-12 h-12 flex items-center justify-center rounded-2xl border transition-all ${!selectedLayer.visible ? 'bg-red-500/20 border-red-500/30 text-red-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>
+                 <button aria-label={selectedLayer.visible ? "Hide layer" : "Show layer"} onClick={() => updateLayer(selectedLayer.id, { visible: !selectedLayer.visible })} className={`w-12 h-12 flex items-center justify-center rounded-2xl border transition-all ${!selectedLayer.visible ? 'bg-red-500/20 border-red-500/30 text-red-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>
                     {selectedLayer.visible ? <Icons.Eye className="w-5 h-5" /> : <Icons.EyeOff className="w-5 h-5" />}
                  </button>
               </div>
