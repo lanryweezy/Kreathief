@@ -186,7 +186,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     handleRotateStart,
   } = useCanvasInteractions({
       zoom: zoom || 1,
-      onZoomChangeValue: onZoomChange || (() => {}),
+      onZoomChangeValue: onZoomChange || noop,
       activeArtboard,
       artboards,
       layers,
@@ -324,6 +324,9 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   const onAddArtboard = useCallback(() => useStore.getState().addArtboard(), []);
   const onDeleteArtboard = useCallback((id: string) => useStore.getState().deleteArtboard(id), []);
 
+  const handleUpdateVectorPath = useCallback((newPath: any) => setActiveVectorPath(newPath as VectorPath), [setActiveVectorPath]);
+  const handleClosePenMode = useCallback(() => setPenMode(false), [setPenMode]);
+
   return (
     <ErrorBoundary componentName="Canvas" variant="widget">
       <div className="flex-1 relative bg-[#000000] overflow-hidden flex flex-col">
@@ -428,10 +431,10 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
             <PathEditorOverlay
               path={activeVectorPath}
               zoom={zoom}
-              onUpdate={(newPath) => setActiveVectorPath(newPath as VectorPath)}
+              onUpdate={handleUpdateVectorPath}
               onSelectPoint={setSelectedVectorPointIndices}
               selectedPointIndices={selectedVectorPointIndices}
-              onClose={() => setPenMode(false)}
+              onClose={handleClosePenMode}
             />
           </div>
         )}
