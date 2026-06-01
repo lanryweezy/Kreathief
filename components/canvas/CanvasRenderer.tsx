@@ -144,6 +144,15 @@ const ArtboardItem = React.memo(({
     return unique;
   }, [artboard.layers, getEffectiveLayer]);
 
+  const handleArtboardClick = React.useCallback(() => {
+    setActiveArtboardId(artboard.id);
+  }, [setActiveArtboardId, artboard.id]);
+
+  const handleAddArtboardClick = React.useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    useStore.getState().addArtboard();
+  }, []);
+
   return (
     <div
       key={artboard.id}
@@ -155,7 +164,7 @@ const ArtboardItem = React.memo(({
         width: artboard.width,
         height: artboard.height,
       }}
-      onClick={() => setActiveArtboardId(artboard.id)}
+      onClick={handleArtboardClick}
     >
       {/* Artboard Header */}
       <div className="absolute -top-10 left-0 flex items-center gap-3 pointer-events-auto">
@@ -163,7 +172,7 @@ const ArtboardItem = React.memo(({
           <span className="text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap bg-[#1e1e1e] px-2 py-1 rounded-t-lg border-x border-t border-white/10 flex items-center gap-2">
             {artboard.name}
             <button
-              onClick={(e) => { e.stopPropagation(); useStore.getState().addArtboard(); }}
+              onClick={handleAddArtboardClick}
               className="w-3.5 h-3.5 flex items-center justify-center bg-green-500/20 text-green-400 border border-green-500/30 rounded hover:bg-green-500 hover:text-white transition-all cursor-pointer"
               title="Add Canvas"
               type="button"
@@ -256,7 +265,7 @@ const ArtboardItem = React.memo(({
                 height={artboard.height}
                 onMouseDown={isRefining ? undefined : handleDrawingMouseDown}
                 onMouseMove={isRefining ? handleDrawingMouseMove : handleDrawingMouseMove}
-                onMouseUp={isRefining ? () => handleDrawingMouseUp() : () => handleDrawingMouseUp()}
+                onMouseUp={handleDrawingMouseUp}
               />
             )}
 
@@ -292,6 +301,7 @@ const ArtboardItem = React.memo(({
     </div>
   );
 });
+ArtboardItem.displayName = 'ArtboardItem';
 
 export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(({
   artboards,
@@ -381,3 +391,4 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(({
   );
 });
 
+CanvasRenderer.displayName = 'CanvasRenderer';
