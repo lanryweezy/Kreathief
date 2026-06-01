@@ -22,6 +22,43 @@ export default async function handler(req: any, res: any) {
       return res.status(400).json({ error: 'imageUrl is required' });
     }
 
+    // SSRF Protection: Validate URL before fetching
+    try {
+      const url = new URL(imageUrl);
+
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        return res.status(400).json({ error: 'Invalid URL protocol' });
+      }
+
+      const hostname = url.hostname.toLowerCase();
+
+      // Basic blocklist for local/internal IPs to prevent simple SSRF.
+      // Note: A robust solution would resolve the DNS and check the IP before fetching,
+      // but this basic check covers simple bypasses for this specific endpoint.
+      if (
+        hostname === 'localhost' ||
+        hostname.includes('127.0.0.1') ||
+        hostname.startsWith('127.') ||
+        hostname.startsWith('169.254.') ||
+        hostname.startsWith('10.') ||
+        hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./) ||
+        hostname.startsWith('192.168.') ||
+        hostname.endsWith('.internal') ||
+        hostname === '[::1]' ||
+        hostname === '::1' ||
+        // Octal/Hex encoding bypasses for 127.0.0.1
+        hostname === '0177.0.0.1' ||
+        hostname === '0x7f.0.0.1' ||
+        hostname === '2130706433' ||
+        hostname === '0x7f000001' ||
+        hostname === '017700000001'
+      ) {
+        return res.status(400).json({ error: 'Invalid image URL (internal/reserved IP)' });
+      }
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid image URL format' });
+    }
+
     // 1. Fetch the high-res RGB image from the provided URL
     const imageResponse = await fetch(imageUrl);
     if (!imageResponse.ok) {
@@ -53,8 +90,8 @@ export default async function handler(req: any, res: any) {
     // Embed the CMYK JPEG
     const image = await pdfDoc.embedJpg(cmykJpegBuffer);
     
-    // Create page matching image dimensions
-    const page = pdfDoc.addPage([width, height]);
+    // Create page matching image dimensions + bleed
+    const page = pdfDoc.addPage([width + bleed * 2, height + bleed * 2]);
     
     // Draw the CMYK image
     page.drawImage(image, {
