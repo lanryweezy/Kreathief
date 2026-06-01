@@ -187,10 +187,11 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
             {isSignUp && (
               <div>
-                <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 ml-1 tracking-[0.2em]">Full Name</label>
+                <label htmlFor="auth-name" className="block text-[10px] font-black text-gray-500 uppercase mb-2 ml-1 tracking-[0.2em]">Full Name</label>
                 <div className="relative group">
                   <Icons.Bot className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-[#00c4cc] transition-colors" />
                   <input
+                    id="auth-name"
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -203,10 +204,11 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             )}
 
             <div>
-              <label className="block text-[10px] font-black text-gray-500 uppercase mb-2 ml-1 tracking-[0.2em]">Email Address</label>
+              <label htmlFor="auth-email" className="block text-[10px] font-black text-gray-500 uppercase mb-2 ml-1 tracking-[0.2em]">Email Address</label>
               <div className="relative group">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 text-xs font-black group-focus-within:text-[#00c4cc] transition-colors">@</span>
                 <input
+                  id="auth-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -220,7 +222,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             {!isForgotPassword && (
               <div>
                 <div className="flex justify-between items-center mb-2 ml-1">
-                   <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Password</label>
+                   <label htmlFor="auth-password" className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Password</label>
                    {!isSignUp && (
                      <button 
                       type="button" 
@@ -234,6 +236,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 <div className="relative group">
                   <Icons.Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-[#7d2ae8] transition-colors" />
                   <input
+                    id="auth-password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
