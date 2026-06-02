@@ -34,7 +34,7 @@ class PsdService {
         reject(new Error('Worker not initialized'));
         return;
       }
-      const id = Math.random().toString(36).substring(7);
+      const id = crypto.randomUUID();
       this.callbacks.set(id, { resolve, reject });
       
       if (transfer) {

@@ -159,7 +159,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
       const startY = e.clientY;
 
       const newPoint: VectorPoint = {
-        id: `pt_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+        id: `pt_${Date.now()}_${crypto.randomUUID().substring(0, 4)}`,
         x: clickX,
         y: clickY,
         type: 'corner',

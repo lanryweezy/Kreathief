@@ -49,7 +49,7 @@ class MaskWorkerService {
         reject(new Error('Mask Worker could not be initialized.'));
         return;
       }
-      const id = Math.random().toString(36).substring(7);
+      const id = crypto.randomUUID();
       this.callbacks.set(id, { resolve, reject });
       this.worker.postMessage({ type, id, payload });
     });

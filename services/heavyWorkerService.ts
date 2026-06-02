@@ -26,7 +26,7 @@ class HeavyWorkerService {
 
   private postTask<T>(type: string, payload: any): Promise<T> {
     return new Promise((resolve, reject) => {
-      const id = Math.random().toString(36).substring(7);
+      const id = crypto.randomUUID();
       this.callbacks.set(id, { resolve, reject });
       this.worker?.postMessage({ type, id, payload });
     });
