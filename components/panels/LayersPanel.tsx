@@ -114,10 +114,10 @@ const LayerItem = React.memo(
           </div>
 
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-             <button onClick={(e) => { e.stopPropagation(); onUpdate({ visible: !layer.visible }); }} className="p-1 text-gray-500 hover:text-white">
+             <button aria-label={layer.visible ? 'Hide layer' : 'Show layer'} onClick={(e) => { e.stopPropagation(); onUpdate({ visible: !layer.visible }); }} className="p-1 text-gray-500 hover:text-white">
                 {layer.visible ? <Icons.Eye className="w-3.5 h-3.5" /> : <Icons.EyeOff className="w-3.5 h-3.5" />}
              </button>
-             <button onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }} className={`p-1 rounded ${showSettings ? 'bg-[#7d2ae8] text-white' : 'text-gray-500'}`}>
+             <button aria-label="Layer settings" onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }} className={`p-1 rounded ${showSettings ? 'bg-[#7d2ae8] text-white' : 'text-gray-500'}`}>
                 <Icons.Settings className="w-3.5 h-3.5" />
              </button>
           </div>
