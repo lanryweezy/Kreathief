@@ -113,6 +113,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, isAuto
             onClick={() => setShowAllTools(!showAllTools)}
             className={`p-2.5 rounded-2xl transition-all duration-500 relative group ${showAllTools && !secondaryTools.some(t => t.id === activeTab) ? 'text-white bg-white/10 shadow-[0_0_20px_rgba(255,255,255,0.05)] border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
             title="All Tools"
+            aria-label="Toggle All Tools"
           >
           <Icons.LayoutGrid className={`w-5 h-5 transition-transform duration-700 ${showAllTools ? 'rotate-90' : 'group-hover:rotate-12'}`} />
         </button>
@@ -137,6 +138,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, isAuto
           onClick={onToggleCollapse}
           className={`p-2.5 rounded-2xl transition-all duration-300 relative group tooltip-trigger ${isCollapsed ? 'text-[#00c4cc] bg-[#00c4cc]/10 shadow-[0_0_25px_rgba(0,196,204,0.15)] border border-[#00c4cc]/20' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
           data-tooltip={isCollapsed ? "Expand Panel" : "Collapse Panel"}
+          aria-label={isCollapsed ? "Expand Panel" : "Collapse Panel"}
         >
           {isCollapsed ? <Icons.ArrowRight className="w-5 h-5" /> : <Icons.ArrowLeft className="w-5 h-5" />}
         </button>
@@ -145,6 +147,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, isAuto
           onClick={() => useStore.getState().setShowFeedbackModal(true)}
           className="p-2 rounded-xl transition-all relative group text-gray-500 hover:text-pink-500 hover:bg-pink-500/10 hover:shadow-[0_0_25px_rgba(236,72,153,0.15)] border border-transparent hover:border-pink-500/20 tooltip-trigger"
           data-tooltip="Send Feedback"
+          aria-label="Send Feedback"
         >
           <Icons.MessageSquare className="w-4 h-4" />
           <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-pink-500 rounded-full border border-[#0c0c0e] animate-pulse"></span>
