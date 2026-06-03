@@ -181,7 +181,7 @@ export const NumberInput = React.memo(({ value, onChange, title, icon: Icon, uni
 
 export const CompactInput = React.memo(
   ({ value, onChange, min, max, label, width = 'w-12', step = 1, onFocus }: any) => {
-    const id = React.useMemo(() => `compact-input-${Math.random().toString(36).substr(2, 9)}`, []);
+    const id = React.useMemo(() => `compact-input-${crypto.randomUUID().substring(0, 9)}`, []);
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter') {

@@ -14,8 +14,8 @@ class ShareService {
         return this.formatShareUrl(existingShare.id);
       }
 
-      // Generate a unique short ID (8 characters) securely
-      const shareId = crypto.randomUUID().replace(/-/g, '').substring(0, 8);
+      // Generate a unique short ID (8 characters)
+      const shareId = Array.from(crypto.getRandomValues(new Uint8Array(6))).map(b => b.toString(36).padStart(2, '0')).join('').substring(0, 8);
 
       await storageService.saveShare({
         id: shareId,
