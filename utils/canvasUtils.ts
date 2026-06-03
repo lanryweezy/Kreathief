@@ -107,7 +107,7 @@ export const isImageLayer = (layer: Layer): layer is ImageLayer => {
  * Generates a unique layer ID
  */
 export const generateLayerId = (type: string): string => {
-  return `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+  return `${type}_${Date.now()}_${crypto.randomUUID().substring(0, 5)}`;
 };
 
 /**
