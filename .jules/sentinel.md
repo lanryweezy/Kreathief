@@ -11,3 +11,8 @@
 **Vulnerability:** The `/api/export-cmyk.ts` endpoint allowed users to supply an arbitrary `imageUrl` via `req.body`, which was fetched directly. This resulted in a Server-Side Request Forgery (SSRF) vulnerability.
 **Learning:** External user inputs like URLs should never be blindly passed to server-side `fetch` functions. Attackers can provide internal network ranges (like `169.254.169.254` or `127.0.0.1`) to access cloud metadata APIs or local services.
 **Prevention:** Implement strict URL validation: parse the URL using `new URL()`, assert the protocol is `http:` or `https:`, and reject hosts resolving to or matching internal/local IPs, localhost, or `.internal` domains before making outgoing server requests.
+
+## 2026-06-03 - [Replaced Predictable ID Generation using Math.random()]
+**Vulnerability:** Weak PRNG `Math.random()` was used to generate security-sensitive identifiers, such as Share Links in `services/shareService.ts` and Guest User IDs in `App.tsx`.
+**Learning:** `Math.random()` is not cryptographically secure and can be easily predicted, potentially leading to Insecure Direct Object Reference (IDOR) or unauthorized access if an attacker predicts a session or share link ID.
+**Prevention:** Always use `crypto.randomUUID()` (or `crypto.getRandomValues()`) when generating unique identifiers, especially for resources like sharing URLs, session IDs, or guest accounts to ensure unguessability and avoid ID collisions.

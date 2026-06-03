@@ -153,7 +153,7 @@ const App: React.FC = () => {
 
   const handleGuestEntry = () => {
     const guestUser: User = {
-      id: `guest_${Math.random().toString(36).slice(2, 9)}`,
+      id: `guest_${crypto.randomUUID().replace(/-/g, '').substring(0, 7)}`,
       email: 'guest@kreathief.local',
       name: 'Guest Creator',
       avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=guest`,
