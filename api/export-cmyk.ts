@@ -114,6 +114,6 @@ export default async function handler(req: any, res: any) {
     
   } catch (error: any) {
     console.error('CMYK Conversion Error:', error);
-    return res.status(500).json({ error: error.message || 'Internal Server Error' });
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
