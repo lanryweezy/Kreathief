@@ -104,7 +104,7 @@ export default async function handler(req: Request) {
     });
   } catch (error: any) {
     console.error('API Route Error:', error);
-    return new Response(JSON.stringify({ error: error.message || 'Internal server error' }), {
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });
