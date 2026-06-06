@@ -129,10 +129,11 @@ const SnapshotsPanel: React.FC = () => {
                     </button>
                     <button
                       onClick={() => handleDelete(snapshot.id)}
+                      aria-label="Delete snapshot"
                       className="p-1 rounded text-gray-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                       title="Delete snapshot"
                     >
-                      <Icons.Trash className="w-3 h-3" />
+                      <Icons.Trash aria-hidden="true" className="w-3 h-3" />
                     </button>
                   </div>
                 </div>
