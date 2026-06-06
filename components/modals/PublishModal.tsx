@@ -73,8 +73,8 @@ export const PublishModal: React.FC<PublishModalProps> = ({ onClose }) => {
             </h2>
             <p className="text-xs text-gray-500 mt-1">Share your creation with thousands of designers.</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors">
-            <Icons.X className="w-5 h-5 text-gray-400" />
+          <button onClick={onClose} aria-label="Close publish modal" className="p-2 hover:bg-white/5 rounded-full transition-colors">
+            <Icons.X aria-hidden="true" className="w-5 h-5 text-gray-400" />
           </button>
         </div>
 

@@ -12,8 +12,8 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose, onUpgrade }
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="bg-[#1e1e1e] border border-gray-700 rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col md:flex-row relative" onClick={e => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white z-10">
-           <div className="text-2xl leading-none">&times;</div>
+        <button onClick={onClose} aria-label="Close pricing modal" className="absolute top-4 right-4 text-gray-400 hover:text-white z-10">
+           <div className="text-2xl leading-none" aria-hidden="true">&times;</div>
         </button>
 
         {/* Free Tier */}
