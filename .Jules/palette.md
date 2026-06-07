@@ -5,3 +5,7 @@
 ## 2024-06-01 - Connect `<label>` and `<input>` using `id` and `htmlFor`
 **Learning:** The accessibility pattern of explicitly linking inputs and their descriptive labels using the `id` and `htmlFor` attributes is crucial for screen readers. In `Auth.tsx`, input fields for Name, Email, and Password were not explicitly linked to their corresponding `<label>` tags. Connecting them enables assistive technologies to properly announce the input field's purpose.
 **Action:** When implementing forms, always ensure each `<input>` has a unique `id` and that its associated `<label>` references that `id` via the `htmlFor` property.
+
+## 2024-06-07 - [Mobile/Panel Accessibility]
+**Learning:** Found and fixed two components, `MobileQuickActions` (Mobile FAB) and `MockupPanel` (close button), that used icon-only `<button>`s without `aria-label`s. The `IconButton` wrapper is safe (falls back to title), but raw `<button>`s with just `<Icons.X/>` or `<Icons.Plus/>` inside need manual accessibility handling.
+**Action:** Always check raw `<button>` elements that only wrap SVGs/Icons (especially custom mobile toolbars or modal headers) to ensure they have an `aria-label` or `aria-expanded` where applicable.
