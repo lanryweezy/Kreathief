@@ -1,9 +1,5 @@
 import { log } from '../utils/log';
 
-const VECTEEZY_API_URL = 'https://api.vecteezy.com/v2';
-const ACCOUNT_ID = import.meta.env.VITE_VECTEEZY_ACCOUNT_ID || '';
-const SECRET_KEY = import.meta.env.VITE_VECTEEZY_SECRET_KEY || '';
-
 export interface VecteezyResource {
   id: string;
   type: string;
@@ -15,26 +11,13 @@ export interface VecteezyResource {
 
 export const vecteezyService = {
   isConfigured: () => {
-    return !!(ACCOUNT_ID && SECRET_KEY);
+    // Rely on server configuration instead of client exposed secrets
+    return true;
   },
 
   async searchResources(query: string, page: number = 1): Promise<VecteezyResource[]> {
-    if (!this.isConfigured()) {
-      log.warn('[VecteezyService] API keys not configured. Please add VITE_VECTEEZY_ACCOUNT_ID and VITE_VECTEEZY_SECRET_KEY to .env');
-      return [];
-    }
-
     try {
-      // API typically uses search_term or q for searching
-      const response = await fetch(
-        `${VECTEEZY_API_URL}/${ACCOUNT_ID}/resources?search_term=${encodeURIComponent(query)}&page=${page}&per_page=20`,
-        {
-          headers: {
-            'Authorization': `Bearer ${SECRET_KEY}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const response = await fetch(`/api/vecteezy?action=search&query=${encodeURIComponent(query)}&page=${page}`);
 
       if (!response.ok) {
         log.error('[VecteezyService] Search failed', new Error(response.statusText));
@@ -44,7 +27,6 @@ export const vecteezyService = {
       const data = await response.json();
       
       // Map API response to our unified format
-      // Vecteezy typically returns an array of resources inside a 'data' or 'resources' property
       const resources = data.data || data.resources || data;
       
       if (!Array.isArray(resources)) return [];
@@ -64,17 +46,8 @@ export const vecteezyService = {
   },
 
   async getResourceDownloadUrl(resourceId: string): Promise<string | null> {
-     if (!this.isConfigured()) return null;
-
      try {
-       const response = await fetch(
-         `${VECTEEZY_API_URL}/${ACCOUNT_ID}/resources/${resourceId}/download`,
-         {
-           headers: {
-             'Authorization': `Bearer ${SECRET_KEY}`,
-           },
-         }
-       );
+       const response = await fetch(`/api/vecteezy?action=download&resourceId=${encodeURIComponent(resourceId)}`);
 
        if (!response.ok) return null;
        const data = await response.json();
