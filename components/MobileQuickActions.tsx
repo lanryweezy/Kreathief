@@ -109,6 +109,8 @@ export const MobileQuickActions: React.FC = () => {
       {/* Main FAB Button */}
       <button
         onClick={handleToggle}
+        aria-label="Quick actions"
+        aria-expanded={isExpanded}
         className={`
           w-14 h-14 rounded-full
           bg-gradient-to-br from-purple-600 to-pink-600

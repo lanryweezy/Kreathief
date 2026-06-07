@@ -35,3 +35,7 @@
 **Vulnerability:** The `api/export-cmyk.ts` endpoint performs heavy image processing (fetching, decoding, and converting to CMYK PDF) but lacked rate limiting, exposing the application to potential Denial of Service (DoS) attacks from repeated requests.
 **Learning:** Computationally expensive endpoints must always have rate limits applied to prevent malicious or accidental abuse that could exhaust server resources and block legitimate users.
 **Prevention:** Implement rate limiting (e.g., using an in-memory Map for serverless functions or Redis for distributed systems) on all endpoints that perform heavy CPU or I/O tasks.
+## 2026-06-07 - [Removed Client-Side Exposure of Gemini API Key in Fallback Logic]
+**Vulnerability:** A fallback mechanism in `services/geminiService.ts` explicitly accessed `import.meta.env.VITE_GEMINI_API_KEY` to directly initialize the Gemini SDK in the browser when the backend proxy failed.
+**Learning:** Hardcoding or conditionally falling back to client-side SDK initialization using environment variables prefixed with `VITE_` forces the bundler to include sensitive API keys in the client-side JavaScript. This allows malicious actors to easily extract the API key and abuse the service at the application's expense.
+**Prevention:** Always route external API requests requiring secret keys through a server-side proxy or serverless function. Remove any client-side fallback logic that requires the frontend code to possess or access the secret key directly.

@@ -698,7 +698,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
            <div className="p-4 border-b border-gray-800 flex justify-between items-center">
               <h2 className="text-sm font-black uppercase tracking-widest text-[#7d2ae8]">Smart Mockups</h2>
               {onClose && (
-                <button onClick={onClose} className="p-1 hover:bg-white/5 rounded-md text-gray-500 hover:text-white transition-all">
+                <button onClick={onClose} aria-label="Close panel" className="p-1 hover:bg-white/5 rounded-md text-gray-500 hover:text-white transition-all">
                   <Icons.X className="w-4 h-4" />
                 </button>
               )}
