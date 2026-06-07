@@ -18,31 +18,11 @@ export const callBackendGeminiAPI = async (payload: any) => {
     if (response.ok) {
       return await response.json();
     }
+    throw new Error(`Gemini API returned an error: ${response.statusText}`);
   } catch (e) {
-    console.warn('[GeminiService] Backend API unavailable, attempting direct client-side call', e);
+    console.error('[GeminiService] Backend API call failed', e);
+    throw e;
   }
-
-  // Fallback to direct client-side call if backend fails (useful for local dev)
-  const apiKey = (import.meta as any).env.VITE_GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error('Gemini API key not configured');
-  }
-
-  const { GoogleGenerativeAI } = await import('@google/generative-ai');
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ 
-    model: payload.modelName || MODEL_FAST,
-    generationConfig: payload.generationConfig,
-    systemInstruction: payload.systemInstruction,
-  });
-
-  const result = await model.generateContent({ contents: payload.contents });
-  const response = await result.response;
-  
-  return {
-    text: response.text(),
-    candidates: response.candidates,
-  };
 };
 
 /**
