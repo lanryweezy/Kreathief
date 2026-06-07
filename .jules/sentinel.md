@@ -30,3 +30,8 @@
 **Vulnerability:** The application lacked `Content-Security-Policy` (CSP) and `X-Frame-Options` headers, making it more vulnerable to Cross-Site Scripting (XSS) and Clickjacking attacks when deployed.
 **Learning:** In Vercel deployments, security headers must be explicitly defined in the `vercel.json` configuration file, otherwise the application defaults to having no protective headers. Without these headers, an attacker could potentially embed the application in an iframe (clickjacking) or execute unauthorized scripts if an XSS vulnerability exists.
 **Prevention:** Always ensure that `Content-Security-Policy` and `X-Frame-Options: DENY` (or `SAMEORIGIN`) are configured in the deployment platform's settings (e.g., `vercel.json` for Vercel, `next.config.js` for Next.js) to provide defense-in-depth against client-side attacks.
+
+## 2026-06-07 - Add Rate Limiting to Heavy API Endpoints
+**Vulnerability:** The `api/export-cmyk.ts` endpoint performs heavy image processing (fetching, decoding, and converting to CMYK PDF) but lacked rate limiting, exposing the application to potential Denial of Service (DoS) attacks from repeated requests.
+**Learning:** Computationally expensive endpoints must always have rate limits applied to prevent malicious or accidental abuse that could exhaust server resources and block legitimate users.
+**Prevention:** Implement rate limiting (e.g., using an in-memory Map for serverless functions or Redis for distributed systems) on all endpoints that perform heavy CPU or I/O tasks.

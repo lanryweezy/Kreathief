@@ -1,7 +1,25 @@
 import sharp from 'sharp';
 import { PDFDocument } from 'pdf-lib';
 
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const MAX_REQUESTS_PER_WINDOW = 10;
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
+
+let lastCleanup = Date.now();
+
 export default async function handler(req: any, res: any) {
+  const now = Date.now();
+
+  // Periodic cleanup of expired rate limit entries to prevent memory leaks
+  if (now - lastCleanup > CLEANUP_INTERVAL_MS) {
+    for (const [ip, state] of rateLimitMap.entries()) {
+      if (now > state.resetTime) {
+        rateLimitMap.delete(ip);
+      }
+    }
+    lastCleanup = now;
+  }
   // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -13,6 +31,22 @@ export default async function handler(req: any, res: any) {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  const clientIp = req.headers['x-forwarded-for'] || 'unknown';
+  const rateLimitState = rateLimitMap.get(clientIp);
+
+  if (rateLimitState) {
+    if (now > rateLimitState.resetTime) {
+      rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    } else {
+      if (rateLimitState.count >= MAX_REQUESTS_PER_WINDOW) {
+        return res.status(429).json({ error: 'Too many requests. Please try again later.' });
+      }
+      rateLimitState.count++;
+    }
+  } else {
+    rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   }
 
   try {
