@@ -44,7 +44,7 @@ export const PresentationModal: React.FC = () => {
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
         <div className="text-sm">{index + 1} / {artboards.length}</div>
         <div className="font-bold">{ab.name} — {ab.width} × {ab.height}</div>
-        <button className="text-gray-400 hover:text-white" aria-label="Close" onClick={onClose}>×</button>
+        <button className="text-gray-400 hover:text-white" aria-label="Close" onClick={onClose}><span aria-hidden="true">×</span></button>
       </div>
       <div className="flex-1 flex items-center justify-center p-6" onClick={(e) => e.stopPropagation()}>
         <div className="bg-[#0f1216] rounded-xl p-6 border border-white/10">
@@ -54,10 +54,10 @@ export const PresentationModal: React.FC = () => {
         </div>
       </div>
       <div className="absolute left-4 top-1/2 -translate-y-1/2">
-        <button className="px-3 py-2 bg-white/10 rounded hover:bg-white/20" onClick={(e) => { e.stopPropagation(); setIndex((i) => Math.max(0, i - 1)); setActiveArtboardId(artboards[Math.max(0, index - 1)]?.id); }}>←</button>
+        <button className="px-3 py-2 bg-white/10 rounded hover:bg-white/20" aria-label="Previous slide" onClick={(e) => { e.stopPropagation(); setIndex((i) => Math.max(0, i - 1)); setActiveArtboardId(artboards[Math.max(0, index - 1)]?.id); }}><span aria-hidden="true">←</span></button>
       </div>
       <div className="absolute right-4 top-1/2 -translate-y-1/2">
-        <button className="px-3 py-2 bg-white/10 rounded hover:bg-white/20" onClick={(e) => { e.stopPropagation(); setIndex((i) => Math.min(artboards.length - 1, i + 1)); setActiveArtboardId(artboards[Math.min(artboards.length - 1, index + 1)]?.id); }}>→</button>
+        <button className="px-3 py-2 bg-white/10 rounded hover:bg-white/20" aria-label="Next slide" onClick={(e) => { e.stopPropagation(); setIndex((i) => Math.min(artboards.length - 1, i + 1)); setActiveArtboardId(artboards[Math.min(artboards.length - 1, index + 1)]?.id); }}><span aria-hidden="true">→</span></button>
       </div>
     </div>
   );
