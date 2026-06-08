@@ -244,3 +244,16 @@ export const retryWithBackoff = async <T>(
 
   throw lastError;
 };
+
+/**
+ * Safely parses a JSON string, returning a fallback value if parsing fails.
+ * Useful for handling raw LLM outputs which may occasionally be malformed.
+ */
+export const safeParseJSON = <T>(text: string, fallback: T): T => {
+  try {
+    return JSON.parse(text) as T;
+  } catch (error) {
+    logError(error, { action: 'parse JSON output', text: text.substring(0, 100) });
+    return fallback;
+  }
+};

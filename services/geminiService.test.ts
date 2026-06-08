@@ -65,7 +65,7 @@ describe('GeminiService', () => {
       });
 
       await expect(geminiService.generateImage('Test prompt', '1:1'))
-        .rejects.toThrow('API error');
+        .rejects.toThrow('Gemini API returned an error');
     });
   });
 
