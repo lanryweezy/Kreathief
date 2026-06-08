@@ -1,0 +1,114 @@
+export const config = {
+  runtime: 'edge',
+};
+
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const MAX_REQUESTS_PER_WINDOW = 20;
+
+export default async function handler(req: Request) {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    });
+  }
+
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*' },
+    });
+  }
+
+  const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
+  const now = Date.now();
+  const rateLimitState = rateLimitMap.get(clientIp);
+
+  if (rateLimitState) {
+    if (now > rateLimitState.resetTime) {
+      rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    } else {
+      if (rateLimitState.count >= MAX_REQUESTS_PER_WINDOW) {
+        return new Response(JSON.stringify({ error: 'Too many requests' }), {
+          status: 429,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*' },
+        });
+      }
+      rateLimitState.count++;
+    }
+  } else {
+    rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+  }
+
+  let payload;
+  try {
+    payload = await req.json();
+  } catch (err) {
+    return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*' },
+    });
+  }
+
+  const { endpoint, body } = payload;
+  const apiKey = process.env.FAL_KEY || process.env.VITE_FAL_KEY;
+
+  if (!apiKey) {
+    return new Response(JSON.stringify({ error: 'FAL API key not configured on server' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*' },
+    });
+  }
+
+  const allowedEndpoints = [
+    'https://fal.run/fal-ai/flux/dev',
+    'https://fal.run/fal-ai/sdxl/inpainting',
+    'https://fal.run/fal-ai/recraft-v3/vector',
+    'https://fal.run/fal-ai/aura-sr'
+  ];
+
+  if (!allowedEndpoints.includes(endpoint)) {
+    return new Response(JSON.stringify({ error: 'Endpoint not allowed' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*' },
+    });
+  }
+
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Key ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+        throw new Error('Fal.ai API failed');
+    }
+    const data = await response.json();
+
+    return new Response(
+      JSON.stringify(data),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+        },
+      }
+    );
+  } catch (error: any) {
+    console.error('API Route Error:', error);
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*' },
+    });
+  }
+}
