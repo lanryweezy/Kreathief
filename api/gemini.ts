@@ -5,8 +5,22 @@ export const config = {
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 20;
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
+
+let lastCleanup = Date.now();
 
 export default async function handler(req: Request) {
+  const now = Date.now();
+
+  // Periodic cleanup of expired rate limit entries to prevent memory leaks
+  if (now - lastCleanup > CLEANUP_INTERVAL_MS) {
+    for (const [ip, state] of rateLimitMap.entries()) {
+      if (now > state.resetTime) {
+        rateLimitMap.delete(ip);
+      }
+    }
+    lastCleanup = now;
+  }
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 200,
@@ -26,7 +40,6 @@ export default async function handler(req: Request) {
   }
 
   const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
-  const now = Date.now();
   const rateLimitState = rateLimitMap.get(clientIp);
 
   if (rateLimitState) {
