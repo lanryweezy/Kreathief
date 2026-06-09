@@ -115,8 +115,8 @@ export const DesignQualityScorer: React.FC<DesignQualityScorerProps> = ({ isOpen
               <p className="text-xs text-gray-400">AI-powered design analysis</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
-            ✕
+          <button aria-label="Close panel" onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 

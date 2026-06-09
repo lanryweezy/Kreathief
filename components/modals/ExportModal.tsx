@@ -286,9 +286,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
           className="absolute top-6 right-6 text-gray-400 hover:text-white z-20 p-2 bg-white/5 rounded-full transition-all"
           id="close-export-modal"
           data-testid="close-export-modal"
-          aria-label="Close"
+          aria-label="Close modal"
         >
-          <div className="text-2xl leading-none">&times;</div>
+          <div className="text-2xl leading-none" aria-hidden="true">&times;</div>
         </button>
 
         {/* Info/Preview Side */}
