@@ -124,27 +124,6 @@ export function formatErrorMessage(error: Error | unknown): string {
 }
 
 /**
- * Get error message for export operations
- */
-export function getExportErrorMessage(error: Error | unknown): string {
-  const details = getErrorDetails(error);
-  
-  if (details.code === ErrorCode.FILE_TOO_LARGE) {
-    return 'Export failed: File size too large. Try reducing canvas size or quality.';
-  }
-  
-  if (details.code === ErrorCode.MEMORY_ERROR) {
-    return 'Export failed: Not enough memory. Try closing other tabs or reducing canvas size.';
-  }
-  
-  if (details.code === ErrorCode.NETWORK_ERROR) {
-    return 'Export failed: Network error. Check your connection and try again.';
-  }
-  
-  return `Export failed: ${details.message}. ${details.suggestion}`;
-}
-
-/**
  * Get error message for AI generation operations
  */
 export function getAIErrorMessage(error: Error | unknown): string {
@@ -163,21 +142,4 @@ export function getAIErrorMessage(error: Error | unknown): string {
   }
   
   return `AI generation failed: ${details.message}. ${details.suggestion}`;
-}
-
-/**
- * Get error message for save operations
- */
-export function getSaveErrorMessage(error: Error | unknown): string {
-  const details = getErrorDetails(error);
-  
-  if (details.code === ErrorCode.QUOTA_EXCEEDED) {
-    return 'Save failed: Storage limit reached. Try deleting old projects.';
-  }
-  
-  if (details.code === ErrorCode.PERMISSION_DENIED) {
-    return 'Save failed: Permission denied. Check browser storage permissions.';
-  }
-  
-  return `Save failed: ${details.message}. ${details.suggestion}`;
 }
