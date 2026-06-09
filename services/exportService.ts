@@ -26,6 +26,7 @@ export const downloadBlob = (blob: Blob, filename: string) => {
 
 import { supabase } from '../lib/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
+import { log } from '../utils/log';
 
 /**
  * Exports the design as a print-ready PDF via Worker or Serverless API.
@@ -79,7 +80,7 @@ export const exportToPrintPDF = async (
         downloadBlob(pdfBlob, fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
         resolve();
       } catch (err) {
-        console.error('Serverless CMYK Export Error:', err);
+        log.error('Serverless CMYK Export Error', err, { fileName, options, width, height });
         // Fallback to client-side simulation worker if server fails
         fallbackToWorker(width, height, imgDataUrl, fileName, options, resolve, reject);
       }
@@ -143,7 +144,7 @@ export const exportToLayeredPSD = async (
   };
 
   for (const layer of layers) {
-    if (!layer.visible) continue;
+    if (!layer.visible) {continue;}
 
     const canvas = document.createElement('canvas');
     canvas.width = layer.width || width;
@@ -199,7 +200,7 @@ export const exportDesignToImage = async (
   canvas.height = height;
   const ctx = canvas.getContext('2d');
 
-  if (!ctx) throw new Error('Could not create canvas context');
+  if (!ctx) {throw new Error('Could not create canvas context');}
 
   if (backgroundColor !== 'transparent') {
     ctx.fillStyle = backgroundColor;
@@ -222,10 +223,10 @@ export const exportDesignToImage = async (
   }
 
   for (const layer of layers) {
-    if (!layer.visible) continue;
-    if (layer.type === 'image') await drawImageLayerToContext(ctx, layer as ImageLayer);
-    else if (layer.type === 'text') drawTextLayerToContext(ctx, layer as TextLayer);
-    else if (layer.type !== 'adjustment' && layer.type !== 'group') drawShapeToContext(ctx, layer as ShapeLayer);
+    if (!layer.visible) {continue;}
+    if (layer.type === 'image') {await drawImageLayerToContext(ctx, layer as ImageLayer);}
+    else if (layer.type === 'text') {drawTextLayerToContext(ctx, layer as TextLayer);}
+    else if (layer.type !== 'adjustment' && layer.type !== 'group') {drawShapeToContext(ctx, layer as ShapeLayer);}
   }
 
   return canvas.toDataURL(`image/${format}`, quality);
