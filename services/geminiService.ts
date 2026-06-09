@@ -3,6 +3,7 @@ import { MODEL_FAST, MODEL_PRO, FONT_FAMILIES } from '../constants';
 import { DesignTheme, GenerationQuality } from '../types';
 import * as freepikService from './freepikService';
 import { log } from '../utils/log';
+import { safeParseJSON } from '../utils/errorHandling';
 
 // Helper to call backend serverless endpoint
 export const callBackendGeminiAPI = async (payload: any) => {
@@ -301,7 +302,7 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
         },
       ],
     });
-    return JSON.parse(data.text || '[]');
+    return safeParseJSON<string[]>(data.text || '[]', []);
   } catch (error) {
     console.error('Text Options Error:', error);
     return [];
@@ -386,7 +387,9 @@ export const generateDesignTheme = async (prompt: string): Promise<DesignTheme> 
       throw new Error('No theme generated');
     }
 
-    return JSON.parse(text) as DesignTheme;
+    const parsed = safeParseJSON<DesignTheme | null>(text, null);
+    if (!parsed) throw new Error('Failed to parse theme JSON');
+    return parsed;
   } catch (error) {
     log.error('Theme Generation Error', error, { prompt: prompt.substring(0, 100) });
     throw error;
@@ -480,7 +483,9 @@ export const generateLayout = async (prompt: string): Promise<any> => {
     if (!text) {
       return null;
     }
-    return JSON.parse(text);
+    const parsed = safeParseJSON<any>(text, null);
+    if (!parsed) throw new Error('Failed to parse layout JSON');
+    return parsed;
   } catch (error) {
     log.error('Layout Generation Error', error, { prompt: prompt.substring(0, 100) });
     throw error;
@@ -650,7 +655,7 @@ export const optimizeLayout = async (layers: any[], canvasWidth: number, canvasH
     if (!text) {
       return [];
     }
-    return JSON.parse(text);
+    return safeParseJSON<any[]>(text, []);
   } catch (error) {
     console.error('Layout Optimization Error:', error);
     return [];
@@ -676,7 +681,7 @@ export const generatePaletteFromImage = async (base64Image: string): Promise<str
     // Clean up response to ensure valid JSON
     const jsonMatch = text.match(/\[.*\]/s);
     if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
+      return safeParseJSON<string[]>(jsonMatch[0], []);
     }
     return [];
   } catch (error) {
@@ -727,7 +732,9 @@ export const vectorizeImage = async (
     });
 
     const text = data.text;
-    return JSON.parse(text || '[]');
+    const parsed = safeParseJSON<Array<{ path: string; color: string }> | null>(text || '[]', null);
+    if (!parsed) throw new Error('Failed to parse vectorize JSON');
+    return parsed;
   } catch (error) {
     console.error('Vectorization failed', error);
     throw error;
@@ -766,7 +773,9 @@ export const generateAIVector = async (prompt: string, stylePreset: string = 'de
     });
     
     const text = data.text;
-    return JSON.parse(text || '[]');
+    const parsed = safeParseJSON<Array<{ path: string; color: string }> | null>(text || '[]', null);
+    if (!parsed) throw new Error('Failed to parse AI vector JSON');
+    return parsed;
   } catch (error) {
     console.error('AI Vector Generation failed', error);
     throw error;
@@ -832,7 +841,7 @@ export const generateAutoLayoutSuggestions = async (layers: any[], width: number
       generationConfig: { responseMimeType: 'application/json' }
     });
 
-    return JSON.parse(data.text || '[]');
+    return safeParseJSON<any[]>(data.text || '[]', []);
   } catch (error) {
     console.error('Auto-layout failed', error);
     return [];
@@ -853,7 +862,9 @@ export const extractStyleFromImage = async (base64Image: string): Promise<Design
       generationConfig: { responseMimeType: 'application/json' }
     });
 
-    return JSON.parse(data.text || '{}');
+    const parsed = safeParseJSON<DesignTheme | null>(data.text || '{}', null);
+    if (!parsed) throw new Error('Failed to parse style JSON');
+    return parsed;
   } catch (error) {
     console.error('Style extraction failed', error);
     throw error;

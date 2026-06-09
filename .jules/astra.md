@@ -1,0 +1,3 @@
+## 2026-06-08 - Added Output Schema Validation Helper for AI Calls
+**Learning:** LLMs occasionally produce invalid JSON due to token limits or prompt confusion, which can cause unhandled `JSON.parse` crashes when parsing responses. The standard `JSON.parse(data.text)` pattern should not be used alone for LLM outputs.
+**Action:** A `safeParseJSON` helper was added to `utils/errorHandling.ts`. It wraps `JSON.parse` in a try/catch, safely logging the error and returning a provided default fallback value, avoiding application-crashing unhandled exceptions. Always use this helper when handling unstructured LLM strings that are expected to be JSON.
