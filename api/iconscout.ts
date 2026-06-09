@@ -1,0 +1,122 @@
+export const config = {
+  runtime: 'edge',
+};
+
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const MAX_REQUESTS_PER_WINDOW = 20;
+
+export default async function handler(req: Request) {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    });
+  }
+
+  const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
+  const now = Date.now();
+  const rateLimitState = rateLimitMap.get(clientIp);
+
+  if (rateLimitState) {
+    if (now > rateLimitState.resetTime) {
+      rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    } else {
+      if (rateLimitState.count >= MAX_REQUESTS_PER_WINDOW) {
+        return new Response(JSON.stringify({ error: 'Too many requests' }), {
+          status: 429,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        });
+      }
+      rateLimitState.count++;
+    }
+  } else {
+    rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+  }
+
+  const clientId = process.env.VITE_ICONSCOUT_CLIENT_ID || process.env.ICONSCOUT_CLIENT_ID;
+  const secretKey = process.env.VITE_ICONSCOUT_SECRET_KEY || process.env.ICONSCOUT_SECRET_KEY;
+
+  if (!clientId || !secretKey) {
+    return new Response(JSON.stringify({ error: 'IconScout credentials not configured on server' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    });
+  }
+
+  try {
+    const url = new URL(req.url);
+    const action = url.searchParams.get('action');
+
+    const BASE_URL = 'https://api.iconscout.com/v3';
+
+    if (action === 'search') {
+      const query = url.searchParams.get('query') || '';
+      const type = url.searchParams.get('product_type') || 'icon';
+      const page = url.searchParams.get('page') || '1';
+
+      const response = await fetch(
+        `${BASE_URL}/search?query=${encodeURIComponent(query)}&product_type=${type}&page=${page}&per_page=20`,
+        {
+          headers: {
+            'Client-ID': clientId,
+            'Client-Secret': secretKey,
+            Accept: 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('IconScout Search failed');
+      }
+
+      const data = await response.json();
+
+      return new Response(JSON.stringify(data), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
+    } else if (action === 'details') {
+      const uuid = url.searchParams.get('uuid');
+      if (!uuid) {
+        return new Response(JSON.stringify({ error: 'uuid is required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        });
+      }
+
+      const response = await fetch(`${BASE_URL}/items/${uuid}`, {
+        headers: {
+          'Client-ID': clientId,
+          'Client-Secret': secretKey,
+          Accept: 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('IconScout details fetch failed');
+      }
+
+      const data = await response.json();
+      return new Response(JSON.stringify(data), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
+    }
+
+    return new Response(JSON.stringify({ error: 'Unknown action' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    });
+  } catch (error: any) {
+    console.error('API Route Error:', error);
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    });
+  }
+}

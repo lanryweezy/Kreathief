@@ -1,9 +1,4 @@
 import { log } from '../utils/log';
-import { apis } from '../config';
-
-const ICONS_BASE_URL = apis.iconScout.baseUrl;
-const CLIENT_ID = apis.iconScout.clientId;
-const SECRET_KEY = apis.iconScout.secretKey;
 
 export type IconScoutAssetType = 'icon' | 'illustration' | '3d' | 'lottie';
 
@@ -19,23 +14,16 @@ export interface IconScoutAsset {
 
 export const iconScoutService = {
   async search(query: string, type: IconScoutAssetType = 'icon', page: number = 1): Promise<IconScoutAsset[]> {
-    if (!CLIENT_ID || !SECRET_KEY) {
-      log.warn('[IconScoutService] Credentials not configured');
-      return [];
-    }
-
     try {
-      const url = new URL(`${ICONS_BASE_URL}/search`);
+      const url = new URL('/api/iconscout', window.location.origin);
+      url.searchParams.append('action', 'search');
       url.searchParams.append('query', query);
       url.searchParams.append('product_type', type === '3d' ? '3d-asset' : type);
       url.searchParams.append('page', page.toString());
-      url.searchParams.append('per_page', '20');
 
       const response = await fetch(url.toString(), {
         headers: {
-          'Client-ID': CLIENT_ID,
-          'Client-Secret': SECRET_KEY,
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
       });
 
@@ -63,19 +51,23 @@ export const iconScoutService = {
 
   async getAssetDetails(uuid: string): Promise<any | null> {
     try {
-      const response = await fetch(`${ICONS_BASE_URL}/items/${uuid}`, {
+      const url = new URL('/api/iconscout', window.location.origin);
+      url.searchParams.append('action', 'details');
+      url.searchParams.append('uuid', uuid);
+
+      const response = await fetch(url.toString(), {
         headers: {
-          'Client-ID': CLIENT_ID,
-          'Client-Secret': SECRET_KEY,
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
       });
 
-      if (!response.ok) {throw new Error('Failed to fetch asset details');}
+      if (!response.ok) {
+        throw new Error('Failed to fetch asset details');
+      }
       return await response.json();
     } catch (error) {
       log.error('[IconScoutService] Details fetch failed', error, { uuid });
       return null;
     }
-  }
+  },
 };
