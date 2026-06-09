@@ -251,8 +251,8 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
               </div>
               <h3 className="font-black text-white tracking-tight uppercase text-sm">Mockup Studio Pro</h3>
            </div>
-           <button onClick={handleClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-colors" title="Close">
-              <Icons.X className="w-4 h-4" />
+           <button aria-label="Close modal" onClick={handleClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-red-500/10 hover:text-red-400 transition-colors" title="Close">
+              <Icons.X aria-hidden="true" className="w-4 h-4" />
            </button>
         </div>
 

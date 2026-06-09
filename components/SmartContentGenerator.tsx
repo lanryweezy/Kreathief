@@ -97,8 +97,8 @@ export const SmartContentGenerator: React.FC<SmartContentGeneratorProps> = ({
               <p className="text-xs text-gray-400">AI-powered text for your design</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
-            ✕
+          <button aria-label="Close panel" onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+            <span aria-hidden="true">✕</span>
           </button>
         </div>
 
