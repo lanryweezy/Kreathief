@@ -1,8 +1,5 @@
 // @ts-ignore - ignore type mismatch
 import { log } from '../utils/log';
-import { apis } from '../config';
-
-const UNSPLASH_ACCESS_KEY = apis.unsplash.accessKey;
 
 export interface UnsplashPhoto {
   id: string;
@@ -33,26 +30,22 @@ const FALLBACK_PHOTOS: UnsplashPhoto[] = [
 ];
 
 export const searchPhotos = async (query: string, page: number = 1): Promise<UnsplashPhoto[]> => {
-  if (!UNSPLASH_ACCESS_KEY || UNSPLASH_ACCESS_KEY === 'YOUR_UNSPLASH_ACCESS_KEY') {
-    log.warn('[UnsplashService] No API key configured, using fallback photos', { query });
-    return FALLBACK_PHOTOS;
-  }
-
   try {
-    const response = await fetch(
-      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&page=${page}&per_page=20`,
-      {
-        headers: {
-          Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}`,
-        },
-      }
-    );
+    const url = new URL('/api/unsplash', window.location.origin);
+    url.searchParams.append('action', 'search');
+    url.searchParams.append('query', query);
+    url.searchParams.append('page', page.toString());
+    const response = await fetch(url.toString(), {
+      headers: {
+        Accept: 'application/json',
+      },
+    });
 
     if (!response.ok) {
-      log.error('[UnsplashService] API request failed', new Error(`Status: ${response.status}`), { 
-        query, 
+      log.error('[UnsplashService] API request failed', new Error(`Status: ${response.status}`), {
+        query,
         page,
-        status: response.status 
+        status: response.status,
       });
       return FALLBACK_PHOTOS;
     }

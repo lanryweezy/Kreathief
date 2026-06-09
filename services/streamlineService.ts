@@ -1,13 +1,4 @@
-// Streamline API Service
-// Docs: https://streamline-api.readme.io/reference/introduction
-// Base: https://public-api.streamlinehq.com
-// Auth: STREAMLINE_SECRET header
-
 import { log } from '../utils/log';
-import { apis } from '../config';
-
-const BASE_URL = 'https://public-api.streamlinehq.com/v2';
-const API_KEY = apis.streamline.apiKey;
 
 export interface StreamlineIcon {
   id: string;
@@ -29,26 +20,25 @@ export interface StreamlineSearchResult {
 }
 
 async function streamlineFetch(endpoint: string, params: Record<string, string> = {}) {
-  if (!API_KEY) {
-    log.warn('[StreamlineService] No API key configured (VITE_STREAMLINE_API_KEY)');
-    return null;
+  const url = new URL('/api/streamline', window.location.origin);
+  if (endpoint.includes('search')) {
+    url.searchParams.set('action', 'search');
+  } else if (endpoint.includes('download/svg')) {
+    url.searchParams.set('action', 'download_svg');
   }
-
-  const url = new URL(`${BASE_URL}${endpoint}`);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
 
   try {
     const res = await fetch(url.toString(), {
       headers: {
-        STREAMLINE_SECRET: API_KEY,
         Accept: 'application/json',
       },
     });
 
     if (!res.ok) {
-      log.error(`[StreamlineService] Request failed`, new Error(res.statusText), { 
-        status: res.status, 
-        endpoint 
+      log.error(`[StreamlineService] Request failed`, new Error(res.statusText), {
+        status: res.status,
+        endpoint,
       });
       return null;
     }
@@ -120,37 +110,45 @@ export async function downloadIconSVG(
  * Download an icon as PNG data URL
  */
 export async function downloadIconPNG(hash: string, size = 128, color?: string): Promise<string | null> {
-  if (!API_KEY) {
+  // Use SVG and convert to canvas instead since we don't want to expose API key in frontend
+  const svgContent = await downloadIconSVG(hash, { size, color });
+  if (!svgContent) {
     return null;
   }
 
-  const url = new URL(`${BASE_URL}/icons/download/png`);
-  url.searchParams.set('hash', hash);
-  url.searchParams.set('size', String(size));
-  if (color) {
-    url.searchParams.set('color', color.replace('#', ''));
-  }
+  return new Promise((resolve) => {
+    const img = new Image();
+    const svgBlob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+    const DOMURL = window.URL || window.webkitURL || window;
+    const url = DOMURL.createObjectURL(svgBlob);
 
-  try {
-    const res = await fetch(url.toString(), {
-      headers: { STREAMLINE_SECRET: API_KEY },
-    });
-
-    if (!res.ok) {
-      return null;
-    }
-
-    const blob = await res.blob();
-    return URL.createObjectURL(blob);
-  } catch (err) {
-    console.error('[StreamlineService] PNG download error:', err);
-    return null;
-  }
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, size, size);
+        DOMURL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/png'));
+      } else {
+        DOMURL.revokeObjectURL(url);
+        resolve(null);
+      }
+    };
+    img.onerror = () => {
+      DOMURL.revokeObjectURL(url);
+      resolve(null);
+    };
+    img.src = url;
+  });
 }
 
 /**
  * Get thumbnail URL for an icon (for preview in grid)
  */
-export function getIconThumbnailUrl(hash: string, size = 64): string {
-  return `https://public-api.streamlinehq.com/v2/icons/download/png?hash=${hash}&size=${size}&STREAMLINE_SECRET=${API_KEY}`;
+export function getIconThumbnailUrl(_hash: string, _size = 64): string {
+  // Temporary workaround: since we can't expose the API key for direct image urls
+  // A proper implementation would either have the backend proxy the image or use the SVG
+  return '';
 }
