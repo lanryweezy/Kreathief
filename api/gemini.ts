@@ -1,3 +1,5 @@
+import { log } from '../utils/log';
+
 export const config = {
   runtime: 'edge',
 };
@@ -58,7 +60,7 @@ export default async function handler(req: Request) {
     rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   }
 
-  let payload;
+  let payload: any = {};
   try {
     payload = await req.json();
   } catch (err) {
@@ -116,7 +118,7 @@ export default async function handler(req: Request) {
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });
   } catch (error: any) {
-    console.error('API Route Error:', error);
+    log.error('API Route Error', error, { action: payload?.action, modelName: payload?.modelName });
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },

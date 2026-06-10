@@ -21,7 +21,7 @@ export const callBackendGeminiAPI = async (payload: any) => {
     }
     throw new Error(`Gemini API returned an error: ${response.statusText}`);
   } catch (e) {
-    console.error('[GeminiService] Backend API call failed', e);
+    log.error('[GeminiService] Backend API call failed', e, { endpoint });
     throw e;
   }
 };
@@ -98,7 +98,7 @@ export const generateImage = async (
           return result;
         }
       } catch (fpError) {
-        console.error('Freepik fallback also failed:', fpError);
+        log.error('Freepik fallback also failed', fpError, { prompt, aspectRatio, quality });
       }
     }
 
@@ -134,7 +134,7 @@ export const editImage = async (
 
     return extractImageFromResponse(data);
   } catch (error) {
-    console.error('Edit Error:', error);
+    log.error('Edit Error', error, { prompt });
     throw error;
   }
 };
@@ -154,7 +154,7 @@ export const removeBackground = async (base64Image: string): Promise<string> => 
 
     return extractImageFromResponse(data);
   } catch (error) {
-    console.error('Gemini Remove BG Error — trying Freepik fallback:', error);
+    log.error('Gemini Remove BG Error — trying Freepik fallback', error);
 
     // Freepik fallback for background removal
     if (freepikService.isConfigured()) {

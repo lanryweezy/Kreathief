@@ -217,8 +217,8 @@ export const exportDesignToImage = async (
       }
       ctx.drawImage(img, 0, 0, width, height);
       ctx.restore();
-    } catch (err) {
-      console.warn('Failed to load bg image', err);
+    } catch (err: any) {
+      log.warn('Failed to load bg image', { error: err.message, src: backgroundImageUrl });
     }
   }
 
@@ -276,8 +276,8 @@ const drawImageLayerToContext = async (ctx: CanvasRenderingContext2D, layer: Ima
     ctx.globalAlpha = layer.opacity;
     ctx.drawImage(img, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
     ctx.restore();
-  } catch (err) {
-    console.warn('Failed to draw image layer', err);
+  } catch (err: any) {
+    log.warn('Failed to draw image layer', { error: err.message, layerId: layer.id, src: layer.src });
   }
 };
 
