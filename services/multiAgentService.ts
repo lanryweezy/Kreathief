@@ -18,7 +18,11 @@ export interface AgentVariant {
  * Stage 1: Creative Agent
  * Generates N layout variants based on the user's intent.
  */
-export const creativeAgentDraft = async (_intent: string, canvasSize: { width: number; height: number }, _variantCount: number = 3): Promise<AgentVariant[]> => {
+export const creativeAgentDraft = async (
+  _intent: string,
+  canvasSize: { width: number; height: number },
+  _variantCount: number = 3
+): Promise<AgentVariant[]> => {
   const systemPrompt = `You are a Master Creative Design Director Engine. 
 Generate ${_variantCount} highly distinct, professional layout variants based on the user's core intent/prompt.
 Canvas dimensions are ${canvasSize.width}x${canvasSize.height}.
@@ -40,9 +44,9 @@ Ensure perfect visual composition and contrast.`;
     type: SchemaType.OBJECT,
     properties: {
       type: { type: SchemaType.STRING },
-      constraints: { 
-        type: SchemaType.ARRAY, 
-        items: { type: SchemaType.STRING } 
+      constraints: {
+        type: SchemaType.ARRAY,
+        items: { type: SchemaType.STRING },
       },
       width: { type: SchemaType.NUMBER },
       height: { type: SchemaType.NUMBER },
@@ -81,9 +85,9 @@ Ensure perfect visual composition and contrast.`;
 
   try {
     // 🤖 Astra: Wrap output parsing with safeParseJSON to avoid raw JSON.parse crashes.
-    const rawVariants = safeParseJSON<any[] | null>(data.text || "", null);
+    const rawVariants = safeParseJSON<any[] | null>(data.text || '', null);
     if (!rawVariants) {
-      throw new Error("Creative Agent returned malformed JSON");
+      throw new Error('Creative Agent returned malformed JSON');
     }
     return rawVariants.map((v: any) => ({
       ...v,
@@ -105,24 +109,24 @@ Ensure perfect visual composition and contrast.`;
           blendMode: 'normal',
           rotation: 0,
         };
-        
+
         if (l.type === 'text') {
-           return {
-             ...base,
-             type: 'text',
-             fontFamily: 'Inter',
-           } as TextLayer;
+          return {
+            ...base,
+            type: 'text',
+            fontFamily: 'Inter',
+          } as TextLayer;
         } else {
-           return {
-             ...base,
-             type: 'rectangle', // Default to rectangle if unspecified
-           } as ShapeLayer;
+          return {
+            ...base,
+            type: 'rectangle', // Default to rectangle if unspecified
+          } as ShapeLayer;
         }
-      })
+      }),
     }));
   } catch (err) {
-    console.error("Creative Agent parsing failed", err);
-    throw new Error("Failed to generate structural layouts.");
+    console.error('Creative Agent parsing failed', err);
+    throw new Error('Failed to generate structural layouts.');
   }
 };
 
@@ -131,10 +135,10 @@ Ensure perfect visual composition and contrast.`;
  * Mutates specific target layers based on an intent, using other layers as context.
  */
 export const creativeAgentRefine = async (
-  intent: string, 
-  targetLayers: Layer[], 
-  contextLayers: Layer[], 
-  canvasSize: { width: number; height: number }, 
+  intent: string,
+  targetLayers: Layer[],
+  contextLayers: Layer[],
+  canvasSize: { width: number; height: number },
   variantCount: number = 3
 ): Promise<AgentVariant[]> => {
   const systemPrompt = `You are a Senior Design Refinement Engine. 
@@ -151,7 +155,10 @@ Rules:
   const layerSchema = {
     type: SchemaType.OBJECT,
     properties: {
-      id: { type: SchemaType.STRING, description: "Keep the original ID if you are modifying a layer, or 'new' if adding a sub-element" },
+      id: {
+        type: SchemaType.STRING,
+        description: "Keep the original ID if you are modifying a layer, or 'new' if adding a sub-element",
+      },
       type: { type: SchemaType.STRING },
       x: { type: SchemaType.NUMBER },
       y: { type: SchemaType.NUMBER },
@@ -183,46 +190,47 @@ Rules:
       temperature: 0.7,
     },
     contents: [
-      { 
-        role: 'user', 
+      {
+        role: 'user',
         parts: [
-          { text: `User Intent: "${intent}"\n\nTARGET LAYERS: ${JSON.stringify(targetLayers)}\n\nCONTEXT LAYERS: ${JSON.stringify(contextLayers)}` }
-        ] 
-      }
+          {
+            text: `User Intent: "${intent}"\n\nTARGET LAYERS: ${JSON.stringify(targetLayers)}\n\nCONTEXT LAYERS: ${JSON.stringify(contextLayers)}`,
+          },
+        ],
+      },
     ],
   });
 
   try {
     // 🤖 Astra: Wrap output parsing with safeParseJSON to avoid raw JSON.parse crashes.
-    const rawVariants = safeParseJSON<any[] | null>(data.text || "", null);
+    const rawVariants = safeParseJSON<any[] | null>(data.text || '', null);
     if (!rawVariants) {
-      throw new Error("Creative Refine returned malformed JSON");
+      throw new Error('Creative Refine returned malformed JSON');
     }
     return rawVariants.map((v: any) => ({
       ...v,
       id: uuidv4(),
       layers: v.layers.map((l: any): Layer => {
         // Find existing layer to preserve type-specific props not handled by LLM
-        const existing = targetLayers.find(tl => tl.id === l.id);
+        const existing = targetLayers.find((tl) => tl.id === l.id);
         const base = {
           ...existing,
           ...l,
           id: l.id === 'new' ? uuidv4() : l.id,
-          name: l.text ? l.text.substring(0, 15) : (existing?.name || l.type),
+          name: l.text ? l.text.substring(0, 15) : existing?.name || l.type,
           visible: true,
           locked: false,
           opacity: 1,
         };
-        
+
         return base as Layer;
-      })
+      }),
     }));
   } catch (err) {
-    console.error("Creative Refine Parsing failed", err);
-    throw new Error("Failed to refine selection.");
+    console.error('Creative Refine Parsing failed', err);
+    throw new Error('Failed to refine selection.');
   }
 };
-
 
 /**
  * Stage 2: Critic Agent
@@ -238,13 +246,20 @@ Fix the layer coordinates, widths, or colors directly in the JSON.
 Provide a "criticFeedback" array of strings explaining what you fixed for each variant.
 You MUST return the identical schema structure for variants but with improved values.`;
 
-  const simplifiedInput = variants.map(v => ({
+  const simplifiedInput = variants.map((v) => ({
     id: v.id,
     themeIdea: v.themeIdea,
     layers: v.layers.map((l: any) => ({
-      id: l.id, type: l.type, x: l.x, y: l.y, color: (l as ShapeLayer | TextLayer).color, 
-      text: (l as TextLayer).text, fontSize: (l as TextLayer).fontSize, width: l.width, height: l.height
-    }))
+      id: l.id,
+      type: l.type,
+      x: l.x,
+      y: l.y,
+      color: (l as ShapeLayer | TextLayer).color,
+      text: (l as TextLayer).text,
+      fontSize: (l as TextLayer).fontSize,
+      width: l.width,
+      height: l.height,
+    })),
   }));
 
   const data = await callBackendGeminiAPI({
@@ -259,33 +274,34 @@ You MUST return the identical schema structure for variants but with improved va
 
   try {
     // 🤖 Astra: Wrap output parsing with safeParseJSON to avoid raw JSON.parse crashes.
-    const refined = safeParseJSON<any[] | null>(data.text || "", null);
+    const refined = safeParseJSON<any[] | null>(data.text || '', null);
     if (!refined) {
-      throw new Error("Critic Agent returned malformed JSON");
+      throw new Error('Critic Agent returned malformed JSON');
     }
     // Map refined properties back into the original variant structure to preserve ID and internal structure
-    return variants.map(v => {
+    return variants.map((v) => {
       const rf = refined.find((r: any) => r.id === v.id);
-      if (!rf) {return v;}
+      if (!rf) {
+        return v;
+      }
 
       return {
         ...v,
-        criticFeedback: rf.criticFeedback || ["Self-corrected layout spacing."],
+        criticFeedback: rf.criticFeedback || ['Self-corrected layout spacing.'],
         layers: v.layers.map((l: any) => {
           const refinedLayer = rf.layers.find((rl: any) => rl.id === l.id);
           if (refinedLayer) {
             return { ...l, ...refinedLayer };
           }
           return l;
-        })
+        }),
       };
     });
   } catch (err) {
-    console.error("Critic Agent failed, passing original variants", err);
+    console.error('Critic Agent failed, passing original variants', err);
     return variants; // Failsafe: return originals if critic breaks JSON
   }
 };
-
 
 /**
  * Stage 3: Performance Agent
@@ -299,10 +315,10 @@ Assign a "score" between 0 and 100 to each variant.
 Provide "reasoning" for the score.
 Only return an array of objects containing { id, score, reasoning }.`;
 
-  const simplifiedInput = variants.map(v => ({
+  const simplifiedInput = variants.map((v) => ({
     id: v.id,
     themeIdea: v.themeIdea,
-    layersSummary: v.layers.map((l: any) => ({ type: l.type, x: l.x, y: l.y, text: (l as TextLayer).text }))
+    layersSummary: v.layers.map((l: any) => ({ type: l.type, x: l.x, y: l.y, text: (l as TextLayer).text })),
   }));
 
   const data = await callBackendGeminiAPI({
@@ -317,10 +333,10 @@ Only return an array of objects containing { id, score, reasoning }.`;
           properties: {
             id: { type: SchemaType.STRING },
             score: { type: SchemaType.NUMBER },
-            reasoning: { type: SchemaType.STRING }
+            reasoning: { type: SchemaType.STRING },
           },
-          required: ['id', 'score', 'reasoning']
-        }
+          required: ['id', 'score', 'reasoning'],
+        },
       },
       temperature: 0.2,
     },
@@ -329,20 +345,22 @@ Only return an array of objects containing { id, score, reasoning }.`;
 
   try {
     // 🤖 Astra: Wrap output parsing with safeParseJSON to avoid raw JSON.parse crashes.
-    const scores = safeParseJSON<any[] | null>(data.text || "", null);
+    const scores = safeParseJSON<any[] | null>(data.text || '', null);
     if (!scores) {
-      throw new Error("Performance Agent returned malformed JSON");
+      throw new Error('Performance Agent returned malformed JSON');
     }
-    return variants.map(v => {
-      const match = scores.find((s: any) => s.id === v.id);
-      return {
-        ...v,
-        performanceScore: match?.score || 50,
-        performanceReasoning: match?.reasoning || "Neutral baseline score.",
-      };
-    }).sort((a, b) => (b.performanceScore || 0) - (a.performanceScore || 0)); // Sort highest first
+    return variants
+      .map((v) => {
+        const match = scores.find((s: any) => s.id === v.id);
+        return {
+          ...v,
+          performanceScore: match?.score || 50,
+          performanceReasoning: match?.reasoning || 'Neutral baseline score.',
+        };
+      })
+      .sort((a, b) => (b.performanceScore || 0) - (a.performanceScore || 0)); // Sort highest first
   } catch (err) {
-    console.error("Performance Agent failed", err);
+    console.error('Performance Agent failed', err);
     return variants;
   }
 };

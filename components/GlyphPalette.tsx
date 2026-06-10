@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import opentype from 'opentype.js';
+import * as opentype from 'opentype.js';
 
 const COMMON_GLYPHS = [
   '™',
@@ -73,14 +73,14 @@ export const GlyphPalette = ({ fontFamily, onSelect, onClose }: GlyphPaletteProp
       try {
         // Try to load local font first
         let fontUrl: string | null = null;
-        
+
         // Check if it's one of our core local fonts
         const localFonts = ['Inter', 'Space Grotesk', 'Outfit'];
         if (localFonts.includes(fontFamily)) {
           // Try weight 400
           fontUrl = `/fonts/${fontFamily.replace(/\s+/g, '-')}-400.ttf`;
         }
-        
+
         if (fontUrl) {
           try {
             const buffer = await fetch(fontUrl).then((res) => res.arrayBuffer());
@@ -103,7 +103,7 @@ export const GlyphPalette = ({ fontFamily, onSelect, onClose }: GlyphPaletteProp
             console.warn(`Local font load failed for ${fontFamily}, trying CDN...`, localError);
           }
         }
-        
+
         // Fallback to Google Fonts CDN
         const cssUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily.replace(/ /g, '+'))}:wght@400&display=swap`;
         const cssResponse = await fetch(cssUrl);
