@@ -3,6 +3,7 @@ import { Project, CanvasSize, Artboard } from '../../types';
 import { storageService } from '../../services/storageService';
 import { v4 as uuidv4 } from 'uuid';
 import { createNebulaDemoDesign } from './project/demoDesign';
+import { log } from '../../utils/log';
 
 export interface ProjectSlice {
   projects: Project[];
@@ -152,7 +153,7 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
         projects: state.projects.map((p: Project) => (p.id === projectId ? updatedProject : p)),
       }));
     } catch (e) {
-      console.error('Save failed', e);
+      log.error('Save failed', e, { projectId });
       set({ isSaving: false, syncStatus: 'error' });
       // Show error toast
       get().addToast?.({ message: 'Failed to sync to cloud', type: 'error' });
