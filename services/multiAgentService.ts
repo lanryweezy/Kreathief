@@ -3,6 +3,7 @@ import { Layer, ShapeLayer, TextLayer } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { resolveConstraints, resolveSemanticConstraints } from '../utils/layoutUtils';
 import { callBackendGeminiAPI } from './geminiService';
+import { safeParseJSON } from '../utils/errorHandling';
 
 export interface AgentVariant {
   id: string;
@@ -79,7 +80,11 @@ Ensure perfect visual composition and contrast.`;
   });
 
   try {
-    const rawVariants = JSON.parse(data.text);
+    // 🤖 Astra: Wrap output parsing with safeParseJSON to avoid raw JSON.parse crashes.
+    const rawVariants = safeParseJSON<any[] | null>(data.text || "", null);
+    if (!rawVariants) {
+      throw new Error("Creative Agent returned malformed JSON");
+    }
     return rawVariants.map((v: any) => ({
       ...v,
       id: uuidv4(),
@@ -188,7 +193,11 @@ Rules:
   });
 
   try {
-    const rawVariants = JSON.parse(data.text);
+    // 🤖 Astra: Wrap output parsing with safeParseJSON to avoid raw JSON.parse crashes.
+    const rawVariants = safeParseJSON<any[] | null>(data.text || "", null);
+    if (!rawVariants) {
+      throw new Error("Creative Refine returned malformed JSON");
+    }
     return rawVariants.map((v: any) => ({
       ...v,
       id: uuidv4(),
@@ -249,7 +258,11 @@ You MUST return the identical schema structure for variants but with improved va
   });
 
   try {
-    const refined = JSON.parse(data.text);
+    // 🤖 Astra: Wrap output parsing with safeParseJSON to avoid raw JSON.parse crashes.
+    const refined = safeParseJSON<any[] | null>(data.text || "", null);
+    if (!refined) {
+      throw new Error("Critic Agent returned malformed JSON");
+    }
     // Map refined properties back into the original variant structure to preserve ID and internal structure
     return variants.map(v => {
       const rf = refined.find((r: any) => r.id === v.id);
@@ -315,7 +328,11 @@ Only return an array of objects containing { id, score, reasoning }.`;
   });
 
   try {
-    const scores = JSON.parse(data.text);
+    // 🤖 Astra: Wrap output parsing with safeParseJSON to avoid raw JSON.parse crashes.
+    const scores = safeParseJSON<any[] | null>(data.text || "", null);
+    if (!scores) {
+      throw new Error("Performance Agent returned malformed JSON");
+    }
     return variants.map(v => {
       const match = scores.find((s: any) => s.id === v.id);
       return {
