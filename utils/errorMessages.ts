@@ -116,14 +116,6 @@ export function getErrorDetails(error: Error | unknown): ErrorDetails {
 }
 
 /**
- * Format error for display to user
- */
-export function formatErrorMessage(error: Error | unknown): string {
-  const details = getErrorDetails(error);
-  return `${details.message}. ${details.suggestion}`;
-}
-
-/**
  * Get error message for AI generation operations
  */
 export function getAIErrorMessage(error: Error | unknown): string {
