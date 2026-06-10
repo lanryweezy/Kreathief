@@ -141,6 +141,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
       <button
         ref={popoverRef}
         data-testid="color-picker"
+        aria-label={label ? `Choose ${label} color` : 'Choose color'}
         onClick={() => setIsOpen(!isOpen)}
         className={`${small ? 'w-6 h-6' : 'w-8 h-8'} rounded border border-gray-600 flex items-center justify-center relative overflow-hidden bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPjxyZWN0IHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiM0NDQiLz48cGF0aCBkPSJNMCAwSDRWNEgwem00IDhIOFY0SDR6IiBmaWxsPSIjNTU1Ii8+PC9zdmc+')] hover:border-gray-400 transition-colors shadow-sm`}
       >
