@@ -7,3 +7,6 @@
 ## 2026-10-24 - [Accessibility] Added aria-labels and aria-hidden to text-based close buttons
 **Learning:** Found several text-based close buttons (using characters like `✕` or `&times;`) in `DesignSuggestions`, `DesignQualityScorer`, `SmartContentGenerator`, `MockupModal`, and `ExportModal` that lacked `aria-label` attributes or did not use `aria-hidden="true"` on the text itself, causing screen readers to improperly read out "times" or "X".
 **Action:** Added `aria-label="Close panel"` or `aria-label="Close modal"` to these buttons, and wrapped the text icon in a `<span aria-hidden="true">` or added the attribute directly to the inner element to ensure correct screen reader announcements.
+## 2026-06-10 - [Accessibility] Added aria-label to ColorPicker button
+**Learning:** Found that the ColorPicker trigger button, which serves as a visual color swatch, lacked an `aria-label`, making it inaccessible to screen readers.
+**Action:** Added a dynamic `aria-label` to the ColorPicker button that includes the label text (if provided) or falls back to 'Choose color' to ensure accessibility.
