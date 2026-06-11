@@ -59,3 +59,8 @@
 **Vulnerability:** The application was missing security event logging for critical authentication events and data export events as recommended by the `AUDIT_SECURITY_COMPLIANCE.md` (P1 Priority). Lacking audit trails makes tracking and identifying compromised accounts or large-scale data breaches difficult.
 **Learning:** For a system processing user data and authenticating users, establishing an audit trail is critical to trace back "who did what and when."
 **Prevention:** Always log authentication attempts (success and failures) and critical data export/modification events securely (e.g. into `security_logs` table) to maintain an auditable footprint.
+
+## 2026-06-12 - Fix Path Traversal Vulnerability in Freepik API Proxy
+**Vulnerability:** The `api/freepik.ts` serverless edge function constructed a backend API request dynamically by appending user input (`url.searchParams.get('basePath')`) directly to the base URL in the `poll` action. This allowed a potential path traversal vulnerability where an attacker could provide arbitrary paths (like `../../some-other-endpoint`) to interact with unintended endpoints within the Freepik API under the application's authenticated context.
+**Learning:** Avoid path traversal vulnerabilities by never appending untrusted user input directly to URLs or file paths. When dynamically routing requests based on user input, rely on explicit allowlists rather than attempting to sanitize paths.
+**Prevention:** Always strictly validate or allowlist dynamic path segments from user input before constructing or appending them to base URLs or filesystem paths.
