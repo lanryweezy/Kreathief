@@ -54,3 +54,8 @@
 **Vulnerability:** Several Serverless/Edge functions (`api/freepik.ts`, `api/iconscout.ts`, `api/streamline.ts`, `api/unsplash.ts`) used an in-memory `Map` to track client IPs for rate-limiting. However, these endpoints did not implement a mechanism to periodically delete expired IP entries. Over time, this `rateLimitMap` would grow indefinitely with new IPs, resulting in a severe memory leak and eventual memory exhaustion Denial of Service (DoS).
 **Learning:** Server-side in-memory data structures (e.g., using `Map` to track IP requests for rate limiting) must implement periodic cleanup of expired entries to prevent memory exhaustion Denial of Service (DoS) vulnerabilities. Unbounded state variables in long-running or warm lambda environments are a silent killer.
 **Prevention:** Whenever using in-memory caches or state maps in backend functions, always implement and execute a garbage collection/cleanup routine to purge old entries, or alternatively use a robust distributed store like Redis with automatic TTLs.
+
+## 2026-06-11 - Add Security Event Logging
+**Vulnerability:** The application was missing security event logging for critical authentication events and data export events as recommended by the `AUDIT_SECURITY_COMPLIANCE.md` (P1 Priority). Lacking audit trails makes tracking and identifying compromised accounts or large-scale data breaches difficult.
+**Learning:** For a system processing user data and authenticating users, establishing an audit trail is critical to trace back "who did what and when."
+**Prevention:** Always log authentication attempts (success and failures) and critical data export/modification events securely (e.g. into `security_logs` table) to maintain an auditable footprint.
