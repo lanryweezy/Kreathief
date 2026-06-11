@@ -8,7 +8,7 @@ import { PaletteGenerator } from './panels/PaletteGenerator';
 import { GradientEditor } from './panels/GradientEditor';
 import { ContrastChecker } from './panels/ContrastChecker';
 import { 
-  rgbToHex, rgbToCmyk, parseColor, cmykToRgb, 
+  rgbToHex, rgbToCMYK, parseColor, cmykToRgb,
   getCMYKGamutWarning, isWithinCMYKGamut, getClosestCMYKSafeColor 
 } from '../utils/colorUtils';
 import { haptics } from '../utils/haptics';
@@ -54,7 +54,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(({
     if (value === 'transparent') {return null;}
     try {
       const rgb = parseColor(value);
-      const cmykData = rgbToCmyk(rgb.r, rgb.g, rgb.b);
+      const cmykData = rgbToCMYK(rgb.r, rgb.g, rgb.b);
       const gamutWarning = getCMYKGamutWarning(value);
       const withinGamut = isWithinCMYKGamut(value);
       return { ...cmykData, gamutWarning, withinGamut };
