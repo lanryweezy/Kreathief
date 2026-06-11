@@ -1,5 +1,6 @@
 import sharp from 'sharp';
 import { PDFDocument } from 'pdf-lib';
+import { log } from '../utils/log';
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
@@ -49,8 +50,12 @@ export default async function handler(req: any, res: any) {
     rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   }
 
+  let imageUrl: string | undefined;
+  let bleed: number = 0;
+
   try {
-    const { imageUrl, bleed = 0 } = req.body;
+    imageUrl = req.body?.imageUrl;
+    bleed = req.body?.bleed ?? 0;
 
     if (!imageUrl) {
       return res.status(400).json({ error: 'imageUrl is required' });
@@ -103,10 +108,7 @@ export default async function handler(req: any, res: any) {
 
     // 2. Convert to CMYK using Sharp
     // We convert it to a CMYK JPEG, which is natively supported by pdf-lib
-    const cmykJpegBuffer = await sharp(imageBuffer)
-      .toColorspace('cmyk')
-      .jpeg({ quality: 100 })
-      .toBuffer();
+    const cmykJpegBuffer = await sharp(imageBuffer).toColorspace('cmyk').jpeg({ quality: 100 }).toBuffer();
 
     // Get dimensions of the processed image
     const metadata = await sharp(cmykJpegBuffer).metadata();
@@ -115,18 +117,18 @@ export default async function handler(req: any, res: any) {
 
     // 3. Create Print-Ready PDF
     const pdfDoc = await PDFDocument.create();
-    
+
     // Set PDF/X-compliant metadata to indicate CMYK intent
     pdfDoc.setTitle('Kreathief Print Export');
     pdfDoc.setAuthor('Kreathief');
     pdfDoc.setCreator('Kreathief Print Engine');
-    
+
     // Embed the CMYK JPEG
     const image = await pdfDoc.embedJpg(cmykJpegBuffer);
-    
+
     // Create page matching image dimensions + bleed
     const page = pdfDoc.addPage([width + bleed * 2, height + bleed * 2]);
-    
+
     // Draw the CMYK image
     page.drawImage(image, {
       x: 0,
@@ -143,11 +145,10 @@ export default async function handler(req: any, res: any) {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="print-ready-cmyk.pdf"');
     res.setHeader('Content-Length', pdfBuffer.length);
-    
+
     return res.status(200).send(pdfBuffer);
-    
   } catch (error: any) {
-    console.error('CMYK Conversion Error:', error);
+    log.error('CMYK Conversion Error', error, { imageUrl, bleed });
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
