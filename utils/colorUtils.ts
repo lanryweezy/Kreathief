@@ -66,7 +66,6 @@ export const rgbToCMYK = (r: number, g: number, b: number): CMYK => {
   };
 };
 
-export const rgbToCmyk = rgbToCMYK; // Alias for compatibility
 
 /**
  * CMYK to RGB conversion
