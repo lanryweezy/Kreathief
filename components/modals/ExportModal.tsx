@@ -352,6 +352,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                     setIsPrintMode(!isPrintMode);
                   }}
                   className={`w-12 h-6 rounded-full transition-all relative ${isPrintMode ? 'bg-[#7d2ae8]' : 'bg-gray-700'}`}
+                  role="switch"
+                  aria-checked={isPrintMode}
+                  aria-label="Toggle Professional Print Mode (CMYK)"
                 >
                   <div
                     className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all shadow-lg ${isPrintMode ? 'left-6' : 'left-0.5'}`}

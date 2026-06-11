@@ -9,3 +9,6 @@
 ## 2024-06-07 - [Mobile/Panel Accessibility]
 **Learning:** Found and fixed two components, `MobileQuickActions` (Mobile FAB) and `MockupPanel` (close button), that used icon-only `<button>`s without `aria-label`s. The `IconButton` wrapper is safe (falls back to title), but raw `<button>`s with just `<Icons.X/>` or `<Icons.Plus/>` inside need manual accessibility handling.
 **Action:** Always check raw `<button>` elements that only wrap SVGs/Icons (especially custom mobile toolbars or modal headers) to ensure they have an `aria-label` or `aria-expanded` where applicable.
+## 2026-06-11 - [Accessible Custom Toggle Switches]
+**Learning:** Custom UI toggle switches built with `<button>` tags (like the "Professional Print Mode" toggle in ExportModal) are visually clear but completely invisible to screen readers without proper semantics.
+**Action:** When implementing custom toggle switches, always include `role="switch"`, an `aria-checked` boolean attribute bound to the state, and a descriptive `aria-label` to ensure the component is fully accessible.
