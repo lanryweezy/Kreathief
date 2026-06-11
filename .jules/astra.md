@@ -7,3 +7,7 @@
 
 **Learning:** Returning a safe default (like an empty array `[]`) from `safeParseJSON` can unintentionally cause silent failures by allowing the application to proceed with empty data instead of triggering the surrounding error handling logic.
 **Action:** When validating multi-agent AI responses, always pass `null` as the fallback to `safeParseJSON` and explicitly check the result (`if (!rawVariants) throw new Error(...)`). This ensures the application fails loudly on malformed output, allowing existing `try/catch` blocks to catch the structured error and recover gracefully without silently corrupting downstream layout logic.
+
+## 2024-05-18 - Enforcing JSON output with Gemini `responseSchema`
+**Learning:** Using `generationConfig.responseMimeType = 'application/json'` and `responseSchema` via `@google/generative-ai` `SchemaType` completely eliminates the need for regex cleanup on raw markdown-wrapped responses, ensuring reliable output parsing for features like palette generation.
+**Action:** Always prefer setting `responseSchema` on Gemini API requests over attempting to regex-match or manually parse text completion output.
