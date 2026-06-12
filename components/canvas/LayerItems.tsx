@@ -7,6 +7,7 @@ import React from 'react';
 import { Layer, TextLayer, ShapeLayer, ImageLayer, AnimationSettings, ResizeHandle } from '../../types';
 import { getLayerClipPath, getAnimationStyle } from '../../utils/layerRendering';
 import { buildVariableStrokeOutline, profileWidthFn } from '../../utils/variableStroke';
+import { buildFilterString } from '../../utils/canvasUtils';
 import { SelectionHandles } from './SelectionHandles';
 import { BrushStrokeRenderer } from '../../services/brushEngine';
 
@@ -148,7 +149,7 @@ export const ImageLayerItem = React.memo(
           transform: `translate(${-crop.x * imgScale}px, ${-crop.y * imgScale}px) scale(${scaleX}, ${scaleY})`,
           transformOrigin: 'top left',
           filter: (imgLayer.filters && !optimizedSrc)
-            ? `${imgLayer.filters.artisticFilter ? `url(#${imgLayer.filters.artisticFilter}) ` : ''}brightness(${imgLayer.filters.brightness ?? 100}%) contrast(${imgLayer.filters.contrast ?? 100}%) saturate(${imgLayer.filters.saturation ?? 100}%) grayscale(${imgLayer.filters.grayscale ?? 0}%) blur(${imgLayer.filters.blur ?? 0}px) sepia(${imgLayer.filters.sepia ?? 0}%) hue-rotate(${imgLayer.filters.hueRotate ?? 0}deg)`
+            ? `${imgLayer.filters.artisticFilter ? `url(#${imgLayer.filters.artisticFilter}) ` : ''}${buildFilterString(imgLayer.filters)}`
             : 'none',
         }),
         [naturalWidth, imgScale, crop.x, crop.y, scaleX, scaleY, imgLayer.filters, optimizedSrc]
@@ -256,9 +257,7 @@ export const ShapeLayerItem = React.memo(
           borderRadius: shapeLayer.type === 'circle' ? '50%' : shapeLayer.type !== 'path' ? `${shapeLayer.cornerRadius}px` : undefined,
           clipPath: shapeLayer.type === 'path' ? undefined : clipPath,
           WebkitClipPath: shapeLayer.type === 'path' ? undefined : clipPath,
-          filter: shapeLayer.filters
-            ? `brightness(${shapeLayer.filters.brightness ?? 100}%) contrast(${shapeLayer.filters.contrast ?? 100}%) saturate(${shapeLayer.filters.saturation ?? 100}%) grayscale(${shapeLayer.filters.grayscale ?? 0}%) blur(${shapeLayer.filters.blur ?? 0}px)`
-            : 'none',
+          filter: shapeLayer.filters ? buildFilterString(shapeLayer.filters) : 'none',
           backdropFilter: shapeLayer.filters?.backdropBlur ? `blur(${shapeLayer.filters.backdropBlur}px)` : 'none',
           WebkitBackdropFilter: shapeLayer.filters?.backdropBlur ? `blur(${shapeLayer.filters.backdropBlur}px)` : 'none',
           ...(maskPath ? { clipPath: maskPath, WebkitClipPath: maskPath } : {}),

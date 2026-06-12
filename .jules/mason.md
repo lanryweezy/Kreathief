@@ -8,6 +8,6 @@
 **Learning:** Found an alias `rgbToCmyk` pointing to `rgbToCMYK` in `utils/colorUtils.ts`. There was a mix of usage in the codebase.
 **Action:** Removed the duplicate alias export and updated `components/ColorPicker.tsx` to use the standard `rgbToCMYK` function directly to improve naming consistency and reduce cognitive load.
 
-## 2026-06-12 - Generic Utilities as Dead Code
-**Learning:** Found a massive `utils/canvasUtils.ts` file containing generic wrappers and abstractions (`buildFilterString`, `getLayerStyle`, type guards, and duplicate `debounce`/`throttle` functions) that were 100% unused by the actual application, only referenced in their own test file `tests/unit/utils/canvasUtils.test.ts`.
-**Action:** When finding duplicate implementations or generic utility files, always trace imports first. If a file is an "abstract utility kitchen sink" but has zero consumers, the best refactor is pure subtraction—delete the dead code to reduce cognitive load and false patterns for the team.
+## 2026-06-12 - Re-evaluating Dead Code vs. Architecture
+**Learning:** Found a utility file `utils/canvasUtils.ts` containing core domain primitives (`buildFilterString`, `getLayerStyle`, `isTextLayer`) that were fully tested but never integrated. Initially tried to delete it as dead code. However, the correct approach was to realize this was an abandoned but sound architecture.
+**Action:** Don't blindly delete unused code if it represents a strong domain primitive that the rest of the codebase desperately needs (e.g. replacing massive inline template strings with `buildFilterString`). Instead, delete the true duplication (like generic `debounce` functions), keep the core primitives, and integrate them progressively.
