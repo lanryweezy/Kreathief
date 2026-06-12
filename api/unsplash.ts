@@ -1,3 +1,4 @@
+import { log } from "../utils/log";
 export const config = {
   runtime: 'edge',
 };
@@ -98,7 +99,7 @@ export default async function handler(req: Request) {
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });
   } catch (error: any) {
-    console.error('API Route Error:', error);
+    log.error('API Route Error', error, { url: req.url });
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
