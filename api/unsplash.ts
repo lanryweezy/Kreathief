@@ -53,7 +53,7 @@ export default async function handler(req: Request) {
     rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   }
 
-  const accessKey = process.env.VITE_UNSPLASH_ACCESS_KEY || process.env.UNSPLASH_ACCESS_KEY;
+  const accessKey = process.env.UNSPLASH_ACCESS_KEY;
 
   if (!accessKey) {
     return new Response(JSON.stringify({ error: 'Unsplash credentials not configured on server' }), {

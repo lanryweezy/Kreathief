@@ -71,7 +71,7 @@ export default async function handler(req: Request) {
   }
 
   const { endpoint, body } = payload;
-  const apiKey = process.env.FAL_KEY || process.env.VITE_FAL_KEY;
+  const apiKey = process.env.FAL_KEY;
 
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'FAL API key not configured on server' }), {

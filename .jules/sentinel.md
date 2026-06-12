@@ -93,3 +93,8 @@
 **Vulnerability:** The `api/freepik.ts` endpoint allowed users to supply an arbitrary `basePath` via URL parameters in the `poll` action, which was then directly concatenated into the upstream API URL. This resulted in a path traversal vulnerability that could allow an attacker to make unauthorized requests to any Freepik API endpoint using the server's securely stored API key.
 **Learning:** Dynamically constructing proxy request URLs from user input without validation allows attackers to bypass intended restrictions and access arbitrary endpoints on the target service, effectively turning the proxy into an open gateway for the provided service.
 **Prevention:** Always use a strict allowlist for dynamic path segments when constructing URLs for downstream API requests to ensure users can only access explicitly permitted endpoints.
+
+## 2026-06-12 - Prevent Backend Secret Leakage by Removing VITE_ Prefix Fallbacks
+**Vulnerability:** Several serverless proxy endpoints (`api/fal.ts`, `api/freepik.ts`, `api/iconscout.ts`, `api/streamline.ts`, `api/unsplash.ts`) used a fallback pattern of `process.env.VITE_API_KEY || process.env.API_KEY` for sensitive API secrets.
+**Learning:** If a developer places a sensitive backend secret in their `.env` file using the `VITE_` prefix to satisfy the fallback, the Vite bundler will statically inject that secret into the client-side JavaScript bundle, resulting in a critical secret leakage vulnerability.
+**Prevention:** Backend API proxy functions must exclusively rely on non-prefixed environment variables (e.g., `process.env.API_KEY`) for sensitive credentials. Removing the `VITE_` prefix fallbacks forces the correct configuration and inherently protects against bundler injection.
