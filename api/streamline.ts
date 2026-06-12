@@ -53,7 +53,7 @@ export default async function handler(req: Request) {
     rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   }
 
-  const streamlineKey = process.env.VITE_STREAMLINE_API_KEY || process.env.STREAMLINE_API_KEY;
+  const streamlineKey = process.env.STREAMLINE_API_KEY;
 
   if (!streamlineKey) {
     return new Response(JSON.stringify({ error: 'Streamline API key not configured on server' }), {

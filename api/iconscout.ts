@@ -53,8 +53,8 @@ export default async function handler(req: Request) {
     rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   }
 
-  const clientId = process.env.VITE_ICONSCOUT_CLIENT_ID || process.env.ICONSCOUT_CLIENT_ID;
-  const secretKey = process.env.VITE_ICONSCOUT_SECRET_KEY || process.env.ICONSCOUT_SECRET_KEY;
+  const clientId = process.env.ICONSCOUT_CLIENT_ID;
+  const secretKey = process.env.ICONSCOUT_SECRET_KEY;
 
   if (!clientId || !secretKey) {
     return new Response(JSON.stringify({ error: 'IconScout credentials not configured on server' }), {

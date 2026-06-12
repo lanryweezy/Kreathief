@@ -53,7 +53,7 @@ export default async function handler(req: Request) {
     rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   }
 
-  const freepikKey = process.env.VITE_FREEPIK_API_KEY || process.env.FREEPIK_API_KEY;
+  const freepikKey = process.env.FREEPIK_API_KEY;
 
   if (!freepikKey) {
     return new Response(JSON.stringify({ error: 'Freepik API key not configured on server' }), {
