@@ -7,3 +7,7 @@
 ## 2026-06-11 - Consolidate duplicate function export
 **Learning:** Found an alias `rgbToCmyk` pointing to `rgbToCMYK` in `utils/colorUtils.ts`. There was a mix of usage in the codebase.
 **Action:** Removed the duplicate alias export and updated `components/ColorPicker.tsx` to use the standard `rgbToCMYK` function directly to improve naming consistency and reduce cognitive load.
+
+## 2026-06-12 - Generic Utilities as Dead Code
+**Learning:** Found a massive `utils/canvasUtils.ts` file containing generic wrappers and abstractions (`buildFilterString`, `getLayerStyle`, type guards, and duplicate `debounce`/`throttle` functions) that were 100% unused by the actual application, only referenced in their own test file `tests/unit/utils/canvasUtils.test.ts`.
+**Action:** When finding duplicate implementations or generic utility files, always trace imports first. If a file is an "abstract utility kitchen sink" but has zero consumers, the best refactor is pure subtraction—delete the dead code to reduce cognitive load and false patterns for the team.
