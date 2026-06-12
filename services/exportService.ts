@@ -1,5 +1,6 @@
 import { TextLayer, ShapeLayer, ImageLayer, CanvasFilters, Layer } from '../types';
 import { writePsd, Psd } from 'ag-psd';
+import { logSecurityEvent } from '../utils/securityLogger';
 
 export type ColorProfile = 'sRGB' | 'CMYK' | 'FOGRA39' | 'GRACoL' | 'SWOP';
 
@@ -78,6 +79,7 @@ export const exportToPrintPDF = async (
         // 4. Download Result
         const pdfBlob = await apiResponse.blob();
         downloadBlob(pdfBlob, fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
+        logSecurityEvent('DATA_EXPORT', 'current_user', { fileName, options, format: 'pdf' });
         resolve();
       } catch (err) {
         log.error('Serverless CMYK Export Error', err, { fileName, options, width, height });
@@ -109,6 +111,7 @@ const fallbackToWorker = (
         const { type, payload, error } = e.data;
         if (type === 'SUCCESS') {
           downloadBlob(payload, fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
+          logSecurityEvent('DATA_EXPORT', 'current_user', { fileName, options, format: 'pdf_worker' });
           worker.terminate();
           resolveOuter();
         } else {
@@ -180,6 +183,7 @@ export const exportToLayeredPSD = async (
   const buffer = writePsd(psd);
   const blob = new Blob([buffer], { type: 'application/octet-stream' });
   downloadBlob(blob, fileName.endsWith('.psd') ? fileName : `${fileName}.psd`);
+  logSecurityEvent('DATA_EXPORT', 'current_user', { fileName, format: 'psd' });
 };
 
 /**

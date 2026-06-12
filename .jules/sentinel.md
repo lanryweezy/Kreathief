@@ -80,3 +80,7 @@
 **Vulnerability:** The application was loading `import.meta.env.VITE_DYNAMIC_MOCKUPS_API_KEY` into `config/index.ts` and passing it to the client-side `services/dynamicMockupsService.ts`, directly exposing a secret API key to users via the compiled frontend bundle.
 **Learning:** In Vite, any environment variable prefixed with `VITE_` is statically injected into the client bundle at build time. Secret keys or tokens for backend services should never use this prefix if they are imported directly in client code.
 **Prevention:** If an external service requires a secret API key, implement a server-side proxy route (e.g., an Edge Function like `api/dynamic-mockups.ts`) to handle the requests securely. The client should only interact with this proxy, and the secret key should be safely stored in the server's environment without the `VITE_` prefix.
+## 2026-06-11 - Add Security Event Logging
+**Vulnerability:** The application was missing security event logging for critical authentication events and data export events as recommended by the `AUDIT_SECURITY_COMPLIANCE.md` (P1 Priority). Lacking audit trails makes tracking and identifying compromised accounts or large-scale data breaches difficult.
+**Learning:** For a system processing user data and authenticating users, establishing an audit trail is critical to trace back "who did what and when."
+**Prevention:** Always log authentication attempts (success and failures) and critical data export/modification events securely (e.g. into `security_logs` table) to maintain an auditable footprint.

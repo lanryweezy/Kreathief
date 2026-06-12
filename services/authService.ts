@@ -3,6 +3,7 @@ import type { User } from '../types';
 import type { Profile } from '../lib/supabase/types';
 import { logger } from './logger';
 import { log } from '../utils/log';
+import { logSecurityEvent } from '../utils/securityLogger';
 
 export interface AuthResult {
   user: User | null;
@@ -155,6 +156,7 @@ export class AuthService {
 
       if (error) {
         log.error('[AuthService] Sign in failed', error, { email });
+        logSecurityEvent('LOGIN_ATTEMPT', 'anonymous', { email, success: false, error: error.message });
         return { user: null, error: error.message };
       }
 
@@ -173,6 +175,7 @@ export class AuthService {
       };
 
       log.info('[AuthService] Sign in successful', { userId: user.id });
+      logSecurityEvent('LOGIN_ATTEMPT', user.id, { email, success: true });
       return { user, error: null };
     } catch (err) {
       log.error('[AuthService] Sign in error', err);
