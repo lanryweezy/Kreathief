@@ -12,3 +12,8 @@
 
 **Learning:** The CMYK export API route was using a generic `console.error` which swallowed request parameters like URL and bleed size, hiding the actual data causing conversion errors. Using the structured logger `log.error` with the payload fields ensures these errors are visible and debuggable in production.
 **Action:** Replaced unstructured console error with `log.error` and declared payload variables outside the try block to preserve them in the error context.
+
+## 2026-06-12 - Replaced unstructured console errors across Third-party APIs
+
+**Learning:** The Third-party proxy API routes (`api/freepik.ts`, `api/iconscout.ts`, `api/streamline.ts`, `api/unsplash.ts`, `api/vecteezy.ts`) caught errors using a plain `console.error('API Route Error:', error)` that omitted context about the specific query URL failing, preventing proper root-cause analysis during production failures.
+**Action:** Replaced these unstructured `console.error` calls with `log.error('API Route Error', error, { url: req.url });`, passing the `req.url` to the logging context payload to illuminate which endpoint queries are causing server faults.
