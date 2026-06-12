@@ -70,10 +70,6 @@ export const config = {
       apiKey: getOptionalEnv('VITE_VECTEEZY_API_KEY'),
       baseUrl: 'https://api.vecteezy.com',
     },
-    dynamicMockups: {
-      apiKey: getOptionalEnv('VITE_DYNAMIC_MOCKUPS_API_KEY'),
-      baseUrl: 'https://api.dynamicmockups.com',
-    },
     iconScout: {
       clientId: getOptionalEnv('VITE_ICONSCOUT_CLIENT_ID'),
       secretKey: getOptionalEnv('VITE_ICONSCOUT_SECRET_KEY'),

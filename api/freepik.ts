@@ -199,6 +199,23 @@ export default async function handler(req: Request) {
           });
         }
 
+        // SSRF / Path Traversal Protection: Validate basePath
+        const allowedBasePaths = [
+          '/ai/mystic',
+          '/ai/beta/remove-background',
+          '/ai/image-upscaler',
+          '/ai/image-upscaler-precision',
+          '/ai/image-style-transfer',
+          '/ai/image-expand'
+        ];
+
+        if (!allowedBasePaths.includes(basePath)) {
+          return new Response(JSON.stringify({ error: 'Invalid basePath' }), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          });
+        }
+
         const response = await fetch(`${BASE_URL}${basePath}/${taskId}`, {
           headers: {
             'x-freepik-api-key': freepikKey,
