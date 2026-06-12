@@ -407,6 +407,30 @@ export const analyzeDesign = async (base64Image: string, query: string): Promise
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
       contents: [{ role: 'user', parts }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.OBJECT,
+          properties: {
+            scores: {
+              type: SchemaType.ARRAY,
+              items: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  category: { type: SchemaType.STRING },
+                  score: { type: SchemaType.NUMBER },
+                  feedback: { type: SchemaType.STRING },
+                },
+              },
+            },
+            overall: { type: SchemaType.NUMBER },
+            suggestions: {
+              type: SchemaType.ARRAY,
+              items: { type: SchemaType.STRING },
+            },
+          },
+        },
+      },
     });
 
     return data.text || "I couldn't analyze the design.";
