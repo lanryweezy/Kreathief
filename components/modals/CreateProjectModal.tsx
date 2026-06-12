@@ -17,7 +17,6 @@ const PRESET_SIZES: (CanvasSize & { icon: string })[] = [
   { width: 1500, height: 500, name: 'Twitter Header', icon: 'Twitter' },
 ];
 
-
 export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, onClose, onCreate }) => {
   const [customWidth, setCustomWidth] = useState('1080');
   const [customHeight, setCustomHeight] = useState('1080');
@@ -101,12 +100,16 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
             <div className="flex-1 flex flex-col justify-between bg-[#13161a]/50 p-6 rounded-3xl border border-gray-800 backdrop-blur-sm shadow-inner">
               <div className="space-y-4">
                 <div className="group">
-                  <label className="text-[10px] font-black text-gray-500 uppercase mb-2 block tracking-wider group-focus-within:text-[#7d2ae8] transition-colors">
+                  <label
+                    htmlFor="custom-design-name"
+                    className="text-[10px] font-black text-gray-500 uppercase mb-2 block tracking-wider group-focus-within:text-[#7d2ae8] transition-colors"
+                  >
                     Design Name
                   </label>
                   <div className="relative">
                     <Icons.Edit className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-[#7d2ae8]" />
                     <input
+                      id="custom-design-name"
                       type="text"
                       value={customName}
                       onChange={(e) => setCustomName(e.target.value)}
@@ -117,10 +120,14 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                 </div>
                 <div className="grid grid-cols-2 gap-5">
                   <div className="group">
-                    <label className="text-[10px] font-black text-gray-500 uppercase mb-2 block tracking-wider group-focus-within:text-[#7d2ae8] transition-colors">
+                    <label
+                      htmlFor="custom-width"
+                      className="text-[10px] font-black text-gray-500 uppercase mb-2 block tracking-wider group-focus-within:text-[#7d2ae8] transition-colors"
+                    >
                       Width (px)
                     </label>
                     <input
+                      id="custom-width"
                       type="number"
                       value={customWidth}
                       onChange={(e) => setCustomWidth(e.target.value)}
@@ -128,10 +135,14 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                     />
                   </div>
                   <div className="group">
-                    <label className="text-[10px] font-black text-gray-500 uppercase mb-2 block tracking-wider group-focus-within:text-[#7d2ae8] transition-colors">
+                    <label
+                      htmlFor="custom-height"
+                      className="text-[10px] font-black text-gray-500 uppercase mb-2 block tracking-wider group-focus-within:text-[#7d2ae8] transition-colors"
+                    >
                       Height (px)
                     </label>
                     <input
+                      id="custom-height"
                       type="number"
                       value={customHeight}
                       onChange={(e) => setCustomHeight(e.target.value)}
@@ -139,7 +150,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                     />
                   </div>
                 </div>
-
               </div>
 
               <div className="pt-4">
