@@ -666,24 +666,27 @@ export const generatePaletteFromImage = async (base64Image: string): Promise<str
   try {
     const { data: b64Data, mimeType } = cleanBase64(base64Image);
     const prompt =
-      'Analyze this image/logo and extract the 5 most representative brand colors as HEX codes. Return ONLY a valid JSON array of strings (e.g., ["#ffffff", "#000000"]). Do not include markdown formatting.';
+      'Analyze this image/logo and extract the 5 most representative brand colors as HEX codes. Return ONLY a valid JSON array of strings (e.g., ["#ffffff", "#000000"]).';
 
     const data = await callBackendGeminiAPI({
       modelName: MODEL_FAST,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.STRING,
+            description: 'Hex color code',
+          },
+        },
+      },
       contents: [
         { role: 'user', parts: [{ text: prompt }, { inlineData: { data: b64Data, mimeType } }] }
       ]
     });
     
-    const text = data.text;
-    if (!text) {return [];}
-
-    // Clean up response to ensure valid JSON
-    const jsonMatch = text.match(/\[.*\]/s);
-    if (jsonMatch) {
-      return safeParseJSON<string[]>(jsonMatch[0], []);
-    }
-    return [];
+    // Astra: Gemini strict JSON output schema prevents malformed regex parsing bugs
+    return safeParseJSON<string[]>(data.text || '[]', []);
   } catch (error) {
     console.error('Palette extraction failed', error);
     return [];
