@@ -1,10 +1,12 @@
 import { StateCreator } from 'zustand';
-import { AspectRatio, GenerationQuality, ShapeLayer, ImageLayer, Layer, TextLayer } from '../../types';
+import { Layer, ShapeLayer } from '../../types';
 import { vectorizerService, VectorizeOptions } from '../../services/vectorizerService';
 import { aiModelsService } from '../../services/aiModelsService';
 import { removeBackground } from '../../utils/imageProcessor';
 import * as geminiService from '../../services/geminiService';
 import { v4 as uuidv4 } from 'uuid';
+import { isTextLayer, isImageLayer } from '../../utils/canvasUtils';
+
 
 export interface AISlice {
   prompt: string;
@@ -84,8 +86,8 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   vectorizeLayer: async (id, options) => {
     const { artboards, activeArtboardId, deleteLayer, addLayers, saveToHistory, updateLayer } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
-    const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {return;}
+    const layer = artboard?.layers.find((l: Layer) => l.id === id) ;
+    if (!layer || !isImageLayer(layer)) {return;}
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -171,8 +173,8 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
 
     const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
-    const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {return;}
+    const layer = artboard?.layers.find((l: Layer) => l.id === id) ;
+    if (!layer || !isImageLayer(layer)) {return;}
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -210,8 +212,8 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   onMagicExpand: async (id) => {
     const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
-    const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {return;}
+    const layer = artboard?.layers.find((l: Layer) => l.id === id) ;
+    if (!layer || !isImageLayer(layer)) {return;}
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -249,8 +251,8 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   onRmBg: async (id) => {
     const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
-    const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {return;}
+    const layer = artboard?.layers.find((l: Layer) => l.id === id) ;
+    if (!layer || !isImageLayer(layer)) {return;}
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -269,8 +271,8 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   onEnhance: async (id) => {
     const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
-    const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {return;}
+    const layer = artboard?.layers.find((l: Layer) => l.id === id) ;
+    if (!layer || !isImageLayer(layer)) {return;}
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -289,8 +291,8 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   onUpscale: async (id) => {
     const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
-    const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {return;}
+    const layer = artboard?.layers.find((l: Layer) => l.id === id) ;
+    if (!layer || !isImageLayer(layer)) {return;}
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -309,8 +311,8 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   onRetouch: async (id) => {
     const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
-    const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {return;}
+    const layer = artboard?.layers.find((l: Layer) => l.id === id) ;
+    if (!layer || !isImageLayer(layer)) {return;}
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -329,8 +331,8 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   suggestFontPairing: async (textLayerId) => {
     const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
-    const layer = artboard?.layers.find((l: Layer) => l.id === textLayerId) as TextLayer;
-    if (!layer || layer.type !== 'text') {return;}
+    const layer = artboard?.layers.find((l: Layer) => l.id === textLayerId) ;
+    if (!layer || !isTextLayer(layer)) {return;}
 
     set({ isGenerating: true });
     try {
@@ -383,12 +385,12 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
         
         // Map theme to layers
         artboard.layers.forEach((l: any) => {
-          if (l.type === 'text') {
+          if (isTextLayer(l)) {
             updateLayer(l.id, { 
               color: theme.primaryColor, 
-              fontFamily: (l as TextLayer).fontSize > 30 ? theme.headingFont : theme.bodyFont 
+              fontFamily: (l ).fontSize > 30 ? theme.headingFont : theme.bodyFont
             });
-          } else if (l.type !== 'image' && l.type !== 'adjustment') {
+          } else if (!isImageLayer(l) && l.type !== 'adjustment') {
             updateLayer(l.id, { color: theme.secondaryColor });
           }
         });

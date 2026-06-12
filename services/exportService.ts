@@ -28,6 +28,8 @@ export const downloadBlob = (blob: Blob, filename: string) => {
 import { supabase } from '../lib/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 import { log } from '../utils/log';
+import { isTextLayer, isImageLayer, isShapeLayer } from '../utils/canvasUtils';
+
 
 /**
  * Exports the design as a print-ready PDF via Worker or Serverless API.
@@ -161,10 +163,10 @@ export const exportToLayeredPSD = async (
       // Temporary "zeroing" for individual layer render
       const tempLayer = { ...layer, x: 0, y: 0 };
 
-      if (tempLayer.type === 'image') {
-        await drawImageLayerToContext(ctx, tempLayer as ImageLayer);
-      } else if (tempLayer.type === 'text') {
-        drawTextLayerToContext(ctx, tempLayer as TextLayer);
+      if (isImageLayer(tempLayer)) {
+        await drawImageLayerToContext(ctx, tempLayer );
+      } else if (isTextLayer(tempLayer)) {
+        drawTextLayerToContext(ctx, tempLayer );
       } else if (tempLayer.type !== 'adjustment' && tempLayer.type !== 'group') {
         drawShapeToContext(ctx, tempLayer as ShapeLayer);
       }
@@ -228,8 +230,8 @@ export const exportDesignToImage = async (
 
   for (const layer of layers) {
     if (!layer.visible) {continue;}
-    if (layer.type === 'image') {await drawImageLayerToContext(ctx, layer as ImageLayer);}
-    else if (layer.type === 'text') {drawTextLayerToContext(ctx, layer as TextLayer);}
+    if (isImageLayer(layer)) {await drawImageLayerToContext(ctx, layer );}
+    else if (isTextLayer(layer)) {drawTextLayerToContext(ctx, layer );}
     else if (layer.type !== 'adjustment' && layer.type !== 'group') {drawShapeToContext(ctx, layer as ShapeLayer);}
   }
 

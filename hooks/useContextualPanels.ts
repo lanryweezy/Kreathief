@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { useStore } from '../store/useStore';
 import { NavTab } from '../types';
+import { isTextLayer, isImageLayer } from '../utils/canvasUtils';
+
 
 export interface DynamicTool {
   id: NavTab;

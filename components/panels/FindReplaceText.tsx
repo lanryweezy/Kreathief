@@ -2,6 +2,8 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 import { TextLayer } from '../../types';
+import { isTextLayer } from '../../utils/canvasUtils';
+
 
 interface FindReplaceResult {
   layerId: string;
@@ -23,7 +25,7 @@ export const FindReplaceText: React.FC = () => {
   // Get all text layers
   const allTextLayers = useMemo(() => {
     return artboards.flatMap(artboard => 
-      artboard.layers.filter((layer): layer is TextLayer => layer.type === 'text' && layer.visible)
+      artboard.layers.filter((layer): layer is TextLayer => isTextLayer(layer) && layer.visible)
     );
   }, [artboards]);
 

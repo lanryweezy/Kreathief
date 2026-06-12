@@ -1,6 +1,8 @@
 import React from 'react';
 import { Layer, TextLayer, ShapeLayer, ImageLayer } from '../types';
 import { ImageLayerItem, ShapeLayerItem, TextLayerItem } from './canvas/LayerItems';
+import { isTextLayer, isImageLayer } from '../utils/canvasUtils';
+
 
 interface StaticLayerRendererProps {
   layers: Layer[];
@@ -23,11 +25,11 @@ export const StaticLayerRenderer: React.FC<StaticLayerRendererProps> = ({ layers
       }}
     >
       {layers.map((l) => {
-        if (l.type === 'image') {
+        if (isImageLayer(l)) {
           return (
             <ImageLayerItem
               key={l.id}
-              layer={l as ImageLayer}
+              layer={l }
               isSelected={false}
               isHovered={false}
               onMouseDown={() => {}}
@@ -38,11 +40,11 @@ export const StaticLayerRenderer: React.FC<StaticLayerRendererProps> = ({ layers
           );
         }
 
-        if (l.type === 'text') {
+        if (isTextLayer(l)) {
            return (
              <TextLayerItem
                key={l.id}
-               layer={l as TextLayer}
+               layer={l }
                isSelected={false}
                isHovered={false}
                onMouseDown={() => {}}

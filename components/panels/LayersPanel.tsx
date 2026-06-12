@@ -2,6 +2,8 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { TextLayer, ShapeLayer, ImageLayer, Layer, Artboard } from '../../types';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
+import { isTextLayer, isImageLayer } from '../../utils/canvasUtils';
+
 
 // LayerItem Component Props
 interface LayerItemProps {
@@ -27,8 +29,8 @@ const areLayerPropsEqual = (prev: LayerItemProps, next: LayerItemProps) => {
 };
 
 function getLayerNameFallback(l: Layer) {
-  if (l.type === 'text') return (l as TextLayer).text.substring(0, 20) || 'Text Layer';
-  if (l.type === 'image') return 'Image Layer';
+  if (isTextLayer(l)) return (l ).text.substring(0, 20) || 'Text Layer';
+  if (isImageLayer(l)) return 'Image Layer';
   return (l as ShapeLayer).type.charAt(0).toUpperCase() + (l as ShapeLayer).type.slice(1);
 }
 
@@ -57,13 +59,13 @@ const LayerItem = React.memo(
     }, [layer.isExpanded]);
 
     const getThumbnail = () => {
-      if (layer.type === 'image') {
-        return <img src={(layer as ImageLayer).src} className="w-full h-full object-cover" alt="" />;
+      if (isImageLayer(layer)) {
+        return <img src={(layer ).src} className="w-full h-full object-cover" alt="" />;
       }
-      if (layer.type === 'text') {
+      if (isTextLayer(layer)) {
         return (
           <div className="w-full h-full flex items-center justify-center bg-[#0e1318] p-0.5 overflow-hidden">
-            <span className="text-[10px] font-bold" style={{ color: (layer as TextLayer).color }}>T</span>
+            <span className="text-[10px] font-bold" style={{ color: (layer ).color }}>T</span>
           </div>
         );
       }

@@ -3,6 +3,8 @@ import { useStore } from './useStore';
 import { selectedLayerSelector } from './selectors';
 import * as gemini from '../services/geminiService';
 import { vectorizerService } from '../services/vectorizerService';
+import { isTextLayer, isImageLayer } from '../utils/canvasUtils';
+
 
 type ToolHandler<P> = (params: P) => Promise<void> | void;
 
@@ -73,7 +75,7 @@ const ungroupSelected: ToolHandler<Record<string, never>> = () => {
 const flipSelected: ToolHandler<z.infer<typeof flipSchema>> = ({ axis }) => {
   const state = useStore.getState();
   const layer = selectedLayerSelector(state as any);
-  if (!layer || layer.type === 'text') {return;}
+  if (!layer || isTextLayer(layer)) {return;}
   if (axis === 'horizontal') {
     state.updateLayer(layer.id, { flipX: !(layer as any).flipX });
   } else {
@@ -89,9 +91,9 @@ const autoNameSelected: ToolHandler<z.infer<typeof autoNameSchema>> = async () =
   for (const id of ids) {
     const l = (artboard.layers || []).find((x: any) => x.id === id);
     if (!l) {continue;}
-    const desc = l.type === 'text'
+    const desc = isTextLayer(l)
       ? `Text: "${l.text?.slice(0, 50) || ''}" size ${l.fontSize}`
-      : l.type === 'image'
+      : isImageLayer(l)
         ? `Image ${l.width}x${l.height}`
         : `Shape ${l.type} ${l.width}x${l.height} color ${l.color}`;
     const name = await gemini.generateLayerName(desc);

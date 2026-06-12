@@ -7,3 +7,7 @@
 ## 2026-06-11 - Consolidate duplicate function export
 **Learning:** Found an alias `rgbToCmyk` pointing to `rgbToCMYK` in `utils/colorUtils.ts`. There was a mix of usage in the codebase.
 **Action:** Removed the duplicate alias export and updated `components/ColorPicker.tsx` to use the standard `rgbToCMYK` function directly to improve naming consistency and reduce cognitive load.
+
+## 2026-06-12 - Progressive Primitive Integration (Type Guards)
+**Learning:** Continuing the integration of the `canvasUtils.ts` architecture, replaced raw string checks (`layer.type === 'text'`) and explicit type casting (`as TextLayer`) with centralized TypeScript type guards (`isTextLayer`, `isImageLayer`, `isShapeLayer`).
+**Action:** By using centralized type guards instead of manual string comparison, we leverage the TypeScript compiler to handle type narrowing natively. This eliminates redundant casting and brittle string-matching bugs, and makes the internal type structure much easier to change in the future.

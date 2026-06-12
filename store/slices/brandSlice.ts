@@ -1,5 +1,7 @@
 import { StateCreator } from 'zustand';
 import { BrandKit, Layer, Artboard } from '../../types';
+import { isTextLayer } from '../../utils/canvasUtils';
+
 
 export interface BrandSlice {
   brandKits: BrandKit[];
@@ -104,7 +106,7 @@ export const createBrandSlice: StateCreator<any, [], [], BrandSlice> = (set, get
         ...artboard,
         backgroundColor: background,
         layers: artboard.layers.map((l: Layer) => {
-          if (l.type === 'text') {
+          if (isTextLayer(l)) {
             return { 
               ...l, 
               color: colorPool[0], 
@@ -131,7 +133,7 @@ export const createBrandSlice: StateCreator<any, [], [], BrandSlice> = (set, get
       artboards: state.artboards.map((artboard: any) => ({
         ...artboard,
         layers: artboard.layers.map((l: any) => {
-          if (l.type === 'text') {
+          if (isTextLayer(l)) {
             const isHeading = l.fontWeight === '700' || l.fontSize > 32;
             return {
               ...l,
