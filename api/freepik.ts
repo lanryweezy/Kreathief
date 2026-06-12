@@ -177,7 +177,20 @@ export default async function handler(req: Request) {
         });
       } else if (action === 'poll') {
         const taskId = url.searchParams.get('taskId');
-        const basePath = url.searchParams.get('basePath') || '/ai/mystic';
+
+        let basePath = url.searchParams.get('basePath') || '/ai/mystic';
+        const allowedPaths = [
+          '/ai/mystic',
+          '/ai/beta/remove-background',
+          '/ai/image-upscaler',
+          '/ai/image-upscaler-precision',
+          '/ai/image-style-transfer',
+          '/ai/image-expand'
+        ];
+
+        if (!allowedPaths.includes(basePath)) {
+          basePath = '/ai/mystic';
+        }
 
         if (!taskId) {
           return new Response(JSON.stringify({ error: 'taskId is required' }), {

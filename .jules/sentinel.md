@@ -85,6 +85,10 @@
 **Learning:** For a system processing user data and authenticating users, establishing an audit trail is critical to trace back "who did what and when."
 **Prevention:** Always log authentication attempts (success and failures) and critical data export/modification events securely (e.g. into `security_logs` table) to maintain an auditable footprint.
 
+## 2026-06-12 - Fix Path Traversal Vulnerability in Freepik API Proxy
+**Vulnerability:** The `api/freepik.ts` serverless edge function constructed a backend API request dynamically by appending user input (`url.searchParams.get('basePath')`) directly to the base URL in the `poll` action. This allowed a potential path traversal vulnerability where an attacker could provide arbitrary paths (like `../../some-other-endpoint`) to interact with unintended endpoints within the Freepik API under the application's authenticated context.
+**Learning:** Avoid path traversal vulnerabilities by never appending untrusted user input directly to URLs or file paths. When dynamically routing requests based on user input, rely on explicit allowlists rather than attempting to sanitize paths.
+**Prevention:** Always strictly validate or allowlist dynamic path segments from user input before constructing or appending them to base URLs or filesystem paths.
 ## 2026-06-12 - Prevent Path Traversal in Freepik API Proxy
 **Vulnerability:** The `api/freepik.ts` endpoint allowed users to supply an arbitrary `basePath` via URL parameters in the `poll` action, which was then directly concatenated into the upstream API URL. This resulted in a path traversal vulnerability that could allow an attacker to make unauthorized requests to any Freepik API endpoint using the server's securely stored API key.
 **Learning:** Dynamically constructing proxy request URLs from user input without validation allows attackers to bypass intended restrictions and access arbitrary endpoints on the target service, effectively turning the proxy into an open gateway for the provided service.
