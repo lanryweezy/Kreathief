@@ -48,17 +48,19 @@ export const getLayerStyle = (layer: Layer, zoom: number = 1): React.CSSProperti
     height: 'height' in layer ? layer.height * zoom : undefined,
     transform: `rotate(${layer.rotation}deg)`,
     opacity: layer.opacity,
-    filter: layer.filters ? buildFilterString(layer.filters) : undefined,
+    // Filters are deliberately excluded here because they often need to be applied to inner elements
+    // rather than the container (which might hold selection handles that shouldn't be blurred)
     mixBlendMode: layer.blendMode as React.CSSProperties['mixBlendMode'],
     pointerEvents: layer.locked ? 'none' : 'auto',
     zIndex: layer.locked ? 49 : 50,
   };
 
   // Add shadow if present
-  if (layer.shadow) {
-    const { color, blur, offsetX, offsetY } = layer.shadow;
-    baseStyle.boxShadow = `${offsetX}px ${offsetY}px ${blur}px ${color}`;
-  }
+  // if (layer.shadow) {
+  //   const { color, blur, offsetX, offsetY } = layer.shadow;
+  //   // Box shadow is also excluded from container styles to prevent double application or rendering bugs
+  //   // baseStyle.boxShadow = `${offsetX}px ${offsetY}px ${blur}px ${color}`;
+  // }
 
   return baseStyle;
 };

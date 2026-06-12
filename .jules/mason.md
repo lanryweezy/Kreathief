@@ -7,7 +7,3 @@
 ## 2026-06-11 - Consolidate duplicate function export
 **Learning:** Found an alias `rgbToCmyk` pointing to `rgbToCMYK` in `utils/colorUtils.ts`. There was a mix of usage in the codebase.
 **Action:** Removed the duplicate alias export and updated `components/ColorPicker.tsx` to use the standard `rgbToCMYK` function directly to improve naming consistency and reduce cognitive load.
-
-## 2026-06-12 - Re-evaluating Dead Code vs. Architecture
-**Learning:** Found a utility file `utils/canvasUtils.ts` containing core domain primitives (`buildFilterString`, `getLayerStyle`, `isTextLayer`) that were fully tested but never integrated. Initially tried to delete it as dead code. However, the correct approach was to realize this was an abandoned but sound architecture.
-**Action:** Don't blindly delete unused code if it represents a strong domain primitive that the rest of the codebase desperately needs (e.g. replacing massive inline template strings with `buildFilterString`). Instead, delete the true duplication (like generic `debounce` functions), keep the core primitives, and integrate them progressively.
