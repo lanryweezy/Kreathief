@@ -1,4 +1,3 @@
-import { log } from "../utils/log";
 export const config = {
   runtime: 'edge',
 };
@@ -22,6 +21,7 @@ export default async function handler(req: Request) {
     }
     lastCleanup = now;
   }
+
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 200,
@@ -52,11 +52,10 @@ export default async function handler(req: Request) {
     rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   }
 
-  const accountId = process.env.VITE_VECTEEZY_ACCOUNT_ID;
-  const secretKey = process.env.VITE_VECTEEZY_SECRET_KEY;
+  const apiKey = process.env.DYNAMIC_MOCKUPS_API_KEY;
 
-  if (!accountId || !secretKey) {
-    return new Response(JSON.stringify({ error: 'Vecteezy API key not configured on server' }), {
+  if (!apiKey) {
+    return new Response(JSON.stringify({ error: 'Dynamic Mockups API key not configured on server' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });
@@ -66,24 +65,30 @@ export default async function handler(req: Request) {
     const url = new URL(req.url);
     const action = url.searchParams.get('action');
 
-    const VECTEEZY_API_URL = 'https://api.vecteezy.com/v2';
+    const BASE_URL = 'https://app.dynamicmockups.com/dashboard-api';
 
-    if (action === 'search') {
-      const query = url.searchParams.get('query') || '';
-      const page = url.searchParams.get('page') || '1';
+    if (action === 'generate' && req.method === 'POST') {
+      let payload;
+      try {
+        payload = await req.json();
+      } catch (err) {
+        return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        });
+      }
 
-      const response = await fetch(
-        `${VECTEEZY_API_URL}/${accountId}/resources?search_term=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&per_page=20`,
-        {
-          headers: {
-            'Authorization': `Bearer ${secretKey}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const response = await fetch(`${BASE_URL}/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify(payload),
+      });
 
       if (!response.ok) {
-        throw new Error('Vecteezy Search failed');
+        throw new Error('Dynamic Mockups Generate failed');
       }
 
       const data = await response.json();
@@ -92,41 +97,31 @@ export default async function handler(req: Request) {
         status: 200,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       });
-    } else if (action === 'download') {
-      const resourceId = url.searchParams.get('resourceId');
-      if (!resourceId) {
-        return new Response(JSON.stringify({ error: 'resourceId is required' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-        });
-      }
-
-      const response = await fetch(
-        `${VECTEEZY_API_URL}/${accountId}/resources/${encodeURIComponent(resourceId)}/download`,
-        {
-          headers: {
-            'Authorization': `Bearer ${secretKey}`,
-          },
-        }
-      );
+    } else if (action === 'list' && req.method === 'GET') {
+      const response = await fetch(`${BASE_URL}/templates`, {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+        },
+      });
 
       if (!response.ok) {
-        throw new Error('Vecteezy Download failed');
+        throw new Error('Dynamic Mockups List failed');
       }
 
       const data = await response.json();
+
       return new Response(JSON.stringify(data), {
         status: 200,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
       });
     }
 
-    return new Response(JSON.stringify({ error: 'Unknown action' }), {
+    return new Response(JSON.stringify({ error: 'Unknown action or method' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });
   } catch (error: any) {
-    log.error('API Route Error', error, { url: req.url });
+    console.error('API Route Error:', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },

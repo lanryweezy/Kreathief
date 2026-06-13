@@ -1,3 +1,4 @@
+import { log } from "../utils/log";
 export const config = {
   runtime: 'edge',
 };
@@ -52,7 +53,7 @@ export default async function handler(req: Request) {
     rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   }
 
-  const freepikKey = process.env.VITE_FREEPIK_API_KEY || process.env.FREEPIK_API_KEY;
+  const freepikKey = process.env.FREEPIK_API_KEY;
 
   if (!freepikKey) {
     return new Response(JSON.stringify({ error: 'Freepik API key not configured on server' }), {
@@ -73,7 +74,7 @@ export default async function handler(req: Request) {
       const page = url.searchParams.get('page') || '1';
 
       const response = await fetch(
-        `${BASE_URL}/resources?locale=en-US&term=${encodeURIComponent(query)}&page=${page}&limit=20&filters[content_type]=${type}`,
+        `${BASE_URL}/resources?locale=en-US&term=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&limit=20&filters[content_type]=${encodeURIComponent(type)}`,
         {
           headers: {
             'x-freepik-api-key': freepikKey,
@@ -98,7 +99,7 @@ export default async function handler(req: Request) {
       const page = url.searchParams.get('page') || '1';
 
       const response = await fetch(
-        `${BASE_URL}/icons?locale=en-US&term=${encodeURIComponent(query)}&page=${page}&limit=50`,
+        `${BASE_URL}/icons?locale=en-US&term=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&limit=50`,
         {
           headers: {
             'x-freepik-api-key': freepikKey,
@@ -128,7 +129,7 @@ export default async function handler(req: Request) {
         });
       }
 
-      const response = await fetch(`${BASE_URL}/resources/${resourceId}/download/${format}`, {
+      const response = await fetch(`${BASE_URL}/resources/${encodeURIComponent(resourceId)}/download/${encodeURIComponent(format)}`, {
         headers: {
           'x-freepik-api-key': freepikKey,
           'Accept-Language': 'en-US',
@@ -177,11 +178,41 @@ export default async function handler(req: Request) {
         });
       } else if (action === 'poll') {
         const taskId = url.searchParams.get('taskId');
-        const basePath = url.searchParams.get('basePath') || '/ai/mystic';
+
+        let basePath = url.searchParams.get('basePath') || '/ai/mystic';
+        const allowedPaths = [
+          '/ai/mystic',
+          '/ai/beta/remove-background',
+          '/ai/image-upscaler',
+          '/ai/image-upscaler-precision',
+          '/ai/image-style-transfer',
+          '/ai/image-expand'
+        ];
+
+        if (!allowedPaths.includes(basePath)) {
+          basePath = '/ai/mystic';
+        }
 
         if (!taskId) {
           return new Response(JSON.stringify({ error: 'taskId is required' }), {
             status: 400,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          });
+        }
+
+        // SSRF / Path Traversal Protection: Validate basePath
+        const allowedBasePaths = [
+          '/ai/mystic',
+          '/ai/beta/remove-background',
+          '/ai/image-upscaler',
+          '/ai/image-upscaler-precision',
+          '/ai/image-style-transfer',
+          '/ai/image-expand'
+        ];
+
+        if (!allowedBasePaths.includes(basePath)) {
+          return new Response(JSON.stringify({ error: 'Invalid basePath' }), {
+            status: 403,
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
           });
         }
@@ -277,7 +308,7 @@ export default async function handler(req: Request) {
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });
   } catch (error: any) {
-    console.error('API Route Error:', error);
+    log.error('API Route Error', error, { url: req.url });
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },

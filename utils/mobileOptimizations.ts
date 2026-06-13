@@ -55,37 +55,6 @@ export const optimizeCanvasForMobile = (canvas: HTMLCanvasElement): void => {
 };
 
 /**
- * Throttle function for mobile scroll/touch events
- */
-export const throttleForMobile = <T extends (...args: any[]) => any>(
-  func: T,
-  limit: number = 16 // ~60fps
-): ((...args: Parameters<T>) => void) => {
-  let inThrottle: boolean;
-  return function(this: any, ...args: Parameters<T>) {
-    if (!inThrottle) {
-      func.apply(this, args);
-      inThrottle = true;
-      setTimeout(() => inThrottle = false, limit);
-    }
-  };
-};
-
-/**
- * Debounce function for mobile input events
- */
-export const debounceForMobile = <T extends (...args: any[]) => any>(
-  func: T,
-  delay: number = 300
-): ((...args: Parameters<T>) => void) => {
-  let timeoutId: NodeJS.Timeout;
-  return function(this: any, ...args: Parameters<T>) {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func.apply(this, args), delay);
-  };
-};
-
-/**
  * Request animation frame with fallback
  */
 export const requestAnimationFramePolyfill = (callback: FrameRequestCallback): number => {

@@ -34,8 +34,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     projectTitle && projectTitle !== 'Untitled Design'
       ? projectTitle.replace(/\s+/g, '-').toLowerCase()
       : currentSize.name
-      ? currentSize.name.replace(/\s+/g, '-').toLowerCase()
-      : 'design'
+        ? currentSize.name.replace(/\s+/g, '-').toLowerCase()
+        : 'design'
   );
 
   // CMYK Print export options
@@ -48,22 +48,28 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
   // Gamut Validation for Print
   const outOfGamutCount = React.useMemo(() => {
-    if (format !== 'pdf' || !isPrintMode) return 0;
-    const activeArtboard = artboards.find(a => a.id === activeArtboardId);
-    if (!activeArtboard) return 0;
-    // @ts-ignore - color may exist on layer
-    return activeArtboard.layers.filter(l => l.color && !isWithinCMYKGamut(l.color)).length;
+    if (format !== 'pdf' || !isPrintMode) {
+      return 0;
+    }
+    const activeArtboard = artboards.find((a) => a.id === activeArtboardId);
+    if (!activeArtboard) {
+      return 0;
+    }
+    // @ts-ignore - necessary due to canvas library typings - color may exist on layer
+    return activeArtboard.layers.filter((l) => l.color && !isWithinCMYKGamut(l.color)).length;
   }, [format, isPrintMode, artboards, activeArtboardId]);
 
   const handleSnapAllToSafe = () => {
-    const activeArtboard = artboards.find(a => a.id === activeArtboardId);
-    if (!activeArtboard) return;
+    const activeArtboard = artboards.find((a) => a.id === activeArtboardId);
+    if (!activeArtboard) {
+      return;
+    }
 
     const updates: Record<string, any> = {};
-    activeArtboard.layers.forEach(l => {
-      // @ts-ignore - color may exist on layer
+    activeArtboard.layers.forEach((l) => {
+      // @ts-ignore - necessary due to canvas library typings - color may exist on layer
       if (l.color && !isWithinCMYKGamut(l.color)) {
-        // @ts-ignore
+        // @ts-ignore - necessary due to canvas library typings
         updates[l.id] = { color: getClosestCMYKSafeColor(l.color) };
       }
     });
@@ -76,9 +82,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
   // Format-aware quality reset for #20
   React.useEffect(() => {
-    if (format === 'webp') {setQuality(0.8);}
-    else if (format === 'jpeg') {setQuality(0.9);}
-    else {setQuality(1);}
+    if (format === 'webp') {
+      setQuality(0.8);
+    } else if (format === 'jpeg') {
+      setQuality(0.9);
+    } else {
+      setQuality(1);
+    }
   }, [format]);
 
   const presets = [
@@ -108,7 +118,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         : { width: currentSize.width * scale, height: currentSize.height * scale };
 
       setExportStage('Rendering design...');
-      
+
       // Handle print mode PDF export separately
       if (format === 'pdf' && isPrintMode) {
         // For print mode, we need to get the canvas data URL first
@@ -120,7 +130,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       }
 
       // Track once removed duplicate call
-      analyticsService.trackExport(format, quality, { 
+      analyticsService.trackExport(format, quality, {
         printMode: isPrintMode,
         colorProfile: isPrintMode ? colorProfile : undefined,
         bleed: isPrintMode ? bleed : undefined,
@@ -129,9 +139,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
       setExportStage('Complete!');
       addToast(
-        isPrintMode 
-          ? 'Print-ready PDF exported with CMYK profile!' 
-          : `Exported as ${format.toUpperCase()}!`,
+        isPrintMode ? 'Print-ready PDF exported with CMYK profile!' : `Exported as ${format.toUpperCase()}!`,
         'success'
       );
       setTimeout(() => onClose(), 300);
@@ -157,7 +165,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     setIsExporting(true);
     let successCount = 0;
     const failedArtboards: string[] = [];
-    
+
     try {
       for (let i = 0; i < artboards.length; i++) {
         const ab = artboards[i];
@@ -176,21 +184,25 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
           // For print PDF, we need to call the print export function
           // This would require passing the canvas data URL to exportToPrintPDF
           // For now, export as regular PDF with _print suffix
-          await onExport(format, quality, 
-            { width: ab.width || currentSize.width, height: ab.height || currentSize.height }, 
-            false, 
-            `${safeFilename}_print`, 
+          await onExport(
+            format,
+            quality,
+            { width: ab.width || currentSize.width, height: ab.height || currentSize.height },
+            false,
+            `${safeFilename}_print`,
             ab.layers
           );
         } else {
-          await onExport(format, quality, 
-            { width: ab.width || currentSize.width, height: ab.height || currentSize.height }, 
-            transparentBg && format === 'png', 
-            safeFilename, 
+          await onExport(
+            format,
+            quality,
+            { width: ab.width || currentSize.width, height: ab.height || currentSize.height },
+            transparentBg && format === 'png',
+            safeFilename,
             ab.layers
           );
         }
-        
+
         analyticsService.trackExport(format, quality, {
           batchExport: true,
           printMode: isPrintMode,
@@ -202,17 +214,17 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       // Restore original active artboard
       useStore.getState().setActiveArtboardId(activeArtboardId);
 
-      const message = isPrintMode 
+      const message = isPrintMode
         ? `${successCount} print-ready PDF${successCount !== 1 ? 's' : ''} exported!`
         : `${successCount} artboard${successCount !== 1 ? 's' : ''} exported as ${format.toUpperCase()}!`;
-      
+
       setExportStage(message);
       addToast(message, 'success');
-      
+
       if (failedArtboards.length > 0) {
         addToast(`${failedArtboards.length} failed: ${failedArtboards.join(', ')}`, 'warning');
       }
-      
+
       setTimeout(() => onClose(), 1000);
     } catch (e: any) {
       log.error('[ExportModal] Export All failed', e);
@@ -232,7 +244,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     setIsExporting(true);
     setExportStage(`Exporting ${selectedLayerIds.length} layer(s)...`);
     try {
-      await onExport(format, quality, { width: currentSize.width, height: currentSize.height }, transparentBg && format === 'png', `${filename}-selection`);
+      await onExport(
+        format,
+        quality,
+        { width: currentSize.width, height: currentSize.height },
+        transparentBg && format === 'png',
+        `${filename}-selection`
+      );
       addToast(`Selection exported as ${format.toUpperCase()}!`, 'success');
       setTimeout(() => onClose(), 300);
     } catch (e: any) {
@@ -288,7 +306,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
           data-testid="close-export-modal"
           aria-label="Close modal"
         >
-          <div className="text-2xl leading-none" aria-hidden="true">&times;</div>
+          <div className="text-2xl leading-none" aria-hidden="true">
+            &times;
+          </div>
         </button>
 
         {/* Info/Preview Side */}
@@ -297,13 +317,20 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
           <div className="w-16 h-16 bg-[#7d2ae8] rounded-2xl flex items-center justify-center mb-8 shadow-2xl shadow-purple-900/40 relative z-10">
             <Icons.Download className="w-8 h-8 text-white" />
           </div>
-          <h2 id="export-modal-title" className="text-2xl font-black text-white mb-4 tracking-tighter italic relative z-10 uppercase">Export Design</h2>
+          <h2
+            id="export-modal-title"
+            className="text-2xl font-black text-white mb-4 tracking-tighter italic relative z-10 uppercase"
+          >
+            Export Design
+          </h2>
           <p className="text-gray-400 text-[11px] leading-relaxed mb-10 font-medium relative z-10">
             Download your creation in professional formats. Choose a preset or maintain your native canvas coordinates.
           </p>
 
           <div className="mt-auto p-6 bg-white/5 border border-white/5 rounded-2xl relative z-10 backdrop-blur-md">
-            <h4 className="text-[10px] font-black text-purple-400 uppercase tracking-[0.2em] mb-2">Neural Optimization</h4>
+            <h4 className="text-[10px] font-black text-purple-400 uppercase tracking-[0.2em] mb-2">
+              Neural Optimization
+            </h4>
             <p className="text-[10px] text-gray-500 font-medium leading-relaxed">
               Our export engine automatically optimizes PNG buffers for maximum compatibility with Adobe Creative Cloud.
             </p>
@@ -311,7 +338,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         </div>
 
         {/* Controls Side */}
-        <div data-testid="export-modal" className="flex-1 p-10 overflow-y-auto max-h-[80vh] custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+        <div
+          data-testid="export-modal"
+          className="flex-1 p-10 overflow-y-auto max-h-[80vh] custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"
+        >
           <div className="space-y-10">
             {/* Format Selection */}
             <div>
@@ -338,7 +368,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                     <Icons.Printer className="w-4 h-4 text-[#7d2ae8]" />
                     Professional Print (CMYK)
                     {(!user || user.plan === 'free') && (
-                      <span className="bg-yellow-500/20 text-yellow-500 text-[9px] px-1.5 py-0.5 rounded font-black tracking-widest uppercase">PRO</span>
+                      <span className="bg-yellow-500/20 text-yellow-500 text-[9px] px-1.5 py-0.5 rounded font-black tracking-widest uppercase">
+                        PRO
+                      </span>
                     )}
                   </h4>
                   <p className="text-[10px] text-gray-500 italic">True ICC CMYK conversion with bleed & crop marks</p>
@@ -370,19 +402,20 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 {outOfGamutCount > 0 && (
                   <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 flex flex-col gap-2">
                     <div className="flex items-start gap-2">
-                       <Icons.AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                       <div className="flex-1">
-                          <p className="text-[10px] text-amber-200 font-bold uppercase tracking-tight">Gamut Warning</p>
-                          <p className="text-[9px] text-amber-500/70 leading-relaxed font-medium">
-                             {outOfGamutCount} layer{outOfGamutCount > 1 ? 's' : ''} contain colors that cannot be reproduced in print.
-                          </p>
-                       </div>
+                      <Icons.AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-[10px] text-amber-200 font-bold uppercase tracking-tight">Gamut Warning</p>
+                        <p className="text-[9px] text-amber-500/70 leading-relaxed font-medium">
+                          {outOfGamutCount} layer{outOfGamutCount > 1 ? 's' : ''} contain colors that cannot be
+                          reproduced in print.
+                        </p>
+                      </div>
                     </div>
-                    <button 
+                    <button
                       onClick={handleSnapAllToSafe}
                       className="w-full py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-md text-[9px] font-black uppercase tracking-widest transition-all"
                     >
-                       Auto-Fix Gamut Issues
+                      Auto-Fix Gamut Issues
                     </button>
                   </div>
                 )}
@@ -391,26 +424,29 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 {outOfGamutCount > 0 && (
                   <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 flex flex-col gap-2">
                     <div className="flex items-start gap-2">
-                       <Icons.AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                       <div className="flex-1">
-                          <p className="text-[10px] text-amber-200 font-bold uppercase tracking-tight">Gamut Warning</p>
-                          <p className="text-[9px] text-amber-500/70 leading-relaxed font-medium">
-                             {outOfGamutCount} layer{outOfGamutCount > 1 ? 's' : ''} contain colors that cannot be reproduced in print.
-                          </p>
-                       </div>
+                      <Icons.AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-[10px] text-amber-200 font-bold uppercase tracking-tight">Gamut Warning</p>
+                        <p className="text-[9px] text-amber-500/70 leading-relaxed font-medium">
+                          {outOfGamutCount} layer{outOfGamutCount > 1 ? 's' : ''} contain colors that cannot be
+                          reproduced in print.
+                        </p>
+                      </div>
                     </div>
-                    <button 
+                    <button
                       onClick={handleSnapAllToSafe}
                       className="w-full py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-md text-[9px] font-black uppercase tracking-widest transition-all"
                     >
-                       Auto-Fix Gamut Issues
+                      Auto-Fix Gamut Issues
                     </button>
                   </div>
                 )}
 
                 {/* Color Profile */}
                 <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">Color Profile</label>
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">
+                    Color Profile
+                  </label>
                   <select
                     value={colorProfile}
                     onChange={(e) => setColorProfile(e.target.value as ColorProfile)}
@@ -427,10 +463,18 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 {/* Bleed */}
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Bleed</label>
-                    <span className="text-xs text-[#7d2ae8] font-mono">{bleed}pt ({(bleed / 72).toFixed(2)}&quot;)</span>
+                    <label
+                      htmlFor="export-bleed"
+                      className="text-[10px] font-bold text-gray-400 uppercase tracking-wider"
+                    >
+                      Bleed
+                    </label>
+                    <span className="text-xs text-[#7d2ae8] font-mono">
+                      {bleed}pt ({(bleed / 72).toFixed(2)}&quot;)
+                    </span>
                   </div>
                   <input
+                    id="export-bleed"
                     type="range"
                     min="0"
                     max="36"
@@ -467,10 +511,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
             {['jpeg', 'webp'].includes(format) ? (
               <div className="animate-fade-in">
                 <div className="flex justify-between items-center mb-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Quality</label>
+                  <label htmlFor="export-quality" className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    Quality
+                  </label>
                   <span className="text-xs font-medium text-[#7d2ae8]">{Math.round(quality * 100)}%</span>
                 </div>
                 <input
+                  id="export-quality"
                   data-testid="export-quality-slider"
                   type="range"
                   min="1"
@@ -511,9 +558,15 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
             {/* Custom Filename */}
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 block">Filename</label>
+              <label
+                htmlFor="export-filename"
+                className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 block"
+              >
+                Filename
+              </label>
               <div className="flex items-center gap-2">
                 <input
+                  id="export-filename"
                   type="text"
                   value={filename}
                   onChange={(e) => setFilename(e.target.value)}
@@ -527,7 +580,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
             {/* Scale Multiplier */}
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 block">Export Scale</label>
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 block">
+                Export Scale
+              </label>
               <div className="grid grid-cols-3 gap-2">
                 {[1, 2, 3].map((scale) => (
                   <button
@@ -588,7 +643,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 onClick={handleExportSelection}
                 disabled={isExporting || !selectedLayerIds || selectedLayerIds.length === 0}
                 className="py-2.5 rounded-xl border border-gray-700 bg-[#252627] text-xs font-bold text-gray-300 hover:bg-[#2e2e2e] hover:border-gray-500 transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
-                title={selectedLayerIds?.length ? `Export ${selectedLayerIds.length} selected layer(s)` : 'Select layers on canvas first'}
+                title={
+                  selectedLayerIds?.length
+                    ? `Export ${selectedLayerIds.length} selected layer(s)`
+                    : 'Select layers on canvas first'
+                }
               >
                 <Icons.Scissors className="w-3.5 h-3.5" />
                 <div className="flex flex-col items-start leading-tight">

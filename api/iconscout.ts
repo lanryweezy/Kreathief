@@ -1,3 +1,4 @@
+import { log } from "../utils/log";
 export const config = {
   runtime: 'edge',
 };
@@ -52,8 +53,8 @@ export default async function handler(req: Request) {
     rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   }
 
-  const clientId = process.env.VITE_ICONSCOUT_CLIENT_ID || process.env.ICONSCOUT_CLIENT_ID;
-  const secretKey = process.env.VITE_ICONSCOUT_SECRET_KEY || process.env.ICONSCOUT_SECRET_KEY;
+  const clientId = process.env.ICONSCOUT_CLIENT_ID;
+  const secretKey = process.env.ICONSCOUT_SECRET_KEY;
 
   if (!clientId || !secretKey) {
     return new Response(JSON.stringify({ error: 'IconScout credentials not configured on server' }), {
@@ -74,7 +75,7 @@ export default async function handler(req: Request) {
       const page = url.searchParams.get('page') || '1';
 
       const response = await fetch(
-        `${BASE_URL}/search?query=${encodeURIComponent(query)}&product_type=${type}&page=${page}&per_page=20`,
+        `${BASE_URL}/search?query=${encodeURIComponent(query)}&product_type=${encodeURIComponent(type)}&page=${encodeURIComponent(page)}&per_page=20`,
         {
           headers: {
             'Client-ID': clientId,
@@ -103,7 +104,7 @@ export default async function handler(req: Request) {
         });
       }
 
-      const response = await fetch(`${BASE_URL}/items/${uuid}`, {
+      const response = await fetch(`${BASE_URL}/items/${encodeURIComponent(uuid)}`, {
         headers: {
           'Client-ID': clientId,
           'Client-Secret': secretKey,
@@ -127,7 +128,7 @@ export default async function handler(req: Request) {
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });
   } catch (error: any) {
-    console.error('API Route Error:', error);
+    log.error('API Route Error', error, { url: req.url });
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },

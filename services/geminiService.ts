@@ -407,6 +407,30 @@ export const analyzeDesign = async (base64Image: string, query: string): Promise
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
       contents: [{ role: 'user', parts }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.OBJECT,
+          properties: {
+            scores: {
+              type: SchemaType.ARRAY,
+              items: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  category: { type: SchemaType.STRING },
+                  score: { type: SchemaType.NUMBER },
+                  feedback: { type: SchemaType.STRING },
+                },
+              },
+            },
+            overall: { type: SchemaType.NUMBER },
+            suggestions: {
+              type: SchemaType.ARRAY,
+              items: { type: SchemaType.STRING },
+            },
+          },
+        },
+      },
     });
 
     return data.text || "I couldn't analyze the design.";
@@ -666,24 +690,27 @@ export const generatePaletteFromImage = async (base64Image: string): Promise<str
   try {
     const { data: b64Data, mimeType } = cleanBase64(base64Image);
     const prompt =
-      'Analyze this image/logo and extract the 5 most representative brand colors as HEX codes. Return ONLY a valid JSON array of strings (e.g., ["#ffffff", "#000000"]). Do not include markdown formatting.';
+      'Analyze this image/logo and extract the 5 most representative brand colors as HEX codes. Return ONLY a valid JSON array of strings (e.g., ["#ffffff", "#000000"]).';
 
     const data = await callBackendGeminiAPI({
       modelName: MODEL_FAST,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.STRING,
+            description: 'Hex color code',
+          },
+        },
+      },
       contents: [
         { role: 'user', parts: [{ text: prompt }, { inlineData: { data: b64Data, mimeType } }] }
       ]
     });
     
-    const text = data.text;
-    if (!text) {return [];}
-
-    // Clean up response to ensure valid JSON
-    const jsonMatch = text.match(/\[.*\]/s);
-    if (jsonMatch) {
-      return safeParseJSON<string[]>(jsonMatch[0], []);
-    }
-    return [];
+    // Astra: Gemini strict JSON output schema prevents malformed regex parsing bugs
+    return safeParseJSON<string[]>(data.text || '[]', []);
   } catch (error) {
     console.error('Palette extraction failed', error);
     return [];

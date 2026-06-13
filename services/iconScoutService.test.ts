@@ -122,8 +122,6 @@ describe('IconScout Service', () => {
         expect.any(String),
         expect.objectContaining({
           headers: {
-            'Client-ID': 'test_client_id',
-            'Client-Secret': 'test_secret_key',
             'Accept': 'application/json',
           },
         })
@@ -149,7 +147,7 @@ describe('IconScout Service', () => {
 
       expect(result).toEqual(mockDetails);
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://api.iconscout.com/v3/items/test-uuid',
+        expect.stringContaining('action=details&uuid=test-uuid'),
         expect.any(Object)
       );
     });
