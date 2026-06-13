@@ -2,8 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Icons } from '../../constants';
 import { IconButton } from './ToolbarShared';
 import { Layer } from '../../types';
-import { isTextLayer } from '../utils/canvasUtils';
-
 
 interface MaskToolsProps {
   layer: Layer;
@@ -35,7 +33,7 @@ export const MaskTools = React.memo(
         reader.onload = (event) => {
           const result = event.target?.result as string;
           // For text layers, use imageFill; for shapes, use both backgroundImage and imageFill
-          if (isTextLayer(layer)) {
+          if (layer.type === 'text') {
             onUpdateLayer({
               imageFill: {
                 src: result,
@@ -46,7 +44,7 @@ export const MaskTools = React.memo(
                 opacity: 1,
               },
             });
-          } else if (!isImageLayer(layer)) {
+          } else if (layer.type !== 'image') {
             // For shapes and other non-image layers, set both backgroundImage and imageFill
             onUpdateLayer({
               backgroundImage: result,
@@ -80,12 +78,12 @@ export const MaskTools = React.memo(
       onUpdateLayer({ backgroundScale: scale });
     };
 
-    const hasImageFill = isTextLayer(layer) ? !!(layer as any).imageFill : !!(layer as any).backgroundImage || !!(layer as any).imageFill;
+    const hasImageFill = layer.type === 'text' ? !!(layer as any).imageFill : !!(layer as any).backgroundImage || !!(layer as any).imageFill;
 
     return (
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-2">
-          <label className="cursor-pointer" title={isTextLayer(layer) ? 'Add image to text' : 'Add image to shape'}>
+          <label className="cursor-pointer" title={layer.type === 'text' ? 'Add image to text' : 'Add image to shape'}>
             <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
             <div
               className={`p-1.5 rounded-lg border border-dashed transition-all ${hasImageFill ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white shadow-lg shadow-[#7d2ae8]/30' : 'bg-black/20 border-white/20 text-gray-400 hover:border-[#7d2ae8]/50 hover:text-white'}`}
@@ -102,7 +100,7 @@ export const MaskTools = React.memo(
 
               {showSettings && (
                 <div className="absolute top-full left-0 mt-3 w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-4 z-50 animate-fadeIn space-y-4 backdrop-blur-xl max-h-[70vh] overflow-y-auto custom-scrollbar">
-                  {isTextLayer(layer) ? (
+                  {layer.type === 'text' ? (
                     // Text layer imageFill settings
                     <div className="space-y-3">
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">

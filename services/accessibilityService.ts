@@ -1,7 +1,5 @@
 import { Artboard, TextLayer, ImageLayer } from '../types';
 import { getContrastRatio } from '../utils/colorUtils';
-import { isTextLayer, isImageLayer } from '../utils/canvasUtils';
-
 
 export interface AccessibilityIssue {
   id: string;
@@ -31,9 +29,9 @@ export const runAccessibilityAudit = (artboard: Artboard): AccessibilityAuditRes
     if (!layer.visible) return;
 
     // 1. Check Contrast for Text
-    if (isTextLayer(layer)) {
+    if (layer.type === 'text') {
       totalChecks++;
-      const textLayer = layer ;
+      const textLayer = layer as TextLayer;
       const ratio = getContrastRatio(textLayer.color, bg);
       
       // WCAG AA: 4.5:1 for normal text, 3:1 for large text
@@ -72,9 +70,9 @@ export const runAccessibilityAudit = (artboard: Artboard): AccessibilityAuditRes
     }
 
     // 3. Check Alt Text for Images
-    if (isImageLayer(layer)) {
+    if (layer.type === 'image') {
       totalChecks++;
-      const imgLayer = layer ;
+      const imgLayer = layer as ImageLayer;
       if (!imgLayer.altText || imgLayer.altText.trim() === '') {
         issues.push({
           id: `alt_text_${layer.id}`,

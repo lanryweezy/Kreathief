@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { Icons } from '../constants';
 import { Project } from '../types';
-import { isTextLayer, isImageLayer } from '../utils/canvasUtils';
-
 
 interface CommunityTemplatesProps {
   onOpenProject: (project: Project) => void;
@@ -425,7 +423,7 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
                         />
                       );
                     }
-                    if (isTextLayer(l)) {
+                    if (l.type === 'text') {
                       return (
                         <div
                           key={l.id || idx}
@@ -480,7 +478,7 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
                         </svg>
                       );
                     }
-                    if (isImageLayer(l)) {
+                    if (l.type === 'image') {
                       return (
                         <img
                           key={l.id || idx}

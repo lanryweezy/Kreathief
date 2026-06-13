@@ -4,8 +4,6 @@ import * as geminiService from '../../../services/geminiService';
 import { Layer, TextLayer, ShapeLayer, Artboard, ImageLayer } from '../../../types';
 import { LayerSlice } from './baseSlice';
 import { DEFAULT_LAYER_FILTERS } from './utils';
-import { isTextLayer } from '../../utils/canvasUtils';
-
 
 export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (set, get) => ({
   addArtboard: (name = 'Artboard', width = 1080, height = 1080) => {
@@ -110,8 +108,8 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
       if ((cloned as any).width !== undefined) {(cloned as any).width = Math.max(1, lw);}
       if ((cloned as any).height !== undefined) {(cloned as any).height = Math.max(1, lh);}
       
-      if (isTextLayer(cloned)) {
-        const textLayer = cloned ;
+      if (cloned.type === 'text') {
+        const textLayer = cloned as TextLayer;
         const scale = Math.min(newWidth / oldWidth, newHeight / oldHeight);
         textLayer.fontSize *= scale;
       }

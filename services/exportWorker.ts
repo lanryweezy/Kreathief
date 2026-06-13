@@ -1,4 +1,3 @@
-import { isTextLayer, isImageLayer, isShapeLayer } from '../utils/canvasUtils';
 /**
  * exportWorker.ts
  * Background worker for heavy canvas rendering and export
@@ -160,7 +159,7 @@ self.onmessage = async (e: MessageEvent) => {
         const centerX = layer.x + (layer.width || 0) / 2;
         let centerY = layer.y + (layer.height || layer.fontSize * 1.2 || 0) / 2;
 
-        if (isTextLayer(layer)) {
+        if (layer.type === 'text') {
           centerY = layer.y + (layer.fontSize || 40) / 2;
         }
 
@@ -176,7 +175,7 @@ self.onmessage = async (e: MessageEvent) => {
           }
         }
 
-        if (isImageLayer(layer)) {
+        if (layer.type === 'image') {
           try {
             const response = await fetch(layer.src);
             const blob = await response.blob();
@@ -201,7 +200,7 @@ self.onmessage = async (e: MessageEvent) => {
           } catch (err) {
             console.warn('Worker: Failed to load image layer', err);
           }
-        } else if (isTextLayer(layer)) {
+        } else if (layer.type === 'text') {
           // @ts-ignore - ignore type mismatch
           ctx.font = `${layer.fontWeight || 'normal'} ${layer.fontSize || 16}px sans-serif`;
           ctx.fillStyle = layer.color || '#000000';

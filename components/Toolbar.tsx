@@ -17,8 +17,6 @@ import { ShapeTools } from './toolbar/ShapeTools';
 import { ImageTools } from './toolbar/ImageTools';
 import { CommonActions } from './toolbar/CommonActions';
 import { AutoLayoutTools } from './toolbar/AutoLayoutTools';
-import { isTextLayer, isImageLayer } from '../utils/canvasUtils';
-
 
 interface ToolbarProps {
   uploadedImage: string | null;
@@ -102,7 +100,7 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
     setShowRewriteTones(false);
     setIsProcessing(true);
     try {
-      const newText = await geminiService.generateText((selectedLayer ).text, instruction);
+      const newText = await geminiService.generateText((selectedLayer as TextLayer).text, instruction);
       updateLayer(id, { text: newText });
     } catch (error) {
       log.error('[Toolbar] Text rewrite failed', error, { layerId: id });
@@ -157,9 +155,9 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
                     documentColors={documentColors}
                   />
                 )}
-                {isTextLayer(selectedLayer) && (
+                {selectedLayer.type === 'text' && (
                   <TextTools
-                    layer={selectedLayer }
+                    layer={selectedLayer as TextLayer}
                     onUpdateTextLayer={(id, changes) => updateLayer(id, changes)}
                     documentColors={documentColors}
                     onMagicWrite={() => {}}
@@ -175,14 +173,14 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
                     setShowGlyphs={setShowGlyphs}
                   />
                 )}
-                {!isTextLayer(selectedLayer) && !isImageLayer(selectedLayer) && (
+                {selectedLayer.type !== 'text' && selectedLayer.type !== 'image' && (
                   <ShapeTools
                     layer={selectedLayer as any}
                     handleUpdateLayer={handleUpdateLayer}
                     documentColors={documentColors}
                   />
                 )}
-                {isImageLayer(selectedLayer) && (
+                {selectedLayer.type === 'image' && (
                   <ImageTools
                     layer={selectedLayer as any}
                     isPro={true}

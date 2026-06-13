@@ -8,8 +8,6 @@ import { Layer, TextLayer, ShapeLayer, ImageLayer, AnimationSettings } from '../
 import { ImageLayerItem, ShapeLayerItem, TextLayerItem, AdjustmentLayerItem } from './canvas/LayerItems';
 import { useLayerMask, useProcessedImage } from '../hooks/useLayerWorker';
 import { Icons } from '../constants';
-import { isTextLayer, isImageLayer } from '../utils/canvasUtils';
-
 
 // Resilience: Layer-level Error Boundary to isolate rendering failures
 class LayerErrorBoundary extends React.Component<{ layerId: string; children: React.ReactNode }, { hasError: boolean }> {
@@ -100,7 +98,7 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
       null;
 
     const { maskPath } = useLayerMask(effectiveMaskLayer);
-    const { processedUrl, isProcessing: isFiltering } = useProcessedImage(isImageLayer(l) ? (l ) : null);
+    const { processedUrl, isProcessing: isFiltering } = useProcessedImage(l.type === 'image' ? (l as ImageLayer) : null);
     
     const isSelected = selectedLayerId === l.id || (selectedLayerIds || []).includes(l.id);
 
@@ -127,7 +125,7 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
     };
 
     const renderItem = () => {
-      if (isImageLayer(l)) {
+      if (l.type === 'image') {
         return (
           <div className="relative h-full w-full">
             {isFiltering && (
@@ -137,7 +135,7 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
             )}
             <ImageLayerItem
               ref={(el) => setLayerRef(l.id, el)}
-              layer={l }
+              layer={l as ImageLayer}
               {...commonProps}
               optimizedSrc={processedUrl}
             />
@@ -145,11 +143,11 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
         );
       }
 
-      if (isTextLayer(l)) {
+      if (l.type === 'text') {
         return (
           <TextLayerItem
             ref={(el) => setLayerRef(l.id, el)}
-            layer={l }
+            layer={l as TextLayer}
             {...commonProps}
             onDoubleClick={handleTextDoubleClick as any}
             isEditing={editingTextId === l.id}

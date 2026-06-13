@@ -8,8 +8,6 @@ import { CreateProjectModal } from './modals/CreateProjectModal';
 import { useStore } from '../store/useStore';
 import CommunityTemplates from './CommunityTemplates';
 import { EmptyState } from './EmptyState';
-import { isTextLayer, isImageLayer } from '../utils/canvasUtils';
-
 
 interface DashboardProps {
   user: User;
@@ -337,7 +335,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                                   />
                                 );
                               }
-                              if (isTextLayer(l)) {
+                              if (l.type === 'text') {
                                 return (
                                   <div
                                     key={l.id || idx}
@@ -392,7 +390,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                                   </svg>
                                 );
                               }
-                              if (isImageLayer(l)) {
+                              if (l.type === 'image') {
                                 return (
                                   <img
                                     key={l.id || idx}
@@ -543,7 +541,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                                   />
                                 );
                               }
-                              if (isTextLayer(l)) {
+                              if (l.type === 'text') {
                                 return (
                                   <div
                                     key={l.id || idx}
@@ -598,7 +596,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                                   </svg>
                                 );
                               }
-                              if (isImageLayer(l)) {
+                              if (l.type === 'image') {
                                 return (
                                   <img
                                     key={l.id || idx}

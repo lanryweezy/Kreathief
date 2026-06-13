@@ -10,8 +10,6 @@ import { getAIErrorMessage } from '../utils/errorMessages';
 import { log } from '../utils/log';
 import { debounce } from '../utils/debounce';
 import { v4 as uuidv4 } from 'uuid';
-import { isTextLayer } from '../utils/canvasUtils';
-
 
 const DEFAULT_FILTERS: CanvasFilters = {
   brightness: 100, contrast: 100, saturation: 100,
@@ -123,7 +121,7 @@ export const useEditorLogic = (initialProject?: Project) => {
   // Font Auto-Loader
   const lastFontsRef = useRef<string>('');
   useEffect(() => {
-    const textLayers = layers.filter((l): l is TextLayer => isTextLayer(l));
+    const textLayers = layers.filter((l) => l.type === 'text') as TextLayer[];
     const uniqueFonts = Array.from(new Set(textLayers.map((l) => l.fontFamily))).sort();
     const fontsKey = uniqueFonts.join(',');
     if (fontsKey !== lastFontsRef.current && uniqueFonts.length > 0) {
@@ -137,10 +135,10 @@ export const useEditorLogic = (initialProject?: Project) => {
     const colors = new Set<string>();
     colors.add(canvasBackgroundColor);
     layers.forEach((l) => {
-      if (isTextLayer(l)) {
-        const tl = l ;
+      if (l.type === 'text') {
+        const tl = l as TextLayer;
         if (tl.color) {colors.add(tl.color);}
-      } else if (!isImageLayer(l)) {
+      } else if (l.type !== 'image') {
         const sl = l as ShapeLayer;
         if (sl.color) {colors.add(sl.color);}
       }
@@ -280,7 +278,7 @@ export const useEditorLogic = (initialProject?: Project) => {
   };
 
   const handleLayerDoubleClick = useCallback((layer: any) => {
-    if (isTextLayer(layer)) {
+    if (layer.type === 'text') {
       window.dispatchEvent(new CustomEvent('editor-edit-text', { detail: { layerId: layer.id } }));
     } else if (['rectangle', 'circle', 'path', 'star'].includes(layer.type)) {
       setEditingPathId(layer.id);

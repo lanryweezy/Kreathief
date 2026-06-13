@@ -7,7 +7,7 @@ import React from 'react';
 import { Layer, TextLayer, ShapeLayer, ImageLayer, AnimationSettings, ResizeHandle } from '../../types';
 import { getLayerClipPath, getAnimationStyle } from '../../utils/layerRendering';
 import { buildVariableStrokeOutline, profileWidthFn } from '../../utils/variableStroke';
-import { buildFilterString, getLayerStyle } from '../../utils/canvasUtils';
+import { buildFilterString, getLayerStyle } from '../../utils/layers';
 import { SelectionHandles } from './SelectionHandles';
 import { BrushStrokeRenderer } from '../../services/brushEngine';
 

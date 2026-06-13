@@ -8,10 +8,10 @@ import {
   cloneLayer,
   getLayersBoundingBox,
   isValidLayer,
-} from '../../../utils/canvasUtils';
+} from '../../../utils/layers';
 import { CanvasFilters } from '../../../types';
 
-describe('canvasUtils', () => {
+describe('layers module', () => {
   describe('buildFilterString', () => {
     it('should return none when all filters are default', () => {
       const filters: CanvasFilters = {

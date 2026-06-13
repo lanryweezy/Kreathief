@@ -4,8 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { resolveConstraints, resolveSemanticConstraints } from '../utils/layoutUtils';
 import { callBackendGeminiAPI } from './geminiService';
 import { safeParseJSON } from '../utils/errorHandling';
-import { isTextLayer } from '../utils/canvasUtils';
-
 
 export interface AgentVariant {
   id: string;
@@ -112,12 +110,12 @@ Ensure perfect visual composition and contrast.`;
           rotation: 0,
         };
 
-        if (isTextLayer(l)) {
+        if (l.type === 'text') {
           return {
             ...base,
             type: 'text',
             fontFamily: 'Inter',
-          } ;
+          } as TextLayer;
         } else {
           return {
             ...base,
@@ -257,8 +255,8 @@ You MUST return the identical schema structure for variants but with improved va
       x: l.x,
       y: l.y,
       color: (l as ShapeLayer | TextLayer).color,
-      text: (l ).text,
-      fontSize: (l ).fontSize,
+      text: (l as TextLayer).text,
+      fontSize: (l as TextLayer).fontSize,
       width: l.width,
       height: l.height,
     })),
@@ -320,7 +318,7 @@ Only return an array of objects containing { id, score, reasoning }.`;
   const simplifiedInput = variants.map((v) => ({
     id: v.id,
     themeIdea: v.themeIdea,
-    layersSummary: v.layers.map((l: any) => ({ type: l.type, x: l.x, y: l.y, text: (l ).text })),
+    layersSummary: v.layers.map((l: any) => ({ type: l.type, x: l.x, y: l.y, text: (l as TextLayer).text })),
   }));
 
   const data = await callBackendGeminiAPI({
