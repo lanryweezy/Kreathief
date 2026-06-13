@@ -17,3 +17,8 @@
 
 **Learning:** The Third-party proxy API routes (`api/freepik.ts`, `api/iconscout.ts`, `api/streamline.ts`, `api/unsplash.ts`, `api/vecteezy.ts`) caught errors using a plain `console.error('API Route Error:', error)` that omitted context about the specific query URL failing, preventing proper root-cause analysis during production failures.
 **Action:** Replaced these unstructured `console.error` calls with `log.error('API Route Error', error, { url: req.url });`, passing the `req.url` to the logging context payload to illuminate which endpoint queries are causing server faults.
+
+## 2026-06-13 - Replaced unstructured console errors across components
+
+**Learning:** Found widespread use of `console.error` in various components (`CommandPalette.tsx`, `DesignSuggestions.tsx`, `GlyphPalette.tsx`, `TexturesPanel.tsx`, `DrawPanel.tsx`, `PaletteGenerator.tsx`, `Editor.tsx`, `DesignQualityScorer.tsx`, `SmartContentGenerator.tsx`, `AIAssistant.tsx`, `CanvasLayerItemWrapper.tsx`, `ErrorBoundary.tsx`). This drops critical context (like `error` details and relevant states) during failures, making production debugging difficult.
+**Action:** Replaced unstructured console logging with `log.error`, ensuring that all relevant local context variables are explicitly passed in the logging payload.
