@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import * as geminiService from '../services/geminiService';
 import { Icons } from '../constants';
+import { safeParseJSON } from '../utils/errorHandling';
 
 interface QualityScore {
   category: string;
@@ -51,7 +52,15 @@ export const DesignQualityScorer: React.FC<DesignQualityScorerProps> = ({ isOpen
       );
 
       try {
-        const parsed = JSON.parse(analysis);
+        // 🤖 Astra: Wrap output parsing with safeParseJSON to avoid raw JSON.parse crashes.
+        // Returning null as fallback allows the application to fail loudly on malformed output,
+        // triggering the surrounding error handling logic below.
+        const parsed = safeParseJSON<any>(analysis, null);
+
+        if (!parsed) {
+          throw new Error('AI returned malformed JSON');
+        }
+
         setScores(parsed.scores || []);
         setOverallScore(parsed.overall || 0);
         setSuggestions(parsed.suggestions || []);
