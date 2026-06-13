@@ -73,7 +73,7 @@ export default async function handler(req: Request) {
       const page = url.searchParams.get('page') || '1';
 
       const response = await fetch(
-        `${BASE_URL}/search/photos?query=${encodeURIComponent(query)}&page=${page}&per_page=20`,
+        `${BASE_URL}/search/photos?query=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&per_page=20`,
         {
           headers: {
             Authorization: `Client-ID ${accessKey}`,

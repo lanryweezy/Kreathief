@@ -74,7 +74,7 @@ export default async function handler(req: Request) {
       const page = url.searchParams.get('page') || '1';
 
       const response = await fetch(
-        `${BASE_URL}/resources?locale=en-US&term=${encodeURIComponent(query)}&page=${page}&limit=20&filters[content_type]=${type}`,
+        `${BASE_URL}/resources?locale=en-US&term=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&limit=20&filters[content_type]=${encodeURIComponent(type)}`,
         {
           headers: {
             'x-freepik-api-key': freepikKey,
@@ -99,7 +99,7 @@ export default async function handler(req: Request) {
       const page = url.searchParams.get('page') || '1';
 
       const response = await fetch(
-        `${BASE_URL}/icons?locale=en-US&term=${encodeURIComponent(query)}&page=${page}&limit=50`,
+        `${BASE_URL}/icons?locale=en-US&term=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&limit=50`,
         {
           headers: {
             'x-freepik-api-key': freepikKey,
@@ -129,7 +129,7 @@ export default async function handler(req: Request) {
         });
       }
 
-      const response = await fetch(`${BASE_URL}/resources/${resourceId}/download/${format}`, {
+      const response = await fetch(`${BASE_URL}/resources/${encodeURIComponent(resourceId)}/download/${encodeURIComponent(format)}`, {
         headers: {
           'x-freepik-api-key': freepikKey,
           'Accept-Language': 'en-US',

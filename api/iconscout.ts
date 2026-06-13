@@ -75,7 +75,7 @@ export default async function handler(req: Request) {
       const page = url.searchParams.get('page') || '1';
 
       const response = await fetch(
-        `${BASE_URL}/search?query=${encodeURIComponent(query)}&product_type=${type}&page=${page}&per_page=20`,
+        `${BASE_URL}/search?query=${encodeURIComponent(query)}&product_type=${encodeURIComponent(type)}&page=${encodeURIComponent(page)}&per_page=20`,
         {
           headers: {
             'Client-ID': clientId,
@@ -104,7 +104,7 @@ export default async function handler(req: Request) {
         });
       }
 
-      const response = await fetch(`${BASE_URL}/items/${uuid}`, {
+      const response = await fetch(`${BASE_URL}/items/${encodeURIComponent(uuid)}`, {
         headers: {
           'Client-ID': clientId,
           'Client-Secret': secretKey,

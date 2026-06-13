@@ -73,7 +73,7 @@ export default async function handler(req: Request) {
       const page = url.searchParams.get('page') || '1';
 
       const response = await fetch(
-        `${VECTEEZY_API_URL}/${accountId}/resources?search_term=${encodeURIComponent(query)}&page=${page}&per_page=20`,
+        `${VECTEEZY_API_URL}/${accountId}/resources?search_term=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&per_page=20`,
         {
           headers: {
             'Authorization': `Bearer ${secretKey}`,
@@ -102,7 +102,7 @@ export default async function handler(req: Request) {
       }
 
       const response = await fetch(
-        `${VECTEEZY_API_URL}/${accountId}/resources/${resourceId}/download`,
+        `${VECTEEZY_API_URL}/${accountId}/resources/${encodeURIComponent(resourceId)}/download`,
         {
           headers: {
             'Authorization': `Bearer ${secretKey}`,

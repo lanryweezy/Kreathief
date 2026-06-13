@@ -74,7 +74,7 @@ export default async function handler(req: Request) {
       const offset = url.searchParams.get('offset') || '0';
 
       const response = await fetch(
-        `${BASE_URL}/search/global?query=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`,
+        `${BASE_URL}/search/global?query=${encodeURIComponent(query)}&limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}`,
         {
           headers: {
             STREAMLINE_SECRET: streamlineKey,
@@ -105,12 +105,12 @@ export default async function handler(req: Request) {
       const size = url.searchParams.get('size') || '';
       const color = url.searchParams.get('color') || '';
 
-      let fetchUrl = `${BASE_URL}/icons/download/svg?hash=${hash}`;
+      let fetchUrl = `${BASE_URL}/icons/download/svg?hash=${encodeURIComponent(hash)}`;
       if (size) {
-        fetchUrl += `&size=${size}`;
+        fetchUrl += `&size=${encodeURIComponent(size)}`;
       }
       if (color) {
-        fetchUrl += `&color=${color}`;
+        fetchUrl += `&color=${encodeURIComponent(color)}`;
       }
 
       const response = await fetch(fetchUrl, {
