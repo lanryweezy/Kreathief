@@ -302,7 +302,11 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
         },
       ],
     });
-    return safeParseJSON<string[]>(data.text || '[]', []);
+    const parsed = safeParseJSON<string[] | null>(data.text || '[]', null);
+    if (!parsed) {
+      throw new Error('Failed to parse text options JSON');
+    }
+    return parsed;
   } catch (error) {
     console.error('Text Options Error:', error);
     return [];
@@ -388,7 +392,9 @@ export const generateDesignTheme = async (prompt: string): Promise<DesignTheme> 
     }
 
     const parsed = safeParseJSON<DesignTheme | null>(text, null);
-    if (!parsed) throw new Error('Failed to parse theme JSON');
+    if (!parsed) {
+      throw new Error('Failed to parse theme JSON');
+    }
     return parsed;
   } catch (error) {
     log.error('Theme Generation Error', error, { prompt: prompt.substring(0, 100) });
@@ -508,7 +514,9 @@ export const generateLayout = async (prompt: string): Promise<any> => {
       return null;
     }
     const parsed = safeParseJSON<any>(text, null);
-    if (!parsed) throw new Error('Failed to parse layout JSON');
+    if (!parsed) {
+      throw new Error('Failed to parse layout JSON');
+    }
     return parsed;
   } catch (error) {
     log.error('Layout Generation Error', error, { prompt: prompt.substring(0, 100) });
@@ -679,7 +687,11 @@ export const optimizeLayout = async (layers: any[], canvasWidth: number, canvasH
     if (!text) {
       return [];
     }
-    return safeParseJSON<any[]>(text, []);
+    const parsed = safeParseJSON<any[] | null>(text, null);
+    if (!parsed) {
+      throw new Error('Failed to parse optimize layout JSON');
+    }
+    return parsed;
   } catch (error) {
     console.error('Layout Optimization Error:', error);
     return [];
@@ -710,7 +722,11 @@ export const generatePaletteFromImage = async (base64Image: string): Promise<str
     });
     
     // Astra: Gemini strict JSON output schema prevents malformed regex parsing bugs
-    return safeParseJSON<string[]>(data.text || '[]', []);
+    const parsed = safeParseJSON<string[] | null>(data.text || '[]', null);
+    if (!parsed) {
+      throw new Error('Failed to parse palette JSON');
+    }
+    return parsed;
   } catch (error) {
     console.error('Palette extraction failed', error);
     return [];
@@ -760,7 +776,9 @@ export const vectorizeImage = async (
 
     const text = data.text;
     const parsed = safeParseJSON<Array<{ path: string; color: string }> | null>(text || '[]', null);
-    if (!parsed) throw new Error('Failed to parse vectorize JSON');
+    if (!parsed) {
+      throw new Error('Failed to parse vectorize JSON');
+    }
     return parsed;
   } catch (error) {
     console.error('Vectorization failed', error);
@@ -801,7 +819,9 @@ export const generateAIVector = async (prompt: string, stylePreset: string = 'de
     
     const text = data.text;
     const parsed = safeParseJSON<Array<{ path: string; color: string }> | null>(text || '[]', null);
-    if (!parsed) throw new Error('Failed to parse AI vector JSON');
+    if (!parsed) {
+      throw new Error('Failed to parse AI vector JSON');
+    }
     return parsed;
   } catch (error) {
     console.error('AI Vector Generation failed', error);
@@ -868,7 +888,11 @@ export const generateAutoLayoutSuggestions = async (layers: any[], width: number
       generationConfig: { responseMimeType: 'application/json' }
     });
 
-    return safeParseJSON<any[]>(data.text || '[]', []);
+    const parsed = safeParseJSON<any[] | null>(data.text || '[]', null);
+    if (!parsed) {
+      throw new Error('Failed to parse auto-layout suggestions JSON');
+    }
+    return parsed;
   } catch (error) {
     console.error('Auto-layout failed', error);
     return [];
@@ -890,7 +914,9 @@ export const extractStyleFromImage = async (base64Image: string): Promise<Design
     });
 
     const parsed = safeParseJSON<DesignTheme | null>(data.text || '{}', null);
-    if (!parsed) throw new Error('Failed to parse style JSON');
+    if (!parsed) {
+      throw new Error('Failed to parse style JSON');
+    }
     return parsed;
   } catch (error) {
     console.error('Style extraction failed', error);
