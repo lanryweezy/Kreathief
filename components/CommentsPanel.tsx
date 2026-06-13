@@ -131,11 +131,13 @@ const CommentsPanel: React.FC = () => {
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Type a message..."
+            aria-label="Type a message..."
             className="w-full bg-slate-950 border border-slate-700 rounded-full pl-4 pr-12 py-3 text-sm focus:outline-none focus:border-blue-500 transition-colors shadow-sm"
             disabled={isSubmitting}
           />
           <button
             type="submit"
+            aria-label="Submit comment"
             disabled={!newComment.trim() || isSubmitting}
             className="absolute right-1.5 top-1.5 p-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-transparent disabled:text-slate-600 text-white rounded-full transition-colors"
           >
