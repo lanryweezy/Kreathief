@@ -386,7 +386,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
           if (l.type === 'text') {
             updateLayer(l.id, { 
               color: theme.primaryColor, 
-              fontFamily: (l as TextLayer).fontSize > 30 ? theme.headingFont : theme.bodyFont 
+              fontFamily: (l as TextLayer).fontSize > 30 ? theme.headingFont : theme.bodyFont
             });
           } else if (l.type !== 'image' && l.type !== 'adjustment') {
             updateLayer(l.id, { color: theme.secondaryColor });
