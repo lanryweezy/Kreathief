@@ -1,3 +1,4 @@
+import { log } from '../utils/log';
 import React, { useState, useRef, useEffect } from 'react';
 import * as geminiService from '../services/geminiService';
 import { Icons } from '../constants';
@@ -127,7 +128,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         { id: `msg_${Date.now()}_response`, role: 'assistant', content: response, timestamp: Date.now() },
       ]);
     } catch (error) {
-      console.error('AI Assistant error:', error);
+      log.error('AI Assistant error', error);
       setMessages((prev) => [
         ...prev,
         {

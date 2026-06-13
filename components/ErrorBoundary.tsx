@@ -1,3 +1,4 @@
+import { log } from '../utils/log';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { ErrorFallback } from './ErrorFallback';
 
@@ -43,7 +44,7 @@ export class ErrorBoundary extends Component<Props, State> {
     const { recoveryAttempts } = this.state;
 
     // Scoped Logging
-    console.error(`[ErrorBoundary:${componentName}] Caught error:`, {
+    log.error(`[ErrorBoundary:${componentName}] Caught error`, error, {
       message: error.message,
       componentStack: errorInfo.componentStack,
       attempt: recoveryAttempts + 1,

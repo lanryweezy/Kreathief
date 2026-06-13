@@ -1,3 +1,4 @@
+import { log } from '../utils/log';
 /**
  * CanvasLayerItemWrapper
  * Wraps individual layers to handle async masking and optimization hooks.
@@ -21,7 +22,7 @@ class LayerErrorBoundary extends React.Component<{ layerId: string; children: Re
   }
 
   componentDidCatch(error: any, errorInfo: any) {
-    console.error(`[LayerError] ID: ${this.props.layerId}`, error, errorInfo);
+    log.error(`[LayerError] ID: ${this.props.layerId}`, error, errorInfo);
   }
 
   render() {
