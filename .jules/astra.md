@@ -15,3 +15,7 @@
 ## 2026-06-12 - Fix JSON Output parsing crashes with responseSchema and safeParseJSON fallback
 **Learning:** Relying on 'format as JSON' in prompts without explicitly configuring the schema natively (using Gemini `responseSchema`) and using unstructured `JSON.parse` allows AI models to occasionally wrap output in markdown tags causing application-breaking exceptions.
 **Action:** When handling AI requests that return JSON arrays or objects, explicitly define `generationConfig.responseSchema` so the model always formats valid JSON. Ensure UI components handle the data extraction natively or wrap parsing with `safeParseJSON` throwing an error on `null` payload so the UI catches it.
+
+## 2026-06-13 - [Silent JSON Parsing Failure Prevention]
+**Learning:** Returning default empty values (like `[]` or `{}`) in generic `safeParseJSON` error handling causes downstream functions in `services/geminiService.ts` to fail silently. When valid responses aren't successfully parsed, the downstream code treats them as valid but empty responses instead of catching the error.
+**Action:** When using `safeParseJSON` to parse LLM JSON responses, always pass `null` as the default fallback value and explicitly check `if (!parsed) throw new Error(...)`. This ensures the error cascades correctly, executing proper fallback UI logic or logging within surrounding try/catch blocks.
