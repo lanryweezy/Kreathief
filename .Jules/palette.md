@@ -12,3 +12,7 @@
 ## 2026-06-11 - [Accessible Custom Toggle Switches]
 **Learning:** Custom UI toggle switches built with `<button>` tags (like the "Professional Print Mode" toggle in ExportModal) are visually clear but completely invisible to screen readers without proper semantics.
 **Action:** When implementing custom toggle switches, always include `role="switch"`, an `aria-checked` boolean attribute bound to the state, and a descriptive `aria-label` to ensure the component is fully accessible.
+
+## 2026-06-14 - [Publish Modal Accessibility]
+**Learning:** Form fields with visually adjacent text labels must use `htmlFor` and `id` attributes to establish programmatic association for screen readers. Simply nesting or placing them side-by-side without explicit linkage causes screen readers to misinterpret or skip the form fields.
+**Action:** When implementing forms or modifying existing modals (like `PublishModal`), always ensure each `<input>` and `<textarea>` has a unique `id` and that its associated `<label>` references that `id` via the `htmlFor` property to maintain click-to-focus and screen reader compatibility.

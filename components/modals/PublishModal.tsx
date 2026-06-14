@@ -73,15 +73,25 @@ export const PublishModal: React.FC<PublishModalProps> = ({ onClose }) => {
             </h2>
             <p className="text-xs text-gray-500 mt-1">Share your creation with thousands of designers.</p>
           </div>
-          <button onClick={onClose} aria-label="Close publish modal" className="p-2 hover:bg-white/5 rounded-full transition-colors">
+          <button
+            onClick={onClose}
+            aria-label="Close publish modal"
+            className="p-2 hover:bg-white/5 rounded-full transition-colors"
+          >
             <Icons.X aria-hidden="true" className="w-5 h-5 text-gray-400" />
           </button>
         </div>
 
         <div className="p-6 space-y-5">
           <div>
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Template Name</label>
+            <label
+              htmlFor="template-name"
+              className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block"
+            >
+              Template Name
+            </label>
             <input
+              id="template-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -91,12 +101,14 @@ export const PublishModal: React.FC<PublishModalProps> = ({ onClose }) => {
           </div>
 
           <div>
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Category</label>
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">
+              Category
+            </label>
             <div className="grid grid-cols-2 gap-2">
-              {['Social', 'Video', 'Business', 'Personal'].map((cat) => (
+              {(['Social', 'Video', 'Business', 'Personal'] as const).map((cat) => (
                 <button
                   key={cat}
-                  onClick={() => setCategory(cat as any)}
+                  onClick={() => setCategory(cat)}
                   className={`py-2 rounded-lg text-xs font-bold border transition-all ${
                     category === cat
                       ? 'bg-orange-500 border-orange-400 text-white shadow-lg shadow-orange-900/20'
@@ -110,8 +122,14 @@ export const PublishModal: React.FC<PublishModalProps> = ({ onClose }) => {
           </div>
 
           <div>
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">Description</label>
+            <label
+              htmlFor="template-description"
+              className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block"
+            >
+              Description
+            </label>
             <textarea
+              id="template-description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Tell others what makes this template special..."
@@ -123,7 +141,8 @@ export const PublishModal: React.FC<PublishModalProps> = ({ onClose }) => {
           <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-4 flex items-start gap-3">
             <Icons.Info className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
             <p className="text-[10px] text-gray-400 leading-relaxed">
-              By publishing, you agree to share this design's layout and settings with the community. Personal images and private assets will be included.
+              By publishing, you agree to share this design&apos;s layout and settings with the community. Personal
+              images and private assets will be included.
             </p>
           </div>
         </div>
