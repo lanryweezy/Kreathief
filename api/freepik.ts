@@ -217,7 +217,7 @@ export default async function handler(req: Request) {
           });
         }
 
-        const response = await fetch(`${BASE_URL}${basePath}/${taskId}`, {
+        const response = await fetch(`${BASE_URL}${basePath}/${encodeURIComponent(taskId)}`, {
           headers: {
             'x-freepik-api-key': freepikKey,
             'Content-Type': 'application/json',
