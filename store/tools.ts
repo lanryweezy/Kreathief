@@ -3,6 +3,7 @@ import { useStore } from './useStore';
 import { selectedLayerSelector } from './selectors';
 import * as gemini from '../services/geminiService';
 import { vectorizerService } from '../services/vectorizerService';
+import { generateLayerId } from '../utils/layers/layerUtils';
 
 type ToolHandler<P> = (params: P) => Promise<void> | void;
 
@@ -118,7 +119,7 @@ const backgroundTool: ToolHandler<z.infer<typeof backgroundSchema>> = async ({ p
   if (!artboard) {return;}
   const dataUrl = await gemini.generateBackground(prompt, artboard.width || 1080, artboard.height || 1080, quality);
   // Create explicit layer so we can reorder to back
-  const id = (crypto as any).randomUUID ? (crypto as any).randomUUID() : Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b => b.toString(16).padStart(2, '0')).join('');
+  const id = generateLayerId('image');
   const layer: any = {
     id,
     type: 'image',
