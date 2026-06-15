@@ -3,27 +3,50 @@ import { MODEL_FAST, MODEL_PRO, FONT_FAMILIES } from '../constants';
 import { DesignTheme, GenerationQuality } from '../types';
 import * as freepikService from './freepikService';
 import { log } from '../utils/log';
-import { safeParseJSON } from '../utils/errorHandling';
+import { safeParseJSON, retryWithBackoff } from '../utils/errorHandling';
 
 // Helper to call backend serverless endpoint
 export const callBackendGeminiAPI = async (payload: any) => {
   const endpoint = process.env.NODE_ENV === 'test' ? 'http://localhost:3000/api/gemini' : '/api/gemini';
   
-  try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'generateContent', ...payload }),
-    });
-    
-    if (response.ok) {
-      return await response.json();
+  return retryWithBackoff(async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'generateContent', ...payload }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        return await response.json();
+      }
+
+      const error = new Error(`Gemini API returned an error: ${response.status} ${response.statusText}`);
+      // Retry on 429 Too Many Requests and 5xx Server Errors
+      if (response.status === 429 || response.status >= 500) {
+        error.name = 'NetworkError';
+      }
+      throw error;
+    } catch (e: any) {
+      clearTimeout(timeoutId);
+
+      if (e.name === 'AbortError') {
+        const timeoutError = new Error('Gemini API request timed out after 30 seconds');
+        timeoutError.name = 'TimeoutError';
+        log.error('[GeminiService] Backend API call failed: Timeout', timeoutError, { endpoint });
+        throw timeoutError; // TimeoutError is handled by retryWithBackoff
+      }
+
+      log.error('[GeminiService] Backend API call failed', e, { endpoint });
+      throw e;
     }
-    throw new Error(`Gemini API returned an error: ${response.statusText}`);
-  } catch (e) {
-    log.error('[GeminiService] Backend API call failed', e, { endpoint });
-    throw e;
-  }
+  }, 3, 1000); // 3 retries, base delay 1000ms
 };
 
 /**
