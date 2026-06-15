@@ -170,6 +170,12 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   }, []);
 
   // Interaction Hook
+  const handleUpdateLayers = useCallback((updates: Record<string, Partial<Layer>>) => useStore.getState().updateLayers(updates), []);
+  const handleSelectLayer = useCallback((id: string | null) => useStore.getState().selectLayer(id), []);
+  const handleMultiSelectLayer = useCallback((id: string, shift: boolean) => useStore.getState().multiSelectLayer(id, shift), []);
+  const handleSetSelectedLayerIds = useCallback((ids: string[]) => useStore.getState().setSelectedLayerIds(ids), []);
+  const handleContextMenuCanvas = useCallback((pos: { clientX: number; clientY: number }, id: string) => setContextMenu({ x: pos.clientX, y: pos.clientY, layerId: id }), [setContextMenu]);
+
   const {
     panOffset,
     isPanning,
@@ -191,12 +197,12 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
       artboards,
       layers,
       selectedLayerIds,
-      onUpdateLayers: (updates) => useStore.getState().updateLayers(updates),
-      onSelectLayer: (id) => useStore.getState().selectLayer(id),
-      onMultiSelectLayer: (id, shift) => useStore.getState().multiSelectLayer(id, shift),
-      setSelectedLayerIds: (ids) => useStore.getState().setSelectedLayerIds(ids),
+      onUpdateLayers: handleUpdateLayers,
+      onSelectLayer: handleSelectLayer,
+      onMultiSelectLayer: handleMultiSelectLayer,
+      setSelectedLayerIds: handleSetSelectedLayerIds,
       onInteractionStart,
-      onContextMenu: (pos, id) => setContextMenu({ x: pos.clientX, y: pos.clientY, layerId: id }),
+      onContextMenu: handleContextMenuCanvas,
       isDrawing,
       viewportRef,
     });
