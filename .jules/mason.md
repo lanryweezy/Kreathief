@@ -17,3 +17,6 @@
 ## 2026-06-13 - Remove unused duplicate timing functions
 **Learning:** Found duplicate implementations of `debounce` and `throttle` in `utils/canvasUtils.ts` and `utils/mobileOptimizations.ts` (with `ForMobile` suffixes). The entire codebase actually uses the single source of truth in `utils/debounce.ts`. The duplicates were entirely dead code, demonstrating a tendency for developers to write domain-specific timing helpers before realizing a shared utility already exists.
 **Action:** Always check for existing usage before extracting or moving utility functions. Often, duplicated code is completely unused and can be safely deleted without any call-site updates.
+## 2026-06-15 - Use generateLayerId for AI Backgrounds
+**Learning:** Found manual UUID polyfill logic (`(crypto as any).randomUUID ? (crypto as any).randomUUID() : Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b => b.toString(16).padStart(2, '0')).join('')`) used for creating new AI background image layers in `store/tools.ts`. The codebase already has a well-defined domain primitive for this (`generateLayerId`) which handles UUID generation and prefixes it properly for layer types.
+**Action:** Always check for and use `generateLayerId` from `utils/layers/layerUtils.ts` instead of manually generating identifiers when creating new layers to maintain consistency across the architecture.
