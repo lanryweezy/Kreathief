@@ -4,6 +4,7 @@ import { HistoryState, DesignSnapshot, Artboard } from '../../types';
 import { storageService } from '../../services/storageService';
 import { v4 as uuidv4 } from 'uuid';
 import { analyticsService } from '../../services/analyticsService';
+import { log } from '../../utils/log';
 
 export interface HistoryEntry {
   timestamp: number;
@@ -79,9 +80,9 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
         const newPast = state.past.length >= MAX_HISTORY ? [...state.past.slice(1), entry] : [...state.past, entry];
 
         if (state.projectId) {
-          storageService.saveSessionMirror(state.projectId, currentState).catch(err => 
-            console.error('[Resilience] Session mirror failed', err)
-          );
+          storageService
+            .saveSessionMirror(state.projectId, currentState)
+            .catch((err) => log.error('[Resilience] Session mirror failed', err, { projectId: state.projectId }));
         }
 
         state.setHasUnsavedChanges?.(true);
@@ -164,7 +165,7 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
 
       if (lastSnapshotIdx === -1) {
         return;
-      } 
+      }
 
       targetState = structuredClone(newPast[lastSnapshotIdx].state!);
       // Fix: Iterate up to newPast.length, NOT past.length
@@ -179,7 +180,7 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
       ...targetState,
       past: newPast,
       future: [{ timestamp: Date.now(), type: 'snapshot', state: currentFullState }, ...get().future],
-      __lastStateSnapshot: nextLastSnapshot
+      __lastStateSnapshot: nextLastSnapshot,
     });
     get().addToast?.('Action Undone', 'info');
   },
