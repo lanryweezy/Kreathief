@@ -133,7 +133,9 @@ export const ImageTools = React.memo(
                 className="px-2"
               >
                 <div className="relative">
-                  <Icons.Brush className={`w-4 h-4 ${refineBrushMode === 'restore' ? 'text-white' : 'text-emerald-400'}`} />
+                  <Icons.Brush
+                    className={`w-4 h-4 ${refineBrushMode === 'restore' ? 'text-white' : 'text-emerald-400'}`}
+                  />
                   <div className="absolute -bottom-1 -right-1 bg-emerald-500 rounded-full border border-[#1e1e1e]">
                     <Icons.Plus className="w-1.5 h-1.5 text-white" />
                   </div>
@@ -148,6 +150,7 @@ export const ImageTools = React.memo(
                 min="5"
                 max="150"
                 value={refineBrushSize}
+                aria-label="Refine brush size"
                 onChange={(e) => setRefineBrushSize(parseInt(e.target.value))}
                 className="w-20 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500"
               />
@@ -314,10 +317,15 @@ export const ImageTools = React.memo(
                       <button
                         key={preset.name}
                         onClick={() => {
-                          handleUpdateLayer({ filters: { ...layer.filters, ...preset.filters, artisticFilter: undefined } });
+                          handleUpdateLayer({
+                            filters: { ...layer.filters, ...preset.filters, artisticFilter: undefined },
+                          });
                         }}
                         className={`aspect-video rounded-lg border flex items-center justify-center text-[10px] transition-all font-bold uppercase tracking-tighter ${
-                          !layer.filters?.artisticFilter && Object.keys(preset.filters || {}).every((k) => (layer.filters as any)?.[k] === (preset.filters as any)[k])
+                          !layer.filters?.artisticFilter &&
+                          Object.keys(preset.filters || {}).every(
+                            (k) => (layer.filters as any)?.[k] === (preset.filters as any)[k]
+                          )
                             ? 'border-[#7d2ae8] bg-[#7d2ae8]/10 text-white'
                             : 'border-white/5 hover:border-[#7d2ae8] bg-black/20 text-gray-400 hover:text-white'
                         }`}
@@ -327,15 +335,17 @@ export const ImageTools = React.memo(
                     ))}
                   </div>
                 </div>
-                
+
                 <div>
-                  <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">Artistic Effects</h4>
+                  <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">
+                    Artistic Effects
+                  </h4>
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       { id: 'artistic-watercolor', name: 'Watercolor' },
                       { id: 'artistic-sketch', name: 'Pencil Sketch' },
                       { id: 'artistic-cartoon', name: 'Cartoon / Halftone' },
-                      { id: 'artistic-glitch', name: 'Vintage Glitch' }
+                      { id: 'artistic-glitch', name: 'Vintage Glitch' },
                     ].map((effect) => (
                       <button
                         key={effect.id}
@@ -348,7 +358,10 @@ export const ImageTools = React.memo(
                             : 'border-white/5 hover:border-[#7d2ae8]/50 bg-black/20 text-gray-300 hover:text-white hover:bg-[#7d2ae8]/10'
                         }`}
                       >
-                        <span className="flex items-center gap-1.5"><Icons.Sparkles className="w-3.5 h-3.5" />{effect.name}</span>
+                        <span className="flex items-center gap-1.5">
+                          <Icons.Sparkles className="w-3.5 h-3.5" />
+                          {effect.name}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -363,6 +376,7 @@ export const ImageTools = React.memo(
               min="0"
               max="20"
               value={layer.filters?.blur || 0}
+              aria-label="Blur amount"
               onChange={(e) => {
                 handleUpdateLayer({ filters: { ...layer.filters, blur: parseInt(e.target.value) } });
               }}
@@ -384,12 +398,7 @@ export const ImageTools = React.memo(
           >
             <Icons.Maximize className="w-4 h-4 text-blue-400" />
           </IconButton>
-          <Dropdown
-            anchorRef={resizeButtonRef}
-            isOpen={showResize}
-            onClose={() => setShowResize(false)}
-            align="left"
-          >
+          <Dropdown anchorRef={resizeButtonRef} isOpen={showResize} onClose={() => setShowResize(false)} align="left">
             <div className="w-48 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-3 animate-fadeIn space-y-3 backdrop-blur-xl">
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block text-center">
                 Dimensions
