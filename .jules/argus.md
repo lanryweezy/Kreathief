@@ -22,3 +22,8 @@
 
 **Learning:** Found widespread use of `console.error` in various components (`CommandPalette.tsx`, `DesignSuggestions.tsx`, `GlyphPalette.tsx`, `TexturesPanel.tsx`, `DrawPanel.tsx`, `PaletteGenerator.tsx`, `Editor.tsx`, `DesignQualityScorer.tsx`, `SmartContentGenerator.tsx`, `AIAssistant.tsx`, `CanvasLayerItemWrapper.tsx`, `ErrorBoundary.tsx`). This drops critical context (like `error` details and relevant states) during failures, making production debugging difficult.
 **Action:** Replaced unstructured console logging with `log.error`, ensuring that all relevant local context variables are explicitly passed in the logging payload.
+
+## 2026-06-15 - Replaced unstructured console errors across store slices
+
+**Learning:** Found use of `console.error` in `store/slices/historySlice.ts` (`[Resilience] Session mirror failed`). This dropped critical context (like `projectId`) during session mirror save errors, making production debugging of project synchronization difficult.
+**Action:** Replaced unstructured console logging with `log.error`, ensuring that `projectId` is passed in the logging payload.
