@@ -78,9 +78,19 @@ const INITIAL_COMMUNITY_TEMPLATES = [
         },
       ],
       canvasBackgroundColor: '#07051a',
-      canvasFilters: { brightness: 100, contrast: 100, saturation: 100, blur: 0, opacity: 1, vignette: 0, sepia: 0, grayscale: 0, hueRotate: 0 },
-      canvasSize: { width: 1080, height: 1350, name: 'Instagram Portrait' }
-    }
+      canvasFilters: {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        blur: 0,
+        opacity: 1,
+        vignette: 0,
+        sepia: 0,
+        grayscale: 0,
+        hueRotate: 0,
+      },
+      canvasSize: { width: 1080, height: 1350, name: 'Instagram Portrait' },
+    },
   },
   {
     id: 'tpl_c2',
@@ -123,9 +133,19 @@ const INITIAL_COMMUNITY_TEMPLATES = [
         },
       ],
       canvasBackgroundColor: '#0a0a0a',
-      canvasFilters: { brightness: 100, contrast: 100, saturation: 100, blur: 0, opacity: 1, vignette: 0, sepia: 0, grayscale: 0, hueRotate: 0 },
-      canvasSize: { width: 1080, height: 1920, name: 'Story / Reel' }
-    }
+      canvasFilters: {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        blur: 0,
+        opacity: 1,
+        vignette: 0,
+        sepia: 0,
+        grayscale: 0,
+        hueRotate: 0,
+      },
+      canvasSize: { width: 1080, height: 1920, name: 'Story / Reel' },
+    },
   },
   {
     id: 'tpl_c3',
@@ -168,9 +188,19 @@ const INITIAL_COMMUNITY_TEMPLATES = [
         },
       ],
       canvasBackgroundColor: '#fdfbf7',
-      canvasFilters: { brightness: 100, contrast: 100, saturation: 100, blur: 0, opacity: 1, vignette: 0, sepia: 0, grayscale: 0, hueRotate: 0 },
-      canvasSize: { width: 1080, height: 1080, name: 'Instagram Post' }
-    }
+      canvasFilters: {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        blur: 0,
+        opacity: 1,
+        vignette: 0,
+        sepia: 0,
+        grayscale: 0,
+        hueRotate: 0,
+      },
+      canvasSize: { width: 1080, height: 1080, name: 'Instagram Post' },
+    },
   },
   {
     id: 'tpl_c4',
@@ -213,10 +243,20 @@ const INITIAL_COMMUNITY_TEMPLATES = [
         },
       ],
       canvasBackgroundColor: '#020617',
-      canvasFilters: { brightness: 100, contrast: 100, saturation: 100, blur: 0, opacity: 1, vignette: 0, sepia: 0, grayscale: 0, hueRotate: 0 },
-      canvasSize: { width: 1280, height: 720, name: 'YouTube Thumbnail' }
-    }
-  }
+      canvasFilters: {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        blur: 0,
+        opacity: 1,
+        vignette: 0,
+        sepia: 0,
+        grayscale: 0,
+        hueRotate: 0,
+      },
+      canvasSize: { width: 1280, height: 720, name: 'YouTube Thumbnail' },
+    },
+  },
 ];
 
 const CATEGORIES = ['All', 'Posters', 'Social', 'Print', 'Corporate'];
@@ -237,39 +277,43 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
     e.stopPropagation();
     if (likedIds.includes(id)) {
       setLikedIds(likedIds.filter((item) => item !== id));
-      setTemplates(
-        templates.map((t) => (t.id === id ? { ...t, likes: t.likes - 1 } : t))
-      );
+      setTemplates(templates.map((t) => (t.id === id ? { ...t, likes: t.likes - 1 } : t)));
     } else {
       setLikedIds([...likedIds, id]);
-      setTemplates(
-        templates.map((t) => (t.id === id ? { ...t, likes: t.likes + 1 } : t))
-      );
+      setTemplates(templates.map((t) => (t.id === id ? { ...t, likes: t.likes + 1 } : t)));
     }
   };
 
   const handleRemix = async (e: React.MouseEvent, template: any) => {
     e.stopPropagation();
     const remixedState = {
-      artboards: template.state.artboards || [{
-        id: 'default',
-        name: 'Artboard 1',
-        x: 0,
-        y: 0,
-        width: template.state.canvasSize?.width || 1080,
-        height: template.state.canvasSize?.height || 1080,
-        layers: template.state.layers || [],
-      }],
+      artboards: template.state.artboards || [
+        {
+          id: 'default',
+          name: 'Artboard 1',
+          x: 0,
+          y: 0,
+          width: template.state.canvasSize?.width || 1080,
+          height: template.state.canvasSize?.height || 1080,
+          layers: template.state.layers || [],
+        },
+      ],
       activeArtboardId: template.state.activeArtboardId || 'default',
       canvasBackgroundColor: template.state.canvasBackgroundColor || '#ffffff',
-      canvasFilters: template.state.canvasFilters || { brightness: 100, contrast: 100, saturation: 100, blur: 0, opacity: 1, vignette: 0, sepia: 0, grayscale: 0, hueRotate: 0 },
-      canvasSize: template.state.canvasSize || { width: 1080, height: 1080, name: 'Instagram Post' }
+      canvasFilters: template.state.canvasFilters || {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        blur: 0,
+        opacity: 1,
+        vignette: 0,
+        sepia: 0,
+        grayscale: 0,
+        hueRotate: 0,
+      },
+      canvasSize: template.state.canvasSize || { width: 1080, height: 1080, name: 'Instagram Post' },
     };
-    const newProjectId = await createProject(
-      `${template.title} (Remix)`,
-      template.state.canvasSize,
-      remixedState
-    );
+    const newProjectId = await createProject(`${template.title} (Remix)`, template.state.canvasSize, remixedState);
     // Fetch from updated store and open it
     setTimeout(() => {
       const allProjects = useStore.getState().projects;
@@ -333,6 +377,7 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
           <input
             type="text"
             placeholder="SEARCH COMMUNITY DESIGNS..."
+            aria-label="Search community templates"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-3.5 text-xs font-black uppercase tracking-widest text-white focus:outline-none focus:border-purple-500 focus:bg-white/10 transition-all placeholder:text-gray-600"
@@ -346,7 +391,7 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
           </span>
           {[
             { id: 'likes', label: 'Most Liked' },
-            { id: 'downloads', label: 'Trending' }
+            { id: 'downloads', label: 'Trending' },
           ].map((sort) => (
             <button
               key={sort.id}
@@ -373,10 +418,9 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
           >
             {/* Image/Live Thumbnail Area */}
             <div className="aspect-[4/3] bg-[#0c0c0e] flex items-center justify-center relative overflow-hidden group border-b border-white/5 select-none">
-              
               {/* High-fidelity Miniature Render (Always Visible) */}
               <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-2 select-none pointer-events-none bg-[#0a0a0c]">
-                <div 
+                <div
                   style={{
                     width: `${template.state?.canvasSize?.width || 1080}px`,
                     height: `${template.state?.canvasSize?.height || 1080}px`,
@@ -467,9 +511,9 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
                           }}
                           viewBox={l.viewBox || `0 0 ${l.width || 512} ${l.height || 512}`}
                         >
-                          <path 
-                            d={l.pathData || l.path || l.d} 
-                            fill={isDrawing ? 'none' : (l.color || '#fff')} 
+                          <path
+                            d={l.pathData || l.path || l.d}
+                            fill={isDrawing ? 'none' : l.color || '#fff'}
                             stroke={isDrawing ? strokeColor : 'none'}
                             strokeWidth={isDrawing ? strokeWidth : 0}
                             strokeLinecap="round"

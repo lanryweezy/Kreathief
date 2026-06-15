@@ -3,15 +3,8 @@ import { useStore } from '../store/useStore';
 import { Icons } from '../constants';
 
 const SnapshotsPanel: React.FC = () => {
-  const {
-    snapshots,
-    createSnapshot,
-    restoreSnapshot,
-    deleteSnapshot,
-    fetchSnapshots,
-    projectId,
-    addToast,
-  } = useStore();
+  const { snapshots, createSnapshot, restoreSnapshot, deleteSnapshot, fetchSnapshots, projectId, addToast } =
+    useStore();
   const [newSnapshotName, setNewSnapshotName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [confirmRestoreId, setConfirmRestoreId] = useState<string | null>(null);
@@ -64,6 +57,7 @@ const SnapshotsPanel: React.FC = () => {
             value={newSnapshotName}
             onChange={(e) => setNewSnapshotName(e.target.value)}
             placeholder="e.g. Draft 1, Before client review..."
+            aria-label="New snapshot name"
             className="flex-1 bg-[#252627] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-[#7d2ae8] transition-colors"
             onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
           />
@@ -97,7 +91,7 @@ const SnapshotsPanel: React.FC = () => {
           snapshots.map((snapshot: any) => {
             const layerCount = snapshot.state.artboards
               ? snapshot.state.artboards.reduce((acc: number, a: any) => acc + (a.layers?.length || 0), 0)
-              : (snapshot.state.layers?.length || 0);
+              : snapshot.state.layers?.length || 0;
             const artboardCount = snapshot.state.artboards?.length || 1;
             const date = new Date(snapshot.timestamp);
             const isConfirming = confirmRestoreId === snapshot.id;
@@ -111,7 +105,8 @@ const SnapshotsPanel: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-xs text-white truncate pr-2">{snapshot.name}</h4>
                     <p className="text-[10px] text-gray-500 mt-0.5">
-                      {date.toLocaleDateString()} · {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {date.toLocaleDateString()} ·{' '}
+                      {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                   <div className="flex gap-1 shrink-0">

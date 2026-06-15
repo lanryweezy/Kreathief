@@ -16,3 +16,6 @@
 ## 2026-06-14 - [Publish Modal Accessibility]
 **Learning:** Form fields with visually adjacent text labels must use `htmlFor` and `id` attributes to establish programmatic association for screen readers. Simply nesting or placing them side-by-side without explicit linkage causes screen readers to misinterpret or skip the form fields.
 **Action:** When implementing forms or modifying existing modals (like `PublishModal`), always ensure each `<input>` and `<textarea>` has a unique `id` and that its associated `<label>` references that `id` via the `htmlFor` property to maintain click-to-focus and screen reader compatibility.
+## 2026-06-12 - Missing ARIA Labels on Text Inputs
+**Learning:** Discovered several context-specific text inputs across the application (like inline rename fields, or standalone search bars in modal dialogs and side panels) that lacked explicit `<label>` tags due to spatial constraints and visual design patterns. These inputs also lacked `aria-label` attributes, rendering them inaccessible to screen readers which would only announce "edit text".
+**Action:** Always provide an explicit `aria-label` attribute describing the input's purpose (e.g., `aria-label="Search templates"`, `aria-label="Rename layer"`) on `<input>` elements that do not have an explicitly linked `<label>` tag.
