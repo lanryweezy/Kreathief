@@ -108,7 +108,7 @@ describe('GeminiService', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          text: enhancedText
+          text: JSON.stringify(enhancedText)
         })
       });
 
