@@ -23,3 +23,7 @@
 ## 2024-05-20 - Adding Resilience to Unguarded Backend AI Calls
 **Learning:** Unguarded AI API calls using native `fetch` can hang indefinitely (due to missing timeouts) or fail silently/brittley on transient 429 (Rate Limit) or 50x (Server Error) responses. This causes applications to hang or crash without attempting a recovery.
 **Action:** When making API requests to backend AI routes or third-party AI services, wrap them in a centralized `retryWithBackoff` pattern. Ensure that requests utilize `AbortController` to enforce strict timeouts (e.g., 30s) and explicitly map transient HTTP errors (like 429 and 5xx) to `NetworkError` types so the backoff logic can successfully catch and retry them.
+
+## 2026-06-15 - Structured Output Prevents Conversational Preamble
+**Learning:** Instructing an LLM to "Return ONLY the text/value" is an unreliable prompt engineering technique. The model will frequently append conversational preamble (e.g., "Sure, here is your font: [FONT]") even when explicitly instructed not to, which breaks downstream application logic that expects a raw primitive value.
+**Action:** When a raw string or primitive value is required from an LLM (e.g., `suggestFontPairing`, `enhancePrompt`), use `generationConfig` with `responseMimeType: 'application/json'` and an explicit `responseSchema` of `SchemaType.STRING`. This enforces a strict JSON output structure, entirely eliminating conversational preamble and allowing safe extraction using `safeParseJSON`.

@@ -340,22 +340,29 @@ export const enhancePrompt = async (simplePrompt: string): Promise<string> => {
   try {
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.STRING,
+          description: 'The enhanced, detailed image generation prompt.',
+        },
+      },
       contents: [
         {
           role: 'user',
           parts: [
             {
-              text: `You are an expert prompt engineer for AI image generators. Rewrite the following simple user description into a highly detailed, artistic, and effective image generation prompt. Include lighting, style, composition, and mood keywords. Keep it under 50 words.
+              text: `You are an expert prompt engineer for AI image generators. Rewrite the following simple user description into a highly detailed, artistic, and effective image generation prompt. Include lighting, style, composition, and mood keywords. Keep it under 50 words. Return ONLY the enhanced prompt as a JSON string.
       
-      User Description: "${simplePrompt}"
-      
-      Enhanced Prompt:`,
+      User Description: "${simplePrompt}"`,
             },
           ],
         },
       ],
     });
-    return data.text?.trim() || simplePrompt;
+
+    const parsed = safeParseJSON<string | null>(data.text || '""', null);
+    return parsed || simplePrompt;
   } catch (error) {
     console.error('Prompt Enhancer Error:', error);
     return simplePrompt;
@@ -884,14 +891,22 @@ export const suggestFontPairing = async (primaryFont: string): Promise<string> =
   try {
     const availableFonts = FONT_FAMILIES.join(', ');
     const prompt = `Given the primary font "${primaryFont}", suggest one perfect complementary secondary font from this list: ${availableFonts}. 
-    Consider visual contrast, hierarchy, and harmony. Return ONLY the font name, nothing else.`;
+    Consider visual contrast, hierarchy, and harmony. Return ONLY the font name as a JSON string.`;
 
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.STRING,
+          description: 'The exact name of the suggested complementary font.',
+        },
+      },
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
     });
 
-    return data.text?.trim() || primaryFont;
+    const parsed = safeParseJSON<string | null>(data.text || '""', null);
+    return parsed || primaryFont;
   } catch (error) {
     console.error('Font pairing suggestion failed', error);
     return primaryFont;
