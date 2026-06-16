@@ -19,6 +19,51 @@ export const Divider = React.memo(() => (
   <div className="h-6 w-px bg-gray-700/50 mx-1 sm:mx-2 shrink-0 hidden sm:block"></div>
 ));
 
+/**
+ * Shared hook to handle math evaluation and nudging logic for input fields
+ */
+function useMathInputHandlers({ value, onChange, step = 1 }: { value: any; onChange: any; step?: number }) {
+  const handleKeyDown = React.useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        try {
+          const result = safeEvaluate(e.currentTarget.value);
+          if (!isNaN(result)) {
+            onChange({ target: { value: result } } as any);
+          }
+        } catch {
+          // Fallback to original if safeEvaluate fails
+        }
+        e.currentTarget.blur();
+      }
+      // Shift+Arrow power nudging for #11
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        const delta = e.shiftKey ? 10 : 1;
+        const direction = e.key === 'ArrowUp' ? 1 : -1;
+        onChange({ target: { value: Number(value) + delta * direction * step } } as any);
+        e.preventDefault();
+      }
+    },
+    [value, onChange, step]
+  );
+
+  const handleBlur = React.useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      try {
+        const result = safeEvaluate(e.target.value);
+        if (!isNaN(result)) {
+          onChange({ target: { value: result } } as any);
+        }
+      } catch {
+        e.target.value = String(Math.round(value));
+      }
+    },
+    [value, onChange]
+  );
+
+  return { onKeyDown: handleKeyDown, onBlur: handleBlur };
+}
+
 export const IconButton = React.memo(
   ({ onClick, active, title, children, disabled, loading, shortcut, className = '', 'aria-label': ariaLabel }: any) => {
     const [showTooltip, setShowTooltip] = React.useState(false);
@@ -109,27 +154,7 @@ export const NumberInput = React.memo(({ value, onChange, title, icon: Icon, uni
     [value, onChange, step]
   );
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      try {
-        // Simple math evaluation for #10
-        const result = safeEvaluate(e.currentTarget.value);
-        if (!isNaN(result)) {
-          onChange({ target: { value: result } } as any);
-        }
-      } catch {
-        // Fallback to original if safeEvaluate fails
-      }
-      e.currentTarget.blur();
-    }
-    // Shift+Arrow power nudging for #11
-    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-      const delta = e.shiftKey ? 10 : 1;
-      const direction = e.key === 'ArrowUp' ? 1 : -1;
-      onChange({ target: { value: Number(value) + delta * direction * step } } as any);
-      e.preventDefault();
-    }
-  };
+  const { onKeyDown, onBlur } = useMathInputHandlers({ value, onChange, step });
 
   return (
     <div
@@ -158,17 +183,8 @@ export const NumberInput = React.memo(({ value, onChange, title, icon: Icon, uni
           e.currentTarget.select(); // Auto-select on focus for #13
           onFocus?.(e);
         }}
-        onBlur={(e) => {
-          try {
-            const result = safeEvaluate(e.target.value);
-            if (!isNaN(result)) {
-              onChange({ target: { value: result } } as any);
-            }
-          } catch {
-            e.target.value = String(Math.round(value));
-          }
-        }}
-        onKeyDown={handleKeyDown}
+        onBlur={onBlur}
+        onKeyDown={onKeyDown}
       />
       {unit && (
         <span className="text-[9px] text-gray-500 uppercase font-bold" aria-hidden="true">
@@ -183,25 +199,7 @@ export const CompactInput = React.memo(
   ({ value, onChange, min, max, label, width = 'w-12', step = 1, onFocus }: any) => {
     const id = React.useMemo(() => `compact-input-${crypto.randomUUID().substring(0, 9)}`, []);
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter') {
-        try {
-          const result = safeEvaluate(e.currentTarget.value);
-          if (!isNaN(result)) {
-            onChange({ target: { value: result } } as any);
-          }
-        } catch {
-          // Ignore invalid expressions
-        }
-        e.currentTarget.blur();
-      }
-      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-        const delta = e.shiftKey ? 10 : 1;
-        const direction = e.key === 'ArrowUp' ? 1 : -1;
-        onChange({ target: { value: Number(value) + delta * direction * step } } as any);
-        e.preventDefault();
-      }
-    };
+    const { onKeyDown, onBlur } = useMathInputHandlers({ value, onChange, step });
 
     return (
       <div className="flex items-center gap-1.5 bg-black/20 border border-white/10 rounded-lg px-2 py-1 focus-within:border-[#7d2ae8]/50 focus-within:bg-black/40 transition-all group">
@@ -229,17 +227,8 @@ export const CompactInput = React.memo(
             e.currentTarget.select();
             onFocus?.(e);
           }}
-          onBlur={(e) => {
-            try {
-              const result = safeEvaluate(e.target.value);
-              if (!isNaN(result)) {
-                onChange({ target: { value: result } } as any);
-              }
-            } catch {
-              e.target.value = String(Math.round(value));
-            }
-          }}
-          onKeyDown={handleKeyDown}
+          onBlur={onBlur}
+          onKeyDown={onKeyDown}
         />
       </div>
     );
