@@ -27,3 +27,8 @@
 
 **Learning:** Found use of `console.error` in `store/slices/historySlice.ts` (`[Resilience] Session mirror failed`). This dropped critical context (like `projectId`) during session mirror save errors, making production debugging of project synchronization difficult.
 **Action:** Replaced unstructured console logging with `log.error`, ensuring that `projectId` is passed in the logging payload.
+
+## 2026-06-16 - Replaced unstructured console errors across complex store slices
+
+**Learning:** Found widespread use of `console.error` in `store/slices/agentSlice.ts`, `store/slices/aiSlice.ts`, and `store/slices/layer/crudSlice.ts`. This dropped critical context (like `intent`, `prompt`, `aspectRatio`, `quality`, `layerId`, `options`, etc) during complex state management failures, making production debugging difficult.
+**Action:** Replaced unstructured console logging with `log.error`, ensuring that all relevant local context variables are explicitly passed in the logging payload.

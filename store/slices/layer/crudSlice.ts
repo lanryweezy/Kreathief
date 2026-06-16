@@ -4,6 +4,7 @@ import * as geminiService from '../../../services/geminiService';
 import { Layer, TextLayer, ShapeLayer, Artboard, ImageLayer } from '../../../types';
 import { LayerSlice } from './baseSlice';
 import { DEFAULT_LAYER_FILTERS } from './utils';
+import { log } from '../../../utils/log';
 
 export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (set, get) => ({
   addArtboard: (name = 'Artboard', width = 1080, height = 1080) => {
@@ -516,7 +517,7 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
       const newName = await geminiService.generateLayerName(description);
       updateLayer(id, { name: newName });
     } catch (error) {
-      console.error('Auto-naming failed', error);
+      log.error('Auto-naming failed', error, { layerId: id, description });
     }
   },
 });
