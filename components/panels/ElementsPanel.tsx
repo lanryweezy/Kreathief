@@ -7,7 +7,7 @@ import { SHAPE_LIBRARY } from '../../constants/shapeLibrary';
 import { ElementSkeleton } from '../Skeleton';
 
 import { useStore } from '../../store/useStore';
-import { v4 as uuidv4 } from 'uuid';
+import { generateLayerId } from '../../utils/layers/layerUtils';
 import { log } from '../../utils/log';
 
 type ShapeCategory = 'all' | 'basic' | 'geometric' | 'decorative' | 'ui' | 'arrows' | 'stars';
@@ -45,7 +45,7 @@ export const ElementsPanel = () => {
 
   const internalAddShape = (type: any, style: Partial<ShapeLayer>) => {
     const newLayer: ShapeLayer = {
-      id: uuidv4(),
+      id: generateLayerId(type),
       type: type as any,
       name: style.name || 'New Shape',
       x: canvasSize.width / 2 - 50,
@@ -79,7 +79,7 @@ export const ElementsPanel = () => {
 
   const internalAddImageLayer = (src: string) => {
     const newLayer: ImageLayer = {
-      id: uuidv4(),
+      id: generateLayerId('image'),
       type: 'image',
       name: 'Image Layer',
       src,

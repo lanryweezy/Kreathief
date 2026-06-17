@@ -268,7 +268,7 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
     }
 
     const newLayer: ImageLayer = {
-      id: uuidv4(),
+      id: generateLayerId('image'),
       type: 'image',
       name,
       src,
