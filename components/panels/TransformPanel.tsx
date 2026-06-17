@@ -189,23 +189,23 @@ export const TransformPanel: React.FC = () => {
       <div>
         <label className="text-[10px] text-gray-500 block mb-2">Align</label>
         <div className="grid grid-cols-6 gap-1">
-          <button onClick={() => handleAlign('left')} className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Align Left">
+          <button onClick={() => handleAlign('left')} className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Align Left" aria-label="Align Left">
             <Icons.AlignLeft className="w-3 h-3" />
           </button>
-          <button onClick={() => handleAlign('center')} className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Align Center">
+          <button onClick={() => handleAlign('center')} className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Align Center" aria-label="Align Center">
             <Icons.AlignCenter className="w-3 h-3" />
           </button>
-          <button onClick={() => handleAlign('right')} className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Align Right">
+          <button onClick={() => handleAlign('right')} className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Align Right" aria-label="Align Right">
             <Icons.AlignRight className="w-3 h-3" />
           </button>
           <div className="col-span-3"></div>
-          <button onClick={() => handleAlign('top')} className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Align Top">
+          <button onClick={() => handleAlign('top')} className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Align Top" aria-label="Align Top">
             <Icons.AlignTop className="w-3 h-3" />
           </button>
-          <button onClick={() => handleAlign('middle')} className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Align Middle">
+          <button onClick={() => handleAlign('middle')} className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Align Middle" aria-label="Align Middle">
             <Icons.AlignMiddle className="w-3 h-3" />
           </button>
-          <button onClick={() => handleAlign('bottom')} className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Align Bottom">
+          <button onClick={() => handleAlign('bottom')} className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white" title="Align Bottom" aria-label="Align Bottom">
             <Icons.AlignBottom className="w-3 h-3" />
           </button>
         </div>
