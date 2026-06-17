@@ -135,7 +135,18 @@ export const SidePanel = React.memo(
                 {activeTab === NavTab.PHOTOS && <AssetsPanel />}
 
                 {activeTab === NavTab.TEXT_EFFECTS && selectedTextLayer && (
-                  <TextEffectsPanel effects={{}} onChange={() => {}} />
+                  <TextEffectsPanel
+                    effects={{
+                      styleType: selectedTextLayer.styleType,
+                      warpStyle: selectedTextLayer.warpStyle,
+                      curve: selectedTextLayer.curve,
+                      depth: selectedTextLayer.depth,
+                      neonGlow: selectedTextLayer.neonGlow,
+                    }}
+                    onChange={(newEffects) => {
+                      updateLayer(selectedTextLayer.id, newEffects as Partial<TextLayer>);
+                    }}
+                  />
                 )}
 
                 {activeTab === NavTab.TEXT_EFFECTS && !selectedTextLayer && (
