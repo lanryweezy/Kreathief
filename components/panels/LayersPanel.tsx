@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { TextLayer, ShapeLayer, ImageLayer, Layer, Artboard } from '../../types';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
+import ArrangePanel from './ArrangePanel';
 
 // LayerItem Component Props
 interface LayerItemProps {
@@ -225,6 +226,7 @@ export const LayersPanel = () => {
           </span>
         </div>
       </div>
+      <ArrangePanel />
       <div className="flex-1 overflow-y-auto no-scrollbar py-2">
         {[...layers].reverse().map((layer, idx) => (
           <LayerItem

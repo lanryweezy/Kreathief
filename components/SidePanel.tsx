@@ -19,8 +19,6 @@ const ElementsPanel = React.lazy(() => import('./panels/ElementsPanel'));
 const TextPanel = React.lazy(() => import('./panels/TextPanel'));
 const UploadsPanel = React.lazy(() => import('./panels/UploadsPanel'));
 const AssetsPanel = React.lazy(() => import('./panels/AssetsPanel'));
-const TextEffectsPanel = React.lazy(() => import('./panels/TextEffectsPanel').then(module => ({ default: module.TextEffectsPanel })));
-const ArrangePanel = React.lazy(() => import('./panels/ArrangePanel'));
 const ComponentsPanel = React.lazy(() => import('./panels/ComponentsPanel'));
 const CommentsPanel = React.lazy(() => import('./panels/CommentsPanel'));
 const MotionPanel = React.lazy(() => import('./panels/MotionPanel').then(m => ({ default: m.MotionPanel })));
@@ -134,18 +132,6 @@ export const SidePanel = React.memo(
 
                 {activeTab === NavTab.PHOTOS && <AssetsPanel />}
 
-                {activeTab === NavTab.TEXT_EFFECTS && selectedTextLayer && (
-                  <TextEffectsPanel effects={{}} onChange={() => {}} />
-                )}
-
-                {activeTab === NavTab.TEXT_EFFECTS && !selectedTextLayer && (
-                  <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                    <Icons.Zap className="w-12 h-12 text-gray-600 mb-4" />
-                    <h3 className="text-lg font-bold text-white mb-2">Text Effects</h3>
-                    <p className="text-sm text-gray-400">Select a text layer to unlock amazing text effects like transformations, shadows, 3D depth, and textures.</p>
-                  </div>
-                )}
-
                 {activeTab === NavTab.TEMPLATES && (
                   <TemplatesPanel
                     onApplyTemplate={handleApplyTemplate}
@@ -210,8 +196,6 @@ export const SidePanel = React.memo(
                 {activeTab === NavTab.COMMENTS && <CommentsPanel />}
 
                 {activeTab === NavTab.VECTORIZER && <VectorizerPanel />}
-
-                {activeTab === NavTab.ARRANGE && <ArrangePanel />}
 
                 {activeTab === NavTab.MOTION && <MotionPanel onPreviewMotion={onPreviewMotion} />}
 
