@@ -2,7 +2,7 @@ import { useStore } from '../store/useStore';
 import { ImageLayer } from '../types';
 import * as exportService from '../services/exportService';
 import { storageService } from '../services/storageService';
-import { v4 as uuidv4 } from 'uuid';
+import { generateLayerId } from '../utils/layers/layerUtils';
 import { log } from '../utils/log';
 import { haptics } from '../utils/haptics';
 
@@ -51,12 +51,12 @@ export const useFileHandler = () => {
         const cachedUrls = await Promise.all(validUrls.map(url => storageService.cacheAsset(url)));
 
         addLayers(cachedUrls.map((url: string, idx: number) => ({
-          id: uuidv4(),
+          id: generateLayerId('image'),
           type: 'image',
           name: `Image ${idx + 1}`,
           src: url,
-          x: canvasSize.width / 2 - 100,
-          y: canvasSize.height / 2 - 100,
+          x: canvasSize.width / 2 - 100 + (idx * 20),
+          y: canvasSize.height / 2 - 100 + (idx * 20),
           width: 200,
           height: 200,
           rotation: 0,
@@ -71,6 +71,13 @@ export const useFileHandler = () => {
           rotateX: 0,
           rotateY: 0,
         } as ImageLayer)));
+
+        // Also add the files to the uploads list so they appear in the UI
+        const handleFileUpload = useStore.getState().handleFileUpload;
+        if (handleFileUpload) {
+          handleFileUpload(files);
+        }
+
         if (setCanvasFilters) {
           setCanvasFilters({
             brightness: 100, contrast: 100, saturation: 100,
