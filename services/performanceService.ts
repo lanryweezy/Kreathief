@@ -17,7 +17,7 @@ export const performanceService = {
     const loadTime = window.performance.now();
     performanceService.logMetric('initial_load', loadTime);
     
-    console.log('[PerformanceService] Initialized', { loadTime });
+    log.info('[PerformanceService] Initialized', { loadTime });
   },
 
   /**
@@ -25,7 +25,7 @@ export const performanceService = {
    */
   logMetric: (name: string, value: number, extra?: any) => {
     // In a real app, this would send to Sentry, Google Analytics, or a custom ELK stack
-    console.log(`[Metric] ${name}: ${value.toFixed(2)}ms`, extra || '');
+    log.info(`[Metric] ${name}: ${value.toFixed(2)}ms`, { extra });
     
     // Mock sending to analytics
     // analyticsService.track('perf_metric', { name, value, ...extra });
@@ -67,7 +67,7 @@ export const performanceService = {
         });
         clsObserver.observe({ type: 'layout-shift', buffered: true });
       } catch (e) {
-        console.warn('PerformanceObserver not supported for some metrics', e);
+        log.warn('PerformanceObserver not supported for some metrics', { error: e });
       }
     }
   },
