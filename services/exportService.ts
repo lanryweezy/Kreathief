@@ -1,6 +1,7 @@
 import { TextLayer, ShapeLayer, ImageLayer, CanvasFilters, Layer } from '../types';
 import { writePsd, Psd } from 'ag-psd';
 import { logSecurityEvent } from '../utils/securityLogger';
+import { renderMultilineText } from '../utils/textRendering';
 
 export type ColorProfile = 'sRGB' | 'CMYK' | 'FOGRA39' | 'GRACoL' | 'SWOP';
 
@@ -40,22 +41,28 @@ export const exportToPrintPDF = async (
   options: PDFExportOptions
 ) => {
   // If CMYK is selected, we must use the true ICC conversion serverless backend
-  if (options.colorProfile === 'CMYK' || options.colorProfile === 'FOGRA39' || options.colorProfile === 'SWOP' || options.colorProfile === 'GRACoL') {
+  if (
+    options.colorProfile === 'CMYK' ||
+    options.colorProfile === 'FOGRA39' ||
+    options.colorProfile === 'SWOP' ||
+    options.colorProfile === 'GRACoL'
+  ) {
     return new Promise<void>(async (resolve, reject) => {
       try {
         let imageUrlToProcess = imgDataUrl;
-        
+
         // 1. Convert Data URL to Blob
         const response = await fetch(imgDataUrl);
         const blob = await response.blob();
-        
+
         // 2. To bypass Vercel's 4.5MB request limit, upload to Supabase Storage if possible
-        if (blob.size > 2 * 1024 * 1024) { // If larger than 2MB
+        if (blob.size > 2 * 1024 * 1024) {
+          // If larger than 2MB
           const tempFileName = `temp_${uuidv4()}.png`;
           const { error } = await supabase.storage
             .from('exports')
             .upload(tempFileName, blob, { contentType: 'image/png' });
-            
+
           if (!error) {
             const { data } = supabase.storage.from('exports').getPublicUrl(tempFileName);
             imageUrlToProcess = data.publicUrl;
@@ -66,10 +73,10 @@ export const exportToPrintPDF = async (
         const apiResponse = await fetch('/api/export-cmyk', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             imageUrl: imageUrlToProcess,
-            bleed: options.bleed
-          })
+            bleed: options.bleed,
+          }),
         });
 
         if (!apiResponse.ok) {
@@ -104,42 +111,37 @@ const fallbackToWorker = (
   resolveOuter: () => void,
   rejectOuter: (reason?: any) => void
 ) => {
-    try {
-      const worker = new Worker(new URL('../workers/pdf.worker.ts', import.meta.url), { type: 'module' });
-      
-      worker.onmessage = (e) => {
-        const { type, payload, error } = e.data;
-        if (type === 'SUCCESS') {
-          downloadBlob(payload, fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
-          logSecurityEvent('DATA_EXPORT', 'current_user', { fileName, options, format: 'pdf_worker' });
-          worker.terminate();
-          resolveOuter();
-        } else {
-          worker.terminate();
-          rejectOuter(new Error(error || 'PDF Generation failed'));
-        }
-      };
+  try {
+    const worker = new Worker(new URL('../workers/pdf.worker.ts', import.meta.url), { type: 'module' });
 
-      worker.onerror = (err) => {
+    worker.onmessage = (e) => {
+      const { type, payload, error } = e.data;
+      if (type === 'SUCCESS') {
+        downloadBlob(payload, fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
+        logSecurityEvent('DATA_EXPORT', 'current_user', { fileName, options, format: 'pdf_worker' });
         worker.terminate();
-        rejectOuter(err);
-      };
+        resolveOuter();
+      } else {
+        worker.terminate();
+        rejectOuter(new Error(error || 'PDF Generation failed'));
+      }
+    };
 
-      worker.postMessage({ width, height, imgDataUrl, fileName, options });
-    } catch (err) {
+    worker.onerror = (err) => {
+      worker.terminate();
       rejectOuter(err);
-    }
+    };
+
+    worker.postMessage({ width, height, imgDataUrl, fileName, options });
+  } catch (err) {
+    rejectOuter(err);
+  }
 };
 
 /**
  * Exports the design as a layered Photoshop (PSD) file.
  */
-export const exportToLayeredPSD = async (
-  width: number,
-  height: number,
-  layers: Layer[],
-  fileName: string
-) => {
+export const exportToLayeredPSD = async (width: number, height: number, layers: Layer[], fileName: string) => {
   const psd: Psd = {
     width,
     height,
@@ -147,7 +149,9 @@ export const exportToLayeredPSD = async (
   };
 
   for (const layer of layers) {
-    if (!layer.visible) {continue;}
+    if (!layer.visible) {
+      continue;
+    }
 
     const canvas = document.createElement('canvas');
     canvas.width = layer.width || width;
@@ -157,7 +161,7 @@ export const exportToLayeredPSD = async (
     if (ctx) {
       const origX = layer.x;
       const origY = layer.y;
-      
+
       // Temporary "zeroing" for individual layer render
       const tempLayer = { ...layer, x: 0, y: 0 };
 
@@ -204,7 +208,9 @@ export const exportDesignToImage = async (
   canvas.height = height;
   const ctx = canvas.getContext('2d');
 
-  if (!ctx) {throw new Error('Could not create canvas context');}
+  if (!ctx) {
+    throw new Error('Could not create canvas context');
+  }
 
   if (backgroundColor !== 'transparent') {
     ctx.fillStyle = backgroundColor;
@@ -227,10 +233,16 @@ export const exportDesignToImage = async (
   }
 
   for (const layer of layers) {
-    if (!layer.visible) {continue;}
-    if (layer.type === 'image') {await drawImageLayerToContext(ctx, layer as ImageLayer);}
-    else if (layer.type === 'text') {drawTextLayerToContext(ctx, layer as TextLayer);}
-    else if (layer.type !== 'adjustment' && layer.type !== 'group') {drawShapeToContext(ctx, layer as ShapeLayer);}
+    if (!layer.visible) {
+      continue;
+    }
+    if (layer.type === 'image') {
+      await drawImageLayerToContext(ctx, layer as ImageLayer);
+    } else if (layer.type === 'text') {
+      drawTextLayerToContext(ctx, layer as TextLayer);
+    } else if (layer.type !== 'adjustment' && layer.type !== 'group') {
+      drawShapeToContext(ctx, layer as ShapeLayer);
+    }
   }
 
   return canvas.toDataURL(`image/${format}`, quality);
@@ -246,16 +258,30 @@ export const exportDesignToBlob = async (
   format: 'png' | 'jpeg' | 'webp' = 'png',
   quality: number = 0.95
 ): Promise<Blob> => {
-  const dataUrl = await exportDesignToImage(width, height, backgroundColor, backgroundImageUrl, layers, filters, format, quality);
+  const dataUrl = await exportDesignToImage(
+    width,
+    height,
+    backgroundColor,
+    backgroundImageUrl,
+    layers,
+    filters,
+    format,
+    quality
+  );
   const response = await fetch(dataUrl);
   return await response.blob();
 };
 
-export const exportToSVG = async (width: number, height: number, backgroundColor: string, layers: Layer[]): Promise<string> => {
-   // Simplified SVG export placeholder
-   return `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+export const exportToSVG = async (
+  width: number,
+  height: number,
+  backgroundColor: string,
+  layers: Layer[]
+): Promise<string> => {
+  // Simplified SVG export placeholder
+  return `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
      <rect width="100%" height="100%" fill="${backgroundColor}" />
-     ${layers.map(l => `<g id="${l.id}"></g>`).join('')}
+     ${layers.map((l) => `<g id="${l.id}"></g>`).join('')}
    </svg>`;
 };
 
@@ -290,10 +316,10 @@ const drawTextLayerToContext = (ctx: CanvasRenderingContext2D, layer: TextLayer)
   ctx.translate(layer.x, layer.y);
   ctx.rotate((layer.rotation * Math.PI) / 180);
   ctx.globalAlpha = layer.opacity;
-  ctx.fillStyle = layer.color;
-  ctx.font = `${layer.fontWeight} ${layer.fontSize}px ${layer.fontFamily}`;
-  ctx.textBaseline = 'top';
-  ctx.fillText(layer.text, 0, 0);
+
+  // Use shared multiline layout renderer
+  renderMultilineText(ctx, layer);
+
   ctx.restore();
 };
 
@@ -324,7 +350,7 @@ const drawShapeToContext = (ctx: CanvasRenderingContext2D, layer: ShapeLayer) =>
   ctx.rotate((layer.rotation * Math.PI) / 180);
   ctx.globalAlpha = layer.opacity;
   ctx.fillStyle = layer.color;
-  
+
   if (layer.type === 'rectangle') {
     ctx.fillRect(-layer.width / 2, -layer.height / 2, layer.width, layer.height);
   } else if (layer.type === 'circle') {

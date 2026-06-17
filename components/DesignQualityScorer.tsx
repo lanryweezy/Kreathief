@@ -1,3 +1,5 @@
+import { log } from '../utils/log';
+
 import React, { useState } from 'react';
 import * as geminiService from '../services/geminiService';
 import { Icons } from '../constants';
@@ -80,7 +82,7 @@ export const DesignQualityScorer: React.FC<DesignQualityScorerProps> = ({ isOpen
         ]);
       }
     } catch (error) {
-      console.error('Error analyzing design:', error);
+      log.error('Error analyzing design', error);
     } finally {
       setIsLoading(false);
     }

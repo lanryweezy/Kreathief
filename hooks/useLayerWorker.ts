@@ -3,6 +3,8 @@
  * Provides async access to heavy layer operations (masking, hit-testing) using a Web Worker.
  */
 
+import { log } from '../utils/log';
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Layer, ImageLayer } from '../types';
 import { maskWorkerService } from '../services/maskWorkerService';
@@ -46,7 +48,7 @@ export const useProcessedImage = (layer: ImageLayer | null) => {
           }
         })
         .catch(err => {
-          console.error('Filter Worker Error:', err);
+          log.error('Filter Worker Error:', err);
           if (isMounted) setIsProcessing(false);
         });
     }, 150); // Debounce to prevent worker flooding during slider moves
@@ -92,7 +94,7 @@ export const useLayerMask = (layer: Layer | null) => {
         }
       })
       .catch((err) => {
-        console.error('Worker Mask Error:', err);
+        log.error('Worker Mask Error:', err);
         if (isMounted) {
           setIsProcessing(false);
         }
@@ -111,7 +113,7 @@ export const useLayerHitTest = () => {
     try {
       return await maskWorkerService.hitTest(x, y, layer);
     } catch (err) {
-      console.error('Worker HitTest Error:', err);
+      log.error('Worker HitTest Error:', err);
       // Fallback to simple AABB if worker fails
       const width = (layer as any).width || 0;
       const height = (layer as any).height || 0;

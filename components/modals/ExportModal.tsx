@@ -30,11 +30,14 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
   const [isCopying, setIsCopying] = useState(false);
   const [exportStage, setExportStage] = useState<string>('');
   const [exportScale, setExportScale] = useState<number>(1);
+  // 🌸 Bloom: Ensure default export filenames strictly adhere to safe character limits and fallback gracefully
+  const sanitizeFilename = (name: string) => name.replace(/[^a-zA-Z0-9_\-\s]/g, '').replace(/\s+/g, '-').toLowerCase() || 'design';
+
   const [filename, setFilename] = useState<string>(
     projectTitle && projectTitle !== 'Untitled Design'
-      ? projectTitle.replace(/\s+/g, '-').toLowerCase()
+      ? sanitizeFilename(projectTitle)
       : currentSize.name
-        ? currentSize.name.replace(/\s+/g, '-').toLowerCase()
+        ? sanitizeFilename(currentSize.name)
         : 'design'
   );
 
@@ -119,14 +122,17 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
       setExportStage('Rendering design...');
 
+      // 🌸 Bloom: Handle empty filename edge case by providing a safe fallback instead of failing
+      const safeCustomFilename = filename.trim() || 'design';
+
       // Handle print mode PDF export separately
       if (format === 'pdf' && isPrintMode) {
         // For print mode, we need to get the canvas data URL first
-        await onExport(format, quality, size, false, filename + '_print');
+        await onExport(format, quality, size, false, safeCustomFilename + '_print');
         // The actual print PDF export would be handled by the parent component
         // with the exportToPrintPDF function
       } else {
-        await onExport(format, quality, size, transparentBg && format === 'png', filename);
+        await onExport(format, quality, size, transparentBg && format === 'png', safeCustomFilename);
       }
 
       // Track once removed duplicate call
@@ -170,7 +176,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       for (let i = 0; i < artboards.length; i++) {
         const ab = artboards[i];
         const label = ab.name || `Artboard ${i + 1}`;
-        const safeFilename = label.replace(/\s+/g, '-').toLowerCase();
+        const safeFilename = sanitizeFilename(label);
         setExportStage(`Exporting "${label}" (${i + 1}/${artboards.length})...`);
 
         // Switch to this artboard so the canvas snapshot picks it up
@@ -244,12 +250,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     setIsExporting(true);
     setExportStage(`Exporting ${selectedLayerIds.length} layer(s)...`);
     try {
+      const safeCustomFilename = filename.trim() || 'design';
       await onExport(
         format,
         quality,
         { width: currentSize.width, height: currentSize.height },
         transparentBg && format === 'png',
-        `${filename}-selection`
+        `${safeCustomFilename}-selection`
       );
       addToast(`Selection exported as ${format.toUpperCase()}!`, 'success');
       setTimeout(() => onClose(), 300);
@@ -569,7 +576,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                   id="export-filename"
                   type="text"
                   value={filename}
-                  onChange={(e) => setFilename(e.target.value)}
+                  onChange={(e) => setFilename(e.target.value.replace(/[^a-zA-Z0-9_\-\s]/g, ''))}
                   className="flex-1 bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-[#7d2ae8] outline-none transition-colors"
                   placeholder="design-name"
                   autoFocus

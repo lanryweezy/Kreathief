@@ -1,9 +1,10 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
 import { IconButton, CompactInput } from './ToolbarShared';
 import { Layer } from '../../types';
 import { pxToUnit, unitToPx } from '../../utils/unitUtils';
+import { debounce } from '../../utils/debounce';
 
 interface TransformToolsProps {
   selectedLayer: Layer;
@@ -15,8 +16,17 @@ export const TransformTools = React.memo(({ selectedLayer }: TransformToolsProps
   const unit = useStore((state) => state.unit);
 
   // FIX: Add debouncing for transform inputs
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const pendingChanges = useRef<Record<string, any>>({});
+
+  const debouncedUpdateLayers = useMemo(
+    () => debounce(() => {
+      if (Object.keys(pendingChanges.current).length > 0 && onUpdateLayers) {
+        onUpdateLayers(pendingChanges.current);
+        pendingChanges.current = {};
+      }
+    }, 150),
+    [onUpdateLayers]
+  );
 
   const handleUpdateLayer = useCallback((changes: any) => {
     if (selectedLayer && onUpdateLayers) {
@@ -29,32 +39,22 @@ export const TransformTools = React.memo(({ selectedLayer }: TransformToolsProps
         }
       };
 
-      // Clear existing debounce
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-
-      // Debounce update (150ms)
-      debounceRef.current = setTimeout(() => {
-        onUpdateLayers(pendingChanges.current);
-        pendingChanges.current = {};
-      }, 150);
+      // Debounce update
+      debouncedUpdateLayers();
     }
-  }, [selectedLayer, onUpdateLayers]);
+  }, [selectedLayer, onUpdateLayers, debouncedUpdateLayers]);
 
   // FIX: Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-        // Flush pending changes on unmount
-        if (Object.keys(pendingChanges.current).length > 0) {
-          onUpdateLayers(pendingChanges.current);
-          pendingChanges.current = {};
-        }
+      debouncedUpdateLayers.cancel();
+      // Flush pending changes on unmount
+      if (Object.keys(pendingChanges.current).length > 0 && onUpdateLayers) {
+        onUpdateLayers(pendingChanges.current);
+        pendingChanges.current = {};
       }
     };
-  }, [onUpdateLayers]);
+  }, [debouncedUpdateLayers, onUpdateLayers]);
 
   const handleUnitChange = useCallback((key: string, value: string) => {
     const floatVal = parseFloat(value);

@@ -19,8 +19,6 @@ const ElementsPanel = React.lazy(() => import('./panels/ElementsPanel'));
 const TextPanel = React.lazy(() => import('./panels/TextPanel'));
 const UploadsPanel = React.lazy(() => import('./panels/UploadsPanel'));
 const AssetsPanel = React.lazy(() => import('./panels/AssetsPanel'));
-const TextEffectsPanel = React.lazy(() => import('./panels/TextEffectsPanel').then(module => ({ default: module.TextEffectsPanel })));
-const ArrangePanel = React.lazy(() => import('./panels/ArrangePanel'));
 const ComponentsPanel = React.lazy(() => import('./panels/ComponentsPanel'));
 const CommentsPanel = React.lazy(() => import('./panels/CommentsPanel'));
 const MotionPanel = React.lazy(() => import('./panels/MotionPanel').then(m => ({ default: m.MotionPanel })));
@@ -135,7 +133,18 @@ export const SidePanel = React.memo(
                 {activeTab === NavTab.PHOTOS && <AssetsPanel />}
 
                 {activeTab === NavTab.TEXT_EFFECTS && selectedTextLayer && (
-                  <TextEffectsPanel effects={{}} onChange={() => {}} />
+                  <TextEffectsPanel
+                    effects={{
+                      styleType: selectedTextLayer.styleType,
+                      warpStyle: selectedTextLayer.warpStyle,
+                      curve: selectedTextLayer.curve,
+                      depth: selectedTextLayer.depth,
+                      neonGlow: selectedTextLayer.neonGlow,
+                    }}
+                    onChange={(newEffects) => {
+                      updateLayer(selectedTextLayer.id, newEffects as Partial<TextLayer>);
+                    }}
+                  />
                 )}
 
                 {activeTab === NavTab.TEXT_EFFECTS && !selectedTextLayer && (
@@ -210,8 +219,6 @@ export const SidePanel = React.memo(
                 {activeTab === NavTab.COMMENTS && <CommentsPanel />}
 
                 {activeTab === NavTab.VECTORIZER && <VectorizerPanel />}
-
-                {activeTab === NavTab.ARRANGE && <ArrangePanel />}
 
                 {activeTab === NavTab.MOTION && <MotionPanel onPreviewMotion={onPreviewMotion} />}
 
