@@ -27,3 +27,7 @@
 ## 2026-06-15 - Structured Output Prevents Conversational Preamble
 **Learning:** Instructing an LLM to "Return ONLY the text/value" is an unreliable prompt engineering technique. The model will frequently append conversational preamble (e.g., "Sure, here is your font: [FONT]") even when explicitly instructed not to, which breaks downstream application logic that expects a raw primitive value.
 **Action:** When a raw string or primitive value is required from an LLM (e.g., `suggestFontPairing`, `enhancePrompt`), use `generationConfig` with `responseMimeType: 'application/json'` and an explicit `responseSchema` of `SchemaType.STRING`. This enforces a strict JSON output structure, entirely eliminating conversational preamble and allowing safe extraction using `safeParseJSON`.
+
+## 2026-06-17 - Eliminate Text Generation Preamble
+**Learning:** In text manipulation features (like rewriting text or content generation), instructing the LLM to "Return ONLY the rewritten text without quotes" is insufficient and leads to conversational preamble ("Sure, here is the text: ") which breaks string splitting logic in components like `SmartContentGenerator` and `Toolbar`.
+**Action:** When a raw string is needed, configure the Gemini API request with `generationConfig: { responseMimeType: 'application/json', responseSchema: { type: SchemaType.STRING } }` and parse the text with `safeParseJSON` instead of relying on prompt instructions and string replacements.

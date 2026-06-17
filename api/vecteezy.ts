@@ -52,8 +52,8 @@ export default async function handler(req: Request) {
     rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   }
 
-  const accountId = process.env.VITE_VECTEEZY_ACCOUNT_ID;
-  const secretKey = process.env.VITE_VECTEEZY_SECRET_KEY;
+  const accountId = process.env.VECTEEZY_ACCOUNT_ID;
+  const secretKey = process.env.VECTEEZY_SECRET_KEY;
 
   if (!accountId || !secretKey) {
     return new Response(JSON.stringify({ error: 'Vecteezy API key not configured on server' }), {

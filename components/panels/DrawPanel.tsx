@@ -1,3 +1,5 @@
+import { log } from '../../utils/log';
+
 import React, { useState, useRef } from 'react';
 import { Icons } from '../../constants';
 import { BrushType } from '../../types';
@@ -143,7 +145,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
       addCustomBrushes(newBrushes);
       useStore.getState().addToast?.(`Imported ${newBrushes.length} brushes`, 'success');
     } catch (err) {
-      console.error(err);
+      log.error('Failed to read brush file', err);
       useStore.getState().addToast?.('Failed to read brush file', 'error');
     }
   };
