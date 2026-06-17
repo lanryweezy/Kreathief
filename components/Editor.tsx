@@ -1,3 +1,5 @@
+import { log } from '../utils/log';
+
 import React, { useState, useMemo } from 'react';
 import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
@@ -162,7 +164,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         await useStore.getState().updateProject(projectId, { thumbnail: thumb });
       }
     } catch (err) {
-      console.error('Failed to capture thumbnail on back', err);
+      log.error('Failed to capture thumbnail on back', err);
     }
     onBack();
   };

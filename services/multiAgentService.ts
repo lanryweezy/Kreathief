@@ -1,3 +1,5 @@
+import { log } from '../utils/log';
+
 import { SchemaType } from '@google/generative-ai';
 import { Layer, ShapeLayer, TextLayer } from '../types';
 import { v4 as uuidv4 } from 'uuid';
@@ -125,7 +127,7 @@ Ensure perfect visual composition and contrast.`;
       }),
     }));
   } catch (err) {
-    console.error('Creative Agent parsing failed', err);
+    log.error('Creative Agent parsing failed', err);
     throw new Error('Failed to generate structural layouts.');
   }
 };
@@ -227,7 +229,7 @@ Rules:
       }),
     }));
   } catch (err) {
-    console.error('Creative Refine Parsing failed', err);
+    log.error('Creative Refine Parsing failed', err);
     throw new Error('Failed to refine selection.');
   }
 };
@@ -298,7 +300,7 @@ You MUST return the identical schema structure for variants but with improved va
       };
     });
   } catch (err) {
-    console.error('Critic Agent failed, passing original variants', err);
+    log.error('Critic Agent failed, passing original variants', err);
     return variants; // Failsafe: return originals if critic breaks JSON
   }
 };
@@ -360,7 +362,7 @@ Only return an array of objects containing { id, score, reasoning }.`;
       })
       .sort((a, b) => (b.performanceScore || 0) - (a.performanceScore || 0)); // Sort highest first
   } catch (err) {
-    console.error('Performance Agent failed', err);
+    log.error('Performance Agent failed', err);
     return variants;
   }
 };

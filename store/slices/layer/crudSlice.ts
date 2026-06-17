@@ -1,3 +1,5 @@
+import { log } from '../../../utils/log';
+
 import { StateCreator } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import * as geminiService from '../../../services/geminiService';
@@ -516,7 +518,7 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
       const newName = await geminiService.generateLayerName(description);
       updateLayer(id, { name: newName });
     } catch (error) {
-      console.error('Auto-naming failed', error);
+      log.error('Auto-naming failed', error);
     }
   },
 });

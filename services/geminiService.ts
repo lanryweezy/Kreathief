@@ -187,7 +187,7 @@ export const removeBackground = async (base64Image: string): Promise<string> => 
           return result;
         }
       } catch (fpError) {
-        console.error('Freepik BG removal fallback also failed:', fpError);
+        log.error('Freepik BG removal fallback also failed:', fpError);
       }
     }
 
@@ -225,7 +225,7 @@ export const generateText = async (
 
     return parsed?.trim() || currentText;
   } catch (error) {
-    console.error('Text Generation Error:', error);
+    log.error('Text Generation Error:', error);
     throw error;
   }
 };
@@ -262,7 +262,7 @@ export const generateLayerName = async (description: string): Promise<string> =>
     });
     return (data.text?.trim().replace(/^["']|["']$/g, '') || 'Layer');
   } catch (error) {
-    console.error('generateLayerName error:', error);
+    log.error('generateLayerName error:', error);
     return 'Layer';
   }
 };
@@ -304,7 +304,7 @@ export const generateAltText = async (src: string): Promise<string> => {
     });
     return (data.text?.trim().replace(/[.!?]+$/, '') || 'Image');
   } catch (error) {
-    console.error('generateAltText error:', error);
+    log.error('generateAltText error:', error);
     return 'Image';
   }
 };
@@ -337,7 +337,7 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
     }
     return parsed;
   } catch (error) {
-    console.error('Text Options Error:', error);
+    log.error('Text Options Error:', error);
     return [];
   }
 };
@@ -370,7 +370,7 @@ export const enhancePrompt = async (simplePrompt: string): Promise<string> => {
     const parsed = safeParseJSON<string | null>(data.text || '""', null);
     return parsed || simplePrompt;
   } catch (error) {
-    console.error('Prompt Enhancer Error:', error);
+    log.error('Prompt Enhancer Error:', error);
     return simplePrompt;
   }
 };
@@ -729,7 +729,7 @@ export const optimizeLayout = async (layers: any[], canvasWidth: number, canvasH
     }
     return parsed;
   } catch (error) {
-    console.error('Layout Optimization Error:', error);
+    log.error('Layout Optimization Error:', error);
     return [];
   }
 };
@@ -764,7 +764,7 @@ export const generatePaletteFromImage = async (base64Image: string): Promise<str
     }
     return parsed;
   } catch (error) {
-    console.error('Palette extraction failed', error);
+    log.error('Palette extraction failed', error);
     return [];
   }
 };
@@ -817,7 +817,7 @@ export const vectorizeImage = async (
     }
     return parsed;
   } catch (error) {
-    console.error('Vectorization failed', error);
+    log.error('Vectorization failed', error);
     throw error;
   }
 };
@@ -860,7 +860,7 @@ export const generateAIVector = async (prompt: string, stylePreset: string = 'de
     }
     return parsed;
   } catch (error) {
-    console.error('AI Vector Generation failed', error);
+    log.error('AI Vector Generation failed', error);
     throw error;
   }
 };
@@ -914,7 +914,7 @@ export const suggestFontPairing = async (primaryFont: string): Promise<string> =
     const parsed = safeParseJSON<string | null>(data.text || '""', null);
     return parsed || primaryFont;
   } catch (error) {
-    console.error('Font pairing suggestion failed', error);
+    log.error('Font pairing suggestion failed', error);
     return primaryFont;
   }
 };
@@ -938,7 +938,7 @@ export const generateAutoLayoutSuggestions = async (layers: any[], width: number
     }
     return parsed;
   } catch (error) {
-    console.error('Auto-layout failed', error);
+    log.error('Auto-layout failed', error);
     return [];
   }
 };
@@ -963,7 +963,7 @@ export const extractStyleFromImage = async (base64Image: string): Promise<Design
     }
     return parsed;
   } catch (error) {
-    console.error('Style extraction failed', error);
+    log.error('Style extraction failed', error);
     throw error;
   }
 };
