@@ -253,7 +253,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                 {/* Eyedropper Button */}
                 <div className="mb-3">
                   <button
-                    onClick={handleNativeEyeDropper}
+                    aria-label="Pick color from screen" onClick={handleNativeEyeDropper}
                     className="w-full px-3 py-2 bg-[#252627] hover:bg-gray-700 rounded-lg text-[10px] font-bold text-gray-300 transition-colors flex items-center justify-center gap-2 border border-white/5 hover:border-white/10"
                   >
                     <Icons.EyeDropper className="w-4 h-4 text-[#7d2ae8]" />
@@ -276,7 +276,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                   </button>
                   <div className="relative flex-[1.5]">
                     <button
-                      onClick={copyToClipboard}
+                      aria-label="Copy hex code" onClick={copyToClipboard}
                       className={`absolute left-2 top-1/2 -translate-y-1/2 text-xs transition-colors ${isCopied ? 'text-green-400' : 'text-gray-500 hover:text-[#7d2ae8]'}`}
                       title="Copy Hex"
                     >
@@ -328,7 +328,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                     <div className="flex flex-col gap-2 mb-4">
                       <div className="flex items-center justify-between">
                         <button
-                          onClick={() => setCmykMode(!cmykMode)}
+                          aria-label="Toggle CMYK mode" onClick={() => setCmykMode(!cmykMode)}
                           className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded transition-colors ${
                             cmykMode ? 'bg-[#7d2ae8]/20 text-[#7d2ae8]' : 'bg-black/40 text-gray-500 hover:text-white'
                           }`}
