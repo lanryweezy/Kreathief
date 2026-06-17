@@ -200,10 +200,17 @@ export const generateText = async (
   instruction: string = 'Rewrite this to be more creative and catchy.'
 ): Promise<string> => {
   try {
-    const systemInstruction = `You are a creative copywriter. ${instruction}\nMaintain the original language. Keep it concise. Return ONLY the rewritten text without quotes or explanations.`;
+    const systemInstruction = `You are a creative copywriter. ${instruction}\nMaintain the original language. Keep it concise. Return ONLY the rewritten text.`;
 
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.STRING,
+          description: 'The rewritten text.',
+        },
+      },
       contents: [
         {
           role: 'user',
@@ -213,11 +220,10 @@ export const generateText = async (
       systemInstruction: systemInstruction,
     });
 
-    return (
-      data.text
-        ?.trim()
-        .replace(/^["']|["']$/g, '') || currentText
-    );
+    // 🤖 Astra: Force strict JSON output for strings to eliminate conversational preamble
+    const parsed = safeParseJSON<string | null>(data.text || 'null', null);
+
+    return parsed?.trim() || currentText;
   } catch (error) {
     console.error('Text Generation Error:', error);
     throw error;
