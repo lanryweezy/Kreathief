@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { selectedLayerSelector } from '../store/selectors';
 import { NavTab, TextLayer } from '../types';
 import { Icons } from '../constants';
@@ -66,7 +67,32 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
     setIsLassoMode,
     setRefineBrushMode,
     setRefineBrushSize,
-  } = useStore();
+  } = useStore(
+    useShallow((state) => ({
+      selectedLayerIds: state.selectedLayerIds,
+      updateLayer: state.updateLayer,
+      deleteLayer: state.deleteLayer,
+      duplicateLayer: state.duplicateLayer,
+      moveLayer: state.moveLayer,
+      alignLayers: state.alignLayers,
+      groupSelected: state.groupSelected,
+      ungroupSelected: state.ungroupSelected,
+      onRmBg: state.onRmBg,
+      vectorizeLayer: state.vectorizeLayer,
+      onCrop: state.onCrop,
+      onEnhance: state.onEnhance,
+      onUpscale: state.onUpscale,
+      onRetouch: state.onRetouch,
+      onRemix: state.onRemix,
+      onMagicExpand: state.onMagicExpand,
+      toggleEraser: state.toggleEraser,
+      setIsProcessing: state.setIsProcessing,
+      setActiveTab: state.setActiveTab,
+      setIsLassoMode: state.setIsLassoMode,
+      setRefineBrushMode: state.setRefineBrushMode,
+      setRefineBrushSize: state.setRefineBrushSize,
+    }))
+  );
 
   const isRemovingBgStore = useStore((state) => state.isRemovingBg);
   const isExpandingStore = useStore((state) => state.isExpanding);
@@ -83,7 +109,10 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
 
   // Listen for "open effects panel" event
   useEffect(() => {
-    const handleOpenEffects = () => setActiveTab(NavTab.TEXT_EFFECTS);
+    const handleOpenEffects = () => {
+      setActiveTab(NavTab.TEXT);
+      // We could ideally trigger the inner tab state of TextPanel here, but setting active tab to TEXT is the fallback.
+    };
     window.addEventListener('open-effects-panel', handleOpenEffects);
     return () => window.removeEventListener('open-effects-panel', handleOpenEffects);
   }, [setActiveTab]);
