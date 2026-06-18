@@ -214,8 +214,6 @@ export const SidePanel = React.memo(
 
                 {activeTab === NavTab.MOCKUP && <MockupPanel onExportForMockup={getCanvasSnapshot || (async () => '')} />}
 
-                {activeTab === NavTab.COMPONENTS && <ComponentsPanel />}
-
                 {activeTab === NavTab.COMMENTS && <CommentsPanel />}
 
                 {activeTab === NavTab.VECTORIZER && <VectorizerPanel />}
