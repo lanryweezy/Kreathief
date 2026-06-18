@@ -7,7 +7,6 @@ import * as geminiService from '../../../services/geminiService';
 import { Layer, TextLayer, ShapeLayer, Artboard, ImageLayer } from '../../../types';
 import { LayerSlice } from './baseSlice';
 import { DEFAULT_LAYER_FILTERS } from './utils';
-import { log } from '../../../utils/log';
 
 export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (set, get) => ({
   addArtboard: (name = 'Artboard', width = 1080, height = 1080) => {
@@ -23,6 +22,10 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
   },
 
   magicResize: (newWidth: number, newHeight: number, newName?: string) => {
+    if (!isFinite(newWidth) || !isFinite(newHeight) || newWidth < 1 || newHeight < 1) {
+      log.warn('magicResize called with invalid dimensions', { newWidth, newHeight });
+      return;
+    }
     get().saveToHistory?.();
     const state = get();
     const currentArtboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);

@@ -75,7 +75,6 @@ export const initialLayerState = {
   selectedLayerIds: [],
   clipboardLayer: null,
   editingPathId: null,
-  layerCache: null,
 };
 
 export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (set, _get) => ({
@@ -105,10 +104,6 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
         layers: a.layers.map((l: any) => {
           if (l.id === id) {
             const updated = { ...l, ...partial, dirty: true };
-            // Update cache incrementally
-            if (state.layerCache) {
-              state.layerCache.set(id, updated);
-            }
             return updated;
           }
           return l;
