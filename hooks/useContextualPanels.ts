@@ -15,9 +15,9 @@ export const useContextualPanels = () => {
   const isPenMode = useStore((state) => state.isPenMode);
 
   const selectedLayer = useMemo(() => {
-    if (selectedLayerIds.length === 0) return null;
+    if (selectedLayerIds.length === 0) {return null;}
     const activeArtboard = artboards.find(a => a.id === activeArtboardId);
-    if (!activeArtboard) return null;
+    if (!activeArtboard) {return null;}
     return activeArtboard.layers.find(l => l.id === selectedLayerIds[selectedLayerIds.length - 1]);
   }, [selectedLayerIds, artboards, activeArtboardId]);
 

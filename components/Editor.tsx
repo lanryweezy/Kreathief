@@ -277,7 +277,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                 uploadedImage={uploadedImage}
                 onStartDesign={handleStartDesign}
                 onPreviewMotion={(settings: AnimationSettings) => {
-                  if (previewTimeoutRef.current) clearTimeout(previewTimeoutRef.current);
+                  if (previewTimeoutRef.current) {clearTimeout(previewTimeoutRef.current);}
                   setPreviewAnimation(settings);
                   previewTimeoutRef.current = setTimeout(() => {
                     setPreviewAnimation(undefined);
@@ -466,7 +466,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           uploadedImage={uploadedImage}
           onStartDesign={handleStartDesign}
         onPreviewMotion={(settings: AnimationSettings) => {
-          if (previewTimeoutRef.current) clearTimeout(previewTimeoutRef.current);
+          if (previewTimeoutRef.current) {clearTimeout(previewTimeoutRef.current);}
           setPreviewAnimation(settings);
           previewTimeoutRef.current = setTimeout(() => {
             setPreviewAnimation(undefined);

@@ -46,7 +46,7 @@ export const CommandPalette: React.FC = () => {
     }
 
     const timer = setTimeout(async () => {
-      if (!query || query.length < 2) return;
+      if (!query || query.length < 2) {return;}
       setIsSearching(true);
       try {
         const [assets, templates] = await Promise.all([
@@ -221,7 +221,7 @@ export const CommandPalette: React.FC = () => {
         icon: Icons.Layers,
         action: () => {
           const id = store.selectedLayerIds[0];
-          if (id) moveLayer(id, 'front');
+          if (id) {moveLayer(id, 'front');}
         },
         group: 'Arrange',
         shortcut: ']',
@@ -232,7 +232,7 @@ export const CommandPalette: React.FC = () => {
         icon: Icons.Layers,
         action: () => {
           const id = store.selectedLayerIds[0];
-          if (id) moveLayer(id, 'back');
+          if (id) {moveLayer(id, 'back');}
         },
         group: 'Arrange',
         shortcut: '[',
@@ -341,7 +341,7 @@ export const CommandPalette: React.FC = () => {
   );
 
   const filteredActions = useMemo(() => {
-    if (!query) return commandList;
+    if (!query) {return commandList;}
     const q = query.toLowerCase();
     return commandList.filter((c) => c.label.toLowerCase().includes(q) || c.group?.toLowerCase().includes(q));
   }, [query, commandList]);

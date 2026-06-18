@@ -122,7 +122,7 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
     };
 
     const handleDoubleClick = (_e: React.MouseEvent, layer: any) => {
-      if (onDoubleClickLayer) onDoubleClickLayer(layer);
+      if (onDoubleClickLayer) {onDoubleClickLayer(layer);}
     };
 
     const renderItem = () => {
@@ -190,22 +190,22 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
   },
   (prev, next) => {
     // High-performance comparison
-    if (prev.layer !== next.layer) return false;
-    if (prev.zoom !== next.zoom) return false;
-    if (prev.hoveredLayerId !== next.hoveredLayerId) return false;
-    if (prev.editingTextId !== next.editingTextId) return false;
-    if (prev.editingPathId !== next.editingPathId) return false;
-    if (prev.maskLayerOverride !== next.maskLayerOverride) return false;
-    if (prev.previewAnimation !== next.previewAnimation) return false;
+    if (prev.layer !== next.layer) {return false;}
+    if (prev.zoom !== next.zoom) {return false;}
+    if (prev.hoveredLayerId !== next.hoveredLayerId) {return false;}
+    if (prev.editingTextId !== next.editingTextId) {return false;}
+    if (prev.editingPathId !== next.editingPathId) {return false;}
+    if (prev.maskLayerOverride !== next.maskLayerOverride) {return false;}
+    if (prev.previewAnimation !== next.previewAnimation) {return false;}
     
     // Selection check: only re-render if THIS layer's selection status changes
     const prevSelected = prev.selectedLayerId === prev.layer.id || (prev.selectedLayerIds || []).includes(prev.layer.id);
     const nextSelected = next.selectedLayerId === next.layer.id || (next.selectedLayerIds || []).includes(next.layer.id);
-    if (prevSelected !== nextSelected) return false;
+    if (prevSelected !== nextSelected) {return false;}
 
     // Masking check: if this layer has a mask, we must re-render if allLayers changes
     // (since the mask might be a sibling that was modified)
-    if (prev.layer.maskLayerId && prev.allLayers !== next.allLayers) return false;
+    if (prev.layer.maskLayerId && prev.allLayers !== next.allLayers) {return false;}
 
     return true;
   }

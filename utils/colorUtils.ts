@@ -26,7 +26,7 @@ export const hexToRGB = (hex: string): RGB => {
     h = h.split('').map(char => char + char).join('');
   }
   // Ensure we have at least 6 chars for parsing
-  if (h.length < 6) h = h.padEnd(6, '0');
+  if (h.length < 6) {h = h.padEnd(6, '0');}
   
   const r = parseInt(h.slice(0, 2), 16) || 0;
   const g = parseInt(h.slice(2, 4), 16) || 0;
@@ -52,7 +52,7 @@ export const rgbToCMYK = (r: number, g: number, b: number): CMYK => {
   const normB = b / 255;
 
   const k = 1 - Math.max(normR, normG, normB);
-  if (k === 1) return { c: 0, m: 0, y: 0, k: 100 };
+  if (k === 1) {return { c: 0, m: 0, y: 0, k: 100 };}
 
   const c = (1 - normR - k) / (1 - k);
   const m = (1 - normG - k) / (1 - k);
@@ -85,8 +85,8 @@ export const cmykToRgb = (c: number, m: number, y: number, k: number): RGB => {
  * Parses a color string (hex, rgb, rgba) into RGB
  */
 export const parseColor = (color: string): RGB => {
-  if (!color) return { r: 0, g: 0, b: 0 };
-  if (color.startsWith('#')) return hexToRGB(color);
+  if (!color) {return { r: 0, g: 0, b: 0 };}
+  if (color.startsWith('#')) {return hexToRGB(color);}
   const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
   if (match) {
     return {
@@ -124,9 +124,9 @@ export const checkWCAG = (color1: string, color2: string) => {
   const ratioNum = parseFloat(ratio.toFixed(2));
   
   let level = 'fail';
-  if (ratioNum >= 7) level = 'AAA';
-  else if (ratioNum >= 4.5) level = 'AA';
-  else if (ratioNum >= 3) level = 'Large AA';
+  if (ratioNum >= 7) {level = 'AAA';}
+  else if (ratioNum >= 4.5) {level = 'AA';}
+  else if (ratioNum >= 3) {level = 'Large AA';}
 
   return {
     AA: ratioNum >= 4.5,
@@ -180,11 +180,11 @@ export const hslToRGB = (h: number, s: number, l: number): RGB => {
     r = g = b = l;
   } else {
     const hue2rgb = (p: number, q: number, t: number) => {
-      if (t < 0) t += 1;
-      if (t > 1) t -= 1;
-      if (t < 1/6) return p + (q - p) * 6 * t;
-      if (t < 1/2) return q;
-      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      if (t < 0) {t += 1;}
+      if (t > 1) {t -= 1;}
+      if (t < 1/6) {return p + (q - p) * 6 * t;}
+      if (t < 1/2) {return q;}
+      if (t < 2/3) {return p + (q - p) * (2/3 - t) * 6;}
       return p;
     };
     const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
@@ -313,7 +313,7 @@ export const extractPalette = async (imgData: ImageData, count: number = 5): Pro
  * Gamut Warnings & Snapping
  */
 export const isWithinCMYKGamut = (hex: string): boolean => {
-  if (!hex || hex === 'transparent' || !hex.startsWith('#')) return true;
+  if (!hex || hex === 'transparent' || !hex.startsWith('#')) {return true;}
   const rgb = parseColor(hex);
   
   // High-end Gamut Check: 
@@ -325,17 +325,17 @@ export const isWithinCMYKGamut = (hex: string): boolean => {
   const brightness = max / 255;
 
   // Rule of thumb: If saturation > 85% and brightness > 85%, it's likely out of gamut
-  if (saturation > 0.85 && brightness > 0.85) return false;
+  if (saturation > 0.85 && brightness > 0.85) {return false;}
   
   // Specific Danger: Pure Blue (0,0,255) and Pure Green (0,255,0) are always out of gamut
-  if (rgb.b > 230 && rgb.r < 50 && rgb.g < 50) return false;
-  if (rgb.g > 230 && rgb.r < 50 && rgb.b < 50) return false;
+  if (rgb.b > 230 && rgb.r < 50 && rgb.g < 50) {return false;}
+  if (rgb.g > 230 && rgb.r < 50 && rgb.b < 50) {return false;}
 
   return true;
 };
 
 export const getCMYKGamutWarning = (hex: string): 'warning' | 'critical' | null => {
-  if (isWithinCMYKGamut(hex)) return null;
+  if (isWithinCMYKGamut(hex)) {return null;}
   const rgb = parseColor(hex);
   // Critical if it's a neon or extremely saturated blue/green
   return (rgb.g > 240 || rgb.b > 240) ? 'critical' : 'warning';
@@ -355,8 +355,8 @@ export const getClosestCMYKSafeColor = (hex: string): string => {
   b = Math.min(b, 210);
 
   // If it was a very bright blue/green, pull it back further
-  if (rgb.b > 200) b *= 0.85;
-  if (rgb.g > 200) g *= 0.85;
+  if (rgb.b > 200) {b *= 0.85;}
+  if (rgb.g > 200) {g *= 0.85;}
 
   return rgbToHex(Math.round(r), Math.round(g), Math.round(b));
 };

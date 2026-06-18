@@ -15,7 +15,7 @@ export const useProcessedImage = (layer: ImageLayer | null) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const filterKey = useMemo(() => {
-    if (!layer?.filters) return '';
+    if (!layer?.filters) {return '';}
     const f = layer.filters;
     // Fast hash of filter values to avoid JSON.stringify overhead
     return `${f.brightness}-${f.contrast}-${f.saturation}-${f.sepia}-${f.grayscale}-${f.blur}-${f.vignette || 0}`;
@@ -49,7 +49,7 @@ export const useProcessedImage = (layer: ImageLayer | null) => {
         })
         .catch(err => {
           log.error('Filter Worker Error:', err);
-          if (isMounted) setIsProcessing(false);
+          if (isMounted) {setIsProcessing(false);}
         });
     }, 150); // Debounce to prevent worker flooding during slider moves
 

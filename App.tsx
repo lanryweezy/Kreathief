@@ -126,9 +126,9 @@ const App: React.FC = () => {
   // Local-First: Background Persistence
   // Mirror state to IndexedDB every 2 seconds if changes detected
   useEffect(() => {
-    if (!user) return;
+    if (!user) {return;}
     const state = useStore.getState();
-    if (!state.projectId) return;
+    if (!state.projectId) {return;}
 
     const timeout = setTimeout(() => {
       const mirrorState = {
@@ -240,7 +240,7 @@ const App: React.FC = () => {
   ];
 
   const defaultProject = useMemo(() => {
-    if (location.pathname !== '/editor' || useStore.getState().projectId) return undefined;
+    if (location.pathname !== '/editor' || useStore.getState().projectId) {return undefined;}
     return {
       id: 'default',
       name: 'Untitled',

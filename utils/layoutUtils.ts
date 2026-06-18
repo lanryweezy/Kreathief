@@ -235,7 +235,7 @@ export const resolveConstraints = (
   layer: Partial<Layer>,
   canvasSize: { width: number; height: number }
 ): { x: number; y: number; width?: number; height?: number } => {
-  let { x = 0, y = 0, width = 100, constraints = { horizontal: 'start', vertical: 'start' } } = layer;
+  const { x = 0, y = 0, width = 100, constraints = { horizontal: 'start', vertical: 'start' } } = layer;
   const height = (layer as any).height || 100;
   
   const resolved = { x, y };
@@ -272,13 +272,13 @@ export const resolveSemanticConstraints = (
 ): { horizontal: 'start' | 'end' | 'center' | 'scale' | 'both'; vertical: 'start' | 'end' | 'center' | 'scale' | 'both' } => {
   const result: any = { horizontal: 'start', vertical: 'start' };
 
-  if (simpleConstraints.includes('center-h')) result.horizontal = 'center';
-  if (simpleConstraints.includes('pin-right')) result.horizontal = 'end';
-  if (simpleConstraints.includes('fill')) result.horizontal = 'scale';
+  if (simpleConstraints.includes('center-h')) {result.horizontal = 'center';}
+  if (simpleConstraints.includes('pin-right')) {result.horizontal = 'end';}
+  if (simpleConstraints.includes('fill')) {result.horizontal = 'scale';}
 
-  if (simpleConstraints.includes('center-v')) result.vertical = 'center';
-  if (simpleConstraints.includes('pin-bottom')) result.vertical = 'end';
-  if (simpleConstraints.includes('fill')) result.vertical = 'scale';
+  if (simpleConstraints.includes('center-v')) {result.vertical = 'center';}
+  if (simpleConstraints.includes('pin-bottom')) {result.vertical = 'end';}
+  if (simpleConstraints.includes('fill')) {result.vertical = 'scale';}
 
   return result;
 };

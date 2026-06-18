@@ -12,11 +12,11 @@ export const AccessibilityPanel: React.FC = () => {
   );
 
   const auditResult = useMemo(() => {
-    if (!activeArtboard) return null;
+    if (!activeArtboard) {return null;}
     return runAccessibilityAudit(activeArtboard);
   }, [activeArtboard]);
 
-  if (!auditResult) return null;
+  if (!auditResult) {return null;}
 
   const { score, issues } = auditResult;
 
@@ -87,7 +87,7 @@ export const AccessibilityPanel: React.FC = () => {
                         onClick={(e) => {
                           e.stopPropagation();
                           const alt = prompt('Enter alternative text:');
-                          if (alt) updateLayer(issue.layerId, { altText: alt });
+                          if (alt) {updateLayer(issue.layerId, { altText: alt });}
                         }}
                         className="mt-3 w-full py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-[10px] font-bold text-white border border-white/10 transition-colors"
                        >

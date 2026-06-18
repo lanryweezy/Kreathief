@@ -28,8 +28,8 @@ const areLayerPropsEqual = (prev: LayerItemProps, next: LayerItemProps) => {
 };
 
 function getLayerNameFallback(l: Layer) {
-  if (l.type === 'text') return (l as TextLayer).text.substring(0, 20) || 'Text Layer';
-  if (l.type === 'image') return 'Image Layer';
+  if (l.type === 'text') {return (l as TextLayer).text.substring(0, 20) || 'Text Layer';}
+  if (l.type === 'image') {return 'Image Layer';}
   return (l as ShapeLayer).type.charAt(0).toUpperCase() + (l as ShapeLayer).type.slice(1);
 }
 
@@ -88,7 +88,7 @@ const LayerItem = React.memo(
           onDrop={(e) => {
             const draggedId = e.dataTransfer.getData('layerId');
             if (draggedId && draggedId !== layer.id)
-              onDrop(draggedId, layer.id, dragOver === 'top' ? 'above' : 'below');
+              {onDrop(draggedId, layer.id, dragOver === 'top' ? 'above' : 'below');}
             setDragOver(null);
           }}
           onClick={(e) => {
@@ -96,8 +96,8 @@ const LayerItem = React.memo(
               setLocalExpanded(!localExpanded);
               onUpdate({ isExpanded: !localExpanded });
             } else {
-              if (e.shiftKey) onSelectMultiple(e);
-              else onSelect();
+              if (e.shiftKey) {onSelectMultiple(e);}
+              else {onSelect();}
             }
           }}
           className={`group relative flex items-center gap-3 px-4 py-3 border-b border-white/[0.03] cursor-pointer transition-all duration-200 ${isSelected ? 'bg-white/[0.05] border-l-4 border-l-[#7d2ae8] shadow-inner' : 'hover:bg-white/[0.03]'}`}

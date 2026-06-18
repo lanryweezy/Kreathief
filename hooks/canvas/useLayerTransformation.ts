@@ -72,7 +72,7 @@ export const useLayerTransformation = ({
 
   const updateTransformation = useCallback((e: MouseEvent) => {
     const state = transformStateRef.current;
-    if (!state) return;
+    if (!state) {return;}
 
     const dx = (e.clientX - state.startX) / zoomRef.current;
     const dy = (e.clientY - state.startY) / zoomRef.current;
@@ -81,7 +81,7 @@ export const useLayerTransformation = ({
     const partial: any = {};
 
     if (state.type === 'resize' && state.handle) {
-      let { initialX, initialY, initialWidth, initialHeight, aspectRatio } = state;
+      const { initialX, initialY, initialWidth, initialHeight, aspectRatio } = state;
       const isShift = e.shiftKey;
 
       // Rotate dx/dy to match layer rotation
@@ -94,10 +94,10 @@ export const useLayerTransformation = ({
 
       const handle = state.handle;
 
-      if (handle.includes('e')) newWidth = initialWidth + rdx;
-      if (handle.includes('w')) newWidth = initialWidth - rdx;
-      if (handle.includes('s')) newHeight = initialHeight + rdy;
-      if (handle.includes('n')) newHeight = initialHeight - rdy;
+      if (handle.includes('e')) {newWidth = initialWidth + rdx;}
+      if (handle.includes('w')) {newWidth = initialWidth - rdx;}
+      if (handle.includes('s')) {newHeight = initialHeight + rdy;}
+      if (handle.includes('n')) {newHeight = initialHeight - rdy;}
 
       // Constrain minimum size
       newWidth = Math.max(1, newWidth);
@@ -125,8 +125,8 @@ export const useLayerTransformation = ({
       let moveX = 0;
       let moveY = 0;
 
-      if (handle.includes('w')) moveX = -dw;
-      if (handle.includes('n')) moveY = -dh;
+      if (handle.includes('w')) {moveX = -dw;}
+      if (handle.includes('n')) {moveY = -dh;}
       
       if (moveX !== 0 || moveY !== 0) {
         const trad = (state.initialRotation * Math.PI) / 180;
@@ -136,7 +136,7 @@ export const useLayerTransformation = ({
 
     } else if (state.type === 'rotate') {
       const layer = layersRef.current.find(l => l.id === state.layerId);
-      if (!layer) return;
+      if (!layer) {return;}
 
       // We need screen coordinates for center to calculate angle to mouse
       // This is hard without DOM. Let's use the delta drag for now as a simple rotation

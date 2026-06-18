@@ -11,12 +11,12 @@ export const MobileTransformController: React.FC = () => {
   const activeArtboardId = useStore((state) => state.activeArtboardId);
 
   const selectedLayer = React.useMemo(() => {
-    if (selectedLayerIds.length !== 1) return null;
+    if (selectedLayerIds.length !== 1) {return null;}
     const artboard = artboards.find(a => a.id === activeArtboardId);
     return artboard?.layers.find(l => l.id === selectedLayerIds[0]);
   }, [selectedLayerIds, artboards, activeArtboardId]);
 
-  if (!selectedLayer) return null;
+  if (!selectedLayer) {return null;}
 
   const handleNudge = (dx: number, dy: number) => {
     haptics.light();

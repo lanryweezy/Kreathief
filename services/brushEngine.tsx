@@ -81,7 +81,7 @@ export const getBrushConfig = (brushType: string): BrushConfig => {
  * Gets a deterministic index from 0-9 based on a string ID.
  */
 const getDeterministicIndex = (str?: string): number => {
-  if (!str) return 0;
+  if (!str) {return 0;}
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -194,7 +194,7 @@ export const BrushStrokeRenderer: React.FC<BrushStrokeRendererProps> = ({
           const widthFn = profileWidthFn(profile, finalStrokeWidth);
           const samples = mode === 'canvas' ? 128 : 48; // High quality on canvas, fast in previews
           const outline = buildVariableStrokeOutline(pathData, widthFn, samples);
-          if (!outline) return null;
+          if (!outline) {return null;}
           
           return (
             <path
