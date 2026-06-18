@@ -80,7 +80,7 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
     lineHeight = 1.2,
     textAlign = 'left',
   } = layer;
-  
+
   const dpr = 2;
   const font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
   const intensity = (transformType ? transformIntensity : curve) / 100;
@@ -109,9 +109,7 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
 
   // Get text metrics
   const textWidth = tempCtx.measureText(text).width;
-  const startX = textAlign === 'center' ? (width - textWidth) / 2 
-    : textAlign === 'right' ? width - textWidth 
-    : 10;
+  const startX = textAlign === 'center' ? (width - textWidth) / 2 : textAlign === 'right' ? width - textWidth : 10;
 
   // Render each character with transformations
   let charIndex = 0;
@@ -124,7 +122,7 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
       const charWidth = tempCtx.measureText(char).width;
       const x = startX + charIndex * charWidth;
       const progress = charIndex / line.length; // 0 to 1 across the text
-      const angle = transformDirection * Math.PI / 180;
+      const angle = (transformDirection * Math.PI) / 180;
 
       tempCtx.save();
       tempCtx.translate(x + charWidth / 2, y);
@@ -173,7 +171,7 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
 
         case 'circle': {
           // Circle text
-          const circleAngle = (progress * Math.PI * 2) + angle;
+          const circleAngle = progress * Math.PI * 2 + angle;
           const radius = 100 * (1 + intensity);
           tempCtx.rotate(circleAngle);
           tempCtx.translate(radius, 0);
@@ -221,4 +219,115 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
   canvas.width = tempCanvas.width;
   canvas.height = tempCanvas.height;
   ctx.drawImage(tempCanvas, 0, 0);
+};
+
+/**
+ * Helper for rendering multiline text to a canvas
+ * Handles word wrap, letter spacing, alignment, and line height.
+ */
+export const renderMultilineText = (ctx: CanvasRenderingContext2D, layer: TextLayer) => {
+  const {
+    text,
+    color,
+    fontSize,
+    fontFamily,
+    fontWeight,
+    fontStyle = 'normal',
+    width,
+    lineHeight = 1.2,
+    textAlign = 'left',
+    letterSpacing = 0,
+  } = layer;
+
+  const font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
+
+  ctx.font = font;
+  ctx.fillStyle = color;
+  ctx.textBaseline = 'top';
+
+  // Helper for word wrapping
+  const wrapText = (text: string, maxWidth: number): string[] => {
+    const words = text.split(' ');
+    const wrappedLines: string[] = [];
+    let currentLine = '';
+
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      const testLine = currentLine + word + ' ';
+      const metrics = ctx.measureText(testLine);
+      const testWidth = metrics.width;
+
+      if (testWidth > maxWidth && i > 0) {
+        wrappedLines.push(currentLine.trimEnd());
+        currentLine = word + ' ';
+      } else {
+        currentLine = testLine;
+      }
+    }
+    wrappedLines.push(currentLine.trimEnd());
+    return wrappedLines;
+  };
+
+  const manualLines = text.split('\n');
+  const allLines: string[] = [];
+
+  // Apply word wrap if width is defined
+  if (width) {
+    manualLines.forEach((line) => {
+      allLines.push(...wrapText(line, width));
+    });
+  } else {
+    allLines.push(...manualLines);
+  }
+
+  // Safe line height computation
+  const lineHeightStr = lineHeight || 1.2;
+  let lineHeightPx = fontSize * 1.2; // default
+  if (typeof lineHeightStr === 'number') {
+    lineHeightPx = fontSize * lineHeightStr;
+  } else if (typeof lineHeightStr === 'string' && !isNaN(parseFloat(lineHeightStr as string))) {
+    // Check if it's px or relative
+    if ((lineHeightStr as string).endsWith('px')) {
+      lineHeightPx = parseFloat(lineHeightStr as string);
+    } else {
+      lineHeightPx = fontSize * parseFloat(lineHeightStr as string);
+    }
+  }
+
+  allLines.forEach((line, lineIndex) => {
+    const yOffset = lineIndex * lineHeightPx;
+    let startX = 0;
+
+    // Calculate line width with letter spacing
+    let lineWidth = 0;
+    if (letterSpacing !== 0) {
+      for (let i = 0; i < line.length; i++) {
+        lineWidth += ctx.measureText(line[i]).width;
+        if (i < line.length - 1) {
+          lineWidth += letterSpacing;
+        }
+      }
+    } else {
+      lineWidth = ctx.measureText(line).width;
+    }
+
+    if (textAlign === 'center') {
+      startX = (width - lineWidth) / 2;
+    } else if (textAlign === 'right') {
+      startX = width - lineWidth;
+    } else {
+      startX = 0; // default left
+    }
+
+    if (letterSpacing !== 0) {
+      let currentX = startX;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        ctx.fillText(char, currentX, yOffset);
+        currentX += ctx.measureText(char).width + letterSpacing;
+      }
+    } else {
+      ctx.fillText(line, startX, yOffset);
+    }
+  });
 };

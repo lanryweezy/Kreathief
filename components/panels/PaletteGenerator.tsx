@@ -1,3 +1,5 @@
+import { log } from '../../utils/log';
+
 import React, { useState, useRef, useCallback } from 'react';
 import { Icons } from '../../constants';
 import { extractPalette } from '../../utils/colorUtils';
@@ -22,7 +24,7 @@ export const PaletteGenerator: React.FC<PaletteGeneratorProps> = ({ onPaletteSel
       setExtractedColors(colors);
       onPaletteSelect(colors);
     } catch (error) {
-      console.error('Failed to extract palette:', error);
+      log.error('Failed to extract palette', error);
     } finally {
       setIsProcessing(false);
     }

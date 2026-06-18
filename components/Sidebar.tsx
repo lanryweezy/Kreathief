@@ -29,6 +29,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(({ isCollapsed, isAuto
     { id: NavTab.UPLOADS, icon: Icons.Uploads, label: "Uploads", group: 'Library' },
     { id: NavTab.PHOTOS, icon: Icons.Image, label: "Photos", group: 'Library' },
     { id: NavTab.TEXT, icon: Icons.Text, label: "Text", group: 'Library' },
+    { id: NavTab.COMPONENTS, icon: Icons.LayoutGrid, label: "Components", group: 'Library' },
     { id: NavTab.BRAND, icon: Icons.Brand, label: "Brand", group: 'Refine' },
     { id: NavTab.TEXTURES, icon: Icons.Texture, label: "Textures", group: 'Refine' },
     { id: NavTab.MOCKUP, icon: Icons.Mockup, label: "Mockups", group: 'Refine' },

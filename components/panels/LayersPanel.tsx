@@ -3,7 +3,6 @@ import { TextLayer, ShapeLayer, ImageLayer, Layer, Artboard } from '../../types'
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 import ArrangePanel from './ArrangePanel';
-import ComponentsPanel from './ComponentsPanel';
 
 // LayerItem Component Props
 interface LayerItemProps {
