@@ -17,6 +17,7 @@ export const BrandPanel = () => {
   const onApplyBrandFonts = useStore((state) => state.applyBrandFonts);
   const addLayer = useStore((state) => state.addLayer);
   const canvasSize = useStore((state) => state.canvasSize);
+  const addToast = useStore((state) => state.addToast);
 
   const onAddLogoToCanvas = (url: string) => {
     addLayer({
@@ -107,7 +108,7 @@ export const BrandPanel = () => {
 
   const extractColorsFromLogo = async () => {
     if (newLogos.length === 0) {
-      alert('Please upload a logo first.');
+      addToast?.('Please upload a logo first.', 'warning');
       return;
     }
     setIsAnalyzing(true);
@@ -116,11 +117,11 @@ export const BrandPanel = () => {
       if (extracted && extracted.length > 0) {
         setNewColors(extracted);
       } else {
-        alert('Could not extract colors. Try another image.');
+        addToast?.('Could not extract colors. Try another image.', 'warning');
       }
     } catch (e) {
       log.error('[BrandPanel] Color extraction failed', e);
-      alert('Extraction failed.');
+      addToast?.('Extraction failed.', 'error');
     } finally {
       setIsAnalyzing(false);
     }
@@ -151,10 +152,10 @@ export const BrandPanel = () => {
           kit.id = `brand_imported_${Date.now()}`;
           onAddBrandKit(kit);
         } else {
-          alert('Invalid Brand Kit JSON');
+          addToast?.('Invalid Brand Kit JSON', 'error');
         }
       } catch (e) {
-        alert('Error parsing JSON');
+        addToast?.('Error parsing JSON', 'error');
       }
     };
     reader.readAsText(file);

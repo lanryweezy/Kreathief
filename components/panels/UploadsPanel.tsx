@@ -110,7 +110,7 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
       }
     } catch (err) {
       log.error('[UploadsPanel] PSD Import failed', err);
-      alert('Failed to parse PSD file.');
+      useStore.getState().addToast?.('Failed to parse PSD file.', 'error');
     } finally {
       setIsParsingPsd(false);
     }
