@@ -114,7 +114,7 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {return;}
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -166,7 +166,7 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
                   value={grainScale} 
                   onChange={(e) => {
                     setGrainScale(parseInt(e.target.value));
-                    if (noiseLevel > 0) handleNoiseChange(noiseLevel);
+                    if (noiseLevel > 0) {handleNoiseChange(noiseLevel);}
                   }}
                   className="w-full h-1 bg-white/5 rounded-full appearance-none accent-indigo-500"
                />

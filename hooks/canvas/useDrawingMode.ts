@@ -21,11 +21,11 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
   const redrawCanvas = useCallback((ctx: CanvasRenderingContext2D, previewX?: number, previewY?: number) => {
     const { brushColor, brushSize, brushType } = useStore.getState();
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {return;}
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    if (currentPathRef.current.length === 0) return;
+    if (currentPathRef.current.length === 0) {return;}
 
     ctx.strokeStyle = brushColor;
     ctx.lineWidth = brushSize * 0.75;
@@ -60,9 +60,9 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
   const smootherRef = useRef<StrokeSmoother | null>(null);
 
   const handleDrawingMouseDown = useCallback((e: React.MouseEvent) => {
-    if (!isDrawing) return;
+    if (!isDrawing) {return;}
     const canvas = e.target as HTMLCanvasElement;
-    if (!canvas) return;
+    if (!canvas) {return;}
     
     const { brushType } = useStore.getState();
     const rect = canvas.getBoundingClientRect();
@@ -89,7 +89,7 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
   }, [isDrawing, redrawCanvas]);
 
   const handleDrawingMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDrawingInternalRef.current || !canvasRef.current) return;
+    if (!isDrawingInternalRef.current || !canvasRef.current) {return;}
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     const x = (e.clientX - rect.left) / zoomRef.current;
@@ -117,7 +117,7 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
     const lastPoint = currentPathRef.current[currentPathRef.current.length - 1];
     if (lastPoint) {
       const dist = Math.hypot(drawX - lastPoint.x, drawY - lastPoint.y);
-      if (dist < 1.5) return;
+      if (dist < 1.5) {return;}
     }
 
     currentPathRef.current.push({ x: drawX, y: drawY });
@@ -172,7 +172,7 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
   }, [redrawCanvas]);
 
   const handleDrawingMouseUp = useCallback((e?: React.MouseEvent, forceFinish: boolean = false) => {
-    if (!isDrawingInternalRef.current) return;
+    if (!isDrawingInternalRef.current) {return;}
     
     const { brushType, brushColor, brushSize, addLayer } = useStore.getState();
     
@@ -205,7 +205,7 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
     
     // Midpoint quadratic Bézier smoothing for beautiful, smooth curves
     const simplifyAndSmoothPath = (points: { x: number; y: number }[]) => {
-      if (points.length < 2) return '';
+      if (points.length < 2) {return '';}
       if (points.length === 2) {
         return `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)} L ${points[1].x.toFixed(2)} ${points[1].y.toFixed(2)}`;
       }

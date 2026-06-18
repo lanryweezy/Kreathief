@@ -4,6 +4,7 @@ import type { Profile } from '../lib/supabase/types';
 import { logger } from './logger';
 import { log } from '../utils/log';
 import { logSecurityEvent } from '../utils/securityLogger';
+import { analyticsService } from './analyticsService';
 
 export interface AuthResult {
   user: User | null;
@@ -89,6 +90,7 @@ export class AuthService {
 
       if (error) {
         logger.error('Sign up failed', { error: error.message });
+        analyticsService.track('auth_signup', { success: false, method: 'email', error: error.message });
         return { user: null, error: error.message };
       }
 
@@ -117,9 +119,11 @@ export class AuthService {
         plan: 'free',
       };
 
+      analyticsService.track('auth_signup', { success: true, method: 'email' });
       return { user, error: null };
     } catch (err) {
       logger.error('Sign up error', { error: err });
+      analyticsService.track('auth_signup', { success: false, method: 'email', error: err instanceof Error ? err.message : String(err) });
       return { user: null, error: 'An unexpected error occurred' };
     }
   }
@@ -157,6 +161,7 @@ export class AuthService {
       if (error) {
         log.error('[AuthService] Sign in failed', error, { email });
         logSecurityEvent('LOGIN_ATTEMPT', 'anonymous', { email, success: false, error: error.message });
+        analyticsService.track('auth_signin', { success: false, method: 'email', error: error.message });
         return { user: null, error: error.message };
       }
 
@@ -176,9 +181,11 @@ export class AuthService {
 
       log.info('[AuthService] Sign in successful', { userId: user.id });
       logSecurityEvent('LOGIN_ATTEMPT', user.id, { email, success: true });
+      analyticsService.track('auth_signin', { success: true, method: 'email' });
       return { user, error: null };
     } catch (err) {
       log.error('[AuthService] Sign in error', err);
+      analyticsService.track('auth_signin', { success: false, method: 'email', error: err instanceof Error ? err.message : String(err) });
       return { user: null, error: 'An unexpected error occurred' };
     }
   }
@@ -197,13 +204,16 @@ export class AuthService {
 
       if (error) {
         logger.error('Google sign in failed', { error: error.message });
+        analyticsService.track('auth_signin', { success: false, method: 'google', error: error.message });
         return { user: null, error: error.message };
       }
 
       // User will be redirected to Google
+      analyticsService.track('auth_signin', { success: true, method: 'google' });
       return { user: null, error: null };
     } catch (err) {
       logger.error('Google sign in error', { error: err });
+      analyticsService.track('auth_signin', { success: false, method: 'google', error: err instanceof Error ? err.message : String(err) });
       return { user: null, error: 'An unexpected error occurred' };
     }
   }
@@ -220,8 +230,10 @@ export class AuthService {
       await supabase.auth.signOut();
 
       log.info('[AuthService] User signed out');
+      analyticsService.track('auth_signout', { success: true });
     } catch (err) {
       log.error('[AuthService] Sign out error', err);
+      analyticsService.track('auth_signout', { success: false, error: err instanceof Error ? err.message : String(err) });
     }
   }
 

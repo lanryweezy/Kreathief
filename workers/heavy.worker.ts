@@ -74,7 +74,7 @@ self.onmessage = async (e: MessageEvent) => {
 async function generateGrainTexture(width: number, height: number, noise: number, scale: number): Promise<string> {
   const canvas = new OffscreenCanvas(width / scale, height / scale);
   const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Offscreen context failed');
+  if (!ctx) {throw new Error('Offscreen context failed');}
 
   const imageData = ctx.createImageData(canvas.width, canvas.height);
   const data = imageData.data;
@@ -96,7 +96,7 @@ async function applyFiltersToImage(imageSrc: string, filters: any): Promise<stri
   const bitmap = await fetchImageBitmap(imageSrc);
   const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
   const ctx = canvas.getContext('2d');
-  if (!ctx) throw new Error('Offscreen context failed');
+  if (!ctx) {throw new Error('Offscreen context failed');}
 
   // Apply filters using Canvas context for speed where possible
   const filterStr = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%) sepia(${filters.sepia}%) grayscale(${filters.grayscale}%) blur(${filters.blur}px)`;

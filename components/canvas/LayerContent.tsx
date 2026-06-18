@@ -132,11 +132,11 @@ const ShapeLayerContent = React.memo(({ layer }: { layer: ShapeLayer }) => {
       );
     }
 
-    let fill: string | undefined = gradient?.enabled ? undefined : color;
-    let strokeColor = layer.stroke?.color || color;
-    let strokeWidth = layer.stroke?.width || 1;
-    let strokeDasharray: string | undefined = undefined;
-    let strokeLinecap: 'butt' | 'round' | 'square' | undefined = 'round';
+    const fill: string | undefined = gradient?.enabled ? undefined : color;
+    const strokeColor = layer.stroke?.color || color;
+    const strokeWidth = layer.stroke?.width || 1;
+    const strokeDasharray: string | undefined = undefined;
+    const strokeLinecap: 'butt' | 'round' | 'square' | undefined = 'round';
 
     return (
       <svg width={width} height={height} viewBox={viewBox || `0 0 ${width} ${height}`} style={{ overflow: 'visible', opacity: layer.opacity }}>

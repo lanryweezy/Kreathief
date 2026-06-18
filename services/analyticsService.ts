@@ -11,10 +11,46 @@ export type AnalyticsEvent =
   | 'delete_layer'
   | 'open_comment_mode'
   | 'share_design'
-  | 'feedback_submitted';
+  | 'feedback_submitted'
+  | 'auth_signup'
+  | 'auth_signin'
+  | 'auth_signout';
+
+export interface AnalyticsProvider {
+  id: string;
+  track(event: AnalyticsEvent, properties?: Record<string, any>): void;
+}
 
 class AnalyticsService {
   private isProduction = config.app.isProduction;
+  private providers = new Map<string, AnalyticsProvider>();
+
+  constructor() {
+    // Register default providers
+    if (this.isProduction && typeof window !== 'undefined') {
+      this.registerProvider({
+        id: 'plausible',
+        track: (event, properties) => {
+          if ((window as any).plausible) {
+            (window as any).plausible(event, { props: properties });
+          }
+        }
+      });
+
+      this.registerProvider({
+        id: 'google_analytics',
+        track: (event, properties) => {
+          if ((window as any).gtag) {
+            (window as any).gtag('event', event, properties);
+          }
+        }
+      });
+    }
+  }
+
+  registerProvider(provider: AnalyticsProvider): void {
+    this.providers.set(provider.id, provider);
+  }
 
   track(event: AnalyticsEvent, properties?: Record<string, any>) {
     // Development logging
@@ -22,17 +58,9 @@ class AnalyticsService {
       log.info('[Analytics] Event tracked', { event, properties });
     }
 
-    // Production analytics integration
-    if (this.isProduction && typeof window !== 'undefined') {
-      // Plausible Analytics (privacy-friendly, GDPR compliant)
-      if ((window as any).plausible) {
-        (window as any).plausible(event, { props: properties });
-      }
-      
-      // Google Analytics (if using)
-      if ((window as any).gtag) {
-        (window as any).gtag('event', event, properties);
-      }
+    // Delegate to all registered providers
+    for (const provider of this.providers.values()) {
+      provider.track(event, properties);
     }
   }
 

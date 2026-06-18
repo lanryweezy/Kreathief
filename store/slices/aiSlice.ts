@@ -7,6 +7,7 @@ import { aiModelsService } from '../../services/aiModelsService';
 import { removeBackground } from '../../utils/imageProcessor';
 import * as geminiService from '../../services/geminiService';
 import { v4 as uuidv4 } from 'uuid';
+import { log } from '../../utils/log';
 
 export interface AISlice {
   prompt: string;
@@ -77,7 +78,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
         addImageLayer(imageUrl, `AI: ${prompt.slice(0, 20)}...`);
       }
     } catch (error) {
-      log.error('All Generation methods failed', error);
+      log.error('All Generation methods failed', error, { prompt, aspectRatio, quality });
     } finally {
       set({ isGenerating: false });
     }
@@ -160,7 +161,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
         addLayers(newPaths);
       }
     } catch (e) {
-      log.error('Vectorization failed', e);
+      log.error('Vectorization failed', e, { layerId: id, options });
       updateLayer(id, { isProcessing: false });
     } finally {
       set({ isGenerating: false });
@@ -202,7 +203,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
         updateLayer(id, { src: newSrc, isProcessing: false });
       }
     } catch (error) {
-      log.error('Remix failed', error);
+      log.error('Remix failed', error, { layerId: id, prompt });
       updateLayer(id, { isProcessing: false });
     } finally {
       set({ isGenerating: false });
@@ -241,7 +242,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
         updateLayer(id, { src: newSrc, isProcessing: false });
       }
     } catch (error) {
-      log.error('Magic Expand failed', error);
+      log.error('Magic Expand failed', error, { layerId: id });
       updateLayer(id, { isProcessing: false });
     } finally {
       set({ isGenerating: false });
@@ -261,7 +262,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
       saveToHistory();
       updateLayer(id, { src: result, isProcessing: false });
     } catch (e) {
-      log.error('BG Removal failed', e);
+      log.error('BG Removal failed', e, { layerId: id });
       updateLayer(id, { isProcessing: false });
     } finally {
       set({ isGenerating: false });
@@ -281,7 +282,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
       saveToHistory();
       updateLayer(id, { src: newSrc, isProcessing: false });
     } catch (error) {
-      log.error('Enhance failed', error);
+      log.error('Enhance failed', error, { layerId: id });
       updateLayer(id, { isProcessing: false });
     } finally {
       set({ isGenerating: false });
@@ -301,7 +302,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
       saveToHistory();
       updateLayer(id, { src: newSrc, isProcessing: false });
     } catch (error) {
-      log.error('Upscale failed', error);
+      log.error('Upscale failed', error, { layerId: id });
       updateLayer(id, { isProcessing: false });
     } finally {
       set({ isGenerating: false });
@@ -321,7 +322,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
       saveToHistory();
       updateLayer(id, { src: newSrc, isProcessing: false });
     } catch (error) {
-      log.error('Retouch failed', error);
+      log.error('Retouch failed', error, { layerId: id });
       updateLayer(id, { isProcessing: false });
     } finally {
       set({ isGenerating: false });
@@ -344,7 +345,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
         updateLayer(textLayerId, { fontFamily: suggestedFont });
       }
     } catch (error) {
-      log.error('Font pairing failed', error);
+      log.error('Font pairing failed', error, { layerId: textLayerId });
     } finally {
       set({ isGenerating: false });
     }

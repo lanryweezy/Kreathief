@@ -29,7 +29,7 @@ export const vecteezyService = {
       // Map API response to our unified format
       const resources = data.data || data.resources || data;
       
-      if (!Array.isArray(resources)) return [];
+      if (!Array.isArray(resources)) {return [];}
 
       return resources.map((item: any) => ({
         id: item.id,
@@ -49,7 +49,7 @@ export const vecteezyService = {
      try {
        const response = await fetch(`/api/vecteezy?action=download&resourceId=${encodeURIComponent(resourceId)}`);
 
-       if (!response.ok) return null;
+       if (!response.ok) {return null;}
        const data = await response.json();
        return data.url || data.download_url || null;
      } catch (err) {

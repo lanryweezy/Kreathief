@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
 import { ColorProfile } from '../../services/exportService';
@@ -22,7 +23,16 @@ interface ExportModalProps {
 }
 
 export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onGetPngBlob, currentSize }) => {
-  const { addToast, artboards, activeArtboardId, selectedLayerIds, projectTitle, user } = useStore();
+  const { addToast, artboards, activeArtboardId, selectedLayerIds, projectTitle, user } = useStore(
+    useShallow((state) => ({
+      addToast: state.addToast,
+      artboards: state.artboards,
+      activeArtboardId: state.activeArtboardId,
+      selectedLayerIds: state.selectedLayerIds,
+      projectTitle: state.projectTitle,
+      user: state.user,
+    }))
+  );
   const [format, setFormat] = useState<'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd'>('png');
   const [quality, setQuality] = useState(0.95);
   const [activePreset, setActivePreset] = useState<string>('current');
@@ -505,6 +515,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                   <button
                     onClick={() => setCropMarks(!cropMarks)}
                     className={`w-10 h-5 rounded-full transition-all relative ${cropMarks ? 'bg-[#7d2ae8]' : 'bg-gray-700'}`}
+                    role="switch"
+                    aria-checked={cropMarks}
+                    aria-label="Toggle Crop Marks"
                   >
                     <div
                       className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${cropMarks ? 'left-6' : 'left-1'}`}
@@ -555,6 +568,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 <button
                   onClick={() => setTransparentBg(!transparentBg)}
                   className={`w-10 h-5 rounded-full transition-all relative ${transparentBg ? 'bg-[#7d2ae8]' : 'bg-gray-700'}`}
+                  role="switch"
+                  aria-checked={transparentBg}
+                  aria-label="Toggle Transparent Background"
                 >
                   <div
                     className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${transparentBg ? 'left-6' : 'left-1'}`}

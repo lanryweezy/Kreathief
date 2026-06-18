@@ -26,7 +26,7 @@ export const runAccessibilityAudit = (artboard: Artboard): AccessibilityAuditRes
   let passedChecks = 0;
 
   layers.forEach((layer) => {
-    if (!layer.visible) return;
+    if (!layer.visible) {return;}
 
     // 1. Check Contrast for Text
     if (layer.type === 'text') {

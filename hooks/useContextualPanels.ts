@@ -15,31 +15,31 @@ export const useContextualPanels = () => {
   const isPenMode = useStore((state) => state.isPenMode);
 
   const selectedLayer = useMemo(() => {
-    if (selectedLayerIds.length === 0) return null;
+    if (selectedLayerIds.length === 0) {return null;}
     const activeArtboard = artboards.find(a => a.id === activeArtboardId);
-    if (!activeArtboard) return null;
+    if (!activeArtboard) {return null;}
     return activeArtboard.layers.find(l => l.id === selectedLayerIds[selectedLayerIds.length - 1]);
   }, [selectedLayerIds, artboards, activeArtboardId]);
 
   const contextualTabs = useMemo((): NavTab[] => {
     // 1. Pen Mode / Vector Context
     if (isPenMode || (selectedLayer?.type === 'path')) {
-      return [NavTab.DRAW, NavTab.VECTORIZER, NavTab.ARRANGE];
+      return [NavTab.DRAW, NavTab.VECTORIZER, NavTab.MEDIA];
     }
 
     // 2. Text Context
     if (selectedLayer?.type === 'text') {
-      return [NavTab.TEXT, NavTab.TEXT_EFFECTS, NavTab.TEXTURES, NavTab.ARRANGE];
+      return [NavTab.TEXT, NavTab.TEXT, NavTab.TEXTURES, NavTab.MEDIA];
     }
 
     // 3. Image Context
     if (selectedLayer?.type === 'image') {
-      return [NavTab.MAGIC, NavTab.MOCKUP, NavTab.VECTORIZER, NavTab.ARRANGE];
+      return [NavTab.MAGIC, NavTab.MOCKUP, NavTab.VECTORIZER, NavTab.MEDIA];
     }
 
     // 4. Shape Context
     if (selectedLayer?.type === 'rectangle' || selectedLayer?.type === 'circle' || (selectedLayer as any)?.type === 'star') {
-      return [NavTab.ELEMENTS, NavTab.TEXTURES, NavTab.ARRANGE];
+      return [NavTab.MEDIA, NavTab.TEXTURES, NavTab.MEDIA];
     }
 
     // 5. Default / Empty Context

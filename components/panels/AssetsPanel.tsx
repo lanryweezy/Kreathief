@@ -104,7 +104,7 @@ export const AssetsPanel: React.FC = () => {
               id: `fp-${r.id}`,
               url: r.thumbnailUrl,
               thumbnail: r.thumbnailUrl || r.thumbnailUrl,
-              alt: r.name,
+              alt: (r as any).name || (r as any).title || '',
               author: r.author,
               source: 'freepik',
             });
@@ -122,7 +122,7 @@ export const AssetsPanel: React.FC = () => {
               id: `vz-${r.id}`,
               url: r.preview_url,
               thumbnail: r.thumbnail_url || r.preview_url,
-              alt: r.title,
+              alt: (r as any).title,
               author: 'Vecteezy',
               source: 'vecteezy',
             });

@@ -68,10 +68,10 @@ export const useLayerDragging = ({
     }
 
     const isLockedRecursive = (l: Layer): boolean => {
-      if (l.locked) return true;
+      if (l.locked) {return true;}
       if (l.groupId) {
         const parent = layersRef.current.find(p => p.id === l.groupId);
-        if (parent) return isLockedRecursive(parent);
+        if (parent) {return isLockedRecursive(parent);}
       }
       return false;
     };
@@ -84,7 +84,7 @@ export const useLayerDragging = ({
     // select the top-most group. If the group IS already selected, allow selecting children.
     let targetToSelect = layer;
     const findTopMostGroup = (l: Layer): Layer => {
-      if (!l.groupId) return l;
+      if (!l.groupId) {return l;}
       const parent = layersRef.current.find(p => p.id === l.groupId);
       if (parent) {
         // If the parent group is NOT selected, we should select it first
