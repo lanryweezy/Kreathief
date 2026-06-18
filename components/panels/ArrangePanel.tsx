@@ -4,11 +4,26 @@ import { Layer } from '../../types';
 import { alignLayers, distributeLayers, AlignmentType, DistributionType, tidyUpLayers } from '../../utils/layoutUtils';
 
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 
 interface ArrangePanelProps { }
 
 export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
-  const { artboards, selectedLayerIds, canvasSize, updateLayers, moveLayer: onMoveLayer, showGrid, setShowGrid, snapToObjects, setSnapToObjects, snapToGrid, setSnapToGrid } = useStore();
+  const { artboards, selectedLayerIds, canvasSize, updateLayers, moveLayer: onMoveLayer, showGrid, setShowGrid, snapToObjects, setSnapToObjects, snapToGrid, setSnapToGrid } = useStore(
+    useShallow((state) => ({
+      artboards: state.artboards,
+      selectedLayerIds: state.selectedLayerIds,
+      canvasSize: state.canvasSize,
+      updateLayers: state.updateLayers,
+      moveLayer: state.moveLayer,
+      showGrid: state.showGrid,
+      setShowGrid: state.setShowGrid,
+      snapToObjects: state.snapToObjects,
+      setSnapToObjects: state.setSnapToObjects,
+      snapToGrid: state.snapToGrid,
+      setSnapToGrid: state.setSnapToGrid,
+    }))
+  );
 
   const allLayers = artboards.flatMap(a => a.layers);
   const selectedLayers = allLayers.filter((l) => selectedLayerIds.includes(l.id));

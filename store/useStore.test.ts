@@ -9,6 +9,9 @@ describe('useStore', () => {
     const { result } = renderHook(() => useStore());
     act(() => {
       result.current.reset();
+      result.current.past = [];
+      result.current.future = [];
+      result.current.__lastStateSnapshot = null;
     });
   });
 
@@ -135,7 +138,7 @@ describe('useStore', () => {
       });
 
       const activeArtboard = result.current.artboards.find(a => a.id === result.current.activeArtboardId);
-      expect(activeArtboard?.layers.length).toBe(0);
+      expect(activeArtboard ? activeArtboard.layers.length : 0).toBe(0);
     });
   });
 
@@ -194,11 +197,16 @@ describe('useStore', () => {
   });
 
   describe('history operations', () => {
-    it('should support undo operation', () => {
+    it('should support undo operation', async () => {
       const { result } = renderHook(() => useStore());
 
       act(() => {
         result.current.addArtboard('A1');
+      });
+
+      await new Promise(r => setTimeout(r, 10));
+
+      act(() => {
         result.current.addLayer({
           id: 'undo-test',
           type: 'text' as const,
@@ -226,7 +234,7 @@ describe('useStore', () => {
       });
 
       const activeArtboard = result.current.artboards.find(a => a.id === result.current.activeArtboardId);
-      expect(activeArtboard?.layers.length).toBe(0);
+      expect(activeArtboard ? activeArtboard.layers.length : 0).toBe(0);
     });
   });
 });

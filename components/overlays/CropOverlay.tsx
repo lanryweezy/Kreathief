@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
 import { ImageLayer } from '../../types';
 import { haptics } from '../../utils/haptics';
@@ -12,7 +13,18 @@ interface CropOverlayProps {
 type ResizeHandle = 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'e' | 'w';
 
 export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _canvasSize }) => {
-  const { croppingLayerId, artboards, cropArea: globalCropArea, setCropArea, applyCrop: globalApplyCrop, cancelCrop: globalCancelCrop, cropAspectRatio, setCropAspectRatio } = useStore();
+  const { croppingLayerId, artboards, cropArea: globalCropArea, setCropArea, applyCrop: globalApplyCrop, cancelCrop: globalCancelCrop, cropAspectRatio, setCropAspectRatio } = useStore(
+    useShallow((state) => ({
+      croppingLayerId: state.croppingLayerId,
+      artboards: state.artboards,
+      cropArea: state.cropArea,
+      setCropArea: state.setCropArea,
+      applyCrop: state.applyCrop,
+      cancelCrop: state.cancelCrop,
+      cropAspectRatio: state.cropAspectRatio,
+      setCropAspectRatio: state.setCropAspectRatio,
+    }))
+  );
 
   const [localCropArea, setLocalCropArea] = useState<{ x: number, y: number, width: number, height: number } | null>(null);
 

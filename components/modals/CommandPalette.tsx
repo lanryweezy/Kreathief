@@ -134,14 +134,14 @@ export const CommandPalette: React.FC = () => {
         id: 'nav_arrange',
         label: 'Open Arrange & Layout',
         icon: Icons.Layout,
-        action: () => setActiveTab(NavTab.ARRANGE),
+        action: () => setActiveTab(NavTab.MEDIA),
         group: 'Panels',
       },
       {
         id: 'nav_effects',
         label: 'Open Text Effects',
         icon: Icons.Zap,
-        action: () => setActiveTab(NavTab.TEXT_EFFECTS),
+        action: () => setActiveTab(NavTab.TEXT),
         group: 'Panels',
       },
       {

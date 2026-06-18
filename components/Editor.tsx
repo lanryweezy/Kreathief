@@ -193,8 +193,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     // Single-Key Tool Shortcuts (Pro Design Workflow)
     { key: 'v', action: () => { useStore.getState().setSelectedLayerIds([]); useStore.getState().setPenMode(false); }, description: 'Select Tool' },
     { key: 't', action: () => { useStore.getState().setActiveTab(NavTab.TEXT); useStore.getState().addTextLayer(); }, description: 'Text Tool' },
-    { key: 'r', action: () => { useStore.getState().setActiveTab(NavTab.ELEMENTS); useStore.getState().addShapeLayer('rectangle'); }, description: 'Rectangle Tool' },
-    { key: 'o', action: () => { useStore.getState().setActiveTab(NavTab.ELEMENTS); useStore.getState().addShapeLayer('circle'); }, description: 'Oval Tool' },
+    { key: 'r', action: () => { useStore.getState().setActiveTab(NavTab.MEDIA); useStore.getState().addShapeLayer('rectangle'); }, description: 'Rectangle Tool' },
+    { key: 'o', action: () => { useStore.getState().setActiveTab(NavTab.MEDIA); useStore.getState().addShapeLayer('circle'); }, description: 'Oval Tool' },
     { key: 'p', action: () => { useStore.getState().setActiveTab(NavTab.DRAW); useStore.getState().setPenMode(true); }, description: 'Draw Tool' },
     { key: 'm', action: () => useStore.getState().setActiveTab(NavTab.MAGIC), description: 'Magic/AI Panel' },
     { key: 'l', action: () => useStore.getState().setActiveTab(NavTab.LAYERS), description: 'Layers Panel' },

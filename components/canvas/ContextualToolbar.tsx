@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
 import { Layer } from '../../types';
 import { GeometryOracle } from '../../utils/geometryOracle';
@@ -21,7 +22,15 @@ export const ContextualToolbar: React.FC<ContextualToolbarProps> = ({
     duplicateSelected, 
     moveLayer,
     saveToHistory 
-  } = useStore();
+  } = useStore(
+    useShallow((state) => ({
+      updateLayer: state.updateLayer,
+      deleteSelected: state.deleteSelected,
+      duplicateSelected: state.duplicateSelected,
+      moveLayer: state.moveLayer,
+      saveToHistory: state.saveToHistory,
+    }))
+  );
 
   const [opacity, setOpacity] = useState(1);
 

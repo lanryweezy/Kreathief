@@ -2,6 +2,8 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { TextLayer, ShapeLayer, ImageLayer, Layer, Artboard } from '../../types';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
+import { ArrangePanel } from './ArrangePanel';
 
 // LayerItem Component Props
 interface LayerItemProps {
@@ -151,31 +153,64 @@ const LayerItem = React.memo(
 LayerItem.displayName = 'LayerItem';
 
 export const LayersPanel = () => {
-  const { artboards, activeArtboardId, selectedLayerIds, selectLayer, multiSelectLayer, updateLayer, deleteLayer, reorderLayer } = useStore();
+  const { artboards, activeArtboardId, selectedLayerIds, selectLayer, multiSelectLayer, updateLayer, deleteLayer, reorderLayer } = useStore(
+    useShallow((state) => ({
+      artboards: state.artboards,
+      activeArtboardId: state.activeArtboardId,
+      selectedLayerIds: state.selectedLayerIds,
+      selectLayer: state.selectLayer,
+      multiSelectLayer: state.multiSelectLayer,
+      updateLayer: state.updateLayer,
+      deleteLayer: state.deleteLayer,
+      reorderLayer: state.reorderLayer,
+    }))
+  );
   const layers = useMemo(() => artboards.find((a: Artboard) => a.id === activeArtboardId)?.layers || [], [artboards, activeArtboardId]);
+
+  const [activeTab, setActiveTab] = useState<'layers' | 'arrange'>('layers');
 
   return (
     <div className="flex flex-col h-full bg-transparent">
-      <div className="p-5 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
-         <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-white/90">Layers List</h3>
-         <div className="flex items-center gap-2">
-           <span className="text-[10px] font-mono text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">{layers.length}</span>
-         </div>
+      {/* Tabs */}
+      <div className="flex px-4 pt-4 border-b border-white/5 gap-4">
+        <button
+          onClick={() => setActiveTab('layers')}
+          className={`pb-3 text-xs font-bold transition-all border-b-2 ${
+            activeTab === 'layers' ? 'border-[#7d2ae8] text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+          }`}
+        >
+          LAYERS ({layers.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('arrange')}
+          className={`pb-3 text-xs font-bold transition-all border-b-2 ${
+            activeTab === 'arrange' ? 'border-[#7d2ae8] text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+          }`}
+        >
+          ARRANGE
+        </button>
       </div>
+
       <div className="flex-1 overflow-y-auto no-scrollbar py-2">
-        {[...layers].reverse().map((layer, idx) => (
-          <LayerItem
-            key={layer.id}
-            layer={layer}
-            index={idx}
-            isSelected={selectedLayerIds.includes(layer.id)}
-            onSelect={() => selectLayer(layer.id)}
-            onSelectMultiple={(_e) => multiSelectLayer(layer.id, true)}
-            onUpdate={(c) => updateLayer(layer.id, c)}
-            onDelete={() => deleteLayer(layer.id)}
-            onDrop={(id, target, pos) => reorderLayer(id, layers.findIndex(l => l.id === target) + (pos === 'above' ? 1 : 0))}
-          />
-        ))}
+        {activeTab === 'layers' ? (
+          [...layers].reverse().map((layer, idx) => (
+            <LayerItem
+              key={layer.id}
+              layer={layer}
+              index={idx}
+              isSelected={selectedLayerIds.includes(layer.id)}
+              onSelect={() => selectLayer(layer.id)}
+              onSelectMultiple={(_e) => multiSelectLayer(layer.id, true)}
+              onUpdate={(c) => updateLayer(layer.id, c)}
+              onDelete={() => deleteLayer(layer.id)}
+              onDrop={(id, target, pos) => reorderLayer(id, layers.findIndex(l => l.id === target) + (pos === 'above' ? 1 : 0))}
+            />
+          ))
+        ) : (
+          <div className="h-full">
+            <ArrangePanel />
+          </div>
+        )}
       </div>
     </div>
   );

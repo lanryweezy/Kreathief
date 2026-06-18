@@ -3,6 +3,7 @@ import { Icons } from '../constants';
 import { User, Project } from '../types';
 import { DropdownMenu } from './DropdownMenu';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { PublishModal } from './modals/PublishModal';
 
 interface HeaderProps {
@@ -50,7 +51,28 @@ export const Header: React.FC<HeaderProps> = ({
     showShortcuts,
     setShowShortcuts,
     setShowShareModal,
-  } = useStore();
+  } = useStore(
+    useShallow((state) => ({
+      undo: state.undo,
+      redo: state.redo,
+      past: state.past,
+      future: state.future,
+      isSaving: state.isSaving,
+      lastSaved: state.lastSaved,
+      hasUnsavedChanges: state.hasUnsavedChanges,
+      projectTitle: state.projectTitle,
+      setProjectTitle: state.setProjectTitle,
+      saveProject: state.saveProject,
+      showShortcuts: state.showShortcuts,
+      setShowShortcuts: state.setShowShortcuts,
+      setShowShareModal: state.setShowShareModal,
+      zoom: state.zoom,
+      setZoom: state.setZoom,
+      isCommandPaletteOpen: state.isCommandPaletteOpen,
+      setCommandPaletteOpen: state.setCommandPaletteOpen,
+      syncStatus: state.syncStatus,
+    }))
+  );
 
   const [showPublishModal, setShowPublishModal] = React.useState(false);
   const [isEditingTitle, setIsEditingTitle] = React.useState(false);
