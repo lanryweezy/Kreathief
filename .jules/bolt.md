@@ -13,3 +13,8 @@
 ## 2026-06-15 - Memoizing store methods passed to useCanvasInteractions
 **Learning:** Inline arrow functions wrapping global store state actions (e.g., `onSelectLayer={(id) => useStore.getState().selectLayer(id)}`) cause custom hooks or memoized child components to lose their cached states, as the dependency arrays see a new function reference every render. This forces deep re-renders on every trivial interaction.
 **Action:** Extract all store action calls into stable `useCallback` hooks (e.g., `const handleSelectLayer = useCallback((id) => useStore.getState().selectLayer(id), []);`) when passing them as dependencies to hooks or React.memo components.
+
+
+## 2026-06-18 - Memoizing overlay components
+**Learning:** Overlay components on the Canvas like `CanvasControls`, `CanvasGuides`, `SelectionMarquee`, `PathEditorOverlay`, and `BrushFilters` are often subjected to rapid re-renders if their parent re-renders. Without `React.memo`, these components cause unnecessary performance degradation, especially during rapid state updates like mouse movement.
+**Action:** Ensure all heavy overlay and visualization components that depend on parent state are wrapped in `React.memo` to prevent unnecessary updates.
