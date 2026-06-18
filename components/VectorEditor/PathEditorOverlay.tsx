@@ -28,7 +28,7 @@ interface PenToolOptions {
   showPreview: boolean;
 }
 
-export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
+export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(({
   path,
   zoom,
   onUpdate,
@@ -1027,7 +1027,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = ({
       )}
     </>
   );
-};
+});
 
 // ==================================
 // Mini Toolbar Button
@@ -1115,3 +1115,5 @@ const ToolbarBtn: React.FC<ToolbarBtnProps> = ({
 );
 
 export default PathEditorOverlay;
+-e
+PathEditorOverlay.displayName = 'PathEditorOverlay';
