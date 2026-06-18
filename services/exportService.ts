@@ -48,6 +48,7 @@ export const exportToPrintPDF = async (
     options.colorProfile === 'SWOP' ||
     options.colorProfile === 'GRACoL'
   ) {
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise<void>(async (resolve, reject) => {
       try {
         let imageUrlToProcess = imgDataUrl;

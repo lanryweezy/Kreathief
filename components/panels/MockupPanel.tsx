@@ -559,6 +559,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       return null;
     }
 
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
         const worker = new Worker(new URL('../../workers/mockup.worker.ts', import.meta.url), { type: 'module' });

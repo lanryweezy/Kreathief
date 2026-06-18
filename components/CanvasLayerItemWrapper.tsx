@@ -65,10 +65,6 @@ interface CanvasLayerItemWrapperProps {
 export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = React.memo(
   (props) => {
     const l = props.layer;
-    if (!l) {
-      log.warn('[Canvas] Skipping null layer render');
-      return null;
-    }
 
     const {
       allLayers,

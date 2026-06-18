@@ -23,8 +23,6 @@ export const VersionDiffModal: React.FC = () => {
   const leftSnapshot = useMemo(() => (leftId==='live' ? null : snapshots?.find(s => s.id === leftId) || null), [snapshots, leftId]);
   const rightSnapshot = useMemo(() => snapshots?.find((s) => s.id === rightId) || snapshots?.[0], [snapshots, rightId]);
 
-  if (!show) {return null;}
-
   const leftState:any = leftSnapshot ? leftSnapshot.state : { artboards };
   const rightState:any = rightSnapshot?.state;
   const leftAb = leftState?.artboards?.[leftAbIndex] || leftState?.artboards?.[0];
@@ -42,6 +40,8 @@ export const VersionDiffModal: React.FC = () => {
     leftLayers.forEach((l:any)=>{ const r = rightMap.get(l.id) as any; if(r){ if(l.x!==r.x||l.y!==r.y) {results.push(`Moved: ${l.name||l.type}`);} if(l.w!==r.w||l.h!==r.h) {results.push(`Resized: ${l.name||l.type}`);}} });
     return results.slice(0, 24);
   }, [leftAb, rightAb]);
+
+  if (!show) {return null;}
 
   return (
     <div className="fixed inset-0 z-[2100] bg-black/90 text-white" onClick={() => setShow(false)}>
