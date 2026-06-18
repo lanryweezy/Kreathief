@@ -4,6 +4,8 @@
  * Handles hit-testing and mask generation.
  */
 
+import { log } from '../utils/log';
+
 import { Layer } from '../types';
 
 class MaskWorkerService {
@@ -33,11 +35,11 @@ class MaskWorkerService {
       };
 
       this.worker.onerror = (e) => {
-        console.error('Mask Worker Error:', e);
+        log.error('Mask Worker Error:', e);
         this.worker = null;
       };
     } catch (err) {
-      console.error('Failed to initialize Mask Worker:', err);
+      log.error('Failed to initialize Mask Worker:', err);
     }
   }
 

@@ -1,3 +1,5 @@
+import { log } from '../../utils/log';
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
@@ -92,7 +94,7 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
         overlayTexture: grainUrl 
       });
     } catch (e) {
-      console.error('Grain generation failed', e);
+      log.error('Grain generation failed', e);
     } finally {
       setIsGeneratingGrain(false);
     }

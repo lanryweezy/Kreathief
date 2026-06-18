@@ -1,3 +1,5 @@
+import { log } from '../utils/log';
+
 import { useEffect, useState } from 'react';
 import * as opentype from 'opentype.js';
 
@@ -100,7 +102,7 @@ export const GlyphPalette = ({ fontFamily, onSelect, onClose }: GlyphPaletteProp
             setIsLoading(false);
             return;
           } catch (localError) {
-            console.warn(`Local font load failed for ${fontFamily}, trying CDN...`, localError);
+            log.warn(`Local font load failed for ${fontFamily}, trying CDN...`, { error: localError });
           }
         }
 
@@ -130,11 +132,11 @@ export const GlyphPalette = ({ fontFamily, onSelect, onClose }: GlyphPaletteProp
 
             setGlyphs(extracted);
           } catch (e) {
-            console.error('OpenType Parse Error', e);
+            log.error('OpenType Parse Error', e);
           }
         }
       } catch (error) {
-        console.error('Failed to load font glyphs', error);
+        log.error('Failed to load font glyphs', error);
       } finally {
         setIsLoading(false);
       }

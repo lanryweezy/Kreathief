@@ -132,6 +132,29 @@ export const SidePanel = React.memo(
 
                 {activeTab === NavTab.PHOTOS && <AssetsPanel />}
 
+                {activeTab === NavTab.TEXT_EFFECTS && selectedTextLayer && (
+                  <TextEffectsPanel
+                    effects={{
+                      styleType: selectedTextLayer.styleType,
+                      warpStyle: selectedTextLayer.warpStyle,
+                      curve: selectedTextLayer.curve,
+                      depth: selectedTextLayer.depth,
+                      neonGlow: selectedTextLayer.neonGlow,
+                    }}
+                    onChange={(newEffects) => {
+                      updateLayer(selectedTextLayer.id, newEffects as Partial<TextLayer>);
+                    }}
+                  />
+                )}
+
+                {activeTab === NavTab.TEXT_EFFECTS && !selectedTextLayer && (
+                  <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                    <Icons.Zap className="w-12 h-12 text-gray-600 mb-4" />
+                    <h3 className="text-lg font-bold text-white mb-2">Text Effects</h3>
+                    <p className="text-sm text-gray-400">Select a text layer to unlock amazing text effects like transformations, shadows, 3D depth, and textures.</p>
+                  </div>
+                )}
+
                 {activeTab === NavTab.TEMPLATES && (
                   <TemplatesPanel
                     onApplyTemplate={handleApplyTemplate}

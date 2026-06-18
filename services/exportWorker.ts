@@ -143,7 +143,7 @@ self.onmessage = async (e: MessageEvent) => {
         ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
         ctx.restore();
       } catch (err) {
-        console.warn('Worker: Failed to load background', err);
+        log.warn('Worker: Failed to load background', { error: err });
       }
     }
 
@@ -198,7 +198,7 @@ self.onmessage = async (e: MessageEvent) => {
 
             ctx.drawImage(img, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
           } catch (err) {
-            console.warn('Worker: Failed to load image layer', err);
+            log.warn('Worker: Failed to load image layer', { error: err });
           }
         } else if (layer.type === 'text') {
           // @ts-ignore - ignore type mismatch

@@ -236,7 +236,7 @@ export const LayersPanel = () => {
           Arrange
         </button>
       </div>
-
+      <ArrangePanel />
       <div className="flex-1 overflow-y-auto no-scrollbar py-2">
         {activeTab === 'arrange' && <ArrangePanel />}
         {activeTab === 'layers' && (
