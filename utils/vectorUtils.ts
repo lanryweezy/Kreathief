@@ -1,3 +1,5 @@
+import { log } from './log';
+
 import { VectorPath, VectorPoint, PointType } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { BezierMath, Point } from './bezierMath';
@@ -62,7 +64,7 @@ export class VectorUtils {
   static serializePath(path: VectorPath): string {
     // FIX: Validate path before serialization
     if (!this.validatePath(path)) {
-      console.warn('Invalid path detected in serializePath');
+      log.warn('Invalid path detected in serializePath');
       return '';
     }
 

@@ -201,6 +201,7 @@ export const BrandPanel = () => {
             data-testid="brand-kit-name-input"
             type="text"
             placeholder="Brand Name (e.g. Acme Corp)"
+            aria-label="New Kit Name"
             className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1.5 text-sm text-white mb-4 focus:border-[#7d2ae8] outline-none"
             value={newKitName}
             onChange={(e) => setNewKitName(e.target.value)}
@@ -259,6 +260,7 @@ export const BrandPanel = () => {
                       data-testid={`brand-color-input-${i}`}
                       type="color"
                       value={c}
+                      aria-label={`Color picker for brand color ${i + 1}`}
                       onChange={(e) => updateNewColor(i, e.target.value)}
                       className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
                     />
@@ -267,6 +269,7 @@ export const BrandPanel = () => {
                   <input
                     type="text"
                     value={c}
+                    aria-label={`Hex value for brand color ${i + 1}`}
                     onChange={(e) => updateNewColor(i, e.target.value)}
                     className="w-16 bg-transparent border-none text-xs text-white outline-none font-mono"
                   />

@@ -17,6 +17,8 @@ const LayersPanel = React.lazy(() => import('./panels/LayersPanel'));
 const DrawPanel = React.lazy(() => import('./panels/DrawPanel'));
 const MediaPanel = React.lazy(() => import('./panels/MediaPanel'));
 const TextPanel = React.lazy(() => import('./panels/TextPanel'));
+const UploadsPanel = React.lazy(() => import('./panels/UploadsPanel'));
+const AssetsPanel = React.lazy(() => import('./panels/AssetsPanel'));
 const ComponentsPanel = React.lazy(() => import('./panels/ComponentsPanel'));
 const CommentsPanel = React.lazy(() => import('./panels/CommentsPanel'));
 const MotionPanel = React.lazy(() => import('./panels/MotionPanel').then(m => ({ default: m.MotionPanel })));
@@ -121,6 +123,36 @@ export const SidePanel = React.memo(
                 {activeTab === NavTab.TEXT && <TextPanel />}
 
                 {activeTab === NavTab.MEDIA && <MediaPanel />}
+                {activeTab === NavTab.ELEMENTS && <ElementsPanel />}
+
+                {activeTab === NavTab.UPLOADS && (
+                  <UploadsPanel />
+                )}
+
+                {activeTab === NavTab.PHOTOS && <AssetsPanel />}
+
+                {activeTab === NavTab.TEXT_EFFECTS && selectedTextLayer && (
+                  <TextEffectsPanel
+                    effects={{
+                      styleType: selectedTextLayer.styleType,
+                      warpStyle: selectedTextLayer.warpStyle,
+                      curve: selectedTextLayer.curve,
+                      depth: selectedTextLayer.depth,
+                      neonGlow: selectedTextLayer.neonGlow,
+                    }}
+                    onChange={(newEffects) => {
+                      updateLayer(selectedTextLayer.id, newEffects as Partial<TextLayer>);
+                    }}
+                  />
+                )}
+
+                {activeTab === NavTab.TEXT_EFFECTS && !selectedTextLayer && (
+                  <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                    <Icons.Zap className="w-12 h-12 text-gray-600 mb-4" />
+                    <h3 className="text-lg font-bold text-white mb-2">Text Effects</h3>
+                    <p className="text-sm text-gray-400">Select a text layer to unlock amazing text effects like transformations, shadows, 3D depth, and textures.</p>
+                  </div>
+                )}
 
                 {activeTab === NavTab.TEMPLATES && (
                   <TemplatesPanel
@@ -180,8 +212,6 @@ export const SidePanel = React.memo(
                 )}
 
                 {activeTab === NavTab.MOCKUP && <MockupPanel onExportForMockup={getCanvasSnapshot || (async () => '')} />}
-
-                {activeTab === NavTab.COMPONENTS && <ComponentsPanel />}
 
                 {activeTab === NavTab.COMMENTS && <CommentsPanel />}
 

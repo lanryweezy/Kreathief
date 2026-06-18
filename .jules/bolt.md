@@ -22,3 +22,7 @@
 
 **Learning:** Selecting multiple properties from a Zustand store by returning an object (e.g., `const { a, b } = useStore(state => ({ a: state.a, b: state.b }))`) without `useShallow` creates a new object reference on every state change, causing the component to re-render even if `a` and `b` haven't changed.
 **Action:** Always wrap object-returning Zustand selectors with `useShallow` from `zustand/react/shallow` to ensure components only re-render when the specific selected properties actually change.
+
+## 2026-06-18 - Memoizing overlay components
+**Learning:** Overlay components on the Canvas like `CanvasControls`, `CanvasGuides`, `SelectionMarquee`, `PathEditorOverlay`, and `BrushFilters` are often subjected to rapid re-renders if their parent re-renders. Without `React.memo`, these components cause unnecessary performance degradation, especially during rapid state updates like mouse movement.
+**Action:** Ensure all heavy overlay and visualization components that depend on parent state are wrapped in `React.memo` to prevent unnecessary updates.

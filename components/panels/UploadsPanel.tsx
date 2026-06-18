@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 import { useFileHandler } from '../../hooks/useFileHandler';
-import { v4 as uuidv4 } from 'uuid';
+import { generateLayerId } from '../../utils/layers/layerUtils';
 import { EmptyState } from '../EmptyState';
 import { log } from '../../utils/log';
 import { parsePsdToLayers } from '../../services/psdService';
@@ -19,7 +19,7 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
 
   const onAddImageLayer = (src: string) => {
     addLayer({
-      id: uuidv4(),
+      id: generateLayerId('image'),
       type: 'image',
       name: 'Image Layer',
       src,

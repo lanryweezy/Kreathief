@@ -1,3 +1,5 @@
+import { log } from '../utils/log';
+
 import React, { useState } from 'react';
 import * as geminiService from '../services/geminiService';
 import { Icons } from '../constants';
@@ -103,7 +105,7 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
 
       setSuggestions(newSuggestions);
     } catch (error) {
-      console.error('Error generating suggestions:', error);
+      log.error('Error generating suggestions', error);
     } finally {
       setIsLoading(false);
     }

@@ -66,7 +66,7 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
   (props) => {
     const l = props.layer;
     if (!l) {
-      console.warn('[Canvas] Skipping null layer render');
+      log.warn('[Canvas] Skipping null layer render');
       return null;
     }
 

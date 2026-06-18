@@ -7,13 +7,13 @@ interface SelectionMarqueeProps {
   };
 }
 
-export const SelectionMarquee: React.FC<SelectionMarqueeProps> = ({ box }) => {
+export const SelectionMarquee: React.FC<SelectionMarqueeProps> = React.memo(({ box }) => {
   const x = Math.min(box.start.x, box.end.x);
   const y = Math.min(box.start.y, box.end.y);
   const width = Math.abs(box.start.x - box.end.x);
   const height = Math.abs(box.start.y - box.end.y);
 
-  if (width < 2 && height < 2) return null;
+  if (width < 2 && height < 2) {return null;}
 
   return (
     <div
@@ -27,4 +27,6 @@ export const SelectionMarquee: React.FC<SelectionMarqueeProps> = ({ box }) => {
       }}
     />
   );
-};
+});
+-e
+SelectionMarquee.displayName = 'SelectionMarquee';

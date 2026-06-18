@@ -1,3 +1,5 @@
+import { log } from '../../utils/log';
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
@@ -54,7 +56,7 @@ export const CommandPalette: React.FC = () => {
         setAssetResults(Array.isArray(assets) ? assets.slice(0, 5) : []);
         setCommunityResults(Array.isArray(templates) ? templates.slice(0, 3) : []);
       } catch (e) {
-        console.error('[CommandPalette] Search error:', e);
+        log.error('[CommandPalette] Search error', e);
       } finally {
         setIsSearching(false);
       }

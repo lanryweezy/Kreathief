@@ -1,0 +1,5 @@
+## 2026-06-17 - [Canvas Text Style vs Export Text Style]
+**Surface pair:** Canvas Editor and Export Service (PNG/JPG Blob/PSD generator)
+**Root cause:** The export utility (`drawTextLayerToContext` in `exportService.ts`) blindly rendered `TextLayer` instances using a single `fillText` call. It entirely ignored multiline text wrapping (`\n`), `textAlign`, `letterSpacing`, and `lineHeight`. In contrast, the Canvas editor correctly applied these styles to DOM elements (`LayerContent.tsx`).
+**Fix:** Extracted text layout calculations into a shared resolver (`renderMultilineText` in `utils/textRendering.ts`) that handles word wrapping, line height calculation, letter spacing, and horizontal alignment. `exportService.ts` now calls this shared resolver, eliminating divergence.
+**Learning:** Text properties like wrapping, line height, letter spacing, and alignment cannot be applied automatically via simple Canvas API calls like `fillText` without custom layout loops. Always extract rendering implementations into a shared source of truth rather than patching them per-surface to prevent drift.

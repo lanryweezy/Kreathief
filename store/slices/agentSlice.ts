@@ -1,7 +1,10 @@
+import { log } from '../../utils/log';
+
 import { StateCreator } from 'zustand';
 import { AgentVariant, creativeAgentDraft, creativeAgentRefine, criticAgentReview, performanceAgentScore } from '../../services/multiAgentService';
 import { Layer } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
+import { log } from '../../utils/log';
 
 export type AgentStatus = 'idle' | 'creative' | 'critic' | 'performance' | 'done' | 'error';
 
@@ -69,7 +72,7 @@ export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get
       
       set({ agentVariants: scoredVariants, agentStatus: 'done' });
     } catch (err: any) {
-      console.error('Agent Workflow Failed:', err);
+      log.error('Agent Workflow Failed:', err);
       set({ agentStatus: 'error', agentError: err.message || 'Workflow failed' });
     }
   },
@@ -107,7 +110,7 @@ export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get
       
       set({ agentVariants: scoredVariants, agentStatus: 'done' });
     } catch (err: any) {
-      console.error('Agent Refine Failed:', err);
+      log.error('Agent Refine Failed:', err);
       set({ agentStatus: 'error', agentError: err.message || 'Refinement failed' });
     }
   },
