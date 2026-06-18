@@ -31,3 +31,7 @@
 ## 2026-06-17 - Eliminate Text Generation Preamble
 **Learning:** In text manipulation features (like rewriting text or content generation), instructing the LLM to "Return ONLY the rewritten text without quotes" is insufficient and leads to conversational preamble ("Sure, here is the text: ") which breaks string splitting logic in components like `SmartContentGenerator` and `Toolbar`.
 **Action:** When a raw string is needed, configure the Gemini API request with `generationConfig: { responseMimeType: 'application/json', responseSchema: { type: SchemaType.STRING } }` and parse the text with `safeParseJSON` instead of relying on prompt instructions and string replacements.
+
+## 2026-06-18 - JSON Schema for Raw SVG Path Validation
+**Learning:** Relying on regular expressions (like `.replace(/<[^>]*>/g, '')`) to extract raw strings (e.g., SVG path 'd' attributes) from free-form LLM outputs is brittle. LLMs often include unprompted markdown (e.g., `xml`, `svg`) or conversational wrappers ("Here is your SVG:") that evade simple replacements, resulting in malformed inputs that crash rendering functions.
+**Action:** When a pure text primitive is required (such as an SVG path string), configure the Gemini API request with `generationConfig: { responseMimeType: 'application/json', responseSchema: { type: SchemaType.STRING } }`. Then, strictly parse the payload using `safeParseJSON<string | null>(data.text, null)` rather than using string matching and replacing methods.
