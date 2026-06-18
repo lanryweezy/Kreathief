@@ -1,3 +1,5 @@
+import { log } from '../../utils/log';
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
@@ -92,7 +94,7 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
         overlayTexture: grainUrl 
       });
     } catch (e) {
-      console.error('Grain generation failed', e);
+      log.error('Grain generation failed', e);
     } finally {
       setIsGeneratingGrain(false);
     }
@@ -112,7 +114,7 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {return;}
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -164,7 +166,7 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
                   value={grainScale} 
                   onChange={(e) => {
                     setGrainScale(parseInt(e.target.value));
-                    if (noiseLevel > 0) handleNoiseChange(noiseLevel);
+                    if (noiseLevel > 0) {handleNoiseChange(noiseLevel);}
                   }}
                   className="w-full h-1 bg-white/5 rounded-full appearance-none accent-indigo-500"
                />

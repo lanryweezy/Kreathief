@@ -5,7 +5,7 @@ import * as freepikService from '../../services/freepikService';
 import { vecteezyService } from '../../services/vecteezyService';
 import { iconScoutService, IconScoutAssetType } from '../../services/iconScoutService';
 import { useStore } from '../../store/useStore';
-import { v4 as uuidv4 } from 'uuid';
+import { generateLayerId } from '../../utils/layers/layerUtils';
 import { log } from '../../utils/log';
 
 interface PhotoItem {
@@ -25,7 +25,7 @@ export const AssetsPanel: React.FC = () => {
 
   const onAddImageLayer = (src: string, type: string = 'image') => {
     addLayer({
-      id: uuidv4(),
+      id: generateLayerId(type),
       type: type as any,
       name: type === 'lottie' ? 'Animation' : 'Asset',
       src,
@@ -98,13 +98,13 @@ export const AssetsPanel: React.FC = () => {
 
       if (activeSource === 'all' || activeSource === 'freepik') {
         try {
-          const freepikResults = await freepikService.searchPhotos(searchQuery || 'trending');
+          const freepikResults = await freepikService.searchResources(searchQuery || 'trending');
           freepikResults.items.forEach((r) => {
             combined.push({
               id: `fp-${r.id}`,
-              url: r.imageUrl,
-              thumbnail: r.thumbnailUrl || r.imageUrl,
-              alt: r.title,
+              url: r.thumbnailUrl,
+              thumbnail: r.thumbnailUrl || r.thumbnailUrl,
+              alt: (r as any).name || (r as any).title || '',
               author: r.author,
               source: 'freepik',
             });
@@ -122,7 +122,7 @@ export const AssetsPanel: React.FC = () => {
               id: `vz-${r.id}`,
               url: r.preview_url,
               thumbnail: r.thumbnail_url || r.preview_url,
-              alt: r.title,
+              alt: (r as any).title,
               author: 'Vecteezy',
               source: 'vecteezy',
             });

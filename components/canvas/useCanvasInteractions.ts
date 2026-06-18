@@ -214,7 +214,7 @@ export const useCanvasInteractions = ({
   // Mobile Pinch/Zoom
   useEffect(() => {
     const el = viewportRef.current;
-    if (!el) return;
+    if (!el) {return;}
 
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {

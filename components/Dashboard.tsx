@@ -6,6 +6,7 @@ import { STARTER_TEMPLATES, createProjectFromTemplate } from '../data/templates'
 import { ConfirmModal } from './modals/ConfirmModal';
 import { CreateProjectModal } from './modals/CreateProjectModal';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import CommunityTemplates from './CommunityTemplates';
 import { EmptyState } from './EmptyState';
 
@@ -17,8 +18,20 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCreateProject, onLogout }) => {
-  const { projects, loadAllProjects, deleteProject, duplicateProject, updateProject, createProject, loadProject, favoriteProjects, toggleFavoriteProject, shareToCommunity } =
-    useStore();
+  const { projects, loadAllProjects, deleteProject, duplicateProject, updateProject, createProject, loadProject, favoriteProjects, toggleFavoriteProject, shareToCommunity } = useStore(
+    useShallow((state) => ({
+      projects: state.projects,
+      loadAllProjects: state.loadAllProjects,
+      deleteProject: state.deleteProject,
+      duplicateProject: state.duplicateProject,
+      updateProject: state.updateProject,
+      createProject: state.createProject,
+      loadProject: state.loadProject,
+      favoriteProjects: state.favoriteProjects,
+      toggleFavoriteProject: state.toggleFavoriteProject,
+      shareToCommunity: state.shareToCommunity,
+    }))
+  );
 
   const [sidebarTab, setSidebarTab] = useState<'projects' | 'templates' | 'community'>('projects');
   const [searchQuery, setSearchQuery] = useState('');
@@ -504,7 +517,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                             className="relative flex-shrink-0 shadow-2xl rounded-sm border border-white/5 overflow-hidden"
                           >
                             {(project.state as any).layers?.map((l: any, idx: number) => {
-                              if (!l.visible) return null;
+                              if (!l.visible) {return null;}
                               if (l.type === 'rectangle') {
                                 return (
                                   <div

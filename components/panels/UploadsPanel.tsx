@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 import { useFileHandler } from '../../hooks/useFileHandler';
-import { v4 as uuidv4 } from 'uuid';
+import { generateLayerId } from '../../utils/layers/layerUtils';
 import { EmptyState } from '../EmptyState';
 import { log } from '../../utils/log';
 import { parsePsdToLayers } from '../../services/psdService';
@@ -19,7 +19,7 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
 
   const onAddImageLayer = (src: string) => {
     addLayer({
-      id: uuidv4(),
+      id: generateLayerId('image'),
       type: 'image',
       name: 'Image Layer',
       src,
@@ -66,6 +66,8 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
     setIsDragging(false);
   };
 
+  const handleFileUpload = useStore((state) => state.handleFileUpload);
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -85,7 +87,7 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
       }
 
       if (imageFiles.length > 0) {
-        handleFileUploads(imageFiles);
+        handleFileUpload(imageFiles);
       }
       if (psdFiles.length > 0) {
         handlePsdFiles(psdFiles);
@@ -146,7 +148,7 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
             className="hidden"
             accept="image/*"
             multiple
-            onChange={(e) => e.target.files && handleFileUploads(Array.from(e.target.files))}
+            onChange={(e) => e.target.files && handleFileUpload(Array.from(e.target.files))}
           />
         </div>
 

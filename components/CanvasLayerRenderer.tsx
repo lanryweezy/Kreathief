@@ -28,10 +28,10 @@ interface CanvasLayerRendererProps {
 }
 
 const isLayerVisible = (layer: Layer, viewport: { x: number; y: number; width: number; height: number } | null, zoom: number, selectedLayerIds: string[] = []) => {
-  if (!viewport || viewport.width === 0 || viewport.height === 0) return true;
+  if (!viewport || viewport.width === 0 || viewport.height === 0) {return true;}
   
   // Selected layers or adjustment layers should always be active
-  if (selectedLayerIds.includes(layer.id) || layer.type === 'adjustment') return true;
+  if (selectedLayerIds.includes(layer.id) || layer.type === 'adjustment') {return true;}
 
   const buffer = Math.min(1000, 200 / Math.max(0.1, zoom)); // Clamp buffer
   const lw = (layer as any).width || 0;
@@ -78,7 +78,7 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
     // CRITICAL: Must use the full layers list to maintain correct masking indices
     const layerMasks = React.useMemo(() => {
       const masks = new Map<string, Layer>();
-      if (!layers) return masks;
+      if (!layers) {return masks;}
       for (let i = 1; i < layers.length; i++) {
         const potentialMask = layers[i - 1];
         if (potentialMask && potentialMask.isMasking) {
@@ -93,18 +93,18 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
         {effectiveLayers
           .filter((l) => {
             // 1. Must be a top-level layer (or the group marker itself)
-            if (l.groupId) return false;
+            if (l.groupId) {return false;}
             
             // 2. Must be visible
-            if (l.visible === false) return false;
+            if (l.visible === false) {return false;}
 
             // 3. Size-based and viewport-based culling
-            if (!isLayerVisible(l, viewportBounds, zoom, selectedLayerIds)) return false;
+            if (!isLayerVisible(l, viewportBounds, zoom, selectedLayerIds)) {return false;}
 
             return true;
           })
           .map((l) => {
-            if (l.isMasking) return null;
+            if (l.isMasking) {return null;}
             const maskLayer = layerMasks.get(l.id);
 
             // If it's a group, we need to render its children too

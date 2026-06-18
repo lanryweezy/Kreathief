@@ -100,7 +100,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
           <button
             onClick={() => {
                haptics.heavy();
-               if(confirm('Clear all layers?')) useStore.getState().setLayers([]);
+               if(confirm('Clear all layers?')) {useStore.getState().setLayers([]);}
             }}
             className="flex flex-col items-center justify-center gap-1 min-w-[64px] h-14 text-red-500/50 active:text-red-500 transition-colors"
           >

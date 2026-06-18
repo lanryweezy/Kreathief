@@ -32,7 +32,7 @@ export class BrandKitPage {
     await this.openBrandPanel();
 
     // Check if we are already in the form for a kit with this name
-    let isFormVisible = await this.page.getByTestId('create-brand-kit-form').isVisible();
+    const isFormVisible = await this.page.getByTestId('create-brand-kit-form').isVisible();
     if (isFormVisible) {
         const currentName = await this.page.getByTestId('brand-kit-name-input').inputValue().catch(() => '');
         if (currentName === name) {

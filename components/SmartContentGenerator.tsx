@@ -1,3 +1,5 @@
+import { log } from '../utils/log';
+
 import React, { useState } from 'react';
 import * as geminiService from '../services/geminiService';
 import { Icons } from '../constants';
@@ -68,7 +70,7 @@ export const SmartContentGenerator: React.FC<SmartContentGeneratorProps> = ({
 
       setGeneratedContent(options);
     } catch (error) {
-      console.error('Error generating content:', error);
+      log.error('Error generating content', error);
     } finally {
       setIsLoading(false);
     }

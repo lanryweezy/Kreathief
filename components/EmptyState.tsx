@@ -38,7 +38,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       </div>
 
       {/* Floating Icon Stage */}
-      <motion.div 
+      <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: 'spring', damping: 20, stiffness: 100 }}
@@ -50,19 +50,13 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         </div>
       </motion.div>
 
-      <motion.div
-        initial={{ y: 10, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1 }}
-      >
+      <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
         <h3 className="text-3xl font-black text-white mb-3 tracking-tighter uppercase italic">{title}</h3>
-        <p className="text-gray-500 mb-10 text-base leading-relaxed max-w-sm mx-auto font-medium">
-          {description}
-        </p>
+        <p className="text-gray-500 mb-10 text-base leading-relaxed max-w-sm mx-auto font-medium">{description}</p>
       </motion.div>
 
       {/* Action Hub */}
-      <motion.div 
+      <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.2 }}
@@ -94,7 +88,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
             <span className="text-[9px] font-black text-gray-600 uppercase tracking-[0.3em]">Ignite Creativity</span>
             <div className="flex-1 h-px bg-white/5" />
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
             {onboardingCards.map((card, idx) => (
               <motion.button
@@ -103,12 +97,13 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.3 + idx * 0.1, type: 'spring' }}
                 onClick={card.onClick}
+                aria-label={`${card.title}. ${card.description}${card.shortcut ? `. Shortcut: ${card.shortcut}` : ''}`}
                 className="group relative p-5 bg-[#0a0a0c]/40 border border-white/5 rounded-[24px] hover:border-[#7d2ae8]/40 hover:bg-[#7d2ae8]/5 transition-all overflow-hidden"
               >
                 <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-100 group-hover:rotate-12 transition-all">
-                   <div className="text-3xl grayscale group-hover:grayscale-0">{card.emoji}</div>
+                  <div className="text-3xl grayscale group-hover:grayscale-0">{card.emoji}</div>
                 </div>
-                
+
                 <div className="relative z-10">
                   <div className="text-xs font-black text-white uppercase tracking-wider mb-1.5 flex items-center gap-2">
                     {card.title}
@@ -117,13 +112,15 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                   <div className="text-[10px] text-gray-500 font-medium leading-relaxed group-hover:text-gray-400 pr-8">
                     {card.description}
                   </div>
-                  
+
                   {card.shortcut && (
                     <div className="mt-4 flex items-center justify-between">
                       <kbd className="px-2 py-1 bg-black/60 border border-white/10 rounded-lg text-[9px] text-gray-600 font-mono tracking-tighter group-hover:text-[#7d2ae8]">
                         {card.shortcut}
                       </kbd>
-                      <span className="text-[9px] font-black text-[#7d2ae8] opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all">START ↗</span>
+                      <span className="text-[9px] font-black text-[#7d2ae8] opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all">
+                        START ↗
+                      </span>
                     </div>
                   )}
                 </div>
@@ -135,4 +132,3 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     </div>
   );
 };
-

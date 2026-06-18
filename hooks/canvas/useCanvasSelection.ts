@@ -78,7 +78,7 @@ export const useCanvasSelection = ({
       
       artboardsRef.current.forEach((artboard) => {
         artboard.layers.forEach((l) => {
-          if (l.locked || l.visible === false) return;
+          if (l.locked || l.visible === false) {return;}
           
           const lw = (l as any).width || 0;
           const lh = (l as any).height || 0;

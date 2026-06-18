@@ -15,12 +15,10 @@ const TexturesPanel = React.lazy(() => import('./panels/TexturesPanel'));
 const AssistantPanel = React.lazy(() => import('./panels/AssistantPanel'));
 const LayersPanel = React.lazy(() => import('./panels/LayersPanel'));
 const DrawPanel = React.lazy(() => import('./panels/DrawPanel'));
-const ElementsPanel = React.lazy(() => import('./panels/ElementsPanel'));
+const MediaPanel = React.lazy(() => import('./panels/MediaPanel'));
 const TextPanel = React.lazy(() => import('./panels/TextPanel'));
 const UploadsPanel = React.lazy(() => import('./panels/UploadsPanel'));
 const AssetsPanel = React.lazy(() => import('./panels/AssetsPanel'));
-const TextEffectsPanel = React.lazy(() => import('./panels/TextEffectsPanel').then(module => ({ default: module.TextEffectsPanel })));
-const ArrangePanel = React.lazy(() => import('./panels/ArrangePanel'));
 const ComponentsPanel = React.lazy(() => import('./panels/ComponentsPanel'));
 const CommentsPanel = React.lazy(() => import('./panels/CommentsPanel'));
 const MotionPanel = React.lazy(() => import('./panels/MotionPanel').then(m => ({ default: m.MotionPanel })));
@@ -31,12 +29,10 @@ import { ListSkeleton, GridSkeleton, CardSkeleton } from './Skeleton';
 const PanelLoading = ({ tab }: { tab: NavTab }) => {
   switch (tab) {
     case NavTab.LAYERS:
-    case NavTab.ARRANGE:
     case NavTab.BRAND:
       return <ListSkeleton items={8} />;
     case NavTab.TEMPLATES:
-    case NavTab.ELEMENTS:
-    case NavTab.PHOTOS:
+    case NavTab.MEDIA:
     case NavTab.TEXTURES:
       return <GridSkeleton items={6} />;
     case NavTab.MAGIC:
@@ -106,7 +102,7 @@ export const SidePanel = React.memo(
           transition={{ type: 'spring', damping: 25, stiffness: 120 }}
           id="side-panel"
           data-testid="side-panel"
-          className="w-full md:w-[320px] bg-transparent md:bg-[#13161a]/95 md:backdrop-blur-xl border-r border-white/5 flex flex-col z-20 shrink-0 shadow-2xl relative overflow-hidden"
+          className="w-full md:w-[320px] bg-transparent md:bg-[#13161a]/95 md:backdrop-blur-xl border-r border-white/5 flex flex-col z-20 shrink-0 shadow-2xl relative overflow-y-auto overflow-x-hidden custom-scrollbar"
         >
           <AnimatePresence mode="wait">
             <motion.div 
@@ -115,7 +111,7 @@ export const SidePanel = React.memo(
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
               transition={{ duration: 0.2, ease: 'easeInOut' }}
-              className="h-full flex flex-col"
+              className="min-h-full flex flex-col"
             >
               <React.Suspense fallback={<PanelLoading tab={activeTab} />}>
                 {activeTab === NavTab.MAGIC && (
@@ -126,6 +122,7 @@ export const SidePanel = React.memo(
 
                 {activeTab === NavTab.TEXT && <TextPanel />}
 
+                {activeTab === NavTab.MEDIA && <MediaPanel />}
                 {activeTab === NavTab.ELEMENTS && <ElementsPanel />}
 
                 {activeTab === NavTab.UPLOADS && (
@@ -135,7 +132,18 @@ export const SidePanel = React.memo(
                 {activeTab === NavTab.PHOTOS && <AssetsPanel />}
 
                 {activeTab === NavTab.TEXT_EFFECTS && selectedTextLayer && (
-                  <TextEffectsPanel effects={{}} onChange={() => {}} />
+                  <TextEffectsPanel
+                    effects={{
+                      styleType: selectedTextLayer.styleType,
+                      warpStyle: selectedTextLayer.warpStyle,
+                      curve: selectedTextLayer.curve,
+                      depth: selectedTextLayer.depth,
+                      neonGlow: selectedTextLayer.neonGlow,
+                    }}
+                    onChange={(newEffects) => {
+                      updateLayer(selectedTextLayer.id, newEffects as Partial<TextLayer>);
+                    }}
+                  />
                 )}
 
                 {activeTab === NavTab.TEXT_EFFECTS && !selectedTextLayer && (
@@ -205,13 +213,9 @@ export const SidePanel = React.memo(
 
                 {activeTab === NavTab.MOCKUP && <MockupPanel onExportForMockup={getCanvasSnapshot || (async () => '')} />}
 
-                {activeTab === NavTab.COMPONENTS && <ComponentsPanel />}
-
                 {activeTab === NavTab.COMMENTS && <CommentsPanel />}
 
                 {activeTab === NavTab.VECTORIZER && <VectorizerPanel />}
-
-                {activeTab === NavTab.ARRANGE && <ArrangePanel />}
 
                 {activeTab === NavTab.MOTION && <MotionPanel onPreviewMotion={onPreviewMotion} />}
 

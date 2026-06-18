@@ -1,3 +1,5 @@
+import { log } from '../../utils/log';
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
@@ -44,7 +46,7 @@ export const CommandPalette: React.FC = () => {
     }
 
     const timer = setTimeout(async () => {
-      if (!query || query.length < 2) return;
+      if (!query || query.length < 2) {return;}
       setIsSearching(true);
       try {
         const [assets, templates] = await Promise.all([
@@ -54,7 +56,7 @@ export const CommandPalette: React.FC = () => {
         setAssetResults(Array.isArray(assets) ? assets.slice(0, 5) : []);
         setCommunityResults(Array.isArray(templates) ? templates.slice(0, 3) : []);
       } catch (e) {
-        console.error('[CommandPalette] Search error:', e);
+        log.error('[CommandPalette] Search error', e);
       } finally {
         setIsSearching(false);
       }
@@ -134,14 +136,14 @@ export const CommandPalette: React.FC = () => {
         id: 'nav_arrange',
         label: 'Open Arrange & Layout',
         icon: Icons.Layout,
-        action: () => setActiveTab(NavTab.ARRANGE),
+        action: () => setActiveTab(NavTab.MEDIA),
         group: 'Panels',
       },
       {
         id: 'nav_effects',
         label: 'Open Text Effects',
         icon: Icons.Zap,
-        action: () => setActiveTab(NavTab.TEXT_EFFECTS),
+        action: () => setActiveTab(NavTab.TEXT),
         group: 'Panels',
       },
       {
@@ -219,7 +221,7 @@ export const CommandPalette: React.FC = () => {
         icon: Icons.Layers,
         action: () => {
           const id = store.selectedLayerIds[0];
-          if (id) moveLayer(id, 'front');
+          if (id) {moveLayer(id, 'front');}
         },
         group: 'Arrange',
         shortcut: ']',
@@ -230,7 +232,7 @@ export const CommandPalette: React.FC = () => {
         icon: Icons.Layers,
         action: () => {
           const id = store.selectedLayerIds[0];
-          if (id) moveLayer(id, 'back');
+          if (id) {moveLayer(id, 'back');}
         },
         group: 'Arrange',
         shortcut: '[',
@@ -339,7 +341,7 @@ export const CommandPalette: React.FC = () => {
   );
 
   const filteredActions = useMemo(() => {
-    if (!query) return commandList;
+    if (!query) {return commandList;}
     const q = query.toLowerCase();
     return commandList.filter((c) => c.label.toLowerCase().includes(q) || c.group?.toLowerCase().includes(q));
   }, [query, commandList]);

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { communityService } from '../../services/communityService';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -9,13 +10,15 @@ interface PublishModalProps {
 }
 
 export const PublishModal: React.FC<PublishModalProps> = ({ onClose }) => {
-  const { artboards, canvasBackgroundColor, canvasFilters, canvasSize, projectTitle } = useStore((state) => ({
-    artboards: state.artboards,
-    canvasBackgroundColor: state.canvasBackgroundColor,
-    canvasFilters: state.canvasFilters,
-    canvasSize: state.canvasSize,
-    projectTitle: state.projectTitle,
-  }));
+  const { artboards, canvasBackgroundColor, canvasFilters, canvasSize, projectTitle } = useStore(
+    useShallow((state) => ({
+      artboards: state.artboards,
+      canvasBackgroundColor: state.canvasBackgroundColor,
+      canvasFilters: state.canvasFilters,
+      canvasSize: state.canvasSize,
+      projectTitle: state.projectTitle,
+    }))
+  );
   const user = useStore((state) => state.user);
 
   const [name, setName] = useState(projectTitle || '');

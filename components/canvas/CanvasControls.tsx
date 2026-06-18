@@ -13,9 +13,9 @@ interface CanvasControlsProps {
   setContextMenu: (menu: { x: number; y: number; layerId: string } | null) => void;
 }
 
-import { ContextualToolbar } from './ContextualToolbar';
+// import { ContextualToolbar } from './ContextualToolbar';
 
-export const CanvasControls: React.FC<CanvasControlsProps> = ({
+export const CanvasControls: React.FC<CanvasControlsProps> = React.memo(({
   selectedLayerIds,
   selectedLayers,
   zoom,
@@ -51,4 +51,6 @@ export const CanvasControls: React.FC<CanvasControlsProps> = ({
       )}
     </>
   );
-};
+});
+-e
+CanvasControls.displayName = 'CanvasControls';

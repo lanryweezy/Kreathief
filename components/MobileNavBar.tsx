@@ -17,7 +17,7 @@ export const MobileNavBar: React.FC<MobileNavBarProps> = ({ activeTab, onSelectT
     const navItems = [
         { id: NavTab.MAGIC, icon: Icons.Magic, label: 'Magic', gradient: 'from-purple-500 to-pink-500' },
         { id: NavTab.TEXT, icon: Icons.Text, label: 'Text', gradient: 'from-blue-500 to-cyan-500' },
-        { id: NavTab.ELEMENTS, icon: Icons.Shapes, label: 'Elements', gradient: 'from-orange-500 to-red-500' },
+        { id: NavTab.MEDIA, icon: Icons.Image, label: 'Media', gradient: 'from-orange-500 to-red-500' },
         { id: NavTab.LAYERS, icon: Icons.Layers, label: 'Layers', gradient: 'from-green-500 to-emerald-500' },
     ];
 
