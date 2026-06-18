@@ -2,6 +2,8 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { TextLayer, ShapeLayer, ImageLayer, Layer, Artboard } from '../../types';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
+import ArrangePanel from './ArrangePanel';
+import ComponentsPanel from './ComponentsPanel';
 
 // LayerItem Component Props
 interface LayerItemProps {
@@ -27,8 +29,12 @@ const areLayerPropsEqual = (prev: LayerItemProps, next: LayerItemProps) => {
 };
 
 function getLayerNameFallback(l: Layer) {
-  if (l.type === 'text') return (l as TextLayer).text.substring(0, 20) || 'Text Layer';
-  if (l.type === 'image') return 'Image Layer';
+  if (l.type === 'text') {
+    return (l as TextLayer).text.substring(0, 20) || 'Text Layer';
+  }
+  if (l.type === 'image') {
+    return 'Image Layer';
+  }
   return (l as ShapeLayer).type.charAt(0).toUpperCase() + (l as ShapeLayer).type.slice(1);
 }
 
@@ -86,8 +92,9 @@ const LayerItem = React.memo(
           onDragLeave={() => setDragOver(null)}
           onDrop={(e) => {
             const draggedId = e.dataTransfer.getData('layerId');
-            if (draggedId && draggedId !== layer.id)
+            if (draggedId && draggedId !== layer.id) {
               onDrop(draggedId, layer.id, dragOver === 'top' ? 'above' : 'below');
+            }
             setDragOver(null);
           }}
           onClick={(e) => {
@@ -95,8 +102,11 @@ const LayerItem = React.memo(
               setLocalExpanded(!localExpanded);
               onUpdate({ isExpanded: !localExpanded });
             } else {
-              if (e.shiftKey) onSelectMultiple(e);
-              else onSelect();
+              if (e.shiftKey) {
+                onSelectMultiple(e);
+              } else {
+                onSelect();
+              }
             }
           }}
           className={`group relative flex items-center gap-3 px-4 py-3 border-b border-white/[0.03] cursor-pointer transition-all duration-200 ${isSelected ? 'bg-white/[0.05] border-l-4 border-l-[#7d2ae8] shadow-inner' : 'hover:bg-white/[0.03]'}`}
@@ -210,6 +220,7 @@ export const LayersPanel = () => {
     deleteLayer,
     reorderLayer,
   } = useStore();
+  const [activeTab, setActiveTab] = useState<'layers' | 'arrange' | 'components'>('layers');
   const layers = useMemo(
     () => artboards.find((a: Artboard) => a.id === activeArtboardId)?.layers || [],
     [artboards, activeArtboardId]
@@ -217,30 +228,52 @@ export const LayersPanel = () => {
 
   return (
     <div className="flex flex-col h-full bg-transparent">
-      <div className="p-5 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
-        <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-white/90">Layers List</h3>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono text-gray-500 bg-white/5 px-2 py-0.5 rounded-full">
+      <div className="flex border-b border-white/5 bg-[#13161a]">
+        <button
+          onClick={() => setActiveTab('layers')}
+          className={`flex-1 py-3 text-[11px] font-black uppercase tracking-[0.2em] transition-colors border-b-2 ${activeTab === 'layers' ? 'text-white border-[#7d2ae8] bg-[#7d2ae8]/10' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+        >
+          Layers List
+          <span className="ml-2 text-[9px] font-mono text-gray-500 bg-white/5 px-1.5 py-0.5 rounded-full">
             {layers.length}
           </span>
-        </div>
+        </button>
+        <button
+          onClick={() => setActiveTab('arrange')}
+          className={`flex-1 py-3 text-[11px] font-black uppercase tracking-[0.2em] transition-colors border-b-2 ${activeTab === 'arrange' ? 'text-white border-[#7d2ae8] bg-[#7d2ae8]/10' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+        >
+          Arrange
+        </button>
+        <button
+          onClick={() => setActiveTab('components')}
+          className={`flex-1 py-3 text-[11px] font-black uppercase tracking-[0.2em] transition-colors border-b-2 ${activeTab === 'components' ? 'text-white border-[#7d2ae8] bg-[#7d2ae8]/10' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+        >
+          Components
+        </button>
       </div>
+
       <div className="flex-1 overflow-y-auto no-scrollbar py-2">
-        {[...layers].reverse().map((layer, idx) => (
-          <LayerItem
-            key={layer.id}
-            layer={layer}
-            index={idx}
-            isSelected={selectedLayerIds.includes(layer.id)}
-            onSelect={() => selectLayer(layer.id)}
-            onSelectMultiple={(_e) => multiSelectLayer(layer.id, true)}
-            onUpdate={(c) => updateLayer(layer.id, c)}
-            onDelete={() => deleteLayer(layer.id)}
-            onDrop={(id, target, pos) =>
-              reorderLayer(id, layers.findIndex((l) => l.id === target) + (pos === 'above' ? 1 : 0))
-            }
-          />
-        ))}
+        {activeTab === 'arrange' && <ArrangePanel />}
+        {activeTab === 'components' && <ComponentsPanel />}
+        {activeTab === 'layers' && (
+          <>
+            {[...layers].reverse().map((layer, idx) => (
+              <LayerItem
+                key={layer.id}
+                layer={layer}
+                index={idx}
+                isSelected={selectedLayerIds.includes(layer.id)}
+                onSelect={() => selectLayer(layer.id)}
+                onSelectMultiple={(_e) => multiSelectLayer(layer.id, true)}
+                onUpdate={(c) => updateLayer(layer.id, c)}
+                onDelete={() => deleteLayer(layer.id)}
+                onDrop={(id, target, pos) =>
+                  reorderLayer(id, layers.findIndex((l) => l.id === target) + (pos === 'above' ? 1 : 0))
+                }
+              />
+            ))}
+          </>
+        )}
       </div>
     </div>
   );
