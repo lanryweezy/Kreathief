@@ -139,7 +139,12 @@ const ShapeLayerContent = React.memo(({ layer }: { layer: ShapeLayer }) => {
     const strokeLinecap: 'butt' | 'round' | 'square' | undefined = 'round';
 
     return (
-      <svg width={width} height={height} viewBox={viewBox || `0 0 ${width} ${height}`} style={{ overflow: 'visible', opacity: layer.opacity }}>
+      <svg
+        width={width}
+        height={height}
+        viewBox={viewBox || `0 0 ${width} ${height}`}
+        style={{ overflow: 'visible', opacity: layer.opacity }}
+      >
         <path
           d={pathData}
           fill={fill}
@@ -152,7 +157,6 @@ const ShapeLayerContent = React.memo(({ layer }: { layer: ShapeLayer }) => {
       </svg>
     );
   }
-
 
   // Image fill
   if (imageFill?.src) {

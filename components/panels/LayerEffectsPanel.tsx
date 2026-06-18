@@ -64,9 +64,7 @@ export const LayerEffectsPanel: React.FC<LayerEffectsPanelProps> = ({ selectedLa
           <Icons.Layers className="w-4 h-4 text-gray-400" />
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Layer Effects</h3>
         </div>
-        <p className="text-[10px] text-gray-500 text-center py-4">
-          Select a layer to add effects
-        </p>
+        <p className="text-[10px] text-gray-500 text-center py-4">Select a layer to add effects</p>
       </div>
     );
   }
@@ -305,9 +303,7 @@ export const LayerEffectsPanel: React.FC<LayerEffectsPanelProps> = ({ selectedLa
             boxShadow: dropShadow
               ? `${dropShadow.offsetX}px ${dropShadow.offsetY}px ${dropShadow.blur}px ${dropShadow.color}`
               : 'none',
-            border: stroke
-              ? `${stroke.width}px solid ${stroke.color}`
-              : 'none',
+            border: stroke ? `${stroke.width}px solid ${stroke.color}` : 'none',
           }}
         >
           <span className="text-white text-sm font-bold">Preview</span>

@@ -48,7 +48,7 @@ export class StrokeSmoother {
     // Calculate velocity
     const velocity = Math.sqrt(dx1 * dx1 + dy1 * dy1);
     const prevVelocity = Math.sqrt(dx2 * dx2 + dy2 * dy2);
-    
+
     // Adjust smoothing based on velocity change (less smoothing for fast movements)
     const velocityRatio = prevVelocity > 0 ? velocity / prevVelocity : 1;
     const adjustedSmoothFactor = Math.max(0.1, smoothFactor * (1 - Math.min(velocityRatio - 1, 0.5)));
@@ -87,11 +87,11 @@ export function calculateStrokeWidth(
 ): number {
   // Apply pressure with tapering at ends
   const t = Math.max(0, Math.min(1, pressure));
-  const pressureFactor = taperStart + (t * (taperEnd - taperStart));
-  
+  const pressureFactor = taperStart + t * (taperEnd - taperStart);
+
   // Clamp to reasonable range
   const clampedFactor = Math.max(minFactor, Math.min(maxFactor, pressureFactor));
-  
+
   return baseWidth * clampedFactor;
 }
 
@@ -105,10 +105,14 @@ export function buildVariableStrokeOutline(pathData: string, widthFn: (t: number
     const probe = [0, 0.25, 0.5, 0.75, 1].map((t) => widthFn(t).toFixed(2)).join(',');
     return `${pathData}::${samples}::${probe}`;
   })();
-  if (outlineCache.has(key)) {return outlineCache.get(key)!;}
+  if (outlineCache.has(key)) {
+    return outlineCache.get(key)!;
+  }
   const m = GeometryOracle.measurePath(pathData);
   const total = m.totalLength;
-  if (!total || samples < 2) {return '';}
+  if (!total || samples < 2) {
+    return '';
+  }
 
   const left: { x: number; y: number }[] = [];
   const right: { x: number; y: number }[] = [];
@@ -129,7 +133,9 @@ export function buildVariableStrokeOutline(pathData: string, widthFn: (t: number
 
   // Build path string: left points forward, right points backward
   const pts = [...left, ...right.reverse()];
-  if (pts.length === 0) {return '';}
+  if (pts.length === 0) {
+    return '';
+  }
   let d = `M ${pts[0].x.toFixed(2)} ${pts[0].y.toFixed(2)}`;
   for (let i = 1; i < pts.length; i++) {
     d += ` L ${pts[i].x.toFixed(2)} ${pts[i].y.toFixed(2)}`;
@@ -154,4 +160,3 @@ export function profileWidthFn(profile: 'uniform' | 'taper-start' | 'taper-end' 
     }
   };
 }
-

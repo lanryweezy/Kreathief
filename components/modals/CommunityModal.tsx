@@ -18,7 +18,7 @@ const COMMUNITY_TEMPLATES = [
     downloads: 450,
     thumbnail: 'https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=800&q=80',
     tags: ['Social'],
-    category: 'Social'
+    category: 'Social',
   },
   {
     id: 'tpl_c2',
@@ -28,7 +28,7 @@ const COMMUNITY_TEMPLATES = [
     downloads: 320,
     thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80',
     tags: ['Social'],
-    category: 'Social'
+    category: 'Social',
   },
   {
     id: 'tpl_c3',
@@ -38,7 +38,7 @@ const COMMUNITY_TEMPLATES = [
     downloads: 800,
     thumbnail: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=800&q=80',
     tags: ['Marketing'],
-    category: 'Marketing'
+    category: 'Marketing',
   },
   {
     id: 'tpl_c4',
@@ -48,7 +48,7 @@ const COMMUNITY_TEMPLATES = [
     downloads: 120,
     thumbnail: 'https://images.unsplash.com/photo-1540575467063-17e6fc425284?w=800&q=80',
     tags: ['Web'],
-    category: 'Web'
+    category: 'Web',
   },
   {
     id: 'tpl_c5',
@@ -58,7 +58,7 @@ const COMMUNITY_TEMPLATES = [
     downloads: 1100,
     thumbnail: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80',
     tags: ['Marketing'],
-    category: 'Marketing'
+    category: 'Marketing',
   },
   {
     id: 'tpl_c6',
@@ -68,20 +68,21 @@ const COMMUNITY_TEMPLATES = [
     downloads: 900,
     thumbnail: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=80',
     tags: ['Web'],
-    category: 'Web'
-  }
+    category: 'Web',
+  },
 ];
 
 export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const handleApplyTemplate = useStore(state => state.handleApplyTemplate);
+  const handleApplyTemplate = useStore((state) => state.handleApplyTemplate);
 
   const filteredTemplates = useMemo(() => {
-    return COMMUNITY_TEMPLATES.filter(tpl => {
+    return COMMUNITY_TEMPLATES.filter((tpl) => {
       const matchesCategory = activeCategory === 'All' || tpl.category === activeCategory;
-      const matchesSearch = tpl.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           tpl.author.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch =
+        tpl.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tpl.author.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
   }, [activeCategory, searchQuery]);
@@ -93,32 +94,37 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
       state: {
         layers: [], // In a real app, this would be full design layers
         canvasBackgroundColor: '#0e1318',
-        canvasFilters: { 
-          brightness: 100, contrast: 100, saturation: 100, sepia: 0, 
-          grayscale: 0, blur: 0, opacity: 1, vignette: 0, hueRotate: 0 
+        canvasFilters: {
+          brightness: 100,
+          contrast: 100,
+          saturation: 100,
+          sepia: 0,
+          grayscale: 0,
+          blur: 0,
+          opacity: 1,
+          vignette: 0,
+          hueRotate: 0,
         },
-        canvasSize: template.id === 'tpl_c2' 
-          ? { width: 1080, height: 1920, name: 'Instagram Story' }
-          : { width: 1080, height: 1080, name: 'Square (IG Post)' }
-      }
+        canvasSize:
+          template.id === 'tpl_c2'
+            ? { width: 1080, height: 1920, name: 'Instagram Story' }
+            : { width: 1080, height: 1080, name: 'Square (IG Post)' },
+      },
     };
     handleApplyTemplate(templateWithState);
     onClose();
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-12 overflow-hidden"
     >
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-xl" 
-        onClick={onClose}
-      />
-      
-      <motion.div 
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-xl" onClick={onClose} />
+
+      <motion.div
         initial={{ scale: 0.95, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.95, y: 20 }}
@@ -132,14 +138,16 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
             </div>
             <div>
               <h2 className="text-2xl font-black tracking-tight text-white uppercase">Community Hub</h2>
-              <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-0.5">Discover & Remix Premium Designs</p>
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-0.5">
+                Discover & Remix Premium Designs
+              </p>
             </div>
           </div>
 
           <div className="flex items-center gap-4 flex-1 max-w-xl mx-12">
             <div className="relative w-full group">
               <Icons.Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#7d2ae8] transition-colors" />
-              <input 
+              <input
                 type="text"
                 placeholder="Search templates, authors..."
                 value={searchQuery}
@@ -149,7 +157,7 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
             </div>
           </div>
 
-          <button 
+          <button
             onClick={onClose}
             className="p-3 hover:bg-white/5 rounded-2xl text-gray-400 hover:text-white transition-all border border-transparent hover:border-white/10"
           >
@@ -161,13 +169,13 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
           {/* Sidebar Filters */}
           <div className="w-64 border-r border-white/5 p-6 flex flex-col gap-2">
             <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4">Categories</span>
-            {CATEGORIES.map(cat => (
+            {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${
-                  activeCategory === cat 
-                    ? 'bg-[#7d2ae8] text-white shadow-[0_4px_15px_rgba(125,42,232,0.4)]' 
+                  activeCategory === cat
+                    ? 'bg-[#7d2ae8] text-white shadow-[0_4px_15px_rgba(125,42,232,0.4)]'
                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -175,13 +183,15 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
                 {cat === activeCategory && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_5px_white]" />}
               </button>
             ))}
-            
+
             <div className="mt-8 p-4 rounded-2xl bg-gradient-to-br from-[#7d2ae8]/20 to-transparent border border-[#7d2ae8]/20">
               <h4 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
                 <Icons.Zap className="w-4 h-4 text-[#7d2ae8]" />
                 Pro Templates
               </h4>
-              <p className="text-[10px] text-gray-400 leading-relaxed font-medium">Join Kreathief Pro to unlock over 50,000+ premium community templates.</p>
+              <p className="text-[10px] text-gray-400 leading-relaxed font-medium">
+                Join Kreathief Pro to unlock over 50,000+ premium community templates.
+              </p>
               <button className="w-full mt-4 py-2 rounded-lg bg-white text-black text-[10px] font-black uppercase tracking-widest hover:bg-[#7d2ae8] hover:text-white transition-all">
                 Upgrade Now
               </button>
@@ -203,12 +213,12 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
                     className="group relative"
                   >
                     <div className="aspect-[4/3] rounded-3xl overflow-hidden bg-[#1e1e1e] border border-white/5 relative shadow-lg group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] group-hover:border-[#7d2ae8]/30 transition-all duration-500">
-                      <img 
-                        src={template.thumbnail} 
+                      <img
+                        src={template.thumbnail}
                         alt={template.title}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                       />
-                      
+
                       {/* Overlay */}
                       <div className="absolute inset-0 flex flex-col justify-end p-6 pointer-events-none z-10">
                         <motion.button
@@ -232,8 +242,12 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
 
                     <div className="mt-4 flex items-center justify-between px-2">
                       <div>
-                        <h3 className="text-sm font-bold text-white group-hover:text-[#7d2ae8] transition-colors">{template.title}</h3>
-                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">by {template.author}</p>
+                        <h3 className="text-sm font-bold text-white group-hover:text-[#7d2ae8] transition-colors">
+                          {template.title}
+                        </h3>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+                          by {template.author}
+                        </p>
                       </div>
                       <div className="flex items-center gap-3 text-gray-400">
                         <div className="flex items-center gap-1">
@@ -257,9 +271,14 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
                   <Icons.Search className="w-8 h-8 text-gray-600" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">No templates found</h3>
-                <p className="text-gray-500 text-sm max-w-xs">Try adjusting your search or category filters to find what you&apos;re looking for.</p>
-                <button 
-                  onClick={() => { setSearchQuery(''); setActiveCategory('All'); }}
+                <p className="text-gray-500 text-sm max-w-xs">
+                  Try adjusting your search or category filters to find what you&apos;re looking for.
+                </p>
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setActiveCategory('All');
+                  }}
                   className="mt-6 text-[#7d2ae8] text-sm font-bold hover:underline"
                 >
                   Clear all filters

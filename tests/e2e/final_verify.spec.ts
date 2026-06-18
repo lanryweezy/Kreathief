@@ -13,9 +13,9 @@ test('verify final UI state', async ({ page }) => {
 
   // If on landing page, click Start Free
   if (page.url().includes('5174/') || page.url().endsWith('5174')) {
-     console.log('On landing page, clicking START FREE');
-     await page.click('text=START FREE');
-     await page.waitForURL('**/auth');
+    console.log('On landing page, clicking START FREE');
+    await page.click('text=START FREE');
+    await page.waitForURL('**/auth');
   }
 
   console.log('On auth page, filling login...');

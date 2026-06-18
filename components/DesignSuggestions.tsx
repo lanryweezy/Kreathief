@@ -145,7 +145,11 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
               <p className="text-xs text-gray-400">Actionable improvements for your masterpiece</p>
             </div>
           </div>
-          <button aria-label="Close panel" onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+          <button
+            aria-label="Close panel"
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
             <span aria-hidden="true">✕</span>
           </button>
         </div>

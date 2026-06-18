@@ -23,7 +23,9 @@ import { ExportModal } from './modals/ExportModal';
 import { MockupPanel } from './panels/MockupPanel';
 
 const CommunityModal = React.lazy(() => import('./modals/CommunityModal'));
-const CommandPalette = React.lazy(() => import('./modals/CommandPalette').then(module => ({ default: module.CommandPalette })));
+const CommandPalette = React.lazy(() =>
+  import('./modals/CommandPalette').then((module) => ({ default: module.CommandPalette }))
+);
 import { Toolbar } from './Toolbar';
 import { ShortcutOverlay } from './ShortcutOverlay';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
@@ -86,9 +88,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const applyBrandColors = useStore((state) => state.applyBrandColors);
 
   // Local UI State
-  const selectedLayerId = selectedLayerIds && Array.isArray(selectedLayerIds) && selectedLayerIds.length > 0 
-    ? selectedLayerIds[selectedLayerIds.length - 1] || null 
-    : null;
+  const selectedLayerId =
+    selectedLayerIds && Array.isArray(selectedLayerIds) && selectedLayerIds.length > 0
+      ? selectedLayerIds[selectedLayerIds.length - 1] || null
+      : null;
   const [showExport, setShowExport] = useState(false);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [showCommunityModal, setShowCommunityModal] = useState(false);
@@ -115,7 +118,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       undo();
       // Show toast notification
       const toast = document.createElement('div');
-      toast.className = 'fixed top-24 left-1/2 -translate-x-1/2 bg-purple-500 text-white px-6 py-3 rounded-2xl shadow-lg z-[500] font-semibold';
+      toast.className =
+        'fixed top-24 left-1/2 -translate-x-1/2 bg-purple-500 text-white px-6 py-3 rounded-2xl shadow-lg z-[500] font-semibold';
       toast.textContent = 'Undo';
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 1500);
@@ -124,15 +128,15 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   });
 
   // Use Custom Logic Hooks
-  const { 
-    documentColors, 
-    booleanPreview, 
+  const {
+    documentColors,
+    booleanPreview,
     handleGenerate,
     handleUpdatePath,
     handleJoinPaths,
-    handleBooleanOperation, 
-    handleBooleanHover, 
-    handleLayerDoubleClick 
+    handleBooleanOperation,
+    handleBooleanHover,
+    handleLayerDoubleClick,
   } = useEditorLogic(initialProject);
 
   // Sync Project from URL ID
@@ -140,7 +144,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
     if (id && id !== projectId) {
-      storageService.getProject(id).then(project => {
+      storageService.getProject(id).then((project) => {
         if (project) {
           initializeProject(project);
         }
@@ -148,13 +152,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     }
   }, [projectId, initializeProject]);
 
-  const {
-    handleFileUploads,
-    handleExportDataUrl,
-    handleExportBlob,
-    handleConfirmExport,
-    uploadedImage
-  } = useFileHandler();
+  const { handleFileUploads, handleExportDataUrl, handleExportBlob, handleConfirmExport, uploadedImage } =
+    useFileHandler();
 
   const handleBack = async () => {
     try {
@@ -178,55 +177,381 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     useStore.getState().setPrompt(prompt);
   };
 
-  const shortcuts = useMemo(() => [
-    { key: 'z', ctrl: true, action: () => { undo(); haptics.light(); }, description: 'Undo' },
-    { key: 'y', ctrl: true, action: () => { redo(); haptics.light(); }, description: 'Redo' },
-    { key: 'z', ctrl: true, shift: true, action: () => { redo(); haptics.light(); }, description: 'Redo (Alt)' },
-    { key: 'c', ctrl: true, action: () => { if (selectedLayerId) { copyLayer(selectedLayerId); haptics.selection(); } }, description: 'Copy Layer' },
-    { key: 'v', ctrl: true, action: () => { pasteLayer(); haptics.medium(); }, description: 'Paste Layer' },
-    { key: 'd', ctrl: true, action: () => { if (selectedLayerIds.length > 0) { duplicateSelected(); haptics.medium(); } }, description: 'Duplicate Layer(s)' },
-    { key: 'Delete', action: () => { if (selectedLayerIds.length > 0) { deleteSelected(); haptics.heavy(); } }, description: 'Delete Layer(s)' },
-    { key: 'Backspace', action: () => { if (selectedLayerIds.length > 0) { deleteSelected(); haptics.heavy(); } }, description: 'Delete Layer(s)' },
-    { key: 's', ctrl: true, action: () => { saveProject(); haptics.light(); }, description: 'Save Project' },
-    { key: 'e', ctrl: true, action: () => { setShowExport(true); haptics.light(); }, description: 'Export Design' },
-    { key: 'g', ctrl: true, action: () => { if (selectedLayerIds.length > 1) { groupSelected(); haptics.medium(); } }, description: 'Group Layers' },
-    { key: 'g', ctrl: true, shift: true, action: () => { if (selectedLayerIds.length > 0) { ungroupSelected(); } }, description: 'Ungroup Layers' },
-    
-    // Single-Key Tool Shortcuts (Pro Design Workflow)
-    { key: 'v', action: () => { useStore.getState().setSelectedLayerIds([]); useStore.getState().setPenMode(false); }, description: 'Select Tool' },
-    { key: 't', action: () => { useStore.getState().setActiveTab(NavTab.TEXT); useStore.getState().addTextLayer(); }, description: 'Text Tool' },
-    { key: 'r', action: () => { useStore.getState().setActiveTab(NavTab.MEDIA); useStore.getState().addShapeLayer('rectangle'); }, description: 'Rectangle Tool' },
-    { key: 'o', action: () => { useStore.getState().setActiveTab(NavTab.MEDIA); useStore.getState().addShapeLayer('circle'); }, description: 'Oval Tool' },
-    { key: 'p', action: () => { useStore.getState().setActiveTab(NavTab.DRAW); useStore.getState().setPenMode(true); }, description: 'Draw Tool' },
-    { key: 'm', action: () => useStore.getState().setActiveTab(NavTab.MAGIC), description: 'Magic/AI Panel' },
-    { key: 'l', action: () => useStore.getState().setActiveTab(NavTab.LAYERS), description: 'Layers Panel' },
-    { key: 'b', action: () => useStore.getState().setActiveTab(NavTab.BRAND), description: 'Brand Kit' },
+  const shortcuts = useMemo(
+    () => [
+      {
+        key: 'z',
+        ctrl: true,
+        action: () => {
+          undo();
+          haptics.light();
+        },
+        description: 'Undo',
+      },
+      {
+        key: 'y',
+        ctrl: true,
+        action: () => {
+          redo();
+          haptics.light();
+        },
+        description: 'Redo',
+      },
+      {
+        key: 'z',
+        ctrl: true,
+        shift: true,
+        action: () => {
+          redo();
+          haptics.light();
+        },
+        description: 'Redo (Alt)',
+      },
+      {
+        key: 'c',
+        ctrl: true,
+        action: () => {
+          if (selectedLayerId) {
+            copyLayer(selectedLayerId);
+            haptics.selection();
+          }
+        },
+        description: 'Copy Layer',
+      },
+      {
+        key: 'v',
+        ctrl: true,
+        action: () => {
+          pasteLayer();
+          haptics.medium();
+        },
+        description: 'Paste Layer',
+      },
+      {
+        key: 'd',
+        ctrl: true,
+        action: () => {
+          if (selectedLayerIds.length > 0) {
+            duplicateSelected();
+            haptics.medium();
+          }
+        },
+        description: 'Duplicate Layer(s)',
+      },
+      {
+        key: 'Delete',
+        action: () => {
+          if (selectedLayerIds.length > 0) {
+            deleteSelected();
+            haptics.heavy();
+          }
+        },
+        description: 'Delete Layer(s)',
+      },
+      {
+        key: 'Backspace',
+        action: () => {
+          if (selectedLayerIds.length > 0) {
+            deleteSelected();
+            haptics.heavy();
+          }
+        },
+        description: 'Delete Layer(s)',
+      },
+      {
+        key: 's',
+        ctrl: true,
+        action: () => {
+          saveProject();
+          haptics.light();
+        },
+        description: 'Save Project',
+      },
+      {
+        key: 'e',
+        ctrl: true,
+        action: () => {
+          setShowExport(true);
+          haptics.light();
+        },
+        description: 'Export Design',
+      },
+      {
+        key: 'g',
+        ctrl: true,
+        action: () => {
+          if (selectedLayerIds.length > 1) {
+            groupSelected();
+            haptics.medium();
+          }
+        },
+        description: 'Group Layers',
+      },
+      {
+        key: 'g',
+        ctrl: true,
+        shift: true,
+        action: () => {
+          if (selectedLayerIds.length > 0) {
+            ungroupSelected();
+          }
+        },
+        description: 'Ungroup Layers',
+      },
 
-    { key: 'ArrowUp', action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, 0, -1); } }, description: 'Nudge Up' },
-    { key: 'ArrowDown', action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, 0, 1); } }, description: 'Nudge Down' },
-    { key: 'ArrowLeft', action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, -1, 0); } }, description: 'Nudge Left' },
-    { key: 'ArrowRight', action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, 1, 0); } }, description: 'Nudge Right' },
-    { key: 'ArrowUp', shift: true, action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, 0, -10); } }, description: 'Nudge Up 10px' },
-    { key: 'ArrowDown', shift: true, action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, 0, 10); } }, description: 'Nudge Down 10px' },
-    { key: 'ArrowLeft', shift: true, action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, -10, 0); } }, description: 'Nudge Left 10px' },
-    { key: 'ArrowRight', shift: true, action: () => { if (selectedLayerId) { nudgeLayer(selectedLayerId, 10, 0); } }, description: 'Nudge Right 10px' },
-    { key: 'a', ctrl: true, action: () => {
-      const layers = useStore.getState().artboards.find((a: any) => a.id === useStore.getState().activeArtboardId)?.layers || [];
-      useStore.getState().setSelectedLayerIds(layers.map((l: any) => l.id));
-    }, description: 'Select All' },
-    { key: 'Escape', action: () => { useStore.getState().setSelectedLayerIds([]); }, description: 'Deselect All' },
-    { key: '0', ctrl: true, action: () => { setZoom(1); }, description: 'Zoom to 100%' },
-    { key: '=', ctrl: true, action: () => { setZoom(Math.min(10, zoom + 0.25)); }, description: 'Zoom In' },
-    { key: '-', ctrl: true, action: () => { setZoom(Math.max(0.05, zoom - 0.25)); }, description: 'Zoom Out' },
-    { key: ']', ctrl: true, shift: true, action: () => { if (selectedLayerId) {useStore.getState().moveLayer(selectedLayerId, 'front');} }, description: 'Bring to Front' },
-    { key: '[', ctrl: true, shift: true, action: () => { if (selectedLayerId) {useStore.getState().moveLayer(selectedLayerId, 'back');} }, description: 'Send to Back' },
-    { key: ']', ctrl: true, action: () => { if (selectedLayerId) {useStore.getState().moveLayer(selectedLayerId, 'forward');} }, description: 'Bring Forward' },
-    { key: '[', ctrl: true, action: () => { if (selectedLayerId) {useStore.getState().moveLayer(selectedLayerId, 'backward');} }, description: 'Send Backward' },
-    { key: 'h', action: () => { if (selectedLayer && selectedLayer.type !== 'text') { useStore.getState().updateLayer(selectedLayer.id, { flipX: !(selectedLayer as any).flipX }); } }, description: 'Flip Horizontal' },
-    { key: 'v', action: () => { if (selectedLayer && selectedLayer.type !== 'text') { useStore.getState().updateLayer(selectedLayer.id, { flipY: !(selectedLayer as any).flipY }); } }, description: 'Flip Vertical' },
-    { key: 'k', ctrl: true, action: () => { useStore.getState().setCommandPaletteOpen(true); haptics.light(); }, description: 'Command Palette' },
-    { key: '?', shift: true, action: () => setShowShortcuts(!showShortcuts), description: 'Shortcuts' }
-  ], [undo, redo, copyLayer, pasteLayer, saveProject, selectedLayerIds, selectedLayerId, duplicateSelected, deleteSelected, groupSelected, ungroupSelected, setShowShortcuts, showShortcuts, nudgeLayer, zoom, setZoom, selectedLayer]);
+      // Single-Key Tool Shortcuts (Pro Design Workflow)
+      {
+        key: 'v',
+        action: () => {
+          useStore.getState().setSelectedLayerIds([]);
+          useStore.getState().setPenMode(false);
+        },
+        description: 'Select Tool',
+      },
+      {
+        key: 't',
+        action: () => {
+          useStore.getState().setActiveTab(NavTab.TEXT);
+          useStore.getState().addTextLayer();
+        },
+        description: 'Text Tool',
+      },
+      {
+        key: 'r',
+        action: () => {
+          useStore.getState().setActiveTab(NavTab.MEDIA);
+          useStore.getState().addShapeLayer('rectangle');
+        },
+        description: 'Rectangle Tool',
+      },
+      {
+        key: 'o',
+        action: () => {
+          useStore.getState().setActiveTab(NavTab.MEDIA);
+          useStore.getState().addShapeLayer('circle');
+        },
+        description: 'Oval Tool',
+      },
+      {
+        key: 'p',
+        action: () => {
+          useStore.getState().setActiveTab(NavTab.DRAW);
+          useStore.getState().setPenMode(true);
+        },
+        description: 'Draw Tool',
+      },
+      { key: 'm', action: () => useStore.getState().setActiveTab(NavTab.MAGIC), description: 'Magic/AI Panel' },
+      { key: 'l', action: () => useStore.getState().setActiveTab(NavTab.LAYERS), description: 'Layers Panel' },
+      { key: 'b', action: () => useStore.getState().setActiveTab(NavTab.BRAND), description: 'Brand Kit' },
+
+      {
+        key: 'ArrowUp',
+        action: () => {
+          if (selectedLayerId) {
+            nudgeLayer(selectedLayerId, 0, -1);
+          }
+        },
+        description: 'Nudge Up',
+      },
+      {
+        key: 'ArrowDown',
+        action: () => {
+          if (selectedLayerId) {
+            nudgeLayer(selectedLayerId, 0, 1);
+          }
+        },
+        description: 'Nudge Down',
+      },
+      {
+        key: 'ArrowLeft',
+        action: () => {
+          if (selectedLayerId) {
+            nudgeLayer(selectedLayerId, -1, 0);
+          }
+        },
+        description: 'Nudge Left',
+      },
+      {
+        key: 'ArrowRight',
+        action: () => {
+          if (selectedLayerId) {
+            nudgeLayer(selectedLayerId, 1, 0);
+          }
+        },
+        description: 'Nudge Right',
+      },
+      {
+        key: 'ArrowUp',
+        shift: true,
+        action: () => {
+          if (selectedLayerId) {
+            nudgeLayer(selectedLayerId, 0, -10);
+          }
+        },
+        description: 'Nudge Up 10px',
+      },
+      {
+        key: 'ArrowDown',
+        shift: true,
+        action: () => {
+          if (selectedLayerId) {
+            nudgeLayer(selectedLayerId, 0, 10);
+          }
+        },
+        description: 'Nudge Down 10px',
+      },
+      {
+        key: 'ArrowLeft',
+        shift: true,
+        action: () => {
+          if (selectedLayerId) {
+            nudgeLayer(selectedLayerId, -10, 0);
+          }
+        },
+        description: 'Nudge Left 10px',
+      },
+      {
+        key: 'ArrowRight',
+        shift: true,
+        action: () => {
+          if (selectedLayerId) {
+            nudgeLayer(selectedLayerId, 10, 0);
+          }
+        },
+        description: 'Nudge Right 10px',
+      },
+      {
+        key: 'a',
+        ctrl: true,
+        action: () => {
+          const layers =
+            useStore.getState().artboards.find((a: any) => a.id === useStore.getState().activeArtboardId)?.layers || [];
+          useStore.getState().setSelectedLayerIds(layers.map((l: any) => l.id));
+        },
+        description: 'Select All',
+      },
+      {
+        key: 'Escape',
+        action: () => {
+          useStore.getState().setSelectedLayerIds([]);
+        },
+        description: 'Deselect All',
+      },
+      {
+        key: '0',
+        ctrl: true,
+        action: () => {
+          setZoom(1);
+        },
+        description: 'Zoom to 100%',
+      },
+      {
+        key: '=',
+        ctrl: true,
+        action: () => {
+          setZoom(Math.min(10, zoom + 0.25));
+        },
+        description: 'Zoom In',
+      },
+      {
+        key: '-',
+        ctrl: true,
+        action: () => {
+          setZoom(Math.max(0.05, zoom - 0.25));
+        },
+        description: 'Zoom Out',
+      },
+      {
+        key: ']',
+        ctrl: true,
+        shift: true,
+        action: () => {
+          if (selectedLayerId) {
+            useStore.getState().moveLayer(selectedLayerId, 'front');
+          }
+        },
+        description: 'Bring to Front',
+      },
+      {
+        key: '[',
+        ctrl: true,
+        shift: true,
+        action: () => {
+          if (selectedLayerId) {
+            useStore.getState().moveLayer(selectedLayerId, 'back');
+          }
+        },
+        description: 'Send to Back',
+      },
+      {
+        key: ']',
+        ctrl: true,
+        action: () => {
+          if (selectedLayerId) {
+            useStore.getState().moveLayer(selectedLayerId, 'forward');
+          }
+        },
+        description: 'Bring Forward',
+      },
+      {
+        key: '[',
+        ctrl: true,
+        action: () => {
+          if (selectedLayerId) {
+            useStore.getState().moveLayer(selectedLayerId, 'backward');
+          }
+        },
+        description: 'Send Backward',
+      },
+      {
+        key: 'h',
+        action: () => {
+          if (selectedLayer && selectedLayer.type !== 'text') {
+            useStore.getState().updateLayer(selectedLayer.id, { flipX: !(selectedLayer as any).flipX });
+          }
+        },
+        description: 'Flip Horizontal',
+      },
+      {
+        key: 'v',
+        action: () => {
+          if (selectedLayer && selectedLayer.type !== 'text') {
+            useStore.getState().updateLayer(selectedLayer.id, { flipY: !(selectedLayer as any).flipY });
+          }
+        },
+        description: 'Flip Vertical',
+      },
+      {
+        key: 'k',
+        ctrl: true,
+        action: () => {
+          useStore.getState().setCommandPaletteOpen(true);
+          haptics.light();
+        },
+        description: 'Command Palette',
+      },
+      { key: '?', shift: true, action: () => setShowShortcuts(!showShortcuts), description: 'Shortcuts' },
+    ],
+    [
+      undo,
+      redo,
+      copyLayer,
+      pasteLayer,
+      saveProject,
+      selectedLayerIds,
+      selectedLayerId,
+      duplicateSelected,
+      deleteSelected,
+      groupSelected,
+      ungroupSelected,
+      setShowShortcuts,
+      showShortcuts,
+      nudgeLayer,
+      zoom,
+      setZoom,
+      selectedLayer,
+    ]
+  );
 
   useKeyboardShortcuts({ shortcuts, enabled: true });
 
@@ -237,12 +562,12 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   return (
     <div id="editor-root" className="flex flex-col h-screen bg-[#0e1318] overflow-hidden text-[#e5e7eb] font-sans">
       {!hideHeaderOnMobile && (
-        <Header 
-          onDownload={() => setShowExport(true)} 
-          onBack={handleBack} 
-          onNew={initializeProject} 
+        <Header
+          onDownload={() => setShowExport(true)}
+          onBack={handleBack}
+          onNew={initializeProject}
           onOpenCommunity={() => setShowCommunityModal(true)}
-          user={user} 
+          user={user}
           zoom={zoom}
           onZoomChange={setZoom}
           showGrid={showGrid}
@@ -255,7 +580,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       )}
 
       <div className={`flex flex-1 overflow-hidden relative ${hideHeaderOnMobile ? 'pb-0' : 'pb-16 md:pb-0'}`}>
-        <div id="sidebar-container" className={`hidden md:flex flex-row h-full shrink-0 z-40 border-r border-gray-800 transition-all duration-300 ${isSidebarCollapsed || activeTab === NavTab.MOCKUP ? 'w-[72px]' : 'w-[392px]'}`}>
+        <div
+          id="sidebar-container"
+          className={`hidden md:flex flex-row h-full shrink-0 z-40 border-r border-gray-800 transition-all duration-300 ${isSidebarCollapsed || activeTab === NavTab.MOCKUP ? 'w-[72px]' : 'w-[392px]'}`}
+        >
           <ErrorBoundary componentName="Sidebar" variant="widget">
             <Sidebar
               isCollapsed={isSidebarCollapsed}
@@ -277,12 +605,17 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                 uploadedImage={uploadedImage}
                 onStartDesign={handleStartDesign}
                 onPreviewMotion={(settings: AnimationSettings) => {
-                  if (previewTimeoutRef.current) {clearTimeout(previewTimeoutRef.current);}
+                  if (previewTimeoutRef.current) {
+                    clearTimeout(previewTimeoutRef.current);
+                  }
                   setPreviewAnimation(settings);
-                  previewTimeoutRef.current = setTimeout(() => {
-                    setPreviewAnimation(undefined);
-                    previewTimeoutRef.current = null;
-                  }, settings.duration * 1000 + settings.delay * 1000 + 100);
+                  previewTimeoutRef.current = setTimeout(
+                    () => {
+                      setPreviewAnimation(undefined);
+                      previewTimeoutRef.current = null;
+                    },
+                    settings.duration * 1000 + settings.delay * 1000 + 100
+                  );
                 }}
               />
             )}
@@ -294,7 +627,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 pointer-events-none" />
           )}
 
-          <div 
+          <div
             data-testid="toolbar"
             className="h-11 bg-[#0f0f0f]/90 border-b border-white/5 flex items-center z-30 w-full shrink-0 px-4 gap-4 backdrop-blur-md"
           >
@@ -308,7 +641,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
               />
             </div>
           </div>
-          
+
           <div className="flex-1 relative overflow-hidden flex flex-row">
             <ErrorBoundary componentName="Canvas" variant="widget">
               <Canvas
@@ -368,11 +701,11 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             {activeTab === NavTab.MOCKUP && !isMobile && (
               <div className="absolute inset-0 z-[100] bg-[#0e1318] flex animate-in fade-in slide-in-from-right duration-300">
                 <div className="flex-1 relative overflow-hidden flex flex-row">
-                   <MockupPanel
-                      onExportForMockup={handleExportDataUrl}
-                      variant="full"
-                      onClose={() => setActiveTab(NavTab.MAGIC)}
-                   />
+                  <MockupPanel
+                    onExportForMockup={handleExportDataUrl}
+                    variant="full"
+                    onClose={() => setActiveTab(NavTab.MAGIC)}
+                  />
                 </div>
               </div>
             )}
@@ -388,7 +721,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           haptics.selection();
         }}
       />
-      
+
       {/* Mobile Transform Controller (Quick Edit) */}
       {isMobile && <MobileTransformController />}
 
@@ -456,7 +789,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
       {/* Mobile Onboarding */}
       {isMobile && <MobileOnboarding />}
-      
+
       <BottomSheet isOpen={isBottomSheetOpen} onClose={() => setIsBottomSheetOpen(false)} title={activeTab}>
         <SidePanel
           onGenerate={handleGenerate}
@@ -465,14 +798,19 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           getCanvasSnapshot={handleExportDataUrl}
           uploadedImage={uploadedImage}
           onStartDesign={handleStartDesign}
-        onPreviewMotion={(settings: AnimationSettings) => {
-          if (previewTimeoutRef.current) {clearTimeout(previewTimeoutRef.current);}
-          setPreviewAnimation(settings);
-          previewTimeoutRef.current = setTimeout(() => {
-            setPreviewAnimation(undefined);
-            previewTimeoutRef.current = null;
-          }, settings.duration * 1000 + settings.delay * 1000 + 100);
-        }}
+          onPreviewMotion={(settings: AnimationSettings) => {
+            if (previewTimeoutRef.current) {
+              clearTimeout(previewTimeoutRef.current);
+            }
+            setPreviewAnimation(settings);
+            previewTimeoutRef.current = setTimeout(
+              () => {
+                setPreviewAnimation(undefined);
+                previewTimeoutRef.current = null;
+              },
+              settings.duration * 1000 + settings.delay * 1000 + 100
+            );
+          }}
         />
       </BottomSheet>
 
@@ -481,7 +819,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           <ExportModal
             onClose={() => setShowExport(false)}
             currentSize={canvasSize}
-            onExport={(format, quality, size, transparentBg, customFilename, overrideLayers, printOptions) => 
+            onExport={(format, quality, size, transparentBg, customFilename, overrideLayers, printOptions) =>
               handleConfirmExport({
                 format,
                 quality,
@@ -490,7 +828,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                 customFilename,
                 onComplete: () => setShowExport(false),
                 overrideLayers,
-                printOptions
+                printOptions,
               })
             }
             onGetPngBlob={handleExportBlob}
@@ -509,9 +847,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       <FeedbackModal />
 
       <React.Suspense fallback={null}>
-        {showCommunityModal && (
-          <CommunityModal onClose={() => setShowCommunityModal(false)} />
-        )}
+        {showCommunityModal && <CommunityModal onClose={() => setShowCommunityModal(false)} />}
         <CommandPalette />
       </React.Suspense>
     </div>

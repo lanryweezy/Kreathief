@@ -14,14 +14,19 @@
 
 **Learning:** Monolithic utility files like `canvasUtils.ts` often accumulate structural debt as a "grab bag" for unrelated helpers. By explicitly splitting it into focused modules (`styleUtils.ts`, `typeGuards.ts`, `layerUtils.ts`) under a unified `utils/layers/` index, we establish a cleaner, single-responsibility architecture for the layers engine while preventing circular dependencies and huge import surface areas.
 **Action:** When a utility file grows to encompass distinct domains (e.g., typing vs. styling vs. structural transforms), migrate it to a modular directory with a clean `index.ts` export instead of letting the monolith grow. Keep the original file as a proxy export to prevent breaking existing imports while gradually transitioning dependents.
+
 ## 2026-06-13 - Remove unused duplicate timing functions
+
 **Learning:** Found duplicate implementations of `debounce` and `throttle` in `utils/canvasUtils.ts` and `utils/mobileOptimizations.ts` (with `ForMobile` suffixes). The entire codebase actually uses the single source of truth in `utils/debounce.ts`. The duplicates were entirely dead code, demonstrating a tendency for developers to write domain-specific timing helpers before realizing a shared utility already exists.
 **Action:** Always check for existing usage before extracting or moving utility functions. Often, duplicated code is completely unused and can be safely deleted without any call-site updates.
+
 ## 2026-06-15 - Use generateLayerId for AI Backgrounds
+
 **Learning:** Found manual UUID polyfill logic (`(crypto as any).randomUUID ? (crypto as any).randomUUID() : Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b => b.toString(16).padStart(2, '0')).join('')`) used for creating new AI background image layers in `store/tools.ts`. The codebase already has a well-defined domain primitive for this (`generateLayerId`) which handles UUID generation and prefixes it properly for layer types.
 **Action:** Always check for and use `generateLayerId` from `utils/layers/layerUtils.ts` instead of manually generating identifiers when creating new layers to maintain consistency across the architecture.
-\n## 2026-06-17 - Refactoring debounce timing function hooks in React\n**Learning:** Implementing  or  helpers returning cancelled closures with  in React has known memory-leak and unmounting-crash antipatterns. A reviewer highlighted that React does not guarantee cache retention for memoized variables, posing a risk of lost references.\n**Action:** Use  directly for managing unmount-safe custom  wrappers instead of  if closure dependencies dynamically regenerate.
+\n## 2026-06-17 - Refactoring debounce timing function hooks in React\n**Learning:** Implementing or helpers returning cancelled closures with in React has known memory-leak and unmounting-crash antipatterns. A reviewer highlighted that React does not guarantee cache retention for memoized variables, posing a risk of lost references.\n**Action:** Use directly for managing unmount-safe custom wrappers instead of if closure dependencies dynamically regenerate.
 
 ## 2026-06-17 - React stateful closures in useMemo vs useRef
+
 **Learning:** Using `useMemo` to store stateful closures (like a `debounce` wrapper with a `.cancel()` method attached) is considered a React anti-pattern because React does not guarantee that memoized values will be retained permanently. If the cache clears, the timer is lost, potentially causing memory leaks or double-executions. Furthermore, dynamically depending on functions (like `onUpdateLayers`) can recreate the memoized instance, which could crash the application during cleanup if `.cancel()` isn't present or falls out of sync.
 **Action:** Always prefer `useRef` over `useMemo` when persisting a customized timing closure across renders, as refs provide a stable, mutable container that does not depend on React's rendering lifecycle heuristics.

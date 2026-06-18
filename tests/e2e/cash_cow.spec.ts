@@ -58,26 +58,29 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
   test.beforeEach(async ({ page }) => {
     // Setup QA session bypass
     await page.addInitScript(() => {
-      window.localStorage.setItem('kreathief_qa_session', JSON.stringify({
-        id: 'qa-agentic-designer',
-        email: 'designer-observer@kreathief.app',
-        name: 'AI Designer & Observer',
-        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=designer',
-        plan: 'pro'
-      }));
+      window.localStorage.setItem(
+        'kreathief_qa_session',
+        JSON.stringify({
+          id: 'qa-agentic-designer',
+          email: 'designer-observer@kreathief.app',
+          name: 'AI Designer & Observer',
+          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=designer',
+          plan: 'pro',
+        })
+      );
       window.localStorage.setItem('kreathief_onboarding_seen', 'true');
     });
   });
 
   test('Execute human-like premium design script with advanced telemetry and stress tests', async ({ page }) => {
     // Enable console and error logging for observer tracking
-    page.on('console', msg => {
+    page.on('console', (msg) => {
       if (msg.text().includes('error') || msg.text().includes('failed')) {
         console.log(`BROWSER WARN: ${msg.text()}`);
       }
     });
 
-    page.on('pageerror', err => {
+    page.on('pageerror', (err) => {
       console.error(`BROWSER RUNTIME CRASH: ${err.message}`);
     });
 
@@ -90,12 +93,12 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
     // 1. Go to Editor
     await page.goto('/editor');
     await page.waitForSelector('.design-artboard', { state: 'visible', timeout: 30000 });
-    
+
     // Simulate UI hesitation/tool exploration
     toolSwitches += 2;
     mouseMovements += 15;
     await page.waitForTimeout(2000); // Designer looking at tools
-    
+
     // Check elements
     // The elements tab is hidden inside the Collapsed secondary tools.
     // Let's first open secondary tools by clicking the "All Tools" grid button.
@@ -116,7 +119,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
     console.log('Setting Canvas Size and Dark Gradient Background...');
     await page.evaluate(() => {
       const store = (window as any).useStore.getState();
-      
+
       // Critical check: ensure activeArtboardId is set so setCanvasSize works
       const firstArtboardId = store.artboards[0]?.id;
       if (firstArtboardId && !store.activeArtboardId) {
@@ -125,7 +128,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
 
       // Resize Artboard to 1920x1080
       store.setCanvasSize({ width: 1920, height: 1080, name: 'CASH COW Poster' });
-      
+
       // Set the active artboard background to a very dark green
       const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
       if (artboard) {
@@ -147,8 +150,8 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
           angle: 180,
           colors: [
             { color: '#021B12', position: 0 },
-            { color: '#0A3D2A', position: 1 }
-          ]
+            { color: '#0A3D2A', position: 1 },
+          ],
         },
         filters: {
           vignette: 15,
@@ -160,7 +163,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
           sepia: 0,
           hueRotate: 0,
           opacity: 1,
-        }
+        },
       });
     });
 
@@ -172,7 +175,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
     console.log('Drawing Main Platform...');
     await page.evaluate(() => {
       const store = (window as any).useStore.getState();
-      
+
       // Center of 1920x1080: W: 1200, H: 650
       // x: (1920 - 1200)/2 = 360, y: (1080 - 650)/2 = 215
       store.addShapeLayer('rectangle', {
@@ -187,8 +190,8 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
           color: 'rgba(0, 0, 0, 0.4)',
           blur: 40,
           offsetX: 0,
-          offsetY: 20
-        }
+          offsetY: 20,
+        },
       });
     });
 
@@ -202,21 +205,21 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
     console.log('Scattering Dollar Note Grass...');
     await page.evaluate(() => {
       const store = (window as any).useStore.getState();
-      
+
       // Generate 50 bills scattered across the platform bottom floor
       // bottom floor is inside 360-1560 horizontal, 700-1000 vertical
       for (let i = 0; i < 50; i++) {
         const x = 380 + Math.random() * 850;
         const y = 680 + Math.random() * 250;
         const rotation = -25 + Math.random() * 50;
-        
+
         // Farther bills have small blur to simulate depth-of-field
         const isFar = y < 780;
         const blurAmount = isFar ? 2 : 0;
         const billColor = isFar ? '#2E8B57' : '#32CD32'; // slightly darker for distant ones
 
         const billId = `bill_${i}_${Date.now()}`;
-        
+
         // Add note shape
         store.addShapeLayer('rectangle', {
           id: billId,
@@ -230,7 +233,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
           cornerRadius: 4,
           stroke: {
             color: '#1B5E20',
-            width: 2
+            width: 2,
           },
           filters: {
             blur: blurAmount,
@@ -240,14 +243,14 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
             grayscale: 0,
             sepia: 0,
             hueRotate: 0,
-            opacity: 0.95
-          }
+            opacity: 0.95,
+          },
         });
 
         // Add a bold white "$" symbol centered inside the bill
         const labelX = x + 48; // offset from note corner
         const labelY = y + 10;
-        
+
         store.addTextLayer({
           x: labelX,
           y: labelY,
@@ -259,7 +262,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
           fontWeight: '800',
           color: '#FFFFFF',
           fontFamily: 'Inter',
-          textAlign: 'center'
+          textAlign: 'center',
         });
       }
     });
@@ -277,7 +280,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
       const store = (window as any).useStore.getState();
 
       // Cow body layout: placed in the center-right (X: 1000 - 1450, Y: 300 - 850)
-      
+
       // A. Udder (Pink circle)
       store.addShapeLayer('circle', {
         x: 1090,
@@ -285,7 +288,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         width: 85,
         height: 65,
         color: '#FFA07A',
-        name: 'Udder'
+        name: 'Udder',
       });
 
       // B. Four Legs (Rectangles)
@@ -295,7 +298,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         width: 35,
         height: 240,
         color: '#0D0D0D',
-        name: 'Back Leg A'
+        name: 'Back Leg A',
       });
       store.addShapeLayer('rectangle', {
         x: 1095,
@@ -303,7 +306,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         width: 35,
         height: 240,
         color: '#F4F6F6',
-        name: 'Back Leg B'
+        name: 'Back Leg B',
       });
       store.addShapeLayer('rectangle', {
         x: 1300,
@@ -311,7 +314,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         width: 35,
         height: 240,
         color: '#0D0D0D',
-        name: 'Front Leg A'
+        name: 'Front Leg A',
       });
       store.addShapeLayer('rectangle', {
         x: 1345,
@@ -319,7 +322,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         width: 35,
         height: 240,
         color: '#F4F6F6',
-        name: 'Front Leg B'
+        name: 'Front Leg B',
       });
 
       // C. Body Torso (White rounded rectangle with thick border)
@@ -333,8 +336,8 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         name: 'Cow Torso',
         stroke: {
           color: '#000000',
-          width: 4
-        }
+          width: 4,
+        },
       });
 
       // D. Dark cow patches (Circles)
@@ -344,7 +347,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         width: 130,
         height: 100,
         color: '#000000',
-        name: 'Patch A'
+        name: 'Patch A',
       });
       store.addShapeLayer('circle', {
         x: 1220,
@@ -352,7 +355,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         width: 100,
         height: 90,
         color: '#000000',
-        name: 'Patch B'
+        name: 'Patch B',
       });
       store.addShapeLayer('circle', {
         x: 1150,
@@ -360,7 +363,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         width: 80,
         height: 70,
         color: '#000000',
-        name: 'Patch C'
+        name: 'Patch C',
       });
 
       // E. Neck (white rotated rect)
@@ -371,7 +374,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         height: 130,
         color: '#FFFFFF',
         rotation: -28,
-        name: 'Neck'
+        name: 'Neck',
       });
 
       // F. Head (White rounded rect)
@@ -385,8 +388,8 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         name: 'Head',
         stroke: {
           color: '#000000',
-          width: 4
-        }
+          width: 4,
+        },
       });
 
       // G. Snout/Muzzle (Pink circle)
@@ -396,7 +399,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         width: 85,
         height: 80,
         color: '#FFA07A',
-        name: 'Snout'
+        name: 'Snout',
       });
 
       // H. Head patch, Ear and Horns
@@ -406,7 +409,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         width: 50,
         height: 50,
         color: '#000000',
-        name: 'Head Patch'
+        name: 'Head Patch',
       });
       store.addShapeLayer('circle', {
         x: 1320,
@@ -415,7 +418,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         height: 30,
         color: '#FFFFFF',
         rotation: -30,
-        name: 'Ear'
+        name: 'Ear',
       });
       store.addShapeLayer('triangle', {
         x: 1370,
@@ -424,7 +427,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         height: 90,
         color: '#DFD5C6',
         rotation: 12,
-        name: 'Horn Left'
+        name: 'Horn Left',
       });
       store.addShapeLayer('triangle', {
         x: 1405,
@@ -433,7 +436,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         height: 90,
         color: '#DFD5C6',
         rotation: 22,
-        name: 'Horn Right'
+        name: 'Horn Right',
       });
 
       // I. Eye (Black dot)
@@ -443,7 +446,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         width: 15,
         height: 15,
         color: '#000000',
-        name: 'Eye'
+        name: 'Eye',
       });
 
       // J. Green tinted lighting overlay
@@ -455,7 +458,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         color: '#D4FF7F',
         opacity: 0.15,
         blendMode: 'color-burn',
-        name: 'Cow Environmental Tint Overlay'
+        name: 'Cow Environmental Tint Overlay',
       });
     });
 
@@ -478,15 +481,16 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         height: 230,
         name: 'Glowing Milk Stream',
         color: '#FFFFFF',
-        pathData: 'M 320 15 C 280 80, 200 130, 25 180 C 15 190, 5 210, 15 220 C 30 222, 50 180, 95 160 C 180 120, 290 80, 335 15 Z',
+        pathData:
+          'M 320 15 C 280 80, 200 130, 25 180 C 15 190, 5 210, 15 220 C 30 222, 50 180, 95 160 C 180 120, 290 80, 335 15 Z',
         viewBox: '0 0 350 230',
         opacity: 0.95,
         shadow: {
           color: '#FFFFFF',
           blur: 15,
           offsetX: 0,
-          offsetY: 0
-        }
+          offsetY: 0,
+        },
       });
     });
 
@@ -508,7 +512,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         height: 130,
         color: '#7F8C8D',
         cornerRadius: 6,
-        name: 'Bucket Base'
+        name: 'Bucket Base',
       });
 
       // Top oval rim for 3D realism
@@ -521,8 +525,8 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         name: 'Bucket Top Rim',
         stroke: {
           color: '#5D6D7E',
-          width: 3
-        }
+          width: 3,
+        },
       });
 
       // Add highlights
@@ -533,7 +537,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         height: 10,
         color: '#FFFFFF',
         opacity: 0.15,
-        name: 'Bucket Liquid Highlight'
+        name: 'Bucket Liquid Highlight',
       });
 
       // Bucket shadow underneath
@@ -552,9 +556,9 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
           grayscale: 0,
           sepia: 0,
           hueRotate: 0,
-          opacity: 1
+          opacity: 1,
         },
-        name: 'Bucket Drop Shadow'
+        name: 'Bucket Drop Shadow',
       });
     });
 
@@ -586,8 +590,8 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
           color: '#D4FF7F',
           blur: 18,
           offsetX: 0,
-          offsetY: 0
-        }
+          offsetY: 0,
+        },
       });
 
       // Subtitle: "Turn ideas into flowing income."
@@ -603,7 +607,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         fontFamily: 'Inter',
         textAlign: 'left',
         letterSpacing: 1,
-        lineHeight: 1.4
+        lineHeight: 1.4,
       });
     });
 
@@ -633,9 +637,9 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
           type: 'radial',
           colors: [
             { color: 'transparent', position: 0 },
-            { color: '#000000', position: 1 }
-          ]
-        }
+            { color: '#000000', position: 1 },
+          ],
+        },
       });
 
       // Spawn 25 small glowing floating money bubbles
@@ -644,7 +648,7 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         const py = Math.random() * 1080;
         const pSize = 4 + Math.random() * 10;
         const pOpacity = 0.08 + Math.random() * 0.25;
-        
+
         store.addShapeLayer('circle', {
           x: px,
           y: py,
@@ -657,8 +661,8 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
             color: '#D4FF7F',
             blur: 5,
             offsetX: 0,
-            offsetY: 0
-          }
+            offsetY: 0,
+          },
         });
       }
     });
@@ -669,25 +673,25 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
 
     // 10. SPATIAL & DESIGN VERIFICATIONS (Observer Agent checks)
     console.log('Running visual & layout verification algorithms...');
-    
+
     // Check spacing & alignment
     const spatialTelemetry = await page.evaluate(() => {
       const store = (window as any).useStore.getState();
       const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
       if (!artboard) return { aligned: false, spacing: 0 };
-      
+
       const titleLayer = artboard.layers.find((l: any) => l.type === 'text' && l.text === 'CASH COW');
       const subtitleLayer = artboard.layers.find((l: any) => l.type === 'text' && l.text.includes('flowing income'));
       const platformLayer = artboard.layers.find((l: any) => l.name === 'Main Platform');
-      
+
       const titleBottom = titleLayer ? titleLayer.y + titleLayer.height : 0;
       const subtitleTop = subtitleLayer ? subtitleLayer.y : 0;
       const typographySpacing = subtitleTop - titleBottom;
 
-      const titleSnapped = titleLayer ? (titleLayer.x % 8 === 0) : false;
+      const titleSnapped = titleLayer ? titleLayer.x % 8 === 0 : false;
 
-      const platformCenteredX = platformLayer ? (platformLayer.x === (1920 - platformLayer.width) / 2) : false;
-      const platformCenteredY = platformLayer ? (platformLayer.y === (1080 - platformLayer.height) / 2) : false;
+      const platformCenteredX = platformLayer ? platformLayer.x === (1920 - platformLayer.width) / 2 : false;
+      const platformCenteredY = platformLayer ? platformLayer.y === (1080 - platformLayer.height) / 2 : false;
 
       const bgLum = 0.05; // dark green
       const typographyColor = '#D4FF7F'; // bright green
@@ -699,21 +703,23 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         typographySpacing,
         bgLum,
         typographyColor,
-        layerCount: artboard.layers.length
+        layerCount: artboard.layers.length,
       };
     });
 
-    console.log(`Spatial Verification: Title grid-aligned: ${spatialTelemetry.titleSnapped}, Platform centered: ${spatialTelemetry.platformCenteredX && spatialTelemetry.platformCenteredY}, Spacing: ${spatialTelemetry.typographySpacing}px`);
+    console.log(
+      `Spatial Verification: Title grid-aligned: ${spatialTelemetry.titleSnapped}, Platform centered: ${spatialTelemetry.platformCenteredX && spatialTelemetry.platformCenteredY}, Spacing: ${spatialTelemetry.typographySpacing}px`
+    );
     if (!spatialTelemetry.platformCenteredX) alignmentFailures++;
 
     // 11. EXPORT SUITE TRIGGER & SCREENSHOT (Done BEFORE Stress Test to avoid browser freezing!)
     console.log('Triggering export dialog process...');
     const exportBtn = page.getByTestId('export-btn');
-    
+
     // Ensure button is visible & click it
     await expect(exportBtn).toBeVisible({ timeout: 5000 });
     await exportBtn.click();
-    
+
     // Wait for the modal dialog to appear
     await page.waitForSelector('[data-testid="export-modal"]', { state: 'visible', timeout: 8000 });
     await page.waitForTimeout(1000);
@@ -731,20 +737,20 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
     // 12. STRESS & LOAD PERFORMANCE TEST: Spawning 5,000 active objects in under 3 seconds!
     // Spawning this AFTER export is completed so thread locking does not break UI clicks.
     console.log('Initiating Stress Test: Spawning 5,000 dollar bills to evaluate canvas frame-rates...');
-    
+
     const performanceLog = await page.evaluate(async () => {
       const store = (window as any).useStore.getState();
-      
+
       const startTime = performance.now();
       const newBills = [];
-      
+
       // Batch assemble 5,000 shapes
       for (let k = 0; k < 5000; k++) {
         const x = Math.random() * 1920;
         const y = Math.random() * 1080;
         const sizeW = 10 + Math.random() * 30;
         const sizeH = 4 + Math.random() * 12;
-        
+
         newBills.push({
           id: `stress_bill_${k}_${Date.now()}`,
           type: 'rectangle',
@@ -758,25 +764,25 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
           cornerRadius: 1,
           opacity: 0.35,
           visible: true,
-          locked: true
+          locked: true,
         });
       }
 
       // Add to store in one giant operation
       const beforeState = performance.now();
-      
+
       // Sync operation to first verify activeArtboardId
       const activeId = store.activeArtboardId || store.artboards[0]?.id;
       if (activeId && !store.activeArtboardId) {
         store.setActiveArtboardId(activeId);
       }
-      
+
       store.addLayers(newBills);
       const afterState = performance.now();
 
       // Measure thread scheduler latency via setTimeout (which is 100% robust inside headless Chromium)
       const tStart = performance.now();
-      await new Promise(resolve => setTimeout(resolve, 30));
+      await new Promise((resolve) => setTimeout(resolve, 30));
       const tEnd = performance.now();
       const latency = tEnd - tStart - 30;
       // If thread is locked, latency will skyrocket! We map this to a simulated FPS
@@ -786,21 +792,23 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         batchCreateMs: beforeState - startTime,
         storeInjectionMs: afterState - beforeState,
         fps,
-        totalLayers: store.artboards.flatMap((a: any) => a.layers).length
+        totalLayers: store.artboards.flatMap((a: any) => a.layers).length,
       };
     });
 
-    console.log(`Performance Log: Batch compile: ${performanceLog.batchCreateMs.toFixed(1)}ms, Injection latency: ${performanceLog.storeInjectionMs.toFixed(1)}ms, Canvas Render Framerate: ${performanceLog.fps} FPS, Total layers on Artboard: ${performanceLog.totalLayers}`);
-    
+    console.log(
+      `Performance Log: Batch compile: ${performanceLog.batchCreateMs.toFixed(1)}ms, Injection latency: ${performanceLog.storeInjectionMs.toFixed(1)}ms, Canvas Render Framerate: ${performanceLog.fps} FPS, Total layers on Artboard: ${performanceLog.totalLayers}`
+    );
+
     recordTelemetry('Stress Test Completed', {
       renderingFPS: performanceLog.fps,
       objectCount: performanceLog.totalLayers,
-      renderingDurationMs: performanceLog.storeInjectionMs
+      renderingDurationMs: performanceLog.storeInjectionMs,
     });
 
     // 13. WRITE TELEMETRY LOGS & REPORTS TO THE PERSISTENT WORKSPACE FOLDER
     console.log('Saving telemetry log...');
-    
+
     const outputDir = 'C:\\Users\\lanry\\.gemini\\antigravity\\brain\\9d980e67-e423-40f1-bf99-5b3cbd9a8923';
     fs.mkdirSync(outputDir, { recursive: true });
     fs.mkdirSync(path.join(outputDir, 'screenshots'), { recursive: true });
@@ -819,17 +827,14 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
       fpsDuringStressTest: performanceLog.fps,
       maximumLayersStressCount: performanceLog.totalLayers,
       renderingInjectionLatencyMs: performanceLog.storeInjectionMs,
-      log: telemetryLog
+      log: telemetryLog,
     };
     fs.writeFileSync(telemetryDataPath, JSON.stringify(finalReportData, null, 2));
 
     // Copy screenshots to persistent brain folder for embedding
     const screenshotsList = fs.readdirSync('verification/screenshots');
     for (const file of screenshotsList) {
-      fs.copyFileSync(
-        path.join('verification/screenshots', file),
-        path.join(outputDir, 'screenshots', file)
-      );
+      fs.copyFileSync(path.join('verification/screenshots', file), path.join(outputDir, 'screenshots', file));
     }
 
     // Write a beautiful, premium Markdown telemetry report

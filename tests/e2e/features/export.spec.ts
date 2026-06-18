@@ -32,7 +32,10 @@ test.describe('Export Features', () => {
     await page.goto('/');
     await page.getByTestId('nav-templates').click();
     await page.waitForLoadState('networkidle');
-    await page.getByTestId(/dashboard-template-btn-/).first().click();
+    await page
+      .getByTestId(/dashboard-template-btn-/)
+      .first()
+      .click();
     await editor.waitForCanvasReady();
   });
 

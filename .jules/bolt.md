@@ -24,5 +24,6 @@
 **Action:** Always wrap object-returning Zustand selectors with `useShallow` from `zustand/react/shallow` to ensure components only re-render when the specific selected properties actually change.
 
 ## 2026-06-18 - Memoizing overlay components
+
 **Learning:** Overlay components on the Canvas like `CanvasControls`, `CanvasGuides`, `SelectionMarquee`, `PathEditorOverlay`, and `BrushFilters` are often subjected to rapid re-renders if their parent re-renders. Without `React.memo`, these components cause unnecessary performance degradation, especially during rapid state updates like mouse movement.
 **Action:** Ensure all heavy overlay and visualization components that depend on parent state are wrapped in `React.memo` to prevent unnecessary updates.

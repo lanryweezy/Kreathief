@@ -66,10 +66,10 @@ test.describe('Text Tools Features', () => {
 
     // Verify font applied in store
     const fontFamily = await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
-        return layer?.fontFamily;
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+      return layer?.fontFamily;
     });
     expect(fontFamily).toBe('Arial');
   });
@@ -82,10 +82,10 @@ test.describe('Text Tools Features', () => {
 
     // Verify bold applied in store
     const fontWeight = await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
-        return layer?.fontWeight;
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+      return layer?.fontWeight;
     });
     expect(fontWeight).toBe('bold');
   });
@@ -98,10 +98,10 @@ test.describe('Text Tools Features', () => {
 
     // Verify italic applied in store
     const fontStyle = await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
-        return layer?.fontStyle;
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+      return layer?.fontStyle;
     });
     expect(fontStyle).toBe('italic');
   });
@@ -114,10 +114,10 @@ test.describe('Text Tools Features', () => {
 
     // Verify underline applied in store
     const textDecoration = await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
-        return layer?.textDecoration;
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+      return layer?.textDecoration;
     });
     expect(textDecoration).toBe('underline');
   });
@@ -127,10 +127,10 @@ test.describe('Text Tools Features', () => {
 
     // Get initial font size
     const initialSize = await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
-        return layer?.fontSize;
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+      return layer?.fontSize;
     });
 
     // Change font size
@@ -138,10 +138,10 @@ test.describe('Text Tools Features', () => {
 
     // Verify size changed in store
     const newSize = await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
-        return layer?.fontSize;
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+      return layer?.fontSize;
     });
     expect(newSize).toBe(48);
     expect(newSize).not.toBe(initialSize);
@@ -162,9 +162,9 @@ test.describe('Text Tools Features', () => {
 
     // Verify all layers exist in store
     const count = await textTools.page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
-        return artboard ? artboard.layers.length : 0;
+      const store = (window as any).useStore.getState();
+      const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
+      return artboard ? artboard.layers.length : 0;
     });
     expect(count).toBe(3);
   });
@@ -176,26 +176,26 @@ test.describe('Text Tools Features', () => {
 
     // Get initial layer count from store
     const initialCount = await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
-        return artboard ? artboard.layers.length : 0;
+      const store = (window as any).useStore.getState();
+      const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
+      return artboard ? artboard.layers.length : 0;
     });
 
     // Delete the layer via store
     await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
-        const layer = artboard.layers.find((l: any) => l.text === 'To Delete');
-        if (layer) {
-            store.deleteLayer(layer.id);
-        }
+      const store = (window as any).useStore.getState();
+      const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
+      const layer = artboard.layers.find((l: any) => l.text === 'To Delete');
+      if (layer) {
+        store.deleteLayer(layer.id);
+      }
     });
 
     // Verify layer count decreased
     const finalCount = await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
-        return artboard ? artboard.layers.length : 0;
+      const store = (window as any).useStore.getState();
+      const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
+      return artboard ? artboard.layers.length : 0;
     });
     expect(finalCount).toBeLessThan(initialCount);
   });
@@ -205,19 +205,19 @@ test.describe('Text Tools Features', () => {
 
     // Change color via store
     await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        if (selectedId) {
-            store.updateLayer(selectedId, { color: '#ff0000' });
-        }
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      if (selectedId) {
+        store.updateLayer(selectedId, { color: '#ff0000' });
+      }
     });
 
     // Verify color applied in store
     const color = await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
-        return layer?.color;
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+      return layer?.color;
     });
     expect(color).toBe('#ff0000');
   });

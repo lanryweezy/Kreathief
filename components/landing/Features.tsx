@@ -10,9 +10,11 @@ export const Features: React.FC = () => {
 
       <div className="max-w-[1400px] mx-auto px-6">
         <div className="mb-32 text-center flex flex-col items-center">
-          <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-
-          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          ></motion.div>
 
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -44,7 +46,7 @@ export const Features: React.FC = () => {
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[80vw] max-w-[1000px] h-[800px] bg-purple-500/10 blur-[120px] rounded-full pointer-events-none -z-10" />
 
         {/* AI FEATURES CATEGORY */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -58,7 +60,8 @@ export const Features: React.FC = () => {
             Think bigger, create faster
           </h4>
           <p className="text-lg text-neutral-400 max-w-2xl font-medium">
-            Leverage the best AI models to generate and refine images, then continue designing with your creations in one seamless workspace.
+            Leverage the best AI models to generate and refine images, then continue designing with your creations in
+            one seamless workspace.
           </p>
         </motion.div>
 
@@ -77,7 +80,8 @@ export const Features: React.FC = () => {
                   Image generation
                 </h3>
                 <p className="text-neutral-400 font-medium text-base max-w-xl">
-                  Your project deserves better visuals. Generate images that perfectly fit your campaign, or edit existing images to match your guidelines. Create designs with them on an infinite canvas.
+                  Your project deserves better visuals. Generate images that perfectly fit your campaign, or edit
+                  existing images to match your guidelines. Create designs with them on an infinite canvas.
                 </p>
               </div>
 
@@ -152,7 +156,8 @@ export const Features: React.FC = () => {
               <div className="p-16 relative z-10 w-full md:w-1/2 flex flex-col h-full justify-center">
                 <h3 className="text-3xl font-black mb-4 tracking-tight text-white">Generative Fill</h3>
                 <p className="text-neutral-400 font-medium leading-relaxed mb-6">
-                  Describe what you want and watch AI seamlessly blend new elements into your existing compositions. Perfect for extending images or replacing objects.
+                  Describe what you want and watch AI seamlessly blend new elements into your existing compositions.
+                  Perfect for extending images or replacing objects.
                 </p>
               </div>
 
@@ -173,7 +178,7 @@ export const Features: React.FC = () => {
         </div>
 
         {/* DESIGN TOOLS CATEGORY */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -187,7 +192,8 @@ export const Features: React.FC = () => {
             Professional design power
           </h4>
           <p className="text-lg text-neutral-400 max-w-2xl font-medium">
-            A powerful infinite canvas for creation and ideation, giving you complete control with your brand assets and styles always at hand.
+            A powerful infinite canvas for creation and ideation, giving you complete control with your brand assets and
+            styles always at hand.
           </p>
         </motion.div>
 
@@ -204,7 +210,8 @@ export const Features: React.FC = () => {
               <div className="p-16 relative z-10 w-full md:w-1/2">
                 <h3 className="text-3xl font-black mb-4 tracking-tight text-white">Vector and raster together</h3>
                 <p className="text-neutral-400 font-medium leading-relaxed">
-                  Create and edit vector and raster content on a single, powerful infinite canvas focused on the essential tools for professional design and editing.
+                  Create and edit vector and raster content on a single, powerful infinite canvas focused on the
+                  essential tools for professional design and editing.
                 </p>
               </div>
 
@@ -245,7 +252,8 @@ export const Features: React.FC = () => {
               <div className="p-12 relative z-10">
                 <h3 className="text-xl font-black mb-2 text-white">Brand guideline creation</h3>
                 <p className="text-neutral-400 text-sm font-medium">
-                  Bring all your brand assets into one place. Store and organize media and styles to easily adopt your branded content.
+                  Bring all your brand assets into one place. Store and organize media and styles to easily adopt your
+                  branded content.
                 </p>
               </div>
             </MouseSpotlight>
@@ -278,7 +286,7 @@ export const Features: React.FC = () => {
         </div>
 
         {/* RESOURCES CATEGORY */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}

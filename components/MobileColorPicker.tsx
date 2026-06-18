@@ -17,10 +17,26 @@ export const MobileColorPicker: React.FC<MobileColorPickerProps> = ({
   value,
   onChange,
   presets = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
-    '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B739', '#52B788',
-    '#E63946', '#457B9D', '#F77F00', '#06FFA5', '#7209B7',
-    '#000000', '#FFFFFF', '#6C757D', '#343A40', '#F8F9FA',
+    '#FF6B6B',
+    '#4ECDC4',
+    '#45B7D1',
+    '#FFA07A',
+    '#98D8C8',
+    '#F7DC6F',
+    '#BB8FCE',
+    '#85C1E2',
+    '#F8B739',
+    '#52B788',
+    '#E63946',
+    '#457B9D',
+    '#F77F00',
+    '#06FFA5',
+    '#7209B7',
+    '#000000',
+    '#FFFFFF',
+    '#6C757D',
+    '#343A40',
+    '#F8F9FA',
   ],
 }) => {
   const [recentColors, setRecentColors] = useState<string[]>(() => {
@@ -33,7 +49,7 @@ export const MobileColorPicker: React.FC<MobileColorPickerProps> = ({
     onChange(color);
 
     // Add to recent colors
-    const updated = [color, ...recentColors.filter(c => c !== color)].slice(0, 8);
+    const updated = [color, ...recentColors.filter((c) => c !== color)].slice(0, 8);
     setRecentColors(updated);
     localStorage.setItem('recent-colors', JSON.stringify(updated));
   };
@@ -57,14 +73,9 @@ export const MobileColorPicker: React.FC<MobileColorPickerProps> = ({
     <div className="space-y-6">
       {/* Current Color */}
       <div className="flex items-center gap-4">
-        <div
-          className="w-16 h-16 rounded-2xl border-2 border-white/20 shadow-lg"
-          style={{ backgroundColor: value }}
-        />
+        <div className="w-16 h-16 rounded-2xl border-2 border-white/20 shadow-lg" style={{ backgroundColor: value }} />
         <div className="flex-1">
-          <label className="text-sm font-semibold text-gray-400 mb-2 block">
-            Current Color
-          </label>
+          <label className="text-sm font-semibold text-gray-400 mb-2 block">Current Color</label>
           <input
             type="text"
             value={value}
@@ -76,9 +87,7 @@ export const MobileColorPicker: React.FC<MobileColorPickerProps> = ({
 
       {/* Native Color Picker */}
       <div>
-        <label className="text-sm font-semibold text-gray-400 mb-3 block">
-          Custom Color
-        </label>
+        <label className="text-sm font-semibold text-gray-400 mb-3 block">Custom Color</label>
         <input
           type="color"
           value={value}
@@ -90,9 +99,7 @@ export const MobileColorPicker: React.FC<MobileColorPickerProps> = ({
       {/* Recent Colors */}
       {recentColors.length > 0 && (
         <div>
-          <label className="text-sm font-semibold text-gray-400 mb-3 block">
-            Recent Colors
-          </label>
+          <label className="text-sm font-semibold text-gray-400 mb-3 block">Recent Colors</label>
           <div className="grid grid-cols-8 gap-2">
             {recentColors.map((color, index) => (
               <motion.button
@@ -114,9 +121,7 @@ export const MobileColorPicker: React.FC<MobileColorPickerProps> = ({
 
       {/* Preset Colors */}
       <div>
-        <label className="text-sm font-semibold text-gray-400 mb-3 block">
-          Preset Colors
-        </label>
+        <label className="text-sm font-semibold text-gray-400 mb-3 block">Preset Colors</label>
         <div className="grid grid-cols-5 gap-3">
           {presets.map((color, index) => (
             <motion.button
@@ -137,9 +142,7 @@ export const MobileColorPicker: React.FC<MobileColorPickerProps> = ({
 
       {/* Gradient Presets */}
       <div>
-        <label className="text-sm font-semibold text-gray-400 mb-3 block">
-          Gradients
-        </label>
+        <label className="text-sm font-semibold text-gray-400 mb-3 block">Gradients</label>
         <div className="grid grid-cols-2 gap-3">
           {[
             'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',

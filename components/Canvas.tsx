@@ -64,7 +64,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   const brushType = useStore((state) => state.brushType);
   const brushColor = useStore((state) => state.brushColor) || '#000000';
   const brushSize = useStore((state) => state.brushSize) || 2;
-  
+
   const [activeVectorPath, setActiveVectorPath] = useState<VectorPath | null>(null);
   const [selectedVectorPointIndices, setSelectedVectorPointIndices] = useState<number[]>([]);
 
@@ -82,58 +82,58 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
         let minY = Infinity;
         let maxX = -Infinity;
         let maxY = -Infinity;
-        activeVectorPath.points.forEach(p => {
-           minX = Math.min(minX, p.x);
-           minY = Math.min(minY, p.y);
-           maxX = Math.max(maxX, p.x);
-           maxY = Math.max(maxY, p.y);
+        activeVectorPath.points.forEach((p) => {
+          minX = Math.min(minX, p.x);
+          minY = Math.min(minY, p.y);
+          maxX = Math.max(maxX, p.x);
+          maxY = Math.max(maxY, p.y);
         });
-        
-        if (minX !== Infinity) {
-           const width = Math.max(1, maxX - minX);
-           const height = Math.max(1, maxY - minY);
-           const shiftedPoints = activeVectorPath.points.map(p => ({
-             ...p,
-             x: p.x - minX,
-             y: p.y - minY,
-           }));
 
-           const newLayer: ShapeLayer = {
-             id: `path_${uuidv4()}`,
-             type: 'path',
-             name: 'Vector Path',
-             x: minX,
-             y: minY,
-             width,
-             height,
-             rotation: 0,
-             opacity: 1,
-             locked: false,
-             visible: true,
-             color: brushColor,
-             cornerRadius: 0,
-             viewBox: `0 0 ${width} ${height}`,
-             vectorPath: { points: shiftedPoints, isClosed: activeVectorPath.isClosed },
-             pathData: '',
-             filters: {
-               brightness: 100,
-               contrast: 100,
-               saturation: 100,
-               grayscale: 0,
-               sepia: 0,
-               blur: 0,
-               hueRotate: 0,
-               vignette: 0,
-               opacity: 1,
-             },
-             blendMode: 'normal',
-             skewX: 0,
-             skewY: 0,
-             perspective: 0,
-             rotateX: 0,
-             rotateY: 0,
-           };
-           useStore.getState().addLayer(newLayer);
+        if (minX !== Infinity) {
+          const width = Math.max(1, maxX - minX);
+          const height = Math.max(1, maxY - minY);
+          const shiftedPoints = activeVectorPath.points.map((p) => ({
+            ...p,
+            x: p.x - minX,
+            y: p.y - minY,
+          }));
+
+          const newLayer: ShapeLayer = {
+            id: `path_${uuidv4()}`,
+            type: 'path',
+            name: 'Vector Path',
+            x: minX,
+            y: minY,
+            width,
+            height,
+            rotation: 0,
+            opacity: 1,
+            locked: false,
+            visible: true,
+            color: brushColor,
+            cornerRadius: 0,
+            viewBox: `0 0 ${width} ${height}`,
+            vectorPath: { points: shiftedPoints, isClosed: activeVectorPath.isClosed },
+            pathData: '',
+            filters: {
+              brightness: 100,
+              contrast: 100,
+              saturation: 100,
+              grayscale: 0,
+              sepia: 0,
+              blur: 0,
+              hueRotate: 0,
+              vignette: 0,
+              opacity: 1,
+            },
+            blendMode: 'normal',
+            skewX: 0,
+            skewY: 0,
+            perspective: 0,
+            rotateX: 0,
+            rotateY: 0,
+          };
+          useStore.getState().addLayer(newLayer);
         }
       }
       setActiveVectorPath(null);
@@ -170,11 +170,21 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   }, []);
 
   // Interaction Hook
-  const handleUpdateLayers = useCallback((updates: Record<string, Partial<Layer>>) => useStore.getState().updateLayers(updates), []);
+  const handleUpdateLayers = useCallback(
+    (updates: Record<string, Partial<Layer>>) => useStore.getState().updateLayers(updates),
+    []
+  );
   const handleSelectLayer = useCallback((id: string | null) => useStore.getState().selectLayer(id), []);
-  const handleMultiSelectLayer = useCallback((id: string, shift: boolean) => useStore.getState().multiSelectLayer(id, shift), []);
+  const handleMultiSelectLayer = useCallback(
+    (id: string, shift: boolean) => useStore.getState().multiSelectLayer(id, shift),
+    []
+  );
   const handleSetSelectedLayerIds = useCallback((ids: string[]) => useStore.getState().setSelectedLayerIds(ids), []);
-  const handleContextMenuCanvas = useCallback((pos: { clientX: number; clientY: number }, id: string) => setContextMenu({ x: pos.clientX, y: pos.clientY, layerId: id }), [setContextMenu]);
+  const handleContextMenuCanvas = useCallback(
+    (pos: { clientX: number; clientY: number }, id: string) =>
+      setContextMenu({ x: pos.clientX, y: pos.clientY, layerId: id }),
+    [setContextMenu]
+  );
 
   const {
     panOffset,
@@ -191,21 +201,21 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     handleResizeStart,
     handleRotateStart,
   } = useCanvasInteractions({
-      zoom: zoom || 1,
-      onZoomChangeValue: onZoomChange || noop,
-      activeArtboard,
-      artboards,
-      layers,
-      selectedLayerIds,
-      onUpdateLayers: handleUpdateLayers,
-      onSelectLayer: handleSelectLayer,
-      onMultiSelectLayer: handleMultiSelectLayer,
-      setSelectedLayerIds: handleSetSelectedLayerIds,
-      onInteractionStart,
-      onContextMenu: handleContextMenuCanvas,
-      isDrawing,
-      viewportRef,
-    });
+    zoom: zoom || 1,
+    onZoomChangeValue: onZoomChange || noop,
+    activeArtboard,
+    artboards,
+    layers,
+    selectedLayerIds,
+    onUpdateLayers: handleUpdateLayers,
+    onSelectLayer: handleSelectLayer,
+    onMultiSelectLayer: handleMultiSelectLayer,
+    setSelectedLayerIds: handleSetSelectedLayerIds,
+    onInteractionStart,
+    onContextMenu: handleContextMenuCanvas,
+    isDrawing,
+    viewportRef,
+  });
 
   // Initial Centering
   useEffect(() => {
@@ -218,41 +228,47 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   }, []); // Only once on mount
 
   const initialZoom = useRef(zoom);
-  
+
   // Update initialZoom when zoom changes but not currently pinching
   // (We'll assume pinching if touch count > 1)
   useEffect(() => {
     initialZoom.current = zoom;
   }, [zoom]);
 
-  const handlePinchZoom = useCallback((scale: number, center: { x: number; y: number }) => {
-    const newZoom = initialZoom.current * scale;
-    const clampedZoom = Math.max(0.1, Math.min(10, newZoom));
-    
-    if (clampedZoom !== zoom && viewportRef.current) {
-      const rect = viewportRef.current.getBoundingClientRect();
-      const mouseX = center.x - rect.left;
-      const mouseY = center.y - rect.top;
+  const handlePinchZoom = useCallback(
+    (scale: number, center: { x: number; y: number }) => {
+      const newZoom = initialZoom.current * scale;
+      const clampedZoom = Math.max(0.1, Math.min(10, newZoom));
 
-      const worldX = (mouseX - panOffset.x) / zoom;
-      const worldY = (mouseY - panOffset.y) / zoom;
+      if (clampedZoom !== zoom && viewportRef.current) {
+        const rect = viewportRef.current.getBoundingClientRect();
+        const mouseX = center.x - rect.left;
+        const mouseY = center.y - rect.top;
 
-      const newPanX = mouseX - worldX * clampedZoom;
-      const newPanY = mouseY - worldY * clampedZoom;
+        const worldX = (mouseX - panOffset.x) / zoom;
+        const worldY = (mouseY - panOffset.y) / zoom;
 
-      onZoomChange(clampedZoom);
-      useStore.getState().setPanOffset({ x: newPanX, y: newPanY });
-    }
-  }, [onZoomChange, zoom, panOffset]);
+        const newPanX = mouseX - worldX * clampedZoom;
+        const newPanY = mouseY - worldY * clampedZoom;
 
-  const handleRotate = useCallback((angle: number) => {
-    if (selectedLayerIds.length === 1) {
-      const selectedLayer = layers.find(l => l.id === selectedLayerIds[0]);
-      if (selectedLayer && selectedLayer.type !== 'text') {
-        onUpdateLayers({ [selectedLayer.id]: { rotation: angle % 360 } });
+        onZoomChange(clampedZoom);
+        useStore.getState().setPanOffset({ x: newPanX, y: newPanY });
       }
-    }
-  }, [selectedLayerIds, layers, onUpdateLayers]);
+    },
+    [onZoomChange, zoom, panOffset]
+  );
+
+  const handleRotate = useCallback(
+    (angle: number) => {
+      if (selectedLayerIds.length === 1) {
+        const selectedLayer = layers.find((l) => l.id === selectedLayerIds[0]);
+        if (selectedLayer && selectedLayer.type !== 'text') {
+          onUpdateLayers({ [selectedLayer.id]: { rotation: angle % 360 } });
+        }
+      }
+    },
+    [selectedLayerIds, layers, onUpdateLayers]
+  );
 
   useTouchGestures(viewportRef, {
     enabled: true, // Support touch on all platforms (tablets, laptops)
@@ -262,8 +278,8 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     maxZoom: 10,
   });
 
-  const selectedLayers = useMemo(() =>
-    allLayers.filter(l => selectedLayerIds.includes(l.id)),
+  const selectedLayers = useMemo(
+    () => allLayers.filter((l) => selectedLayerIds.includes(l.id)),
     [allLayers, selectedLayerIds]
   );
 
@@ -309,12 +325,15 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     return () => window.removeEventListener('canvas-reset-rotation', handleReset);
   }, [onUpdateLayers]);
 
-  const viewportBounds = useMemo(() => ({
-    x: -panOffset.x / zoom,
-    y: -panOffset.y / zoom,
-    width: (viewportRef.current?.clientWidth || 0) / zoom,
-    height: (viewportRef.current?.clientHeight || 0) / zoom,
-  }), [panOffset, zoom]);
+  const viewportBounds = useMemo(
+    () => ({
+      x: -panOffset.x / zoom,
+      y: -panOffset.y / zoom,
+      width: (viewportRef.current?.clientWidth || 0) / zoom,
+      height: (viewportRef.current?.clientHeight || 0) / zoom,
+    }),
+    [panOffset, zoom]
+  );
 
   const textEditRef = useRef<HTMLDivElement>(null);
   const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -322,15 +341,21 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 
   // ⚡ Bolt Optimization: Memoized the layer ref callback instead of re-creating it
   // inline inside the JSX on every render, significantly reducing child re-renders.
-  const handleLayerRef = useCallback((id: string, el: HTMLDivElement | null) => {
-    layerRefs.current[id] = el;
-  }, [layerRefs]);
+  const handleLayerRef = useCallback(
+    (id: string, el: HTMLDivElement | null) => {
+      layerRefs.current[id] = el;
+    },
+    [layerRefs]
+  );
 
   const setActiveArtboardId = useCallback((id: string) => useStore.getState().setActiveArtboardId(id), []);
   const onAddArtboard = useCallback(() => useStore.getState().addArtboard(), []);
   const onDeleteArtboard = useCallback((id: string) => useStore.getState().deleteArtboard(id), []);
 
-  const handleUpdateVectorPath = useCallback((newPath: any) => setActiveVectorPath(newPath as VectorPath), [setActiveVectorPath]);
+  const handleUpdateVectorPath = useCallback(
+    (newPath: any) => setActiveVectorPath(newPath as VectorPath),
+    [setActiveVectorPath]
+  );
   const handleClosePenMode = useCallback(() => setPenMode(false), [setPenMode]);
 
   return (
@@ -338,16 +363,15 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
       <div className="flex-1 relative bg-[#000000] overflow-hidden flex flex-col">
         <style>{ANIMATION_STYLES}</style>
 
-        
         <div
           ref={viewportRef}
           className="flex-1 overflow-hidden relative bg-[#000000] touch-none select-none canvas-container"
-           style={{ cursor: isPanning ? 'grabbing' : isSpacePressed ? 'grab' : isDrawing ? 'crosshair' : 'default' }}
+          style={{ cursor: isPanning ? 'grabbing' : isSpacePressed ? 'grab' : isDrawing ? 'crosshair' : 'default' }}
           onMouseDown={isDrawing && brushType === 'vector_pencil' ? undefined : handleMouseDownCombined}
         >
           {/* Global Workspace Grid - Responds to Zoom */}
           {showGrid && (
-            <div 
+            <div
               className="absolute inset-0 pointer-events-none opacity-[0.03]"
               style={{
                 backgroundImage: `

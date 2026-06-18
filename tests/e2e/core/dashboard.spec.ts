@@ -92,7 +92,9 @@ test.describe('Dashboard Core Features', () => {
     await dashboard.verifyDashboardLoaded();
 
     // Open the project we just created
-    const projectCard = page.locator(`button:has-text("${uniqueTitle}"), [data-testid^="project-card-"]:has-text("${uniqueTitle}")`).first();
+    const projectCard = page
+      .locator(`button:has-text("${uniqueTitle}"), [data-testid^="project-card-"]:has-text("${uniqueTitle}")`)
+      .first();
     await expect(projectCard).toBeVisible({ timeout: 15000 });
     await projectCard.click();
 

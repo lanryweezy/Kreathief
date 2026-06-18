@@ -13,22 +13,27 @@ export const PaletteGenerator: React.FC<PaletteGeneratorProps> = ({ onPaletteSel
   const [extractedColors, setExtractedColors] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) {return;}
+  const handleImageUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) {
+        return;
+      }
 
-    setIsProcessing(true);
-    try {
-      const imageData = await loadImage(file);
-      const colors = await extractPalette(imageData, 5);
-      setExtractedColors(colors);
-      onPaletteSelect(colors);
-    } catch (error) {
-      log.error('Failed to extract palette', error);
-    } finally {
-      setIsProcessing(false);
-    }
-  }, [onPaletteSelect]);
+      setIsProcessing(true);
+      try {
+        const imageData = await loadImage(file);
+        const colors = await extractPalette(imageData, 5);
+        setExtractedColors(colors);
+        onPaletteSelect(colors);
+      } catch (error) {
+        log.error('Failed to extract palette', error);
+      } finally {
+        setIsProcessing(false);
+      }
+    },
+    [onPaletteSelect]
+  );
 
   const loadImage = (file: File): Promise<ImageData> => {
     return new Promise((resolve, reject) => {
@@ -75,19 +80,11 @@ export const PaletteGenerator: React.FC<PaletteGeneratorProps> = ({ onPaletteSel
   return (
     <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-          Extract Palette from Image
-        </h3>
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Extract Palette from Image</h3>
         <Icons.Image className="w-4 h-4 text-gray-500" />
       </div>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleImageUpload}
-        className="hidden"
-      />
+      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
 
       <button
         onClick={() => fileInputRef.current?.click()}
@@ -125,9 +122,7 @@ export const PaletteGenerator: React.FC<PaletteGeneratorProps> = ({ onPaletteSel
               </button>
             ))}
           </div>
-          <p className="text-[9px] text-gray-600 mt-2 text-center">
-            Colors copied to clipboard on click
-          </p>
+          <p className="text-[9px] text-gray-600 mt-2 text-center">Colors copied to clipboard on click</p>
         </div>
       )}
     </div>

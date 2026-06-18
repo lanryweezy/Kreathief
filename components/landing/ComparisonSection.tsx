@@ -20,9 +20,6 @@ export const ComparisonSection: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-6 relative z-30">
         <div className="text-center mb-24">
-
-
-
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

@@ -65,20 +65,20 @@ export const MobileLayerItem: React.FC<MobileLayerItemProps> = ({
         flex items-center gap-4 px-5 py-4 rounded-2xl
         transition-all duration-200
         active:scale-98
-        ${isSelected
-          ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-2 border-purple-500/50'
-          : 'bg-white/5 hover:bg-white/10 border-2 border-transparent'
+        ${
+          isSelected
+            ? 'bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-2 border-purple-500/50'
+            : 'bg-white/5 hover:bg-white/10 border-2 border-transparent'
         }
       `}
     >
       {/* Layer Icon */}
-      <div className={`
+      <div
+        className={`
         w-12 h-12 rounded-xl flex items-center justify-center
-        ${isSelected
-          ? 'bg-gradient-to-br from-purple-500 to-pink-500'
-          : 'bg-white/10'
-        }
-      `}>
+        ${isSelected ? 'bg-gradient-to-br from-purple-500 to-pink-500' : 'bg-white/10'}
+      `}
+      >
         <LayerIcon className={`w-6 h-6 ${isSelected ? 'text-white' : 'text-gray-400'}`} />
       </div>
 
@@ -87,9 +87,7 @@ export const MobileLayerItem: React.FC<MobileLayerItemProps> = ({
         <h4 className={`text-base font-semibold truncate ${isSelected ? 'text-white' : 'text-gray-300'}`}>
           {layer.name || `${layer.type} Layer`}
         </h4>
-        <p className="text-sm text-gray-500 capitalize">
-          {layer.type}
-        </p>
+        <p className="text-sm text-gray-500 capitalize">{layer.type}</p>
       </div>
 
       {/* Visibility Toggle */}
@@ -110,11 +108,7 @@ export const MobileLayerItem: React.FC<MobileLayerItemProps> = ({
 
       {/* Selection Indicator */}
       {isSelected && (
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="w-2 h-2 rounded-full bg-purple-500"
-        />
+        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-2 h-2 rounded-full bg-purple-500" />
       )}
     </motion.div>
   );

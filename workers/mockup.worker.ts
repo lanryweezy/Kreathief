@@ -34,14 +34,26 @@ self.onmessage = async (e: MessageEvent<MockupWorkerData>) => {
 
     // Create main offscreen canvas
     const canvas = new OffscreenCanvas(width, height);
-    const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: true }) as OffscreenCanvasRenderingContext2D;
-    if (!ctx) {throw new Error('Could not get 2d context in worker');}
+    const ctx = canvas.getContext('2d', {
+      alpha: false,
+      willReadFrequently: true,
+    }) as OffscreenCanvasRenderingContext2D;
+    if (!ctx) {
+      throw new Error('Could not get 2d context in worker');
+    }
 
     // Draw background
     ctx.drawImage(bgBitmap, 0, 0);
 
     // Draw ambient shadow under product (simplified for worker)
-    const shadowGradient = ctx.createRadialGradient(width * 0.5, height * 0.5, 10, width * 0.5, height * 0.5, Math.max(width, height) * 0.6);
+    const shadowGradient = ctx.createRadialGradient(
+      width * 0.5,
+      height * 0.5,
+      10,
+      width * 0.5,
+      height * 0.5,
+      Math.max(width, height) * 0.6
+    );
     shadowGradient.addColorStop(0, 'rgba(0,0,0,0.0)');
     shadowGradient.addColorStop(1, 'rgba(0,0,0,0.06)');
     ctx.fillStyle = shadowGradient;
@@ -111,14 +123,13 @@ self.onmessage = async (e: MessageEvent<MockupWorkerData>) => {
 
     // Convert to Blob for easy transfer back to main thread
     const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.95 });
-    
+
     // Send back the generated blob URL
     self.postMessage({ type: 'SUCCESS', payload: blob });
 
     // Cleanup memory
     bgBitmap.close();
     designBitmap.close();
-
   } catch (err: any) {
     self.postMessage({ type: 'ERROR', error: err.message });
   }
@@ -131,7 +142,7 @@ const warpImageToCornersWorker = (
 ) => {
   const width = ctx.canvas.width;
   const height = ctx.canvas.height;
-  
+
   const imgWidth = imageCanvas.width;
   const imgHeight = imageCanvas.height;
 
@@ -156,7 +167,7 @@ const warpImageToCornersWorker = (
     for (let px = 0; px < boxWidth; px++) {
       const screenX = minX + px;
       const screenY = minY + py;
-      
+
       const src = getBilinearCoordinateWorker(screenX, screenY, corners, width, height, imgWidth, imgHeight);
 
       if (src.x >= 0 && src.x < imgWidth - 1 && src.y >= 0 && src.y < imgHeight - 1) {
@@ -173,14 +184,14 @@ const warpImageToCornersWorker = (
         const destIdx = (py * boxWidth + px) * 4;
 
         for (let c = 0; c < 3; c++) {
-          destData[destIdx + c] = 
+          destData[destIdx + c] =
             srcData[idx00 + c] * (1 - dx) * (1 - dy) +
             srcData[idx10 + c] * dx * (1 - dy) +
             srcData[idx01 + c] * (1 - dx) * dy +
             srcData[idx11 + c] * dx * dy;
         }
 
-        destData[destIdx + 3] = 
+        destData[destIdx + 3] =
           srcData[idx00 + 3] * (1 - dx) * (1 - dy) +
           srcData[idx10 + 3] * dx * (1 - dy) +
           srcData[idx01 + 3] * (1 - dx) * dy +
@@ -215,8 +226,8 @@ const getBilinearCoordinateWorker = (
   const targetX = leftX + (rightX - leftX) * u;
   const targetY = leftY + (rightY - leftY) * u;
 
-  return { 
-    x: (targetX / canvasWidth) * imageWidth, 
-    y: (targetY / canvasHeight) * imageHeight 
+  return {
+    x: (targetX / canvasWidth) * imageWidth,
+    y: (targetY / canvasHeight) * imageHeight,
   };
 };

@@ -179,28 +179,59 @@ export const ShapeTools = React.memo(
                   />
                 </div>
               </div>
-                          {/* Stroke Section */}
+              {/* Stroke Section */}
               <div className="bg-white/5 rounded-lg p-3 border border-white/5">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 block">Stroke</span>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-[9px] text-gray-500 font-bold uppercase">Width</span>
-                    <input type="number" className="w-14 bg-black/40 border border-white/10 rounded text-center text-xs text-white p-1"
+                    <input
+                      type="number"
+                      className="w-14 bg-black/40 border border-white/10 rounded text-center text-xs text-white p-1"
                       value={(layer as any).stroke?.width ?? 0}
-                      onChange={(e:any)=> handleUpdateLayer({ stroke: { ...(layer as any).stroke, width: parseInt(e.target.value || '0'), color: (layer as any).stroke?.color || '#ffffff' }})}
+                      onChange={(e: any) =>
+                        handleUpdateLayer({
+                          stroke: {
+                            ...(layer as any).stroke,
+                            width: parseInt(e.target.value || '0'),
+                            color: (layer as any).stroke?.color || '#ffffff',
+                          },
+                        })
+                      }
                     />
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[9px] text-gray-500 font-bold uppercase">Color</span>
-                    <ColorPicker small value={(layer as any).stroke?.color || '#ffffff'} onChange={(c)=> handleUpdateLayer({ stroke: { ...(layer as any).stroke, color: c, width: (layer as any).stroke?.width || 1 }})} documentColors={documentColors} />
+                    <ColorPicker
+                      small
+                      value={(layer as any).stroke?.color || '#ffffff'}
+                      onChange={(c) =>
+                        handleUpdateLayer({
+                          stroke: { ...(layer as any).stroke, color: c, width: (layer as any).stroke?.width || 1 },
+                        })
+                      }
+                      documentColors={documentColors}
+                    />
                   </div>
                   <div className="flex items-center justify-between gap-2">
-                    <select className="bg-black/40 border border-white/10 rounded text-xs text-white p-1 flex-1" value={(layer as any).stroke?.cap || 'round'} onChange={(e)=> handleUpdateLayer({ stroke: { ...(layer as any).stroke, cap: e.target.value as any }})}>
+                    <select
+                      className="bg-black/40 border border-white/10 rounded text-xs text-white p-1 flex-1"
+                      value={(layer as any).stroke?.cap || 'round'}
+                      onChange={(e) =>
+                        handleUpdateLayer({ stroke: { ...(layer as any).stroke, cap: e.target.value as any } })
+                      }
+                    >
                       <option value="butt">Cap: Butt</option>
                       <option value="round">Cap: Round</option>
                       <option value="square">Cap: Square</option>
                     </select>
-                    <select className="bg-black/40 border border-white/10 rounded text-xs text-white p-1 flex-1" value={(layer as any).stroke?.join || 'miter'} onChange={(e)=> handleUpdateLayer({ stroke: { ...(layer as any).stroke, join: e.target.value as any }})}>
+                    <select
+                      className="bg-black/40 border border-white/10 rounded text-xs text-white p-1 flex-1"
+                      value={(layer as any).stroke?.join || 'miter'}
+                      onChange={(e) =>
+                        handleUpdateLayer({ stroke: { ...(layer as any).stroke, join: e.target.value as any } })
+                      }
+                    >
                       <option value="miter">Join: Miter</option>
                       <option value="round">Join: Round</option>
                       <option value="bevel">Join: Bevel</option>
@@ -208,7 +239,11 @@ export const ShapeTools = React.memo(
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-[9px] text-gray-500 font-bold uppercase">Profile</span>
-                    <select className="bg-black/40 border border-white/10 rounded text-xs text-white p-1" value={(layer as any).strokeProfile || 'uniform'} onChange={(e)=> handleUpdateLayer({ strokeProfile: e.target.value })}>
+                    <select
+                      className="bg-black/40 border border-white/10 rounded text-xs text-white p-1"
+                      value={(layer as any).strokeProfile || 'uniform'}
+                      onChange={(e) => handleUpdateLayer({ strokeProfile: e.target.value })}
+                    >
                       <option value="uniform">Uniform</option>
                       <option value="taper-start">Taper Start</option>
                       <option value="taper-end">Taper End</option>
@@ -220,31 +255,84 @@ export const ShapeTools = React.memo(
 
               {/* Path Effects */}
               <div className="bg-white/5 rounded-lg p-3 border border-white/5">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 block">Path Effects</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 block">
+                  Path Effects
+                </span>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <label className="text-[9px] text-gray-500 font-bold uppercase">Roughen</label>
-                    <input type="range" min="0" max="20" value={(layer as any).pathEffects?.roughen?.amount || 0}
-                      onChange={(e)=> handleUpdateLayer({ pathEffects: { ...(layer as any).pathEffects, roughen: { amount: parseInt(e.target.value) }}})}
-                      className="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00c4cc]" />
+                    <input
+                      type="range"
+                      min="0"
+                      max="20"
+                      value={(layer as any).pathEffects?.roughen?.amount || 0}
+                      onChange={(e) =>
+                        handleUpdateLayer({
+                          pathEffects: { ...(layer as any).pathEffects, roughen: { amount: parseInt(e.target.value) } },
+                        })
+                      }
+                      className="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00c4cc]"
+                    />
                   </div>
                   <div className="flex items-center justify-between">
                     <label className="text-[9px] text-gray-500 font-bold uppercase">Zig-Zag Amp</label>
-                    <input type="range" min="0" max="20" value={(layer as any).pathEffects?.zigzag?.amplitude || 0}
-                      onChange={(e)=> handleUpdateLayer({ pathEffects: { ...(layer as any).pathEffects, zigzag: { amplitude: parseInt(e.target.value), frequency: ((layer as any).pathEffects?.zigzag?.frequency || 6) }}})}
-                      className="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00c4cc]" />
+                    <input
+                      type="range"
+                      min="0"
+                      max="20"
+                      value={(layer as any).pathEffects?.zigzag?.amplitude || 0}
+                      onChange={(e) =>
+                        handleUpdateLayer({
+                          pathEffects: {
+                            ...(layer as any).pathEffects,
+                            zigzag: {
+                              amplitude: parseInt(e.target.value),
+                              frequency: (layer as any).pathEffects?.zigzag?.frequency || 6,
+                            },
+                          },
+                        })
+                      }
+                      className="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00c4cc]"
+                    />
                   </div>
                   <div className="flex items-center justify-between">
                     <label className="text-[9px] text-gray-500 font-bold uppercase">Zig-Zag Freq</label>
-                    <input type="range" min="0" max="20" value={(layer as any).pathEffects?.zigzag?.frequency || 0}
-                      onChange={(e)=> handleUpdateLayer({ pathEffects: { ...(layer as any).pathEffects, zigzag: { amplitude: ((layer as any).pathEffects?.zigzag?.amplitude || 6), frequency: parseInt(e.target.value) }}})}
-                      className="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00c4cc]" />
+                    <input
+                      type="range"
+                      min="0"
+                      max="20"
+                      value={(layer as any).pathEffects?.zigzag?.frequency || 0}
+                      onChange={(e) =>
+                        handleUpdateLayer({
+                          pathEffects: {
+                            ...(layer as any).pathEffects,
+                            zigzag: {
+                              amplitude: (layer as any).pathEffects?.zigzag?.amplitude || 6,
+                              frequency: parseInt(e.target.value),
+                            },
+                          },
+                        })
+                      }
+                      className="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00c4cc]"
+                    />
                   </div>
                   <div className="flex items-center justify-between">
                     <label className="text-[9px] text-gray-500 font-bold uppercase">Offset</label>
-                    <input type="range" min="0" max="30" value={(layer as any).pathEffects?.offset?.distance || 0}
-                      onChange={(e)=> handleUpdateLayer({ pathEffects: { ...(layer as any).pathEffects, offset: { distance: parseInt(e.target.value) }}})}
-                      className="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00c4cc]" />
+                    <input
+                      type="range"
+                      min="0"
+                      max="30"
+                      value={(layer as any).pathEffects?.offset?.distance || 0}
+                      onChange={(e) =>
+                        handleUpdateLayer({
+                          pathEffects: {
+                            ...(layer as any).pathEffects,
+                            offset: { distance: parseInt(e.target.value) },
+                          },
+                        })
+                      }
+                      className="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00c4cc]"
+                    />
                   </div>
                 </div>
               </div>
@@ -263,5 +351,3 @@ export const ShapeTools = React.memo(
 );
 
 ShapeTools.displayName = 'ShapeTools';
-
-

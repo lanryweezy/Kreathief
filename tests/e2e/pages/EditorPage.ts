@@ -41,7 +41,7 @@ export class EditorPage {
   }
 
   async openLayersPanel() {
-    if (!await this.layersPanel.isVisible()) {
+    if (!(await this.layersPanel.isVisible())) {
       const layersTab = this.page.getByTestId('sidebar-tab-layers');
       await layersTab.click();
     }

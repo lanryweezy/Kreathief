@@ -3,13 +3,16 @@ import { test, expect } from '@playwright/test';
 test('capture app screenshots', async ({ page }) => {
   // Mock session
   await page.addInitScript(() => {
-    localStorage.setItem('kreathief_qa_session', JSON.stringify({
-      id: 'test-user',
-      name: 'Test Designer',
-      email: 'test@example.com',
-      plan: 'pro',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=test'
-    }));
+    localStorage.setItem(
+      'kreathief_qa_session',
+      JSON.stringify({
+        id: 'test-user',
+        name: 'Test Designer',
+        email: 'test@example.com',
+        plan: 'pro',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=test',
+      })
+    );
     localStorage.setItem('kreathief_onboarding_seen', 'true');
   });
 

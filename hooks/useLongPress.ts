@@ -13,12 +13,7 @@ interface LongPressOptions {
  * Triggers haptic feedback and callback after specified delay
  */
 export const useLongPress = (options: LongPressOptions) => {
-  const {
-    onLongPress,
-    onClick,
-    delay = 500,
-    enabled = true,
-  } = options;
+  const { onLongPress, onClick, delay = 500, enabled = true } = options;
 
   const timeout = useRef<NodeJS.Timeout | null>(null);
   const target = useRef<EventTarget | null>(null);
@@ -26,7 +21,9 @@ export const useLongPress = (options: LongPressOptions) => {
 
   const start = useCallback(
     (e: React.TouchEvent | React.MouseEvent) => {
-      if (!enabled) {return;}
+      if (!enabled) {
+        return;
+      }
 
       isLongPress.current = false;
       target.current = e.target;

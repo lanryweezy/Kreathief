@@ -138,11 +138,7 @@ const DEFAULT_STYLES: TextStyle[] = [
   },
 ];
 
-export const TextStylesPanel: React.FC<TextStylesPanelProps> = ({
-  currentStyle,
-  onApplyStyle,
-  onSaveStyle,
-}) => {
+export const TextStylesPanel: React.FC<TextStylesPanelProps> = ({ currentStyle, onApplyStyle, onSaveStyle }) => {
   const [styles, setStyles] = useState<TextStyle[]>(() => {
     const saved = localStorage.getItem('kreathief_text_styles');
     return saved ? JSON.parse(saved) : DEFAULT_STYLES;
@@ -151,7 +147,9 @@ export const TextStylesPanel: React.FC<TextStylesPanelProps> = ({
   const [styleName, setStyleName] = useState('');
 
   const handleSaveStyle = useCallback(() => {
-    if (!styleName.trim() || !currentStyle) {return;}
+    if (!styleName.trim() || !currentStyle) {
+      return;
+    }
 
     const newStyle: TextStyle = {
       id: `custom-${Date.now()}`,
@@ -176,25 +174,35 @@ export const TextStylesPanel: React.FC<TextStylesPanelProps> = ({
     setStyleName('');
   }, [styleName, currentStyle, styles, onSaveStyle]);
 
-  const handleDeleteStyle = useCallback((id: string) => {
-    if (id.startsWith('heading-') || id.startsWith('body-') || id.startsWith('caption') || id.startsWith('button') || id.startsWith('quote')) {
-      return; // Don't delete defaults
-    }
-    const updated = styles.filter(s => s.id !== id);
-    setStyles(updated);
-    localStorage.setItem('kreathief_text_styles', JSON.stringify(updated));
-  }, [styles]);
+  const handleDeleteStyle = useCallback(
+    (id: string) => {
+      if (
+        id.startsWith('heading-') ||
+        id.startsWith('body-') ||
+        id.startsWith('caption') ||
+        id.startsWith('button') ||
+        id.startsWith('quote')
+      ) {
+        return; // Don't delete defaults
+      }
+      const updated = styles.filter((s) => s.id !== id);
+      setStyles(updated);
+      localStorage.setItem('kreathief_text_styles', JSON.stringify(updated));
+    },
+    [styles]
+  );
 
-  const handleApplyStyle = useCallback((style: TextStyle) => {
-    onApplyStyle(style);
-  }, [onApplyStyle]);
+  const handleApplyStyle = useCallback(
+    (style: TextStyle) => {
+      onApplyStyle(style);
+    },
+    [onApplyStyle]
+  );
 
   return (
     <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-          Text Styles
-        </h3>
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Text Styles</h3>
         <button
           onClick={() => setShowSaveModal(true)}
           disabled={!currentStyle}
@@ -224,17 +232,21 @@ export const TextStylesPanel: React.FC<TextStylesPanelProps> = ({
             >
               Aa Bb Cc
             </div>
-            {!style.id.startsWith('heading-') && !style.id.startsWith('body-') && !style.id.startsWith('caption') && !style.id.startsWith('button') && !style.id.startsWith('quote') && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteStyle(style.id);
-                }}
-                className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-opacity"
-              >
-                <Icons.Trash className="w-3 h-3" />
-              </button>
-            )}
+            {!style.id.startsWith('heading-') &&
+              !style.id.startsWith('body-') &&
+              !style.id.startsWith('caption') &&
+              !style.id.startsWith('button') &&
+              !style.id.startsWith('quote') && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteStyle(style.id);
+                  }}
+                  className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-opacity"
+                >
+                  <Icons.Trash className="w-3 h-3" />
+                </button>
+              )}
           </button>
         ))}
       </div>
@@ -252,8 +264,12 @@ export const TextStylesPanel: React.FC<TextStylesPanelProps> = ({
               className="w-full bg-[#252627] border border-gray-600 rounded px-3 py-2 text-sm text-white mb-4"
               autoFocus
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {handleSaveStyle();}
-                if (e.key === 'Escape') {setShowSaveModal(false);}
+                if (e.key === 'Enter') {
+                  handleSaveStyle();
+                }
+                if (e.key === 'Escape') {
+                  setShowSaveModal(false);
+                }
               }}
             />
             <div className="flex gap-2">

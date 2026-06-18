@@ -29,15 +29,24 @@ interface CanvasLayerRendererProps {
   viewportBounds: { x: number; y: number; width: number; height: number } | null;
 }
 
-const isLayerVisible = (layer: Layer, viewport: { x: number; y: number; width: number; height: number } | null, zoom: number, selectedLayerIds: string[] = []) => {
-  if (!viewport || viewport.width === 0 || viewport.height === 0) {return true;}
-  
-  if (selectedLayerIds.includes(layer.id) || layer.type === 'adjustment') {return true;}
+const isLayerVisible = (
+  layer: Layer,
+  viewport: { x: number; y: number; width: number; height: number } | null,
+  zoom: number,
+  selectedLayerIds: string[] = []
+) => {
+  if (!viewport || viewport.width === 0 || viewport.height === 0) {
+    return true;
+  }
+
+  if (selectedLayerIds.includes(layer.id) || layer.type === 'adjustment') {
+    return true;
+  }
 
   const buffer = Math.min(1000, 200 / Math.max(0.1, zoom));
   const lw = (layer as any).width || 0;
   const lh = (layer as any).height || 0;
-  
+
   const isGroup = (layer as any).isGroup;
   const checkBuffer = isGroup ? buffer * 5 : buffer;
 
@@ -91,7 +100,9 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
   }) => {
     const layerMasks = React.useMemo(() => {
       const masks = new Map<string, Layer>();
-      if (!layers) {return masks;}
+      if (!layers) {
+        return masks;
+      }
       for (let i = 1; i < layers.length; i++) {
         const potentialMask = layers[i - 1];
         if (potentialMask && potentialMask.isMasking) {
@@ -103,9 +114,15 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
 
     const visibleLayers = React.useMemo(() => {
       const filtered = effectiveLayers.filter((l) => {
-        if (l.groupId) {return false;}
-        if (l.visible === false) {return false;}
-        if (!isLayerVisible(l, viewportBounds, zoom, selectedLayerIds)) {return false;}
+        if (l.groupId) {
+          return false;
+        }
+        if (l.visible === false) {
+          return false;
+        }
+        if (!isLayerVisible(l, viewportBounds, zoom, selectedLayerIds)) {
+          return false;
+        }
         return true;
       });
 
@@ -114,7 +131,9 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
       }
 
       const selectedSet = new Set(selectedLayerIds);
-      if (selectedLayerId) {selectedSet.add(selectedLayerId);}
+      if (selectedLayerId) {
+        selectedSet.add(selectedLayerId);
+      }
 
       const prioritized: Layer[] = [];
       const candidates: Layer[] = [];
@@ -128,9 +147,8 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
       }
 
       if (viewportBounds) {
-        candidates.sort((a, b) =>
-          distanceToViewportCenter(a, viewportBounds) -
-          distanceToViewportCenter(b, viewportBounds)
+        candidates.sort(
+          (a, b) => distanceToViewportCenter(a, viewportBounds) - distanceToViewportCenter(b, viewportBounds)
         );
       }
 
@@ -141,12 +159,12 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
     return (
       <>
         {visibleLayers.map((l) => {
-          if (l.isMasking) {return null;}
+          if (l.isMasking) {
+            return null;
+          }
           const maskLayer = layerMasks.get(l.id);
 
-          const children = l.isGroup 
-            ? layers.filter(child => child.groupId === l.id && child.visible !== false)
-            : [];
+          const children = l.isGroup ? layers.filter((child) => child.groupId === l.id && child.visible !== false) : [];
 
           return (
             <React.Fragment key={l.id}>
@@ -174,7 +192,7 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
                 zoom={zoom}
                 previewAnimation={previewAnimation}
               />
-              {children.map(child => (
+              {children.map((child) => (
                 <CanvasLayerItemWrapper
                   key={child.id}
                   layer={child}

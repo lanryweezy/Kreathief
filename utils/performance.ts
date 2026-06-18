@@ -15,23 +15,20 @@ interface PerformanceMetric {
 /**
  * Measure and log an async operation's performance
  */
-export const measureOperation = async <T,>(
-  name: string,
-  operation: () => Promise<T>
-): Promise<T> => {
+export const measureOperation = async <T>(name: string, operation: () => Promise<T>): Promise<T> => {
   const start = performance.now();
-  
+
   try {
     const result = await operation();
     const duration = performance.now() - start;
-    
+
     logPerformance(name, duration);
-    
+
     // Warn about slow operations
     if (duration > 1000) {
       log.warn(`Slow operation: ${name} took ${duration.toFixed(2)}ms`);
     }
-    
+
     return result;
   } catch (error) {
     const duration = performance.now() - start;
@@ -43,22 +40,19 @@ export const measureOperation = async <T,>(
 /**
  * Measure a synchronous operation's performance
  */
-export const measureSync = <T,>(
-  name: string,
-  operation: () => T
-): T => {
+export const measureSync = <T>(name: string, operation: () => T): T => {
   const start = performance.now();
-  
+
   try {
     const result = operation();
     const duration = performance.now() - start;
-    
+
     logPerformance(name, duration);
-    
+
     if (duration > 100) {
       log.warn(`Slow sync operation: ${name} took ${duration.toFixed(2)}ms`);
     }
-    
+
     return result;
   } catch (error) {
     const duration = performance.now() - start;
@@ -72,20 +66,20 @@ export const measureSync = <T,>(
  */
 function logPerformance(name: string, duration: number) {
   const rating = getRating(duration);
-  
+
   const metric: PerformanceMetric = {
     name,
     value: duration,
     rating,
     timestamp: Date.now(),
   };
-  
+
   // Log to console in development
   if (import.meta.env.DEV) {
     const tag = rating === 'good' ? '[OK]' : rating === 'needs-improvement' ? '[WARN]' : '[ERR]';
     log.info(`${tag} ${name}: ${duration.toFixed(2)}ms (${rating})`);
   }
-  
+
   // Send to analytics in production
   if (import.meta.env.PROD) {
     sendToAnalytics(metric);
@@ -96,8 +90,12 @@ function logPerformance(name: string, duration: number) {
  * Get performance rating based on duration
  */
 function getRating(duration: number): 'good' | 'needs-improvement' | 'poor' {
-  if (duration < 100) {return 'good';}
-  if (duration < 300) {return 'needs-improvement';}
+  if (duration < 100) {
+    return 'good';
+  }
+  if (duration < 300) {
+    return 'needs-improvement';
+  }
   return 'poor';
 }
 
@@ -107,17 +105,17 @@ function getRating(duration: number): 'good' | 'needs-improvement' | 'poor' {
 function sendToAnalytics(metric: PerformanceMetric) {
   // TODO: Integrate with your analytics service
   // Example: Plausible, Mixpanel, Google Analytics, etc.
-  
+
   try {
     // For now, just store in sessionStorage for debugging
     const metrics = JSON.parse(sessionStorage.getItem('perf_metrics') || '[]');
     metrics.push(metric);
-    
+
     // Keep only last 100 metrics
     if (metrics.length > 100) {
       metrics.shift();
     }
-    
+
     sessionStorage.setItem('perf_metrics', JSON.stringify(metrics));
   } catch (error) {
     // Silently fail - don't break the app for analytics
@@ -148,20 +146,20 @@ export function clearPerformanceMetrics() {
  */
 export function getPerformanceSummary() {
   const metrics = getPerformanceMetrics();
-  
+
   if (metrics.length === 0) {
     return null;
   }
-  
+
   const summary = {
     total: metrics.length,
-    good: metrics.filter(m => m.rating === 'good').length,
-    needsImprovement: metrics.filter(m => m.rating === 'needs-improvement').length,
-    poor: metrics.filter(m => m.rating === 'poor').length,
+    good: metrics.filter((m) => m.rating === 'good').length,
+    needsImprovement: metrics.filter((m) => m.rating === 'needs-improvement').length,
+    poor: metrics.filter((m) => m.rating === 'poor').length,
     averageDuration: metrics.reduce((sum, m) => sum + m.value, 0) / metrics.length,
-    slowest: metrics.reduce((max, m) => m.value > max.value ? m : max, metrics[0]!),
+    slowest: metrics.reduce((max, m) => (m.value > max.value ? m : max), metrics[0]!),
   };
-  
+
   return summary;
 }
 
@@ -190,66 +188,67 @@ export function measure(name: string, startMark: string, endMark: string) {
 /**
  * Initialize Web Vitals monitoring (requires web-vitals package)
  * Install: npm install web-vitals
- * 
+ *
  * Note: This function is optional and will gracefully fail if web-vitals is not installed
  */
 export function initWebVitals() {
   if (import.meta.env.PROD) {
     // Dynamically import web-vitals to avoid bundling in development
     // @ts-ignore - web-vitals is optional
-    import('web-vitals').then(({ onCLS, onFID, onFCP, onLCP, onTTFB }: any) => {
-      onCLS((metric: any) => {
-        log.info('CLS:', metric);
-        sendToAnalytics({
-          name: 'CLS',
-          value: metric.value,
-          rating: metric.rating as any,
-          timestamp: Date.now(),
+    import('web-vitals')
+      .then(({ onCLS, onFID, onFCP, onLCP, onTTFB }: any) => {
+        onCLS((metric: any) => {
+          log.info('CLS:', metric);
+          sendToAnalytics({
+            name: 'CLS',
+            value: metric.value,
+            rating: metric.rating as any,
+            timestamp: Date.now(),
+          });
         });
-      });
-      
-      onFID((metric: any) => {
-        log.info('FID:', metric);
-        sendToAnalytics({
-          name: 'FID',
-          value: metric.value,
-          rating: metric.rating as any,
-          timestamp: Date.now(),
+
+        onFID((metric: any) => {
+          log.info('FID:', metric);
+          sendToAnalytics({
+            name: 'FID',
+            value: metric.value,
+            rating: metric.rating as any,
+            timestamp: Date.now(),
+          });
         });
-      });
-      
-      onFCP((metric: any) => {
-        log.info('FCP:', metric);
-        sendToAnalytics({
-          name: 'FCP',
-          value: metric.value,
-          rating: metric.rating as any,
-          timestamp: Date.now(),
+
+        onFCP((metric: any) => {
+          log.info('FCP:', metric);
+          sendToAnalytics({
+            name: 'FCP',
+            value: metric.value,
+            rating: metric.rating as any,
+            timestamp: Date.now(),
+          });
         });
-      });
-      
-      onLCP((metric: any) => {
-        log.info('LCP:', metric);
-        sendToAnalytics({
-          name: 'LCP',
-          value: metric.value,
-          rating: metric.rating as any,
-          timestamp: Date.now(),
+
+        onLCP((metric: any) => {
+          log.info('LCP:', metric);
+          sendToAnalytics({
+            name: 'LCP',
+            value: metric.value,
+            rating: metric.rating as any,
+            timestamp: Date.now(),
+          });
         });
-      });
-      
-      onTTFB((metric: any) => {
-        log.info('TTFB:', metric);
-        sendToAnalytics({
-          name: 'TTFB',
-          value: metric.value,
-          rating: metric.rating as any,
-          timestamp: Date.now(),
+
+        onTTFB((metric: any) => {
+          log.info('TTFB:', metric);
+          sendToAnalytics({
+            name: 'TTFB',
+            value: metric.value,
+            rating: metric.rating as any,
+            timestamp: Date.now(),
+          });
         });
+      })
+      .catch(() => {
+        // web-vitals not installed, skip silently
       });
-    }).catch(() => {
-      // web-vitals not installed, skip silently
-    });
   }
 }
-

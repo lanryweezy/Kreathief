@@ -11,7 +11,7 @@ export const AuthCallback: React.FC = () => {
   useEffect(() => {
     const handleCallback = async () => {
       const { data, error } = await supabase.auth.getSession();
-      
+
       if (error) {
         addToast('Authentication failed. Please try again.', 'error');
         navigate('/auth');
@@ -20,11 +20,7 @@ export const AuthCallback: React.FC = () => {
 
       if (data.session?.user) {
         // Fetch profile
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.session.user.id)
-          .single();
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.session.user.id).single();
 
         const p = profile as any;
 
@@ -34,7 +30,7 @@ export const AuthCallback: React.FC = () => {
           name: p?.name || data.session.user.email?.split('@')[0] || 'User',
           plan: p?.plan || 'free',
         });
-        
+
         addToast('Successfully signed in with Google!', 'success');
         navigate('/dashboard');
       } else {

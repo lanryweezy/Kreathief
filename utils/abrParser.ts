@@ -22,7 +22,7 @@ export class AbrParser {
 
   public parse(): AbrBrush[] {
     const brushes: AbrBrush[] = [];
-    
+
     // Header (2 bytes version, 2 bytes subversion)
     const version = this.view.getUint16(0);
     this.offset = 2;
@@ -49,9 +49,11 @@ export class AbrParser {
       } else {
         this.offset += size;
       }
-      
+
       // Align to 2 bytes
-      if (size % 2 !== 0) {this.offset++;}
+      if (size % 2 !== 0) {
+        this.offset++;
+      }
     }
 
     return brushes;
@@ -69,21 +71,21 @@ export class AbrParser {
       // Extract metadata (simplified)
       // Photoshop sampled brushes store bitmaps as RLE or raw
       // This is a complex internal format, we'll look for the 'Nm  ' (Name) block
-      
+
       const name = 'Imported Brush';
       const diameter = 0;
 
       // Skip internal headers to find Sampled Data
       this.offset += 8; // Unknown
-      
+
       // Attempt to extract bitmap data if available
       // (This requires full RLE decoding, for now we extract metadata)
-      
+
       brushes.push({
         name,
         size: diameter || 50,
         spacing: 25,
-        isSampled: true
+        isSampled: true,
       });
 
       this.offset = brushEnd;

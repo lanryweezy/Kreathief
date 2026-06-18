@@ -26,14 +26,16 @@ export const runAccessibilityAudit = (artboard: Artboard): AccessibilityAuditRes
   let passedChecks = 0;
 
   layers.forEach((layer) => {
-    if (!layer.visible) {return;}
+    if (!layer.visible) {
+      return;
+    }
 
     // 1. Check Contrast for Text
     if (layer.type === 'text') {
       totalChecks++;
       const textLayer = layer as TextLayer;
       const ratio = getContrastRatio(textLayer.color, bg);
-      
+
       // WCAG AA: 4.5:1 for normal text, 3:1 for large text
       const isLarge = textLayer.fontSize >= 18 || (textLayer.fontSize >= 14 && textLayer.fontWeight === '700');
       const threshold = isLarge ? 3 : 4.5;
@@ -46,7 +48,7 @@ export const runAccessibilityAudit = (artboard: Artboard): AccessibilityAuditRes
           type: 'contrast',
           severity: ratio < 3 ? 'error' : 'warning',
           message: `Low contrast ratio (${ratio.toFixed(2)}:1). Minimum required is ${threshold}:1.`,
-          suggestion: 'Adjust text or background color to improve legibility.'
+          suggestion: 'Adjust text or background color to improve legibility.',
         });
       } else {
         passedChecks++;
@@ -62,7 +64,7 @@ export const runAccessibilityAudit = (artboard: Artboard): AccessibilityAuditRes
           type: 'font-size',
           severity: 'warning',
           message: `Small font size (${textLayer.fontSize}px).`,
-          suggestion: 'Increase font size to at least 12px for better readability.'
+          suggestion: 'Increase font size to at least 12px for better readability.',
         });
       } else {
         passedChecks++;
@@ -81,7 +83,7 @@ export const runAccessibilityAudit = (artboard: Artboard): AccessibilityAuditRes
           type: 'alt-text',
           severity: 'error',
           message: 'Missing alternative text.',
-          suggestion: 'Add descriptive alt text for screen reader users.'
+          suggestion: 'Add descriptive alt text for screen reader users.',
         });
       } else {
         passedChecks++;
@@ -94,6 +96,6 @@ export const runAccessibilityAudit = (artboard: Artboard): AccessibilityAuditRes
   return {
     score,
     issues,
-    passedCount: passedChecks
+    passedCount: passedChecks,
   };
 };

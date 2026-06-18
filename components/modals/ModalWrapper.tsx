@@ -23,17 +23,23 @@ export const ModalWrapper: React.FC<ModalWrapperProps> = ({
 
   // Focus Trapping & ESC key
   useEffect(() => {
-    if (!isOpen) {return;}
+    if (!isOpen) {
+      return;
+    }
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {onClose();}
-      
+      if (e.key === 'Escape') {
+        onClose();
+      }
+
       if (e.key === 'Tab') {
         const focusable = modalRef.current?.querySelectorAll(
           'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         );
-        if (!focusable || focusable.length === 0) {return;}
-        
+        if (!focusable || focusable.length === 0) {
+          return;
+        }
+
         const first = focusable[0] as HTMLElement;
         const last = focusable[focusable.length - 1] as HTMLElement;
 
@@ -94,7 +100,7 @@ export const ModalWrapper: React.FC<ModalWrapperProps> = ({
                 <Icons.X className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
               </button>
             )}
-            
+
             {children}
           </motion.div>
         </div>

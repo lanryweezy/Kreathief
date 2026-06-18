@@ -61,7 +61,7 @@ export const AssetsPanel: React.FC = () => {
       if (activeSource === 'all' || activeSource === 'iconscout') {
         try {
           const isResults = await iconScoutService.search(searchQuery || 'trending', iconScoutType);
-          isResults.forEach(asset => {
+          isResults.forEach((asset) => {
             combined.push({
               id: `is-${asset.uuid}`,
               url: asset.previewUrl,
@@ -69,7 +69,7 @@ export const AssetsPanel: React.FC = () => {
               alt: asset.name,
               author: asset.author,
               source: 'iconscout',
-              type: asset.type === 'lottie' ? 'lottie' : 'image'
+              type: asset.type === 'lottie' ? 'lottie' : 'image',
             });
           });
         } catch (e) {
@@ -220,7 +220,9 @@ export const AssetsPanel: React.FC = () => {
                 }
               }}
               className={`flex-1 py-1.5 rounded-md text-[9px] font-medium transition-all ${
-                iconScoutType === type.id ? 'bg-[#00c4cc]/20 text-[#00c4cc] border border-[#00c4cc]' : 'text-gray-500 hover:text-gray-300'
+                iconScoutType === type.id
+                  ? 'bg-[#00c4cc]/20 text-[#00c4cc] border border-[#00c4cc]'
+                  : 'text-gray-500 hover:text-gray-300'
               }`}
             >
               {type.label}
@@ -290,7 +292,13 @@ export const AssetsPanel: React.FC = () => {
                               : 'bg-orange-500/30 text-orange-300'
                       }`}
                     >
-                      {photo.source === 'iconscout' ? 'IS' : photo.source === 'unsplash' ? 'U' : photo.source === 'freepik' ? 'F' : 'V'}
+                      {photo.source === 'iconscout'
+                        ? 'IS'
+                        : photo.source === 'unsplash'
+                          ? 'U'
+                          : photo.source === 'freepik'
+                            ? 'F'
+                            : 'V'}
                     </span>
                   </div>
                 </div>

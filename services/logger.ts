@@ -1,7 +1,7 @@
 /**
  * Enhanced Logging Service
  * Provides structured logging with levels, context, and optional remote reporting
- * 
+ *
  * @example
  * logger.info('User logged in', { userId: '123' });
  * logger.error('API failed', error, { endpoint: '/users' });

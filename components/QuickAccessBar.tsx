@@ -2,13 +2,52 @@ import React from 'react';
 
 // Simple inline icons for quick access bar
 const SimpleIcons = {
-  Undo: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>,
-  Redo: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>,
-  Copy: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="13" height="13" x="9" y="9" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
-  Paste: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1"/></svg>,
-  Trash: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>,
-  ZoomIn: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><line x1="11" x2="11" y1="8" y2="14"/><line x1="8" x2="14" y1="11" y2="11"/></svg>,
-  ZoomOut: () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><line x1="8" x2="14" y1="11" y2="11"/></svg>,
+  Undo: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M3 7v6h6" />
+      <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+    </svg>
+  ),
+  Redo: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M21 7v6h-6" />
+      <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7" />
+    </svg>
+  ),
+  Copy: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect width="13" height="13" x="9" y="9" rx="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+  ),
+  Paste: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <rect width="8" height="4" x="8" y="2" rx="1" />
+    </svg>
+  ),
+  Trash: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M3 6h18" />
+      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+    </svg>
+  ),
+  ZoomIn: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="11" cy="11" r="8" />
+      <path d="M21 21l-4.35-4.35" />
+      <line x1="11" x2="11" y1="8" y2="14" />
+      <line x1="8" x2="14" y1="11" y2="11" />
+    </svg>
+  ),
+  ZoomOut: () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <circle cx="11" cy="11" r="8" />
+      <path d="M21 21l-4.35-4.35" />
+      <line x1="8" x2="14" y1="11" y2="11" />
+    </svg>
+  ),
 };
 
 interface QuickAccessBarProps {
@@ -38,16 +77,14 @@ export const QuickAccessBar: React.FC<QuickAccessBarProps> = ({
   canCopy,
   canPaste,
   zoom,
-  onZoomChange
+  onZoomChange,
 }) => {
   const QuickButton = ({ onClick, disabled, title, children }: any) => (
     <button
       onClick={onClick}
       disabled={disabled}
       className={`p-2 rounded transition-all ${
-        disabled
-          ? 'opacity-30 cursor-not-allowed text-gray-600'
-          : 'text-gray-400 hover:text-white hover:bg-gray-700'
+        disabled ? 'opacity-30 cursor-not-allowed text-gray-600' : 'text-gray-400 hover:text-white hover:bg-gray-700'
       }`}
       title={title}
     >
@@ -102,9 +139,7 @@ export const QuickAccessBar: React.FC<QuickAccessBarProps> = ({
         >
           <SimpleIcons.ZoomOut />
         </button>
-        <span className="text-xs font-bold text-gray-400 w-10 text-center">
-          {Math.round(zoom * 100)}%
-        </span>
+        <span className="text-xs font-bold text-gray-400 w-10 text-center">{Math.round(zoom * 100)}%</span>
         <button
           onClick={() => onZoomChange(Math.min(3, zoom + 0.1))}
           className="p-1 text-gray-400 hover:text-white hover:bg-gray-600 rounded transition-colors"

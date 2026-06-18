@@ -86,16 +86,20 @@ export default async function handler(req: Request) {
 
     if (action === 'generateContent') {
       const modelConfig: any = { model: modelName || 'gemini-2.0-flash' };
-      if (generationConfig) {modelConfig.generationConfig = generationConfig;}
-      if (systemInstruction) {modelConfig.systemInstruction = systemInstruction;}
+      if (generationConfig) {
+        modelConfig.generationConfig = generationConfig;
+      }
+      if (systemInstruction) {
+        modelConfig.systemInstruction = systemInstruction;
+      }
 
       const model = ai.getGenerativeModel(modelConfig);
       let response;
       if (Array.isArray(contents)) {
-          response = await model.generateContent({ contents });
+        response = await model.generateContent({ contents });
       } else {
-          // Sometimes string or different format
-          response = await model.generateContent(contents);
+        // Sometimes string or different format
+        response = await model.generateContent(contents);
       }
 
       return new Response(

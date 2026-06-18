@@ -13,7 +13,16 @@ interface CropOverlayProps {
 type ResizeHandle = 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'e' | 'w';
 
 export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _canvasSize }) => {
-  const { croppingLayerId, artboards, cropArea: globalCropArea, setCropArea, applyCrop: globalApplyCrop, cancelCrop: globalCancelCrop, cropAspectRatio, setCropAspectRatio } = useStore(
+  const {
+    croppingLayerId,
+    artboards,
+    cropArea: globalCropArea,
+    setCropArea,
+    applyCrop: globalApplyCrop,
+    cancelCrop: globalCancelCrop,
+    cropAspectRatio,
+    setCropAspectRatio,
+  } = useStore(
     useShallow((state) => ({
       croppingLayerId: state.croppingLayerId,
       artboards: state.artboards,
@@ -26,7 +35,9 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
     }))
   );
 
-  const [localCropArea, setLocalCropArea] = useState<{ x: number, y: number, width: number, height: number } | null>(null);
+  const [localCropArea, setLocalCropArea] = useState<{ x: number; y: number; width: number; height: number } | null>(
+    null
+  );
 
   // Initialize local state from global on mount
   useEffect(() => {
@@ -45,7 +56,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
     setIsResizing(null);
   }, []);
 
-  const allLayers = artboards.flatMap(a => a.layers);
+  const allLayers = artboards.flatMap((a) => a.layers);
   const layer = allLayers.find((l) => l.id === croppingLayerId) as ImageLayer;
 
   const handleMouseMove = useCallback(
@@ -179,7 +190,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
     }
     // ensure state sync before action
     setTimeout(() => {
-        globalApplyCrop();
+      globalApplyCrop();
     }, 0);
   };
 
@@ -253,7 +264,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
             onTouchStart={(e) => handleMouseDown(e, 'nw')}
             className="absolute -top-4 -left-4 w-8 h-8 flex items-center justify-center z-50 pointer-events-auto cursor-nw-resize"
           >
-             <div className="w-4 h-4 bg-white border-2 border-[#7d2ae8] rounded-full shadow-md" />
+            <div className="w-4 h-4 bg-white border-2 border-[#7d2ae8] rounded-full shadow-md" />
           </div>
 
           {/* NE Handle */}
@@ -262,7 +273,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
             onTouchStart={(e) => handleMouseDown(e, 'ne')}
             className="absolute -top-4 -right-4 w-8 h-8 flex items-center justify-center z-50 pointer-events-auto cursor-ne-resize"
           >
-             <div className="w-4 h-4 bg-white border-2 border-[#7d2ae8] rounded-full shadow-md" />
+            <div className="w-4 h-4 bg-white border-2 border-[#7d2ae8] rounded-full shadow-md" />
           </div>
 
           {/* SW Handle */}
@@ -271,7 +282,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
             onTouchStart={(e) => handleMouseDown(e, 'sw')}
             className="absolute -bottom-4 -left-4 w-8 h-8 flex items-center justify-center z-50 pointer-events-auto cursor-sw-resize"
           >
-             <div className="w-4 h-4 bg-white border-2 border-[#7d2ae8] rounded-full shadow-md" />
+            <div className="w-4 h-4 bg-white border-2 border-[#7d2ae8] rounded-full shadow-md" />
           </div>
 
           {/* SE Handle */}
@@ -280,7 +291,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
             onTouchStart={(e) => handleMouseDown(e, 'se')}
             className="absolute -bottom-4 -right-4 w-8 h-8 flex items-center justify-center z-50 pointer-events-auto cursor-se-resize"
           >
-             <div className="w-4 h-4 bg-white border-2 border-[#7d2ae8] rounded-full shadow-md" />
+            <div className="w-4 h-4 bg-white border-2 border-[#7d2ae8] rounded-full shadow-md" />
           </div>
 
           {!cropAspectRatio && (
@@ -291,7 +302,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
                 onTouchStart={(e) => handleMouseDown(e, 'n')}
                 className="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-8 flex items-center justify-center z-40 pointer-events-auto cursor-ns-resize"
               >
-                 <div className="w-8 h-1.5 bg-white border border-[#7d2ae8] rounded-full shadow-sm" />
+                <div className="w-8 h-1.5 bg-white border border-[#7d2ae8] rounded-full shadow-sm" />
               </div>
 
               {/* S Handle */}
@@ -300,7 +311,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
                 onTouchStart={(e) => handleMouseDown(e, 's')}
                 className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-12 h-8 flex items-center justify-center z-40 pointer-events-auto cursor-ns-resize"
               >
-                 <div className="w-8 h-1.5 bg-white border border-[#7d2ae8] rounded-full shadow-sm" />
+                <div className="w-8 h-1.5 bg-white border border-[#7d2ae8] rounded-full shadow-sm" />
               </div>
 
               {/* W Handle */}
@@ -309,7 +320,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
                 onTouchStart={(e) => handleMouseDown(e, 'w')}
                 className="absolute top-1/2 -translate-y-1/2 -left-4 w-8 h-12 flex items-center justify-center z-40 pointer-events-auto cursor-ew-resize"
               >
-                 <div className="w-1.5 h-8 bg-white border border-[#7d2ae8] rounded-full shadow-sm" />
+                <div className="w-1.5 h-8 bg-white border border-[#7d2ae8] rounded-full shadow-sm" />
               </div>
 
               {/* E Handle */}
@@ -318,7 +329,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
                 onTouchStart={(e) => handleMouseDown(e, 'e')}
                 className="absolute top-1/2 -translate-y-1/2 -right-4 w-8 h-12 flex items-center justify-center z-40 pointer-events-auto cursor-ew-resize"
               >
-                 <div className="w-1.5 h-8 bg-white border border-[#7d2ae8] rounded-full shadow-sm" />
+                <div className="w-1.5 h-8 bg-white border border-[#7d2ae8] rounded-full shadow-sm" />
               </div>
             </>
           )}

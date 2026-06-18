@@ -19,18 +19,8 @@ interface TouchPoint {
  * Custom hook for handling touch gestures on mobile
  * Supports: pinch to zoom, two-finger rotate, pan
  */
-export const useTouchGestures = (
-  elementRef: React.RefObject<HTMLElement>,
-  options: TouchGestureOptions = {}
-) => {
-  const {
-    onPinchZoom,
-    onRotate,
-    onPan,
-    minZoom = 0.1,
-    maxZoom = 10,
-    enabled = true,
-  } = options;
+export const useTouchGestures = (elementRef: React.RefObject<HTMLElement>, options: TouchGestureOptions = {}) => {
+  const { onPinchZoom, onRotate, onPan, minZoom = 0.1, maxZoom = 10, enabled = true } = options;
 
   const initialDistance = useRef<number>(0);
   const initialAngle = useRef<number>(0);
@@ -57,7 +47,9 @@ export const useTouchGestures = (
   };
 
   useEffect(() => {
-    if (!enabled || !elementRef.current) {return;}
+    if (!enabled || !elementRef.current) {
+      return;
+    }
 
     const element = elementRef.current;
 
@@ -65,13 +57,13 @@ export const useTouchGestures = (
       if (e.touches.length === 2) {
         e.preventDefault();
         isGesturing.current = true;
-        
+
         const touch1 = e.touches[0];
         const touch2 = e.touches[1];
-        
+
         initialDistance.current = getDistance(touch1, touch2);
         initialAngle.current = getAngle(touch1, touch2);
-        
+
         lastTouchPoints.current = [
           { x: touch1.clientX, y: touch1.clientY },
           { x: touch2.clientX, y: touch2.clientY },
@@ -79,47 +71,45 @@ export const useTouchGestures = (
 
         haptics.light();
       } else if (e.touches.length === 1) {
-        lastTouchPoints.current = [
-          { x: e.touches[0].clientX, y: e.touches[0].clientY },
-        ];
+        lastTouchPoints.current = [{ x: e.touches[0].clientX, y: e.touches[0].clientY }];
       }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length === 2 && isGesturing.current) {
         e.preventDefault();
-        
+
         const touch1 = e.touches[0];
         const touch2 = e.touches[1];
-        
+
         // Pinch to zoom
         if (onPinchZoom) {
           const currentDistance = getDistance(touch1, touch2);
           const scale = currentDistance / initialDistance.current;
           const center = getCenter(touch1, touch2);
-          
+
           // Clamp scale
           const clampedScale = Math.max(minZoom, Math.min(maxZoom, scale));
           onPinchZoom(clampedScale, center);
         }
-        
+
         // Two-finger rotate
         if (onRotate) {
           const currentAngle = getAngle(touch1, touch2);
           const angleDelta = currentAngle - initialAngle.current;
           const center = getCenter(touch1, touch2);
-          
+
           onRotate(angleDelta, center);
         }
       } else if (e.touches.length === 1 && onPan && lastTouchPoints.current.length === 1) {
         const touch = e.touches[0];
         const lastTouch = lastTouchPoints.current[0];
-        
+
         const deltaX = touch.clientX - lastTouch.x;
         const deltaY = touch.clientY - lastTouch.y;
-        
+
         onPan(deltaX, deltaY);
-        
+
         lastTouchPoints.current = [{ x: touch.clientX, y: touch.clientY }];
       }
     };
@@ -130,7 +120,7 @@ export const useTouchGestures = (
         initialDistance.current = 0;
         initialAngle.current = 0;
       }
-      
+
       if (e.touches.length === 0) {
         lastTouchPoints.current = [];
       }

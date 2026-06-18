@@ -29,7 +29,9 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
     get().saveToHistory?.();
     const state = get();
     const currentArtboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
-    if (!currentArtboard) {return;}
+    if (!currentArtboard) {
+      return;
+    }
 
     const oldWidth = currentArtboard.width;
     const oldHeight = currentArtboard.height;
@@ -41,7 +43,7 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
     const newLayers = currentArtboard.layers.map((l: Layer) => {
       const cloned = structuredClone(l);
       cloned.id = uuidv4();
-      
+
       const constraints = l.constraints || { horizontal: 'scale', vertical: 'scale' };
       let lx = l.x;
       let ly = l.y;
@@ -50,7 +52,8 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
 
       // Horizontal Constraints
       switch (constraints.horizontal) {
-        case 'start': break;
+        case 'start':
+          break;
         case 'end': {
           const rightDist = oldWidth - (lx + lw);
           lx = newWidth - lw - rightDist;
@@ -59,7 +62,7 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
         case 'center': {
           const centerX = lx + lw / 2;
           const relCenterX = centerX / oldWidth;
-          lx = (relCenterX * newWidth) - lw / 2;
+          lx = relCenterX * newWidth - lw / 2;
           break;
         }
         case 'both': {
@@ -81,7 +84,8 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
 
       // Vertical Constraints
       switch (constraints.vertical) {
-        case 'start': break;
+        case 'start':
+          break;
         case 'end': {
           const bottomDist = oldHeight - (ly + lh);
           ly = newHeight - lh - bottomDist;
@@ -90,7 +94,7 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
         case 'center': {
           const centerY = ly + lh / 2;
           const relCenterY = centerY / oldHeight;
-          ly = (relCenterY * newHeight) - lh / 2;
+          ly = relCenterY * newHeight - lh / 2;
           break;
         }
         case 'both': {
@@ -112,9 +116,13 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
 
       cloned.x = lx;
       cloned.y = ly;
-      if ((cloned as any).width !== undefined) {(cloned as any).width = Math.max(1, lw);}
-      if ((cloned as any).height !== undefined) {(cloned as any).height = Math.max(1, lh);}
-      
+      if ((cloned as any).width !== undefined) {
+        (cloned as any).width = Math.max(1, lw);
+      }
+      if ((cloned as any).height !== undefined) {
+        (cloned as any).height = Math.max(1, lh);
+      }
+
       if (cloned.type === 'text') {
         const textLayer = cloned as TextLayer;
         const scale = Math.min(newWidth / oldWidth, newHeight / oldHeight);
@@ -125,17 +133,17 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
 
     set((state: any) => ({
       artboards: [
-        ...state.artboards, 
-        { 
-          id, 
-          name: newName || `${currentArtboard.name} (Resized)`, 
-          x, 
-          y: 0, 
-          width: newWidth, 
-          height: newHeight, 
+        ...state.artboards,
+        {
+          id,
+          name: newName || `${currentArtboard.name} (Resized)`,
+          x,
+          y: 0,
+          width: newWidth,
+          height: newHeight,
           layers: newLayers,
-          backgroundColor: currentArtboard.backgroundColor
-        }
+          backgroundColor: currentArtboard.backgroundColor,
+        },
       ],
       activeArtboardId: id,
       selectedLayerIds: [],
@@ -233,7 +241,9 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
     get().saveToHistory?.();
     const state = get();
     const artboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
-    if (!artboard) {return;}
+    if (!artboard) {
+      return;
+    }
 
     const newLayer = {
       id: `adj_${Date.now()}`,
@@ -255,11 +265,11 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
         hueRotate: 0,
         sepia: 0,
         invert: 0,
-      }
+      },
     };
 
     set((state: any) => ({
-      artboards: state.artboards.map((a: Artboard) => 
+      artboards: state.artboards.map((a: Artboard) =>
         a.id === state.activeArtboardId ? { ...a, layers: [...a.layers, newLayer] } : a
       ),
       selectedLayerIds: [newLayer.id],
@@ -353,11 +363,21 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
       const MIN_SAFE_VAL = -10000;
       const sanitizedPartial = { ...partial };
 
-      if (partial.x !== undefined) {sanitizedPartial.x = Math.max(MIN_SAFE_VAL, Math.min(MAX_SAFE_VAL, partial.x));}
-      if (partial.y !== undefined) {sanitizedPartial.y = Math.max(MIN_SAFE_VAL, Math.min(MAX_SAFE_VAL, partial.y));}
-      if ((partial as any).width !== undefined) {(sanitizedPartial as any).width = Math.max(1, Math.min(MAX_SAFE_VAL, (partial as any).width));}
-      if ((partial as any).height !== undefined) {(sanitizedPartial as any).height = Math.max(1, Math.min(MAX_SAFE_VAL, (partial as any).height));}
-      if (partial.opacity !== undefined) {sanitizedPartial.opacity = Math.max(0, Math.min(1, partial.opacity));}
+      if (partial.x !== undefined) {
+        sanitizedPartial.x = Math.max(MIN_SAFE_VAL, Math.min(MAX_SAFE_VAL, partial.x));
+      }
+      if (partial.y !== undefined) {
+        sanitizedPartial.y = Math.max(MIN_SAFE_VAL, Math.min(MAX_SAFE_VAL, partial.y));
+      }
+      if ((partial as any).width !== undefined) {
+        (sanitizedPartial as any).width = Math.max(1, Math.min(MAX_SAFE_VAL, (partial as any).width));
+      }
+      if ((partial as any).height !== undefined) {
+        (sanitizedPartial as any).height = Math.max(1, Math.min(MAX_SAFE_VAL, (partial as any).height));
+      }
+      if (partial.opacity !== undefined) {
+        sanitizedPartial.opacity = Math.max(0, Math.min(1, partial.opacity));
+      }
 
       let masterComponentId = '';
       state.artboards.forEach((a: Artboard) => {

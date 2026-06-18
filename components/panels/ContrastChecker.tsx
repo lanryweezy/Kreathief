@@ -17,22 +17,35 @@ export const ContrastChecker: React.FC<ContrastCheckerProps> = ({
   const safeBackground = backgroundColor.startsWith('#') ? backgroundColor : '#ffffff';
   const safeForeground = foregroundColor.startsWith('#') ? foregroundColor : '#000000';
 
-  const contrastRatio = useMemo(() => getContrastRatio(safeBackground, safeForeground), [safeBackground, safeForeground]);
-  
+  const contrastRatio = useMemo(
+    () => getContrastRatio(safeBackground, safeForeground),
+    [safeBackground, safeForeground]
+  );
+
   const wcagResult = useMemo(() => checkWCAG(safeBackground, safeForeground), [safeBackground, safeForeground]);
-  
+
   const suggestedColor = useMemo(() => getAccessibleTextColor(safeBackground), [safeBackground]);
 
   const getRatingColor = () => {
-    if (wcagResult.AAA) {return 'text-green-400';}
-    if (wcagResult.AA) {return 'text-yellow-400';}
+    if (wcagResult.AAA) {
+      return 'text-green-400';
+    }
+    if (wcagResult.AA) {
+      return 'text-yellow-400';
+    }
     return 'text-red-400';
   };
 
   const getRatingIcon = () => {
-    if (wcagResult.AAA) {return '✓✓✓';}
-    if (wcagResult.AA) {return '✓✓';}
-    if (wcagResult.largeAA) {return '✓';}
+    if (wcagResult.AAA) {
+      return '✓✓✓';
+    }
+    if (wcagResult.AA) {
+      return '✓✓';
+    }
+    if (wcagResult.largeAA) {
+      return '✓';
+    }
     return '✗';
   };
 
@@ -40,9 +53,7 @@ export const ContrastChecker: React.FC<ContrastCheckerProps> = ({
     <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4 space-y-4">
       <div className="flex items-center gap-2 mb-4">
         <Icons.Eye className="w-4 h-4 text-gray-400" />
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-          Contrast Checker
-        </h3>
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Contrast Checker</h3>
       </div>
 
       {/* Preview */}
@@ -50,10 +61,7 @@ export const ContrastChecker: React.FC<ContrastCheckerProps> = ({
         className="w-full h-32 rounded-lg flex items-center justify-center p-4"
         style={{ backgroundColor: safeBackground }}
       >
-        <p
-          className="text-center font-medium"
-          style={{ color: foregroundColor }}
-        >
+        <p className="text-center font-medium" style={{ color: foregroundColor }}>
           Sample Text
           <br />
           <span className="text-sm">Preview your colors here</span>
@@ -99,12 +107,9 @@ export const ContrastChecker: React.FC<ContrastCheckerProps> = ({
         </div>
       </div>
 
-
       {/* Contrast Ratio */}
       <div className="text-center py-3 bg-black/30 rounded-lg">
-        <div className={`text-3xl font-bold ${getRatingColor()}`}>
-          {contrastRatio.toFixed(2)}:1
-        </div>
+        <div className={`text-3xl font-bold ${getRatingColor()}`}>{contrastRatio.toFixed(2)}:1</div>
         <div className={`text-xs font-bold mt-1 ${getRatingColor()}`}>
           {getRatingIcon()} WCAG {wcagResult.level || 'Fail'}
         </div>
@@ -146,12 +151,8 @@ export const ContrastChecker: React.FC<ContrastCheckerProps> = ({
             onClick={() => setForegroundColor(suggestedColor)}
             className="w-full py-2 px-3 bg-[#252627] hover:bg-gray-700 border border-gray-600 rounded-lg text-xs text-gray-300 hover:text-white transition-all flex items-center justify-center gap-2"
           >
-            <div
-              className="w-6 h-6 rounded border border-gray-500"
-              style={{ backgroundColor: suggestedColor }}
-            />
-            Use {suggestedColor} (
-            {getContrastRatio(backgroundColor, suggestedColor).toFixed(2)}:1 contrast)
+            <div className="w-6 h-6 rounded border border-gray-500" style={{ backgroundColor: suggestedColor }} />
+            Use {suggestedColor} ({getContrastRatio(backgroundColor, suggestedColor).toFixed(2)}:1 contrast)
           </button>
         </div>
       )}

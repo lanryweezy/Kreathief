@@ -5,8 +5,8 @@ test.use({
 });
 
 test('verify all requested changes', async ({ page }) => {
-  page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
-  page.on('pageerror', err => console.log('BROWSER ERROR:', err.message));
+  page.on('console', (msg) => console.log('BROWSER LOG:', msg.text()));
+  page.on('pageerror', (err) => console.log('BROWSER ERROR:', err.message));
 
   // Go to the editor with QA bypass
   await page.goto('/');

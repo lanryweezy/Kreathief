@@ -133,6 +133,10 @@ export const algorithmicEnhance = (imageSrc: string): Promise<string> => {
 /**
  * Trace image to SVG paths via Web Worker.
  */
-export const traceImageToSVG = (imageSrc: string, colors: number = 2, cornerThreshold: number = 45): Promise<{ path: string; color: string }[]> => {
+export const traceImageToSVG = (
+  imageSrc: string,
+  colors: number = 2,
+  cornerThreshold: number = 45
+): Promise<{ path: string; color: string }[]> => {
   return heavyService.traceImageToSVG(imageSrc, colors, cornerThreshold);
 };

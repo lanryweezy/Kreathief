@@ -12,7 +12,13 @@ interface MaskToolsProps {
 }
 
 export const MaskTools = React.memo(
-  ({ layer, onUpdateLayer, documentColors: _documentColors, isPro: _isPro, onOpenPricing: _onOpenPricing }: MaskToolsProps) => {
+  ({
+    layer,
+    onUpdateLayer,
+    documentColors: _documentColors,
+    isPro: _isPro,
+    onOpenPricing: _onOpenPricing,
+  }: MaskToolsProps) => {
     const [showSettings, setShowSettings] = useState(false);
     const settingsRef = useRef<HTMLDivElement>(null);
 
@@ -78,7 +84,10 @@ export const MaskTools = React.memo(
       onUpdateLayer({ backgroundScale: scale });
     };
 
-    const hasImageFill = layer.type === 'text' ? !!(layer as any).imageFill : !!(layer as any).backgroundImage || !!(layer as any).imageFill;
+    const hasImageFill =
+      layer.type === 'text'
+        ? !!(layer as any).imageFill
+        : !!(layer as any).backgroundImage || !!(layer as any).imageFill;
 
     return (
       <div className="flex items-center gap-2">
@@ -138,7 +147,9 @@ export const MaskTools = React.memo(
 
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <span className="text-[9px] text-gray-500 font-bold uppercase block text-center">Offset X</span>
+                          <span className="text-[9px] text-gray-500 font-bold uppercase block text-center">
+                            Offset X
+                          </span>
                           <input
                             type="number"
                             value={(layer as any).imageFill?.offsetX || 0}
@@ -147,7 +158,9 @@ export const MaskTools = React.memo(
                           />
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[9px] text-gray-500 font-bold uppercase block text-center">Offset Y</span>
+                          <span className="text-[9px] text-gray-500 font-bold uppercase block text-center">
+                            Offset Y
+                          </span>
                           <input
                             type="number"
                             value={(layer as any).imageFill?.offsetY || 0}
@@ -193,7 +206,9 @@ export const MaskTools = React.memo(
 
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <span className="text-[9px] text-gray-500 font-bold uppercase block text-center">Offset X</span>
+                          <span className="text-[9px] text-gray-500 font-bold uppercase block text-center">
+                            Offset X
+                          </span>
                           <input
                             type="number"
                             value={(layer as any).backgroundPositionX || 0}
@@ -202,7 +217,9 @@ export const MaskTools = React.memo(
                           />
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[9px] text-gray-500 font-bold uppercase block text-center">Offset Y</span>
+                          <span className="text-[9px] text-gray-500 font-bold uppercase block text-center">
+                            Offset Y
+                          </span>
                           <input
                             type="number"
                             value={(layer as any).backgroundPositionY || 0}

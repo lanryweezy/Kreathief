@@ -1,7 +1,7 @@
 import { log } from '../utils/log';
 import { config } from '../config';
 
-export type AnalyticsEvent = 
+export type AnalyticsEvent =
   | 'export_design'
   | 'generate_image'
   | 'apply_template'
@@ -34,7 +34,7 @@ class AnalyticsService {
           if ((window as any).plausible) {
             (window as any).plausible(event, { props: properties });
           }
-        }
+        },
       });
 
       this.registerProvider({
@@ -43,7 +43,7 @@ class AnalyticsService {
           if ((window as any).gtag) {
             (window as any).gtag('event', event, properties);
           }
-        }
+        },
       });
     }
   }

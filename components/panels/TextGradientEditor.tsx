@@ -28,7 +28,9 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
   );
 
   const handleAddStop = useCallback(() => {
-    if (colors.length >= 10) {return;}
+    if (colors.length >= 10) {
+      return;
+    }
     const newStop: GradientStop = { color: '#ffffff', position: 50 };
     const newColors = [...colors, newStop].sort((a, b) => a.position - b.position);
     setColors(newColors);
@@ -37,7 +39,9 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
 
   const handleRemoveStop = useCallback(
     (index: number) => {
-      if (colors.length <= 2) {return;}
+      if (colors.length <= 2) {
+        return;
+      }
       const newColors = colors.filter((_, i) => i !== index);
       setColors(newColors);
       onChange({ enabled, type, angle, colors: newColors });
@@ -95,9 +99,7 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
       </div>
 
       {!enabled ? (
-        <p className="text-[10px] text-gray-500 text-center py-4">
-          Enable gradient to customize text colors
-        </p>
+        <p className="text-[10px] text-gray-500 text-center py-4">Enable gradient to customize text colors</p>
       ) : (
         <>
           {/* Preview */}
@@ -115,9 +117,7 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
                 onChange({ enabled, type: 'linear', angle, colors });
               }}
               className={`flex-1 px-3 py-1.5 rounded text-[10px] font-bold transition-all ${
-                type === 'linear'
-                  ? 'bg-[#7d2ae8] text-white'
-                  : 'bg-[#252627] text-gray-400 hover:text-white'
+                type === 'linear' ? 'bg-[#7d2ae8] text-white' : 'bg-[#252627] text-gray-400 hover:text-white'
               }`}
             >
               Linear
@@ -128,9 +128,7 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
                 onChange({ enabled, type: 'radial', angle, colors });
               }}
               className={`flex-1 px-3 py-1.5 rounded text-[10px] font-bold transition-all ${
-                type === 'radial'
-                  ? 'bg-[#7d2ae8] text-white'
-                  : 'bg-[#252627] text-gray-400 hover:text-white'
+                type === 'radial' ? 'bg-[#7d2ae8] text-white' : 'bg-[#252627] text-gray-400 hover:text-white'
               }`}
             >
               Radial

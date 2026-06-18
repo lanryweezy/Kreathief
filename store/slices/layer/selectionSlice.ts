@@ -8,7 +8,7 @@ export const createSelectionSlice: StateCreator<any, [], [], Partial<LayerSlice>
   multiSelectLayer: (id, shiftKey) => {
     set((state: any) => {
       const { selectedLayerIds, artboards, activeArtboardId } = state;
-      
+
       if (!shiftKey) {
         // Exclusive selection
         return { selectedLayerIds: [id] };

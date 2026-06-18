@@ -237,7 +237,7 @@ export const resolveConstraints = (
 ): { x: number; y: number; width?: number; height?: number } => {
   const { x = 0, y = 0, width = 100, constraints = { horizontal: 'start', vertical: 'start' } } = layer;
   const height = (layer as any).height || 100;
-  
+
   const resolved = { x, y };
 
   if (constraints.horizontal === 'scale' && constraints.vertical === 'scale') {
@@ -248,7 +248,7 @@ export const resolveConstraints = (
     resolved.x = (canvasSize.width - width) / 2;
   } else if (constraints.horizontal === 'start') {
     // default, usually handled by absolute positioning but we can pin it
-    resolved.x = 20; 
+    resolved.x = 20;
   } else if (constraints.horizontal === 'end') {
     resolved.x = canvasSize.width - width - 20;
   }
@@ -269,16 +269,34 @@ export const resolveConstraints = (
  */
 export const resolveSemanticConstraints = (
   simpleConstraints: string[]
-): { horizontal: 'start' | 'end' | 'center' | 'scale' | 'both'; vertical: 'start' | 'end' | 'center' | 'scale' | 'both' } => {
-  const result: { horizontal: 'start' | 'end' | 'center' | 'scale' | 'both'; vertical: 'start' | 'end' | 'center' | 'scale' | 'both' } = { horizontal: 'start', vertical: 'start' };
+): {
+  horizontal: 'start' | 'end' | 'center' | 'scale' | 'both';
+  vertical: 'start' | 'end' | 'center' | 'scale' | 'both';
+} => {
+  const result: {
+    horizontal: 'start' | 'end' | 'center' | 'scale' | 'both';
+    vertical: 'start' | 'end' | 'center' | 'scale' | 'both';
+  } = { horizontal: 'start', vertical: 'start' };
 
-  if (simpleConstraints.includes('center-h')) { result.horizontal = 'center'; }
-  if (simpleConstraints.includes('pin-right')) { result.horizontal = 'end'; }
-  if (simpleConstraints.includes('fill')) { result.horizontal = 'scale'; }
+  if (simpleConstraints.includes('center-h')) {
+    result.horizontal = 'center';
+  }
+  if (simpleConstraints.includes('pin-right')) {
+    result.horizontal = 'end';
+  }
+  if (simpleConstraints.includes('fill')) {
+    result.horizontal = 'scale';
+  }
 
-  if (simpleConstraints.includes('center-v')) { result.vertical = 'center'; }
-  if (simpleConstraints.includes('pin-bottom')) { result.vertical = 'end'; }
-  if (simpleConstraints.includes('fill')) { result.vertical = 'scale'; }
+  if (simpleConstraints.includes('center-v')) {
+    result.vertical = 'center';
+  }
+  if (simpleConstraints.includes('pin-bottom')) {
+    result.vertical = 'end';
+  }
+  if (simpleConstraints.includes('fill')) {
+    result.vertical = 'scale';
+  }
 
   return result;
 };

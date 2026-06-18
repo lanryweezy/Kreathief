@@ -6,19 +6,22 @@ export const TrustEthics: React.FC = () => {
   const principles = [
     {
       icon: Icons.Lock,
-      title: "Privacy Vault",
-      description: "Your design data is ephemeral and project-isolated. We never share your creative context with third parties or other users."
+      title: 'Privacy Vault',
+      description:
+        'Your design data is ephemeral and project-isolated. We never share your creative context with third parties or other users.',
     },
     {
       icon: Icons.Shield,
-      title: "No Training",
-      description: "We do not use your sketches, inputs, or final exports to train our AI models. Your proprietary work stays yours."
+      title: 'No Training',
+      description:
+        'We do not use your sketches, inputs, or final exports to train our AI models. Your proprietary work stays yours.',
     },
     {
       icon: Icons.Check,
-      title: "Traceable & Ethical",
-      description: "Transparent sourcing for all AI-generated assets. We prioritize licensed and ethically sourced datasets for our creative loop."
-    }
+      title: 'Traceable & Ethical',
+      description:
+        'Transparent sourcing for all AI-generated assets. We prioritize licensed and ethically sourced datasets for our creative loop.',
+    },
   ];
 
   return (
@@ -35,7 +38,7 @@ export const TrustEthics: React.FC = () => {
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Built for Professionals
             </motion.div>
-            
+
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -45,7 +48,7 @@ export const TrustEthics: React.FC = () => {
             >
               Enterprise-Grade <span className="text-emerald-400">Trust & Ethics.</span>
             </motion.h2>
-            
+
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}

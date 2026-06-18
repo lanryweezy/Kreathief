@@ -62,7 +62,7 @@ describe('useStore', () => {
         result.current.addLayer(newLayer);
       });
 
-      const activeArtboard = result.current.artboards.find(a => a.id === result.current.activeArtboardId);
+      const activeArtboard = result.current.artboards.find((a) => a.id === result.current.activeArtboardId);
       expect(activeArtboard?.layers.length).toBe(1);
       expect(activeArtboard?.layers[0].id).toBe('layer-1');
     });
@@ -103,7 +103,7 @@ describe('useStore', () => {
         result.current.updateLayer('layer-1', { text: 'Updated' } as any);
       });
 
-      const activeArtboard = result.current.artboards.find(a => a.id === result.current.activeArtboardId);
+      const activeArtboard = result.current.artboards.find((a) => a.id === result.current.activeArtboardId);
       const updatedLayer = activeArtboard?.layers[0] as any;
       expect(updatedLayer.text).toBe('Updated');
     });
@@ -137,7 +137,7 @@ describe('useStore', () => {
         result.current.deleteLayer('layer-to-delete');
       });
 
-      const activeArtboard = result.current.artboards.find(a => a.id === result.current.activeArtboardId);
+      const activeArtboard = result.current.artboards.find((a) => a.id === result.current.activeArtboardId);
       expect(activeArtboard ? activeArtboard.layers.length : 0).toBe(0);
     });
   });
@@ -204,7 +204,7 @@ describe('useStore', () => {
         result.current.addArtboard('A1');
       });
 
-      await new Promise(r => setTimeout(r, 10));
+      await new Promise((r) => setTimeout(r, 10));
 
       act(() => {
         result.current.addLayer({
@@ -233,7 +233,7 @@ describe('useStore', () => {
         result.current.undo();
       });
 
-      const activeArtboard = result.current.artboards.find(a => a.id === result.current.activeArtboardId);
+      const activeArtboard = result.current.artboards.find((a) => a.id === result.current.activeArtboardId);
       expect(activeArtboard ? activeArtboard.layers.length : 0).toBe(0);
     });
   });

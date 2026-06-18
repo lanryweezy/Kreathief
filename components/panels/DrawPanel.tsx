@@ -116,8 +116,18 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
   const setBrushJitter = useStore((state) => state.setBrushJitter);
 
   const colors = [
-    '#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff', '#ffff00',
-    '#ff00ff', '#00ffff', '#7d2ae8', '#00c4cc', '#ff9900', '#ff66b2',
+    '#000000',
+    '#ffffff',
+    '#ff0000',
+    '#00ff00',
+    '#0000ff',
+    '#ffff00',
+    '#ff00ff',
+    '#00ffff',
+    '#7d2ae8',
+    '#00c4cc',
+    '#ff9900',
+    '#ff66b2',
   ];
 
   const handleColorChange = (color: string) => {
@@ -129,17 +139,19 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
 
   const handleAbrImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) {return;}
+    if (!file) {
+      return;
+    }
 
     try {
       const buffer = await file.arrayBuffer();
       const parser = new AbrParser(buffer);
       const brushes = parser.parse();
-      
-      const newBrushes = brushes.map(b => ({
+
+      const newBrushes = brushes.map((b) => ({
         ...b,
         id: uuidv4(),
-        tipData: b.tipData || ''
+        tipData: b.tipData || '',
       }));
 
       addCustomBrushes(newBrushes);
@@ -157,20 +169,14 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
           <Icons.Brush className="w-5 h-5 text-[#7d2ae8]" />
           Creative Drawing
         </h3>
-        <button 
+        <button
           onClick={() => fileInputRef.current?.click()}
           className="p-1.5 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 rounded-lg transition-all"
           title="Import ABR Brushes"
         >
           <Icons.Plus className="w-4 h-4" />
         </button>
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          accept=".abr" 
-          className="hidden" 
-          onChange={handleAbrImport} 
-        />
+        <input type="file" ref={fileInputRef} accept=".abr" className="hidden" onChange={handleAbrImport} />
       </div>
 
       <svg width="0" height="0" className="absolute pointer-events-none">
@@ -236,7 +242,9 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
       {/* Custom Brushes */}
       {customBrushes.length > 0 && (
         <div className="mb-6">
-          <label className="text-xs font-bold text-gray-400 mb-3 block uppercase tracking-wider">Imported Brushes</label>
+          <label className="text-xs font-bold text-gray-400 mb-3 block uppercase tracking-wider">
+            Imported Brushes
+          </label>
           <div className="grid grid-cols-4 gap-2">
             {customBrushes.map((brush) => (
               <button
@@ -254,7 +262,11 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
                 title={brush.name}
               >
                 {brush.tipData ? (
-                  <img src={brush.tipData} className="w-full h-full object-contain invert grayscale brightness-200" alt="" />
+                  <img
+                    src={brush.tipData}
+                    className="w-full h-full object-contain invert grayscale brightness-200"
+                    alt=""
+                  />
                 ) : (
                   <Icons.Brush className="w-4 h-4" />
                 )}
@@ -302,9 +314,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
 
         <label className="text-xs font-bold text-gray-400 mb-3 block uppercase tracking-wider">Vector Tools</label>
         <div className="grid grid-cols-2 gap-2">
-          {[
-            { id: BrushType.VECTOR_PENCIL, name: 'Vector Pen', icon: Icons.Pen },
-          ].map((type) => (
+          {[{ id: BrushType.VECTOR_PENCIL, name: 'Vector Pen', icon: Icons.Pen }].map((type) => (
             <button
               key={type.id}
               onClick={() => {
@@ -458,7 +468,9 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
                 className="w-3 h-3 accent-[#7d2ae8] bg-gray-800 rounded border-gray-700 focus:ring-[#7d2ae8]"
               />
             </div>
-            <span className="text-[9px] text-gray-500 leading-none block mt-1">Switches back to Move/Select tool after clicking Done</span>
+            <span className="text-[9px] text-gray-500 leading-none block mt-1">
+              Switches back to Move/Select tool after clicking Done
+            </span>
           </div>
         </div>
       </div>

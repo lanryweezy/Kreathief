@@ -23,8 +23,10 @@ const UploadsPanel = React.lazy(() => import('./panels/UploadsPanel'));
 const AssetsPanel = React.lazy(() => import('./panels/AssetsPanel'));
 const ComponentsPanel = React.lazy(() => import('./panels/ComponentsPanel'));
 const CommentsPanel = React.lazy(() => import('./panels/CommentsPanel'));
-const MotionPanel = React.lazy(() => import('./panels/MotionPanel').then(m => ({ default: m.MotionPanel })));
-const AccessibilityPanel = React.lazy(() => import('./panels/AccessibilityPanel').then(m => ({ default: m.AccessibilityPanel })));
+const MotionPanel = React.lazy(() => import('./panels/MotionPanel').then((m) => ({ default: m.MotionPanel })));
+const AccessibilityPanel = React.lazy(() =>
+  import('./panels/AccessibilityPanel').then((m) => ({ default: m.AccessibilityPanel }))
+);
 import { MockupPanel } from './panels/MockupPanel';
 import { ListSkeleton, GridSkeleton, CardSkeleton } from './Skeleton';
 
@@ -40,7 +42,12 @@ const PanelLoading = ({ tab }: { tab: NavTab }) => {
     case NavTab.MAGIC:
     case NavTab.MOCKUP:
     case NavTab.ASSISTANT:
-      return <div className="space-y-4 pt-4"><CardSkeleton /><CardSkeleton /></div>;
+      return (
+        <div className="space-y-4 pt-4">
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+      );
     default:
       return (
         <div className="flex h-full w-full items-center justify-center bg-[#13161a]">
@@ -61,12 +68,20 @@ interface SidePanelProps {
 }
 
 export const SidePanel = React.memo(
-  ({ onGenerate, onApplyTheme, onApplyLayout, getCanvasSnapshot, uploadedImage, onStartDesign, onPreviewMotion }: SidePanelProps) => {
+  ({
+    onGenerate,
+    onApplyTheme,
+    onApplyLayout,
+    getCanvasSnapshot,
+    uploadedImage,
+    onStartDesign,
+    onPreviewMotion,
+  }: SidePanelProps) => {
     const artboards = useStore((state) => state.artboards);
     const activeArtboardId = useStore((state) => state.activeArtboardId);
     const activeTab = useStore((state) => state.activeTab);
-    const layers = React.useMemo(() => 
-      (artboards || []).find(a => a.id === activeArtboardId)?.layers || [], 
+    const layers = React.useMemo(
+      () => (artboards || []).find((a) => a.id === activeArtboardId)?.layers || [],
       [artboards, activeArtboardId]
     );
     const selectedLayerIds = useStore((state) => state.selectedLayerIds);
@@ -90,7 +105,8 @@ export const SidePanel = React.memo(
     const setMode = useStore((state) => state.setMode);
     const handleApplyTemplate = useStore((state) => state.handleApplyTemplate);
 
-    const selectedLayerId = (selectedLayerIds && selectedLayerIds.length > 0) ? selectedLayerIds[selectedLayerIds.length - 1] : null;
+    const selectedLayerId =
+      selectedLayerIds && selectedLayerIds.length > 0 ? selectedLayerIds[selectedLayerIds.length - 1] : null;
     const selectedLayer = layers?.find((l: any) => l?.id === selectedLayerId) || null;
     const selectedTextLayer = selectedLayer?.type === 'text' ? (selectedLayer as TextLayer) : null;
 
@@ -98,7 +114,7 @@ export const SidePanel = React.memo(
 
     return (
       <ErrorBoundary componentName="SidePanel" variant="widget">
-        <motion.div 
+        <motion.div
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ type: 'spring', damping: 25, stiffness: 120 }}
@@ -107,8 +123,8 @@ export const SidePanel = React.memo(
           className="w-full md:w-[320px] bg-transparent md:bg-[#13161a]/95 md:backdrop-blur-xl border-r border-white/5 flex flex-col z-20 shrink-0 shadow-2xl relative overflow-y-auto overflow-x-hidden custom-scrollbar"
         >
           <AnimatePresence mode="wait">
-            <motion.div 
-              key={activeTab} 
+            <motion.div
+              key={activeTab}
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
@@ -127,9 +143,7 @@ export const SidePanel = React.memo(
                 {activeTab === NavTab.MEDIA && <MediaPanel />}
                 {activeTab === NavTab.ELEMENTS && <ElementsPanel />}
 
-                {activeTab === NavTab.UPLOADS && (
-                  <UploadsPanel />
-                )}
+                {activeTab === NavTab.UPLOADS && <UploadsPanel />}
 
                 {activeTab === NavTab.PHOTOS && <AssetsPanel />}
 
@@ -152,7 +166,10 @@ export const SidePanel = React.memo(
                   <div className="flex flex-col items-center justify-center h-full p-8 text-center">
                     <Icons.Zap className="w-12 h-12 text-gray-600 mb-4" />
                     <h3 className="text-lg font-bold text-white mb-2">Text Effects</h3>
-                    <p className="text-sm text-gray-400">Select a text layer to unlock amazing text effects like transformations, shadows, 3D depth, and textures.</p>
+                    <p className="text-sm text-gray-400">
+                      Select a text layer to unlock amazing text effects like transformations, shadows, 3D depth, and
+                      textures.
+                    </p>
                   </div>
                 )}
 
@@ -213,7 +230,9 @@ export const SidePanel = React.memo(
                   />
                 )}
 
-                {activeTab === NavTab.MOCKUP && <MockupPanel onExportForMockup={getCanvasSnapshot || (async () => '')} />}
+                {activeTab === NavTab.MOCKUP && (
+                  <MockupPanel onExportForMockup={getCanvasSnapshot || (async () => '')} />
+                )}
 
                 {activeTab === NavTab.COMMENTS && <CommentsPanel />}
 

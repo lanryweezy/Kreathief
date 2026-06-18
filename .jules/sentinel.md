@@ -80,33 +80,45 @@
 **Vulnerability:** The application was loading `import.meta.env.VITE_DYNAMIC_MOCKUPS_API_KEY` into `config/index.ts` and passing it to the client-side `services/dynamicMockupsService.ts`, directly exposing a secret API key to users via the compiled frontend bundle.
 **Learning:** In Vite, any environment variable prefixed with `VITE_` is statically injected into the client bundle at build time. Secret keys or tokens for backend services should never use this prefix if they are imported directly in client code.
 **Prevention:** If an external service requires a secret API key, implement a server-side proxy route (e.g., an Edge Function like `api/dynamic-mockups.ts`) to handle the requests securely. The client should only interact with this proxy, and the secret key should be safely stored in the server's environment without the `VITE_` prefix.
+
 ## 2026-06-11 - Add Security Event Logging
+
 **Vulnerability:** The application was missing security event logging for critical authentication events and data export events as recommended by the `AUDIT_SECURITY_COMPLIANCE.md` (P1 Priority). Lacking audit trails makes tracking and identifying compromised accounts or large-scale data breaches difficult.
 **Learning:** For a system processing user data and authenticating users, establishing an audit trail is critical to trace back "who did what and when."
 **Prevention:** Always log authentication attempts (success and failures) and critical data export/modification events securely (e.g. into `security_logs` table) to maintain an auditable footprint.
 
 ## 2026-06-12 - Fix Path Traversal Vulnerability in Freepik API Proxy
+
 **Vulnerability:** The `api/freepik.ts` serverless edge function constructed a backend API request dynamically by appending user input (`url.searchParams.get('basePath')`) directly to the base URL in the `poll` action. This allowed a potential path traversal vulnerability where an attacker could provide arbitrary paths (like `../../some-other-endpoint`) to interact with unintended endpoints within the Freepik API under the application's authenticated context.
 **Learning:** Avoid path traversal vulnerabilities by never appending untrusted user input directly to URLs or file paths. When dynamically routing requests based on user input, rely on explicit allowlists rather than attempting to sanitize paths.
 **Prevention:** Always strictly validate or allowlist dynamic path segments from user input before constructing or appending them to base URLs or filesystem paths.
+
 ## 2026-06-12 - Prevent Path Traversal in Freepik API Proxy
+
 **Vulnerability:** The `api/freepik.ts` endpoint allowed users to supply an arbitrary `basePath` via URL parameters in the `poll` action, which was then directly concatenated into the upstream API URL. This resulted in a path traversal vulnerability that could allow an attacker to make unauthorized requests to any Freepik API endpoint using the server's securely stored API key.
 **Learning:** Dynamically constructing proxy request URLs from user input without validation allows attackers to bypass intended restrictions and access arbitrary endpoints on the target service, effectively turning the proxy into an open gateway for the provided service.
 **Prevention:** Always use a strict allowlist for dynamic path segments when constructing URLs for downstream API requests to ensure users can only access explicitly permitted endpoints.
 
-## 2026-06-12 - Prevent Backend Secret Leakage by Removing VITE_ Prefix Fallbacks
+## 2026-06-12 - Prevent Backend Secret Leakage by Removing VITE\_ Prefix Fallbacks
+
 **Vulnerability:** Several serverless proxy endpoints (`api/fal.ts`, `api/freepik.ts`, `api/iconscout.ts`, `api/streamline.ts`, `api/unsplash.ts`) used a fallback pattern of `process.env.VITE_API_KEY || process.env.API_KEY` for sensitive API secrets.
 **Learning:** If a developer places a sensitive backend secret in their `.env` file using the `VITE_` prefix to satisfy the fallback, the Vite bundler will statically inject that secret into the client-side JavaScript bundle, resulting in a critical secret leakage vulnerability.
 **Prevention:** Backend API proxy functions must exclusively rely on non-prefixed environment variables (e.g., `process.env.API_KEY`) for sensitive credentials. Removing the `VITE_` prefix fallbacks forces the correct configuration and inherently protects against bundler injection.
+
 ## 2026-06-13 - Prevent Path Traversal and Parameter Injection in API Proxies
+
 **Vulnerability:** The API proxies for third-party services (`api/freepik.ts`, `api/iconscout.ts`, `api/streamline.ts`, `api/unsplash.ts`, `api/vecteezy.ts`) appended user-supplied URL query parameters (like `page`, `type`, `resourceId`, `uuid`, `hash`) directly into outgoing upstream HTTP requests. This created a parameter injection vulnerability where an attacker could inject `&` to override upstream API parameters, and a path traversal vulnerability where an attacker could use `../` to access unintended upstream endpoints under the server authenticated context.
 **Learning:** Unsanitized user inputs placed directly into upstream URL paths or query strings allow attackers to manipulate the backend request structure. This can bypass rate limits, access hidden data, or hijack the server API quotas.
 **Prevention:** Always use `encodeURIComponent()` when dynamically constructing URLs using user-provided input to ensure special characters like `&`, `=`, `/`, and `?` are safely encoded as literal string values.
+
 ## 2026-06-14 - Fix Path Traversal in Freepik API Proxy
+
 **Vulnerability:** The `api/freepik.ts` endpoint constructed a proxy request URL using the `taskId` parameter directly from user input without URL encoding in the `poll` action. This allowed for a potential path traversal vulnerability where an attacker could provide an arbitrary path to access unintended Freepik API endpoints using the server's securely stored API key.
 **Learning:** Even when the base path is allowlisted, failing to encode subsequent path segments derived from user input still leaves the proxy vulnerable to path traversal attacks (e.g., `123/../../other-endpoint`).
 **Prevention:** Always apply `encodeURIComponent()` to any user-provided string that is injected into a URL path or query parameter, ensuring the browser treats the input as literal data rather than structural URL syntax.
-## 2026-06-17 - Prevent Backend Secret Leakage by Removing VITE_ Prefix for Vecteezy API
+
+## 2026-06-17 - Prevent Backend Secret Leakage by Removing VITE\_ Prefix for Vecteezy API
+
 **Vulnerability:** The serverless proxy endpoint `api/vecteezy.ts` explicitly accessed backend secrets using `process.env.VITE_VECTEEZY_ACCOUNT_ID` and `process.env.VITE_VECTEEZY_SECRET_KEY`.
 **Learning:** If a developer places a sensitive backend secret in their `.env` file using the `VITE_` prefix as requested by the server logic, the Vite bundler will statically inject that secret into the client-side JavaScript bundle, resulting in a critical secret leakage vulnerability.
 **Prevention:** Backend API proxy functions must exclusively rely on non-prefixed environment variables (e.g., `process.env.VECTEEZY_ACCOUNT_ID`) for sensitive credentials. Removing the `VITE_` prefixes forces the correct configuration and inherently protects against bundler injection.

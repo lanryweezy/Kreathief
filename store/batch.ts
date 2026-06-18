@@ -19,4 +19,3 @@ export function runBatched<T>(fn: () => T | Promise<T>): Promise<T> | T {
     }
   }
 }
-

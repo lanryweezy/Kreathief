@@ -54,18 +54,26 @@ export const MobileContextMenu: React.FC<MobileContextMenuProps> = ({
       action: onSendToBack,
       color: 'from-orange-500 to-yellow-500',
     },
-    ...(onLock ? [{
-      icon: Icons.Lock,
-      label: 'Lock',
-      action: onLock,
-      color: 'from-purple-500 to-pink-500',
-    }] : []),
-    ...(onHide ? [{
-      icon: Icons.EyeOff,
-      label: 'Hide',
-      action: onHide,
-      color: 'from-gray-500 to-gray-600',
-    }] : []),
+    ...(onLock
+      ? [
+          {
+            icon: Icons.Lock,
+            label: 'Lock',
+            action: onLock,
+            color: 'from-purple-500 to-pink-500',
+          },
+        ]
+      : []),
+    ...(onHide
+      ? [
+          {
+            icon: Icons.EyeOff,
+            label: 'Hide',
+            action: onHide,
+            color: 'from-gray-500 to-gray-600',
+          },
+        ]
+      : []),
     {
       icon: Icons.Trash,
       label: 'Delete',
@@ -99,10 +107,7 @@ export const MobileContextMenu: React.FC<MobileContextMenuProps> = ({
             <div className="px-6 py-4 border-b border-white/5">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-bold text-white">Layer Actions</h3>
-                <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-white/10 rounded-xl transition-colors"
-                >
+                <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
                   <Icons.X className="w-5 h-5 text-gray-400" />
                 </button>
               </div>

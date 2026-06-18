@@ -36,7 +36,7 @@ class PsdService {
       }
       const id = crypto.randomUUID();
       this.callbacks.set(id, { resolve, reject });
-      
+
       if (transfer) {
         this.worker.postMessage({ type, payload, id }, transfer);
       } else {

@@ -11,12 +11,7 @@ interface MobileToolbarProps {
   onDraw: () => void;
 }
 
-export const MobileToolbar: React.FC<MobileToolbarProps> = ({
-  onAddText,
-  onAddShape,
-  onAddImage,
-  onDraw,
-}) => {
+export const MobileToolbar: React.FC<MobileToolbarProps> = ({ onAddText, onAddShape, onAddImage, onDraw }) => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const setCommandPaletteOpen = useStore((state) => state.setCommandPaletteOpen);
 
@@ -84,9 +79,10 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
                 min-w-[64px] h-14 rounded-xl
                 transition-all duration-300
                 active:scale-90
-                ${activeCategory === tool.category
-                  ? `bg-gradient-to-br ${tool.gradient} text-white shadow-lg`
-                  : 'text-gray-400 hover:text-white'
+                ${
+                  activeCategory === tool.category
+                    ? `bg-gradient-to-br ${tool.gradient} text-white shadow-lg`
+                    : 'text-gray-400 hover:text-white'
                 }
               `}
             >
@@ -94,18 +90,20 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
               <span className="text-[9px] font-black uppercase tracking-tighter">{tool.label}</span>
             </button>
           ))}
-          
+
           <div className="w-px h-8 bg-white/5 mx-1" />
-          
+
           <button
             onClick={() => {
-               haptics.heavy();
-               if(confirm('Clear all layers?')) {useStore.getState().setLayers([]);}
+              haptics.heavy();
+              if (confirm('Clear all layers?')) {
+                useStore.getState().setLayers([]);
+              }
             }}
             className="flex flex-col items-center justify-center gap-1 min-w-[64px] h-14 text-red-500/50 active:text-red-500 transition-colors"
           >
-             <Icons.Trash className="w-5 h-5" />
-             <span className="text-[9px] font-black uppercase tracking-tighter">Clear</span>
+            <Icons.Trash className="w-5 h-5" />
+            <span className="text-[9px] font-black uppercase tracking-tighter">Clear</span>
           </button>
         </div>
       </div>
@@ -131,7 +129,9 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({
                   className="flex flex-col items-center justify-center gap-2 h-20 rounded-xl bg-white/5 border border-white/5 active:bg-[#7d2ae8] active:border-[#7d2ae8] transition-all group"
                 >
                   <shape.icon className="w-6 h-6 text-gray-400 group-active:text-white transition-colors" />
-                  <span className="text-[9px] font-bold text-gray-500 group-active:text-white uppercase">{shape.label}</span>
+                  <span className="text-[9px] font-bold text-gray-500 group-active:text-white uppercase">
+                    {shape.label}
+                  </span>
                 </button>
               ))}
             </div>

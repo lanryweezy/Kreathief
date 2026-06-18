@@ -37,7 +37,6 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           className="text-center w-full max-w-5xl mb-10 relative flex flex-col items-center"
         >
-
           <div className="absolute -inset-10 bg-white/5 blur-[100px] -z-10 rounded-full"></div>
           <h1 className="text-6xl md:text-[90px] lg:text-[140px] font-black tracking-tighter leading-[0.85] text-white select-none text-balance">
             From idea to design <br className="hidden md:block" />
@@ -95,8 +94,6 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
               </span>
             </button>
           </MagneticButton>
-
-
         </motion.div>
 
         {/* EXPLODED UI HERO VISUAL */}

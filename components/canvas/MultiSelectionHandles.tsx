@@ -25,20 +25,24 @@ export const MultiSelectionHandles = React.memo(({ layers, onResize, onRotate }:
   );
 
   // Create a memoized proxy layer representing the group for the handles
-  const groupLayer: Layer = useMemo(() => ({
-    id: 'group_proxy',
-    type: 'rectangle',
-    x: bounds.x,
-    y: bounds.y,
-    width: bounds.width,
-    height: bounds.height,
-    rotation: 0,
-    opacity: 1,
-    locked: false,
-    visible: true,
-    cornerRadius: 0,
-    color: 'transparent',
-  } as any), [bounds.x, bounds.y, bounds.width, bounds.height]);
+  const groupLayer: Layer = useMemo(
+    () =>
+      ({
+        id: 'group_proxy',
+        type: 'rectangle',
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height,
+        rotation: 0,
+        opacity: 1,
+        locked: false,
+        visible: true,
+        cornerRadius: 0,
+        color: 'transparent',
+      }) as any,
+    [bounds.x, bounds.y, bounds.width, bounds.height]
+  );
 
   if (layers.length === 0) {
     return null;
@@ -104,7 +108,9 @@ export const MultiSelectionHandles = React.memo(({ layers, onResize, onRotate }:
             onMouseDown={(e) => onRotate(e, groupLayer)}
             onDoubleClick={(e) => {
               e.stopPropagation();
-              (window as any).dispatchEvent(new CustomEvent('canvas-reset-rotation', { detail: { ids: layers.map(l => l.id) } }));
+              (window as any).dispatchEvent(
+                new CustomEvent('canvas-reset-rotation', { detail: { ids: layers.map((l) => l.id) } })
+              );
             }}
             className="w-7 h-7 bg-white border-2 border-[#7d2ae8] rounded-full cursor-grab flex items-center justify-center hover:bg-[#7d2ae8] hover:text-white shadow-lg transition-all active:cursor-grabbing hover:scale-110"
             title="Double-click to reset"
@@ -118,4 +124,3 @@ export const MultiSelectionHandles = React.memo(({ layers, onResize, onRotate }:
 });
 
 MultiSelectionHandles.displayName = 'MultiSelectionHandles';
-

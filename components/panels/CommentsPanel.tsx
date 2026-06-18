@@ -6,11 +6,13 @@ export const CommentsPanel: React.FC = () => {
   const { projects, projectId, resolveCanvasComment, deleteCanvasComment } = useStore();
   const project = projects.find((p) => p.id === projectId);
 
-  if (!project) {return null;}
+  if (!project) {
+    return null;
+  }
 
   const comments = project.comments || [];
-  const openComments = comments.filter(c => !c.resolved).sort((a, b) => b.createdAt - a.createdAt);
-  const resolvedComments = comments.filter(c => c.resolved).sort((a, b) => b.createdAt - a.createdAt);
+  const openComments = comments.filter((c) => !c.resolved).sort((a, b) => b.createdAt - a.createdAt);
+  const resolvedComments = comments.filter((c) => c.resolved).sort((a, b) => b.createdAt - a.createdAt);
 
   return (
     <div className="flex flex-col h-full bg-[#13161a]">
@@ -44,7 +46,10 @@ export const CommentsPanel: React.FC = () => {
                 </h4>
                 <div className="space-y-3">
                   {openComments.map((comment) => (
-                    <div key={comment.id} className="bg-[#1e1e1e] border border-gray-700 rounded-xl p-3 shadow-md group">
+                    <div
+                      key={comment.id}
+                      className="bg-[#1e1e1e] border border-gray-700 rounded-xl p-3 shadow-md group"
+                    >
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex items-center gap-2">
                           <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#7d2ae8] to-[#00c4cc] flex items-center justify-center text-[10px] font-bold text-white shadow-sm">

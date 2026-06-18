@@ -75,16 +75,18 @@ export const MobileQuickActions: React.FC = () => {
       color: 'from-red-500 to-orange-500',
       show: hasSelection,
     },
-  ].filter(action => action.show);
+  ].filter((action) => action.show);
 
   return (
     <div className="fixed bottom-24 right-6 z-40 md:hidden">
       {/* Quick Action Buttons */}
-      <div className={`
+      <div
+        className={`
         flex flex-col-reverse gap-3 mb-3
         transition-all duration-300 ease-out
         ${isExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}
-      `}>
+      `}
+      >
         {quickActions.map((action, index) => (
           <button
             key={action.label}
@@ -97,7 +99,7 @@ export const MobileQuickActions: React.FC = () => {
               active:scale-95 transition-all duration-200
             `}
             style={{
-              transitionDelay: isExpanded ? `${index * 50}ms` : '0ms'
+              transitionDelay: isExpanded ? `${index * 50}ms` : '0ms',
             }}
           >
             <action.icon className="w-5 h-5" />
@@ -125,12 +127,7 @@ export const MobileQuickActions: React.FC = () => {
       </button>
 
       {/* Backdrop when expanded */}
-      {isExpanded && (
-        <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm -z-10"
-          onClick={handleToggle}
-        />
-      )}
+      {isExpanded && <div className="fixed inset-0 bg-black/20 backdrop-blur-sm -z-10" onClick={handleToggle} />}
     </div>
   );
 };

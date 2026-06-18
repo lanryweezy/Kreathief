@@ -126,7 +126,12 @@ describe('StorageService Sync', () => {
         id: 'pending-test',
         name: 'Pending Test',
         updatedAt: Date.now(),
-        state: { layers: [], canvasBackgroundColor: '#fff', canvasFilters: {}, canvasSize: { width: 100, height: 100 } },
+        state: {
+          layers: [],
+          canvasBackgroundColor: '#fff',
+          canvasFilters: {},
+          canvasSize: { width: 100, height: 100 },
+        },
       };
 
       await storageService.saveProject(testProject);
@@ -145,7 +150,12 @@ describe('StorageService Sync', () => {
         id: 'sync-clear-test',
         name: 'Sync Clear Test',
         updatedAt: Date.now(),
-        state: { layers: [], canvasBackgroundColor: '#fff', canvasFilters: {}, canvasSize: { width: 100, height: 100 } },
+        state: {
+          layers: [],
+          canvasBackgroundColor: '#fff',
+          canvasFilters: {},
+          canvasSize: { width: 100, height: 100 },
+        },
       };
 
       await storageService.saveProject(testProject);
@@ -169,7 +179,12 @@ describe('StorageService Sync', () => {
         id: 'retry-test',
         name: 'Retry Test',
         updatedAt: Date.now(),
-        state: { layers: [], canvasBackgroundColor: '#fff', canvasFilters: {}, canvasSize: { width: 100, height: 100 } },
+        state: {
+          layers: [],
+          canvasBackgroundColor: '#fff',
+          canvasFilters: {},
+          canvasSize: { width: 100, height: 100 },
+        },
       };
 
       await storageService.saveProject(testProject);
@@ -189,7 +204,12 @@ describe('StorageService Sync', () => {
         id: 'max-retry-test',
         name: 'Max Retry Test',
         updatedAt: Date.now(),
-        state: { layers: [], canvasBackgroundColor: '#fff', canvasFilters: {}, canvasSize: { width: 100, height: 100 } },
+        state: {
+          layers: [],
+          canvasBackgroundColor: '#fff',
+          canvasFilters: {},
+          canvasSize: { width: 100, height: 100 },
+        },
       };
 
       await storageService.saveProject(testProject);
@@ -216,7 +236,12 @@ describe('StorageService Sync', () => {
         id: 'conflict-test',
         name: 'Conflict Test',
         updatedAt: Date.now(),
-        state: { layers: [], canvasBackgroundColor: '#fff', canvasFilters: {}, canvasSize: { width: 100, height: 100 } },
+        state: {
+          layers: [],
+          canvasBackgroundColor: '#fff',
+          canvasFilters: {},
+          canvasSize: { width: 100, height: 100 },
+        },
       };
 
       await storageService.saveProject(testProject);

@@ -93,10 +93,7 @@ describe('IconScout Service', () => {
       const results = await iconScoutService.search('cube', '3d');
 
       expect(results[0].type).toBe('3d');
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('product_type=3d-asset'),
-        expect.any(Object)
-      );
+      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('product_type=3d-asset'), expect.any(Object));
     });
 
     it('should return empty array on API error', async () => {
@@ -122,7 +119,7 @@ describe('IconScout Service', () => {
         expect.any(String),
         expect.objectContaining({
           headers: {
-            'Accept': 'application/json',
+            Accept: 'application/json',
           },
         })
       );

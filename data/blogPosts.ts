@@ -16,7 +16,8 @@ const BASE_BLOG_POSTS: BlogPost[] = [
   {
     id: 'ultimate-canva-alternative-2026',
     title: 'Why Kreathief is the Ultimate Canva Alternative for 2026',
-    excerpt: 'Read why tens of thousands of designers and marketers are migrating from Canva to Kreathief to unlock true professional freedom without the subscription trap.',
+    excerpt:
+      'Read why tens of thousands of designers and marketers are migrating from Canva to Kreathief to unlock true professional freedom without the subscription trap.',
     author: 'Sulaiman Adebayo',
     date: 'March 10, 2026',
     image: '/images/hero_abstract_glass_1772614949077.png',
@@ -70,12 +71,13 @@ While other platforms limit how many images you can generate per month or restri
 If you are making quick social posts for a local bake sale, Canva remains a fantastic, easy-to-use option. But if you are building a scalable brand, looking to take control of your vector assets, and wanting to use AI as a professional tool rather than a novelty, it’s time to upgrade.
 
 Kreathief offers the speed of a template editor with the power of a professional suite. It is the ultimate design alternative you need in 2026.
-        `
+        `,
   },
   {
     id: 'figma-vs-kreathief-marketing',
     title: 'Figma vs. Kreathief: Which is Better for Marketing Teams?',
-    excerpt: 'Figma is great for UX, but is it the right tool for marketing graphics? We break down the differences and why Kreathief dominates the social media design workflow.',
+    excerpt:
+      'Figma is great for UX, but is it the right tool for marketing graphics? We break down the differences and why Kreathief dominates the social media design workflow.',
     author: 'Sarah Jenkins',
     date: 'March 8, 2026',
     image: '/images/template_thumb_1_1772615134954.png',
@@ -138,12 +140,13 @@ Kreathief provides advanced styling: 3D neon extrusions, realistic metallic text
 If your team is designing a SaaS dashboard, mapping a user journey, or building a React design system, you should undoubtedly use Figma. There is no better tool on the market for product design.
 
 But if your team is launching an ad campaign, designing YouTube thumbnails, generating mood boards, or heavily utilizing AI to create visual storytelling... Kreathief will save you hundreds of hours. Stop using a hammer to turn a screw; use the tool built explicitly for marketing impact.
-        `
+        `,
   },
   {
     id: 'top-5-ai-design-tools-ranked',
     title: 'The Top 5 AI-Powered Design Tools (Rated & Ranked)',
-    excerpt: 'We tested the top AI design software on the market, evaluating them on speed, accuracy, and usability. See who came out on top.',
+    excerpt:
+      'We tested the top AI design software on the market, evaluating them on speed, accuracy, and usability. See who came out on top.',
     author: 'Alex Rivero',
     date: 'March 5, 2026',
     image: '/images/hero_ai_design_future_1771994385499.png',
@@ -209,12 +212,13 @@ Kreathief approaches AI not as a separate generative tool, but as a deeply integ
 Because the AI is contextually aware of the canvas, you can use generative fill alongside native text-on-path operations and SVG exports seamlessly. It doesn't break a sweat, nor does it ask for a $600 yearly subscription fee. It empowers the professional while remaining accessible to the ambitious beginner.
 
 **Score: 9.8/10**
-        `
+        `,
   },
   {
     id: 'cut-out-complex-backgrounds',
     title: 'How to Cut Out Complex Backgrounds in 1 Click: Adobe vs. Kreathief',
-    excerpt: 'The ultimate showdown. We test Photoshop\'s Magic Wand against Kreathief\'s Neural Cutout engine on the hardest images we could find.',
+    excerpt:
+      "The ultimate showdown. We test Photoshop's Magic Wand against Kreathief's Neural Cutout engine on the hardest images we could find.",
     author: 'Sulaiman Adebayo',
     date: 'March 2, 2026',
     image: '/images/feature_cutout_mockup_1772615585150.png',
@@ -276,7 +280,7 @@ Kreathief uses Semantic Edge Detection. This means the AI generates a multi-laye
 If you enjoy the tactile process of manually painting masks, tinkering with feather sliders, and paying an ongoing subscription for a heavy desktop application, Adobe Photoshop remains a formidable tool.
 
 However, if you are a modern marketer, content creator, or designer who wants a flawless, professional-grade cutout in one second so you can move on to the actual creative process—compositing, typography, and layout—Kreathief is the undisputed winner.
-        `
+        `,
   },
   {
     id: 'future-of-vector-graphics',
@@ -339,12 +343,13 @@ Additionally, Kreathief allows you to sketch a rough, jagged shape with your mou
 We have finally reached the tipping point. The friction of downloading, installing, updating, and managing licenses for heavy desktop graphic software is no longer justifiable for the vast majority of creative workflows.
 
 The browser has won. Welcome to the future of vector design.
-        `
+        `,
   },
   {
     id: 'real-time-collaboration-broken',
     title: 'Why Real-Time Collaboration is Broken (And How We Fixed It)',
-    excerpt: 'Cursor-chasing is fun for two minutes, but terrible for actual productivity. Here’s how we redesigned multiplayer design.',
+    excerpt:
+      'Cursor-chasing is fun for two minutes, but terrible for actual productivity. Here’s how we redesigned multiplayer design.',
     author: 'Elena Rostova',
     date: 'February 26, 2026',
     image: '/images/feature_collab_mockup_1772615650011.png',
@@ -403,12 +408,13 @@ There's no more cluttered workspace filled with "Option A," "Option B," and "Opt
 Collaboration shouldn't mean chaos. It shouldn't mean watching your alignment get destroyed in real-time. It should mean controlled synergy, where every stakeholder has exactly the tools they need to contribute, and nothing more. 
 
 Kreathief’s Guided Collaboration engine brings sanity back to the creative review process.
-        `
+        `,
   },
   {
     id: 'graphic-design-trends-2026',
     title: 'Top 5 Graphic Design Trends for 2026',
-    excerpt: 'Explore the visual aesthetics that will shape digital design this year, from neuro-typography to tactile 3D.',
+    excerpt:
+      'Explore the visual aesthetics that will shape digital design this year, from neuro-typography to tactile 3D.',
     author: 'David Wright',
     date: 'February 22, 2026',
     image: '/images/blog_teaser_design_trends_1771994416495.png',
@@ -451,12 +457,13 @@ A logo must be designed as a system of motion. How does it enter the screen? How
 
 ## Conclusion
 2026 is the year of breaking the digital fourth wall. Whether through hyper-realistic textures, emotionally fluid typography, or impossible AI surrealism, the goal is to make the user *feel* something tactile through the glass screen.
-        `
+        `,
   },
   {
     id: 'typography-in-ui-design-complete-guide',
     title: 'The Ultimate Guide to Typography in UI Design',
-    excerpt: 'Mastering the art of text in user interfaces. From establishing hierarchies to ensuring maximum accessibility and legibility.',
+    excerpt:
+      'Mastering the art of text in user interfaces. From establishing hierarchies to ensuring maximum accessibility and legibility.',
     author: 'Maria Garcia',
     date: 'February 18, 2026',
     image: '/images/auth_screenshot_1772019791162.png',
@@ -518,12 +525,13 @@ Always check your contrast ratios.Your text color and background color must have
 
 ## Conclusion
 Good UI typography is invisible.The user shouldn't look at an app and think "wow, what a nice font." They should simply consume the raw information effortlessly, guided silently by your meticulous choices in scale, weight, and spacing.
-`
+`,
   },
   {
     id: 'guide-to-ai-generative-art',
-    title: 'The Designer\'s Guide to AI Generative Art in 2026',
-    excerpt: 'Prompting is out. Direct manipulation is in. See how the best designers are using AI not as a slot machine, but as a paintbrush.',
+    title: "The Designer's Guide to AI Generative Art in 2026",
+    excerpt:
+      'Prompting is out. Direct manipulation is in. See how the best designers are using AI not as a slot machine, but as a paintbrush.',
     author: 'Sulaiman Adebayo',
     date: 'February 15, 2026',
     image: '/images/hero_floating_palette_1772559659004.png',
@@ -552,12 +560,13 @@ Generative fill(inpainting) is where the real magic happens.Got a perfect photo 
 The biggest hurdle has always been brand consistency.Kreathief allows you to upload your brand's specific style—be it minimalist 3D illustrations or gritty vintage photography—and standardizes all AI outputs to match that exact aesthetic fingerprint.
 
 Stop fighting the machine and start directing it.
-        `
+        `,
   },
   {
     id: 'building-a-brand-kit',
     title: 'Building a Brand Kit: From Zero to Professional in Minutes',
-    excerpt: 'A step-by-step guide to setting up your fonts, color palettes, and logos to ensure your entire team designs on-brand, every single time.',
+    excerpt:
+      'A step-by-step guide to setting up your fonts, color palettes, and logos to ensure your entire team designs on-brand, every single time.',
     author: 'Rachel Bloom',
     date: 'February 10, 2026',
     image: '/images/hero_typography_panel_1772614945039.png',
@@ -587,8 +596,8 @@ When a junior marketer creates a new flyer layout, the text automatically defaul
 
 ## Automation is Key
 Once your Brand Kit is active, Kreathief's "Magic Brand" button will instantly apply your specific colors and fonts to *any* template in our 100,000+ library. You can take a generic poster template and make it look like *your* brand in exactly one click.
-  `
-  }
+  `,
+  },
 ];
 
 export const BLOG_POSTS: BlogPost[] = [...BASE_BLOG_POSTS, ...EXTRA_BLOG_POSTS];

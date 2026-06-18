@@ -18,7 +18,7 @@ export class BooleanOperations {
   private static vectorPathToPaper(path: VectorPath): paper.PathItem {
     initPaper();
     const paperPath = new paper.Path();
-    
+
     path.points.forEach((point, i) => {
       if (i === 0 || point.isMove) {
         paperPath.moveTo(new paper.Point(point.x, point.y));
@@ -50,7 +50,7 @@ export class BooleanOperations {
    */
   private static paperToVectorPath(pathItem: paper.PathItem): VectorPath {
     const points: VectorPoint[] = [];
-    
+
     if (pathItem instanceof paper.Path) {
       pathItem.segments.forEach((segment) => {
         const pt = VectorUtils.createPoint(segment.point.x, segment.point.y);
@@ -62,20 +62,22 @@ export class BooleanOperations {
         }
         points.push(pt);
       });
-      
+
       return {
         points,
-        isClosed: pathItem.closed
+        isClosed: pathItem.closed,
       };
     } else if (pathItem instanceof paper.CompoundPath) {
       // Handle compound paths (e.g. shapes with holes)
-      // For now, we flatten or take the first child to maintain compatibility 
+      // For now, we flatten or take the first child to maintain compatibility
       // with the single-path layer system, or use isMove for sub-paths.
       pathItem.children.forEach((child: any) => {
         if (child instanceof paper.Path) {
           child.segments.forEach((segment, i) => {
             const pt = VectorUtils.createPoint(segment.point.x, segment.point.y);
-            if (i === 0 && points.length > 0) {pt.isMove = true;}
+            if (i === 0 && points.length > 0) {
+              pt.isMove = true;
+            }
             if (segment.handleIn.x !== 0 || segment.handleIn.y !== 0) {
               pt.handleIn = { x: segment.handleIn.x, y: segment.handleIn.y };
             }
@@ -88,14 +90,18 @@ export class BooleanOperations {
       });
       return {
         points,
-        isClosed: true
+        isClosed: true,
       };
     }
 
     return { points: [], isClosed: false };
   }
 
-  private static runBoolean(pathA: VectorPath, pathB: VectorPath, operation: 'unite' | 'subtract' | 'intersect' | 'exclude'): VectorPath {
+  private static runBoolean(
+    pathA: VectorPath,
+    pathB: VectorPath,
+    operation: 'unite' | 'subtract' | 'intersect' | 'exclude'
+  ): VectorPath {
     const itemA = this.vectorPathToPaper(pathA);
     const itemB = this.vectorPathToPaper(pathB);
 
@@ -147,7 +153,9 @@ export class BooleanOperations {
   }
 
   static flatten(path: VectorPath, _tolerance = 1.0): { x: number; y: number }[] {
-    if (path.points.length === 0) {return [];}
+    if (path.points.length === 0) {
+      return [];
+    }
     const flattened: { x: number; y: number }[] = [];
 
     for (let i = 0; i < path.points.length; i++) {
@@ -187,10 +195,14 @@ export class BooleanOperations {
     const poly = this.flatten(path);
     let inside = false;
     for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-      const xi = poly[i].x, yi = poly[i].y;
-      const xj = poly[j].x, yj = poly[j].y;
+      const xi = poly[i].x,
+        yi = poly[i].y;
+      const xj = poly[j].x,
+        yj = poly[j].y;
       const intersect = yi > point.y !== yj > point.y && point.x < ((xj - xi) * (point.y - yi)) / (yj - yi) + xi;
-      if (intersect) {inside = !inside;}
+      if (intersect) {
+        inside = !inside;
+      }
     }
     return inside;
   }

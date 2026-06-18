@@ -13,7 +13,8 @@ Kreathief's identity is not "another design tool." It's a system that thinks abo
 
 **The Positioning**: "Design with ambient intelligence. Typography and balance that feel natural."
 
-**The Philosophy**: 
+**The Philosophy**:
+
 - No chat, no commands, no prompts
 - System observes, learns, suggests
 - Typography is first-class, not buried
@@ -274,22 +275,26 @@ This spec defines the three pillars of Kreathief's identity:
 ## Non-Functional Requirements
 
 ### Performance
+
 - Optical weight calculation: < 50ms for 100 elements
 - Typography suggestion generation: < 100ms
 - Real-time feedback updates: < 100ms
 - No frame drops during layout adjustments (maintain 60fps)
 
 ### Reliability
+
 - Optical weight calculations must be consistent (same input → same output)
 - Suggestions must not corrupt design state
 - Learning system must gracefully handle edge cases
 
 ### Debuggability
+
 - All optical weight calculations must be explainable (show formula)
 - All suggestions must be traceable (show reasoning)
 - Learning system must be inspectable (show learned patterns)
 
 ### Privacy
+
 - User behavior learning is opt-in
 - Learned preferences are stored locally
 - No data sent to external servers for learning
@@ -299,6 +304,7 @@ This spec defines the three pillars of Kreathief's identity:
 ## Success Metrics
 
 ### Phase 4 Completion
+
 - Users report "system understands my design intent" in feedback
 - Typography controls are used 3x more than before
 - Optical weight suggestions accepted in 50%+ of cases

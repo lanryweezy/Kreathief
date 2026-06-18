@@ -19,30 +19,34 @@ export const TransformTools = React.memo(({ selectedLayer }: TransformToolsProps
   const pendingChanges = useRef<Record<string, any>>({});
 
   const debouncedUpdateLayers = useMemo(
-    () => debounce(() => {
-      if (Object.keys(pendingChanges.current).length > 0 && onUpdateLayers) {
-        onUpdateLayers(pendingChanges.current);
-        pendingChanges.current = {};
-      }
-    }, 150),
+    () =>
+      debounce(() => {
+        if (Object.keys(pendingChanges.current).length > 0 && onUpdateLayers) {
+          onUpdateLayers(pendingChanges.current);
+          pendingChanges.current = {};
+        }
+      }, 150),
     [onUpdateLayers]
   );
 
-  const handleUpdateLayer = useCallback((changes: any) => {
-    if (selectedLayer) {
-      // Batch changes
-      pendingChanges.current = {
-        ...pendingChanges.current,
-        [selectedLayer.id]: {
-          ...pendingChanges.current[selectedLayer.id],
-          ...changes
-        }
-      };
+  const handleUpdateLayer = useCallback(
+    (changes: any) => {
+      if (selectedLayer) {
+        // Batch changes
+        pendingChanges.current = {
+          ...pendingChanges.current,
+          [selectedLayer.id]: {
+            ...pendingChanges.current[selectedLayer.id],
+            ...changes,
+          },
+        };
 
-      // Debounce update
-      debouncedUpdateLayers();
-    }
-  }, [selectedLayer, onUpdateLayers, debouncedUpdateLayers]);
+        // Debounce update
+        debouncedUpdateLayers();
+      }
+    },
+    [selectedLayer, onUpdateLayers, debouncedUpdateLayers]
+  );
 
   // FIX: Cleanup on unmount
   useEffect(() => {
@@ -56,13 +60,16 @@ export const TransformTools = React.memo(({ selectedLayer }: TransformToolsProps
     };
   }, [debouncedUpdateLayers, onUpdateLayers]);
 
-  const handleUnitChange = useCallback((key: string, value: string) => {
-    const floatVal = parseFloat(value);
-    if (!isNaN(floatVal)) {
-      const pxVal = unitToPx(floatVal, unit);
-      handleUpdateLayer({ [key]: pxVal });
-    }
-  }, [unit, handleUpdateLayer]);
+  const handleUnitChange = useCallback(
+    (key: string, value: string) => {
+      const floatVal = parseFloat(value);
+      if (!isNaN(floatVal)) {
+        const pxVal = unitToPx(floatVal, unit);
+        handleUpdateLayer({ [key]: pxVal });
+      }
+    },
+    [unit, handleUpdateLayer]
+  );
 
   return (
     <div className="flex items-center gap-3">
@@ -87,17 +94,25 @@ export const TransformTools = React.memo(({ selectedLayer }: TransformToolsProps
             min={1}
             width="w-10 sm:w-14"
           />
-          
+
           <div className="flex flex-col items-center -mx-1 z-10">
-            <div className={`w-0.5 h-2 transition-colors ${selectedLayer.lockProportions ? 'bg-[#7d2ae8]' : 'bg-transparent'}`} />
+            <div
+              className={`w-0.5 h-2 transition-colors ${selectedLayer.lockProportions ? 'bg-[#7d2ae8]' : 'bg-transparent'}`}
+            />
             <button
               onClick={() => handleUpdateLayer({ lockProportions: !selectedLayer.lockProportions })}
               className={`p-0.5 rounded-full transition-all border ${selectedLayer.lockProportions ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white' : 'bg-[#252627] border-gray-700 text-gray-500 hover:text-gray-300'}`}
               title="Lock Aspect Ratio"
             >
-              {selectedLayer.lockProportions ? <Icons.Lock className="w-2.5 h-2.5" /> : <Icons.Unlock className="w-2.5 h-2.5" />}
+              {selectedLayer.lockProportions ? (
+                <Icons.Lock className="w-2.5 h-2.5" />
+              ) : (
+                <Icons.Unlock className="w-2.5 h-2.5" />
+              )}
             </button>
-            <div className={`w-0.5 h-2 transition-colors ${selectedLayer.lockProportions ? 'bg-[#7d2ae8]' : 'bg-transparent'}`} />
+            <div
+              className={`w-0.5 h-2 transition-colors ${selectedLayer.lockProportions ? 'bg-[#7d2ae8]' : 'bg-transparent'}`}
+            />
           </div>
 
           {selectedLayer.type !== 'text' && (
@@ -113,7 +128,7 @@ export const TransformTools = React.memo(({ selectedLayer }: TransformToolsProps
           {/* Visual connected borders for #12 */}
           {selectedLayer.lockProportions && selectedLayer.type !== 'text' && (
             <div className="absolute -right-1 top-0 bottom-0 w-2 pointer-events-none animate-fadeIn">
-                <div className="absolute top-[20%] bottom-[20%] right-full w-4 border-y border-r border-[#7d2ae8]/50 rounded-r-md" />
+              <div className="absolute top-[20%] bottom-[20%] right-full w-4 border-y border-r border-[#7d2ae8]/50 rounded-r-md" />
             </div>
           )}
         </div>

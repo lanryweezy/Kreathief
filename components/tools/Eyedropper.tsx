@@ -7,11 +7,7 @@ interface EyedropperProps {
   isActive: boolean;
 }
 
-export const Eyedropper: React.FC<EyedropperProps> = ({
-  onColorPick,
-  onClose,
-  isActive,
-}) => {
+export const Eyedropper: React.FC<EyedropperProps> = ({ onColorPick, onClose, isActive }) => {
   const [pickedColor, setPickedColor] = useState<string>('#000000');
   const [hexValue, setHexValue] = useState<string>('#000000');
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -20,7 +16,9 @@ export const Eyedropper: React.FC<EyedropperProps> = ({
 
   // Create a full-screen canvas for color picking
   useEffect(() => {
-    if (!isActive || !overlayRef.current) {return;}
+    if (!isActive || !overlayRef.current) {
+      return;
+    }
 
     const overlay = overlayRef.current;
     const rect = overlay.getBoundingClientRect();
@@ -48,7 +46,7 @@ export const Eyedropper: React.FC<EyedropperProps> = ({
       //   // Fallback: just use a solid color
       //   overlay.style.pointerEvents = 'auto';
       // });
-      
+
       // Fallback for now
       overlay.style.pointerEvents = 'auto';
     }
@@ -104,7 +102,9 @@ export const Eyedropper: React.FC<EyedropperProps> = ({
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
   };
 
-  if (!isActive) {return null;}
+  if (!isActive) {
+    return null;
+  }
 
   return (
     <>
@@ -142,10 +142,7 @@ export const Eyedropper: React.FC<EyedropperProps> = ({
               backgroundPosition: '0 0, 0 5px, 5px -5px, -5px 0px',
             }}
           >
-            <div
-              className="w-full h-full"
-              style={{ backgroundColor: pickedColor }}
-            />
+            <div className="w-full h-full" style={{ backgroundColor: pickedColor }} />
           </div>
         </div>
 
@@ -157,16 +154,12 @@ export const Eyedropper: React.FC<EyedropperProps> = ({
             top: position.y + 20,
           }}
         >
-          <div
-            className="w-10 h-10 rounded border border-gray-600"
-            style={{ backgroundColor: pickedColor }}
-          />
+          <div className="w-10 h-10 rounded border border-gray-600" style={{ backgroundColor: pickedColor }} />
           <div className="flex flex-col">
-            <span className="text-white font-bold text-sm font-mono uppercase">
-              {hexValue}
-            </span>
+            <span className="text-white font-bold text-sm font-mono uppercase">{hexValue}</span>
             <span className="text-gray-400 text-xs">
-              RGB({parseInt(hexValue.slice(1, 3), 16)}, {parseInt(hexValue.slice(3, 5), 16)}, {parseInt(hexValue.slice(5, 7), 16)})
+              RGB({parseInt(hexValue.slice(1, 3), 16)}, {parseInt(hexValue.slice(3, 5), 16)},{' '}
+              {parseInt(hexValue.slice(5, 7), 16)})
             </span>
           </div>
         </div>

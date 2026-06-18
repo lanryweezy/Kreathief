@@ -363,7 +363,7 @@ async function exportLayersToPsd(width: number, height: number, layers: WorkerLa
       } else if (isShape) {
         ctx.save();
         ctx.fillStyle = layer.color || '#000000';
-        
+
         // Handle specialized shape rendering in worker
         if (layer.type === 'path' && (layer as any).pathData) {
           const p = new Path2D((layer as any).pathData);

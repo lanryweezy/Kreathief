@@ -16,10 +16,7 @@ export interface CornerPoints {
  * Calculate perspective transform matrix from corner points
  * Uses homography transformation
  */
-export function getPerspectiveTransform(
-  src: CornerPoints,
-  dst: CornerPoints
-): number[] {
+export function getPerspectiveTransform(src: CornerPoints, dst: CornerPoints): number[] {
   const { topLeft: s0, topRight: s1, bottomRight: s2, bottomLeft: s3 } = src;
   const { topLeft: d0, topRight: d1, bottomRight: d2, bottomLeft: d3 } = dst;
 
@@ -113,12 +110,7 @@ export function getMatrix3d(src: CornerPoints, dst: CornerPoints): string {
   // Convert 3x3 homography matrix [h0, h1, h2, h3, h4, h5, h6, h7, h8=1]
   // to 4x4 CSS matrix3d [a1, a2, a3, a4, b1, b2, b3, b4, c1, c2, c3, c4, d1, d2, d3, d4]
   // Note: CSS uses column-major order
-  const matrix = [
-    h[0], h[3], 0, h[6],
-    h[1], h[4], 0, h[7],
-    0,    0,    1, 0,
-    h[2], h[5], 0, 1
-  ];
+  const matrix = [h[0], h[3], 0, h[6], h[1], h[4], 0, h[7], 0, 0, 1, 0, h[2], h[5], 0, 1];
   return `matrix3d(${matrix.join(',')})`;
 }
 
@@ -188,11 +180,7 @@ export function getDefaultCornerPoints(
 /**
  * Apply perspective warp to canvas
  */
-export function applyPerspectiveWarp(
-  ctx: CanvasRenderingContext2D,
-  image: HTMLImageElement,
-  corners: CornerPoints
-) {
+export function applyPerspectiveWarp(ctx: CanvasRenderingContext2D, image: HTMLImageElement, corners: CornerPoints) {
   const width = ctx.canvas.width;
   const height = ctx.canvas.height;
 
@@ -202,7 +190,9 @@ export function applyPerspectiveWarp(
   tempCanvas.height = height;
   const tempCtx = tempCanvas.getContext('2d');
 
-  if (!tempCtx) {return;}
+  if (!tempCtx) {
+    return;
+  }
 
   // Draw image normally first
   tempCtx.drawImage(image, 0, 0);
@@ -262,7 +252,9 @@ export function applyCurveToCorners(
   width: number,
   _height: number
 ): CornerPoints {
-  if (curve === 0) {return corners;}
+  if (curve === 0) {
+    return corners;
+  }
 
   const curveRad = (curve * Math.PI) / 180;
   // const midX = width / 2;

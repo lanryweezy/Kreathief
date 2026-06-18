@@ -324,7 +324,11 @@ export interface ShapeLayer extends LayerBase {
   flipX?: boolean;
   flipY?: boolean;
   strokeProfile?: 'uniform' | 'taper-start' | 'taper-end' | 'taper-both';
-  pathEffects?: { roughen?: { amount: number }; zigzag?: { amplitude: number; frequency: number }; offset?: { distance: number } };
+  pathEffects?: {
+    roughen?: { amount: number };
+    zigzag?: { amplitude: number; frequency: number };
+    offset?: { distance: number };
+  };
 }
 
 export interface ImageLayer extends LayerBase {
@@ -371,7 +375,7 @@ export interface Artboard {
   height: number;
   layers: Layer[];
   backgroundColor?: string;
-  
+
   storyNode?: {
     id: string;
     connections: string[]; // IDs of other artboards

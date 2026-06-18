@@ -98,6 +98,7 @@ Analytics Logger
 **Purpose**: Deterministic pattern matching with transparent logic
 
 **Interface**:
+
 ```typescript
 interface Pattern {
   id: string;
@@ -128,17 +129,18 @@ interface PatternMatch {
 class PatternRecognitionEngine {
   private patterns: Map<string, Pattern> = new Map();
   private confidenceHistory: Map<string, number[]> = new Map();
-  
-  registerPattern(pattern: Pattern): void
-  evaluateActionSequence(actions: UserAction[]): PatternMatch[]
-  calculateConfidence(pattern: Pattern, matchedCriteria: string[]): number
-  adjustConfidence(patternId: string, feedback: 'accept' | 'reject'): void
-  getPatternRegistry(): Pattern[]
-  updatePattern(patternId: string, updates: Partial<Pattern>): void
+
+  registerPattern(pattern: Pattern): void;
+  evaluateActionSequence(actions: UserAction[]): PatternMatch[];
+  calculateConfidence(pattern: Pattern, matchedCriteria: string[]): number;
+  adjustConfidence(patternId: string, feedback: 'accept' | 'reject'): void;
+  getPatternRegistry(): Pattern[];
+  updatePattern(patternId: string, updates: Partial<Pattern>): void;
 }
 ```
 
 **Built-in Patterns**:
+
 1. Typographic Tuning
 2. Context-Aware Snapping
 3. Asset Set Recognition
@@ -149,6 +151,7 @@ class PatternRecognitionEngine {
 **Purpose**: Analyze action sequences and detect user intent
 
 **Interface**:
+
 ```typescript
 interface ActionSequence {
   actions: UserAction[];
@@ -174,12 +177,12 @@ interface SuggestedAction {
 class IntentDetector {
   private engine: PatternRecognitionEngine;
   private actionHistory: UserAction[] = [];
-  
-  analyzeActionSequence(actions: UserAction[], context: DesignContext): Intent[]
-  detectIntent(action: UserAction, context: DesignContext): Intent | null
-  evaluateContext(context: DesignContext): ContextFactors
-  generateSuggestions(intents: Intent[]): SuggestedAction[]
-  prioritizeSuggestions(suggestions: SuggestedAction[]): SuggestedAction[]
+
+  analyzeActionSequence(actions: UserAction[], context: DesignContext): Intent[];
+  detectIntent(action: UserAction, context: DesignContext): Intent | null;
+  evaluateContext(context: DesignContext): ContextFactors;
+  generateSuggestions(intents: Intent[]): SuggestedAction[];
+  prioritizeSuggestions(suggestions: SuggestedAction[]): SuggestedAction[];
 }
 
 interface Intent {
@@ -196,6 +199,7 @@ interface Intent {
 **Purpose**: Display suggestions without interrupting flow
 
 **Interface**:
+
 ```typescript
 interface ContextualPanel {
   id: string;
@@ -220,13 +224,13 @@ interface SuggestedControl {
 class ContextualPanelManager {
   private panels: Map<string, ContextualPanel> = new Map();
   private collapseTimer: NodeJS.Timeout | null = null;
-  
-  surfaceSuggestions(suggestions: SuggestedAction[]): void
-  updatePanel(panelId: string, controls: SuggestedControl[]): void
-  collapsePanelAfterInactivity(panelId: string, delay: number): void
-  expandPanel(panelId: string): void
-  hidePanelTemporarily(panelId: string, duration: number): void
-  clearAllPanels(): void
+
+  surfaceSuggestions(suggestions: SuggestedAction[]): void;
+  updatePanel(panelId: string, controls: SuggestedControl[]): void;
+  collapsePanelAfterInactivity(panelId: string, delay: number): void;
+  expandPanel(panelId: string): void;
+  hidePanelTemporarily(panelId: string, duration: number): void;
+  clearAllPanels(): void;
 }
 ```
 
@@ -235,6 +239,7 @@ class ContextualPanelManager {
 **Purpose**: Track pattern effectiveness and improve confidence scoring
 
 **Interface**:
+
 ```typescript
 interface IntentLog {
   timestamp: number;
@@ -258,14 +263,14 @@ interface PatternAnalytics {
 class AnalyticsEngine {
   private logs: IntentLog[] = [];
   private analytics: Map<string, PatternAnalytics> = new Map();
-  
-  logIntent(log: IntentLog): void
-  logUserAction(intentId: string, action: 'accept' | 'reject' | 'ignore'): void
-  getPatternAnalytics(patternId: string): PatternAnalytics
-  getAllAnalytics(): PatternAnalytics[]
-  adjustConfidenceFromFeedback(patternId: string, feedback: 'accept' | 'reject'): void
-  identifyLowPerformingPatterns(): Pattern[]
-  exportAnalytics(format: 'json' | 'csv'): string
+
+  logIntent(log: IntentLog): void;
+  logUserAction(intentId: string, action: 'accept' | 'reject' | 'ignore'): void;
+  getPatternAnalytics(patternId: string): PatternAnalytics;
+  getAllAnalytics(): PatternAnalytics[];
+  adjustConfidenceFromFeedback(patternId: string, feedback: 'accept' | 'reject'): void;
+  identifyLowPerformingPatterns(): Pattern[];
+  exportAnalytics(format: 'json' | 'csv'): string;
 }
 ```
 
@@ -286,20 +291,20 @@ const typographicTuningPattern: Pattern = {
       type: 'action',
       operator: 'count_gte',
       value: { propertyTypes: ['fontSize', 'letterSpacing', 'lineHeight', 'fontWeight'], count: 3 },
-      weight: 0.8
+      weight: 0.8,
     },
     {
       type: 'timing',
       operator: 'within',
       value: { milliseconds: 30000 },
-      weight: 0.6
+      weight: 0.6,
     },
     {
       type: 'context',
       operator: 'equals',
       value: { selectedLayerType: 'text' },
-      weight: 0.7
-    }
+      weight: 0.7,
+    },
   ],
   action: {
     type: 'surface_controls',
@@ -308,12 +313,12 @@ const typographicTuningPattern: Pattern = {
       { id: 'font-size', label: 'Font Size', type: 'slider' },
       { id: 'letter-spacing', label: 'Letter Spacing', type: 'slider' },
       { id: 'line-height', label: 'Line Height', type: 'slider' },
-      { id: 'font-weight', label: 'Font Weight', type: 'select' }
+      { id: 'font-weight', label: 'Font Weight', type: 'select' },
     ],
-    priority: 9
+    priority: 9,
   },
   baseConfidence: 0.75,
-  enabled: true
+  enabled: true,
 };
 
 // Context-Aware Snapping Pattern
@@ -326,23 +331,23 @@ const contextAwareSnappingPattern: Pattern = {
       type: 'action',
       operator: 'equals',
       value: { actionType: 'drag' },
-      weight: 1.0
+      weight: 1.0,
     },
     {
       type: 'context',
       operator: 'contains',
       value: { nearbyLayers: true },
-      weight: 0.8
-    }
+      weight: 0.8,
+    },
   ],
   action: {
     type: 'adjust_behavior',
     target: 'canvas',
     message: 'Snap weight adjusted based on layer types',
-    priority: 8
+    priority: 8,
   },
   baseConfidence: 0.9,
-  enabled: true
+  enabled: true,
 };
 
 // Asset Set Recognition Pattern
@@ -355,29 +360,29 @@ const assetSetPattern: Pattern = {
       type: 'action',
       operator: 'count_gte',
       value: { actionType: 'upload', count: 2 },
-      weight: 0.9
+      weight: 0.9,
     },
     {
       type: 'timing',
       operator: 'within',
       value: { milliseconds: 10000 },
-      weight: 0.8
+      weight: 0.8,
     },
     {
       type: 'context',
       operator: 'equals',
       value: { aspectRatioVariance: 0.1 },
-      weight: 0.7
-    }
+      weight: 0.7,
+    },
   ],
   action: {
     type: 'suggest_layout',
     target: 'panel',
     message: 'Suggest grid layouts for image set',
-    priority: 7
+    priority: 7,
   },
   baseConfidence: 0.7,
-  enabled: true
+  enabled: true,
 };
 
 // Constraint Establishment Pattern
@@ -390,29 +395,29 @@ const constraintPattern: Pattern = {
       type: 'action',
       operator: 'count_gte',
       value: { actionType: 'move', count: 3 },
-      weight: 0.8
+      weight: 0.8,
     },
     {
       type: 'context',
       operator: 'equals',
       value: { spacingConsistency: 0.98 },
-      weight: 0.9
+      weight: 0.9,
     },
     {
       type: 'timing',
       operator: 'within',
       value: { milliseconds: 60000 },
-      weight: 0.6
-    }
+      weight: 0.6,
+    },
   ],
   action: {
     type: 'surface_controls',
     target: 'panel',
     message: 'Create constraint rule from pattern',
-    priority: 8
+    priority: 8,
   },
   baseConfidence: 0.8,
-  enabled: true
+  enabled: true,
 };
 ```
 
@@ -423,41 +428,49 @@ const constraintPattern: Pattern = {
 A property is a characteristic or behavior that should hold true across all valid executions of a system—essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.
 
 ### Property 1: Pattern Matching Determinism
+
 **For any** action sequence and context, evaluating the same sequence twice should produce identical pattern matches and confidence scores.
 
 **Validates: Requirements 5.2**
 
 ### Property 2: Confidence Score Validity
+
 **For any** pattern match, the confidence score should be between 0 and 1, and should be the weighted average of matched criteria weights.
 
 **Validates: Requirements 5.3**
 
 ### Property 3: Suggestion Prioritization Consistency
+
 **For any** set of suggestions, when ranked by priority, the highest-priority suggestion should always appear first, and suggestions should maintain stable ordering when priorities are equal.
 
 **Validates: Requirements 6.5**
 
 ### Property 4: Intent Detection Completeness
+
 **For any** action sequence matching a registered pattern, the intent detector should identify at least one matching pattern with confidence > 0.5.
 
 **Validates: Requirements 1.1, 2.1, 3.1, 4.1**
 
 ### Property 5: Contextual Panel State Consistency
+
 **For any** contextual panel, if it's in "collapsed" state, it should retain its control state and be able to expand to the same state without data loss.
 
 **Validates: Requirements 6.3**
 
 ### Property 6: Analytics Logging Completeness
+
 **For any** intent detection event, if logging is enabled, the system should create a log entry with all required fields (timestamp, intent type, confidence, context).
 
 **Validates: Requirements 7.1, 7.2**
 
 ### Property 7: Confidence Adjustment Monotonicity
+
 **For any** pattern, when a user rejects a suggestion, the confidence score should decrease (or stay the same), never increase.
 
 **Validates: Requirements 5.6**
 
 ### Property 8: Pattern Registry Immutability During Matching
+
 **For any** pattern matching operation, the pattern registry should not be modified during evaluation, ensuring consistent results.
 
 **Validates: Requirements 5.1, 5.2**
@@ -467,26 +480,31 @@ A property is a characteristic or behavior that should hold true across all vali
 ## Error Handling
 
 ### Pattern Matching Failures
+
 - **Scenario**: Pattern matching takes > 50ms
 - **Handling**: Log warning, skip pattern, continue with other patterns
 - **User Impact**: Suggestion may be delayed or not appear
 
 ### Confidence Calculation Errors
+
 - **Scenario**: Confidence calculation produces NaN or invalid value
 - **Handling**: Default to 0.5 confidence, log error
 - **User Impact**: Suggestion appears with neutral priority
 
 ### Analytics Logging Failures
+
 - **Scenario**: Analytics write fails (storage full, permission denied)
 - **Handling**: Queue logs in memory, retry on next opportunity
 - **User Impact**: No user-facing impact, logs may be lost
 
 ### Contextual Panel Rendering Failures
+
 - **Scenario**: Panel fails to render (DOM error, React error)
 - **Handling**: Gracefully hide panel, log error, continue without suggestions
 - **User Impact**: Suggestions don't appear, but system continues working
 
 ### Pattern Registry Corruption
+
 - **Scenario**: Pattern registry becomes inconsistent
 - **Handling**: Reload from backup, disable affected patterns
 - **User Impact**: Some suggestions may not appear until restart
@@ -496,6 +514,7 @@ A property is a characteristic or behavior that should hold true across all vali
 ## Testing Strategy
 
 ### Unit Tests
+
 - Pattern matching logic (determinism, confidence calculation)
 - Action sequence analysis (timing, context evaluation)
 - Suggestion prioritization (ranking, filtering)
@@ -503,6 +522,7 @@ A property is a characteristic or behavior that should hold true across all vali
 - Confidence adjustment (monotonicity, persistence)
 
 ### Property-Based Tests
+
 - **Property 1**: Pattern matching determinism (same input → same output)
 - **Property 2**: Confidence score validity (0-1 range, weighted average)
 - **Property 3**: Suggestion prioritization consistency (stable ordering)
@@ -513,12 +533,14 @@ A property is a characteristic or behavior that should hold true across all vali
 - **Property 8**: Pattern registry immutability (no modifications during matching)
 
 ### Integration Tests
+
 - End-to-end intent detection (action → pattern match → suggestion → user action)
 - Multi-pattern scenarios (multiple patterns matching simultaneously)
 - Context switching (user changes context, suggestions update)
 - Analytics pipeline (detection → logging → aggregation)
 
 ### Performance Tests
+
 - Pattern matching < 50ms (100+ patterns)
 - Suggestion surfacing < 100ms (UI responsiveness)
 - No frame drops during pattern evaluation (60fps maintained)
@@ -553,6 +575,7 @@ A property is a characteristic or behavior that should hold true across all vali
 ## Success Criteria
 
 ### Phase 2 Completion
+
 - ✅ Typographic tuning detected in 80%+ of typography editing sessions
 - ✅ Context-aware snapping feels noticeably different (user feedback)
 - ✅ Asset set recognition suggests layouts in 70%+ of multi-image uploads

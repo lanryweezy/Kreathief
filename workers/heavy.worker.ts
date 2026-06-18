@@ -74,14 +74,16 @@ self.onmessage = async (e: MessageEvent) => {
 async function generateGrainTexture(width: number, height: number, noise: number, scale: number): Promise<string> {
   const canvas = new OffscreenCanvas(width / scale, height / scale);
   const ctx = canvas.getContext('2d');
-  if (!ctx) {throw new Error('Offscreen context failed');}
+  if (!ctx) {
+    throw new Error('Offscreen context failed');
+  }
 
   const imageData = ctx.createImageData(canvas.width, canvas.height);
   const data = imageData.data;
 
   for (let i = 0; i < data.length; i += 4) {
     const val = Math.random() * 255;
-    data[i] = val;     // R
+    data[i] = val; // R
     data[i + 1] = val; // G
     data[i + 2] = val; // B
     data[i + 3] = noise * 2.55; // Alpha based on noise intensity
@@ -96,7 +98,9 @@ async function applyFiltersToImage(imageSrc: string, filters: any): Promise<stri
   const bitmap = await fetchImageBitmap(imageSrc);
   const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
   const ctx = canvas.getContext('2d');
-  if (!ctx) {throw new Error('Offscreen context failed');}
+  if (!ctx) {
+    throw new Error('Offscreen context failed');
+  }
 
   // Apply filters using Canvas context for speed where possible
   const filterStr = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%) sepia(${filters.sepia}%) grayscale(${filters.grayscale}%) blur(${filters.blur}px)`;
@@ -107,8 +111,12 @@ async function applyFiltersToImage(imageSrc: string, filters: any): Promise<stri
   if (filters.vignette > 0) {
     const radius = Math.max(canvas.width, canvas.height) / 1.5;
     const gradient = ctx.createRadialGradient(
-      canvas.width / 2, canvas.height / 2, 0,
-      canvas.width / 2, canvas.height / 2, radius
+      canvas.width / 2,
+      canvas.height / 2,
+      0,
+      canvas.width / 2,
+      canvas.height / 2,
+      radius
     );
     gradient.addColorStop(0, 'rgba(0,0,0,0)');
     gradient.addColorStop(1, `rgba(0,0,0,${filters.vignette / 100})`);

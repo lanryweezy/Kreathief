@@ -13,31 +13,33 @@ Kreathief uses **Zustand** for global state management, organized into 8 focused
 ```typescript
 // store/useStore.ts - Main store composition
 export const useStore = create<StoreState>()((set, get, store) => ({
-  ...createUISlice(set, get, store),        // UI state (370 lines)
-  ...createCanvasSlice(set, get, store),    // Canvas props (43 lines)
-  ...createDrawingSlice(set, get, store),   // Drawing tools (39 lines)
-  ...createLayerSlice(set, get, store),     // Layer CRUD (994 lines) ⚠️
-  ...createProjectSlice(set, get, store),   // Projects (269 lines)
-  ...createHistorySlice(set, get, store),   // Undo/redo (145 lines)
-  ...createAISlice(set, get, store),        // AI features (263 lines)
-  ...createBrandSlice(set, get, store),     // Brand kits (57 lines)
-  
-  reset: () => { /* Reset all state */ },
+  ...createUISlice(set, get, store), // UI state (370 lines)
+  ...createCanvasSlice(set, get, store), // Canvas props (43 lines)
+  ...createDrawingSlice(set, get, store), // Drawing tools (39 lines)
+  ...createLayerSlice(set, get, store), // Layer CRUD (994 lines) ⚠️
+  ...createProjectSlice(set, get, store), // Projects (269 lines)
+  ...createHistorySlice(set, get, store), // Undo/redo (145 lines)
+  ...createAISlice(set, get, store), // AI features (263 lines)
+  ...createBrandSlice(set, get, store), // Brand kits (57 lines)
+
+  reset: () => {
+    /* Reset all state */
+  },
 }));
 ```
 
 ### Slice Responsibilities
 
-| Slice | Lines | Purpose | Key Actions |
-|-------|-------|---------|-------------|
-| `UISlice` | 370 | Modals, toasts, tabs, panels | `setActiveTab`, `addToast`, `openModal` |
-| `CanvasSlice` | 43 | Canvas size, zoom, bg color | `setCanvasSize`, `setZoom`, `setZoomToFit` |
-| `DrawingSlice` | 39 | Brush settings, eraser | `setBrushType`, `setBrushColor`, `setBrushSize` |
-| `LayerSlice` | 994 | Layer operations | `addLayer`, `deleteLayer`, `groupSelected` |
-| `ProjectSlice` | 269 | Project save/load | `saveProject`, `loadProject`, `deleteProject` |
-| `HistorySlice` | 145 | Undo/redo stack | `undo`, `redo`, `saveToHistory` |
-| `AISlice` | 263 | AI generation state | `generateImage`, `enhancePrompt`, `analyzeDesign` |
-| `BrandSlice` | 57 | Brand kits | `addBrandKit`, `applyBrandColors`, `updateFonts` |
+| Slice          | Lines | Purpose                      | Key Actions                                       |
+| -------------- | ----- | ---------------------------- | ------------------------------------------------- |
+| `UISlice`      | 370   | Modals, toasts, tabs, panels | `setActiveTab`, `addToast`, `openModal`           |
+| `CanvasSlice`  | 43    | Canvas size, zoom, bg color  | `setCanvasSize`, `setZoom`, `setZoomToFit`        |
+| `DrawingSlice` | 39    | Brush settings, eraser       | `setBrushType`, `setBrushColor`, `setBrushSize`   |
+| `LayerSlice`   | 994   | Layer operations             | `addLayer`, `deleteLayer`, `groupSelected`        |
+| `ProjectSlice` | 269   | Project save/load            | `saveProject`, `loadProject`, `deleteProject`     |
+| `HistorySlice` | 145   | Undo/redo stack              | `undo`, `redo`, `saveToHistory`                   |
+| `AISlice`      | 263   | AI generation state          | `generateImage`, `enhancePrompt`, `analyzeDesign` |
+| `BrandSlice`   | 57    | Brand kits                   | `addBrandKit`, `applyBrandColors`, `updateFonts`  |
 
 ---
 
@@ -75,20 +77,16 @@ handleAddLayer = () => {
 
 ```typescript
 // Good - Select only what you need
-const { layers, selectedLayerIds, zoom } = useStore(state => ({
+const { layers, selectedLayerIds, zoom } = useStore((state) => ({
   layers: state.layers,
   selectedLayerIds: state.selectedLayerIds,
   zoom: state.zoom,
 }));
 
 // Better - Use selectors for derived state
-const visibleLayers = useStore(state => 
-  state.layers.filter(l => !l.hidden)
-);
+const visibleLayers = useStore((state) => state.layers.filter((l) => !l.hidden));
 
-const selectedLayers = useStore(state => 
-  state.layers.filter(l => state.selectedLayerIds.includes(l.id))
-);
+const selectedLayers = useStore((state) => state.layers.filter((l) => state.selectedLayerIds.includes(l.id)));
 ```
 
 ---
@@ -102,6 +100,7 @@ const selectedLayers = useStore(state =>
 **Problem:** Handles too many responsibilities
 
 **Current Code:**
+
 ```typescript
 // store/slices/layerSlice.ts - Does everything
 export const createLayerSlice = (set, get, store) => ({
@@ -109,23 +108,23 @@ export const createLayerSlice = (set, get, store) => ({
   addLayer,
   updateLayer,
   deleteLayer,
-  
+
   // Grouping logic
   groupSelected,
   ungroupSelected,
-  
+
   // Auto-layout calculations
   applyAutoLayout,
-  
+
   // Layer ordering
   bringToFront,
   sendToBack,
-  
+
   // Selection management
   selectLayer,
   addToSelection,
   removeFromSelection,
-  
+
   // ... 50+ more functions
 });
 ```
@@ -134,12 +133,11 @@ export const createLayerSlice = (set, get, store) => ({
 
 ```typescript
 // Proposed structure
-store/slices/
-  layerSlice.ts          // Core CRUD only (200 lines)
-  layerGroupingSlice.ts  // Group operations (150 lines)
-  layerOrderingSlice.ts  // Z-index management (100 lines)
-  layerSelectionSlice.ts // Selection logic (150 lines)
-  layerAutoLayoutSlice.ts // Auto-layout (200 lines)
+store / slices / layerSlice.ts; // Core CRUD only (200 lines)
+layerGroupingSlice.ts; // Group operations (150 lines)
+layerOrderingSlice.ts; // Z-index management (100 lines)
+layerSelectionSlice.ts; // Selection logic (150 lines)
+layerAutoLayoutSlice.ts; // Auto-layout (200 lines)
 ```
 
 #### 2. ❌ No State Selectors
@@ -147,6 +145,7 @@ store/slices/
 **Problem:** Components re-render unnecessarily
 
 **Current Code:**
+
 ```typescript
 // Component subscribes to entire layers array
 const layers = useStore((state) => state.layers);
@@ -155,24 +154,19 @@ const layers = useStore((state) => state.layers);
 ```
 
 **Better Approach:**
+
 ```typescript
 // Create selector utilities
 export const layerSelectors = {
   all: (state) => state.layers,
-  
-  byId: (id) => (state) => 
-    state.layers.find(l => l.id === id),
-  
-  byType: (type) => (state) => 
-    state.layers.filter(l => l.type === type),
-  
-  visible: (state) => 
-    state.layers.filter(l => !l.hidden),
-  
-  selected: (state) => 
-    state.layers.filter(l => 
-      state.selectedLayerIds.includes(l.id)
-    ),
+
+  byId: (id) => (state) => state.layers.find((l) => l.id === id),
+
+  byType: (type) => (state) => state.layers.filter((l) => l.type === type),
+
+  visible: (state) => state.layers.filter((l) => !l.hidden),
+
+  selected: (state) => state.layers.filter((l) => state.selectedLayerIds.includes(l.id)),
 };
 
 // Usage
@@ -185,20 +179,17 @@ const selectedLayers = useStore(layerSelectors.selected);
 **Problem:** Same computations repeated across components
 
 **Example:**
+
 ```typescript
 // In Canvas.tsx
 const selectedBounds = useMemo(() => {
-  const selected = layers.filter(l => 
-    selectedLayerIds.includes(l.id)
-  );
+  const selected = layers.filter((l) => selectedLayerIds.includes(l.id));
   return calculateBounds(selected);
 }, [layers, selectedLayerIds]);
 
 // In FloatingToolbar.tsx - SAME CALCULATION!
 const bounds = useMemo(() => {
-  const selected = layers.filter(l => 
-    selectedLayerIds.includes(l.id)
-  );
+  const selected = layers.filter((l) => selectedLayerIds.includes(l.id));
   return calculateBounds(selected);
 }, [layers, selectedLayerIds]);
 ```
@@ -211,15 +202,11 @@ import { createSelector } from 'reselect';
 const selectLayers = (state) => state.layers;
 const selectSelectedIds = (state) => state.selectedLayerIds;
 
-export const selectSelectedLayers = createSelector(
-  [selectLayers, selectSelectedIds],
-  (layers, ids) => layers.filter(l => ids.includes(l.id))
+export const selectSelectedLayers = createSelector([selectLayers, selectSelectedIds], (layers, ids) =>
+  layers.filter((l) => ids.includes(l.id))
 );
 
-export const selectSelectedBounds = createSelector(
-  [selectSelectedLayers],
-  (selected) => calculateBounds(selected)
-);
+export const selectSelectedBounds = createSelector([selectSelectedLayers], (selected) => calculateBounds(selected));
 
 // Now used everywhere without recalculation
 const bounds = useStore(selectSelectedBounds);
@@ -244,15 +231,11 @@ const canvasState = useStore((state) => state.canvasSlice);
 ```typescript
 // Good - Memoized computation
 const visibleTextLayers = useMemo(() => {
-  return layers.filter(l => 
-    l.type === 'text' && !l.hidden
-  );
+  return layers.filter((l) => l.type === 'text' && !l.hidden);
 }, [layers]);
 
 // Bad - Computed every render
-const visibleTextLayers = layers.filter(l => 
-  l.type === 'text' && !l.hidden
-);
+const visibleTextLayers = layers.filter((l) => l.type === 'text' && !l.hidden);
 ```
 
 ### ✅ DO: Batch Related Updates
@@ -280,7 +263,7 @@ const selectedBounds = useStore((state) => state.selectedBounds); // ❌
 
 // Good - Compute from base state
 const selectedBounds = useMemo(() => {
-  const selected = layers.filter(l => selectedIds.includes(l.id));
+  const selected = layers.filter((l) => selectedIds.includes(l.id));
   return calculateBounds(selected);
 }, [layers, selectedIds]); // ✅
 ```
@@ -315,10 +298,7 @@ const layers = useStore((state) => state.layers);
 // Best - Use shallow comparison for objects
 import { shallow } from 'zustand/shallow';
 
-const canvasSize = useStore(
-  (state) => state.canvasSize,
-  shallow
-);
+const canvasSize = useStore((state) => state.canvasSize, shallow);
 ```
 
 ### Solution: React.memo for Expensive Components
@@ -379,7 +359,7 @@ export const CanvasLayerRenderer = React.memo(({ layer, zoom }) => {
 describe('Layer Slice', () => {
   it('should add layer correctly', () => {
     const { addLayer, layers } = useStore.getState();
-    
+
     addLayer({
       id: 'test-1',
       type: 'text',
@@ -387,18 +367,18 @@ describe('Layer Slice', () => {
       y: 0,
       // ... required properties
     });
-    
-    expect(useStore.getState().layers).toHaveLength(
-      layers.length + 1
-    );
+
+    expect(useStore.getState().layers).toHaveLength(layers.length + 1);
   });
-  
+
   it('should update layer immutably', () => {
     const { updateLayer } = useStore.getState();
-    const originalLayer = { /* ... */ };
-    
+    const originalLayer = {
+      /* ... */
+    };
+
     updateLayer('layer-id', { x: 100 });
-    
+
     // Original should be unchanged in history
     expect(originalLayer.x).not.toBe(100);
   });
@@ -411,17 +391,15 @@ describe('Layer Slice', () => {
 describe('State Management Integration', () => {
   it('should handle complete workflow', async () => {
     const { addLayer, selectLayer, deleteLayer } = useStore.getState();
-    
+
     // Add layer
     addLayer(textLayer);
     expect(useStore.getState().layers).toHaveLength(1);
-    
+
     // Select layer
     selectLayer(textLayer.id);
-    expect(useStore.getState().selectedLayerIds).toContain(
-      textLayer.id
-    );
-    
+    expect(useStore.getState().selectedLayerIds).toContain(textLayer.id);
+
     // Delete layer
     deleteLayer(textLayer.id);
     expect(useStore.getState().layers).toHaveLength(0);

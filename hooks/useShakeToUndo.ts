@@ -13,7 +13,7 @@ interface ShakeToUndoOptions {
  */
 export const useShakeToUndo = (options: ShakeToUndoOptions) => {
   const { onShake, threshold = 15, enabled = true } = options;
-  
+
   const lastX = useRef(0);
   const lastY = useRef(0);
   const lastZ = useRef(0);
@@ -27,7 +27,9 @@ export const useShakeToUndo = (options: ShakeToUndoOptions) => {
 
     const handleDeviceMotion = (event: DeviceMotionEvent) => {
       const acceleration = event.accelerationIncludingGravity;
-      if (!acceleration) {return;}
+      if (!acceleration) {
+        return;
+      }
 
       const currentTime = Date.now();
       const timeDiff = currentTime - lastTime.current;

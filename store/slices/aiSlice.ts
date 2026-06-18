@@ -18,7 +18,7 @@ export interface AISlice {
   setPrompt: (prompt: string) => void;
   setAspectRatio: (ratio: AspectRatio) => void;
   setQuality: (quality: GenerationQuality) => void;
-  
+
   // Refactored Core AI Actions with redundancy
   generateImage: () => Promise<void>;
   vectorizeLayer: (id: string, options: VectorizeOptions) => Promise<void>;
@@ -52,12 +52,14 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
 
   generateImage: async () => {
     const { prompt, aspectRatio, quality, addImageLayer } = get();
-    if (!prompt) {return;}
+    if (!prompt) {
+      return;
+    }
 
     set({ isGenerating: true });
     try {
       let imageUrl: string | undefined;
-      
+
       // Primary: High-End Flux.1
       if (aiModelsService.isConfigured()) {
         try {
@@ -87,7 +89,9 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
     const { artboards, activeArtboardId, deleteLayer, addLayers, saveToHistory, updateLayer } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {return;}
+    if (!layer || layer.type !== 'image') {
+      return;
+    }
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -106,32 +110,34 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
       }
 
       saveToHistory();
-      
+
       if (result && !result.startsWith('http')) {
         // Raw SVG from Recraft
-        addLayers([{
-          id: uuidv4(),
-          type: 'path',
-          name: 'AI Vector Path',
-          pathData: result,
-          color: '#000000',
-          x: layer.x,
-          y: layer.y,
-          width: layer.width,
-          height: layer.height,
-          rotation: layer.rotation,
-          opacity: layer.opacity,
-          visible: true,
-          locked: false,
-          cornerRadius: 0,
-          blendMode: 'normal',
-        } as any]);
+        addLayers([
+          {
+            id: uuidv4(),
+            type: 'path',
+            name: 'AI Vector Path',
+            pathData: result,
+            color: '#000000',
+            x: layer.x,
+            y: layer.y,
+            width: layer.width,
+            height: layer.height,
+            rotation: layer.rotation,
+            opacity: layer.opacity,
+            visible: true,
+            locked: false,
+            cornerRadius: 0,
+            blendMode: 'normal',
+          } as any,
+        ]);
         deleteLayer(id);
       } else {
         // Fallback: Local ImageTracer
         const svgString = await vectorizerService.traceImage(layer.src, options);
         const pathElements = vectorizerService.extractPaths(svgString);
-        
+
         const groupId = uuidv4();
         const newPaths: ShapeLayer[] = pathElements.map((p) => ({
           id: uuidv4(),
@@ -149,12 +155,24 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
           locked: false,
           groupId: groupId,
           cornerRadius: 0,
-          filters: { 
-            brightness: 100, contrast: 100, saturation: 100, grayscale: 0, blur: 0, sepia: 0, hueRotate: 0, vignette: 0, opacity: 1,
-            ...(layer.filters || {})
+          filters: {
+            brightness: 100,
+            contrast: 100,
+            saturation: 100,
+            grayscale: 0,
+            blur: 0,
+            sepia: 0,
+            hueRotate: 0,
+            vignette: 0,
+            opacity: 1,
+            ...(layer.filters || {}),
           },
           blendMode: 'normal',
-          skewX: 0, skewY: 0, perspective: 0, rotateX: 0, rotateY: 0,
+          skewX: 0,
+          skewY: 0,
+          perspective: 0,
+          rotateX: 0,
+          rotateY: 0,
         }));
         deleteLayer(id);
         addLayers(newPaths);
@@ -169,12 +187,16 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
 
   onRemix: async (id) => {
     const prompt = window.prompt('Enter a style or description to remix this image:');
-    if (!prompt) {return;}
+    if (!prompt) {
+      return;
+    }
 
     const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {return;}
+    if (!layer || layer.type !== 'image') {
+      return;
+    }
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -185,7 +207,8 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
       if (aiModelsService.isConfigured()) {
         try {
           // Using generative fill with a full mask acts as a remix
-          const fullWhiteMask = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+          const fullWhiteMask =
+            'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
           newSrc = await aiModelsService.generativeFillSDXL(layer.src, fullWhiteMask, prompt);
         } catch (e) {
           log.warn('High-end remix failed, falling back to Gemini', { error: e });
@@ -213,7 +236,9 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
     const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {return;}
+    if (!layer || layer.type !== 'image') {
+      return;
+    }
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -252,7 +277,9 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
     const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {return;}
+    if (!layer || layer.type !== 'image') {
+      return;
+    }
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -272,7 +299,9 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
     const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {return;}
+    if (!layer || layer.type !== 'image') {
+      return;
+    }
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -292,7 +321,9 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
     const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {return;}
+    if (!layer || layer.type !== 'image') {
+      return;
+    }
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -312,7 +343,9 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
     const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {return;}
+    if (!layer || layer.type !== 'image') {
+      return;
+    }
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -332,7 +365,9 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
     const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     const layer = artboard?.layers.find((l: Layer) => l.id === textLayerId) as TextLayer;
-    if (!layer || layer.type !== 'text') {return;}
+    if (!layer || layer.type !== 'text') {
+      return;
+    }
 
     set({ isGenerating: true });
     try {
@@ -353,11 +388,17 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   generateAutoLayouts: async () => {
     const { artboards, activeArtboardId, updateLayers, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
-    if (!artboard || artboard.layers.length === 0) {return;}
+    if (!artboard || artboard.layers.length === 0) {
+      return;
+    }
 
     set({ isGenerating: true });
     try {
-      const suggestions = await geminiService.generateAutoLayoutSuggestions(artboard.layers, artboard.width, artboard.height);
+      const suggestions = await geminiService.generateAutoLayoutSuggestions(
+        artboard.layers,
+        artboard.width,
+        artboard.height
+      );
       if (suggestions && suggestions.length > 0) {
         // For simplicity, we apply the first one immediately.
         // In a real UI, we would show a carousel of options.
@@ -374,7 +415,9 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   applyStyleFromImage: async (base64Image) => {
     const { setCanvasBackgroundColor, updateLayer, artboards, activeArtboardId, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
-    if (!artboard) {return;}
+    if (!artboard) {
+      return;
+    }
 
     set({ isGenerating: true });
     try {
@@ -382,13 +425,13 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
       if (theme) {
         saveToHistory();
         setCanvasBackgroundColor(theme.backgroundColor);
-        
+
         // Map theme to layers
         artboard.layers.forEach((l: any) => {
           if (l.type === 'text') {
-            updateLayer(l.id, { 
-              color: theme.primaryColor, 
-              fontFamily: (l as TextLayer).fontSize > 30 ? theme.headingFont : theme.bodyFont
+            updateLayer(l.id, {
+              color: theme.primaryColor,
+              fontFamily: (l as TextLayer).fontSize > 30 ? theme.headingFont : theme.bodyFont,
             });
           } else if (l.type !== 'image' && l.type !== 'adjustment') {
             updateLayer(l.id, { color: theme.secondaryColor });
@@ -403,7 +446,10 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   },
 
   handleConvertToPath: (_id) => {},
-  handleUpdateCanvasSize: (size) => { get().saveToHistory(); set({ canvasSize: size }); },
+  handleUpdateCanvasSize: (size) => {
+    get().saveToHistory();
+    set({ canvasSize: size });
+  },
   handleApplyTemplate: (template) => {
     get().saveToHistory();
     set({
@@ -417,14 +463,26 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   handleDrawingComplete: (pathData) => {
     const { artboards, activeArtboardId, addImageLayer, setPenMode } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
-    if (artboard) { addImageLayer(pathData, 'Drawing', 0, 0, artboard.width, artboard.height); } else { addImageLayer(pathData, 'Drawing'); }
+    if (artboard) {
+      addImageLayer(pathData, 'Drawing', 0, 0, artboard.width, artboard.height);
+    } else {
+      addImageLayer(pathData, 'Drawing');
+    }
     setPenMode(false);
   },
   handleVectorDrawingComplete: (pathData, stroke) => {
     const { artboards, activeArtboardId, addShapeLayer, setPenMode } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     if (artboard) {
-      addShapeLayer('path', { pathData, stroke, color: 'transparent', x: 0, y: 0, width: artboard.width, height: artboard.height });
+      addShapeLayer('path', {
+        pathData,
+        stroke,
+        color: 'transparent',
+        x: 0,
+        y: 0,
+        width: artboard.width,
+        height: artboard.height,
+      });
     } else {
       addShapeLayer('path', { pathData, stroke, color: 'transparent' });
     }

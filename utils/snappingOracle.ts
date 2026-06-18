@@ -130,10 +130,7 @@ export class SnappingOracle {
     const movingIds = new Set(movingLayers.map((l) => l.id));
     const layerCount = allLayers.length;
 
-    if (
-      cachedArtboardId !== activeArtboard.id ||
-      cachedLayerCount !== layerCount
-    ) {
+    if (cachedArtboardId !== activeArtboard.id || cachedLayerCount !== layerCount) {
       const targets = buildTargets(allLayers, movingIds, activeArtboard);
       cachedSortedX = targets.sortedX;
       cachedSortedY = targets.sortedY;
@@ -152,7 +149,8 @@ export class SnappingOracle {
         type: 'vertical',
         value: xSnap.bestTarget.value,
         origin: Math.min(minY, xSnap.bestTarget.origin),
-        extent: Math.max(maxY, xSnap.bestTarget.origin + xSnap.bestTarget.extent) - Math.min(minY, xSnap.bestTarget.origin),
+        extent:
+          Math.max(maxY, xSnap.bestTarget.origin + xSnap.bestTarget.extent) - Math.min(minY, xSnap.bestTarget.origin),
       });
     }
 
@@ -163,7 +161,8 @@ export class SnappingOracle {
         type: 'horizontal',
         value: ySnap.bestTarget.value,
         origin: Math.min(minX, ySnap.bestTarget.origin),
-        extent: Math.max(maxX, ySnap.bestTarget.origin + ySnap.bestTarget.extent) - Math.min(minX, ySnap.bestTarget.origin),
+        extent:
+          Math.max(maxX, ySnap.bestTarget.origin + ySnap.bestTarget.extent) - Math.min(minX, ySnap.bestTarget.origin),
       });
     }
 

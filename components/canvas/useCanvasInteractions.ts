@@ -40,7 +40,6 @@ export const useCanvasInteractions = ({
   isDrawing,
   viewportRef,
 }: UseCanvasInteractionsProps) => {
-  
   const layerRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lastPinchDistanceRef = useRef<number | null>(null);
 
@@ -65,16 +64,10 @@ export const useCanvasInteractions = ({
     startPanning,
     updatePanning,
     stopPanning,
-    panOffsetRef: _panOffsetRef
+    panOffsetRef: _panOffsetRef,
   } = useCanvasPanning();
 
-  const {
-    selectionBox,
-    startSelection,
-    updateSelection,
-    finalizeSelection,
-    selectionBoxRef
-  } = useCanvasSelection({
+  const { selectionBox, startSelection, updateSelection, finalizeSelection, selectionBoxRef } = useCanvasSelection({
     artboards,
     onSelectLayer,
     setSelectedLayerIds,
@@ -90,7 +83,7 @@ export const useCanvasInteractions = ({
     startDragging,
     updateDragging,
     finalizeDragging,
-    dragStateRef
+    dragStateRef,
   } = useLayerDragging({
     layers,
     selectedLayerIds,
@@ -101,28 +94,23 @@ export const useCanvasInteractions = ({
     onMultiSelectLayer,
     onInteractionStart,
     onContextMenu,
-    triggerHaptic
+    triggerHaptic,
   });
 
   // 4. Transformation Hook
-  const {
-    transformState,
-    handleResizeStart,
-    handleRotateStart,
-    updateTransformation,
-    finalizeTransformation
-  } = useLayerTransformation({
-    layers,
-    zoom,
-    onUpdateLayers
-  });
+  const { transformState, handleResizeStart, handleRotateStart, updateTransformation, finalizeTransformation } =
+    useLayerTransformation({
+      layers,
+      zoom,
+      onUpdateLayers,
+    });
 
   // 5. Drawing Hook
   const {
     handleDrawingMouseDown,
     handleDrawingMouseMove,
     handleDrawingMouseUp,
-    isDrawingInternalRef: _isDrawingInternalRef
+    isDrawingInternalRef: _isDrawingInternalRef,
   } = useDrawingMode({ zoom, isDrawing });
 
   // ORCHESTRATION LOGIC
@@ -175,7 +163,18 @@ export const useCanvasInteractions = ({
         updateTransformation(e);
       }
     },
-    [isPanning, updatePanning, updateSelection, updateDragging, updateTransformation, selectionBoxRef, dragStateRef, transformState, isDrawing, handleDrawingMouseMove]
+    [
+      isPanning,
+      updatePanning,
+      updateSelection,
+      updateDragging,
+      updateTransformation,
+      selectionBoxRef,
+      dragStateRef,
+      transformState,
+      isDrawing,
+      handleDrawingMouseMove,
+    ]
   );
 
   const handleMouseUpInternal = useCallback(() => {
@@ -194,9 +193,20 @@ export const useCanvasInteractions = ({
     if (isDrawing) {
       handleDrawingMouseUp();
     }
-    
+
     stopPanning();
-  }, [selectedLayerIds, finalizeSelection, finalizeDragging, finalizeTransformation, stopPanning, selectionBoxRef, dragStateRef, transformState, isDrawing, handleDrawingMouseUp]);
+  }, [
+    selectedLayerIds,
+    finalizeSelection,
+    finalizeDragging,
+    finalizeTransformation,
+    stopPanning,
+    selectionBoxRef,
+    dragStateRef,
+    transformState,
+    isDrawing,
+    handleDrawingMouseUp,
+  ]);
 
   // Global Event Listeners
   useEffect(() => {
@@ -214,18 +224,18 @@ export const useCanvasInteractions = ({
   // Mobile Pinch/Zoom
   useEffect(() => {
     const el = viewportRef.current;
-    if (!el) {return;}
+    if (!el) {
+      return;
+    }
 
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
-        
+
         // ZOOM AT CURSOR POSITION
         const zoomFactor = 1.05; // More precise zoom
-        const newZoom = e.deltaY > 0 
-          ? Math.max(0.1, zoom / zoomFactor) 
-          : Math.min(10, zoom * zoomFactor);
-        
+        const newZoom = e.deltaY > 0 ? Math.max(0.1, zoom / zoomFactor) : Math.min(10, zoom * zoomFactor);
+
         if (newZoom !== zoom && viewportRef.current) {
           const rect = viewportRef.current.getBoundingClientRect();
           const mouseX = e.clientX - rect.left;
@@ -247,12 +257,12 @@ export const useCanvasInteractions = ({
         if (e.shiftKey) {
           useStore.getState().setPanOffset((prev: { x: number; y: number }) => ({
             x: prev.x - e.deltaY * scrollSpeed,
-            y: prev.y - e.deltaX * scrollSpeed
+            y: prev.y - e.deltaX * scrollSpeed,
           }));
         } else {
           useStore.getState().setPanOffset((prev: { x: number; y: number }) => ({
             x: prev.x - e.deltaX * scrollSpeed,
-            y: prev.y - e.deltaY * scrollSpeed
+            y: prev.y - e.deltaY * scrollSpeed,
           }));
         }
       }
@@ -264,15 +274,18 @@ export const useCanvasInteractions = ({
     };
   }, [viewportRef, onZoomChangeValue, zoom, panOffset]);
 
-  const handleMouseDownCombined = useCallback((e: React.MouseEvent) => {
-    // Middle mouse button (button 1) always pans
-    if (e.button === 1) {
-      e.preventDefault();
-      startPanning(e);
-      return;
-    }
-    handleMouseDownContainer(e);
-  }, [handleMouseDownContainer, startPanning]);
+  const handleMouseDownCombined = useCallback(
+    (e: React.MouseEvent) => {
+      // Middle mouse button (button 1) always pans
+      if (e.button === 1) {
+        e.preventDefault();
+        startPanning(e);
+        return;
+      }
+      handleMouseDownContainer(e);
+    },
+    [handleMouseDownContainer, startPanning]
+  );
 
   return {
     panOffset,

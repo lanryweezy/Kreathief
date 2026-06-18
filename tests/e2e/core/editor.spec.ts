@@ -32,7 +32,7 @@ test.describe('Editor Core Features', () => {
     const testTitle = 'My Awesome Design';
 
     await page.evaluate((title) => {
-        (window as any).useStore.getState().setProjectTitle(title);
+      (window as any).useStore.getState().setProjectTitle(title);
     }, testTitle);
 
     // Wait for UI to reflect change
@@ -45,8 +45,8 @@ test.describe('Editor Core Features', () => {
 
     // Zoom in
     await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        store.setZoom(store.zoom + 0.1);
+      const store = (window as any).useStore.getState();
+      store.setZoom(store.zoom + 0.1);
     });
 
     const zoomedIn = await page.evaluate(() => (window as any).useStore.getState().zoom);
@@ -54,8 +54,8 @@ test.describe('Editor Core Features', () => {
 
     // Zoom out
     await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        store.setZoom(store.zoom - 0.2);
+      const store = (window as any).useStore.getState();
+      store.setZoom(store.zoom - 0.2);
     });
 
     const zoomedOut = await page.evaluate(() => (window as any).useStore.getState().zoom);
@@ -66,13 +66,13 @@ test.describe('Editor Core Features', () => {
     const testTitle = 'Test Save Project';
 
     await page.evaluate((title) => {
-        const store = (window as any).useStore.getState();
-        store.setProjectTitle(title);
+      const store = (window as any).useStore.getState();
+      store.setProjectTitle(title);
     }, testTitle);
 
     // Trigger save and wait for it
     await page.evaluate(async () => {
-        await (window as any).useStore.getState().saveProject();
+      await (window as any).useStore.getState().saveProject();
     });
 
     // Verify store state directly
@@ -82,7 +82,7 @@ test.describe('Editor Core Features', () => {
 
     // Clear storage/state and reload with ID
     await page.evaluate(() => {
-        (window as any).useStore.getState().reset();
+      (window as any).useStore.getState().reset();
     });
 
     await page.goto(`/editor?id=${projectId}`);
@@ -98,13 +98,13 @@ test.describe('Editor Core Features', () => {
   test('should add and delete layers via store', async ({ page }) => {
     // Add a text layer
     await page.evaluate(() => {
-        (window as any).useStore.getState().addTextLayer('Hello Test');
+      (window as any).useStore.getState().addTextLayer('Hello Test');
     });
 
     let layers = await page.evaluate(() => {
-        const state = (window as any).useStore.getState();
-        const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
-        return artboard.layers;
+      const state = (window as any).useStore.getState();
+      const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
+      return artboard.layers;
     });
     expect(layers.length).toBeGreaterThan(0);
 
@@ -112,13 +112,13 @@ test.describe('Editor Core Features', () => {
 
     // Delete it
     await page.evaluate((id) => {
-        (window as any).useStore.getState().deleteLayer(id);
+      (window as any).useStore.getState().deleteLayer(id);
     }, layerId);
 
     layers = await page.evaluate(() => {
-        const state = (window as any).useStore.getState();
-        const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
-        return artboard.layers;
+      const state = (window as any).useStore.getState();
+      const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
+      return artboard.layers;
     });
     expect(layers.length).toBe(0);
   });
@@ -126,54 +126,59 @@ test.describe('Editor Core Features', () => {
   test('should handle layer manipulation via store', async ({ page }) => {
     // Add multiple layers
     await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        store.addTextLayer({ text: 'Layer 1' });
-        store.addTextLayer({ text: 'Layer 2' });
+      const store = (window as any).useStore.getState();
+      store.addTextLayer({ text: 'Layer 1' });
+      store.addTextLayer({ text: 'Layer 2' });
     });
 
     // Verify initial count
     await page.waitForFunction(() => {
-        const state = (window as any).useStore.getState();
-        const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
-        return artboard.layers.length === 2;
+      const state = (window as any).useStore.getState();
+      const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
+      return artboard.layers.length === 2;
     });
 
     // Move layer (reorder)
     const firstLayerId = await page.evaluate(() => {
-        const state = (window as any).useStore.getState();
-        const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
-        return artboard.layers[0].id;
+      const state = (window as any).useStore.getState();
+      const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
+      return artboard.layers[0].id;
     });
 
     await page.evaluate((id) => {
-        (window as any).useStore.getState().moveLayer(id, 'front');
+      (window as any).useStore.getState().moveLayer(id, 'front');
     }, firstLayerId);
 
     // Verify reorder
     await page.waitForFunction((id) => {
-        const state = (window as any).useStore.getState();
-        const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
-        return artboard.layers[artboard.layers.length - 1].id === id;
+      const state = (window as any).useStore.getState();
+      const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
+      return artboard.layers[artboard.layers.length - 1].id === id;
     }, firstLayerId);
 
     // Group layers
     await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
-        store.setSelectedLayerIds(artboard.layers.map((l: any) => l.id));
-        store.groupSelected();
+      const store = (window as any).useStore.getState();
+      const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
+      store.setSelectedLayerIds(artboard.layers.map((l: any) => l.id));
+      store.groupSelected();
     });
 
     // Verify grouping (a group layer is added, children might be moved)
     // In Kreathief, groupSelected might replace layers or nested them.
     // Check for a group layer or reduced root layer count if it's nested
-    await page.waitForFunction(() => {
-        const state = (window as any).useStore.getState();
-        const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
-        return artboard.layers.some((l: any) => l.type === 'group' || l.groupId);
-    }, { timeout: 10000 }).catch(() => {
+    await page
+      .waitForFunction(
+        () => {
+          const state = (window as any).useStore.getState();
+          const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
+          return artboard.layers.some((l: any) => l.type === 'group' || l.groupId);
+        },
+        { timeout: 10000 }
+      )
+      .catch(() => {
         // Fallback check: root layers might decrease if nested
-    });
+      });
   });
 
   test('should export project', async ({ page }) => {

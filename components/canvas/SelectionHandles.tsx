@@ -18,7 +18,7 @@ interface SelectionHandlesProps {
 
 export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: SelectionHandlesProps) => {
   const rotation = layer.rotation || 0;
-  
+
   // Style to keep handles upright
   const handleContainerStyle = {
     transform: `rotate(${-rotation}deg)`,
@@ -29,21 +29,21 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
       {/* Primary Selection Border */}
       <div
         className={`absolute -inset-[1px] border-[1.5px] shadow-[0_0_15px_rgba(125,42,232,0.3)] transition-all ${
-          layer.locked 
-            ? 'border-red-500 border-dashed opacity-50' 
-            : layer.componentId 
-              ? 'border-[#a855f7]' 
-              : layer.masterId 
+          layer.locked
+            ? 'border-red-500 border-dashed opacity-50'
+            : layer.componentId
+              ? 'border-[#a855f7]'
+              : layer.masterId
                 ? 'border-[#c084fc] border-dashed'
                 : 'border-[#7d2ae8] ring-1 ring-[#7d2ae8]/20'
         }`}
-        style={{ 
+        style={{
           borderRadius: `${typeof (layer as any).cornerRadius === 'number' ? (layer as any).cornerRadius : 0}px`,
-          animation: layer.locked ? 'none' : 'selectionPulse 2s ease-in-out infinite' 
+          animation: layer.locked ? 'none' : 'selectionPulse 2s ease-in-out infinite',
         }}
       >
         {/* Dimension Pill  high contrast, subtle */}
-        <div 
+        <div
           className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-md text-white text-[9px] font-black font-mono px-2 py-0.5 rounded-full shadow-2xl border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[60]"
           style={handleContainerStyle}
         >
@@ -59,11 +59,9 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
       `}</style>
 
       {(layer.locked || layer.componentId || layer.masterId) && (
-        <div 
+        <div
           className={`absolute -top-3 -right-3 rounded-full p-1 shadow-md border z-50 flex items-center justify-center ${
-            layer.locked 
-              ? 'bg-red-100 text-red-500 border-red-200' 
-              : 'bg-[#a855f7] text-white border-[#9333ea]'
+            layer.locked ? 'bg-red-100 text-red-500 border-red-200' : 'bg-[#a855f7] text-white border-[#9333ea]'
           }`}
           style={handleContainerStyle}
           title={layer.componentId ? 'Master Component' : layer.masterId ? 'Component Instance' : 'Locked'}
@@ -128,7 +126,7 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
           )}
 
           {/* Rotate Handle */}
-          <div 
+          <div
             className="absolute -bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 pointer-events-auto group/rotate z-50"
             style={handleContainerStyle}
           >
@@ -157,5 +155,3 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
 });
 
 SelectionHandles.displayName = 'SelectionHandles';
-
-

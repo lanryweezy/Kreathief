@@ -6,10 +6,22 @@ import { alignLayers, distributeLayers, AlignmentType, DistributionType, tidyUpL
 import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 
-interface ArrangePanelProps { }
+interface ArrangePanelProps {}
 
 export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
-  const { artboards, selectedLayerIds, canvasSize, updateLayers, moveLayer: onMoveLayer, showGrid, setShowGrid, snapToObjects, setSnapToObjects, snapToGrid, setSnapToGrid } = useStore(
+  const {
+    artboards,
+    selectedLayerIds,
+    canvasSize,
+    updateLayers,
+    moveLayer: onMoveLayer,
+    showGrid,
+    setShowGrid,
+    snapToObjects,
+    setSnapToObjects,
+    snapToGrid,
+    setSnapToGrid,
+  } = useStore(
     useShallow((state) => ({
       artboards: state.artboards,
       selectedLayerIds: state.selectedLayerIds,
@@ -25,7 +37,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
     }))
   );
 
-  const allLayers = artboards.flatMap(a => a.layers);
+  const allLayers = artboards.flatMap((a) => a.layers);
   const selectedLayers = allLayers.filter((l) => selectedLayerIds.includes(l.id));
   const onUpdateLayers = updateLayers;
   const [isAspectRatioLocked, setIsAspectRatioLocked] = React.useState(true);

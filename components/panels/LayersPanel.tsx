@@ -210,7 +210,16 @@ const LayerItem = React.memo(
 LayerItem.displayName = 'LayerItem';
 
 export const LayersPanel = () => {
-  const { artboards, activeArtboardId, selectedLayerIds, selectLayer, multiSelectLayer, updateLayer, deleteLayer, reorderLayer } = useStore(
+  const {
+    artboards,
+    activeArtboardId,
+    selectedLayerIds,
+    selectLayer,
+    multiSelectLayer,
+    updateLayer,
+    deleteLayer,
+    reorderLayer,
+  } = useStore(
     useShallow((state) => ({
       artboards: state.artboards,
       activeArtboardId: state.activeArtboardId,
@@ -222,7 +231,10 @@ export const LayersPanel = () => {
       reorderLayer: state.reorderLayer,
     }))
   );
-  const layers = useMemo(() => artboards.find((a: Artboard) => a.id === activeArtboardId)?.layers || [], [artboards, activeArtboardId]);
+  const layers = useMemo(
+    () => artboards.find((a: Artboard) => a.id === activeArtboardId)?.layers || [],
+    [artboards, activeArtboardId]
+  );
 
   const [activeTab, setActiveTab] = useState<'layers' | 'arrange'>('layers');
 
@@ -233,7 +245,9 @@ export const LayersPanel = () => {
         <button
           onClick={() => setActiveTab('layers')}
           className={`pb-3 text-xs font-bold transition-all border-b-2 ${
-            activeTab === 'layers' ? 'border-[#7d2ae8] text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+            activeTab === 'layers'
+              ? 'border-[#7d2ae8] text-white'
+              : 'border-transparent text-gray-500 hover:text-gray-300'
           }`}
         >
           LAYERS ({layers.length})
@@ -241,7 +255,9 @@ export const LayersPanel = () => {
         <button
           onClick={() => setActiveTab('arrange')}
           className={`pb-3 text-xs font-bold transition-all border-b-2 ${
-            activeTab === 'arrange' ? 'border-[#7d2ae8] text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+            activeTab === 'arrange'
+              ? 'border-[#7d2ae8] text-white'
+              : 'border-transparent text-gray-500 hover:text-gray-300'
           }`}
         >
           ARRANGE
@@ -250,19 +266,23 @@ export const LayersPanel = () => {
 
       <div className="flex-1 overflow-y-auto no-scrollbar py-2">
         {activeTab === 'layers' ? (
-          [...layers].reverse().map((layer, idx) => (
-            <LayerItem
-              key={layer.id}
-              layer={layer}
-              index={idx}
-              isSelected={selectedLayerIds.includes(layer.id)}
-              onSelect={() => selectLayer(layer.id)}
-              onSelectMultiple={(_e) => multiSelectLayer(layer.id, true)}
-              onUpdate={(c) => updateLayer(layer.id, c)}
-              onDelete={() => deleteLayer(layer.id)}
-              onDrop={(id, target, pos) => reorderLayer(id, layers.findIndex(l => l.id === target) + (pos === 'above' ? 1 : 0))}
-            />
-          ))
+          [...layers]
+            .reverse()
+            .map((layer, idx) => (
+              <LayerItem
+                key={layer.id}
+                layer={layer}
+                index={idx}
+                isSelected={selectedLayerIds.includes(layer.id)}
+                onSelect={() => selectLayer(layer.id)}
+                onSelectMultiple={(_e) => multiSelectLayer(layer.id, true)}
+                onUpdate={(c) => updateLayer(layer.id, c)}
+                onDelete={() => deleteLayer(layer.id)}
+                onDrop={(id, target, pos) =>
+                  reorderLayer(id, layers.findIndex((l) => l.id === target) + (pos === 'above' ? 1 : 0))
+                }
+              />
+            ))
         ) : (
           <div className="h-full">
             <ArrangePanel />

@@ -15,11 +15,13 @@ Kreathief is a professional-grade, browser-based design tool that replaces Figma
 ## ✨ Features
 
 ### 🤖 AI-Native Design
+
 - **Editable Vector Generation** — AI creates fully editable layers, not locked templates
 - **Multi-Agent Orchestration** — Specialized AI agents for layout, color, typography, and mockups
 - **Intent Inference** — AI understands design context and suggests relevant improvements
 
 ### 🎨 Professional Editing
+
 - **Pen Tool** with full bezier curve control
 - **Boolean Operations** — Union, subtract, intersect, exclude
 - **Variable Stroke Widths** with pressure sensitivity and velocity-based smoothing
@@ -27,17 +29,20 @@ Kreathief is a professional-grade, browser-based design tool that replaces Figma
 - **Layer Management** — Groups, masks, blend modes, and constraints
 
 ### 📱 One-Click Mockups
+
 - Perspective-correct device and surface mapping
 - Automatic lighting and distortion adjustment
 - 100+ built-in mockup templates
 
 ### 📴 Offline-First Architecture
+
 - Full editing capabilities without internet connection
 - Local IndexedDB storage with automatic cloud sync
 - AI request queuing for offline generation
 - Conflict resolution for multi-device workflows
 
 ### 💾 Universal Export
+
 - PNG, SVG, PDF, PSD (layered Photoshop files)
 - CMYK color profiles for print production
 - Bleed and crop marks for professional printing
@@ -46,25 +51,26 @@ Kreathief is a professional-grade, browser-based design tool that replaces Figma
 
 ## 🛠️ Tech Stack
 
-| Category | Technology |
-|----------|------------|
-| **Frontend** | React 18, TypeScript, Vite 5 |
-| **State Management** | Zustand, Reselect |
-| **Styling** | Tailwind CSS, PostCSS |
-| **Animations** | Framer Motion |
-| **Backend** | Supabase (Auth, DB, Real-time, Storage) |
-| **AI** | Google Gemini API, Custom Multi-Agent Pipeline |
-| **Storage** | IndexedDB (offline), Supabase (cloud) |
-| **Testing** | Vitest, React Testing Library, Playwright |
-| **CI/CD** | GitHub Actions, Husky, Lint-Staged |
-| **Deployment** | Vercel |
+| Category             | Technology                                     |
+| -------------------- | ---------------------------------------------- |
+| **Frontend**         | React 18, TypeScript, Vite 5                   |
+| **State Management** | Zustand, Reselect                              |
+| **Styling**          | Tailwind CSS, PostCSS                          |
+| **Animations**       | Framer Motion                                  |
+| **Backend**          | Supabase (Auth, DB, Real-time, Storage)        |
+| **AI**               | Google Gemini API, Custom Multi-Agent Pipeline |
+| **Storage**          | IndexedDB (offline), Supabase (cloud)          |
+| **Testing**          | Vitest, React Testing Library, Playwright      |
+| **CI/CD**            | GitHub Actions, Husky, Lint-Staged             |
+| **Deployment**       | Vercel                                         |
 
 ---
 
 ## 📦 Installation
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - npm or yarn
 - Supabase account (for backend features)
 - Google Gemini API key (for AI features)
@@ -117,18 +123,18 @@ VITE_USE_QA_BYPASS=false
 
 ## 🚀 Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server with HMR |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview production build locally |
-| `npm run test` | Run unit tests with Vitest |
-| `npm run test:ui` | Run tests with Vitest UI |
-| `npm run test:e2e` | Run end-to-end tests with Playwright |
-| `npm run lint` | Run ESLint |
-| `npm run lint:fix` | Fix ESLint issues automatically |
-| `npm run format` | Format code with Prettier |
-| `npm run type-check` | Run TypeScript type checking |
+| Command              | Description                          |
+| -------------------- | ------------------------------------ |
+| `npm run dev`        | Start development server with HMR    |
+| `npm run build`      | Build for production                 |
+| `npm run preview`    | Preview production build locally     |
+| `npm run test`       | Run unit tests with Vitest           |
+| `npm run test:ui`    | Run tests with Vitest UI             |
+| `npm run test:e2e`   | Run end-to-end tests with Playwright |
+| `npm run lint`       | Run ESLint                           |
+| `npm run lint:fix`   | Fix ESLint issues automatically      |
+| `npm run format`     | Format code with Prettier            |
+| `npm run type-check` | Run TypeScript type checking         |
 
 ---
 
@@ -183,6 +189,7 @@ npm test -- --coverage
 3. Deploy automatically on push to `main`
 
 The project includes a `vercel.json` configuration for optimal deployment:
+
 - SPA routing rewrites
 - Asset caching headers
 - API route handling
@@ -199,14 +206,18 @@ npm run build
 ## 🏛️ Architecture
 
 ### Canvas Engine
+
 Kreathief uses a custom DOM-based rendering engine optimized for 1000+ layers at 60fps:
+
 - **Viewport Culling** — Only renders visible layers
 - **Layer Caching** — O(1) lookups via Map with automatic invalidation
 - **Web Workers** — Offloads heavy operations (background removal, vectorization)
 - **Error Isolation** — Per-layer error boundaries prevent canvas crashes
 
 ### State Management
+
 Modular Zustand store with 8 focused slices:
+
 - `UISlice` — Modals, toasts, panels
 - `CanvasSlice` — Zoom, size, background
 - `LayerSlice` — Layer CRUD, grouping, ordering
@@ -217,7 +228,9 @@ Modular Zustand store with 8 focused slices:
 - `AgentSlice` — Multi-agent orchestration
 
 ### Offline Sync
+
 Hybrid storage with IndexedDB (local) and Supabase (cloud):
+
 - Automatic offline detection
 - Pending operation queue
 - Conflict resolution on reconnect
@@ -236,6 +249,7 @@ We welcome contributions! Please follow these steps:
 5. Open a Pull Request
 
 ### Code Style
+
 - ESLint + Prettier enforced
 - Husky pre-commit hooks
 - TypeScript strict mode
@@ -254,6 +268,7 @@ Unauthorized copying, distribution, or modification of this file, via any medium
 ## 🙏 Acknowledgments
 
 Built with love and obsession for:
+
 - **Designers** who deserve better tools
 - **Developers** who believe in offline-first
 - **AI** that assists, not replaces
@@ -262,7 +277,7 @@ Built with love and obsession for:
 
 ## 📞 Support
 
-- **Documentation:** [docs.kreathief.com](https://docs.kreathief.com) *(coming soon)*
+- **Documentation:** [docs.kreathief.com](https://docs.kreathief.com) _(coming soon)_
 - **Issues:** [GitHub Issues](https://github.com/lanryweezy/Kreathief/issues)
 - **Email:** support@kreathief.com
 - **Twitter:** [@kreathief](https://twitter.com/kreathief)

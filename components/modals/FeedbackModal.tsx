@@ -14,7 +14,9 @@ export const FeedbackModal: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) {return;}
+    if (!message.trim()) {
+      return;
+    }
 
     setIsSubmitting(true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -50,8 +52,8 @@ export const FeedbackModal: React.FC = () => {
                   type="button"
                   onClick={() => setType(t)}
                   className={`flex-1 py-3 rounded-xl text-xs font-black transition-all border uppercase tracking-widest ${
-                    type === t 
-                      ? 'bg-[#00c4cc] border-[#00c4cc] text-white shadow-lg shadow-cyan-500/20' 
+                    type === t
+                      ? 'bg-[#00c4cc] border-[#00c4cc] text-white shadow-lg shadow-cyan-500/20'
                       : 'bg-white/5 border-white/5 text-gray-500 hover:border-white/10 hover:text-gray-300'
                   }`}
                 >
@@ -69,11 +71,11 @@ export const FeedbackModal: React.FC = () => {
               autoFocus
               className="w-full h-40 bg-black/40 border border-white/10 rounded-2xl p-4 text-sm text-white placeholder-gray-700 focus:border-[#00c4cc] outline-none transition-all resize-none font-medium leading-relaxed"
               placeholder={
-                type === 'bug' 
-                  ? "Describe the issue in detail..." 
-                  : type === 'feature' 
-                    ? "What's your dream feature?" 
-                    : "Tell us anything..."
+                type === 'bug'
+                  ? 'Describe the issue in detail...'
+                  : type === 'feature'
+                    ? "What's your dream feature?"
+                    : 'Tell us anything...'
               }
               value={message}
               onChange={(e) => setMessage(e.target.value)}
@@ -93,7 +95,7 @@ export const FeedbackModal: React.FC = () => {
           </div>
         </form>
       </div>
-      
+
       <div className="bg-white/5 p-6 border-t border-white/5 text-center">
         <p className="text-[10px] text-gray-600 font-bold leading-relaxed uppercase tracking-wider">
           Every submission is reviewed by our core designers. 🚀

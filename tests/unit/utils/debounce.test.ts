@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { debounce } from '../../../utils/debounce';
 
 describe('Debounce', () => {
-  beforeEach(() => { vi.useFakeTimers(); });
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
   afterEach(() => {
     vi.restoreAllMocks();
     vi.useRealTimers();

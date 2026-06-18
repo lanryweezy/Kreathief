@@ -34,7 +34,9 @@ export const Dropdown: React.FC<DropdownProps> = ({
   }, []);
 
   useEffect(() => {
-    if (!isOpen || !anchorRef.current || !dropdownRef.current || !mounted) {return;}
+    if (!isOpen || !anchorRef.current || !dropdownRef.current || !mounted) {
+      return;
+    }
 
     const updatePosition = () => {
       const anchor = anchorRef.current!.getBoundingClientRect();
@@ -50,9 +52,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
       const shouldGoUp = spaceBelow < dropdown.height && spaceAbove > spaceBelow;
 
       // Calculate top position
-      const top = shouldGoUp
-        ? anchor.top - dropdown.height - offset
-        : anchor.bottom + offset;
+      const top = shouldGoUp ? anchor.top - dropdown.height - offset : anchor.bottom + offset;
 
       // Calculate left position based on alignment
       let left: number;
@@ -61,7 +61,10 @@ export const Dropdown: React.FC<DropdownProps> = ({
           left = Math.min(anchor.right - dropdown.width, viewportWidth - dropdown.width - 8);
           break;
         case 'center':
-          left = Math.max(8, Math.min(anchor.left + anchor.width / 2 - dropdown.width / 2, viewportWidth - dropdown.width - 8));
+          left = Math.max(
+            8,
+            Math.min(anchor.left + anchor.width / 2 - dropdown.width / 2, viewportWidth - dropdown.width - 8)
+          );
           break;
         default: // left
           left = Math.max(8, Math.min(anchor.left, viewportWidth - dropdown.width - 8));
@@ -83,10 +86,14 @@ export const Dropdown: React.FC<DropdownProps> = ({
 
   // Handle escape key and click outside
   useEffect(() => {
-    if (!isOpen) {return;}
+    if (!isOpen) {
+      return;
+    }
 
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {onClose();}
+      if (e.key === 'Escape') {
+        onClose();
+      }
     };
 
     const handleClickOutside = (e: MouseEvent) => {
@@ -109,7 +116,9 @@ export const Dropdown: React.FC<DropdownProps> = ({
     };
   }, [isOpen, onClose, anchorRef]);
 
-  if (!isOpen || !mounted) {return null;}
+  if (!isOpen || !mounted) {
+    return null;
+  }
 
   return createPortal(
     <div

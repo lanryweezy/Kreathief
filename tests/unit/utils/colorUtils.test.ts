@@ -19,7 +19,7 @@ import {
   getCMYKGamutWarning,
   getClosestCMYKSafeColor,
   getRichBlack,
-  formatCMYK
+  formatCMYK,
 } from '../../../utils/colorUtils';
 
 describe('colorUtils Conversions', () => {

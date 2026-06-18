@@ -36,9 +36,14 @@ export class AuthService {
             const user: User = {
               id: session.user.id,
               email: session.user.email || '',
-              name: profile?.name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+              name:
+                profile?.name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
               plan: profile?.plan || 'free',
-              avatar: profile?.avatar || session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture || `https://api.dicebear.com/7.x/bottts/svg?seed=${session.user.id}`,
+              avatar:
+                profile?.avatar ||
+                session.user.user_metadata?.avatar_url ||
+                session.user.user_metadata?.picture ||
+                `https://api.dicebear.com/7.x/bottts/svg?seed=${session.user.id}`,
             };
             onAuthChange(user);
           })
@@ -123,7 +128,11 @@ export class AuthService {
       return { user, error: null };
     } catch (err) {
       logger.error('Sign up error', { error: err });
-      analyticsService.track('auth_signup', { success: false, method: 'email', error: err instanceof Error ? err.message : String(err) });
+      analyticsService.track('auth_signup', {
+        success: false,
+        method: 'email',
+        error: err instanceof Error ? err.message : String(err),
+      });
       return { user: null, error: 'An unexpected error occurred' };
     }
   }
@@ -185,7 +194,11 @@ export class AuthService {
       return { user, error: null };
     } catch (err) {
       log.error('[AuthService] Sign in error', err);
-      analyticsService.track('auth_signin', { success: false, method: 'email', error: err instanceof Error ? err.message : String(err) });
+      analyticsService.track('auth_signin', {
+        success: false,
+        method: 'email',
+        error: err instanceof Error ? err.message : String(err),
+      });
       return { user: null, error: 'An unexpected error occurred' };
     }
   }
@@ -213,7 +226,11 @@ export class AuthService {
       return { user: null, error: null };
     } catch (err) {
       logger.error('Google sign in error', { error: err });
-      analyticsService.track('auth_signin', { success: false, method: 'google', error: err instanceof Error ? err.message : String(err) });
+      analyticsService.track('auth_signin', {
+        success: false,
+        method: 'google',
+        error: err instanceof Error ? err.message : String(err),
+      });
       return { user: null, error: 'An unexpected error occurred' };
     }
   }
@@ -233,7 +250,10 @@ export class AuthService {
       analyticsService.track('auth_signout', { success: true });
     } catch (err) {
       log.error('[AuthService] Sign out error', err);
-      analyticsService.track('auth_signout', { success: false, error: err instanceof Error ? err.message : String(err) });
+      analyticsService.track('auth_signout', {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   }
 
@@ -267,7 +287,11 @@ export class AuthService {
         email: session.user.email || '',
         name: profile?.name || session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
         plan: profile?.plan || 'free',
-        avatar: profile?.avatar || session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture || `https://api.dicebear.com/7.x/bottts/svg?seed=${session.user.id}`,
+        avatar:
+          profile?.avatar ||
+          session.user.user_metadata?.avatar_url ||
+          session.user.user_metadata?.picture ||
+          `https://api.dicebear.com/7.x/bottts/svg?seed=${session.user.id}`,
       };
 
       log.debug('[AuthService] Retrieved Supabase session', { userId: user.id });

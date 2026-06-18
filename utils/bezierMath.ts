@@ -42,7 +42,10 @@ export class BezierMath {
    * Optimized with adaptive sampling and early exit
    */
   static getClosestT(
-    p0: Point, p1: Point, p2: Point, p3: Point,
+    p0: Point,
+    p1: Point,
+    p2: Point,
+    p3: Point,
     point: Point,
     tolerance: number = 0.5
   ): { t: number; dist: number } {

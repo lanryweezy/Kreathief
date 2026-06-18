@@ -10,13 +10,16 @@ test.describe('Premium Pro User: Complete Interactive GUI & Keyboard Shortcuts T
   test.beforeEach(async ({ page }) => {
     // Inject pro premium user status in localStorage
     await page.addInitScript(() => {
-      window.localStorage.setItem('kreathief_qa_session', JSON.stringify({
-        id: 'qa-agentic-designer',
-        email: 'designer-observer@kreathief.app',
-        name: 'AI Designer & Observer',
-        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=designer',
-        plan: 'pro'
-      }));
+      window.localStorage.setItem(
+        'kreathief_qa_session',
+        JSON.stringify({
+          id: 'qa-agentic-designer',
+          email: 'designer-observer@kreathief.app',
+          name: 'AI Designer & Observer',
+          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=designer',
+          plan: 'pro',
+        })
+      );
       window.localStorage.setItem('kreathief_onboarding_seen', 'true');
     });
   });
@@ -34,7 +37,7 @@ test.describe('Premium Pro User: Complete Interactive GUI & Keyboard Shortcuts T
 
     // 2. Click through all primary sidebar panels (Left click test)
     console.log('Step 2: Clicking primary tabs...');
-    
+
     // Layers Panel inside desktop sidebar
     await page.locator('#sidebar button[aria-label="Layers"]').click({ force: true });
     await page.waitForTimeout(800);
@@ -52,7 +55,7 @@ test.describe('Premium Pro User: Complete Interactive GUI & Keyboard Shortcuts T
 
     // 3. Design 1: Neon Typography & Keyboard Shortcuts (Undo/Redo)
     console.log('Step 3: Creating text and testing shortcuts...');
-    
+
     // Open Text tab inside desktop sidebar
     await page.locator('#sidebar button[aria-label="Text"]').click({ force: true });
     await page.waitForTimeout(800);
@@ -61,13 +64,13 @@ test.describe('Premium Pro User: Complete Interactive GUI & Keyboard Shortcuts T
     // Inject typography from the Zustand store for precise positioning
     await page.evaluate(() => {
       const store = (window as any).useStore.getState();
-      
+
       // Enforce activeArtboardId
       const activeId = store.activeArtboardId || store.artboards[0]?.id;
       if (activeId && !store.activeArtboardId) {
         store.setActiveArtboardId(activeId);
       }
-      
+
       // Set Artboard size
       store.setCanvasSize({ width: 1920, height: 1080, name: 'CASH COW Poster' });
       const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
@@ -87,7 +90,7 @@ test.describe('Premium Pro User: Complete Interactive GUI & Keyboard Shortcuts T
         color: '#D4FF7F',
         fontFamily: 'Outfit',
         textAlign: 'left',
-        letterSpacing: 4
+        letterSpacing: 4,
       });
     });
 
@@ -112,7 +115,7 @@ test.describe('Premium Pro User: Complete Interactive GUI & Keyboard Shortcuts T
     // Add shapes to workspace
     await page.evaluate(() => {
       const store = (window as any).useStore.getState();
-      
+
       // Circle shape
       store.addShapeLayer('circle', {
         x: 400,
@@ -120,7 +123,7 @@ test.describe('Premium Pro User: Complete Interactive GUI & Keyboard Shortcuts T
         width: 250,
         height: 250,
         color: '#9B59B6',
-        name: 'Purple Magic Circle'
+        name: 'Purple Magic Circle',
       });
 
       // Rectangle shape
@@ -130,7 +133,7 @@ test.describe('Premium Pro User: Complete Interactive GUI & Keyboard Shortcuts T
         width: 300,
         height: 200,
         color: '#3498DB',
-        name: 'Blue Layout Rectangle'
+        name: 'Blue Layout Rectangle',
       });
     });
 
@@ -192,13 +195,12 @@ test.describe('Premium Pro User: Complete Interactive GUI & Keyboard Shortcuts T
 
     await page.evaluate(() => {
       const store = (window as any).useStore.getState();
-      
+
       // Clear secondary test shapes to avoid clutter
       const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
       if (artboard) {
-        artboard.layers = artboard.layers.filter((l: any) => 
-          l.name === 'Background Gradient Overlay' || 
-          l.type === 'text'
+        artboard.layers = artboard.layers.filter(
+          (l: any) => l.name === 'Background Gradient Overlay' || l.type === 'text'
         );
       }
 
@@ -211,7 +213,7 @@ test.describe('Premium Pro User: Complete Interactive GUI & Keyboard Shortcuts T
         name: 'Main Platform',
         color: '#145A32',
         cornerRadius: 40,
-        shadow: { color: 'rgba(0, 0, 0, 0.4)', blur: 40, offsetX: 0, offsetY: 20 }
+        shadow: { color: 'rgba(0, 0, 0, 0.4)', blur: 40, offsetX: 0, offsetY: 20 },
       });
 
       // Scatter Dollar grass
@@ -227,7 +229,7 @@ test.describe('Premium Pro User: Complete Interactive GUI & Keyboard Shortcuts T
           name: `Dollar Note ${i}`,
           color: '#32CD32',
           cornerRadius: 4,
-          stroke: { color: '#1B5E20', width: 2 }
+          stroke: { color: '#1B5E20', width: 2 },
         });
       }
 
@@ -239,7 +241,7 @@ test.describe('Premium Pro User: Complete Interactive GUI & Keyboard Shortcuts T
         height: 250,
         color: '#FFFFFF',
         cornerRadius: 45,
-        name: 'Cow Torso'
+        name: 'Cow Torso',
       });
 
       // Cow Snout
@@ -249,7 +251,7 @@ test.describe('Premium Pro User: Complete Interactive GUI & Keyboard Shortcuts T
         width: 85,
         height: 80,
         color: '#FFA07A',
-        name: 'Snout'
+        name: 'Snout',
       });
 
       // Neon title
@@ -265,7 +267,7 @@ test.describe('Premium Pro User: Complete Interactive GUI & Keyboard Shortcuts T
         fontFamily: 'Outfit',
         textAlign: 'left',
         letterSpacing: 8,
-        shadow: { color: '#D4FF7F', blur: 18, offsetX: 0, offsetY: 0 }
+        shadow: { color: '#D4FF7F', blur: 18, offsetX: 0, offsetY: 0 },
       });
 
       // Subtitle
@@ -279,7 +281,7 @@ test.describe('Premium Pro User: Complete Interactive GUI & Keyboard Shortcuts T
         fontWeight: '500',
         color: '#B7E4C7',
         fontFamily: 'Inter',
-        textAlign: 'left'
+        textAlign: 'left',
       });
     });
 
@@ -291,7 +293,7 @@ test.describe('Premium Pro User: Complete Interactive GUI & Keyboard Shortcuts T
     const exportBtn = page.getByTestId('export-btn');
     await expect(exportBtn).toBeVisible({ timeout: 5000 });
     await exportBtn.click({ force: true });
-    
+
     // Wait for the modal dialog to appear
     await page.waitForSelector('[data-testid="export-modal"]', { state: 'visible', timeout: 8000 });
     await page.waitForTimeout(1000);
@@ -321,10 +323,7 @@ test.describe('Premium Pro User: Complete Interactive GUI & Keyboard Shortcuts T
     // Copy screenshots
     const screenshotsList = fs.readdirSync('verification/screenshots');
     for (const file of screenshotsList) {
-      fs.copyFileSync(
-        path.join('verification/screenshots', file),
-        path.join(outputDir, 'screenshots', file)
-      );
+      fs.copyFileSync(path.join('verification/screenshots', file), path.join(outputDir, 'screenshots', file));
     }
 
     // Write premium telemetry report

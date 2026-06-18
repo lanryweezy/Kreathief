@@ -101,7 +101,11 @@ export const Footer: React.FC = () => {
             <div className="flex items-center gap-4">
               {[
                 { Icon: Icons.Twitter, label: 'Follow Kreathief on Twitter', href: 'https://twitter.com/kreathief' },
-                { Icon: Icons.Instagram, label: 'Follow Kreathief on Instagram', href: 'https://instagram.com/kreathief' },
+                {
+                  Icon: Icons.Instagram,
+                  label: 'Follow Kreathief on Instagram',
+                  href: 'https://instagram.com/kreathief',
+                },
                 { Icon: Icons.Facebook, label: 'Follow Kreathief on Facebook', href: 'https://facebook.com/kreathief' },
               ].map(({ Icon, label, href }) => (
                 <a
@@ -218,15 +222,35 @@ export const Footer: React.FC = () => {
         <div className="py-16 border-t border-white/5">
           <div className="flex flex-col md:flex-row items-center justify-between gap-8">
             <div>
-              <h4 className="text-sm font-black text-white uppercase tracking-widest mb-2">Any questions about Kreathief?</h4>
-              <p className="text-neutral-500 text-xs font-medium uppercase tracking-[0.2em]">Ask the world's most intelligent AI models instantly.</p>
+              <h4 className="text-sm font-black text-white uppercase tracking-widest mb-2">
+                Any questions about Kreathief?
+              </h4>
+              <p className="text-neutral-500 text-xs font-medium uppercase tracking-[0.2em]">
+                Ask the world's most intelligent AI models instantly.
+              </p>
             </div>
             <div className="flex flex-wrap items-center gap-4">
               {[
-                { label: 'ChatGPT', color: 'hover:text-emerald-400', href: 'https://chatgpt.com/?q=Tell+me+about+Kreathief+AI+Design+Suite+and+how+its+multi-agent+system+works.' },
-                { label: 'Claude', color: 'hover:text-orange-400', href: 'https://claude.ai/new?q=What+is+Kreathief+and+how+does+it+compare+to+Figma+and+Canva?' },
-                { label: 'Gemini', color: 'hover:text-blue-400', href: 'https://gemini.google.com/app?q=Summarize+the+key+features+of+Kreathief+AI+Design+Suite.' },
-                { label: 'Perplexity', color: 'hover:text-cyan-400', href: 'https://www.perplexity.ai/search?q=Is+Kreathief+AI+Design+Suite+the+best+tool+for+AI+vector+design?' },
+                {
+                  label: 'ChatGPT',
+                  color: 'hover:text-emerald-400',
+                  href: 'https://chatgpt.com/?q=Tell+me+about+Kreathief+AI+Design+Suite+and+how+its+multi-agent+system+works.',
+                },
+                {
+                  label: 'Claude',
+                  color: 'hover:text-orange-400',
+                  href: 'https://claude.ai/new?q=What+is+Kreathief+and+how+does+it+compare+to+Figma+and+Canva?',
+                },
+                {
+                  label: 'Gemini',
+                  color: 'hover:text-blue-400',
+                  href: 'https://gemini.google.com/app?q=Summarize+the+key+features+of+Kreathief+AI+Design+Suite.',
+                },
+                {
+                  label: 'Perplexity',
+                  color: 'hover:text-cyan-400',
+                  href: 'https://www.perplexity.ai/search?q=Is+Kreathief+AI+Design+Suite+the+best+tool+for+AI+vector+design?',
+                },
               ].map((ai) => (
                 <a
                   key={ai.label}

@@ -17,14 +17,17 @@ export const GridGuidesPanel: React.FC = () => {
   const [gridColor, setGridColor] = useState('#7d2ae8');
   const [guides, setGuides] = useState<{ type: 'horizontal' | 'vertical'; position: number }[]>([]);
 
-  const handleAddGuide = useCallback((type: 'horizontal' | 'vertical') => {
-    const newGuide = {
-      type,
-      position: type === 'horizontal' ? 500 : 500,
-    };
-    setGuides([...guides, newGuide]);
-    addToast(`${type === 'horizontal' ? 'Horizontal' : 'Vertical'} guide added`, 'success');
-  }, [guides, addToast]);
+  const handleAddGuide = useCallback(
+    (type: 'horizontal' | 'vertical') => {
+      const newGuide = {
+        type,
+        position: type === 'horizontal' ? 500 : 500,
+      };
+      setGuides([...guides, newGuide]);
+      addToast(`${type === 'horizontal' ? 'Horizontal' : 'Vertical'} guide added`, 'success');
+    },
+    [guides, addToast]
+  );
 
   const handleClearGuides = useCallback(() => {
     setGuides([]);

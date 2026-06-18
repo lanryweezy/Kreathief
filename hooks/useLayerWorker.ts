@@ -15,7 +15,9 @@ export const useProcessedImage = (layer: ImageLayer | null) => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const filterKey = useMemo(() => {
-    if (!layer?.filters) {return '';}
+    if (!layer?.filters) {
+      return '';
+    }
     const f = layer.filters;
     // Fast hash of filter values to avoid JSON.stringify overhead
     return `${f.brightness}-${f.contrast}-${f.saturation}-${f.sepia}-${f.grayscale}-${f.blur}-${f.vignette || 0}`;
@@ -29,9 +31,15 @@ export const useProcessedImage = (layer: ImageLayer | null) => {
 
     // Optimization: Skip if no filters are active (all at defaults)
     const f = layer.filters;
-    const isDefault = f.brightness === 100 && f.contrast === 100 && f.saturation === 100 && 
-                      f.sepia === 0 && f.grayscale === 0 && f.blur === 0 && (f.vignette || 0) === 0;
-    
+    const isDefault =
+      f.brightness === 100 &&
+      f.contrast === 100 &&
+      f.saturation === 100 &&
+      f.sepia === 0 &&
+      f.grayscale === 0 &&
+      f.blur === 0 &&
+      (f.vignette || 0) === 0;
+
     if (isDefault) {
       setProcessedUrl(null);
       return;
@@ -40,16 +48,19 @@ export const useProcessedImage = (layer: ImageLayer | null) => {
     let isMounted = true;
     const timeout = setTimeout(() => {
       setIsProcessing(true);
-      heavyWorkerService.applyFilters(layer.src, layer.filters!)
-        .then(url => {
+      heavyWorkerService
+        .applyFilters(layer.src, layer.filters!)
+        .then((url) => {
           if (isMounted) {
             setProcessedUrl(url);
             setIsProcessing(false);
           }
         })
-        .catch(err => {
+        .catch((err) => {
           log.error('Filter Worker Error:', err);
-          if (isMounted) {setIsProcessing(false);}
+          if (isMounted) {
+            setIsProcessing(false);
+          }
         });
     }, 150); // Debounce to prevent worker flooding during slider moves
 

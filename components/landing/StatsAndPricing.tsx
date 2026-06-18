@@ -23,8 +23,12 @@ export const Stats: React.FC = () => {
               transition={{ delay: idx * 0.1 }}
               className="group cursor-default"
             >
-              <div className="text-5xl md:text-6xl font-black mb-3 tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 group-hover:from-purple-400 group-hover:to-pink-400 transition-all duration-500">{stat.value}</div>
-              <div className="text-xs font-black text-gray-500 group-hover:text-purple-400 uppercase tracking-[0.25em] transition-colors">{stat.label}</div>
+              <div className="text-5xl md:text-6xl font-black mb-3 tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-400 group-hover:from-purple-400 group-hover:to-pink-400 transition-all duration-500">
+                {stat.value}
+              </div>
+              <div className="text-xs font-black text-gray-500 group-hover:text-purple-400 uppercase tracking-[0.25em] transition-colors">
+                {stat.label}
+              </div>
             </motion.div>
           ))}
         </div>
@@ -45,7 +49,13 @@ export const Pricing: React.FC<PricingProps> = ({ onPlanSelect }) => {
       name: 'Free',
       price: '0',
       description: 'Perfect for exploring',
-      features: ['100 AI generations/month', 'Basic vector tools', 'Standard export (PNG, JPG)', 'Community support', '5 projects'],
+      features: [
+        '100 AI generations/month',
+        'Basic vector tools',
+        'Standard export (PNG, JPG)',
+        'Community support',
+        '5 projects',
+      ],
       button: 'Start Free',
       accent: 'border-white/10',
     },
@@ -70,7 +80,15 @@ export const Pricing: React.FC<PricingProps> = ({ onPlanSelect }) => {
       name: 'Team',
       price: annualBilling ? '39' : '49',
       description: 'Scale your workflow',
-      features: ['Everything in Pro', 'Real-time collaboration', 'Shared workspaces', 'Team analytics', 'Custom fonts upload', 'API access', 'Dedicated support'],
+      features: [
+        'Everything in Pro',
+        'Real-time collaboration',
+        'Shared workspaces',
+        'Team analytics',
+        'Custom fonts upload',
+        'API access',
+        'Dedicated support',
+      ],
       button: 'Start Team Trial',
       accent: 'border-white/10',
     },
@@ -151,9 +169,7 @@ export const Pricing: React.FC<PricingProps> = ({ onPlanSelect }) => {
                   <span className="text-gray-500 font-bold">/month</span>
                 </div>
                 {plan.price !== '0' && (
-                  <p className="text-xs text-gray-600 mt-2">
-                    {annualBilling ? 'Billed annually' : 'Billed monthly'}
-                  </p>
+                  <p className="text-xs text-gray-600 mt-2">{annualBilling ? 'Billed annually' : 'Billed monthly'}</p>
                 )}
               </div>
 
@@ -171,8 +187,8 @@ export const Pricing: React.FC<PricingProps> = ({ onPlanSelect }) => {
               <button
                 onClick={onPlanSelect}
                 className={`w-full py-4 rounded-2xl font-bold text-sm transition-all transform hover:scale-[1.02] active:scale-[0.98] ${
-                  plan.popular 
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40' 
+                  plan.popular
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/30 hover:shadow-xl hover:shadow-purple-500/40'
                     : 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
                 }`}
               >

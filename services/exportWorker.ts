@@ -256,7 +256,11 @@ self.onmessage = async (e: MessageEvent) => {
                   const [xPerc, yPerc] = p.split(' ').map((s) => parseFloat(s));
                   const x = (xPerc / 100) * layer.width - hw;
                   const y = (yPerc / 100) * layer.height - hh;
-                  if (i === 0) {ctx.moveTo(x, y);} else {ctx.lineTo(x, y);}
+                  if (i === 0) {
+                    ctx.moveTo(x, y);
+                  } else {
+                    ctx.lineTo(x, y);
+                  }
                 });
                 ctx.closePath();
                 ctx.fill();

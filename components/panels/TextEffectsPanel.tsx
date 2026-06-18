@@ -19,7 +19,9 @@ interface TextEffectsPanelProps {
 
 export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}, onChange }) => {
   const [styleType, setStyleType] = useState<'normal' | 'hollow' | 'lift' | 'echo'>(effects.styleType || 'normal');
-  const [warpStyle, setWarpStyle] = useState<'none' | 'arc' | 'flag' | 'rise' | 'wave' | 'fish'>(effects.warpStyle || 'none');
+  const [warpStyle, setWarpStyle] = useState<'none' | 'arc' | 'flag' | 'rise' | 'wave' | 'fish'>(
+    effects.warpStyle || 'none'
+  );
   const [curve, setCurve] = useState(effects.curve || 0);
   const [depth, setDepth] = useState(effects.depth || 0);
   const [neonEnabled, setNeonEnabled] = useState(effects.neonGlow?.enabled || false);
@@ -28,25 +30,37 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
   const [neonSpread, setNeonSpread] = useState(effects.neonGlow?.spread || 30);
   const [neonFlicker, setNeonFlicker] = useState(effects.neonGlow?.flicker || false);
 
-  const handleStyleTypeChange = useCallback((type: 'normal' | 'hollow' | 'lift' | 'echo') => {
-    setStyleType(type);
-    onChange({ ...effects, styleType: type });
-  }, [effects, onChange]);
+  const handleStyleTypeChange = useCallback(
+    (type: 'normal' | 'hollow' | 'lift' | 'echo') => {
+      setStyleType(type);
+      onChange({ ...effects, styleType: type });
+    },
+    [effects, onChange]
+  );
 
-  const handleWarpStyleChange = useCallback((style: 'none' | 'arc' | 'flag' | 'rise' | 'wave' | 'fish') => {
-    setWarpStyle(style);
-    onChange({ ...effects, warpStyle: style });
-  }, [effects, onChange]);
+  const handleWarpStyleChange = useCallback(
+    (style: 'none' | 'arc' | 'flag' | 'rise' | 'wave' | 'fish') => {
+      setWarpStyle(style);
+      onChange({ ...effects, warpStyle: style });
+    },
+    [effects, onChange]
+  );
 
-  const handleCurveChange = useCallback((value: number) => {
-    setCurve(value);
-    onChange({ ...effects, curve: value });
-  }, [effects, onChange]);
+  const handleCurveChange = useCallback(
+    (value: number) => {
+      setCurve(value);
+      onChange({ ...effects, curve: value });
+    },
+    [effects, onChange]
+  );
 
-  const handleDepthChange = useCallback((value: number) => {
-    setDepth(value);
-    onChange({ ...effects, depth: value });
-  }, [effects, onChange]);
+  const handleDepthChange = useCallback(
+    (value: number) => {
+      setDepth(value);
+      onChange({ ...effects, depth: value });
+    },
+    [effects, onChange]
+  );
 
   const handleNeonChange = useCallback(() => {
     onChange({
@@ -65,7 +79,9 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
     <div className="bg-[#0a0a0a] rounded-2xl border border-white/5 p-5 space-y-6 shadow-2xl">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Text Effects</h3>
-        <span className="px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-[8px] font-black text-purple-400 uppercase tracking-widest">PRO</span>
+        <span className="px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-[8px] font-black text-purple-400 uppercase tracking-widest">
+          PRO
+        </span>
       </div>
 
       {/* Style Type */}
@@ -167,7 +183,9 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
             }}
             className={`w-10 h-5 rounded-full relative transition-colors ${neonEnabled ? 'bg-[#7d2ae8]' : 'bg-white/10'}`}
           >
-            <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${neonEnabled ? 'left-6' : 'left-1'}`} />
+            <div
+              className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${neonEnabled ? 'left-6' : 'left-1'}`}
+            />
           </button>
         </div>
 
@@ -234,7 +252,9 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                 }}
                 className={`w-8 h-4 rounded-full relative transition-colors ${neonFlicker ? 'bg-[#00c4cc]' : 'bg-white/10'}`}
               >
-                <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${neonFlicker ? 'left-4.5' : 'left-0.5'}`} />
+                <div
+                  className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${neonFlicker ? 'left-4.5' : 'left-0.5'}`}
+                />
               </button>
             </div>
           </div>
@@ -253,7 +273,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                 : 'none',
               transform: warpStyle === 'arc' ? `rotateX(${curve}deg)` : 'none',
               WebkitTextStroke: styleType === 'hollow' ? '1px #7d2ae8' : 'none',
-              opacity: styleType === 'hollow' ? 0.8 : 1
+              opacity: styleType === 'hollow' ? 0.8 : 1,
             }}
           >
             {styleType === 'hollow' ? 'HOLLOW' : 'NEON TEXT'}

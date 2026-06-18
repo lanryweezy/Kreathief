@@ -2,18 +2,13 @@ import { jsPDF } from 'jspdf';
 
 self.onmessage = async (e: MessageEvent) => {
   const { width, height, imgDataUrl, fileName, options = {} } = e.data;
-  const {
-    bleed = 0,
-    cropMarks = false,
-    colorProfile = 'sRGB',
-    quality = 'print'
-  } = options;
+  const { bleed = 0, cropMarks = false, colorProfile = 'sRGB', quality = 'print' } = options;
 
   try {
     const effectiveWidth = width + bleed * 2;
     const effectiveHeight = height + bleed * 2;
     const orientation = effectiveWidth > effectiveHeight ? 'landscape' : 'portrait';
-    
+
     const pdf = new jsPDF({
       orientation: orientation,
       unit: 'pt',
@@ -48,8 +43,18 @@ self.onmessage = async (e: MessageEvent) => {
       pdf.line(bleed, effectiveHeight - bleed + 2, bleed, effectiveHeight - bleed + markLength);
 
       // Bottom-Right
-      pdf.line(effectiveWidth - bleed + 2, effectiveHeight - bleed, effectiveWidth - bleed + markLength, effectiveHeight - bleed);
-      pdf.line(effectiveWidth - bleed, effectiveHeight - bleed + 2, effectiveWidth - bleed, effectiveHeight - bleed + markLength);
+      pdf.line(
+        effectiveWidth - bleed + 2,
+        effectiveHeight - bleed,
+        effectiveWidth - bleed + markLength,
+        effectiveHeight - bleed
+      );
+      pdf.line(
+        effectiveWidth - bleed,
+        effectiveHeight - bleed + 2,
+        effectiveWidth - bleed,
+        effectiveHeight - bleed + markLength
+      );
     }
 
     // Embed XMP Metadata for CMYK compliance (Simulation)
