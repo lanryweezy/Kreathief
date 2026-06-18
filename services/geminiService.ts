@@ -570,8 +570,16 @@ export const generateSVGShape = async (prompt: string): Promise<string> => {
       Assume a viewBox of 0 0 100 100.
     `;
 
+    // Astra: Strict JSON output schema prevents conversational preamble and markup
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.STRING,
+          description: "The raw SVG path 'd' attribute string.",
+        },
+      },
       contents: [
         {
           role: 'user',
@@ -580,14 +588,11 @@ export const generateSVGShape = async (prompt: string): Promise<string> => {
       ],
     });
 
-    let d = data.text?.trim() || '';
-    // Clean up if it returned markup
-    d = d
-      .replace(/<[^>]*>/g, '')
-      .replace(/d="/g, '')
-      .replace(/"/g, '')
-      .trim();
-    return d;
+    const parsed = safeParseJSON<string | null>(data.text || '""', null);
+    if (!parsed) {
+      throw new Error('Failed to parse SVG path JSON');
+    }
+    return parsed;
   } catch (error) {
     log.error('SVG Generation Error', error, { prompt: prompt.substring(0, 100) });
     throw error;

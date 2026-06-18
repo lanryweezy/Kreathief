@@ -270,15 +270,15 @@ export const resolveConstraints = (
 export const resolveSemanticConstraints = (
   simpleConstraints: string[]
 ): { horizontal: 'start' | 'end' | 'center' | 'scale' | 'both'; vertical: 'start' | 'end' | 'center' | 'scale' | 'both' } => {
-  const result: any = { horizontal: 'start', vertical: 'start' };
+  const result: { horizontal: 'start' | 'end' | 'center' | 'scale' | 'both'; vertical: 'start' | 'end' | 'center' | 'scale' | 'both' } = { horizontal: 'start', vertical: 'start' };
 
-  if (simpleConstraints.includes('center-h')) {result.horizontal = 'center';}
-  if (simpleConstraints.includes('pin-right')) {result.horizontal = 'end';}
-  if (simpleConstraints.includes('fill')) {result.horizontal = 'scale';}
+  if (simpleConstraints.includes('center-h')) { result.horizontal = 'center'; }
+  if (simpleConstraints.includes('pin-right')) { result.horizontal = 'end'; }
+  if (simpleConstraints.includes('fill')) { result.horizontal = 'scale'; }
 
-  if (simpleConstraints.includes('center-v')) {result.vertical = 'center';}
-  if (simpleConstraints.includes('pin-bottom')) {result.vertical = 'end';}
-  if (simpleConstraints.includes('fill')) {result.vertical = 'scale';}
+  if (simpleConstraints.includes('center-v')) { result.vertical = 'center'; }
+  if (simpleConstraints.includes('pin-bottom')) { result.vertical = 'end'; }
+  if (simpleConstraints.includes('fill')) { result.vertical = 'scale'; }
 
   return result;
 };

@@ -94,7 +94,7 @@ const getDeterministicIndex = (str?: string): number => {
  * Centralizes high-performance procedural rendering filters.
  * Now features a state-of-the-art "wet edge" pigment concentration filter for Watercolor.
  */
-export const BrushFilters: React.FC = () => {
+export const BrushFilters: React.FC = React.memo(() => {
   return (
     <svg width="0" height="0" style={{ position: 'absolute', pointerEvents: 'none', visibility: 'hidden' }}>
       <defs>
@@ -126,7 +126,7 @@ export const BrushFilters: React.FC = () => {
       </defs>
     </svg>
   );
-};
+});
 
 interface BrushStrokeRendererProps {
   id?: string;
@@ -222,3 +222,5 @@ export const BrushStrokeRenderer: React.FC<BrushStrokeRendererProps> = ({
     </svg>
   );
 };
+-e
+BrushFilters.displayName = 'BrushFilters';

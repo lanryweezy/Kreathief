@@ -36,3 +36,8 @@
 
 **Learning:** Important business events like signups, sign-ins, and sign-outs were missing operational metrics or tracking. Failures during these operations were logged but not aggregated into metrics.
 **Action:** Added `analyticsService.track()` calls in `services/authService.ts` for these operations, including their success status and error messages on failure, to enable monitoring of authentication success rates.
+
+## 2026-06-16 - Replaced unstructured console errors across complex store slices
+
+**Learning:** Found widespread use of `console.error` in `store/slices/agentSlice.ts`, `store/slices/aiSlice.ts`, and `store/slices/layer/crudSlice.ts`. This dropped critical context (like `intent`, `prompt`, `aspectRatio`, `quality`, `layerId`, `options`, etc) during complex state management failures, making production debugging difficult.
+**Action:** Replaced unstructured console logging with `log.error`, ensuring that all relevant local context variables are explicitly passed in the logging payload.
