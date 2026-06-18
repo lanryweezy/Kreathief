@@ -5,7 +5,7 @@ import * as freepikService from '../../services/freepikService';
 import { vecteezyService } from '../../services/vecteezyService';
 import { iconScoutService, IconScoutAssetType } from '../../services/iconScoutService';
 import { useStore } from '../../store/useStore';
-import { v4 as uuidv4 } from 'uuid';
+import { generateLayerId } from '../../utils/layers/layerUtils';
 import { log } from '../../utils/log';
 
 interface PhotoItem {
@@ -25,7 +25,7 @@ export const AssetsPanel: React.FC = () => {
 
   const onAddImageLayer = (src: string, type: string = 'image') => {
     addLayer({
-      id: uuidv4(),
+      id: generateLayerId(type),
       type: type as any,
       name: type === 'lottie' ? 'Animation' : 'Asset',
       src,

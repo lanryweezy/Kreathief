@@ -23,3 +23,15 @@
 ## 2024-05-20 - Adding Resilience to Unguarded Backend AI Calls
 **Learning:** Unguarded AI API calls using native `fetch` can hang indefinitely (due to missing timeouts) or fail silently/brittley on transient 429 (Rate Limit) or 50x (Server Error) responses. This causes applications to hang or crash without attempting a recovery.
 **Action:** When making API requests to backend AI routes or third-party AI services, wrap them in a centralized `retryWithBackoff` pattern. Ensure that requests utilize `AbortController` to enforce strict timeouts (e.g., 30s) and explicitly map transient HTTP errors (like 429 and 5xx) to `NetworkError` types so the backoff logic can successfully catch and retry them.
+
+## 2026-06-15 - Structured Output Prevents Conversational Preamble
+**Learning:** Instructing an LLM to "Return ONLY the text/value" is an unreliable prompt engineering technique. The model will frequently append conversational preamble (e.g., "Sure, here is your font: [FONT]") even when explicitly instructed not to, which breaks downstream application logic that expects a raw primitive value.
+**Action:** When a raw string or primitive value is required from an LLM (e.g., `suggestFontPairing`, `enhancePrompt`), use `generationConfig` with `responseMimeType: 'application/json'` and an explicit `responseSchema` of `SchemaType.STRING`. This enforces a strict JSON output structure, entirely eliminating conversational preamble and allowing safe extraction using `safeParseJSON`.
+
+## 2026-06-17 - Eliminate Text Generation Preamble
+**Learning:** In text manipulation features (like rewriting text or content generation), instructing the LLM to "Return ONLY the rewritten text without quotes" is insufficient and leads to conversational preamble ("Sure, here is the text: ") which breaks string splitting logic in components like `SmartContentGenerator` and `Toolbar`.
+**Action:** When a raw string is needed, configure the Gemini API request with `generationConfig: { responseMimeType: 'application/json', responseSchema: { type: SchemaType.STRING } }` and parse the text with `safeParseJSON` instead of relying on prompt instructions and string replacements.
+
+## 2026-06-18 - JSON Schema for Raw SVG Path Validation
+**Learning:** Relying on regular expressions (like `.replace(/<[^>]*>/g, '')`) to extract raw strings (e.g., SVG path 'd' attributes) from free-form LLM outputs is brittle. LLMs often include unprompted markdown (e.g., `xml`, `svg`) or conversational wrappers ("Here is your SVG:") that evade simple replacements, resulting in malformed inputs that crash rendering functions.
+**Action:** When a pure text primitive is required (such as an SVG path string), configure the Gemini API request with `generationConfig: { responseMimeType: 'application/json', responseSchema: { type: SchemaType.STRING } }`. Then, strictly parse the payload using `safeParseJSON<string | null>(data.text, null)` rather than using string matching and replacing methods.

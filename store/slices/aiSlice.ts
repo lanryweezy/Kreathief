@@ -1,3 +1,5 @@
+import { log } from '../../utils/log';
+
 import { StateCreator } from 'zustand';
 import { AspectRatio, GenerationQuality, ShapeLayer, ImageLayer, Layer, TextLayer } from '../../types';
 import { vectorizerService, VectorizeOptions } from '../../services/vectorizerService';
@@ -62,7 +64,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
         try {
           imageUrl = await aiModelsService.generateFluxImage(prompt, aspectRatio);
         } catch (e) {
-          console.warn('Flux failed, falling back to Gemini', e);
+          log.warn('Flux failed, falling back to Gemini', { error: e });
         }
       }
 
@@ -100,7 +102,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
           const prompt = `Convert this image perfectly into a vector: ${layer.name || 'graphic'}`;
           result = await aiModelsService.generateVectorRecraft(prompt);
         } catch (e) {
-          console.warn('Recraft failed, falling back to local tracer', e);
+          log.warn('Recraft failed, falling back to local tracer', { error: e });
         }
       }
 
@@ -187,7 +189,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
           const fullWhiteMask = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
           newSrc = await aiModelsService.generativeFillSDXL(layer.src, fullWhiteMask, prompt);
         } catch (e) {
-          console.warn('High-end remix failed, falling back to Gemini', e);
+          log.warn('High-end remix failed, falling back to Gemini', { error: e });
         }
       }
 
@@ -226,7 +228,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
           // SDXL Outpainting logic would go here, using generative fill service
           newSrc = await aiModelsService.generativeFillSDXL(layer.src, '', prompt);
         } catch (e) {
-          console.warn('SDXL Expand failed, falling back to Gemini', e);
+          log.warn('SDXL Expand failed, falling back to Gemini', { error: e });
         }
       }
 

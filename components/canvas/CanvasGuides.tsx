@@ -5,7 +5,7 @@ interface CanvasGuidesProps {
   snapLines: SnapLine[];
 }
 
-export const CanvasGuides: React.FC<CanvasGuidesProps> = ({ snapLines }) => {
+export const CanvasGuides: React.FC<CanvasGuidesProps> = React.memo(({ snapLines }) => {
   return (
     <>
       {/* Dynamic Smart Guides */}
@@ -25,4 +25,6 @@ export const CanvasGuides: React.FC<CanvasGuidesProps> = ({ snapLines }) => {
       ))}
     </>
   );
-};
+});
+-e
+CanvasGuides.displayName = 'CanvasGuides';

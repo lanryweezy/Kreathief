@@ -1,3 +1,5 @@
+import { log } from '../../../utils/log';
+
 import { StateCreator } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import * as geminiService from '../../../services/geminiService';
@@ -269,7 +271,7 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
     }
 
     const newLayer: ImageLayer = {
-      id: uuidv4(),
+      id: generateLayerId('image'),
       type: 'image',
       name,
       src,
