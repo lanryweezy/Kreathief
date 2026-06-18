@@ -3,6 +3,7 @@ import { useStore } from '../../store/useStore';
 import { Artboard, Layer, AnimationSettings, CanvasFilters, ResizeHandle } from '../../types';
 import { CanvasLayerRenderer } from '../CanvasLayerRenderer';
 import { ArtisticFilters } from '../ArtisticFilters';
+import { buildFilterString } from '../../utils/layers';
 
 const noop = () => {};
 
@@ -196,7 +197,7 @@ const ArtboardItem = React.memo(({
           backgroundColor: artboard.backgroundColor || canvasBackgroundColor,
           filter:
             activeArtboardId === artboard.id
-              ? `brightness(${canvasFilters.brightness}%) contrast(${canvasFilters.contrast}%) saturate(${canvasFilters.saturation}%) sepia(${canvasFilters.sepia}%) grayscale(${canvasFilters.grayscale}%) blur(${canvasFilters.blur}px)`
+              ? buildFilterString(canvasFilters)
               : 'none',
           opacity: activeArtboardId === artboard.id ? canvasFilters.opacity : 1,
         }}
