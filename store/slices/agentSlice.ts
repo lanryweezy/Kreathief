@@ -4,6 +4,7 @@ import { StateCreator } from 'zustand';
 import { AgentVariant, creativeAgentDraft, creativeAgentRefine, criticAgentReview, performanceAgentScore } from '../../services/multiAgentService';
 import { Layer } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
+import { log } from '../../utils/log';
 
 export type AgentStatus = 'idle' | 'creative' | 'critic' | 'performance' | 'done' | 'error';
 
