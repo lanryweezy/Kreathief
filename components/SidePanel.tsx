@@ -1,3 +1,4 @@
+import { TextEffectsPanel } from './panels/TextEffectsPanel';
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NavTab, TextLayer, AnimationSettings } from '../types';

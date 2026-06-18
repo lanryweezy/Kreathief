@@ -98,13 +98,13 @@ export const AssetsPanel: React.FC = () => {
 
       if (activeSource === 'all' || activeSource === 'freepik') {
         try {
-          const freepikResults = await freepikService.searchPhotos(searchQuery || 'trending');
+          const freepikResults = await freepikService.searchResources(searchQuery || 'trending');
           freepikResults.items.forEach((r) => {
             combined.push({
               id: `fp-${r.id}`,
-              url: r.imageUrl,
-              thumbnail: r.thumbnailUrl || r.imageUrl,
-              alt: r.title,
+              url: r.thumbnailUrl,
+              thumbnail: r.thumbnailUrl || r.thumbnailUrl,
+              alt: r.name,
               author: r.author,
               source: 'freepik',
             });

@@ -1,3 +1,4 @@
+import { log } from '../utils/log';
 /**
  * Performance Service
  * Tracks Web Vitals and other performance metrics
