@@ -49,12 +49,12 @@ export const createBrandSlice: StateCreator<any, [], [], BrandSlice> = (set, get
 
   syncLayersWithTokens: () => {
     const { artboards, brandKits } = get();
-    if (!brandKits.length) return;
+    if (!brandKits.length) {return;}
 
     const newArtboards = artboards.map((artboard: Artboard) => ({
       ...artboard,
       layers: artboard.layers.map((l: any) => {
-        let updatedLayer = { ...l };
+        const updatedLayer = { ...l };
         let changed = false;
 
         // Resolve Color Token

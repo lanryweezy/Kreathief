@@ -11,7 +11,10 @@ export type AnalyticsEvent =
   | 'delete_layer'
   | 'open_comment_mode'
   | 'share_design'
-  | 'feedback_submitted';
+  | 'feedback_submitted'
+  | 'auth_signup'
+  | 'auth_signin'
+  | 'auth_signout';
 
 class AnalyticsService {
   private isProduction = config.app.isProduction;

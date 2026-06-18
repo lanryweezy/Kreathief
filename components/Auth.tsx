@@ -304,8 +304,8 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                   : isSignUp ? 'Already a creator?' : "New to Kreathief?"}
                 <button
                   onClick={() => {
-                    if (isForgotPassword) setIsForgotPassword(false);
-                    else setIsSignUp(!isSignUp);
+                    if (isForgotPassword) {setIsForgotPassword(false);}
+                    else {setIsSignUp(!isSignUp);}
                     setError(null);
                   }}
                   className="ml-3 text-white hover:text-[#00c4cc] font-black transition-all underline underline-offset-4 decoration-white/10 hover:decoration-[#00c4cc]/40"

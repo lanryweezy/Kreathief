@@ -14,7 +14,7 @@ class HeavyWorkerService {
   private handleMessage(e: MessageEvent) {
     const { type, id, payload, error } = e.data;
     const callback = this.callbacks.get(id);
-    if (!callback) return;
+    if (!callback) {return;}
 
     if (type === 'SUCCESS') {
       callback.resolve(payload);

@@ -517,7 +517,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                             className="relative flex-shrink-0 shadow-2xl rounded-sm border border-white/5 overflow-hidden"
                           >
                             {(project.state as any).layers?.map((l: any, idx: number) => {
-                              if (!l.visible) return null;
+                              if (!l.visible) {return null;}
                               if (l.type === 'rectangle') {
                                 return (
                                   <div

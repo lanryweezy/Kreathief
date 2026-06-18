@@ -35,7 +35,7 @@ self.onmessage = async (e: MessageEvent<MockupWorkerData>) => {
     // Create main offscreen canvas
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: true }) as OffscreenCanvasRenderingContext2D;
-    if (!ctx) throw new Error('Could not get 2d context in worker');
+    if (!ctx) {throw new Error('Could not get 2d context in worker');}
 
     // Draw background
     ctx.drawImage(bgBitmap, 0, 0);
