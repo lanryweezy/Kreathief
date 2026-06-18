@@ -29,7 +29,7 @@ export const TransformTools = React.memo(({ selectedLayer }: TransformToolsProps
   );
 
   const handleUpdateLayer = useCallback((changes: any) => {
-    if (selectedLayer && onUpdateLayers) {
+    if (selectedLayer) {
       // Batch changes
       pendingChanges.current = {
         ...pendingChanges.current,

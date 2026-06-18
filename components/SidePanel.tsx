@@ -9,6 +9,7 @@ import { Icons } from '../constants';
 import TemplatesPanel from './panels/TemplatesPanel';
 import BrandPanel from './panels/BrandPanel';
 import VectorizerPanel from './panels/VectorizerPanel';
+import { ElementsPanel } from './panels/ElementsPanel';
 
 // Lazy load other panels
 const MagicPanel = React.lazy(() => import('./panels/MagicPanel'));

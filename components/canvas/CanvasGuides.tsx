@@ -26,5 +26,4 @@ export const CanvasGuides: React.FC<CanvasGuidesProps> = React.memo(({ snapLines
     </>
   );
 });
--e
 CanvasGuides.displayName = 'CanvasGuides';

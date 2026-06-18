@@ -28,5 +28,4 @@ export const SelectionMarquee: React.FC<SelectionMarqueeProps> = React.memo(({ b
     />
   );
 });
--e
 SelectionMarquee.displayName = 'SelectionMarquee';

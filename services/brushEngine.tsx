@@ -222,5 +222,4 @@ export const BrushStrokeRenderer: React.FC<BrushStrokeRendererProps> = ({
     </svg>
   );
 };
--e
 BrushFilters.displayName = 'BrushFilters';

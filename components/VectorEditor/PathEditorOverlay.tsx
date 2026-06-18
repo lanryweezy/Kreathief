@@ -1115,5 +1115,4 @@ const ToolbarBtn: React.FC<ToolbarBtnProps> = ({
 );
 
 export default PathEditorOverlay;
--e
 PathEditorOverlay.displayName = 'PathEditorOverlay';

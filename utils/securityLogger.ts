@@ -7,11 +7,10 @@ export const logSecurityEvent = (
   userId: string,
   details: Record<string, any>
 ) => {
-  // Log to Supabase
-  supabase.from<any>('security_logs').insert({
+  supabase.from('security_logs' as any).insert({
     event_type: event,
     user_id: userId,
     details,
     timestamp: new Date().toISOString(),
-  });
+  } as any);
 };

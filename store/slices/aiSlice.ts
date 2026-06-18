@@ -7,7 +7,6 @@ import { aiModelsService } from '../../services/aiModelsService';
 import { removeBackground } from '../../utils/imageProcessor';
 import * as geminiService from '../../services/geminiService';
 import { v4 as uuidv4 } from 'uuid';
-import { log } from '../../utils/log';
 
 export interface AISlice {
   prompt: string;

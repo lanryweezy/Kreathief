@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { chromium } from 'playwright';
 import fs from 'fs';
 

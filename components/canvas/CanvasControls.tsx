@@ -52,5 +52,4 @@ export const CanvasControls: React.FC<CanvasControlsProps> = React.memo(({
     </>
   );
 });
--e
 CanvasControls.displayName = 'CanvasControls';

@@ -518,8 +518,8 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
       return;
     }
 
+    const description = `Type: ${layer.type}, Pos: ${layer.x},${layer.y}, Size: ${(layer as any).width}x${(layer as any).height}`;
     try {
-      const description = `Type: ${layer.type}, Pos: ${layer.x},${layer.y}, Size: ${(layer as any).width}x${(layer as any).height}`;
       const newName = await geminiService.generateLayerName(description);
       updateLayer(id, { name: newName });
     } catch (error) {

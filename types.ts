@@ -27,6 +27,10 @@ export enum NavTab {
   SNAPSHOTS = 'SNAPSHOTS',
   COMMENTS = 'COMMENTS',
   COMMUNITY = 'COMMUNITY',
+  ELEMENTS = 'ELEMENTS',
+  UPLOADS = 'UPLOADS',
+  PHOTOS = 'PHOTOS',
+  TEXT_EFFECTS = 'TEXT_EFFECTS',
 }
 
 export enum BrushType {
