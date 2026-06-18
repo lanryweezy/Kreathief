@@ -224,7 +224,7 @@ export const TextPanel: React.FC = () => {
       setTextGenResults(results);
     } catch (e) {
       log.error('[TextPanel] Text generation failed', e, { prompt: textGenPrompt.substring(0, 100) });
-      alert('Failed to generate text options');
+      addToast('Failed to generate text options', 'error');
     } finally {
       setIsGeneratingText(false);
     }
@@ -256,7 +256,7 @@ export const TextPanel: React.FC = () => {
       addCustomFont(fontName);
     } catch (err) {
       log.error('[TextPanel] Font upload failed', err, { fileName: file.name });
-      alert('Font upload failed.');
+      addToast('Font upload failed.', 'error');
     }
   };
 
