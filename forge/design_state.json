@@ -1,0 +1,133 @@
+{
+  "canvas": {
+    "width": 1080,
+    "height": 1080,
+    "backgroundColor": "#0D0D0D"
+  },
+  "layers": [
+    {
+      "id": "03628f38-308d-414c-b612-6872c9325971",
+      "type": "shape",
+      "name": "Background",
+      "x": 0,
+      "y": 0,
+      "width": 1080,
+      "height": 1080,
+      "rotation": 0,
+      "opacity": 1,
+      "locked": true,
+      "visible": true,
+      "color": "#0D0D0D",
+      "cornerRadius": 0,
+      "shapeType": "rectangle"
+    },
+    {
+      "id": "4b051abe-2233-4e5a-ab86-adb4aa835a92",
+      "type": "image",
+      "name": "Artist/Event Image Zone",
+      "x": 540,
+      "y": 0,
+      "width": 540,
+      "height": 1080,
+      "rotation": 0,
+      "opacity": 1,
+      "locked": false,
+      "visible": true,
+      "src": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80",
+      "flipX": false,
+      "flipY": false,
+      "altText": "Replace with your event artist or DJ image"
+    },
+    {
+      "id": "13a6c713-519c-4f98-8161-6c76be6fab9c",
+      "type": "text",
+      "name": "Headline",
+      "x": 50,
+      "y": 400,
+      "width": 450,
+      "height": 200,
+      "rotation": 0,
+      "opacity": 1,
+      "locked": false,
+      "visible": true,
+      "text": "[Your Event Name]",
+      "fontSize": 84,
+      "fontWeight": "800",
+      "fontStyle": "normal",
+      "textDecoration": "none",
+      "color": "#E03C31",
+      "fontFamily": "Inter, sans-serif",
+      "textAlign": "left",
+      "letterSpacing": -1,
+      "lineHeight": 1.1,
+      "textTransform": "uppercase"
+    },
+    {
+      "id": "feb1bece-a313-4a0a-b204-8a8c0a03a254",
+      "type": "text",
+      "name": "Subheadline",
+      "x": 50,
+      "y": 620,
+      "width": 400,
+      "height": 100,
+      "rotation": 0,
+      "opacity": 1,
+      "locked": false,
+      "visible": true,
+      "text": "[Date & Time] • [Venue Name]",
+      "fontSize": 28,
+      "fontWeight": "500",
+      "fontStyle": "normal",
+      "textDecoration": "none",
+      "color": "#F2C94C",
+      "fontFamily": "Inter, sans-serif",
+      "textAlign": "left",
+      "letterSpacing": 0,
+      "lineHeight": 1.4,
+      "textTransform": "none"
+    }
+  ],
+  "metadata": {
+    "templateName": "Bold Afrobeats Event Instagram Post",
+    "shortDescription": "Promote your Afrobeats event with a bold, colourful Instagram post",
+    "longDescription": "A high-contrast, energetic Instagram post template perfect for Afrobeats nights, DJ sets, and club events. Features bold typography and a dark, moody aesthetic with vibrant red and gold accents.",
+    "tags": [
+      "Social media",
+      "Instagram post",
+      "Bold",
+      "Events",
+      "Music & Entertainment",
+      "African Market",
+      "Vibrant"
+    ],
+    "searchKeywords": [
+      "afrobeats poster",
+      "dj flyer",
+      "club event",
+      "party template",
+      "nigerian event",
+      "naija party",
+      "amapiano poster",
+      "instagram square",
+      "music event"
+    ],
+    "seoMetadata": {
+      "title": "Bold Afrobeats Event Instagram Post — Free Instagram post Template",
+      "description": "Promote your Afrobeats event with a bold, colourful Instagram post template designed for high engagement.",
+      "slug": "bold-afrobeats-event-instagram-post"
+    },
+    "personalisationSignals": {
+      "industry": [
+        "entertainment",
+        "music",
+        "nightlife"
+      ],
+      "audienceType": [
+        "event organiser",
+        "dj",
+        "promoter"
+      ],
+      "experienceLevel": "beginner-friendly"
+    }
+  }
+}
