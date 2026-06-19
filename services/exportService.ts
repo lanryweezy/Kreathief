@@ -48,8 +48,7 @@ export const exportToPrintPDF = async (
     options.colorProfile === 'SWOP' ||
     options.colorProfile === 'GRACoL'
   ) {
-    // eslint-disable-next-line no-async-promise-executor
-    return new Promise<void>(async (resolve, reject) => {
+    return (async () => {
       try {
         let imageUrlToProcess = imgDataUrl;
 
@@ -89,19 +88,15 @@ export const exportToPrintPDF = async (
         const pdfBlob = await apiResponse.blob();
         downloadBlob(pdfBlob, fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
         logSecurityEvent('DATA_EXPORT', 'current_user', { fileName, options, format: 'pdf' });
-        resolve();
       } catch (err) {
         log.error('Serverless CMYK Export Error', err, { fileName, options, width, height });
-        // Fallback to client-side simulation worker if server fails
-        fallbackToWorker(width, height, imgDataUrl, fileName, options, resolve, reject);
+        return fallbackToWorker(width, height, imgDataUrl, fileName, options);
       }
-    });
+    })();
   }
 
   // Standard sRGB export uses the client-side worker
-  return new Promise<void>((resolve, reject) => {
-    fallbackToWorker(width, height, imgDataUrl, fileName, options, resolve, reject);
-  });
+  return fallbackToWorker(width, height, imgDataUrl, fileName, options);
 };
 
 const fallbackToWorker = (
@@ -109,35 +104,35 @@ const fallbackToWorker = (
   height: number,
   imgDataUrl: string,
   fileName: string,
-  options: PDFExportOptions,
-  resolveOuter: () => void,
-  rejectOuter: (reason?: any) => void
-) => {
-  try {
-    const worker = new Worker(new URL('../workers/pdf.worker.ts', import.meta.url), { type: 'module' });
+  options: PDFExportOptions
+): Promise<void> => {
+  return new Promise<void>((resolve, reject) => {
+    try {
+      const worker = new Worker(new URL('../workers/pdf.worker.ts', import.meta.url), { type: 'module' });
 
-    worker.onmessage = (e) => {
-      const { type, payload, error } = e.data;
-      if (type === 'SUCCESS') {
-        downloadBlob(payload, fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
-        logSecurityEvent('DATA_EXPORT', 'current_user', { fileName, options, format: 'pdf_worker' });
+      worker.onmessage = (e) => {
+        const { type, payload, error } = e.data;
+        if (type === 'SUCCESS') {
+          downloadBlob(payload, fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
+          logSecurityEvent('DATA_EXPORT', 'current_user', { fileName, options, format: 'pdf_worker' });
+          worker.terminate();
+          resolve();
+        } else {
+          worker.terminate();
+          reject(new Error(error || 'PDF Generation failed'));
+        }
+      };
+
+      worker.onerror = (err) => {
         worker.terminate();
-        resolveOuter();
-      } else {
-        worker.terminate();
-        rejectOuter(new Error(error || 'PDF Generation failed'));
-      }
-    };
+        reject(err);
+      };
 
-    worker.onerror = (err) => {
-      worker.terminate();
-      rejectOuter(err);
-    };
-
-    worker.postMessage({ width, height, imgDataUrl, fileName, options });
-  } catch (err) {
-    rejectOuter(err);
-  }
+      worker.postMessage({ width, height, imgDataUrl, fileName, options });
+    } catch (err) {
+      reject(err);
+    }
+  });
 };
 
 /**
@@ -274,18 +269,88 @@ export const exportDesignToBlob = async (
   return await response.blob();
 };
 
-export const exportToSVG = async (
+export const exportToSVG = (
   width: number,
   height: number,
   backgroundColor: string,
   layers: Layer[]
-): Promise<string> => {
-  // Simplified SVG export placeholder
-  return `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-     <rect width="100%" height="100%" fill="${backgroundColor}" />
-     ${layers.map((l) => `<g id="${l.id}"></g>`).join('')}
-   </svg>`;
+): string => {
+  const svgParts: string[] = [
+    `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`,
+    `  <rect width="100%" height="100%" fill="${backgroundColor}" />`,
+  ];
+
+  for (const layer of layers) {
+    if (!layer.visible) continue;
+
+    const transform = [
+      `translate(${layer.x + ('width' in layer ? (layer as any).width / 2 : 0)}, ${layer.y + ('height' in layer ? (layer as any).height / 2 : 0)})`,
+      `rotate(${layer.rotation || 0})`,
+    ].join(' ');
+
+    const opacity = layer.opacity ?? 1;
+
+    if (layer.type === 'rectangle' || layer.type === 'circle' || layer.type === 'triangle' || layer.type === 'star') {
+      const sl = layer as ShapeLayer;
+      let shape = '';
+      if (sl.type === 'rectangle') {
+        const r = sl.cornerRadius || 0;
+        if (r > 0) {
+          shape = `<rect x="${-sl.width / 2}" y="${-sl.height / 2}" width="${sl.width}" height="${sl.height}" rx="${r}" fill="${sl.color}" />`;
+        } else {
+          shape = `<rect x="${-sl.width / 2}" y="${-sl.height / 2}" width="${sl.width}" height="${sl.height}" fill="${sl.color}" />`;
+        }
+      } else if (sl.type === 'circle') {
+        shape = `<circle cx="0" cy="0" r="${sl.width / 2}" fill="${sl.color}" />`;
+      } else if (sl.type === 'triangle') {
+        shape = `<polygon points="0,${-sl.height / 2} ${sl.width / 2},${sl.height / 2} ${-sl.width / 2},${sl.height / 2}" fill="${sl.color}" />`;
+      } else if (sl.type === 'star') {
+        const outerR = sl.width / 2;
+        const innerR = outerR * 0.4;
+        const pts: string[] = [];
+        for (let i = 0; i < 10; i++) {
+          const angle = (i * Math.PI) / 5 - Math.PI / 2;
+          const radius = i % 2 === 0 ? outerR : innerR;
+          pts.push(`${Math.cos(angle) * radius},${Math.sin(angle) * radius}`);
+        }
+        shape = `<polygon points="${pts.join(' ')}" fill="${sl.color}" />`;
+      } else if (sl.type === 'path' && sl.pathData) {
+        shape = `<path d="${sl.pathData}" fill="${sl.id?.startsWith('draw_') || (sl as any).brushType ? 'none' : sl.color}" stroke="${(sl as any).stroke?.color || sl.color}" stroke-width="${(sl as any).stroke?.width || 0}" />`;
+      }
+
+      if (shape) {
+        svgParts.push(`  <g transform="${transform}" opacity="${opacity}">${shape}</g>`);
+      }
+    } else if (layer.type === 'text') {
+      const tl = layer as TextLayer;
+      const textLines = (tl.text || '').split('\n');
+      const lineHeight = tl.fontSize * (tl.lineHeight || 1.2);
+      const textContent = textLines
+        .map((line, i) => `<tspan x="0" dy="${i === 0 ? 0 : lineHeight}">${escapeXml(line)}</tspan>`)
+        .join('');
+      const textAnchor = tl.textAlign === 'center' ? 'middle' : tl.textAlign === 'right' ? 'end' : 'start';
+      svgParts.push(
+        `  <g transform="${transform}" opacity="${opacity}">` +
+          `<text font-family="${escapeXml(tl.fontFamily)}" font-size="${tl.fontSize}" fill="${tl.color}" text-anchor="${textAnchor}" font-weight="${tl.fontWeight}">${textContent}</text>` +
+          `</g>`
+      );
+    } else if (layer.type === 'image') {
+      const il = layer as ImageLayer;
+      svgParts.push(
+        `  <g transform="${transform}" opacity="${opacity}">` +
+          `<image href="${il.src}" x="${-il.width / 2}" y="${-il.height / 2}" width="${il.width}" height="${il.height}" />` +
+          `</g>`
+      );
+    }
+  }
+
+  svgParts.push('</svg>');
+  return svgParts.join('\n');
 };
+
+function escapeXml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 
 /* --- HELPER FUNCTIONS --- */
 
@@ -306,6 +371,35 @@ const drawImageLayerToContext = async (ctx: CanvasRenderingContext2D, layer: Ima
     ctx.translate(layer.x + layer.width / 2, layer.y + layer.height / 2);
     ctx.rotate((layer.rotation * Math.PI) / 180);
     ctx.globalAlpha = layer.opacity;
+
+    // Apply perspective transform if set
+    if (layer.perspective) {
+      ctx.transform(
+        1, 0,
+        Math.tan(((layer.rotateY || 0) * Math.PI) / 180) * 0.01,
+        1,
+        0, 0
+      );
+    }
+
+    // Apply skew
+    if (layer.skewX || layer.skewY) {
+      ctx.transform(1, Math.tan(((layer.skewY || 0) * Math.PI) / 180), Math.tan(((layer.skewX || 0) * Math.PI) / 180), 1, 0, 0);
+    }
+
+    // Apply flip
+    const scaleX = layer.flipX ? -1 : 1;
+    const scaleY = layer.flipY ? -1 : 1;
+    ctx.scale(scaleX, scaleY);
+
+    // Apply CSS filters if present
+    if (layer.filters) {
+      const filterStr = buildFilterString(layer.filters);
+      if (filterStr && filterStr !== 'none') {
+        ctx.filter = filterStr;
+      }
+    }
+
     ctx.drawImage(img, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
     ctx.restore();
   } catch (err: any) {
@@ -326,12 +420,30 @@ const drawTextLayerToContext = (ctx: CanvasRenderingContext2D, layer: TextLayer)
 };
 
 const drawShapeToContext = (ctx: CanvasRenderingContext2D, layer: ShapeLayer) => {
-  if (layer.type === 'path' && layer.pathData) {
-    ctx.save();
-    ctx.translate(layer.x, layer.y);
-    ctx.rotate((layer.rotation * Math.PI) / 180);
-    ctx.globalAlpha = layer.opacity;
+  ctx.save();
+  ctx.translate(layer.x + layer.width / 2, layer.y + layer.height / 2);
+  ctx.rotate((layer.rotation * Math.PI) / 180);
+  ctx.globalAlpha = layer.opacity;
 
+  // Apply perspective
+  if (layer.perspective) {
+    ctx.transform(1, 0, Math.tan(((layer.rotateY || 0) * Math.PI) / 180) * 0.01, 1, 0, 0);
+  }
+
+  // Apply skew
+  if (layer.skewX || layer.skewY) {
+    ctx.transform(1, Math.tan(((layer.skewY || 0) * Math.PI) / 180), Math.tan(((layer.skewX || 0) * Math.PI) / 180), 1, 0, 0);
+  }
+
+  // Apply CSS filters
+  if (layer.filters) {
+    const filterStr = buildFilterString(layer.filters);
+    if (filterStr && filterStr !== 'none') {
+      ctx.filter = filterStr;
+    }
+  }
+
+  if (layer.type === 'path' && layer.pathData) {
     const p = new Path2D(layer.pathData);
     if (layer.id?.startsWith('draw_') || (layer as any).brushType) {
       ctx.strokeStyle = layer.stroke?.color || layer.color;
@@ -347,18 +459,56 @@ const drawShapeToContext = (ctx: CanvasRenderingContext2D, layer: ShapeLayer) =>
     return;
   }
 
-  ctx.save();
-  ctx.translate(layer.x + layer.width / 2, layer.y + layer.height / 2);
-  ctx.rotate((layer.rotation * Math.PI) / 180);
-  ctx.globalAlpha = layer.opacity;
   ctx.fillStyle = layer.color;
+  const r = layer.cornerRadius || 0;
 
   if (layer.type === 'rectangle') {
-    ctx.fillRect(-layer.width / 2, -layer.height / 2, layer.width, layer.height);
+    if (r > 0) {
+      const x = -layer.width / 2;
+      const y = -layer.height / 2;
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + layer.width - r, y);
+      ctx.quadraticCurveTo(x + layer.width, y, x + layer.width, y + r);
+      ctx.lineTo(x + layer.width, y + layer.height - r);
+      ctx.quadraticCurveTo(x + layer.width, y + layer.height, x + layer.width - r, y + layer.height);
+      ctx.lineTo(x + r, y + layer.height);
+      ctx.quadraticCurveTo(x, y + layer.height, x, y + layer.height - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+      ctx.fill();
+    } else {
+      ctx.fillRect(-layer.width / 2, -layer.height / 2, layer.width, layer.height);
+    }
   } else if (layer.type === 'circle') {
     ctx.beginPath();
     ctx.arc(0, 0, layer.width / 2, 0, Math.PI * 2);
     ctx.fill();
+  } else if (layer.type === 'triangle') {
+    ctx.beginPath();
+    ctx.moveTo(0, -layer.height / 2);
+    ctx.lineTo(layer.width / 2, layer.height / 2);
+    ctx.lineTo(-layer.width / 2, layer.height / 2);
+    ctx.closePath();
+    ctx.fill();
+  } else if (layer.type === 'star') {
+    const cx = 0, cy = 0;
+    const outerR = layer.width / 2;
+    const innerR = outerR * 0.4;
+    const points = 5;
+    ctx.beginPath();
+    for (let i = 0; i < points * 2; i++) {
+      const angle = (i * Math.PI) / points - Math.PI / 2;
+      const radius = i % 2 === 0 ? outerR : innerR;
+      const px = cx + Math.cos(angle) * radius;
+      const py = cy + Math.sin(angle) * radius;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
   }
+
   ctx.restore();
 };

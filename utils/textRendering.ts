@@ -112,7 +112,7 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
   const startX = textAlign === 'center' ? (width - textWidth) / 2 : textAlign === 'right' ? width - textWidth : 10;
 
   // Render each character with transformations
-  let charIndex = 0;
+  let charX = startX;
   for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
     const line = lines[lineIdx];
     const y = lineIdx * totalLineHeight + fontSize;
@@ -120,12 +120,11 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
     for (let i = 0; i < line.length; i++) {
       const char = line[i];
       const charWidth = tempCtx.measureText(char).width;
-      const x = startX + charIndex * charWidth;
-      const progress = charIndex / line.length; // 0 to 1 across the text
+      const progress = i / Math.max(line.length - 1, 1); // 0 to 1 across the line
       const angle = (transformDirection * Math.PI) / 180;
 
       tempCtx.save();
-      tempCtx.translate(x + charWidth / 2, y);
+      tempCtx.translate(charX + charWidth / 2, y);
 
       // Apply different transform types
       switch (effectType) {
@@ -210,9 +209,9 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
 
       tempCtx.fillText(char, -charWidth / 2, 0);
       tempCtx.restore();
-      charIndex++;
+      charX += charWidth;
     }
-    charIndex = 0; // Reset for next line
+    charX = startX; // Reset for next line
   }
 
   // Copy to main canvas

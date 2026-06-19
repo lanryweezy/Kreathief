@@ -25,13 +25,9 @@ export class BooleanOperations {
       } else {
         const prev = path.points[i - 1];
         if (prev && (prev.handleOut || point.handleIn)) {
-          const cp1 = prev.handleOut ? new paper.Point(prev.handleOut.x, prev.handleOut.y) : new paper.Point(0, 0);
-          const cp2 = point.handleIn ? new paper.Point(point.handleIn.x, point.handleIn.y) : new paper.Point(0, 0);
-          paperPath.cubicCurveTo(
-            new paper.Point(prev.x, prev.y).add(cp1),
-            new paper.Point(point.x, point.y).add(cp2),
-            new paper.Point(point.x, point.y)
-          );
+          const cp1 = prev.handleOut ? new paper.Point(prev.x + prev.handleOut.x, prev.y + prev.handleOut.y) : new paper.Point(prev.x, prev.y);
+          const cp2 = point.handleIn ? new paper.Point(point.x + point.handleIn.x, point.y + point.handleIn.y) : new paper.Point(point.x, point.y);
+          paperPath.cubicCurveTo(cp1, cp2, new paper.Point(point.x, point.y));
         } else {
           paperPath.lineTo(new paper.Point(point.x, point.y));
         }

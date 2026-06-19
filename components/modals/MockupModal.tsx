@@ -197,8 +197,13 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
 
         const width = baseWidth * overlayScale;
         const height = width * (designImg.naturalHeight / designImg.naturalWidth);
-        const left = baseLeft + (overlayPos.x / 100) * canvas.width;
-        const top = baseTop + (overlayPos.y / 100) * canvas.height;
+        // Use same offset calculation as preview: overlayPos is pixel offset from drag
+        // Convert to canvas coordinates using the same ratio as the preview container
+        const previewContainer = document.getElementById('mockup-preview');
+        const containerWidth = previewContainer?.clientWidth || canvas.width;
+        const containerHeight = previewContainer?.clientHeight || canvas.height;
+        const left = baseLeft + (overlayPos.x / containerWidth) * canvas.width;
+        const top = baseTop + (overlayPos.y / containerHeight) * canvas.height;
 
         ctx.save();
         ctx.globalCompositeOperation = current.overlayStyle.mixBlendMode === 'multiply' ? 'multiply' : 'source-over';
@@ -425,6 +430,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
 
             <div className="w-full h-full flex items-center justify-center">
               <div
+                id="mockup-preview"
                 className={`relative shadow-2xl rounded-lg overflow-hidden bg-gray-900 transition-transform duration-300 ${zoom > 1 ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : 'cursor-zoom-in'}`}
                 style={{
                   height: '100%',
