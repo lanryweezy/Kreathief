@@ -1,8 +1,8 @@
 {
   "framework": "vite",
-  "buildCommand": "NODE_OPTIONS='--max-old-space-size=4096' npm run build",
+  "buildCommand": "npm run build",
   "devCommand": "npm run dev",
-  "installCommand": "npm install --legacy-peer-deps",
+  "installCommand": "npm install",
   "outputDirectory": "dist",
   "rewrites": [
     {
