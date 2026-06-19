@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
 
@@ -15,6 +16,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
   const [renameValue, setRenameValue] = useState('');
   const renameInputRef = useRef<HTMLInputElement>(null);
 
+  // ⚡ Bolt: Using useShallow to prevent unnecessary re-renders when unrelated store properties change.
+  // This ensures ContextMenu only re-renders when the specific properties/actions destructured below actually update.
   const {
     duplicateLayer,
     deleteLayer,
@@ -29,7 +32,23 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
     addToast,
     groupSelected,
     ungroupSelected,
-  } = useStore();
+  } = useStore(
+    useShallow((state) => ({
+      duplicateLayer: state.duplicateLayer,
+      deleteLayer: state.deleteLayer,
+      moveLayer: state.moveLayer,
+      updateLayer: state.updateLayer,
+      artboards: state.artboards,
+      activeArtboardId: state.activeArtboardId,
+      convertToComponent: state.convertToComponent,
+      instantiateComponent: state.instantiateComponent,
+      detachInstance: state.detachInstance,
+      resetOverrides: state.resetOverrides,
+      addToast: state.addToast,
+      groupSelected: state.groupSelected,
+      ungroupSelected: state.ungroupSelected,
+    }))
+  );
 
   const clipboardLayer = useStore((s) => s.clipboardLayer);
   const pasteLayer = useStore((s) => s.pasteLayer);
