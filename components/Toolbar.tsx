@@ -197,7 +197,9 @@ export const Toolbar = React.memo(
                     layer={selectedLayer as TextLayer}
                     onUpdateTextLayer={(id, changes) => updateLayer(id, changes)}
                     documentColors={documentColors}
-                    onMagicWrite={() => {}}
+                    onMagicWrite={(id) => {
+                      setShowRewriteTones(true);
+                    }}
                     showFontPicker={showFontPicker}
                     setShowFontPicker={setShowFontPicker}
                     fontSearch={fontSearch}
