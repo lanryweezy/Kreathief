@@ -37,6 +37,9 @@ import { MobileToolbar } from './MobileToolbar';
 import { MobileOnboarding } from './MobileOnboarding';
 import { MobileContextMenu } from './MobileContextMenu';
 import { MobileTransformController } from './MobileTransformController';
+import { useCollaboration } from '../hooks/useCollaboration';
+import { CursorOverlay } from './collaboration/CursorOverlay';
+import { PresenceBar } from './collaboration/PresenceBar';
 
 interface EditorProps {
   initialProject?: Project;
@@ -60,6 +63,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const onToggleRulers = useStore((state) => state.setShowRulers);
   const addArtboard = useStore((state) => state.addArtboard);
   const deleteArtboard = useStore((state) => state.deleteArtboard);
+  const projectId = useStore((state) => state.projectId);
+
+  const { broadcastCursor, broadcastLayerChange, updatePresence } = useCollaboration(projectId, user);
 
   // Expose store to window for E2E tests
   React.useEffect(() => {
@@ -655,6 +661,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                 previewAnimation={previewAnimation}
               />
             </ErrorBoundary>
+            <CursorOverlay />
 
             {/* Floating Zoom & View Controls at bottom right corner */}
             <div className="absolute bottom-4 right-4 z-[90] flex items-center bg-[#1e1e1e]/90 backdrop-blur-md rounded-xl p-1 border border-white/10 shadow-2xl">

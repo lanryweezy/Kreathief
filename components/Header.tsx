@@ -5,6 +5,7 @@ import { DropdownMenu } from './DropdownMenu';
 import { useStore } from '../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { PublishModal } from './modals/PublishModal';
+import { PresenceBar } from './collaboration/PresenceBar';
 
 interface HeaderProps {
   onDownload: () => void;
@@ -211,6 +212,8 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Icons.Share className="w-4 h-4" />
           </button>
+
+          <PresenceBar />
         </div>
 
         <div className="h-4 w-px bg-gray-800"></div>

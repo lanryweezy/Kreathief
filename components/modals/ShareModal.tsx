@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Icons } from '../../constants';
 import { log } from '../../utils/log';
+import { useStore } from '../../store/useStore';
 
 interface ShareModalProps {
   onClose: () => void;
@@ -8,10 +9,13 @@ interface ShareModalProps {
   onGetShareLink: () => Promise<string>;
 }
 
-export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle: _designTitle, onGetShareLink }) => {
+export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, onGetShareLink }) => {
   const [shareLink, setShareLink] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteSent, setInviteSent] = useState(false);
+  const onlineUsers = useStore((s) => s.onlineUsers);
 
   const handleGenerateLink = async () => {
     setIsGenerating(true);
@@ -29,6 +33,21 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle: _d
     navigator.clipboard.writeText(shareLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleInvite = () => {
+    if (!inviteEmail.trim()) return;
+    // In a real app, this would send an email invitation
+    // For now, just copy the share link with the email as context
+    const inviteLink = shareLink || '';
+    if (inviteLink) {
+      navigator.clipboard.writeText(
+        `Hey! Check out my design "${designTitle}" on Kreathief: ${inviteLink}`
+      );
+      setInviteSent(true);
+      setInviteEmail('');
+      setTimeout(() => setInviteSent(false), 3000);
+    }
   };
 
   return (
@@ -55,28 +74,49 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle: _d
           </button>
         </div>
 
-        <div className="p-8">
-          <p className="text-gray-400 text-sm mb-6">
-            Generate a link to share your design with others. People with the link can view your design in high
-            resolution.
-          </p>
+        <div className="p-8 space-y-6">
+          {/* Online users */}
+          {onlineUsers.length > 1 && (
+            <div className="p-3 bg-green-900/20 border border-green-500/20 rounded-lg">
+              <p className="text-xs text-green-400 font-bold mb-2">
+                {onlineUsers.length} people currently viewing
+              </p>
+              <div className="flex -space-x-1">
+                {onlineUsers.slice(0, 8).map((u) => (
+                  <div
+                    key={u.userId}
+                    className="w-6 h-6 rounded-full border border-[#1e1e1e] flex items-center justify-center text-[9px] font-bold text-white"
+                    style={{ backgroundColor: u.color }}
+                    title={u.userName}
+                  >
+                    {u.userName.charAt(0).toUpperCase()}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
-          {!shareLink ? (
-            <button
-              onClick={handleGenerateLink}
-              disabled={isGenerating}
-              className="w-full py-3 bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] text-white rounded-xl font-bold shadow-lg shadow-purple-900/40 transform hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-            >
-              {isGenerating ? (
-                <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
-              ) : (
-                <>
-                  Generate Share Link <Icons.Zap className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          ) : (
-            <div className="flex flex-col gap-4">
+          {/* Share link */}
+          <div>
+            <p className="text-gray-400 text-sm mb-3">
+              Generate a link to share your design with others.
+            </p>
+
+            {!shareLink ? (
+              <button
+                onClick={handleGenerateLink}
+                disabled={isGenerating}
+                className="w-full py-3 bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] text-white rounded-xl font-bold shadow-lg shadow-purple-900/40 transform hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+              >
+                {isGenerating ? (
+                  <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                ) : (
+                  <>
+                    Generate Share Link <Icons.Zap className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            ) : (
               <div className="flex gap-2">
                 <input
                   readOnly
@@ -91,12 +131,38 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle: _d
                   {copied ? 'Copied' : 'Copy'}
                 </button>
               </div>
-              <div className="p-3 bg-blue-900/20 border border-blue-500/20 rounded-lg flex items-start gap-3">
-                <Icons.Help className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
-                <p className="text-[10px] text-gray-400 italic">
-                  Note: For this demo, share links are simulated. In production, this would upload the design metadata
-                  to a secure server.
-                </p>
+            )}
+          </div>
+
+          {/* Invite by email */}
+          {shareLink && (
+            <div>
+              <p className="text-gray-400 text-sm mb-3">
+                Or invite someone by email:
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="colleague@email.com"
+                  className="flex-1 bg-[#13161a] border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-[#00c4cc] placeholder-gray-600"
+                  onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
+                />
+                <button
+                  onClick={handleInvite}
+                  disabled={!inviteEmail.trim()}
+                  className={`px-4 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${
+                    inviteSent
+                      ? 'bg-green-600 text-white'
+                      : inviteEmail.trim()
+                      ? 'bg-[#7d2ae8] text-white hover:bg-[#6b23c5]'
+                      : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  {inviteSent ? <Icons.Check className="w-4 h-4" /> : <Icons.Send className="w-4 h-4" />}
+                  {inviteSent ? 'Copied!' : 'Invite'}
+                </button>
               </div>
             </div>
           )}

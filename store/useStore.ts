@@ -8,6 +8,7 @@ import { createHistorySlice, HistorySlice } from './slices/historySlice';
 import { createAISlice, AISlice } from './slices/aiSlice';
 import { createBrandSlice, BrandSlice } from './slices/brandSlice';
 import { createAgentSlice, AgentSlice } from './slices/agentSlice';
+import { createCollaborationSlice, CollaborationSlice } from './slices/collaborationSlice';
 
 // Merged type for the full store state
 export type StoreState = UISlice &
@@ -18,7 +19,8 @@ export type StoreState = UISlice &
   HistorySlice &
   AISlice &
   BrandSlice &
-  AgentSlice & {
+  AgentSlice &
+  CollaborationSlice & {
     reset: () => void;
   };
 
@@ -33,6 +35,7 @@ export const useStore = create<StoreState>()((set, get, store) => ({
   ...createAISlice(set, get, store),
   ...createBrandSlice(set, get, store),
   ...createAgentSlice(set, get, store),
+  ...createCollaborationSlice(set, get, store),
 
   // Common action to reset the store completely
   reset: () => {
