@@ -70,7 +70,7 @@ export const SmartContentGenerator: React.FC<SmartContentGeneratorProps> = ({
 
       setGeneratedContent(options);
     } catch (error) {
-      log.error('Error generating content', error);
+      log.error('Error generating content', error, { contentType, tone, designContext });
     } finally {
       setIsLoading(false);
     }

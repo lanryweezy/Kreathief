@@ -252,7 +252,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   useEffect(() => {
     try {
       localStorage.setItem('kreathief_mockup_favorites', JSON.stringify(favoriteMockups));
-    } catch {}
+    } catch (e) {
+      log.error('[MockupPanel] Failed to save favorites to localStorage', e);
+    }
   }, [favoriteMockups]);
 
   const toggleFavorite = (mockupId: string) => {
