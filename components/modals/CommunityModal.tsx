@@ -159,6 +159,7 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
 
           <button
             onClick={onClose}
+            aria-label="Close modal"
             className="p-3 hover:bg-white/5 rounded-2xl text-gray-400 hover:text-white transition-all border border-transparent hover:border-white/10"
           >
             <Icons.Plus className="w-6 h-6 rotate-45" />
