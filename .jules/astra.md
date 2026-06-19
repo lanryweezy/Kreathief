@@ -42,3 +42,8 @@
 
 **Learning:** Relying on regular expressions (like `.replace(/<[^>]*>/g, '')`) to extract raw strings (e.g., SVG path 'd' attributes) from free-form LLM outputs is brittle. LLMs often include unprompted markdown (e.g., `xml`, `svg`) or conversational wrappers ("Here is your SVG:") that evade simple replacements, resulting in malformed inputs that crash rendering functions.
 **Action:** When a pure text primitive is required (such as an SVG path string), configure the Gemini API request with `generationConfig: { responseMimeType: 'application/json', responseSchema: { type: SchemaType.STRING } }`. Then, strictly parse the payload using `safeParseJSON<string | null>(data.text, null)` rather than using string matching and replacing methods.
+
+## 2026-06-19 - Strict JSON Parsing for Layer Name Generation
+
+**Learning:** Relying on prompt instructions ("No quotes.") and regex replacements (`replace(/^["']|["']$/g, '')`) to sanitize text outputs for features like `generateLayerName` is fragile. LLMs may still generate conversational wrappers or unhandled punctuation that regex misses.
+**Action:** To guarantee clean primitive outputs for layer naming, replace textual instruction and regex sanitization with strict schema enforcement (`responseMimeType: 'application/json'` and `responseSchema: { type: SchemaType.STRING }`), parsing the result safely with `safeParseJSON`.
