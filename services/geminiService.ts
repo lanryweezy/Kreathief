@@ -257,13 +257,22 @@ export const generateBackground = async (
 export const generateLayerName = async (description: string): Promise<string> => {
   try {
     const systemInstruction =
-      'You are a helpful naming assistant. Return a short, human-friendly layer name (2-4 words, Title Case). No quotes.';
+      'You are a helpful naming assistant. Return a short, human-friendly layer name (2-4 words, Title Case).';
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.STRING,
+          description: 'A short, human-friendly layer name.',
+        },
+      },
       contents: [{ role: 'user', parts: [{ text: `Describe: ${description}\nName:` }] }],
       systemInstruction,
     });
-    return data.text?.trim().replace(/^["']|["']$/g, '') || 'Layer';
+    // 🤖 Astra: Force strict JSON output for strings to eliminate conversational preamble and quotes
+    const parsed = safeParseJSON<string | null>(data.text || 'null', null);
+    return parsed?.trim() || 'Layer';
   } catch (error) {
     log.error('generateLayerName error:', error);
     return 'Layer';
