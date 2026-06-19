@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
-import { collaborationService, PresenceState, LayerChange } from '../../services/collaborationService';
-import { useStore } from '../../store/useStore';
-import { User } from '../../types';
+import { collaborationService, PresenceState, LayerChange } from '../services/collaborationService';
+import { useStore } from '../store/useStore';
+import { User } from '../types';
 
 export function useCollaboration(projectId: string | null, user: User | null) {
   const setOnlineUsers = useStore((s) => s.setOnlineUsers);

@@ -80,7 +80,7 @@ class CollaborationService {
         const state = channel.presenceState();
         const users: PresenceState[] = [];
         for (const key in state) {
-          const presences = state[key];
+          const presences = state[key] as PresenceState[];
           if (Array.isArray(presences) && presences.length > 0) {
             users.push(presences[0]);
           }
@@ -115,7 +115,7 @@ class CollaborationService {
     });
 
     // Subscribe and track presence
-    const status = await channel.subscribe(async (status: string) => {
+    const status = await channel.subscribe(async (status: any) => {
       if (status === 'SUBSCRIBED') {
         await channel.track({
           userId: user.id,

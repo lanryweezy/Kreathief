@@ -63,9 +63,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const onToggleRulers = useStore((state) => state.setShowRulers);
   const addArtboard = useStore((state) => state.addArtboard);
   const deleteArtboard = useStore((state) => state.deleteArtboard);
-  const projectId = useStore((state) => state.projectId);
 
-  const { broadcastCursor, broadcastLayerChange, updatePresence } = useCollaboration(projectId, user);
+  const { broadcastCursor, broadcastLayerChange, updatePresence } = useCollaboration(useStore((s) => s.projectId), user);
 
   // Expose store to window for E2E tests
   React.useEffect(() => {
@@ -845,7 +844,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           <ShareModal
             onClose={() => setShowShareModal(false)}
             designTitle={projectTitle}
-            onGetShareLink={() => shareService.generateShareLink(projectId)}
+            onGetShareLink={() => shareService.generateShareLink(projectId, user.id)}
           />
         )}
       </ErrorBoundary>

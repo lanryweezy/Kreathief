@@ -96,7 +96,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
             />
             {isOwnProfile && (
               <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#7d2ae8] flex items-center justify-center border-2 border-[#0e1318]">
-                <Icons.Pencil className="w-3.5 h-3.5 text-white" />
+                <Icons.Magic className="w-3.5 h-3.5 text-white" />
               </div>
             )}
           </div>
@@ -154,7 +154,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
                 <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
                   {profile.location && (
                     <span className="flex items-center gap-1">
-                      <Icons.MapPin className="w-3 h-3" /> {profile.location}
+                      <Icons.Cloud className="w-3 h-3" /> {profile.location}
                     </span>
                   )}
                   {profile.website && (
@@ -168,7 +168,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
                     </a>
                   )}
                   <span className="flex items-center gap-1">
-                    <Icons.Calendar className="w-3 h-3" /> Joined {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                    <Icons.Flag className="w-3 h-3" /> Joined {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                   </span>
                   <span className="px-2 py-0.5 rounded-full bg-[#7d2ae8]/20 text-[#7d2ae8] font-bold text-[10px] uppercase">
                     {profile.plan}

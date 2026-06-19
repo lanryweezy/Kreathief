@@ -15,7 +15,7 @@ export interface CollaborationSlice {
   clearCollaborationState: () => void;
 }
 
-export const createCollaborationSlice: StateCreator<any, [], [], Partial<CollaborationSlice>> = (set) => ({
+export const createCollaborationSlice: StateCreator<any, [], [], CollaborationSlice> = (set) => ({
   onlineUsers: [],
   cursors: {},
   activeLayerByUser: {},

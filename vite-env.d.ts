@@ -1,5 +1,9 @@
 /// <reference types="vite/client" />
 
+declare module 'mathjs' {
+  export function evaluate(expr: string, scope?: Record<string, unknown>): unknown;
+}
+
 interface ImportMetaEnv {
   readonly VITE_UNSPLASH_ACCESS_KEY: string;
   readonly VITE_UNSPLASH_SECRET_KEY: string;
