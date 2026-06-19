@@ -30,3 +30,7 @@
 
 **Learning:** Using `useMemo` to store stateful closures (like a `debounce` wrapper with a `.cancel()` method attached) is considered a React anti-pattern because React does not guarantee that memoized values will be retained permanently. If the cache clears, the timer is lost, potentially causing memory leaks or double-executions. Furthermore, dynamically depending on functions (like `onUpdateLayers`) can recreate the memoized instance, which could crash the application during cleanup if `.cancel()` isn't present or falls out of sync.
 **Action:** Always prefer `useRef` over `useMemo` when persisting a customized timing closure across renders, as refs provide a stable, mutable container that does not depend on React's rendering lifecycle heuristics.
+
+## 2026-06-19 - Remove unused duplicate constants
+**Learning:** Found unused filter presets (`DEFAULT_FILTERS_CONST` and `EFFECT_PRESETS`) in `constants.ts`. The actual application relies on `DEFAULT_LAYER_FILTERS`, `DEFAULT_CANVAS_FILTERS`, and `CANVAS_EFFECT_PRESETS` in context-specific locations (`store/slices/layer/utils.ts`, `store/slices/canvasSlice.ts`, and `components/toolbar/ToolbarConstants.ts`).
+**Action:** When finding unused global constants, grep for similar names or domain structures. They are often relics from earlier iterations or duplicates of context-specific definitions, and can be safely deleted without call-site updates.
