@@ -28,6 +28,9 @@ export const buildFilterString = (filters: CanvasFilters | undefined | null): st
   if (filters.hueRotate !== 0) {
     parts.push(`hue-rotate(${filters.hueRotate}deg)`);
   }
+  if ((filters as any).invert && (filters as any).invert !== 0) {
+    parts.push(`invert(${(filters as any).invert}%)`);
+  }
 
   return parts.join(' ') || 'none';
 };

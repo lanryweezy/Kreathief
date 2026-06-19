@@ -535,8 +535,14 @@ export const TextLayerItem = React.memo(
             style={{
               fontFamily: textLayer.fontFamily,
               fontSize: `${textLayer.fontSize}px`,
+              fontWeight: textLayer.fontWeight,
+              fontStyle: textLayer.fontStyle,
               color: textLayer.color,
               textAlign: textLayer.textAlign,
+              letterSpacing: `${textLayer.letterSpacing}px`,
+              lineHeight: textLayer.lineHeight,
+              textDecoration: textLayer.textDecoration,
+              textTransform: textLayer.textTransform,
               whiteSpace: 'pre-wrap',
               wordBreak: 'break-word',
               ...(maskPath ? { clipPath: maskPath } : {}),
@@ -575,15 +581,7 @@ export const AdjustmentLayerItem = React.memo(
       };
 
       // We apply a backdrop filter to affect everything rendered underneath
-      const backdropFilter = `
-        brightness(${filters.brightness}%) 
-        contrast(${filters.contrast}%) 
-        saturate(${filters.saturation}%) 
-        blur(${filters.blur}px) 
-        hue-rotate(${filters.hueRotate}deg) 
-        sepia(${filters.sepia}%) 
-        invert(${filters.invert}%)
-      `;
+      const backdropFilter = buildFilterString(filters as any);
 
       return (
         <div
