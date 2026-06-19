@@ -53,6 +53,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
           </h2>
           <button
             onClick={onClose}
+            aria-label="Close modal"
             className="text-gray-500 hover:text-white p-2 hover:bg-white/5 rounded-full transition-all"
           >
             <Icons.X className="w-6 h-6" />
