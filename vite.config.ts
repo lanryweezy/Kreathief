@@ -11,6 +11,14 @@ export default defineConfig(({ mode }) => {
     build: {
       sourcemap: false,
       rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom'],
+            'vendor-ui': ['framer-motion', 'zustand', 'zod'],
+            'vendor-ai': ['@google/generative-ai'],
+            'vendor-pdf': ['jspdf', 'pdf-lib', 'ag-psd'],
+          },
+        },
         onwarn(warning, warn) {
           // Suppress specific warnings for onnxruntime-web and dynamic imports
           if (warning.code === 'UNRESOLVED_IMPORT' && warning.message.includes('onnxruntime-web')) {
