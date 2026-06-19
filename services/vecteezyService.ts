@@ -25,11 +25,13 @@ export const vecteezyService = {
       }
 
       const data = await response.json();
-      
+
       // Map API response to our unified format
       const resources = data.data || data.resources || data;
-      
-      if (!Array.isArray(resources)) {return [];}
+
+      if (!Array.isArray(resources)) {
+        return [];
+      }
 
       return resources.map((item: any) => ({
         id: item.id,
@@ -46,15 +48,17 @@ export const vecteezyService = {
   },
 
   async getResourceDownloadUrl(resourceId: string): Promise<string | null> {
-     try {
-       const response = await fetch(`/api/vecteezy?action=download&resourceId=${encodeURIComponent(resourceId)}`);
+    try {
+      const response = await fetch(`/api/vecteezy?action=download&resourceId=${encodeURIComponent(resourceId)}`);
 
-       if (!response.ok) {return null;}
-       const data = await response.json();
-       return data.url || data.download_url || null;
-     } catch (err) {
-       log.error('[VecteezyService] Download fetch error', err as Error);
-       return null;
-     }
-  }
+      if (!response.ok) {
+        return null;
+      }
+      const data = await response.json();
+      return data.url || data.download_url || null;
+    } catch (err) {
+      log.error('[VecteezyService] Download fetch error', err as Error);
+      return null;
+    }
+  },
 };

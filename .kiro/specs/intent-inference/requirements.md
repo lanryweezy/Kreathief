@@ -223,16 +223,19 @@ This moves the system from reactive (user acts → system responds) to predictiv
 ## Non-Functional Requirements
 
 ### Performance
+
 - Pattern matching must complete in < 50ms
 - Suggestion surfacing must appear within 100ms of intent detection
 - No frame drops during pattern evaluation (maintain 60fps)
 
 ### Reliability
+
 - Pattern recognition must be deterministic (same input → same output)
 - Logging must not block user interactions
 - System must gracefully degrade if pattern engine fails
 
 ### Debuggability
+
 - All pattern matches must be loggable with full context
 - Confidence scores must be explainable (show which criteria matched)
 - Pattern registry must be inspectable and editable
@@ -242,6 +245,7 @@ This moves the system from reactive (user acts → system responds) to predictiv
 ## Success Metrics
 
 ### Phase 2 Completion
+
 - Typographic tuning detected in 80%+ of typography editing sessions
 - Context-aware snapping feels noticeably different (user feedback)
 - Asset set recognition suggests layouts in 70%+ of multi-image uploads

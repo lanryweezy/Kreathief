@@ -114,13 +114,17 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
     try {
       const saved = localStorage.getItem('kreathief_gen_history');
       return saved ? JSON.parse(saved).slice(0, 6) : [];
-    } catch { return []; }
+    } catch {
+      return [];
+    }
   });
 
   // Subscribe to newly generated images and add them to history
   const prevGeneratedRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!lastGeneratedImageUrl || lastGeneratedImageUrl === prevGeneratedRef.current) {return;}
+    if (!lastGeneratedImageUrl || lastGeneratedImageUrl === prevGeneratedRef.current) {
+      return;
+    }
     prevGeneratedRef.current = lastGeneratedImageUrl;
     const item: GenerationHistoryItem = {
       id: uuidv4(),
@@ -128,15 +132,19 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
       prompt: prompt || 'Generated image',
       timestamp: Date.now(),
     };
-    setGenHistory(prev => {
+    setGenHistory((prev) => {
       const next = [item, ...prev].slice(0, 6);
-      try { localStorage.setItem('kreathief_gen_history', JSON.stringify(next)); } catch {}
+      try {
+        localStorage.setItem('kreathief_gen_history', JSON.stringify(next));
+      } catch {}
       return next;
     });
   }, [lastGeneratedImageUrl, prompt]);
 
   const handleEnhancePrompt = async () => {
-    if (!prompt.trim()) {return;}
+    if (!prompt.trim()) {
+      return;
+    }
     setIsEnhancing(true);
     try {
       const enhanced = await geminiService.enhancePrompt(prompt);
@@ -144,7 +152,12 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
       analyticsService.track('generate_image', { mode: 'enhance_prompt' });
     } catch (e: any) {
       log.error('[MagicPanel] Prompt enhancement failed', e, { prompt: prompt.substring(0, 100) });
-      addToast('Prompt enhancement failed', 'error', { label: 'Retry', onClick: handleEnhancePrompt }, 'There was an issue connecting to the AI service.');
+      addToast(
+        'Prompt enhancement failed',
+        'error',
+        { label: 'Retry', onClick: handleEnhancePrompt },
+        'There was an issue connecting to the AI service.'
+      );
     } finally {
       setIsEnhancing(false);
     }
@@ -213,10 +226,14 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
 
   const getButtonLabel = () => {
     switch (mode) {
-      case AppMode.GENERATE: return 'Generate Image';
-      case AppMode.EDIT: return 'Generate Edits';
-      case AppMode.THEME: return 'Apply Theme';
-      default: return 'Generate';
+      case AppMode.GENERATE:
+        return 'Generate Image';
+      case AppMode.EDIT:
+        return 'Generate Edits';
+      case AppMode.THEME:
+        return 'Apply Theme';
+      default:
+        return 'Generate';
     }
   };
 
@@ -293,7 +310,9 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
         <div className="space-y-4 select-none">
           {/* Quality Row */}
           <div className="space-y-2">
-            <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest block">Quality Engine</label>
+            <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest block">
+              Quality Engine
+            </label>
             <div className="flex bg-white/5 rounded-xl border border-white/5 p-1">
               <button
                 onClick={() => setQuality('standard')}
@@ -313,7 +332,9 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           {/* Aspect Ratio Row */}
           {mode === AppMode.GENERATE && (
             <div className="space-y-2">
-              <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest block">AI Generation Ratio</label>
+              <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest block">
+                AI Generation Ratio
+              </label>
               <div className="flex bg-white/5 rounded-xl border border-white/5 p-1 gap-1 overflow-x-auto no-scrollbar select-none">
                 {ASPECT_RATIOS.map((r) => (
                   <button
@@ -444,12 +465,17 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
               {/* Gradient background as visual preview */}
               <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-80`} />
               {/* Subtle texture overlay */}
-              <div className="absolute inset-0 opacity-30 mix-blend-overlay" style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-              }} />
+              <div
+                className="absolute inset-0 opacity-30 mix-blend-overlay"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+                }}
+              />
               <div className="absolute inset-0 flex flex-col items-start justify-end p-3 bg-gradient-to-t from-black/80 via-black/20 to-transparent">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg leading-none transform group-hover:scale-110 transition-transform">{item.icon}</span>
+                  <span className="text-lg leading-none transform group-hover:scale-110 transition-transform">
+                    {item.icon}
+                  </span>
                   <span className="text-[13px] font-black text-white tracking-tight drop-shadow-lg">{item.name}</span>
                 </div>
               </div>

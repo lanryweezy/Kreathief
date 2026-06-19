@@ -75,7 +75,7 @@ class StorageService {
       this.isOnline = false;
       logger.info('Storage service: offline');
     });
-    
+
     // Load pending changes on initialization
     this.loadPendingChanges();
   }
@@ -83,20 +83,29 @@ class StorageService {
   private async getUserId(): Promise<string | null> {
     try {
       const user = await authService.getSession();
-      if (user?.id) {return user.id;}
-      
+      if (user?.id) {
+        return user.id;
+      }
+
       // Local development fallback to prevent 401 blockers
-      if (import.meta.env.DEV && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      if (
+        import.meta.env.DEV &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ) {
         return 'local_guest_user';
       }
 
       return null;
-      } catch (err) {
-      if (import.meta.env.DEV && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    } catch (err) {
+      if (
+        import.meta.env.DEV &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ) {
         return 'local_guest_user';
       }
       return null;
-      }  }
+    }
+  }
 
   /**
    * Load pending changes from IndexedDB on startup
@@ -105,14 +114,14 @@ class StorageService {
     try {
       const store = await this.getStore('sync_queue', 'readonly');
       const allOperations = await this.getAllFromStore(store);
-      
+
       this.pendingChanges.clear();
       for (const op of allOperations) {
         this.pendingChanges.set(op.projectId, op);
       }
-      
+
       log.debug('[Storage] Loaded pending changes', { count: this.pendingChanges.size });
-      
+
       // Auto-sync if online and has pending changes
       if (this.isOnline && this.pendingChanges.size > 0) {
         setTimeout(() => this.syncOfflineChanges(), 1000);
@@ -132,10 +141,10 @@ class StorageService {
 
     this.isSyncing = true;
     const operationsToSync = Array.from(this.pendingChanges.values());
-    
-    log.info('[Storage] Starting sync', { 
+
+    log.info('[Storage] Starting sync', {
       count: operationsToSync.length,
-      isOnline: this.isOnline 
+      isOnline: this.isOnline,
     });
 
     let successCount = 0;
@@ -162,26 +171,28 @@ class StorageService {
 
         this.pendingChanges.delete(op.projectId);
         successCount++;
-        log.debug('[Storage] Synced operation', { 
-          projectId: op.projectId, 
-          operation: op.operation 
+        log.debug('[Storage] Synced operation', {
+          projectId: op.projectId,
+          operation: op.operation,
         });
       } catch (err) {
         failCount++;
         const baseDelay = 2000;
         const retryDelay = baseDelay * Math.pow(2, op.retryCount);
 
-        log.error('[Storage] Sync failed, retrying later', err, { 
+        log.error('[Storage] Sync failed, retrying later', err, {
           projectId: op.projectId,
           retryCount: op.retryCount,
-          nextRetryIn: `${retryDelay}ms`
+          nextRetryIn: `${retryDelay}ms`,
         });
 
         if (op.retryCount < 5) {
           op.retryCount++;
           this.pendingChanges.set(op.projectId, op);
           setTimeout(() => {
-            if (this.isOnline && !this.isSyncing) {this.syncOfflineChanges();}
+            if (this.isOnline && !this.isSyncing) {
+              this.syncOfflineChanges();
+            }
           }, retryDelay);
         } else {
           this.pendingChanges.delete(op.projectId);
@@ -193,11 +204,11 @@ class StorageService {
     await this.persistPendingChanges();
 
     this.isSyncing = false;
-    log.info('[Storage] Sync complete', { 
+    log.info('[Storage] Sync complete', {
       total: operationsToSync.length,
       success: successCount,
       failed: failCount,
-      remaining: this.pendingChanges.size 
+      remaining: this.pendingChanges.size,
     });
 
     // Schedule retry for any remaining failed operations
@@ -219,10 +230,9 @@ class StorageService {
     }
 
     const state = project.state as any;
-    
-    const { error } = await supabase
-      .from('projects')
-      .upsert({
+
+    const { error } = await supabase.from('projects').upsert(
+      {
         id: project.id,
         user_id: userId,
         name: project.name,
@@ -232,7 +242,9 @@ class StorageService {
         canvas_filters: state.canvasFilters || null,
         updated_at: new Date(project.updatedAt).toISOString(),
         is_public: false,
-      } as any, { onConflict: 'id' });
+      } as any,
+      { onConflict: 'id' }
+    );
 
     if (error) {
       throw new Error(`Supabase upsert failed: ${error.message}`);
@@ -245,11 +257,7 @@ class StorageService {
    * Sync a project deletion to Supabase
    */
   private async syncDeleteToSupabase(projectId: string, userId: string): Promise<void> {
-    const { error } = await supabase
-      .from('projects')
-      .delete()
-      .eq('id', projectId)
-      .eq('user_id', userId);
+    const { error } = await supabase.from('projects').delete().eq('id', projectId).eq('user_id', userId);
 
     if (error) {
       throw new Error(`Supabase delete failed: ${error.message}`);
@@ -264,17 +272,17 @@ class StorageService {
   private async persistPendingChanges(): Promise<void> {
     try {
       const store = await this.getStore('sync_queue', 'readwrite');
-      
+
       // Clear existing queue
       await this.clearStore(store);
-      
+
       // Add all pending operations
       for (const op of this.pendingChanges.values()) {
         await this.addToStore(store, op);
       }
-      
-      log.debug('[Storage] Pending changes persisted', { 
-        count: this.pendingChanges.size 
+
+      log.debug('[Storage] Pending changes persisted', {
+        count: this.pendingChanges.size,
       });
     } catch (err) {
       log.error('[Storage] Failed to persist pending changes', err);
@@ -284,10 +292,7 @@ class StorageService {
   /**
    * Queue a sync operation
    */
-  private async queueSyncOperation(
-    projectId: string,
-    operation: 'create' | 'update' | 'delete'
-  ): Promise<void> {
+  private async queueSyncOperation(projectId: string, operation: 'create' | 'update' | 'delete'): Promise<void> {
     const syncOp: PendingSyncOperation = {
       id: `${projectId}_${Date.now()}`,
       projectId,
@@ -299,10 +304,10 @@ class StorageService {
     this.pendingChanges.set(projectId, syncOp);
     await this.persistPendingChanges();
 
-    log.debug('[Storage] Sync operation queued', { 
-      projectId, 
+    log.debug('[Storage] Sync operation queued', {
+      projectId,
       operation,
-      totalPending: this.pendingChanges.size 
+      totalPending: this.pendingChanges.size,
     });
 
     // Attempt immediate sync if online
@@ -312,8 +317,12 @@ class StorageService {
   }
 
   async init(): Promise<void> {
-    if (this.db) {return;}
-    if (this.initPromise) {return this.initPromise;}
+    if (this.db) {
+      return;
+    }
+    if (this.initPromise) {
+      return this.initPromise;
+    }
 
     this.initPromise = new Promise((resolve, reject) => {
       const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -390,12 +399,14 @@ class StorageService {
   // ===== Asset Caching =====
 
   async cacheAsset(url: string): Promise<string> {
-    if (!url || url.startsWith('data:') || url.startsWith('blob:')) {return url;}
-    
+    if (!url || url.startsWith('data:') || url.startsWith('blob:')) {
+      return url;
+    }
+
     try {
       const store = await this.getStore('assets', 'readwrite');
       const id = btoa(url).substring(0, 32); // Simple hash for ID
-      
+
       const cached = await new Promise<any>((resolve) => {
         const req = store.get(id);
         req.onsuccess = () => resolve(req.result);
@@ -410,7 +421,7 @@ class StorageService {
       const response = await fetch(url);
       const blob = await response.blob();
       await this.addToStore(store, { id, url, blob, timestamp: Date.now() });
-      
+
       return URL.createObjectURL(blob);
     } catch (err) {
       log.warn('[Storage] Failed to cache asset', { url, error: err });
@@ -477,9 +488,10 @@ class StorageService {
     // Enforce storage quotas (Free Tier Limit: maximum 10 projects)
     const MAX_FREE_PROJECTS = 10;
     const existingProjects = await this.getAllProjects();
-    const isNewProject = !existingProjects.some(p => p.id === project.id);
-    
-    const isDev = import.meta.env.DEV && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    const isNewProject = !existingProjects.some((p) => p.id === project.id);
+
+    const isDev =
+      import.meta.env.DEV && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
     if (isNewProject && existingProjects.length >= MAX_FREE_PROJECTS && !isDev) {
       const errorMsg = `Storage quota exceeded. You are limited to ${MAX_FREE_PROJECTS} projects on the free plan.`;
@@ -489,9 +501,8 @@ class StorageService {
 
     if (this.isOnline && userId) {
       try {
-        const { error } = await supabase
-          .from('projects')
-          .upsert({
+        const { error } = await supabase.from('projects').upsert(
+          {
             id: project.id,
             user_id: userId,
             name: project.name,
@@ -501,7 +512,9 @@ class StorageService {
             canvas_filters: (project.state as any).canvasFilters,
             updated_at: new Date(project.updatedAt).toISOString(),
             is_public: false,
-          } as any, { onConflict: 'id' });
+          } as any,
+          { onConflict: 'id' }
+        );
 
         if (!error) {
           logger.debug('Project saved to Supabase', { id: project.id });
@@ -538,12 +551,7 @@ class StorageService {
 
     if (this.isOnline && userId) {
       try {
-        const { data, error } = await supabase
-          .from('projects')
-          .select('*')
-          .eq('id', id)
-          .eq('user_id', userId)
-          .single();
+        const { data, error } = await supabase.from('projects').select('*').eq('id', id).eq('user_id', userId).single();
 
         if (!error && data) {
           return this.supabaseProjectToLocal(data);
@@ -596,12 +604,8 @@ class StorageService {
 
     if (this.isOnline && userId) {
       try {
-        const { error } = await supabase
-          .from('projects')
-          .delete()
-          .eq('id', id)
-          .eq('user_id', userId);
-        
+        const { error } = await supabase.from('projects').delete().eq('id', id).eq('user_id', userId);
+
         if (!error) {
           logger.debug('Project deleted from Supabase', { id });
           // Remove from pending changes
@@ -668,16 +672,14 @@ class StorageService {
 
     if (this.isOnline && userId) {
       try {
-        const { error } = await supabase
-          .from('project_versions')
-          .insert({
-            id: versionId,
-            project_id: projectId,
-            user_id: userId,
-            state: state as any,
-            thumbnail_url: thumbnail,
-            created_at: new Date().toISOString(),
-          } as any);
+        const { error } = await supabase.from('project_versions').insert({
+          id: versionId,
+          project_id: projectId,
+          user_id: userId,
+          state: state as any,
+          thumbnail_url: thumbnail,
+          created_at: new Date().toISOString(),
+        } as any);
 
         if (!error) {
           logger.debug('Version saved to Supabase', { projectId, versionId });
@@ -757,11 +759,11 @@ class StorageService {
   async getVersion(versionId: string): Promise<ProjectVersion | undefined> {
     if (this.isOnline) {
       try {
-        const { data, error } = await supabase
+        const { data, error } = (await supabase
           .from('project_versions')
           .select('*')
           .eq('id', versionId)
-          .single() as any;
+          .single()) as any;
 
         if (!error && data) {
           return {
@@ -787,7 +789,9 @@ class StorageService {
 
   async cleanOldVersions(projectId: string, keepCount = 20): Promise<void> {
     const versions = await this.getVersions(projectId, 100);
-    if (versions.length <= keepCount) {return;}
+    if (versions.length <= keepCount) {
+      return;
+    }
 
     const toDelete = versions.slice(keepCount);
 
@@ -796,11 +800,7 @@ class StorageService {
         const userId = await this.getUserId();
         if (userId) {
           for (const version of toDelete) {
-            await supabase
-              .from('project_versions')
-              .delete()
-              .eq('id', version.id)
-              .eq('user_id', userId);
+            await supabase.from('project_versions').delete().eq('id', version.id).eq('user_id', userId);
           }
         }
       } catch (err) {
@@ -823,17 +823,15 @@ class StorageService {
 
     if (this.isOnline && userId) {
       try {
-        const { error } = await supabase
-          .from('project_snapshots')
-          .insert({
-            id: snapshot.id,
-            project_id: snapshot.projectId,
-            user_id: userId,
-            name: snapshot.name,
-            state: snapshot.state as any,
-            thumbnail_url: snapshot.thumbnail,
-            created_at: new Date(snapshot.timestamp).toISOString(),
-          } as any);
+        const { error } = await supabase.from('project_snapshots').insert({
+          id: snapshot.id,
+          project_id: snapshot.projectId,
+          user_id: userId,
+          name: snapshot.name,
+          state: snapshot.state as any,
+          thumbnail_url: snapshot.thumbnail,
+          created_at: new Date(snapshot.timestamp).toISOString(),
+        } as any);
 
         if (!error) {
           logger.debug('Snapshot saved to Supabase', { id: snapshot.id, name: snapshot.name });
@@ -907,11 +905,7 @@ class StorageService {
 
     if (this.isOnline && userId) {
       try {
-        await supabase
-          .from('project_snapshots')
-          .delete()
-          .eq('id', snapshotId)
-          .eq('user_id', userId);
+        await supabase.from('project_snapshots').delete().eq('id', snapshotId).eq('user_id', userId);
         logger.debug('Snapshot deleted from Supabase', { id: snapshotId });
       } catch (err) {
         logger.warn('Supabase snapshot delete error', { error: err });
@@ -936,22 +930,20 @@ class StorageService {
 
     if (this.isOnline && userId) {
       try {
-        const { error } = await supabase
-          .from('comments')
-          .insert({
-            id: comment.id,
-            project_id: comment.projectId,
-            user_id: userId,
-            user_name: comment.userName,
-            user_avatar_url: comment.userAvatar,
-            text: comment.text,
-            position: comment.position as any,
-            layer_id: comment.layerId,
-            created_at: new Date(comment.timestamp).toISOString(),
-            updated_at: new Date(comment.timestamp).toISOString(),
-            parent_id: comment.parentId,
-            resolved: false,
-          } as any);
+        const { error } = await supabase.from('comments').insert({
+          id: comment.id,
+          project_id: comment.projectId,
+          user_id: userId,
+          user_name: comment.userName,
+          user_avatar_url: comment.userAvatar,
+          text: comment.text,
+          position: comment.position as any,
+          layer_id: comment.layerId,
+          created_at: new Date(comment.timestamp).toISOString(),
+          updated_at: new Date(comment.timestamp).toISOString(),
+          parent_id: comment.parentId,
+          resolved: false,
+        } as any);
 
         if (!error) {
           logger.debug('Comment saved to Supabase', { id: comment.id });
@@ -1113,7 +1105,9 @@ class StorageService {
   async migrateFromLocalStorage(): Promise<void> {
     try {
       const projectsStr = localStorage.getItem('kreathief_projects');
-      if (!projectsStr) {return;}
+      if (!projectsStr) {
+        return;
+      }
 
       const projects: Project[] = JSON.parse(projectsStr);
       logger.info('Migrating projects from localStorage', { count: projects.length });

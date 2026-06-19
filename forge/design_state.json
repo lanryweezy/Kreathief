@@ -91,15 +91,7 @@
     "templateName": "Bold Afrobeats Event Instagram Post",
     "shortDescription": "Promote your Afrobeats event with a bold, colourful Instagram post",
     "longDescription": "A high-contrast, energetic Instagram post template perfect for Afrobeats nights, DJ sets, and club events. Features bold typography and a dark, moody aesthetic with vibrant red and gold accents.",
-    "tags": [
-      "Social media",
-      "Instagram post",
-      "Bold",
-      "Events",
-      "Music & Entertainment",
-      "African Market",
-      "Vibrant"
-    ],
+    "tags": ["Social media", "Instagram post", "Bold", "Events", "Music & Entertainment", "African Market", "Vibrant"],
     "searchKeywords": [
       "afrobeats poster",
       "dj flyer",
@@ -117,16 +109,8 @@
       "slug": "bold-afrobeats-event-instagram-post"
     },
     "personalisationSignals": {
-      "industry": [
-        "entertainment",
-        "music",
-        "nightlife"
-      ],
-      "audienceType": [
-        "event organiser",
-        "dj",
-        "promoter"
-      ],
+      "industry": ["entertainment", "music", "nightlife"],
+      "audienceType": ["event organiser", "dj", "promoter"],
       "experienceLevel": "beginner-friendly"
     }
   }

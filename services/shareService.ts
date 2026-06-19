@@ -15,7 +15,10 @@ class ShareService {
       }
 
       // Generate a unique short ID (8 characters)
-      const shareId = Array.from(crypto.getRandomValues(new Uint8Array(6))).map(b => b.toString(36).padStart(2, '0')).join('').substring(0, 8);
+      const shareId = Array.from(crypto.getRandomValues(new Uint8Array(6)))
+        .map((b) => b.toString(36).padStart(2, '0'))
+        .join('')
+        .substring(0, 8);
 
       await storageService.saveShare({
         id: shareId,

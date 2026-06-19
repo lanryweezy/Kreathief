@@ -18,10 +18,7 @@ interface ColorHarmonyGeneratorProps {
 type HarmonyType = 'complementary' | 'analogous' | 'triadic' | 'split' | 'tetradic' | 'monochromatic';
 type VariationType = 'tints' | 'shades' | 'tones';
 
-export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({
-  baseColor,
-  onColorSelect,
-}) => {
+export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({ baseColor, onColorSelect }) => {
   const [activeHarmony, setActiveHarmony] = useState<HarmonyType>('complementary');
   const [showVariations, setShowVariations] = useState<VariationType | null>(null);
 
@@ -52,7 +49,12 @@ export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({
       case 'split':
         return [baseColor, (harmonies as any).splitComplementary[0], (harmonies as any).splitComplementary[1]];
       case 'tetradic':
-        return [baseColor, (harmonies as any).tetradic[0], (harmonies as any).tetradic[1], (harmonies as any).tetradic[2]];
+        return [
+          baseColor,
+          (harmonies as any).tetradic[0],
+          (harmonies as any).tetradic[1],
+          (harmonies as any).tetradic[2],
+        ];
       case 'monochromatic':
         return [baseColor, ...(harmonies as any).monochromatic];
       default:
@@ -66,9 +68,7 @@ export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({
     <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4 space-y-4">
       {/* Harmony Type Selector */}
       <div>
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
-          Color Harmony
-        </h3>
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Color Harmony</h3>
         <div className="grid grid-cols-3 gap-2">
           {[
             { id: 'complementary', label: 'Complementary', icon: '◐' },
@@ -139,18 +139,14 @@ export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({
       {/* Color Variations */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-            Variations
-          </h3>
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Variations</h3>
           <div className="flex gap-1">
             {(['tints', 'shades', 'tones'] as VariationType[]).map((type) => (
               <button
                 key={type}
                 onClick={() => setShowVariations(showVariations === type ? null : type)}
                 className={`px-2 py-1 rounded text-[10px] font-bold uppercase transition-all ${
-                  showVariations === type
-                    ? 'bg-[#00c4cc] text-white'
-                    : 'bg-[#252627] text-gray-400 hover:text-white'
+                  showVariations === type ? 'bg-[#00c4cc] text-white' : 'bg-[#252627] text-gray-400 hover:text-white'
                 }`}
               >
                 {type}
@@ -192,8 +188,8 @@ export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({
               contrastInfo.level === 'AAA'
                 ? 'bg-green-500/20 text-green-400'
                 : contrastInfo.level === 'AA'
-                ? 'bg-yellow-500/20 text-yellow-400'
-                : 'bg-red-500/20 text-red-400'
+                  ? 'bg-yellow-500/20 text-yellow-400'
+                  : 'bg-red-500/20 text-red-400'
             }`}
           >
             WCAG {contrastInfo.level === 'fail' ? 'Fail' : contrastInfo.level}
@@ -210,9 +206,7 @@ export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({
             >
               Aa
             </div>
-            <span className="text-[10px] text-gray-400">
-              {contrastInfo.ratio}:1 on White
-            </span>
+            <span className="text-[10px] text-gray-400">{contrastInfo.ratio}:1 on White</span>
           </div>
           <div className="flex items-center gap-2">
             <div
@@ -245,12 +239,16 @@ export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({
         </button>
         <button
           onClick={() => {
-            const json = JSON.stringify({
-              base: baseColor,
-              harmony: activeHarmony,
-              colors: harmonyColors,
-              variations,
-            }, null, 2);
+            const json = JSON.stringify(
+              {
+                base: baseColor,
+                harmony: activeHarmony,
+                colors: harmonyColors,
+                variations,
+              },
+              null,
+              2
+            );
             navigator.clipboard.writeText(json);
           }}
           className="flex-1 px-3 py-2 bg-[#252627] hover:bg-gray-700 rounded-lg text-[10px] font-bold text-gray-300 transition-colors flex items-center justify-center gap-2"

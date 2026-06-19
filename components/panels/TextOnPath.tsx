@@ -7,11 +7,7 @@ interface TextOnPathProps {
   onApply: (options: { text: string; path: string; curvature: number }) => void;
 }
 
-export const TextOnPath: React.FC<TextOnPathProps> = ({
-  text = 'Curved Text',
-  curvature = 50,
-  onApply,
-}) => {
+export const TextOnPath: React.FC<TextOnPathProps> = ({ text = 'Curved Text', curvature = 50, onApply }) => {
   const [inputText, setInputText] = useState(text);
   const [pathType, setPathType] = useState<'arc' | 'circle' | 'wave' | 'spiral'>('arc');
   const [curvatureValue, setCurvatureValue] = useState(curvature);
@@ -59,20 +55,22 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({
 
   // Generate curved text for preview
   const curvedTextPreview = useMemo(() => {
-    if (pathType !== 'arc') {return inputText;}
-    
+    if (pathType !== 'arc') {
+      return inputText;
+    }
+
     const chars = inputText.split('');
     const totalAngle = (curvatureValue / 100) * 120 * (chars.length / 10);
-    const startAngleRad = ((-totalAngle / 2) + startAngle) * (Math.PI / 180);
+    const startAngleRad = (-totalAngle / 2 + startAngle) * (Math.PI / 180);
     const anglePerChar = (totalAngle / chars.length) * (Math.PI / 180);
     const radius = 80;
 
     return chars.map((char, i) => {
-      const angle = startAngleRad + (i * anglePerChar);
+      const angle = startAngleRad + i * anglePerChar;
       const x = 150 + radius * Math.sin(angle);
       const y = 75 - radius * Math.cos(angle);
       const rotate = (angle * 180) / Math.PI;
-      
+
       return (
         <text
           key={i}
@@ -101,16 +99,11 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({
       <div className="w-full h-40 bg-black/30 rounded-lg overflow-hidden">
         <svg width="100%" height="100%" viewBox="0 0 300 150">
           {/* Path guide */}
-          <path
-            d={svgPath}
-            fill="none"
-            stroke="#7d2ae8"
-            strokeWidth="1"
-            strokeDasharray="4,4"
-            opacity="0.5"
-          />
+          <path d={svgPath} fill="none" stroke="#7d2ae8" strokeWidth="1" strokeDasharray="4,4" opacity="0.5" />
           {/* Curved text */}
-          {pathType === 'arc' ? curvedTextPreview : (
+          {pathType === 'arc' ? (
+            curvedTextPreview
+          ) : (
             <text
               x="150"
               y="75"
@@ -151,9 +144,7 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({
               key={type.id}
               onClick={() => setPathType(type.id as any)}
               className={`py-2 rounded text-xs font-bold transition-all ${
-                pathType === type.id
-                  ? 'bg-[#7d2ae8] text-white'
-                  : 'bg-[#252627] text-gray-400 hover:text-white'
+                pathType === type.id ? 'bg-[#7d2ae8] text-white' : 'bg-[#252627] text-gray-400 hover:text-white'
               }`}
             >
               {type.icon}
@@ -165,9 +156,7 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({
       {/* Curvature Control */}
       {(pathType === 'arc' || pathType === 'wave') && (
         <div>
-          <label className="text-[10px] text-gray-500 block mb-2">
-            Curvature: {curvatureValue}
-          </label>
+          <label className="text-[10px] text-gray-500 block mb-2">Curvature: {curvatureValue}</label>
           <input
             type="range"
             min="-100"
@@ -195,9 +184,7 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({
       {/* Start Angle (for arc) */}
       {pathType === 'arc' && (
         <div>
-          <label className="text-[10px] text-gray-500 block mb-2">
-            Start Angle: {startAngle}°
-          </label>
+          <label className="text-[10px] text-gray-500 block mb-2">Start Angle: {startAngle}°</label>
           <input
             type="range"
             min="-180"
@@ -221,7 +208,8 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({
       {/* Usage Tips */}
       <div className="pt-3 border-t border-gray-700">
         <p className="text-[9px] text-gray-500">
-          💡 <strong>Tip:</strong> Perfect for logos, badges, and circular designs. Adjust curvature to match your shape.
+          💡 <strong>Tip:</strong> Perfect for logos, badges, and circular designs. Adjust curvature to match your
+          shape.
         </p>
       </div>
     </div>

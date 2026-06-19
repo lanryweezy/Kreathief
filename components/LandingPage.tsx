@@ -26,7 +26,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -41,12 +40,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
       <div className="fixed inset-0 pointer-events-none z-[999] bg-noise opacity-[0.025] mix-blend-overlay"></div>
       <SEO />
 
-
-
       {/* Navigation */}
       <nav
         className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
-          scrolled ? 'py-3 bg-black/80 backdrop-blur-2xl border-b border-white/10 shadow-2xl shadow-black/50' : 'py-6 bg-transparent'
+          scrolled
+            ? 'py-3 bg-black/80 backdrop-blur-2xl border-b border-white/10 shadow-2xl shadow-black/50'
+            : 'py-6 bg-transparent'
         }`}
       >
         {/* Navigation Laser Top Border */}
@@ -79,7 +78,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
           </div>
 
           <div className="flex items-center gap-4">
-
             <button className="hidden sm:block text-sm font-bold text-gray-400 hover:text-white transition-colors">
               Sign In
             </button>

@@ -2,6 +2,7 @@ import { TextLayer, ShapeLayer, ImageLayer, CanvasFilters, Layer } from '../type
 import { writePsd, Psd } from 'ag-psd';
 import { logSecurityEvent } from '../utils/securityLogger';
 import { renderMultilineText } from '../utils/textRendering';
+import { buildFilterString } from '../utils/layers';
 
 export type ColorProfile = 'sRGB' | 'CMYK' | 'FOGRA39' | 'GRACoL' | 'SWOP';
 
@@ -47,6 +48,7 @@ export const exportToPrintPDF = async (
     options.colorProfile === 'SWOP' ||
     options.colorProfile === 'GRACoL'
   ) {
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise<void>(async (resolve, reject) => {
       try {
         let imageUrlToProcess = imgDataUrl;
@@ -222,7 +224,7 @@ export const exportDesignToImage = async (
       const img = await loadImage(backgroundImageUrl);
       ctx.save();
       if (filters) {
-        ctx.filter = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%) sepia(${filters.sepia}%) grayscale(${filters.grayscale}%) blur(${filters.blur}px)`;
+        ctx.filter = buildFilterString(filters);
         ctx.globalAlpha = filters.opacity;
       }
       ctx.drawImage(img, 0, 0, width, height);

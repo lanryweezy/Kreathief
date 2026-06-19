@@ -15,42 +15,33 @@ interface CanvasControlsProps {
 
 // import { ContextualToolbar } from './ContextualToolbar';
 
-export const CanvasControls: React.FC<CanvasControlsProps> = React.memo(({
-  selectedLayerIds,
-  selectedLayers,
-  zoom,
-  handleResizeStart,
-  handleRotateStart,
-  contextMenu,
-  setContextMenu,
-}) => {
-  return (
-    <>
-      {/* Global Multi-selection handles */}
-      {selectedLayerIds.length > 1 && (
-        <div className="absolute inset-0 pointer-events-none z-[80]">
-          <MultiSelectionHandles
-            layers={selectedLayers}
-            zoom={zoom}
-            onResize={handleResizeStart}
-            onRotate={handleRotateStart}
+export const CanvasControls: React.FC<CanvasControlsProps> = React.memo(
+  ({ selectedLayerIds, selectedLayers, zoom, handleResizeStart, handleRotateStart, contextMenu, setContextMenu }) => {
+    return (
+      <>
+        {/* Global Multi-selection handles */}
+        {selectedLayerIds.length > 1 && (
+          <div className="absolute inset-0 pointer-events-none z-[80]">
+            <MultiSelectionHandles
+              layers={selectedLayers}
+              zoom={zoom}
+              onResize={handleResizeStart}
+              onRotate={handleRotateStart}
+            />
+          </div>
+        )}
+
+        {/* Context Menu */}
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            layerId={contextMenu.layerId}
+            onClose={() => setContextMenu(null)}
           />
-        </div>
-      )}
-
-
-
-      {/* Context Menu */}
-      {contextMenu && (
-        <ContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          layerId={contextMenu.layerId}
-          onClose={() => setContextMenu(null)}
-        />
-      )}
-    </>
-  );
-});
--e
+        )}
+      </>
+    );
+  }
+);
 CanvasControls.displayName = 'CanvasControls';

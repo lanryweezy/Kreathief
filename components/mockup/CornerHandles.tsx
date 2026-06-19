@@ -44,19 +44,18 @@ export const CornerHandles: React.FC<CornerHandlesProps> = ({
   ];
 
   // Handle mouse/touch events
-  const handleMouseDown = useCallback(
-    (e: React.MouseEvent | React.TouchEvent, corner: keyof CornerPoints) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setDraggingCorner(corner);
-    },
-    []
-  );
+  const handleMouseDown = useCallback((e: React.MouseEvent | React.TouchEvent, corner: keyof CornerPoints) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDraggingCorner(corner);
+  }, []);
 
   // Global mouse move handler
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent | TouchEvent) => {
-      if (!draggingCorner || !containerRef.current) {return;}
+      if (!draggingCorner || !containerRef.current) {
+        return;
+      }
 
       const rect = containerRef.current.getBoundingClientRect();
       let clientX: number, clientY: number;
@@ -101,7 +100,9 @@ export const CornerHandles: React.FC<CornerHandlesProps> = ({
     };
   }, [draggingCorner, onCornerChange, toPercentage]);
 
-  if (!isVisible) {return null;}
+  if (!isVisible) {
+    return null;
+  }
 
   return (
     <div
@@ -168,7 +169,9 @@ export const CornerHandles: React.FC<CornerHandlesProps> = ({
 
             {/* Corner label */}
             <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[8px] font-bold text-white whitespace-nowrap bg-black/60 px-1.5 py-0.5 rounded">
-              {String(handle.corner).replace(/([A-Z])/g, ' $1').trim()}
+              {String(handle.corner)
+                .replace(/([A-Z])/g, ' $1')
+                .trim()}
             </div>
 
             {/* Position indicator */}

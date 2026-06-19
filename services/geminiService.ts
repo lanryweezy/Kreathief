@@ -8,45 +8,49 @@ import { safeParseJSON, retryWithBackoff } from '../utils/errorHandling';
 // Helper to call backend serverless endpoint
 export const callBackendGeminiAPI = async (payload: any) => {
   const endpoint = process.env.NODE_ENV === 'test' ? 'http://localhost:3000/api/gemini' : '/api/gemini';
-  
-  return retryWithBackoff(async () => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'generateContent', ...payload }),
-        signal: controller.signal,
-      });
+  return retryWithBackoff(
+    async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
 
-      clearTimeout(timeoutId);
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'generateContent', ...payload }),
+          signal: controller.signal,
+        });
 
-      if (response.ok) {
-        return await response.json();
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          return await response.json();
+        }
+
+        const error = new Error(`Gemini API returned an error: ${response.status} ${response.statusText}`);
+        // Retry on 429 Too Many Requests and 5xx Server Errors
+        if (response.status === 429 || response.status >= 500) {
+          error.name = 'NetworkError';
+        }
+        throw error;
+      } catch (e: any) {
+        clearTimeout(timeoutId);
+
+        if (e.name === 'AbortError') {
+          const timeoutError = new Error('Gemini API request timed out after 30 seconds');
+          timeoutError.name = 'TimeoutError';
+          log.error('[GeminiService] Backend API call failed: Timeout', timeoutError, { endpoint });
+          throw timeoutError; // TimeoutError is handled by retryWithBackoff
+        }
+
+        log.error('[GeminiService] Backend API call failed', e, { endpoint });
+        throw e;
       }
-
-      const error = new Error(`Gemini API returned an error: ${response.status} ${response.statusText}`);
-      // Retry on 429 Too Many Requests and 5xx Server Errors
-      if (response.status === 429 || response.status >= 500) {
-        error.name = 'NetworkError';
-      }
-      throw error;
-    } catch (e: any) {
-      clearTimeout(timeoutId);
-
-      if (e.name === 'AbortError') {
-        const timeoutError = new Error('Gemini API request timed out after 30 seconds');
-        timeoutError.name = 'TimeoutError';
-        log.error('[GeminiService] Backend API call failed: Timeout', timeoutError, { endpoint });
-        throw timeoutError; // TimeoutError is handled by retryWithBackoff
-      }
-
-      log.error('[GeminiService] Backend API call failed', e, { endpoint });
-      throw e;
-    }
-  }, 3, 1000); // 3 retries, base delay 1000ms
+    },
+    3,
+    1000
+  ); // 3 retries, base delay 1000ms
 };
 
 /**
@@ -252,15 +256,14 @@ export const generateBackground = async (
  */
 export const generateLayerName = async (description: string): Promise<string> => {
   try {
-    const systemInstruction = 'You are a helpful naming assistant. Return a short, human-friendly layer name (2-4 words, Title Case). No quotes.';
+    const systemInstruction =
+      'You are a helpful naming assistant. Return a short, human-friendly layer name (2-4 words, Title Case). No quotes.';
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
-      contents: [
-        { role: 'user', parts: [{ text: `Describe: ${description}\nName:` }] },
-      ],
+      contents: [{ role: 'user', parts: [{ text: `Describe: ${description}\nName:` }] }],
       systemInstruction,
     });
-    return (data.text?.trim().replace(/^["']|["']$/g, '') || 'Layer');
+    return data.text?.trim().replace(/^["']|["']$/g, '') || 'Layer';
   } catch (error) {
     log.error('generateLayerName error:', error);
     return 'Layer';
@@ -288,7 +291,9 @@ export const generateAltText = async (src: string): Promise<string> => {
       canvas.width = loaded.naturalWidth;
       canvas.height = loaded.naturalHeight;
       const ctx = canvas.getContext('2d');
-      if (!ctx) {throw new Error('Canvas 2D context unavailable');}
+      if (!ctx) {
+        throw new Error('Canvas 2D context unavailable');
+      }
       ctx.drawImage(loaded, 0, 0);
       const dataUrl = canvas.toDataURL('image/png');
       b64 = cleanBase64(dataUrl);
@@ -302,7 +307,7 @@ export const generateAltText = async (src: string): Promise<string> => {
       modelName: MODEL_FAST,
       contents: [{ role: 'user', parts }],
     });
-    return (data.text?.trim().replace(/[.!?]+$/, '') || 'Image');
+    return data.text?.trim().replace(/[.!?]+$/, '') || 'Image';
   } catch (error) {
     log.error('generateAltText error:', error);
     return 'Image';
@@ -649,7 +654,7 @@ const extractImageFromResponse = (response: any): string => {
 
   const parts = response.candidates[0].content.parts;
   if (!parts) {
-      throw new Error('No valid payload format found.');
+    throw new Error('No valid payload format found.');
   }
   for (const part of parts) {
     if (part.inlineData && part.inlineData.data) {
@@ -757,11 +762,9 @@ export const generatePaletteFromImage = async (base64Image: string): Promise<str
           },
         },
       },
-      contents: [
-        { role: 'user', parts: [{ text: prompt }, { inlineData: { data: b64Data, mimeType } }] }
-      ]
+      contents: [{ role: 'user', parts: [{ text: prompt }, { inlineData: { data: b64Data, mimeType } }] }],
     });
-    
+
     // Astra: Gemini strict JSON output schema prevents malformed regex parsing bugs
     const parsed = safeParseJSON<string[] | null>(data.text || '[]', null);
     if (!parsed) {
@@ -781,13 +784,14 @@ export const vectorizeImage = async (
 ): Promise<Array<{ path: string; color: string }>> => {
   try {
     const { data: b64Data, mimeType } = cleanBase64(base64Image);
-    const styleGuide = {
-      'default': 'precise, clean vector tracing',
-      'minimal': 'simplified flat shapes with minimal nodes',
-      'detailed': 'high-fidelity paths with fine detail',
-      'artistic': 'stylized artistic interpretation',
-    }[stylePreset] || 'precise, clean vector tracing';
-    
+    const styleGuide =
+      {
+        default: 'precise, clean vector tracing',
+        minimal: 'simplified flat shapes with minimal nodes',
+        detailed: 'high-fidelity paths with fine detail',
+        artistic: 'stylized artistic interpretation',
+      }[stylePreset] || 'precise, clean vector tracing';
+
     const prompt = `Convert this image into a clean, minimal vector graphic with exactly ${colors} main colors.
     Style: ${styleGuide}.
     Identify the main shapes and represent each as a high-quality SVG path 'd' attribute.
@@ -810,9 +814,7 @@ export const vectorizeImage = async (
           },
         },
       },
-      contents: [
-        { role: 'user', parts: [{ text: prompt }, { inlineData: { data: b64Data, mimeType } }] }
-      ]
+      contents: [{ role: 'user', parts: [{ text: prompt }, { inlineData: { data: b64Data, mimeType } }] }],
     });
 
     const text = data.text;
@@ -827,15 +829,19 @@ export const vectorizeImage = async (
   }
 };
 
-export const generateAIVector = async (prompt: string, stylePreset: string = 'default'): Promise<Array<{ path: string; color: string }>> => {
+export const generateAIVector = async (
+  prompt: string,
+  stylePreset: string = 'default'
+): Promise<Array<{ path: string; color: string }>> => {
   try {
-    const styleGuide = {
-      'default': 'Use precise, clean paths.',
-      'minimal': 'Use simplified flat shapes with minimal nodes for a clean minimal look.',
-      'detailed': 'Use high-fidelity paths with fine detail and many anchor points.',
-      'artistic': 'Use a stylized, artistic interpretation with expressive shapes.',
-    }[stylePreset] || 'Use precise, clean paths.';
-    
+    const styleGuide =
+      {
+        default: 'Use precise, clean paths.',
+        minimal: 'Use simplified flat shapes with minimal nodes for a clean minimal look.',
+        detailed: 'Use high-fidelity paths with fine detail and many anchor points.',
+        artistic: 'Use a stylized, artistic interpretation with expressive shapes.',
+      }[stylePreset] || 'Use precise, clean paths.';
+
     const systemPrompt = `You are a professional vector artist. Generate a clean, high-quality vector graphic based on the prompt. Represent the graphic as multiple SVG path 'd' attributes with corresponding hex colors. ${styleGuide}
     Assume a viewBox of 0 0 100 100. Be precise and creative. Return as a JSON array of objects.`;
 
@@ -855,9 +861,9 @@ export const generateAIVector = async (prompt: string, stylePreset: string = 'de
           },
         },
       },
-      contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\nPrompt: ${prompt}` }] }]
+      contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\nPrompt: ${prompt}` }] }],
     });
-    
+
     const text = data.text;
     const parsed = safeParseJSON<Array<{ path: string; color: string }> | null>(text || '[]', null);
     if (!parsed) {
@@ -926,7 +932,7 @@ export const suggestFontPairing = async (primaryFont: string): Promise<string> =
 
 export const generateAutoLayoutSuggestions = async (layers: any[], width: number, height: number): Promise<any[]> => {
   try {
-    const simplifiedLayers = layers.map(l => ({ id: l.id, type: l.type, name: l.name }));
+    const simplifiedLayers = layers.map((l) => ({ id: l.id, type: l.type, name: l.name }));
     const prompt = `Act as a senior UI/UX designer. Given these layers: ${JSON.stringify(simplifiedLayers)}, generate 5 distinct professional layout variations for a ${width}x${height} canvas. 
     Use design principles like the Golden Ratio, Rule of Thirds, and F-pattern. 
     Return a JSON array of objects, where each object is a map of layer IDs to new {x, y, width, height} coordinates.`;
@@ -934,7 +940,7 @@ export const generateAutoLayoutSuggestions = async (layers: any[], width: number
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: 'application/json' }
+      generationConfig: { responseMimeType: 'application/json' },
     });
 
     const parsed = safeParseJSON<any[] | null>(data.text || '[]', null);
@@ -959,7 +965,7 @@ export const extractStyleFromImage = async (base64Image: string): Promise<Design
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.0-pro-exp-02-05',
       contents: [{ role: 'user', parts: [{ text: prompt }, { inlineData: { data: b64Data, mimeType } }] }],
-      generationConfig: { responseMimeType: 'application/json' }
+      generationConfig: { responseMimeType: 'application/json' },
     });
 
     const parsed = safeParseJSON<DesignTheme | null>(data.text || '{}', null);

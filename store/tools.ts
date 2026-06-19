@@ -29,7 +29,9 @@ const flipSchema = z.object({
 });
 
 const magicResizeSchema = z.object({
-  targets: z.array(z.object({ width: z.number().positive(), height: z.number().positive(), name: z.string().optional() })).min(1),
+  targets: z
+    .array(z.object({ width: z.number().positive(), height: z.number().positive(), name: z.string().optional() }))
+    .min(1),
 });
 
 const autoNameSchema = z.object({});
@@ -74,7 +76,9 @@ const ungroupSelected: ToolHandler<Record<string, never>> = () => {
 const flipSelected: ToolHandler<z.infer<typeof flipSchema>> = ({ axis }) => {
   const state = useStore.getState();
   const layer = selectedLayerSelector(state as any);
-  if (!layer || layer.type === 'text') {return;}
+  if (!layer || layer.type === 'text') {
+    return;
+  }
   if (axis === 'horizontal') {
     state.updateLayer(layer.id, { flipX: !(layer as any).flipX });
   } else {
@@ -85,16 +89,21 @@ const flipSelected: ToolHandler<z.infer<typeof flipSchema>> = ({ axis }) => {
 const autoNameSelected: ToolHandler<z.infer<typeof autoNameSchema>> = async () => {
   const state = useStore.getState() as any;
   const artboard = (state.artboards || []).find((a: any) => a.id === state.activeArtboardId) || state.artboards?.[0];
-  if (!artboard) {return;}
+  if (!artboard) {
+    return;
+  }
   const ids: string[] = state.selectedLayerIds || [];
   for (const id of ids) {
     const l = (artboard.layers || []).find((x: any) => x.id === id);
-    if (!l) {continue;}
-    const desc = l.type === 'text'
-      ? `Text: "${l.text?.slice(0, 50) || ''}" size ${l.fontSize}`
-      : l.type === 'image'
-        ? `Image ${l.width}x${l.height}`
-        : `Shape ${l.type} ${l.width}x${l.height} color ${l.color}`;
+    if (!l) {
+      continue;
+    }
+    const desc =
+      l.type === 'text'
+        ? `Text: "${l.text?.slice(0, 50) || ''}" size ${l.fontSize}`
+        : l.type === 'image'
+          ? `Image ${l.width}x${l.height}`
+          : `Shape ${l.type} ${l.width}x${l.height} color ${l.color}`;
     const name = await gemini.generateLayerName(desc);
     state.updateLayer(id, { name });
   }
@@ -116,7 +125,9 @@ const magicResizeTool: ToolHandler<z.infer<typeof magicResizeSchema>> = ({ targe
 const backgroundTool: ToolHandler<z.infer<typeof backgroundSchema>> = async ({ prompt, quality = 'standard' }) => {
   const state = useStore.getState() as any;
   const artboard = (state.artboards || []).find((a: any) => a.id === state.activeArtboardId) || state.artboards?.[0];
-  if (!artboard) {return;}
+  if (!artboard) {
+    return;
+  }
   const dataUrl = await gemini.generateBackground(prompt, artboard.width || 1080, artboard.height || 1080, quality);
   // Create explicit layer so we can reorder to back
   const id = generateLayerId('image');
@@ -137,13 +148,20 @@ const backgroundTool: ToolHandler<z.infer<typeof backgroundSchema>> = async ({ p
     flipY: false,
   };
   state.addLayer(layer);
-  state.reorderLayer(id, 0); (useStore.getState() as any).addToast?.('Background added', 'success');
+  state.reorderLayer(id, 0);
+  (useStore.getState() as any).addToast?.('Background added', 'success');
 };
 
-const textToVectorTool: ToolHandler<z.infer<typeof textToVectorSchema>> = async ({ prompt, quality = 'standard', color }) => {
+const textToVectorTool: ToolHandler<z.infer<typeof textToVectorSchema>> = async ({
+  prompt,
+  quality = 'standard',
+  color,
+}) => {
   const state = useStore.getState() as any;
   const artboard = (state.artboards || []).find((a: any) => a.id === state.activeArtboardId) || state.artboards?.[0];
-  if (!artboard) {return;}
+  if (!artboard) {
+    return;
+  }
   // Step 1: generate an icon-like image
   const iconPrompt = `${prompt}. Minimal flat icon, high contrast, single subject, no text, centered, plain background.`;
   const dataUrl = await gemini.generateImage(iconPrompt, 'square', quality);
@@ -152,14 +170,34 @@ const textToVectorTool: ToolHandler<z.infer<typeof textToVectorSchema>> = async 
   const paths = vectorizerService.extractPaths(svg);
   if (paths.length === 0) {
     // Fallback: place the raster if vectorization fails
-    state.addImageLayer(dataUrl, 'AI Icon', Math.round(artboard.width/2 - 128), Math.round(artboard.height/2 - 128), 256, 256); (useStore.getState() as any).addToast?.('Inserted raster icon (vectorization fallback)', 'warning');
+    state.addImageLayer(
+      dataUrl,
+      'AI Icon',
+      Math.round(artboard.width / 2 - 128),
+      Math.round(artboard.height / 2 - 128),
+      256,
+      256
+    );
+    (useStore.getState() as any).addToast?.('Inserted raster icon (vectorization fallback)', 'warning');
     return;
   }
   const primary = paths[0];
   // Step 3: add as vector path layer
   const x = Math.round((artboard.width || 1080) / 2 - 128);
   const y = Math.round((artboard.height || 1080) / 2 - 128);
-  state.addShapeLayer('path', { x, y, width: 256, height: 256, rotation: 0, opacity: 1, locked: false, visible: true, pathData: primary.d, color: color || primary.fill }); (useStore.getState() as any).addToast?.('Vector icon inserted', 'success');
+  state.addShapeLayer('path', {
+    x,
+    y,
+    width: 256,
+    height: 256,
+    rotation: 0,
+    opacity: 1,
+    locked: false,
+    visible: true,
+    pathData: primary.d,
+    color: color || primary.fill,
+  });
+  (useStore.getState() as any).addToast?.('Vector icon inserted', 'success');
 };
 
 export const tools = {
@@ -231,20 +269,17 @@ export async function runTool<N extends ToolName>(name: N, params: unknown) {
   const def = tools[name];
   const parsed = def.schema.safeParse(params as any);
   if (!parsed.success) {
-    throw new Error(`Invalid parameters for ${name}: ${parsed.error.issues.map(i => i.message).join(', ')}`);
+    throw new Error(`Invalid parameters for ${name}: ${parsed.error.issues.map((i) => i.message).join(', ')}`);
   }
   // Batch to coalesce history into a single undo step
   const { beginBatch, endBatch } = useStore.getState() as any;
   try {
     beginBatch?.();
     const res = def.handler(parsed.data as any);
-    if (res instanceof Promise) {await res;}
+    if (res instanceof Promise) {
+      await res;
+    }
   } finally {
     endBatch?.();
   }
 }
-
-
-
-
-

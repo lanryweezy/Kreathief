@@ -1,4 +1,4 @@
-import { log } from "../utils/log";
+import { log } from '../utils/log';
 export const config = {
   runtime: 'edge',
 };
@@ -129,13 +129,16 @@ export default async function handler(req: Request) {
         });
       }
 
-      const response = await fetch(`${BASE_URL}/resources/${encodeURIComponent(resourceId)}/download/${encodeURIComponent(format)}`, {
-        headers: {
-          'x-freepik-api-key': freepikKey,
-          'Accept-Language': 'en-US',
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(
+        `${BASE_URL}/resources/${encodeURIComponent(resourceId)}/download/${encodeURIComponent(format)}`,
+        {
+          headers: {
+            'x-freepik-api-key': freepikKey,
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Freepik Resource Download failed');
@@ -186,7 +189,7 @@ export default async function handler(req: Request) {
           '/ai/image-upscaler',
           '/ai/image-upscaler-precision',
           '/ai/image-style-transfer',
-          '/ai/image-expand'
+          '/ai/image-expand',
         ];
 
         if (!allowedPaths.includes(basePath)) {
@@ -207,7 +210,7 @@ export default async function handler(req: Request) {
           '/ai/image-upscaler',
           '/ai/image-upscaler-precision',
           '/ai/image-style-transfer',
-          '/ai/image-expand'
+          '/ai/image-expand',
         ];
 
         if (!allowedBasePaths.includes(basePath)) {

@@ -22,7 +22,7 @@ export const FindReplaceText: React.FC = () => {
 
   // Get all text layers
   const allTextLayers = useMemo(() => {
-    return artboards.flatMap(artboard => 
+    return artboards.flatMap((artboard) =>
       artboard.layers.filter((layer): layer is TextLayer => layer.type === 'text' && layer.visible)
     );
   }, [artboards]);
@@ -55,24 +55,31 @@ export const FindReplaceText: React.FC = () => {
   }, [findText, isCaseSensitive, allTextLayers, addToast]);
 
   // Replace in specific layer
-  const handleReplaceInLayer = useCallback((layerId: string) => {
-    const layer = allTextLayers.find(l => l.id === layerId);
-    if (!layer) {return;}
+  const handleReplaceInLayer = useCallback(
+    (layerId: string) => {
+      const layer = allTextLayers.find((l) => l.id === layerId);
+      if (!layer) {
+        return;
+      }
 
-    const flags = isCaseSensitive ? 'g' : 'gi';
-    const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
-    const newText = layer.text.replace(regex, replaceText);
+      const flags = isCaseSensitive ? 'g' : 'gi';
+      const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
+      const newText = layer.text.replace(regex, replaceText);
 
-    updateLayer(layerId, { text: newText });
-    addToast('Text replaced in layer', 'success');
+      updateLayer(layerId, { text: newText });
+      addToast('Text replaced in layer', 'success');
 
-    // Update results
-    setResults(prev => prev.filter(r => r.layerId !== layerId));
-  }, [findText, replaceText, isCaseSensitive, allTextLayers, updateLayer, addToast]);
+      // Update results
+      setResults((prev) => prev.filter((r) => r.layerId !== layerId));
+    },
+    [findText, replaceText, isCaseSensitive, allTextLayers, updateLayer, addToast]
+  );
 
   // Replace all
   const handleReplaceAll = useCallback(() => {
-    if (!findText.trim()) {return;}
+    if (!findText.trim()) {
+      return;
+    }
 
     const flags = isCaseSensitive ? 'g' : 'gi';
     const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
@@ -92,10 +99,13 @@ export const FindReplaceText: React.FC = () => {
   }, [findText, replaceText, isCaseSensitive, allTextLayers, updateLayer, addToast]);
 
   // Select layer
-  const handleSelectLayer = useCallback((layerId: string) => {
-    useStore.getState().selectLayer(layerId);
-    addToast('Layer selected', 'info');
-  }, [addToast]);
+  const handleSelectLayer = useCallback(
+    (layerId: string) => {
+      useStore.getState().selectLayer(layerId);
+      addToast('Layer selected', 'info');
+    },
+    [addToast]
+  );
 
   return (
     <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4 space-y-4">
@@ -153,12 +163,7 @@ export const FindReplaceText: React.FC = () => {
           <span className="text-[10px] text-gray-400">Case Sensitive</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={true}
-            disabled
-            className="accent-[#7d2ae8]"
-          />
+          <input type="checkbox" checked={true} disabled className="accent-[#7d2ae8]" />
           <span className="text-[10px] text-gray-400">All Layers</span>
         </label>
       </div>
@@ -170,20 +175,14 @@ export const FindReplaceText: React.FC = () => {
             <p className="text-[10px] text-gray-500">
               Found {results.reduce((sum, r) => sum + r.matches, 0)} matches in {results.length} layers
             </p>
-            <button
-              onClick={handleReplaceAll}
-              className="text-[10px] text-[#7d2ae8] hover:text-[#9d4edd] font-bold"
-            >
+            <button onClick={handleReplaceAll} className="text-[10px] text-[#7d2ae8] hover:text-[#9d4edd] font-bold">
               Replace All
             </button>
           </div>
 
           <div className="max-h-64 overflow-y-auto space-y-2 custom-scrollbar">
             {results.map((result) => (
-              <div
-                key={result.layerId}
-                className="bg-[#252627] border border-gray-700 rounded-lg p-3"
-              >
+              <div key={result.layerId} className="bg-[#252627] border border-gray-700 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <Icons.Text className="w-3 h-3 text-gray-500" />
@@ -230,7 +229,7 @@ export const FindReplaceText: React.FC = () => {
       <div className="pt-3 border-t border-gray-700">
         <div className="flex items-center justify-between text-[10px] text-gray-500">
           <span>Total text layers: {allTextLayers.length}</span>
-          <span>Visible layers: {allTextLayers.filter(l => l.visible).length}</span>
+          <span>Visible layers: {allTextLayers.filter((l) => l.visible).length}</span>
         </div>
       </div>
     </div>

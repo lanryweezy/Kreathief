@@ -12,8 +12,15 @@ import { debounce } from '../utils/debounce';
 import { v4 as uuidv4 } from 'uuid';
 
 const DEFAULT_FILTERS: CanvasFilters = {
-  brightness: 100, contrast: 100, saturation: 100,
-  sepia: 0, grayscale: 0, blur: 0, opacity: 1, vignette: 0, hueRotate: 0,
+  brightness: 100,
+  contrast: 100,
+  saturation: 100,
+  sepia: 0,
+  grayscale: 0,
+  blur: 0,
+  opacity: 1,
+  vignette: 0,
+  hueRotate: 0,
 };
 
 const EMPTY_ARRAY: any[] = [];
@@ -24,17 +31,16 @@ export const useEditorLogic = (initialProject?: Project) => {
     const active = state.artboards.find((a: any) => a.id === state.activeArtboardId);
     return active?.layers || EMPTY_ARRAY;
   });
-  
+
   const selectedLayerIds = useStore((state) => state.selectedLayerIds) || EMPTY_ARRAY;
   const canvasBackgroundColor = useStore((state) => state.canvasBackgroundColor) || '#ffffff';
-  
-  const activeArtboard = useStore((state) => 
-    state.artboards.find((a: any) => a.id === state.activeArtboardId)
-  );
 
-  const canvasSize = useMemo(() => 
-    activeArtboard ? { width: activeArtboard.width, height: activeArtboard.height } : DEFAULT_SIZE
-  , [activeArtboard]);
+  const activeArtboard = useStore((state) => state.artboards.find((a: any) => a.id === state.activeArtboardId));
+
+  const canvasSize = useMemo(
+    () => (activeArtboard ? { width: activeArtboard.width, height: activeArtboard.height } : DEFAULT_SIZE),
+    [activeArtboard]
+  );
 
   const canvasFilters = useStore((state) => state.canvasFilters) || DEFAULT_FILTERS;
   const projectTitle = useStore((state) => state.projectTitle);
@@ -87,10 +93,18 @@ export const useEditorLogic = (initialProject?: Project) => {
           const parsed = typeof savedState === 'string' ? JSON.parse(savedState) : savedState;
           if (parsed.layers?.length > 0) {
             setLayers(parsed.layers);
-            if (parsed.canvasBackgroundColor) {setCanvasBackgroundColor(parsed.canvasBackgroundColor);}
-            if (parsed.canvasFilters) {setCanvasFilters(parsed.canvasFilters);}
-            if (parsed.canvasSize) {setCanvasSize(parsed.canvasSize);}
-            if (parsed.projectTitle) {setProjectTitle(parsed.projectTitle);}
+            if (parsed.canvasBackgroundColor) {
+              setCanvasBackgroundColor(parsed.canvasBackgroundColor);
+            }
+            if (parsed.canvasFilters) {
+              setCanvasFilters(parsed.canvasFilters);
+            }
+            if (parsed.canvasSize) {
+              setCanvasSize(parsed.canvasSize);
+            }
+            if (parsed.projectTitle) {
+              setProjectTitle(parsed.projectTitle);
+            }
           }
         } catch (e) {
           log.error('[EditorLogic] Failed to recover session', e);
@@ -102,18 +116,21 @@ export const useEditorLogic = (initialProject?: Project) => {
 
   // Autosave Runner
   const debouncedSave = useMemo(
-    () => debounce(() => {
-      try {
-        saveProject();
-      } catch (error) {
-        log.error('[EditorLogic] Autosave failed', error);
-      }
-    }, 10000),
+    () =>
+      debounce(() => {
+        try {
+          saveProject();
+        } catch (error) {
+          log.error('[EditorLogic] Autosave failed', error);
+        }
+      }, 10000),
     [saveProject]
   );
 
   useEffect(() => {
-    if (layers.length === 0) {return;}
+    if (layers.length === 0) {
+      return;
+    }
     debouncedSave();
     return () => debouncedSave.cancel();
   }, [layers, canvasBackgroundColor, canvasFilters, canvasSize, projectTitle, debouncedSave]);
@@ -137,13 +154,21 @@ export const useEditorLogic = (initialProject?: Project) => {
     layers.forEach((l) => {
       if (l.type === 'text') {
         const tl = l as TextLayer;
-        if (tl.color) {colors.add(tl.color);}
+        if (tl.color) {
+          colors.add(tl.color);
+        }
       } else if (l.type !== 'image') {
         const sl = l as ShapeLayer;
-        if (sl.color) {colors.add(sl.color);}
+        if (sl.color) {
+          colors.add(sl.color);
+        }
       }
-      if (l.stroke?.color) {colors.add(l.stroke.color);}
-      if (l.shadow?.color) {colors.add(l.shadow.color);}
+      if (l.stroke?.color) {
+        colors.add(l.stroke.color);
+      }
+      if (l.shadow?.color) {
+        colors.add(l.shadow.color);
+      }
     });
     brandKits.forEach((kit) => kit.colors.forEach((c) => colors.add(c)));
     return Array.from(colors);
@@ -151,7 +176,9 @@ export const useEditorLogic = (initialProject?: Project) => {
 
   // AI Generation
   const handleGenerate = async (negativePrompt?: string) => {
-    if (!prompt.trim()) {return;}
+    if (!prompt.trim()) {
+      return;
+    }
     const apiPrompt = prompt + (negativePrompt?.trim() ? ` | negative: ${negativePrompt.trim()}` : '');
     setIsProcessing(true);
     const tempId = uuidv4();
@@ -198,14 +225,21 @@ export const useEditorLogic = (initialProject?: Project) => {
   };
 
   // Vector Path Logic
-  const handleUpdatePath = useCallback((path: VectorPath) => {
-    if (!editingPathId) {return;}
-    saveToHistory();
-    onUpdatePath(editingPathId, { vectorPath: path, pathData: VectorUtils.lastPathData || undefined });
-  }, [editingPathId, saveToHistory, onUpdatePath]);
+  const handleUpdatePath = useCallback(
+    (path: VectorPath) => {
+      if (!editingPathId) {
+        return;
+      }
+      saveToHistory();
+      onUpdatePath(editingPathId, { vectorPath: path, pathData: VectorUtils.lastPathData || undefined });
+    },
+    [editingPathId, saveToHistory, onUpdatePath]
+  );
 
   const handleBooleanOperation = (operation: 'union' | 'subtract' | 'intersect' | 'exclude') => {
-    const selectedPaths = layers.filter((l: any) => selectedLayerIds.includes(l.id) && l.type === 'path') as ShapeLayer[];
+    const selectedPaths = layers.filter(
+      (l: any) => selectedLayerIds.includes(l.id) && l.type === 'path'
+    ) as ShapeLayer[];
     if (selectedPaths.length < 2) {
       addToast('Select at least two path layers.', 'warning');
       return;
@@ -220,15 +254,26 @@ export const useEditorLogic = (initialProject?: Project) => {
     });
     let resultPath = globalPaths[0]!;
     for (let i = 1; i < globalPaths.length; i++) {
-        switch (operation) {
-            case 'union': resultPath = BooleanOperations.union(resultPath, globalPaths[i]!); break;
-            case 'subtract': resultPath = BooleanOperations.subtract(resultPath, globalPaths[i]!); break;
-            case 'intersect': resultPath = BooleanOperations.intersect(resultPath, globalPaths[i]!); break;
-            case 'exclude': resultPath = BooleanOperations.exclude(resultPath, globalPaths[i]!); break;
-        }
+      switch (operation) {
+        case 'union':
+          resultPath = BooleanOperations.union(resultPath, globalPaths[i]!);
+          break;
+        case 'subtract':
+          resultPath = BooleanOperations.subtract(resultPath, globalPaths[i]!);
+          break;
+        case 'intersect':
+          resultPath = BooleanOperations.intersect(resultPath, globalPaths[i]!);
+          break;
+        case 'exclude':
+          resultPath = BooleanOperations.exclude(resultPath, globalPaths[i]!);
+          break;
+      }
     }
     const bounds = VectorUtils.getBounds(resultPath);
-    const localPath = { ...resultPath, points: resultPath.points.map((p) => ({ ...p, x: p.x - bounds.x, y: p.y - bounds.y })) };
+    const localPath = {
+      ...resultPath,
+      points: resultPath.points.map((p) => ({ ...p, x: p.x - bounds.x, y: p.y - bounds.y })),
+    };
     const newLayer: ShapeLayer = {
       ...baseLayer,
       id: uuidv4(),
@@ -255,36 +300,51 @@ export const useEditorLogic = (initialProject?: Project) => {
       setBooleanPreview(null);
       return;
     }
-    const selectedPaths = layers.filter((l: any) => selectedLayerIds.includes(l.id) && l.type === 'path') as ShapeLayer[];
-    if (selectedPaths.length < 2) {return;}
+    const selectedPaths = layers.filter(
+      (l: any) => selectedLayerIds.includes(l.id) && l.type === 'path'
+    ) as ShapeLayer[];
+    if (selectedPaths.length < 2) {
+      return;
+    }
     const globalPaths = selectedPaths.map((layer) => {
       const path = VectorUtils.parsePath(layer.pathData || '');
       return { ...path, points: path.points.map((p) => ({ ...p, x: p.x + layer.x, y: p.y + layer.y })) };
     });
     let resultPath = globalPaths[0]!;
     for (let i = 1; i < globalPaths.length; i++) {
-        try {
-            switch (operation) {
-            case 'union': resultPath = BooleanOperations.union(resultPath, globalPaths[i]!); break;
-            case 'subtract': resultPath = BooleanOperations.subtract(resultPath, globalPaths[i]!); break;
-            case 'intersect': resultPath = BooleanOperations.intersect(resultPath, globalPaths[i]!); break;
-            case 'exclude': resultPath = BooleanOperations.exclude(resultPath, globalPaths[i]!); break;
-            }
-        } catch (e) {
-          // Ignore boolean operation errors
+      try {
+        switch (operation) {
+          case 'union':
+            resultPath = BooleanOperations.union(resultPath, globalPaths[i]!);
+            break;
+          case 'subtract':
+            resultPath = BooleanOperations.subtract(resultPath, globalPaths[i]!);
+            break;
+          case 'intersect':
+            resultPath = BooleanOperations.intersect(resultPath, globalPaths[i]!);
+            break;
+          case 'exclude':
+            resultPath = BooleanOperations.exclude(resultPath, globalPaths[i]!);
+            break;
         }
+      } catch (e) {
+        // Ignore boolean operation errors
+      }
     }
     setBooleanPreview({ path: VectorUtils.serializePath(resultPath), operation });
   };
 
-  const handleLayerDoubleClick = useCallback((layer: any) => {
-    if (layer.type === 'text') {
-      window.dispatchEvent(new CustomEvent('editor-edit-text', { detail: { layerId: layer.id } }));
-    } else if (['rectangle', 'circle', 'path', 'star'].includes(layer.type)) {
-      setEditingPathId(layer.id);
-      setSelectedLayerIds([layer.id]);
-    }
-  }, [setEditingPathId, setSelectedLayerIds]);
+  const handleLayerDoubleClick = useCallback(
+    (layer: any) => {
+      if (layer.type === 'text') {
+        window.dispatchEvent(new CustomEvent('editor-edit-text', { detail: { layerId: layer.id } }));
+      } else if (['rectangle', 'circle', 'path', 'star'].includes(layer.type)) {
+        setEditingPathId(layer.id);
+        setSelectedLayerIds([layer.id]);
+      }
+    },
+    [setEditingPathId, setSelectedLayerIds]
+  );
 
   const toggleShapeBuilder = useCallback(() => {
     const active = useStore.getState().isShapeBuilderActive;
@@ -294,11 +354,15 @@ export const useEditorLogic = (initialProject?: Project) => {
 
   useEffect(() => {
     (window as any).toggleShapeBuilder = toggleShapeBuilder;
-    return () => { delete (window as any).toggleShapeBuilder; };
+    return () => {
+      delete (window as any).toggleShapeBuilder;
+    };
   }, [toggleShapeBuilder]);
 
   const handleJoinPaths = () => {
-    const selectedPaths = layers.filter((l: any) => selectedLayerIds.includes(l.id) && l.type === 'path') as ShapeLayer[];
+    const selectedPaths = layers.filter(
+      (l: any) => selectedLayerIds.includes(l.id) && l.type === 'path'
+    ) as ShapeLayer[];
     if (selectedPaths.length < 2) {
       addToast('Select at least two path layers to join.', 'warning');
       return;
@@ -322,7 +386,10 @@ export const useEditorLogic = (initialProject?: Project) => {
 
     // Recenter result
     const bounds = VectorUtils.getBounds(resultPath);
-    const localPath = { ...resultPath, points: resultPath.points.map((p) => ({ ...p, x: p.x - bounds.x, y: p.y - bounds.y })) };
+    const localPath = {
+      ...resultPath,
+      points: resultPath.points.map((p) => ({ ...p, x: p.x - bounds.x, y: p.y - bounds.y })),
+    };
 
     const newLayer: ShapeLayer = {
       ...baseLayer,
@@ -354,6 +421,6 @@ export const useEditorLogic = (initialProject?: Project) => {
     handleUpdatePath,
     handleBooleanOperation,
     handleBooleanHover,
-    handleLayerDoubleClick
+    handleLayerDoubleClick,
   };
 };

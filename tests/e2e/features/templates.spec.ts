@@ -35,7 +35,10 @@ test.describe('Templates Features', () => {
   test('should open templates panel', async ({ page }) => {
     // Need to open a project first to access the editor's templates panel
     await dashboard.switchToTemplates();
-    await page.getByTestId(/dashboard-template-btn-/).first().click();
+    await page
+      .getByTestId(/dashboard-template-btn-/)
+      .first()
+      .click();
     await editor.waitForCanvasReady();
 
     await templates.openTemplatesPanel();
@@ -46,7 +49,10 @@ test.describe('Templates Features', () => {
     // Need to open a project first to access the editor's templates panel
     await dashboard.switchToTemplates();
     await page.waitForLoadState('networkidle');
-    await page.getByTestId(/dashboard-template-btn-/).first().click();
+    await page
+      .getByTestId(/dashboard-template-btn-/)
+      .first()
+      .click();
     await editor.waitForCanvasReady();
 
     await templates.verifyTemplatesLoaded();
@@ -65,7 +71,10 @@ test.describe('Templates Features', () => {
     // Need to open a project first
     await dashboard.switchToTemplates();
     await page.waitForLoadState('networkidle');
-    await page.getByTestId(/dashboard-template-btn-/).first().click();
+    await page
+      .getByTestId(/dashboard-template-btn-/)
+      .first()
+      .click();
     await editor.waitForCanvasReady();
 
     await templates.filterByCategory('Social');
@@ -135,7 +144,10 @@ test.describe('Templates Features', () => {
   test('should navigate templates with keyboard', async ({ page }) => {
     await dashboard.switchToTemplates();
     await page.waitForLoadState('networkidle');
-    await page.getByTestId(/dashboard-template-btn-/).first().click();
+    await page
+      .getByTestId(/dashboard-template-btn-/)
+      .first()
+      .click();
     await editor.waitForCanvasReady();
 
     await templates.openTemplatesPanel();
@@ -157,7 +169,10 @@ test.describe('Templates Features', () => {
   test('should verify template categories', async ({ page }) => {
     await dashboard.switchToTemplates();
     await page.waitForLoadState('networkidle');
-    await page.getByTestId(/dashboard-template-btn-/).first().click();
+    await page
+      .getByTestId(/dashboard-template-btn-/)
+      .first()
+      .click();
     await editor.waitForCanvasReady();
 
     await templates.openTemplatesPanel();
@@ -173,7 +188,10 @@ test.describe('Templates Features', () => {
   test('should switch between categories', async ({ page }) => {
     await dashboard.switchToTemplates();
     await page.waitForLoadState('networkidle');
-    await page.getByTestId(/dashboard-template-btn-/).first().click();
+    await page
+      .getByTestId(/dashboard-template-btn-/)
+      .first()
+      .click();
     await editor.waitForCanvasReady();
 
     // Get initial category

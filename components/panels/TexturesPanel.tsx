@@ -82,16 +82,16 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
     setIsGeneratingGrain(true);
     try {
       const grainUrl = await heavyWorkerService.generateGrain(
-        canvasSize.width, 
-        canvasSize.height, 
-        val, 
+        canvasSize.width,
+        canvasSize.height,
+        val,
         (105 - grainScale) / 10
       );
-      setCanvasFilters({ 
-        ...canvasFilters, 
-        noise: val, 
+      setCanvasFilters({
+        ...canvasFilters,
+        noise: val,
         grainScale,
-        overlayTexture: grainUrl 
+        overlayTexture: grainUrl,
       });
     } catch (e) {
       log.error('Grain generation failed', e);
@@ -114,7 +114,9 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) {return;}
+    if (!file) {
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -137,60 +139,72 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
 
       {/* Organic Grain Engine */}
       <div className="mb-6 bg-gradient-to-br from-indigo-900/20 to-purple-900/20 p-4 rounded-2xl border border-purple-500/20 shrink-0">
-         <div className="flex items-center justify-between mb-4">
-            <h4 className="text-[10px] font-black text-purple-300 uppercase tracking-[0.2em]">Procedural Grain</h4>
-            {isGeneratingGrain && <div className="w-3 h-3 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />}
-         </div>
-         
-         <div className="space-y-4">
-            <div className="space-y-2">
-               <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
-                  <span>Intensity</span>
-                  <span className="text-white">{noiseLevel}%</span>
-               </div>
-               <input 
-                  type="range" min="0" max="100" step="1" 
-                  value={noiseLevel} 
-                  onChange={(e) => handleNoiseChange(parseInt(e.target.value))}
-                  className="w-full h-1 bg-white/5 rounded-full appearance-none accent-purple-500"
-               />
-            </div>
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-[10px] font-black text-purple-300 uppercase tracking-[0.2em]">Procedural Grain</h4>
+          {isGeneratingGrain && (
+            <div className="w-3 h-3 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+          )}
+        </div>
 
-            <div className="space-y-2">
-               <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
-                  <span>Scale</span>
-                  <span className="text-white">{grainScale}%</span>
-               </div>
-               <input 
-                  type="range" min="10" max="100" step="5" 
-                  value={grainScale} 
-                  onChange={(e) => {
-                    setGrainScale(parseInt(e.target.value));
-                    if (noiseLevel > 0) {handleNoiseChange(noiseLevel);}
-                  }}
-                  className="w-full h-1 bg-white/5 rounded-full appearance-none accent-indigo-500"
-               />
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
+              <span>Intensity</span>
+              <span className="text-white">{noiseLevel}%</span>
             </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="1"
+              value={noiseLevel}
+              onChange={(e) => handleNoiseChange(parseInt(e.target.value))}
+              className="w-full h-1 bg-white/5 rounded-full appearance-none accent-purple-500"
+            />
+          </div>
 
-            <div className="flex gap-2">
-               {(['overlay', 'multiply', 'soft-light'] as const).map(mode => (
-                 <button 
-                  key={mode}
-                  onClick={() => setCanvasFilters({ ...canvasFilters, textureBlendMode: mode })}
-                  className={`flex-1 py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${canvasFilters.textureBlendMode === mode ? 'bg-purple-600 border-purple-500 text-white' : 'bg-black/20 border-white/5 text-gray-500 hover:text-gray-300'}`}
-                 >
-                   {mode}
-                 </button>
-               ))}
+          <div className="space-y-2">
+            <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
+              <span>Scale</span>
+              <span className="text-white">{grainScale}%</span>
             </div>
-         </div>
+            <input
+              type="range"
+              min="10"
+              max="100"
+              step="5"
+              value={grainScale}
+              onChange={(e) => {
+                setGrainScale(parseInt(e.target.value));
+                if (noiseLevel > 0) {
+                  handleNoiseChange(noiseLevel);
+                }
+              }}
+              className="w-full h-1 bg-white/5 rounded-full appearance-none accent-indigo-500"
+            />
+          </div>
+
+          <div className="flex gap-2">
+            {(['overlay', 'multiply', 'soft-light'] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setCanvasFilters({ ...canvasFilters, textureBlendMode: mode })}
+                className={`flex-1 py-1.5 rounded-lg text-[8px] font-black uppercase border transition-all ${canvasFilters.textureBlendMode === mode ? 'bg-purple-600 border-purple-500 text-white' : 'bg-black/20 border-white/5 text-gray-500 hover:text-gray-300'}`}
+              >
+                {mode}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="mb-6 shrink-0">
         <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Material Overlays</h4>
         <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-700 rounded-xl p-4 hover:border-[#7d2ae8] hover:bg-[#7d2ae8]/5 cursor-pointer transition-all group">
           <Icons.Upload className="w-6 h-6 text-gray-500 mb-2 group-hover:text-[#7d2ae8]" />
-          <span className="text-[10px] font-bold text-gray-400 group-hover:text-white uppercase tracking-tighter">Upload Texture</span>
+          <span className="text-[10px] font-bold text-gray-400 group-hover:text-white uppercase tracking-tighter">
+            Upload Texture
+          </span>
           <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
         </label>
       </div>

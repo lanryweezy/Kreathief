@@ -150,9 +150,7 @@ export const MobileOnboarding: React.FC = () => {
                   <div
                     key={index}
                     className={`h-2 rounded-full transition-all duration-300 ${
-                      index === currentStep
-                        ? 'w-8 bg-gradient-to-r from-purple-500 to-pink-500'
-                        : 'w-2 bg-white/20'
+                      index === currentStep ? 'w-8 bg-gradient-to-r from-purple-500 to-pink-500' : 'w-2 bg-white/20'
                     }`}
                   />
                 ))}

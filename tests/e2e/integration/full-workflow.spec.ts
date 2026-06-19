@@ -46,16 +46,18 @@ test.describe('Full Design Workflow', () => {
     const elementsTab = editor.sidebar.locator('button[aria-label="Elements"]');
     await elementsTab.click();
 
-    const shapeBtn = page.locator('button[aria-label*="Rectangle"], button[aria-label*="Square"], [id^="shape-btn-rectangle"]').first();
+    const shapeBtn = page
+      .locator('button[aria-label*="Rectangle"], button[aria-label*="Square"], [id^="shape-btn-rectangle"]')
+      .first();
     await expect(shapeBtn).toBeVisible({ timeout: 10000 });
     await shapeBtn.click();
     await page.waitForTimeout(500);
 
     // Step 6: Verify layers exist via store
     const layerCount = await page.evaluate(() => {
-        const state = (window as any).useStore.getState();
-        const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
-        return artboard.layers.length;
+      const state = (window as any).useStore.getState();
+      const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
+      return artboard.layers.length;
     });
     expect(layerCount).toBeGreaterThan(1);
 
@@ -131,9 +133,9 @@ test.describe('Full Design Workflow', () => {
 
     // Verify layer exists via store
     const layerCount = await page.evaluate(() => {
-        const state = (window as any).useStore.getState();
-        const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
-        return artboard.layers.length;
+      const state = (window as any).useStore.getState();
+      const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
+      return artboard.layers.length;
     });
     expect(layerCount).toBeGreaterThan(0);
   });
@@ -172,7 +174,9 @@ test.describe('Full Design Workflow', () => {
     await dashboard2.verifyDashboardLoaded();
 
     // Find and open the project we just created
-    const projectCard = page2.locator(`button:has-text("Multi-Tab Design"), [data-testid^="project-card-"]:has-text("Multi-Tab Design")`).first();
+    const projectCard = page2
+      .locator(`button:has-text("Multi-Tab Design"), [data-testid^="project-card-"]:has-text("Multi-Tab Design")`)
+      .first();
     await projectCard.click();
 
     const editor2 = new EditorPage(page2);

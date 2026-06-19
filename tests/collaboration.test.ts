@@ -29,7 +29,7 @@ describe('Collaboration Features Store', () => {
           width: 1080,
           height: 1080,
           layers: [],
-        }
+        },
       ],
       activeArtboardId: 'default',
       projectId: 'test-project',
@@ -71,7 +71,7 @@ describe('Collaboration Features Store', () => {
     } as any;
 
     act(() => {
-        addLayer(initialLayer);
+      addLayer(initialLayer);
     });
 
     // Create snapshot
@@ -81,10 +81,12 @@ describe('Collaboration Features Store', () => {
 
     // Modify state (delete layer)
     act(() => {
-        useStore.getState().deleteLayer('layer1');
+      useStore.getState().deleteLayer('layer1');
     });
 
-    const activeArtboardBefore = useStore.getState().artboards.find(a => a.id === useStore.getState().activeArtboardId);
+    const activeArtboardBefore = useStore
+      .getState()
+      .artboards.find((a) => a.id === useStore.getState().activeArtboardId);
     expect(activeArtboardBefore?.layers).toHaveLength(0);
 
     // Restore snapshot
@@ -94,7 +96,9 @@ describe('Collaboration Features Store', () => {
     });
 
     // Verify state restored
-    const activeArtboardAfter = useStore.getState().artboards.find(a => a.id === useStore.getState().activeArtboardId);
+    const activeArtboardAfter = useStore
+      .getState()
+      .artboards.find((a) => a.id === useStore.getState().activeArtboardId);
     expect(activeArtboardAfter?.layers).toHaveLength(1);
     expect(activeArtboardAfter?.layers[0].id).toBe('layer1');
   });

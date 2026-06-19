@@ -3,7 +3,8 @@ import { Layer, CanvasFilters } from '../../types';
 /**
  * Builds a CSS filter string from a CanvasFilters or LayerFilters object
  */
-export const buildFilterString = (filters: CanvasFilters): string => {
+export const buildFilterString = (filters: CanvasFilters | undefined | null): string => {
+  if (!filters) return 'none';
   const parts: string[] = [];
 
   if (filters.brightness !== 100) {

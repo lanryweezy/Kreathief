@@ -12,10 +12,7 @@ export interface CommunityTemplate extends StarterTemplate {
 export const communityService = {
   async fetchTemplates(category?: string, query?: string): Promise<CommunityTemplate[]> {
     try {
-      let supabaseQuery = supabase
-        .from('community_templates')
-        .select('*')
-        .order('likes', { ascending: false });
+      let supabaseQuery = supabase.from('community_templates').select('*').order('likes', { ascending: false });
 
       if (category && category !== 'All') {
         supabaseQuery = supabaseQuery.eq('category', category);
@@ -27,7 +24,9 @@ export const communityService = {
 
       const { data, error } = await supabaseQuery;
 
-      if (error) {throw error;}
+      if (error) {
+        throw error;
+      }
 
       return (data || []).map((t: any) => ({
         id: t.id,
@@ -61,7 +60,9 @@ export const communityService = {
         likes: 0,
       });
 
-      if (error) {throw error;}
+      if (error) {
+        throw error;
+      }
       return true;
     } catch (error) {
       log.error('[CommunityService] Publish failed', error);
@@ -76,5 +77,5 @@ export const communityService = {
     } catch (error) {
       log.error('[CommunityService] Like failed', error);
     }
-  }
+  },
 };

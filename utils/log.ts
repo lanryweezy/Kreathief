@@ -1,11 +1,11 @@
 /**
  * Logger Utility Wrapper
  * Drop-in replacement for console.log with structured logging
- * 
+ *
  * @example
  * // Instead of:
  * console.log('User logged in', user);
- * 
+ *
  * // Use:
  * log.info('User logged in', { user });
  * log.error('Failed to save', error, { projectId });
@@ -41,11 +41,7 @@ export const log = {
   /**
    * Error level logging - something went wrong
    */
-  error: (
-    message: string,
-    error?: Error | unknown,
-    context?: Record<string, unknown>
-  ) => {
+  error: (message: string, error?: Error | unknown, context?: Record<string, unknown>) => {
     if (error instanceof Error) {
       logger.logError(error, context);
     } else {
@@ -55,7 +51,7 @@ export const log = {
 
   /**
    * Performance timing - measure how long operations take
-   * 
+   *
    * @example
    * const end = log.timer('fetchData');
    * await fetchData();
@@ -89,20 +85,17 @@ export const log = {
 
 /**
  * Higher-order function to automatically log function execution
- * 
+ *
  * @example
  * const loggedFunction = log.wrap('myFunction', async (x, y) => {
  *   return x + y;
  * });
  */
-export function wrap<T extends (...args: any[]) => any>(
-  label: string,
-  fn: T
-): T {
+export function wrap<T extends (...args: any[]) => any>(label: string, fn: T): T {
   return ((...args: Parameters<T>): ReturnType<T> => {
     logger.debug(`[${label}] Called`, { args: args.slice(0, 3) }); // Log first 3 args max
     const start = performance.now();
-    
+
     try {
       const result = fn(...args);
       const duration = performance.now() - start;
@@ -117,16 +110,13 @@ export function wrap<T extends (...args: any[]) => any>(
 
 /**
  * Async function wrapper with automatic logging
- * 
+ *
  * @example
  * const loggedAsync = log.wrapAsync('fetchData', async (id) => {
  *   return await fetch(`/api/data/${id}`);
  * });
  */
-export function wrapAsync<T extends (...args: any[]) => Promise<any>>(
-  label: string,
-  fn: T
-): T {
+export function wrapAsync<T extends (...args: any[]) => Promise<any>>(label: string, fn: T): T {
   return (async (...args: Parameters<T>): Promise<ReturnType<T>> => {
     logger.debug(`[${label}] Called`, { args: args.slice(0, 3) });
     const start = performance.now();

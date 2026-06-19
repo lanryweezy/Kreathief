@@ -25,8 +25,8 @@ export const ComponentsPanel: React.FC = () => {
   }, [artboards]);
 
   // Find selected layer to offer "Create Component" action
-  const activeArtboard = artboards.find(a => a.id === activeArtboardId);
-  const selectedLayer = activeArtboard?.layers.find(l => selectedLayerIds.includes(l.id));
+  const activeArtboard = artboards.find((a) => a.id === activeArtboardId);
+  const selectedLayer = activeArtboard?.layers.find((l) => selectedLayerIds.includes(l.id));
   const canCreateComponent = selectedLayer && !selectedLayer.componentId && !selectedLayer.masterId;
 
   const handleCreateComponent = () => {
@@ -80,17 +80,17 @@ export const ComponentsPanel: React.FC = () => {
               >
                 {/* Simplified Preview */}
                 <div className="w-12 h-12 rounded-lg bg-[#0e1318] flex items-center justify-center text-[#7d2ae8] group-hover:scale-110 transition-transform">
-                   {master.type === 'image' && <Icons.Image className="w-6 h-6" />}
-                   {master.type === 'text' && <Icons.Text className="w-6 h-6" />}
-                   {master.type !== 'image' && master.type !== 'text' && <Icons.Shapes className="w-6 h-6" />}
+                  {master.type === 'image' && <Icons.Image className="w-6 h-6" />}
+                  {master.type === 'text' && <Icons.Text className="w-6 h-6" />}
+                  {master.type !== 'image' && master.type !== 'text' && <Icons.Shapes className="w-6 h-6" />}
                 </div>
-                
+
                 <span className="text-[10px] text-gray-400 font-bold truncate w-full text-center group-hover:text-white">
                   {master.name || 'Component'}
                 </span>
-                
+
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                   <Icons.Plus className="w-3 h-3 text-[#7d2ae8]" />
+                  <Icons.Plus className="w-3 h-3 text-[#7d2ae8]" />
                 </div>
               </div>
             ))}

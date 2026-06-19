@@ -45,14 +45,12 @@ export const SyncStatus: React.FC = () => {
   const config = getStatusConfig();
 
   return (
-    <div 
+    <div
       className={`flex items-center gap-2 px-2.5 py-1 rounded-full border border-white/5 transition-all duration-300 ${config.bg} ${config.color}`}
       title={config.text}
     >
       {config.icon}
-      <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">
-        {config.text}
-      </span>
+      <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">{config.text}</span>
     </div>
   );
 };

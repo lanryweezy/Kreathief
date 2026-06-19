@@ -1,13 +1,5 @@
 import { StateCreator } from 'zustand';
-import {
-  NavTab,
-  AppMode,
-  DesignComment,
-  Toast,
-  ToastType,
-  ImageLayer,
-  GeneratedImage,
-} from '../../types';
+import { NavTab, AppMode, DesignComment, Toast, ToastType, ImageLayer, GeneratedImage } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 import { storageService } from '../../services/storageService';
 
@@ -84,7 +76,12 @@ export interface UISlice {
   addTag: (tag: string) => void;
   removeTag: (tag: string) => void;
   setIsPublished: (isPublished: boolean) => void;
-  addToast: (message: string, type?: ToastType, action?: { label: string; onClick: () => void }, details?: string) => void;
+  addToast: (
+    message: string,
+    type?: ToastType,
+    action?: { label: string; onClick: () => void },
+    details?: string
+  ) => void;
   removeToast: (id: string) => void;
 
   // Crop Actions
@@ -191,7 +188,8 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   setShowShareModal: (show) => set({ showShareModal: show }),
   setShowFeedbackModal: (show) => set({ showFeedbackModal: show }),
   setShowPresentation: (show) => set({ showPresentation: show }),
-  setShowVersionDiff: (show: boolean, snapshotId: string | null = null) => set({ showVersionDiff: show, versionDiffSnapshotId: snapshotId }),
+  setShowVersionDiff: (show: boolean, snapshotId: string | null = null) =>
+    set({ showVersionDiff: show, versionDiffSnapshotId: snapshotId }),
   setPreviewFontFamily: (font) => set({ fontPreview: font }),
   addCustomFont: (font: string) => set((state: any) => ({ customFonts: [...state.customFonts, font] })),
   setShowGoldenRatio: (show) => set({ showGoldenRatio: show }),
@@ -225,7 +223,10 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     let layer: any = null;
     for (const ab of state.artboards) {
       const found = ab.layers.find((l: any) => l.id === id);
-      if (found) { layer = found; break; }
+      if (found) {
+        layer = found;
+        break;
+      }
     }
     if (!layer || layer.type !== 'image') {
       return;
@@ -245,7 +246,7 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
       set((state: any) => ({
         artboards: state.artboards.map((a: any) => ({
           ...a,
-          layers: a.layers.map((l: any) => l.id === id ? { ...l, naturalWidth, naturalHeight } : l),
+          layers: a.layers.map((l: any) => (l.id === id ? { ...l, naturalWidth, naturalHeight } : l)),
         })),
       }));
     }
@@ -277,7 +278,10 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     let layer: any = null;
     for (const ab of artboards) {
       const found = ab.layers.find((l: any) => l.id === croppingLayerId);
-      if (found) { layer = found; break; }
+      if (found) {
+        layer = found;
+        break;
+      }
     }
     if (!layer || layer.type !== 'image') {
       return;
@@ -331,7 +335,10 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     let layer: any = null;
     for (const ab of artboards) {
       const found = ab.layers.find((l: any) => l.id === croppingLayerId);
-      if (found) { layer = found; break; }
+      if (found) {
+        layer = found;
+        break;
+      }
     }
     if (!layer || layer.type !== 'image') {
       set({ isLassoMode: false, lassoPoints: [], croppingLayerId: null });
@@ -341,8 +348,13 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     saveToHistory?.();
 
     // Convert lasso points to SVG path data
-    const pathData = `M ${lassoPoints[0].x} ${lassoPoints[0].y} ` +
-      lassoPoints.slice(1).map((p: { x: number; y: number }) => `L ${p.x} ${p.y}`).join(' ') + ' Z';
+    const pathData =
+      `M ${lassoPoints[0].x} ${lassoPoints[0].y} ` +
+      lassoPoints
+        .slice(1)
+        .map((p: { x: number; y: number }) => `L ${p.x} ${p.y}`)
+        .join(' ') +
+      ' Z';
 
     set((state: any) => ({
       artboards: state.artboards.map((a: any) => ({
@@ -356,18 +368,20 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
       croppingLayerId: null,
     }));
   },
-  cancelLasso: () => set({
-    isLassoMode: false,
-    lassoPoints: [],
-    croppingLayerId: null,
-    refineBrushMode: 'none'
-  }),
-  doneLasso: () => set({
-    isLassoMode: false,
-    lassoPoints: [],
-    croppingLayerId: null,
-    refineBrushMode: 'none'
-  }),
+  cancelLasso: () =>
+    set({
+      isLassoMode: false,
+      lassoPoints: [],
+      croppingLayerId: null,
+      refineBrushMode: 'none',
+    }),
+  doneLasso: () =>
+    set({
+      isLassoMode: false,
+      lassoPoints: [],
+      croppingLayerId: null,
+      refineBrushMode: 'none',
+    }),
 
   setRefineBrushMode: (refineBrushMode) => set({ refineBrushMode }),
   setRefineBrushSize: (refineBrushSize) => set({ refineBrushSize }),
@@ -413,4 +427,3 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
         : [...state.favoriteProjects, id],
     })),
 });
-

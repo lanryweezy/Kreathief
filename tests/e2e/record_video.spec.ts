@@ -3,13 +3,16 @@ import { test, expect } from '@playwright/test';
 test('record video', async ({ page }) => {
   // Mock session for dashboard/editor
   await page.addInitScript(() => {
-    localStorage.setItem('kreathief_qa_session', JSON.stringify({
-      id: 'test-user',
-      name: 'PH Demo User',
-      email: 'demo@kreathief.com',
-      plan: 'pro',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo'
-    }));
+    localStorage.setItem(
+      'kreathief_qa_session',
+      JSON.stringify({
+        id: 'test-user',
+        name: 'PH Demo User',
+        email: 'demo@kreathief.com',
+        plan: 'pro',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo',
+      })
+    );
     localStorage.setItem('kreathief_onboarding_seen', 'true');
   });
 

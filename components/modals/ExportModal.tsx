@@ -41,7 +41,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
   const [exportStage, setExportStage] = useState<string>('');
   const [exportScale, setExportScale] = useState<number>(1);
   // 🌸 Bloom: Ensure default export filenames strictly adhere to safe character limits and fallback gracefully
-  const sanitizeFilename = (name: string) => name.replace(/[^a-zA-Z0-9_\-\s]/g, '').replace(/\s+/g, '-').toLowerCase() || 'design';
+  const sanitizeFilename = (name: string) =>
+    name
+      .replace(/[^a-zA-Z0-9_\-\s]/g, '')
+      .replace(/\s+/g, '-')
+      .toLowerCase() || 'design';
 
   const [filename, setFilename] = useState<string>(
     projectTitle && projectTitle !== 'Untitled Design'

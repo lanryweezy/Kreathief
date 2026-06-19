@@ -29,7 +29,9 @@ export interface CanvasSlice {
   setCanvasBackgroundColor: (color: string) => void;
   setCanvasFilters: (filters: CanvasFilters | ((prev: CanvasFilters) => CanvasFilters)) => void;
   setUnit: (unit: CanvasUnit) => void;
-  setPanOffset: (offset: { x: number; y: number } | ((prev: { x: number; y: number }) => { x: number; y: number })) => void;
+  setPanOffset: (
+    offset: { x: number; y: number } | ((prev: { x: number; y: number }) => { x: number; y: number })
+  ) => void;
 }
 
 export const createCanvasSlice: StateCreator<any, [], [], CanvasSlice> = (set, get) => ({

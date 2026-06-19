@@ -1,12 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { z } from 'zod';
-import {
-  loginSchema,
-  signupSchema,
-  createProjectSchema,
-  exportSettingsSchema,
-  validate,
-} from './validation';
+import { loginSchema, signupSchema, createProjectSchema, exportSettingsSchema, validate } from './validation';
 
 describe('Validation Schemas', () => {
   describe('loginSchema', () => {

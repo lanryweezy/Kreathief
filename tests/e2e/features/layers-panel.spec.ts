@@ -31,10 +31,10 @@ test.describe('Layers Panel Features', () => {
 
     // Seed some layers via store for testing
     await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        store.addTextLayer('Heading 1');
-        store.addShapeLayer('rectangle');
-        store.addShapeLayer('circle');
+      const store = (window as any).useStore.getState();
+      store.addTextLayer('Heading 1');
+      store.addShapeLayer('rectangle');
+      store.addShapeLayer('circle');
     });
 
     await editor.waitForCanvasReady();
@@ -105,11 +105,11 @@ test.describe('Layers Panel Features', () => {
       const finalCount = await layersPanel.getLayerCount();
       // Duplication can be slow, wait for it
       if (finalCount === initialCount) {
-          await page.waitForTimeout(1000);
-          const retryCount = await layersPanel.getLayerCount();
-          expect(retryCount).toBeGreaterThan(initialCount);
+        await page.waitForTimeout(1000);
+        const retryCount = await layersPanel.getLayerCount();
+        expect(retryCount).toBeGreaterThan(initialCount);
       } else {
-          expect(finalCount).toBeGreaterThan(initialCount);
+        expect(finalCount).toBeGreaterThan(initialCount);
       }
 
       // Verify duplicated layer exists (should have "Copy" in name)
@@ -159,9 +159,9 @@ test.describe('Layers Panel Features', () => {
 
       // Verify it worked via store
       const isVisible = await page.evaluate(() => {
-          const store = (window as any).useStore.getState();
-          const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
-          return artboard.layers[artboard.layers.length - 1].visible; // display order is reversed
+        const store = (window as any).useStore.getState();
+        const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
+        return artboard.layers[artboard.layers.length - 1].visible; // display order is reversed
       });
       // In layers panel, index 0 is the top layer, which is the last in artboard.layers
       // but let's just toggle and check that it's stable.

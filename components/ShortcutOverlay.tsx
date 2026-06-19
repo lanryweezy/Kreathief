@@ -7,7 +7,9 @@ interface ShortcutOverlayProps {
 }
 
 export const ShortcutOverlay: React.FC<ShortcutOverlayProps> = ({ isOpen, onClose }) => {
-  if (!isOpen) {return null;}
+  if (!isOpen) {
+    return null;
+  }
 
   const shortcutGroups = [
     {
@@ -74,7 +76,9 @@ export const ShortcutOverlay: React.FC<ShortcutOverlayProps> = ({ isOpen, onClos
             </div>
             <div>
               <h2 className="text-sm font-black text-white uppercase tracking-widest">Keyboard Shortcuts</h2>
-              <p className="text-[10px] text-gray-500">Press <kbd className="px-1 py-0.5 bg-white/10 rounded text-[9px]">?</kbd> anytime to toggle</p>
+              <p className="text-[10px] text-gray-500">
+                Press <kbd className="px-1 py-0.5 bg-white/10 rounded text-[9px]">?</kbd> anytime to toggle
+              </p>
             </div>
           </div>
           <button
@@ -123,10 +127,14 @@ export const ShortcutOverlay: React.FC<ShortcutOverlayProps> = ({ isOpen, onClos
         <div className="px-6 py-3 bg-[#13161a] border-t border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-2 text-[10px] text-gray-600">
             <span>Hold</span>
-            <kbd className="px-2 py-0.5 bg-[#252627] border border-gray-700 rounded text-[10px] text-gray-400 font-mono">Space</kbd>
+            <kbd className="px-2 py-0.5 bg-[#252627] border border-gray-700 rounded text-[10px] text-gray-400 font-mono">
+              Space
+            </kbd>
             <span>to pan the canvas at any time</span>
           </div>
-          <span className="text-[10px] text-gray-600">{shortcutGroups.reduce((acc, g) => acc + g.shortcuts.length, 0)} shortcuts</span>
+          <span className="text-[10px] text-gray-600">
+            {shortcutGroups.reduce((acc, g) => acc + g.shortcuts.length, 0)} shortcuts
+          </span>
         </div>
       </div>
     </div>

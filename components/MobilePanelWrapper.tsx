@@ -12,14 +12,9 @@ interface MobilePanelWrapperProps {
 export const MobilePanelWrapper: React.FC<MobilePanelWrapperProps> = ({ children, title }) => {
   return (
     <div className="mobile-panel-wrapper">
-      {title && (
-        <h2 className="text-lg font-bold text-white mb-6">{title}</h2>
-      )}
-      
-      <div className="space-y-6">
-        {children}
-      </div>
+      {title && <h2 className="text-lg font-bold text-white mb-6">{title}</h2>}
 
+      <div className="space-y-6">{children}</div>
     </div>
   );
 };

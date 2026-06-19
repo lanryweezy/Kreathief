@@ -23,7 +23,9 @@ export const ReplacementNarrative: React.FC = () => {
           >
             <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20">
               <Icons.X className="w-3 h-3 text-red-400" />
-              <span className="text-xs font-black uppercase tracking-[0.2em] text-red-400">Stop Paying For 5 Tools</span>
+              <span className="text-xs font-black uppercase tracking-[0.2em] text-red-400">
+                Stop Paying For 5 Tools
+              </span>
             </div>
           </motion.div>
 
@@ -95,7 +97,7 @@ export const ReplacementNarrative: React.FC = () => {
             <div className="absolute -inset-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 blur-3xl rounded-3xl"></div>
             <div className="relative p-8 rounded-3xl bg-gradient-to-br from-[#1a1a1a] to-[#0a0a0a] border-2 border-purple-500/30">
               <div className="text-sm font-black uppercase tracking-wider text-purple-400 mb-6">New Way</div>
-              
+
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
                   <span className="text-white font-black text-2xl">K</span>
@@ -126,7 +128,9 @@ export const ReplacementNarrative: React.FC = () => {
                 <span className="text-gray-400 font-bold">Total per month</span>
                 <div className="flex items-center gap-3">
                   <span className="text-sm text-gray-500 line-through">$84</span>
-                  <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">$16</span>
+                  <span className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+                    $16
+                  </span>
                 </div>
               </div>
 

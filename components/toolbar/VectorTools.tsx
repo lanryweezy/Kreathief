@@ -33,42 +33,39 @@ export const VectorTools = React.memo(
 
     return (
       <div className="flex items-center gap-3 flex-nowrap">
-        <IconButton 
-          onClick={() => onBooleanOperation?.('union')} 
-          onMouseEnter={() => onBooleanHover?.('union')} 
+        <IconButton
+          onClick={() => onBooleanOperation?.('union')}
+          onMouseEnter={() => onBooleanHover?.('union')}
           onMouseLeave={() => onBooleanHover?.(null)}
           title="Union"
         >
           <Icons.Union className="w-4 h-4" />
         </IconButton>
-        <IconButton 
-          onClick={() => onBooleanOperation?.('subtract')} 
-          onMouseEnter={() => onBooleanHover?.('subtract')} 
+        <IconButton
+          onClick={() => onBooleanOperation?.('subtract')}
+          onMouseEnter={() => onBooleanHover?.('subtract')}
           onMouseLeave={() => onBooleanHover?.(null)}
           title="Subtract"
         >
           <Icons.Subtract className="w-4 h-4" />
         </IconButton>
-        <IconButton 
-          onClick={() => onBooleanOperation?.('intersect')} 
-          onMouseEnter={() => onBooleanHover?.('intersect')} 
+        <IconButton
+          onClick={() => onBooleanOperation?.('intersect')}
+          onMouseEnter={() => onBooleanHover?.('intersect')}
           onMouseLeave={() => onBooleanHover?.(null)}
           title="Intersect"
         >
           <Icons.Intersect className="w-4 h-4" />
         </IconButton>
-        <IconButton 
-          onClick={() => onBooleanOperation?.('exclude')} 
-          onMouseEnter={() => onBooleanHover?.('exclude')} 
+        <IconButton
+          onClick={() => onBooleanOperation?.('exclude')}
+          onMouseEnter={() => onBooleanHover?.('exclude')}
           onMouseLeave={() => onBooleanHover?.(null)}
           title="Exclude"
         >
           <Icons.Exclude className="w-4 h-4" />
         </IconButton>
-        <IconButton
-          onClick={onJoinPaths}
-          title="Join Paths"
-        >
+        <IconButton onClick={onJoinPaths} title="Join Paths">
           <Icons.Link className="w-4 h-4" />
         </IconButton>
         <Divider />

@@ -12,7 +12,17 @@ interface FontPickerProps {
 }
 
 const FontItem = React.memo(
-  ({ font, isSelected, onSelect, onHover }: { font: string; isSelected: boolean; onSelect: (f: string) => void; onHover?: (f: string | null) => void }) => {
+  ({
+    font,
+    isSelected,
+    onSelect,
+    onHover,
+  }: {
+    font: string;
+    isSelected: boolean;
+    onSelect: (f: string) => void;
+    onHover?: (f: string | null) => void;
+  }) => {
     const [isLoaded, setIsLoaded] = useState(false);
     const ref = useRef<HTMLButtonElement>(null);
 
@@ -63,7 +73,14 @@ const FontItem = React.memo(
 );
 FontItem.displayName = 'FontItem';
 
-export const FontPicker: React.FC<FontPickerProps> = ({ currentFont, onSelectFont, onHoverFont, onClose, search, setSearch }) => {
+export const FontPicker: React.FC<FontPickerProps> = ({
+  currentFont,
+  onSelectFont,
+  onHoverFont,
+  onClose,
+  search,
+  setSearch,
+}) => {
   const filteredCategories = useMemo(() => {
     const result: { [key: string]: string[] } = {};
     Object.entries(FONT_CATEGORIES).forEach(([category, fonts]) => {

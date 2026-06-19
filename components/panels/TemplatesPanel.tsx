@@ -66,7 +66,8 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   };
 
   const handleApplyCommunity = (tmpl: CommunityTemplate) => {
-    const proceed = !showReplaceWarning || window.confirm('Apply community template? This will replace your current project.');
+    const proceed =
+      !showReplaceWarning || window.confirm('Apply community template? This will replace your current project.');
     if (proceed) {
       initializeProject(tmpl.state);
     }
@@ -126,10 +127,11 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      filtered = filtered.filter((t) =>
-        t.name.toLowerCase().includes(q) ||
-        t.category.toLowerCase().includes(q) ||
-        (t as any).description?.toLowerCase().includes(q)
+      filtered = filtered.filter(
+        (t) =>
+          t.name.toLowerCase().includes(q) ||
+          t.category.toLowerCase().includes(q) ||
+          (t as any).description?.toLowerCase().includes(q)
       );
     }
     return filtered;
@@ -172,7 +174,9 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
             >
               <Icons.ArrowLeft className="w-4 h-4" />
             </button>
-            <span data-testid="template-panel-category-title" className="text-sm font-bold text-white">{activeCategoryLabel}</span>
+            <span data-testid="template-panel-category-title" className="text-sm font-bold text-white">
+              {activeCategoryLabel}
+            </span>
           </div>
         )}
 
@@ -188,10 +192,10 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
           />
           {searchQuery && (
             <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-2.5 text-gray-500 hover:text-white"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-2.5 text-gray-500 hover:text-white"
             >
-                <Icons.X className="w-3.5 h-3.5" />
+              <Icons.X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
@@ -200,8 +204,8 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
           <button
             onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border w-full justify-center ${
-              showFavoritesOnly 
-                ? 'bg-red-500/10 border-red-500/50 text-red-400' 
+              showFavoritesOnly
+                ? 'bg-red-500/10 border-red-500/50 text-red-400'
                 : 'bg-[#1e1e1e] border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'
             }`}
           >
@@ -296,8 +300,13 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                       key={tmpl.id}
                       data-testid={`template-panel-btn-${tmpl.id}`}
                       onClick={() => {
-                        if (!onApplyTemplate) {return;}
-                        const proceed = !showReplaceWarning || (typeof window !== 'undefined' && (window as any).VITE_QA_BYPASS) || window.confirm('Apply template? This will replace your current design.');
+                        if (!onApplyTemplate) {
+                          return;
+                        }
+                        const proceed =
+                          !showReplaceWarning ||
+                          (typeof window !== 'undefined' && (window as any).VITE_QA_BYPASS) ||
+                          window.confirm('Apply template? This will replace your current design.');
                         if (proceed) {
                           onApplyTemplate(tmpl.id, showReplaceWarning);
                         }
@@ -310,7 +319,9 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                       <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
                       <div className="absolute bottom-0 left-0 right-0 p-3 bg-black/60 backdrop-blur-sm flex items-center justify-between">
                         <span className="font-semibold text-xs text-white truncate">{tmpl.name}</span>
-                        <span className="text-[9px] text-gray-400">{tmpl.size.width}×{tmpl.size.height}</span>
+                        <span className="text-[9px] text-gray-400">
+                          {tmpl.size.width}×{tmpl.size.height}
+                        </span>
                       </div>
                     </button>
                   ))}
@@ -325,7 +336,7 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
               Community Creations
               {isLoadingCommunity && <Icons.Loader className="w-3 h-3 animate-spin text-orange-500" />}
             </h4>
-            
+
             <div className="grid grid-cols-1 gap-4">
               {communityTemplates.map((tmpl) => (
                 <div
@@ -345,11 +356,17 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                   <div className="p-3">
                     <div className="flex items-center justify-between mb-1">
                       <h4 className="text-sm font-bold text-white truncate">{tmpl.name}</h4>
-                      <span className="text-[9px] font-black text-orange-500 uppercase tracking-wider">{tmpl.category}</span>
+                      <span className="text-[9px] font-black text-orange-500 uppercase tracking-wider">
+                        {tmpl.category}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between border-t border-white/5 pt-2 mt-2">
-                      <span className="text-[9px] text-gray-400">by <span className="text-orange-400">{tmpl.userName}</span></span>
-                      <span className="text-[9px] text-gray-600 font-mono">{new Date(tmpl.createdAt).toLocaleDateString()}</span>
+                      <span className="text-[9px] text-gray-400">
+                        by <span className="text-orange-400">{tmpl.userName}</span>
+                      </span>
+                      <span className="text-[9px] text-gray-600 font-mono">
+                        {new Date(tmpl.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
                 </div>

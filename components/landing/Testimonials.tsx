@@ -5,27 +5,30 @@ import { Icons } from '../../constants';
 export const Testimonials: React.FC = () => {
   const testimonials = [
     {
-      quote: "Kreathief replaced my entire design stack. I went from juggling 5 tools to just one. The AI features are insanely good.",
-      author: "Sarah Chen",
-      role: "Product Designer",
-      company: "Stripe",
-      avatar: "/images/avatar_1_1772614969136.png",
+      quote:
+        'Kreathief replaced my entire design stack. I went from juggling 5 tools to just one. The AI features are insanely good.',
+      author: 'Sarah Chen',
+      role: 'Product Designer',
+      company: 'Stripe',
+      avatar: '/images/avatar_1_1772614969136.png',
       rating: 5,
     },
     {
-      quote: "The vector engine is faster than anything I've used. Real-time collaboration actually works. This is the future.",
-      author: "Marcus Rodriguez",
-      role: "Creative Director",
-      company: "R/GA",
-      avatar: "/images/avatar_2_1772614992003.png",
+      quote:
+        "The vector engine is faster than anything I've used. Real-time collaboration actually works. This is the future.",
+      author: 'Marcus Rodriguez',
+      role: 'Creative Director',
+      company: 'R/GA',
+      avatar: '/images/avatar_2_1772614992003.png',
       rating: 5,
     },
     {
-      quote: "I was skeptical about browser-based design tools. Kreathief proved me wrong. It's faster than native apps.",
-      author: "Emily Watson",
-      role: "Brand Designer",
-      company: "Airbnb",
-      avatar: "/images/avatar_3_1772615019487.png",
+      quote:
+        "I was skeptical about browser-based design tools. Kreathief proved me wrong. It's faster than native apps.",
+      author: 'Emily Watson',
+      role: 'Brand Designer',
+      company: 'Airbnb',
+      avatar: '/images/avatar_3_1772615019487.png',
       rating: 5,
     },
   ];
@@ -44,9 +47,7 @@ export const Testimonials: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="inline-block mb-6"
-          >
-
-          </motion.div>
+          ></motion.div>
 
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -89,9 +90,7 @@ export const Testimonials: React.FC = () => {
               </div>
 
               {/* Quote */}
-              <p className="text-gray-300 font-medium leading-relaxed mb-6 text-sm">
-                "{testimonial.quote}"
-              </p>
+              <p className="text-gray-300 font-medium leading-relaxed mb-6 text-sm">"{testimonial.quote}"</p>
 
               {/* Author */}
               <div className="flex items-center gap-3 pt-6 border-t border-white/10">
@@ -110,8 +109,6 @@ export const Testimonials: React.FC = () => {
             </motion.div>
           ))}
         </div>
-
-
       </div>
     </section>
   );

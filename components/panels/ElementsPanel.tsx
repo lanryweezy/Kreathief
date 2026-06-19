@@ -365,7 +365,11 @@ export const ElementsPanel = () => {
                   onClick={() => handleAddRemoteIcon(icon)}
                   className="aspect-square bg-[#1e1e1e] border border-gray-800 rounded-xl hover:border-[#7d2ae8] flex items-center justify-center p-2 group"
                 >
-                  <img src={icon.thumbnailUrl} alt={icon.name} className="w-full h-full object-contain group-hover:scale-110 transition-transform" />
+                  <img
+                    src={icon.thumbnailUrl}
+                    alt={icon.name}
+                    className="w-full h-full object-contain group-hover:scale-110 transition-transform"
+                  />
                 </button>
               ))}
             </div>

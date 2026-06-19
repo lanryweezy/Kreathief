@@ -15,26 +15,35 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
   const [tracking, setTracking] = useState(selectedLayer?.letterSpacing || 0);
   const [leading, setLeading] = useState(selectedLayer?.lineHeight || 1.5);
 
-  const handleKerningChange = useCallback((value: number) => {
-    setKerning(value);
-    if (selectedLayer) {
-      updateLayer(selectedLayer.id, { kerning: value });
-    }
-  }, [selectedLayer, updateLayer]);
+  const handleKerningChange = useCallback(
+    (value: number) => {
+      setKerning(value);
+      if (selectedLayer) {
+        updateLayer(selectedLayer.id, { kerning: value });
+      }
+    },
+    [selectedLayer, updateLayer]
+  );
 
-  const handleTrackingChange = useCallback((value: number) => {
-    setTracking(value);
-    if (selectedLayer) {
-      updateLayer(selectedLayer.id, { letterSpacing: value });
-    }
-  }, [selectedLayer, updateLayer]);
+  const handleTrackingChange = useCallback(
+    (value: number) => {
+      setTracking(value);
+      if (selectedLayer) {
+        updateLayer(selectedLayer.id, { letterSpacing: value });
+      }
+    },
+    [selectedLayer, updateLayer]
+  );
 
-  const handleLeadingChange = useCallback((value: number) => {
-    setLeading(value);
-    if (selectedLayer) {
-      updateLayer(selectedLayer.id, { lineHeight: value });
-    }
-  }, [selectedLayer, updateLayer]);
+  const handleLeadingChange = useCallback(
+    (value: number) => {
+      setLeading(value);
+      if (selectedLayer) {
+        updateLayer(selectedLayer.id, { lineHeight: value });
+      }
+    },
+    [selectedLayer, updateLayer]
+  );
 
   const handleReset = useCallback(() => {
     setKerning(0);
@@ -57,9 +66,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
           <Icons.Spacing className="w-4 h-4 text-gray-400" />
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Spacing</h3>
         </div>
-        <p className="text-[10px] text-gray-500 text-center py-4">
-          Select a text layer to adjust spacing
-        </p>
+        <p className="text-[10px] text-gray-500 text-center py-4">Select a text layer to adjust spacing</p>
       </div>
     );
   }
@@ -71,10 +78,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
           <Icons.Spacing className="w-4 h-4 text-gray-400" />
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Spacing</h3>
         </div>
-        <button
-          onClick={handleReset}
-          className="text-[10px] text-gray-500 hover:text-white flex items-center gap-1"
-        >
+        <button onClick={handleReset} className="text-[10px] text-gray-500 hover:text-white flex items-center gap-1">
           <Icons.Refresh className="w-3 h-3" /> Reset
         </button>
       </div>
@@ -97,9 +101,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
           <span>Tighter</span>
           <span>Looser</span>
         </div>
-        <p className="text-[9px] text-gray-600 mt-1">
-          Adjusts spacing between specific character pairs
-        </p>
+        <p className="text-[9px] text-gray-600 mt-1">Adjusts spacing between specific character pairs</p>
       </div>
 
       {/* Tracking (Letter Spacing) */}
@@ -120,9 +122,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
           <span>Condensed</span>
           <span>Expanded</span>
         </div>
-        <p className="text-[9px] text-gray-600 mt-1">
-          Adjusts spacing uniformly across all characters
-        </p>
+        <p className="text-[9px] text-gray-600 mt-1">Adjusts spacing uniformly across all characters</p>
       </div>
 
       {/* Leading (Line Height) */}
@@ -144,9 +144,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
           <span>Tight</span>
           <span>Loose</span>
         </div>
-        <p className="text-[9px] text-gray-600 mt-1">
-          Adjusts vertical spacing between lines of text
-        </p>
+        <p className="text-[9px] text-gray-600 mt-1">Adjusts vertical spacing between lines of text</p>
       </div>
 
       {/* Quick Presets */}
@@ -199,9 +197,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
           >
             The quick brown fox jumps over the lazy dog.
           </p>
-          <p className="text-[9px] text-gray-600 mt-2">
-            Preview with current spacing settings
-          </p>
+          <p className="text-[9px] text-gray-600 mt-2">Preview with current spacing settings</p>
         </div>
       </div>
     </div>

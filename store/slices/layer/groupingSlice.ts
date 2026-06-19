@@ -32,13 +32,13 @@ export const createGroupingSlice: StateCreator<any, [], [], Partial<LayerSlice>>
         const indices = selectedLayerIds
           .map((id: string) => layerIndexMap.get(id))
           .filter((idx: number | undefined): idx is number => idx !== undefined);
-        
+
         if (indices.length === 0) {
           return a;
         }
 
         const minIndex = Math.min(...indices);
-        const selectedLayers = a.layers.filter(l => selectedLayerIds.includes(l.id));
+        const selectedLayers = a.layers.filter((l) => selectedLayerIds.includes(l.id));
 
         // Calculate bounding box
         let minX = Infinity;
@@ -46,7 +46,7 @@ export const createGroupingSlice: StateCreator<any, [], [], Partial<LayerSlice>>
         let maxX = -Infinity;
         let maxY = -Infinity;
 
-        selectedLayers.forEach(l => {
+        selectedLayers.forEach((l) => {
           const lw = (l as any).width || 0;
           const lh = (l as any).height || 0;
           minX = Math.min(minX, l.x);

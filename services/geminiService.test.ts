@@ -31,17 +31,21 @@ describe('GeminiService', () => {
     mockFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        candidates: [{
-          content: {
-            parts: [{
-              inlineData: {
-                data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-                mimeType: 'image/png'
-              }
-            }]
-          }
-        }]
-      })
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  inlineData: {
+                    data: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+                    mimeType: 'image/png',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      }),
     });
   });
 
@@ -52,20 +56,16 @@ describe('GeminiService', () => {
       expect(result).toBeDefined();
       expect(typeof result).toBe('string');
       expect(result).toContain('data:image/');
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/gemini'),
-        expect.any(Object)
-      );
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('/api/gemini'), expect.any(Object));
     });
 
     it('should handle API errors gracefully', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
-        json: async () => ({ error: 'API error' })
+        json: async () => ({ error: 'API error' }),
       });
 
-      await expect(geminiService.generateImage('Test prompt', '1:1'))
-        .rejects.toThrow('Gemini API returned an error');
+      await expect(geminiService.generateImage('Test prompt', '1:1')).rejects.toThrow('Gemini API returned an error');
     });
   });
 
@@ -75,8 +75,8 @@ describe('GeminiService', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          text: JSON.stringify(mockOptions)
-        })
+          text: JSON.stringify(mockOptions),
+        }),
       });
 
       const result = await geminiService.generateTextOptions('Creative headline');
@@ -90,8 +90,8 @@ describe('GeminiService', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          text: 'Invalid JSON'
-        })
+          text: 'Invalid JSON',
+        }),
       });
 
       const result = await geminiService.generateTextOptions('Test');
@@ -103,13 +103,14 @@ describe('GeminiService', () => {
   describe('enhancePrompt', () => {
     it('should enhance user prompt with more details', async () => {
       const originalPrompt = 'A cat';
-      const enhancedText = 'A fluffy orange cat sitting on a windowsill, bathed in warm afternoon sunlight, photorealistic, highly detailed';
+      const enhancedText =
+        'A fluffy orange cat sitting on a windowsill, bathed in warm afternoon sunlight, photorealistic, highly detailed';
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          text: JSON.stringify(enhancedText)
-        })
+          text: JSON.stringify(enhancedText),
+        }),
       });
 
       const result = await geminiService.enhancePrompt(originalPrompt);
@@ -127,8 +128,8 @@ describe('GeminiService', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          text: mockAnalysis
-        })
+          text: mockAnalysis,
+        }),
       });
 
       const result = await geminiService.analyzeDesign('data:image/png;base64,abc', 'A social media post');

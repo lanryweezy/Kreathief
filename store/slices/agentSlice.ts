@@ -1,10 +1,15 @@
 import { log } from '../../utils/log';
 
 import { StateCreator } from 'zustand';
-import { AgentVariant, creativeAgentDraft, creativeAgentRefine, criticAgentReview, performanceAgentScore } from '../../services/multiAgentService';
+import {
+  AgentVariant,
+  creativeAgentDraft,
+  creativeAgentRefine,
+  criticAgentReview,
+  performanceAgentScore,
+} from '../../services/multiAgentService';
 import { Layer } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
-import { log } from '../../utils/log';
 
 export type AgentStatus = 'idle' | 'creative' | 'critic' | 'performance' | 'done' | 'error';
 
@@ -38,10 +43,7 @@ export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get
 
   addThinkingEvent: (agent, message) => {
     set((state: any) => ({
-      thinkingLog: [
-        ...state.thinkingLog,
-        { id: uuidv4().substring(0, 8), agent, message, timestamp: Date.now() }
-      ]
+      thinkingLog: [...state.thinkingLog, { id: uuidv4().substring(0, 8), agent, message, timestamp: Date.now() }],
     }));
   },
 
@@ -51,7 +53,7 @@ export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get
       get().addThinkingEvent('Creative Agent', 'Synthesizing creative direction...');
 
       const canvasSize = get().canvasSize || { width: 1080, height: 1080 };
-      
+
       // Stage 1: Creative Generation
       const draftedVariants = await creativeAgentDraft(intent, canvasSize);
       get().addThinkingEvent('Creative Agent', `Drafted ${draftedVariants.length} distinct layout directions.`);
@@ -69,7 +71,7 @@ export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get
       get().addThinkingEvent('Growth Agent', 'Calculating conversion probability and focal points...');
       const scoredVariants = await performanceAgentScore(critiquedVariants);
       get().addThinkingEvent('Growth Agent', 'Ranking variants by emotional impact and readability.');
-      
+
       set({ agentVariants: scoredVariants, agentStatus: 'done' });
     } catch (err: any) {
       log.error('Agent Workflow Failed:', err);
@@ -85,7 +87,9 @@ export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get
       const state = get();
       const canvasSize = state.canvasSize || { width: 1080, height: 1080 };
       const activeArtboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
-      if (!activeArtboard) {throw new Error("No active artboard");}
+      if (!activeArtboard) {
+        throw new Error('No active artboard');
+      }
 
       const targetLayers = activeArtboard.layers.filter((l: Layer) => layerIds.includes(l.id));
       const contextLayers = activeArtboard.layers.filter((l: Layer) => !layerIds.includes(l.id));
@@ -107,7 +111,7 @@ export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get
       get().addThinkingEvent('Growth Agent', 'Testing visual hierarchy against heat-map data...');
       const scoredVariants = await performanceAgentScore(critiquedVariants);
       get().addThinkingEvent('Growth Agent', 'Finalized performance scoring.');
-      
+
       set({ agentVariants: scoredVariants, agentStatus: 'done' });
     } catch (err: any) {
       log.error('Agent Refine Failed:', err);
@@ -118,13 +122,19 @@ export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get
   applyAgentVariant: (variantId: string) => {
     const state = get();
     const variant = state.agentVariants.find((v: AgentVariant) => v.id === variantId);
-    if (!variant || !state.activeArtboardId) {return;}
+    if (!variant || !state.activeArtboardId) {
+      return;
+    }
 
     // Use the user's new batching system for a smooth Undo experience
-    if (state.beginBatch) {state.beginBatch();}
+    if (state.beginBatch) {
+      state.beginBatch();
+    }
 
     const activeArtboardIndex = state.artboards.findIndex((a: any) => a.id === state.activeArtboardId);
-    if (activeArtboardIndex === -1) {return;}
+    if (activeArtboardIndex === -1) {
+      return;
+    }
 
     const newArtboards = [...state.artboards];
     const artboard = newArtboards[activeArtboardIndex];
@@ -136,19 +146,21 @@ export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get
     const isRefinement = variant.layers.some((l: Layer) => boardLayerIds.has(l.id));
 
     if (isRefinement) {
-       artboard.layers = artboard.layers.map((l: Layer) => {
-         const match = variant.layers.find((vl: Layer) => vl.id === l.id);
-         return match || l;
-       });
-       // Add any 'new' layers at the end
-       const newLayers = variant.layers.filter((vl: Layer) => !boardLayerIds.has(vl.id));
-       artboard.layers = [...artboard.layers, ...newLayers];
+      artboard.layers = artboard.layers.map((l: Layer) => {
+        const match = variant.layers.find((vl: Layer) => vl.id === l.id);
+        return match || l;
+      });
+      // Add any 'new' layers at the end
+      const newLayers = variant.layers.filter((vl: Layer) => !boardLayerIds.has(vl.id));
+      artboard.layers = [...artboard.layers, ...newLayers];
     } else {
-       artboard.layers = structuredClone(variant.layers);
+      artboard.layers = structuredClone(variant.layers);
     }
 
     set({ artboards: newArtboards });
-    if (state.endBatch) {state.endBatch();}
+    if (state.endBatch) {
+      state.endBatch();
+    }
   },
 
   resetAgentState: () => {

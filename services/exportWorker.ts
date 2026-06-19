@@ -1,3 +1,5 @@
+import { log } from '../utils/log';
+import { buildFilterString } from '../utils/layers';
 /**
  * exportWorker.ts
  * Background worker for heavy canvas rendering and export
@@ -138,7 +140,7 @@ self.onmessage = async (e: MessageEvent) => {
         ctx.save();
         if (filters) {
           // @ts-ignore - ignore type mismatch
-          ctx.filter = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%) sepia(${filters.sepia}%) grayscale(${filters.grayscale}%) blur(${filters.blur}px)`;
+          ctx.filter = buildFilterString(filters);
         }
         ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
         ctx.restore();
@@ -193,7 +195,7 @@ self.onmessage = async (e: MessageEvent) => {
 
             if (layer.filters) {
               // @ts-ignore - ignore type mismatch
-              ctx.filter = `brightness(${layer.filters.brightness}%) contrast(${layer.filters.contrast}%) saturate(${layer.filters.saturation}%) grayscale(${layer.filters.grayscale}%) blur(${layer.filters.blur}px) sepia(${layer.filters.sepia}%)`;
+              ctx.filter = buildFilterString(layer.filters);
             }
 
             ctx.drawImage(img, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
@@ -254,7 +256,11 @@ self.onmessage = async (e: MessageEvent) => {
                   const [xPerc, yPerc] = p.split(' ').map((s) => parseFloat(s));
                   const x = (xPerc / 100) * layer.width - hw;
                   const y = (yPerc / 100) * layer.height - hh;
-                  if (i === 0) {ctx.moveTo(x, y);} else {ctx.lineTo(x, y);}
+                  if (i === 0) {
+                    ctx.moveTo(x, y);
+                  } else {
+                    ctx.lineTo(x, y);
+                  }
                 });
                 ctx.closePath();
                 ctx.fill();

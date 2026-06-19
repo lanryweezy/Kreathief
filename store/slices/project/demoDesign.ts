@@ -18,7 +18,7 @@ export const createNebulaDemoDesign = (): Artboard => {
       visible: true,
       locked: true,
       color: '#7d2ae8',
-      filters: { blur: 120 }
+      filters: { blur: 120 },
     } as any,
     // Background Decoration 2
     {
@@ -34,7 +34,7 @@ export const createNebulaDemoDesign = (): Artboard => {
       visible: true,
       locked: true,
       color: '#00f2ff',
-      filters: { blur: 100 }
+      filters: { blur: 100 },
     } as any,
     // Navbar Logo
     {
@@ -59,7 +59,7 @@ export const createNebulaDemoDesign = (): Artboard => {
       lineHeight: 1.2,
       textTransform: 'none',
       color: '#ffffff',
-      textAlign: 'left'
+      textAlign: 'left',
     } as any,
     // Hero Title
     {
@@ -84,7 +84,7 @@ export const createNebulaDemoDesign = (): Artboard => {
       lineHeight: 1.1,
       textTransform: 'none',
       color: '#ffffff',
-      textAlign: 'left'
+      textAlign: 'left',
     } as any,
     // Hero Subtitle
     {
@@ -99,7 +99,7 @@ export const createNebulaDemoDesign = (): Artboard => {
       opacity: 0.7,
       visible: true,
       locked: false,
-      text: 'Experience the world\'s first intelligent, multi-agent financial dashboard. Elegant, secure, and futuristic.',
+      text: "Experience the world's first intelligent, multi-agent financial dashboard. Elegant, secure, and futuristic.",
       fontSize: 20,
       fontFamily: 'Inter',
       fontWeight: '400',
@@ -109,7 +109,7 @@ export const createNebulaDemoDesign = (): Artboard => {
       lineHeight: 1.5,
       textTransform: 'none',
       color: '#a1a1aa',
-      textAlign: 'left'
+      textAlign: 'left',
     } as any,
     // CTA Button Background
     {
@@ -126,7 +126,7 @@ export const createNebulaDemoDesign = (): Artboard => {
       cornerRadius: 12,
       color: '#7d2ae8',
       opacity: 1,
-      stroke: { color: '#ffffff', width: 0, opacity: 0 }
+      stroke: { color: '#ffffff', width: 0, opacity: 0 },
     } as any,
     // CTA Button Text
     {
@@ -151,7 +151,7 @@ export const createNebulaDemoDesign = (): Artboard => {
       lineHeight: 1,
       textTransform: 'uppercase',
       color: '#ffffff',
-      textAlign: 'center'
+      textAlign: 'center',
     } as any,
     // Glass Card Background
     {
@@ -169,7 +169,17 @@ export const createNebulaDemoDesign = (): Artboard => {
       color: '#ffffff',
       opacity: 0.05,
       stroke: { color: '#ffffff', width: 1, opacity: 0.2 },
-      filters: { backdropBlur: 20, blur: 0, brightness: 100, contrast: 100, saturation: 100, grayscale: 0, sepia: 0, hueRotate: 0, opacity: 1 }
+      filters: {
+        backdropBlur: 20,
+        blur: 0,
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        grayscale: 0,
+        sepia: 0,
+        hueRotate: 0,
+        opacity: 1,
+      },
     } as any,
     // Card Balance Title
     {
@@ -194,7 +204,7 @@ export const createNebulaDemoDesign = (): Artboard => {
       lineHeight: 1,
       textTransform: 'uppercase',
       color: '#ffffff',
-      textAlign: 'left'
+      textAlign: 'left',
     } as any,
     // Card Balance Amount
     {
@@ -219,7 +229,7 @@ export const createNebulaDemoDesign = (): Artboard => {
       lineHeight: 1,
       textTransform: 'none',
       color: '#ffffff',
-      textAlign: 'left'
+      textAlign: 'left',
     } as any,
     // Card Chips/Elements
     {
@@ -235,7 +245,7 @@ export const createNebulaDemoDesign = (): Artboard => {
       locked: true,
       color: '#00f2ff',
       opacity: 0.4,
-      filters: { blur: 40 }
+      filters: { blur: 40 },
     } as any,
   ];
 
@@ -247,6 +257,6 @@ export const createNebulaDemoDesign = (): Artboard => {
     width: 1200,
     height: 800,
     backgroundColor: '#09090b',
-    layers
+    layers,
   };
 };

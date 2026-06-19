@@ -44,8 +44,14 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle: _d
           <h3 className="text-xl font-bold text-white flex items-center gap-2">
             <Icons.Send className="w-5 h-5 text-[#00c4cc]" /> Share Design
           </h3>
-          <button onClick={onClose} aria-label="Close share modal" className="text-gray-400 hover:text-white transition-colors">
-            <div className="text-2xl leading-none" aria-hidden="true">&times;</div>
+          <button
+            onClick={onClose}
+            aria-label="Close share modal"
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <div className="text-2xl leading-none" aria-hidden="true">
+              &times;
+            </div>
           </button>
         </div>
 

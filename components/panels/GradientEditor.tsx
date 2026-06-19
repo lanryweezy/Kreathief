@@ -27,7 +27,9 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({ gradient, onChan
   const [selectedStop, setSelectedStop] = useState<number | null>(null);
 
   const handleAddStop = useCallback(() => {
-    if (stops.length >= 10) {return;}
+    if (stops.length >= 10) {
+      return;
+    }
     const newStop: GradientStop = {
       color: '#ffffff',
       position: 50,
@@ -40,7 +42,9 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({ gradient, onChan
 
   const handleRemoveStop = useCallback(
     (index: number) => {
-      if (stops.length <= 2) {return;}
+      if (stops.length <= 2) {
+        return;
+      }
       const newStops = stops.filter((_, i) => i !== index);
       setStops(newStops);
       onChange({ type, angle, stops: newStops });
@@ -87,9 +91,7 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({ gradient, onChan
               onChange({ type: 'linear', angle, stops });
             }}
             className={`px-2 py-1 rounded text-[10px] font-bold transition-all ${
-              type === 'linear'
-                ? 'bg-[#7d2ae8] text-white'
-                : 'bg-[#252627] text-gray-400 hover:text-white'
+              type === 'linear' ? 'bg-[#7d2ae8] text-white' : 'bg-[#252627] text-gray-400 hover:text-white'
             }`}
           >
             Linear
@@ -100,9 +102,7 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({ gradient, onChan
               onChange({ type: 'radial', angle, stops });
             }}
             className={`px-2 py-1 rounded text-[10px] font-bold transition-all ${
-              type === 'radial'
-                ? 'bg-[#7d2ae8] text-white'
-                : 'bg-[#252627] text-gray-400 hover:text-white'
+              type === 'radial' ? 'bg-[#7d2ae8] text-white' : 'bg-[#252627] text-gray-400 hover:text-white'
             }`}
           >
             Radial
@@ -111,10 +111,7 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({ gradient, onChan
       </div>
 
       {/* Preview */}
-      <div
-        className="w-full h-24 rounded-lg border border-gray-600"
-        style={gradientPreview}
-      />
+      <div className="w-full h-24 rounded-lg border border-gray-600" style={gradientPreview} />
 
       {/* Angle Control (Linear only) */}
       {type === 'linear' && (
@@ -192,12 +189,8 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({ gradient, onChan
         <label className="text-[10px] text-gray-500 block mb-1">CSS Output</label>
         <code className="text-[9px] text-gray-400 bg-black/30 p-2 rounded block break-all">
           {type === 'linear'
-            ? `background: linear-gradient(${angle}deg, ${stops
-                .map((s) => `${s.color} ${s.position}%`)
-                .join(', ')});`
-            : `background: radial-gradient(circle, ${stops
-                .map((s) => `${s.color} ${s.position}%`)
-                .join(', ')});`}
+            ? `background: linear-gradient(${angle}deg, ${stops.map((s) => `${s.color} ${s.position}%`).join(', ')});`
+            : `background: radial-gradient(circle, ${stops.map((s) => `${s.color} ${s.position}%`).join(', ')});`}
         </code>
       </div>
     </div>

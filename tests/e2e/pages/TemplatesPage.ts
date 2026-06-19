@@ -54,8 +54,8 @@ export class TemplatesPage {
     // Check if we need to go back to "All" first to see the category buttons
     const backBtn = this.page.getByTestId('template-panel-back-btn');
     if (await backBtn.isVisible()) {
-        await backBtn.click();
-        await expect(this.page.getByTestId('template-panel-category-filters')).toBeVisible();
+      await backBtn.click();
+      await expect(this.page.getByTestId('template-panel-category-filters')).toBeVisible();
     }
 
     const categoryBtn = this.page.getByTestId(`template-panel-category-btn-${category.toLowerCase()}`);

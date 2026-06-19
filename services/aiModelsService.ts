@@ -30,11 +30,13 @@ export const aiModelsService = {
         body: {
           prompt,
           image_size: aspectRatio === '1:1' ? 'square' : aspectRatio === '16:9' ? 'landscape_hd' : 'portrait_hd',
-        }
+        },
       }),
     });
 
-    if (!response.ok) {throw new Error('Flux Generation failed');}
+    if (!response.ok) {
+      throw new Error('Flux Generation failed');
+    }
     const data: FalResponse = await response.json();
     return data.images?.[0]?.url || data.image?.url;
   },
@@ -54,11 +56,13 @@ export const aiModelsService = {
           image_url: baseImage,
           mask_url: maskImage,
           prompt: prompt,
-        }
+        },
       }),
     });
 
-    if (!response.ok) {throw new Error('SDXL Inpainting failed');}
+    if (!response.ok) {
+      throw new Error('SDXL Inpainting failed');
+    }
     const data: FalResponse = await response.json();
     return data.images?.[0]?.url || data.image?.url;
   },
@@ -77,11 +81,13 @@ export const aiModelsService = {
         body: {
           prompt: prompt,
           style: 'vector_art',
-        }
+        },
       }),
     });
 
-    if (!response.ok) {throw new Error('Recraft Vector Generation failed');}
+    if (!response.ok) {
+      throw new Error('Recraft Vector Generation failed');
+    }
     const data: FalResponse = await response.json();
     return data.vector_svg || data.images?.[0]?.url;
   },
@@ -99,12 +105,14 @@ export const aiModelsService = {
         endpoint: 'https://fal.run/fal-ai/aura-sr',
         body: {
           image_url: imageUrl,
-        }
+        },
       }),
     });
 
-    if (!response.ok) {throw new Error('Upscaling failed');}
+    if (!response.ok) {
+      throw new Error('Upscaling failed');
+    }
     const data: any = await response.json();
     return data.image?.url;
-  }
+  },
 };

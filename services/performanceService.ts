@@ -1,3 +1,4 @@
+import { log } from '../utils/log';
 /**
  * Performance Service
  * Tracks Web Vitals and other performance metrics
@@ -8,15 +9,17 @@ export const performanceService = {
    * Initialize performance tracking
    */
   init: () => {
-    if (typeof window === 'undefined') {return;}
+    if (typeof window === 'undefined') {
+      return;
+    }
 
     // Track Web Vitals (simulation)
     // performanceService.reportWebVitals(); // Temporarily disabled for QA subagent stability
-    
+
     // Log initial load time
     const loadTime = window.performance.now();
     performanceService.logMetric('initial_load', loadTime);
-    
+
     log.info('[PerformanceService] Initialized', { loadTime });
   },
 
@@ -26,7 +29,7 @@ export const performanceService = {
   logMetric: (name: string, value: number, extra?: any) => {
     // In a real app, this would send to Sentry, Google Analytics, or a custom ELK stack
     log.info(`[Metric] ${name}: ${value.toFixed(2)}ms`, { extra });
-    
+
     // Mock sending to analytics
     // analyticsService.track('perf_metric', { name, value, ...extra });
   },
@@ -73,7 +76,7 @@ export const performanceService = {
   },
 
   /**
-   * Start 
+   * Start
    */
   startMeasure: (label: string) => {
     performance.mark(`${label}-start`);
@@ -89,5 +92,5 @@ export const performanceService = {
     if (entries.length > 0) {
       performanceService.logMetric(label, entries[entries.length - 1].duration);
     }
-  }
+  },
 };

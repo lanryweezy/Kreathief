@@ -5,11 +5,7 @@ interface SkeletonProps {
 }
 
 export const Skeleton: React.FC<SkeletonProps> = ({ className = '' }) => {
-  return (
-    <div 
-      className={`animate-pulse bg-white/5 rounded ${className}`}
-    />
-  );
+  return <div className={`animate-pulse bg-white/5 rounded ${className}`} />;
 };
 
 export const ElementSkeleton = () => (
@@ -58,4 +54,3 @@ export const CardSkeleton = () => (
     </div>
   </div>
 );
-

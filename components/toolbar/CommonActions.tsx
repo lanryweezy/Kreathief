@@ -14,13 +14,7 @@ interface CommonActionsProps {
 }
 
 export const CommonActions = React.memo(
-  ({
-    selectedLayer,
-    handleUpdateLayer,
-    onMoveLayer,
-    onDuplicateLayer,
-    onDeleteLayer,
-  }: CommonActionsProps) => {
+  ({ selectedLayer, handleUpdateLayer, onMoveLayer, onDuplicateLayer, onDeleteLayer }: CommonActionsProps) => {
     const [showEffects, setShowEffects] = React.useState(false);
     const appearanceButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -97,36 +91,36 @@ export const CommonActions = React.memo(
               </div>
             </div>
           </Dropdown>
-      </div>
+        </div>
 
-      <Divider />
+        <Divider />
 
-      <IconButton onClick={() => onMoveLayer(selectedLayer.id, 'forward')} title="Bring Forward">
-        <Icons.ArrowUp className="w-3.5 h-3.5" />
-      </IconButton>
-      <IconButton onClick={() => onMoveLayer(selectedLayer.id, 'backward')} title="Send Backward">
-        <Icons.ArrowDown className="w-3.5 h-3.5" />
-      </IconButton>
+        <IconButton onClick={() => onMoveLayer(selectedLayer.id, 'forward')} title="Bring Forward">
+          <Icons.ArrowUp className="w-3.5 h-3.5" />
+        </IconButton>
+        <IconButton onClick={() => onMoveLayer(selectedLayer.id, 'backward')} title="Send Backward">
+          <Icons.ArrowDown className="w-3.5 h-3.5" />
+        </IconButton>
 
-      <IconButton onClick={() => onDuplicateLayer(selectedLayer.id)} title="Duplicate" shortcut="Ctrl+D">
-        <Icons.Copy className="w-3.5 h-3.5" />
-      </IconButton>
-      <IconButton
-        onClick={() => onDeleteLayer(selectedLayer.id)}
-        className="hover:bg-red-500/20 hover:text-red-400"
-        title="Delete"
-      >
-        <Icons.Trash className="w-3.5 h-3.5" />
-      </IconButton>
+        <IconButton onClick={() => onDuplicateLayer(selectedLayer.id)} title="Duplicate" shortcut="Ctrl+D">
+          <Icons.Copy className="w-3.5 h-3.5" />
+        </IconButton>
+        <IconButton
+          onClick={() => onDeleteLayer(selectedLayer.id)}
+          className="hover:bg-red-500/20 hover:text-red-400"
+          title="Delete"
+        >
+          <Icons.Trash className="w-3.5 h-3.5" />
+        </IconButton>
 
-      <IconButton
-        onClick={() => handleUpdateLayer({ locked: !selectedLayer.locked })}
-        active={selectedLayer.locked}
-        title={selectedLayer.locked ? 'Unlock' : 'Lock'}
-        className={selectedLayer.locked ? 'text-red-400' : ''}
-      >
-        {selectedLayer.locked ? <Icons.Lock className="w-3.5 h-3.5" /> : <Icons.Unlock className="w-3.5 h-3.5" />}
-      </IconButton>
+        <IconButton
+          onClick={() => handleUpdateLayer({ locked: !selectedLayer.locked })}
+          active={selectedLayer.locked}
+          title={selectedLayer.locked ? 'Unlock' : 'Lock'}
+          className={selectedLayer.locked ? 'text-red-400' : ''}
+        >
+          {selectedLayer.locked ? <Icons.Lock className="w-3.5 h-3.5" /> : <Icons.Unlock className="w-3.5 h-3.5" />}
+        </IconButton>
       </div>
     );
   }

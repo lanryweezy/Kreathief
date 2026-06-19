@@ -39,5 +39,14 @@ test_output.txt
 build/
 .vercel
 
-
-.vercel
+# Debug artifacts (never commit)
+debug_*.png
+debug_*.ts
+fix_*.sh
+fix_*.diff
+quick_fix.sh
+type_errors*.txt
+verification/screenshots/
+*.webm
+append_missing_icons.cjs
+*.timestamp-*

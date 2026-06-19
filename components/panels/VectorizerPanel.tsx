@@ -22,17 +22,21 @@ function countPathNodes(d: string): number {
 
 // Simplify SVG path data using Ramer-Douglas-Peucker on line segments
 function simplifyPathData(d: string, tolerance: number): string {
-  if (tolerance <= 0) {return d;}
+  if (tolerance <= 0) {
+    return d;
+  }
   // For simplification we just thin out redundant L commands
   // This is a lightweight approach; real simplification would parse all commands
   const parts = d.split(/(?=[MLHVCSQTAZ])/gi).filter(Boolean);
-  if (parts.length <= 3) {return d;}
+  if (parts.length <= 3) {
+    return d;
+  }
 
   const simplified: string[] = [];
   let lastKept = 0;
   for (let i = 0; i < parts.length; i++) {
     const cmd = parts[i]!.trim();
-    if (i === 0 || i === parts.length - 1 || !cmd.startsWith('L') && !cmd.startsWith('l')) {
+    if (i === 0 || i === parts.length - 1 || (!cmd.startsWith('L') && !cmd.startsWith('l'))) {
       simplified.push(cmd);
       lastKept = i;
       continue;
@@ -83,7 +87,9 @@ export const VectorizerPanel = () => {
 
   // Simplified result for preview
   const displayResult = useMemo(() => {
-    if (!result || simplifyTolerance <= 0) {return result;}
+    if (!result || simplifyTolerance <= 0) {
+      return result;
+    }
     return result.map((item) => ({
       ...item,
       path: simplifyPathData(item.path, simplifyTolerance),
@@ -92,7 +98,9 @@ export const VectorizerPanel = () => {
 
   // Path stats
   const pathStats = useMemo(() => {
-    if (!displayResult) {return null;}
+    if (!displayResult) {
+      return null;
+    }
     const totalPaths = displayResult.length;
     const totalNodes = displayResult.reduce((sum, item) => sum + countPathNodes(item.path), 0);
     const totalChars = displayResult.reduce((sum, item) => sum + item.path.length, 0);
@@ -145,7 +153,9 @@ export const VectorizerPanel = () => {
 
   const handleVectorize = async () => {
     if (activeTab === 'image') {
-      if (!image) {return;}
+      if (!image) {
+        return;
+      }
       setIsProcessing(true);
       try {
         let paths;
@@ -158,7 +168,7 @@ export const VectorizerPanel = () => {
             return;
           }
           paths = await geminiService.vectorizeImage(image, colors, stylePreset);
-          setTrials(prev => prev - 1);
+          setTrials((prev) => prev - 1);
         }
         setResult(paths);
         addToast('Vectorization complete!', 'success');
@@ -169,12 +179,14 @@ export const VectorizerPanel = () => {
         setIsProcessing(false);
       }
     } else {
-      if (!prompt.trim() || trials <= 0) {return;}
+      if (!prompt.trim() || trials <= 0) {
+        return;
+      }
       setIsProcessing(true);
       try {
         const paths = await geminiService.generateAIVector(prompt, stylePreset);
         setResult(paths);
-        setTrials(prev => prev - 1);
+        setTrials((prev) => prev - 1);
         addToast('Vector generated successfully!', 'success');
       } catch (error) {
         log.error('[VectorizerPanel] Vector generation failed', error, { prompt: prompt.substring(0, 100) });
@@ -186,7 +198,9 @@ export const VectorizerPanel = () => {
   };
 
   const addToCanvas = () => {
-    if (!displayResult) {return;}
+    if (!displayResult) {
+      return;
+    }
 
     // Spread layers across canvas instead of stacking at the same position
     const SPREAD_OFFSET = 320;
@@ -217,14 +231,11 @@ export const VectorizerPanel = () => {
 
   // SVG Export/Download
   const downloadSVG = useCallback(() => {
-    if (!displayResult) {return;}
+    if (!displayResult) {
+      return;
+    }
     const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="800" height="800">
-${displayResult
-        .map(
-          (item) =>
-            `  <path d="${item.path}" fill="${item.color}" />`
-        )
-        .join('\n')}
+${displayResult.map((item) => `  <path d="${item.path}" fill="${item.color}" />`).join('\n')}
 </svg>`;
     const blob = new Blob([svgContent], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
@@ -238,7 +249,9 @@ ${displayResult
 
   // Copy SVG to clipboard
   const copySVGToClipboard = useCallback(() => {
-    if (!displayResult) {return;}
+    if (!displayResult) {
+      return;
+    }
     const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">\n${displayResult
       .map((item) => `  <path d="${item.path}" fill="${item.color}" />`)
       .join('\n')}\n</svg>`;
@@ -249,7 +262,9 @@ ${displayResult
 
   // Batch handlers
   const handleBatchFiles = (files: FileList | null) => {
-    if (!files) {return;}
+    if (!files) {
+      return;
+    }
     Array.from(files).forEach((file) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -267,42 +282,48 @@ ${displayResult
 
   const processBatch = async () => {
     setIsProcessing(true);
-    const items = [...batchItems].filter(b => b.status === 'queued');
+    const items = [...batchItems].filter((b) => b.status === 'queued');
 
     // Mark all queued as processing
-    setBatchItems(prev => prev.map(item =>
-      item.status === 'queued' ? { ...item, status: 'processing' } : item
-    ));
+    setBatchItems((prev) => prev.map((item) => (item.status === 'queued' ? { ...item, status: 'processing' } : item)));
 
     // Process all in parallel using Promise.allSettled
     const results = await Promise.allSettled(
-      items.map(item =>
+      items.map((item) =>
         useAlgorithm
           ? photoService.traceImageToSVG(item.dataUrl, colors)
           : geminiService.vectorizeImage(item.dataUrl, colors, stylePreset)
       )
     );
 
-    if (!useAlgorithm) { setTrials(prev => Math.max(0, prev - items.length)); }
+    if (!useAlgorithm) {
+      setTrials((prev) => Math.max(0, prev - items.length));
+    }
 
-    setBatchItems(prev => prev.map(item => {
-      const idx = items.findIndex(b => b.id === item.id);
-      if (idx === -1) {return item;}
-      const result = results[idx];
-      if (result?.status === 'fulfilled') {
-        return { ...item, status: 'done', result: result.value };
-      } else if (result?.status === 'rejected') {
-        return { ...item, status: 'error' };
-      }
-      return item;
-    }));
+    setBatchItems((prev) =>
+      prev.map((item) => {
+        const idx = items.findIndex((b) => b.id === item.id);
+        if (idx === -1) {
+          return item;
+        }
+        const result = results[idx];
+        if (result?.status === 'fulfilled') {
+          return { ...item, status: 'done', result: result.value };
+        } else if (result?.status === 'rejected') {
+          return { ...item, status: 'error' };
+        }
+        return item;
+      })
+    );
 
     setIsProcessing(false);
     addToast('Batch processing complete!', 'success');
   };
 
   const addBatchItemToCanvas = (item: BatchItem) => {
-    if (!item.result) {return;}
+    if (!item.result) {
+      return;
+    }
     const newLayers = item.result.map((r, i) => ({
       id: crypto.randomUUID(),
       type: 'path' as const,
@@ -340,14 +361,17 @@ ${displayResult
           {/* Batch toggle */}
           <button
             onClick={() => setShowBatch(!showBatch)}
-            className={`text-[8px] px-3 py-1 rounded-full font-black uppercase tracking-widest transition-all border ${showBatch
-              ? 'bg-blue-500/20 text-blue-400 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
-              : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/20'
-              }`}
+            className={`text-[8px] px-3 py-1 rounded-full font-black uppercase tracking-widest transition-all border ${
+              showBatch
+                ? 'bg-blue-500/20 text-blue-400 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
+                : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/20'
+            }`}
           >
             Batch
           </button>
-          <div className="text-[8px] bg-purple-500/10 border border-purple-500/20 text-purple-400 px-2 py-1 rounded-full font-black uppercase tracking-widest">PRO</div>
+          <div className="text-[8px] bg-purple-500/10 border border-purple-500/20 text-purple-400 px-2 py-1 rounded-full font-black uppercase tracking-widest">
+            PRO
+          </div>
         </div>
       </div>
 
@@ -355,9 +379,7 @@ ${displayResult
       {showBatch && (
         <div className="mb-6 p-3 rounded-xl bg-blue-500/5 border border-blue-500/15 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">
-              Batch Processing
-            </span>
+            <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Batch Processing</span>
             <span className="text-[9px] text-gray-500">{batchItems.length} images</span>
           </div>
 
@@ -386,11 +408,7 @@ ${displayResult
                   key={item.id}
                   className="flex items-center gap-2 p-2 rounded-lg bg-gray-900/40 border border-gray-800/50"
                 >
-                  <img
-                    src={item.dataUrl}
-                    alt={item.filename}
-                    className="w-8 h-8 rounded object-cover flex-shrink-0"
-                  />
+                  <img src={item.dataUrl} alt={item.filename} className="w-8 h-8 rounded object-cover flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-[10px] text-white font-medium truncate">{item.filename}</p>
                     <p className="text-[8px] text-gray-500">
@@ -497,18 +515,17 @@ ${displayResult
 
           {/* Style Presets */}
           <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 block">
-              Style
-            </label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 block">Style</label>
             <div className="grid grid-cols-2 gap-2">
               {STYLE_PRESETS.map((preset) => (
                 <button
                   key={preset.id}
                   onClick={() => handleStyleChange(preset.id)}
-                  className={`p-2 rounded-xl border text-left transition-all ${stylePreset === preset.id
-                    ? 'bg-[#7d2ae8]/15 border-[#7d2ae8]/50 text-[#7d2ae8]'
-                    : 'bg-[#1e1e1e] border-gray-800 text-gray-500 hover:border-gray-700'
-                    }`}
+                  className={`p-2 rounded-xl border text-left transition-all ${
+                    stylePreset === preset.id
+                      ? 'bg-[#7d2ae8]/15 border-[#7d2ae8]/50 text-[#7d2ae8]'
+                      : 'bg-[#1e1e1e] border-gray-800 text-gray-500 hover:border-gray-700'
+                  }`}
                 >
                   <div className="flex items-center gap-2 mb-0.5">
                     <span className="text-sm">{preset.icon}</span>
@@ -575,9 +592,7 @@ ${displayResult
                   onChange={(e) => setSimplifyTolerance(parseFloat(e.target.value))}
                   className="w-full h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
                 />
-                <p className="text-[8px] text-gray-600 mt-1 italic">
-                  Reduce path complexity. Higher = fewer nodes.
-                </p>
+                <p className="text-[8px] text-gray-600 mt-1 italic">Reduce path complexity. Higher = fewer nodes.</p>
               </div>
 
               {/* Corner Threshold */}
@@ -600,9 +615,7 @@ ${displayResult
                   onChange={(e) => setCornerThreshold(parseInt(e.target.value))}
                   className="w-full h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-cyan-500"
                 />
-                <p className="text-[8px] text-gray-600 mt-1 italic">
-                  Angles sharper than this become corner points.
-                </p>
+                <p className="text-[8px] text-gray-600 mt-1 italic">Angles sharper than this become corner points.</p>
               </div>
 
               {/* Quick simplify presets */}
@@ -616,10 +629,11 @@ ${displayResult
                   <button
                     key={preset.label}
                     onClick={() => setSimplifyTolerance(preset.val)}
-                    className={`flex-1 py-1 rounded-md text-[8px] font-bold uppercase tracking-tight transition-all border ${Math.abs(simplifyTolerance - preset.val) < 0.01
-                      ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                      : 'bg-gray-900/50 text-gray-600 border-gray-800 hover:border-gray-700'
-                      }`}
+                    className={`flex-1 py-1 rounded-md text-[8px] font-bold uppercase tracking-tight transition-all border ${
+                      Math.abs(simplifyTolerance - preset.val) < 0.01
+                        ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                        : 'bg-gray-900/50 text-gray-600 border-gray-800 hover:border-gray-700'
+                    }`}
                   >
                     {preset.label}
                   </button>
@@ -749,13 +763,7 @@ ${displayResult
               style={{ overflow: 'visible' }}
             >
               {displayResult.map((item, i) => (
-                <path
-                  key={i}
-                  d={item.path}
-                  fill={item.color}
-                  fillOpacity={1}
-                  stroke="none"
-                />
+                <path key={i} d={item.path} fill={item.color} fillOpacity={1} stroke="none" />
               ))}
             </svg>
           </div>
@@ -769,15 +777,13 @@ ${displayResult
                 { label: 'Colors', value: pathStats.uniqueColors, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
                 {
                   label: 'Size',
-                  value: pathStats.totalChars > 1000 ? `${(pathStats.totalChars / 1000).toFixed(1)}k` : pathStats.totalChars,
+                  value:
+                    pathStats.totalChars > 1000 ? `${(pathStats.totalChars / 1000).toFixed(1)}k` : pathStats.totalChars,
                   color: 'text-amber-400',
                   bg: 'bg-amber-500/10',
                 },
               ].map((stat) => (
-                <div
-                  key={stat.label}
-                  className={`px-2 py-1.5 rounded-lg ${stat.bg} flex flex-col items-center`}
-                >
+                <div key={stat.label} className={`px-2 py-1.5 rounded-lg ${stat.bg} flex flex-col items-center`}>
                   <span className={`text-[11px] font-black ${stat.color}`}>{stat.value}</span>
                   <span className="text-[7px] text-gray-500 uppercase font-bold tracking-widest">{stat.label}</span>
                 </div>

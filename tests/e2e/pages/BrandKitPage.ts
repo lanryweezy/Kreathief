@@ -22,7 +22,7 @@ export class BrandKitPage {
   }
 
   async openBrandPanel() {
-    if (!await this.brandPanel.isVisible()) {
+    if (!(await this.brandPanel.isVisible())) {
       await this.brandTab.click();
     }
     await expect(this.brandPanel).toBeVisible({ timeout: 5000 });
@@ -34,18 +34,21 @@ export class BrandKitPage {
     // Check if we are already in the form for a kit with this name
     const isFormVisible = await this.page.getByTestId('create-brand-kit-form').isVisible();
     if (isFormVisible) {
-        const currentName = await this.page.getByTestId('brand-kit-name-input').inputValue().catch(() => '');
-        if (currentName === name) {
-            // Fill in brand kit name anyway to ensure it's set
-            await this.page.getByTestId('brand-kit-name-input').fill(name);
-        } else {
-            // Clear and fill
-            await this.page.getByTestId('brand-kit-name-input').fill(name);
-        }
-    } else {
-        await this.addBrandKitBtn.click();
-        await expect(this.page.getByTestId('create-brand-kit-form')).toBeVisible();
+      const currentName = await this.page
+        .getByTestId('brand-kit-name-input')
+        .inputValue()
+        .catch(() => '');
+      if (currentName === name) {
+        // Fill in brand kit name anyway to ensure it's set
         await this.page.getByTestId('brand-kit-name-input').fill(name);
+      } else {
+        // Clear and fill
+        await this.page.getByTestId('brand-kit-name-input').fill(name);
+      }
+    } else {
+      await this.addBrandKitBtn.click();
+      await expect(this.page.getByTestId('create-brand-kit-form')).toBeVisible();
+      await this.page.getByTestId('brand-kit-name-input').fill(name);
     }
 
     // Save
@@ -60,7 +63,7 @@ export class BrandKitPage {
   async addBrandColor(color: string) {
     await this.openBrandPanel();
     // Ensure the form is open
-    if (!await this.page.getByTestId('create-brand-kit-form').isVisible()) {
+    if (!(await this.page.getByTestId('create-brand-kit-form').isVisible())) {
       await this.addBrandKitBtn.click();
     }
     const colorInput = this.page.getByTestId('brand-color-input-0');
@@ -71,7 +74,7 @@ export class BrandKitPage {
   async addBrandFont(fontName: string) {
     await this.openBrandPanel();
     // Ensure the form is open
-    if (!await this.page.getByTestId('create-brand-kit-form').isVisible()) {
+    if (!(await this.page.getByTestId('create-brand-kit-form').isVisible())) {
       await this.addBrandKitBtn.click();
     }
     const fontSelect = this.page.getByTestId('brand-font-heading-select');

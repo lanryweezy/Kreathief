@@ -77,10 +77,10 @@ test.describe('Shape Tools Features', () => {
 
     // Verify color applied in store
     const color = await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
-        return layer?.color;
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+      return layer?.color;
     });
     expect(color).toBe('#ff0000');
   });
@@ -90,10 +90,10 @@ test.describe('Shape Tools Features', () => {
 
     // Get initial opacity from store
     const initialOpacity = await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
-        return layer?.opacity;
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+      return layer?.opacity;
     });
 
     // Change opacity
@@ -101,10 +101,10 @@ test.describe('Shape Tools Features', () => {
 
     // Verify opacity changed in store
     const newOpacity = await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
-        return layer?.opacity;
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+      return layer?.opacity;
     });
 
     expect(newOpacity).toBe(0.5);
@@ -121,11 +121,11 @@ test.describe('Shape Tools Features', () => {
 
     // Delete the shape layer via store
     await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        if (selectedId) {
-            store.deleteLayer(selectedId);
-        }
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      if (selectedId) {
+        store.deleteLayer(selectedId);
+      }
     });
 
     // Verify layer count decreased
@@ -143,11 +143,11 @@ test.describe('Shape Tools Features', () => {
 
     // Duplicate the shape layer via store
     await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        if (selectedId) {
-            store.duplicateLayer(selectedId);
-        }
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      if (selectedId) {
+        store.duplicateLayer(selectedId);
+      }
     });
 
     // Verify layer count increased
@@ -162,19 +162,19 @@ test.describe('Shape Tools Features', () => {
 
     // Lock the layer via store
     await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        if (selectedId) {
-            store.updateLayer(selectedId, { locked: true });
-        }
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      if (selectedId) {
+        store.updateLayer(selectedId, { locked: true });
+      }
     });
 
     // Verify layer is locked in store
     const isLocked = await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
-        return layer?.locked;
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+      return layer?.locked;
     });
     expect(isLocked).toBeTruthy();
   });
@@ -186,37 +186,37 @@ test.describe('Shape Tools Features', () => {
 
     // Hide the layer via store
     await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        if (selectedId) {
-            store.updateLayer(selectedId, { visible: false });
-        }
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      if (selectedId) {
+        store.updateLayer(selectedId, { visible: false });
+      }
     });
 
     // Verify layer is hidden in store
     const isVisible = await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
-        return layer?.visible;
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+      return layer?.visible;
     });
     expect(isVisible).toBeFalsy();
 
     // Show the layer again
     await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        if (selectedId) {
-            store.updateLayer(selectedId, { visible: true });
-        }
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      if (selectedId) {
+        store.updateLayer(selectedId, { visible: true });
+      }
     });
 
     // Verify layer is visible again in store
     const isVisibleNow = await page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
-        return layer?.visible;
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+      return layer?.visible;
     });
     expect(isVisibleNow).toBeTruthy();
   });

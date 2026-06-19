@@ -13,13 +13,13 @@ interface StaticLayerRendererProps {
  */
 export const StaticLayerRenderer: React.FC<StaticLayerRendererProps> = ({ layers, scale }) => {
   return (
-    <div 
-      className="relative pointer-events-none overflow-hidden" 
-      style={{ 
-        transform: `scale(${scale})`, 
+    <div
+      className="relative pointer-events-none overflow-hidden"
+      style={{
+        transform: `scale(${scale})`,
         transformOrigin: 'top left',
         width: '1000px', // Fixed coordinate space
-        height: '1000px' 
+        height: '1000px',
       }}
     >
       {layers.map((l) => {
@@ -39,19 +39,19 @@ export const StaticLayerRenderer: React.FC<StaticLayerRendererProps> = ({ layers
         }
 
         if (l.type === 'text') {
-           return (
-             <TextLayerItem
-               key={l.id}
-               layer={l as TextLayer}
-               isSelected={false}
-               isHovered={false}
-               onMouseDown={() => {}}
-               onResize={() => {}}
-               onRotate={() => {}}
-               onContextMenu={() => {}}
-               onDoubleClick={() => {}}
-             />
-           );
+          return (
+            <TextLayerItem
+              key={l.id}
+              layer={l as TextLayer}
+              isSelected={false}
+              isHovered={false}
+              onMouseDown={() => {}}
+              onResize={() => {}}
+              onRotate={() => {}}
+              onContextMenu={() => {}}
+              onDoubleClick={() => {}}
+            />
+          );
         }
 
         return (

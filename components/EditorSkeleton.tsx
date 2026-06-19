@@ -48,32 +48,32 @@ export const EditorSkeleton: React.FC = () => {
 
           {/* Canvas Area Skeleton */}
           <div className="flex-1 p-12 flex items-center justify-center relative">
-             {/* Virtual Artboard Skeleton */}
-             <div className="w-[600px] h-[600px] bg-white/5 border border-white/10 rounded-lg shadow-2xl relative overflow-hidden animate-pulse">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/5 via-transparent to-transparent opacity-50" />
-             </div>
-             
-             {/* Floating Zoom (Optional) */}
-             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-48 h-10 bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 flex items-center px-4" />
+            {/* Virtual Artboard Skeleton */}
+            <div className="w-[600px] h-[600px] bg-white/5 border border-white/10 rounded-lg shadow-2xl relative overflow-hidden animate-pulse">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/5 via-transparent to-transparent opacity-50" />
+            </div>
+
+            {/* Floating Zoom (Optional) */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-48 h-10 bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10 flex items-center px-4" />
           </div>
         </div>
-        
+
         {/* Properties Panel Skeleton (If expanded) */}
         <div className="w-[320px] bg-[#0e1318] border-l border-[#1f1f1f] hidden xl:flex flex-col p-6 gap-6">
-           <div className="space-y-2">
-              <Skeleton className="w-24 h-3 rounded uppercase tracking-widest opacity-50" />
-              <Skeleton className="w-full h-10 rounded-xl" />
-           </div>
-           <div className="space-y-4">
-              <Skeleton className="w-full h-32 rounded-2xl" />
-              <div className="grid grid-cols-2 gap-4">
-                 <Skeleton className="h-12 rounded-xl" />
-                 <Skeleton className="h-12 rounded-xl" />
-              </div>
-           </div>
-           <div className="mt-auto">
-              <Skeleton className="w-full h-12 rounded-xl" />
-           </div>
+          <div className="space-y-2">
+            <Skeleton className="w-24 h-3 rounded uppercase tracking-widest opacity-50" />
+            <Skeleton className="w-full h-10 rounded-xl" />
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="w-full h-32 rounded-2xl" />
+            <div className="grid grid-cols-2 gap-4">
+              <Skeleton className="h-12 rounded-xl" />
+              <Skeleton className="h-12 rounded-xl" />
+            </div>
+          </div>
+          <div className="mt-auto">
+            <Skeleton className="w-full h-12 rounded-xl" />
+          </div>
         </div>
       </div>
     </div>

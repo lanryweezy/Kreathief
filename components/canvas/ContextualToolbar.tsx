@@ -11,18 +11,8 @@ interface ContextualToolbarProps {
   zoom: number;
 }
 
-export const ContextualToolbar: React.FC<ContextualToolbarProps> = ({
-  selectedLayerIds,
-  layers,
-  zoom,
-}) => {
-  const { 
-    updateLayer, 
-    deleteSelected, 
-    duplicateSelected, 
-    moveLayer,
-    saveToHistory 
-  } = useStore(
+export const ContextualToolbar: React.FC<ContextualToolbarProps> = ({ selectedLayerIds, layers, zoom }) => {
+  const { updateLayer, deleteSelected, duplicateSelected, moveLayer, saveToHistory } = useStore(
     useShallow((state) => ({
       updateLayer: state.updateLayer,
       deleteSelected: state.deleteSelected,
@@ -35,26 +25,28 @@ export const ContextualToolbar: React.FC<ContextualToolbarProps> = ({
   const [opacity, setOpacity] = useState(1);
 
   // Get current selection bounds
-  const selectedLayers = layers.filter(l => selectedLayerIds.includes(l.id));
-  
+  const selectedLayers = layers.filter((l) => selectedLayerIds.includes(l.id));
+
   useEffect(() => {
     if (selectedLayers.length === 1) {
       setOpacity(selectedLayers[0].opacity);
     }
   }, [selectedLayerIds, selectedLayers]);
 
-  if (selectedLayerIds.length === 0) {return null;}
+  if (selectedLayerIds.length === 0) {
+    return null;
+  }
 
   const bounds = GeometryOracle.getGroupBounds(selectedLayers);
-  
+
   // Position toolbar above the selection
-  const toolbarTop = bounds.y - (45 / zoom);
-  const toolbarLeft = bounds.x + (bounds.width / 2);
+  const toolbarTop = bounds.y - 45 / zoom;
+  const toolbarLeft = bounds.x + bounds.width / 2;
 
   const handleOpacityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseFloat(e.target.value);
     setOpacity(val);
-    selectedLayerIds.forEach(id => updateLayer(id, { opacity: val }));
+    selectedLayerIds.forEach((id) => updateLayer(id, { opacity: val }));
   };
 
   const handleOpacityCommit = () => {
@@ -62,17 +54,15 @@ export const ContextualToolbar: React.FC<ContextualToolbarProps> = ({
   };
 
   return (
-    <div 
-      className="flex items-center gap-1 bg-[#1e1e1e]/60 backdrop-blur-xl border-x border-white/5 px-3 py-1 animate-in fade-in slide-in-from-top-1 duration-200"
-    >
+    <div className="flex items-center gap-1 bg-[#1e1e1e]/60 backdrop-blur-xl border-x border-white/5 px-3 py-1 animate-in fade-in slide-in-from-top-1 duration-200">
       {/* Opacity Control */}
       <div className="flex items-center gap-2 px-2 border-r border-white/10 mr-1">
         <Icons.Transparency className="w-3.5 h-3.5 text-gray-400" />
-        <input 
-          type="range" 
-          min="0" 
-          max="1" 
-          step="0.01" 
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
           value={opacity}
           onChange={handleOpacityChange}
           onMouseUp={handleOpacityCommit}
@@ -81,29 +71,41 @@ export const ContextualToolbar: React.FC<ContextualToolbarProps> = ({
       </div>
 
       <div className="flex items-center gap-0.5">
-        <ToolbarButton 
-          onClick={() => { saveToHistory(); duplicateSelected(); }} 
-          icon={<Icons.Copy className="w-3.5 h-3.5" />} 
-          label="Duplicate" 
-        />
-        
-        <ToolbarButton 
-          onClick={() => { saveToHistory(); selectedLayerIds.forEach(id => moveLayer(id, 'front')); }} 
-          icon={<Icons.ArrowUp className="w-3.5 h-3.5" />} 
-          label="Bring to Front" 
+        <ToolbarButton
+          onClick={() => {
+            saveToHistory();
+            duplicateSelected();
+          }}
+          icon={<Icons.Copy className="w-3.5 h-3.5" />}
+          label="Duplicate"
         />
 
-        <ToolbarButton 
-          onClick={() => { saveToHistory(); selectedLayerIds.forEach(id => moveLayer(id, 'back')); }} 
-          icon={<Icons.ArrowDown className="w-3.5 h-3.5" />} 
-          label="Send to Back" 
+        <ToolbarButton
+          onClick={() => {
+            saveToHistory();
+            selectedLayerIds.forEach((id) => moveLayer(id, 'front'));
+          }}
+          icon={<Icons.ArrowUp className="w-3.5 h-3.5" />}
+          label="Bring to Front"
+        />
+
+        <ToolbarButton
+          onClick={() => {
+            saveToHistory();
+            selectedLayerIds.forEach((id) => moveLayer(id, 'back'));
+          }}
+          icon={<Icons.ArrowDown className="w-3.5 h-3.5" />}
+          label="Send to Back"
         />
 
         <div className="w-px h-4 bg-white/5 mx-1"></div>
 
-        <ToolbarButton 
-          onClick={() => { saveToHistory(); deleteSelected(); }} 
-          icon={<Icons.Trash className="w-3.5 h-3.5" />} 
+        <ToolbarButton
+          onClick={() => {
+            saveToHistory();
+            deleteSelected();
+          }}
+          icon={<Icons.Trash className="w-3.5 h-3.5" />}
           label="Delete"
           variant="danger"
         />
@@ -114,10 +116,13 @@ export const ContextualToolbar: React.FC<ContextualToolbarProps> = ({
 
 const ToolbarButton = ({ onClick, icon, label, variant = 'default' }: any) => (
   <button
-    onClick={(e) => { e.stopPropagation(); onClick(); }}
+    onClick={(e) => {
+      e.stopPropagation();
+      onClick();
+    }}
     className={`p-2 rounded-lg transition-all flex items-center justify-center group relative ${
-      variant === 'danger' 
-        ? 'hover:bg-red-500/20 text-red-400 hover:text-red-300' 
+      variant === 'danger'
+        ? 'hover:bg-red-500/20 text-red-400 hover:text-red-300'
         : 'hover:bg-white/10 text-gray-300 hover:text-white'
     }`}
     title={label}

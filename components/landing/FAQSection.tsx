@@ -64,7 +64,11 @@ export const FAQSection: React.FC = () => {
             We've got answers
           </motion.h2>
           <p className="text-gray-400 font-medium text-lg max-w-2xl mx-auto">
-            Everything you need to know about Kreathief. Can't find what you're looking for? <a href="/contact" className="text-purple-400 hover:text-purple-300 underline">Chat with us</a>.
+            Everything you need to know about Kreathief. Can't find what you're looking for?{' '}
+            <a href="/contact" className="text-purple-400 hover:text-purple-300 underline">
+              Chat with us
+            </a>
+            .
           </p>
         </div>
 

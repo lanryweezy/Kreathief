@@ -18,11 +18,7 @@ interface PenToolbarProps {
   onClose: () => void;
 }
 
-export const PenToolbar: React.FC<PenToolbarProps> = ({
-  options,
-  onUpdateOptions,
-  onClose,
-}) => {
+export const PenToolbar: React.FC<PenToolbarProps> = ({ options, onUpdateOptions, onClose }) => {
   return (
     <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[1000] bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl flex items-center gap-1 p-2 animate-slide-down">
       {/* Path Type Toggle */}
@@ -58,9 +54,7 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({
         <button
           onClick={() => onUpdateOptions({ hasFill: !options.hasFill })}
           className={`w-8 h-8 rounded-lg border-2 transition-all flex items-center justify-center ${
-            options.hasFill
-              ? 'border-[#7d2ae8] bg-[#7d2ae8]/20'
-              : 'border-gray-600 bg-[#252627] hover:border-gray-500'
+            options.hasFill ? 'border-[#7d2ae8] bg-[#7d2ae8]/20' : 'border-gray-600 bg-[#252627] hover:border-gray-500'
           }`}
           title="Toggle Fill"
           aria-label="Toggle Fill"

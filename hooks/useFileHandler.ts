@@ -22,7 +22,7 @@ export const useFileHandler = () => {
   const history = useStore((state) => state.history) || [];
   const artboards = useStore((state) => state.artboards) || [];
   const activeArtboardId = useStore((state) => state.activeArtboardId);
-  const activeArtboard = artboards.find(a => a.id === activeArtboardId) || artboards[0];
+  const activeArtboard = artboards.find((a) => a.id === activeArtboardId) || artboards[0];
   const layers = activeArtboard ? activeArtboard.layers : [];
   const canvasSize = useStore((state) => state.canvasSize) || { width: 1080, height: 1080, name: 'Square' };
   const canvasBackgroundColor = useStore((state) => state.canvasBackgroundColor) || '#ffffff';
@@ -36,41 +36,47 @@ export const useFileHandler = () => {
   const uploadedImage = uploads.length > 0 ? uploads[uploads.length - 1] || null : null;
 
   const handleFileUploads = (files: File[]) => {
-    const readers: Promise<string>[] = files.map((file) => 
-      new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve((e.target?.result as string) || '');
-        reader.readAsDataURL(file);
-      })
+    const readers: Promise<string>[] = files.map(
+      (file) =>
+        new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve((e.target?.result as string) || '');
+          reader.readAsDataURL(file);
+        })
     );
 
     Promise.all(readers).then(async (urls: string[]) => {
       const validUrls = urls.filter((u) => u);
       if (validUrls.length > 0) {
         // Local-First: Cache assets in IndexedDB
-        const cachedUrls = await Promise.all(validUrls.map(url => storageService.cacheAsset(url)));
+        const cachedUrls = await Promise.all(validUrls.map((url) => storageService.cacheAsset(url)));
 
-        addLayers(cachedUrls.map((url: string, idx: number) => ({
-          id: generateLayerId('image'),
-          type: 'image',
-          name: `Image ${idx + 1}`,
-          src: url,
-          x: canvasSize.width / 2 - 100 + (idx * 20),
-          y: canvasSize.height / 2 - 100 + (idx * 20),
-          width: 200,
-          height: 200,
-          rotation: 0,
-          opacity: 1,
-          locked: false,
-          visible: true,
-          filters: { ...canvasFilters },
-          blendMode: 'normal',
-          skewX: 0,
-          skewY: 0,
-          perspective: 0,
-          rotateX: 0,
-          rotateY: 0,
-        } as ImageLayer)));
+        addLayers(
+          cachedUrls.map(
+            (url: string, idx: number) =>
+              ({
+                id: generateLayerId('image'),
+                type: 'image',
+                name: `Image ${idx + 1}`,
+                src: url,
+                x: canvasSize.width / 2 - 100 + idx * 20,
+                y: canvasSize.height / 2 - 100 + idx * 20,
+                width: 200,
+                height: 200,
+                rotation: 0,
+                opacity: 1,
+                locked: false,
+                visible: true,
+                filters: { ...canvasFilters },
+                blendMode: 'normal',
+                skewX: 0,
+                skewY: 0,
+                perspective: 0,
+                rotateX: 0,
+                rotateY: 0,
+              }) as ImageLayer
+          )
+        );
 
         // Also add the files to the uploads list so they appear in the UI
         const handleFileUpload = useStore.getState().handleFileUpload;
@@ -80,8 +86,15 @@ export const useFileHandler = () => {
 
         if (setCanvasFilters) {
           setCanvasFilters({
-            brightness: 100, contrast: 100, saturation: 100,
-            sepia: 0, grayscale: 0, blur: 0, opacity: 1, vignette: 0, hueRotate: 0
+            brightness: 100,
+            contrast: 100,
+            saturation: 100,
+            sepia: 0,
+            grayscale: 0,
+            blur: 0,
+            opacity: 1,
+            vignette: 0,
+            hueRotate: 0,
           });
         }
       }
@@ -137,10 +150,7 @@ export const useFileHandler = () => {
   };
 
   const handleConfirmExport = async (options: ExportOptions) => {
-    const { 
-      format, quality, size, transparentBg, customFilename, 
-      onComplete, overrideLayers, printOptions 
-    } = options;
+    const { format, quality, size, transparentBg, customFilename, onComplete, overrideLayers, printOptions } = options;
 
     setIsExporting(true);
     try {
@@ -150,15 +160,19 @@ export const useFileHandler = () => {
       const fileName = customFilename ? customFilename : `design-${Date.now()}`;
       const scaleX = exportWidth / canvasSize.width;
       const scaleY = exportHeight / canvasSize.height;
-      
+
       const activeArtboard = store.artboards.find((a: any) => a.id === store.activeArtboardId) || store.artboards[0];
       const targetLayers = overrideLayers || (activeArtboard ? activeArtboard.layers || [] : []);
-      const scaledLayers = targetLayers.map(l => ({
+      const scaledLayers = targetLayers.map((l) => ({
         ...l,
         x: l.x * scaleX,
         y: l.y * scaleY,
         width: l.width * scaleX,
-        height: (l as any).height ? (l as any).height * scaleY : (l.type === 'text' ? (l as any).fontSize * 1.2 : l.width * scaleX),
+        height: (l as any).height
+          ? (l as any).height * scaleY
+          : l.type === 'text'
+            ? (l as any).fontSize * 1.2
+            : l.width * scaleX,
         ...(l.type === 'text' ? { fontSize: (l as any).fontSize * scaleY } : {}),
       })) as any[];
 
@@ -169,7 +183,14 @@ export const useFileHandler = () => {
       } else if (format === 'pdf' && printOptions) {
         // High-end Print Export
         const imgDataUrl = await exportService.exportDesignToImage(
-          exportWidth, exportHeight, bgColor, activeImage?.url || uploadedImage || null, scaledLayers, canvasFilters, 'png', 1
+          exportWidth,
+          exportHeight,
+          bgColor,
+          activeImage?.url || uploadedImage || null,
+          scaledLayers,
+          canvasFilters,
+          'png',
+          1
         );
         await exportService.exportToPrintPDF(exportWidth, exportHeight, imgDataUrl, fileName, printOptions);
       } else if (format === 'svg') {
@@ -179,13 +200,22 @@ export const useFileHandler = () => {
       } else {
         const imgFormat = format === 'pdf' ? 'png' : format;
         const downloadUrl = await exportService.exportDesignToImage(
-          exportWidth, exportHeight, bgColor, activeImage?.url || uploadedImage || null, scaledLayers, canvasFilters, imgFormat, quality
+          exportWidth,
+          exportHeight,
+          bgColor,
+          activeImage?.url || uploadedImage || null,
+          scaledLayers,
+          canvasFilters,
+          imgFormat,
+          quality
         );
 
         if (format === 'pdf') {
           // Legacy/Fallback PDF
-          await exportService.exportToPrintPDF(exportWidth, exportHeight, downloadUrl, fileName, { 
-             colorProfile: 'sRGB', bleed: 0, cropMarks: false 
+          await exportService.exportToPrintPDF(exportWidth, exportHeight, downloadUrl, fileName, {
+            colorProfile: 'sRGB',
+            bleed: 0,
+            cropMarks: false,
           });
         } else {
           const link = document.createElement('a');
@@ -195,7 +225,9 @@ export const useFileHandler = () => {
         }
       }
 
-      if (onComplete) {onComplete();}
+      if (onComplete) {
+        onComplete();
+      }
       haptics.success();
     } catch (error) {
       log.error('[FileHandler] Export failed', error, { format, quality });
@@ -205,12 +237,11 @@ export const useFileHandler = () => {
     }
   };
 
-
   return {
     handleFileUploads,
     handleExportDataUrl,
     handleExportBlob,
     handleConfirmExport,
-    uploadedImage
+    uploadedImage,
   };
 };

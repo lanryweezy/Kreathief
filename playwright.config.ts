@@ -28,8 +28,8 @@ export default defineConfig({
         viewport: { width: 1920, height: 1080 },
         isMobile: false,
         launchOptions: {
-          args: ['--start-maximized', '--disable-web-security']
-        }
+          args: ['--start-maximized', '--disable-web-security'],
+        },
       },
     },
   ],

@@ -17,18 +17,19 @@ export const CommunityShowcase: React.FC = () => {
     load();
   }, []);
 
-  if (loading && templates.length === 0) {return null;}
+  if (loading && templates.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-32 relative bg-[#0a0a0c] overflow-hidden">
       <div className="max-w-[1400px] mx-auto px-6 mb-20 text-center flex flex-col items-center">
-
         <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tight mb-6">
           Inspired by <span className="text-orange-500">Thousands.</span>
         </h2>
         <p className="text-xl text-neutral-400 max-w-2xl font-medium">
-          The next generation of designers are already building on Kreathief. 
-          Browse community templates and start from a masterpiece.
+          The next generation of designers are already building on Kreathief. Browse community templates and start from
+          a masterpiece.
         </p>
       </div>
 
@@ -42,7 +43,7 @@ export const CommunityShowcase: React.FC = () => {
               className="w-[350px] aspect-video bg-[#13161a] rounded-3xl border border-white/5 overflow-hidden shadow-2xl relative shrink-0 group/card"
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10" />
-              
+
               {/* Mock Preview Content */}
               <div className="absolute inset-0 flex items-center justify-center opacity-20">
                 <Icons.Layout className="w-16 h-12" />

@@ -31,119 +31,124 @@ interface ToolbarProps {
   onCrop?: (id: string) => void;
 }
 
-export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBooleanOperation, onBooleanHover }: ToolbarProps) => {
-  // UI State
-  const [showFilters, setShowFilters] = useState(false);
-  const [showResize, setShowResize] = useState(false);
-  const [showFontPicker, setShowFontPicker] = useState(false);
-  const [showRewriteTones, setShowRewriteTones] = useState(false);
-  const [showGlyphs, setShowGlyphs] = useState(false);
-  const [fontSearch, setFontSearch] = useState('');
+export const Toolbar = React.memo(
+  ({ documentColors = [], onCompletePath, onBooleanOperation, onBooleanHover }: ToolbarProps) => {
+    // UI State
+    const [showFilters, setShowFilters] = useState(false);
+    const [showResize, setShowResize] = useState(false);
+    const [showFontPicker, setShowFontPicker] = useState(false);
+    const [showRewriteTones, setShowRewriteTones] = useState(false);
+    const [showGlyphs, setShowGlyphs] = useState(false);
+    const [fontSearch, setFontSearch] = useState('');
 
-  // Refs
-  const rewriteRef = useRef<HTMLButtonElement>(null);
+    // Refs
+    const rewriteRef = useRef<HTMLButtonElement>(null);
 
-  // Store Actions
-  const {
-    selectedLayerIds,
-    updateLayer,
-    deleteLayer: onDeleteLayer,
-    duplicateLayer: onDuplicateLayer,
-    moveLayer: onMoveLayer,
-    alignLayers: onAlignLayers,
-    groupSelected: onGroup,
-    ungroupSelected: onUngroup,
-    onRmBg,
-    vectorizeLayer,
-    onCrop: onCropAction,
-    onEnhance,
-    onUpscale,
-    onRetouch,
-    onRemix,
-    onMagicExpand,
-    toggleEraser,
-    setIsProcessing,
-    setActiveTab,
-    setIsLassoMode,
-    setRefineBrushMode,
-    setRefineBrushSize,
-  } = useStore(
-    useShallow((state) => ({
-      selectedLayerIds: state.selectedLayerIds,
-      updateLayer: state.updateLayer,
-      deleteLayer: state.deleteLayer,
-      duplicateLayer: state.duplicateLayer,
-      moveLayer: state.moveLayer,
-      alignLayers: state.alignLayers,
-      groupSelected: state.groupSelected,
-      ungroupSelected: state.ungroupSelected,
-      onRmBg: state.onRmBg,
-      vectorizeLayer: state.vectorizeLayer,
-      onCrop: state.onCrop,
-      onEnhance: state.onEnhance,
-      onUpscale: state.onUpscale,
-      onRetouch: state.onRetouch,
-      onRemix: state.onRemix,
-      onMagicExpand: state.onMagicExpand,
-      toggleEraser: state.toggleEraser,
-      setIsProcessing: state.setIsProcessing,
-      setActiveTab: state.setActiveTab,
-      setIsLassoMode: state.setIsLassoMode,
-      setRefineBrushMode: state.setRefineBrushMode,
-      setRefineBrushSize: state.setRefineBrushSize,
-    }))
-  );
+    // Store Actions
+    const {
+      selectedLayerIds,
+      updateLayer,
+      deleteLayer: onDeleteLayer,
+      duplicateLayer: onDuplicateLayer,
+      moveLayer: onMoveLayer,
+      alignLayers: onAlignLayers,
+      groupSelected: onGroup,
+      ungroupSelected: onUngroup,
+      onRmBg,
+      vectorizeLayer,
+      onCrop: onCropAction,
+      onEnhance,
+      onUpscale,
+      onRetouch,
+      onRemix,
+      onMagicExpand,
+      toggleEraser,
+      setIsProcessing,
+      setActiveTab,
+      setIsLassoMode,
+      setRefineBrushMode,
+      setRefineBrushSize,
+    } = useStore(
+      useShallow((state) => ({
+        selectedLayerIds: state.selectedLayerIds,
+        updateLayer: state.updateLayer,
+        deleteLayer: state.deleteLayer,
+        duplicateLayer: state.duplicateLayer,
+        moveLayer: state.moveLayer,
+        alignLayers: state.alignLayers,
+        groupSelected: state.groupSelected,
+        ungroupSelected: state.ungroupSelected,
+        onRmBg: state.onRmBg,
+        vectorizeLayer: state.vectorizeLayer,
+        onCrop: state.onCrop,
+        onEnhance: state.onEnhance,
+        onUpscale: state.onUpscale,
+        onRetouch: state.onRetouch,
+        onRemix: state.onRemix,
+        onMagicExpand: state.onMagicExpand,
+        toggleEraser: state.toggleEraser,
+        setIsProcessing: state.setIsProcessing,
+        setActiveTab: state.setActiveTab,
+        setIsLassoMode: state.setIsLassoMode,
+        setRefineBrushMode: state.setRefineBrushMode,
+        setRefineBrushSize: state.setRefineBrushSize,
+      }))
+    );
 
-  const isRemovingBgStore = useStore((state) => state.isRemovingBg);
-  const isExpandingStore = useStore((state) => state.isExpanding);
-  const isEraserActiveStore = useStore((state) => state.isEraserActive);
-  const isLassoModeStore = useStore((state) => state.isLassoMode);
-  const refineBrushModeStore = useStore((state) => state.refineBrushMode);
-  const refineBrushSizeStore = useStore((state) => state.refineBrushSize);
+    const isRemovingBgStore = useStore((state) => state.isRemovingBg);
+    const isExpandingStore = useStore((state) => state.isExpanding);
+    const isEraserActiveStore = useStore((state) => state.isEraserActive);
+    const isLassoModeStore = useStore((state) => state.isLassoMode);
+    const refineBrushModeStore = useStore((state) => state.refineBrushMode);
+    const refineBrushSizeStore = useStore((state) => state.refineBrushSize);
 
-  const doneLasso = () => setIsLassoMode(false);
-  const cancelLasso = () => setIsLassoMode(false);
+    const doneLasso = () => setIsLassoMode(false);
+    const cancelLasso = () => setIsLassoMode(false);
 
-  const selectedLayer = useStore(selectedLayerSelector);
-  const isMultiSelect = (selectedLayerIds || []).length > 1;
+    const selectedLayer = useStore(selectedLayerSelector);
+    const isMultiSelect = (selectedLayerIds || []).length > 1;
 
-  // Listen for "open effects panel" event
-  useEffect(() => {
-    const handleOpenEffects = () => {
-      setActiveTab(NavTab.TEXT);
-      // We could ideally trigger the inner tab state of TextPanel here, but setting active tab to TEXT is the fallback.
+    // Listen for "open effects panel" event
+    useEffect(() => {
+      const handleOpenEffects = () => {
+        setActiveTab(NavTab.TEXT);
+        // We could ideally trigger the inner tab state of TextPanel here, but setting active tab to TEXT is the fallback.
+      };
+      window.addEventListener('open-effects-panel', handleOpenEffects);
+      return () => window.removeEventListener('open-effects-panel', handleOpenEffects);
+    }, [setActiveTab]);
+
+    const handleUpdateLayer = useCallback(
+      (changes: any) => {
+        if (!selectedLayer) {
+          return;
+        }
+        updateLayer(selectedLayer.id, changes);
+      },
+      [selectedLayer, updateLayer]
+    );
+
+    const handleToneRewrite = async (id: string, instruction: string) => {
+      setShowRewriteTones(false);
+      setIsProcessing(true);
+      try {
+        const newText = await geminiService.generateText((selectedLayer as TextLayer).text, instruction);
+        updateLayer(id, { text: newText });
+      } catch (error) {
+        log.error('[Toolbar] Text rewrite failed', error, { layerId: id });
+      } finally {
+        setIsProcessing(false);
+      }
     };
-    window.addEventListener('open-effects-panel', handleOpenEffects);
-    return () => window.removeEventListener('open-effects-panel', handleOpenEffects);
-  }, [setActiveTab]);
 
-  const handleUpdateLayer = useCallback(
-    (changes: any) => {
-      if (!selectedLayer) {return;}
-      updateLayer(selectedLayer.id, changes);
-    },
-    [selectedLayer, updateLayer]
-  );
-
-  const handleToneRewrite = async (id: string, instruction: string) => {
-    setShowRewriteTones(false);
-    setIsProcessing(true);
-    try {
-      const newText = await geminiService.generateText((selectedLayer as TextLayer).text, instruction);
-      updateLayer(id, { text: newText });
-    } catch (error) {
-      log.error('[Toolbar] Text rewrite failed', error, { layerId: id });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  return (
-    <div className="flex items-center gap-4 w-full h-full">
-      <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-1">
+    return (
+      <div className="flex items-center gap-4 w-full h-full">
+        <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-1">
           {isMultiSelect ? (
             <div className="flex items-center gap-4">
-              <span className="text-[10px] font-black text-[#7d2ae8] uppercase tracking-widest">Selected ({(selectedLayerIds || []).length})</span>
+              <span className="text-[10px] font-black text-[#7d2ae8] uppercase tracking-widest">
+                Selected ({(selectedLayerIds || []).length})
+              </span>
               <Divider />
               <div className="flex bg-black/40 rounded-xl border border-white/5 p-1 gap-1">
                 <IconButton onClick={() => onAlignLayers?.('left')} title="Align Left">
@@ -165,7 +170,10 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
                 </IconButton>
               </div>
               <Divider />
-              <IconButton onClick={() => (selectedLayerIds || []).forEach((id) => onDeleteLayer(id))} title="Delete All">
+              <IconButton
+                onClick={() => (selectedLayerIds || []).forEach((id) => onDeleteLayer(id))}
+                title="Delete All"
+              >
                 <Icons.Trash className="w-4 h-4 text-red-400" />
               </IconButton>
             </div>
@@ -268,9 +276,10 @@ export const Toolbar = React.memo(({ documentColors = [], onCompletePath, onBool
               </div>
             </>
           )}
+        </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 Toolbar.displayName = 'Toolbar';

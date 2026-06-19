@@ -18,14 +18,25 @@ import { SEO } from './components/SEO';
 import { FeedbackModal } from './components/modals/FeedbackModal';
 import { PresentationModal } from './components/modals/PresentationModal';
 import { VersionDiffModal } from './components/modals/VersionDiffModal';
-import { AboutPage, PrivacyPage, TermsPage, SecurityPage, ContactPage, HelpCenterPage, ChangelogPage, APIPage } from './components/pages/StaticPages';
+import {
+  AboutPage,
+  PrivacyPage,
+  TermsPage,
+  SecurityPage,
+  ContactPage,
+  HelpCenterPage,
+  ChangelogPage,
+  APIPage,
+} from './components/pages/StaticPages';
 import { parseShareLink } from './utils/shareUtils';
 
 // Lazy load main views for code splitting
 const Auth = React.lazy(() => import('./components/Auth').then((module) => ({ default: module.Auth })));
 const Dashboard = React.lazy(() => import('./components/Dashboard').then((module) => ({ default: module.Dashboard })));
 const Editor = React.lazy(() => import('./components/Editor').then((module) => ({ default: module.Editor })));
-const AuthCallback = React.lazy(() => import('./components/AuthCallback').then((module) => ({ default: module.AuthCallback })));
+const AuthCallback = React.lazy(() =>
+  import('./components/AuthCallback').then((module) => ({ default: module.AuthCallback }))
+);
 import { EditorSkeleton } from './components/EditorSkeleton';
 
 const LoadingFallback = () => (
@@ -66,7 +77,7 @@ const App: React.FC = () => {
         if (savedUser) {
           setUser(savedUser);
         }
-        
+
         const seenOnboarding = localStorage.getItem('kreathief_onboarding_seen');
         if (!seenOnboarding) {
           setShowWelcome(true);
@@ -126,9 +137,13 @@ const App: React.FC = () => {
   // Local-First: Background Persistence
   // Mirror state to IndexedDB every 2 seconds if changes detected
   useEffect(() => {
-    if (!user) {return;}
+    if (!user) {
+      return;
+    }
     const state = useStore.getState();
-    if (!state.projectId) {return;}
+    if (!state.projectId) {
+      return;
+    }
 
     const timeout = setTimeout(() => {
       const mirrorState = {
@@ -144,7 +159,7 @@ const App: React.FC = () => {
     }, 2000);
 
     return () => clearTimeout(timeout);
-  }, [location.pathname, user]); 
+  }, [location.pathname, user]);
 
   const handleLogin = (user: User) => {
     setUser(user);
@@ -158,7 +173,7 @@ const App: React.FC = () => {
       name: 'Guest Creator',
       avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=guest`,
       plan: 'free',
-      isGuest: true
+      isGuest: true,
     };
     setUser(guestUser);
     navigate('/editor');
@@ -240,7 +255,9 @@ const App: React.FC = () => {
   ];
 
   const defaultProject = useMemo(() => {
-    if (location.pathname !== '/editor' || useStore.getState().projectId) {return undefined;}
+    if (location.pathname !== '/editor' || useStore.getState().projectId) {
+      return undefined;
+    }
     return {
       id: 'default',
       name: 'Untitled',
@@ -249,9 +266,19 @@ const App: React.FC = () => {
         artboards: [{ id: 'default', name: 'Artboard 1', x: 0, y: 0, width: 1080, height: 1080, layers: [] }],
         activeArtboardId: 'default',
         canvasBackgroundColor: '#ffffff',
-        canvasFilters: { brightness: 100, contrast: 100, saturation: 100, sepia: 0, grayscale: 0, blur: 0, opacity: 1, vignette: 0, hueRotate: 0 },
-        canvasSize: { width: 1080, height: 1080, name: 'Square' }
-      }
+        canvasFilters: {
+          brightness: 100,
+          contrast: 100,
+          saturation: 100,
+          sepia: 0,
+          grayscale: 0,
+          blur: 0,
+          opacity: 1,
+          vignette: 0,
+          hueRotate: 0,
+        },
+        canvasSize: { width: 1080, height: 1080, name: 'Square' },
+      },
     } as any;
   }, [location.pathname]);
 
@@ -264,43 +291,43 @@ const App: React.FC = () => {
       <SEO />
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
-          <Route 
-            path="/" 
-            element={
-              <LandingPage 
-                onGetStarted={handleGuestEntry} 
-                onTryGuest={handleGuestEntry}
-              />
-            } 
-          />
+          <Route path="/" element={<LandingPage onGetStarted={handleGuestEntry} onTryGuest={handleGuestEntry} />} />
           <Route path="/auth" element={<Auth onLogin={handleLogin} />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route
             path="/dashboard"
-            element={user ? (
-              <Dashboard
-                onOpenProject={handleOpenProject}
-                onCreateProject={handleCreateProject}
-                onLogout={handleLogout}
-                user={user}
-              />
-            ) : <Navigate to="/auth" />}
+            element={
+              user ? (
+                <Dashboard
+                  onOpenProject={handleOpenProject}
+                  onCreateProject={handleCreateProject}
+                  onLogout={handleLogout}
+                  user={user}
+                />
+              ) : (
+                <Navigate to="/auth" />
+              )
+            }
           />
           <Route
             path="/editor"
-            element={user ? (
-              <Suspense fallback={<EditorSkeleton />}>
-                <Editor
-                  initialProject={currentProject || defaultProject}
-                  onBack={handleBackToDashboard}
-                  user={user}
-                />
-              </Suspense>
-            ) : <Navigate to="/auth" />}
+            element={
+              user ? (
+                <Suspense fallback={<EditorSkeleton />}>
+                  <Editor
+                    initialProject={currentProject || defaultProject}
+                    onBack={handleBackToDashboard}
+                    user={user}
+                  />
+                </Suspense>
+              ) : (
+                <Navigate to="/auth" />
+              )
+            }
           />
           <Route path="/blog" element={<BlogList />} />
           <Route path="/blog/:id" element={<BlogPostView />} />
-          
+
           <Route path="/about" element={<AboutPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />

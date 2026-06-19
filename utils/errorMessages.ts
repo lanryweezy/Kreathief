@@ -120,18 +120,18 @@ export function getErrorDetails(error: Error | unknown): ErrorDetails {
  */
 export function getAIErrorMessage(error: Error | unknown): string {
   const details = getErrorDetails(error);
-  
+
   if (details.code === ErrorCode.NETWORK_ERROR) {
     return 'AI generation failed: Network error. Check your connection and try again.';
   }
-  
+
   if (details.code === ErrorCode.TIMEOUT) {
     return 'AI generation timed out. Try a simpler prompt or try again later.';
   }
-  
+
   if (details.code === ErrorCode.QUOTA_EXCEEDED) {
     return 'AI generation limit reached. Please upgrade your plan or try again later.';
   }
-  
+
   return `AI generation failed: ${details.message}. ${details.suggestion}`;
 }

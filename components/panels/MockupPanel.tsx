@@ -3,14 +3,16 @@ import { Icons } from '../../constants';
 import { vecteezyService, VecteezyResource } from '../../services/vecteezyService';
 import { MockupModal } from '../modals/MockupModal';
 import { CornerHandles } from '../mockup/CornerHandles';
-import { MOCKUP_CATEGORIES, getMockupsByCategory, searchMockups, getMockupById, MockupPlacement } from '../../services/enhancedMockupsLibrary';
+import {
+  MOCKUP_CATEGORIES,
+  getMockupsByCategory,
+  searchMockups,
+  getMockupById,
+  MockupPlacement,
+} from '../../services/enhancedMockupsLibrary';
 import { log } from '../../utils/log';
 import { dynamicMockupsService } from '../../services/dynamicMockupsService';
-import {
-  getDefaultCornerPoints,
-  applyCurveToCorners,
-  CornerPoints,
-} from '../../services/perspectiveTransform';
+import { getDefaultCornerPoints, applyCurveToCorners, CornerPoints } from '../../services/perspectiveTransform';
 
 import { useStore } from '../../store/useStore';
 import { v4 as uuidv4 } from 'uuid';
@@ -93,7 +95,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     try {
       const saved = localStorage.getItem('kreathief_mockup_favorites');
       return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
+    } catch {
+      return [];
+    }
   });
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
@@ -145,7 +149,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     try {
       // Analyze the current mockup background to detect surface/placement area
       const bgImageSrc = customMockup || currentMockup?.bg;
-      if (!bgImageSrc) {return;}
+      if (!bgImageSrc) {
+        return;
+      }
 
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -159,7 +165,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       // Create canvas to analyze image
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      if (!ctx) {return;}
+      if (!ctx) {
+        return;
+      }
 
       canvas.width = img.naturalWidth;
       canvas.height = img.naturalHeight;
@@ -248,10 +256,8 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   }, [favoriteMockups]);
 
   const toggleFavorite = (mockupId: string) => {
-    setFavoriteMockups(prev =>
-      prev.includes(mockupId)
-        ? prev.filter(id => id !== mockupId)
-        : [...prev, mockupId]
+    setFavoriteMockups((prev) =>
+      prev.includes(mockupId) ? prev.filter((id) => id !== mockupId) : [...prev, mockupId]
     );
   };
 
@@ -260,16 +266,22 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     setIsAnalyzing(true);
     try {
       const designUrl = await captureDesign();
-      if (!designUrl) {return;}
+      if (!designUrl) {
+        return;
+      }
 
       // Analyze design characteristics
       const img = new Image();
       img.src = designUrl;
-      await new Promise(resolve => { img.onload = resolve; });
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
 
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      if (!ctx) {return;}
+      if (!ctx) {
+        return;
+      }
 
       canvas.width = img.width;
       canvas.height = img.height;
@@ -304,35 +316,43 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   };
 
   const toggleMockupSelection = (mockupId: string) => {
-    setSelectedMockupIds(prev =>
-      prev.includes(mockupId)
-        ? prev.filter(id => id !== mockupId)
-        : [...prev, mockupId]
+    setSelectedMockupIds((prev) =>
+      prev.includes(mockupId) ? prev.filter((id) => id !== mockupId) : [...prev, mockupId]
     );
   };
 
   const generateBatchMockups = async () => {
-    if (selectedMockupIds.length === 0) {return;}
+    if (selectedMockupIds.length === 0) {
+      return;
+    }
 
     setIsBatchGenerating(true);
     addToast(`Generating ${selectedMockupIds.length} mockups...`, 'info');
 
     try {
       const designUrl = await captureDesign();
-      if (!designUrl) {throw new Error('Failed to capture design');}
+      if (!designUrl) {
+        throw new Error('Failed to capture design');
+      }
 
       for (const mockupId of selectedMockupIds) {
         const mockup = getMockupById(mockupId);
-        if (!mockup) {continue;}
+        if (!mockup) {
+          continue;
+        }
 
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        if (!ctx) {continue;}
+        if (!ctx) {
+          continue;
+        }
 
         const bgImg = new Image();
         bgImg.crossOrigin = 'anonymous';
         bgImg.src = mockup.bg;
-        await new Promise(resolve => { bgImg.onload = resolve; });
+        await new Promise((resolve) => {
+          bgImg.onload = resolve;
+        });
 
         canvas.width = bgImg.naturalWidth;
         canvas.height = bgImg.naturalHeight;
@@ -340,7 +360,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
 
         const designImg = new Image();
         designImg.src = designUrl;
-        await new Promise(resolve => { designImg.onload = resolve; });
+        await new Promise((resolve) => {
+          designImg.onload = resolve;
+        });
 
         const { top, left, width } = mockup.defaultPlacement;
         const x = (left / 100) * canvas.width;
@@ -358,7 +380,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
           type: 'image',
           name: `${mockup.name} Mockup`,
           src: dataUrl,
-          x: 50 + (selectedMockupIds.indexOf(mockupId) * 520),
+          x: 50 + selectedMockupIds.indexOf(mockupId) * 520,
           y: 50,
           width: 500,
           height: 500,
@@ -369,16 +391,16 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
           flipX: false,
           flipY: false,
           blendMode: 'normal',
-          filters: { 
-            brightness: 100, 
-            contrast: 100, 
-            saturation: 100, 
-            blur: 0, 
+          filters: {
+            brightness: 100,
+            contrast: 100,
+            saturation: 100,
+            blur: 0,
             opacity: 1,
             grayscale: 0,
             sepia: 0,
             hueRotate: 0,
-            vignette: 0
+            vignette: 0,
           },
         });
       }
@@ -397,7 +419,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   // App Store preset generator
   const generatePreset = async (presetName: string) => {
     const mockupIds = APP_STORE_PRESETS[presetName as keyof typeof APP_STORE_PRESETS];
-    if (!mockupIds) {return;}
+    if (!mockupIds) {
+      return;
+    }
 
     setSelectedMockupIds(mockupIds);
     addToast(`Selected ${mockupIds.length} mockups for ${presetName}`, 'success');
@@ -435,18 +459,18 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   // Filter mockups based on favorites and suggestions
   const filteredMockups = useMemo(() => {
     let result = mockups;
-    
+
     if (showFavoritesOnly) {
-      result = result.filter(m => favoriteMockups.includes(m.id));
+      result = result.filter((m) => favoriteMockups.includes(m.id));
     }
-    
+
     if (suggestedMockups.length > 0 && !showFavoritesOnly) {
       // Show suggested first, then others
-      const suggested = result.filter(m => suggestedMockups.includes(m.id));
-      const others = result.filter(m => !suggestedMockups.includes(m.id));
+      const suggested = result.filter((m) => suggestedMockups.includes(m.id));
+      const others = result.filter((m) => !suggestedMockups.includes(m.id));
       result = [...suggested, ...others];
     }
-    
+
     return result;
   }, [mockups, favoriteMockups, suggestedMockups, showFavoritesOnly]);
 
@@ -469,7 +493,14 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
         category: 'Vecteezy',
         bg: vecteezyMatch.preview_url,
         defaultPlacement: {
-          top: 30, left: 30, width: 40, rotate: 0, skewX: 0, skewY: 0, opacity: 0.9, blendMode: 'multiply' as const
+          top: 30,
+          left: 30,
+          width: 40,
+          rotate: 0,
+          skewX: 0,
+          skewY: 0,
+          opacity: 0.9,
+          blendMode: 'multiply' as const,
         },
         tags: ['vecteezy'],
       };
@@ -559,6 +590,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       return null;
     }
 
+    // eslint-disable-next-line no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
         const worker = new Worker(new URL('../../workers/mockup.worker.ts', import.meta.url), { type: 'module' });
@@ -600,17 +632,19 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
           worker.terminate();
         };
 
-        worker.postMessage({
-          bgBitmap,
-          designBitmap,
-          placement: { ...placement, useCornerPinning },
-          cornerPoints: useCornerPinning ? cornerPoints : undefined,
-          shadowIntensity,
-          reflectionIntensity,
-          lightingBrightness,
-          lightingContrast,
-        }, [bgBitmap, designBitmap]); // Transfer ownership of bitmaps
-
+        worker.postMessage(
+          {
+            bgBitmap,
+            designBitmap,
+            placement: { ...placement, useCornerPinning },
+            cornerPoints: useCornerPinning ? cornerPoints : undefined,
+            shadowIntensity,
+            reflectionIntensity,
+            lightingBrightness,
+            lightingContrast,
+          },
+          [bgBitmap, designBitmap]
+        ); // Transfer ownership of bitmaps
       } catch (err) {
         log.error('Mockup Worker setup failed', err);
         resolve(null); // return null rather than crash
@@ -695,265 +729,275 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       <div className="flex h-full w-full bg-[#0e1318] text-white overflow-hidden relative">
         {/* Left Column: Mockup Library */}
         <div className="w-[320px] flex flex-col border-r border-gray-800 bg-[#13161a] shrink-0">
-           <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-sm font-black uppercase tracking-widest text-[#7d2ae8]">Smart Mockups</h2>
-              {onClose && (
-                <button onClick={onClose} aria-label="Close panel" className="p-1 hover:bg-white/5 rounded-md text-gray-500 hover:text-white transition-all">
-                  <Icons.X className="w-4 h-4" />
-                </button>
-              )}
-           </div>
+          <div className="p-4 border-b border-gray-800 flex justify-between items-center">
+            <h2 className="text-sm font-black uppercase tracking-widest text-[#7d2ae8]">Smart Mockups</h2>
+            {onClose && (
+              <button
+                onClick={onClose}
+                aria-label="Close panel"
+                className="p-1 hover:bg-white/5 rounded-md text-gray-500 hover:text-white transition-all"
+              >
+                <Icons.X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
 
-           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
-              <div className="p-3 bg-blue-900/10 border border-blue-500/20 rounded-lg">
-                <p className="text-[10px] text-blue-300/80 leading-relaxed">
-                  Automatically places your design onto high-quality product photos. Use the controls below to perfect the alignment.
-                </p>
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
+            <div className="p-3 bg-blue-900/10 border border-blue-500/20 rounded-lg">
+              <p className="text-[10px] text-blue-300/80 leading-relaxed">
+                Automatically places your design onto high-quality product photos. Use the controls below to perfect the
+                alignment.
+              </p>
+            </div>
+
+            {/* Quick Actions Row */}
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={suggestMockups}
+                disabled={isAnalyzing}
+                className="flex-1 min-w-[120px] px-3 py-2 bg-gradient-to-r from-[#7d2ae8] to-[#00c4cc] rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-purple-900/30"
+              >
+                {isAnalyzing ? (
+                  <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
+                ) : (
+                  <Icons.Magic className="w-3.5 h-3.5" />
+                )}
+                Suggest
+              </button>
+              <button
+                onClick={toggleBatchMode}
+                className={`flex-1 min-w-[120px] px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                  batchMode
+                    ? 'bg-[#7d2ae8] text-white shadow-lg'
+                    : 'bg-[#1e1e1e] text-gray-400 border border-gray-700 hover:border-white/20'
+                }`}
+              >
+                <Icons.Layers className="w-3.5 h-3.5" />
+                Batch {batchMode && `(${selectedMockupIds.length})`}
+              </button>
+              <button
+                onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                className={`px-3 py-2 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 ${
+                  showFavoritesOnly
+                    ? 'bg-red-500 text-white'
+                    : 'bg-[#1e1e1e] text-gray-400 border border-gray-700 hover:border-white/20'
+                }`}
+              >
+                <Icons.Heart className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+                Favorites
+              </button>
+            </div>
+
+            {/* App Store Presets */}
+            <div className="p-3 bg-gradient-to-br from-[#7d2ae8]/10 to-[#00c4cc]/10 border border-[#7d2ae8]/20 rounded-lg">
+              <h4 className="text-[9px] font-black text-white uppercase tracking-wider mb-2 flex items-center gap-1">
+                <Icons.Zap className="w-3 h-3 text-[#7d2ae8]" />
+                Quick Sets
+              </h4>
+              <div className="flex flex-wrap gap-1.5">
+                {Object.keys(APP_STORE_PRESETS).map((preset) => (
+                  <button
+                    key={preset}
+                    onClick={() => generatePreset(preset)}
+                    className="px-2 py-1 bg-[#1e1e1e] hover:bg-[#7d2ae8]/20 border border-gray-700 hover:border-[#7d2ae8] rounded text-[8px] font-bold text-gray-400 hover:text-white transition-all"
+                  >
+                    {preset}
+                  </button>
+                ))}
               </div>
+            </div>
 
-              {/* Quick Actions Row */}
-              <div className="flex gap-2 flex-wrap">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search mockups..."
+                className="w-full bg-[#1e1e1e] border border-gray-700 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:border-[#7d2ae8] focus:outline-none"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+            </div>
+
+            <div className="flex items-center justify-between text-[10px] text-gray-400">
+              <span>
+                Showing <span className="text-white font-bold">{filteredMockups.length}</span> mockups
+                {showFavoritesOnly ? ' (Favorites)' : ''}
+              </span>
+              <div className="flex gap-2">
                 <button
-                  onClick={suggestMockups}
-                  disabled={isAnalyzing}
-                  className="flex-1 min-w-[120px] px-3 py-2 bg-gradient-to-r from-[#7d2ae8] to-[#00c4cc] rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-purple-900/30"
+                  onClick={handleAutoDetect}
+                  disabled={isDetecting}
+                  className="px-2 py-1 bg-[#7d2ae8]/20 border border-[#7d2ae8]/50 rounded hover:border-[#7d2ae8] transition-colors text-[#7d2ae8] flex items-center gap-1 disabled:opacity-50"
+                  title="AI Auto-Detect optimal placement"
                 >
-                  {isAnalyzing ? (
+                  {isDetecting ? (
+                    <div className="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full" />
+                  ) : (
+                    <Icons.Magic className="w-3 h-3" />
+                  )}
+                  Auto-Detect
+                </button>
+                <button
+                  onClick={() => setPlacement({ ...placement, skewX: 0, skewY: 0, rotate: 0 })}
+                  className="px-2 py-1 bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#7d2ae8] transition-colors"
+                >
+                  Reset Perspective
+                </button>
+                <button
+                  onClick={() => {
+                    const current = getMockupById(activeMockupId);
+                    if (current) {
+                      setPlacement(current.defaultPlacement);
+                    }
+                  }}
+                  className="px-2 py-1 bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#7d2ae8] transition-colors"
+                >
+                  Reset All
+                </button>
+              </div>
+            </div>
+
+            {batchMode && (
+              <div className="p-3 bg-[#7d2ae8]/10 border border-[#7d2ae8]/30 rounded-lg">
+                <p className="text-[9px] text-[#7d2ae8] font-bold mb-2">
+                  📦 Batch Mode: Select multiple mockups to generate
+                </p>
+                <button
+                  onClick={generateBatchMockups}
+                  disabled={selectedMockupIds.length === 0 || isBatchGenerating}
+                  className="w-full py-2 bg-[#7d2ae8] hover:bg-[#6c1fd1] text-white rounded font-bold text-[10px] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isBatchGenerating ? (
                     <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
                   ) : (
-                    <Icons.Magic className="w-3.5 h-3.5" />
+                    <Icons.Download className="w-3.5 h-3.5" />
                   )}
-                  Suggest
+                  Generate {selectedMockupIds.length} Mockup{selectedMockupIds.length !== 1 && 's'}
                 </button>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-1">
+              {MOCKUP_CATEGORIES.map((cat) => (
                 <button
-                  onClick={toggleBatchMode}
-                  className={`flex-1 min-w-[120px] px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
-                    batchMode
-                      ? 'bg-[#7d2ae8] text-white shadow-lg'
-                      : 'bg-[#1e1e1e] text-gray-400 border border-gray-700 hover:border-white/20'
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${
+                    activeCategory === cat
+                      ? 'bg-[#7d2ae8] text-white'
+                      : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
                   }`}
                 >
-                  <Icons.Layers className="w-3.5 h-3.5" />
-                  Batch {batchMode && `(${selectedMockupIds.length})`}
+                  {cat}
                 </button>
+              ))}
+            </div>
+
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-500 mt-4">Select Mockup</h3>
+
+            {/* Upload Custom Mockup */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full aspect-square rounded-lg border-2 border-dashed border-gray-700 hover:border-[#7d2ae8] transition-all flex flex-col items-center justify-center gap-2 bg-[#1a1d21] group"
+            >
+              <Icons.Upload className="w-6 h-6 text-gray-500 group-hover:text-[#7d2ae8] transition-colors" />
+              <span className="text-[9px] font-bold text-gray-500 group-hover:text-white transition-colors">
+                Upload Your Own
+              </span>
+            </button>
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUploadMockup} className="hidden" />
+
+            <div className="grid grid-cols-2 gap-2">
+              {/* Custom mockup thumbnail if uploaded */}
+              {customMockup && (
                 <button
-                  onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                  className={`px-3 py-2 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 ${
-                    showFavoritesOnly
-                      ? 'bg-red-500 text-white'
-                      : 'bg-[#1e1e1e] text-gray-400 border border-gray-700 hover:border-white/20'
+                  onClick={() => {
+                    setActiveMockupId('custom');
+                  }}
+                  className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                    activeMockupId === 'custom' ? 'border-[#7d2ae8]' : 'border-transparent hover:border-gray-600'
                   }`}
                 >
-                  <Icons.Heart className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-current' : ''}`} />
-                  Favorites
+                  <img src={customMockup} alt="Custom mockup" className="w-full h-full object-cover" />
+                  <div className="absolute inset-x-0 bottom-0 bg-[#7d2ae8]/90 p-1.5 backdrop-blur-sm">
+                    <span className="text-[8px] font-bold text-white block truncate">Your Upload</span>
+                  </div>
                 </button>
-              </div>
-
-              {/* App Store Presets */}
-              <div className="p-3 bg-gradient-to-br from-[#7d2ae8]/10 to-[#00c4cc]/10 border border-[#7d2ae8]/20 rounded-lg">
-                <h4 className="text-[9px] font-black text-white uppercase tracking-wider mb-2 flex items-center gap-1">
-                  <Icons.Zap className="w-3 h-3 text-[#7d2ae8]" />
-                  Quick Sets
-                </h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {Object.keys(APP_STORE_PRESETS).map(preset => (
-                    <button
-                      key={preset}
-                      onClick={() => generatePreset(preset)}
-                      className="px-2 py-1 bg-[#1e1e1e] hover:bg-[#7d2ae8]/20 border border-gray-700 hover:border-[#7d2ae8] rounded text-[8px] font-bold text-gray-400 hover:text-white transition-all"
-                    >
-                      {preset}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search mockups..."
-                  className="w-full bg-[#1e1e1e] border border-gray-700 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:border-[#7d2ae8] focus:outline-none"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
-              </div>
-
-              <div className="flex items-center justify-between text-[10px] text-gray-400">
-                <span>Showing <span className="text-white font-bold">{filteredMockups.length}</span> mockups{showFavoritesOnly ? ' (Favorites)' : ''}</span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleAutoDetect}
-                    disabled={isDetecting}
-                    className="px-2 py-1 bg-[#7d2ae8]/20 border border-[#7d2ae8]/50 rounded hover:border-[#7d2ae8] transition-colors text-[#7d2ae8] flex items-center gap-1 disabled:opacity-50"
-                    title="AI Auto-Detect optimal placement"
-                  >
-                    {isDetecting ? (
-                      <div className="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full" />
-                    ) : (
-                      <Icons.Magic className="w-3 h-3" />
-                    )}
-                    Auto-Detect
-                  </button>
-                  <button
-                    onClick={() => setPlacement({ ...placement, skewX: 0, skewY: 0, rotate: 0 })}
-                    className="px-2 py-1 bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#7d2ae8] transition-colors"
-                  >
-                    Reset Perspective
-                  </button>
-                  <button
-                    onClick={() => {
-                      const current = getMockupById(activeMockupId);
-                      if (current) {setPlacement(current.defaultPlacement);}
-                    }}
-                    className="px-2 py-1 bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#7d2ae8] transition-colors"
-                  >
-                    Reset All
-                  </button>
-                </div>
-              </div>
-
-              {batchMode && (
-                <div className="p-3 bg-[#7d2ae8]/10 border border-[#7d2ae8]/30 rounded-lg">
-                  <p className="text-[9px] text-[#7d2ae8] font-bold mb-2">
-                    📦 Batch Mode: Select multiple mockups to generate
-                  </p>
-                  <button
-                    onClick={generateBatchMockups}
-                    disabled={selectedMockupIds.length === 0 || isBatchGenerating}
-                    className="w-full py-2 bg-[#7d2ae8] hover:bg-[#6c1fd1] text-white rounded font-bold text-[10px] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isBatchGenerating ? (
-                      <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
-                    ) : (
-                      <Icons.Download className="w-3.5 h-3.5" />
-                    )}
-                    Generate {selectedMockupIds.length} Mockup{selectedMockupIds.length !== 1 && 's'}
-                  </button>
-                </div>
               )}
 
-              <div className="flex flex-wrap gap-1">
-                {MOCKUP_CATEGORIES.map((cat) => (
+              {filteredMockups.map((m) => (
+                <div key={m.id} className="relative aspect-square">
+                  {/* Batch Selection Checkbox */}
+                  {batchMode && (
+                    <label className="absolute top-1 left-1 z-20">
+                      <input
+                        type="checkbox"
+                        checked={selectedMockupIds.includes(m.id)}
+                        onChange={() => toggleMockupSelection(m.id)}
+                        className="w-4 h-4 rounded border-2 border-white/50 accent-[#7d2ae8] bg-black/50"
+                      />
+                    </label>
+                  )}
+
+                  {/* Favorite Button */}
                   <button
-                    key={cat}
-                    onClick={() => setActiveCategory(cat)}
-                    className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${
-                      activeCategory === cat ? 'bg-[#7d2ae8] text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-500 mt-4">Select Mockup</h3>
-
-              {/* Upload Custom Mockup */}
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full aspect-square rounded-lg border-2 border-dashed border-gray-700 hover:border-[#7d2ae8] transition-all flex flex-col items-center justify-center gap-2 bg-[#1a1d21] group"
-              >
-                <Icons.Upload className="w-6 h-6 text-gray-500 group-hover:text-[#7d2ae8] transition-colors" />
-                <span className="text-[9px] font-bold text-gray-500 group-hover:text-white transition-colors">Upload Your Own</span>
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleUploadMockup}
-                className="hidden"
-              />
-
-              <div className="grid grid-cols-2 gap-2">
-                {/* Custom mockup thumbnail if uploaded */}
-                {customMockup && (
-                  <button
-                    onClick={() => {
-                      setActiveMockupId('custom');
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(m.id);
                     }}
-                    className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                      activeMockupId === 'custom' ? 'border-[#7d2ae8]' : 'border-transparent hover:border-gray-600'
-                    }`}
+                    className="absolute top-1 right-1 z-20 p-1.5 bg-black/60 hover:bg-red-500/80 rounded-full transition-all opacity-0 hover:opacity-100 group-hover:opacity-100"
                   >
-                    <img src={customMockup} alt="Custom mockup" className="w-full h-full object-cover" />
-                    <div className="absolute inset-x-0 bottom-0 bg-[#7d2ae8]/90 p-1.5 backdrop-blur-sm">
-                      <span className="text-[8px] font-bold text-white block truncate">Your Upload</span>
+                    <Icons.Heart
+                      className={`w-3 h-3 ${favoriteMockups.includes(m.id) ? 'fill-red-500 text-red-500' : 'text-white'}`}
+                    />
+                  </button>
+
+                  {/* Suggested Badge */}
+                  {suggestedMockups.includes(m.id) && !showFavoritesOnly && (
+                    <div className="absolute bottom-12 right-1 z-20 px-1.5 py-0.5 bg-[#7d2ae8] text-white text-[7px] font-black uppercase rounded-sm shadow-lg">
+                      ✨ Suggested
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => !batchMode && setActiveMockupId(m.id)}
+                    className={`w-full aspect-square rounded-lg overflow-hidden border-2 transition-all group ${
+                      activeMockupId === m.id ? 'border-[#7d2ae8]' : 'border-transparent hover:border-gray-600'
+                    } ${batchMode ? 'cursor-pointer' : 'cursor-pointer'}`}
+                  >
+                    <img src={m.bg} alt={m.name} className="w-full h-full object-cover" />
+                    <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1.5 backdrop-blur-sm">
+                      <span className="text-[8px] font-bold text-white block truncate">{m.name}</span>
                     </div>
                   </button>
-                )}
+                </div>
+              ))}
 
-                {filteredMockups.map((m) => (
-                  <div key={m.id} className="relative aspect-square">
-                    {/* Batch Selection Checkbox */}
-                    {batchMode && (
-                      <label className="absolute top-1 left-1 z-20">
-                        <input
-                          type="checkbox"
-                          checked={selectedMockupIds.includes(m.id)}
-                          onChange={() => toggleMockupSelection(m.id)}
-                          className="w-4 h-4 rounded border-2 border-white/50 accent-[#7d2ae8] bg-black/50"
-                        />
-                      </label>
-                    )}
-
-                    {/* Favorite Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(m.id);
-                      }}
-                      className="absolute top-1 right-1 z-20 p-1.5 bg-black/60 hover:bg-red-500/80 rounded-full transition-all opacity-0 hover:opacity-100 group-hover:opacity-100"
-                    >
-                      <Icons.Heart className={`w-3 h-3 ${favoriteMockups.includes(m.id) ? 'fill-red-500 text-red-500' : 'text-white'}`} />
-                    </button>
-
-                    {/* Suggested Badge */}
-                    {suggestedMockups.includes(m.id) && !showFavoritesOnly && (
-                      <div className="absolute bottom-12 right-1 z-20 px-1.5 py-0.5 bg-[#7d2ae8] text-white text-[7px] font-black uppercase rounded-sm shadow-lg">
-                        ✨ Suggested
-                      </div>
-                    )}
-
-                    <button
-                      onClick={() => !batchMode && setActiveMockupId(m.id)}
-                      className={`w-full aspect-square rounded-lg overflow-hidden border-2 transition-all group ${
-                        activeMockupId === m.id ? 'border-[#7d2ae8]' : 'border-transparent hover:border-gray-600'
-                      } ${batchMode ? 'cursor-pointer' : 'cursor-pointer'}`}
-                    >
-                      <img src={m.bg} alt={m.name} className="w-full h-full object-cover" />
-                      <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1.5 backdrop-blur-sm">
-                        <span className="text-[8px] font-bold text-white block truncate">{m.name}</span>
-                      </div>
-                    </button>
-                  </div>
-                ))}
-
-                {/* Vecteezy Results */}
-                {vecteezyResults.length > 0 && (
-                  <div className="col-span-2 pt-2 border-t border-gray-800 mt-2">
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-2 flex items-center gap-1">
-                      <Icons.Globe className="w-3 h-3" /> Vecteezy Results
-                    </h4>
-                  </div>
-                )}
-                {vecteezyResults.map((v) => (
-                  <div key={v.id} className="relative aspect-square">
-                    <button
-                      onClick={() => !batchMode && setActiveMockupId(v.id)}
-                      className={`w-full aspect-square rounded-lg overflow-hidden border-2 transition-all group ${
-                        activeMockupId === v.id ? 'border-blue-400' : 'border-transparent hover:border-blue-500/50'
-                      }`}
-                    >
-                      <img src={v.preview_url} alt={v.title} className="w-full h-full object-cover" />
-                      <div className="absolute inset-x-0 bottom-0 bg-black/80 p-1.5 backdrop-blur-sm">
-                        <span className="text-[8px] font-bold text-white block truncate">{v.title}</span>
-                      </div>
-                    </button>
-                  </div>
-                ))}
-              </div>
-           </div>
+              {/* Vecteezy Results */}
+              {vecteezyResults.length > 0 && (
+                <div className="col-span-2 pt-2 border-t border-gray-800 mt-2">
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-2 flex items-center gap-1">
+                    <Icons.Globe className="w-3 h-3" /> Vecteezy Results
+                  </h4>
+                </div>
+              )}
+              {vecteezyResults.map((v) => (
+                <div key={v.id} className="relative aspect-square">
+                  <button
+                    onClick={() => !batchMode && setActiveMockupId(v.id)}
+                    className={`w-full aspect-square rounded-lg overflow-hidden border-2 transition-all group ${
+                      activeMockupId === v.id ? 'border-blue-400' : 'border-transparent hover:border-blue-500/50'
+                    }`}
+                  >
+                    <img src={v.preview_url} alt={v.title} className="w-full h-full object-cover" />
+                    <div className="absolute inset-x-0 bottom-0 bg-black/80 p-1.5 backdrop-blur-sm">
+                      <span className="text-[8px] font-bold text-white block truncate">{v.title}</span>
+                    </div>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Center Column: Live Preview */}
@@ -1066,241 +1110,299 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                 </div>
               )
             ) : (
-              <span className="text-gray-600 font-bold uppercase tracking-widest animate-pulse">Generating Live Preview...</span>
+              <span className="text-gray-600 font-bold uppercase tracking-widest animate-pulse">
+                Generating Live Preview...
+              </span>
             )}
           </div>
-
         </div>
 
         {/* Right Column: Controls */}
         <div className="w-[320px] flex flex-col border-l border-gray-800 bg-[#13161a] shrink-0 overflow-y-auto custom-scrollbar">
-           <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-[#7d2ae8]">Settings</h3>
-              <div className="flex gap-2">
+          <div className="p-4 border-b border-gray-800 flex justify-between items-center">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-[#7d2ae8]">Settings</h3>
+            <div className="flex gap-2">
+              <button
+                onClick={handleDownload}
+                className="p-1.5 hover:bg-white/5 rounded-md text-gray-400 hover:text-white transition-all"
+                title="Download Mockup"
+              >
+                <Icons.Download className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleAddToCanvas}
+                className="p-1.5 bg-[#7d2ae8]/20 hover:bg-[#7d2ae8]/30 rounded-md text-[#7d2ae8] transition-all"
+                title="Add to Canvas"
+              >
+                <Icons.Plus className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="p-4 space-y-8">
+            {/* Corner Pinning */}
+            <div className="p-4 bg-gradient-to-br from-[#7d2ae8]/10 to-transparent border border-[#7d2ae8]/20 rounded-xl space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-widest text-white">
+                  Corner Pinning (4-Point Perspective)
+                </span>
                 <button
-                  onClick={handleDownload}
-                  className="p-1.5 hover:bg-white/5 rounded-md text-gray-400 hover:text-white transition-all"
-                  title="Download Mockup"
+                  onClick={() => {
+                    setUseCornerPinning(!useCornerPinning);
+                    if (!useCornerPinning) {
+                      const defaultCorners = getDefaultCornerPoints(
+                        previewContainerSize.width,
+                        previewContainerSize.height,
+                        placement
+                      );
+                      setCornerPoints(defaultCorners);
+                    }
+                  }}
+                  className={`px-3 py-1 rounded-md text-[9px] font-black transition-all ${
+                    useCornerPinning ? 'bg-[#7d2ae8] text-white shadow-lg' : 'bg-white/5 text-gray-500'
+                  }`}
                 >
-                  <Icons.Download className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={handleAddToCanvas}
-                  className="p-1.5 bg-[#7d2ae8]/20 hover:bg-[#7d2ae8]/30 rounded-md text-[#7d2ae8] transition-all"
-                  title="Add to Canvas"
-                >
-                  <Icons.Plus className="w-4 h-4" />
+                  {useCornerPinning ? 'ON' : 'OFF'}
                 </button>
               </div>
-           </div>
 
-           <div className="p-4 space-y-8">
-              {/* Corner Pinning */}
-              <div className="p-4 bg-gradient-to-br from-[#7d2ae8]/10 to-transparent border border-[#7d2ae8]/20 rounded-xl space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white">Corner Pinning (4-Point Perspective)</span>
-                  <button
-                    onClick={() => {
-                      setUseCornerPinning(!useCornerPinning);
-                      if (!useCornerPinning) {
-                        const defaultCorners = getDefaultCornerPoints(
-                          previewContainerSize.width,
-                          previewContainerSize.height,
-                          placement
-                        );
-                        setCornerPoints(defaultCorners);
-                      }
-                    }}
-                    className={`px-3 py-1 rounded-md text-[9px] font-black transition-all ${
-                      useCornerPinning ? 'bg-[#7d2ae8] text-white shadow-lg' : 'bg-white/5 text-gray-500'
-                    }`}
-                  >
-                    {useCornerPinning ? 'ON' : 'OFF'}
-                  </button>
+              {useCornerPinning && (
+                <div className="space-y-4">
+                  <div className="flex gap-1.5">
+                    {(['flat', 'angled', 'curved'] as const).map((preset) => (
+                      <button
+                        key={preset}
+                        onClick={() => {
+                          setPerspectivePreset(preset);
+                          if (preset === 'flat') {
+                            setCurve(0);
+                            updatePlacement('skewX', 0);
+                            updatePlacement('skewY', 0);
+                          } else if (preset === 'angled') {
+                            updatePlacement('skewX', 10);
+                            updatePlacement('skewY', 5);
+                          } else if (preset === 'curved') {
+                            setCurve(15);
+                          }
+                        }}
+                        className={`flex-1 py-1.5 rounded-md text-[8px] font-black uppercase transition-all ${
+                          perspectivePreset === preset
+                            ? 'bg-white/10 text-white border border-white/20'
+                            : 'text-gray-500 hover:text-gray-300'
+                        }`}
+                      >
+                        {preset}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
+                      <span>Curve Intensity</span>
+                      <span className="text-[#7d2ae8]">{curve}°</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="-30"
+                      max="30"
+                      value={curve}
+                      onChange={(e) => setCurve(Number(e.target.value))}
+                      className="w-full h-1.5 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Adjustments */}
+            <div className="space-y-6">
+              {/* Position */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                    Position (X / Y)
+                  </span>
+                  <span className="text-[10px] font-mono text-[#7d2ae8]">
+                    {Math.round(placement.left)}%, {Math.round(placement.top)}%
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={placement.left}
+                    onChange={(e) => updatePlacement('left', Number(e.target.value))}
+                    className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-white"
+                  />
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={placement.top}
+                    onChange={(e) => updatePlacement('top', Number(e.target.value))}
+                    className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-white"
+                  />
+                </div>
+              </div>
+
+              {/* Scale & Rotate */}
+              <div className="space-y-3">
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 block">
+                  Scale / Rotate
+                </span>
+                <div className="space-y-4">
+                  <input
+                    type="range"
+                    min="10"
+                    max="150"
+                    value={placement.width}
+                    onChange={(e) => updatePlacement('width', Number(e.target.value))}
+                    className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-white"
+                  />
+                  <input
+                    type="range"
+                    min="-180"
+                    max="180"
+                    value={placement.rotate}
+                    onChange={(e) => updatePlacement('rotate', Number(e.target.value))}
+                    className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-white"
+                  />
+                </div>
+              </div>
+
+              {/* Perspective */}
+              {!useCornerPinning && (
+                <div className="space-y-3">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 block">
+                    Perspective (Skew X / Y)
+                  </span>
+                  <div className="space-y-4">
+                    <input
+                      type="range"
+                      min="-45"
+                      max="45"
+                      value={placement.skewX || 0}
+                      onChange={(e) => updatePlacement('skewX', Number(e.target.value))}
+                      className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#00c4cc]"
+                    />
+                    <input
+                      type="range"
+                      min="-45"
+                      max="45"
+                      value={placement.skewY || 0}
+                      onChange={(e) => updatePlacement('skewY', Number(e.target.value))}
+                      className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#00c4cc]"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* 3D Lighting & Shadows */}
+              <div className="pt-4 border-t border-gray-800 space-y-4 mb-4">
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 block">
+                  3D Lighting & Shadows
+                </span>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
+                    <span>Shadow Intensity</span>
+                    <span className="text-white">{shadowIntensity}x</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="2"
+                    step="0.1"
+                    value={shadowIntensity}
+                    onChange={(e) => setShadowIntensity(Number(e.target.value))}
+                    className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
+                  />
                 </div>
 
-                {useCornerPinning && (
-                  <div className="space-y-4">
-                    <div className="flex gap-1.5">
-                      {(['flat', 'angled', 'curved'] as const).map((preset) => (
-                        <button
-                          key={preset}
-                          onClick={() => {
-                            setPerspectivePreset(preset);
-                            if (preset === 'flat') { setCurve(0); updatePlacement('skewX', 0); updatePlacement('skewY', 0); }
-                            else if (preset === 'angled') { updatePlacement('skewX', 10); updatePlacement('skewY', 5); }
-                            else if (preset === 'curved') { setCurve(15); }
-                          }}
-                          className={`flex-1 py-1.5 rounded-md text-[8px] font-black uppercase transition-all ${
-                            perspectivePreset === preset ? 'bg-white/10 text-white border border-white/20' : 'text-gray-500 hover:text-gray-300'
-                          }`}
-                        >
-                          {preset}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="space-y-2">
-                       <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
-                          <span>Curve Intensity</span>
-                          <span className="text-[#7d2ae8]">{curve}°</span>
-                       </div>
-                       <input
-                          type="range" min="-30" max="30" value={curve}
-                          onChange={(e) => setCurve(Number(e.target.value))}
-                          className="w-full h-1.5 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
-                       />
-                    </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
+                    <span>Reflection Gloss</span>
+                    <span className="text-white">{Math.round(reflectionIntensity * 100)}%</span>
                   </div>
-                )}
-              </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={reflectionIntensity}
+                    onChange={(e) => setReflectionIntensity(Number(e.target.value))}
+                    className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
+                  />
+                </div>
 
-              {/* Adjustments */}
-              <div className="space-y-6">
-                 {/* Position */}
-                 <div className="space-y-3">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Position (X / Y)</span>
-                      <span className="text-[10px] font-mono text-[#7d2ae8]">
-                        {Math.round(placement.left)}%, {Math.round(placement.top)}%
-                      </span>
-                    </div>
-                    <div className="space-y-3">
-                      <input
-                        type="range" min="0" max="100" value={placement.left}
-                        onChange={(e) => updatePlacement('left', Number(e.target.value))}
-                        className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-white"
-                      />
-                      <input
-                        type="range" min="0" max="100" value={placement.top}
-                        onChange={(e) => updatePlacement('top', Number(e.target.value))}
-                        className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-white"
-                      />
-                    </div>
-                 </div>
-
-                 {/* Scale & Rotate */}
-                 <div className="space-y-3">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 block">Scale / Rotate</span>
-                    <div className="space-y-4">
-                       <input
-                          type="range" min="10" max="150" value={placement.width}
-                          onChange={(e) => updatePlacement('width', Number(e.target.value))}
-                          className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-white"
-                       />
-                       <input
-                          type="range" min="-180" max="180" value={placement.rotate}
-                          onChange={(e) => updatePlacement('rotate', Number(e.target.value))}
-                          className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-white"
-                       />
-                    </div>
-                 </div>
-
-                 {/* Perspective */}
-                 {!useCornerPinning && (
-                   <div className="space-y-3">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 block">Perspective (Skew X / Y)</span>
-                      <div className="space-y-4">
-                         <input
-                            type="range" min="-45" max="45" value={placement.skewX || 0}
-                            onChange={(e) => updatePlacement('skewX', Number(e.target.value))}
-                            className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#00c4cc]"
-                         />
-                         <input
-                            type="range" min="-45" max="45" value={placement.skewY || 0}
-                            onChange={(e) => updatePlacement('skewY', Number(e.target.value))}
-                            className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#00c4cc]"
-                         />
-                      </div>
-                   </div>
-                 )}
-
-                 
-                 
-                    
-
-
-                  {/* 3D Lighting & Shadows */}
-                  <div className="pt-4 border-t border-gray-800 space-y-4 mb-4">
-                     <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 block">3D Lighting & Shadows</span>
-                     
-                     <div className="space-y-2">
-                        <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
-                           <span>Shadow Intensity</span>
-                           <span className="text-white">{shadowIntensity}x</span>
-                        </div>
-                        <input
-                           type="range" min="0" max="2" step="0.1" value={shadowIntensity}
-                           onChange={(e) => setShadowIntensity(Number(e.target.value))}
-                           className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
-                        />
-                     </div>
-
-                     <div className="space-y-2">
-                        <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
-                           <span>Reflection Gloss</span>
-                           <span className="text-white">{Math.round(reflectionIntensity * 100)}%</span>
-                        </div>
-                        <input
-                           type="range" min="0" max="1" step="0.05" value={reflectionIntensity}
-                           onChange={(e) => setReflectionIntensity(Number(e.target.value))}
-                           className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
-                        />
-                     </div>
-
-                     <div className="space-y-2">
-                        <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
-                           <span>Brightness</span>
-                           <span className="text-white">{lightingBrightness}%</span>
-                        </div>
-                        <input
-                           type="range" min="50" max="150" step="1" value={lightingBrightness}
-                           onChange={(e) => setLightingBrightness(Number(e.target.value))}
-                           className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
-                        />
-                     </div>
-
-                     <div className="space-y-2">
-                        <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
-                           <span>Contrast</span>
-                           <span className="text-white">{lightingContrast}%</span>
-                        </div>
-                        <input
-                           type="range" min="50" max="150" step="1" value={lightingContrast}
-                           onChange={(e) => setLightingContrast(Number(e.target.value))}
-                           className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
-                        />
-                     </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
+                    <span>Brightness</span>
+                    <span className="text-white">{lightingBrightness}%</span>
                   </div>
-                  {/* Blend Mode */}
-                  <div className="pt-4 border-t border-gray-800 space-y-3 mb-4">
-                     <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 block">Blend Mode</span>
-                     <select
-                      value={placement.blendMode}
-                      onChange={(e) => updatePlacement('blendMode', e.target.value)}
-                      className="w-full bg-[#1e1e1e] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#7d2ae8] appearance-none"
-                    >
-                      <option value="source-over">Normal</option>
-                      <option value="multiply">Multiply (Realistic)</option>
-                      <option value="screen">Screen (Light)</option>
-                      <option value="overlay">Overlay</option>
-                      <option value="soft-light">Soft Light</option>
-                    </select>
-                 </div>
-              </div>
+                  <input
+                    type="range"
+                    min="50"
+                    max="150"
+                    step="1"
+                    value={lightingBrightness}
+                    onChange={(e) => setLightingBrightness(Number(e.target.value))}
+                    className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
+                  />
+                </div>
 
-              <button
-                onClick={handleProRender}
-                disabled={isProGenerating}
-                className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
-                  isProGenerating
-                    ? 'bg-white/5 text-gray-600'
-                    : 'bg-gradient-to-r from-[#7d2ae8] to-[#00c4cc] text-white shadow-lg shadow-purple-500/10'
-                }`}
-              >
-                {isProGenerating ? 'Creating...' : <><Icons.Zap className="w-3.5 h-3.5 text-yellow-300" /> Create Mockup</>}
-              </button>
-           </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
+                    <span>Contrast</span>
+                    <span className="text-white">{lightingContrast}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="50"
+                    max="150"
+                    step="1"
+                    value={lightingContrast}
+                    onChange={(e) => setLightingContrast(Number(e.target.value))}
+                    className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
+                  />
+                </div>
+              </div>
+              {/* Blend Mode */}
+              <div className="pt-4 border-t border-gray-800 space-y-3 mb-4">
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 block">Blend Mode</span>
+                <select
+                  value={placement.blendMode}
+                  onChange={(e) => updatePlacement('blendMode', e.target.value)}
+                  className="w-full bg-[#1e1e1e] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#7d2ae8] appearance-none"
+                >
+                  <option value="source-over">Normal</option>
+                  <option value="multiply">Multiply (Realistic)</option>
+                  <option value="screen">Screen (Light)</option>
+                  <option value="overlay">Overlay</option>
+                  <option value="soft-light">Soft Light</option>
+                </select>
+              </div>
+            </div>
+
+            <button
+              onClick={handleProRender}
+              disabled={isProGenerating}
+              className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+                isProGenerating
+                  ? 'bg-white/5 text-gray-600'
+                  : 'bg-gradient-to-r from-[#7d2ae8] to-[#00c4cc] text-white shadow-lg shadow-purple-500/10'
+              }`}
+            >
+              {isProGenerating ? (
+                'Creating...'
+              ) : (
+                <>
+                  <Icons.Zap className="w-3.5 h-3.5 text-yellow-300" /> Create Mockup
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -1484,7 +1586,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                   key={tab}
                   onClick={() => setActiveTab(tab)}
                   className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${
-                    activeTab === tab ? 'text-[#7d2ae8] border-b-2 border-[#7d2ae8] bg-[#7d2ae8]/5' : 'text-gray-500 hover:text-gray-300'
+                    activeTab === tab
+                      ? 'text-[#7d2ae8] border-b-2 border-[#7d2ae8] bg-[#7d2ae8]/5'
+                      : 'text-gray-500 hover:text-gray-300'
                   }`}
                 >
                   {tab}
@@ -1505,12 +1609,18 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <input
-                        type="range" min="0" max="100" value={placement.left}
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={placement.left}
                         onChange={(e) => updatePlacement('left', Number(e.target.value))}
                         className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
                       />
                       <input
-                        type="range" min="0" max="100" value={placement.top}
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={placement.top}
                         onChange={(e) => updatePlacement('top', Number(e.target.value))}
                         className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
                       />
@@ -1519,15 +1629,23 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
 
                   {/* Scale & Rotate */}
                   <div className="space-y-3">
-                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Scale / Rotate</span>
+                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">
+                      Scale / Rotate
+                    </span>
                     <div className="grid grid-cols-2 gap-2">
                       <input
-                        type="range" min="10" max="150" value={placement.width}
+                        type="range"
+                        min="10"
+                        max="150"
+                        value={placement.width}
                         onChange={(e) => updatePlacement('width', Number(e.target.value))}
                         className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
                       />
                       <input
-                        type="range" min="-180" max="180" value={placement.rotate}
+                        type="range"
+                        min="-180"
+                        max="180"
+                        value={placement.rotate}
                         onChange={(e) => updatePlacement('rotate', Number(e.target.value))}
                         className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
                       />
@@ -1553,7 +1671,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                           }
                         }}
                         className={`px-3 py-1 rounded text-[9px] font-bold border transition-all ${
-                          useCornerPinning ? 'bg-purple-600 border-purple-500 text-white' : 'bg-gray-700 border-gray-600 text-gray-300'
+                          useCornerPinning
+                            ? 'bg-purple-600 border-purple-500 text-white'
+                            : 'bg-gray-700 border-gray-600 text-gray-300'
                         }`}
                       >
                         {useCornerPinning ? 'ON' : 'OFF'}
@@ -1566,7 +1686,10 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                           <span className="text-[8px] text-white">{curve}°</span>
                         </div>
                         <input
-                          type="range" min="-30" max="30" value={curve}
+                          type="range"
+                          min="-30"
+                          max="30"
+                          value={curve}
                           onChange={(e) => setCurve(Number(e.target.value))}
                           className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
                         />
@@ -1579,14 +1702,18 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
               {activeTab === 'effects' && (
                 <div className="space-y-6 animate-in fade-in duration-300">
                   <div className="space-y-3">
-                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Blend Mode</label>
+                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">
+                      Blend Mode
+                    </label>
                     <div className="grid grid-cols-1 gap-2">
                       {['source-over', 'multiply', 'screen', 'overlay', 'soft-light'].map((mode) => (
                         <button
                           key={mode}
                           onClick={() => updatePlacement('blendMode', mode)}
                           className={`px-3 py-2 text-[10px] font-bold rounded-lg border transition-all text-left flex justify-between items-center ${
-                            placement.blendMode === mode ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white' : 'bg-black border-gray-800 text-gray-500 hover:border-gray-600'
+                            placement.blendMode === mode
+                              ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white'
+                              : 'bg-black border-gray-800 text-gray-500 hover:border-gray-600'
                           }`}
                         >
                           <span className="capitalize">{mode.replace('-', ' ')}</span>
@@ -1602,7 +1729,11 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                       <span className="text-white font-mono">{Math.round((placement.opacity || 0.9) * 100)}%</span>
                     </div>
                     <input
-                      type="range" min="0" max="1" step="0.01" value={placement.opacity || 0.9}
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={placement.opacity || 0.9}
                       onChange={(e) => updatePlacement('opacity', Number(e.target.value))}
                       className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-white"
                     />
@@ -1618,7 +1749,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                       <button
                         onClick={() => {
                           const current = getMockupById(activeMockupId);
-                          if (current) {setPlacement(current.defaultPlacement);}
+                          if (current) {
+                            setPlacement(current.defaultPlacement);
+                          }
                         }}
                         className="w-full py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/30 rounded-lg text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all"
                       >
@@ -1710,4 +1843,3 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   );
 };
 export default MockupPanel;
-

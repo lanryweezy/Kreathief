@@ -20,28 +20,30 @@ export const createBrandSlice: StateCreator<any, [], [], BrandSlice> = (set, get
       name: 'Automotive Procurement (SAP Ariba, Coupa)',
       colors: ['#0b1a30', '#008080', '#ff5722', '#e0e6ed'],
       fonts: ['Space Grotesk', 'Inter'],
-      logos: ['https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=100&q=80']
-    }
+      logos: ['https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=100&q=80'],
+    },
   ],
   activeBrandKitId: 'automotive_procurement',
-  
+
   setActiveBrandKit: (id) => set({ activeBrandKitId: id }),
 
-  addBrandKit: (kit) => set((state: any) => ({
-    brandKits: [...state.brandKits, kit],
-    hasUnsavedChanges: true
-  })),
+  addBrandKit: (kit) =>
+    set((state: any) => ({
+      brandKits: [...state.brandKits, kit],
+      hasUnsavedChanges: true,
+    })),
 
-  deleteBrandKit: (id) => set((state: any) => ({
-    brandKits: state.brandKits.filter((k: BrandKit) => k.id !== id),
-    activeBrandKitId: state.activeBrandKitId === id ? null : state.activeBrandKitId,
-    hasUnsavedChanges: true
-  })),
+  deleteBrandKit: (id) =>
+    set((state: any) => ({
+      brandKits: state.brandKits.filter((k: BrandKit) => k.id !== id),
+      activeBrandKitId: state.activeBrandKitId === id ? null : state.activeBrandKitId,
+      hasUnsavedChanges: true,
+    })),
 
   updateBrandKit: (id, updates) => {
     set((state: any) => ({
       brandKits: state.brandKits.map((k: BrandKit) => (k.id === id ? { ...k, ...updates } : k)),
-      hasUnsavedChanges: true
+      hasUnsavedChanges: true,
     }));
     // Pro: Auto-sync any layers using tokens from this kit
     get().syncLayersWithTokens();
@@ -49,7 +51,9 @@ export const createBrandSlice: StateCreator<any, [], [], BrandSlice> = (set, get
 
   syncLayersWithTokens: () => {
     const { artboards, brandKits } = get();
-    if (!brandKits.length) {return;}
+    if (!brandKits.length) {
+      return;
+    }
 
     const newArtboards = artboards.map((artboard: Artboard) => ({
       ...artboard,
@@ -85,14 +89,16 @@ export const createBrandSlice: StateCreator<any, [], [], BrandSlice> = (set, get
         }
 
         return changed ? updatedLayer : l;
-      })
+      }),
     }));
 
     set({ artboards: newArtboards });
   },
 
   applyBrandColors: (colors: string[], kitId?: string) => {
-    if (!colors || colors.length === 0) {return;}
+    if (!colors || colors.length === 0) {
+      return;
+    }
     get().saveToHistory?.();
 
     const background = colors[0];
@@ -105,23 +111,23 @@ export const createBrandSlice: StateCreator<any, [], [], BrandSlice> = (set, get
         backgroundColor: background,
         layers: artboard.layers.map((l: Layer) => {
           if (l.type === 'text') {
-            return { 
-              ...l, 
-              color: colorPool[0], 
-              colorToken: kitId ? { kitId, type: 'color', path: 'colors.1' } : undefined 
+            return {
+              ...l,
+              color: colorPool[0],
+              colorToken: kitId ? { kitId, type: 'color', path: 'colors.1' } : undefined,
             };
           }
           if (['rectangle', 'circle', 'triangle', 'path', 'star'].includes(l.type)) {
             const idx = Math.floor(Math.random() * colorPool.length);
-            return { 
-              ...l, 
+            return {
+              ...l,
               color: colorPool[idx],
-              colorToken: kitId ? { kitId, type: 'color', path: `colors.${idx + 1}` } : undefined
+              colorToken: kitId ? { kitId, type: 'color', path: `colors.${idx + 1}` } : undefined,
             };
           }
           return l;
-        })
-      }))
+        }),
+      })),
     }));
   },
 
@@ -136,14 +142,12 @@ export const createBrandSlice: StateCreator<any, [], [], BrandSlice> = (set, get
             return {
               ...l,
               fontFamily: isHeading ? heading : body,
-              fontToken: kitId ? { kitId, type: 'font', path: isHeading ? 'fonts.0' : 'fonts.1' } : undefined
+              fontToken: kitId ? { kitId, type: 'font', path: isHeading ? 'fonts.0' : 'fonts.1' } : undefined,
             };
           }
           return l;
-        })
-      }))
+        }),
+      })),
     }));
   },
 });
-
-

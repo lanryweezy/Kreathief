@@ -16,15 +16,12 @@ export const activeArtboardSelector = createSelector(
   }
 );
 
-export const selectedLayerIdSelector = createSelector(
-  [getSelectedLayerIds],
-  (ids) => {
-    if (!ids || ids.length === 0) {
-      return null;
-    }
-    return ids[ids.length - 1] || null;
+export const selectedLayerIdSelector = createSelector([getSelectedLayerIds], (ids) => {
+  if (!ids || ids.length === 0) {
+    return null;
   }
-);
+  return ids[ids.length - 1] || null;
+});
 
 export const selectedLayerSelector = createSelector(
   [activeArtboardSelector, selectedLayerIdSelector],
@@ -36,13 +33,10 @@ export const selectedLayerSelector = createSelector(
   }
 );
 
-export const selectedLayersSelector = createSelector(
-  [activeArtboardSelector, getSelectedLayerIds],
-  (artboard, ids) => {
-    if (!artboard || ids.length === 0) {
-      return [];
-    }
-    const idSet = new Set(ids);
-    return (artboard?.layers || []).filter((l: Layer) => idSet.has(l.id));
+export const selectedLayersSelector = createSelector([activeArtboardSelector, getSelectedLayerIds], (artboard, ids) => {
+  if (!artboard || ids.length === 0) {
+    return [];
   }
-);
+  const idSet = new Set(ids);
+  return (artboard?.layers || []).filter((l: Layer) => idSet.has(l.id));
+});

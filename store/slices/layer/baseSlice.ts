@@ -75,7 +75,6 @@ export const initialLayerState = {
   selectedLayerIds: [],
   clipboardLayer: null,
   editingPathId: null,
-  layerCache: null,
 };
 
 export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (set, _get) => ({
@@ -84,18 +83,17 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
   setArtboards: (artboards) => {
     set({ artboards });
   },
-  setActiveArtboardId: (id) => set((state: any) => {
-    if (state.activeArtboardId === id) {
-      return { activeArtboardId: id };
-    }
-    return { activeArtboardId: id, selectedLayerIds: [] };
-  }),
+  setActiveArtboardId: (id) =>
+    set((state: any) => {
+      if (state.activeArtboardId === id) {
+        return { activeArtboardId: id };
+      }
+      return { activeArtboardId: id, selectedLayerIds: [] };
+    }),
 
   updateArtboard: (id, partial) =>
     set((state: any) => ({
-      artboards: state.artboards.map((a: Artboard) =>
-        a.id === id ? { ...a, ...partial } : a
-      ),
+      artboards: state.artboards.map((a: Artboard) => (a.id === id ? { ...a, ...partial } : a)),
     })),
 
   updateLayer: (id, partial) =>
@@ -105,10 +103,6 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
         layers: a.layers.map((l: any) => {
           if (l.id === id) {
             const updated = { ...l, ...partial, dirty: true };
-            // Update cache incrementally
-            if (state.layerCache) {
-              state.layerCache.set(id, updated);
-            }
             return updated;
           }
           return l;
@@ -120,7 +114,9 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
   setLayers: (layersOrFn) =>
     set((state: any) => {
       const artboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
-      if (!artboard) { return {}; }
+      if (!artboard) {
+        return {};
+      }
       const newLayers = typeof layersOrFn === 'function' ? layersOrFn(artboard.layers) : layersOrFn;
       return {
         artboards: state.artboards.map((a: Artboard) =>
@@ -132,8 +128,10 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
   updateLayers: (updates) =>
     set((state: any) => {
       const artboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
-      if (!artboard) { return {}; }
-      
+      if (!artboard) {
+        return {};
+      }
+
       const newLayers = artboard.layers.map((l: Layer) => {
         if (updates[l.id]) {
           return { ...l, ...updates[l.id], dirty: true };
@@ -147,5 +145,4 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
         ),
       };
     }),
-
 });

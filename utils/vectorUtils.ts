@@ -76,7 +76,7 @@ export class VectorUtils {
     path.points.forEach((point, i) => {
       if (i === 0 || point.isMove) {
         if (i !== 0 && path.isClosed) {
-           d += ' Z ';
+          d += ' Z ';
         }
         d += `M ${point.x} ${point.y}`;
       } else {
@@ -155,7 +155,9 @@ export class VectorUtils {
               currentY = args[1];
             }
             const pt = this.createPoint(currentX, currentY);
-            if (points.length > 0) {pt.isMove = true;}
+            if (points.length > 0) {
+              pt.isMove = true;
+            }
             points.push(pt);
           }
           break;
@@ -483,8 +485,12 @@ export class VectorUtils {
    * Joins two paths into a single one by adding a line segment between them
    */
   static joinPaths(pathA: VectorPath, pathB: VectorPath): VectorPath {
-    if (pathA.points.length === 0) {return pathB;}
-    if (pathB.points.length === 0) {return pathA;}
+    if (pathA.points.length === 0) {
+      return pathB;
+    }
+    if (pathB.points.length === 0) {
+      return pathA;
+    }
 
     const points = [...pathA.points];
     const bPoints = [...pathB.points];

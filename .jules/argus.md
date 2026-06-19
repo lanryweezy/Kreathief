@@ -27,6 +27,7 @@
 
 **Learning:** Found use of `console.error` in `store/slices/historySlice.ts` (`[Resilience] Session mirror failed`). This dropped critical context (like `projectId`) during session mirror save errors, making production debugging of project synchronization difficult.
 **Action:** Replaced unstructured console logging with `log.error`, ensuring that `projectId` is passed in the logging payload.
+
 ## 2026-06-18 - Typescript definitions for AnalyticsService.track
 
 **Learning:** When adding new tracking events using `analyticsService.track()`, the event name MUST be explicitly added to the `AnalyticsEvent` union type in `services/analyticsService.ts` to prevent TypeScript compilation errors.

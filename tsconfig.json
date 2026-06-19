@@ -30,6 +30,8 @@
     "**/*.spec.ts",
     "**/*.spec.tsx",
     "tests",
-    "data/templates.ts"
+    "data/templates.ts",
+    "playwright.config.ts",
+    "debug_error.ts"
   ]
 }

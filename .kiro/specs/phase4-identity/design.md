@@ -116,6 +116,7 @@ Contextual Surfacing
 **Purpose**: Observe user behavior and proactively suggest next steps
 
 **Interface**:
+
 ```typescript
 interface DesignGoal {
   type: 'typography' | 'layout' | 'color' | 'emphasis' | 'hierarchy' | 'balance';
@@ -142,12 +143,12 @@ interface DesignContext {
 class AmbientIntelligenceEngine {
   private designGoalHistory: DesignGoal[] = [];
   private flowStateDetector: FlowStateDetector;
-  
-  inferDesignGoal(context: DesignContext): DesignGoal
-  detectFlowState(actions: UserAction[]): FlowState
-  generateProactiveSuggestions(goal: DesignGoal, flowState: FlowState): SuggestedAction[]
-  shouldSuggest(flowState: FlowState): boolean
-  adaptSuggestionFrequency(flowState: FlowState): number
+
+  inferDesignGoal(context: DesignContext): DesignGoal;
+  detectFlowState(actions: UserAction[]): FlowState;
+  generateProactiveSuggestions(goal: DesignGoal, flowState: FlowState): SuggestedAction[];
+  shouldSuggest(flowState: FlowState): boolean;
+  adaptSuggestionFrequency(flowState: FlowState): number;
 }
 ```
 
@@ -156,6 +157,7 @@ class AmbientIntelligenceEngine {
 **Purpose**: Understand typographic intent and surface relevant controls
 
 **Interface**:
+
 ```typescript
 interface TypographicContext {
   selectedLayer: TextLayer;
@@ -195,14 +197,14 @@ interface ReadabilityMetrics {
 class TypographyIntelligenceSystem {
   private hierarchyAnalyzer: HierarchyAnalyzer;
   private readabilityCalculator: ReadabilityCalculator;
-  
-  analyzeTypographicContext(layer: TextLayer): TypographicContext
-  inferTypographicIntent(actions: UserAction[]): TypographicIntent
-  suggestHierarchyRatios(hierarchy: TypographicHierarchy): number[]
-  suggestFontPairings(selectedFont: string): FontPairing[]
-  calculateReadabilityMetrics(layer: TextLayer): ReadabilityMetrics
-  suggestReadabilityImprovements(metrics: ReadabilityMetrics): TypographicProperty[]
-  autoAdjustRelatedProperties(property: TypographicProperty): TypographicProperty[]
+
+  analyzeTypographicContext(layer: TextLayer): TypographicContext;
+  inferTypographicIntent(actions: UserAction[]): TypographicIntent;
+  suggestHierarchyRatios(hierarchy: TypographicHierarchy): number[];
+  suggestFontPairings(selectedFont: string): FontPairing[];
+  calculateReadabilityMetrics(layer: TextLayer): ReadabilityMetrics;
+  suggestReadabilityImprovements(metrics: ReadabilityMetrics): TypographicProperty[];
+  autoAdjustRelatedProperties(property: TypographicProperty): TypographicProperty[];
 }
 
 interface FontPairing {
@@ -219,6 +221,7 @@ interface FontPairing {
 **Purpose**: Calculate visual balance and suggest perceptual layouts
 
 **Interface**:
+
 ```typescript
 interface OpticalWeight {
   elementId: string;
@@ -258,13 +261,13 @@ interface LayoutSuggestion {
 class OpticalWeightEngine {
   private weightCalculator: WeightCalculator;
   private balanceAnalyzer: BalanceAnalyzer;
-  
-  calculateOpticalWeight(element: Layer): OpticalWeight
-  analyzeBalance(elements: Layer[]): BalanceAnalysis
-  suggestRebalancing(elements: Layer[]): LayoutSuggestion[]
-  suggestStartingLayouts(elements: Layer[]): LayoutSuggestion[][]
-  getWeightDistribution(elements: Layer[]): BalanceDistribution
-  visualizeWeight(element: Layer): VisualGuide
+
+  calculateOpticalWeight(element: Layer): OpticalWeight;
+  analyzeBalance(elements: Layer[]): BalanceAnalysis;
+  suggestRebalancing(elements: Layer[]): LayoutSuggestion[];
+  suggestStartingLayouts(elements: Layer[]): LayoutSuggestion[][];
+  getWeightDistribution(elements: Layer[]): BalanceDistribution;
+  visualizeWeight(element: Layer): VisualGuide;
 }
 
 interface VisualGuide {
@@ -282,6 +285,7 @@ interface VisualGuide {
 **Purpose**: Learn from user behavior and adapt suggestions
 
 **Interface**:
+
 ```typescript
 interface UserPreferences {
   fontPreferences: FontPreference[];
@@ -311,15 +315,15 @@ interface LearnedPattern {
 class LearningSystem {
   private preferences: UserPreferences;
   private learnedPatterns: LearnedPattern[] = [];
-  
-  logUserAction(action: UserAction, suggestion: SuggestedAction, accepted: boolean): void
-  recognizePattern(actions: UserAction[]): LearnedPattern | null
-  updatePreferences(feedback: UserFeedback): void
-  adaptSuggestions(suggestions: SuggestedAction[]): SuggestedAction[]
-  getLearnedPatterns(): LearnedPattern[]
-  resetPreferences(): void
-  exportPreferences(): UserPreferences
-  importPreferences(prefs: UserPreferences): void
+
+  logUserAction(action: UserAction, suggestion: SuggestedAction, accepted: boolean): void;
+  recognizePattern(actions: UserAction[]): LearnedPattern | null;
+  updatePreferences(feedback: UserFeedback): void;
+  adaptSuggestions(suggestions: SuggestedAction[]): SuggestedAction[];
+  getLearnedPatterns(): LearnedPattern[];
+  resetPreferences(): void;
+  exportPreferences(): UserPreferences;
+  importPreferences(prefs: UserPreferences): void;
 }
 ```
 
@@ -333,17 +337,13 @@ class LearningSystem {
 // Optical weight formula
 function calculateOpticalWeight(element: Layer): number {
   const luminance = calculateLuminance(element.color);
-  const sizeNormalized = element.width * element.height / (canvasWidth * canvasHeight);
+  const sizeNormalized = (element.width * element.height) / (canvasWidth * canvasHeight);
   const contrast = calculateContrast(element.color, backgroundColor);
   const positionWeight = calculatePositionWeight(element.x, element.y);
-  
+
   // Weighted combination
-  const weight = 
-    (luminance * 0.3) +
-    (sizeNormalized * 0.3) +
-    (contrast * 0.2) +
-    (positionWeight * 0.2);
-  
+  const weight = luminance * 0.3 + sizeNormalized * 0.3 + contrast * 0.2 + positionWeight * 0.2;
+
   return weight * 100; // 0-100 scale
 }
 
@@ -368,7 +368,7 @@ function calculatePositionWeight(x: number, y: number): number {
   const centerY = canvasHeight / 2;
   const distance = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
   const maxDistance = Math.sqrt(Math.pow(centerX, 2) + Math.pow(centerY, 2));
-  return 1 - (distance / maxDistance);
+  return 1 - distance / maxDistance;
 }
 ```
 
@@ -378,26 +378,26 @@ function calculatePositionWeight(x: number, y: number): number {
 // Detect typographic intent from action sequence
 function inferTypographicIntent(actions: UserAction[]): TypographicIntent {
   const propertyChanges = actions
-    .filter(a => a.type === 'property_change' && isTypographicProperty(a.property))
-    .map(a => a.property);
-  
+    .filter((a) => a.type === 'property_change' && isTypographicProperty(a.property))
+    .map((a) => a.property);
+
   // Analyze pattern
   if (propertyChanges.includes('fontSize') && propertyChanges.includes('fontWeight')) {
     return { type: 'emphasis', confidence: 0.9 };
   }
-  
+
   if (propertyChanges.includes('fontSize') && propertyChanges.includes('lineHeight')) {
     return { type: 'readability', confidence: 0.85 };
   }
-  
+
   if (propertyChanges.includes('letterSpacing') && propertyChanges.includes('lineHeight')) {
     return { type: 'mood', confidence: 0.8 };
   }
-  
+
   if (propertyChanges.length >= 3) {
     return { type: 'hierarchy', confidence: 0.75 };
   }
-  
+
   return { type: 'contrast', confidence: 0.5 };
 }
 ```
@@ -407,15 +407,15 @@ function inferTypographicIntent(actions: UserAction[]): TypographicIntent {
 ```typescript
 // Detect if user is in flow state
 function detectFlowState(actions: UserAction[], timeWindow: number = 60000): FlowState {
-  const recentActions = actions.filter(a => Date.now() - a.timestamp < timeWindow);
-  
+  const recentActions = actions.filter((a) => Date.now() - a.timestamp < timeWindow);
+
   if (recentActions.length === 0) {
     return { isInFlow: false, actionFrequency: 0, consistency: 0, timeInFlow: 0 };
   }
-  
+
   // Calculate action frequency
   const actionFrequency = recentActions.length / (timeWindow / 1000);
-  
+
   // Calculate consistency (how similar are consecutive actions)
   let consistency = 0;
   for (let i = 1; i < recentActions.length; i++) {
@@ -425,15 +425,15 @@ function detectFlowState(actions: UserAction[], timeWindow: number = 60000): Flo
     consistency += similarity;
   }
   consistency /= recentActions.length;
-  
+
   // Flow state: high frequency + high consistency
   const isInFlow = actionFrequency > 2 && consistency > 0.7;
-  
+
   return {
     isInFlow,
     actionFrequency,
     consistency,
-    timeInFlow: recentActions[recentActions.length - 1].timestamp - recentActions[0].timestamp
+    timeInFlow: recentActions[recentActions.length - 1].timestamp - recentActions[0].timestamp,
   };
 }
 
@@ -449,41 +449,49 @@ function calculateActionSimilarity(action1: UserAction, action2: UserAction): nu
 ## Correctness Properties
 
 ### Property 1: Optical Weight Consistency
+
 **For any** element and canvas state, calculating optical weight twice should produce identical results.
 
 **Validates: Requirements 2.1**
 
 ### Property 2: Balance Variance Calculation
+
 **For any** set of elements, the balance variance should be between 0 and 1, where 0 = perfectly balanced and 1 = completely unbalanced.
 
 **Validates: Requirements 2.2**
 
 ### Property 3: Typography Intent Determinism
+
 **For any** action sequence, inferring typographic intent twice should produce identical intent type and confidence score.
 
 **Validates: Requirements 1.2**
 
 ### Property 4: Readability Metrics Validity
+
 **For any** text layer, readability metrics should be within valid ranges (contrast ratio > 1, line length > 0, leading > 0).
 
 **Validates: Requirements 1.5**
 
 ### Property 5: Flow State Stability
+
 **For any** action sequence, flow state detection should be stable (small changes in action timing shouldn't drastically change flow state).
 
 **Validates: Requirements 4.6**
 
 ### Property 6: Suggestion Prioritization Consistency
+
 **For any** set of suggestions, when ranked by priority, the highest-priority suggestion should always appear first.
 
 **Validates: Requirements 1.3, 2.3**
 
 ### Property 7: Learning System Monotonicity
+
 **For any** pattern, when a user accepts a suggestion, the pattern's confidence should increase (or stay the same), never decrease.
 
 **Validates: Requirements 8.2**
 
 ### Property 8: Preference Persistence
+
 **For any** user preference, after being set, it should persist across sessions and be retrievable in the same state.
 
 **Validates: Requirements 8.5**
@@ -493,26 +501,31 @@ function calculateActionSimilarity(action1: UserAction, action2: UserAction): nu
 ## Error Handling
 
 ### Optical Weight Calculation Failures
+
 - **Scenario**: Color parsing fails or element has invalid dimensions
 - **Handling**: Use default weight (50), log error
 - **User Impact**: Element treated as neutral weight
 
 ### Typography Intent Detection Failures
+
 - **Scenario**: Action sequence is ambiguous or empty
 - **Handling**: Default to 'contrast' intent with low confidence
 - **User Impact**: Generic typography suggestions appear
 
 ### Flow State Detection Failures
+
 - **Scenario**: Action history is corrupted or missing
 - **Handling**: Assume not in flow state, show suggestions
 - **User Impact**: More suggestions appear (conservative approach)
 
 ### Learning System Failures
+
 - **Scenario**: Preference storage fails or becomes corrupted
 - **Handling**: Continue with default preferences, log error
 - **User Impact**: Personalization doesn't work, but system continues
 
 ### Readability Calculation Failures
+
 - **Scenario**: Font metrics unavailable or text layer has no content
 - **Handling**: Use default metrics, log warning
 - **User Impact**: Readability feedback unavailable
@@ -522,6 +535,7 @@ function calculateActionSimilarity(action1: UserAction, action2: UserAction): nu
 ## Testing Strategy
 
 ### Unit Tests
+
 - Optical weight calculation (luminance, contrast, position)
 - Typography intent detection (action pattern analysis)
 - Flow state detection (action frequency, consistency)
@@ -530,6 +544,7 @@ function calculateActionSimilarity(action1: UserAction, action2: UserAction): nu
 - Preference persistence (storage, retrieval)
 
 ### Property-Based Tests
+
 - **Property 1**: Optical weight consistency (same input → same output)
 - **Property 2**: Balance variance validity (0-1 range)
 - **Property 3**: Typography intent determinism (consistent results)
@@ -540,12 +555,14 @@ function calculateActionSimilarity(action1: UserAction, action2: UserAction): nu
 - **Property 8**: Preference persistence (survives sessions)
 
 ### Integration Tests
+
 - End-to-end ambient intelligence (action → goal inference → suggestion)
 - Typography workflow (select text → infer intent → surface controls)
 - Layout workflow (arrange elements → calculate balance → suggest rebalancing)
 - Learning workflow (accept suggestion → update preferences → adapt future suggestions)
 
 ### Performance Tests
+
 - Optical weight calculation < 50ms for 100 elements
 - Typography suggestion generation < 100ms
 - Flow state detection < 50ms
@@ -580,6 +597,7 @@ function calculateActionSimilarity(action1: UserAction, action2: UserAction): nu
 ## Success Criteria
 
 ### Phase 4 Completion
+
 - ✅ Users report "system understands my design intent" in feedback
 - ✅ Typography controls used 3x more than before
 - ✅ Optical weight suggestions accepted in 50%+ of cases

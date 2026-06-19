@@ -1,4 +1,4 @@
-import { log } from "../utils/log";
+import { log } from '../utils/log';
 export const config = {
   runtime: 'edge',
 };
@@ -76,7 +76,7 @@ export default async function handler(req: Request) {
         `${VECTEEZY_API_URL}/${accountId}/resources?search_term=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&per_page=20`,
         {
           headers: {
-            'Authorization': `Bearer ${secretKey}`,
+            Authorization: `Bearer ${secretKey}`,
             'Content-Type': 'application/json',
           },
         }
@@ -105,7 +105,7 @@ export default async function handler(req: Request) {
         `${VECTEEZY_API_URL}/${accountId}/resources/${encodeURIComponent(resourceId)}/download`,
         {
           headers: {
-            'Authorization': `Bearer ${secretKey}`,
+            Authorization: `Bearer ${secretKey}`,
           },
         }
       );

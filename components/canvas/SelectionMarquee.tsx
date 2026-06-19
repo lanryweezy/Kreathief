@@ -13,7 +13,9 @@ export const SelectionMarquee: React.FC<SelectionMarqueeProps> = React.memo(({ b
   const width = Math.abs(box.start.x - box.end.x);
   const height = Math.abs(box.start.y - box.end.y);
 
-  if (width < 2 && height < 2) {return null;}
+  if (width < 2 && height < 2) {
+    return null;
+  }
 
   return (
     <div
@@ -28,5 +30,4 @@ export const SelectionMarquee: React.FC<SelectionMarqueeProps> = React.memo(({ b
     />
   );
 });
--e
 SelectionMarquee.displayName = 'SelectionMarquee';

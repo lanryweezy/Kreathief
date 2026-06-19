@@ -66,10 +66,10 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
           thumbnail: project.thumbnail || 'https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=800&q=80',
           tags: ['Community', 'Shared'],
           category: 'Social',
-          state: project.state
+          state: project.state,
         },
         ...state.communityProjects,
-      ]
+      ],
     }));
   },
 
@@ -90,8 +90,10 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
   },
 
   startAutoSave: () => {
-    if (autoSaveTimer) {clearInterval(autoSaveTimer);}
-    
+    if (autoSaveTimer) {
+      clearInterval(autoSaveTimer);
+    }
+
     autoSaveTimer = setInterval(() => {
       const state = get();
       if (state.projectId && state.hasUnsavedChanges && !state.isSaving && state.autoSaveEnabled) {
@@ -118,7 +120,7 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
       canvasSize,
       brandKits,
       showGrid,
-      showRulers
+      showRulers,
     } = get();
     if (!projectId) {
       return;
@@ -162,17 +164,18 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
 
   createProject: async (name, size, initialState) => {
     const id = uuidv4();
-    const defaultArtboard: Artboard = name.toLowerCase().includes('demo') || name.toLowerCase().includes('nebula')
-      ? createNebulaDemoDesign()
-      : {
-          id: 'default',
-          name: 'Artboard 1',
-          x: 0,
-          y: 0,
-          width: size?.width || 1080,
-          height: size?.height || 1080,
-          layers: [],
-        };
+    const defaultArtboard: Artboard =
+      name.toLowerCase().includes('demo') || name.toLowerCase().includes('nebula')
+        ? createNebulaDemoDesign()
+        : {
+            id: 'default',
+            name: 'Artboard 1',
+            x: 0,
+            y: 0,
+            width: size?.width || 1080,
+            height: size?.height || 1080,
+            layers: [],
+          };
 
     if (defaultArtboard.id === 'nebula_demo') {
       defaultArtboard.id = uuidv4();
@@ -258,22 +261,27 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
     let activeArtboardId = project.state.activeArtboardId || (artboards.length > 0 ? artboards[0].id : 'default');
 
     if (artboards.length === 0 && (project.state as any).layers?.length >= 0) {
-      artboards = [{
-        id: 'default',
-        name: 'Artboard 1',
-        x: 0,
-        y: 0,
-        width: project.state.canvasSize?.width || 1080,
-        height: project.state.canvasSize?.height || 1080,
-        layers: (project.state as any).layers || [],
-      }];
+      artboards = [
+        {
+          id: 'default',
+          name: 'Artboard 1',
+          x: 0,
+          y: 0,
+          width: project.state.canvasSize?.width || 1080,
+          height: project.state.canvasSize?.height || 1080,
+          layers: (project.state as any).layers || [],
+        },
+      ];
       activeArtboardId = 'default';
     } else if (artboards.length > 0 && artboards[0].layers.length === 0 && (project.state as any).layers?.length > 0) {
       // Handle templates where layers are at the root state level but artboards exist
-      artboards = [{
-        ...artboards[0],
-        layers: (project.state as any).layers
-      }, ...artboards.slice(1)];
+      artboards = [
+        {
+          ...artboards[0],
+          layers: (project.state as any).layers,
+        },
+        ...artboards.slice(1),
+      ];
     }
 
     set({
@@ -293,8 +301,8 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
     });
 
     if (project.state.artboards.length === 0 && project.name === 'Untitled Design') {
-        const demo = createNebulaDemoDesign();
-        set({ artboards: [demo], activeArtboardId: demo.id });
+      const demo = createNebulaDemoDesign();
+      set({ artboards: [demo], activeArtboardId: demo.id });
     }
 
     // Start auto-save
@@ -304,7 +312,9 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
   // Comments Actions
   addCanvasComment: (x, y, content, author) => {
     const { projectId } = get();
-    if (!projectId) {return;}
+    if (!projectId) {
+      return;
+    }
 
     const newComment = {
       id: uuidv4(),
@@ -313,67 +323,71 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
       content,
       author,
       createdAt: Date.now(),
-      resolved: false
+      resolved: false,
     };
 
     set((state: any) => ({
-      projects: state.projects.map((p: Project) => 
-        p.id === projectId 
-          ? { ...p, comments: [...(p.comments || []), newComment] }
-          : p
-      )
+      projects: state.projects.map((p: Project) =>
+        p.id === projectId ? { ...p, comments: [...(p.comments || []), newComment] } : p
+      ),
     }));
     get().saveProject();
   },
 
   resolveCanvasComment: (id) => {
     const { projectId } = get();
-    if (!projectId) {return;}
+    if (!projectId) {
+      return;
+    }
 
     set((state: any) => ({
-      projects: state.projects.map((p: Project) => 
-        p.id === projectId 
-          ? { 
-              ...p, 
-              comments: (p.comments || []).map(c => c.id === id ? { ...c, resolved: !c.resolved } : c)
+      projects: state.projects.map((p: Project) =>
+        p.id === projectId
+          ? {
+              ...p,
+              comments: (p.comments || []).map((c) => (c.id === id ? { ...c, resolved: !c.resolved } : c)),
             }
           : p
-      )
+      ),
     }));
     get().saveProject();
   },
 
   deleteCanvasComment: (id) => {
     const { projectId } = get();
-    if (!projectId) {return;}
+    if (!projectId) {
+      return;
+    }
 
     set((state: any) => ({
-      projects: state.projects.map((p: Project) => 
-        p.id === projectId 
-          ? { 
-              ...p, 
-              comments: (p.comments || []).filter(c => c.id !== id)
+      projects: state.projects.map((p: Project) =>
+        p.id === projectId
+          ? {
+              ...p,
+              comments: (p.comments || []).filter((c) => c.id !== id),
             }
           : p
-      )
+      ),
     }));
     get().saveProject();
   },
 
   updateCanvasComment: (id, content) => {
     const { projectId } = get();
-    if (!projectId) {return;}
+    if (!projectId) {
+      return;
+    }
 
     set((state: any) => ({
-      projects: state.projects.map((p: Project) => 
-        p.id === projectId 
-          ? { 
-              ...p, 
-              comments: (p.comments || []).map(c => c.id === id ? { ...c, content, createdAt: Date.now() } : c)
+      projects: state.projects.map((p: Project) =>
+        p.id === projectId
+          ? {
+              ...p,
+              comments: (p.comments || []).map((c) => (c.id === id ? { ...c, content, createdAt: Date.now() } : c)),
             }
           : p
-      )
+      ),
     }));
     get().saveProject();
-  }
+  },
 });

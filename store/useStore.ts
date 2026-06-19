@@ -49,7 +49,17 @@ export const useStore = create<StoreState>()((set, get, store) => ({
 
       // Canvas Slice
       canvasBackgroundColor: '#ffffff',
-      canvasFilters: { brightness: 100, contrast: 100, saturation: 100, sepia: 0, grayscale: 0, blur: 0, opacity: 1, vignette: 0, hueRotate: 0 },
+      canvasFilters: {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        sepia: 0,
+        grayscale: 0,
+        blur: 0,
+        opacity: 1,
+        vignette: 0,
+        hueRotate: 0,
+      },
       canvasSize: { width: 1080, height: 1080, name: 'Square' },
       isExporting: false,
 
@@ -77,7 +87,7 @@ export const useStore = create<StoreState>()((set, get, store) => ({
       __batchDepth: 0,
       __hasPendingBatchChange: false,
       __lastStateSnapshot: null,
-      
+
       // Brand Slice
       brandKits: [],
       activeBrandKitId: null,
@@ -94,4 +104,3 @@ export const useStore = create<StoreState>()((set, get, store) => ({
     });
   },
 }));
-

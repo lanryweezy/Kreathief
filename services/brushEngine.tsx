@@ -67,21 +67,25 @@ export const BrushRegistry: Record<string, BrushConfig> = {
 };
 
 export const getBrushConfig = (brushType: string): BrushConfig => {
-  return BrushRegistry[brushType] || {
-    strokeWidthMultiplier: 1.0,
-    opacity: 1.0,
-    lineCap: 'round',
-    lineJoin: 'round',
-    strokeProfile: 'uniform',
-    blendMode: 'normal',
-  };
+  return (
+    BrushRegistry[brushType] || {
+      strokeWidthMultiplier: 1.0,
+      opacity: 1.0,
+      lineCap: 'round',
+      lineJoin: 'round',
+      strokeProfile: 'uniform',
+      blendMode: 'normal',
+    }
+  );
 };
 
 /**
  * Gets a deterministic index from 0-9 based on a string ID.
  */
 const getDeterministicIndex = (str?: string): number => {
-  if (!str) {return 0;}
+  if (!str) {
+    return 0;
+  }
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = str.charCodeAt(i) + ((hash << 5) - hash);
@@ -109,16 +113,22 @@ export const BrushFilters: React.FC = React.memo(() => {
         {Array.from({ length: 10 }).map((_, idx) => (
           <filter key={`watercolor-${idx}`} id={`brush-watercolor-${idx}`}>
             {/* Create organic dispersion turbulence */}
-            <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="4" seed={idx * 281 + 83} result="noise" />
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency="0.04"
+              numOctaves="4"
+              seed={idx * 281 + 83}
+              result="noise"
+            />
             <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" result="dispersed" />
-            
+
             {/* Apply core pigment blur */}
             <feGaussianBlur in="dispersed" stdDeviation="1.5" result="blurred" />
-            
+
             {/* Morphological dilation to create wet outer boundary edges */}
             <feMorphology in="dispersed" operator="dilate" radius="1.2" result="dilated" />
             <feGaussianBlur in="dilated" stdDeviation="0.8" result="blurredDilated" />
-            
+
             {/* Wet outer border pigment concentration compositing */}
             <feComposite in="blurred" in2="blurredDilated" operator="over" />
           </filter>
@@ -160,10 +170,10 @@ export const BrushStrokeRenderer: React.FC<BrushStrokeRendererProps> = ({
   mode = 'canvas',
 }) => {
   const config = getBrushConfig(brushType || 'pencil');
-  
+
   const finalStrokeWidth = strokeWidth * config.strokeWidthMultiplier;
   const finalOpacity = opacity * config.opacity;
-  
+
   // Pick one of the 10 pre-seeded filters deterministically based on layer ID
   const seedIndex = getDeterministicIndex(id);
   const filterUrl = config.filterId ? `url(#${config.filterId}-${seedIndex})` : undefined;
@@ -194,16 +204,11 @@ export const BrushStrokeRenderer: React.FC<BrushStrokeRendererProps> = ({
           const widthFn = profileWidthFn(profile, finalStrokeWidth);
           const samples = mode === 'canvas' ? 128 : 48; // High quality on canvas, fast in previews
           const outline = buildVariableStrokeOutline(pathData, widthFn, samples);
-          if (!outline) {return null;}
-          
-          return (
-            <path
-              d={outline}
-              fill={color}
-              filter={filterUrl}
-              style={{ transition: 'fill 0.2s ease' }}
-            />
-          );
+          if (!outline) {
+            return null;
+          }
+
+          return <path d={outline} fill={color} filter={filterUrl} style={{ transition: 'fill 0.2s ease' }} />;
         })()
       ) : (
         // Uniform stroke width
@@ -222,5 +227,4 @@ export const BrushStrokeRenderer: React.FC<BrushStrokeRendererProps> = ({
     </svg>
   );
 };
--e
 BrushFilters.displayName = 'BrushFilters';

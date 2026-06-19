@@ -22,10 +22,10 @@ interface HeaderProps {
   onToggleRulers: (show: boolean) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ 
-  onDownload, 
-  onBack, 
-  onNew, 
+export const Header: React.FC<HeaderProps> = ({
+  onDownload,
+  onBack,
+  onNew,
   onAddArtboard,
   onDeleteArtboard,
   onOpenCommunity,
@@ -86,15 +86,25 @@ export const Header: React.FC<HeaderProps> = ({
   const onShowShortcuts = () => setShowShortcuts(!showShortcuts);
 
   const getSaveStatus = () => {
-    if (isSaving) {return 'Saving...';}
-    if (hasUnsavedChanges) {return 'Unsaved changes';}
+    if (isSaving) {
+      return 'Saving...';
+    }
+    if (hasUnsavedChanges) {
+      return 'Unsaved changes';
+    }
     if (lastSaved) {
       const now = Date.now();
       const diff = now - lastSaved.getTime();
       const minutes = Math.floor(diff / 60000);
-      if (minutes < 1) {return 'Saved just now';}
-      if (minutes === 1) {return 'Saved 1 min ago';}
-      if (minutes < 60) {return `Saved ${minutes} mins ago`;}
+      if (minutes < 1) {
+        return 'Saved just now';
+      }
+      if (minutes === 1) {
+        return 'Saved 1 min ago';
+      }
+      if (minutes < 60) {
+        return `Saved ${minutes} mins ago`;
+      }
       return 'Saved';
     }
     return 'Not saved';
@@ -120,8 +130,6 @@ export const Header: React.FC<HeaderProps> = ({
             <Icons.ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
           </button>
         )}
-
-
 
         <div className="flex items-center gap-0.5">
           <button
@@ -162,7 +170,6 @@ export const Header: React.FC<HeaderProps> = ({
             </>
           )}
         </div>
-
       </div>
 
       <div className="flex items-center gap-4">
@@ -219,7 +226,7 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         {user && (
-          <div 
+          <div
             onClick={() => {
               const input = document.createElement('input');
               input.type = 'file';
@@ -232,7 +239,7 @@ export const Header: React.FC<HeaderProps> = ({
                     const avatarUrl = evt.target?.result as string;
                     useStore.getState().setUser({
                       ...user,
-                      avatar: avatarUrl
+                      avatar: avatarUrl,
                     });
                   };
                   reader.readAsDataURL(file);
@@ -250,17 +257,20 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Zoom Dropdown */}
       {showZoomMenu && (
-        <div 
+        <div
           className="fixed z-[100] mt-2 bg-[#1e1e1e] border border-white/10 rounded-xl shadow-2xl overflow-hidden p-1.5 w-32"
-          style={{ 
+          style={{
             top: zoomButtonRef.current?.getBoundingClientRect().bottom,
-            left: zoomButtonRef.current?.getBoundingClientRect().left
+            left: zoomButtonRef.current?.getBoundingClientRect().left,
           }}
         >
           {[0.25, 0.5, 0.75, 1, 1.5, 2, 3, 5].map((z) => (
             <button
               key={z}
-              onClick={() => { onZoomChange(z); setShowZoomMenu(false); }}
+              onClick={() => {
+                onZoomChange(z);
+                setShowZoomMenu(false);
+              }}
               className={`w-full text-left px-3 py-2 text-[10px] uppercase tracking-wider font-bold transition-colors rounded-lg ${zoom === z ? 'bg-[#7d2ae8] text-white' : 'text-gray-300 hover:bg-white/10'}`}
             >
               {z * 100}%
@@ -268,7 +278,10 @@ export const Header: React.FC<HeaderProps> = ({
           ))}
           <div className="h-px bg-white/5 my-1" />
           <button
-            onClick={() => { onZoomChange(1); setShowZoomMenu(false); }}
+            onClick={() => {
+              onZoomChange(1);
+              setShowZoomMenu(false);
+            }}
             className="w-full text-left px-3 py-2 text-[10px] uppercase tracking-wider font-bold text-gray-400 hover:text-white hover:bg-white/10 rounded-lg"
           >
             Fit Screen
@@ -287,8 +300,12 @@ export const Header: React.FC<HeaderProps> = ({
             onFocus={(e) => e.target.select()}
             onBlur={() => setIsEditingTitle(false)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') {setIsEditingTitle(false);}
-              if (e.key === 'Escape') {setIsEditingTitle(false);}
+              if (e.key === 'Enter') {
+                setIsEditingTitle(false);
+              }
+              if (e.key === 'Escape') {
+                setIsEditingTitle(false);
+              }
             }}
             autoFocus
             className="bg-[#1e1e1e] border-b-2 border-purple-500 text-white text-sm font-bold px-2 py-1 outline-none w-48 rounded-t shadow-lg text-center"

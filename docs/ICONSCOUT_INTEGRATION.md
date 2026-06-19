@@ -122,6 +122,7 @@ IconScout assets display with a blue "IS" badge in the Assets Panel:
 ### Type Selector
 
 When IconScout is selected, a type selector appears with 4 options:
+
 - 3D
 - Icons
 - Illustrations

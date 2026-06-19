@@ -23,7 +23,9 @@ export class TextToolsPage {
     this.addBodyTextBtn = this.textPanel.getByTestId('add-body-text-btn');
     this.fontFamilySelect = page.getByTitle('Font Family');
     this.fontSizeInput = page.getByTestId('compact-input-field');
-    this.colorPicker = page.locator('.toolbar-container input[type="color"], .toolbar-container [data-testid="color-picker"], .fixed.bottom-8 [data-testid="color-picker"]');
+    this.colorPicker = page.locator(
+      '.toolbar-container input[type="color"], .toolbar-container [data-testid="color-picker"], .fixed.bottom-8 [data-testid="color-picker"]'
+    );
     this.boldBtn = page.getByTestId('icon-button-bold');
     this.italicBtn = page.getByTestId('icon-button-italic');
     this.underlineBtn = page.getByTestId('icon-button-underline');
@@ -41,12 +43,12 @@ export class TextToolsPage {
     await this.openTextPanel();
     await this.addHeadingBtn.click();
     if (text) {
-        await this.page.evaluate((t) => {
-            const store = (window as any).useStore.getState();
-            const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
-            const layer = artboard.layers[artboard.layers.length - 1];
-            store.updateLayer(layer.id, { text: t });
-        }, text);
+      await this.page.evaluate((t) => {
+        const store = (window as any).useStore.getState();
+        const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
+        const layer = artboard.layers[artboard.layers.length - 1];
+        store.updateLayer(layer.id, { text: t });
+      }, text);
     }
   }
 
@@ -54,12 +56,12 @@ export class TextToolsPage {
     await this.openTextPanel();
     await this.addSubheadingBtn.click();
     if (text) {
-        await this.page.evaluate((t) => {
-            const store = (window as any).useStore.getState();
-            const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
-            const layer = artboard.layers[artboard.layers.length - 1];
-            store.updateLayer(layer.id, { text: t });
-        }, text);
+      await this.page.evaluate((t) => {
+        const store = (window as any).useStore.getState();
+        const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
+        const layer = artboard.layers[artboard.layers.length - 1];
+        store.updateLayer(layer.id, { text: t });
+      }, text);
     }
   }
 
@@ -67,73 +69,73 @@ export class TextToolsPage {
     await this.openTextPanel();
     await this.addBodyTextBtn.click();
     if (text) {
-        await this.page.evaluate((t) => {
-            const store = (window as any).useStore.getState();
-            const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
-            const layer = artboard.layers[artboard.layers.length - 1];
-            store.updateLayer(layer.id, { text: t });
-        }, text);
+      await this.page.evaluate((t) => {
+        const store = (window as any).useStore.getState();
+        const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
+        const layer = artboard.layers[artboard.layers.length - 1];
+        store.updateLayer(layer.id, { text: t });
+      }, text);
     }
   }
 
   async changeFontFamily(fontName: string) {
     await this.page.evaluate((f) => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        if (selectedId) {
-            store.updateLayer(selectedId, { fontFamily: f });
-        }
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      if (selectedId) {
+        store.updateLayer(selectedId, { fontFamily: f });
+      }
     }, fontName);
   }
 
   async changeFontSize(size: number) {
     await this.page.evaluate((s) => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        if (selectedId) {
-            store.updateLayer(selectedId, { fontSize: s });
-        }
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      if (selectedId) {
+        store.updateLayer(selectedId, { fontSize: s });
+      }
     }, size);
   }
 
   async toggleBold() {
     await this.page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        if (selectedId) {
-            const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
-            store.updateLayer(selectedId, { fontWeight: layer.fontWeight === 'bold' ? 'normal' : 'bold' });
-        }
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      if (selectedId) {
+        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+        store.updateLayer(selectedId, { fontWeight: layer.fontWeight === 'bold' ? 'normal' : 'bold' });
+      }
     });
   }
 
   async toggleItalic() {
     await this.page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        if (selectedId) {
-            const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
-            store.updateLayer(selectedId, { fontStyle: layer.fontStyle === 'italic' ? 'normal' : 'italic' });
-        }
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      if (selectedId) {
+        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+        store.updateLayer(selectedId, { fontStyle: layer.fontStyle === 'italic' ? 'normal' : 'italic' });
+      }
     });
   }
 
   async toggleUnderline() {
     await this.page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        if (selectedId) {
-            const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
-            store.updateLayer(selectedId, { textDecoration: layer.textDecoration === 'underline' ? 'none' : 'underline' });
-        }
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      if (selectedId) {
+        const layer = store.artboards.flatMap((a: any) => a.layers).find((l: any) => l.id === selectedId);
+        store.updateLayer(selectedId, { textDecoration: layer.textDecoration === 'underline' ? 'none' : 'underline' });
+      }
     });
   }
 
   async verifyTextAdded() {
     const hasTextLayer = await this.page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
-        return artboard && artboard.layers.some((l: any) => l.type === 'text');
+      const store = (window as any).useStore.getState();
+      const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
+      return artboard && artboard.layers.some((l: any) => l.type === 'text');
     });
     expect(hasTextLayer).toBeTruthy();
   }

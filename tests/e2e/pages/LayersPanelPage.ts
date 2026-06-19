@@ -64,12 +64,12 @@ export class LayersPanelPage {
   async deleteLayer(layerName: string) {
     await this.selectLayer(layerName);
     await this.page.evaluate((name) => {
-        const store = (window as any).useStore.getState();
-        const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
-        const layer = artboard.layers.find((l: any) => l.name === name || (l.type === 'text' && l.text.includes(name)));
-        if (layer) {
-            store.deleteLayer(layer.id);
-        }
+      const store = (window as any).useStore.getState();
+      const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
+      const layer = artboard.layers.find((l: any) => l.name === name || (l.type === 'text' && l.text.includes(name)));
+      if (layer) {
+        store.deleteLayer(layer.id);
+      }
     }, layerName);
     await this.page.waitForTimeout(500);
   }
@@ -78,13 +78,13 @@ export class LayersPanelPage {
     await this.selectLayer(layerName);
     // Direct store duplication for E2E stability
     await this.page.evaluate((name) => {
-        const store = (window as any).useStore.getState();
-        const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
-        const layers = artboard.layers;
-        const layer = layers.find((l: any) => l.name === name || (l.type === 'text' && l.text.includes(name)));
-        if (layer) {
-            store.duplicateLayer(layer.id);
-        }
+      const store = (window as any).useStore.getState();
+      const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
+      const layers = artboard.layers;
+      const layer = layers.find((l: any) => l.name === name || (l.type === 'text' && l.text.includes(name)));
+      if (layer) {
+        store.duplicateLayer(layer.id);
+      }
     }, layerName);
     await this.page.waitForTimeout(1000);
   }
@@ -92,12 +92,12 @@ export class LayersPanelPage {
   async lockLayer(layerName: string) {
     await this.selectLayer(layerName);
     await this.page.evaluate((name) => {
-        const store = (window as any).useStore.getState();
-        const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
-        const layer = artboard.layers.find((l: any) => l.name === name || (l.type === 'text' && l.text.includes(name)));
-        if (layer) {
-            store.updateLayer(layer.id, { locked: !layer.locked });
-        }
+      const store = (window as any).useStore.getState();
+      const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
+      const layer = artboard.layers.find((l: any) => l.name === name || (l.type === 'text' && l.text.includes(name)));
+      if (layer) {
+        store.updateLayer(layer.id, { locked: !layer.locked });
+      }
     }, layerName);
     await this.page.waitForTimeout(500);
   }
@@ -105,12 +105,12 @@ export class LayersPanelPage {
   async hideLayer(layerName: string) {
     await this.selectLayer(layerName);
     await this.page.evaluate((name) => {
-        const store = (window as any).useStore.getState();
-        const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
-        const layer = artboard.layers.find((l: any) => l.name === name || (l.type === 'text' && l.text.includes(name)));
-        if (layer) {
-            store.updateLayer(layer.id, { visible: !layer.visible });
-        }
+      const store = (window as any).useStore.getState();
+      const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
+      const layer = artboard.layers.find((l: any) => l.name === name || (l.type === 'text' && l.text.includes(name)));
+      if (layer) {
+        store.updateLayer(layer.id, { visible: !layer.visible });
+      }
     }, layerName);
     await this.page.waitForTimeout(500);
   }
@@ -128,19 +128,22 @@ export class LayersPanelPage {
     // In Kreathief, reordering is via drag-drop OR store actions.
     // The previous implementation used non-existent buttons.
     // Let's use direct store manipulation for reordering in E2E for stability.
-    await this.page.evaluate(({ name, dir }) => {
+    await this.page.evaluate(
+      ({ name, dir }) => {
         const store = (window as any).useStore.getState();
         const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
         const layers = artboard.layers;
         const layerIdx = layers.findIndex((l: any) => l.name === name || (l.type === 'text' && l.text.includes(name)));
 
         if (layerIdx !== -1) {
-            const newIdx = dir === 'up' ? layerIdx + 1 : layerIdx - 1;
-            if (newIdx >= 0 && newIdx < layers.length) {
-                store.reorderLayer(layers[layerIdx].id, newIdx);
-            }
+          const newIdx = dir === 'up' ? layerIdx + 1 : layerIdx - 1;
+          if (newIdx >= 0 && newIdx < layers.length) {
+            store.reorderLayer(layers[layerIdx].id, newIdx);
+          }
         }
-    }, { name: layerName, dir: direction });
+      },
+      { name: layerName, dir: direction }
+    );
   }
 
   async verifyLayerExists(layerName: string) {

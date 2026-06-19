@@ -21,8 +21,8 @@ export const QuickTextEffects: React.FC<QuickTextEffectsProps> = ({ layer, onUpd
     if (hasShadow) {
       onUpdateLayer(layer.id, { shadow: undefined, advancedShadows: [] });
     } else {
-      onUpdateLayer(layer.id, { 
-        shadow: { color: '#000000', blur: 5, offsetX: 3, offsetY: 3 } 
+      onUpdateLayer(layer.id, {
+        shadow: { color: '#000000', blur: 5, offsetX: 3, offsetY: 3 },
       });
     }
     setShowEffects(false);
@@ -66,15 +66,10 @@ export const QuickTextEffects: React.FC<QuickTextEffectsProps> = ({ layer, onUpd
         <Icons.Zap className="w-3.5 h-3.5" /> Effects
       </button>
 
-      <Dropdown
-        anchorRef={effectsButtonRef}
-        isOpen={showEffects}
-        onClose={() => setShowEffects(false)}
-        align="left"
-      >
+      <Dropdown anchorRef={effectsButtonRef} isOpen={showEffects} onClose={() => setShowEffects(false)} align="left">
         <div className="w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-3 animate-fadeIn backdrop-blur-xl">
           <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Quick Effects</h4>
-          
+
           {/* Toggle Effects */}
           <div className="space-y-2 mb-4">
             <button

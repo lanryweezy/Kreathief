@@ -1,3 +1,9 @@
 ## 2024-05-18 - Sanitizing Edge-Cases in Data Flow
+
 **Learning:** Sometimes form validation handles inputs successfully without crashing during generation but fails silently or explicitly at the outer layers (like API proxy endpoints or export steps) when parameters like filenames map directly to file systems or internal regex requirements. In `ExportModal.tsx`, `validation.ts` defined a strict regex for filenames (`/^[a-zA-Z0-9_\-\s]+$/`), but the UI form generated invalid defaults from arbitrary project names and allowed the user to type special characters anyway.
 **Action:** When updating or generating inputs that must map to restrictive constraints (like slugs or filenames), proactively strip out invalid characters in the UI change handler (`e.target.value.replace(/[^...]/)`) or default value generator rather than letting the underlying logic choke on validation later.
+
+## 2024-06-18 - Improved Error Notification UX
+
+**Learning:** Found multiple instances in `components/panels/UploadsPanel.tsx`, `TextPanel.tsx`, and `BrandPanel.tsx` where generic, blocking native `alert()` dialogues were used for error handling (e.g. `alert('Failed to parse PSD file.')`). This creates a disruptive user experience.
+**Action:** Replaced native `alert()` calls with the integrated `addToast()` notification system from `useStore`, passing the same generic message as an 'error' type. This is non-blocking and fits seamlessly with the rest of the application.

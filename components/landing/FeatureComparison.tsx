@@ -168,9 +168,7 @@ export const FeatureComparison: React.FC = () => {
           viewport={{ once: true }}
           className="text-center mt-12"
         >
-          <p className="text-sm text-gray-500">
-            Data accurate as of 2026. Feature availability may vary by plan.
-          </p>
+          <p className="text-sm text-gray-500">Data accurate as of 2026. Feature availability may vary by plan.</p>
         </motion.div>
       </div>
     </section>

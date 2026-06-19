@@ -63,38 +63,38 @@ export class ShapeToolsPage {
 
   async changeColor(color: string) {
     await this.page.evaluate((c) => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        if (selectedId) {
-            store.updateLayer(selectedId, { color: c });
-        }
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      if (selectedId) {
+        store.updateLayer(selectedId, { color: c });
+      }
     }, color);
   }
 
   async changeOpacity(opacity: number) {
     await this.page.evaluate((o) => {
-        const store = (window as any).useStore.getState();
-        const selectedId = store.selectedLayerIds[0];
-        if (selectedId) {
-            store.updateLayer(selectedId, { opacity: o / 100 });
-        }
+      const store = (window as any).useStore.getState();
+      const selectedId = store.selectedLayerIds[0];
+      if (selectedId) {
+        store.updateLayer(selectedId, { opacity: o / 100 });
+      }
     }, opacity);
   }
 
   async verifyShapeAdded() {
     const hasLayer = await this.page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
-        return artboard && artboard.layers.length > 0;
+      const store = (window as any).useStore.getState();
+      const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
+      return artboard && artboard.layers.length > 0;
     });
     expect(hasLayer).toBeTruthy();
   }
 
   async getShapeCount(): Promise<number> {
     return await this.page.evaluate(() => {
-        const store = (window as any).useStore.getState();
-        const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
-        return artboard ? artboard.layers.length : 0;
+      const store = (window as any).useStore.getState();
+      const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
+      return artboard ? artboard.layers.length : 0;
     });
   }
 }

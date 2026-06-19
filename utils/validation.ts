@@ -1,6 +1,6 @@
 /**
  * Validation Schemas using Zod
- * 
+ *
  * Centralized input validation for all forms and user inputs
  */
 
@@ -11,10 +11,7 @@ import { z } from 'zod';
 // ============================================
 
 export const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email address'),
+  email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
   password: z
     .string()
     .min(1, 'Password is required')
@@ -23,10 +20,7 @@ export const loginSchema = z.object({
 });
 
 export const signupSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email address'),
+  email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
@@ -43,25 +37,24 @@ export const signupSchema = z.object({
 });
 
 export const forgotPasswordSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email address'),
+  email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
 });
 
-export const resetPasswordSchema = z.object({
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(128, 'Password is too long')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-});
+export const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .max(128, 'Password is too long')
+      .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+      .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+      .regex(/[0-9]/, 'Password must contain at least one number'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
 
 // ============================================
 // PROJECT SCHEMAS
@@ -74,10 +67,7 @@ export const createProjectSchema = z.object({
     .min(3, 'Project name must be at least 3 characters')
     .max(100, 'Project name is too long')
     .regex(/^[a-zA-Z0-9\s\-_]+$/, 'Project name can only contain letters, numbers, spaces, hyphens, and underscores'),
-  description: z
-    .string()
-    .max(500, 'Description is too long (max 500 characters)')
-    .optional(),
+  description: z.string().max(500, 'Description is too long (max 500 characters)').optional(),
   canvasSize: z.object({
     width: z.number().positive('Width must be positive').max(10000),
     height: z.number().positive('Height must be positive').max(10000),
@@ -95,7 +85,7 @@ export const duplicateProjectSchema = z.object({
 
 export const deleteProjectSchema = z.object({
   projectId: z.string().uuid('Invalid project ID'),
-  confirm: z.boolean().refine(val => val === true, {
+  confirm: z.boolean().refine((val) => val === true, {
     message: 'You must confirm deletion',
   }),
 });
@@ -155,9 +145,9 @@ export const brandKitSchema = z.object({
     .min(1, 'Brand name is required')
     .min(2, 'Brand name must be at least 2 characters')
     .max(100, 'Brand name is too long'),
-  colors: z.array(
-    z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid color format. Use hex format: #RRGGBB')
-  ).min(1, 'At least one color is required'),
+  colors: z
+    .array(z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Invalid color format. Use hex format: #RRGGBB'))
+    .min(1, 'At least one color is required'),
   fonts: z.object({
     primary: z.string().min(1, 'Primary font is required'),
     secondary: z.string().optional(),
@@ -179,14 +169,13 @@ export const shareProjectSchema = z.object({
 });
 
 export const commentSchema = z.object({
-  text: z
-    .string()
-    .min(1, 'Comment cannot be empty')
-    .max(1000, 'Comment is too long'),
-  position: z.object({
-    x: z.number(),
-    y: z.number(),
-  }).optional(),
+  text: z.string().min(1, 'Comment cannot be empty').max(1000, 'Comment is too long'),
+  position: z
+    .object({
+      x: z.number(),
+      y: z.number(),
+    })
+    .optional(),
   layerId: z.string().optional(),
 });
 
@@ -199,10 +188,12 @@ export const fileUploadSchema = z.object({
     (file) => file.size <= 50 * 1024 * 1024, // 50MB
     'File size must be less than 50MB'
   ),
-  fileType: z.string().refine(
-    (type) => ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'].includes(type),
-    'Only image files are allowed'
-  ),
+  fileType: z
+    .string()
+    .refine(
+      (type) => ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'].includes(type),
+      'Only image files are allowed'
+    ),
 });
 
 export const psdUploadSchema = z.object({

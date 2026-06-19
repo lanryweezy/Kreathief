@@ -13,7 +13,9 @@ export const MediaPanel: React.FC = () => {
         <button
           onClick={() => setActiveTab('elements')}
           className={`pb-3 text-[10px] font-bold uppercase transition-all border-b-2 ${
-            activeTab === 'elements' ? 'border-[#7d2ae8] text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+            activeTab === 'elements'
+              ? 'border-[#7d2ae8] text-white'
+              : 'border-transparent text-gray-500 hover:text-gray-300'
           }`}
         >
           Elements
@@ -21,7 +23,9 @@ export const MediaPanel: React.FC = () => {
         <button
           onClick={() => setActiveTab('photos')}
           className={`pb-3 text-[10px] font-bold uppercase transition-all border-b-2 ${
-            activeTab === 'photos' ? 'border-[#7d2ae8] text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+            activeTab === 'photos'
+              ? 'border-[#7d2ae8] text-white'
+              : 'border-transparent text-gray-500 hover:text-gray-300'
           }`}
         >
           Photos
@@ -29,7 +33,9 @@ export const MediaPanel: React.FC = () => {
         <button
           onClick={() => setActiveTab('uploads')}
           className={`pb-3 text-[10px] font-bold uppercase transition-all border-b-2 ${
-            activeTab === 'uploads' ? 'border-[#7d2ae8] text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
+            activeTab === 'uploads'
+              ? 'border-[#7d2ae8] text-white'
+              : 'border-transparent text-gray-500 hover:text-gray-300'
           }`}
         >
           Uploads

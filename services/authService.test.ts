@@ -37,7 +37,7 @@ describe('AuthService', () => {
     it('should return user with valid credentials in QA bypass mode', async () => {
       // Set QA bypass mode
       const originalEnv = import.meta.env.MODE;
-      // @ts-ignore
+      // @ts-ignore -- testing env mutation
       import.meta.env.MODE = 'test';
       import.meta.env.VITE_QA_BYPASS = 'true';
 
@@ -49,7 +49,7 @@ describe('AuthService', () => {
       expect(result.error).toBeNull();
 
       // Restore
-      // @ts-ignore
+      // @ts-ignore -- testing env mutation
       import.meta.env.MODE = originalEnv;
       import.meta.env.VITE_QA_BYPASS = undefined;
     });
@@ -99,9 +99,7 @@ describe('AuthService', () => {
     it('should handle network errors', async () => {
       import.meta.env.VITE_QA_BYPASS = 'false';
 
-      vi.mocked(supabase.auth.signInWithPassword).mockRejectedValue(
-        new Error('Network error')
-      );
+      vi.mocked(supabase.auth.signInWithPassword).mockRejectedValue(new Error('Network error'));
 
       const result = await authService.signIn('test@example.com', 'password');
 
@@ -119,11 +117,7 @@ describe('AuthService', () => {
         error: null,
       } as any);
 
-      const result = await authService.signUp(
-        'newuser@example.com',
-        'SecurePass123',
-        'New User'
-      );
+      const result = await authService.signUp('newuser@example.com', 'SecurePass123', 'New User');
 
       expect(result.user).toBeDefined();
       expect(result.user?.id).toBe('new-user-id');
@@ -141,11 +135,7 @@ describe('AuthService', () => {
         error: new Error('Email already registered'),
       } as any);
 
-      const result = await authService.signUp(
-        'existing@example.com',
-        'Password123',
-        'Test User'
-      );
+      const result = await authService.signUp('existing@example.com', 'Password123', 'Test User');
 
       expect(result.user).toBeNull();
       expect(result.error).toContain('Email already registered');
@@ -217,7 +207,7 @@ describe('AuthService', () => {
 
   describe('onAuthChange', () => {
     it('should return empty unsubscribe function in QA bypass mode', () => {
-      // @ts-ignore
+      // @ts-ignore -- testing env mutation
       import.meta.env.MODE = 'test';
       import.meta.env.VITE_QA_BYPASS = 'true';
 

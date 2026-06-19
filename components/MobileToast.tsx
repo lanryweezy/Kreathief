@@ -101,12 +101,14 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
       transition={{ type: 'spring', damping: 25, stiffness: 300 }}
       className="mb-3 pointer-events-auto"
     >
-      <div className={`
+      <div
+        className={`
         relative overflow-hidden
         bg-[#1a1d21]/95 backdrop-blur-xl
         border ${config.border}
         rounded-2xl shadow-2xl
-      `}>
+      `}
+      >
         {/* Progress Bar */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-white/5">
           <motion.div
@@ -119,17 +121,17 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
         {/* Content */}
         <div className="flex items-center gap-4 px-5 py-4 pt-5">
           {/* Icon */}
-          <div className={`
+          <div
+            className={`
             w-10 h-10 rounded-xl flex items-center justify-center
             bg-gradient-to-br ${config.gradient}
-          `}>
+          `}
+          >
             <Icon className="w-5 h-5 text-white" />
           </div>
 
           {/* Message */}
-          <p className="flex-1 text-base font-medium text-white">
-            {toast.message}
-          </p>
+          <p className="flex-1 text-base font-medium text-white">{toast.message}</p>
 
           {/* Close Button */}
           <button
@@ -161,7 +163,7 @@ export const showToast = (message: string, type: ToastType = 'info', duration?: 
   };
 
   currentToasts = [...currentToasts, toast];
-  toastListeners.forEach(listener => listener(currentToasts));
+  toastListeners.forEach((listener) => listener(currentToasts));
 
   // Trigger haptic feedback
   switch (type) {
@@ -177,8 +179,8 @@ export const showToast = (message: string, type: ToastType = 'info', duration?: 
 };
 
 export const removeToast = (id: string) => {
-  currentToasts = currentToasts.filter(t => t.id !== id);
-  toastListeners.forEach(listener => listener(currentToasts));
+  currentToasts = currentToasts.filter((t) => t.id !== id);
+  toastListeners.forEach((listener) => listener(currentToasts));
 };
 
 export const useToasts = () => {
