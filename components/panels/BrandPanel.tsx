@@ -155,6 +155,7 @@ export const BrandPanel = () => {
           addToast?.('Invalid Brand Kit JSON', 'error');
         }
       } catch (e) {
+        log.error('[BrandPanel] Failed to parse imported Brand Kit JSON', e);
         addToast?.('Error parsing JSON', 'error');
       }
     };

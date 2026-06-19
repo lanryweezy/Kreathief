@@ -128,7 +128,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
         { id: `msg_${Date.now()}_response`, role: 'assistant', content: response, timestamp: Date.now() },
       ]);
     } catch (error) {
-      log.error('AI Assistant error', error);
+      log.error('AI Assistant error', error, { text });
       setMessages((prev) => [
         ...prev,
         {

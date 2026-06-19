@@ -42,3 +42,7 @@
 
 **Learning:** Found widespread use of `console.error` in `store/slices/agentSlice.ts`, `store/slices/aiSlice.ts`, and `store/slices/layer/crudSlice.ts`. This dropped critical context (like `intent`, `prompt`, `aspectRatio`, `quality`, `layerId`, `options`, etc) during complex state management failures, making production debugging difficult.
 **Action:** Replaced unstructured console logging with `log.error`, ensuring that all relevant local context variables are explicitly passed in the logging payload.
+
+## 2026-06-19 - Added Structured Logs to Empty/Swallowed Catch Blocks
+**Learning:** Found several places where `try/catch` blocks either entirely swallowed errors (like `JSON.parse` failures in BrandPanel or `localStorage.setItem` in MagicPanel) or omitted crucial context (like the prompt `text` in AIAssistant). This pattern leads to silent failures where features silently break for users but no error trace is generated for the engineering team.
+**Action:** Addressed these by strictly adding `log.error` or `log.warn` calls with relevant scoped variables passed as contextual payloads, without altering any adjacent business logic.
