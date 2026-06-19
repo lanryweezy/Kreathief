@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
+import { communityService, CommunityTemplate } from '../../services/communityService';
 
 interface CommunityModalProps {
   onClose: () => void;
@@ -9,110 +10,52 @@ interface CommunityModalProps {
 
 const CATEGORIES = ['All', 'Social', 'Marketing', 'Web', 'Corporate', 'Events'];
 
-const COMMUNITY_TEMPLATES = [
-  {
-    id: 'tpl_c1',
-    title: 'Neon Cyberpunk Poster',
-    author: 'PixelMaster',
-    likes: 1240,
-    downloads: 450,
-    thumbnail: 'https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=800&q=80',
-    tags: ['Social'],
-    category: 'Social',
-  },
-  {
-    id: 'tpl_c2',
-    title: 'Minimalist Instagram Story',
-    author: 'SarahDesigns',
-    likes: 890,
-    downloads: 320,
-    thumbnail: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80',
-    tags: ['Social'],
-    category: 'Social',
-  },
-  {
-    id: 'tpl_c3',
-    title: 'Vintage Coffee Menu',
-    author: 'RetroKing',
-    likes: 2100,
-    downloads: 800,
-    thumbnail: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=800&q=80',
-    tags: ['Marketing'],
-    category: 'Marketing',
-  },
-  {
-    id: 'tpl_c4',
-    title: 'Tech Conference Banner',
-    author: 'DevArt',
-    likes: 560,
-    downloads: 120,
-    thumbnail: 'https://images.unsplash.com/photo-1540575467063-17e6fc425284?w=800&q=80',
-    tags: ['Web'],
-    category: 'Web',
-  },
-  {
-    id: 'tpl_c5',
-    title: 'Luxury Real Estate Flyer',
-    author: 'ElitePrints',
-    likes: 3400,
-    downloads: 1100,
-    thumbnail: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80',
-    tags: ['Marketing'],
-    category: 'Marketing',
-  },
-  {
-    id: 'tpl_c6',
-    title: 'Modern Portfolio Web',
-    author: 'DesignGuru',
-    likes: 4200,
-    downloads: 900,
-    thumbnail: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=80',
-    tags: ['Web'],
-    category: 'Web',
-  },
-];
-
 export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [templates, setTemplates] = useState<CommunityTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<'likes' | 'downloads' | 'newest'>('likes');
   const handleApplyTemplate = useStore((state) => state.handleApplyTemplate);
 
-  const filteredTemplates = useMemo(() => {
-    return COMMUNITY_TEMPLATES.filter((tpl) => {
-      const matchesCategory = activeCategory === 'All' || tpl.category === activeCategory;
-      const matchesSearch =
-        tpl.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        tpl.author.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
-    });
-  }, [activeCategory, searchQuery]);
+  const loadTemplates = useCallback(async () => {
+    setLoading(true);
+    const data = await communityService.fetchTemplates(
+      activeCategory === 'All' ? undefined : activeCategory,
+      searchQuery || undefined,
+      sortBy
+    );
+    setTemplates(data);
+    setLoading(false);
+  }, [activeCategory, searchQuery, sortBy]);
 
-  const onRemix = (template: any) => {
-    // Mock state for applying templates
+  useEffect(() => {
+    loadTemplates();
+  }, [loadTemplates]);
+
+  const onRemix = async (template: CommunityTemplate) => {
+    // Record the download
+    communityService.recordDownload(template.id);
+
+    // Parse the state if it's a string
+    let state = template.state;
+    if (typeof state === 'string') {
+      try { state = JSON.parse(state); } catch {}
+    }
+
     const templateWithState = {
       ...template,
-      state: {
-        layers: [], // In a real app, this would be full design layers
-        canvasBackgroundColor: '#0e1318',
-        canvasFilters: {
-          brightness: 100,
-          contrast: 100,
-          saturation: 100,
-          sepia: 0,
-          grayscale: 0,
-          blur: 0,
-          opacity: 1,
-          vignette: 0,
-          hueRotate: 0,
-        },
-        canvasSize:
-          template.id === 'tpl_c2'
-            ? { width: 1080, height: 1920, name: 'Instagram Story' }
-            : { width: 1080, height: 1080, name: 'Square (IG Post)' },
-      },
+      state,
     };
     handleApplyTemplate(templateWithState);
     onClose();
+  };
+
+  const onLike = async (template: CommunityTemplate) => {
+    await communityService.likeTemplate(template.id);
+    setTemplates((prev) =>
+      prev.map((t) => (t.id === template.id ? { ...t, likes: t.likes + 1 } : t))
+    );
   };
 
   return (
@@ -155,6 +98,15 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
                 className="w-full bg-white/5 border border-white/5 rounded-2xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#7d2ae8]/50 focus:bg-white/10 transition-all"
               />
             </div>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+              className="bg-white/5 border border-white/5 rounded-2xl py-3 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#7d2ae8]/50"
+            >
+              <option value="likes">Most Liked</option>
+              <option value="downloads">Most Downloaded</option>
+              <option value="newest">Newest</option>
+            </select>
           </div>
 
           <button
@@ -183,96 +135,109 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
                 {cat === activeCategory && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_5px_white]" />}
               </button>
             ))}
-
-            <div className="mt-8 p-4 rounded-2xl bg-gradient-to-br from-[#7d2ae8]/20 to-transparent border border-[#7d2ae8]/20">
-              <h4 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
-                <Icons.Zap className="w-4 h-4 text-[#7d2ae8]" />
-                Pro Templates
-              </h4>
-              <p className="text-[10px] text-gray-400 leading-relaxed font-medium">
-                Join Kreathief Pro to unlock over 50,000+ premium community templates.
-              </p>
-              <button className="w-full mt-4 py-2 rounded-lg bg-white text-black text-[10px] font-black uppercase tracking-widest hover:bg-[#7d2ae8] hover:text-white transition-all">
-                Upgrade Now
-              </button>
-            </div>
           </div>
 
           {/* Grid Area */}
           <div className="flex-1 overflow-y-auto p-8 custom-scrollbar scrollbar-hide">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <AnimatePresence mode="popLayout">
-                {filteredTemplates.map((template, idx) => (
-                  <motion.div
-                    key={template.id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className="group relative"
-                  >
-                    <div className="aspect-[4/3] rounded-3xl overflow-hidden bg-[#1e1e1e] border border-white/5 relative shadow-lg group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] group-hover:border-[#7d2ae8]/30 transition-all duration-500">
-                      <img
-                        src={template.thumbnail}
-                        alt={template.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      />
-
-                      {/* Overlay */}
-                      <div className="absolute inset-0 flex flex-col justify-end p-6 pointer-events-none z-10">
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => onRemix(template)}
-                          className="w-full py-3 bg-[#7d2ae8] text-white rounded-xl font-black text-xs uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(125,42,232,0.5)] flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 pointer-events-auto"
-                        >
-                          <Icons.Magic className="w-4 h-4" />
-                          Remix Design
-                        </motion.button>
-                      </div>
-
-                      {/* Floating Badge */}
-                      <div className="absolute top-4 left-4 flex gap-2">
-                        <div className="px-3 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-[9px] font-black uppercase tracking-wider text-white">
-                          {template.category}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 flex items-center justify-between px-2">
-                      <div>
-                        <h3 className="text-sm font-bold text-white group-hover:text-[#7d2ae8] transition-colors">
-                          {template.title}
-                        </h3>
-                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
-                          by {template.author}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3 text-gray-400">
-                        <div className="flex items-center gap-1">
-                          <Icons.Heart className="w-3.5 h-3.5 hover:text-red-500 cursor-pointer transition-colors" />
-                          <span className="text-[10px] font-bold">{template.likes}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Icons.Download className="w-3.5 h-3.5" />
-                          <span className="text-[10px] font-bold">{template.downloads}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="aspect-[4/3] rounded-3xl bg-white/5" />
+                    <div className="mt-4 h-4 bg-white/5 rounded w-2/3" />
+                    <div className="mt-2 h-3 bg-white/5 rounded w-1/3" />
+                  </div>
                 ))}
-              </AnimatePresence>
-            </div>
+              </div>
+            ) : templates.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <AnimatePresence mode="popLayout">
+                  {templates.map((template, idx) => (
+                    <motion.div
+                      key={template.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="group relative"
+                    >
+                      <div className="aspect-[4/3] rounded-3xl overflow-hidden bg-[#1e1e1e] border border-white/5 relative shadow-lg group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] group-hover:border-[#7d2ae8]/30 transition-all duration-500">
+                        {template.thumbnailUrl ? (
+                          <img
+                            src={template.thumbnailUrl}
+                            alt={template.name}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#7d2ae8]/20 to-[#1e1e1e]">
+                            <Icons.Magic className="w-12 h-12 text-[#7d2ae8]/40" />
+                          </div>
+                        )}
 
-            {filteredTemplates.length === 0 && (
+                        {/* Overlay */}
+                        <div className="absolute inset-0 flex flex-col justify-end p-6 pointer-events-none z-10">
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => onRemix(template)}
+                            className="w-full py-3 bg-[#7d2ae8] text-white rounded-xl font-black text-xs uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(125,42,232,0.5)] flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 pointer-events-auto"
+                          >
+                            <Icons.Magic className="w-4 h-4" />
+                            Remix Design
+                          </motion.button>
+                        </div>
+
+                        {/* Floating Badge */}
+                        <div className="absolute top-4 left-4 flex gap-2">
+                          <div className="px-3 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/10 text-[9px] font-black uppercase tracking-wider text-white">
+                            {template.category}
+                          </div>
+                          {template.remixOf && (
+                            <div className="px-3 py-1 rounded-full bg-[#7d2ae8]/50 backdrop-blur-md border border-[#7d2ae8]/30 text-[9px] font-black uppercase tracking-wider text-white">
+                              Remix
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-between px-2">
+                        <div>
+                          <h3 className="text-sm font-bold text-white group-hover:text-[#7d2ae8] transition-colors">
+                            {template.name}
+                          </h3>
+                          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+                            by {template.userName}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-3 text-gray-400">
+                          <button
+                            onClick={() => onLike(template)}
+                            className="flex items-center gap-1 hover:text-red-500 transition-colors"
+                          >
+                            <Icons.Heart className="w-3.5 h-3.5" />
+                            <span className="text-[10px] font-bold">{template.likes}</span>
+                          </button>
+                          <div className="flex items-center gap-1">
+                            <Icons.Download className="w-3.5 h-3.5" />
+                            <span className="text-[10px] font-bold">{template.downloads}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            ) : (
               <div className="h-full flex flex-col items-center justify-center text-center p-12">
                 <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
                   <Icons.Search className="w-8 h-8 text-gray-600" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">No templates found</h3>
                 <p className="text-gray-500 text-sm max-w-xs">
-                  Try adjusting your search or category filters to find what you&apos;re looking for.
+                  {searchQuery
+                    ? `No results for "${searchQuery}". Try different keywords.`
+                    : 'Be the first to publish a design to the community!'}
                 </p>
                 <button
                   onClick={() => {

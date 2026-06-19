@@ -12,6 +12,10 @@ export interface Database {
           name: string | null;
           avatar_url: string | null;
           plan: 'free' | 'pro' | 'team';
+          bio: string | null;
+          website: string | null;
+          location: string | null;
+          is_public: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -21,6 +25,10 @@ export interface Database {
           name?: string | null;
           avatar_url?: string | null;
           plan?: 'free' | 'pro' | 'team';
+          bio?: string | null;
+          website?: string | null;
+          location?: string | null;
+          is_public?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -30,6 +38,10 @@ export interface Database {
           name?: string | null;
           avatar_url?: string | null;
           plan?: 'free' | 'pro' | 'team';
+          bio?: string | null;
+          website?: string | null;
+          location?: string | null;
+          is_public?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -49,6 +61,8 @@ export interface Database {
           updated_at: string;
           is_public: boolean;
           share_id: string | null;
+          is_template: boolean;
+          tags: string[];
         };
         Insert: {
           id: string;
@@ -64,6 +78,8 @@ export interface Database {
           updated_at?: string;
           is_public?: boolean;
           share_id?: string | null;
+          is_template?: boolean;
+          tags?: string[];
         };
         Update: {
           id?: string;
@@ -79,6 +95,8 @@ export interface Database {
           updated_at?: string;
           is_public?: boolean;
           share_id?: string | null;
+          is_template?: boolean;
+          tags?: string[];
         };
       };
       project_versions: {
@@ -256,6 +274,91 @@ export interface Database {
           updated_at?: string;
         };
       };
+      share_links: {
+        Row: {
+          id: string;
+          project_id: string;
+          user_id: string;
+          password_hash: string | null;
+          expires_at: string | null;
+          is_public: boolean;
+          view_count: number;
+          created_at: string;
+        };
+        Insert: {
+          id: string;
+          project_id: string;
+          user_id: string;
+          password_hash?: string | null;
+          expires_at?: string | null;
+          is_public?: boolean;
+          view_count?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          project_id?: string;
+          user_id?: string;
+          password_hash?: string | null;
+          expires_at?: string | null;
+          is_public?: boolean;
+          view_count?: number;
+          created_at?: string;
+        };
+      };
+      community_templates: {
+        Row: {
+          id: string;
+          name: string;
+          category: string | null;
+          description: string | null;
+          size: string;
+          state: Json;
+          user_id: string | null;
+          user_name: string;
+          likes: number;
+          downloads: number;
+          thumbnail_url: string | null;
+          tags: string[];
+          remix_of: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          name: string;
+          category?: string | null;
+          description?: string | null;
+          size?: string;
+          state: Json;
+          user_id?: string | null;
+          user_name: string;
+          likes?: number;
+          downloads?: number;
+          thumbnail_url?: string | null;
+          tags?: string[];
+          remix_of?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          category?: string | null;
+          description?: string | null;
+          size?: string;
+          state?: Json;
+          user_id?: string | null;
+          user_name?: string;
+          likes?: number;
+          downloads?: number;
+          thumbnail_url?: string | null;
+          tags?: string[];
+          remix_of?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;
@@ -277,6 +380,8 @@ export type ProjectSnapshot = Database['public']['Tables']['project_snapshots'][
 export type Comment = Database['public']['Tables']['comments']['Row'];
 export type BrandKit = Database['public']['Tables']['brand_kits']['Row'];
 export type Template = Database['public']['Tables']['templates']['Row'];
+export type ShareLink = Database['public']['Tables']['share_links']['Row'];
+export type CommunityTemplate = Database['public']['Tables']['community_templates']['Row'];
 
 // Insert types
 export type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
@@ -286,6 +391,8 @@ export type ProjectSnapshotInsert = Database['public']['Tables']['project_snapsh
 export type CommentInsert = Database['public']['Tables']['comments']['Insert'];
 export type BrandKitInsert = Database['public']['Tables']['brand_kits']['Insert'];
 export type TemplateInsert = Database['public']['Tables']['templates']['Insert'];
+export type ShareLinkInsert = Database['public']['Tables']['share_links']['Insert'];
+export type CommunityTemplateInsert = Database['public']['Tables']['community_templates']['Insert'];
 
 // Update types
 export type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
@@ -295,3 +402,5 @@ export type ProjectSnapshotUpdate = Database['public']['Tables']['project_snapsh
 export type CommentUpdate = Database['public']['Tables']['comments']['Update'];
 export type BrandKitUpdate = Database['public']['Tables']['brand_kits']['Update'];
 export type TemplateUpdate = Database['public']['Tables']['templates']['Update'];
+export type ShareLinkUpdate = Database['public']['Tables']['share_links']['Update'];
+export type CommunityTemplateUpdate = Database['public']['Tables']['community_templates']['Update'];

@@ -1,55 +1,147 @@
-import { storageService } from './storageService';
-import { logger } from './logger';
+import { db as supabase } from '../lib/supabase/client';
+import { log } from '../utils/log';
 
 class ShareService {
-  /**
-   * Generates a unique short link for a design
-   * For this mock, it uses a random string and persists the mapping in IndexedDB
-   */
-  async generateShareLink(projectId: string): Promise<string> {
+  async generateShareLink(
+    projectId: string,
+    userId: string,
+    options?: { password?: string; expiresInDays?: number }
+  ): Promise<string> {
     try {
-      // Check if a share link already exists for this project
-      const existingShare = await storageService.getShareByProjectId(projectId);
-      if (existingShare) {
-        return this.formatShareUrl(existingShare.id);
+      // Check if a share link already exists for this project by this user
+      const { data: existing } = await supabase
+        .from('share_links')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('user_id', userId)
+        .single();
+
+      if (existing) {
+        return this.formatShareUrl(existing.id);
       }
 
-      // Generate a unique short ID (8 characters)
-      const shareId = Array.from(crypto.getRandomValues(new Uint8Array(6)))
-        .map((b) => b.toString(36).padStart(2, '0'))
-        .join('')
-        .substring(0, 8);
+      const shareId = this.generateId();
 
-      await storageService.saveShare({
+      const insertData: any = {
         id: shareId,
-        projectId,
-        createdAt: Date.now(),
-      });
+        project_id: projectId,
+        user_id: userId,
+        is_public: true,
+      };
 
-      logger.info('Share link generated', { projectId, shareId });
+      if (options?.password) {
+        // Simple hash for now - in production use bcrypt via edge function
+        const encoder = new TextEncoder();
+        const data = encoder.encode(options.password + shareId);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        insertData.password_hash = Array.from(new Uint8Array(hashBuffer))
+          .map((b) => b.toString(16).padStart(2, '0'))
+          .join('');
+      }
+
+      if (options?.expiresInDays) {
+        const expires = new Date();
+        expires.setDate(expires.getDate() + options.expiresInDays);
+        insertData.expires_at = expires.toISOString();
+      }
+
+      const { error } = await (supabase.from('share_links') as any).insert(insertData);
+      if (error) throw error;
+
+      log.info('Share link created', { projectId, shareId });
       return this.formatShareUrl(shareId);
     } catch (error) {
-      logger.error('Failed to generate share link', { error, projectId });
+      log.error('Failed to generate share link', { error, projectId });
       throw error;
     }
   }
 
-  /**
-   * Resolves a share ID to its project ID
-   */
-  async resolveShare(shareId: string): Promise<string | null> {
+  async resolveShare(shareId: string): Promise<{ projectId: string; userId: string } | null> {
     try {
-      const mapping = await storageService.getShare(shareId);
-      return mapping ? mapping.projectId : null;
+      const { data, error } = await supabase
+        .from('share_links')
+        .select('project_id, user_id, expires_at')
+        .eq('id', shareId)
+        .single();
+
+      if (error || !data) return null;
+
+      // Check expiry
+      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+        return null;
+      }
+
+      // Increment view count
+      await (supabase.from('share_links') as any)
+        .update({ view_count: (data as any).view_count ? (data as any).view_count + 1 : 1 })
+        .eq('id', shareId);
+
+      return { projectId: data.project_id, userId: data.user_id };
     } catch (error) {
-      logger.error('Failed to resolve share link', { error, shareId });
+      log.error('Failed to resolve share link', { error, shareId });
       return null;
     }
   }
 
+  async deleteShareLink(shareId: string): Promise<boolean> {
+    try {
+      const { error } = await supabase.from('share_links').delete().eq('id', shareId);
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      log.error('Failed to delete share link', { error, shareId });
+      return false;
+    }
+  }
+
+  async getShareLinksForProject(projectId: string): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('share_links')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      log.error('Failed to fetch share links', { error, projectId });
+      return [];
+    }
+  }
+
+  async verifyPassword(shareId: string, password: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase
+        .from('share_links')
+        .select('password_hash')
+        .eq('id', shareId)
+        .single();
+
+      if (error || !data || !data.password_hash) return true; // No password set
+
+      const encoder = new TextEncoder();
+      const hashData = encoder.encode(password + shareId);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', hashData);
+      const hash = Array.from(new Uint8Array(hashBuffer))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      return hash === data.password_hash;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  private generateId(): string {
+    return Array.from(crypto.getRandomValues(new Uint8Array(6)))
+      .map((b) => b.toString(36).padStart(2, '0'))
+      .join('')
+      .substring(0, 8);
+  }
+
   private formatShareUrl(shareId: string): string {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
-    // In a real app, this would be a dedicated sharing domain or path
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://kreathief.vercel.app';
     return `${origin}/share/${shareId}`;
   }
 }
