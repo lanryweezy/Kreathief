@@ -328,7 +328,7 @@ export const useEditorLogic = (initialProject?: Project) => {
             break;
         }
       } catch (e) {
-        // Ignore boolean operation errors
+        log.warn('[EditorLogic] Boolean operation failed', { error: e, operation });
       }
     }
     setBooleanPreview({ path: VectorUtils.serializePath(resultPath), operation });

@@ -136,7 +136,9 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
       const next = [item, ...prev].slice(0, 6);
       try {
         localStorage.setItem('kreathief_gen_history', JSON.stringify(next));
-      } catch {}
+      } catch (e) {
+        log.error('[MagicPanel] Failed to save generation history to localStorage', e);
+      }
       return next;
     });
   }, [lastGeneratedImageUrl, prompt]);
