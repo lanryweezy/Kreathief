@@ -393,6 +393,21 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     }
     const comments = await storageService.getComments(projectId);
     set({ comments });
+
+    // Also fetch from Supabase and merge
+    import('../../services/commentService').then(({ commentService }) => {
+      commentService.getDesignComments(projectId).then((dbComments) => {
+        if (dbComments.length > 0) {
+          set((state: any) => {
+            const localIds = new Set(state.comments.map((c: any) => c.id));
+            const newFromDb = dbComments.filter((c) => !localIds.has(c.id));
+            if (newFromDb.length > 0) {
+              set({ comments: [...state.comments, ...newFromDb] });
+            }
+          });
+        }
+      });
+    });
   },
 
   addComment: async (text, user) => {
@@ -411,6 +426,11 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     };
     await storageService.saveComment(newComment);
     set((state: any) => ({ comments: [...state.comments, newComment] }));
+
+    // Also persist to Supabase in background
+    import('../../services/commentService').then(({ commentService }) => {
+      commentService.addDesignComment(projectId, user.id, user.name, user.avatar || null, text);
+    });
   },
 
   toggleFavoriteTemplate: (id: string) =>

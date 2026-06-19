@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, useMemo } from 'react';
-import { Routes, Route, useNavigate, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, Navigate, useLocation, useParams } from 'react-router-dom';
 import { ToastContainer } from './components/Toast';
 import { useStore } from './store/useStore';
 import { authService } from './services/authService';
@@ -29,6 +29,14 @@ import {
   APIPage,
 } from './components/pages/StaticPages';
 import { parseShareLink } from './utils/shareUtils';
+
+import { UserProfilePage } from './components/UserProfilePage';
+
+function ProfileRoute() {
+  const { userId } = useParams();
+  const navigate = useNavigate();
+  return <UserProfilePage userId={userId || ''} onBack={() => navigate(-1)} />;
+}
 
 // Lazy load main views for code splitting
 const Auth = React.lazy(() => import('./components/Auth').then((module) => ({ default: module.Auth })));
@@ -327,6 +335,10 @@ const App: React.FC = () => {
           />
           <Route path="/blog" element={<BlogList />} />
           <Route path="/blog/:id" element={<BlogPostView />} />
+          <Route
+            path="/profile/:userId"
+            element={<ProfileRoute />}
+          />
 
           <Route path="/about" element={<AboutPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />

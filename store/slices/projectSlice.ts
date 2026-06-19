@@ -311,8 +311,8 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
 
   // Comments Actions
   addCanvasComment: (x, y, content, author) => {
-    const { projectId } = get();
-    if (!projectId) {
+    const { projectId, user } = get();
+    if (!projectId || !user) {
       return;
     }
 
@@ -324,6 +324,7 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
       author,
       createdAt: Date.now(),
       resolved: false,
+      userId: user.id,
     };
 
     set((state: any) => ({
@@ -332,6 +333,11 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
       ),
     }));
     get().saveProject();
+
+    // Persist to Supabase in background
+    import('../../services/commentService').then(({ commentService }) => {
+      commentService.addCanvasComment(projectId, user.id, user.name, user.avatar || null, x, y, content);
+    });
   },
 
   resolveCanvasComment: (id) => {
@@ -351,6 +357,10 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
       ),
     }));
     get().saveProject();
+
+    import('../../services/commentService').then(({ commentService }) => {
+      commentService.resolveCanvasComment(id);
+    });
   },
 
   deleteCanvasComment: (id) => {
@@ -370,6 +380,10 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
       ),
     }));
     get().saveProject();
+
+    import('../../services/commentService').then(({ commentService }) => {
+      commentService.deleteCanvasComment(id);
+    });
   },
 
   updateCanvasComment: (id, content) => {
