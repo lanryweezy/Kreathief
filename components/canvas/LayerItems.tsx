@@ -124,6 +124,7 @@ export const ImageLayerItem = React.memo(
         previewAnimation,
         maskPath,
         optimizedSrc,
+        onDoubleClick,
       },
       ref
     ) => {
@@ -136,6 +137,43 @@ export const ImageLayerItem = React.memo(
       const naturalHeight = imgLayer.naturalHeight || imgLayer.height;
       const crop = imgLayer.crop || { x: 0, y: 0, width: naturalWidth, height: naturalHeight };
       const imgScale = imgLayer.width / crop.width;
+
+      // Image reposition mode: drag to move image within crop bounds
+      const [repositioning, setRepositioning] = React.useState(false);
+      const repositionStart = React.useRef({ x: 0, y: 0, cropX: 0, cropY: 0 });
+
+      const handleImageRepositionStart = React.useCallback((e: React.PointerEvent) => {
+        e.stopPropagation();
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setRepositioning(true);
+        repositionStart.current = { x: e.clientX, y: e.clientY, cropX: crop.x, cropY: crop.y };
+      }, [crop.x, crop.y]);
+
+      const handleImageRepositionMove = React.useCallback((e: React.PointerEvent) => {
+        if (!repositioning) return;
+        const dx = (e.clientX - repositionStart.current.x) / (imgLayer.zoom || 1);
+        const dy = (e.clientY - repositionStart.current.y) / (imgLayer.zoom || 1);
+        const newCropX = Math.max(0, Math.min(naturalWidth - crop.width, repositionStart.current.cropX + dx));
+        const newCropY = Math.max(0, Math.min(naturalHeight - crop.height, repositionStart.current.cropY + dy));
+        // Direct DOM update for performance during drag
+        const imgEl = (e.currentTarget as HTMLElement).querySelector('img');
+        if (imgEl) {
+          imgEl.style.transform = `translate(${-newCropX * imgScale}px, ${-newCropY * imgScale}px) scale(${scaleX}, ${scaleY})`;
+        }
+      }, [repositioning, naturalWidth, naturalHeight, crop.width, crop.height, imgScale, scaleX, scaleY, imgLayer.zoom]);
+
+      const handleImageRepositionEnd = React.useCallback((e: React.PointerEvent) => {
+        if (!repositioning) return;
+        setRepositioning(false);
+        const dx = (e.clientX - repositionStart.current.x) / (imgLayer.zoom || 1);
+        const dy = (e.clientY - repositionStart.current.y) / (imgLayer.zoom || 1);
+        const newCropX = Math.max(0, Math.min(naturalWidth - crop.width, repositionStart.current.cropX + dx));
+        const newCropY = Math.max(0, Math.min(naturalHeight - crop.height, repositionStart.current.cropY + dy));
+        // Persist the new crop position
+        if (onDoubleClick) {
+          onDoubleClick({ ...imgLayer, crop: { ...crop, x: newCropX, y: newCropY } });
+        }
+      }, [repositioning, naturalWidth, naturalHeight, crop, imgLayer, scaleX, scaleY, imgLayer.zoom, onDoubleClick]);
 
       const maskWrapperStyle = React.useMemo(
         () => ({
@@ -181,6 +219,10 @@ export const ImageLayerItem = React.memo(
           role="img"
           aria-label={imgLayer.name || 'Image layer'}
           onMouseDown={(e) => onMouseDown(e, imgLayer)}
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+            setRepositioning(true);
+          }}
           onContextMenu={(e) => onContextMenu(e, imgLayer.id)}
           className="absolute cursor-move group image-layer-item"
           data-layer-type="image"
@@ -204,8 +246,23 @@ export const ImageLayerItem = React.memo(
             <div className="absolute -inset-0.5 border border-cyan-400/50 rounded-sm pointer-events-none z-40"></div>
           )}
 
-          <div className="w-full h-full overflow-hidden" style={maskWrapperStyle}>
-            <img src={optimizedSrc || imgLayer.src} className="pointer-events-none block" alt="" style={imgStyle} />
+          <div
+            className="w-full h-full overflow-hidden"
+            style={maskWrapperStyle}
+            onPointerDown={repositioning ? handleImageRepositionStart : undefined}
+            onPointerMove={repositioning ? handleImageRepositionMove : undefined}
+            onPointerUp={repositioning ? handleImageRepositionEnd : undefined}
+          >
+            <img
+              src={optimizedSrc || imgLayer.src}
+              className={`pointer-events-none block ${repositioning ? 'cursor-grab' : ''}`}
+              alt=""
+              style={imgStyle}
+              draggable={false}
+            />
+            {repositioning && (
+              <div className="absolute inset-0 border-2 border-dashed border-white/50 pointer-events-none z-10" />
+            )}
           </div>
 
           {isSelected && <SelectionHandles layer={imgLayer} onResize={onResize} onRotate={onRotate} scale={1} />}

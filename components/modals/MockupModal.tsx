@@ -26,7 +26,10 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
   const [isDraggingOverlay, setIsDraggingOverlay] = useState(false);
   const [environment, setEnvironment] = useState<'studio' | 'sunset' | 'industrial' | 'soft'>('studio');
   const [useDisplacement, setUseDisplacement] = useState(true);
+  const [perspectiveWarp, setPerspectiveWarp] = useState({ rotateX: 0, rotateY: 0 });
+  const [customBg, setCustomBg] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -400,6 +403,85 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                   className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
                 />
               </div>
+
+              {/* Perspective Warp */}
+              <div className="mt-6 pt-6 border-t border-white/5">
+                <div className="flex items-center justify-between mb-4 px-2">
+                  <span className="text-[10px] font-black text-white tracking-widest uppercase">Perspective Warp</span>
+                </div>
+                <div className="space-y-3 px-2">
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] text-gray-500 w-8">X°</span>
+                    <input
+                      type="range"
+                      min="-45"
+                      max="45"
+                      step="1"
+                      value={perspectiveWarp.rotateX}
+                      onChange={(e) => setPerspectiveWarp({ ...perspectiveWarp, rotateX: parseInt(e.target.value) })}
+                      className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                    />
+                    <span className="text-[10px] font-mono text-gray-500 w-8 text-right">{perspectiveWarp.rotateX}°</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] text-gray-500 w-8">Y°</span>
+                    <input
+                      type="range"
+                      min="-45"
+                      max="45"
+                      step="1"
+                      value={perspectiveWarp.rotateY}
+                      onChange={(e) => setPerspectiveWarp({ ...perspectiveWarp, rotateY: parseInt(e.target.value) })}
+                      className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                    />
+                    <span className="text-[10px] font-mono text-gray-500 w-8 text-right">{perspectiveWarp.rotateY}°</span>
+                  </div>
+                  {(perspectiveWarp.rotateX !== 0 || perspectiveWarp.rotateY !== 0) && (
+                    <button
+                      onClick={() => setPerspectiveWarp({ rotateX: 0, rotateY: 0 })}
+                      className="text-[10px] text-gray-500 hover:text-white transition-colors"
+                    >
+                      Reset perspective
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Custom Background Upload */}
+              <div className="mt-6 pt-6 border-t border-white/5">
+                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-2 block mb-3">Custom Background</span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (ev) => setCustomBg(ev.target?.result as string);
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+                <div className="flex gap-2 px-2">
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex-1 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-gray-400 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                  >
+                    <Icons.Upload className="w-3.5 h-3.5" />
+                    Upload
+                  </button>
+                  {customBg && (
+                    <button
+                      onClick={() => setCustomBg(null)}
+                      className="py-2 px-3 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-gray-400 hover:text-red-400 transition-all"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
@@ -454,7 +536,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                   {!bgLoaded && <div className="absolute inset-0 bg-gray-800 animate-pulse" />}
 
                   <img
-                    src={current.bg}
+                    src={customBg || current.bg}
                     className={`w-full h-full object-cover transition-opacity duration-700 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`}
                     style={{ filter: envFilters[environment] }}
                     onLoad={() => setBgLoaded(true)}
@@ -484,7 +566,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                         top: `calc(${current.overlayStyle.top} + ${overlayPos.y}%)`,
                         left: `calc(${current.overlayStyle.left} + ${overlayPos.x}%)`,
                         width: `calc(${current.overlayStyle.width} * ${overlayScale})`,
-                        transform: (current.overlayStyle as any).transform,
+                        transform: `${(current.overlayStyle as any).transform || ''} perspective(800px) rotateX(${perspectiveWarp.rotateX}deg) rotateY(${perspectiveWarp.rotateY}deg)`,
                         mixBlendMode: current.overlayStyle.mixBlendMode as any,
                         opacity: surfaceDepth,
                         filter: `${environment === 'sunset' ? 'sepia(0.1) brightness(0.95)' : ''} ${useDisplacement ? 'contrast(1.05)' : ''}`,
