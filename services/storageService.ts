@@ -611,6 +611,13 @@ class StorageService {
           // Remove from pending changes
           this.pendingChanges.delete(id);
           await this.persistPendingChanges();
+
+          // Try to clean up local IndexedDB as well since it might exist there too
+          try {
+            const localStore = await this.getStore('projects', 'readwrite');
+            localStore.delete(id);
+          } catch(e) {}
+
           return;
         }
         logger.warn('Supabase delete failed, falling back to IndexedDB', { error: error.message });
