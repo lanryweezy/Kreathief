@@ -1,6 +1,35 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { storageService } from './storageService';
 import { Project } from '../types';
+
+vi.mock('../lib/supabase/client', () => {
+  const mockClient = {
+    from: vi.fn().mockReturnValue({
+      upsert: vi.fn().mockImplementation(() => {
+        // Return error to force IndexedDB fallback
+        return Promise.resolve({ error: new Error('Network offline') });
+      }),
+      delete: vi.fn().mockImplementation(() => {
+        return Promise.resolve({ error: new Error('Network offline') });
+      }),
+      eq: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      single: vi.fn().mockImplementation(() => {
+        return Promise.resolve({ data: null, error: new Error('Not found') });
+      }),
+    }),
+  };
+  return {
+    supabase: mockClient,
+    db: mockClient,
+  };
+});
+
+vi.mock('./authService', () => ({
+  authService: {
+    getSession: vi.fn().mockResolvedValue({ id: 'test-user-id' }),
+  },
+}));
 
 describe('StorageService', () => {
   const mockProject: Project = {
