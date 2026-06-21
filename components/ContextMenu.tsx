@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
+import { log } from '../utils/log';
 
 interface ContextMenuProps {
   x: number;
@@ -115,7 +116,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
       a.download = `${layer?.name || 'layer'}.png`;
       a.click();
       addToast?.('Layer exported as PNG!', 'success');
-    } catch {
+    } catch (e) {
+      log.error('[ContextMenu] Layer export as PNG failed', e, { layerId });
       addToast?.('Export failed. Use the main Export button.', 'error');
     }
     onClose();

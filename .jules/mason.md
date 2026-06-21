@@ -34,3 +34,7 @@
 ## 2026-06-19 - Remove unused duplicate constants
 **Learning:** Found unused filter presets (`DEFAULT_FILTERS_CONST` and `EFFECT_PRESETS`) in `constants.ts`. The actual application relies on `DEFAULT_LAYER_FILTERS`, `DEFAULT_CANVAS_FILTERS`, and `CANVAS_EFFECT_PRESETS` in context-specific locations (`store/slices/layer/utils.ts`, `store/slices/canvasSlice.ts`, and `components/toolbar/ToolbarConstants.ts`).
 **Action:** When finding unused global constants, grep for similar names or domain structures. They are often relics from earlier iterations or duplicates of context-specific definitions, and can be safely deleted without call-site updates.
+
+## 2026-06-20 - Unused duplicate components removed
+**Learning:** The codebase contained an unused `components/ContrastChecker.tsx` that duplicated utility functions (`getLuminance`, `getContrastRatio`) already present in `utils/colorUtils.ts`. The actual UI component being used was `components/panels/ContrastChecker.tsx` which correctly imported the utilities.
+**Action:** Found and removed dead duplicate code components. Often when multiple files have similar names across directories (e.g. `components/` vs `components/panels/`), one of them is an unused relic that can be cleanly removed to eliminate structural debt and confusion.

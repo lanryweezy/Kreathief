@@ -5,6 +5,7 @@ import * as geminiService from '../../services/geminiService';
 import { loadFont, registerCustomFont } from '../../services/FontLoader';
 import { useStore } from '../../store/useStore';
 import { log } from '../../utils/log';
+import { getAIErrorMessage } from '../../utils/errorMessages';
 import { TextStylesPanel, TextStyle } from './TextStylesPanel';
 import { TextGradientEditor } from './TextGradientEditor';
 import { TextEffectsPanel } from './TextEffectsPanel';
@@ -226,7 +227,7 @@ export const TextPanel: React.FC = () => {
       setTextGenResults(results);
     } catch (e) {
       log.error('[TextPanel] Text generation failed', e, { prompt: textGenPrompt.substring(0, 100) });
-      addToast('Failed to generate text options', 'error');
+      addToast(getAIErrorMessage(e), 'error');
     } finally {
       setIsGeneratingText(false);
     }

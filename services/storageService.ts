@@ -78,6 +78,26 @@ class StorageService {
 
     // Load pending changes on initialization
     this.loadPendingChanges();
+
+    // Monitor IndexedDB quota
+    this.checkStorageQuota();
+  }
+
+  private async checkStorageQuota(): Promise<void> {
+    try {
+      if ('storage' in navigator && 'estimate' in navigator.storage) {
+        const estimate = await navigator.storage.estimate();
+        const usedMB = (estimate.usage || 0) / (1024 * 1024);
+        const quotaMB = (estimate.quota || 0) / (1024 * 1024);
+        const percentUsed = quotaMB > 0 ? (usedMB / quotaMB) * 100 : 0;
+
+        if (percentUsed > 80) {
+          logger.warn(`IndexedDB storage at ${percentUsed.toFixed(1)}% (${usedMB.toFixed(1)}MB / ${quotaMB.toFixed(1)}MB)`);
+        }
+      }
+    } catch (err) {
+      // Quota API not available - that's fine
+    }
   }
 
   private async getUserId(): Promise<string | null> {
@@ -534,6 +554,28 @@ class StorageService {
     await this.queueSyncOperation(project.id, 'update');
   }
 
+  /**
+   * Conflict resolution: compares local and remote timestamps.
+   * Returns the project with the newer timestamp (last-write-wins).
+   */
+  private resolveConflict(local: Project, remote: any): Project {
+    const localTime = local.updatedAt || 0;
+    const remoteTime = remote?.updated_at ? new Date(remote.updated_at).getTime() : 0;
+
+    if (remoteTime > localTime) {
+      // Remote is newer - merge remote state into local project structure
+      logger.info('[Storage] Conflict resolved: remote is newer', { projectId: local.id });
+      return {
+        ...local,
+        state: remote.state || local.state,
+        updatedAt: remoteTime,
+      };
+    }
+    // Local is newer or same - keep local
+    logger.info('[Storage] Conflict resolved: local is newer or same', { projectId: local.id });
+    return local;
+  }
+
   private async saveProjectIndexedDB(project: Project): Promise<void> {
     const store = await this.getStore('projects', 'readwrite');
     return new Promise((resolve, reject) => {
@@ -611,6 +653,13 @@ class StorageService {
           // Remove from pending changes
           this.pendingChanges.delete(id);
           await this.persistPendingChanges();
+
+          // Try to clean up local IndexedDB as well since it might exist there too
+          try {
+            const localStore = await this.getStore('projects', 'readwrite');
+            localStore.delete(id);
+          } catch(e) {}
+
           return;
         }
         logger.warn('Supabase delete failed, falling back to IndexedDB', { error: error.message });

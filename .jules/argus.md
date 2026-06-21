@@ -50,3 +50,6 @@
 
 **Learning:** Found an empty `catch` block swallowing `JSON.parse` errors in `components/modals/CommunityModal.tsx`. When a community template state fails to parse, it quietly fails and drops the operation, but no log trace is generated for debugging.
 **Action:** Replaced the empty catch block with a structured `log.error` call passing the template ID as context (`templateId: template.id`) so parsing failures can be investigated in production without altering the error handling flow.
+## 2024-05-18 - Unlogged Local Parse Failures Hide State Corruption
+**Learning:** Returning default empty values or `NaN` inside `catch` blocks for UI component logic (like `JSON.parse` in `CommunityModal` or mathematical evaluations in `ToolbarShared`) fails silently. While preventing an immediate UI crash, it completely obscures bad data states and logic errors from production logs.
+**Action:** Always include a structured `log.error` call before falling back to default values in catch blocks, ensuring the error object and relevant context (like the bad JSON string or evaluation expression) are recorded.

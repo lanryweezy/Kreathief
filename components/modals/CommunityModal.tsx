@@ -43,8 +43,8 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
     if (typeof state === 'string') {
       try {
         state = JSON.parse(state);
-      } catch (e) {
-        log.error('Failed to parse community template state', e, { templateId: template.id });
+      } catch (error) {
+        log.error('[CommunityModal] Failed to parse template state', error, { templateId: template.id });
       }
     }
 

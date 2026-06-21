@@ -1,6 +1,28 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { storageService } from './storageService';
 import { Project } from '../types';
+
+vi.mock('../lib/supabase/client', () => {
+  const mockSupabase = {
+    from: vi.fn().mockReturnValue({
+      upsert: vi.fn(),
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      single: vi.fn(),
+    }),
+  };
+  return {
+    supabase: mockSupabase,
+    db: mockSupabase,
+  };
+});
+
+vi.mock('./authService', () => ({
+  authService: {
+    getSession: vi.fn(),
+  },
+}));
 
 describe('StorageService', () => {
   const mockProject: Project = {
@@ -42,6 +64,8 @@ describe('StorageService', () => {
   it('should delete a project', async () => {
     await storageService.saveProject(mockProject);
     await storageService.deleteProject(mockProject.id);
+    // getProject will fallback to IndexedDB if it doesn't find it in supabase when online
+    // and wait for sync queue
     const retrieved = await storageService.getProject(mockProject.id);
     expect(retrieved).toBeUndefined();
   });
