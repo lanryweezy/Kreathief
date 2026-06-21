@@ -137,9 +137,9 @@ export async function loadFont(fontFamily: string): Promise<boolean> {
   try {
     const endTimer = logger.time(`Loading font: ${cleanFamily}`);
 
-    // Try to load local font files
+    // Try to load local font files with allSettled (accept partial loads)
     const localPromises = LOCAL_FONT_WEIGHTS.map((weight) => {
-      return new Promise<void>((resolve, reject) => {
+      return new Promise<void>((resolve) => {
         const fontFace = new FontFace(cleanFamily, `url(/fonts/${cleanFamily.replace(/ /g, '-')}-${weight}.woff2)`, {
           weight: weight as any,
           style: 'normal',
@@ -151,13 +151,32 @@ export async function loadFont(fontFamily: string): Promise<boolean> {
             (document.fonts as any).add(loaded);
             resolve();
           })
-          .catch(reject);
+          .catch(() => resolve()); // Don't reject - accept partial loads
       });
     });
 
-    // Wait for all weights to load, with timeout
+    // Also try italic variants
+    const italicPromises = LOCAL_FONT_WEIGHTS.map((weight) => {
+      return new Promise<void>((resolve) => {
+        const fontFace = new FontFace(cleanFamily, `url(/fonts/${cleanFamily.replace(/ /g, '-')}-${weight}-italic.woff2)`, {
+          weight: weight as any,
+          style: 'italic',
+        });
+
+        fontFace
+          .load()
+          .then((loaded) => {
+            (document.fonts as any).add(loaded);
+            resolve();
+          })
+          .catch(() => resolve()); // Accept missing italic variants
+      });
+    });
+
+    // Wait for at least some weights to load, with timeout
+    const allLocal = [...localPromises, ...italicPromises];
     await Promise.race([
-      Promise.all(localPromises),
+      Promise.allSettled(allLocal),
       new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000)),
     ]);
 
@@ -176,7 +195,7 @@ export async function loadFont(fontFamily: string): Promise<boolean> {
       // Create link element for Google Fonts
       const link = document.createElement('link');
       link.rel = 'stylesheet';
-      link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(cleanFamily.replace(/ /g, '+'))}:wght@300;400;500;600;700&display=swap`;
+      link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(cleanFamily.replace(/ /g, '+'))}:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap`;
 
       // Wait for font to load
       await new Promise<void>((resolve, reject) => {

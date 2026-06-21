@@ -53,11 +53,20 @@ export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get
       get().addThinkingEvent('Creative Agent', 'Synthesizing creative direction...');
 
       const canvasSize = get().canvasSize || { width: 1080, height: 1080 };
+      const userPlan = get().user?.plan || 'free';
 
-      // Stage 1: Creative Generation
+      // Stage 1: Creative Generation (always runs)
       const draftedVariants = await creativeAgentDraft(intent, canvasSize);
       get().addThinkingEvent('Creative Agent', `Drafted ${draftedVariants.length} distinct layout directions.`);
       set({ agentVariants: draftedVariants });
+
+      // Free users: skip critic + performance for speed/cost
+      // Pro/Enterprise: full pipeline
+      if (userPlan === 'free') {
+        get().addThinkingEvent('Creative Agent', 'Skipping review (Free plan — upgrade to Pro for full pipeline)');
+        set({ agentVariants: draftedVariants, agentStatus: 'done' });
+        return;
+      }
 
       // Stage 2: Critic Review
       set({ agentStatus: 'critic' });
@@ -86,6 +95,7 @@ export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get
 
       const state = get();
       const canvasSize = state.canvasSize || { width: 1080, height: 1080 };
+      const userPlan = state.user?.plan || 'free';
       const activeArtboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
       if (!activeArtboard) {
         throw new Error('No active artboard');
@@ -94,10 +104,17 @@ export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get
       const targetLayers = activeArtboard.layers.filter((l: Layer) => layerIds.includes(l.id));
       const contextLayers = activeArtboard.layers.filter((l: Layer) => !layerIds.includes(l.id));
 
-      // Stage 1: Creative Refinement
+      // Stage 1: Creative Refinement (always runs)
       const draftedVariants = await creativeAgentRefine(intent, targetLayers, contextLayers, canvasSize);
       get().addThinkingEvent('Creative Agent', 'Generated improved versions of selected elements.');
       set({ agentVariants: draftedVariants });
+
+      // Free users: skip critic + performance
+      if (userPlan === 'free') {
+        get().addThinkingEvent('Creative Agent', 'Skipping review (Free plan — upgrade to Pro for full pipeline)');
+        set({ agentVariants: draftedVariants, agentStatus: 'done' });
+        return;
+      }
 
       // Stage 2: Critic Review
       set({ agentStatus: 'critic' });
