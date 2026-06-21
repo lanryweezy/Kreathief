@@ -58,9 +58,7 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
 
   const onLike = async (template: CommunityTemplate) => {
     await communityService.likeTemplate(template.id);
-    setTemplates((prev) =>
-      prev.map((t) => (t.id === template.id ? { ...t, likes: t.likes + 1 } : t))
-    );
+    setTemplates((prev) => prev.map((t) => (t.id === template.id ? { ...t, likes: t.likes + 1 } : t)));
   };
 
   return (

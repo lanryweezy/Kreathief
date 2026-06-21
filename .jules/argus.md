@@ -46,6 +46,10 @@
 ## 2026-06-19 - Added Structured Logs to Empty/Swallowed Catch Blocks
 **Learning:** Found several places where `try/catch` blocks either entirely swallowed errors (like `JSON.parse` failures in BrandPanel or `localStorage.setItem` in MagicPanel) or omitted crucial context (like the prompt `text` in AIAssistant). This pattern leads to silent failures where features silently break for users but no error trace is generated for the engineering team.
 **Action:** Addressed these by strictly adding `log.error` or `log.warn` calls with relevant scoped variables passed as contextual payloads, without altering any adjacent business logic.
+## 2026-06-20 - Add structured logging to silent JSON parsing errors
+
+**Learning:** Found an empty `catch` block swallowing `JSON.parse` errors in `components/modals/CommunityModal.tsx`. When a community template state fails to parse, it quietly fails and drops the operation, but no log trace is generated for debugging.
+**Action:** Replaced the empty catch block with a structured `log.error` call passing the template ID as context (`templateId: template.id`) so parsing failures can be investigated in production without altering the error handling flow.
 ## 2024-05-18 - Unlogged Local Parse Failures Hide State Corruption
 **Learning:** Returning default empty values or `NaN` inside `catch` blocks for UI component logic (like `JSON.parse` in `CommunityModal` or mathematical evaluations in `ToolbarShared`) fails silently. While preventing an immediate UI crash, it completely obscures bad data states and logic errors from production logs.
 **Action:** Always include a structured `log.error` call before falling back to default values in catch blocks, ensuring the error object and relevant context (like the bad JSON string or evaluation expression) are recorded.

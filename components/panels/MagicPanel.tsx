@@ -7,6 +7,7 @@ import * as geminiService from '../../services/geminiService';
 import { useStore } from '../../store/useStore';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
+import { getAIErrorMessage } from '../../utils/errorMessages';
 import { v4 as uuidv4 } from 'uuid';
 
 interface MagicPanelProps {
@@ -155,7 +156,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
     } catch (e: any) {
       log.error('[MagicPanel] Prompt enhancement failed', e, { prompt: prompt.substring(0, 100) });
       addToast(
-        'Prompt enhancement failed',
+        getAIErrorMessage(e),
         'error',
         { label: 'Retry', onClick: handleEnhancePrompt },
         'There was an issue connecting to the AI service.'

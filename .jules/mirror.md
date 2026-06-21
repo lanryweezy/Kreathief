@@ -18,6 +18,11 @@
 1. Mapped all text styling fields correctly from the `TextLayer` state to inline styles within `TextLayerItem`.
 2. Updated `buildFilterString` in `utils/layers/styleUtils.ts` to include the `invert` property, and refactored `AdjustmentLayerItem` to derive its `backdropFilter` directly from `buildFilterString`.
 **Learning:** Always verify that every new design state property introduced for text and filters is mapped to a single source of truth (`buildFilterString` and `renderMultilineText`) instead of redefining inline properties directly in the canvas elements.
+## 2026-06-18 - Missing text style properties in worker canvas rendering
+**Surface pair:** Canvas Editor and Export Worker Pipeline
+**Root cause:** `services/exportWorker.ts` was manually rendering text using independent canvas calls (`ctx.fillText`, manual looping for 3D depth, manual logic for font styles) rather than leveraging the shared `renderMultilineText` from `utils/textRendering.ts` that the main `exportService.ts` was already using.
+**Fix:** Extracted text rendering to use the shared `renderMultilineText` utility, preserving the 3D depth rendering loop while applying it to the new utility.
+**Learning:** Text properties like wrapping, line height, letter spacing, and alignment cannot be applied automatically via simple Canvas API calls like `fillText` without custom layout loops. Always extract rendering implementations into a shared source of truth rather than patching them per-surface to prevent drift.
 ## 2026-06-21 - [Shape Rendering consistency between Canvas and SVG Export/Workers]
 **Surface pair:** Canvas Editor and Export Pipeline (SVG Export, Export Worker, Mask Worker)
 **Root cause:** The shape rendering logic diverged because `exportService.ts`, `exportWorker.ts`, and `mask.worker.ts` all hardcoded custom math and explicit lists of `polygon` points for shapes. Because `exportService.ts` manually generated SVG shapes, it broke completely on non-basic shapes like `hexagon` or `heart`.
