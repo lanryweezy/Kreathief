@@ -27,7 +27,7 @@ export default async function handler(req: Request) {
     return new Response(null, {
       status: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
@@ -51,7 +51,10 @@ export default async function handler(req: Request) {
       if (rateLimitState.count >= MAX_REQUESTS_PER_WINDOW) {
         return new Response(JSON.stringify({ error: 'Too many requests' }), {
           status: 429,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+          },
         });
       }
       rateLimitState.count++;
@@ -66,7 +69,10 @@ export default async function handler(req: Request) {
   } catch (err) {
     return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
       status: 400,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+      },
     });
   }
 
@@ -76,7 +82,10 @@ export default async function handler(req: Request) {
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'Gemini API key not configured on server' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+      },
     });
   }
 
@@ -111,7 +120,7 @@ export default async function handler(req: Request) {
           status: 200,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
           },
         }
       );
@@ -119,13 +128,19 @@ export default async function handler(req: Request) {
 
     return new Response(JSON.stringify({ error: 'Unknown action' }), {
       status: 400,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+      },
     });
   } catch (error: any) {
     log.error('API Route Error', error, { action: payload?.action, modelName: payload?.modelName });
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+      },
     });
   }
 }
