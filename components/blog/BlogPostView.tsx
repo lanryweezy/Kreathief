@@ -108,13 +108,22 @@ export const BlogPostView: React.FC = () => {
             <div className="pt-8 border-t border-white/10">
               <div className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-4">Share Article</div>
               <div className="flex gap-4">
-                <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-purple-500/20 hover:border-purple-500/30 transition-all flex items-center justify-center group">
+                <button
+                  aria-label="Share on Twitter"
+                  className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-purple-500/20 hover:border-purple-500/30 transition-all flex items-center justify-center group"
+                >
                   <Icons.Twitter className="w-4 h-4 text-gray-400 group-hover:text-purple-400" />
                 </button>
-                <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-blue-500/20 hover:border-blue-500/30 transition-all flex items-center justify-center group">
+                <button
+                  aria-label="Visit Author Website"
+                  className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-blue-500/20 hover:border-blue-500/30 transition-all flex items-center justify-center group"
+                >
                   <Icons.Monitor className="w-4 h-4 text-gray-400 group-hover:text-blue-400" />
                 </button>
-                <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-pink-500/20 hover:border-pink-500/30 transition-all flex items-center justify-center group">
+                <button
+                  aria-label="Copy Link"
+                  className="w-10 h-10 rounded-full bg-white/5 border border-white/10 hover:bg-pink-500/20 hover:border-pink-500/30 transition-all flex items-center justify-center group"
+                >
                   <Icons.Link className="w-4 h-4 text-gray-400 group-hover:text-pink-400" />
                 </button>
               </div>
