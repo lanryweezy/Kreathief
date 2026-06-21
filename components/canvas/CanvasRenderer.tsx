@@ -9,7 +9,7 @@ const noop = () => {};
 
 interface CanvasRendererProps {
   artboards: Artboard[];
-  activeArtboardId: string;
+  activeArtboardId: string | null;
   canvasBackgroundColor: string;
   canvasFilters: CanvasFilters;
   zoom: number;
@@ -28,23 +28,20 @@ interface CanvasRendererProps {
   editingPathId: string | null;
   onUpdatePath?: (id: string, updates: any) => void;
   previewAnimation?: AnimationSettings;
-  isInteracting: boolean;
   selectedLayerId: string | null;
   selectedLayerIds: string[];
   hoveredLayerId: string | null;
   setHoveredLayerId: (id: string | null) => void;
   setActiveArtboardId: (id: string) => void;
-  onAddArtboard: () => void;
-  onDeleteArtboard: (id: string) => void;
   showGrid: boolean;
   isDrawing: boolean;
   isRefining: boolean;
   isVectorPenMode?: boolean;
   drawingCanvasRef: React.RefObject<HTMLCanvasElement>;
   refineCanvasRef: React.RefObject<HTMLCanvasElement>;
-  handleDrawingMouseDown: (e: React.MouseEvent) => void;
-  handleDrawingMouseMove: (e: React.MouseEvent) => void;
-  handleDrawingMouseUp: () => void;
+  handleDrawingMouseDown: (e: React.PointerEvent | React.MouseEvent) => void;
+  handleDrawingMouseMove: (e: React.PointerEvent | React.MouseEvent) => void;
+  handleDrawingMouseUp: (e?: React.PointerEvent | React.MouseEvent) => void;
   isLassoMode: boolean;
   localLassoPoints: { x: number; y: number }[];
   booleanPreview: { path: string; operation: string } | null;
@@ -83,9 +80,9 @@ interface ArtboardItemProps {
   isVectorPenMode?: boolean;
   drawingCanvasRef: React.RefObject<HTMLCanvasElement>;
   refineCanvasRef: React.RefObject<HTMLCanvasElement>;
-  handleDrawingMouseDown: (e: React.MouseEvent) => void;
-  handleDrawingMouseMove: (e: React.MouseEvent) => void;
-  handleDrawingMouseUp: () => void;
+  handleDrawingMouseDown: (e: React.PointerEvent | React.MouseEvent) => void;
+  handleDrawingMouseMove: (e: React.PointerEvent | React.MouseEvent) => void;
+  handleDrawingMouseUp: (e?: React.PointerEvent | React.MouseEvent) => void;
   isLassoMode: boolean;
   localLassoPoints: { x: number; y: number }[];
   booleanPreview: { path: string; operation: string } | null;
@@ -266,9 +263,9 @@ const ArtboardItem = React.memo(
                   className="absolute inset-0 z-[70] cursor-crosshair touch-none"
                   width={artboard.width}
                   height={artboard.height}
-                  onMouseDown={isRefining ? undefined : handleDrawingMouseDown}
-                  onMouseMove={isRefining ? handleDrawingMouseMove : handleDrawingMouseMove}
-                  onMouseUp={handleDrawingMouseUp}
+                  onPointerDown={isRefining ? undefined : handleDrawingMouseDown}
+                  onPointerMove={isRefining ? handleDrawingMouseMove : handleDrawingMouseMove}
+                  onPointerUp={handleDrawingMouseUp}
                 />
               )}
 

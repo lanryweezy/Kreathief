@@ -1,12 +1,7 @@
-## 2026-06-18 - Auth Test Setup
+## 2024-06-25 - Pure Function Unit Testing Prioritization
+**Learning:** Found that `utils/colorUtils.ts` and `utils/unitUtils.ts` had zero test coverage despite being pure functions that are critical to the color and unit math of the application. The test runner is configured to use Vitest, and coverage reports are comprehensive. The test output can be excessively large in diff views if not piped properly or restricted to specific files. It takes a very long time for the entire test suite to execute (`vitest --coverage` without restricting it to specific files times out).
+**Action:** When adding tests as the Forge agent, prioritise pure utility functions and run vitest on single files (e.g. `pnpm vitest run tests/utils/colorUtils.test.ts`) instead of running the entire suite. Always ensure coverage files are ignored from git to prevent large unintended diffs.
 
-**Learning:** Supabase mock in `tests` needs to explicitly return `db` as part of the `vi.mock` return since tests rely on both `supabase` and its `db` alias. We've seen test failures like `[vitest] No "db" export is defined on the "../lib/supabase/client" mock. Did you forget to return it from "vi.mock"?`
-**Action:** When mocking `../lib/supabase/client`, make sure to mock the `db` export too.
-
-## 2026-06-18 - Missing Environment Variables in Tests
-
-**Learning:** We need to explicitly pass `VITE_GEMINI_API_KEY`, `VITE_SUPABASE_URL`, and `VITE_SUPABASE_ANON_KEY` when running vitest as `getEnv` will throw if they are missing in non-QA bypass mode. QA Bypass mode isn't enabled by default.
-**Action:** Always prefix `pnpm test` with `VITE_GEMINI_API_KEY=fake-key VITE_SUPABASE_URL=http://localhost:54321 VITE_SUPABASE_ANON_KEY=fake-key`.
-## 2026-06-19 - Test file structure and coverage tools
-**Learning:** This codebase strictly forbids altering `package.json` to downgrade versions or install coverage tools (like `@vitest/coverage-v8`) on the fly. Furthermore, test files must be correctly structured with well-nested `describe` blocks. A missing closing bracket can easily orphan test suites and cause failures.
-**Action:** Write test suites adhering to the existing framework and configuration. Only use standard execution commands (`pnpm test` and specific test file paths) without injecting new dependency plugins unless explicitly approved. Ensure structural integrity of all `describe` blocks.
+## 2024-06-25 - Pure Function Unit Testing Prioritization
+**Learning:** Found that `utils/colorUtils.ts` and `utils/unitUtils.ts` had zero test coverage despite being pure functions that are critical to the color and unit math of the application. The test runner is configured to use Vitest, and coverage reports are comprehensive. The test output can be excessively large in diff views if not piped properly or restricted to specific files. It takes a very long time for the entire test suite to execute (`vitest --coverage` without restricting it to specific files times out).
+**Action:** When adding tests as the Forge agent, prioritise pure utility functions and run vitest on single files (e.g. `pnpm vitest run tests/utils/colorUtils.test.ts`) instead of running the entire suite. Always ensure coverage files are ignored from git to prevent large unintended diffs.

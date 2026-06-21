@@ -26,7 +26,7 @@ export default async function handler(req: Request) {
     return new Response(null, {
       status: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
@@ -43,7 +43,10 @@ export default async function handler(req: Request) {
       if (rateLimitState.count >= MAX_REQUESTS_PER_WINDOW) {
         return new Response(JSON.stringify({ error: 'Too many requests' }), {
           status: 429,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+          },
         });
       }
       rateLimitState.count++;
@@ -58,7 +61,10 @@ export default async function handler(req: Request) {
   if (!accountId || !secretKey) {
     return new Response(JSON.stringify({ error: 'Vecteezy API key not configured on server' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+      },
     });
   }
 
@@ -90,14 +96,20 @@ export default async function handler(req: Request) {
 
       return new Response(JSON.stringify(data), {
         status: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+        },
       });
     } else if (action === 'download') {
       const resourceId = url.searchParams.get('resourceId');
       if (!resourceId) {
         return new Response(JSON.stringify({ error: 'resourceId is required' }), {
           status: 400,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+          },
         });
       }
 
@@ -117,19 +129,28 @@ export default async function handler(req: Request) {
       const data = await response.json();
       return new Response(JSON.stringify(data), {
         status: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+        },
       });
     }
 
     return new Response(JSON.stringify({ error: 'Unknown action' }), {
       status: 400,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+      },
     });
   } catch (error: any) {
     log.error('API Route Error', error, { url: req.url });
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+      },
     });
   }
 }

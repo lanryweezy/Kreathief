@@ -1,3 +1,4 @@
+import { getShapeDefinition } from '../utils/layers/shapeRegistry';
 /**
  * Mask Worker
  * Handles precise hit-testing and complex mask generation in a background thread.
