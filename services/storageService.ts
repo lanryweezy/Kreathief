@@ -78,6 +78,26 @@ class StorageService {
 
     // Load pending changes on initialization
     this.loadPendingChanges();
+
+    // Monitor IndexedDB quota
+    this.checkStorageQuota();
+  }
+
+  private async checkStorageQuota(): Promise<void> {
+    try {
+      if ('storage' in navigator && 'estimate' in navigator.storage) {
+        const estimate = await navigator.storage.estimate();
+        const usedMB = (estimate.usage || 0) / (1024 * 1024);
+        const quotaMB = (estimate.quota || 0) / (1024 * 1024);
+        const percentUsed = quotaMB > 0 ? (usedMB / quotaMB) * 100 : 0;
+
+        if (percentUsed > 80) {
+          logger.warn(`IndexedDB storage at ${percentUsed.toFixed(1)}% (${usedMB.toFixed(1)}MB / ${quotaMB.toFixed(1)}MB)`);
+        }
+      }
+    } catch (err) {
+      // Quota API not available - that's fine
+    }
   }
 
   private async getUserId(): Promise<string | null> {
@@ -532,6 +552,28 @@ class StorageService {
     // Offline or error - save locally and queue for sync
     await this.saveProjectIndexedDB(project);
     await this.queueSyncOperation(project.id, 'update');
+  }
+
+  /**
+   * Conflict resolution: compares local and remote timestamps.
+   * Returns the project with the newer timestamp (last-write-wins).
+   */
+  private resolveConflict(local: Project, remote: any): Project {
+    const localTime = local.updatedAt || 0;
+    const remoteTime = remote?.updated_at ? new Date(remote.updated_at).getTime() : 0;
+
+    if (remoteTime > localTime) {
+      // Remote is newer - merge remote state into local project structure
+      logger.info('[Storage] Conflict resolved: remote is newer', { projectId: local.id });
+      return {
+        ...local,
+        state: remote.state || local.state,
+        updatedAt: remoteTime,
+      };
+    }
+    // Local is newer or same - keep local
+    logger.info('[Storage] Conflict resolved: local is newer or same', { projectId: local.id });
+    return local;
   }
 
   private async saveProjectIndexedDB(project: Project): Promise<void> {
