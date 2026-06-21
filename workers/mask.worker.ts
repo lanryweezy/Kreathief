@@ -4,6 +4,8 @@ import { getShapeDefinition } from '../utils/layers/shapeRegistry';
  * Handles precise hit-testing and complex mask generation in a background thread.
  */
 
+import { getLayerClipPath } from '../utils/layerRendering';
+
 self.onmessage = async (e: MessageEvent) => {
   const { type, id, payload } = e.data;
 
@@ -135,22 +137,3 @@ function isPointInPolygon(x: number, y: number, points: { x: number; y: number }
   return inside;
 }
 
-/**
- * Returns the CSS clip-path for a shape layer (Worker-safe version)
- */
-function getLayerClipPath(layer: any): string | undefined {
-  if (!layer || layer.type === 'text' || layer.type === 'image') {
-    return undefined;
-  }
-
-  if (layer.type === 'path') {
-    return layer.pathData ? `path('${layer.pathData}')` : undefined;
-  }
-
-  const clipPath = getShapeDefinition(layer.type);
-  if (clipPath) {
-    return clipPath;
-  }
-
-  return undefined;
-}

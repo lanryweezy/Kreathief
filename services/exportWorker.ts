@@ -1,6 +1,7 @@
 import { log } from '../utils/log';
 import { buildFilterString } from '../utils/layers';
-import { getShapeDefinition } from '../utils/layers/shapeRegistry';
+import { getLayerClipPath } from '../utils/layerRendering';
+
 /**
  * exportWorker.ts
  * Background worker for heavy canvas rendering and export
@@ -20,9 +21,8 @@ self.onmessage = async (e: MessageEvent) => {
     }
 
     // --- Helpers ---
-
     const applyClip = (ctx: any, layer: any, maskLayer: any) => {
-      const def = getShapeDefinition(maskLayer.type);
+      const def = getLayerClipPath(maskLayer);
       // We need to trace the path in the local space of the TARGET layer
       // But the mask definition is percentage based (0-100%).
       // So we use the Target Layer dimensions? NO.
@@ -212,7 +212,7 @@ self.onmessage = async (e: MessageEvent) => {
             ctx.restore();
           } else {
             // Complex polygon shapes
-            const def = getShapeDefinition(layer.type);
+            const def = getLayerClipPath(layer);
             if (def && def.startsWith('polygon')) {
               const points = def.match(/[\d.]+% [\d.]+/g);
               if (points) {

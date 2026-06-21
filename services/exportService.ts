@@ -3,7 +3,7 @@ import { writePsd, Psd } from 'ag-psd';
 import { logSecurityEvent } from '../utils/securityLogger';
 import { renderMultilineText } from '../utils/textRendering';
 import { buildFilterString } from '../utils/layers';
-import { getShapeDefinition } from '../utils/layers/shapeRegistry';
+import { getLayerClipPath } from '../utils/layerRendering';
 
 export type ColorProfile = 'sRGB' | 'CMYK' | 'FOGRA39' | 'GRACoL' | 'SWOP';
 
@@ -320,7 +320,7 @@ export const exportToSVG = (
 
     const opacity = layer.opacity ?? 1;
 
-    if (layer.type === 'rectangle' || layer.type === 'circle' || layer.type === 'path' || getShapeDefinition(layer.type)) {
+    if (layer.type !== 'text' && layer.type !== 'image') {
       const sl = layer as ShapeLayer;
       let shape = '';
       const fill = sl.gradient?.enabled ? `url(#grad-${sl.id})` : sl.color;
@@ -337,18 +337,16 @@ export const exportToSVG = (
       } else if (sl.type === 'path' && sl.pathData) {
         shape = `<path d="${sl.pathData}" fill="${sl.id?.startsWith('draw_') || (sl as any).brushType ? 'none' : sl.color}" stroke="${(sl as any).stroke?.color || sl.color}" stroke-width="${(sl as any).stroke?.width || 0}" />`;
       } else {
-        const clipPath = getShapeDefinition(sl.type);
+        const clipPath = getLayerClipPath(layer);
         if (clipPath && clipPath.startsWith('polygon')) {
-           const pointsMatch = clipPath.match(/polygon\((.*?)\)/);
-           if (pointsMatch) {
-               const pointsArr = pointsMatch[1].split(',').map(p => {
-                   const [xPerc, yPerc] = p.trim().split(/\s+/).map(s => parseFloat(s) / 100);
-                   const x = xPerc * sl.width - (sl.width / 2);
-                   const y = yPerc * sl.height - (sl.height / 2);
-                   return `${x},${y}`;
-               });
-               shape = `<polygon points="${pointsArr.join(' ')}" fill="${sl.color}" />`;
-           }
+          const match = clipPath.match(/polygon\((.*)\)/);
+          if (match) {
+            const pts = match[1].split(',').map((p) => {
+              const [xPerc, yPerc] = p.trim().split(/\s+/).map(parseFloat);
+              return `${(xPerc / 100) * sl.width - sl.width / 2},${(yPerc / 100) * sl.height - sl.height / 2}`;
+            });
+            shape = `<polygon points="${pts.join(' ')}" fill="${sl.color}" />`;
+          }
         }
       }
 
