@@ -1,6 +1,7 @@
 import React from 'react';
 import { evaluate } from 'mathjs';
 import { Icons } from '../../constants';
+import { log } from '../../utils/log';
 
 const safeEvaluate = (expr: string): number => {
   const sanitized = expr.replace(/[^-()\d/*+.]/g, '');
@@ -10,7 +11,8 @@ const safeEvaluate = (expr: string): number => {
   try {
     const result = evaluate(sanitized);
     return typeof result === 'number' ? result : Number(result);
-  } catch {
+  } catch (error) {
+    log.error('[ToolbarShared] safeEvaluate failed', error, { expr, sanitized });
     return NaN;
   }
 };
@@ -31,8 +33,9 @@ function useMathInputHandlers({ value, onChange, step = 1 }: { value: any; onCha
           if (!isNaN(result)) {
             onChange({ target: { value: result } } as any);
           }
-        } catch {
+        } catch (error) {
           // Fallback to original if safeEvaluate fails
+          log.error('[ToolbarShared] Enter key evaluation failed', error, { value: e.currentTarget.value });
         }
         e.currentTarget.blur();
       }
@@ -54,7 +57,8 @@ function useMathInputHandlers({ value, onChange, step = 1 }: { value: any; onCha
         if (!isNaN(result)) {
           onChange({ target: { value: result } } as any);
         }
-      } catch {
+      } catch (error) {
+        log.error('[ToolbarShared] Blur evaluation failed', error, { value: e.target.value });
         e.target.value = String(Math.round(value));
       }
     },
