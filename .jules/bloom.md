@@ -7,3 +7,7 @@
 
 **Learning:** Found multiple instances in `components/panels/UploadsPanel.tsx`, `TextPanel.tsx`, and `BrandPanel.tsx` where generic, blocking native `alert()` dialogues were used for error handling (e.g. `alert('Failed to parse PSD file.')`). This creates a disruptive user experience.
 **Action:** Replaced native `alert()` calls with the integrated `addToast()` notification system from `useStore`, passing the same generic message as an 'error' type. This is non-blocking and fits seamlessly with the rest of the application.
+
+## 2024-06-09 - Replaced generic error messages with specific AI error formatters
+**Learning:** Several AI-powered features (`TextPanel`, `VectorizerPanel`, `MagicPanel`) were displaying generic "Something went wrong/failed" error toasts on failure, despite the codebase already having a `getAIErrorMessage` utility in `utils/errorMessages.ts` specifically designed to provide actionable user feedback for AI operations (differentiating timeouts, quota limits, and network errors).
+**Action:** Replaced hardcoded, generic error strings in catch blocks with `getAIErrorMessage(error)` to provide specific, actionable guidance to users across all AI generation touchpoints.
