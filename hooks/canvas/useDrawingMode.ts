@@ -3,6 +3,44 @@ import { useStore } from '../../store/useStore';
 import { v4 as uuidv4 } from 'uuid';
 import { StrokeSmoother } from '../../utils/variableStroke';
 
+// Ramer-Douglas-Peucker path simplification
+function rdpSimplify(points: { x: number; y: number }[], epsilon: number): { x: number; y: number }[] {
+  if (points.length <= 2) return points;
+
+  let maxDist = 0;
+  let maxIdx = 0;
+  const first = points[0];
+  const last = points[points.length - 1];
+
+  for (let i = 1; i < points.length - 1; i++) {
+    const dist = perpendicularDistance(points[i], first, last);
+    if (dist > maxDist) {
+      maxDist = dist;
+      maxIdx = i;
+    }
+  }
+
+  if (maxDist > epsilon) {
+    const left = rdpSimplify(points.slice(0, maxIdx + 1), epsilon);
+    const right = rdpSimplify(points.slice(maxIdx), epsilon);
+    return [...left.slice(0, -1), ...right];
+  }
+
+  return [first, last];
+}
+
+function perpendicularDistance(point: { x: number; y: number }, lineStart: { x: number; y: number }, lineEnd: { x: number; y: number }): number {
+  const dx = lineEnd.x - lineStart.x;
+  const dy = lineEnd.y - lineStart.y;
+  const lineLenSq = dx * dx + dy * dy;
+  if (lineLenSq === 0) return Math.hypot(point.x - lineStart.x, point.y - lineStart.y);
+  let t = ((point.x - lineStart.x) * dx + (point.y - lineStart.y) * dy) / lineLenSq;
+  t = Math.max(0, Math.min(1, t));
+  const projX = lineStart.x + t * dx;
+  const projY = lineStart.y + t * dy;
+  return Math.hypot(point.x - projX, point.y - projY);
+}
+
 interface UseDrawingModeProps {
   zoom: number;
   isDrawing: boolean;
@@ -64,7 +102,7 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
   const smootherRef = useRef<StrokeSmoother | null>(null);
 
   const handleDrawingMouseDown = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.PointerEvent | React.MouseEvent) => {
       if (!isDrawing) {
         return;
       }
@@ -91,6 +129,10 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
 
         const ctx = canvas.getContext('2d');
         if (ctx) {
+          // Eraser mode: use destination-out composite to erase existing content
+          if (brushType === 'eraser') {
+            ctx.globalCompositeOperation = 'destination-out';
+          }
           ctx.beginPath();
           ctx.moveTo(x, y);
         }
@@ -100,7 +142,7 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
   );
 
   const handleDrawingMouseMove = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.PointerEvent | React.MouseEvent) => {
       if (!isDrawingInternalRef.current || !canvasRef.current) {
         return;
       }
@@ -108,6 +150,9 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
       const rect = canvas.getBoundingClientRect();
       const x = (e.clientX - rect.left) / zoomRef.current;
       const y = (e.clientY - rect.top) / zoomRef.current;
+
+      // Capture pressure from PointerEvent (0..1), default to 0.5 for MouseEvents
+      const pressure = (e as any).pressure ?? 0.5;
 
       const { brushColor, brushSize, brushOpacity, brushType } = useStore.getState();
       const ctx = canvas.getContext('2d');
@@ -139,9 +184,21 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
       currentPathRef.current.push({ x: drawX, y: drawY });
 
       if (ctx) {
-        ctx.strokeStyle = brushColor;
-        ctx.lineWidth = brushSize;
-        ctx.globalAlpha = brushOpacity;
+        // Apply pressure sensitivity: width varies with stylus/tablet pressure
+        const pressureWidth = brushSize * (0.3 + pressure * 0.7); // 30% base + 70% pressure
+
+        // Eraser mode: use destination-out composite to erase existing content
+        if (brushType === 'eraser') {
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.strokeStyle = 'rgba(0,0,0,1)';
+          ctx.lineWidth = brushSize;
+          ctx.globalAlpha = 1;
+        } else {
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.strokeStyle = brushColor;
+          ctx.lineWidth = pressureWidth;
+          ctx.globalAlpha = brushOpacity;
+        }
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.setLineDash([]);
@@ -150,23 +207,23 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
         switch (brushType) {
           case 'calligraphy':
             ctx.lineCap = 'butt';
-            ctx.lineWidth = brushSize * 1.5;
+            ctx.lineWidth = pressureWidth * 1.5;
             break;
           case 'oil':
-            ctx.lineWidth = brushSize * 1.8;
+            ctx.lineWidth = pressureWidth * 1.8;
             ctx.shadowBlur = 4;
             ctx.shadowColor = brushColor;
             break;
           case 'crayon':
-            ctx.lineWidth = brushSize;
+            ctx.lineWidth = pressureWidth;
             ctx.setLineDash([2, 5]);
             break;
           case 'pencil':
             ctx.lineWidth = 1;
-            ctx.globalAlpha = brushOpacity * 0.7;
+            ctx.globalAlpha = brushOpacity * 0.7 * (0.5 + pressure * 0.5);
             break;
           case 'watercolor':
-            ctx.lineWidth = brushSize * 2.5;
+            ctx.lineWidth = pressureWidth * 2.5;
             ctx.globalAlpha = brushOpacity * 0.4;
             ctx.shadowBlur = 10;
             ctx.shadowColor = brushColor;
@@ -175,7 +232,7 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
             ctx.lineWidth = 1;
             ctx.fillStyle = brushColor;
             ctx.beginPath();
-            ctx.arc(x, y, brushSize * (0.5 + Math.random()), 0, Math.PI * 2);
+            ctx.arc(x, y, pressureWidth * (0.5 + Math.random()), 0, Math.PI * 2);
             ctx.fill();
             return;
           default:
@@ -256,7 +313,9 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
       y: p.y - minY,
     }));
 
-    const pathData = simplifyAndSmoothPath(relativePath);
+    // Apply RDP simplification to reduce point count while preserving shape
+    const simplified = rdpSimplify(relativePath, 1.5);
+    const pathData = simplifyAndSmoothPath(simplified);
 
     addLayer({
       id: `draw_${uuidv4()}`,
@@ -281,6 +340,8 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d');
       if (ctx) {
+        // Reset composite operation to default
+        ctx.globalCompositeOperation = 'source-over';
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
       }
     }
