@@ -122,3 +122,8 @@
 **Vulnerability:** The serverless proxy endpoint `api/vecteezy.ts` explicitly accessed backend secrets using `process.env.VITE_VECTEEZY_ACCOUNT_ID` and `process.env.VITE_VECTEEZY_SECRET_KEY`.
 **Learning:** If a developer places a sensitive backend secret in their `.env` file using the `VITE_` prefix as requested by the server logic, the Vite bundler will statically inject that secret into the client-side JavaScript bundle, resulting in a critical secret leakage vulnerability.
 **Prevention:** Backend API proxy functions must exclusively rely on non-prefixed environment variables (e.g., `process.env.VECTEEZY_ACCOUNT_ID`) for sensitive credentials. Removing the `VITE_` prefixes forces the correct configuration and inherently protects against bundler injection.
+
+## 2026-06-21 - Removed Client-Side Exposure of External API Keys
+**Vulnerability:** The application was loading `import.meta.env.VITE_UNSPLASH_ACCESS_KEY`, `VITE_STREAMLINE_API_KEY`, `VITE_FREEPIK_API_KEY`, `VITE_VECTEEZY_API_KEY`, and `VITE_ICONSCOUT_CLIENT_ID`/`SECRET_KEY` into `config/index.ts`'s `apis` object, exposing these backend secret keys to users via the compiled frontend bundle if developers used the `VITE_` prefix.
+**Learning:** In Vite, any environment variable prefixed with `VITE_` is statically injected into the client bundle at build time. Since external API proxies (`api/unsplash.ts`, etc.) already load these via non-prefixed `process.env` variables securely, storing them in the client `config` was unnecessary and dangerous.
+**Prevention:** Remove all client-side configuration objects that map backend secrets to `VITE_` prefixed variables. Frontend code should only need the proxy endpoints, not the API keys themselves.
