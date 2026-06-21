@@ -46,4 +46,6 @@
 ## 2026-06-19 - Strict JSON Parsing for Layer Name Generation
 
 **Learning:** Relying on prompt instructions ("No quotes.") and regex replacements (`replace(/^["']|["']$/g, '')`) to sanitize text outputs for features like `generateLayerName` is fragile. LLMs may still generate conversational wrappers or unhandled punctuation that regex misses.
-**Action:** To guarantee clean primitive outputs for layer naming, replace textual instruction and regex sanitization with strict schema enforcement (`responseMimeType: 'application/json'` and `responseSchema: { type: SchemaType.STRING }`), parsing the result safely with `safeParseJSON`.
+**Action:** To guarantee clean primitive outputs for layer naming, replace textual instruction and regex sanitization with strict schema enforcement (`responseMimeType: 'application/json'` and `responseSchema: { type: SchemaType.STRING }`), parsing the result safely with `safeParseJSON`.## 2026-06-21 - Prevent AI App Freeze on External Model Fallbacks
+**Learning:** Relying on raw `fetch` calls without abort controllers or retry wrappers for external AI models (like Fal.ai Proxies) can cause the application generation state to freeze indefinitely if the request drops or silently fails on a 429/500 backend error.
+**Action:** When making external AI API calls (e.g., `fetch` to `/api/fal` or Gemini), always wrap them with `retryWithBackoff` from `utils/errorHandling.ts` and use an `AbortController` (e.g., 30s timeout) to ensure transient network errors are handled gracefully and hanging connections are terminated.
