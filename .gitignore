@@ -50,3 +50,4 @@ verification/screenshots/
 *.webm
 append_missing_icons.cjs
 *.timestamp-*
+coverage/

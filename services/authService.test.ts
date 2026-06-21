@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase/client';
 
 // Mock Supabase client
 vi.mock('../lib/supabase/client', () => ({
+  db: {},
   supabase: {
     auth: {
       signInWithPassword: vi.fn(),
