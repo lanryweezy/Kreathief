@@ -469,6 +469,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
             <CanvasGuides snapLines={snapLines} />
 
             {selectionBox && <SelectionMarquee box={selectionBox} />}
+            </CanvasProvider>
           </div>
         </div>
 

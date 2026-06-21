@@ -125,6 +125,7 @@ export const ImageLayerItem = React.memo(
         maskPath,
         optimizedSrc,
         onDoubleClick,
+        zoom,
       },
       ref
     ) => {
@@ -151,8 +152,8 @@ export const ImageLayerItem = React.memo(
 
       const handleImageRepositionMove = React.useCallback((e: React.PointerEvent) => {
         if (!repositioning) return;
-        const dx = (e.clientX - repositionStart.current.x) / (imgLayer.zoom || 1);
-        const dy = (e.clientY - repositionStart.current.y) / (imgLayer.zoom || 1);
+        const dx = (e.clientX - repositionStart.current.x) / (zoom || 1);
+        const dy = (e.clientY - repositionStart.current.y) / (zoom || 1);
         const newCropX = Math.max(0, Math.min(naturalWidth - crop.width, repositionStart.current.cropX + dx));
         const newCropY = Math.max(0, Math.min(naturalHeight - crop.height, repositionStart.current.cropY + dy));
         // Direct DOM update for performance during drag
@@ -160,20 +161,20 @@ export const ImageLayerItem = React.memo(
         if (imgEl) {
           imgEl.style.transform = `translate(${-newCropX * imgScale}px, ${-newCropY * imgScale}px) scale(${scaleX}, ${scaleY})`;
         }
-      }, [repositioning, naturalWidth, naturalHeight, crop.width, crop.height, imgScale, scaleX, scaleY, imgLayer.zoom]);
+      }, [repositioning, naturalWidth, naturalHeight, crop.width, crop.height, imgScale, scaleX, scaleY, zoom]);
 
       const handleImageRepositionEnd = React.useCallback((e: React.PointerEvent) => {
         if (!repositioning) return;
         setRepositioning(false);
-        const dx = (e.clientX - repositionStart.current.x) / (imgLayer.zoom || 1);
-        const dy = (e.clientY - repositionStart.current.y) / (imgLayer.zoom || 1);
+        const dx = (e.clientX - repositionStart.current.x) / (zoom || 1);
+        const dy = (e.clientY - repositionStart.current.y) / (zoom || 1);
         const newCropX = Math.max(0, Math.min(naturalWidth - crop.width, repositionStart.current.cropX + dx));
         const newCropY = Math.max(0, Math.min(naturalHeight - crop.height, repositionStart.current.cropY + dy));
         // Persist the new crop position
         if (onDoubleClick) {
-          onDoubleClick({ ...imgLayer, crop: { ...crop, x: newCropX, y: newCropY } });
+          onDoubleClick(e, { ...imgLayer, crop: { ...crop, x: newCropX, y: newCropY } });
         }
-      }, [repositioning, naturalWidth, naturalHeight, crop, imgLayer, scaleX, scaleY, imgLayer.zoom, onDoubleClick]);
+      }, [repositioning, naturalWidth, naturalHeight, crop, imgLayer, scaleX, scaleY, zoom, onDoubleClick]);
 
       const maskWrapperStyle = React.useMemo(
         () => ({

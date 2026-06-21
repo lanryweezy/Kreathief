@@ -80,7 +80,7 @@ class CollaborationService {
         const state = channel.presenceState();
         const users: PresenceState[] = [];
         for (const key in state) {
-          const presences = state[key] as PresenceState[];
+          const presences = state[key] as unknown as PresenceState[];
           if (Array.isArray(presences) && presences.length > 0) {
             users.push(presences[0]);
           }
