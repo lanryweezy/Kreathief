@@ -4,57 +4,16 @@
  * Handles hit-testing and mask generation.
  */
 
-import { log } from '../utils/log';
-
 import { Layer } from '../types';
+import { WorkerServiceBase } from '../utils/workerServiceBase';
 
-class MaskWorkerService {
-  private worker: Worker | null = null;
-  private callbacks: Map<string, { resolve: (val: any) => void; reject: (err: any) => void }> = new Map();
-
-  private initializeWorker() {
-    if (this.worker || typeof window === 'undefined') {
-      return;
-    }
-
-    try {
-      this.worker = new Worker(new URL('../workers/mask.worker.ts', import.meta.url), { type: 'module' });
-
-      this.worker.onmessage = (e) => {
-        const { type, id, payload, error } = e.data;
-        const callback = this.callbacks.get(id);
-
-        if (callback) {
-          if (type === 'SUCCESS') {
-            callback.resolve(payload);
-          } else {
-            callback.reject(new Error(error || 'Worker task failed'));
-          }
-          this.callbacks.delete(id);
-        }
-      };
-
-      this.worker.onerror = (e) => {
-        log.error('Mask Worker Error:', e);
-        this.worker = null;
-      };
-    } catch (err) {
-      log.error('Failed to initialize Mask Worker:', err);
-    }
+class MaskWorkerService extends WorkerServiceBase {
+  constructor() {
+    super('Mask Worker');
   }
 
-  private postMessage(type: string, payload: any): Promise<any> {
-    return new Promise((resolve, reject) => {
-      this.initializeWorker();
-
-      if (!this.worker) {
-        reject(new Error('Mask Worker could not be initialized.'));
-        return;
-      }
-      const id = crypto.randomUUID();
-      this.callbacks.set(id, { resolve, reject });
-      this.worker.postMessage({ type, id, payload });
-    });
+  protected createWorker(): Worker {
+    return new Worker(new URL('../workers/mask.worker.ts', import.meta.url), { type: 'module' });
   }
 
   public async hitTest(x: number, y: number, layer: Layer): Promise<boolean> {
@@ -67,13 +26,6 @@ class MaskWorkerService {
 
   public async generateMask(layer: Layer): Promise<string | undefined> {
     return this.postMessage('GENERATE_MASK', { layer });
-  }
-
-  public terminate() {
-    if (this.worker) {
-      this.worker.terminate();
-      this.worker = null;
-    }
   }
 }
 
