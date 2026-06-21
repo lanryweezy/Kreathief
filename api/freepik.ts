@@ -27,7 +27,7 @@ export default async function handler(req: Request) {
     return new Response(null, {
       status: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
@@ -44,7 +44,10 @@ export default async function handler(req: Request) {
       if (rateLimitState.count >= MAX_REQUESTS_PER_WINDOW) {
         return new Response(JSON.stringify({ error: 'Too many requests' }), {
           status: 429,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+          },
         });
       }
       rateLimitState.count++;
@@ -58,7 +61,10 @@ export default async function handler(req: Request) {
   if (!freepikKey) {
     return new Response(JSON.stringify({ error: 'Freepik API key not configured on server' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+      },
     });
   }
 
@@ -92,7 +98,10 @@ export default async function handler(req: Request) {
 
       return new Response(JSON.stringify(data), {
         status: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+        },
       });
     } else if (action === 'search_icons') {
       const query = url.searchParams.get('query') || '';
@@ -117,7 +126,10 @@ export default async function handler(req: Request) {
 
       return new Response(JSON.stringify(data), {
         status: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+        },
       });
     } else if (action === 'download_resource') {
       const resourceId = url.searchParams.get('resourceId');
@@ -125,7 +137,10 @@ export default async function handler(req: Request) {
       if (!resourceId) {
         return new Response(JSON.stringify({ error: 'resourceId is required' }), {
           status: 400,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+          },
         });
       }
 
@@ -147,7 +162,10 @@ export default async function handler(req: Request) {
       const data = await response.json();
       return new Response(JSON.stringify(data), {
         status: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+        },
       });
     }
 
@@ -158,7 +176,10 @@ export default async function handler(req: Request) {
       } catch (err) {
         return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
           status: 400,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+          },
         });
       }
 
@@ -177,7 +198,10 @@ export default async function handler(req: Request) {
         const data = await response.json();
         return new Response(JSON.stringify(data), {
           status: 200,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+          },
         });
       } else if (action === 'poll') {
         const taskId = url.searchParams.get('taskId');
@@ -199,7 +223,10 @@ export default async function handler(req: Request) {
         if (!taskId) {
           return new Response(JSON.stringify({ error: 'taskId is required' }), {
             status: 400,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+            },
           });
         }
 
@@ -216,7 +243,10 @@ export default async function handler(req: Request) {
         if (!allowedBasePaths.includes(basePath)) {
           return new Response(JSON.stringify({ error: 'Invalid basePath' }), {
             status: 403,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+            },
           });
         }
 
@@ -232,7 +262,10 @@ export default async function handler(req: Request) {
         const data = await response.json();
         return new Response(JSON.stringify(data), {
           status: 200,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+          },
         });
       } else if (action === 'remove_bg') {
         const response = await fetch(`${BASE_URL}/ai/beta/remove-background`, {
@@ -249,7 +282,10 @@ export default async function handler(req: Request) {
         const data = await response.json();
         return new Response(JSON.stringify(data), {
           status: 200,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+          },
         });
       } else if (action === 'upscale' || action === 'upscale_precision') {
         const endpoint = action === 'upscale_precision' ? '/ai/image-upscaler-precision' : '/ai/image-upscaler';
@@ -267,7 +303,10 @@ export default async function handler(req: Request) {
         const data = await response.json();
         return new Response(JSON.stringify(data), {
           status: 200,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+          },
         });
       } else if (action === 'style_transfer') {
         const response = await fetch(`${BASE_URL}/ai/image-style-transfer`, {
@@ -284,7 +323,10 @@ export default async function handler(req: Request) {
         const data = await response.json();
         return new Response(JSON.stringify(data), {
           status: 200,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+          },
         });
       } else if (action === 'expand') {
         const response = await fetch(`${BASE_URL}/ai/image-expand`, {
@@ -301,20 +343,29 @@ export default async function handler(req: Request) {
         const data = await response.json();
         return new Response(JSON.stringify(data), {
           status: 200,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+          },
         });
       }
     }
 
     return new Response(JSON.stringify({ error: 'Unknown action' }), {
       status: 400,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+      },
     });
   } catch (error: any) {
     log.error('API Route Error', error, { url: req.url });
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+      },
     });
   }
 }

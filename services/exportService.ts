@@ -3,6 +3,7 @@ import { writePsd, Psd } from 'ag-psd';
 import { logSecurityEvent } from '../utils/securityLogger';
 import { renderMultilineText } from '../utils/textRendering';
 import { buildFilterString } from '../utils/layers';
+import { getLayerClipPath } from '../utils/layerRendering';
 
 export type ColorProfile = 'sRGB' | 'CMYK' | 'FOGRA39' | 'GRACoL' | 'SWOP';
 
@@ -319,7 +320,7 @@ export const exportToSVG = (
 
     const opacity = layer.opacity ?? 1;
 
-    if (layer.type === 'rectangle' || layer.type === 'circle' || layer.type === 'triangle' || layer.type === 'star') {
+    if (layer.type !== 'text' && layer.type !== 'image') {
       const sl = layer as ShapeLayer;
       let shape = '';
       const fill = sl.gradient?.enabled ? `url(#grad-${sl.id})` : sl.color;
@@ -332,21 +333,21 @@ export const exportToSVG = (
           shape = `<rect x="${-sl.width / 2}" y="${-sl.height / 2}" width="${sl.width}" height="${sl.height}" fill="${fill}" />`;
         }
       } else if (sl.type === 'circle') {
-        shape = `<circle cx="0" cy="0" r="${sl.width / 2}" fill="${fill}" />`;
-      } else if (sl.type === 'triangle') {
-        shape = `<polygon points="0,${-sl.height / 2} ${sl.width / 2},${sl.height / 2} ${-sl.width / 2},${sl.height / 2}" fill="${fill}" />`;
-      } else if (sl.type === 'star') {
-        const outerR = sl.width / 2;
-        const innerR = outerR * 0.4;
-        const pts: string[] = [];
-        for (let i = 0; i < 10; i++) {
-          const angle = (i * Math.PI) / 5 - Math.PI / 2;
-          const radius = i % 2 === 0 ? outerR : innerR;
-          pts.push(`${Math.cos(angle) * radius},${Math.sin(angle) * radius}`);
-        }
-        shape = `<polygon points="${pts.join(' ')}" fill="${fill}" />`;
+        shape = `<circle cx="0" cy="0" r="${sl.width / 2}" fill="${sl.color}" />`;
       } else if (sl.type === 'path' && sl.pathData) {
-        shape = `<path d="${sl.pathData}" fill="${sl.id?.startsWith('draw_') || (sl as any).brushType ? 'none' : fill}" stroke="${(sl as any).stroke?.color || sl.color}" stroke-width="${(sl as any).stroke?.width || 0}" />`;
+        shape = `<path d="${sl.pathData}" fill="${sl.id?.startsWith('draw_') || (sl as any).brushType ? 'none' : sl.color}" stroke="${(sl as any).stroke?.color || sl.color}" stroke-width="${(sl as any).stroke?.width || 0}" />`;
+      } else {
+        const clipPath = getLayerClipPath(layer);
+        if (clipPath && clipPath.startsWith('polygon')) {
+          const match = clipPath.match(/polygon\((.*)\)/);
+          if (match) {
+            const pts = match[1].split(',').map((p) => {
+              const [xPerc, yPerc] = p.trim().split(/\s+/).map(parseFloat);
+              return `${(xPerc / 100) * sl.width - sl.width / 2},${(yPerc / 100) * sl.height - sl.height / 2}`;
+            });
+            shape = `<polygon points="${pts.join(' ')}" fill="${sl.color}" />`;
+          }
+        }
       }
 
       if (shape) {
