@@ -1,10 +1,19 @@
 import React, { useMemo } from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { runAccessibilityAudit } from '../../services/accessibilityService';
 
 export const AccessibilityPanel: React.FC = () => {
-  const { artboards, activeArtboardId, selectLayer, updateLayer } = useStore();
+  // Use useShallow to prevent unnecessary re-renders when other store values change
+  const { artboards, activeArtboardId, selectLayer, updateLayer } = useStore(
+    useShallow((state) => ({
+      artboards: state.artboards,
+      activeArtboardId: state.activeArtboardId,
+      selectLayer: state.selectLayer,
+      updateLayer: state.updateLayer,
+    }))
+  );
 
   const activeArtboard = useMemo(
     () => artboards.find((a) => a.id === activeArtboardId) || artboards[0],
