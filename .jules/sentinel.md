@@ -122,3 +122,9 @@
 **Vulnerability:** The serverless proxy endpoint `api/vecteezy.ts` explicitly accessed backend secrets using `process.env.VITE_VECTEEZY_ACCOUNT_ID` and `process.env.VITE_VECTEEZY_SECRET_KEY`.
 **Learning:** If a developer places a sensitive backend secret in their `.env` file using the `VITE_` prefix as requested by the server logic, the Vite bundler will statically inject that secret into the client-side JavaScript bundle, resulting in a critical secret leakage vulnerability.
 **Prevention:** Backend API proxy functions must exclusively rely on non-prefixed environment variables (e.g., `process.env.VECTEEZY_ACCOUNT_ID`) for sensitive credentials. Removing the `VITE_` prefixes forces the correct configuration and inherently protects against bundler injection.
+
+## 2026-06-21 - Restrict CORS Origins in Edge API Functions
+
+**Vulnerability:** Almost all Edge API functions in the `api/` directory (e.g., `iconscout.ts`, `freepik.ts`, `export-cmyk.ts`, `unsplash.ts`, `gemini.ts`, `streamline.ts`, `dynamic-mockups.ts`, `error-log.ts`, `config.ts`, `vecteezy.ts`) were configured with overly permissive CORS headers (`Access-Control-Allow-Origin: *`). This allowed any arbitrary domain to make cross-origin requests to the application's backend proxies.
+**Learning:** Using a wildcard `*` for the `Access-Control-Allow-Origin` header in authenticated or sensitive proxy endpoints exposes the backend to Cross-Origin Resource Sharing vulnerabilities, potentially allowing malicious sites to exploit the proxy or leak data if combined with other vulnerabilities.
+**Prevention:** Always restrict the `Access-Control-Allow-Origin` header to the explicit frontend domain URL (e.g., `process.env.VITE_FRONTEND_URL`) instead of a wildcard `*` to ensure that only the trusted frontend application can consume the APIs.
