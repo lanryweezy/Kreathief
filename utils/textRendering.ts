@@ -5,6 +5,7 @@
 
 import { TextLayer } from '../types';
 import { GeometryOracle } from './geometryOracle';
+import { warpRegistry } from './layers/warpRegistry';
 
 /**
  * Helper for rendering text along a path
@@ -127,84 +128,8 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
       tempCtx.translate(charX + charWidth / 2, y);
 
       // Apply different transform types
-      switch (effectType) {
-        case 'arch':
-        case 'arc': {
-          // Arch text up or down
-          const archOffset = Math.sin(progress * Math.PI) * intensity * 50;
-          tempCtx.translate(0, archOffset);
-          break;
-        }
-
-        case 'wave': {
-          // Wave effect
-          const waveOffset = Math.sin(progress * Math.PI * 4) * intensity * 20;
-          tempCtx.translate(0, waveOffset);
-          tempCtx.rotate(Math.cos(progress * Math.PI * 4) * intensity * 0.3);
-          break;
-        }
-
-        case 'rise': {
-          // Rise effect (text rises from left to right)
-          const riseOffset = progress * intensity * 50;
-          tempCtx.translate(0, -riseOffset);
-          break;
-        }
-
-        case 'flag': {
-          // Flag effect (waving flag)
-          const flagOffset = Math.sin(progress * Math.PI * 2) * intensity * 15;
-          tempCtx.translate(0, flagOffset);
-          tempCtx.rotate(Math.cos(progress * Math.PI * 2) * intensity * 0.2);
-          break;
-        }
-
-        case 'fish': {
-          // Fish effect (bulge in middle)
-          const fishOffset = Math.sin(progress * Math.PI) * intensity * 30;
-          tempCtx.translate(0, fishOffset);
-          const fishScale = 1 + Math.sin(progress * Math.PI) * intensity * 0.2;
-          tempCtx.scale(fishScale, 1 / fishScale);
-          break;
-        }
-
-        case 'circle': {
-          // Circle text
-          const circleAngle = progress * Math.PI * 2 + angle;
-          const radius = 100 * (1 + intensity);
-          tempCtx.rotate(circleAngle);
-          tempCtx.translate(radius, 0);
-          tempCtx.rotate(Math.PI / 2);
-          break;
-        }
-
-        case 'distort': {
-          // Distort effect (perspective-like)
-          const distortY = Math.sin(progress * Math.PI) * intensity * 40;
-          const distortScale = 1 + (progress - 0.5) * intensity * 0.3;
-          tempCtx.translate(0, distortY);
-          tempCtx.scale(distortScale, 1 / distortScale);
-          break;
-        }
-
-        case 'angle': {
-          // Angle/shear effect
-          tempCtx.rotate(angle);
-          tempCtx.transform(1, 0, Math.tan(angle) * intensity, 1, 0, 0);
-          break;
-        }
-
-        case 'mesh': {
-          // Mesh/grid distortion
-          const meshX = Math.sin(progress * Math.PI * 6) * intensity * 5;
-          const meshY = Math.cos(progress * Math.PI * 6) * intensity * 5;
-          tempCtx.translate(meshX, meshY);
-          break;
-        }
-
-        default:
-          // No special effect
-          break;
+      if (effectType) {
+        warpRegistry.applyTransform(effectType, tempCtx, progress, intensity, angle);
       }
 
       tempCtx.fillText(char, -charWidth / 2, 0);

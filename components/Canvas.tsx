@@ -359,26 +359,43 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   );
   const handleClosePenMode = useCallback(() => setPenMode(false), [setPenMode]);
 
-  const canvasContextValue = useMemo<CanvasContextValue>(() => ({
-    zoom,
-    onZoomChange,
-    getEffectiveLayer: identityLayer,
-    onLayerRef: handleLayerRef,
-    handleMouseDownLayer,
-    handleResizeStart,
-    handleRotateStart,
-    handleContextMenu,
-    handleTextDoubleClick,
-    handleDropShape: noop,
-    onDoubleClickLayer,
-    editingTextId,
-    textEditRef,
-    finishEditingText,
-    editingPathId: null,
-    onUpdatePath: props.onUpdatePath,
-    previewAnimation: props.previewAnimation,
-    isInteracting: false,
-  }), [zoom, onZoomChange, handleLayerRef, handleMouseDownLayer, handleResizeStart, handleRotateStart, handleContextMenu, handleTextDoubleClick, onDoubleClickLayer, editingTextId, finishEditingText, props.onUpdatePath, props.previewAnimation]);
+  const canvasContextValue = useMemo<CanvasContextValue>(
+    () => ({
+      zoom,
+      onZoomChange,
+      getEffectiveLayer: identityLayer,
+      onLayerRef: handleLayerRef,
+      handleMouseDownLayer,
+      handleResizeStart,
+      handleRotateStart,
+      handleContextMenu,
+      handleTextDoubleClick,
+      handleDropShape: noop,
+      onDoubleClickLayer,
+      editingTextId,
+      textEditRef,
+      finishEditingText,
+      editingPathId: null,
+      onUpdatePath: props.onUpdatePath,
+      previewAnimation: props.previewAnimation,
+      isInteracting: false,
+    }),
+    [
+      zoom,
+      onZoomChange,
+      handleLayerRef,
+      handleMouseDownLayer,
+      handleResizeStart,
+      handleRotateStart,
+      handleContextMenu,
+      handleTextDoubleClick,
+      onDoubleClickLayer,
+      editingTextId,
+      finishEditingText,
+      props.onUpdatePath,
+      props.previewAnimation,
+    ]
+  );
 
   return (
     <ErrorBoundary componentName="Canvas" variant="widget">
@@ -435,40 +452,41 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
                 previewAnimation={props.previewAnimation}
                 isInteracting={false}
                 selectedLayerId={selectedLayerId}
-              selectedLayerIds={selectedLayerIds}
-              hoveredLayerId={hoveredLayerId}
-              setHoveredLayerId={setHoveredLayerId}
-              setActiveArtboardId={setActiveArtboardId}
-              onAddArtboard={onAddArtboard}
-              onDeleteArtboard={onDeleteArtboard}
-              showGrid={showGrid}
-              isDrawing={isDrawing}
-              isVectorPenMode={isDrawing && brushType === 'vector_pencil'}
-              isRefining={false}
-              drawingCanvasRef={drawingCanvasRef}
-              refineCanvasRef={refineCanvasRef}
-              handleDrawingMouseDown={handleDrawingMouseDown}
-              handleDrawingMouseMove={handleDrawingMouseMove}
-              handleDrawingMouseUp={handleDrawingMouseUp}
-              isLassoMode={false}
-              localLassoPoints={emptyLassoPoints}
-              booleanPreview={booleanPreview}
-              viewportBounds={viewportBounds}
-            />
+                selectedLayerIds={selectedLayerIds}
+                hoveredLayerId={hoveredLayerId}
+                setHoveredLayerId={setHoveredLayerId}
+                setActiveArtboardId={setActiveArtboardId}
+                onAddArtboard={onAddArtboard}
+                onDeleteArtboard={onDeleteArtboard}
+                showGrid={showGrid}
+                isDrawing={isDrawing}
+                isVectorPenMode={isDrawing && brushType === 'vector_pencil'}
+                isRefining={false}
+                drawingCanvasRef={drawingCanvasRef}
+                refineCanvasRef={refineCanvasRef}
+                handleDrawingMouseDown={handleDrawingMouseDown}
+                handleDrawingMouseMove={handleDrawingMouseMove}
+                handleDrawingMouseUp={handleDrawingMouseUp}
+                isLassoMode={false}
+                localLassoPoints={emptyLassoPoints}
+                booleanPreview={booleanPreview}
+                viewportBounds={viewportBounds}
+              />
 
-            <CanvasControls
-              selectedLayerIds={selectedLayerIds}
-              selectedLayers={selectedLayers}
-              zoom={zoom}
-              handleResizeStart={handleResizeStart}
-              handleRotateStart={handleRotateStart}
-              contextMenu={contextMenu}
-              setContextMenu={setContextMenu}
-            />
+              <CanvasControls
+                selectedLayerIds={selectedLayerIds}
+                selectedLayers={selectedLayers}
+                zoom={zoom}
+                handleResizeStart={handleResizeStart}
+                handleRotateStart={handleRotateStart}
+                contextMenu={contextMenu}
+                setContextMenu={setContextMenu}
+              />
 
-            <CanvasGuides snapLines={snapLines} />
+              <CanvasGuides snapLines={snapLines} />
 
-            {selectionBox && <SelectionMarquee box={selectionBox} />}
+              {selectionBox && <SelectionMarquee box={selectionBox} />}
+            </CanvasProvider>
           </div>
         </div>
 
