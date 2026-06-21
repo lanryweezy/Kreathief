@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Icons } from '../../constants';
 import { Layer } from '../../types';
 import { useStore } from '../../store/useStore';
@@ -8,6 +8,7 @@ export const TransformPanel: React.FC = () => {
   const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
   const updateLayers = useStore((state) => state.updateLayers);
   const addToast = useStore((state) => state.addToast);
+  const [aspectLocked, setAspectLocked] = useState(false);
 
   const allLayers = useMemo(() => artboards.flatMap((a) => a.layers), [artboards]);
   const selectedLayers = useMemo(
@@ -169,13 +170,26 @@ export const TransformPanel: React.FC = () => {
             onChange={(e) => {
               const val = parseInt(e.target.value);
               if (!isNaN(val)) {
-                handleBatchUpdate('width', val);
+                if (aspectLocked && selectedLayers.length === 1) {
+                  const layer = selectedLayers[0];
+                  const aspect = ((layer as any).width || 1) / ((layer as any).height || 1);
+                  updateLayers({ [layer.id]: { width: val, height: Math.round(val / aspect) } as any });
+                } else {
+                  handleBatchUpdate('width', val);
+                }
               }
             }}
             placeholder="Mixed"
             className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1.5 text-xs text-white focus:border-[#7d2ae8] outline-none"
           />
         </div>
+        <button
+          onClick={() => setAspectLocked(!aspectLocked)}
+          className={`self-end mb-1 p-1.5 rounded transition-colors ${aspectLocked ? 'bg-[#7d2ae8] text-white' : 'bg-[#252627] text-gray-500 hover:text-white'}`}
+          title={aspectLocked ? 'Unlock aspect ratio' : 'Lock aspect ratio'}
+        >
+          {aspectLocked ? <Icons.Lock className="w-3.5 h-3.5" /> : <Icons.Unlock className="w-3.5 h-3.5" />}
+        </button>
         <div>
           <label className="text-[10px] font-black text-gray-500 block mb-1 uppercase tracking-widest">Height</label>
           <input
@@ -184,7 +198,13 @@ export const TransformPanel: React.FC = () => {
             onChange={(e) => {
               const val = parseInt(e.target.value);
               if (!isNaN(val)) {
-                handleBatchUpdate('height', val);
+                if (aspectLocked && selectedLayers.length === 1) {
+                  const layer = selectedLayers[0];
+                  const aspect = ((layer as any).width || 1) / ((layer as any).height || 1);
+                  updateLayers({ [layer.id]: { height: val, width: Math.round(val * aspect) } as any });
+                } else {
+                  handleBatchUpdate('height', val);
+                }
               }
             }}
             placeholder="Mixed"

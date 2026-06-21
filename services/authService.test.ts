@@ -3,8 +3,9 @@ import { authService } from './authService';
 import { supabase } from '../lib/supabase/client';
 
 // Mock Supabase client
-vi.mock('../lib/supabase/client', () => {
-  const mockClient = {
+vi.mock('../lib/supabase/client', () => ({
+  db: {},
+  supabase: {
     auth: {
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),
@@ -26,8 +27,8 @@ vi.mock('../lib/supabase/client', () => {
     }),
   };
   return {
-    supabase: mockClient,
-    db: mockClient,
+    supabase: mockSupabase,
+    db: mockSupabase,
   };
 });
 

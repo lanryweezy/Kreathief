@@ -3,31 +3,24 @@ import { storageService } from './storageService';
 import { Project } from '../types';
 
 vi.mock('../lib/supabase/client', () => {
-  const mockClient = {
+  const mockSupabase = {
     from: vi.fn().mockReturnValue({
-      upsert: vi.fn().mockImplementation(() => {
-        // Return error to force IndexedDB fallback
-        return Promise.resolve({ error: new Error('Network offline') });
-      }),
-      delete: vi.fn().mockImplementation(() => {
-        return Promise.resolve({ error: new Error('Network offline') });
-      }),
+      upsert: vi.fn(),
+      delete: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
-      single: vi.fn().mockImplementation(() => {
-        return Promise.resolve({ data: null, error: new Error('Not found') });
-      }),
+      single: vi.fn(),
     }),
   };
   return {
-    supabase: mockClient,
-    db: mockClient,
+    supabase: mockSupabase,
+    db: mockSupabase,
   };
 });
 
 vi.mock('./authService', () => ({
   authService: {
-    getSession: vi.fn().mockResolvedValue({ id: 'test-user-id' }),
+    getSession: vi.fn(),
   },
 }));
 
@@ -71,6 +64,8 @@ describe('StorageService', () => {
   it('should delete a project', async () => {
     await storageService.saveProject(mockProject);
     await storageService.deleteProject(mockProject.id);
+    // getProject will fallback to IndexedDB if it doesn't find it in supabase when online
+    // and wait for sync queue
     const retrieved = await storageService.getProject(mockProject.id);
     expect(retrieved).toBeUndefined();
   });

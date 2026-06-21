@@ -7,6 +7,28 @@ import { resolveConstraints, resolveSemanticConstraints } from '../utils/layoutU
 import { callBackendGeminiAPI } from './geminiService';
 import { safeParseJSON } from '../utils/errorHandling';
 
+// Simple LRU cache for creative agent responses (avoids redundant API calls)
+const _responseCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+function getCached<T>(key: string): T | null {
+  const entry = _responseCache.get(key);
+  if (entry && Date.now() - entry.timestamp < CACHE_TTL_MS) {
+    return entry.data as T;
+  }
+  _responseCache.delete(key);
+  return null;
+}
+
+function setCache(key: string, data: any): void {
+  // Evict oldest entries if cache is large
+  if (_responseCache.size > 50) {
+    const oldest = _responseCache.keys().next().value;
+    if (oldest) _responseCache.delete(oldest);
+  }
+  _responseCache.set(key, { data, timestamp: Date.now() });
+}
+
 export interface AgentVariant {
   id: string;
   themeIdea: string;
@@ -25,6 +47,14 @@ export const creativeAgentDraft = async (
   canvasSize: { width: number; height: number },
   _variantCount: number = 3
 ): Promise<AgentVariant[]> => {
+  // Check cache first
+  const cacheKey = `draft:${_intent}:${canvasSize.width}x${canvasSize.height}:${_variantCount}`;
+  const cached = getCached<AgentVariant[]>(cacheKey);
+  if (cached) {
+    log.info('[MultiAgent] Cache hit for creative draft', { intent: _intent.substring(0, 50) });
+    return cached;
+  }
+
   const systemPrompt = `You are a Master Creative Design Director Engine. 
 Generate ${_variantCount} highly distinct, professional layout variants based on the user's core intent/prompt.
 Canvas dimensions are ${canvasSize.width}x${canvasSize.height}.
@@ -91,7 +121,7 @@ Ensure perfect visual composition and contrast.`;
     if (!rawVariants) {
       throw new Error('Creative Agent returned malformed JSON');
     }
-    return rawVariants.map((v: any) => ({
+    const result = rawVariants.map((v: any) => ({
       ...v,
       id: uuidv4(),
       layers: v.layers.map((l: any): Layer => {
@@ -126,6 +156,9 @@ Ensure perfect visual composition and contrast.`;
         }
       }),
     }));
+    // Cache the result
+    setCache(cacheKey, result);
+    return result;
   } catch (err) {
     log.error('Creative Agent parsing failed', err);
     throw new Error('Failed to generate structural layouts.');

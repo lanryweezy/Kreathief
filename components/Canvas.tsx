@@ -10,6 +10,7 @@ import { CanvasRenderer } from './canvas/CanvasRenderer';
 import { CanvasControls } from './canvas/CanvasControls';
 import { CanvasGuides } from './canvas/CanvasGuides';
 import { SelectionMarquee } from './canvas/SelectionMarquee';
+import { CanvasProvider, CanvasContextValue } from './canvas/CanvasContext';
 import { useTouchGestures } from '../hooks/useTouchGestures';
 import { Icons } from '../constants';
 import { ContextualToolbar } from './canvas/ContextualToolbar';
@@ -165,8 +166,18 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
       }
     };
     updateSize();
+
+    // Use ResizeObserver on the viewport element (detects sidebar toggle, panel resize)
+    const observer = new ResizeObserver(updateSize);
+    if (viewportRef.current) {
+      observer.observe(viewportRef.current);
+    }
+    // Fallback for window resize
     window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
   }, []);
 
   // Interaction Hook
@@ -329,10 +340,10 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     () => ({
       x: -panOffset.x / zoom,
       y: -panOffset.y / zoom,
-      width: (viewportRef.current?.clientWidth || 0) / zoom,
-      height: (viewportRef.current?.clientHeight || 0) / zoom,
+      width: viewportSize.width / zoom,
+      height: viewportSize.height / zoom,
     }),
-    [panOffset, zoom]
+    [panOffset, zoom, viewportSize]
   );
 
   const textEditRef = useRef<HTMLDivElement>(null);
@@ -357,6 +368,27 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     [setActiveVectorPath]
   );
   const handleClosePenMode = useCallback(() => setPenMode(false), [setPenMode]);
+
+  const canvasContextValue = useMemo<CanvasContextValue>(() => ({
+    zoom,
+    onZoomChange,
+    getEffectiveLayer: identityLayer,
+    onLayerRef: handleLayerRef,
+    handleMouseDownLayer,
+    handleResizeStart,
+    handleRotateStart,
+    handleContextMenu,
+    handleTextDoubleClick,
+    handleDropShape: noop,
+    onDoubleClickLayer,
+    editingTextId,
+    textEditRef,
+    finishEditingText,
+    editingPathId: null,
+    onUpdatePath: props.onUpdatePath,
+    previewAnimation: props.previewAnimation,
+    isInteracting: false,
+  }), [zoom, onZoomChange, handleLayerRef, handleMouseDownLayer, handleResizeStart, handleRotateStart, handleContextMenu, handleTextDoubleClick, onDoubleClickLayer, editingTextId, finishEditingText, props.onUpdatePath, props.previewAnimation]);
 
   return (
     <ErrorBoundary componentName="Canvas" variant="widget">
@@ -390,28 +422,29 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               transformOrigin: '0 0',
             }}
           >
-            <CanvasRenderer
-              artboards={artboards}
-              activeArtboardId={activeArtboardId}
-              canvasBackgroundColor={canvasBackgroundColor}
-              canvasFilters={canvasFilters}
-              zoom={zoom}
-              getEffectiveLayer={identityLayer}
-              onLayerRef={handleLayerRef}
-              handleMouseDownLayer={handleMouseDownLayer}
-              handleResizeStart={handleResizeStart}
-              handleRotateStart={handleRotateStart}
-              handleContextMenu={handleContextMenu}
-              handleTextDoubleClick={handleTextDoubleClick}
-              handleDropShape={noop}
-              onDoubleClickLayer={onDoubleClickLayer}
-              editingTextId={editingTextId}
-              textEditRef={textEditRef}
-              finishEditingText={finishEditingText}
-              editingPathId={null}
-              previewAnimation={props.previewAnimation}
-              isInteracting={false}
-              selectedLayerId={selectedLayerId}
+            <CanvasProvider value={canvasContextValue}>
+              <CanvasRenderer
+                artboards={artboards}
+                activeArtboardId={activeArtboardId}
+                canvasBackgroundColor={canvasBackgroundColor}
+                canvasFilters={canvasFilters}
+                zoom={zoom}
+                getEffectiveLayer={identityLayer}
+                onLayerRef={handleLayerRef}
+                handleMouseDownLayer={handleMouseDownLayer}
+                handleResizeStart={handleResizeStart}
+                handleRotateStart={handleRotateStart}
+                handleContextMenu={handleContextMenu}
+                handleTextDoubleClick={handleTextDoubleClick}
+                handleDropShape={noop}
+                onDoubleClickLayer={onDoubleClickLayer}
+                editingTextId={editingTextId}
+                textEditRef={textEditRef}
+                finishEditingText={finishEditingText}
+                editingPathId={null}
+                previewAnimation={props.previewAnimation}
+                isInteracting={false}
+                selectedLayerId={selectedLayerId}
               selectedLayerIds={selectedLayerIds}
               hoveredLayerId={hoveredLayerId}
               setHoveredLayerId={setHoveredLayerId}
