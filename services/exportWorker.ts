@@ -1,5 +1,8 @@
 import { log } from '../utils/log';
-import { buildFilterString, shapeRegistry } from '../utils/layers';
+import { buildFilterString } from '../utils/layers';
+import { renderMultilineText } from '../utils/textRendering';
+import { getLayerClipPath } from '../utils/layerRendering';
+
 /**
  * exportWorker.ts
  * Background worker for heavy canvas rendering and export
@@ -19,12 +22,8 @@ self.onmessage = async (e: MessageEvent) => {
     }
 
     // --- Helpers ---
-    const getShapeDefinition = (type: string): string | undefined => {
-      return shapeRegistry.getClipPath(type);
-    };
-
     const applyClip = (ctx: any, layer: any, maskLayer: any) => {
-      const def = getShapeDefinition(maskLayer.type);
+      const def = getLayerClipPath(maskLayer);
       // We need to trace the path in the local space of the TARGET layer
       // But the mask definition is percentage based (0-100%).
       // So we use the Target Layer dimensions? NO.
@@ -170,25 +169,23 @@ self.onmessage = async (e: MessageEvent) => {
             log.warn('Worker: Failed to load image layer', { error: err });
           }
         } else if (layer.type === 'text') {
-          // @ts-ignore - ignore type mismatch
-          ctx.font = `${layer.fontWeight || 'normal'} ${layer.fontSize || 16}px sans-serif`;
-          ctx.fillStyle = layer.color || '#000000';
-          ctx.textAlign = layer.textAlign || 'center'; // Updated to respect textAlign
-          ctx.textBaseline = 'middle';
           ctx.globalAlpha = layer.opacity ?? 1;
 
           // 3D Depth
-          if (layer.depth && layer.depth > 0) {
-            const depth = layer.depth;
-            const depthColor = layer.depthColor || '#333333';
-            ctx.fillStyle = depthColor;
+          if ((layer as any).depth && (layer as any).depth > 0) {
+            const depth = (layer as any).depth;
+            const depthColor = (layer as any).depthColor || '#333333';
+            ctx.save();
             for (let i = 1; i <= depth; i++) {
-              ctx.fillText(layer.text, i, i);
+               ctx.save();
+               ctx.translate(i, i);
+               renderMultilineText(ctx as any, { ...layer, color: depthColor } as any);
+               ctx.restore();
             }
-            ctx.fillStyle = layer.color || '#000000'; // Reset for front face
+            ctx.restore();
           }
 
-          ctx.fillText(layer.text, 0, 0);
+          renderMultilineText(ctx as any, layer as any);
         } else {
           // Shape
           ctx.fillStyle = layer.color || '#000000';
@@ -214,7 +211,7 @@ self.onmessage = async (e: MessageEvent) => {
             ctx.restore();
           } else {
             // Complex polygon shapes
-            const def = getShapeDefinition(layer.type);
+            const def = getLayerClipPath(layer);
             if (def && def.startsWith('polygon')) {
               const points = def.match(/[\d.]+% [\d.]+/g);
               if (points) {

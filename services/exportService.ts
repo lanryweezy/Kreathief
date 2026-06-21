@@ -3,6 +3,7 @@ import { writePsd, Psd } from 'ag-psd';
 import { logSecurityEvent } from '../utils/securityLogger';
 import { renderMultilineText } from '../utils/textRendering';
 import { buildFilterString } from '../utils/layers';
+import { getLayerClipPath } from '../utils/layerRendering';
 
 export type ColorProfile = 'sRGB' | 'CMYK' | 'FOGRA39' | 'GRACoL' | 'SWOP';
 
@@ -277,8 +278,37 @@ export const exportToSVG = (
 ): string => {
   const svgParts: string[] = [
     `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`,
-    `  <rect width="100%" height="100%" fill="${backgroundColor}" />`,
+    `  <defs>`,
   ];
+
+  // Collect all gradient definitions
+  const gradientDefs: string[] = [];
+  for (const layer of layers) {
+    if (layer.type === 'shape' || layer.type === 'path') {
+      const sl = layer as ShapeLayer;
+      if (sl.gradient && sl.gradient.enabled && sl.gradient.colors.length > 0) {
+        const gradId = `grad-${sl.id}`;
+        if (sl.gradient.type === 'radial') {
+          gradientDefs.push(
+            `    <radialGradient id="${gradId}" cx="50%" cy="50%" r="50%">` +
+            sl.gradient.colors.map((c: any) => `<stop offset="${c.position * 100}%" stop-color="${c.color}" />`).join('') +
+            `</radialGradient>`
+          );
+        } else {
+          const angle = sl.gradient.angle || 0;
+          gradientDefs.push(
+            `    <linearGradient id="${gradId}" gradientTransform="rotate(${angle}, 0.5, 0.5)" x1="0%" y1="0%" x2="100%" y2="0%">` +
+            sl.gradient.colors.map((c: any) => `<stop offset="${c.position * 100}%" stop-color="${c.color}" />`).join('') +
+            `</linearGradient>`
+          );
+        }
+      }
+    }
+  }
+  svgParts.push(...gradientDefs);
+  svgParts.push(`  </defs>`);
+
+  svgParts.push(`  <rect width="100%" height="100%" fill="${backgroundColor}" />`);
 
   for (const layer of layers) {
     if (!layer.visible) continue;
@@ -290,32 +320,34 @@ export const exportToSVG = (
 
     const opacity = layer.opacity ?? 1;
 
-    if (layer.type === 'rectangle' || layer.type === 'circle' || layer.type === 'triangle' || layer.type === 'star') {
+    if (layer.type !== 'text' && layer.type !== 'image') {
       const sl = layer as ShapeLayer;
       let shape = '';
+      const fill = sl.gradient?.enabled ? `url(#grad-${sl.id})` : sl.color;
+
       if (sl.type === 'rectangle') {
         const r = sl.cornerRadius || 0;
         if (r > 0) {
-          shape = `<rect x="${-sl.width / 2}" y="${-sl.height / 2}" width="${sl.width}" height="${sl.height}" rx="${r}" fill="${sl.color}" />`;
+          shape = `<rect x="${-sl.width / 2}" y="${-sl.height / 2}" width="${sl.width}" height="${sl.height}" rx="${r}" fill="${fill}" />`;
         } else {
-          shape = `<rect x="${-sl.width / 2}" y="${-sl.height / 2}" width="${sl.width}" height="${sl.height}" fill="${sl.color}" />`;
+          shape = `<rect x="${-sl.width / 2}" y="${-sl.height / 2}" width="${sl.width}" height="${sl.height}" fill="${fill}" />`;
         }
       } else if (sl.type === 'circle') {
         shape = `<circle cx="0" cy="0" r="${sl.width / 2}" fill="${sl.color}" />`;
-      } else if (sl.type === 'triangle') {
-        shape = `<polygon points="0,${-sl.height / 2} ${sl.width / 2},${sl.height / 2} ${-sl.width / 2},${sl.height / 2}" fill="${sl.color}" />`;
-      } else if (sl.type === 'star') {
-        const outerR = sl.width / 2;
-        const innerR = outerR * 0.4;
-        const pts: string[] = [];
-        for (let i = 0; i < 10; i++) {
-          const angle = (i * Math.PI) / 5 - Math.PI / 2;
-          const radius = i % 2 === 0 ? outerR : innerR;
-          pts.push(`${Math.cos(angle) * radius},${Math.sin(angle) * radius}`);
-        }
-        shape = `<polygon points="${pts.join(' ')}" fill="${sl.color}" />`;
       } else if (sl.type === 'path' && sl.pathData) {
         shape = `<path d="${sl.pathData}" fill="${sl.id?.startsWith('draw_') || (sl as any).brushType ? 'none' : sl.color}" stroke="${(sl as any).stroke?.color || sl.color}" stroke-width="${(sl as any).stroke?.width || 0}" />`;
+      } else {
+        const clipPath = getLayerClipPath(layer);
+        if (clipPath && clipPath.startsWith('polygon')) {
+          const match = clipPath.match(/polygon\((.*)\)/);
+          if (match) {
+            const pts = match[1].split(',').map((p) => {
+              const [xPerc, yPerc] = p.trim().split(/\s+/).map(parseFloat);
+              return `${(xPerc / 100) * sl.width - sl.width / 2},${(yPerc / 100) * sl.height - sl.height / 2}`;
+            });
+            shape = `<polygon points="${pts.join(' ')}" fill="${sl.color}" />`;
+          }
+        }
       }
 
       if (shape) {
@@ -511,4 +543,52 @@ const drawShapeToContext = (ctx: CanvasRenderingContext2D, layer: ShapeLayer) =>
   }
 
   ctx.restore();
+};
+
+/**
+ * Batch export multiple artboards as PNGs or SVGs.
+ */
+export const batchExportArtboards = async (
+  artboards: Array<{ name: string; width: number; height: number; layers: Layer[]; backgroundColor: string }>,
+  format: 'png' | 'svg' = 'png'
+): Promise<void> => {
+  for (let i = 0; i < artboards.length; i++) {
+    const ab = artboards[i];
+    const filename = ab.name || `Artboard ${i + 1}`;
+
+    if (format === 'svg') {
+      const svg = exportToSVG(ab.width, ab.height, ab.backgroundColor, ab.layers);
+      const blob = new Blob([svg], { type: 'image/svg+xml' });
+      downloadBlob(blob, `${filename}.svg`);
+    } else {
+      const canvas = document.createElement('canvas');
+      canvas.width = ab.width;
+      canvas.height = ab.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) continue;
+
+      ctx.fillStyle = ab.backgroundColor;
+      ctx.fillRect(0, 0, ab.width, ab.height);
+
+      for (const layer of ab.layers) {
+        if (!layer.visible) continue;
+        if (layer.type === 'text') {
+          drawTextLayerToContext(ctx, layer as TextLayer);
+        } else if (layer.type === 'image') {
+          await drawImageLayerToContext(ctx, layer as ImageLayer);
+        } else {
+          drawShapeToContext(ctx, layer as ShapeLayer);
+        }
+      }
+
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((b) => resolve(b || new Blob()), 'image/png');
+      });
+      downloadBlob(blob, `${filename}.png`);
+    }
+
+    if (i < artboards.length - 1) {
+      await new Promise((r) => setTimeout(r, 300));
+    }
+  }
 };

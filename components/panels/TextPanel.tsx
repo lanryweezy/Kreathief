@@ -5,6 +5,7 @@ import * as geminiService from '../../services/geminiService';
 import { loadFont, registerCustomFont } from '../../services/FontLoader';
 import { useStore } from '../../store/useStore';
 import { log } from '../../utils/log';
+import { getAIErrorMessage } from '../../utils/errorMessages';
 import { TextStylesPanel, TextStyle } from './TextStylesPanel';
 import { TextGradientEditor } from './TextGradientEditor';
 import { TextEffectsPanel } from './TextEffectsPanel';
@@ -169,6 +170,7 @@ const FontPreviewItem = ({
 
 export const TextPanel: React.FC = () => {
   const addTextLayer = useStore((state) => state.addTextLayer);
+  const updateLayer = useStore((state) => state.updateLayer);
   const setPreviewFontFamily = useStore((state) => state.setPreviewFontFamily);
   const customFonts = useStore((state) => state.customFonts);
   const addCustomFont = useStore((state) => state.addCustomFont);
@@ -190,6 +192,10 @@ export const TextPanel: React.FC = () => {
   const [textGradient, setTextGradient] = useState<any>(null);
   const [textEffects, setTextEffects] = useState<any>({});
   const fontInputRef = useRef<HTMLInputElement>(null);
+
+  const selectedLayerId = selectedLayerIds && selectedLayerIds.length > 0 ? selectedLayerIds[selectedLayerIds.length - 1] : null;
+  const selectedLayer = layers.find((l: any) => l?.id === selectedLayerId) || null;
+  const selectedTextLayer = selectedLayer?.type === 'text' ? (selectedLayer as TextLayer) : null;
 
   // Load recent fonts from localStorage on mount
   useEffect(() => {
@@ -226,7 +232,7 @@ export const TextPanel: React.FC = () => {
       setTextGenResults(results);
     } catch (e) {
       log.error('[TextPanel] Text generation failed', e, { prompt: textGenPrompt.substring(0, 100) });
-      addToast('Failed to generate text options', 'error');
+      addToast(getAIErrorMessage(e), 'error');
     } finally {
       setIsGeneratingText(false);
     }
@@ -609,7 +615,9 @@ export const TextPanel: React.FC = () => {
           gradient={textGradient}
           onChange={(gradient) => {
             setTextGradient(gradient);
-            // Apply gradient to selected text layer would go here
+            if (selectedTextLayer) {
+              updateLayer(selectedTextLayer.id, { gradient });
+            }
           }}
         />
       )}
@@ -620,7 +628,9 @@ export const TextPanel: React.FC = () => {
           effects={textEffects}
           onChange={(effects) => {
             setTextEffects(effects);
-            // Apply effects to selected text layer would go here
+            if (selectedTextLayer) {
+              updateLayer(selectedTextLayer.id, effects as Partial<TextLayer>);
+            }
           }}
         />
       )}

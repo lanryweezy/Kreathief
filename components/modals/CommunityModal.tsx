@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 import { communityService, CommunityTemplate } from '../../services/communityService';
+import { log } from '../../utils/log';
 
 interface CommunityModalProps {
   onClose: () => void;
@@ -40,7 +41,11 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
     // Parse the state if it's a string
     let state = template.state;
     if (typeof state === 'string') {
-      try { state = JSON.parse(state); } catch {}
+      try {
+        state = JSON.parse(state);
+      } catch (error) {
+        log.error('[CommunityModal] Failed to parse template state', error, { templateId: template.id });
+      }
     }
 
     const templateWithState = {
@@ -53,9 +58,7 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
 
   const onLike = async (template: CommunityTemplate) => {
     await communityService.likeTemplate(template.id);
-    setTemplates((prev) =>
-      prev.map((t) => (t.id === template.id ? { ...t, likes: t.likes + 1 } : t))
-    );
+    setTemplates((prev) => prev.map((t) => (t.id === template.id ? { ...t, likes: t.likes + 1 } : t)));
   };
 
   return (

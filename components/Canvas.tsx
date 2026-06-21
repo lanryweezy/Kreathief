@@ -166,8 +166,18 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
       }
     };
     updateSize();
+
+    // Use ResizeObserver on the viewport element (detects sidebar toggle, panel resize)
+    const observer = new ResizeObserver(updateSize);
+    if (viewportRef.current) {
+      observer.observe(viewportRef.current);
+    }
+    // Fallback for window resize
     window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateSize);
+    };
   }, []);
 
   // Interaction Hook
@@ -330,10 +340,10 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     () => ({
       x: -panOffset.x / zoom,
       y: -panOffset.y / zoom,
-      width: (viewportRef.current?.clientWidth || 0) / zoom,
-      height: (viewportRef.current?.clientHeight || 0) / zoom,
+      width: viewportSize.width / zoom,
+      height: viewportSize.height / zoom,
     }),
-    [panOffset, zoom]
+    [panOffset, zoom, viewportSize]
   );
 
   const textEditRef = useRef<HTMLDivElement>(null);

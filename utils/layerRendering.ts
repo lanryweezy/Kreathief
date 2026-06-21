@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { Layer, ShapeLayer, AnimationSettings } from '../types';
-import { shapeRegistry } from './layers/shapeRegistry';
+import { getShapeDefinition, getShapeDefaultColor as registryGetShapeDefaultColor } from './layers/shapeRegistry';
 
 /**
  * Gets animation styles for a layer
@@ -29,10 +29,6 @@ export const getAnimationStyle = (anim?: AnimationSettings): React.CSSProperties
  * Returns the CSS clip-path for a shape layer
  */
 export const getLayerClipPath = (layer: Layer): string | undefined => {
-  if (layer.type === 'circle') {
-    return 'circle(50% at 50% 50%)';
-  }
-
   if (layer.type === 'path') {
     const shapeLayer = layer as ShapeLayer;
     if (shapeLayer.pathData) {
@@ -41,23 +37,19 @@ export const getLayerClipPath = (layer: Layer): string | undefined => {
     return undefined;
   }
 
-  return shapeRegistry.getClipPath(layer.type);
+  const clipPath = getShapeDefinition(layer.type);
+  if (clipPath) {
+      return clipPath;
+  }
+
+  return undefined;
 };
 
 /**
  * Gets the default color for a shape type
  */
 export const getShapeDefaultColor = (type: ShapeLayer['type']): string => {
-  switch (type) {
-    case 'rectangle':
-    case 'circle':
-      return '#333333';
-    case 'triangle':
-    case 'star':
-      return '#7d2ae8';
-    default:
-      return '#00c4cc';
-  }
+  return registryGetShapeDefaultColor(type);
 };
 
 /**

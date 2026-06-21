@@ -51,32 +51,6 @@ export const config = {
     },
   },
 
-  // External APIs
-  apis: {
-    unsplash: {
-      accessKey: getOptionalEnv('VITE_UNSPLASH_ACCESS_KEY'),
-      secretKey: getOptionalEnv('VITE_UNSPLASH_SECRET_KEY'),
-      baseUrl: 'https://api.unsplash.com',
-    },
-    streamline: {
-      apiKey: getOptionalEnv('VITE_STREAMLINE_API_KEY'),
-      baseUrl: 'https://api.streamlinehq.com',
-    },
-    freepik: {
-      apiKey: getOptionalEnv('VITE_FREEPIK_API_KEY'),
-      baseUrl: 'https://api.freepik.com',
-    },
-    vecteezy: {
-      apiKey: getOptionalEnv('VITE_VECTEEZY_API_KEY'),
-      baseUrl: 'https://api.vecteezy.com',
-    },
-    iconScout: {
-      clientId: getOptionalEnv('VITE_ICONSCOUT_CLIENT_ID'),
-      secretKey: getOptionalEnv('VITE_ICONSCOUT_SECRET_KEY'),
-      baseUrl: 'https://api.iconscout.com/v3',
-    },
-  },
-
   // Storage Configuration
   storage: {
     indexedDB: {
@@ -153,14 +127,10 @@ export const validateConfig = (): void => {
 
   // Gemini API key validation moved to the server-side
 
-  if (!config.apis.unsplash.accessKey) {
-    warnings.push('Unsplash API key not configured');
-  }
-
   if (warnings.length > 0) {
     log.warn('[ConfigValidation] Missing optional configurations', { warnings });
   }
 };
 
 // Export individual modules for convenience
-export const { app, supabase, ai, apis, storage, canvas, performance, ui, features, security } = config;
+export const { app, supabase, ai, storage, canvas, performance, ui, features, security } = config;

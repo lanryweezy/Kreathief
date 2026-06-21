@@ -12,3 +12,6 @@
 
 **Learning:** A massive `switch` statement for applying text wrap effects (`arch`, `wave`, `flag`, etc.) was deeply coupled inside the `renderWarpedText` loop in `textRendering.ts`. Extracting it into a `WarpRegistry` enables third-party or additive plugins to introduce entirely new text visual effects without needing to edit the core typography pipeline.
 **Action:** When iteration inside rendering loops uses pure math mappings on a context (`ctx.translate`, `ctx.rotate`), extract the transformation into a strategy registry that accepts `progress` and `intensity` so the behavior becomes infinitely extensible.
+## 2024-05-18 - Shape Definitions
+**Learning:** Found massive duplication of shape polygon definitions across `exportWorker.ts`, `mask.worker.ts`, and `layerRendering.ts`. Extracting to a registry or central dictionary is highly justified because adding a new shape requires updating three distinct areas.
+**Action:** Extract a `getShapeDefinition` hook/registry into a shared `utils/layers/shapeRegistry.ts` (or similar) to centralize shape logic.
