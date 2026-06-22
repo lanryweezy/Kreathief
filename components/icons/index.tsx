@@ -1591,3 +1591,13 @@ export const Move = (props: any) => (
     <line x1="12" y1="2" x2="12" y2="22" />
   </svg>
 );
+
+// Aliases for backward compatibility (used by Jules agents)
+export const AlertCircle = Info;
+export const Lightbulb = Zap;
+export const Trash2 = Trash;
+export const CheckCircle = Check;
+export const GitCommit = Code;
+export const GitMerge = Union;
+export const Maximize2 = Maximize;
+export const Palette = Brush;

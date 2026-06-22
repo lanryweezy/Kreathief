@@ -197,6 +197,12 @@ export interface LayerBase {
   isProcessing?: boolean;
   lockProportions?: boolean;
   dirty?: boolean; // For rendering optimization: true if layer needs redraw
+  needsSimplification?: boolean;
+  needsOffset?: boolean;
+  needsCornerRounding?: boolean;
+  convertToPath?: boolean;
+  simplifyTolerance?: number;
+  offsetDistance?: number;
   // Group/Folder support
   isGroup?: boolean; // True if this is a group marker (folder)
   isExpanded?: boolean; // For groups: whether children are visible in layers panel

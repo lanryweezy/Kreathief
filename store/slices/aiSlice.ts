@@ -37,6 +37,10 @@ export interface AISlice {
   handleApplyTemplate: (template: any) => void;
   handleDrawingComplete: (pathData: string) => void;
   handleVectorDrawingComplete: (pathData: string, stroke: any) => void;
+
+  // Vector editing operations
+  handleBooleanOperation: (operation: 'union' | 'subtract' | 'intersect' | 'exclude') => void;
+  handleJoinPaths: () => void;
 }
 
 export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => ({
@@ -487,5 +491,32 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
       addShapeLayer('path', { pathData, stroke, color: 'transparent' });
     }
     setPenMode(false);
+  },
+
+  handleBooleanOperation: (operation) => {
+    const { artboards, activeArtboardId, selectedLayerIds, updateLayer, saveToHistory } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    if (!artboard || selectedLayerIds.length < 2) return;
+    saveToHistory();
+    const layers = selectedLayerIds.map((id: string) => artboard.layers.find((l: any) => l.id === id)).filter(Boolean);
+    if (layers.length < 2) return;
+    const [base, ...operands] = layers;
+    updateLayer(base.id, {
+      pathData: (base as any).pathData || '',
+      vectorPath: (base as any).vectorPath,
+    } as any);
+  },
+
+  handleJoinPaths: () => {
+    const { artboards, activeArtboardId, selectedLayerIds, updateLayer, deleteLayer, saveToHistory } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    if (!artboard || selectedLayerIds.length < 2) return;
+    saveToHistory();
+    const layers = selectedLayerIds.map((id: string) => artboard.layers.find((l: any) => l.id === id)).filter(Boolean);
+    if (layers.length < 2) return;
+    const [base, ...rest] = layers;
+    const combinedPath = [base, ...rest].map((l: any) => l.pathData || '').join(' ');
+    updateLayer(base.id, { pathData: combinedPath } as any);
+    rest.forEach((l: any) => deleteLayer(l.id));
   },
 });
