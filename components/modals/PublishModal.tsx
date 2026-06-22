@@ -59,7 +59,13 @@ export const PublishModal: React.FC<PublishModalProps> = ({ onClose }) => {
         throw new Error('Publish failed');
       }
     } catch (err) {
-      useStore.getState().addToast('Failed to publish design', 'error');
+      const message = err instanceof Error ? err.message : 'Unknown error';
+      const hint = message.includes('network') || message.includes('fetch')
+        ? ' Check your connection and try again.'
+        : message.includes('auth') || message.includes('permission')
+          ? ' Please sign in again.'
+          : '';
+      useStore.getState().addToast(`Failed to publish: ${message}${hint}`, 'error');
     } finally {
       setIsPublishing(false);
     }

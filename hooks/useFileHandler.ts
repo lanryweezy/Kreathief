@@ -231,7 +231,8 @@ export const useFileHandler = () => {
       haptics.success();
     } catch (error) {
       log.error('[FileHandler] Export failed', error, { format, quality });
-      addToast('Export failed', 'error');
+      const msg = error instanceof Error ? error.message : 'Unknown error';
+      addToast(`Export failed: ${msg}. Try a different format or smaller canvas.`, 'error');
     } finally {
       setIsExporting(false);
     }
