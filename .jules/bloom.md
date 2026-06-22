@@ -17,3 +17,6 @@
 ## 2024-06-09 - Replaced generic error messages with specific AI error formatters
 **Learning:** Several AI-powered features (`TextPanel`, `VectorizerPanel`, `MagicPanel`) were displaying generic "Something went wrong/failed" error toasts on failure, despite the codebase already having a `getAIErrorMessage` utility in `utils/errorMessages.ts` specifically designed to provide actionable user feedback for AI operations (differentiating timeouts, quota limits, and network errors).
 **Action:** Replaced hardcoded, generic error strings in catch blocks with `getAIErrorMessage(error)` to provide specific, actionable guidance to users across all AI generation touchpoints.
+## 2026-06-22 - Specific error messaging for file parsing
+**Learning:** File import operations like PSD parsing in `UploadsPanel` frequently fail silently or display generic "Failed to parse" messages. While `utils/errorMessages.ts` contained a robust `getErrorDetails` utility capable of diagnosing quota, network, timeout, memory, permission, and format errors with actionable suggestions, it was primarily used by AI features and ignored by standard file handling catch blocks.
+**Action:** Replaced hardcoded, generic error strings in non-AI catch blocks (like `parsePsdToLayers`) with `getErrorDetails(err)` to provide specific, actionable guidance to users across all failure touchpoints.

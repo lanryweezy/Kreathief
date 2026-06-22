@@ -6,6 +6,7 @@ import { generateLayerId } from '../../utils/layers/layerUtils';
 import { EmptyState } from '../EmptyState';
 import { log } from '../../utils/log';
 import { parsePsdToLayers } from '../../services/psdService';
+import { getErrorDetails } from '../../utils/errorMessages';
 
 interface UploadsPanelProps {}
 
@@ -110,7 +111,8 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
       }
     } catch (err) {
       log.error('[UploadsPanel] PSD Import failed', err);
-      useStore.getState().addToast?.('Failed to parse PSD file.', 'error');
+      const details = getErrorDetails(err);
+      useStore.getState().addToast?.(`PSD import failed: ${details.message}. ${details.suggestion}`, 'error');
     } finally {
       setIsParsingPsd(false);
     }
