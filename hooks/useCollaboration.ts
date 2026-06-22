@@ -18,21 +18,25 @@ export function useCollaboration(projectId: string | null, user: User | null) {
     if (joinedRef.current) return;
     joinedRef.current = true;
 
-    collaborationService.joinProject(projectId, {
-      id: user.id,
-      name: user.name,
-      avatar: user.avatar || null,
-    }, {
-      onPresenceChange: (users: PresenceState[]) => {
-        setOnlineUsers(users);
+    collaborationService.joinProject(
+      projectId,
+      {
+        id: user.id,
+        name: user.name,
+        avatar: user.avatar || null,
       },
-      onCursorMove: (userId: string, cursor: { x: number; y: number }) => {
-        updateCursor(userId, cursor);
-      },
-      onUserLeft: (userId: string) => {
-        removeCursor(userId);
-      },
-    });
+      {
+        onPresenceChange: (users: PresenceState[]) => {
+          setOnlineUsers(users);
+        },
+        onCursorMove: (userId: string, cursor: { x: number; y: number }) => {
+          updateCursor(userId, cursor);
+        },
+        onUserLeft: (userId: string) => {
+          removeCursor(userId);
+        },
+      }
+    );
 
     return () => {
       collaborationService.leaveProject();

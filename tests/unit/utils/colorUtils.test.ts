@@ -347,98 +347,98 @@ describe('colorUtils Conversions', () => {
   });
 });
 
-  describe('Additional branches and coverage gaps', () => {
-    it('handles hex string with length between 3 and 6', () => {
-       const res = hexToRGB('#1234');
-       expect(res).toEqual({ r: 18, g: 52, b: 0 });
-    });
-
-    it('handles pure green check for gamut', () => {
-       const res = isWithinCMYKGamut('#28f028');
-       expect(res).toBe(false);
-    });
-
-    it('handles AA level', () => {
-       const res = checkWCAG('#737373', '#ffffff');
-       expect(res.level).toBe('AA');
-    });
-
-    it('returns warning when color is out of gamut but not critical', () => {
-      const res = getCMYKGamutWarning('#ff0000');
-      expect(res).toBe('warning');
-    });
-
-    it('handles Large AA level', () => {
-       const res = checkWCAG('#8c8c8c', '#ffffff');
-       expect(res.level).toBe('Large AA');
-    });
-
-    it('handles rgbToHSL when green is max', () => {
-      const res = rgbToHSL(0, 255, 0);
-      expect(res.h).toBe(120);
-    });
-
-    it('handles rgbToHSL when blue is max', () => {
-      const res = rgbToHSL(0, 0, 255);
-      expect(res.h).toBe(240);
-    });
-
-    it('handles rgbToHSL when l <= 0.5', () => {
-      const res = rgbToHSL(102, 51, 51);
-      expect(res.l).toBeCloseTo(30);
-    });
-
-    it('handles rgbToHSL when max is r and g >= b', () => {
-      const res = rgbToHSL(255, 200, 100);
-      expect(res.h).toBeDefined();
-    });
-
-    it('handles pure blue gamut check', () => {
-      const res = isWithinCMYKGamut('#2828f0');
-      expect(res).toBe(false);
-    });
-
-    it('handles isWithinCMYKGamut for non-neon colors correctly with saturation 0', () => {
-      const res = isWithinCMYKGamut('#ffffff');
-      expect(res).toBe(true);
-    });
-
-    it('handles isWithinCMYKGamut when max is 0', () => {
-      const res = isWithinCMYKGamut('#000000');
-      expect(res).toBe(true);
-    });
-
-    it('handles pure green closest safe color check', () => {
-       const res = getClosestCMYKSafeColor('#00f000');
-       expect(res).toBe('#00bb00');
-    });
-
-    it('handles pure blue closest safe color check', () => {
-       const res = getClosestCMYKSafeColor('#0000f0');
-       expect(res).toBe('#0000b3');
-    });
-
-    it('extracts top colors from image data', async () => {
-      const { extractPalette } = await import('../../../utils/colorUtils');
-      const data = new Uint8ClampedArray(400);
-      for(let i=0; i<40; i+=4) {
-         data[i] = 255;
-         data[i+1] = 0;
-         data[i+2] = 0;
-         data[i+3] = 255;
-      }
-      const imgData = { data, width: 10, height: 10, colorSpace: 'srgb' };
-      const res = await extractPalette(imgData as ImageData, 2);
-      expect(res).toBeDefined();
-      expect(res.length).toBeGreaterThan(0);
-      expect(res).toContain('#ff0000');
-    });
+describe('Additional branches and coverage gaps', () => {
+  it('handles hex string with length between 3 and 6', () => {
+    const res = hexToRGB('#1234');
+    expect(res).toEqual({ r: 18, g: 52, b: 0 });
   });
 
-  it('handles rgbToHSL when max is r and g < b (second case)', () => {
-    // max = r, g < b, r != g != b
-    const res = rgbToHSL(255, 0, 255); // max=255, min=0, r=255, g=0, b=255 => r=max but b is also max, wait.
-    // need max = r = 255, g = 0, b = 100
-    const res2 = rgbToHSL(255, 0, 100);
-    expect(res2.h).toBeDefined();
+  it('handles pure green check for gamut', () => {
+    const res = isWithinCMYKGamut('#28f028');
+    expect(res).toBe(false);
   });
+
+  it('handles AA level', () => {
+    const res = checkWCAG('#737373', '#ffffff');
+    expect(res.level).toBe('AA');
+  });
+
+  it('returns warning when color is out of gamut but not critical', () => {
+    const res = getCMYKGamutWarning('#ff0000');
+    expect(res).toBe('warning');
+  });
+
+  it('handles Large AA level', () => {
+    const res = checkWCAG('#8c8c8c', '#ffffff');
+    expect(res.level).toBe('Large AA');
+  });
+
+  it('handles rgbToHSL when green is max', () => {
+    const res = rgbToHSL(0, 255, 0);
+    expect(res.h).toBe(120);
+  });
+
+  it('handles rgbToHSL when blue is max', () => {
+    const res = rgbToHSL(0, 0, 255);
+    expect(res.h).toBe(240);
+  });
+
+  it('handles rgbToHSL when l <= 0.5', () => {
+    const res = rgbToHSL(102, 51, 51);
+    expect(res.l).toBeCloseTo(30);
+  });
+
+  it('handles rgbToHSL when max is r and g >= b', () => {
+    const res = rgbToHSL(255, 200, 100);
+    expect(res.h).toBeDefined();
+  });
+
+  it('handles pure blue gamut check', () => {
+    const res = isWithinCMYKGamut('#2828f0');
+    expect(res).toBe(false);
+  });
+
+  it('handles isWithinCMYKGamut for non-neon colors correctly with saturation 0', () => {
+    const res = isWithinCMYKGamut('#ffffff');
+    expect(res).toBe(true);
+  });
+
+  it('handles isWithinCMYKGamut when max is 0', () => {
+    const res = isWithinCMYKGamut('#000000');
+    expect(res).toBe(true);
+  });
+
+  it('handles pure green closest safe color check', () => {
+    const res = getClosestCMYKSafeColor('#00f000');
+    expect(res).toBe('#00bb00');
+  });
+
+  it('handles pure blue closest safe color check', () => {
+    const res = getClosestCMYKSafeColor('#0000f0');
+    expect(res).toBe('#0000b3');
+  });
+
+  it('extracts top colors from image data', async () => {
+    const { extractPalette } = await import('../../../utils/colorUtils');
+    const data = new Uint8ClampedArray(400);
+    for (let i = 0; i < 40; i += 4) {
+      data[i] = 255;
+      data[i + 1] = 0;
+      data[i + 2] = 0;
+      data[i + 3] = 255;
+    }
+    const imgData = { data, width: 10, height: 10, colorSpace: 'srgb' };
+    const res = await extractPalette(imgData as ImageData, 2);
+    expect(res).toBeDefined();
+    expect(res.length).toBeGreaterThan(0);
+    expect(res).toContain('#ff0000');
+  });
+});
+
+it('handles rgbToHSL when max is r and g < b (second case)', () => {
+  // max = r, g < b, r != g != b
+  const res = rgbToHSL(255, 0, 255); // max=255, min=0, r=255, g=0, b=255 => r=max but b is also max, wait.
+  // need max = r = 255, g = 0, b = 100
+  const res2 = rgbToHSL(255, 0, 100);
+  expect(res2.h).toBeDefined();
+});

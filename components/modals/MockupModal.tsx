@@ -421,7 +421,9 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                       onChange={(e) => setPerspectiveWarp({ ...perspectiveWarp, rotateX: parseInt(e.target.value) })}
                       className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
                     />
-                    <span className="text-[10px] font-mono text-gray-500 w-8 text-right">{perspectiveWarp.rotateX}°</span>
+                    <span className="text-[10px] font-mono text-gray-500 w-8 text-right">
+                      {perspectiveWarp.rotateX}°
+                    </span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-[10px] text-gray-500 w-8">Y°</span>
@@ -434,7 +436,9 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                       onChange={(e) => setPerspectiveWarp({ ...perspectiveWarp, rotateY: parseInt(e.target.value) })}
                       className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
                     />
-                    <span className="text-[10px] font-mono text-gray-500 w-8 text-right">{perspectiveWarp.rotateY}°</span>
+                    <span className="text-[10px] font-mono text-gray-500 w-8 text-right">
+                      {perspectiveWarp.rotateY}°
+                    </span>
                   </div>
                   {(perspectiveWarp.rotateX !== 0 || perspectiveWarp.rotateY !== 0) && (
                     <button
@@ -449,7 +453,9 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
 
               {/* Custom Background Upload */}
               <div className="mt-6 pt-6 border-t border-white/5">
-                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-2 block mb-3">Custom Background</span>
+                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-2 block mb-3">
+                  Custom Background
+                </span>
                 <input
                   ref={fileInputRef}
                   type="file"

@@ -112,7 +112,7 @@ export const ContextualToolbar = React.memo(({ selectedLayerIds, layers, zoom }:
       </div>
     </div>
   );
-ContextualToolbar.displayName = 'ContextualToolbar';
+  ContextualToolbar.displayName = 'ContextualToolbar';
 });
 
 const ToolbarButton = ({ onClick, icon, label, variant = 'default' }: any) => (

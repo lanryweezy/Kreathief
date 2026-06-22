@@ -124,9 +124,11 @@
 **Prevention:** Backend API proxy functions must exclusively rely on non-prefixed environment variables (e.g., `process.env.VECTEEZY_ACCOUNT_ID`) for sensitive credentials. Removing the `VITE_` prefixes forces the correct configuration and inherently protects against bundler injection.
 
 ## 2026-06-21 - Removed Client-Side Exposure of External API Keys
+
 **Vulnerability:** The application was loading `import.meta.env.VITE_UNSPLASH_ACCESS_KEY`, `VITE_STREAMLINE_API_KEY`, `VITE_FREEPIK_API_KEY`, `VITE_VECTEEZY_API_KEY`, and `VITE_ICONSCOUT_CLIENT_ID`/`SECRET_KEY` into `config/index.ts`'s `apis` object, exposing these backend secret keys to users via the compiled frontend bundle if developers used the `VITE_` prefix.
 **Learning:** In Vite, any environment variable prefixed with `VITE_` is statically injected into the client bundle at build time. Since external API proxies (`api/unsplash.ts`, etc.) already load these via non-prefixed `process.env` variables securely, storing them in the client `config` was unnecessary and dangerous.
 **Prevention:** Remove all client-side configuration objects that map backend secrets to `VITE_` prefixed variables. Frontend code should only need the proxy endpoints, not the API keys themselves.
+
 ## 2026-06-21 - Restrict CORS Origins in Edge API Functions
 
 **Vulnerability:** Almost all Edge API functions in the `api/` directory (e.g., `iconscout.ts`, `freepik.ts`, `export-cmyk.ts`, `unsplash.ts`, `gemini.ts`, `streamline.ts`, `dynamic-mockups.ts`, `error-log.ts`, `config.ts`, `vecteezy.ts`) were configured with overly permissive CORS headers (`Access-Control-Allow-Origin: *`). This allowed any arbitrary domain to make cross-origin requests to the application's backend proxies.

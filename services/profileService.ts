@@ -11,11 +11,7 @@ export interface UserProfile extends Profile {
 export const profileService = {
   async getProfile(userId: string): Promise<Profile | null> {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
 
       if (error) throw error;
       return data;

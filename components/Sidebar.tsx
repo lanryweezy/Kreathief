@@ -99,23 +99,23 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
         <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-[#7d2ae8]/5 to-transparent pointer-events-none" />
 
         <ErrorBoundary fallback={<div className="text-xs text-red-400 p-2">Sidebar error</div>}>
-        <div className="sticky top-0 z-20 w-full flex flex-col items-center gap-2 px-2 pt-6 pb-2 bg-[#0c0c0e]/95 backdrop-blur-3xl shadow-md border-b border-white/5">
-          <AnimatePresence mode="popLayout">
-            {primaryTools.map((item) => (
-              <motion.div
-                key={item.id}
-                layout
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ type: 'spring', damping: 25, stiffness: 400 }}
-                className="w-full"
-              >
-                {renderTool(item)}
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
+          <div className="sticky top-0 z-20 w-full flex flex-col items-center gap-2 px-2 pt-6 pb-2 bg-[#0c0c0e]/95 backdrop-blur-3xl shadow-md border-b border-white/5">
+            <AnimatePresence mode="popLayout">
+              {primaryTools.map((item) => (
+                <motion.div
+                  key={item.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+                  className="w-full"
+                >
+                  {renderTool(item)}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
         </ErrorBoundary>
 
         <div className="flex flex-col items-center w-full gap-2 px-2 mt-2">

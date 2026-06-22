@@ -168,7 +168,8 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
                     </a>
                   )}
                   <span className="flex items-center gap-1">
-                    <Icons.Flag className="w-3 h-3" /> Joined {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                    <Icons.Flag className="w-3 h-3" /> Joined{' '}
+                    {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                   </span>
                   <span className="px-2 py-0.5 rounded-full bg-[#7d2ae8]/20 text-[#7d2ae8] font-bold text-[10px] uppercase">
                     {profile.plan}
@@ -192,9 +193,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
           <h3 className="text-lg font-black text-white mb-6 flex items-center gap-2">
             <Icons.Layers className="w-5 h-5 text-[#7d2ae8]" />
             Published Designs
-            <span className="text-sm font-normal text-gray-500 ml-2">
-              ({profile.communityTemplates?.length || 0})
-            </span>
+            <span className="text-sm font-normal text-gray-500 ml-2">({profile.communityTemplates?.length || 0})</span>
           </h3>
 
           {profile.communityTemplates && profile.communityTemplates.length > 0 ? (
@@ -242,7 +241,9 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
             <div className="text-center py-16 rounded-2xl border border-dashed border-white/10">
               <Icons.Layers className="w-10 h-10 text-gray-600 mx-auto mb-3" />
               <p className="text-gray-500 text-sm">
-                {isOwnProfile ? "You haven't published any designs yet." : "This user hasn't published any designs yet."}
+                {isOwnProfile
+                  ? "You haven't published any designs yet."
+                  : "This user hasn't published any designs yet."}
               </p>
             </div>
           )}

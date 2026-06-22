@@ -58,10 +58,7 @@ export const PresenceBar: React.FC = () => {
             </div>
             <div className="max-h-60 overflow-y-auto">
               {onlineUsers.map((user) => (
-                <div
-                  key={user.userId}
-                  className="flex items-center gap-3 px-3 py-2 hover:bg-white/5 transition-colors"
-                >
+                <div key={user.userId} className="flex items-center gap-3 px-3 py-2 hover:bg-white/5 transition-colors">
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white relative"
                     style={{ backgroundColor: user.color }}
@@ -75,9 +72,7 @@ export const PresenceBar: React.FC = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-white truncate">{user.userName}</p>
-                    <p className="text-[10px] text-gray-500">
-                      {user.activeLayerId ? 'Editing a layer' : 'Viewing'}
-                    </p>
+                    <p className="text-[10px] text-gray-500">{user.activeLayerId ? 'Editing a layer' : 'Viewing'}</p>
                   </div>
                 </div>
               ))}
@@ -87,9 +82,7 @@ export const PresenceBar: React.FC = () => {
       </AnimatePresence>
 
       {/* Click outside to close */}
-      {showList && (
-        <div className="fixed inset-0 z-40" onClick={() => setShowList(false)} />
-      )}
+      {showList && <div className="fixed inset-0 z-40" onClick={() => setShowList(false)} />}
     </div>
   );
 };

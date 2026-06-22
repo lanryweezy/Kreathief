@@ -190,52 +190,54 @@ export const TextTools = React.memo(
           <Icons.AlignRight className="w-3.5 h-3.5" />
         </IconButton>
 
-      <div className="relative">
-        <IconButton
-          ref={rewriteRef as React.RefObject<HTMLButtonElement>}
-          onClick={() => onMagicWrite(layer.id)}
-          title="Magic Write"
-          className="text-[#7d2ae8] hover:text-[#9d4edd] hover:bg-[#7d2ae8]/10"
-        >
-          <Icons.Sparkles className="w-3.5 h-3.5" />
-        </IconButton>
+        <div className="relative">
+          <IconButton
+            ref={rewriteRef as React.RefObject<HTMLButtonElement>}
+            onClick={() => onMagicWrite(layer.id)}
+            title="Magic Write"
+            className="text-[#7d2ae8] hover:text-[#9d4edd] hover:bg-[#7d2ae8]/10"
+          >
+            <Icons.Sparkles className="w-3.5 h-3.5" />
+          </IconButton>
 
-        <Dropdown
-          anchorRef={rewriteRef as React.RefObject<HTMLButtonElement>}
-          isOpen={showRewriteTones}
-          onClose={() => setShowRewriteTones(false)}
-          align="center"
-        >
-          <div className="bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl p-2 animate-fadeIn w-48 flex flex-col gap-1">
-            <div className="px-2 py-1.5 border-b border-gray-700 mb-1">
-              <span className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Rewrite as...</span>
+          <Dropdown
+            anchorRef={rewriteRef as React.RefObject<HTMLButtonElement>}
+            isOpen={showRewriteTones}
+            onClose={() => setShowRewriteTones(false)}
+            align="center"
+          >
+            <div className="bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl p-2 animate-fadeIn w-48 flex flex-col gap-1">
+              <div className="px-2 py-1.5 border-b border-gray-700 mb-1">
+                <span className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Rewrite as...</span>
+              </div>
+              {[
+                { id: 'professional', label: 'Professional', icon: Icons.Briefcase },
+                { id: 'casual', label: 'Casual', icon: Icons.MessageSquare },
+                { id: 'enthusiastic', label: 'Enthusiastic', icon: Icons.Zap },
+                { id: 'shorter', label: 'Make Shorter', icon: Icons.Minus },
+                { id: 'longer', label: 'Make Longer', icon: Icons.Plus },
+                { id: 'fix-grammar', label: 'Fix Grammar', icon: Icons.Check },
+              ].map((tone) => (
+                <button
+                  key={tone.id}
+                  onClick={() =>
+                    handleToneRewrite(
+                      layer.id,
+                      `Rewrite the following text to be ${tone.id}. Output only the rewritten text without any quotes or explanations.`
+                    )
+                  }
+                  className="w-full text-left px-3 py-2 text-sm text-gray-200 hover:text-white hover:bg-[#7d2ae8] rounded-lg transition-colors flex items-center gap-2"
+                >
+                  {tone.icon && <tone.icon className="w-4 h-4 opacity-70" />}
+                  {tone.label}
+                </button>
+              ))}
             </div>
-            {[
-              { id: 'professional', label: 'Professional', icon: Icons.Briefcase },
-              { id: 'casual', label: 'Casual', icon: Icons.MessageSquare },
-              { id: 'enthusiastic', label: 'Enthusiastic', icon: Icons.Zap },
-              { id: 'shorter', label: 'Make Shorter', icon: Icons.Minus },
-              { id: 'longer', label: 'Make Longer', icon: Icons.Plus },
-              { id: 'fix-grammar', label: 'Fix Grammar', icon: Icons.Check },
-            ].map((tone) => (
-              <button
-                key={tone.id}
-                onClick={() => handleToneRewrite(layer.id, `Rewrite the following text to be ${tone.id}. Output only the rewritten text without any quotes or explanations.`)}
-                className="w-full text-left px-3 py-2 text-sm text-gray-200 hover:text-white hover:bg-[#7d2ae8] rounded-lg transition-colors flex items-center gap-2"
-              >
-                {tone.icon && <tone.icon className="w-4 h-4 opacity-70" />}
-                {tone.label}
-              </button>
-            ))}
-          </div>
-        </Dropdown>
-      </div>
-      <Divider />
+          </Dropdown>
+        </div>
+        <Divider />
 
-      <QuickTextEffects
-        layer={layer}
-        onUpdateLayer={(id, changes) => onUpdateTextLayer(id, changes)}
-      />
+        <QuickTextEffects layer={layer} onUpdateLayer={(id, changes) => onUpdateTextLayer(id, changes)} />
 
         <QuickTextEffects layer={layer} onUpdateLayer={(id, changes) => onUpdateTextLayer(id, changes)} />
 

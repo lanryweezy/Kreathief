@@ -7,8 +7,11 @@
 **Action:** When finding incomplete integrations, wire up the component to the state so that the effects are properly read from and written to the selected text layer.
 
 ## 2026-06-18 - Unwired UI Props
+
 **Learning:** Found a wired-but-empty UI callback (`onMagicWrite`) in `components/Toolbar.tsx` that was passed into `components/toolbar/TextTools.tsx` as `() => {}`, missing its intended UI button element.
 **Action:** When inspecting component props that are callbacks (like `onMagicWrite`), verify whether their corresponding UI elements (e.g., `<IconButton>`) exist in the child component. If missing, complete the implementation by adding the button that wires the callback to the user interface.
+
 ## 2026-06-21 - Unwired UI Panel States
+
 **Learning:** Found a wired-but-empty UI component (`TextEffectsPanel` and `TextGradientEditor`) in `components/panels/TextPanel.tsx` where the `onChange` handler correctly updated local component state but failed to synchronize those changes to the actual canvas layer via the global store (`updateLayer`). It had placeholder comments like `// Apply effects to selected text layer would go here`.
 **Action:** When finding incomplete integrations where UI state changes are handled locally but not persisted, ensure that the corresponding layer update function (like `updateLayer` from `useStore`) is retrieved and invoked with the selected layer's ID.

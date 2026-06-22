@@ -12,7 +12,7 @@ let lastCleanup = Date.now();
 
 // Schema validation for request body
 const ExportCmykSchema = z.object({
-  imageUrl: z.string().url("Must be a valid URL"),
+  imageUrl: z.string().url('Must be a valid URL'),
   bleed: z.number().min(0).max(500).default(0),
 });
 

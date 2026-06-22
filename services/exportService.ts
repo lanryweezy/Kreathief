@@ -637,7 +637,11 @@ export const batchExportArtboardsZip = async (
   for (let i = 0; i < artboards.length; i++) {
     const ab = artboards[i];
     const filename = ab.name || `Artboard ${i + 1}`;
-    const safeFilename = filename.replace(/[^a-zA-Z0-9_\-\s]/g, '').replace(/\s+/g, '_').toLowerCase() || `artboard_${i + 1}`;
+    const safeFilename =
+      filename
+        .replace(/[^a-zA-Z0-9_\-\s]/g, '')
+        .replace(/\s+/g, '_')
+        .toLowerCase() || `artboard_${i + 1}`;
 
     if (format === 'svg') {
       const svg = exportToSVG(ab.width, ab.height, ab.backgroundColor, ab.layers);

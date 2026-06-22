@@ -39,7 +39,7 @@ export const getLayerClipPath = (layer: Layer): string | undefined => {
 
   const clipPath = getShapeDefinition(layer.type);
   if (clipPath) {
-      return clipPath;
+    return clipPath;
   }
 
   return undefined;

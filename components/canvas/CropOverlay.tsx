@@ -10,9 +10,7 @@ interface CropOverlayProps {
 
 export const CropOverlay = React.memo(({ layer, zoom, onClose }: CropOverlayProps) => {
   const updateLayer = useStore((s) => s.updateLayer);
-  const [crop, setCrop] = useState(
-    layer.crop || { x: 0, y: 0, width: layer.width, height: layer.height }
-  );
+  const [crop, setCrop] = useState(layer.crop || { x: 0, y: 0, width: layer.width, height: layer.height });
   const [isDragging, setIsDragging] = useState<'move' | 'nw' | 'ne' | 'sw' | 'se' | null>(null);
   const dragStart = useRef({ x: 0, y: 0, crop: crop });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -131,17 +129,11 @@ export const CropOverlay = React.memo(({ layer, zoom, onClose }: CropOverlayProp
 
       {/* Controls */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-[#1e1e1e] border border-gray-700 rounded-xl px-4 py-2 shadow-xl z-[160]">
-        <button
-          onClick={resetCrop}
-          className="text-xs text-gray-400 hover:text-white transition-colors"
-        >
+        <button onClick={resetCrop} className="text-xs text-gray-400 hover:text-white transition-colors">
           Reset
         </button>
         <div className="w-px h-5 bg-gray-700" />
-        <button
-          onClick={onClose}
-          className="text-xs text-gray-400 hover:text-white transition-colors"
-        >
+        <button onClick={onClose} className="text-xs text-gray-400 hover:text-white transition-colors">
           Cancel
         </button>
         <button
@@ -153,5 +145,5 @@ export const CropOverlay = React.memo(({ layer, zoom, onClose }: CropOverlayProp
       </div>
     </div>
   );
-CropOverlay.displayName = 'CropOverlay';
+  CropOverlay.displayName = 'CropOverlay';
 });

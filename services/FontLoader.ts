@@ -158,10 +158,14 @@ export async function loadFont(fontFamily: string): Promise<boolean> {
     // Also try italic variants
     const italicPromises = LOCAL_FONT_WEIGHTS.map((weight) => {
       return new Promise<void>((resolve) => {
-        const fontFace = new FontFace(cleanFamily, `url(/fonts/${cleanFamily.replace(/ /g, '-')}-${weight}-italic.woff2)`, {
-          weight: weight as any,
-          style: 'italic',
-        });
+        const fontFace = new FontFace(
+          cleanFamily,
+          `url(/fonts/${cleanFamily.replace(/ /g, '-')}-${weight}-italic.woff2)`,
+          {
+            weight: weight as any,
+            style: 'italic',
+          }
+        );
 
         fontFace
           .load()

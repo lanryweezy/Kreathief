@@ -64,7 +64,6 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
     onPreviewMotion?.(newAnim);
   };
 
-
   return (
     <div className="flex flex-col h-full bg-[#13161a]">
       <div className="p-4 border-b border-[#1f1f1f]">
@@ -180,5 +179,5 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
       </div>
     </div>
   );
-MotionPanel.displayName = 'MotionPanel';
+  MotionPanel.displayName = 'MotionPanel';
 });

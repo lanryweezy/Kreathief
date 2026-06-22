@@ -112,11 +112,7 @@ class ShareService {
 
   async verifyPassword(shareId: string, password: string): Promise<boolean> {
     try {
-      const { data, error } = await supabase
-        .from('share_links')
-        .select('password_hash')
-        .eq('id', shareId)
-        .single();
+      const { data, error } = await supabase.from('share_links').select('password_hash').eq('id', shareId).single();
 
       if (error || !data || !data.password_hash) return true; // No password set
 

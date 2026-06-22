@@ -311,5 +311,5 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
       </div>
     </div>
   );
-LayerEffectsPanel.displayName = 'LayerEffectsPanel';
+  LayerEffectsPanel.displayName = 'LayerEffectsPanel';
 });

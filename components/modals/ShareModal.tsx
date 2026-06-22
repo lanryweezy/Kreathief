@@ -41,9 +41,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
     // For now, just copy the share link with the email as context
     const inviteLink = shareLink || '';
     if (inviteLink) {
-      navigator.clipboard.writeText(
-        `Hey! Check out my design "${designTitle}" on Kreathief: ${inviteLink}`
-      );
+      navigator.clipboard.writeText(`Hey! Check out my design "${designTitle}" on Kreathief: ${inviteLink}`);
       setInviteSent(true);
       setInviteEmail('');
       setTimeout(() => setInviteSent(false), 3000);
@@ -78,9 +76,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
           {/* Online users */}
           {onlineUsers.length > 1 && (
             <div className="p-3 bg-green-900/20 border border-green-500/20 rounded-lg">
-              <p className="text-xs text-green-400 font-bold mb-2">
-                {onlineUsers.length} people currently viewing
-              </p>
+              <p className="text-xs text-green-400 font-bold mb-2">{onlineUsers.length} people currently viewing</p>
               <div className="flex -space-x-1">
                 {onlineUsers.slice(0, 8).map((u) => (
                   <div
@@ -98,9 +94,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
 
           {/* Share link */}
           <div>
-            <p className="text-gray-400 text-sm mb-3">
-              Generate a link to share your design with others.
-            </p>
+            <p className="text-gray-400 text-sm mb-3">Generate a link to share your design with others.</p>
 
             {!shareLink ? (
               <button
@@ -137,9 +131,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
           {/* Invite by email */}
           {shareLink && (
             <div>
-              <p className="text-gray-400 text-sm mb-3">
-                Or invite someone by email:
-              </p>
+              <p className="text-gray-400 text-sm mb-3">Or invite someone by email:</p>
               <div className="flex gap-2">
                 <input
                   type="email"
@@ -156,8 +148,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
                     inviteSent
                       ? 'bg-green-600 text-white'
                       : inviteEmail.trim()
-                      ? 'bg-[#7d2ae8] text-white hover:bg-[#6b23c5]'
-                      : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                        ? 'bg-[#7d2ae8] text-white hover:bg-[#6b23c5]'
+                        : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                   }`}
                 >
                   {inviteSent ? <Icons.Check className="w-4 h-4" /> : <Icons.Send className="w-4 h-4" />}

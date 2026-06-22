@@ -19,17 +19,13 @@ describe('VectorUtils', () => {
 
     it('returns false when a point is missing or has invalid coordinates', () => {
       const invalidPath: VectorPath = {
-        points: [
-          { id: '1', x: NaN, y: 10, type: 'sharp' },
-        ],
+        points: [{ id: '1', x: NaN, y: 10, type: 'sharp' }],
         isClosed: false,
       };
       expect(VectorUtils.validatePath(invalidPath)).toBe(false);
 
       const invalidPath2: VectorPath = {
-        points: [
-          { id: '1', x: 10, y: Infinity, type: 'sharp' },
-        ],
+        points: [{ id: '1', x: 10, y: Infinity, type: 'sharp' }],
         isClosed: false,
       };
       expect(VectorUtils.validatePath(invalidPath2)).toBe(false);
@@ -39,8 +35,11 @@ describe('VectorUtils', () => {
       const invalidPath: VectorPath = {
         points: [
           {
-            id: '1', x: 10, y: 10, type: 'smooth',
-            handleIn: { x: NaN, y: 0 }
+            id: '1',
+            x: 10,
+            y: 10,
+            type: 'smooth',
+            handleIn: { x: NaN, y: 0 },
           },
         ],
         isClosed: false,
@@ -52,8 +51,11 @@ describe('VectorUtils', () => {
       const invalidPath: VectorPath = {
         points: [
           {
-            id: '1', x: 10, y: 10, type: 'smooth',
-            handleOut: { x: 0, y: Infinity }
+            id: '1',
+            x: 10,
+            y: 10,
+            type: 'smooth',
+            handleOut: { x: 0, y: Infinity },
           },
         ],
         isClosed: false,
@@ -66,9 +68,12 @@ describe('VectorUtils', () => {
         points: [
           { id: '1', x: 10, y: 10, type: 'sharp' },
           {
-            id: '2', x: 20, y: 20, type: 'smooth',
+            id: '2',
+            x: 20,
+            y: 20,
+            type: 'smooth',
             handleIn: { x: -5, y: -5 },
-            handleOut: { x: 5, y: 5 }
+            handleOut: { x: 5, y: 5 },
           },
         ],
         isClosed: true,
@@ -230,7 +235,14 @@ describe('VectorUtils', () => {
 
   describe('alignHandles', () => {
     it('returns point unchanged if type is sharp', () => {
-      const pt: VectorPoint = { id: '1', x: 0, y: 0, type: 'sharp', handleIn: { x: 10, y: 0 }, handleOut: { x: -10, y: 0 } };
+      const pt: VectorPoint = {
+        id: '1',
+        x: 0,
+        y: 0,
+        type: 'sharp',
+        handleIn: { x: 10, y: 0 },
+        handleOut: { x: -10, y: 0 },
+      };
       const aligned = VectorUtils.alignHandles({ ...pt }, 'in');
       expect(aligned).toEqual(pt);
     });
@@ -248,17 +260,38 @@ describe('VectorUtils', () => {
     });
 
     it('aligns handles symmetrically for symmetric point', () => {
-      const pt: VectorPoint = { id: '1', x: 0, y: 0, type: 'symmetric', handleIn: { x: 10, y: 5 }, handleOut: { x: -10, y: -10 } };
+      const pt: VectorPoint = {
+        id: '1',
+        x: 0,
+        y: 0,
+        type: 'symmetric',
+        handleIn: { x: 10, y: 5 },
+        handleOut: { x: -10, y: -10 },
+      };
       const aligned = VectorUtils.alignHandles({ ...pt }, 'in');
       expect(aligned.handleOut).toEqual({ x: -10, y: -5 });
 
-      const pt2: VectorPoint = { id: '1', x: 0, y: 0, type: 'symmetric', handleIn: { x: 10, y: 10 }, handleOut: { x: -5, y: -10 } };
+      const pt2: VectorPoint = {
+        id: '1',
+        x: 0,
+        y: 0,
+        type: 'symmetric',
+        handleIn: { x: 10, y: 10 },
+        handleOut: { x: -5, y: -10 },
+      };
       const aligned2 = VectorUtils.alignHandles({ ...pt2 }, 'out');
       expect(aligned2.handleIn).toEqual({ x: 5, y: 10 });
     });
 
     it('aligns handles preserving length for smooth point', () => {
-      const pt: VectorPoint = { id: '1', x: 0, y: 0, type: 'smooth', handleIn: { x: 10, y: 0 }, handleOut: { x: 0, y: 5 } };
+      const pt: VectorPoint = {
+        id: '1',
+        x: 0,
+        y: 0,
+        type: 'smooth',
+        handleIn: { x: 10, y: 0 },
+        handleOut: { x: 0, y: 5 },
+      };
       const aligned = VectorUtils.alignHandles({ ...pt }, 'in');
 
       // Target handle (handleOut) length was 5. Angle of source is 0. So opposite angle is PI, dist is 5.
@@ -311,7 +344,13 @@ describe('VectorUtils', () => {
     });
 
     it('returns unchanged path if global radius is 0 or less', () => {
-      const path: VectorPath = { points: [{ id: '1', x: 0, y: 0, type: 'sharp' }, { id: '2', x: 10, y: 0, type: 'sharp' }], isClosed: false };
+      const path: VectorPath = {
+        points: [
+          { id: '1', x: 0, y: 0, type: 'sharp' },
+          { id: '2', x: 10, y: 0, type: 'sharp' },
+        ],
+        isClosed: false,
+      };
       const rounded = VectorUtils.applyCornerRounding(path, 0);
       expect(rounded).toEqual(path);
     });
@@ -328,19 +367,31 @@ describe('VectorUtils', () => {
 
       const rounded = VectorUtils.applyCornerRounding(path, 2);
       expect(rounded.points.length).toBeGreaterThan(path.points.length);
-      expect(rounded.points.some(p => p.handleIn || p.handleOut)).toBe(true);
+      expect(rounded.points.some((p) => p.handleIn || p.handleOut)).toBe(true);
     });
   });
 
   describe('insertPointToPath', () => {
     it('returns null if no matching segment found within threshold', () => {
-      const path: VectorPath = { points: [{ id: '1', x: 0, y: 0, type: 'sharp' }, { id: '2', x: 100, y: 0, type: 'sharp' }], isClosed: false };
+      const path: VectorPath = {
+        points: [
+          { id: '1', x: 0, y: 0, type: 'sharp' },
+          { id: '2', x: 100, y: 0, type: 'sharp' },
+        ],
+        isClosed: false,
+      };
       const result = VectorUtils.insertPointToPath(path, 50, 50, 5);
       expect(result).toBeNull();
     });
 
     it('inserts point into line segment correctly', () => {
-      const path: VectorPath = { points: [{ id: '1', x: 0, y: 0, type: 'sharp' }, { id: '2', x: 100, y: 0, type: 'sharp' }], isClosed: false };
+      const path: VectorPath = {
+        points: [
+          { id: '1', x: 0, y: 0, type: 'sharp' },
+          { id: '2', x: 100, y: 0, type: 'sharp' },
+        ],
+        isClosed: false,
+      };
       const result = VectorUtils.insertPointToPath(path, 50, 0, 5);
       expect(result).not.toBeNull();
       expect(result!.points.length).toBe(3);

@@ -163,5 +163,5 @@ export const QuickTextEffects = React.memo(({ layer, onUpdateLayer }: QuickTextE
       </Dropdown>
     </>
   );
-QuickTextEffects.displayName = 'QuickTextEffects';
+  QuickTextEffects.displayName = 'QuickTextEffects';
 });

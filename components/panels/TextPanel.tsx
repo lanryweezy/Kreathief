@@ -193,7 +193,8 @@ export const TextPanel: React.FC = () => {
   const [textEffects, setTextEffects] = useState<any>({});
   const fontInputRef = useRef<HTMLInputElement>(null);
 
-  const selectedLayerId = selectedLayerIds && selectedLayerIds.length > 0 ? selectedLayerIds[selectedLayerIds.length - 1] : null;
+  const selectedLayerId =
+    selectedLayerIds && selectedLayerIds.length > 0 ? selectedLayerIds[selectedLayerIds.length - 1] : null;
   const selectedLayer = layers.find((l: any) => l?.id === selectedLayerId) || null;
   const selectedTextLayer = selectedLayer?.type === 'text' ? (selectedLayer as TextLayer) : null;
 

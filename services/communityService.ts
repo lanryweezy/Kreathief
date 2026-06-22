@@ -21,7 +21,11 @@ export interface CommunityTemplate {
 }
 
 export const communityService = {
-  async fetchTemplates(category?: string, query?: string, sortBy: 'likes' | 'downloads' | 'newest' = 'likes'): Promise<CommunityTemplate[]> {
+  async fetchTemplates(
+    category?: string,
+    query?: string,
+    sortBy: 'likes' | 'downloads' | 'newest' = 'likes'
+  ): Promise<CommunityTemplate[]> {
     try {
       let q = supabase.from('community_templates').select('*');
 

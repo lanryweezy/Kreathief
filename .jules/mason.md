@@ -32,16 +32,21 @@
 **Action:** Always prefer `useRef` over `useMemo` when persisting a customized timing closure across renders, as refs provide a stable, mutable container that does not depend on React's rendering lifecycle heuristics.
 
 ## 2026-06-19 - Remove unused duplicate constants
+
 **Learning:** Found unused filter presets (`DEFAULT_FILTERS_CONST` and `EFFECT_PRESETS`) in `constants.ts`. The actual application relies on `DEFAULT_LAYER_FILTERS`, `DEFAULT_CANVAS_FILTERS`, and `CANVAS_EFFECT_PRESETS` in context-specific locations (`store/slices/layer/utils.ts`, `store/slices/canvasSlice.ts`, and `components/toolbar/ToolbarConstants.ts`).
 **Action:** When finding unused global constants, grep for similar names or domain structures. They are often relics from earlier iterations or duplicates of context-specific definitions, and can be safely deleted without call-site updates.
+
 ## 2026-06-21 - Standardized layer ID generation constraints
+
 **Learning:** A refactor replacing inline duplication of logic with `cloneLayer(structuredClone(layer))` was rejected because it inherently changed the underlying ID structure of the copied item. The codebase relied heavily on string interpolation based IDs (`${type}_${Date.now()}`) during copy operations. Additionally, changing the depth of clone by adding `structuredClone` (even if presumably safer) was marked as an observable behavior change, which violates strict refactoring constraints.
 **Action:** Always maintain the exact mechanism of ID generation and exact clone depth during refactoring. If a shared utility uses a slightly different generation mechanism or depth, do not use it unless you are certain the specific differences are completely benign, or wait for an opportunity to harmonize the utility itself without altering caller behavior. Avoid standardizing ID generation if it alters strings emitted.
 
 ## 2026-06-20 - Unused duplicate components removed
+
 **Learning:** The codebase contained an unused `components/ContrastChecker.tsx` that duplicated utility functions (`getLuminance`, `getContrastRatio`) already present in `utils/colorUtils.ts`. The actual UI component being used was `components/panels/ContrastChecker.tsx` which correctly imported the utilities.
 **Action:** Found and removed dead duplicate code components. Often when multiple files have similar names across directories (e.g. `components/` vs `components/panels/`), one of them is an unused relic that can be cleanly removed to eliminate structural debt and confusion.
 
 ## 2026-06-21 - Unused duplicate components removed
+
 **Learning:** The codebase contained an unused `components/CommentsPanel.tsx` that duplicated functionality of `components/panels/CommentsPanel.tsx`.
 **Action:** Removed dead duplicate code component `components/CommentsPanel.tsx`. Often when multiple files have similar names across directories (e.g. `components/` vs `components/panels/`), one of them is an unused relic that can be cleanly removed to eliminate structural debt and confusion.

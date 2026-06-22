@@ -64,7 +64,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const addArtboard = useStore((state) => state.addArtboard);
   const deleteArtboard = useStore((state) => state.deleteArtboard);
 
-  const { broadcastCursor, broadcastLayerChange, updatePresence } = useCollaboration(useStore((s) => s.projectId), user);
+  const { broadcastCursor, broadcastLayerChange, updatePresence } = useCollaboration(
+    useStore((s) => s.projectId),
+    user
+  );
 
   // Expose store to window for E2E tests
   React.useEffect(() => {

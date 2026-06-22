@@ -335,10 +335,7 @@ const App: React.FC = () => {
           />
           <Route path="/blog" element={<BlogList />} />
           <Route path="/blog/:id" element={<BlogPostView />} />
-          <Route
-            path="/profile/:userId"
-            element={<ProfileRoute />}
-          />
+          <Route path="/profile/:userId" element={<ProfileRoute />} />
 
           <Route path="/about" element={<AboutPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />

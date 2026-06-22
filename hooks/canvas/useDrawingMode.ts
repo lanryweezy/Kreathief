@@ -29,7 +29,11 @@ function rdpSimplify(points: { x: number; y: number }[], epsilon: number): { x: 
   return [first, last];
 }
 
-function perpendicularDistance(point: { x: number; y: number }, lineStart: { x: number; y: number }, lineEnd: { x: number; y: number }): number {
+function perpendicularDistance(
+  point: { x: number; y: number },
+  lineStart: { x: number; y: number },
+  lineEnd: { x: number; y: number }
+): number {
   const dx = lineEnd.x - lineStart.x;
   const dy = lineEnd.y - lineStart.y;
   const lineLenSq = dx * dx + dy * dy;

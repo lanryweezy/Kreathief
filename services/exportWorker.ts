@@ -177,10 +177,10 @@ self.onmessage = async (e: MessageEvent) => {
             const depthColor = (layer as any).depthColor || '#333333';
             ctx.save();
             for (let i = 1; i <= depth; i++) {
-               ctx.save();
-               ctx.translate(i, i);
-               renderMultilineText(ctx as any, { ...layer, color: depthColor } as any);
-               ctx.restore();
+              ctx.save();
+              ctx.translate(i, i);
+              renderMultilineText(ctx as any, { ...layer, color: depthColor } as any);
+              ctx.restore();
             }
             ctx.restore();
           }

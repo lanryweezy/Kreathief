@@ -293,7 +293,11 @@ export const LayersPanel = () => {
         </button>
       </div>
 
-      <div ref={containerRef} className="flex-1 py-2 overflow-y-auto no-scrollbar" style={{ maxHeight: listHeight || '100%' }}>
+      <div
+        ref={containerRef}
+        className="flex-1 py-2 overflow-y-auto no-scrollbar"
+        style={{ maxHeight: listHeight || '100%' }}
+      >
         {activeTab === 'layers' ? (
           <div className="flex flex-col">
             {[...layers].reverse().map((layer, index) => (

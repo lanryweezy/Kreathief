@@ -305,7 +305,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     setExportStage(`Exporting ${selected.length} artboard(s)...`);
 
     try {
-      const exportableFormat = ['png', 'jpeg', 'webp', 'svg'].includes(format) ? format as 'png' | 'jpeg' | 'webp' | 'svg' : 'png';
+      const exportableFormat = ['png', 'jpeg', 'webp', 'svg'].includes(format)
+        ? (format as 'png' | 'jpeg' | 'webp' | 'svg')
+        : 'png';
       await batchExportArtboardsZip(
         selected.map((ab) => ({
           id: ab.id,
@@ -332,9 +334,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
   };
 
   const toggleArtboardSelection = (id: string) => {
-    setSelectedArtboardIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
+    setSelectedArtboardIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
   };
 
   const toggleSelectAll = () => {
@@ -497,8 +497,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                             className="w-3.5 h-3.5 accent-[#7d2ae8] rounded"
                           />
                           <div className="flex-1 min-w-0">
-                            <span className="text-xs text-white truncate block">{ab.name || `Artboard ${ab.id.slice(0, 6)}`}</span>
-                            <span className="text-[9px] text-gray-500">{ab.width} x {ab.height}</span>
+                            <span className="text-xs text-white truncate block">
+                              {ab.name || `Artboard ${ab.id.slice(0, 6)}`}
+                            </span>
+                            <span className="text-[9px] text-gray-500">
+                              {ab.width} x {ab.height}
+                            </span>
                           </div>
                         </label>
                       ))}

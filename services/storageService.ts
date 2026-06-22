@@ -92,7 +92,9 @@ class StorageService {
         const percentUsed = quotaMB > 0 ? (usedMB / quotaMB) * 100 : 0;
 
         if (percentUsed > 80) {
-          logger.warn(`IndexedDB storage at ${percentUsed.toFixed(1)}% (${usedMB.toFixed(1)}MB / ${quotaMB.toFixed(1)}MB)`);
+          logger.warn(
+            `IndexedDB storage at ${percentUsed.toFixed(1)}% (${usedMB.toFixed(1)}MB / ${quotaMB.toFixed(1)}MB)`
+          );
         }
       }
     } catch (err) {
@@ -658,7 +660,7 @@ class StorageService {
           try {
             const localStore = await this.getStore('projects', 'readwrite');
             localStore.delete(id);
-          } catch(e) {}
+          } catch (e) {}
 
           return;
         }

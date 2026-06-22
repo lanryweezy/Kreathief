@@ -166,7 +166,6 @@ export const TextStylesPanel = React.memo(({ currentStyle, onApplyStyle, onSaveS
       textTransform: currentStyle.textTransform || 'none',
     };
 
-
     const updated = [...styles, newStyle];
     setStyles(updated);
     localStorage.setItem('kreathief_text_styles', JSON.stringify(updated));
@@ -293,5 +292,5 @@ export const TextStylesPanel = React.memo(({ currentStyle, onApplyStyle, onSaveS
       )}
     </div>
   );
-TextStylesPanel.displayName = 'TextStylesPanel';
+  TextStylesPanel.displayName = 'TextStylesPanel';
 });

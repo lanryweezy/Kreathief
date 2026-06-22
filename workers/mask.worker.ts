@@ -136,4 +136,3 @@ function isPointInPolygon(x: number, y: number, points: { x: number; y: number }
   }
   return inside;
 }
-
