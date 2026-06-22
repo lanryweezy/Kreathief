@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -21,6 +21,16 @@ interface ExportModalProps {
   onGetPngBlob?: () => Promise<Blob | null>;
   currentSize: { width: number; height: number; name: string };
 }
+
+const EXPORT_PRESETS = [
+  { id: 'current', name: 'Current', width: 0, height: 0 },
+  { id: 'ig_post', name: 'Instagram Post', width: 1080, height: 1080 },
+  { id: 'ig_story', name: 'Instagram Story', width: 1080, height: 1920 },
+  { id: 'fb_cover', name: 'Facebook Cover', width: 820, height: 312 },
+  { id: 'twitter_header', name: 'Twitter Header', width: 1500, height: 500 },
+  { id: 'hd_video', name: 'HD Video (1080p)', width: 1920, height: 1080 },
+  { id: '4k_wallpaper', name: '4K Ultra HD', width: 3840, height: 2160 },
+];
 
 export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onGetPngBlob, currentSize }) => {
   const { addToast, artboards, activeArtboardId, selectedLayerIds, projectTitle, user } = useStore(
@@ -80,7 +90,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     return activeArtboard.layers.filter((l) => l.color && !isWithinCMYKGamut(l.color)).length;
   }, [format, isPrintMode, artboards, activeArtboardId]);
 
-  const handleSnapAllToSafe = () => {
+  const handleSnapAllToSafe = useCallback(() => {
     const activeArtboard = artboards.find((a) => a.id === activeArtboardId);
     if (!activeArtboard) {
       return;
@@ -99,7 +109,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       useStore.getState().updateLayers(updates);
       addToast(`Optimized ${Object.keys(updates).length} layers for print`, 'success');
     }
-  };
+  }, [artboards, activeArtboardId, addToast]);
 
   // Format-aware quality reset for #20
   React.useEffect(() => {
@@ -112,20 +122,18 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     }
   }, [format]);
 
-  const presets = [
-    {
-      id: 'current',
-      name: `Current (${currentSize.width}x${currentSize.height})`,
-      width: currentSize.width,
-      height: currentSize.height,
-    },
-    { id: 'ig_post', name: 'Instagram Post', width: 1080, height: 1080 },
-    { id: 'ig_story', name: 'Instagram Story', width: 1080, height: 1920 },
-    { id: 'fb_cover', name: 'Facebook Cover', width: 820, height: 312 },
-    { id: 'twitter_header', name: 'Twitter Header', width: 1500, height: 500 },
-    { id: 'hd_video', name: 'HD Video (1080p)', width: 1920, height: 1080 },
-    { id: '4k_wallpaper', name: '4K Ultra HD', width: 3840, height: 2160 },
-  ];
+  const presets = React.useMemo(
+    () => [
+      {
+        id: 'current',
+        name: `Current (${currentSize.width}x${currentSize.height})`,
+        width: currentSize.width,
+        height: currentSize.height,
+      },
+      ...EXPORT_PRESETS.slice(1),
+    ],
+    [currentSize.width, currentSize.height]
+  );
 
   const handleExportClick = async () => {
     setIsExporting(true);
@@ -539,28 +547,6 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
             {format === 'pdf' && isPrintMode && (
               <div className="space-y-4 p-4 bg-[#13161a] border border-[#7d2ae8]/30 rounded-xl animate-fade-in">
                 {/* Gamut Guard Alert */}
-                {outOfGamutCount > 0 && (
-                  <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 flex flex-col gap-2">
-                    <div className="flex items-start gap-2">
-                      <Icons.AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                      <div className="flex-1">
-                        <p className="text-[10px] text-amber-200 font-bold uppercase tracking-tight">Gamut Warning</p>
-                        <p className="text-[9px] text-amber-500/70 leading-relaxed font-medium">
-                          {outOfGamutCount} layer{outOfGamutCount > 1 ? 's' : ''} contain colors that cannot be
-                          reproduced in print.
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={handleSnapAllToSafe}
-                      className="w-full py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-md text-[9px] font-black uppercase tracking-widest transition-all"
-                    >
-                      Auto-Fix Gamut Issues
-                    </button>
-                  </div>
-                )}
-
-                {/* Color Profile */}
                 {outOfGamutCount > 0 && (
                   <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 flex flex-col gap-2">
                     <div className="flex items-start gap-2">

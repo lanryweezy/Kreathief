@@ -26,6 +26,20 @@ export type StoreState = UISlice &
     reset: () => void;
   };
 
+const DEFAULT_CANVAS_FILTERS = {
+  brightness: 100,
+  contrast: 100,
+  saturation: 100,
+  sepia: 0,
+  grayscale: 0,
+  blur: 0,
+  opacity: 1,
+  vignette: 0,
+  hueRotate: 0,
+} as const;
+
+const DEFAULT_CANVAS_SIZE = { width: 1080, height: 1080, name: 'Square' } as const;
+
 // Combine all slices into a single store with full type safety
 export const useStore = create<StoreState>()((set, get, store) => ({
   ...createUISlice(set, get, store),
@@ -55,18 +69,8 @@ export const useStore = create<StoreState>()((set, get, store) => ({
 
       // Canvas Slice
       canvasBackgroundColor: '#ffffff',
-      canvasFilters: {
-        brightness: 100,
-        contrast: 100,
-        saturation: 100,
-        sepia: 0,
-        grayscale: 0,
-        blur: 0,
-        opacity: 1,
-        vignette: 0,
-        hueRotate: 0,
-      },
-      canvasSize: { width: 1080, height: 1080, name: 'Square' },
+      canvasFilters: DEFAULT_CANVAS_FILTERS,
+      canvasSize: DEFAULT_CANVAS_SIZE,
       isExporting: false,
 
       // Drawing Slice

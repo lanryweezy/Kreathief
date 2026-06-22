@@ -114,6 +114,19 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
       return masks;
     }, [layers]);
 
+    const groupChildrenMap = React.useMemo(() => {
+      const map = new Map<string, Layer[]>();
+      if (!layers) return map;
+      for (const l of layers) {
+        if (l.groupId && l.visible !== false) {
+          const arr = map.get(l.groupId);
+          if (arr) arr.push(l);
+          else map.set(l.groupId, [l]);
+        }
+      }
+      return map;
+    }, [layers]);
+
     const visibleLayers = React.useMemo(() => {
       const filtered = effectiveLayers.filter((l) => {
         if (l.groupId) {
@@ -166,7 +179,7 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
           }
           const maskLayer = layerMasks.get(l.id);
 
-          const children = l.isGroup ? layers.filter((child) => child.groupId === l.id && child.visible !== false) : [];
+          const children = groupChildrenMap.get(l.id) || [];
 
           return (
             <React.Fragment key={l.id}>
