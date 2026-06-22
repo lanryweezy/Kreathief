@@ -62,6 +62,7 @@ interface CanvasLayerItemWrapperProps {
   editingPathId: string | null;
   onUpdatePath: (id: string, changes: Partial<Layer>) => void;
   zoom: number;
+  isInteracting?: boolean;
   previewAnimation?: AnimationSettings;
 }
 
@@ -89,6 +90,7 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
       editingPathId,
       onUpdatePath,
       zoom,
+      isInteracting,
       previewAnimation,
     } = props;
 
@@ -123,6 +125,7 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
       previewAnimation: previewAnimation,
       maskPath: maskStyle.clipPath as string,
       zoom: zoom,
+      isInteracting,
     };
 
     const handleDoubleClick = (_e: React.MouseEvent, layer: any) => {

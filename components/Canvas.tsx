@@ -466,8 +466,6 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
                 hoveredLayerId={hoveredLayerId}
                 setHoveredLayerId={setHoveredLayerId}
                 setActiveArtboardId={setActiveArtboardId}
-                onAddArtboard={onAddArtboard}
-                onDeleteArtboard={onDeleteArtboard}
                 showGrid={showGrid}
                 isDrawing={isDrawing}
                 isVectorPenMode={isDrawing && brushType === 'vector_pencil'}

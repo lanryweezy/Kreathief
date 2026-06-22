@@ -37,6 +37,7 @@ interface CanvasRendererProps {
   isDrawing: boolean;
   isRefining: boolean;
   isVectorPenMode?: boolean;
+  isInteracting?: boolean;
   drawingCanvasRef: React.RefObject<HTMLCanvasElement>;
   refineCanvasRef: React.RefObject<HTMLCanvasElement>;
   handleDrawingMouseDown: (e: React.PointerEvent | React.MouseEvent) => void;
@@ -50,7 +51,7 @@ interface CanvasRendererProps {
 
 interface ArtboardItemProps {
   artboard: Artboard;
-  activeArtboardId: string;
+  activeArtboardId: string | null;
   canvasBackgroundColor: string;
   canvasFilters: CanvasFilters;
   zoom: number;
@@ -77,6 +78,7 @@ interface ArtboardItemProps {
   showGrid: boolean;
   isDrawing: boolean;
   isRefining: boolean;
+  isInteracting?: boolean;
   isVectorPenMode?: boolean;
   drawingCanvasRef: React.RefObject<HTMLCanvasElement>;
   refineCanvasRef: React.RefObject<HTMLCanvasElement>;
@@ -129,6 +131,7 @@ const ArtboardItem = React.memo(
     localLassoPoints,
     booleanPreview,
     viewportBounds,
+    isInteracting,
   }: ArtboardItemProps) => {
     const effectiveLayers = React.useMemo(() => {
       const layers = artboard.layers || [];
@@ -343,6 +346,7 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(
     localLassoPoints,
     booleanPreview,
     viewportBounds,
+    isInteracting,
   }) => {
     return (
       <>

@@ -270,12 +270,7 @@ export const exportDesignToBlob = async (
   return await response.blob();
 };
 
-export const exportToSVG = (
-  width: number,
-  height: number,
-  backgroundColor: string,
-  layers: Layer[]
-): string => {
+export const exportToSVG = (width: number, height: number, backgroundColor: string, layers: Layer[]): string => {
   const svgParts: string[] = [
     `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`,
     `  <defs>`,
@@ -284,22 +279,26 @@ export const exportToSVG = (
   // Collect all gradient definitions
   const gradientDefs: string[] = [];
   for (const layer of layers) {
-    if (layer.type === 'shape' || layer.type === 'path') {
+    if ('gradient' in layer) {
       const sl = layer as ShapeLayer;
       if (sl.gradient && sl.gradient.enabled && sl.gradient.colors.length > 0) {
         const gradId = `grad-${sl.id}`;
         if (sl.gradient.type === 'radial') {
           gradientDefs.push(
             `    <radialGradient id="${gradId}" cx="50%" cy="50%" r="50%">` +
-            sl.gradient.colors.map((c: any) => `<stop offset="${c.position * 100}%" stop-color="${c.color}" />`).join('') +
-            `</radialGradient>`
+              sl.gradient.colors
+                .map((c: any) => `<stop offset="${c.position * 100}%" stop-color="${c.color}" />`)
+                .join('') +
+              `</radialGradient>`
           );
         } else {
           const angle = sl.gradient.angle || 0;
           gradientDefs.push(
             `    <linearGradient id="${gradId}" gradientTransform="rotate(${angle}, 0.5, 0.5)" x1="0%" y1="0%" x2="100%" y2="0%">` +
-            sl.gradient.colors.map((c: any) => `<stop offset="${c.position * 100}%" stop-color="${c.color}" />`).join('') +
-            `</linearGradient>`
+              sl.gradient.colors
+                .map((c: any) => `<stop offset="${c.position * 100}%" stop-color="${c.color}" />`)
+                .join('') +
+              `</linearGradient>`
           );
         }
       }
@@ -311,7 +310,9 @@ export const exportToSVG = (
   svgParts.push(`  <rect width="100%" height="100%" fill="${backgroundColor}" />`);
 
   for (const layer of layers) {
-    if (!layer.visible) continue;
+    if (!layer.visible) {
+      continue;
+    }
 
     const transform = [
       `translate(${layer.x + ('width' in layer ? (layer as any).width / 2 : 0)}, ${layer.y + ('height' in layer ? (layer as any).height / 2 : 0)})`,
@@ -406,17 +407,19 @@ const drawImageLayerToContext = async (ctx: CanvasRenderingContext2D, layer: Ima
 
     // Apply perspective transform if set
     if (layer.perspective) {
-      ctx.transform(
-        1, 0,
-        Math.tan(((layer.rotateY || 0) * Math.PI) / 180) * 0.01,
-        1,
-        0, 0
-      );
+      ctx.transform(1, 0, Math.tan(((layer.rotateY || 0) * Math.PI) / 180) * 0.01, 1, 0, 0);
     }
 
     // Apply skew
     if (layer.skewX || layer.skewY) {
-      ctx.transform(1, Math.tan(((layer.skewY || 0) * Math.PI) / 180), Math.tan(((layer.skewX || 0) * Math.PI) / 180), 1, 0, 0);
+      ctx.transform(
+        1,
+        Math.tan(((layer.skewY || 0) * Math.PI) / 180),
+        Math.tan(((layer.skewX || 0) * Math.PI) / 180),
+        1,
+        0,
+        0
+      );
     }
 
     // Apply flip
@@ -464,7 +467,14 @@ const drawShapeToContext = (ctx: CanvasRenderingContext2D, layer: ShapeLayer) =>
 
   // Apply skew
   if (layer.skewX || layer.skewY) {
-    ctx.transform(1, Math.tan(((layer.skewY || 0) * Math.PI) / 180), Math.tan(((layer.skewX || 0) * Math.PI) / 180), 1, 0, 0);
+    ctx.transform(
+      1,
+      Math.tan(((layer.skewY || 0) * Math.PI) / 180),
+      Math.tan(((layer.skewX || 0) * Math.PI) / 180),
+      1,
+      0,
+      0
+    );
   }
 
   // Apply CSS filters
@@ -525,7 +535,8 @@ const drawShapeToContext = (ctx: CanvasRenderingContext2D, layer: ShapeLayer) =>
     ctx.closePath();
     ctx.fill();
   } else if (layer.type === 'star') {
-    const cx = 0, cy = 0;
+    const cx = 0,
+      cy = 0;
     const outerR = layer.width / 2;
     const innerR = outerR * 0.4;
     const points = 5;
@@ -535,8 +546,11 @@ const drawShapeToContext = (ctx: CanvasRenderingContext2D, layer: ShapeLayer) =>
       const radius = i % 2 === 0 ? outerR : innerR;
       const px = cx + Math.cos(angle) * radius;
       const py = cy + Math.sin(angle) * radius;
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
+      if (i === 0) {
+        ctx.moveTo(px, py);
+      } else {
+        ctx.lineTo(px, py);
+      }
     }
     ctx.closePath();
     ctx.fill();
@@ -565,13 +579,17 @@ export const batchExportArtboards = async (
       canvas.width = ab.width;
       canvas.height = ab.height;
       const ctx = canvas.getContext('2d');
-      if (!ctx) continue;
+      if (!ctx) {
+        continue;
+      }
 
       ctx.fillStyle = ab.backgroundColor;
       ctx.fillRect(0, 0, ab.width, ab.height);
 
       for (const layer of ab.layers) {
-        if (!layer.visible) continue;
+        if (!layer.visible) {
+          continue;
+        }
         if (layer.type === 'text') {
           drawTextLayerToContext(ctx, layer as TextLayer);
         } else if (layer.type === 'image') {
