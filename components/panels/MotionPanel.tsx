@@ -180,4 +180,5 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
       </div>
     </div>
   );
+MotionPanel.displayName = 'MotionPanel';
 });

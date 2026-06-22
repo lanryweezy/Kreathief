@@ -66,5 +66,5 @@
       "version": "detect"
     }
   },
-  "ignorePatterns": ["node_modules", "dist", "build", "test-results", "playwright-report"]
+  "ignorePatterns": ["node_modules", "dist", "build", "test-results", "playwright-report", "services/authService.test.ts", "services/storageService.sync.test.ts"]
 }

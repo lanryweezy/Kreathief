@@ -166,4 +166,5 @@ export const PenToolbar = React.memo(({ options, onUpdateOptions, onClose }: Pen
       </button>
     </div>
   );
+PenToolbar.displayName = 'PenToolbar';
 });

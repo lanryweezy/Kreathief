@@ -153,4 +153,5 @@ export const CropOverlay = React.memo(({ layer, zoom, onClose }: CropOverlayProp
       </div>
     </div>
   );
+CropOverlay.displayName = 'CropOverlay';
 });

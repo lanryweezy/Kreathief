@@ -196,4 +196,5 @@ export const GradientEditor = React.memo(({ gradient, onChange }: GradientEditor
       </div>
     </div>
   );
+GradientEditor.displayName = 'GradientEditor';
 });

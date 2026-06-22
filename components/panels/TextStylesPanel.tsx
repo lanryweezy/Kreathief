@@ -293,4 +293,5 @@ export const TextStylesPanel = React.memo(({ currentStyle, onApplyStyle, onSaveS
       )}
     </div>
   );
+TextStylesPanel.displayName = 'TextStylesPanel';
 });
