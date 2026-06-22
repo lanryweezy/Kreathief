@@ -1,12 +1,4 @@
-import { 
-  DesignCritique, 
-  DesignSuggestion, 
-  DesignContext, 
-  Layer, 
-  Artboard, 
-  BrandKit,
-  ChatMessage 
-} from '../types';
+import { DesignCritique, DesignSuggestion, DesignContext, Layer, Artboard, BrandKit, ChatMessage } from '../types';
 import { callBackendGeminiAPI } from './geminiService';
 import { log } from '../utils/log';
 import { safeParseJSON } from '../utils/errorHandling';
@@ -15,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export class AIAssistantService {
   private static instance: AIAssistantService;
-  
+
   public static getInstance(): AIAssistantService {
     if (!AIAssistantService.instance) {
       AIAssistantService.instance = new AIAssistantService();
@@ -26,14 +18,10 @@ export class AIAssistantService {
   /**
    * Analyze the current design and provide contextual suggestions
    */
-  async analyzeDesign(
-    artboard: Artboard,
-    context: DesignContext,
-    brandKit?: BrandKit
-  ): Promise<DesignCritique> {
+  async analyzeDesign(artboard: Artboard, context: DesignContext, brandKit?: BrandKit): Promise<DesignCritique> {
     try {
       const designData = this.prepareDesignData(artboard, context, brandKit);
-      
+
       const systemPrompt = `You are an expert design critic and mentor. Analyze this design and provide constructive feedback.
 
       Focus on:
@@ -55,71 +43,77 @@ export class AIAssistantService {
           responseSchema: {
             type: SchemaType.OBJECT,
             properties: {
-              overallScore: { 
+              overallScore: {
                 type: SchemaType.NUMBER,
-                description: 'Overall design quality score 0-100'
+                description: 'Overall design quality score 0-100',
               },
               strengths: {
                 type: SchemaType.ARRAY,
                 items: { type: SchemaType.STRING },
-                description: 'List of design strengths'
+                description: 'List of design strengths',
               },
               areas_for_improvement: {
                 type: SchemaType.ARRAY,
                 items: { type: SchemaType.STRING },
-                description: 'Areas needing improvement'
+                description: 'Areas needing improvement',
               },
               suggestions: {
                 type: SchemaType.ARRAY,
                 items: {
                   type: SchemaType.OBJECT,
                   properties: {
-                    type: { 
+                    type: {
                       type: SchemaType.STRING,
-                      enum: ['improvement', 'warning', 'tip', 'accessibility']
+                      enum: ['improvement', 'warning', 'tip', 'accessibility'],
                     },
                     severity: {
                       type: SchemaType.STRING,
-                      enum: ['low', 'medium', 'high']
+                      enum: ['low', 'medium', 'high'],
                     },
                     title: { type: SchemaType.STRING },
                     message: { type: SchemaType.STRING },
                     layerId: { type: SchemaType.STRING },
                     category: {
                       type: SchemaType.STRING,
-                      enum: ['layout', 'color', 'typography', 'accessibility', 'branding', 'composition']
-                    }
+                      enum: ['layout', 'color', 'typography', 'accessibility', 'branding', 'composition'],
+                    },
                   },
-                  required: ['type', 'severity', 'title', 'message', 'category']
-                }
-              }
+                  required: ['type', 'severity', 'title', 'message', 'category'],
+                },
+              },
             },
-            required: ['overallScore', 'strengths', 'areas_for_improvement', 'suggestions']
-          }
+            required: ['overallScore', 'strengths', 'areas_for_improvement', 'suggestions'],
+          },
         },
-        contents: [{
-          role: 'user',
-          parts: [{
-            text: `Analyze this design:\n\n${JSON.stringify(designData, null, 2)}`
-          }]
-        }]
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                text: `Analyze this design:\n\n${JSON.stringify(designData, null, 2)}`,
+              },
+            ],
+          },
+        ],
       });
 
       const parsed = safeParseJSON<Partial<DesignCritique>>(response.text || '{}', {});
-      
+
       return {
         overallScore: parsed.overallScore || 75,
         score: parsed.score || parsed.overallScore || 75,
         summary: parsed.summary || '',
-        suggestions: (parsed.suggestions || []).map((s: any) => ({
-          ...s,
-          id: uuidv4()
-        } as DesignSuggestion)),
+        suggestions: (parsed.suggestions || []).map(
+          (s: any) =>
+            ({
+              ...s,
+              id: uuidv4(),
+            }) as DesignSuggestion
+        ),
         strengths: parsed.strengths || [],
         areas_for_improvement: parsed.areas_for_improvement || [],
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-
     } catch (error) {
       log.error('[AI Assistant] Analysis failed', error);
       throw new Error('Failed to analyze design. Please try again.');
@@ -154,28 +148,32 @@ export class AIAssistantService {
       
       Always be constructive and helpful.`;
 
-      const conversationContext = recentHistory.length > 0 
-        ? `Recent conversation:\n${recentHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}\n\n`
-        : '';
+      const conversationContext =
+        recentHistory.length > 0
+          ? `Recent conversation:\n${recentHistory.map((msg) => `${msg.role}: ${msg.content}`).join('\n')}\n\n`
+          : '';
 
       const response = await callBackendGeminiAPI({
         modelName: 'gemini-2.0-flash',
         systemInstruction: systemPrompt,
-        contents: [{
-          role: 'user',
-          parts: [{
-            text: `${conversationContext}Current design state:\n${JSON.stringify(designData, null, 2)}\n\nUser message: ${message}`
-          }]
-        }]
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                text: `${conversationContext}Current design state:\n${JSON.stringify(designData, null, 2)}\n\nUser message: ${message}`,
+              },
+            ],
+          },
+        ],
       });
 
       return {
         id: uuidv4(),
         role: 'assistant',
         content: response.text || 'I apologize, but I could not process your request. Please try again.',
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-
     } catch (error) {
       log.error('[AI Assistant] Conversation failed', error);
       throw new Error('Failed to process your message. Please try again.');
@@ -193,7 +191,7 @@ export class AIAssistantService {
     try {
       // Focus on quick, actionable suggestions for the most recent change
       const designData = this.prepareDesignData(artboard, context);
-      
+
       const systemPrompt = `You are a real-time design assistant. Provide 1-3 quick, actionable suggestions based on the current design state.
 
       Focus on:
@@ -214,40 +212,46 @@ export class AIAssistantService {
             items: {
               type: SchemaType.OBJECT,
               properties: {
-                type: { 
+                type: {
                   type: SchemaType.STRING,
-                  enum: ['improvement', 'warning', 'tip']
+                  enum: ['improvement', 'warning', 'tip'],
                 },
                 severity: {
                   type: SchemaType.STRING,
-                  enum: ['low', 'medium', 'high']
+                  enum: ['low', 'medium', 'high'],
                 },
                 title: { type: SchemaType.STRING },
                 message: { type: SchemaType.STRING },
                 category: {
                   type: SchemaType.STRING,
-                  enum: ['layout', 'color', 'typography', 'accessibility', 'branding', 'composition']
-                }
+                  enum: ['layout', 'color', 'typography', 'accessibility', 'branding', 'composition'],
+                },
               },
-              required: ['type', 'severity', 'title', 'message', 'category']
-            }
-          }
+              required: ['type', 'severity', 'title', 'message', 'category'],
+            },
+          },
         },
-        contents: [{
-          role: 'user',
-          parts: [{
-            text: `Design state: ${JSON.stringify(designData, null, 2)}\nRecent change: ${JSON.stringify(lastChange || {}, null, 2)}`
-          }]
-        }]
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                text: `Design state: ${JSON.stringify(designData, null, 2)}\nRecent change: ${JSON.stringify(lastChange || {}, null, 2)}`,
+              },
+            ],
+          },
+        ],
       });
 
       const suggestions = safeParseJSON<any[]>(response.text || '[]', []);
-      
-      return suggestions.map(s => ({
-        ...s,
-        id: uuidv4()
-      } as DesignSuggestion));
 
+      return suggestions.map(
+        (s) =>
+          ({
+            ...s,
+            id: uuidv4(),
+          }) as DesignSuggestion
+      );
     } catch (error) {
       log.error('[AI Assistant] Realtime suggestions failed', error);
       return [];
@@ -274,17 +278,17 @@ export class AIAssistantService {
       canvas: {
         width: artboard.width,
         height: artboard.height,
-        backgroundColor: artboard.backgroundColor || context.canvasSize.name
+        backgroundColor: artboard.backgroundColor || context.canvasSize.name,
       },
-      layers: artboard.layers.map(layer => ({
+      layers: artboard.layers.map((layer) => ({
         id: layer.id,
         type: layer.type,
         name: layer.name,
-        dimensions: { 
-          x: layer.x, 
-          y: layer.y, 
-          width: layer.width, 
-          height: layer.height 
+        dimensions: {
+          x: layer.x,
+          y: layer.y,
+          width: layer.width,
+          height: layer.height,
         },
         visible: layer.visible,
         opacity: layer.opacity,
@@ -294,15 +298,15 @@ export class AIAssistantService {
           fontSize: (layer as any).fontSize,
           fontFamily: (layer as any).fontFamily,
           color: (layer as any).color,
-          textAlign: (layer as any).textAlign
+          textAlign: (layer as any).textAlign,
         }),
         ...(layer.type === 'image' && {
-          hasAltText: !!(layer as any).altText
+          hasAltText: !!(layer as any).altText,
         }),
         ...((['rectangle', 'circle', 'triangle'] as const).includes(layer.type as any) && {
           color: (layer as any).color,
-          cornerRadius: (layer as any).cornerRadius
-        })
+          cornerRadius: (layer as any).cornerRadius,
+        }),
       })),
       context: {
         layerCount: context.layerCount,
@@ -310,13 +314,15 @@ export class AIAssistantService {
         hasImages: context.hasImages,
         colorPalette: context.colorPalette,
         fontFamilies: context.fontFamilies,
-        purpose: context.purpose
+        purpose: context.purpose,
       },
-      brandKit: brandKit ? {
-        colors: brandKit.colors,
-        fonts: brandKit.fonts,
-        name: brandKit.name
-      } : null
+      brandKit: brandKit
+        ? {
+            colors: brandKit.colors,
+            fonts: brandKit.fonts,
+            name: brandKit.name,
+          }
+        : null,
     };
   }
 }

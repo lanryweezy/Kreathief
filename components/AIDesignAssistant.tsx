@@ -32,7 +32,7 @@ export const AIDesignAssistant: React.FC<AIDesignAssistantProps> = ({ className 
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [activeTab, setActiveTab] = useState<'chat' | 'suggestions'>('chat');
-  
+
   const containerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -43,11 +43,11 @@ export const AIDesignAssistant: React.FC<AIDesignAssistantProps> = ({ className 
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (!containerRef.current) return;
-    
+
     const rect = containerRef.current.getBoundingClientRect();
     setDragOffset({
       x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+      y: e.clientY - rect.top,
     });
     setIsDragging(true);
   };
@@ -55,10 +55,10 @@ export const AIDesignAssistant: React.FC<AIDesignAssistantProps> = ({ className 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging) return;
-      
+
       const newX = Math.max(0, Math.min(window.innerWidth - 400, e.clientX - dragOffset.x));
       const newY = Math.max(0, Math.min(window.innerHeight - 500, e.clientY - dragOffset.y));
-      
+
       moveAssistant(newX, newY);
     };
 
@@ -79,7 +79,7 @@ export const AIDesignAssistant: React.FC<AIDesignAssistantProps> = ({ className 
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isAnalyzing) return;
-    
+
     const message = inputMessage.trim();
     setInputMessage('');
     await sendMessage(message);
@@ -145,7 +145,7 @@ export const AIDesignAssistant: React.FC<AIDesignAssistantProps> = ({ className 
       }}
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: "spring", damping: 20 }}
+      transition={{ type: 'spring', damping: 20 }}
     >
       {/* Header */}
       <div
@@ -159,24 +159,16 @@ export const AIDesignAssistant: React.FC<AIDesignAssistantProps> = ({ className 
           <div>
             <h3 className="font-semibold text-white text-sm">AI Design Assistant</h3>
             {currentCritique && !isMinimized && (
-              <p className="text-xs text-purple-100">
-                Score: {currentCritique.overallScore}/100
-              </p>
+              <p className="text-xs text-purple-100">Score: {currentCritique.overallScore}/100</p>
             )}
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
-          <button
-            onClick={minimizeAssistant}
-            className="p-1 hover:bg-white/20 rounded text-white transition-colors"
-          >
+          <button onClick={minimizeAssistant} className="p-1 hover:bg-white/20 rounded text-white transition-colors">
             <Icons.Minus className="w-4 h-4" />
           </button>
-          <button
-            onClick={toggleAssistant}
-            className="p-1 hover:bg-white/20 rounded text-white transition-colors"
-          >
+          <button onClick={toggleAssistant} className="p-1 hover:bg-white/20 rounded text-white transition-colors">
             <Icons.X className="w-4 h-4" />
           </button>
         </div>
@@ -245,7 +237,7 @@ export const AIDesignAssistant: React.FC<AIDesignAssistantProps> = ({ className 
                       </>
                     )}
                   </Button>
-                  
+
                   <div className="flex items-center gap-2">
                     <label className="flex items-center gap-1 text-xs text-gray-400">
                       <input
@@ -272,7 +264,9 @@ export const AIDesignAssistant: React.FC<AIDesignAssistantProps> = ({ className 
                     <div className="text-center text-gray-400 py-8">
                       <Icons.MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
                       <p className="text-sm mb-2">Hi! I'm your AI design assistant.</p>
-                      <p className="text-xs">Ask me anything about your design or click "Analyze Design" to get started.</p>
+                      <p className="text-xs">
+                        Ask me anything about your design or click "Analyze Design" to get started.
+                      </p>
                     </div>
                   ) : (
                     conversationHistory.map((message) => (
@@ -282,9 +276,7 @@ export const AIDesignAssistant: React.FC<AIDesignAssistantProps> = ({ className 
                       >
                         <div
                           className={`max-w-[80%] p-3 rounded-lg text-sm ${
-                            message.role === 'user'
-                              ? 'bg-purple-600 text-white'
-                              : 'bg-gray-700 text-gray-100'
+                            message.role === 'user' ? 'bg-purple-600 text-white' : 'bg-gray-700 text-gray-100'
                           }`}
                         >
                           {message.content}
@@ -396,19 +388,17 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({ suggestion, onDismiss }
           <div className="flex items-center gap-2 mb-1">
             {getSeverityIcon(suggestion.severity)}
             <h4 className="font-medium text-white text-sm">{suggestion.title}</h4>
-            <span className="text-xs px-2 py-0.5 bg-gray-700 rounded text-gray-300">
-              {suggestion.category}
-            </span>
+            <span className="text-xs px-2 py-0.5 bg-gray-700 rounded text-gray-300">{suggestion.category}</span>
           </div>
           <p className="text-sm text-gray-300">{suggestion.message}</p>
-          
+
           {suggestion.autoFix && (
             <button className="mt-2 text-xs bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded transition-colors">
               Auto-fix
             </button>
           )}
         </div>
-        
+
         <button
           onClick={onDismiss}
           className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-gray-300 flex-shrink-0"
