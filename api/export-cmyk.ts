@@ -1,6 +1,7 @@
 import sharp from 'sharp';
 import { PDFDocument } from 'pdf-lib';
 import { log } from '../utils/log';
+import { z } from 'zod';
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
@@ -8,6 +9,12 @@ const MAX_REQUESTS_PER_WINDOW = 10;
 const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 
 let lastCleanup = Date.now();
+
+// Schema validation for request body
+const ExportCmykSchema = z.object({
+  imageUrl: z.string().url("Must be a valid URL"),
+  bleed: z.number().min(0).max(500).default(0),
+});
 
 export default async function handler(req: any, res: any) {
   const now = Date.now();
@@ -50,16 +57,14 @@ export default async function handler(req: any, res: any) {
     rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   }
 
-  let imageUrl: string | undefined;
-  let bleed: number = 0;
-
   try {
-    imageUrl = req.body?.imageUrl;
-    bleed = req.body?.bleed ?? 0;
-
-    if (!imageUrl) {
-      return res.status(400).json({ error: 'imageUrl is required' });
+    // Validate request body
+    const parsed = ExportCmykSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ error: 'Invalid request', details: parsed.error.issues[0].message });
     }
+
+    const { imageUrl, bleed } = parsed.data;
 
     // SSRF Protection: Validate URL before fetching
     try {
@@ -148,7 +153,7 @@ export default async function handler(req: any, res: any) {
 
     return res.status(200).send(pdfBuffer);
   } catch (error: any) {
-    log.error('CMYK Conversion Error', error, { imageUrl, bleed });
+    log.error('CMYK Conversion Error', error, { body: req.body });
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
