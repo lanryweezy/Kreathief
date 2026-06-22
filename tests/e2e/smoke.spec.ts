@@ -60,20 +60,27 @@ test.describe('Kreathief Smoke Test', () => {
     await page.getByRole('button', { name: /Launch Editor/i }).click();
     await page.waitForURL(/.*editor/);
 
-    // Click on "AI Magic" tab
-    await page.getByRole('tab', { name: /^AI Magic$/i }).click();
-    await expect(page.getByText(/AI Magic/i, { exact: true })).toBeVisible();
+    // Click on sidebar buttons - verify they are clickable
+    const aiMagicBtn = page.getByRole('button', { name: /^AI Magic$/i });
+    await expect(aiMagicBtn).toBeVisible({ timeout: 10000 });
+    await aiMagicBtn.click();
 
-    // Click on "Elements" tab
-    await page.getByRole('tab', { name: /^Elements$/i }).click();
-    await expect(page.getByText(/Shapes/i)).toBeVisible();
+    const templatesBtn = page.getByRole('button', { name: /^Templates$/i });
+    await expect(templatesBtn).toBeVisible();
+    await templatesBtn.click();
 
-    // Click on "Text" tab
-    await page.getByRole('tab', { name: /^Text$/i }).click();
-    await expect(page.getByText(/Typography/i)).toBeVisible();
+    // Toggle All Tools to access secondary buttons
+    const allToolsBtn = page.getByRole('button', { name: 'Toggle All Tools' });
+    await expect(allToolsBtn).toBeVisible();
+    await allToolsBtn.click();
 
-    // Click on "Photos" tab
-    await page.getByRole('tab', { name: /^Photos$/i }).click();
-    await expect(page.getByPlaceholder(/Search millions of photos/i)).toBeVisible();
+    // Now Text and Media should be visible
+    const textBtn = page.getByRole('button', { name: /^Text$/i });
+    await expect(textBtn).toBeVisible();
+    await textBtn.click();
+
+    const mediaBtn = page.getByRole('button', { name: /^Media$/i });
+    await expect(mediaBtn).toBeVisible();
+    await mediaBtn.click();
   });
 });

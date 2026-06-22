@@ -1,10 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../constants';
 
 const SnapshotsPanel: React.FC = () => {
-  const { snapshots, createSnapshot, restoreSnapshot, deleteSnapshot, fetchSnapshots, projectId, addToast } =
-    useStore();
+  // ⚡ Bolt Optimization: Wrap multiple specific store selections in useShallow
+  // to prevent unnecessary re-renders of the SnapshotsPanel when unrelated global state changes.
+  const { snapshots, createSnapshot, restoreSnapshot, deleteSnapshot, fetchSnapshots, projectId, addToast } = useStore(
+    useShallow((state) => ({
+      snapshots: state.snapshots,
+      createSnapshot: state.createSnapshot,
+      restoreSnapshot: state.restoreSnapshot,
+      deleteSnapshot: state.deleteSnapshot,
+      fetchSnapshots: state.fetchSnapshots,
+      projectId: state.projectId,
+      addToast: state.addToast,
+    }))
+  );
   const [newSnapshotName, setNewSnapshotName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [confirmRestoreId, setConfirmRestoreId] = useState<string | null>(null);

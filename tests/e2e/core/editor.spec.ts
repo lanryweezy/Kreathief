@@ -25,7 +25,7 @@ test.describe('Editor Core Features', () => {
 
   test('should load editor without errors', async ({ page }) => {
     await expect(page.locator('.design-artboard')).toBeVisible({ timeout: 15000 });
-    await expect(page.getByTestId('sidebar-tab-magic')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'AI Magic' })).toBeVisible();
   });
 
   test('should set project title via store', async ({ page }) => {
@@ -187,7 +187,7 @@ test.describe('Editor Core Features', () => {
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 });
 
     // Select format
-    await page.getByTestId('export-format-png').click();
+    await page.getByTestId('export-png-btn').click();
 
     // Click download
     const downloadPromise = page.waitForEvent('download', { timeout: 30000 });

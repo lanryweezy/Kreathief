@@ -16,7 +16,7 @@ export class TextToolsPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.textTab = page.getByTestId('sidebar-tab-text');
+    this.textTab = page.getByRole('button', { name: 'Text' });
     this.textPanel = page.getByTestId('text-panel');
     this.addHeadingBtn = this.textPanel.getByTestId('add-heading-btn');
     this.addSubheadingBtn = this.textPanel.getByTestId('add-subheading-btn');

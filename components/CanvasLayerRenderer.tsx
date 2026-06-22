@@ -25,6 +25,7 @@ interface CanvasLayerRendererProps {
   editingPathId: string | null;
   onUpdatePath: (id: string, changes: Partial<Layer>) => void;
   zoom: number;
+  isInteracting?: boolean;
   previewAnimation?: AnimationSettings;
   viewportBounds: { x: number; y: number; width: number; height: number } | null;
 }
@@ -97,6 +98,7 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
     zoom,
     previewAnimation,
     viewportBounds,
+    isInteracting,
   }) => {
     const layerMasks = React.useMemo(() => {
       const masks = new Map<string, Layer>();
@@ -190,6 +192,7 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
                 editingPathId={editingPathId}
                 onUpdatePath={onUpdatePath}
                 zoom={zoom}
+                isInteracting={isInteracting}
                 previewAnimation={previewAnimation}
               />
               {children.map((child) => (
@@ -216,6 +219,7 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
                   editingPathId={editingPathId}
                   onUpdatePath={onUpdatePath}
                   zoom={zoom}
+                  isInteracting={isInteracting}
                   previewAnimation={previewAnimation}
                 />
               ))}

@@ -9,7 +9,7 @@ export default async function handler(req: Request) {
     return new Response(null, {
       status: 200,
       headers: {
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
       },
@@ -19,7 +19,10 @@ export default async function handler(req: Request) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+      },
     });
   }
 
@@ -30,7 +33,10 @@ export default async function handler(req: Request) {
   } catch (err) {
     return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
       status: 400,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+      },
     });
   }
 
@@ -39,13 +45,19 @@ export default async function handler(req: Request) {
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+      },
     });
   } catch (error: any) {
     log.error('API Route Error', error, { url: req.url });
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+      },
     });
   }
 }
