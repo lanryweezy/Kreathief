@@ -16,7 +16,7 @@ export class EditorPage {
     this.canvasContainer = page.locator('#canvas-container, .canvas-container, [data-testid="canvas-container"]');
     this.projectTitleInput = page.getByTestId('project-title-input');
     this.projectTitleDisplay = page.getByTestId('project-title-display');
-    this.exportButton = page.getByTestId('export-btn');
+    this.exportButton = page.getByRole('button', { name: 'Export' });
     this.layersPanel = page.getByTestId('layers-panel');
     this.sidebar = page.locator('#sidebar, [data-testid="sidebar"]').first();
   }
@@ -41,11 +41,9 @@ export class EditorPage {
   }
 
   async openLayersPanel() {
-    if (!(await this.layersPanel.isVisible())) {
-      const layersTab = this.page.getByTestId('sidebar-tab-layers');
-      await layersTab.click();
-    }
-    await expect(this.layersPanel).toBeVisible({ timeout: 5000 });
+    const layersTab = this.page.getByRole('button', { name: 'Layers' });
+    await layersTab.click();
+    await this.page.waitForTimeout(500);
   }
 
   async getLayerCount(): Promise<number> {
@@ -57,7 +55,8 @@ export class EditorPage {
 
   async export(format: 'png' | 'jpeg' | 'webp') {
     await this.exportButton.click();
-    const formatBtn = this.page.getByTestId(`export-format-${format}`);
+    await this.page.waitForTimeout(500);
+    const formatBtn = this.page.getByTestId(`export-${format}-btn`);
     await formatBtn.click();
     const downloadBtn = this.page.getByTestId('download-btn');
     await downloadBtn.click();

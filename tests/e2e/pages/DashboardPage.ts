@@ -16,7 +16,9 @@ export class DashboardPage {
     this.templatesGrid = page.getByTestId('dashboard-templates-grid');
     this.projectsList = page.locator('.grid-cols-1, .grid-cols-2, .grid-cols-3, .grid-cols-4');
     this.searchInput = page.getByTestId('dashboard-search-input');
-    this.userMenu = page.locator('header .profile-section, header .flex.items-center.gap-3.group');
+    this.userMenu = page
+      .locator('header [class*="profile"], header [aria-label*="profile" i], header img[alt*="Profile"]')
+      .first();
     this.logoutButton = page.locator('button:has-text("Sign Out")');
     this.templatesTab = page.getByTestId('nav-templates');
   }
