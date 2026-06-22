@@ -110,6 +110,8 @@ export default async function handler(req: Request) {
   }
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 60_000);
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -117,10 +119,13 @@ export default async function handler(req: Request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
 
     if (!response.ok) {
-      throw new Error('Fal.ai API failed');
+      const errText = await response.text().catch(() => 'Unknown error');
+      throw new Error(`Fal.ai API ${response.status}: ${errText.slice(0, 200)}`);
     }
     const data = await response.json();
 

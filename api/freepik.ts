@@ -3,6 +3,20 @@ export const config = {
   runtime: 'edge',
 };
 
+async function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs = 30_000): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...init, signal: controller.signal });
+    clearTimeout(timeout);
+    return res;
+  } catch (err: any) {
+    clearTimeout(timeout);
+    if (err.name === 'AbortError') throw new Error(`Freepik API timeout after ${timeoutMs}ms`);
+    throw err;
+  }
+}
+
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 20;
@@ -79,7 +93,7 @@ export default async function handler(req: Request) {
       const type = url.searchParams.get('type') || 'photos';
       const page = url.searchParams.get('page') || '1';
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${BASE_URL}/resources?locale=en-US&term=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&limit=20&filters[content_type]=${encodeURIComponent(type)}`,
         {
           headers: {
@@ -107,7 +121,7 @@ export default async function handler(req: Request) {
       const query = url.searchParams.get('query') || '';
       const page = url.searchParams.get('page') || '1';
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${BASE_URL}/icons?locale=en-US&term=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&limit=50`,
         {
           headers: {
@@ -144,7 +158,7 @@ export default async function handler(req: Request) {
         });
       }
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${BASE_URL}/resources/${encodeURIComponent(resourceId)}/download/${encodeURIComponent(format)}`,
         {
           headers: {
@@ -184,7 +198,7 @@ export default async function handler(req: Request) {
       }
 
       if (action === 'generate') {
-        const response = await fetch(`${BASE_URL}/ai/mystic`, {
+        const response = await fetchWithTimeout(`${BASE_URL}/ai/mystic`, {
           method: 'POST',
           headers: {
             'x-freepik-api-key': freepikKey,
@@ -250,7 +264,7 @@ export default async function handler(req: Request) {
           });
         }
 
-        const response = await fetch(`${BASE_URL}${basePath}/${encodeURIComponent(taskId)}`, {
+        const response = await fetchWithTimeout(`${BASE_URL}${basePath}/${encodeURIComponent(taskId)}`, {
           headers: {
             'x-freepik-api-key': freepikKey,
             'Content-Type': 'application/json',
@@ -268,7 +282,7 @@ export default async function handler(req: Request) {
           },
         });
       } else if (action === 'remove_bg') {
-        const response = await fetch(`${BASE_URL}/ai/beta/remove-background`, {
+        const response = await fetchWithTimeout(`${BASE_URL}/ai/beta/remove-background`, {
           method: 'POST',
           headers: {
             'x-freepik-api-key': freepikKey,
@@ -289,7 +303,7 @@ export default async function handler(req: Request) {
         });
       } else if (action === 'upscale' || action === 'upscale_precision') {
         const endpoint = action === 'upscale_precision' ? '/ai/image-upscaler-precision' : '/ai/image-upscaler';
-        const response = await fetch(`${BASE_URL}${endpoint}`, {
+        const response = await fetchWithTimeout(`${BASE_URL}${endpoint}`, {
           method: 'POST',
           headers: {
             'x-freepik-api-key': freepikKey,
@@ -309,7 +323,7 @@ export default async function handler(req: Request) {
           },
         });
       } else if (action === 'style_transfer') {
-        const response = await fetch(`${BASE_URL}/ai/image-style-transfer`, {
+        const response = await fetchWithTimeout(`${BASE_URL}/ai/image-style-transfer`, {
           method: 'POST',
           headers: {
             'x-freepik-api-key': freepikKey,
@@ -329,7 +343,7 @@ export default async function handler(req: Request) {
           },
         });
       } else if (action === 'expand') {
-        const response = await fetch(`${BASE_URL}/ai/image-expand`, {
+        const response = await fetchWithTimeout(`${BASE_URL}/ai/image-expand`, {
           method: 'POST',
           headers: {
             'x-freepik-api-key': freepikKey,
