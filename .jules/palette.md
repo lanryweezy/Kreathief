@@ -37,3 +37,8 @@
 
 **Learning:** Discovered icon-only buttons in `components/blog/BlogPostView.tsx` used for sharing (Twitter, Website, Link) lacked `aria-label` attributes, rendering them unintelligible to screen readers.
 **Action:** Always verify that buttons containing only icons (e.g., `<Icons.Twitter />`) have a descriptive `aria-label` attribute (e.g., `aria-label="Share on Twitter"`) to ensure keyboard and screen reader accessibility.
+
+## 2026-06-22 - Missing ARIA labels in AI Assistant Panel
+
+**Learning:** Newly introduced feature panels, specifically the AI Assistant, often lack basic accessibility attributes like `aria-label` on icon-only buttons (minimize, close, clear, send, etc). This pattern makes the interface difficult to navigate for screen reader users.
+**Action:** When auditing new feature components, explicitly check all icon-only buttons (`<button><Icons.X/></button>`) for missing `aria-label` attributes to ensure they announce their purpose correctly.
