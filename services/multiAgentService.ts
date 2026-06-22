@@ -24,7 +24,9 @@ function setCache(key: string, data: any): void {
   // Evict oldest entries if cache is large
   if (_responseCache.size > 50) {
     const oldest = _responseCache.keys().next().value;
-    if (oldest) _responseCache.delete(oldest);
+    if (oldest) {
+      _responseCache.delete(oldest);
+    }
   }
   _responseCache.set(key, { data, timestamp: Date.now() });
 }
@@ -297,11 +299,45 @@ You MUST return the identical schema structure for variants but with improved va
     })),
   }));
 
+  const layerSchema = {
+    type: SchemaType.OBJECT,
+    properties: {
+      id: { type: SchemaType.STRING },
+      type: { type: SchemaType.STRING },
+      x: { type: SchemaType.NUMBER },
+      y: { type: SchemaType.NUMBER },
+      width: { type: SchemaType.NUMBER },
+      height: { type: SchemaType.NUMBER },
+      color: { type: SchemaType.STRING },
+      text: { type: SchemaType.STRING },
+      fontSize: { type: SchemaType.NUMBER },
+    },
+    required: ['id', 'type', 'x', 'y', 'width', 'height'],
+  };
+
   const data = await callBackendGeminiAPI({
     modelName: 'gemini-2.5-flash',
     systemInstruction: systemPrompt,
     generationConfig: {
       responseMimeType: 'application/json',
+      responseSchema: {
+        type: SchemaType.ARRAY,
+        items: {
+          type: SchemaType.OBJECT,
+          properties: {
+            id: { type: SchemaType.STRING },
+            criticFeedback: {
+              type: SchemaType.ARRAY,
+              items: { type: SchemaType.STRING },
+            },
+            layers: {
+              type: SchemaType.ARRAY,
+              items: layerSchema,
+            },
+          },
+          required: ['id', 'criticFeedback', 'layers'],
+        },
+      },
       temperature: 0.1, // Strict logic
     },
     contents: [{ role: 'user', parts: [{ text: `Variants to Audit: ${JSON.stringify(simplifiedInput)}` }] }],
