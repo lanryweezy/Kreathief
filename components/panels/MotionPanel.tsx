@@ -25,13 +25,20 @@ const EASING_OPTIONS = [
 ];
 
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 
 interface MotionPanelProps {
   onPreviewMotion?: (settings: AnimationSettings) => void;
 }
 
 export const MotionPanel: React.FC<MotionPanelProps> = ({ onPreviewMotion }) => {
-  const { artboards, selectedLayerIds, updateLayer } = useStore();
+  const { artboards, selectedLayerIds, updateLayer } = useStore(
+    useShallow((state) => ({
+      artboards: state.artboards,
+      selectedLayerIds: state.selectedLayerIds,
+      updateLayer: state.updateLayer,
+    }))
+  );
 
   const allLayers = artboards.flatMap((a) => a.layers);
   const selectedLayerId = selectedLayerIds[selectedLayerIds.length - 1] || null;

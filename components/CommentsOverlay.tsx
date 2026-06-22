@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../constants';
 import { haptics } from '../utils/haptics';
 
@@ -8,7 +9,15 @@ interface CommentsOverlayProps {
 }
 
 export const CommentsOverlay: React.FC<CommentsOverlayProps> = ({ zoom }) => {
-  const { projects, projectId, addCanvasComment, resolveCanvasComment, deleteCanvasComment } = useStore();
+  const { projects, projectId, addCanvasComment, resolveCanvasComment, deleteCanvasComment } = useStore(
+    useShallow((state) => ({
+      projects: state.projects,
+      projectId: state.projectId,
+      addCanvasComment: state.addCanvasComment,
+      resolveCanvasComment: state.resolveCanvasComment,
+      deleteCanvasComment: state.deleteCanvasComment,
+    }))
+  );
   const project = projects.find((p) => p.id === projectId);
 
   const [activeCommentId, setActiveCommentId] = useState<string | null>(null);

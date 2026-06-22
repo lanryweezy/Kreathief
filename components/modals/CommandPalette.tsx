@@ -21,7 +21,6 @@ export const CommandPalette: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Store actions
-  const store = useStore();
   const {
     addTextLayer,
     addShapeLayer,
@@ -35,7 +34,32 @@ export const CommandPalette: React.FC = () => {
     alignLayers,
     setSelectedLayerIds,
     setPenMode,
-  } = store;
+    selectedLayerIds,
+    saveProject,
+    undo,
+    redo,
+    setShowShortcuts,
+  } = useStore(
+    useShallow((state) => ({
+      addTextLayer: state.addTextLayer,
+      addShapeLayer: state.addShapeLayer,
+      addAdjustmentLayer: state.addAdjustmentLayer,
+      addImageLayer: state.addImageLayer,
+      setIsExporting: state.setIsExporting,
+      groupSelected: state.groupSelected,
+      ungroupSelected: state.ungroupSelected,
+      initializeProject: state.initializeProject,
+      moveLayer: state.moveLayer,
+      alignLayers: state.alignLayers,
+      setSelectedLayerIds: state.setSelectedLayerIds,
+      setPenMode: state.setPenMode,
+      selectedLayerIds: state.selectedLayerIds,
+      saveProject: state.saveProject,
+      undo: state.undo,
+      redo: state.redo,
+      setShowShortcuts: state.setShowShortcuts,
+    }))
+  );
 
   // Unified Intelligence: Search Assets & Community as user types
   useEffect(() => {
@@ -222,7 +246,7 @@ export const CommandPalette: React.FC = () => {
         label: 'Bring to Front',
         icon: Icons.Layers,
         action: () => {
-          const id = store.selectedLayerIds[0];
+          const id = selectedLayerIds[0];
           if (id) {
             moveLayer(id, 'front');
           }
@@ -235,7 +259,7 @@ export const CommandPalette: React.FC = () => {
         label: 'Send to Back',
         icon: Icons.Layers,
         action: () => {
-          const id = store.selectedLayerIds[0];
+          const id = selectedLayerIds[0];
           if (id) {
             moveLayer(id, 'back');
           }
@@ -301,7 +325,7 @@ export const CommandPalette: React.FC = () => {
         id: 'sys_save',
         label: 'Save Design',
         icon: Icons.CheckSquare,
-        action: () => store.saveProject(),
+        action: () => saveProject(),
         group: 'System',
         shortcut: 'Ctrl+S',
       },
@@ -309,7 +333,7 @@ export const CommandPalette: React.FC = () => {
         id: 'sys_undo',
         label: 'Undo Last Action',
         icon: Icons.Undo,
-        action: () => store.undo(),
+        action: () => undo(),
         group: 'System',
         shortcut: 'Ctrl+Z',
       },
@@ -317,7 +341,7 @@ export const CommandPalette: React.FC = () => {
         id: 'sys_redo',
         label: 'Redo Action',
         icon: Icons.Redo,
-        action: () => store.redo(),
+        action: () => redo(),
         group: 'System',
         shortcut: 'Ctrl+Y',
       },
@@ -325,13 +349,12 @@ export const CommandPalette: React.FC = () => {
         id: 'sys_shortcuts',
         label: 'Show Keyboard Shortcuts',
         icon: Icons.Help,
-        action: () => store.setShowShortcuts(true),
+        action: () => setShowShortcuts(true),
         group: 'System',
         shortcut: '?',
       },
     ],
     [
-      store,
       addTextLayer,
       addShapeLayer,
       addAdjustmentLayer,
@@ -343,6 +366,11 @@ export const CommandPalette: React.FC = () => {
       setSelectedLayerIds,
       setPenMode,
       setActiveTab,
+      selectedLayerIds,
+      saveProject,
+      undo,
+      redo,
+      setShowShortcuts,
     ]
   );
 

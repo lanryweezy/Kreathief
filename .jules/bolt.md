@@ -27,3 +27,7 @@
 
 **Learning:** Overlay components on the Canvas like `CanvasControls`, `CanvasGuides`, `SelectionMarquee`, `PathEditorOverlay`, and `BrushFilters` are often subjected to rapid re-renders if their parent re-renders. Without `React.memo`, these components cause unnecessary performance degradation, especially during rapid state updates like mouse movement.
 **Action:** Ensure all heavy overlay and visualization components that depend on parent state are wrapped in `React.memo` to prevent unnecessary updates.
+
+## 2026-06-22 - Optimizing Zustand store subscriptions across panels
+**Learning:** Selecting multiple properties from a Zustand store by simply destructuring the return of `useStore()` (e.g., `const { a, b } = useStore();`) without selectors subscribes the component to every state change in the global store, triggering massive unnecessary component re-renders. This is particularly problematic in frequently updated UI panels.
+**Action:** Always wrap object-returning Zustand selectors with `useShallow` from `zustand/react/shallow` to ensure components only re-render when the specific selected properties actually change.
