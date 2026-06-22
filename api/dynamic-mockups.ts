@@ -28,7 +28,7 @@ export default async function handler(req: Request) {
     return new Response(null, {
       status: 200,
       headers: {
-        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
@@ -47,7 +47,7 @@ export default async function handler(req: Request) {
           status: 429,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
           },
         });
       }
@@ -64,7 +64,7 @@ export default async function handler(req: Request) {
       status: 500,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
       },
     });
   }
@@ -84,7 +84,7 @@ export default async function handler(req: Request) {
           status: 400,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
           },
         });
       }
@@ -108,7 +108,7 @@ export default async function handler(req: Request) {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+          'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
         },
       });
     } else if (action === 'list' && req.method === 'GET') {
@@ -128,7 +128,7 @@ export default async function handler(req: Request) {
         status: 200,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+          'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
         },
       });
     }
@@ -137,7 +137,7 @@ export default async function handler(req: Request) {
       status: 400,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
       },
     });
   } catch (error: any) {
@@ -146,7 +146,7 @@ export default async function handler(req: Request) {
       status: 500,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || '*',
+        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
       },
     });
   }
