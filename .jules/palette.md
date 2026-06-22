@@ -27,6 +27,13 @@
 
 **Learning:** Discovered several context-specific text inputs across the application (like inline rename fields, or standalone search bars in modal dialogs and side panels) that lacked explicit `<label>` tags due to spatial constraints and visual design patterns. These inputs also lacked `aria-label` attributes, rendering them inaccessible to screen readers which would only announce "edit text".
 **Action:** Always provide an explicit `aria-label` attribute describing the input's purpose (e.g., `aria-label="Search templates"`, `aria-label="Rename layer"`) on `<input>` elements that do not have an explicitly linked `<label>` tag.
+
 ## 2024-05-18 - Missing Accessible Names on Modals
+
 **Learning:** Found that custom modal components (`CommunityModal` and `CreateProjectModal`) were using icon-only `<button>` tags (like `<Icons.X>`) for close actions without `aria-label` attributes. This rendered the close buttons invisible to screen reader users, disrupting the modal dismissal experience.
 **Action:** Always ensure that any icon-only button, especially those performing critical interactions like closing overlays/modals, has a clear and descriptive `aria-label` (e.g., `aria-label="Close modal"`).
+
+## 2026-06-20 - [BlogPost Share Buttons Accessibility]
+
+**Learning:** Discovered icon-only buttons in `components/blog/BlogPostView.tsx` used for sharing (Twitter, Website, Link) lacked `aria-label` attributes, rendering them unintelligible to screen readers.
+**Action:** Always verify that buttons containing only icons (e.g., `<Icons.Twitter />`) have a descriptive `aria-label` attribute (e.g., `aria-label="Share on Twitter"`) to ensure keyboard and screen reader accessibility.

@@ -29,6 +29,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     favoriteProjects,
     toggleFavoriteProject,
     shareToCommunity,
+    addToast,
   } = useStore(
     useShallow((state) => ({
       projects: state.projects,
@@ -41,6 +42,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       favoriteProjects: state.favoriteProjects,
       toggleFavoriteProject: state.toggleFavoriteProject,
       shareToCommunity: state.shareToCommunity,
+      addToast: state.addToast,
     }))
   );
 
@@ -704,7 +706,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                             onClick={(e) => {
                               e.stopPropagation();
                               shareToCommunity(project);
-                              alert('Design shared successfully with the community!');
+                              addToast('Design shared successfully with the community!', 'success');
                             }}
                             title="Share with Community"
                             aria-label={`Share ${project.name} to Community`}

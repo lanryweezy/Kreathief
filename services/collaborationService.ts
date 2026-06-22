@@ -21,9 +21,21 @@ export interface LayerChange {
 }
 
 const CURSOR_COLORS = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
-  '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
-  '#F1948A', '#82E0AA', '#F8C471', '#AED6F1', '#D7BDE2',
+  '#FF6B6B',
+  '#4ECDC4',
+  '#45B7D1',
+  '#96CEB4',
+  '#FFEAA7',
+  '#DDA0DD',
+  '#98D8C8',
+  '#F7DC6F',
+  '#BB8FCE',
+  '#85C1E9',
+  '#F1948A',
+  '#82E0AA',
+  '#F8C471',
+  '#AED6F1',
+  '#D7BDE2',
 ];
 
 function getColorForUser(userId: string): string {
@@ -154,11 +166,15 @@ class CollaborationService {
 
   // Throttled cursor broadcast (max 10 per second)
   broadcastCursor(cursor: { x: number; y: number }): void {
-    if (!this.channel) return;
+    if (!this.channel) {
+      return;
+    }
 
     this.lastCursorBroadcast = cursor;
 
-    if (this.cursorThrottleTimer) return;
+    if (this.cursorThrottleTimer) {
+      return;
+    }
 
     this.cursorThrottleTimer = setTimeout(() => {
       this.cursorThrottleTimer = null;
@@ -173,7 +189,9 @@ class CollaborationService {
   }
 
   broadcastLayerChange(change: Omit<LayerChange, 'userId' | 'timestamp'>): void {
-    if (!this.channel) return;
+    if (!this.channel) {
+      return;
+    }
 
     this.channel.send({
       type: 'broadcast',
@@ -186,7 +204,9 @@ class CollaborationService {
   }
 
   async updatePresence(updates: Partial<PresenceState>): Promise<void> {
-    if (!this.channel) return;
+    if (!this.channel) {
+      return;
+    }
 
     const state = this.channel.presenceState();
     const myKey = Object.keys(state).find((key) => {
@@ -201,7 +221,9 @@ class CollaborationService {
   }
 
   getOnlineUsers(): PresenceState[] {
-    if (!this.channel) return [];
+    if (!this.channel) {
+      return [];
+    }
     const state = this.channel.presenceState();
     const users: PresenceState[] = [];
     for (const key in state) {

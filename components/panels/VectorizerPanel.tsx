@@ -5,6 +5,7 @@ import * as photoService from '../../services/photoService';
 
 import { useStore } from '../../store/useStore';
 import { log } from '../../utils/log';
+import { getAIErrorMessage } from '../../utils/errorMessages';
 
 type Tab = 'image' | 'text';
 
@@ -174,7 +175,7 @@ export const VectorizerPanel = () => {
         addToast('Vectorization complete!', 'success');
       } catch (error) {
         log.error('[VectorizerPanel] Vectorization failed', error, { prompt: prompt.substring(0, 100), trials });
-        addToast('Vectorization failed. Please try again.', 'error');
+        addToast(getAIErrorMessage(error), 'error');
       } finally {
         setIsProcessing(false);
       }
@@ -190,7 +191,7 @@ export const VectorizerPanel = () => {
         addToast('Vector generated successfully!', 'success');
       } catch (error) {
         log.error('[VectorizerPanel] Vector generation failed', error, { prompt: prompt.substring(0, 100) });
-        addToast('Vector generation failed.', 'error');
+        addToast(getAIErrorMessage(error), 'error');
       } finally {
         setIsProcessing(false);
       }

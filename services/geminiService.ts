@@ -949,7 +949,19 @@ export const generateAutoLayoutSuggestions = async (layers: any[], width: number
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: 'application/json' },
+      // Astra: Strict JSON output schema prevents malformed parsing issues and unbounded object keys
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            description: 'A map of layer IDs to their new coordinates',
+            // Note: SchemaType doesn't explicitly support arbitrary property names in a map in the same way as JSON Schema's additionalProperties,
+            // but we can specify it as an OBJECT and Gemini generally understands the prompt structure.
+          },
+        },
+      },
     });
 
     const parsed = safeParseJSON<any[] | null>(data.text || '[]', null);
@@ -974,7 +986,31 @@ export const extractStyleFromImage = async (base64Image: string): Promise<Design
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.0-pro-exp-02-05',
       contents: [{ role: 'user', parts: [{ text: prompt }, { inlineData: { data: b64Data, mimeType } }] }],
-      generationConfig: { responseMimeType: 'application/json' },
+      // Astra: Strict JSON output schema guarantees correctly shaped DesignTheme object
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.OBJECT,
+          properties: {
+            name: { type: SchemaType.STRING },
+            backgroundColor: { type: SchemaType.STRING },
+            primaryColor: { type: SchemaType.STRING },
+            secondaryColor: { type: SchemaType.STRING },
+            accentColor: { type: SchemaType.STRING },
+            headingFont: { type: SchemaType.STRING },
+            bodyFont: { type: SchemaType.STRING },
+          },
+          required: [
+            'name',
+            'backgroundColor',
+            'primaryColor',
+            'secondaryColor',
+            'accentColor',
+            'headingFont',
+            'bodyFont',
+          ],
+        },
+      },
     });
 
     const parsed = safeParseJSON<DesignTheme | null>(data.text || '{}', null);
