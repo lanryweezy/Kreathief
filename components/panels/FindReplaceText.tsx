@@ -14,6 +14,7 @@ export const FindReplaceText: React.FC = () => {
   const artboards = useStore((state) => state.artboards) || [];
   const updateLayer = useStore((state) => state.updateLayer);
   const addToast = useStore((state) => state.addToast);
+  const saveToHistory = useStore((state) => state.saveToHistory);
 
   const [findText, setFindText] = useState('');
   const [replaceText, setReplaceText] = useState('');
@@ -66,13 +67,14 @@ export const FindReplaceText: React.FC = () => {
       const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
       const newText = layer.text.replace(regex, replaceText);
 
+      saveToHistory();
       updateLayer(layerId, { text: newText });
       addToast('Text replaced in layer', 'success');
 
       // Update results
       setResults((prev) => prev.filter((r) => r.layerId !== layerId));
     },
-    [findText, replaceText, isCaseSensitive, allTextLayers, updateLayer, addToast]
+    [findText, replaceText, isCaseSensitive, allTextLayers, saveToHistory, updateLayer, addToast]
   );
 
   // Replace all
@@ -85,9 +87,15 @@ export const FindReplaceText: React.FC = () => {
     const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), flags);
 
     let replaceCount = 0;
+    let hasSavedToHistory = false;
+
     allTextLayers.forEach((layer) => {
       const matches = (layer.text.match(regex) || []).length;
       if (matches > 0) {
+        if (!hasSavedToHistory) {
+          saveToHistory();
+          hasSavedToHistory = true;
+        }
         const newText = layer.text.replace(regex, replaceText);
         updateLayer(layer.id, { text: newText });
         replaceCount += matches;
@@ -96,7 +104,7 @@ export const FindReplaceText: React.FC = () => {
 
     setResults([]);
     addToast(`Replaced ${replaceCount} occurrences`, 'success');
-  }, [findText, replaceText, isCaseSensitive, allTextLayers, updateLayer, addToast]);
+  }, [findText, replaceText, isCaseSensitive, allTextLayers, saveToHistory, updateLayer, addToast]);
 
   // Select layer
   const handleSelectLayer = useCallback(
