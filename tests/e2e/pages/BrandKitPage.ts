@@ -12,7 +12,7 @@ export class BrandKitPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.brandTab = page.getByTestId('sidebar-tab-brand');
+    this.brandTab = page.getByRole('button', { name: 'Brand' });
     this.brandPanel = page.getByTestId('brand-panel');
     this.addBrandKitBtn = page.getByTestId('add-brand-kit-btn');
     this.brandColors = page.getByTestId('brand-colors-display');

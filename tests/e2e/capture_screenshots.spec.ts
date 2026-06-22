@@ -30,7 +30,7 @@ test('capture app screenshots', async ({ page }) => {
   await page.screenshot({ path: 'verification/screenshots/2-editor.png' });
 
   // 3. Brand Kit
-  await page.getByTestId('sidebar-tab-brand').click();
+  await page.getByRole('button', { name: 'Brand' }).click();
   await page.waitForTimeout(1500);
   await page.screenshot({ path: 'verification/screenshots/3-brand-kit.png' });
 

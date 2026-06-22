@@ -21,7 +21,7 @@ test('record video', async ({ page }) => {
   await page.waitForSelector('.design-artboard', { state: 'visible' });
 
   // 1. Add Text
-  await page.getByTestId('sidebar-tab-text').click();
+  await page.getByRole('button', { name: 'Text' }).click();
   await page.getByTestId('add-heading-btn').click();
   await page.waitForTimeout(1000);
 
@@ -34,15 +34,15 @@ test('record video', async ({ page }) => {
   await page.waitForTimeout(1000);
 
   // 3. Open AI Assistant
-  await page.getByTestId('sidebar-tab-assistant').click();
+  await page.getByRole('button', { name: 'AI Assistants' }).click();
   await page.waitForTimeout(1500);
 
   // 4. Open Mockup Studio
-  await page.getByTestId('sidebar-tab-mockup').click();
+  await page.getByRole('button', { name: 'Mockups' }).click();
   await page.waitForTimeout(1500);
 
   // 5. Open Layers
-  await page.getByTestId('sidebar-tab-layers').click();
+  await page.getByRole('button', { name: 'Layers' }).click();
   await page.waitForTimeout(1500);
 
   // 6. Export

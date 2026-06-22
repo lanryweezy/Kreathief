@@ -71,7 +71,7 @@ test.describe('Brand Kit Features', () => {
     await brandKit.addBrandKit('Apply Color Brand');
 
     // Add a shape first
-    await page.getByTestId('sidebar-tab-elements').click();
+    await page.getByRole('button', { name: 'Components' }).click();
     const shapeBtn = page.getByTestId(/shape-btn-/).first();
     await expect(shapeBtn).toBeVisible();
     await shapeBtn.click();
@@ -103,7 +103,7 @@ test.describe('Brand Kit Features', () => {
     await brandKit.addBrandKit('Apply Font Brand');
 
     // Add text first
-    await page.getByTestId('sidebar-tab-text').click();
+    await page.getByRole('button', { name: 'Text' }).click();
     const addHeading = page.getByTestId('add-heading-btn');
     await addHeading.click();
     await page.waitForTimeout(500);

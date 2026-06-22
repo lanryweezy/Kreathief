@@ -29,7 +29,6 @@ jobs:
       
       - name: Run Prettier check
         run: npm run format:check
-        continue-on-error: true
       
       - name: Run TypeScript check
         run: npm run type-check
@@ -56,11 +55,9 @@ jobs:
       
       - name: Run unit tests
         run: npm run test
-        continue-on-error: true
 
       - name: Run E2E tests
         run: npm run test:e2e
-        continue-on-error: true
 
   build:
     name: Build & Deploy

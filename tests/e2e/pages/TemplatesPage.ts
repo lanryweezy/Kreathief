@@ -16,7 +16,7 @@ export class TemplatesPage {
   constructor(page: Page) {
     this.page = page;
     // Editor Side Panel
-    this.templatesTab = page.getByTestId('sidebar-tab-templates');
+    this.templatesTab = page.getByRole('button', { name: 'Templates' });
     this.templatesPanel = page.getByTestId('templates-panel');
     this.templatesGrid = page.getByTestId('template-panel-grid');
     this.searchInput = page.getByTestId('template-panel-search-input');

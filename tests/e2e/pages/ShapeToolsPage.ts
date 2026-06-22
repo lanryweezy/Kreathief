@@ -13,7 +13,7 @@ export class ShapeToolsPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.elementsTab = page.getByTestId('sidebar-tab-elements');
+    this.elementsTab = page.getByRole('button', { name: 'Components' });
     this.shapesPanel = page.getByTestId('elements-panel');
     this.rectangleBtn = this.shapesPanel.getByTestId('shape-btn-square');
     this.circleBtn = this.shapesPanel.getByTestId('shape-btn-circle');

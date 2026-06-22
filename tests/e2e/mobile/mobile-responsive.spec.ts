@@ -203,7 +203,7 @@ test.describe('Mobile Responsive Tests', () => {
     await expect(editor.sidebar).toBeVisible();
 
     // Check sidebar tabs are touch-friendly
-    const sidebarTabs = editor.sidebar.locator('button[aria-label], button[role="tab"]');
+    const sidebarTabs = editor.sidebar.locator('button[aria-label]');
     const count = await sidebarTabs.count();
 
     for (let i = 0; i < Math.min(count, 5); i++) {

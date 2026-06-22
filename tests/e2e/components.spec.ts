@@ -44,7 +44,7 @@ test.describe('Component Functionality', () => {
 
   test('Text Panel adds text', async ({ page }) => {
     // Open Text Tab using data-testid
-    await page.getByTestId('sidebar-tab-text').click();
+    await page.getByRole('button', { name: 'Text' }).click();
 
     // Wait for "Add a heading"
     await expect(page.getByText('Add a heading')).toBeVisible({ timeout: 10000 });
@@ -57,7 +57,7 @@ test.describe('Component Functionality', () => {
 
     // Verify text appears on canvas (indirect verification)
     // Check Layers Tab
-    await page.getByTestId('sidebar-tab-layers').click();
+    await page.getByRole('button', { name: 'Layers' }).click();
 
     // Take a screenshot to debug
     await page.screenshot({ path: 'debug_layers_text.png' });
@@ -69,7 +69,7 @@ test.describe('Component Functionality', () => {
 
   test('Elements Panel adds shape', async ({ page }) => {
     // Open Elements Tab
-    await page.getByTestId('sidebar-tab-elements').click();
+    await page.getByRole('button', { name: 'Components' }).click();
 
     // Ensure we are on Shapes tab
     const shapesTab = page.locator('button:has-text("Shapes")').first();
@@ -86,7 +86,7 @@ test.describe('Component Functionality', () => {
 
     // Verify shape added to layers
     // Ensure sidebar is scrolled if needed
-    const layersTab = page.getByTestId('sidebar-tab-layers');
+    const layersTab = page.getByRole('button', { name: 'Layers' });
     await layersTab.scrollIntoViewIfNeeded();
     await layersTab.click();
 
@@ -107,12 +107,12 @@ test.describe('Component Functionality', () => {
   });
 
   test('Uploads Panel opens', async ({ page }) => {
-    await page.getByTestId('sidebar-tab-uploads').click();
+    await page.getByRole('button', { name: 'Media' }).click();
     await expect(page.getByText('Upload Media')).toBeVisible({ timeout: 5000 });
   });
 
   test('Templates Panel loads', async ({ page }) => {
-    await page.getByTestId('sidebar-tab-templates').click();
+    await page.getByRole('button', { name: 'Templates' }).click();
     await expect(page.getByText('Templates')).toBeVisible({ timeout: 5000 });
   });
 });

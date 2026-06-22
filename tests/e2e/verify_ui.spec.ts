@@ -48,7 +48,7 @@ test('verify all requested changes', async ({ page }) => {
 
   // 2. Verify AI Assistant behavior
   // Open AI Assistant from sidebar
-  await page.getByTestId('sidebar-tab-assistant').click();
+  await page.getByRole('button', { name: 'AI Assistants' }).click();
 
   // Check if SidePanel is visible and contains Assistant text
   // The header now says "Agentic AI" or similar. Checking for "Agent" or "Design Agents"
@@ -67,7 +67,7 @@ test('verify all requested changes', async ({ page }) => {
   await page.screenshot({ path: 'ai_assistant_left_only.png' });
 
   // 3. Verify Mockup Studio layout
-  await page.getByTestId('sidebar-tab-mockup').click();
+  await page.getByRole('button', { name: 'Mockups' }).click();
 
   // Wait for mockup panel to load
   await page.waitForTimeout(2000);
@@ -87,7 +87,7 @@ test('verify all requested changes', async ({ page }) => {
 
   // 4. Verify Selection/Drag behavior
   // Go back to Elements to add a shape
-  await page.getByTestId('sidebar-tab-elements').click();
+  await page.getByRole('button', { name: 'Components' }).click();
   // Wait for shapes to load
   await page.waitForTimeout(2000);
   // Click on a shape (the first one in the grid)

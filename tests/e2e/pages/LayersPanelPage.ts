@@ -14,7 +14,7 @@ export class LayersPanelPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.layersTab = page.getByTestId('sidebar-tab-layers');
+    this.layersTab = page.getByRole('button', { name: 'Layers' });
     this.layersPanel = page.getByTestId('layers-panel');
     this.layerItems = this.layersPanel.locator('[data-testid="layer-item"], .layer-item');
     this.addLayerBtn = this.layersPanel.locator('button[aria-label="Add Layer"], button:has-text("Add Layer")');
