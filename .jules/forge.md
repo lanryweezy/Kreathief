@@ -1,7 +1,3 @@
-## 2024-06-25 - Pure Function Unit Testing Prioritization
-**Learning:** Found that `utils/colorUtils.ts` and `utils/unitUtils.ts` had zero test coverage despite being pure functions that are critical to the color and unit math of the application. The test runner is configured to use Vitest, and coverage reports are comprehensive. The test output can be excessively large in diff views if not piped properly or restricted to specific files. It takes a very long time for the entire test suite to execute (`vitest --coverage` without restricting it to specific files times out).
-**Action:** When adding tests as the Forge agent, prioritise pure utility functions and run vitest on single files (e.g. `pnpm vitest run tests/utils/colorUtils.test.ts`) instead of running the entire suite. Always ensure coverage files are ignored from git to prevent large unintended diffs.
-
-## 2024-06-25 - Pure Function Unit Testing Prioritization
-**Learning:** Found that `utils/colorUtils.ts` and `utils/unitUtils.ts` had zero test coverage despite being pure functions that are critical to the color and unit math of the application. The test runner is configured to use Vitest, and coverage reports are comprehensive. The test output can be excessively large in diff views if not piped properly or restricted to specific files. It takes a very long time for the entire test suite to execute (`vitest --coverage` without restricting it to specific files times out).
-**Action:** When adding tests as the Forge agent, prioritise pure utility functions and run vitest on single files (e.g. `pnpm vitest run tests/utils/colorUtils.test.ts`) instead of running the entire suite. Always ensure coverage files are ignored from git to prevent large unintended diffs.
+# Forge Setup
+The system prompts indicate I'm operating as "Forge", an AI template factory system.
+I should generate templates for the users. I'll read user input to verify what they're looking for.
