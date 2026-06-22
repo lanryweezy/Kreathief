@@ -18,7 +18,7 @@ interface PenToolbarProps {
   onClose: () => void;
 }
 
-export const PenToolbar: React.FC<PenToolbarProps> = ({ options, onUpdateOptions, onClose }) => {
+export const PenToolbar = React.memo(({ options, onUpdateOptions, onClose }: PenToolbarProps) => {
   return (
     <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[1000] bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl flex items-center gap-1 p-2 animate-slide-down">
       {/* Path Type Toggle */}
@@ -166,4 +166,4 @@ export const PenToolbar: React.FC<PenToolbarProps> = ({ options, onUpdateOptions
       </button>
     </div>
   );
-};
+});

@@ -1,5 +1,6 @@
 import { TextLayer, ShapeLayer, ImageLayer, CanvasFilters, Layer } from '../types';
 import { writePsd, Psd } from 'ag-psd';
+import JSZip from 'jszip';
 import { logSecurityEvent } from '../utils/securityLogger';
 import { renderMultilineText } from '../utils/textRendering';
 import { buildFilterString } from '../utils/layers';
@@ -609,4 +610,73 @@ export const batchExportArtboards = async (
       await new Promise((r) => setTimeout(r, 300));
     }
   }
+};
+
+export interface BatchExportArtboard {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+  layers: Layer[];
+  backgroundColor: string;
+}
+
+/**
+ * Batch export multiple artboards, zipping them into a single file.
+ * Supports all image formats (png, jpeg, webp) and svg.
+ */
+export const batchExportArtboardsZip = async (
+  artboards: BatchExportArtboard[],
+  format: 'png' | 'jpeg' | 'webp' | 'svg',
+  quality: number = 0.95
+): Promise<void> => {
+  const zip = new JSZip();
+  const folder = zip.folder('artboards');
+  if (!folder) return;
+
+  for (let i = 0; i < artboards.length; i++) {
+    const ab = artboards[i];
+    const filename = ab.name || `Artboard ${i + 1}`;
+    const safeFilename = filename.replace(/[^a-zA-Z0-9_\-\s]/g, '').replace(/\s+/g, '_').toLowerCase() || `artboard_${i + 1}`;
+
+    if (format === 'svg') {
+      const svg = exportToSVG(ab.width, ab.height, ab.backgroundColor, ab.layers);
+      folder.file(`${safeFilename}.svg`, svg);
+    } else {
+      const canvas = document.createElement('canvas');
+      canvas.width = ab.width;
+      canvas.height = ab.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) continue;
+
+      if (ab.backgroundColor !== 'transparent') {
+        ctx.fillStyle = ab.backgroundColor;
+        ctx.fillRect(0, 0, ab.width, ab.height);
+      }
+
+      for (const layer of ab.layers) {
+        if (!layer.visible) continue;
+        if (layer.type === 'text') {
+          drawTextLayerToContext(ctx, layer as TextLayer);
+        } else if (layer.type === 'image') {
+          await drawImageLayerToContext(ctx, layer as ImageLayer);
+        } else if (layer.type !== 'adjustment' && layer.type !== 'group') {
+          drawShapeToContext(ctx, layer as ShapeLayer);
+        }
+      }
+
+      const mimeType = `image/${format}`;
+      const ext = format === 'jpeg' ? 'jpg' : format;
+
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((b) => resolve(b || new Blob()), mimeType, quality);
+      });
+
+      const arrayBuffer = await blob.arrayBuffer();
+      folder.file(`${safeFilename}.${ext}`, arrayBuffer);
+    }
+  }
+
+  const zipBlob = await zip.generateAsync({ type: 'blob' });
+  downloadBlob(zipBlob, `artboards_${format}.zip`);
 };

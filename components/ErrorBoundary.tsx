@@ -1,143 +1,65 @@
-import { log } from '../utils/log';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { ErrorFallback } from './ErrorFallback';
 
-interface Props {
+interface ErrorBoundaryProps {
   children: ReactNode;
-  fallback?: ReactNode;
-  componentName?: string;
-  variant?: 'full' | 'widget';
+  fallback?: ReactNode | ((error: Error, reset: () => void) => ReactNode);
   onReset?: () => void;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
-  maxAutoRecoveryAttempts?: number;
+  componentName?: string;
+  variant?: string;
 }
 
-interface State {
+interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
-  errorInfo: ErrorInfo | null;
-  recoveryAttempts: number;
 }
 
-/**
- * Intelligent Error Boundary with Auto-Recovery and Scoped Logging
- */
-export class ErrorBoundary extends Component<Props, State> {
-  private recoveryTimeout: NodeJS.Timeout | null = null;
-
-  constructor(props: Props) {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = {
-      hasError: false,
-      error: null,
-      errorInfo: null,
-      recoveryAttempts: 0,
-    };
+    this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError(error: Error): Partial<State> {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    const { componentName = 'Unknown', onError, maxAutoRecoveryAttempts = 3 } = this.props;
-    const { recoveryAttempts } = this.state;
-
-    // Scoped Logging
-    log.error(`[ErrorBoundary:${componentName}] Caught error`, error, {
-      message: error.message,
-      componentStack: errorInfo.componentStack,
-      attempt: recoveryAttempts + 1,
-    });
-
-    onError?.(error, errorInfo);
-
-    this.setState({ errorInfo });
-
-    // Exponential Backoff Auto-Recovery
-    if (recoveryAttempts < maxAutoRecoveryAttempts) {
-      const delay = Math.pow(2, recoveryAttempts) * 100; // 100ms, 200ms, 400ms...
-
-      if (this.recoveryTimeout) {
-        clearTimeout(this.recoveryTimeout);
-      }
-
-      this.recoveryTimeout = setTimeout(() => {
-        this.resetErrorBoundary();
-      }, delay);
-
-      this.setState((prev) => ({ recoveryAttempts: prev.recoveryAttempts + 1 }));
+    if (import.meta.env.DEV) {
+      console.error('[ErrorBoundary]', error, errorInfo.componentStack);
     }
+    this.props.onError?.(error, errorInfo);
   }
 
-  componentWillUnmount() {
-    if (this.recoveryTimeout) {
-      clearTimeout(this.recoveryTimeout);
-    }
-  }
-
-  resetErrorBoundary = () => {
-    if (this.recoveryTimeout) {
-      clearTimeout(this.recoveryTimeout);
-    }
+  reset = () => {
     this.props.onReset?.();
-    this.setState({
-      hasError: false,
-      error: null,
-      errorInfo: null,
-    });
+    this.setState({ hasError: false, error: null });
   };
 
   render() {
-    const { hasError, error, recoveryAttempts } = this.state;
-    const { children, fallback, variant, maxAutoRecoveryAttempts = 3 } = this.props;
-
-    // If there's an error, don't render children.
-    if (hasError && error) {
-      // If we've exhausted recovery attempts, show the full fallback
-      if (recoveryAttempts >= maxAutoRecoveryAttempts) {
-        if (fallback) {
-          return fallback;
-        }
-
-        return (
-          <ErrorFallback
-            error={error}
-            resetErrorBoundary={() => {
-              this.setState({ recoveryAttempts: 0 });
-              this.resetErrorBoundary();
-            }}
-            variant={variant}
-          />
-        );
+    if (this.state.hasError && this.state.error) {
+      const { fallback } = this.props;
+      if (typeof fallback === 'function') {
+        return fallback(this.state.error, this.reset);
       }
-
-      // During recovery attempts, show a subtle loading or blank state to prevent loops
+      if (fallback) {
+        return fallback;
+      }
       return (
-        <div className="flex items-center justify-center w-full h-full bg-[#1e1e1e]/50 backdrop-blur-sm animate-pulse">
-          <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">
-            Recovering {recoveryAttempts}/{maxAutoRecoveryAttempts}...
-          </div>
+        <div className="flex flex-col items-center justify-center p-6 bg-red-500/10 border border-red-500/20 rounded-lg min-h-[200px]">
+          <p className="text-red-400 text-sm font-medium mb-1">Something went wrong</p>
+          <p className="text-red-300/60 text-xs text-center mb-4 max-w-[260px] truncate">
+            {this.state.error.message || 'An unexpected error occurred'}
+          </p>
+          <button
+            onClick={this.reset}
+            className="px-4 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded text-xs font-medium transition-colors"
+          >
+            Try Again
+          </button>
         </div>
       );
     }
-
-    return children;
+    return this.props.children;
   }
-}
-
-/**
- * HOC to wrap a component with an Intelligent ErrorBoundary
- */
-export function withErrorBoundary<P extends object>(
-  WrappedComponent: React.ComponentType<P>,
-  options: Omit<Props, 'children'> = {}
-) {
-  return function WithErrorBoundary(props: P) {
-    return (
-      <ErrorBoundary {...options}>
-        <WrappedComponent {...props} />
-      </ErrorBoundary>
-    );
-  };
 }

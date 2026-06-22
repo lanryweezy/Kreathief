@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { NavTab } from '../types';
 import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
+import { ErrorBoundary } from './ErrorBoundary';
 import { useContextualPanels } from '../hooks/useContextualPanels';
 
 interface SidebarProps {
@@ -94,6 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
         {/* Visual Accent */}
         <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-[#7d2ae8]/5 to-transparent pointer-events-none" />
 
+        <ErrorBoundary fallback={<div className="text-xs text-red-400 p-2">Sidebar error</div>}>
         <div className="sticky top-0 z-20 w-full flex flex-col items-center gap-2 px-2 pt-6 pb-2 bg-[#0c0c0e]/95 backdrop-blur-3xl shadow-md border-b border-white/5">
           <AnimatePresence mode="popLayout">
             {primaryTools.map((item) => (
@@ -111,6 +113,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
             ))}
           </AnimatePresence>
         </div>
+        </ErrorBoundary>
 
         <div className="flex flex-col items-center w-full gap-2 px-2 mt-2">
           <button

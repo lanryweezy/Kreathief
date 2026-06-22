@@ -30,7 +30,7 @@ interface MotionPanelProps {
   onPreviewMotion?: (settings: AnimationSettings) => void;
 }
 
-export const MotionPanel: React.FC<MotionPanelProps> = ({ onPreviewMotion }) => {
+export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) => {
   const { artboards, selectedLayerIds, updateLayer } = useStore();
 
   const allLayers = artboards.flatMap((a) => a.layers);
@@ -63,6 +63,7 @@ export const MotionPanel: React.FC<MotionPanelProps> = ({ onPreviewMotion }) => 
     onUpdateLayer(selectedLayer.id, { animation: newAnim });
     onPreviewMotion?.(newAnim);
   };
+
 
   return (
     <div className="flex flex-col h-full bg-[#13161a]">
@@ -179,4 +180,4 @@ export const MotionPanel: React.FC<MotionPanelProps> = ({ onPreviewMotion }) => 
       </div>
     </div>
   );
-};
+});

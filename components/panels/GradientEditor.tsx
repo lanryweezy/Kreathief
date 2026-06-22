@@ -15,7 +15,7 @@ interface GradientEditorProps {
   onChange: (gradient: { type: 'linear' | 'radial'; angle: number; stops: GradientStop[] }) => void;
 }
 
-export const GradientEditor: React.FC<GradientEditorProps> = ({ gradient, onChange }) => {
+export const GradientEditor = React.memo(({ gradient, onChange }: GradientEditorProps) => {
   const [type, setType] = useState<'linear' | 'radial'>(gradient?.type || 'linear');
   const [angle, setAngle] = useState(gradient?.angle || 90);
   const [stops, setStops] = useState<GradientStop[]>(
@@ -34,6 +34,7 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({ gradient, onChan
       color: '#ffffff',
       position: 50,
     };
+
     const newStops = [...stops, newStop].sort((a, b) => a.position - b.position);
     setStops(newStops);
     setSelectedStop(newStops.length - 1);
@@ -195,4 +196,4 @@ export const GradientEditor: React.FC<GradientEditorProps> = ({ gradient, onChan
       </div>
     </div>
   );
-};
+});

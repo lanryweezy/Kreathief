@@ -8,7 +8,7 @@ interface CropOverlayProps {
   onClose: () => void;
 }
 
-export const CropOverlay: React.FC<CropOverlayProps> = ({ layer, zoom, onClose }) => {
+export const CropOverlay = React.memo(({ layer, zoom, onClose }: CropOverlayProps) => {
   const updateLayer = useStore((s) => s.updateLayer);
   const [crop, setCrop] = useState(
     layer.crop || { x: 0, y: 0, width: layer.width, height: layer.height }
@@ -153,4 +153,4 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ layer, zoom, onClose }
       </div>
     </div>
   );
-};
+});

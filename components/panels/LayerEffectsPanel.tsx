@@ -7,7 +7,7 @@ interface LayerEffectsPanelProps {
   selectedLayer?: Layer;
 }
 
-export const LayerEffectsPanel: React.FC<LayerEffectsPanelProps> = ({ selectedLayer }) => {
+export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPanelProps) => {
   const updateLayer = useStore((state) => state.updateLayer);
   const addToast = useStore((state) => state.addToast);
 
@@ -311,4 +311,4 @@ export const LayerEffectsPanel: React.FC<LayerEffectsPanelProps> = ({ selectedLa
       </div>
     </div>
   );
-};
+});

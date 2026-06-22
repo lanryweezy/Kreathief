@@ -8,7 +8,7 @@ interface QuickTextEffectsProps {
   onUpdateLayer: (id: string, changes: Partial<TextLayer>) => void;
 }
 
-export const QuickTextEffects: React.FC<QuickTextEffectsProps> = ({ layer, onUpdateLayer }) => {
+export const QuickTextEffects = React.memo(({ layer, onUpdateLayer }: QuickTextEffectsProps) => {
   const [showEffects, setShowEffects] = React.useState(false);
   const effectsButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -163,4 +163,4 @@ export const QuickTextEffects: React.FC<QuickTextEffectsProps> = ({ layer, onUpd
       </Dropdown>
     </>
   );
-};
+});

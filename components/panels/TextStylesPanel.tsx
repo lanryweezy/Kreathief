@@ -138,7 +138,7 @@ const DEFAULT_STYLES: TextStyle[] = [
   },
 ];
 
-export const TextStylesPanel: React.FC<TextStylesPanelProps> = ({ currentStyle, onApplyStyle, onSaveStyle }) => {
+export const TextStylesPanel = React.memo(({ currentStyle, onApplyStyle, onSaveStyle }: TextStylesPanelProps) => {
   const [styles, setStyles] = useState<TextStyle[]>(() => {
     const saved = localStorage.getItem('kreathief_text_styles');
     return saved ? JSON.parse(saved) : DEFAULT_STYLES;
@@ -165,6 +165,7 @@ export const TextStylesPanel: React.FC<TextStylesPanelProps> = ({ currentStyle, 
       lineHeight: currentStyle.lineHeight || 1.5,
       textTransform: currentStyle.textTransform || 'none',
     };
+
 
     const updated = [...styles, newStyle];
     setStyles(updated);
@@ -292,4 +293,4 @@ export const TextStylesPanel: React.FC<TextStylesPanelProps> = ({ currentStyle, 
       )}
     </div>
   );
-};
+});

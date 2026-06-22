@@ -531,3 +531,45 @@ export interface Toast {
   };
   details?: string;
 }
+
+export interface DesignCritique {
+  suggestions: DesignSuggestion[];
+  score: number;
+  overallScore: number;
+  summary: string;
+  strengths: string[];
+  areas_for_improvement: string[];
+  timestamp?: number;
+}
+
+export interface DesignSuggestion {
+  id: string;
+  type: string;
+  severity: 'low' | 'medium' | 'high';
+  message: string;
+  title?: string;
+  category?: string;
+  autoFix?: any;
+}
+
+export interface DesignContext {
+  layerCount: number;
+  hasText: boolean;
+  hasImages: boolean;
+  colorPalette: string[];
+  fontFamilies: string[];
+  canvasSize: { width: number; height: number; name?: string };
+  purpose?: string;
+  brandKit?: any;
+}
+
+export interface AIAssistantState {
+  isActive: boolean;
+  isAnalyzing: boolean;
+  currentCritique?: DesignCritique;
+  conversationHistory: any[];
+  lastAnalysis: number;
+  autoSuggest: boolean;
+  position: { x: number; y: number };
+  isMinimized: boolean;
+}

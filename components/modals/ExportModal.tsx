@@ -4,7 +4,7 @@ import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
-import { ColorProfile } from '../../services/exportService';
+import { ColorProfile, batchExportArtboardsZip } from '../../services/exportService';
 import { isWithinCMYKGamut, getClosestCMYKSafeColor } from '../../utils/colorUtils';
 
 interface ExportModalProps {
@@ -62,6 +62,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
   const [cropMarks, setCropMarks] = useState(true);
 
   const [transparentBg, setTransparentBg] = useState(false);
+
+  // Batch export state
+  const [batchMode, setBatchMode] = useState(false);
+  const [selectedArtboardIds, setSelectedArtboardIds] = useState<string[]>([]);
 
   // Gamut Validation for Print
   const outOfGamutCount = React.useMemo(() => {
@@ -279,7 +283,57 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       addToast('Export Selection failed', 'error');
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleBatchExport = async () => {
+    const selected = artboards.filter((ab) => selectedArtboardIds.includes(ab.id));
+    if (selected.length === 0) {
+      addToast('Select at least one artboard to export', 'warning');
+      return;
+    }
+
+    setIsExporting(true);
+    setExportStage(`Exporting ${selected.length} artboard(s)...`);
+
+    try {
+      const exportableFormat = ['png', 'jpeg', 'webp', 'svg'].includes(format) ? format as 'png' | 'jpeg' | 'webp' | 'svg' : 'png';
+      await batchExportArtboardsZip(
+        selected.map((ab) => ({
+          id: ab.id,
+          name: ab.name,
+          width: ab.width || currentSize.width,
+          height: ab.height || currentSize.height,
+          layers: ab.layers,
+          backgroundColor: ab.backgroundColor || '#ffffff',
+        })),
+        exportableFormat,
+        quality
+      );
+
+      analyticsService.trackExport(format, quality, { batchExport: true, artboardCount: selected.length });
+      addToast(`Exported ${selected.length} artboard(s) as ${exportableFormat.toUpperCase()}!`, 'success');
+      setTimeout(() => onClose(), 500);
+    } catch (e: any) {
+      log.error('[ExportModal] Batch export failed', e);
+      addToast('Batch export failed', 'error');
+    } finally {
+      setIsExporting(false);
       setExportStage('');
+    }
+  };
+
+  const toggleArtboardSelection = (id: string) => {
+    setSelectedArtboardIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedArtboardIds.length === artboards.length) {
+      setSelectedArtboardIds([]);
+    } else {
+      setSelectedArtboardIds(artboards.map((ab) => ab.id));
     }
   };
 
@@ -380,6 +434,71 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 ))}
               </div>
             </div>
+
+            {/* Batch Export Mode (only when 2+ artboards) */}
+            {artboards && artboards.length >= 2 && (
+              <div className="p-4 bg-[#13161a] border border-gray-700 rounded-xl">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Icons.Layers className="w-4 h-4 text-[#7d2ae8]" />
+                    <h4 className="text-xs font-bold text-white">Batch Export</h4>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setBatchMode(!batchMode);
+                      if (batchMode) setSelectedArtboardIds([]);
+                    }}
+                    className={`w-10 h-5 rounded-full transition-all relative ${batchMode ? 'bg-[#7d2ae8]' : 'bg-gray-700'}`}
+                    role="switch"
+                    aria-checked={batchMode}
+                    aria-label="Toggle Batch Export Mode"
+                  >
+                    <div
+                      className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${batchMode ? 'left-6' : 'left-1'}`}
+                    />
+                  </button>
+                </div>
+
+                {batchMode && (
+                  <div className="animate-fade-in">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[10px] text-gray-500">
+                        {selectedArtboardIds.length} of {artboards.length} selected
+                      </p>
+                      <button
+                        onClick={toggleSelectAll}
+                        className="text-[10px] text-[#7d2ae8] hover:text-[#9b4af0] font-bold uppercase tracking-wider"
+                      >
+                        {selectedArtboardIds.length === artboards.length ? 'Deselect All' : 'Select All'}
+                      </button>
+                    </div>
+                    <div className="max-h-32 overflow-y-auto custom-scrollbar space-y-1">
+                      {artboards.map((ab) => (
+                        <label
+                          key={ab.id}
+                          className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all ${
+                            selectedArtboardIds.includes(ab.id)
+                              ? 'bg-[#7d2ae8]/10 border border-[#7d2ae8]'
+                              : 'bg-[#252627] border border-gray-700 hover:border-gray-600'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedArtboardIds.includes(ab.id)}
+                            onChange={() => toggleArtboardSelection(ab.id)}
+                            className="w-3.5 h-3.5 accent-[#7d2ae8] rounded"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <span className="text-xs text-white truncate block">{ab.name || `Artboard ${ab.id.slice(0, 6)}`}</span>
+                            <span className="text-[9px] text-gray-500">{ab.width} x {ab.height}</span>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Print Mode Toggle (PDF only) */}
             {format === 'pdf' && (
@@ -707,8 +826,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
               {/* Download */}
               <button
                 data-testid="download-btn"
-                onClick={handleExportClick}
-                disabled={isExporting || isCopying}
+                onClick={batchMode && selectedArtboardIds.length > 0 ? handleBatchExport : handleExportClick}
+                disabled={isExporting || isCopying || (batchMode && selectedArtboardIds.length === 0)}
                 className={`flex-[2] py-3 rounded-xl font-bold shadow-lg transform transition-all flex flex-col items-center justify-center gap-1 ${isExporting ? 'bg-gray-800' : 'bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] hover:scale-[1.02] active:scale-[0.98] shadow-purple-900/40'}`}
               >
                 {isExporting ? (
@@ -723,7 +842,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                   </>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-white">Download {format.toUpperCase()}</span>
+                    <span className="text-sm text-white">
+                      {batchMode ? `Download All (${selectedArtboardIds.length})` : `Download ${format.toUpperCase()}`}
+                    </span>
                     <Icons.Download className="w-4 h-4 text-white" />
                   </div>
                 )}

@@ -209,6 +209,16 @@ const LayerItem = React.memo(
 );
 LayerItem.displayName = 'LayerItem';
 
+interface RowData {
+  layers: Layer[];
+  selectedLayerIds: string[];
+  selectLayer: (id: string) => void;
+  multiSelectLayer: (id: string, append: boolean) => void;
+  updateLayer: (id: string, changes: Partial<Layer>) => void;
+  deleteLayer: (id: string) => void;
+  reorderLayer: (id: string, index: number) => void;
+}
+
 export const LayersPanel = () => {
   const {
     artboards,
@@ -237,6 +247,25 @@ export const LayersPanel = () => {
   );
 
   const [activeTab, setActiveTab] = useState<'layers' | 'arrange'>('layers');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [listHeight, setListHeight] = useState(0);
+
+  useEffect(() => {
+    const updateHeight = () => {
+      if (containerRef.current) {
+        setListHeight(containerRef.current.clientHeight);
+      }
+    };
+
+    updateHeight();
+
+    const observer = new ResizeObserver(updateHeight);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div className="flex flex-col h-full bg-transparent">
@@ -264,25 +293,25 @@ export const LayersPanel = () => {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto no-scrollbar py-2">
+      <div ref={containerRef} className="flex-1 py-2 overflow-y-auto no-scrollbar" style={{ maxHeight: listHeight || '100%' }}>
         {activeTab === 'layers' ? (
-          [...layers]
-            .reverse()
-            .map((layer, idx) => (
+          <div className="flex flex-col">
+            {[...layers].reverse().map((layer, index) => (
               <LayerItem
                 key={layer.id}
                 layer={layer}
-                index={idx}
+                index={index}
                 isSelected={selectedLayerIds.includes(layer.id)}
                 onSelect={() => selectLayer(layer.id)}
-                onSelectMultiple={(_e) => multiSelectLayer(layer.id, true)}
+                onSelectMultiple={() => multiSelectLayer(layer.id, true)}
                 onUpdate={(c) => updateLayer(layer.id, c)}
                 onDelete={() => deleteLayer(layer.id)}
                 onDrop={(id, target, pos) =>
                   reorderLayer(id, layers.findIndex((l) => l.id === target) + (pos === 'above' ? 1 : 0))
                 }
               />
-            ))
+            ))}
+          </div>
         ) : (
           <div className="h-full">
             <ArrangePanel />

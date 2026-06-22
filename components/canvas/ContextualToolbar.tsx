@@ -11,7 +11,7 @@ interface ContextualToolbarProps {
   zoom: number;
 }
 
-export const ContextualToolbar: React.FC<ContextualToolbarProps> = ({ selectedLayerIds, layers, zoom }) => {
+export const ContextualToolbar = React.memo(({ selectedLayerIds, layers, zoom }: ContextualToolbarProps) => {
   const { updateLayer, deleteSelected, duplicateSelected, moveLayer, saveToHistory } = useStore(
     useShallow((state) => ({
       updateLayer: state.updateLayer,
@@ -112,7 +112,7 @@ export const ContextualToolbar: React.FC<ContextualToolbarProps> = ({ selectedLa
       </div>
     </div>
   );
-};
+});
 
 const ToolbarButton = ({ onClick, icon, label, variant = 'default' }: any) => (
   <button
