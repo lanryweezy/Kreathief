@@ -2,7 +2,7 @@
   "framework": "vite",
   "buildCommand": "node --max-old-space-size=4096 ./node_modules/.bin/vite build",
   "devCommand": "npm run dev",
-  "installCommand": "npm install",
+  "installCommand": "pnpm install --no-frozen-lockfile",
   "outputDirectory": "dist",
   "rewrites": [
     {
