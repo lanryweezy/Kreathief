@@ -41,3 +41,7 @@
 ## 2026-06-20 - Unused duplicate components removed
 **Learning:** The codebase contained an unused `components/ContrastChecker.tsx` that duplicated utility functions (`getLuminance`, `getContrastRatio`) already present in `utils/colorUtils.ts`. The actual UI component being used was `components/panels/ContrastChecker.tsx` which correctly imported the utilities.
 **Action:** Found and removed dead duplicate code components. Often when multiple files have similar names across directories (e.g. `components/` vs `components/panels/`), one of them is an unused relic that can be cleanly removed to eliminate structural debt and confusion.
+
+## 2026-06-21 - Unused duplicate components removed
+**Learning:** The codebase contained an unused `components/CommentsPanel.tsx` that duplicated functionality of `components/panels/CommentsPanel.tsx`.
+**Action:** Removed dead duplicate code component `components/CommentsPanel.tsx`. Often when multiple files have similar names across directories (e.g. `components/` vs `components/panels/`), one of them is an unused relic that can be cleanly removed to eliminate structural debt and confusion.
