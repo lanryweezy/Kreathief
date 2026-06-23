@@ -4,9 +4,8 @@ import { supabase } from '../lib/supabase/client';
 import { authService } from './authService';
 
 // Mock dependencies
-vi.mock('../lib/supabase/client', () => ({
-  db: {},
-  supabase: {
+vi.mock('../lib/supabase/client', () => {
+  const mockSupabase = {
     from: vi.fn().mockReturnValue({
       upsert: vi.fn(),
       delete: vi.fn().mockReturnThis(),
