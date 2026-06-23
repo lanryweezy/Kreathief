@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
-  size?: 'sm' | 'md' | 'lg' | 'icon';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'accent';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'icon';
   loading?: boolean;
 }
 
@@ -16,21 +16,27 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyles =
-    'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed';
+    'inline-flex items-center justify-center font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-dark-1 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100';
 
   const variants = {
     primary:
-      'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white shadow-lg shadow-indigo-500/20 border border-transparent',
-    secondary: 'bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700',
-    ghost: 'bg-transparent hover:bg-gray-800/50 text-gray-400 hover:text-white',
-    danger: 'bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20',
+      'bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-600/20 hover:shadow-brand-500/30 border border-brand-500/20 rounded-xl',
+    secondary:
+      'bg-surface-dark-4 hover:bg-surface-dark-5 text-gray-200 border border-white/10 hover:border-white/20 rounded-xl',
+    ghost:
+      'bg-transparent hover:bg-white/5 text-gray-400 hover:text-white rounded-xl',
+    danger:
+      'bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 rounded-xl',
+    accent:
+      'bg-accent hover:bg-accent-light text-surface-dark-0 shadow-lg shadow-accent/20 rounded-xl',
   };
 
   const sizes = {
-    sm: 'px-3 py-1.5 text-xs',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base',
-    icon: 'p-2',
+    xs: 'px-2.5 py-1 text-[11px] rounded-lg',
+    sm: 'px-3 py-1.5 text-xs rounded-lg',
+    md: 'px-4 py-2 text-sm rounded-xl',
+    lg: 'px-6 py-3 text-base rounded-xl',
+    icon: 'p-2 rounded-xl',
   };
 
   return (
