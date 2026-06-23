@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
 import { Button } from '../Button';
 import { VectorPoint, PointType } from '../../types';
@@ -14,7 +15,15 @@ export const VectorEditingPanel: React.FC = () => {
     return artboard?.layers.find((l: any) => l.id === selectedIds[0]);
   });
 
-  const { updateLayer, handleBooleanOperation, handleJoinPaths, saveToHistory } = useStore();
+  // ⚡ Bolt Optimization: Use useShallow to prevent unnecessary re-renders of VectorEditingPanel when unrelated store changes occur.
+  const { updateLayer, handleBooleanOperation, handleJoinPaths, saveToHistory } = useStore(
+    useShallow((state) => ({
+      updateLayer: state.updateLayer,
+      handleBooleanOperation: state.handleBooleanOperation,
+      handleJoinPaths: state.handleJoinPaths,
+      saveToHistory: state.saveToHistory,
+    }))
+  );
 
   const [activePanel, setActivePanel] = useState<'path' | 'boolean' | 'effects' | 'transform'>('path');
   const [simplifyTolerance, setSimplifyTolerance] = useState(2.5);
@@ -128,7 +137,16 @@ export const VectorEditingPanel: React.FC = () => {
 
 // Path Operations Sub-Panel
 const PathOperationsPanel: React.FC = () => {
-  const { selectedLayerIds, deleteSelected, duplicateSelected, saveToHistory, updateLayer } = useStore();
+  // ⚡ Bolt Optimization: Use useShallow to prevent unnecessary re-renders of PathOperationsPanel when unrelated store changes occur.
+  const { selectedLayerIds, deleteSelected, duplicateSelected, saveToHistory, updateLayer } = useStore(
+    useShallow((state) => ({
+      selectedLayerIds: state.selectedLayerIds,
+      deleteSelected: state.deleteSelected,
+      duplicateSelected: state.duplicateSelected,
+      saveToHistory: state.saveToHistory,
+      updateLayer: state.updateLayer,
+    }))
+  );
   const selectedLayer = useStore((state) => {
     if (!selectedLayerIds || selectedLayerIds.length !== 1) return null;
     const artboard = state.artboards?.find((a: any) => a.id === state.activeArtboardId);
@@ -255,7 +273,13 @@ const PathOperationsPanel: React.FC = () => {
 
 // Boolean Operations Sub-Panel
 const BooleanOperationsPanel: React.FC = () => {
-  const { handleBooleanOperation, selectedLayerIds } = useStore();
+  // ⚡ Bolt Optimization: Use useShallow to prevent unnecessary re-renders of BooleanOperationsPanel when unrelated store changes occur.
+  const { handleBooleanOperation, selectedLayerIds } = useStore(
+    useShallow((state) => ({
+      handleBooleanOperation: state.handleBooleanOperation,
+      selectedLayerIds: state.selectedLayerIds,
+    }))
+  );
   const [hoveredOp, setHoveredOp] = useState<string | null>(null);
 
   const operations = [
@@ -421,7 +445,14 @@ const PathEffectsPanel: React.FC<PathEffectsPanelProps> = ({
 
 // Path Transform Sub-Panel
 const PathTransformPanel: React.FC = () => {
-  const { selectedLayerIds, updateLayer, saveToHistory } = useStore();
+  // ⚡ Bolt Optimization: Use useShallow to prevent unnecessary re-renders of PathTransformPanel when unrelated store changes occur.
+  const { selectedLayerIds, updateLayer, saveToHistory } = useStore(
+    useShallow((state) => ({
+      selectedLayerIds: state.selectedLayerIds,
+      updateLayer: state.updateLayer,
+      saveToHistory: state.saveToHistory,
+    }))
+  );
   const selectedLayer = useStore((state) => {
     if (!selectedLayerIds || selectedLayerIds.length !== 1) return null;
     const artboard = state.artboards?.find((a: any) => a.id === state.activeArtboardId);
