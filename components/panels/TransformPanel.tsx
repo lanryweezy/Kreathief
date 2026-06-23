@@ -120,7 +120,7 @@ export const TransformPanel: React.FC = () => {
   );
 
   return (
-    <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4 space-y-4">
+    <div className="bg-surface-dark-3 rounded-xl border border-gray-700 p-4 space-y-4">
       <div className="flex items-center gap-2 mb-2">
         <Icons.Arrange className="w-4 h-4 text-gray-400" />
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Transform</h3>
@@ -142,7 +142,7 @@ export const TransformPanel: React.FC = () => {
               }
             }}
             placeholder="Mixed"
-            className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1.5 text-xs text-white focus:border-[#7d2ae8] outline-none"
+            className="w-full bg-surface-dark-4 border border-gray-600 rounded px-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none"
           />
         </div>
         <div>
@@ -159,7 +159,7 @@ export const TransformPanel: React.FC = () => {
               }
             }}
             placeholder="Mixed"
-            className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1.5 text-xs text-white focus:border-[#7d2ae8] outline-none"
+            className="w-full bg-surface-dark-4 border border-gray-600 rounded px-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none"
           />
         </div>
         <div>
@@ -180,12 +180,12 @@ export const TransformPanel: React.FC = () => {
               }
             }}
             placeholder="Mixed"
-            className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1.5 text-xs text-white focus:border-[#7d2ae8] outline-none"
+            className="w-full bg-surface-dark-4 border border-gray-600 rounded px-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none"
           />
         </div>
         <button
           onClick={() => setAspectLocked(!aspectLocked)}
-          className={`self-end mb-1 p-1.5 rounded transition-colors ${aspectLocked ? 'bg-[#7d2ae8] text-white' : 'bg-[#252627] text-gray-500 hover:text-white'}`}
+          className={`self-end mb-1 p-1.5 rounded transition-colors ${aspectLocked ? 'bg-brand-600 text-white' : 'bg-surface-dark-4 text-gray-500 hover:text-white'}`}
           title={aspectLocked ? 'Unlock aspect ratio' : 'Lock aspect ratio'}
         >
           {aspectLocked ? <Icons.Lock className="w-3.5 h-3.5" /> : <Icons.Unlock className="w-3.5 h-3.5" />}
@@ -208,7 +208,7 @@ export const TransformPanel: React.FC = () => {
               }
             }}
             placeholder="Mixed"
-            className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1.5 text-xs text-white focus:border-[#7d2ae8] outline-none"
+            className="w-full bg-surface-dark-4 border border-gray-600 rounded px-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none"
           />
         </div>
 
@@ -226,7 +226,7 @@ export const TransformPanel: React.FC = () => {
                 }
               }}
               placeholder="Mixed"
-              className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1.5 text-xs text-white focus:border-[#7d2ae8] outline-none pr-5"
+              className="w-full bg-surface-dark-4 border border-gray-600 rounded px-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none pr-5"
             />
             <span className="absolute right-2 top-1.5 text-[10px] text-gray-600">°</span>
           </div>
@@ -243,7 +243,7 @@ export const TransformPanel: React.FC = () => {
               }
             }}
             placeholder="0"
-            className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1.5 text-xs text-white focus:border-[#7d2ae8] outline-none"
+            className="w-full bg-surface-dark-4 border border-gray-600 rounded px-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none"
           />
         </div>
       </div>
@@ -254,7 +254,7 @@ export const TransformPanel: React.FC = () => {
         <div className="grid grid-cols-6 gap-1">
           <button
             onClick={() => handleAlign('left')}
-            className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white"
+            className="p-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
             title="Align Left"
             aria-label="Align Left"
           >
@@ -262,7 +262,7 @@ export const TransformPanel: React.FC = () => {
           </button>
           <button
             onClick={() => handleAlign('center')}
-            className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white"
+            className="p-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
             title="Align Center"
             aria-label="Align Center"
           >
@@ -270,7 +270,7 @@ export const TransformPanel: React.FC = () => {
           </button>
           <button
             onClick={() => handleAlign('right')}
-            className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white"
+            className="p-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
             title="Align Right"
             aria-label="Align Right"
           >
@@ -279,7 +279,7 @@ export const TransformPanel: React.FC = () => {
           <div className="col-span-3"></div>
           <button
             onClick={() => handleAlign('top')}
-            className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white"
+            className="p-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
             title="Align Top"
             aria-label="Align Top"
           >
@@ -287,7 +287,7 @@ export const TransformPanel: React.FC = () => {
           </button>
           <button
             onClick={() => handleAlign('middle')}
-            className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white"
+            className="p-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
             title="Align Middle"
             aria-label="Align Middle"
           >
@@ -295,7 +295,7 @@ export const TransformPanel: React.FC = () => {
           </button>
           <button
             onClick={() => handleAlign('bottom')}
-            className="p-2 bg-[#252627] hover:bg-gray-700 rounded text-gray-400 hover:text-white"
+            className="p-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-gray-400 hover:text-white"
             title="Align Bottom"
             aria-label="Align Bottom"
           >
@@ -310,13 +310,13 @@ export const TransformPanel: React.FC = () => {
         <div className="flex gap-2">
           <button
             onClick={() => handleDistribute('horizontal')}
-            className="flex-1 py-2 bg-[#252627] hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white"
+            className="flex-1 py-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white"
           >
             Horizontal
           </button>
           <button
             onClick={() => handleDistribute('vertical')}
-            className="flex-1 py-2 bg-[#252627] hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white"
+            className="flex-1 py-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white"
           >
             Vertical
           </button>
@@ -329,13 +329,13 @@ export const TransformPanel: React.FC = () => {
         <div className="flex gap-2">
           <button
             onClick={() => handleFlip('horizontal')}
-            className="flex-1 py-2 bg-[#252627] hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white"
+            className="flex-1 py-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white"
           >
             Flip Horizontal
           </button>
           <button
             onClick={() => handleFlip('vertical')}
-            className="flex-1 py-2 bg-[#252627] hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white"
+            className="flex-1 py-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white"
           >
             Flip Vertical
           </button>
@@ -351,7 +351,7 @@ export const TransformPanel: React.FC = () => {
               addToast('Grouped layers', 'success');
             }}
             disabled={selectedLayers.length < 2}
-            className="py-2 bg-[#252627] hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white disabled:opacity-50"
+            className="py-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white disabled:opacity-50"
           >
             Group
           </button>
@@ -360,7 +360,7 @@ export const TransformPanel: React.FC = () => {
               // Ungroup
               addToast('Ungrouped layers', 'success');
             }}
-            className="py-2 bg-[#252627] hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white"
+            className="py-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white"
           >
             Ungroup
           </button>

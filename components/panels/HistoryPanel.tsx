@@ -28,7 +28,7 @@ export const HistoryPanel: React.FC = () => {
   };
 
   return (
-    <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4 space-y-4">
+    <div className="bg-surface-dark-3 rounded-xl border border-gray-700 p-4 space-y-4">
       <div className="flex items-center gap-2 mb-2">
         <Icons.History className="w-4 h-4 text-gray-400" />
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">History</h3>
@@ -39,7 +39,7 @@ export const HistoryPanel: React.FC = () => {
         <button
           onClick={handleUndo}
           disabled={past.length === 0}
-          className="flex-1 py-2 bg-[#252627] hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white disabled:opacity-50 flex items-center justify-center gap-2"
+          className="flex-1 py-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white disabled:opacity-50 flex items-center justify-center gap-2"
         >
           <Icons.Undo className="w-3 h-3" />
           Undo ({past.length})
@@ -47,7 +47,7 @@ export const HistoryPanel: React.FC = () => {
         <button
           onClick={handleRedo}
           disabled={future.length === 0}
-          className="flex-1 py-2 bg-[#252627] hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white disabled:opacity-50 flex items-center justify-center gap-2"
+          className="flex-1 py-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white disabled:opacity-50 flex items-center justify-center gap-2"
         >
           <Icons.Redo className="w-3 h-3" />
           Redo ({future.length})
@@ -72,11 +72,11 @@ export const HistoryPanel: React.FC = () => {
               return (
                 <div
                   key={`hist-${past.length - index}`}
-                  className="text-[10px] text-gray-400 bg-[#252627] rounded px-2 py-1.5 flex items-center justify-between"
+                  className="text-[10px] text-gray-400 bg-surface-dark-4 rounded px-2 py-1.5 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-2">
                     <div
-                      className={`w-2 h-2 rounded-full ${entry.type === 'snapshot' ? 'bg-[#7d2ae8]' : 'bg-gray-600'}`}
+                      className={`w-2 h-2 rounded-full ${entry.type === 'snapshot' ? 'bg-brand-600' : 'bg-gray-600'}`}
                     />
                     <span className="font-bold text-gray-300">
                       {actionType} {past.length - index}

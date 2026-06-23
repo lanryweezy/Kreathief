@@ -65,7 +65,7 @@ export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({ ba
   const harmonyColors = getHarmonyColors();
 
   return (
-    <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4 space-y-4">
+    <div className="bg-surface-dark-3 rounded-xl border border-gray-700 p-4 space-y-4">
       {/* Harmony Type Selector */}
       <div>
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Color Harmony</h3>
@@ -83,8 +83,8 @@ export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({ ba
               onClick={() => setActiveHarmony(type.id as HarmonyType)}
               className={`px-3 py-2 rounded-lg text-[10px] font-bold transition-all flex flex-col items-center gap-1 ${
                 activeHarmony === type.id
-                  ? 'bg-[#7d2ae8] text-white shadow-lg shadow-purple-900/20'
-                  : 'bg-[#252627] text-gray-400 hover:text-white hover:bg-gray-700'
+                  ? 'bg-brand-600 text-white shadow-lg shadow-purple-900/20'
+                  : 'bg-surface-dark-4 text-gray-400 hover:text-white hover:bg-gray-700'
               }`}
             >
               <span className="text-sm">{type.icon}</span>
@@ -128,7 +128,7 @@ export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({ ba
             <button
               key={index}
               onClick={() => onColorSelect(color)}
-              className="px-2 py-1 bg-[#0e1318] border border-gray-700 rounded text-[10px] font-mono text-gray-300 hover:border-[#7d2ae8] transition-colors"
+              className="px-2 py-1 bg-[#0e1318] border border-gray-700 rounded text-[10px] font-mono text-gray-300 hover:border-brand-600 transition-colors"
             >
               {color.toUpperCase()}
             </button>
@@ -146,7 +146,7 @@ export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({ ba
                 key={type}
                 onClick={() => setShowVariations(showVariations === type ? null : type)}
                 className={`px-2 py-1 rounded text-[10px] font-bold uppercase transition-all ${
-                  showVariations === type ? 'bg-[#00c4cc] text-white' : 'bg-[#252627] text-gray-400 hover:text-white'
+                  showVariations === type ? 'bg-accent text-white' : 'bg-surface-dark-4 text-gray-400 hover:text-white'
                 }`}
               >
                 {type}
@@ -232,7 +232,7 @@ export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({ ba
             const css = `--color-primary: ${baseColor};\n${harmonyColors.map((c, i) => `--color-${i + 1}: ${c};`).join('\n')}`;
             navigator.clipboard.writeText(css);
           }}
-          className="flex-1 px-3 py-2 bg-[#252627] hover:bg-gray-700 rounded-lg text-[10px] font-bold text-gray-300 transition-colors flex items-center justify-center gap-2"
+          className="flex-1 px-3 py-2 bg-surface-dark-4 hover:bg-gray-700 rounded-lg text-[10px] font-bold text-gray-300 transition-colors flex items-center justify-center gap-2"
         >
           <Icons.Copy className="w-3.5 h-3.5" />
           Copy CSS
@@ -251,7 +251,7 @@ export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({ ba
             );
             navigator.clipboard.writeText(json);
           }}
-          className="flex-1 px-3 py-2 bg-[#252627] hover:bg-gray-700 rounded-lg text-[10px] font-bold text-gray-300 transition-colors flex items-center justify-center gap-2"
+          className="flex-1 px-3 py-2 bg-surface-dark-4 hover:bg-gray-700 rounded-lg text-[10px] font-bold text-gray-300 transition-colors flex items-center justify-center gap-2"
         >
           <Icons.Code className="w-3.5 h-3.5" />
           Copy JSON

@@ -13,7 +13,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose, onUpgrade }
       onClick={onClose}
     >
       <div
-        className="bg-[#1e1e1e] border border-gray-700 rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col md:flex-row relative"
+        className="bg-surface-dark-3 border border-gray-700 rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col md:flex-row relative"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -58,13 +58,13 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose, onUpgrade }
         </div>
 
         {/* Pro Tier */}
-        <div className="flex-1 p-8 bg-gradient-to-b from-[#1e1e1e] to-indigo-900/20 flex flex-col relative overflow-hidden">
-          <div className="absolute top-0 right-0 bg-[#7d2ae8] text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">
+        <div className="flex-1 p-8 bg-gradient-to-b from-surface-dark-3 to-indigo-900/20 flex flex-col relative overflow-hidden">
+          <div className="absolute top-0 right-0 bg-brand-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">
             Most Popular
           </div>
           <div className="mb-6">
             <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-              Pro <Icons.Magic className="w-4 h-4 text-[#7d2ae8]" />
+              Pro <Icons.Magic className="w-4 h-4 text-brand-600" />
             </h3>
             <p className="text-gray-400 text-sm">For creators who want full AI power and no limits.</p>
           </div>
@@ -83,7 +83,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose, onUpgrade }
               'Priority Support',
             ].map((feat, i) => (
               <li key={i} className="flex items-center gap-2 text-sm text-white">
-                <div className="w-5 h-5 rounded-full bg-[#7d2ae8] flex items-center justify-center shrink-0">
+                <div className="w-5 h-5 rounded-full bg-brand-600 flex items-center justify-center shrink-0">
                   <Icons.Check className="w-3 h-3 text-white" />
                 </div>
                 {feat}
@@ -92,7 +92,7 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose, onUpgrade }
           </ul>
           <button
             onClick={onUpgrade}
-            className="w-full py-3 bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] hover:from-[#00b3ba] hover:to-[#6b23c5] text-white rounded-lg font-bold shadow-lg shadow-purple-900/30 transition-all hover:scale-[1.02]"
+            className="w-full py-3 bg-gradient-to-r from-accent to-brand-600 hover:from-[#00b3ba] hover:to-[#6b23c5] text-white rounded-lg font-bold shadow-lg shadow-purple-900/30 transition-all hover:scale-[1.02]"
           >
             Upgrade to Pro
           </button>

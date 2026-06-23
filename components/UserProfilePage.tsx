@@ -46,22 +46,22 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0e1318] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#7d2ae8] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-surface-dark-2 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-brand-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-[#0e1318] flex items-center justify-center text-center p-8">
+      <div className="min-h-screen bg-surface-dark-2 flex items-center justify-center text-center p-8">
         <div>
           <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
             <Icons.User className="w-8 h-8 text-gray-600" />
           </div>
           <h2 className="text-xl font-bold text-white mb-2">User not found</h2>
           <p className="text-gray-500 text-sm">This profile may have been removed or is private.</p>
-          <button onClick={onBack} className="mt-4 text-[#7d2ae8] font-bold text-sm hover:underline">
+          <button onClick={onBack} className="mt-4 text-brand-600 font-bold text-sm hover:underline">
             Go back
           </button>
         </div>
@@ -70,7 +70,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
   }
 
   return (
-    <div className="min-h-screen bg-[#0e1318]">
+    <div className="min-h-screen bg-surface-dark-2">
       {/* Header */}
       <div className="border-b border-white/5">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-4">
@@ -95,7 +95,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
               className="w-24 h-24 rounded-3xl object-cover border-2 border-white/10"
             />
             {isOwnProfile && (
-              <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-[#7d2ae8] flex items-center justify-center border-2 border-[#0e1318]">
+              <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center border-2 border-surface-dark-2">
                 <Icons.Magic className="w-3.5 h-3.5 text-white" />
               </div>
             )}
@@ -109,33 +109,33 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                   placeholder="Display name"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:ring-2 focus:ring-[#7d2ae8]/50 focus:outline-none"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:ring-2 focus:ring-brand-600/50 focus:outline-none"
                 />
                 <textarea
                   value={editForm.bio}
                   onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
                   placeholder="Bio"
                   rows={3}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:ring-2 focus:ring-[#7d2ae8]/50 focus:outline-none resize-none"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:ring-2 focus:ring-brand-600/50 focus:outline-none resize-none"
                 />
                 <div className="flex gap-3">
                   <input
                     value={editForm.website}
                     onChange={(e) => setEditForm({ ...editForm, website: e.target.value })}
                     placeholder="Website URL"
-                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:ring-2 focus:ring-[#7d2ae8]/50 focus:outline-none"
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:ring-2 focus:ring-brand-600/50 focus:outline-none"
                   />
                   <input
                     value={editForm.location}
                     onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
                     placeholder="Location"
-                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:ring-2 focus:ring-[#7d2ae8]/50 focus:outline-none"
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:ring-2 focus:ring-brand-600/50 focus:outline-none"
                   />
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={handleSave}
-                    className="px-4 py-2 bg-[#7d2ae8] text-white rounded-xl text-sm font-bold hover:bg-[#6b23c5] transition-colors"
+                    className="px-4 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 transition-colors"
                   >
                     Save
                   </button>
@@ -162,7 +162,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
                       href={profile.website.startsWith('http') ? profile.website : `https://${profile.website}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-[#7d2ae8] hover:underline"
+                      className="flex items-center gap-1 text-brand-600 hover:underline"
                     >
                       <Icons.ExternalLink className="w-3 h-3" /> {profile.website.replace(/^https?:\/\//, '')}
                     </a>
@@ -171,7 +171,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
                     <Icons.Flag className="w-3 h-3" /> Joined{' '}
                     {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                   </span>
-                  <span className="px-2 py-0.5 rounded-full bg-[#7d2ae8]/20 text-[#7d2ae8] font-bold text-[10px] uppercase">
+                  <span className="px-2 py-0.5 rounded-full bg-brand-600/20 text-brand-600 font-bold text-[10px] uppercase">
                     {profile.plan}
                   </span>
                 </div>
@@ -191,7 +191,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
         {/* Portfolio */}
         <div className="mt-12">
           <h3 className="text-lg font-black text-white mb-6 flex items-center gap-2">
-            <Icons.Layers className="w-5 h-5 text-[#7d2ae8]" />
+            <Icons.Layers className="w-5 h-5 text-brand-600" />
             Published Designs
             <span className="text-sm font-normal text-gray-500 ml-2">({profile.communityTemplates?.length || 0})</span>
           </h3>
@@ -202,10 +202,10 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
                 <motion.div
                   key={template.id}
                   whileHover={{ y: -4 }}
-                  className="group rounded-2xl overflow-hidden bg-[#1a1a2e] border border-white/5 hover:border-[#7d2ae8]/30 transition-all cursor-pointer"
+                  className="group rounded-2xl overflow-hidden bg-surface-dark-3 border border-white/5 hover:border-brand-600/30 transition-all cursor-pointer"
                   onClick={() => onRemix?.(template)}
                 >
-                  <div className="aspect-video bg-gradient-to-br from-[#7d2ae8]/10 to-[#1a1a2e] overflow-hidden">
+                  <div className="aspect-video bg-gradient-to-br from-brand-600/10 to-surface-dark-3 overflow-hidden">
                     {template.thumbnailUrl ? (
                       <img
                         src={template.thumbnailUrl}
@@ -214,12 +214,12 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Icons.Magic className="w-8 h-8 text-[#7d2ae8]/30" />
+                        <Icons.Magic className="w-8 h-8 text-brand-600/30" />
                       </div>
                     )}
                   </div>
                   <div className="p-4">
-                    <h4 className="font-bold text-white text-sm group-hover:text-[#7d2ae8] transition-colors">
+                    <h4 className="font-bold text-white text-sm group-hover:text-brand-600 transition-colors">
                       {template.name}
                     </h4>
                     <div className="flex items-center justify-between mt-2 text-xs text-gray-500">

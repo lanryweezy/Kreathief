@@ -81,7 +81,7 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
   };
 
   return (
-    <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4 space-y-4">
+    <div className="bg-surface-dark-3 rounded-xl border border-gray-700 p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Text Gradient</h3>
         <label className="flex items-center gap-2 cursor-pointer">
@@ -92,7 +92,7 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
               setEnabled(e.target.checked);
               onChange({ enabled: e.target.checked, type, angle, colors });
             }}
-            className="accent-[#7d2ae8]"
+            className="accent-brand-600"
           />
           <span className="text-[10px] text-gray-400">Enabled</span>
         </label>
@@ -117,7 +117,7 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
                 onChange({ enabled, type: 'linear', angle, colors });
               }}
               className={`flex-1 px-3 py-1.5 rounded text-[10px] font-bold transition-all ${
-                type === 'linear' ? 'bg-[#7d2ae8] text-white' : 'bg-[#252627] text-gray-400 hover:text-white'
+                type === 'linear' ? 'bg-brand-600 text-white' : 'bg-surface-dark-4 text-gray-400 hover:text-white'
               }`}
             >
               Linear
@@ -128,7 +128,7 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
                 onChange({ enabled, type: 'radial', angle, colors });
               }}
               className={`flex-1 px-3 py-1.5 rounded text-[10px] font-bold transition-all ${
-                type === 'radial' ? 'bg-[#7d2ae8] text-white' : 'bg-[#252627] text-gray-400 hover:text-white'
+                type === 'radial' ? 'bg-brand-600 text-white' : 'bg-surface-dark-4 text-gray-400 hover:text-white'
               }`}
             >
               Radial
@@ -149,7 +149,7 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
                   setAngle(newAngle);
                   onChange({ enabled, type, angle: newAngle, colors });
                 }}
-                className="w-full accent-[#7d2ae8]"
+                className="w-full accent-brand-600"
               />
             </div>
           )}
@@ -161,7 +161,7 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
               <button
                 onClick={handleAddStop}
                 disabled={colors.length >= 10}
-                className="text-[10px] text-[#7d2ae8] hover:text-[#9d4edd] disabled:opacity-50 flex items-center gap-1"
+                className="text-[10px] text-brand-600 hover:text-brand-500 disabled:opacity-50 flex items-center gap-1"
               >
                 <Icons.Plus className="w-3 h-3" /> Add
               </button>
@@ -182,7 +182,7 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
                     max="100"
                     value={stop.position}
                     onChange={(e) => handlePositionChange(index, parseInt(e.target.value))}
-                    className="flex-1 accent-[#7d2ae8]"
+                    className="flex-1 accent-brand-600"
                   />
                   <span className="text-[10px] text-gray-400 w-8">{stop.position}%</span>
                   <button

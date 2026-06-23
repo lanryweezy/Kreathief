@@ -13,7 +13,7 @@ export const VariantCard: React.FC<VariantCardProps> = ({ variant, onApply }) =>
   const [showLogic, setShowLogic] = React.useState(false);
 
   return (
-    <div className="flex flex-col bg-[#1e1e1e] border border-white/10 rounded-2xl overflow-hidden shadow-2xl transition-all hover:border-purple-500/50 group">
+    <div className="flex flex-col bg-surface-dark-3 border border-white/10 rounded-2xl overflow-hidden shadow-2xl transition-all hover:border-purple-500/50 group">
       {/* Mini Preview Container */}
       <div className="relative aspect-square bg-white w-full overflow-hidden cursor-zoom-in group/preview">
         <div className="absolute inset-0">
@@ -99,7 +99,7 @@ export const VariantCard: React.FC<VariantCardProps> = ({ variant, onApply }) =>
 
         <Button
           variant="primary"
-          className="w-full bg-[#7d2ae8] hover:bg-[#6b23c5] text-[10px] font-black uppercase py-2.5 shadow-lg shadow-purple-500/20 active:scale-95 transition-transform"
+          className="w-full bg-brand-600 hover:bg-[#6b23c5] text-[10px] font-black uppercase py-2.5 shadow-lg shadow-purple-500/20 active:scale-95 transition-transform"
           onClick={() => onApply(variant.id)}
         >
           Apply This Variant

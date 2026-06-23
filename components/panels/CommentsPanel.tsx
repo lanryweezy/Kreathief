@@ -19,7 +19,7 @@ export const CommentsPanel: React.FC = () => {
     <div className="flex flex-col h-full bg-[#13161a]">
       <div className="p-4 border-b border-gray-700 bg-[#13161a] sticky top-0 z-10">
         <h3 className="text-white font-bold text-lg mb-1 flex items-center gap-2">
-          <Icons.MessageSquare className="w-5 h-5 text-[#00c4cc]" />
+          <Icons.MessageSquare className="w-5 h-5 text-accent" />
           Comments
         </h3>
         <p className="text-xs text-gray-400">Collaborate with your team</p>
@@ -42,18 +42,18 @@ export const CommentsPanel: React.FC = () => {
             {openComments.length > 0 && (
               <div>
                 <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-[#00c4cc]"></div>
+                  <div className="w-2 h-2 rounded-full bg-accent"></div>
                   Open ({openComments.length})
                 </h4>
                 <div className="space-y-3">
                   {openComments.map((comment) => (
                     <div
                       key={comment.id}
-                      className="bg-[#1e1e1e] border border-gray-700 rounded-xl p-3 shadow-md group"
+                      className="bg-surface-dark-3 border border-gray-700 rounded-xl p-3 shadow-md group"
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#7d2ae8] to-[#00c4cc] flex items-center justify-center text-[10px] font-bold text-white shadow-sm">
+                          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-600 to-accent flex items-center justify-center text-[10px] font-bold text-white shadow-sm">
                             {comment.author.name.charAt(0)}
                           </div>
                           <span className="text-xs font-bold text-white">{comment.author.name}</span>
@@ -66,7 +66,7 @@ export const CommentsPanel: React.FC = () => {
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => resolveCanvasComment(comment.id)}
-                          className="flex-1 px-3 py-1.5 bg-[#7d2ae8]/10 hover:bg-[#7d2ae8]/20 border border-[#7d2ae8]/30 text-[#e9d5ff] text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1"
+                          className="flex-1 px-3 py-1.5 bg-brand-600/10 hover:bg-brand-600/20 border border-brand-600/30 text-[#e9d5ff] text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1"
                         >
                           <Icons.Check className="w-3.5 h-3.5" />
                           Resolve
@@ -125,5 +125,9 @@ export const CommentsPanel: React.FC = () => {
 };
 
 export default function CommentsPanelWrapped() {
-  return <PanelErrorBoundary panelName="Comments"><CommentsPanel /></PanelErrorBoundary>;
+  return (
+    <PanelErrorBoundary panelName="Comments">
+      <CommentsPanel />
+    </PanelErrorBoundary>
+  );
 }

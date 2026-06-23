@@ -31,8 +31,8 @@ export const FeedbackModal: React.FC = () => {
     <ModalWrapper isOpen={showFeedbackModal} onClose={() => setShowFeedbackModal(false)} maxWidth="max-w-md">
       <div className="p-8">
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-[#00c4cc]/20 flex items-center justify-center shadow-lg shadow-cyan-900/10">
-            <Icons.MessageSquare className="w-6 h-6 text-[#00c4cc]" />
+          <div className="w-12 h-12 rounded-2xl bg-accent/20 flex items-center justify-center shadow-lg shadow-cyan-900/10">
+            <Icons.MessageSquare className="w-6 h-6 text-accent" />
           </div>
           <div>
             <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Send Feedback</h2>
@@ -53,7 +53,7 @@ export const FeedbackModal: React.FC = () => {
                   onClick={() => setType(t)}
                   className={`flex-1 py-3 rounded-xl text-xs font-black transition-all border uppercase tracking-widest ${
                     type === t
-                      ? 'bg-[#00c4cc] border-[#00c4cc] text-white shadow-lg shadow-cyan-500/20'
+                      ? 'bg-accent border-accent text-white shadow-lg shadow-cyan-500/20'
                       : 'bg-white/5 border-white/5 text-gray-500 hover:border-white/10 hover:text-gray-300'
                   }`}
                 >
@@ -69,7 +69,7 @@ export const FeedbackModal: React.FC = () => {
             </label>
             <textarea
               autoFocus
-              className="w-full h-40 bg-black/40 border border-white/10 rounded-2xl p-4 text-sm text-white placeholder-gray-700 focus:border-[#00c4cc] outline-none transition-all resize-none font-medium leading-relaxed"
+              className="w-full h-40 bg-black/40 border border-white/10 rounded-2xl p-4 text-sm text-white placeholder-gray-700 focus:border-accent outline-none transition-all resize-none font-medium leading-relaxed"
               placeholder={
                 type === 'bug'
                   ? 'Describe the issue in detail...'
@@ -85,7 +85,7 @@ export const FeedbackModal: React.FC = () => {
           <div className="pt-2">
             <Button
               variant="primary"
-              className="w-full py-5 bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] border-none text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-2xl disabled:opacity-50 disabled:grayscale transition-all active:scale-95"
+              className="w-full py-5 bg-gradient-to-r from-accent to-brand-600 border-none text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-2xl disabled:opacity-50 disabled:grayscale transition-all active:scale-95"
               type="submit"
               loading={isSubmitting}
               disabled={!message.trim()}

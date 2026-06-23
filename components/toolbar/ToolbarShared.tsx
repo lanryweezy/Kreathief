@@ -101,7 +101,7 @@ export const IconButton = React.memo(
         aria-pressed={active}
         className={`p-2 rounded-lg transition-all flex items-center justify-center relative group/btn ${
           active
-            ? 'bg-[#7d2ae8] text-white shadow-[0_0_15px_rgba(125,42,232,0.4)]'
+            ? 'bg-brand-600 text-white shadow-glow-brand'
             : 'text-gray-400 hover:bg-white/10 hover:text-white'
         } ${disabled || loading ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
       >
@@ -213,11 +213,11 @@ export const CompactInput = React.memo(
     const { onKeyDown, onBlur } = useMathInputHandlers({ value, onChange, step });
 
     return (
-      <div className="flex items-center gap-1.5 bg-black/20 border border-white/10 rounded-lg px-2 py-1 focus-within:border-[#7d2ae8]/50 focus-within:bg-black/40 transition-all group">
+      <div className="flex items-center gap-1.5 bg-black/20 border border-white/10 rounded-lg px-2 py-1 focus-within:border-brand-600/50 focus-within:bg-black/40 transition-all group">
         {label && (
           <label
             htmlFor={id}
-            className="text-[9px] font-bold text-gray-500 group-focus-within:text-[#7d2ae8] select-none cursor-pointer"
+            className="text-[9px] font-bold text-gray-500 group-focus-within:text-brand-600 select-none cursor-pointer"
           >
             {label}
           </label>

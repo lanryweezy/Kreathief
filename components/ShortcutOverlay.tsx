@@ -69,9 +69,9 @@ export const ShortcutOverlay: React.FC<ShortcutOverlayProps> = ({ isOpen, onClos
         style={{ backdropFilter: 'blur(20px)' }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-gradient-to-r from-[#1e1e1e] to-transparent">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-gradient-to-r from-surface-dark-3 to-transparent">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-[#7d2ae8] flex items-center justify-center shadow-lg shadow-purple-500/30">
+            <div className="w-8 h-8 rounded-xl bg-brand-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
               <Icons.Keyboard className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -94,8 +94,8 @@ export const ShortcutOverlay: React.FC<ShortcutOverlayProps> = ({ isOpen, onClos
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {shortcutGroups.map((group, groupIndex) => (
               <div key={groupIndex} className="bg-white/[0.02] rounded-xl p-4 border border-white/5">
-                <h3 className="text-[10px] font-black text-[#7d2ae8] uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <div className="w-1 h-3 bg-[#7d2ae8] rounded-full" />
+                <h3 className="text-[10px] font-black text-brand-600 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <div className="w-1 h-3 bg-brand-600 rounded-full" />
                   {group.title}
                 </h3>
                 <div className="space-y-0.5">
@@ -109,7 +109,7 @@ export const ShortcutOverlay: React.FC<ShortcutOverlayProps> = ({ isOpen, onClos
                         {shortcut.key.split(' + ').map((k, i) => (
                           <React.Fragment key={i}>
                             {i > 0 && <span className="text-gray-600 text-[10px] px-0.5">+</span>}
-                            <kbd className="px-2 py-0.5 bg-[#252627] border border-gray-700 rounded-md text-[10px] text-gray-200 font-mono shadow-sm group-hover:border-gray-500 group-hover:bg-[#2a2a2a] transition-all whitespace-nowrap">
+                            <kbd className="px-2 py-0.5 bg-surface-dark-4 border border-gray-700 rounded-md text-[10px] text-gray-200 font-mono shadow-sm group-hover:border-gray-500 group-hover:bg-surface-dark-5 transition-all whitespace-nowrap">
                               {k}
                             </kbd>
                           </React.Fragment>
@@ -127,7 +127,7 @@ export const ShortcutOverlay: React.FC<ShortcutOverlayProps> = ({ isOpen, onClos
         <div className="px-6 py-3 bg-[#13161a] border-t border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-2 text-[10px] text-gray-600">
             <span>Hold</span>
-            <kbd className="px-2 py-0.5 bg-[#252627] border border-gray-700 rounded text-[10px] text-gray-400 font-mono">
+            <kbd className="px-2 py-0.5 bg-surface-dark-4 border border-gray-700 rounded text-[10px] text-gray-400 font-mono">
               Space
             </kbd>
             <span>to pan the canvas at any time</span>

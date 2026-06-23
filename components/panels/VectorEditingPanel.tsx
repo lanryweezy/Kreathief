@@ -549,5 +549,9 @@ const PathTransformPanel: React.FC = () => {
 };
 
 export default function VectorEditingPanelWrapped() {
-  return <PanelErrorBoundary panelName="VectorEditing"><VectorEditingPanel /></PanelErrorBoundary>;
+  return (
+    <PanelErrorBoundary panelName="VectorEditing">
+      <VectorEditingPanel />
+    </PanelErrorBoundary>
+  );
 }

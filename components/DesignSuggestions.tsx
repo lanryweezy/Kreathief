@@ -133,9 +133,9 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-[#1e1e1e] rounded-lg shadow-2xl w-full max-w-2xl border border-gray-700 max-h-[80vh] overflow-y-auto">
+      <div className="bg-surface-dark-3 rounded-lg shadow-2xl w-full max-w-2xl border border-gray-700 max-h-[80vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-[#1e1e1e] flex items-center justify-between p-6 border-b border-gray-700 z-10">
+        <div className="sticky top-0 bg-surface-dark-3 flex items-center justify-between p-6 border-b border-gray-700 z-10">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
               <Icons.Sparkles className="w-5 h-5 text-white" />
@@ -222,7 +222,7 @@ export const DesignSuggestions: React.FC<DesignSuggestionsProps> = ({
 
         {/* Footer */}
         {suggestions.length > 0 && !isLoading && (
-          <div className="sticky bottom-0 bg-[#1e1e1e] border-t border-gray-700 p-4 flex gap-2">
+          <div className="sticky bottom-0 bg-surface-dark-3 border-t border-gray-700 p-4 flex gap-2">
             <button
               onClick={generateSuggestions}
               className="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"

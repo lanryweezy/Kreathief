@@ -93,7 +93,7 @@ export const QuickAccessBar: React.FC<QuickAccessBarProps> = ({
   );
 
   return (
-    <div className="flex items-center gap-1 bg-[#252627] border border-gray-700 rounded-lg p-2 shadow-lg">
+    <div className="flex items-center gap-1 bg-surface-dark-4 border border-gray-700 rounded-lg p-2 shadow-lg">
       {/* Undo/Redo */}
       <div className="flex gap-1">
         <QuickButton onClick={onUndo} disabled={!canUndo} title="Undo (Ctrl+Z)">

@@ -134,7 +134,7 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
   return (
     <div className="flex flex-col h-full p-4 bg-[#13161a] overflow-y-auto no-scrollbar">
       <h3 className="font-bold text-white mb-4 flex items-center gap-2 shrink-0">
-        <Icons.Texture className="w-5 h-5 text-[#7d2ae8]" />
+        <Icons.Texture className="w-5 h-5 text-brand-600" />
         Textures & Grain
       </h3>
 
@@ -201,8 +201,8 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
 
       <div className="mb-6 shrink-0">
         <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">Material Overlays</h4>
-        <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-700 rounded-xl p-4 hover:border-[#7d2ae8] hover:bg-[#7d2ae8]/5 cursor-pointer transition-all group">
-          <Icons.Upload className="w-6 h-6 text-gray-500 mb-2 group-hover:text-[#7d2ae8]" />
+        <label className="flex flex-col items-center justify-center border-2 border-dashed border-gray-700 rounded-xl p-4 hover:border-brand-600 hover:bg-brand-600/5 cursor-pointer transition-all group">
+          <Icons.Upload className="w-6 h-6 text-gray-500 mb-2 group-hover:text-brand-600" />
           <span className="text-[10px] font-bold text-gray-400 group-hover:text-white uppercase tracking-tighter">
             Upload Texture
           </span>
@@ -211,7 +211,7 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
       </div>
 
       {/* Intensity Slider */}
-      <div className="mb-4 bg-[#1e1e1e] p-3 rounded-xl border border-gray-700 shrink-0">
+      <div className="mb-4 bg-surface-dark-3 p-3 rounded-xl border border-gray-700 shrink-0">
         <div className="flex justify-between mb-1.5">
           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Material Opacity</label>
           <span className="text-[10px] font-mono text-purple-400">{Math.round(intensity * 100)}%</span>
@@ -224,7 +224,7 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
           value={intensity}
           onChange={(e) => handleIntensityChange(parseFloat(e.target.value))}
           disabled={!currentTexture}
-          className={`w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8] ${!currentTexture ? 'opacity-30 cursor-not-allowed' : ''}`}
+          className={`w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600 ${!currentTexture ? 'opacity-30 cursor-not-allowed' : ''}`}
         />
       </div>
 
@@ -249,7 +249,7 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
                 setActiveTemplate(tex.url);
                 applyPreset(tex.url, intensity);
               }}
-              className={`relative aspect-square rounded-xl border-2 overflow-hidden group transition-all ${activeTemplate === tex.url ? 'border-[#7d2ae8] ring-4 ring-[#7d2ae8]/10' : 'border-gray-800 hover:border-gray-600 shadow-lg'}`}
+              className={`relative aspect-square rounded-xl border-2 overflow-hidden group transition-all ${activeTemplate === tex.url ? 'border-brand-600 ring-4 ring-brand-600/10' : 'border-gray-800 hover:border-gray-600 shadow-lg'}`}
             >
               <div className={`absolute inset-0 ${tex.preview} opacity-20`}></div>
               <img
@@ -269,5 +269,9 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
 };
 
 export default function TexturesPanelWrapped(props: React.ComponentProps<typeof TexturesPanel>) {
-  return <PanelErrorBoundary panelName="Textures"><TexturesPanel {...props} /></PanelErrorBoundary>;
+  return (
+    <PanelErrorBoundary panelName="Textures">
+      <TexturesPanel {...props} />
+    </PanelErrorBoundary>
+  );
 }

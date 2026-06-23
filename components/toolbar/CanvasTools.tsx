@@ -74,7 +74,7 @@ export const CanvasTools = React.memo(
         <Divider />
 
         <IconButton onClick={onToggleDesignSuggestions} title="Design Suggestions">
-          <Icons.Magic className="w-4 h-4 text-[#00c4cc]" />
+          <Icons.Magic className="w-4 h-4 text-accent" />
         </IconButton>
         <IconButton onClick={onToggleSmartContent} title="Smart Text">
           <Icons.Bot className="w-4 h-4 text-[#a855f7]" />
@@ -104,7 +104,7 @@ export const CanvasTools = React.memo(
                 aria-label={item.title}
                 value={(canvasFilters as any)[item.key] || 0}
                 onChange={(e) => setCanvasFilters({ ...canvasFilters, [item.key]: parseInt(e.target.value) })}
-                className="w-16 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8] hover:bg-white/20 transition-colors"
+                className="w-16 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600 hover:bg-white/20 transition-colors"
               />
             </div>
           ))}
@@ -119,7 +119,7 @@ export const CanvasTools = React.memo(
               onClick={() => {
                 setCanvasFilters({ ...canvasFilters, ...preset.filters });
               }}
-              className="group relative w-10 h-8 rounded-lg overflow-hidden border border-white/10 hover:border-[#7d2ae8] transition-all bg-[#0e1318]"
+              className="group relative w-10 h-8 rounded-lg overflow-hidden border border-white/10 hover:border-brand-600 transition-all bg-[#0e1318]"
             >
               <div
                 className={`absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity ${

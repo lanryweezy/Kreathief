@@ -50,7 +50,7 @@ const FontItem = React.memo(
         onClick={() => onSelect(font)}
         onMouseEnter={() => onHover?.(font)}
         onMouseLeave={() => onHover?.(null)}
-        className={`w-full text-left px-3 py-2 hover:bg-[#7d2ae8] hover:text-white rounded flex flex-col group transition-colors ${isSelected ? 'bg-indigo-900/30 border border-indigo-500/30' : 'text-gray-300'}`}
+        className={`w-full text-left px-3 py-2 hover:bg-brand-600 hover:text-white rounded flex flex-col group transition-colors ${isSelected ? 'bg-indigo-900/30 border border-indigo-500/30' : 'text-gray-300'}`}
       >
         <span
           className={`text-base truncate transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
@@ -64,7 +64,7 @@ const FontItem = React.memo(
           >
             {font}
           </span>
-          {isSelected && <Icons.Check className="w-3 h-3 text-[#7d2ae8] group-hover:text-white" />}
+          {isSelected && <Icons.Check className="w-3 h-3 text-brand-600 group-hover:text-white" />}
         </div>
         {!isLoaded && <span className="text-xs text-gray-600 absolute top-2 left-3">Loading...</span>}
       </button>
@@ -93,14 +93,14 @@ export const FontPicker: React.FC<FontPickerProps> = ({
   }, [search]);
 
   return (
-    <div className="bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-xl p-1 animate-fadeIn min-w-[280px] max-h-[60vh] overflow-y-auto custom-scrollbar">
-      <div className="sticky top-0 bg-[#1e1e1e] p-1 mb-1 border-b border-gray-700 z-10 shrink-0">
+    <div className="bg-surface-dark-3 border border-gray-700 rounded-lg shadow-xl p-1 animate-fadeIn min-w-[280px] max-h-[60vh] overflow-y-auto custom-scrollbar">
+      <div className="sticky top-0 bg-surface-dark-3 p-1 mb-1 border-b border-gray-700 z-10 shrink-0">
         <div className="relative">
           <Icons.Search className="w-3 h-3 text-gray-500 absolute left-2 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search fonts..."
-            className="w-full bg-[#13161a] border border-gray-600 rounded pl-7 pr-2 py-1.5 text-xs text-white focus:border-[#7d2ae8] outline-none placeholder:text-gray-600"
+            className="w-full bg-[#13161a] border border-gray-600 rounded pl-7 pr-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none placeholder:text-gray-600"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             autoFocus

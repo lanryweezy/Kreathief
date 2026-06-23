@@ -15,7 +15,7 @@ export const ContentPage: React.FC<ContentPageProps> = ({ title, children }) => 
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white selection:bg-[#7d2ae8] selection:text-white font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-brand-600 selection:text-white font-sans overflow-x-hidden">
       <SEO />
 
       {/* Navigation */}

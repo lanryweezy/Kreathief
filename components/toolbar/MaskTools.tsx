@@ -95,7 +95,7 @@ export const MaskTools = React.memo(
           <label className="cursor-pointer" title={layer.type === 'text' ? 'Add image to text' : 'Add image to shape'}>
             <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
             <div
-              className={`p-1.5 rounded-lg border border-dashed transition-all ${hasImageFill ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white shadow-lg shadow-[#7d2ae8]/30' : 'bg-black/20 border-white/20 text-gray-400 hover:border-[#7d2ae8]/50 hover:text-white'}`}
+              className={`p-1.5 rounded-lg border border-dashed transition-all ${hasImageFill ? 'bg-brand-600 border-brand-600 text-white shadow-lg shadow-brand-600/30' : 'bg-black/20 border-white/20 text-gray-400 hover:border-brand-600/50 hover:text-white'}`}
             >
               <Icons.Image className="w-4 h-4" />
             </div>
@@ -108,7 +108,7 @@ export const MaskTools = React.memo(
               </IconButton>
 
               {showSettings && (
-                <div className="absolute top-full left-0 mt-3 w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-4 z-50 animate-fadeIn space-y-4 backdrop-blur-xl max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <div className="absolute top-full left-0 mt-3 w-64 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-4 z-50 animate-fadeIn space-y-4 backdrop-blur-xl max-h-[70vh] overflow-y-auto custom-scrollbar">
                   {layer.type === 'text' ? (
                     // Text layer imageFill settings
                     <div className="space-y-3">
@@ -120,7 +120,7 @@ export const MaskTools = React.memo(
                           <button
                             key={fit}
                             onClick={() => updateFill({ fit })}
-                            className={`flex-1 text-[9px] py-1 rounded capitalize font-bold transition-all ${(layer as any).imageFill?.fit === fit ? 'bg-[#7d2ae8] text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}
+                            className={`flex-1 text-[9px] py-1 rounded capitalize font-bold transition-all ${(layer as any).imageFill?.fit === fit ? 'bg-brand-600 text-white shadow' : 'text-gray-500 hover:text-gray-300'}`}
                           >
                             {fit}
                           </button>
@@ -141,7 +141,7 @@ export const MaskTools = React.memo(
                           step="0.1"
                           value={(layer as any).imageFill?.scale || 1}
                           onChange={(e) => updateFill({ scale: parseFloat(e.target.value) })}
-                          className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+                          className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600"
                         />
                       </div>
 
@@ -200,7 +200,7 @@ export const MaskTools = React.memo(
                           step="0.1"
                           value={(layer as any).backgroundScale || 1}
                           onChange={(e) => updateBackgroundScale(parseFloat(e.target.value))}
-                          className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+                          className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600"
                         />
                       </div>
 

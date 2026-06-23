@@ -118,7 +118,7 @@ export const Eyedropper: React.FC<EyedropperProps> = ({ onColorPick, onClose, is
       >
         {/* Magnifier */}
         <div
-          className="fixed pointer-events-none bg-white rounded-lg shadow-2xl border-2 border-[#7d2ae8] overflow-hidden"
+          className="fixed pointer-events-none bg-white rounded-lg shadow-2xl border-2 border-brand-600 overflow-hidden"
           style={{
             left: position.x + 20,
             top: position.y - 100,
@@ -148,7 +148,7 @@ export const Eyedropper: React.FC<EyedropperProps> = ({ onColorPick, onClose, is
 
         {/* Color Info */}
         <div
-          className="fixed pointer-events-none bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-xl px-4 py-3 flex items-center gap-3"
+          className="fixed pointer-events-none bg-surface-dark-3 border border-gray-700 rounded-lg shadow-xl px-4 py-3 flex items-center gap-3"
           style={{
             left: position.x + 20,
             top: position.y + 20,
@@ -165,9 +165,9 @@ export const Eyedropper: React.FC<EyedropperProps> = ({ onColorPick, onClose, is
         </div>
 
         {/* Instructions */}
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl px-6 py-4 flex items-center gap-6">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-surface-dark-3 border border-gray-700 rounded-xl shadow-2xl px-6 py-4 flex items-center gap-6">
           <div className="flex items-center gap-2 text-white">
-            <Icons.EyeDropper className="w-5 h-5 text-[#7d2ae8]" />
+            <Icons.EyeDropper className="w-5 h-5 text-brand-600" />
             <span className="font-bold text-sm">Click to pick color</span>
           </div>
           <div className="w-px h-6 bg-gray-700" />

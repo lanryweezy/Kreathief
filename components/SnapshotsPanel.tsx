@@ -55,14 +55,14 @@ const SnapshotsPanel: React.FC = () => {
       {/* Header */}
       <div className="p-4 border-b border-gray-800">
         <div className="flex items-center gap-2 mb-1">
-          <Icons.History className="w-4 h-4 text-[#7d2ae8]" />
+          <Icons.History className="w-4 h-4 text-brand-600" />
           <h3 className="text-sm font-black text-white uppercase tracking-wider">Version History</h3>
         </div>
         <p className="text-[10px] text-gray-500">Save checkpoints to restore your design anytime.</p>
       </div>
 
       {/* Create Snapshot */}
-      <div className="p-4 border-b border-gray-800 bg-[#1e1e1e]/60">
+      <div className="p-4 border-b border-gray-800 bg-surface-dark-3/60">
         <div className="flex gap-2">
           <input
             type="text"
@@ -70,13 +70,13 @@ const SnapshotsPanel: React.FC = () => {
             onChange={(e) => setNewSnapshotName(e.target.value)}
             placeholder="e.g. Draft 1, Before client review..."
             aria-label="New snapshot name"
-            className="flex-1 bg-[#252627] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-[#7d2ae8] transition-colors"
+            className="flex-1 bg-surface-dark-4 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-brand-600 transition-colors"
             onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
           />
           <button
             onClick={handleCreate}
             disabled={isCreating}
-            className="px-3 py-2 bg-[#7d2ae8] hover:bg-[#6b23c5] disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 whitespace-nowrap"
+            className="px-3 py-2 bg-brand-600 hover:bg-[#6b23c5] disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 whitespace-nowrap"
             title="Save current state"
           >
             {isCreating ? (
@@ -111,7 +111,7 @@ const SnapshotsPanel: React.FC = () => {
             return (
               <div
                 key={snapshot.id}
-                className={`bg-[#1e1e1e] rounded-xl p-3 border transition-all ${isConfirming ? 'border-amber-500/60 shadow-lg shadow-amber-500/10' : 'border-gray-800 hover:border-gray-700'}`}
+                className={`bg-surface-dark-3 rounded-xl p-3 border transition-all ${isConfirming ? 'border-amber-500/60 shadow-lg shadow-amber-500/10' : 'border-gray-800 hover:border-gray-700'}`}
               >
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex-1 min-w-0">
@@ -127,7 +127,7 @@ const SnapshotsPanel: React.FC = () => {
                       className={`px-2 py-1 rounded text-[10px] font-bold transition-all flex items-center gap-1 ${
                         isConfirming
                           ? 'bg-amber-500 text-black hover:bg-amber-400 animate-pulse'
-                          : 'bg-[#252627] text-blue-400 hover:bg-blue-600 hover:text-white'
+                          : 'bg-surface-dark-4 text-blue-400 hover:bg-blue-600 hover:text-white'
                       }`}
                       title={isConfirming ? 'Click again to confirm restore' : 'Restore this version'}
                     >
@@ -153,7 +153,7 @@ const SnapshotsPanel: React.FC = () => {
                     <Icons.LayoutGrid className="w-2.5 h-2.5" />
                     {artboardCount} artboard{artboardCount !== 1 ? 's' : ''}
                   </span>
-                  <span className="ml-auto bg-[#252627] px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider">
+                  <span className="ml-auto bg-surface-dark-4 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider">
                     {snapshot.state.canvasSize?.name || 'Custom'}
                   </span>
                 </div>

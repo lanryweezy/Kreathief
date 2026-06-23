@@ -54,7 +54,7 @@ export const BlogPostView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white selection:bg-[#7d2ae8] pt-32 pb-32">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-brand-600 pt-32 pb-32">
       <SEO
         title={post.title}
         description={post.excerpt}

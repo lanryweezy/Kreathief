@@ -81,7 +81,7 @@ export const ImageTools = React.memo(
 
     return (
       <div className="flex items-center gap-3 flex-nowrap">
-        <div className="flex bg-[#252627] rounded-lg border border-[#7d2ae8]/30 p-0.5 shadow-lg shadow-purple-900/10">
+        <div className="flex bg-surface-dark-4 rounded-lg border border-brand-600/30 p-0.5 shadow-lg shadow-purple-900/10">
           <IconButton
             onClick={handleRemoveBackground}
             loading={isRemovingBg}
@@ -112,7 +112,7 @@ export const ImageTools = React.memo(
         {isLassoMode && (
           <>
             <Divider />
-            <div className="flex bg-[#252627] rounded-lg border-2 border-indigo-500/50 p-0.5 gap-0.5 shadow-lg shadow-indigo-900/20 animate-slideIn">
+            <div className="flex bg-surface-dark-4 rounded-lg border-2 border-indigo-500/50 p-0.5 gap-0.5 shadow-lg shadow-indigo-900/20 animate-slideIn">
               <IconButton
                 onClick={() => setRefineBrushMode(refineBrushMode === 'erase' ? 'none' : 'erase')}
                 active={refineBrushMode === 'erase'}
@@ -121,7 +121,7 @@ export const ImageTools = React.memo(
               >
                 <div className="relative">
                   <Icons.Eraser className={`w-4 h-4 ${refineBrushMode === 'erase' ? 'text-white' : 'text-red-400'}`} />
-                  <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full border border-[#1e1e1e]">
+                  <div className="absolute -bottom-1 -right-1 bg-red-500 rounded-full border border-surface-dark-3">
                     <Icons.Minus className="w-1.5 h-1.5 text-white" />
                   </div>
                 </div>
@@ -136,7 +136,7 @@ export const ImageTools = React.memo(
                   <Icons.Brush
                     className={`w-4 h-4 ${refineBrushMode === 'restore' ? 'text-white' : 'text-emerald-400'}`}
                   />
-                  <div className="absolute -bottom-1 -right-1 bg-emerald-500 rounded-full border border-[#1e1e1e]">
+                  <div className="absolute -bottom-1 -right-1 bg-emerald-500 rounded-full border border-surface-dark-3">
                     <Icons.Plus className="w-1.5 h-1.5 text-white" />
                   </div>
                 </div>
@@ -159,7 +159,7 @@ export const ImageTools = React.memo(
 
             <Divider />
 
-            <div className="flex bg-[#252627] rounded-lg border border-gray-700 p-0.5 gap-0.5 animate-fadeIn">
+            <div className="flex bg-surface-dark-4 rounded-lg border border-gray-700 p-0.5 gap-0.5 animate-fadeIn">
               <IconButton
                 onClick={() => handleUpdateLayer({ rotation: (layer.rotation + 90) % 360 })}
                 title="Rotate 90°"
@@ -182,7 +182,7 @@ export const ImageTools = React.memo(
               </IconButton>
             </div>
 
-            <div className="flex bg-[#252627] rounded-lg border border-gray-700 p-0.5 gap-1 animate-fadeIn">
+            <div className="flex bg-surface-dark-4 rounded-lg border border-gray-700 p-0.5 gap-1 animate-fadeIn">
               <button
                 onClick={doneLasso}
                 className="px-3 h-8 flex items-center gap-1.5 bg-indigo-500 hover:bg-indigo-600 text-white text-[11px] font-bold rounded-md transition-all shadow-sm shadow-indigo-500/20 active:scale-95"
@@ -233,10 +233,10 @@ export const ImageTools = React.memo(
           <button
             ref={mockupButtonRef}
             onClick={() => setShowMockupQuickSelect(!showMockupQuickSelect)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-white/10 bg-gradient-to-r from-[#7d2ae8]/20 to-[#00c4cc]/20 text-white hover:border-[#7d2ae8] transition-all shadow-lg shadow-purple-900/20"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold border border-white/10 bg-gradient-to-r from-brand-600/20 to-accent/20 text-white hover:border-brand-600 transition-all shadow-lg shadow-purple-900/20"
             title="Apply Mockup"
           >
-            <Icons.Image className="w-4 h-4 text-[#7d2ae8]" />
+            <Icons.Image className="w-4 h-4 text-brand-600" />
             <span className="uppercase tracking-wider">Mockup</span>
           </button>
           <Dropdown
@@ -245,9 +245,9 @@ export const ImageTools = React.memo(
             onClose={() => setShowMockupQuickSelect(false)}
             align="left"
           >
-            <div className="w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-4 animate-fadeIn backdrop-blur-xl">
+            <div className="w-64 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-4 animate-fadeIn backdrop-blur-xl">
               <h4 className="text-[11px] font-bold text-white uppercase tracking-widest mb-3 flex items-center gap-2">
-                <Icons.Image className="w-4 h-4 text-[#7d2ae8]" />
+                <Icons.Image className="w-4 h-4 text-brand-600" />
                 Quick Mockups
               </h4>
               <div className="grid grid-cols-2 gap-2 mb-3">
@@ -262,7 +262,7 @@ export const ImageTools = React.memo(
                   <button
                     key={mockup.id}
                     onClick={handleApplyMockup}
-                    className="p-2 bg-[#252627] hover:bg-[#7d2ae8]/20 border border-gray-700 hover:border-[#7d2ae8] rounded-lg transition-all text-left"
+                    className="p-2 bg-surface-dark-4 hover:bg-brand-600/20 border border-gray-700 hover:border-brand-600 rounded-lg transition-all text-left"
                   >
                     <span className="text-lg block mb-1">{mockup.icon}</span>
                     <span className="text-[9px] font-bold text-gray-300">{mockup.name}</span>
@@ -271,7 +271,7 @@ export const ImageTools = React.memo(
               </div>
               <button
                 onClick={handleApplyMockup}
-                className="w-full py-2 bg-[#7d2ae8] hover:bg-[#6c1fd1] text-white text-[10px] font-bold rounded-lg transition-all flex items-center justify-center gap-2"
+                className="w-full py-2 bg-brand-600 hover:bg-brand-700 text-white text-[10px] font-bold rounded-lg transition-all flex items-center justify-center gap-2"
               >
                 <Icons.Grid className="w-3.5 h-3.5" />
                 View All 50+ Mockups
@@ -299,7 +299,7 @@ export const ImageTools = React.memo(
             <button
               ref={filtersButtonRef}
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${showFilters ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white shadow-lg shadow-[#7d2ae8]/30' : 'bg-black/20 border-white/10 text-gray-300 hover:border-white/20 hover:bg-black/30'}`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${showFilters ? 'bg-brand-600 border-brand-600 text-white shadow-lg shadow-brand-600/30' : 'bg-black/20 border-white/10 text-gray-300 hover:border-white/20 hover:bg-black/30'}`}
             >
               <Icons.Filter className="w-3.5 h-3.5" /> Presets
             </button>
@@ -309,7 +309,7 @@ export const ImageTools = React.memo(
               onClose={() => setShowFilters(false)}
               align="left"
             >
-              <div className="w-80 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-3 animate-fadeIn backdrop-blur-xl max-h-[60vh] overflow-y-auto custom-scrollbar">
+              <div className="w-80 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-3 animate-fadeIn backdrop-blur-xl max-h-[60vh] overflow-y-auto custom-scrollbar">
                 <div className="mb-4">
                   <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">Standard</h4>
                   <div className="grid grid-cols-3 gap-2">
@@ -326,8 +326,8 @@ export const ImageTools = React.memo(
                           Object.keys(preset.filters || {}).every(
                             (k) => (layer.filters as any)?.[k] === (preset.filters as any)[k]
                           )
-                            ? 'border-[#7d2ae8] bg-[#7d2ae8]/10 text-white'
-                            : 'border-white/5 hover:border-[#7d2ae8] bg-black/20 text-gray-400 hover:text-white'
+                            ? 'border-brand-600 bg-brand-600/10 text-white'
+                            : 'border-white/5 hover:border-brand-600 bg-black/20 text-gray-400 hover:text-white'
                         }`}
                       >
                         {preset.name}
@@ -354,8 +354,8 @@ export const ImageTools = React.memo(
                         }}
                         className={`py-3 rounded-lg border flex items-center justify-center text-[11px] transition-all font-bold tracking-tight ${
                           layer.filters?.artisticFilter === effect.id
-                            ? 'border-[#7d2ae8] bg-[#7d2ae8] text-white shadow-lg shadow-[#7d2ae8]/40'
-                            : 'border-white/5 hover:border-[#7d2ae8]/50 bg-black/20 text-gray-300 hover:text-white hover:bg-[#7d2ae8]/10'
+                            ? 'border-brand-600 bg-brand-600 text-white shadow-lg shadow-brand-600/40'
+                            : 'border-white/5 hover:border-brand-600/50 bg-black/20 text-gray-300 hover:text-white hover:bg-brand-600/10'
                         }`}
                       >
                         <span className="flex items-center gap-1.5">
@@ -380,7 +380,7 @@ export const ImageTools = React.memo(
               onChange={(e) => {
                 handleUpdateLayer({ filters: { ...layer.filters, blur: parseInt(e.target.value) } });
               }}
-              className="w-16 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+              className="w-16 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600"
             />
           </div>
         </div>
@@ -399,7 +399,7 @@ export const ImageTools = React.memo(
             <Icons.Maximize className="w-4 h-4 text-blue-400" />
           </IconButton>
           <Dropdown anchorRef={resizeButtonRef} isOpen={showResize} onClose={() => setShowResize(false)} align="left">
-            <div className="w-48 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-3 animate-fadeIn space-y-3 backdrop-blur-xl">
+            <div className="w-48 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-3 animate-fadeIn space-y-3 backdrop-blur-xl">
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block text-center">
                 Dimensions
               </span>
@@ -421,7 +421,7 @@ export const ImageTools = React.memo(
               </div>
               <button
                 onClick={() => setShowResize(false)}
-                className="w-full py-1.5 bg-[#7d2ae8] text-white text-[10px] font-bold rounded-lg"
+                className="w-full py-1.5 bg-brand-600 text-white text-[10px] font-bold rounded-lg"
               >
                 Done
               </button>

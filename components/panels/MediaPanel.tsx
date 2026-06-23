@@ -14,7 +14,7 @@ export const MediaPanel: React.FC = () => {
           onClick={() => setActiveTab('elements')}
           className={`pb-3 text-[10px] font-bold uppercase transition-all border-b-2 ${
             activeTab === 'elements'
-              ? 'border-[#7d2ae8] text-white'
+              ? 'border-brand-600 text-white'
               : 'border-transparent text-gray-500 hover:text-gray-300'
           }`}
         >
@@ -24,7 +24,7 @@ export const MediaPanel: React.FC = () => {
           onClick={() => setActiveTab('photos')}
           className={`pb-3 text-[10px] font-bold uppercase transition-all border-b-2 ${
             activeTab === 'photos'
-              ? 'border-[#7d2ae8] text-white'
+              ? 'border-brand-600 text-white'
               : 'border-transparent text-gray-500 hover:text-gray-300'
           }`}
         >
@@ -34,7 +34,7 @@ export const MediaPanel: React.FC = () => {
           onClick={() => setActiveTab('uploads')}
           className={`pb-3 text-[10px] font-bold uppercase transition-all border-b-2 ${
             activeTab === 'uploads'
-              ? 'border-[#7d2ae8] text-white'
+              ? 'border-brand-600 text-white'
               : 'border-transparent text-gray-500 hover:text-gray-300'
           }`}
         >

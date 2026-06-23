@@ -58,7 +58,7 @@ export const Ruler: React.FC<RulerProps> = ({ type, length, zoom, size = 24 }) =
 
   return (
     <div
-      className={`absolute bg-[#1e1e1e] border-gray-700 flex select-none pointer-events-none opacity-80 z-50
+      className={`absolute bg-surface-dark-3 border-gray-700 flex select-none pointer-events-none opacity-80 z-50
         ${isHorizontal ? 'border-b left-0 right-0 -top-[24px]' : 'border-r top-0 -left-[24px] bottom-0'}
       `}
       style={{

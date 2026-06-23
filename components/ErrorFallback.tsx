@@ -41,7 +41,7 @@ export const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetErrorB
           tab.
         </p>
 
-        <div className="bg-[#1e1e1e] rounded-lg p-4 border border-gray-800 mb-8 text-left overflow-hidden">
+        <div className="bg-surface-dark-3 rounded-lg p-4 border border-gray-800 mb-8 text-left overflow-hidden">
           <p className="font-mono text-red-400 text-xs break-all">
             {error.message || 'Unknown Error'}
             {error.stack && (

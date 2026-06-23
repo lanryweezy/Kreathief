@@ -77,11 +77,11 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
                   className={`flex items-center gap-4 transition-all duration-500 ${isActive ? 'opacity-100 scale-100' : 'opacity-40 scale-95'}`}
                 >
                   <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-xl relative ${isActive ? 'bg-[#7d2ae8] text-white animate-pulse' : isDone ? 'bg-emerald-500/20 text-emerald-500' : 'bg-white/5 text-gray-500'}`}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-xl relative ${isActive ? 'bg-brand-600 text-white animate-pulse' : isDone ? 'bg-emerald-500/20 text-emerald-500' : 'bg-white/5 text-gray-500'}`}
                   >
                     {isDone ? <AgentIcons.Check className="w-4 h-4" /> : <step.icon className="w-4 h-4" />}
                     {isActive && (
-                      <div className="absolute inset-0 rounded-xl border-2 border-[#7d2ae8] animate-ping opacity-20" />
+                      <div className="absolute inset-0 rounded-xl border-2 border-brand-600 animate-ping opacity-20" />
                     )}
                   </div>
                   <div className="flex-1">
@@ -131,9 +131,9 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
   return (
     <div className="flex flex-col h-full bg-[#13161a] border-l border-white/5 shadow-[-20px_0_40px_rgba(0,0,0,0.4)] z-[110]">
       {/* Header */}
-      <div className="p-6 border-b border-white/5 bg-[#1e1e1e]/50 backdrop-blur-xl flex items-center justify-between">
+      <div className="p-6 border-b border-white/5 bg-surface-dark-3/50 backdrop-blur-xl flex items-center justify-between">
         <h3 className="font-black text-white flex items-center gap-3 uppercase tracking-[0.2em] text-xs">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#7d2ae8] to-[#a855f7] flex items-center justify-center shadow-lg shadow-purple-500/20">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-600 to-[#a855f7] flex items-center justify-center shadow-lg shadow-purple-500/20">
             <AgentIcons.Zap className="w-5 h-5 text-white" />
           </div>
           Agentic AI
@@ -212,7 +212,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
       </div>
 
       {/* Input Tray */}
-      <div className="p-4 border-t border-white/5 bg-[#1e1e1e]/80 backdrop-blur-xl">
+      <div className="p-4 border-t border-white/5 bg-surface-dark-3/80 backdrop-blur-xl">
         <div className="bg-white/5 border border-white/10 rounded-2xl p-2.5 shadow-inner focus-within:border-purple-500/50 transition-all">
           <textarea
             value={input}
@@ -240,7 +240,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
             <button
               onClick={handleStartWorkflow}
               disabled={!input.trim() || (agentStatus !== 'idle' && agentStatus !== 'done' && agentStatus !== 'error')}
-              className="w-10 h-10 bg-gradient-to-br from-[#7d2ae8] to-[#a855f7] rounded-xl flex items-center justify-center text-white shadow-lg shadow-purple-500/30 disabled:opacity-30 disabled:grayscale hover:scale-105 transition-transform group"
+              className="w-10 h-10 bg-gradient-to-br from-brand-600 to-[#a855f7] rounded-xl flex items-center justify-center text-white shadow-lg shadow-purple-500/30 disabled:opacity-30 disabled:grayscale hover:scale-105 transition-transform group"
             >
               <AgentIcons.ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
@@ -255,5 +255,9 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
 };
 
 export default function AssistantPanelWrapped(props: React.ComponentProps<typeof AssistantPanel>) {
-  return <PanelErrorBoundary panelName="Assistant"><AssistantPanel {...props} /></PanelErrorBoundary>;
+  return (
+    <PanelErrorBoundary panelName="Assistant">
+      <AssistantPanel {...props} />
+    </PanelErrorBoundary>
+  );
 }

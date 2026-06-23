@@ -53,7 +53,7 @@ export const AutoLayoutTools = React.memo(({ selectedLayer, handleUpdateLayer }:
           </IconButton>
 
           <Dropdown anchorRef={buttonRef} isOpen={showDropdown} onClose={() => setShowDropdown(false)} align="center">
-            <div className="w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-4 space-y-4 backdrop-blur-xl">
+            <div className="w-64 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-4 space-y-4 backdrop-blur-xl">
               <div className="space-y-2">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Direction</span>
                 <div className="flex bg-black/40 rounded-lg p-1">

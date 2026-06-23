@@ -161,7 +161,7 @@ export const CornerHandles: React.FC<CornerHandlesProps> = ({
             className={`relative w-6 h-6 rounded-full border-2 shadow-lg ${
               draggingCorner === handle.corner
                 ? 'bg-purple-500 border-purple-300 shadow-purple-500/50'
-                : 'bg-[#7d2ae8] border-white/80 shadow-black/30 hover:bg-purple-400'
+                : 'bg-brand-600 border-white/80 shadow-black/30 hover:bg-purple-400'
             }`}
           >
             {/* Inner glow */}

@@ -89,7 +89,7 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({ text = 'Curved Text', cu
   }, [inputText, pathType, curvatureValue, startAngle, fontSize]);
 
   return (
-    <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4 space-y-4">
+    <div className="bg-surface-dark-3 rounded-xl border border-gray-700 p-4 space-y-4">
       <div className="flex items-center gap-2 mb-2">
         <Icons.Curve className="w-4 h-4 text-gray-400" />
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Text on Path</h3>
@@ -125,7 +125,7 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({ text = 'Curved Text', cu
           type="text"
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          className="w-full bg-[#252627] border border-gray-600 rounded px-3 py-2 text-sm text-white"
+          className="w-full bg-surface-dark-4 border border-gray-600 rounded px-3 py-2 text-sm text-white"
           placeholder="Enter your text"
         />
       </div>
@@ -144,7 +144,7 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({ text = 'Curved Text', cu
               key={type.id}
               onClick={() => setPathType(type.id as any)}
               className={`py-2 rounded text-xs font-bold transition-all ${
-                pathType === type.id ? 'bg-[#7d2ae8] text-white' : 'bg-[#252627] text-gray-400 hover:text-white'
+                pathType === type.id ? 'bg-brand-600 text-white' : 'bg-surface-dark-4 text-gray-400 hover:text-white'
               }`}
             >
               {type.icon}
@@ -163,7 +163,7 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({ text = 'Curved Text', cu
             max="100"
             value={curvatureValue}
             onChange={(e) => setCurvatureValue(parseInt(e.target.value))}
-            className="w-full accent-[#7d2ae8]"
+            className="w-full accent-brand-600"
           />
         </div>
       )}
@@ -177,7 +177,7 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({ text = 'Curved Text', cu
           max="72"
           value={fontSize}
           onChange={(e) => setFontSize(parseInt(e.target.value))}
-          className="w-full accent-[#7d2ae8]"
+          className="w-full accent-brand-600"
         />
       </div>
 
@@ -191,7 +191,7 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({ text = 'Curved Text', cu
             max="180"
             value={startAngle}
             onChange={(e) => setStartAngle(parseInt(e.target.value))}
-            className="w-full accent-[#7d2ae8]"
+            className="w-full accent-brand-600"
           />
         </div>
       )}
@@ -199,7 +199,7 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({ text = 'Curved Text', cu
       {/* Apply Button */}
       <button
         onClick={handleApply}
-        className="w-full py-3 bg-[#7d2ae8] hover:bg-[#9d4edd] rounded-lg text-sm font-bold text-white transition-colors flex items-center justify-center gap-2"
+        className="w-full py-3 bg-brand-600 hover:bg-[#9d4edd] rounded-lg text-sm font-bold text-white transition-colors flex items-center justify-center gap-2"
       >
         <Icons.Plus className="w-4 h-4" />
         Add Curved Text to Canvas

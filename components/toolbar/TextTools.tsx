@@ -69,11 +69,11 @@ export const TextTools = React.memo(
           <button
             ref={fontButtonRef}
             onClick={() => setShowFontPicker(!showFontPicker)}
-            className="w-40 bg-black/20 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white text-left flex justify-between items-center hover:border-[#7d2ae8]/50 hover:bg-black/30 transition-all group"
+            className="w-40 bg-black/20 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white text-left flex justify-between items-center hover:border-brand-600/50 hover:bg-black/30 transition-all group"
             title="Font Family"
           >
             <span className="truncate mr-2 font-medium">{layer.fontFamily}</span>
-            <Icons.ChevronDown className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#7d2ae8] transition-colors" />
+            <Icons.ChevronDown className="w-3.5 h-3.5 text-gray-500 group-hover:text-brand-600 transition-colors" />
           </button>
           <Dropdown
             anchorRef={fontButtonRef}
@@ -81,7 +81,7 @@ export const TextTools = React.memo(
             onClose={() => setShowFontPicker(false)}
             align="left"
           >
-            <div className="bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl p-1 animate-fadeIn min-w-[280px] max-h-[70vh] overflow-y-auto custom-scrollbar">
+            <div className="bg-surface-dark-3 border border-gray-700 rounded-xl shadow-2xl p-1 animate-fadeIn min-w-[280px] max-h-[70vh] overflow-y-auto custom-scrollbar">
               <FontPicker
                 currentFont={layer.fontFamily}
                 onSelectFont={(font: string) => {
@@ -195,7 +195,7 @@ export const TextTools = React.memo(
             ref={rewriteRef as React.RefObject<HTMLButtonElement>}
             onClick={() => onMagicWrite(layer.id)}
             title="Magic Write"
-            className="text-[#7d2ae8] hover:text-[#9d4edd] hover:bg-[#7d2ae8]/10"
+            className="text-brand-600 hover:text-[#9d4edd] hover:bg-brand-600/10"
           >
             <Icons.Sparkles className="w-3.5 h-3.5" />
           </IconButton>
@@ -206,7 +206,7 @@ export const TextTools = React.memo(
             onClose={() => setShowRewriteTones(false)}
             align="center"
           >
-            <div className="bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl p-2 animate-fadeIn w-48 flex flex-col gap-1">
+            <div className="bg-surface-dark-3 border border-gray-700 rounded-xl shadow-2xl p-2 animate-fadeIn w-48 flex flex-col gap-1">
               <div className="px-2 py-1.5 border-b border-gray-700 mb-1">
                 <span className="text-xs font-semibold text-gray-300 uppercase tracking-wider">Rewrite as...</span>
               </div>
@@ -226,7 +226,7 @@ export const TextTools = React.memo(
                       `Rewrite the following text to be ${tone.id}. Output only the rewritten text without any quotes or explanations.`
                     )
                   }
-                  className="w-full text-left px-3 py-2 text-sm text-gray-200 hover:text-white hover:bg-[#7d2ae8] rounded-lg transition-colors flex items-center gap-2"
+                  className="w-full text-left px-3 py-2 text-sm text-gray-200 hover:text-white hover:bg-brand-600 rounded-lg transition-colors flex items-center gap-2"
                 >
                   {tone.icon && <tone.icon className="w-4 h-4 opacity-70" />}
                   {tone.label}

@@ -114,9 +114,9 @@ export const DesignQualityScorer: React.FC<DesignQualityScorerProps> = ({ isOpen
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-[#1e1e1e] rounded-lg shadow-2xl w-full max-w-2xl border border-gray-700 max-h-[80vh] overflow-y-auto">
+      <div className="bg-surface-dark-3 rounded-lg shadow-2xl w-full max-w-2xl border border-gray-700 max-h-[80vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-[#1e1e1e] flex items-center justify-between p-6 border-b border-gray-700">
+        <div className="sticky top-0 bg-surface-dark-3 flex items-center justify-between p-6 border-b border-gray-700">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
               <Icons.Sparkles className="w-5 h-5 text-white" />

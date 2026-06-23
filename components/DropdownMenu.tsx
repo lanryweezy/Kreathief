@@ -44,7 +44,7 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ label, items, classN
       {isOpen && (
         <div
           role="menu"
-          className="absolute top-full left-0 mt-1 w-56 bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-2xl py-1 z-[100] animate-fadeIn"
+          className="absolute top-full left-0 mt-1 w-56 bg-surface-dark-3 border border-gray-700 rounded-lg shadow-2xl py-1 z-[100] animate-fadeIn"
         >
           {items.map((item, index) => (
             <React.Fragment key={index}>
@@ -65,7 +65,7 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ label, items, classN
                       ? 'opacity-30 cursor-not-allowed text-gray-500'
                       : item.danger
                         ? 'text-red-400 hover:bg-red-500/10'
-                        : 'text-gray-300 hover:bg-[#7d2ae8] hover:text-white'
+                        : 'text-gray-300 hover:bg-brand-600 hover:text-white'
                   }
                 `}
                 >

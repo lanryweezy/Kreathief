@@ -146,7 +146,7 @@ export const Toolbar = React.memo(
         <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-1">
           {isMultiSelect ? (
             <div className="flex items-center gap-4">
-              <span className="text-[10px] font-black text-[#7d2ae8] uppercase tracking-widest">
+              <span className="text-[10px] font-black text-brand-600 uppercase tracking-widest">
                 Selected ({(selectedLayerIds || []).length})
               </span>
               <Divider />

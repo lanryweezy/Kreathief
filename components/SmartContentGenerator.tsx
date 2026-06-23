@@ -87,7 +87,7 @@ export const SmartContentGenerator: React.FC<SmartContentGeneratorProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-[#1e1e1e] rounded-lg shadow-2xl w-full max-w-2xl border border-gray-700">
+      <div className="bg-surface-dark-3 rounded-lg shadow-2xl w-full max-w-2xl border border-gray-700">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <div className="flex items-center gap-3">

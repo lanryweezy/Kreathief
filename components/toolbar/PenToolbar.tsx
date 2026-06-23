@@ -20,15 +20,15 @@ interface PenToolbarProps {
 
 export const PenToolbar = React.memo(({ options, onUpdateOptions, onClose }: PenToolbarProps) => {
   return (
-    <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[1000] bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl flex items-center gap-1 p-2 animate-slide-down">
+    <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[1000] bg-surface-dark-3 border border-gray-700 rounded-xl shadow-2xl flex items-center gap-1 p-2 animate-slide-down">
       {/* Path Type Toggle */}
       <div className="flex items-center gap-1 pr-2 border-r border-gray-700">
         <button
           onClick={() => onUpdateOptions({ isClosed: false })}
           className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
             !options.isClosed
-              ? 'bg-[#7d2ae8] text-white shadow-lg shadow-purple-900/20'
-              : 'bg-[#252627] text-gray-400 hover:text-white hover:bg-gray-700'
+              ? 'bg-brand-600 text-white shadow-lg shadow-purple-900/20'
+              : 'bg-surface-dark-4 text-gray-400 hover:text-white hover:bg-gray-700'
           }`}
           title="Open Path"
           aria-label="Open Path"
@@ -39,8 +39,8 @@ export const PenToolbar = React.memo(({ options, onUpdateOptions, onClose }: Pen
           onClick={() => onUpdateOptions({ isClosed: true })}
           className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
             options.isClosed
-              ? 'bg-[#7d2ae8] text-white shadow-lg shadow-purple-900/20'
-              : 'bg-[#252627] text-gray-400 hover:text-white hover:bg-gray-700'
+              ? 'bg-brand-600 text-white shadow-lg shadow-purple-900/20'
+              : 'bg-surface-dark-4 text-gray-400 hover:text-white hover:bg-gray-700'
           }`}
           title="Closed Path"
           aria-label="Closed Path"
@@ -54,7 +54,7 @@ export const PenToolbar = React.memo(({ options, onUpdateOptions, onClose }: Pen
         <button
           onClick={() => onUpdateOptions({ hasFill: !options.hasFill })}
           className={`w-8 h-8 rounded-lg border-2 transition-all flex items-center justify-center ${
-            options.hasFill ? 'border-[#7d2ae8] bg-[#7d2ae8]/20' : 'border-gray-600 bg-[#252627] hover:border-gray-500'
+            options.hasFill ? 'border-brand-600 bg-brand-600/20' : 'border-gray-600 bg-surface-dark-4 hover:border-gray-500'
           }`}
           title="Toggle Fill"
           aria-label="Toggle Fill"
@@ -84,8 +84,8 @@ export const PenToolbar = React.memo(({ options, onUpdateOptions, onClose }: Pen
           onClick={() => onUpdateOptions({ hasStroke: !options.hasStroke })}
           className={`w-8 h-8 rounded-lg border-2 transition-all flex items-center justify-center ${
             options.hasStroke
-              ? 'border-[#7d2ae8] bg-[#7d2ae8]/20'
-              : 'border-gray-600 bg-[#252627] hover:border-gray-500'
+              ? 'border-brand-600 bg-brand-600/20'
+              : 'border-gray-600 bg-surface-dark-4 hover:border-gray-500'
           }`}
           title="Toggle Stroke"
           aria-label="Toggle Stroke"
@@ -114,7 +114,7 @@ export const PenToolbar = React.memo(({ options, onUpdateOptions, onClose }: Pen
               max="20"
               value={options.strokeWidth}
               onChange={(e) => onUpdateOptions({ strokeWidth: parseInt(e.target.value) })}
-              className="w-16 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+              className="w-16 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
               title="Stroke Width"
             />
           </>
@@ -127,8 +127,8 @@ export const PenToolbar = React.memo(({ options, onUpdateOptions, onClose }: Pen
           onClick={() => onUpdateOptions({ snapToGrid: !options.snapToGrid })}
           className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
             options.snapToGrid
-              ? 'bg-[#7d2ae8] text-white shadow-lg shadow-purple-900/20'
-              : 'bg-[#252627] text-gray-400 hover:text-white hover:bg-gray-700'
+              ? 'bg-brand-600 text-white shadow-lg shadow-purple-900/20'
+              : 'bg-surface-dark-4 text-gray-400 hover:text-white hover:bg-gray-700'
           }`}
           title="Snap to Grid"
           aria-label="Snap to Grid"
@@ -144,8 +144,8 @@ export const PenToolbar = React.memo(({ options, onUpdateOptions, onClose }: Pen
           onClick={() => onUpdateOptions({ showPreview: !options.showPreview })}
           className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
             options.showPreview
-              ? 'bg-[#00c4cc] text-white shadow-lg shadow-cyan-900/20'
-              : 'bg-[#252627] text-gray-400 hover:text-white hover:bg-gray-700'
+              ? 'bg-accent text-white shadow-lg shadow-cyan-900/20'
+              : 'bg-surface-dark-4 text-gray-400 hover:text-white hover:bg-gray-700'
           }`}
           title="Show Preview"
           aria-label="Show Preview"

@@ -61,7 +61,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
 
   if (!selectedLayer || selectedLayer.type !== 'text') {
     return (
-      <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4">
+      <div className="bg-surface-dark-3 rounded-xl border border-gray-700 p-4">
         <div className="flex items-center gap-2 mb-2">
           <Icons.Spacing className="w-4 h-4 text-gray-400" />
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Spacing</h3>
@@ -72,7 +72,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
   }
 
   return (
-    <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4 space-y-4">
+    <div className="bg-surface-dark-3 rounded-xl border border-gray-700 p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icons.Spacing className="w-4 h-4 text-gray-400" />
@@ -95,7 +95,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
           max="50"
           value={kerning}
           onChange={(e) => handleKerningChange(parseInt(e.target.value))}
-          className="w-full accent-[#7d2ae8]"
+          className="w-full accent-brand-600"
         />
         <div className="flex justify-between text-[9px] text-gray-600 mt-1">
           <span>Tighter</span>
@@ -116,7 +116,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
           max="20"
           value={tracking}
           onChange={(e) => handleTrackingChange(parseInt(e.target.value))}
-          className="w-full accent-[#7d2ae8]"
+          className="w-full accent-brand-600"
         />
         <div className="flex justify-between text-[9px] text-gray-600 mt-1">
           <span>Condensed</span>
@@ -138,7 +138,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
           step="0.1"
           value={leading}
           onChange={(e) => handleLeadingChange(parseFloat(e.target.value))}
-          className="w-full accent-[#7d2ae8]"
+          className="w-full accent-brand-600"
         />
         <div className="flex justify-between text-[9px] text-gray-600 mt-1">
           <span>Tight</span>
@@ -157,7 +157,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
               handleLeadingChange(1.2);
               addToast('Applied tight spacing', 'info');
             }}
-            className="py-1.5 px-2 bg-[#252627] hover:bg-gray-700 rounded text-[9px] text-gray-400 hover:text-white transition-colors"
+            className="py-1.5 px-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-[9px] text-gray-400 hover:text-white transition-colors"
           >
             Tight
           </button>
@@ -167,7 +167,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
               handleLeadingChange(1.5);
               addToast('Applied normal spacing', 'info');
             }}
-            className="py-1.5 px-2 bg-[#252627] hover:bg-gray-700 rounded text-[9px] text-gray-400 hover:text-white transition-colors"
+            className="py-1.5 px-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-[9px] text-gray-400 hover:text-white transition-colors"
           >
             Normal
           </button>
@@ -177,7 +177,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
               handleLeadingChange(1.8);
               addToast('Applied loose spacing', 'info');
             }}
-            className="py-1.5 px-2 bg-[#252627] hover:bg-gray-700 rounded text-[9px] text-gray-400 hover:text-white transition-colors"
+            className="py-1.5 px-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-[9px] text-gray-400 hover:text-white transition-colors"
           >
             Airy
           </button>

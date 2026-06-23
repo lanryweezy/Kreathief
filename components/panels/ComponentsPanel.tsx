@@ -40,7 +40,7 @@ export const ComponentsPanel: React.FC = () => {
       <div className="p-4 border-b border-gray-700 flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h3 className="font-bold text-white text-sm tracking-wide flex items-center gap-2 uppercase">
-            <Icons.LayoutGrid className="w-4 h-4 text-[#7d2ae8]" />
+            <Icons.LayoutGrid className="w-4 h-4 text-brand-600" />
             Asset Library
           </h3>
           <span className="text-[10px] text-gray-500 font-mono bg-gray-800 px-1.5 py-0.5 rounded">
@@ -51,7 +51,7 @@ export const ComponentsPanel: React.FC = () => {
         {canCreateComponent && (
           <button
             onClick={handleCreateComponent}
-            className="w-full bg-[#7d2ae8] hover:bg-[#6b23c5] text-white text-xs font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#7d2ae8]/20"
+            className="w-full bg-brand-600 hover:bg-[#6b23c5] text-white text-xs font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-600/20"
           >
             <Icons.Plus className="w-4 h-4" />
             Create Component from Selection
@@ -76,10 +76,10 @@ export const ComponentsPanel: React.FC = () => {
                   e.dataTransfer.setData('componentId', master.componentId!);
                 }}
                 onClick={() => instantiateComponent(master.componentId!)}
-                className="group relative bg-[#1c1f24] border border-gray-800 rounded-xl p-3 cursor-pointer hover:border-[#7d2ae8] hover:bg-[#25282e] transition-all flex flex-col items-center gap-2 overflow-hidden aspect-square justify-center shadow-sm"
+                className="group relative bg-[#1c1f24] border border-gray-800 rounded-xl p-3 cursor-pointer hover:border-brand-600 hover:bg-[#25282e] transition-all flex flex-col items-center gap-2 overflow-hidden aspect-square justify-center shadow-sm"
               >
                 {/* Simplified Preview */}
-                <div className="w-12 h-12 rounded-lg bg-[#0e1318] flex items-center justify-center text-[#7d2ae8] group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-lg bg-[#0e1318] flex items-center justify-center text-brand-600 group-hover:scale-110 transition-transform">
                   {master.type === 'image' && <Icons.Image className="w-6 h-6" />}
                   {master.type === 'text' && <Icons.Text className="w-6 h-6" />}
                   {master.type !== 'image' && master.type !== 'text' && <Icons.Shapes className="w-6 h-6" />}
@@ -90,7 +90,7 @@ export const ComponentsPanel: React.FC = () => {
                 </span>
 
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Icons.Plus className="w-3 h-3 text-[#7d2ae8]" />
+                  <Icons.Plus className="w-3 h-3 text-brand-600" />
                 </div>
               </div>
             ))}

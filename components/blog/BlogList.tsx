@@ -6,7 +6,7 @@ import { SEO } from '../SEO';
 
 export const BlogList: React.FC = () => {
   return (
-    <div className="min-h-screen bg-[#050505] text-white selection:bg-[#7d2ae8] pt-32 pb-20">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-brand-600 pt-32 pb-20">
       <SEO
         title="Blog | Creative Insights & Tutorials"
         description="Learn how to master generative design, AI cutouts, and professional vector tools with the Kreathief blog."

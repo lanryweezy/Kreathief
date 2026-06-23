@@ -148,7 +148,7 @@ export const GlyphPalette = ({ fontFamily, onSelect, onClose }: GlyphPaletteProp
   }, [activeTab, fontFamily, fontObj]);
 
   return (
-    <div className="absolute top-full right-0 mt-3 w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-3 z-50 animate-fadeIn backdrop-blur-xl flex flex-col max-h-80">
+    <div className="absolute top-full right-0 mt-3 w-64 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-3 z-50 animate-fadeIn backdrop-blur-xl flex flex-col max-h-80">
       <div className="flex justify-between items-center mb-3 border-b border-white/10 pb-2">
         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Glyphs</span>
         <div className="flex bg-black/20 rounded-lg p-0.5">
@@ -157,13 +157,13 @@ export const GlyphPalette = ({ fontFamily, onSelect, onClose }: GlyphPaletteProp
               setActiveTab('common');
               setGlyphs(COMMON_GLYPHS);
             }}
-            className={`text-[10px] px-2 py-1 rounded-md transition-all ${activeTab === 'common' ? 'bg-[#7d2ae8] text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`text-[10px] px-2 py-1 rounded-md transition-all ${activeTab === 'common' ? 'bg-brand-600 text-white' : 'text-gray-400 hover:text-white'}`}
           >
             Common
           </button>
           <button
             onClick={() => setActiveTab('font')}
-            className={`text-[10px] px-2 py-1 rounded-md transition-all ${activeTab === 'font' ? 'bg-[#7d2ae8] text-white' : 'text-gray-400 hover:text-white'}`}
+            className={`text-[10px] px-2 py-1 rounded-md transition-all ${activeTab === 'font' ? 'bg-brand-600 text-white' : 'text-gray-400 hover:text-white'}`}
           >
             {fontFamily}
           </button>
@@ -172,7 +172,7 @@ export const GlyphPalette = ({ fontFamily, onSelect, onClose }: GlyphPaletteProp
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
-          <div className="w-5 h-5 border-2 border-[#7d2ae8] border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-5 h-5 border-2 border-brand-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : (
         <div className="grid grid-cols-6 gap-1 overflow-y-auto custom-scrollbar pr-1">
@@ -184,7 +184,7 @@ export const GlyphPalette = ({ fontFamily, onSelect, onClose }: GlyphPaletteProp
                 onClose();
               }}
               title={`Unicode: ${g.charCodeAt(0)}`}
-              className="p-1.5 text-base text-gray-300 hover:text-white hover:bg-[#7d2ae8] rounded-md transition-all flex items-center justify-center aspect-square font-medium"
+              className="p-1.5 text-base text-gray-300 hover:text-white hover:bg-brand-600 rounded-md transition-all flex items-center justify-center aspect-square font-medium"
               style={{ fontFamily: activeTab === 'font' ? `"${fontFamily}", sans-serif` : 'inherit' }}
             >
               {g}

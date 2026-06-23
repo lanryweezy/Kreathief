@@ -122,7 +122,7 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
   return (
     <div className="flex flex-col h-full bg-[#13161a] p-4 overflow-hidden">
       <h3 className="font-bold text-white mb-6 flex items-center gap-2">
-        <Icons.Uploads className="w-5 h-5 text-[#7d2ae8]" />
+        <Icons.Uploads className="w-5 h-5 text-brand-600" />
         Media Library
       </h3>
 
@@ -133,14 +133,14 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-all group bg-[#1e1e1e] ${
+          className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer transition-all group bg-surface-dark-3 ${
             isDragging
-              ? 'border-[#7d2ae8] bg-[#7d2ae8]/10'
-              : 'border-gray-700 hover:border-[#7d2ae8] hover:bg-[#7d2ae8]/5'
+              ? 'border-brand-600 bg-brand-600/10'
+              : 'border-gray-700 hover:border-brand-600 hover:bg-brand-600/5'
           }`}
         >
           <Icons.Upload
-            className={`w-5 h-5 mb-2 ${isDragging ? 'text-[#7d2ae8]' : 'text-gray-400 group-hover:text-white'}`}
+            className={`w-5 h-5 mb-2 ${isDragging ? 'text-brand-600' : 'text-gray-400 group-hover:text-white'}`}
           />
           <span className="text-[11px] font-bold text-gray-300 group-hover:text-white">Upload Media</span>
           <input
@@ -188,7 +188,7 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
           filteredUploads.map((url, idx) => (
             <div
               key={idx}
-              className="aspect-square rounded-lg border border-gray-800 overflow-hidden relative group cursor-pointer bg-[#1e1e1e] hover:border-[#7d2ae8] transition-all"
+              className="aspect-square rounded-lg border border-gray-800 overflow-hidden relative group cursor-pointer bg-surface-dark-3 hover:border-brand-600 transition-all"
               draggable
               onDragStart={(e) => {
                 e.dataTransfer.setData('text/plain', url);
@@ -199,7 +199,7 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 <button
                   onClick={() => onAddImageLayer && onAddImageLayer(url)}
-                  className="w-8 h-8 rounded-full bg-[#7d2ae8] text-white flex items-center justify-center hover:scale-110 shadow-xl"
+                  className="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center hover:scale-110 shadow-xl"
                 >
                   <Icons.Plus className="w-4 h-4" />
                 </button>
@@ -227,5 +227,9 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
 };
 
 export default function UploadsPanelWrapped() {
-  return <PanelErrorBoundary panelName="Uploads"><UploadsPanel /></PanelErrorBoundary>;
+  return (
+    <PanelErrorBoundary panelName="Uploads">
+      <UploadsPanel />
+    </PanelErrorBoundary>
+  );
 }

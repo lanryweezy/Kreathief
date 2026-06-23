@@ -13,7 +13,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onS
     <ModalWrapper isOpen={isOpen} onClose={onClose} maxWidth="max-w-2xl">
       <div className="flex flex-col relative">
         <div className="p-10 pb-4 text-center">
-          <div className="w-24 h-24 bg-gradient-to-br from-[#00c4cc] via-[#7d2ae8] to-[#ff00ff] rounded-[32px] flex items-center justify-center shadow-[0_20px_50px_rgba(125,42,232,0.3)] mx-auto mb-8 transform -rotate-6 animate-in zoom-in spin-in-6 duration-700">
+          <div className="w-24 h-24 bg-gradient-to-br from-accent via-brand-600 to-[#ff00ff] rounded-[32px] flex items-center justify-center shadow-[0_20px_50px_rgba(125,42,232,0.3)] mx-auto mb-8 transform -rotate-6 animate-in zoom-in spin-in-6 duration-700">
             <Icons.Magic className="w-12 h-12 text-white" />
           </div>
           <h2 className="text-4xl font-black text-white mb-3 tracking-tighter italic uppercase">
@@ -30,15 +30,15 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onS
               icon: Icons.Magic,
               title: 'AI Generation',
               desc: 'Text-to-design in seconds.',
-              color: 'text-[#00c4cc]',
-              bg: 'bg-[#00c4cc]/10',
+              color: 'text-accent',
+              bg: 'bg-accent/10',
             },
             {
               icon: Icons.Layers,
               title: 'Pro Engine',
               desc: 'Layered control & masking.',
-              color: 'text-[#7d2ae8]',
-              bg: 'bg-[#7d2ae8]/10',
+              color: 'text-brand-600',
+              bg: 'bg-brand-600/10',
             },
             {
               icon: Icons.Search,
@@ -73,7 +73,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onS
         <div className="p-10 pt-0 flex flex-col gap-4">
           <button
             onClick={onStartTour}
-            className="w-full py-5 bg-white text-black hover:bg-[#00c4cc] hover:text-white rounded-[20px] font-black uppercase tracking-widest shadow-xl transform hover:-translate-y-1 active:translate-y-0.5 transition-all flex items-center justify-center gap-3"
+            className="w-full py-5 bg-white text-black hover:bg-accent hover:text-white rounded-[20px] font-black uppercase tracking-widest shadow-xl transform hover:-translate-y-1 active:translate-y-0.5 transition-all flex items-center justify-center gap-3"
           >
             Start the Experience <Icons.ArrowRight className="w-5 h-5" />
           </button>

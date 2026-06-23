@@ -264,7 +264,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
             onTouchStart={(e) => handleMouseDown(e, 'nw')}
             className="absolute -top-4 -left-4 w-8 h-8 flex items-center justify-center z-50 pointer-events-auto cursor-nw-resize"
           >
-            <div className="w-4 h-4 bg-white border-2 border-[#7d2ae8] rounded-full shadow-md" />
+            <div className="w-4 h-4 bg-white border-2 border-brand-600 rounded-full shadow-md" />
           </div>
 
           {/* NE Handle */}
@@ -273,7 +273,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
             onTouchStart={(e) => handleMouseDown(e, 'ne')}
             className="absolute -top-4 -right-4 w-8 h-8 flex items-center justify-center z-50 pointer-events-auto cursor-ne-resize"
           >
-            <div className="w-4 h-4 bg-white border-2 border-[#7d2ae8] rounded-full shadow-md" />
+            <div className="w-4 h-4 bg-white border-2 border-brand-600 rounded-full shadow-md" />
           </div>
 
           {/* SW Handle */}
@@ -282,7 +282,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
             onTouchStart={(e) => handleMouseDown(e, 'sw')}
             className="absolute -bottom-4 -left-4 w-8 h-8 flex items-center justify-center z-50 pointer-events-auto cursor-sw-resize"
           >
-            <div className="w-4 h-4 bg-white border-2 border-[#7d2ae8] rounded-full shadow-md" />
+            <div className="w-4 h-4 bg-white border-2 border-brand-600 rounded-full shadow-md" />
           </div>
 
           {/* SE Handle */}
@@ -291,7 +291,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
             onTouchStart={(e) => handleMouseDown(e, 'se')}
             className="absolute -bottom-4 -right-4 w-8 h-8 flex items-center justify-center z-50 pointer-events-auto cursor-se-resize"
           >
-            <div className="w-4 h-4 bg-white border-2 border-[#7d2ae8] rounded-full shadow-md" />
+            <div className="w-4 h-4 bg-white border-2 border-brand-600 rounded-full shadow-md" />
           </div>
 
           {!cropAspectRatio && (
@@ -302,7 +302,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
                 onTouchStart={(e) => handleMouseDown(e, 'n')}
                 className="absolute -top-4 left-1/2 -translate-x-1/2 w-12 h-8 flex items-center justify-center z-40 pointer-events-auto cursor-ns-resize"
               >
-                <div className="w-8 h-1.5 bg-white border border-[#7d2ae8] rounded-full shadow-sm" />
+                <div className="w-8 h-1.5 bg-white border border-brand-600 rounded-full shadow-sm" />
               </div>
 
               {/* S Handle */}
@@ -311,7 +311,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
                 onTouchStart={(e) => handleMouseDown(e, 's')}
                 className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-12 h-8 flex items-center justify-center z-40 pointer-events-auto cursor-ns-resize"
               >
-                <div className="w-8 h-1.5 bg-white border border-[#7d2ae8] rounded-full shadow-sm" />
+                <div className="w-8 h-1.5 bg-white border border-brand-600 rounded-full shadow-sm" />
               </div>
 
               {/* W Handle */}
@@ -320,7 +320,7 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
                 onTouchStart={(e) => handleMouseDown(e, 'w')}
                 className="absolute top-1/2 -translate-y-1/2 -left-4 w-8 h-12 flex items-center justify-center z-40 pointer-events-auto cursor-ew-resize"
               >
-                <div className="w-1.5 h-8 bg-white border border-[#7d2ae8] rounded-full shadow-sm" />
+                <div className="w-1.5 h-8 bg-white border border-brand-600 rounded-full shadow-sm" />
               </div>
 
               {/* E Handle */}
@@ -329,28 +329,28 @@ export const CropOverlay: React.FC<CropOverlayProps> = ({ zoom, canvasSize: _can
                 onTouchStart={(e) => handleMouseDown(e, 'e')}
                 className="absolute top-1/2 -translate-y-1/2 -right-4 w-8 h-12 flex items-center justify-center z-40 pointer-events-auto cursor-ew-resize"
               >
-                <div className="w-1.5 h-8 bg-white border border-[#7d2ae8] rounded-full shadow-sm" />
+                <div className="w-1.5 h-8 bg-white border border-brand-600 rounded-full shadow-sm" />
               </div>
             </>
           )}
 
           <div className="absolute -bottom-24 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3">
-            <div className="flex items-center bg-[#13161a]/90 backdrop-blur-xl border border-white/10 rounded-2xl p-1 shadow-2xl pointer-events-auto">
+            <div className="flex items-center bg-surface-dark-2/90 backdrop-blur-xl border border-white/10 rounded-2xl p-1 shadow-2xl pointer-events-auto">
               {aspectPresets.map((preset) => (
                 <button
                   key={preset.label}
                   onClick={() => setCropAspectRatio(preset.value)}
-                  className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all ${cropAspectRatio === preset.value ? 'bg-[#7d2ae8] text-white shadow-lg shadow-purple-900/40' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                  className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all ${cropAspectRatio === preset.value ? 'bg-brand-600 text-white shadow-lg shadow-purple-900/40' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                 >
                   {preset.label}
                 </button>
               ))}
             </div>
 
-            <div className="flex items-center bg-[#13161a] border border-white/10 rounded-2xl p-1.5 gap-1.5 shadow-2xl pointer-events-auto">
+            <div className="flex items-center bg-surface-dark-2 border border-white/10 rounded-2xl p-1.5 gap-1.5 shadow-2xl pointer-events-auto">
               <button
                 onClick={applyCrop}
-                className="flex items-center gap-2 px-5 py-2.5 bg-[#7d2ae8] text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-[#6c1fd1] transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-purple-900/30"
+                className="flex items-center gap-2 px-5 py-2.5 bg-brand-600 text-white rounded-xl text-xs font-black uppercase tracking-wider hover:bg-brand-700 transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-purple-900/30"
               >
                 <Icons.Check className="w-4 h-4" /> Apply
               </button>

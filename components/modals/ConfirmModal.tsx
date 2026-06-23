@@ -39,7 +39,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     },
     info: {
       icon: <Icons.Help className="w-6 h-6 text-blue-500" />,
-      button: 'bg-[#7d2ae8] hover:bg-[#6b23c5] shadow-purple-900/20',
+      button: 'bg-brand-600 hover:bg-[#6b23c5] shadow-purple-900/20',
       bg: 'bg-blue-500/10 border-blue-500/20',
       accent: 'text-blue-400',
     },

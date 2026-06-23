@@ -134,5 +134,9 @@ export const AccessibilityPanel: React.FC = () => {
 };
 
 export default function AccessibilityPanelWrapped() {
-  return <PanelErrorBoundary panelName="Accessibility"><AccessibilityPanel /></PanelErrorBoundary>;
+  return (
+    <PanelErrorBoundary panelName="Accessibility">
+      <AccessibilityPanel />
+    </PanelErrorBoundary>
+  );
 }

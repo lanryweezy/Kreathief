@@ -101,10 +101,10 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#13161a] overflow-y-auto custom-scrollbar">
+    <div className="flex flex-col h-full bg-surface-dark-2 overflow-y-auto custom-scrollbar">
       <div className="p-4 border-b border-gray-700">
         <h3 className="font-bold text-white text-sm tracking-wide flex items-center gap-2">
-          <Icons.Layout className="w-4 h-4 text-[#7d2ae8]" />
+          <Icons.Layout className="w-4 h-4 text-brand-600" />
           ARRANGE
         </h3>
       </div>
@@ -120,7 +120,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
                 type="number"
                 value={Math.round(firstLayer.x)}
                 onChange={(e) => handleInputChange('x', e.target.value)}
-                className="w-full bg-[#0e1318] border border-gray-800 rounded px-2 py-1.5 text-xs text-white focus:border-[#7d2ae8] outline-none"
+                className="w-full bg-surface-dark-2 border border-gray-800 rounded px-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none"
               />
             </div>
             <div className="space-y-1.5">
@@ -129,7 +129,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
                 type="number"
                 value={Math.round(firstLayer.y)}
                 onChange={(e) => handleInputChange('y', e.target.value)}
-                className="w-full bg-[#0e1318] border border-gray-800 rounded px-2 py-1.5 text-xs text-white focus:border-[#7d2ae8] outline-none"
+                className="w-full bg-surface-dark-2 border border-gray-800 rounded px-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none"
               />
             </div>
             <div className="space-y-1.5 relative">
@@ -138,11 +138,11 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
                 type="number"
                 value={Math.round(firstLayer.width)}
                 onChange={(e) => handleInputChange('width', e.target.value)}
-                className="w-full bg-[#0e1318] border border-gray-800 rounded px-2 py-1.5 text-xs text-white focus:border-[#7d2ae8] outline-none"
+                className="w-full bg-surface-dark-2 border border-gray-800 rounded px-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none"
               />
               <button
                 onClick={() => setIsAspectRatioLocked(!isAspectRatioLocked)}
-                className={`absolute -bottom-4 right-0 z-10 p-1 rounded transition-colors ${isAspectRatioLocked ? 'text-[#7d2ae8]' : 'text-gray-600 hover:text-gray-400'}`}
+                className={`absolute -bottom-4 right-0 z-10 p-1 rounded transition-colors ${isAspectRatioLocked ? 'text-brand-600' : 'text-gray-600 hover:text-gray-400'}`}
                 title="Lock Aspect Ratio"
               >
                 {isAspectRatioLocked ? <Icons.Lock className="w-3 h-3" /> : <Icons.Unlock className="w-3 h-3" />}
@@ -154,7 +154,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
                 type="number"
                 value={Math.round((firstLayer as any).height || firstLayer.width)}
                 onChange={(e) => handleInputChange('height' as any, e.target.value)}
-                className="w-full bg-[#0e1318] border border-gray-800 rounded px-2 py-1.5 text-xs text-white focus:border-[#7d2ae8] outline-none"
+                className="w-full bg-surface-dark-2 border border-gray-800 rounded px-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none"
               />
             </div>
           </div>
@@ -165,16 +165,16 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
           <div className="flex items-center justify-between">
             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Alignment</label>
             {!isSingle && (
-              <div className="flex bg-[#0e1318] p-0.5 rounded-lg border border-gray-800">
+              <div className="flex bg-surface-dark-2 p-0.5 rounded-lg border border-gray-800">
                 <button
                   onClick={() => setAlignToPage(false)}
-                  className={`px-2 py-1 rounded-md text-[9px] font-bold transition-all ${!alignToPage ? 'bg-[#7d2ae8] text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                  className={`px-2 py-1 rounded-md text-[9px] font-bold transition-all ${!alignToPage ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
                 >
                   Selection
                 </button>
                 <button
                   onClick={() => setAlignToPage(true)}
-                  className={`px-2 py-1 rounded-md text-[9px] font-bold transition-all ${alignToPage ? 'bg-[#7d2ae8] text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                  className={`px-2 py-1 rounded-md text-[9px] font-bold transition-all ${alignToPage ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
                 >
                   Page
                 </button>
@@ -193,7 +193,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
               <button
                 key={a.id}
                 onClick={() => handleAlign(a.id as AlignmentType)}
-                className="flex items-center justify-center p-2.5 bg-[#1a1d21] border border-gray-800 rounded-lg hover:bg-gray-800 hover:border-gray-700 transition-all text-gray-400 hover:text-white group"
+                className="flex items-center justify-center p-2.5 bg-surface-dark-3 border border-gray-800 rounded-lg hover:bg-gray-800 hover:border-gray-700 transition-all text-gray-400 hover:text-white group"
                 title={a.label}
               >
                 {a.icon}
@@ -209,35 +209,35 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => handleDistribute('h-spacing')}
-                className="flex items-center justify-center gap-2 p-2 bg-[#1a1d21] border border-gray-800 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-all text-[10px] font-bold uppercase"
+                className="flex items-center justify-center gap-2 p-2 bg-surface-dark-3 border border-gray-800 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-all text-[10px] font-bold uppercase"
                 title="Distribute gaps horizontally"
               >
                 <Icons.Columns className="w-4 h-4" />
               </button>
               <button
                 onClick={() => handleDistribute('v-spacing')}
-                className="flex items-center justify-center gap-2 p-2 bg-[#1a1d21] border border-gray-800 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-all text-[10px] font-bold uppercase"
+                className="flex items-center justify-center gap-2 p-2 bg-surface-dark-3 border border-gray-800 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-all text-[10px] font-bold uppercase"
                 title="Distribute gaps vertically"
               >
                 <Icons.Rows className="w-4 h-4" />
               </button>
               <button
                 onClick={() => handleDistribute('h-center')}
-                className="flex items-center justify-center gap-2 p-2 bg-[#1a1d21] border border-gray-800 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-all text-[10px] font-bold uppercase"
+                className="flex items-center justify-center gap-2 p-2 bg-surface-dark-3 border border-gray-800 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-all text-[10px] font-bold uppercase"
                 title="Distribute centers horizontally"
               >
                 <Icons.AlignCenter className="w-4 h-4" />
               </button>
               <button
                 onClick={() => handleDistribute('v-center')}
-                className="flex items-center justify-center gap-2 p-2 bg-[#1a1d21] border border-gray-800 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-all text-[10px] font-bold uppercase"
+                className="flex items-center justify-center gap-2 p-2 bg-surface-dark-3 border border-gray-800 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-all text-[10px] font-bold uppercase"
                 title="Distribute centers vertically"
               >
                 <Icons.AlignCenter className="w-4 h-4 rotate-90" />
               </button>
               <button
                 onClick={handleTidyUp}
-                className="col-span-2 flex items-center justify-center gap-2 p-2 bg-[#7d2ae8]/10 border border-[#7d2ae8]/30 rounded-lg hover:bg-[#7d2ae8]/20 text-[#a855f7] hover:text-white transition-all text-[10px] font-black uppercase tracking-wider"
+                className="col-span-2 flex items-center justify-center gap-2 p-2 bg-brand-600/10 border border-brand-600/30 rounded-lg hover:bg-brand-600/20 text-brand-400 hover:text-white transition-all text-[10px] font-black uppercase tracking-wider"
               >
                 <Icons.Magic className="w-4 h-4" /> Magic Tidy Up
               </button>
@@ -252,13 +252,13 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => onMoveLayer(firstLayer.id, 'front')}
-                className="flex items-center justify-center gap-2 p-2 bg-[#1a1d21] border border-gray-800 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-all text-[10px] font-bold uppercase"
+                className="flex items-center justify-center gap-2 p-2 bg-surface-dark-3 border border-gray-800 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-all text-[10px] font-bold uppercase"
               >
                 Bring to Front
               </button>
               <button
                 onClick={() => onMoveLayer(firstLayer.id, 'back')}
-                className="flex items-center justify-center gap-2 p-2 bg-[#1a1d21] border border-gray-800 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-all text-[10px] font-bold uppercase"
+                className="flex items-center justify-center gap-2 p-2 bg-surface-dark-3 border border-gray-800 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-all text-[10px] font-bold uppercase"
               >
                 Send to Back
               </button>
@@ -268,7 +268,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
       </div>
 
       {/* Footer / Snapping Toggles */}
-      <div className="mt-auto p-4 border-t border-gray-800 bg-[#0e1114]">
+      <div className="mt-auto p-4 border-t border-gray-800 bg-surface-dark-2">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Layout Aids</span>
         </div>
@@ -282,7 +282,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
                 checked={!!showGrid}
                 onChange={(e) => setShowGrid(e.target.checked)}
               />
-              <div className="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#7d2ae8]"></div>
+              <div className="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand-600"></div>
             </div>
           </label>
           <label className="flex items-center justify-between cursor-pointer group">
@@ -294,7 +294,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
                 checked={!!snapToObjects}
                 onChange={(e) => setSnapToObjects(e.target.checked)}
               />
-              <div className="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#7d2ae8]"></div>
+              <div className="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand-600"></div>
             </div>
           </label>
           <label className="flex items-center justify-between cursor-pointer group">
@@ -306,7 +306,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
                 checked={!!snapToGrid}
                 onChange={(e) => setSnapToGrid(e.target.checked)}
               />
-              <div className="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#7d2ae8]"></div>
+              <div className="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand-600"></div>
             </div>
           </label>
         </div>

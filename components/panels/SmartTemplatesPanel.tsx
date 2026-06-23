@@ -79,7 +79,7 @@ export const SmartTemplatesPanel: React.FC<SmartTemplatesPanelProps> = ({ onAppl
   return (
     <div className="flex flex-col h-full bg-[#13161a]">
       {/* Header */}
-      <div className="p-4 border-b border-gray-700 bg-gradient-to-r from-[#7d2ae8]/10 to-[#00c4cc]/10">
+      <div className="p-4 border-b border-gray-700 bg-gradient-to-r from-brand-600/10 to-accent/10">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             {onBack && (
@@ -113,7 +113,7 @@ export const SmartTemplatesPanel: React.FC<SmartTemplatesPanelProps> = ({ onAppl
           <button
             onClick={() => setActiveView('suggestions')}
             className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-              activeView === 'suggestions' ? 'bg-[#7d2ae8] text-white' : 'text-gray-500 hover:text-gray-300'
+              activeView === 'suggestions' ? 'bg-brand-600 text-white' : 'text-gray-500 hover:text-gray-300'
             }`}
           >
             For You
@@ -121,7 +121,7 @@ export const SmartTemplatesPanel: React.FC<SmartTemplatesPanelProps> = ({ onAppl
           <button
             onClick={() => setActiveView('search')}
             className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-              activeView === 'search' ? 'bg-[#00c4cc] text-white' : 'text-gray-500 hover:text-gray-300'
+              activeView === 'search' ? 'bg-accent text-white' : 'text-gray-500 hover:text-gray-300'
             }`}
           >
             Search
@@ -168,7 +168,7 @@ export const SmartTemplatesPanel: React.FC<SmartTemplatesPanelProps> = ({ onAppl
               {suggestions.map((suggestion, index) => (
                 <div
                   key={suggestion.id}
-                  className="bg-[#1e1e1e] border border-gray-700 hover:border-purple-500/50 rounded-xl overflow-hidden transition-all group cursor-pointer"
+                  className="bg-surface-dark-3 border border-gray-700 hover:border-purple-500/50 rounded-xl overflow-hidden transition-all group cursor-pointer"
                   onClick={() => handleApplySuggestion(suggestion)}
                 >
                   {/* Preview Placeholder */}
@@ -259,7 +259,7 @@ export const SmartTemplatesPanel: React.FC<SmartTemplatesPanelProps> = ({ onAppl
                     type="text"
                     value={value}
                     onChange={(e) => handleVariableChange(key, e.target.value)}
-                    className="w-full bg-[#1e1e1e] border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500"
+                    className="w-full bg-surface-dark-3 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-500"
                   />
                 </div>
               ))}
@@ -345,7 +345,7 @@ const SearchView: React.FC<{ onSelectTemplate: (s: SmartTemplateSuggestion) => v
           placeholder="Search templates..."
           value={searchQuery}
           onChange={(e) => handleSearch(e.target.value)}
-          className="w-full bg-[#1e1e1e] border border-gray-700 rounded-lg py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#00c4cc]"
+          className="w-full bg-surface-dark-3 border border-gray-700 rounded-lg py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-accent"
         />
       </div>
 
@@ -357,7 +357,7 @@ const SearchView: React.FC<{ onSelectTemplate: (s: SmartTemplateSuggestion) => v
             <button
               key={ratio.id}
               onClick={() => handleSearch(ratio.label)}
-              className="bg-[#1e1e1e] hover:bg-[#252627] border border-gray-700 hover:border-cyan-500 rounded-lg p-3 text-center transition-all"
+              className="bg-surface-dark-3 hover:bg-surface-dark-4 border border-gray-700 hover:border-cyan-500 rounded-lg p-3 text-center transition-all"
             >
               <div className="text-lg mb-1">{ratio.icon}</div>
               <div className="text-[9px] text-gray-400 font-medium">{ratio.label.split(' ')[0]}</div>
@@ -374,7 +374,7 @@ const SearchView: React.FC<{ onSelectTemplate: (s: SmartTemplateSuggestion) => v
             <button
               key={result.templateId}
               onClick={() => onSelectTemplate(result)}
-              className="w-full bg-[#1e1e1e] hover:bg-[#252627] border border-gray-700 hover:border-cyan-500 rounded-lg p-3 text-left transition-all flex items-center justify-between"
+              className="w-full bg-surface-dark-3 hover:bg-surface-dark-4 border border-gray-700 hover:border-cyan-500 rounded-lg p-3 text-left transition-all flex items-center justify-between"
             >
               <div>
                 <div className="text-white font-medium text-sm">{result.templateName}</div>
@@ -407,7 +407,7 @@ const SearchView: React.FC<{ onSelectTemplate: (s: SmartTemplateSuggestion) => v
                     purpose: template.purpose as any,
                   })
                 }
-                className="w-full bg-[#1e1e1e] hover:bg-[#252627] border border-gray-700 hover:border-cyan-500 rounded-lg p-3 text-left transition-all flex items-center gap-3"
+                className="w-full bg-surface-dark-3 hover:bg-surface-dark-4 border border-gray-700 hover:border-cyan-500 rounded-lg p-3 text-left transition-all flex items-center gap-3"
               >
                 <div className="w-12 h-12 bg-gradient-to-br from-purple-600/20 to-cyan-600/20 rounded-lg flex items-center justify-center">
                   <Icons.Layout className="w-6 h-6 text-purple-400" />
@@ -427,5 +427,9 @@ const SearchView: React.FC<{ onSelectTemplate: (s: SmartTemplateSuggestion) => v
 };
 
 export default function SmartTemplatesPanelWrapped(props: React.ComponentProps<typeof SmartTemplatesPanel>) {
-  return <PanelErrorBoundary panelName="SmartTemplates"><SmartTemplatesPanel {...props} /></PanelErrorBoundary>;
+  return (
+    <PanelErrorBoundary panelName="SmartTemplates">
+      <SmartTemplatesPanel {...props} />
+    </PanelErrorBoundary>
+  );
 }

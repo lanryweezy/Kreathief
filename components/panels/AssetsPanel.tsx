@@ -183,7 +183,7 @@ export const AssetsPanel: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-[#13161a] p-4 overflow-hidden">
       <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-        <Icons.Image className="w-5 h-5 text-[#00c4cc]" />
+        <Icons.Image className="w-5 h-5 text-accent" />
         Pro Photos
       </h3>
 
@@ -199,7 +199,7 @@ export const AssetsPanel: React.FC = () => {
               }
             }}
             className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-              activeSource === src.id ? 'bg-[#00c4cc] text-white' : 'text-gray-500 hover:text-gray-300'
+              activeSource === src.id ? 'bg-accent text-white' : 'text-gray-500 hover:text-gray-300'
             }`}
           >
             {src.label}
@@ -221,7 +221,7 @@ export const AssetsPanel: React.FC = () => {
               }}
               className={`flex-1 py-1.5 rounded-md text-[9px] font-medium transition-all ${
                 iconScoutType === type.id
-                  ? 'bg-[#00c4cc]/20 text-[#00c4cc] border border-[#00c4cc]'
+                  ? 'bg-accent/20 text-accent border border-accent'
                   : 'text-gray-500 hover:text-gray-300'
               }`}
             >
@@ -235,7 +235,7 @@ export const AssetsPanel: React.FC = () => {
         <input
           type="text"
           placeholder="Search millions of photos..."
-          className="w-full bg-[#1e1e1e] border border-gray-700 rounded-lg py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-[#00c4cc] transition-colors"
+          className="w-full bg-surface-dark-3 border border-gray-700 rounded-lg py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-accent transition-colors"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch(query)}
@@ -246,7 +246,7 @@ export const AssetsPanel: React.FC = () => {
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center h-40 gap-3">
-            <div className="animate-spin w-8 h-8 border-4 border-[#00c4cc] border-t-transparent rounded-full"></div>
+            <div className="animate-spin w-8 h-8 border-4 border-accent border-t-transparent rounded-full"></div>
             <p className="text-xs text-gray-500">Searching photos...</p>
           </div>
         ) : photos.length > 0 ? (
@@ -254,7 +254,7 @@ export const AssetsPanel: React.FC = () => {
             {photos.map((photo) => (
               <div
                 key={photo.id}
-                className="aspect-square rounded-lg overflow-hidden relative group cursor-pointer bg-[#1e1e1e] border border-gray-700 hover:border-[#00c4cc] transition-all"
+                className="aspect-square rounded-lg overflow-hidden relative group cursor-pointer bg-surface-dark-3 border border-gray-700 hover:border-accent transition-all"
                 onClick={() => onAddImageLayer(photo.url)}
               >
                 <img
@@ -272,7 +272,7 @@ export const AssetsPanel: React.FC = () => {
                           href={photo.authorLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="underline hover:text-[#00c4cc]"
+                          className="underline hover:text-accent"
                           onClick={(e) => e.stopPropagation()}
                         >
                           {photo.author}

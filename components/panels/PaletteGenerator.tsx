@@ -78,7 +78,7 @@ export const PaletteGenerator: React.FC<PaletteGeneratorProps> = ({ onPaletteSel
   };
 
   return (
-    <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4">
+    <div className="bg-surface-dark-3 rounded-xl border border-gray-700 p-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Extract Palette from Image</h3>
         <Icons.Image className="w-4 h-4 text-gray-500" />
@@ -89,11 +89,11 @@ export const PaletteGenerator: React.FC<PaletteGeneratorProps> = ({ onPaletteSel
       <button
         onClick={() => fileInputRef.current?.click()}
         disabled={isProcessing}
-        className="w-full py-3 px-4 bg-[#252627] hover:bg-gray-700 border border-gray-600 rounded-lg text-sm font-medium text-gray-300 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full py-3 px-4 bg-surface-dark-4 hover:bg-gray-700 border border-gray-600 rounded-lg text-sm font-medium text-gray-300 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {isProcessing ? (
           <>
-            <div className="w-4 h-4 border-2 border-[#7d2ae8] border-t-transparent rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-brand-600 border-t-transparent rounded-full animate-spin" />
             Extracting Colors...
           </>
         ) : (

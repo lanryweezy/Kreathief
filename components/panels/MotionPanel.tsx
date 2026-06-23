@@ -69,7 +69,7 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
     <div className="flex flex-col h-full bg-[#13161a]">
       <div className="p-4 border-b border-[#1f1f1f]">
         <h3 className="font-bold text-white flex items-center gap-2">
-          <Icons.Play className="w-4 h-4 text-[#7d2ae8]" /> Motion
+          <Icons.Play className="w-4 h-4 text-brand-600" /> Motion
         </h3>
       </div>
 
@@ -82,8 +82,8 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
               onClick={() => updateAnim({ type: t.type as any })}
               className={`flex flex-col items-center justify-center p-3 rounded-lg border transition-all aspect-square ${
                 anim.type === t.type
-                  ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white'
-                  : 'bg-[#1e1e1e] border-transparent text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                  ? 'bg-brand-600/20 border-brand-600 text-white'
+                  : 'bg-surface-dark-3 border-transparent text-gray-400 hover:bg-surface-dark-5 hover:text-white'
               }`}
             >
               <t.icon className="w-6 h-6 mb-2" />
@@ -112,7 +112,7 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
                   step="0.1"
                   value={anim.duration}
                   onChange={(e) => updateAnim({ duration: parseFloat(e.target.value) })}
-                  className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+                  className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600"
                 />
               </div>
 
@@ -128,7 +128,7 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
                   step="0.1"
                   value={anim.delay}
                   onChange={(e) => updateAnim({ delay: parseFloat(e.target.value) })}
-                  className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+                  className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600"
                 />
               </div>
             </div>
@@ -141,7 +141,7 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
                 <select
                   value={anim.easing}
                   onChange={(e) => updateAnim({ easing: e.target.value as any })}
-                  className="w-full bg-[#1e1e1e] border border-white/10 text-white text-xs rounded p-2 outline-none focus:border-[#7d2ae8]"
+                  className="w-full bg-surface-dark-3 border border-white/10 text-white text-xs rounded p-2 outline-none focus:border-brand-600"
                 >
                   {EASING_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -158,7 +158,7 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
                     <button
                       key={dir}
                       onClick={() => updateAnim({ direction: dir as any })}
-                      className={`text-[10px] py-1.5 rounded capitalize transition-all ${anim.direction === dir ? 'bg-[#7d2ae8] text-white' : 'bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a]'}`}
+                      className={`text-[10px] py-1.5 rounded capitalize transition-all ${anim.direction === dir ? 'bg-brand-600 text-white' : 'bg-surface-dark-3 text-gray-400 hover:bg-surface-dark-5'}`}
                     >
                       {dir}
                     </button>
@@ -183,5 +183,9 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
   MotionPanel.displayName = 'MotionPanel';
 });
 export default function MotionPanelWrapped(props: React.ComponentProps<typeof MotionPanel>) {
-  return <PanelErrorBoundary panelName="Motion"><MotionPanel {...props} /></PanelErrorBoundary>;
+  return (
+    <PanelErrorBoundary panelName="Motion">
+      <MotionPanel {...props} />
+    </PanelErrorBoundary>
+  );
 }

@@ -34,7 +34,7 @@ export const CommonActions = React.memo(
             onClose={() => setShowEffects(false)}
             align="right"
           >
-            <div className="w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-4 animate-fadeIn space-y-4 backdrop-blur-xl">
+            <div className="w-64 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-4 animate-fadeIn space-y-4 backdrop-blur-xl">
               <div className="space-y-2">
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Opacity</span>

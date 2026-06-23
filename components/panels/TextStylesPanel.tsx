@@ -200,13 +200,13 @@ export const TextStylesPanel = React.memo(({ currentStyle, onApplyStyle, onSaveS
   );
 
   return (
-    <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4">
+    <div className="bg-surface-dark-3 rounded-xl border border-gray-700 p-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Text Styles</h3>
         <button
           onClick={() => setShowSaveModal(true)}
           disabled={!currentStyle}
-          className="text-[10px] text-[#7d2ae8] hover:text-[#9d4edd] disabled:opacity-50 flex items-center gap-1"
+          className="text-[10px] text-brand-600 hover:text-[#9d4edd] disabled:opacity-50 flex items-center gap-1"
         >
           <Icons.Plus className="w-3 h-3" /> Save Style
         </button>
@@ -217,7 +217,7 @@ export const TextStylesPanel = React.memo(({ currentStyle, onApplyStyle, onSaveS
           <button
             key={style.id}
             onClick={() => handleApplyStyle(style)}
-            className="p-3 bg-[#252627] hover:bg-gray-700 border border-gray-600 hover:border-[#7d2ae8] rounded-lg text-left transition-all group relative"
+            className="p-3 bg-surface-dark-4 hover:bg-gray-700 border border-gray-600 hover:border-brand-600 rounded-lg text-left transition-all group relative"
           >
             <div className="text-[9px] text-gray-500 mb-1">{style.name}</div>
             <div
@@ -254,14 +254,14 @@ export const TextStylesPanel = React.memo(({ currentStyle, onApplyStyle, onSaveS
       {/* Save Style Modal */}
       {showSaveModal && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50">
-          <div className="bg-[#1e1e1e] border border-gray-700 rounded-xl p-4 w-80">
+          <div className="bg-surface-dark-3 border border-gray-700 rounded-xl p-4 w-80">
             <h4 className="text-sm font-bold text-white mb-4">Save Text Style</h4>
             <input
               type="text"
               value={styleName}
               onChange={(e) => setStyleName(e.target.value)}
               placeholder="Style name (e.g., My Heading)"
-              className="w-full bg-[#252627] border border-gray-600 rounded px-3 py-2 text-sm text-white mb-4"
+              className="w-full bg-surface-dark-4 border border-gray-600 rounded px-3 py-2 text-sm text-white mb-4"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
@@ -276,13 +276,13 @@ export const TextStylesPanel = React.memo(({ currentStyle, onApplyStyle, onSaveS
               <button
                 onClick={handleSaveStyle}
                 disabled={!styleName.trim()}
-                className="flex-1 py-2 px-3 bg-[#7d2ae8] hover:bg-[#9d4edd] rounded-lg text-sm font-medium text-white disabled:opacity-50"
+                className="flex-1 py-2 px-3 bg-brand-600 hover:bg-[#9d4edd] rounded-lg text-sm font-medium text-white disabled:opacity-50"
               >
                 Save
               </button>
               <button
                 onClick={() => setShowSaveModal(false)}
-                className="flex-1 py-2 px-3 bg-[#252627] hover:bg-gray-700 rounded-lg text-sm font-medium text-gray-300"
+                className="flex-1 py-2 px-3 bg-surface-dark-4 hover:bg-gray-700 rounded-lg text-sm font-medium text-gray-300"
               >
                 Cancel
               </button>

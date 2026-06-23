@@ -266,7 +266,7 @@ export const ElementsPanel = () => {
   return (
     <div data-testid="elements-panel" className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-5">
       {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-[#1a1a1a] rounded-xl border border-gray-800">
+      <div className="flex gap-1 p-1 bg-surface-dark-3 rounded-xl border border-gray-800">
         {sources.map((src) => (
           <button
             key={src.id}
@@ -276,7 +276,7 @@ export const ElementsPanel = () => {
               setHasSearched(false);
               setSearchQuery('');
             }}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-bold ${activeSource === src.id ? 'bg-[#7d2ae8] text-white' : 'text-gray-500'}`}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-bold ${activeSource === src.id ? 'bg-brand-600 text-white' : 'text-gray-500'}`}
           >
             <src.icon className="w-3.5 h-3.5" /> {src.label}
           </button>
@@ -288,7 +288,7 @@ export const ElementsPanel = () => {
         <input
           type="text"
           placeholder={`Search ${activeSource}...`}
-          className="w-full bg-[#1e1e1e] border border-gray-700 rounded-xl py-2 pl-10 text-xs text-white focus:border-[#7d2ae8]"
+          className="w-full bg-surface-dark-3 border border-gray-700 rounded-xl py-2 pl-10 text-xs text-white focus:border-brand-600"
           value={searchQuery}
           onChange={(e) => handleRemoteSearch(e.target.value)}
         />
@@ -302,7 +302,7 @@ export const ElementsPanel = () => {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-3 py-1.5 rounded-full text-[10px] font-bold border ${selectedCategory === cat.id ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white' : 'bg-[#1e1e1e] border-gray-700 text-gray-400'}`}
+                className={`px-3 py-1.5 rounded-full text-[10px] font-bold border ${selectedCategory === cat.id ? 'bg-brand-600 border-brand-600 text-white' : 'bg-surface-dark-3 border-gray-700 text-gray-400'}`}
               >
                 {cat.label}
               </button>
@@ -315,7 +315,7 @@ export const ElementsPanel = () => {
                 data-testid={`shape-btn-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
                 id={`shape-btn-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
                 onClick={() => internalAddShape(item.type, { ...item.props, name: item.name })}
-                className="aspect-square bg-[#1e1e1e] border border-gray-800 rounded-xl hover:border-[#7d2ae8] flex flex-col items-center justify-center gap-1 group"
+                className="aspect-square bg-surface-dark-3 border border-gray-800 rounded-xl hover:border-brand-600 flex flex-col items-center justify-center gap-1 group"
               >
                 <div className="w-8 h-8 flex items-center justify-center">
                   {item.type === 'path' ? (
@@ -363,7 +363,7 @@ export const ElementsPanel = () => {
                 <button
                   key={icon.id}
                   onClick={() => handleAddRemoteIcon(icon)}
-                  className="aspect-square bg-[#1e1e1e] border border-gray-800 rounded-xl hover:border-[#7d2ae8] flex items-center justify-center p-2 group"
+                  className="aspect-square bg-surface-dark-3 border border-gray-800 rounded-xl hover:border-brand-600 flex items-center justify-center p-2 group"
                 >
                   <img
                     src={icon.thumbnailUrl}
@@ -382,7 +382,7 @@ export const ElementsPanel = () => {
                     setSearchQuery(term);
                     searchRemoteIcons(term);
                   }}
-                  className="text-[10px] px-3 py-1 bg-[#1e1e1e] text-gray-400 rounded-full border border-gray-700"
+                  className="text-[10px] px-3 py-1 bg-surface-dark-3 text-gray-400 rounded-full border border-gray-700"
                 >
                   {term}
                 </button>

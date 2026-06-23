@@ -50,7 +50,7 @@ export const ContrastChecker: React.FC<ContrastCheckerProps> = ({
   };
 
   return (
-    <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4 space-y-4">
+    <div className="bg-surface-dark-3 rounded-xl border border-gray-700 p-4 space-y-4">
       <div className="flex items-center gap-2 mb-4">
         <Icons.Eye className="w-4 h-4 text-gray-400" />
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Contrast Checker</h3>
@@ -83,7 +83,7 @@ export const ContrastChecker: React.FC<ContrastCheckerProps> = ({
               type="text"
               value={backgroundColor}
               onChange={(e) => onBackgroundChange?.(e.target.value)}
-              className="flex-1 min-w-0 w-full bg-[#252627] border border-gray-600 rounded px-1.5 py-1 text-[10px] text-white font-mono uppercase"
+              className="flex-1 min-w-0 w-full bg-surface-dark-4 border border-gray-600 rounded px-1.5 py-1 text-[10px] text-white font-mono uppercase"
             />
           </div>
         </div>
@@ -101,7 +101,7 @@ export const ContrastChecker: React.FC<ContrastCheckerProps> = ({
               type="text"
               value={foregroundColor}
               onChange={(e) => setForegroundColor(e.target.value)}
-              className="flex-1 min-w-0 w-full bg-[#252627] border border-gray-600 rounded px-1.5 py-1 text-[10px] text-white font-mono uppercase"
+              className="flex-1 min-w-0 w-full bg-surface-dark-4 border border-gray-600 rounded px-1.5 py-1 text-[10px] text-white font-mono uppercase"
             />
           </div>
         </div>
@@ -149,7 +149,7 @@ export const ContrastChecker: React.FC<ContrastCheckerProps> = ({
           <p className="text-[10px] text-gray-500 mb-2">💡 Suggested accessible color:</p>
           <button
             onClick={() => setForegroundColor(suggestedColor)}
-            className="w-full py-2 px-3 bg-[#252627] hover:bg-gray-700 border border-gray-600 rounded-lg text-xs text-gray-300 hover:text-white transition-all flex items-center justify-center gap-2"
+            className="w-full py-2 px-3 bg-surface-dark-4 hover:bg-gray-700 border border-gray-600 rounded-lg text-xs text-gray-300 hover:text-white transition-all flex items-center justify-center gap-2"
           >
             <div className="w-6 h-6 rounded border border-gray-500" style={{ backgroundColor: suggestedColor }} />
             Use {suggestedColor} ({getContrastRatio(backgroundColor, suggestedColor).toFixed(2)}:1 contrast)

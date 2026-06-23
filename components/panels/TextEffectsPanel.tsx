@@ -76,7 +76,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
   }, [effects, neonEnabled, neonColor, neonIntensity, neonSpread, neonFlicker]);
 
   return (
-    <div className="bg-[#0a0a0a] rounded-2xl border border-white/5 p-5 space-y-6 shadow-2xl">
+    <div className="bg-surface-dark-1 rounded-2xl border border-white/5 p-5 space-y-6 shadow-2xl">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Text Effects</h3>
         <span className="px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-[8px] font-black text-purple-400 uppercase tracking-widest">
@@ -99,7 +99,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
               onClick={() => handleStyleTypeChange(type.id as any)}
               className={`h-10 rounded-xl text-sm font-black transition-all flex items-center justify-center border ${
                 styleType === type.id
-                  ? 'bg-[#7d2ae8] text-white border-purple-400/50 shadow-[0_0_15px_rgba(125,42,232,0.3)]'
+                  ? 'bg-brand-600 text-white border-purple-400/50 shadow-glow-brand'
                   : 'bg-white/5 text-gray-500 border-white/5 hover:border-white/10 hover:text-gray-300'
               }`}
             >
@@ -126,7 +126,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
               onClick={() => handleWarpStyleChange(type.id as any)}
               className={`py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${
                 warpStyle === type.id
-                  ? 'bg-[#00c4cc] text-white border-cyan-400/50 shadow-[0_0_15px_rgba(0,196,204,0.3)]'
+                  ? 'bg-accent text-white border-cyan-400/50 shadow-[0_0_15px_rgba(0,196,204,0.3)]'
                   : 'bg-white/5 text-gray-500 border-white/5 hover:border-white/10 hover:text-gray-300'
               }`}
             >
@@ -149,7 +149,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
             max="100"
             value={curve}
             onChange={(e) => handleCurveChange(parseInt(e.target.value))}
-            className="w-full accent-[#00c4cc]"
+            className="w-full accent-accent"
           />
         </div>
       )}
@@ -167,7 +167,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
             max="20"
             value={depth}
             onChange={(e) => handleDepthChange(parseInt(e.target.value))}
-            className="w-full accent-[#7d2ae8]"
+            className="w-full accent-brand-600"
           />
         </div>
       )}
@@ -181,7 +181,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
               setNeonEnabled(!neonEnabled);
               handleNeonChange();
             }}
-            className={`w-10 h-5 rounded-full relative transition-colors ${neonEnabled ? 'bg-[#7d2ae8]' : 'bg-white/10'}`}
+            className={`w-10 h-5 rounded-full relative transition-colors ${neonEnabled ? 'bg-brand-600' : 'bg-white/10'}`}
           >
             <div
               className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${neonEnabled ? 'left-6' : 'left-1'}`}
@@ -221,7 +221,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                   setNeonIntensity(parseInt(e.target.value));
                   handleNeonChange();
                 }}
-                className="w-full accent-[#7d2ae8]"
+                className="w-full accent-brand-600"
               />
             </div>
 
@@ -239,7 +239,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                   setNeonSpread(parseInt(e.target.value));
                   handleNeonChange();
                 }}
-                className="w-full accent-[#7d2ae8]"
+                className="w-full accent-brand-600"
               />
             </div>
 
@@ -250,7 +250,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                   setNeonFlicker(!neonFlicker);
                   handleNeonChange();
                 }}
-                className={`w-8 h-4 rounded-full relative transition-colors ${neonFlicker ? 'bg-[#00c4cc]' : 'bg-white/10'}`}
+                className={`w-8 h-4 rounded-full relative transition-colors ${neonFlicker ? 'bg-accent' : 'bg-white/10'}`}
               >
                 <div
                   className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${neonFlicker ? 'left-4.5' : 'left-0.5'}`}
@@ -263,7 +263,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
 
       {/* Preview */}
       <div className="border-t border-white/5 pt-6">
-        <div className="bg-[#13161a] rounded-xl p-6 border border-white/5 flex items-center justify-center min-h-[100px] overflow-hidden">
+        <div className="bg-surface-dark-2 rounded-xl p-6 border border-white/5 flex items-center justify-center min-h-[100px] overflow-hidden">
           <div
             className="text-3xl font-black text-center transition-all duration-500 uppercase tracking-tighter"
             style={{

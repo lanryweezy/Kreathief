@@ -35,7 +35,7 @@ export const GridGuidesPanel: React.FC = () => {
   }, [addToast]);
 
   return (
-    <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4 space-y-4">
+    <div className="bg-surface-dark-3 rounded-xl border border-gray-700 p-4 space-y-4">
       <div className="flex items-center gap-2 mb-2">
         <Icons.Grid className="w-4 h-4 text-gray-400" />
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Grid & Guides</h3>
@@ -49,7 +49,7 @@ export const GridGuidesPanel: React.FC = () => {
             type="checkbox"
             checked={showGrid}
             onChange={(e) => setShowGrid(e.target.checked)}
-            className="accent-[#7d2ae8]"
+            className="accent-brand-600"
           />
           <span className="text-[10px] text-gray-500">{showGrid ? 'On' : 'Off'}</span>
         </label>
@@ -63,7 +63,7 @@ export const GridGuidesPanel: React.FC = () => {
             type="checkbox"
             checked={showRulers}
             onChange={(e) => setShowRulers(e.target.checked)}
-            className="accent-[#7d2ae8]"
+            className="accent-brand-600"
           />
           <span className="text-[10px] text-gray-500">{showRulers ? 'On' : 'Off'}</span>
         </label>
@@ -77,7 +77,7 @@ export const GridGuidesPanel: React.FC = () => {
             type="checkbox"
             checked={snapToGrid}
             onChange={(e) => setSnapToGrid(e.target.checked)}
-            className="accent-[#7d2ae8]"
+            className="accent-brand-600"
           />
           <span className="text-[10px] text-gray-500">{snapToGrid ? 'On' : 'Off'}</span>
         </label>
@@ -91,7 +91,7 @@ export const GridGuidesPanel: React.FC = () => {
             type="checkbox"
             checked={snapToObjects}
             onChange={(e) => setSnapToObjects(e.target.checked)}
-            className="accent-[#7d2ae8]"
+            className="accent-brand-600"
           />
           <span className="text-[10px] text-gray-500">{snapToObjects ? 'On' : 'Off'}</span>
         </label>
@@ -110,7 +110,7 @@ export const GridGuidesPanel: React.FC = () => {
             max="100"
             value={gridSize}
             onChange={(e) => setGridSize(parseInt(e.target.value))}
-            className="w-full accent-[#7d2ae8]"
+            className="w-full accent-brand-600"
           />
         </div>
       )}
@@ -144,13 +144,13 @@ export const GridGuidesPanel: React.FC = () => {
         <div className="flex gap-2 mb-2">
           <button
             onClick={() => handleAddGuide('horizontal')}
-            className="flex-1 py-1.5 bg-[#252627] hover:bg-gray-700 rounded text-[9px] text-gray-400 hover:text-white"
+            className="flex-1 py-1.5 bg-surface-dark-4 hover:bg-gray-700 rounded text-[9px] text-gray-400 hover:text-white"
           >
             + Horizontal
           </button>
           <button
             onClick={() => handleAddGuide('vertical')}
-            className="flex-1 py-1.5 bg-[#252627] hover:bg-gray-700 rounded text-[9px] text-gray-400 hover:text-white"
+            className="flex-1 py-1.5 bg-surface-dark-4 hover:bg-gray-700 rounded text-[9px] text-gray-400 hover:text-white"
           >
             + Vertical
           </button>
@@ -161,7 +161,7 @@ export const GridGuidesPanel: React.FC = () => {
             {guides.map((guide, index) => (
               <div
                 key={index}
-                className="text-[10px] text-gray-500 bg-[#252627] rounded px-2 py-1.5 flex items-center justify-between"
+                className="text-[10px] text-gray-500 bg-surface-dark-4 rounded px-2 py-1.5 flex items-center justify-between"
               >
                 <span>
                   {guide.type === 'horizontal' ? '↔' : '↕'} {guide.position}px

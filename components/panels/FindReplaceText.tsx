@@ -116,7 +116,7 @@ export const FindReplaceText: React.FC = () => {
   );
 
   return (
-    <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4 space-y-4">
+    <div className="bg-surface-dark-3 rounded-xl border border-gray-700 p-4 space-y-4">
       <div className="flex items-center gap-2 mb-2">
         <Icons.Search className="w-4 h-4 text-gray-400" />
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Find & Replace</h3>
@@ -132,13 +132,13 @@ export const FindReplaceText: React.FC = () => {
             onChange={(e) => setFindText(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleFind()}
             placeholder="Text to find..."
-            className="flex-1 bg-[#252627] border border-gray-600 rounded px-3 py-2 text-sm text-white"
+            className="flex-1 bg-surface-dark-4 border border-gray-600 rounded px-3 py-2 text-sm text-white"
             autoFocus
           />
           <button
             onClick={handleFind}
             disabled={!findText.trim()}
-            className="px-4 py-2 bg-[#7d2ae8] hover:bg-[#9d4edd] rounded-lg text-sm font-bold text-white disabled:opacity-50 transition-colors"
+            className="px-4 py-2 bg-brand-600 hover:bg-[#9d4edd] rounded-lg text-sm font-bold text-white disabled:opacity-50 transition-colors"
           >
             Find
           </button>
@@ -154,7 +154,7 @@ export const FindReplaceText: React.FC = () => {
             value={replaceText}
             onChange={(e) => setReplaceText(e.target.value)}
             placeholder="Replacement text..."
-            className="flex-1 bg-[#252627] border border-gray-600 rounded px-3 py-2 text-sm text-white"
+            className="flex-1 bg-surface-dark-4 border border-gray-600 rounded px-3 py-2 text-sm text-white"
           />
         </div>
       </div>
@@ -166,12 +166,12 @@ export const FindReplaceText: React.FC = () => {
             type="checkbox"
             checked={isCaseSensitive}
             onChange={(e) => setIsCaseSensitive(e.target.checked)}
-            className="accent-[#7d2ae8]"
+            className="accent-brand-600"
           />
           <span className="text-[10px] text-gray-400">Case Sensitive</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={true} disabled className="accent-[#7d2ae8]" />
+          <input type="checkbox" checked={true} disabled className="accent-brand-600" />
           <span className="text-[10px] text-gray-400">All Layers</span>
         </label>
       </div>
@@ -183,14 +183,14 @@ export const FindReplaceText: React.FC = () => {
             <p className="text-[10px] text-gray-500">
               Found {results.reduce((sum, r) => sum + r.matches, 0)} matches in {results.length} layers
             </p>
-            <button onClick={handleReplaceAll} className="text-[10px] text-[#7d2ae8] hover:text-[#9d4edd] font-bold">
+            <button onClick={handleReplaceAll} className="text-[10px] text-brand-600 hover:text-[#9d4edd] font-bold">
               Replace All
             </button>
           </div>
 
           <div className="max-h-64 overflow-y-auto space-y-2 custom-scrollbar">
             {results.map((result) => (
-              <div key={result.layerId} className="bg-[#252627] border border-gray-700 rounded-lg p-3">
+              <div key={result.layerId} className="bg-surface-dark-4 border border-gray-700 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <Icons.Text className="w-3 h-3 text-gray-500" />
@@ -202,7 +202,7 @@ export const FindReplaceText: React.FC = () => {
                     </span>
                     <button
                       onClick={() => handleSelectLayer(result.layerId)}
-                      className="text-[9px] text-[#7d2ae8] hover:text-[#9d4edd]"
+                      className="text-[9px] text-brand-600 hover:text-[#9d4edd]"
                     >
                       Select
                     </button>

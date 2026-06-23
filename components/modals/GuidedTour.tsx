@@ -71,11 +71,11 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, onSki
   if (!targetRect) {
     return (
       <div className="fixed inset-0 z-[999] pointer-events-none">
-        <div className="fixed top-4 right-4 bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl p-4 pointer-events-auto z-[1000]">
+        <div className="fixed top-4 right-4 bg-surface-dark-3 border border-gray-700 rounded-xl shadow-2xl p-4 pointer-events-auto z-[1000]">
           <p className="text-white text-sm mb-3">Tour element not found. Skipping...</p>
           <button
             onClick={onSkip}
-            className="w-full px-4 py-2 bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] text-white rounded-lg text-xs font-bold"
+            className="w-full px-4 py-2 bg-gradient-to-r from-accent to-brand-600 text-white rounded-lg text-xs font-bold"
           >
             Close Tour
           </button>
@@ -141,7 +141,7 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, onSki
 
       {/* Pulsing highlight */}
       <div
-        className="absolute border-2 border-[#00c4cc] rounded-lg animate-pulse transition-all duration-500"
+        className="absolute border-2 border-accent rounded-lg animate-pulse transition-all duration-500"
         style={{
           top: targetRect.top - 6,
           left: targetRect.left - 6,
@@ -152,12 +152,12 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, onSki
 
       {/* Tooltip */}
       <div
-        className="bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl p-6 pointer-events-auto flex flex-col gap-4 animate-in fade-in zoom-in duration-300"
+        className="bg-surface-dark-3 border border-gray-700 rounded-xl shadow-2xl p-6 pointer-events-auto flex flex-col gap-4 animate-in fade-in zoom-in duration-300"
         style={{ ...tooltipStyle, zIndex: 1000 }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-start">
-          <h4 className="text-[#00c4cc] font-bold text-sm uppercase tracking-wider">
+          <h4 className="text-accent font-bold text-sm uppercase tracking-wider">
             Step {currentStepIdx + 1} of {steps.length}
           </h4>
           <button
@@ -179,7 +179,7 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, onSki
             {steps.map((_, i) => (
               <div
                 key={i}
-                className={`h-1 w-4 rounded-full transition-colors ${i === currentStepIdx ? 'bg-[#00c4cc]' : 'bg-gray-800'}`}
+                className={`h-1 w-4 rounded-full transition-colors ${i === currentStepIdx ? 'bg-accent' : 'bg-gray-800'}`}
               />
             ))}
           </div>
@@ -195,7 +195,7 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, onSki
             )}
             <button
               onClick={handleNext}
-              className="px-6 py-2 bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] text-white rounded-lg text-xs font-bold shadow-lg shadow-purple-900/30 hover:scale-105 active:scale-95 transition-all"
+              className="px-6 py-2 bg-gradient-to-r from-accent to-brand-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-purple-900/30 hover:scale-105 active:scale-95 transition-all"
             >
               {currentStepIdx === steps.length - 1 ? 'Finish' : 'Next'}
             </button>

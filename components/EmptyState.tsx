@@ -34,7 +34,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
     <div className="flex flex-col items-center justify-center py-16 px-6 text-center h-full w-full max-w-2xl mx-auto overflow-hidden">
       {/* Dynamic Background Glow */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#7d2ae8]/5 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-600/5 blur-[120px] rounded-full animate-pulse" />
       </div>
 
       {/* Floating Icon Stage */}
@@ -44,9 +44,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         transition={{ type: 'spring', damping: 20, stiffness: 100 }}
         className="relative mb-10"
       >
-        <div className="absolute inset-0 bg-[#7d2ae8]/20 blur-[40px] rounded-full" />
-        <div className="relative w-24 h-24 rounded-[32px] bg-gradient-to-br from-[#1e1e1e] to-[#0a0a0c] border border-white/10 flex items-center justify-center shadow-2xl transform rotate-6 hover:rotate-0 transition-transform duration-700 cursor-help group">
-          <Icon className="w-10 h-10 text-[#7d2ae8] group-hover:scale-110 group-hover:text-white transition-all duration-500" />
+        <div className="absolute inset-0 bg-brand-600/20 blur-[40px] rounded-full" />
+        <div className="relative w-24 h-24 rounded-[32px] bg-gradient-to-br from-surface-dark-3 to-[#0a0a0c] border border-white/10 flex items-center justify-center shadow-2xl transform rotate-6 hover:rotate-0 transition-transform duration-700 cursor-help group">
+          <Icon className="w-10 h-10 text-brand-600 group-hover:scale-110 group-hover:text-white transition-all duration-500" />
         </div>
       </motion.div>
 
@@ -65,7 +65,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         {action && (
           <button
             onClick={action.onClick}
-            className="px-10 py-4 bg-white text-black font-black uppercase tracking-[0.2em] text-[11px] rounded-2xl hover:bg-[#00c4cc] hover:text-white hover:shadow-[0_0_30px_rgba(0,196,204,0.3)] transition-all transform hover:-translate-y-1 active:translate-y-0.5 whitespace-nowrap"
+            className="px-10 py-4 bg-white text-black font-black uppercase tracking-[0.2em] text-[11px] rounded-2xl hover:bg-accent hover:text-white hover:shadow-[0_0_30px_rgba(0,196,204,0.3)] transition-all transform hover:-translate-y-1 active:translate-y-0.5 whitespace-nowrap"
           >
             {action.label}
           </button>
@@ -98,7 +98,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                 transition={{ delay: 0.3 + idx * 0.1, type: 'spring' }}
                 onClick={card.onClick}
                 aria-label={`${card.title}. ${card.description}${card.shortcut ? `. Shortcut: ${card.shortcut}` : ''}`}
-                className="group relative p-5 bg-[#0a0a0c]/40 border border-white/5 rounded-[24px] hover:border-[#7d2ae8]/40 hover:bg-[#7d2ae8]/5 transition-all overflow-hidden"
+                className="group relative p-5 bg-[#0a0a0c]/40 border border-white/5 rounded-[24px] hover:border-brand-600/40 hover:bg-brand-600/5 transition-all overflow-hidden"
               >
                 <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-100 group-hover:rotate-12 transition-all">
                   <div className="text-3xl grayscale group-hover:grayscale-0">{card.emoji}</div>
@@ -107,7 +107,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                 <div className="relative z-10">
                   <div className="text-xs font-black text-white uppercase tracking-wider mb-1.5 flex items-center gap-2">
                     {card.title}
-                    <div className="w-1 h-1 rounded-full bg-[#7d2ae8] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="w-1 h-1 rounded-full bg-brand-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                   <div className="text-[10px] text-gray-500 font-medium leading-relaxed group-hover:text-gray-400 pr-8">
                     {card.description}
@@ -115,10 +115,10 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 
                   {card.shortcut && (
                     <div className="mt-4 flex items-center justify-between">
-                      <kbd className="px-2 py-1 bg-black/60 border border-white/10 rounded-lg text-[9px] text-gray-600 font-mono tracking-tighter group-hover:text-[#7d2ae8]">
+                      <kbd className="px-2 py-1 bg-black/60 border border-white/10 rounded-lg text-[9px] text-gray-600 font-mono tracking-tighter group-hover:text-brand-600">
                         {card.shortcut}
                       </kbd>
-                      <span className="text-[9px] font-black text-[#7d2ae8] opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all">
+                      <span className="text-[9px] font-black text-brand-600 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all">
                         START ↗
                       </span>
                     </div>

@@ -9,7 +9,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({ className = '' }) => {
 };
 
 export const ElementSkeleton = () => (
-  <div className="aspect-square bg-[#1e1e1e] border border-white/5 rounded-xl flex flex-col items-center justify-center gap-2 p-2">
+  <div className="aspect-square bg-surface-dark-3 border border-white/5 rounded-xl flex flex-col items-center justify-center gap-2 p-2">
     <Skeleton className="w-10 h-10 rounded-lg" />
     <Skeleton className="w-12 h-2" />
   </div>
@@ -32,7 +32,7 @@ export const ListSkeleton = ({ items = 5 }) => (
 export const GridSkeleton = ({ items = 6 }) => (
   <div className="grid grid-cols-2 gap-3 p-4">
     {Array.from({ length: items }).map((_, i) => (
-      <div key={i} className="aspect-square bg-[#1e1e1e] border border-white/5 rounded-xl p-3 space-y-3">
+      <div key={i} className="aspect-square bg-surface-dark-3 border border-white/5 rounded-xl p-3 space-y-3">
         <Skeleton className="w-full h-2/3 rounded-lg" />
         <Skeleton className="w-3/4 h-2 rounded" />
         <Skeleton className="w-1/2 h-2 rounded" />
@@ -42,7 +42,7 @@ export const GridSkeleton = ({ items = 6 }) => (
 );
 
 export const CardSkeleton = () => (
-  <div className="bg-[#1e1e1e] border border-white/5 rounded-2xl p-4 space-y-4 mx-4 my-2">
+  <div className="bg-surface-dark-3 border border-white/5 rounded-2xl p-4 space-y-4 mx-4 my-2">
     <Skeleton className="w-full aspect-video rounded-xl" />
     <div className="space-y-2">
       <Skeleton className="w-3/4 h-4 rounded" />

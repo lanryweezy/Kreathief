@@ -59,7 +59,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
 
   if (!selectedLayer) {
     return (
-      <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4">
+      <div className="bg-surface-dark-3 rounded-xl border border-gray-700 p-4">
         <div className="flex items-center gap-2 mb-2">
           <Icons.Layers className="w-4 h-4 text-gray-400" />
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Layer Effects</h3>
@@ -70,7 +70,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
   }
 
   return (
-    <div className="bg-[#1e1e1e] rounded-xl border border-gray-700 p-4 space-y-4">
+    <div className="bg-surface-dark-3 rounded-xl border border-gray-700 p-4 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Icons.Layers className="w-4 h-4 text-gray-400" />
@@ -85,7 +85,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
           {!dropShadow ? (
             <button
               onClick={handleAddDropShadow}
-              className="text-[10px] text-[#7d2ae8] hover:text-[#9d4edd] flex items-center gap-1"
+              className="text-[10px] text-brand-600 hover:text-brand-500 flex items-center gap-1"
             >
               <Icons.Plus className="w-3 h-3" /> Add
             </button>
@@ -130,7 +130,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
                   setDropShadow(updated);
                   updateLayer(selectedLayer.id, { shadow: updated });
                 }}
-                className="w-full accent-[#7d2ae8]"
+                className="w-full accent-brand-600"
               />
             </div>
 
@@ -149,7 +149,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
                   setDropShadow(updated);
                   updateLayer(selectedLayer.id, { shadow: updated });
                 }}
-                className="w-full accent-[#7d2ae8]"
+                className="w-full accent-brand-600"
               />
             </div>
 
@@ -169,7 +169,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
                     setDropShadow(updated);
                     updateLayer(selectedLayer.id, { shadow: updated });
                   }}
-                  className="w-full accent-[#7d2ae8]"
+                  className="w-full accent-brand-600"
                 />
               </div>
               <div>
@@ -187,7 +187,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
                     setDropShadow(updated);
                     updateLayer(selectedLayer.id, { shadow: updated });
                   }}
-                  className="w-full accent-[#7d2ae8]"
+                  className="w-full accent-brand-600"
                 />
               </div>
             </div>
@@ -202,7 +202,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
           {!stroke ? (
             <button
               onClick={handleAddStroke}
-              className="text-[10px] text-[#7d2ae8] hover:text-[#9d4edd] flex items-center gap-1"
+              className="text-[10px] text-brand-600 hover:text-brand-500 flex items-center gap-1"
             >
               <Icons.Plus className="w-3 h-3" /> Add
             </button>
@@ -247,7 +247,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
                   setStroke(updated);
                   updateLayer(selectedLayer.id, { stroke: updated });
                 }}
-                className="w-full accent-[#7d2ae8]"
+                className="w-full accent-brand-600"
               />
             </div>
 
@@ -266,7 +266,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
                   setStroke(updated);
                   updateLayer(selectedLayer.id, { stroke: updated });
                 }}
-                className="w-full accent-[#7d2ae8]"
+                className="w-full accent-brand-600"
               />
             </div>
           </div>

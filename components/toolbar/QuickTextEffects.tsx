@@ -58,7 +58,7 @@ export const QuickTextEffects = React.memo(({ layer, onUpdateLayer }: QuickTextE
         onClick={() => setShowEffects(!showEffects)}
         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${
           hasShadow || has3D || hasTransform || hasCurve
-            ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white shadow-lg shadow-[#7d2ae8]/30'
+            ? 'bg-brand-600 border-brand-600 text-white shadow-lg shadow-brand-600/30'
             : 'bg-black/20 border-white/10 text-gray-300 hover:border-white/20 hover:bg-black/30'
         }`}
         title="Text Effects"
@@ -67,7 +67,7 @@ export const QuickTextEffects = React.memo(({ layer, onUpdateLayer }: QuickTextE
       </button>
 
       <Dropdown anchorRef={effectsButtonRef} isOpen={showEffects} onClose={() => setShowEffects(false)} align="left">
-        <div className="w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-3 animate-fadeIn backdrop-blur-xl">
+        <div className="w-64 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-3 animate-fadeIn backdrop-blur-xl">
           <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Quick Effects</h4>
 
           {/* Toggle Effects */}
@@ -142,7 +142,7 @@ export const QuickTextEffects = React.memo(({ layer, onUpdateLayer }: QuickTextE
               max="100"
               value={layer.curve || 0}
               onChange={(e) => setCurve(parseInt(e.target.value))}
-              className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+              className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600"
             />
           </div>
 

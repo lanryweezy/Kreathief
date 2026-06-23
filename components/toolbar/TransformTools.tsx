@@ -97,11 +97,11 @@ export const TransformTools = React.memo(({ selectedLayer }: TransformToolsProps
 
           <div className="flex flex-col items-center -mx-1 z-10">
             <div
-              className={`w-0.5 h-2 transition-colors ${selectedLayer.lockProportions ? 'bg-[#7d2ae8]' : 'bg-transparent'}`}
+              className={`w-0.5 h-2 transition-colors ${selectedLayer.lockProportions ? 'bg-brand-600' : 'bg-transparent'}`}
             />
             <button
               onClick={() => handleUpdateLayer({ lockProportions: !selectedLayer.lockProportions })}
-              className={`p-0.5 rounded-full transition-all border ${selectedLayer.lockProportions ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white' : 'bg-[#252627] border-gray-700 text-gray-500 hover:text-gray-300'}`}
+              className={`p-0.5 rounded-full transition-all border ${selectedLayer.lockProportions ? 'bg-brand-600 border-brand-600 text-white' : 'bg-surface-dark-4 border-gray-700 text-gray-500 hover:text-gray-300'}`}
               title="Lock Aspect Ratio"
             >
               {selectedLayer.lockProportions ? (
@@ -111,7 +111,7 @@ export const TransformTools = React.memo(({ selectedLayer }: TransformToolsProps
               )}
             </button>
             <div
-              className={`w-0.5 h-2 transition-colors ${selectedLayer.lockProportions ? 'bg-[#7d2ae8]' : 'bg-transparent'}`}
+              className={`w-0.5 h-2 transition-colors ${selectedLayer.lockProportions ? 'bg-brand-600' : 'bg-transparent'}`}
             />
           </div>
 
@@ -128,7 +128,7 @@ export const TransformTools = React.memo(({ selectedLayer }: TransformToolsProps
           {/* Visual connected borders for #12 */}
           {selectedLayer.lockProportions && selectedLayer.type !== 'text' && (
             <div className="absolute -right-1 top-0 bottom-0 w-2 pointer-events-none animate-fadeIn">
-              <div className="absolute top-[20%] bottom-[20%] right-full w-4 border-y border-r border-[#7d2ae8]/50 rounded-r-md" />
+              <div className="absolute top-[20%] bottom-[20%] right-full w-4 border-y border-r border-brand-600/50 rounded-r-md" />
             </div>
           )}
         </div>

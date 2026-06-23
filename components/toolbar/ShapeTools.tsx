@@ -60,7 +60,7 @@ export const ShapeTools = React.memo(
             step="0.01"
             value={layer.opacity}
             onChange={(e) => handleUpdateLayer({ opacity: parseFloat(e.target.value) })}
-            className="w-16 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00c4cc]"
+            className="w-16 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
             title={`Opacity: ${Math.round(layer.opacity * 100)}%`}
           />
         </div>
@@ -71,7 +71,7 @@ export const ShapeTools = React.memo(
           <button
             ref={effectsButtonRef}
             onClick={() => setShowEffects(!showEffects)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${showEffects ? 'bg-[#00c4cc] border-[#00c4cc] text-white shadow-lg shadow-[#00c4cc]/30' : 'bg-black/20 border-white/10 text-gray-300 hover:border-white/20 hover:bg-black/30'}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${showEffects ? 'bg-accent border-accent text-white shadow-lg shadow-accent/30' : 'bg-black/20 border-white/10 text-gray-300 hover:border-white/20 hover:bg-black/30'}`}
           >
             <Icons.Sliders className="w-3.5 h-3.5" /> Effects
           </button>
@@ -81,7 +81,7 @@ export const ShapeTools = React.memo(
             onClose={() => setShowEffects(false)}
             align="left"
           >
-            <div className="w-64 bg-[#1e1e1e] rounded-xl shadow-2xl border border-white/10 p-4 animate-fadeIn space-y-4 backdrop-blur-xl">
+            <div className="w-64 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-4 animate-fadeIn space-y-4 backdrop-blur-xl">
               {/* Shadow Section */}
               <div className="bg-white/5 rounded-lg p-3 border border-white/5">
                 <div className="flex justify-between items-center mb-3">
@@ -94,7 +94,7 @@ export const ShapeTools = React.memo(
                           shadow: e.target.checked ? { color: '#000000', blur: 10, offsetX: 5, offsetY: 5 } : undefined,
                         })
                       }
-                      className="accent-[#00c4cc] w-3 h-3"
+                      className="accent-accent w-3 h-3"
                     />
                     Drop Shadow
                   </span>
@@ -128,13 +128,13 @@ export const ShapeTools = React.memo(
                           onChange={(e) =>
                             handleUpdateLayer({ shadow: { ...layer.shadow!, [idx.key]: parseInt(e.target.value) } })
                           }
-                          className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00c4cc]"
+                          className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
                         />
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Filters Section */}
               <div className="bg-white/5 rounded-lg p-3 border border-white/5">
@@ -161,7 +161,7 @@ export const ShapeTools = React.memo(
                         max={f.max}
                         value={(layer as any).filters?.[f.key] ?? (f.key === 'blur' ? 0 : 100)}
                         onChange={(e) => updateFilter(f.key, parseInt(e.target.value))}
-                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00c4cc]"
+                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
                       />
                     </div>
                   ))}
@@ -271,7 +271,7 @@ export const ShapeTools = React.memo(
                           pathEffects: { ...(layer as any).pathEffects, roughen: { amount: parseInt(e.target.value) } },
                         })
                       }
-                      className="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00c4cc]"
+                      className="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -292,7 +292,7 @@ export const ShapeTools = React.memo(
                           },
                         })
                       }
-                      className="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00c4cc]"
+                      className="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -313,7 +313,7 @@ export const ShapeTools = React.memo(
                           },
                         })
                       }
-                      className="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00c4cc]"
+                      className="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -331,7 +331,7 @@ export const ShapeTools = React.memo(
                           },
                         })
                       }
-                      className="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00c4cc]"
+                      className="w-32 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
                     />
                   </div>
                 </div>
