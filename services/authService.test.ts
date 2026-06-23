@@ -3,9 +3,8 @@ import { authService } from './authService';
 import { supabase } from '../lib/supabase/client';
 
 // Mock Supabase client
-vi.mock('../lib/supabase/client', () => ({
-  db: {},
-  supabase: {
+vi.mock('../lib/supabase/client', () => {
+  const mockSupabase = {
     auth: {
       signInWithPassword: vi.fn(),
       signUp: vi.fn(),
@@ -21,11 +20,12 @@ vi.mock('../lib/supabase/client', () => ({
     },
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
       single: vi.fn(),
+      eq: vi.fn().mockReturnThis(),
       insert: vi.fn().mockReturnThis(),
     }),
   };
+
   return {
     supabase: mockSupabase,
     db: mockSupabase,

@@ -14,52 +14,52 @@ const FONTS_DIR = join(__dirname, 'public', 'fonts');
 
 // Core fonts to download with correct Google Fonts API format
 const CORE_FONTS = [
-  { 
-    family: 'Inter', 
+  {
+    family: 'Inter',
     apiName: 'Inter',
-    weights: ['300', '400', '500', '600', '700'] 
+    weights: ['300', '400', '500', '600', '700'],
   },
-  { 
-    family: 'Space Grotesk', 
+  {
+    family: 'Space Grotesk',
     apiName: 'Space+Grotesk',
-    weights: ['300', '400', '500', '600', '700'] 
+    weights: ['300', '400', '500', '600', '700'],
   },
-  { 
-    family: 'Outfit', 
+  {
+    family: 'Outfit',
     apiName: 'Outfit',
-    weights: ['300', '400', '500', '600', '700', '800'] 
-  }
+    weights: ['300', '400', '500', '600', '700', '800'],
+  },
 ];
 
 async function downloadFont(family, apiName, weight) {
   const filename = `${family.replace(/\s+/g, '-')}-${weight}.ttf`;
   const filePath = join(FONTS_DIR, filename);
-  
+
   try {
     // Fetch CSS from Google Fonts
     const cssUrl = `https://fonts.googleapis.com/css2?family=${apiName}:wght@${weight}&display=swap`;
-    
+
     const cssResponse = await fetch(cssUrl);
     if (!cssResponse.ok) {
       throw new Error(`Failed to fetch CSS: ${cssResponse.statusText}`);
     }
     const cssText = await cssResponse.text();
-    
+
     // Extract the .ttf URL from the CSS
     const urlMatch = cssText.match(/url\((https:\/\/fonts\.gstatic\.com\/[^)]+\.ttf[^)]*)\)/);
-    
+
     if (!urlMatch) {
       throw new Error('No .ttf URL found in CSS');
     }
-    
+
     const fontUrl = urlMatch[1];
-    
+
     // Download the font file
     const fontResponse = await fetch(fontUrl);
     if (!fontResponse.ok) {
       throw new Error(`Failed to download font: ${fontResponse.statusText}`);
     }
-    
+
     const buffer = Buffer.from(await fontResponse.arrayBuffer());
     await writeFile(filePath, buffer);
     console.log(`✓ Downloaded: ${filename}`);
@@ -77,7 +77,7 @@ async function generateFontCSS() {
 
   for (const font of CORE_FONTS) {
     css += `/* ===== ${font.family} ===== */\n`;
-    
+
     for (const weight of font.weights) {
       const filename = `${font.family.replace(/\s+/g, '-')}-${weight}.ttf`;
       css += `@font-face {\n`;
@@ -98,32 +98,32 @@ async function generateFontCSS() {
 
 async function main() {
   console.log('🚀 Downloading Google Fonts locally...\n');
-  
+
   // Ensure directory exists
   await mkdir(FONTS_DIR, { recursive: true });
-  
+
   let successCount = 0;
   let failCount = 0;
-  
+
   for (const font of CORE_FONTS) {
     console.log(`\n📥 Downloading ${font.family}...`);
     for (const weight of font.weights) {
       const success = await downloadFont(font.family, font.apiName, weight);
       if (success) successCount++;
       else failCount++;
-      
+
       // Small delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
     }
   }
-  
+
   // Generate the CSS file
   await generateFontCSS();
-  
+
   console.log(`\n✅ Download complete!`);
   console.log(`   Successful: ${successCount}`);
   console.log(`   Failed: ${failCount}`);
-  
+
   if (failCount > 0) {
     console.log('\n📝 Alternative: Download fonts manually');
     console.log('1. Visit: https://fonts.google.com/download?family=Inter|Space+Grotesk|Outfit');

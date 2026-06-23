@@ -309,14 +309,25 @@ export const generateAltText = async (src: string): Promise<string> => {
     }
 
     const parts = [
-      { text: 'Generate a concise, descriptive alt text for accessibility. No trailing punctuation.' },
+      {
+        text: 'Generate a concise, descriptive alt text for accessibility. No trailing punctuation. Return ONLY the raw alt text string as JSON.',
+      },
       { inlineData: { mimeType: b64!.mimeType, data: b64!.data } },
     ];
     const data = await callBackendGeminiAPI({
       modelName: MODEL_FAST,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.STRING,
+          description: 'A concise, descriptive alt text for accessibility',
+        },
+      },
       contents: [{ role: 'user', parts }],
     });
-    return data.text?.trim().replace(/[.!?]+$/, '') || 'Image';
+    // 🤖 Astra: Force strict JSON output for strings to eliminate conversational preamble
+    const parsed = safeParseJSON<string | null>(data.text || 'null', null);
+    return parsed?.trim().replace(/[.!?]+$/, '') || 'Image';
   } catch (error) {
     log.error('generateAltText error:', error);
     return 'Image';
