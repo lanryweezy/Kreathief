@@ -9,7 +9,7 @@ import { NavTab } from '../types';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { ErrorBoundary } from './ErrorBoundary';
-import { SidePanel } from './SidePanel';
+import { ScrollablePanel } from './ScrollablePanel';
 import { MobileNavBar } from './MobileNavBar';
 import { BottomSheet } from './BottomSheet';
 import { Canvas } from './Canvas';
@@ -605,26 +605,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
               }}
             />
             {!isSidebarCollapsed && activeTab !== NavTab.MOCKUP && (
-              <SidePanel
+              <ScrollablePanel
                 onGenerate={handleGenerate}
-                onApplyTheme={applyBrandColors}
-                onApplyLayout={handleApplyLayout}
-                getCanvasSnapshot={handleExportDataUrl}
-                uploadedImage={uploadedImage}
                 onStartDesign={handleStartDesign}
-                onPreviewMotion={(settings: AnimationSettings) => {
-                  if (previewTimeoutRef.current) {
-                    clearTimeout(previewTimeoutRef.current);
-                  }
-                  setPreviewAnimation(settings);
-                  previewTimeoutRef.current = setTimeout(
-                    () => {
-                      setPreviewAnimation(undefined);
-                      previewTimeoutRef.current = null;
-                    },
-                    settings.duration * 1000 + settings.delay * 1000 + 100
-                  );
-                }}
+                getCanvasSnapshot={handleExportDataUrl}
               />
             )}
           </ErrorBoundary>
@@ -872,26 +856,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       {isMobile && <MobileOnboarding />}
 
       <BottomSheet isOpen={isBottomSheetOpen} onClose={() => setIsBottomSheetOpen(false)} title={activeTab}>
-        <SidePanel
+        <ScrollablePanel
           onGenerate={handleGenerate}
-          onApplyTheme={applyBrandColors}
-          onApplyLayout={handleApplyLayout}
-          getCanvasSnapshot={handleExportDataUrl}
-          uploadedImage={uploadedImage}
           onStartDesign={handleStartDesign}
-          onPreviewMotion={(settings: AnimationSettings) => {
-            if (previewTimeoutRef.current) {
-              clearTimeout(previewTimeoutRef.current);
-            }
-            setPreviewAnimation(settings);
-            previewTimeoutRef.current = setTimeout(
-              () => {
-                setPreviewAnimation(undefined);
-                previewTimeoutRef.current = null;
-              },
-              settings.duration * 1000 + settings.delay * 1000 + 100
-            );
-          }}
+          getCanvasSnapshot={handleExportDataUrl}
         />
       </BottomSheet>
 
