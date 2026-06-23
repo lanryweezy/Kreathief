@@ -7,6 +7,8 @@ import { useStore } from '../../store/useStore';
 import { v4 as uuidv4 } from 'uuid';
 import { log } from '../../utils/log';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
+import { Input } from '../Input';
+import { Button } from '../Button';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const BrandPanel = () => {
@@ -55,7 +57,7 @@ export const BrandPanel = () => {
   };
   const [isCreating, setIsCreating] = useState(false);
   const [newKitName, setNewKitName] = useState('');
-  const [newColors, setNewColors] = useState<string[]>(['#000000', '#ffffff', '#7d2ae8']);
+  const [newColors, setNewColors] = useState<string[]>(['#000000', '#ffffff', 'brand-600']);
   const [newFonts, setNewFonts] = useState<string[]>(['Space Grotesk', 'Inter']);
   const [newLogos, setNewLogos] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -88,7 +90,7 @@ export const BrandPanel = () => {
 
   const resetForm = () => {
     setNewKitName('');
-    setNewColors(['#000000', '#ffffff', '#7d2ae8']);
+    setNewColors(['#000000', '#ffffff', 'brand-600']);
     setNewFonts(['Space Grotesk', 'Inter']);
     setNewLogos([]);
   };
@@ -175,30 +177,32 @@ export const BrandPanel = () => {
   };
 
   return (
-    <div data-testid="brand-panel" className="flex flex-col h-full p-4 overflow-hidden bg-[#13161a]">
+    <div data-testid="brand-panel" className="flex flex-col h-full p-4 overflow-hidden bg-surface-dark-2">
       <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <h3 className="font-bold text-white flex items-center gap-2">
-          <Icons.Brand className="w-5 h-5 text-[#7d2ae8]" />
+          <Icons.Brand className="w-5 h-5 text-brand-600" />
           Brand Kits
         </h3>
         <div className="flex gap-2">
           <input type="file" accept=".json" ref={importInputRef} onChange={handleImportKit} className="hidden" />
-          <button
+          <Button
+            variant="secondary"
+            size="xs"
             onClick={() => importInputRef.current?.click()}
-            className="text-xs bg-[#252627] hover:bg-[#333] border border-gray-700 text-gray-300 px-2 py-1 rounded flex items-center gap-1"
             title="Import JSON Kit"
             aria-label="Import JSON Kit"
           >
             <Icons.Plus className="w-3 h-3 rotate-45" /> Import
-          </button>
+          </Button>
           {!isCreating && (
-            <button
+            <Button
               data-testid="add-brand-kit-btn"
+              variant="primary"
+              size="xs"
               onClick={() => setIsCreating(true)}
-              className="text-xs bg-[#7d2ae8] hover:bg-[#6b23c5] text-white px-2 py-1 rounded font-bold shadow-lg shadow-purple-900/20"
             >
               + New Kit
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -206,14 +210,14 @@ export const BrandPanel = () => {
       {isCreating && (
         <div
           data-testid="create-brand-kit-form"
-          className="bg-[#1e1e1e] p-4 rounded-lg border border-gray-700 mb-6 animate-fadeIn flex-shrink-0 relative"
+          className="bg-surface-dark-3 p-4 rounded-xl border border-gray-700 mb-6 animate-fadeIn flex-shrink-0 relative"
         >
-          <input
+          <Input
             data-testid="brand-kit-name-input"
             type="text"
             placeholder="Brand Name (e.g. Acme Corp)"
             aria-label="New Kit Name"
-            className="w-full bg-[#252627] border border-gray-600 rounded px-2 py-1.5 text-sm text-white mb-4 focus:border-[#7d2ae8] outline-none"
+            className="text-sm mb-4"
             value={newKitName}
             onChange={(e) => setNewKitName(e.target.value)}
             autoFocus
@@ -226,7 +230,7 @@ export const BrandPanel = () => {
                 <button
                   onClick={extractColorsFromLogo}
                   disabled={isAnalyzing}
-                  className="text-[10px] text-[#7d2ae8] hover:text-[#9f5afd] flex items-center gap-1 disabled:opacity-50"
+                  className="text-[10px] text-brand-600 hover:text-brand-400 flex items-center gap-1 disabled:opacity-50"
                 >
                   <Icons.Magic className="w-3 h-3" />
                   {isAnalyzing ? 'Analyzing...' : 'Extract Colors'}
@@ -250,7 +254,7 @@ export const BrandPanel = () => {
                 </div>
               ))}
               {newLogos.length < 10 && (
-                <label className="w-12 h-12 rounded border-2 border-dashed border-gray-700 hover:border-[#7d2ae8] transition-colors flex flex-col items-center justify-center cursor-pointer text-gray-500 hover:text-[#7d2ae8]">
+                <label className="w-12 h-12 rounded border-2 border-dashed border-gray-700 hover:border-brand-600 transition-colors flex flex-col items-center justify-center cursor-pointer text-gray-500 hover:text-brand-600">
                   <Icons.Plus className="w-4 h-4" />
                   <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                 </label>
@@ -264,7 +268,7 @@ export const BrandPanel = () => {
               {newColors.map((c, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-1.5 bg-[#252627] border border-gray-700 rounded-lg p-1 animate-fadeIn shrink-0"
+                  className="flex items-center gap-1.5 bg-surface-dark-4 border border-gray-700 rounded-xl p-1 animate-fadeIn shrink-0"
                 >
                   <div className="relative w-6 h-6 rounded-md overflow-hidden border border-gray-600 cursor-pointer shrink-0">
                     <input
@@ -313,7 +317,7 @@ export const BrandPanel = () => {
                 <span className="text-[10px] text-gray-400 w-12">Headings</span>
                 <select
                   data-testid="brand-font-heading-select"
-                  className="flex-1 bg-[#252627] border border-gray-600 rounded px-2 py-1 text-xs text-white"
+                  className="flex-1 bg-surface-dark-4 border border-gray-600 rounded-xl px-2 py-1 text-xs text-white"
                   value={newFonts[0]}
                   onChange={(e) => setNewFonts([e.target.value, newFonts[1]])}
                 >
@@ -328,7 +332,7 @@ export const BrandPanel = () => {
                 <span className="text-[10px] text-gray-400 w-12">Body</span>
                 <select
                   data-testid="brand-font-body-select"
-                  className="flex-1 bg-[#252627] border border-gray-600 rounded px-2 py-1 text-xs text-white"
+                  className="flex-1 bg-surface-dark-4 border border-gray-600 rounded-xl px-2 py-1 text-xs text-white"
                   value={newFonts[1]}
                   onChange={(e) => setNewFonts([newFonts[0], e.target.value])}
                 >
@@ -343,24 +347,26 @@ export const BrandPanel = () => {
           </div>
 
           <div className="flex gap-2 pt-2 border-t border-gray-700">
-            <button
+            <Button
               data-testid="save-brand-kit-btn"
+              variant="primary"
+              size="sm"
               onClick={handleCreate}
               disabled={!newKitName.trim()}
               title={!newKitName.trim() ? 'Please enter a brand name to save' : 'Save Brand Kit'}
-              className="px-3 py-1.5 text-xs font-bold text-white bg-[#7d2ae8] hover:bg-[#6b23c5] rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md shadow-purple-900/10"
             >
               Save Kit
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 setIsCreating(false);
                 resetForm();
               }}
-              className="px-3 py-1.5 text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-all"
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -369,7 +375,7 @@ export const BrandPanel = () => {
         {!kitsLoaded ? (
           <div className="space-y-4 animate-pulse">
             {[1, 2].map((i) => (
-              <div key={i} className="bg-[#1e1e1e] border border-gray-700 rounded-lg p-3 space-y-3">
+              <div key={i} className="bg-surface-dark-3 border border-gray-700 rounded-lg p-3 space-y-3">
                 <div className="h-4 bg-white/5 rounded w-1/2" />
                 <div className="flex gap-1.5">{[1, 2, 3, 4].map((j) => <div key={j} className="w-5 h-5 rounded-full bg-white/5" />)}</div>
                 <div className="h-16 bg-white/5 rounded" />
@@ -378,26 +384,28 @@ export const BrandPanel = () => {
           </div>
         ) : brandKits.length === 0 && !isCreating ? (
           <div className="text-center text-gray-500 mt-10">
-            <div className="w-16 h-16 rounded-full bg-[#1e1e1e] flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-full bg-surface-dark-3 flex items-center justify-center mx-auto mb-4">
               <Icons.Brand className="w-8 h-8 opacity-30" />
             </div>
             <h4 className="text-sm font-bold text-gray-300 mb-1">No Brand Kits</h4>
             <p className="text-xs max-w-[200px] mx-auto">
               Create a kit to save your brand colors, fonts, and logos for quick access.
             </p>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setIsCreating(true)}
-              className="mt-4 text-[#7d2ae8] text-xs font-bold hover:underline"
+              className="mt-4 text-brand-600 font-bold hover:underline"
             >
               Create your first kit
-            </button>
+            </Button>
           </div>
         ) : (
           brandKits.map((kit) => (
             <div
               key={kit.id}
               data-testid={`brand-kit-item-${kit.name.toLowerCase().replace(/\s+/g, '-')}`}
-              className="bg-[#1e1e1e] border border-gray-700 rounded-lg p-3 group relative hover:border-gray-600 transition-colors"
+              className="bg-surface-dark-3 border border-gray-700 rounded-xl p-3 group relative hover:border-gray-600 transition-colors"
             >
               <div className="flex justify-between items-start mb-3">
                 <h4 className="font-bold text-sm text-white">{kit.name}</h4>
@@ -439,14 +447,14 @@ export const BrandPanel = () => {
                     onApplyBrandColors(kit.colors, kit.id);
                     setActiveBrandKit(kit.id);
                   }}
-                  className={`ml-auto text-[10px] px-2 py-0.5 rounded border transition-colors font-bold ${activeBrandKitId === kit.id ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/20' : 'bg-[#7d2ae8]/10 hover:bg-[#7d2ae8]/20 text-[#7d2ae8] border-[#7d2ae8]/20'}`}
+                  className={`ml-auto text-[10px] px-2 py-0.5 rounded border transition-colors font-bold ${activeBrandKitId === kit.id ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/20' : 'bg-brand-600/10 hover:bg-brand-600/20 text-brand-600 border-brand-600/20'}`}
                 >
                   {activeBrandKitId === kit.id ? 'Live' : 'Apply'}
                 </button>
               </div>
 
               {/* Typography */}
-              <div data-testid="brand-fonts-display" className="bg-[#252627] rounded p-2 mb-3 border border-gray-800">
+              <div data-testid="brand-fonts-display" className="bg-surface-dark-4 rounded-xl p-2 mb-3 border border-gray-800">
                 <div className="flex justify-between items-center border-b border-gray-700 pb-1 mb-1">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-gray-500 uppercase">Typography</span>
@@ -457,7 +465,7 @@ export const BrandPanel = () => {
                   <button
                     data-testid="apply-brand-fonts-btn"
                     onClick={() => onApplyBrandFonts(kit.fonts[0], kit.fonts[1], kit.id)}
-                    className="text-[10px] text-[#7d2ae8] hover:text-white transition-colors"
+                    className="text-[10px] text-brand-600 hover:text-white transition-colors"
                   >
                     Apply
                   </button>
@@ -493,14 +501,14 @@ export const BrandPanel = () => {
                       <button
                         key={i}
                         onClick={() => onAddLogoToCanvas(logo)}
-                        className="aspect-square rounded border border-gray-700 bg-black/20 p-1 flex items-center justify-center hover:border-[#7d2ae8] transition-colors"
+                        className="aspect-square rounded border border-gray-700 bg-black/20 p-1 flex items-center justify-center hover:border-brand-600 transition-colors"
                         aria-label="Add logo to canvas"
                       >
                         <img src={logo} className="max-w-full max-h-full object-contain pointer-events-none" />
                       </button>
                     ))}
                     {kit.logos.length > 4 && (
-                      <div className="aspect-square rounded border border-gray-700 bg-[#252627] flex items-center justify-center text-[10px] text-gray-500">
+                      <div className="aspect-square rounded border border-gray-700 bg-surface-dark-4 flex items-center justify-center text-[10px] text-gray-500">
                         +{kit.logos.length - 4}
                       </div>
                     )}

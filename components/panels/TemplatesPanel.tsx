@@ -6,6 +6,7 @@ import { STARTER_TEMPLATES } from '../../data/templates';
 import { communityService, CommunityTemplate } from '../../services/communityService';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { ConfirmModal } from '../modals/ConfirmModal';
+import { Input } from '../Input';
 
 interface TemplatesPanelProps {
   setPrompt: (s: string) => void;
@@ -30,7 +31,7 @@ const THEMES = [
   { name: 'Sunset', colors: ['#fff7ed', '#fed7aa', '#f97316', '#431407'] },
   { name: 'Solarized', colors: ['#002b36', '#073642', '#268bd2', '#859900'] },
   { name: 'Nordic', colors: ['#2e3440', '#3b4252', '#88c0d0', '#eceff4'] },
-  { name: 'Amethyst', colors: ['#1a1a2e', '#16213e', '#7d2ae8', '#e94560'] },
+  { name: 'Amethyst', colors: ['#1a1a2e', '#16213e', 'brand-600', '#e94560'] },
   { name: 'Luxury', colors: ['#0c0a09', '#1c1917', '#d6d3d1', '#e7e5e4'] },
   { name: 'Corporate', colors: ['#ffffff', '#f1f5f9', '#3b82f6', '#1e3a8a'] },
 ];
@@ -151,9 +152,9 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   }, [category, showFavoritesOnly, favoriteTemplates, searchQuery]);
 
   return (
-    <div data-testid="templates-panel" className="flex flex-col h-full bg-[#13161a]">
+    <div data-testid="templates-panel" className="flex flex-col h-full bg-surface-dark-2">
       {/* Header with Categories */}
-      <div className="p-4 border-b border-gray-700 bg-[#13161a] sticky top-0 z-10">
+      <div className="p-4 border-b border-gray-700 bg-surface-dark-2 sticky top-0 z-10">
         {category === 'All' ? (
           <div className="mb-2">
             <h3 className="text-white font-bold mb-3">Browse Categories</h3>
@@ -193,33 +194,33 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
           </div>
         )}
 
-        <div className="relative mt-2">
-          <Icons.Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-          <input
-            data-testid="template-panel-search-input"
-            type="text"
-            placeholder="Search templates..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#1e1e1e] border border-gray-700 rounded-lg py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-[#7d2ae8]"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-2.5 text-gray-500 hover:text-white"
-            >
-              <Icons.X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
+          <div className="relative mt-2">
+            <Icons.Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400 z-10" />
+            <Input
+              data-testid="template-panel-search-input"
+              type="text"
+              placeholder="Search templates..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-9 text-sm"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-2.5 text-gray-500 hover:text-white z-10"
+              >
+                <Icons.X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
 
         <div className="flex items-center gap-2 mt-3">
           <button
             onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border w-full justify-center ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border w-full justify-center ${
               showFavoritesOnly
                 ? 'bg-red-500/10 border-red-500/50 text-red-400'
-                : 'bg-[#1e1e1e] border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'
+                : 'bg-surface-dark-3 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'
             }`}
           >
             <Icons.Heart className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-current' : ''}`} />
@@ -232,7 +233,7 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
           <button
             onClick={() => setActiveTab('starter')}
             className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-              activeTab === 'starter' ? 'bg-[#7d2ae8] text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
+              activeTab === 'starter' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
             }`}
           >
             Starter
@@ -291,7 +292,7 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                         onApplyLayout && onApplyLayout(g.shapes as any);
                       }
                     }}
-                    className="aspect-square bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#00c4cc] flex flex-col items-center justify-center text-gray-500 hover:text-white transition-all hover:bg-[#252627] gap-1"
+                    className="aspect-square bg-surface-dark-3 border border-gray-700 rounded hover:border-accent flex flex-col items-center justify-center text-gray-500 hover:text-white transition-all hover:bg-surface-dark-4 gap-1"
                     title={g.name}
                   >
                     <g.icon className="w-5 h-5" />
@@ -331,7 +332,7 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                             });
                           }
                         }}
-                        className="cursor-pointer group relative aspect-video rounded-lg overflow-hidden bg-[#1e1e1e] border border-gray-700 hover:border-[#7d2ae8] transition-all shadow-lg text-left"
+                        className="cursor-pointer group relative aspect-video rounded-xl overflow-hidden bg-surface-dark-3 border border-gray-700 hover:border-brand-600 transition-all shadow-lg text-left"
                       >
                         <div className="absolute inset-0 flex items-center justify-center opacity-10">
                           <Icons.Layout className="w-12 h-12" />
@@ -365,7 +366,7 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
 
             <div className="grid grid-cols-1 gap-4">
               {isLoadingCommunity && [1, 2, 3].map((i) => (
-                <div key={`skel-${i}`} className="animate-pulse bg-[#1e1e1e] border border-gray-800 rounded-xl overflow-hidden">
+                <div key={`skel-${i}`} className="animate-pulse bg-surface-dark-3 border border-gray-800 rounded-xl overflow-hidden">
                   <div className="aspect-video bg-white/5" />
                   <div className="p-3 space-y-2">
                     <div className="h-4 bg-white/5 rounded w-2/3" />
@@ -381,7 +382,7 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                 <div
                   key={tmpl.id}
                   onClick={() => handleApplyCommunity(tmpl)}
-                  className="bg-[#1e1e1e] border border-gray-800 rounded-xl overflow-hidden group cursor-pointer hover:border-orange-500 transition-all shadow-lg"
+                  className="bg-surface-dark-3 border border-gray-800 rounded-xl overflow-hidden group cursor-pointer hover:border-orange-500 transition-all shadow-lg"
                 >
                   <div className="aspect-video bg-black/40 relative">
                     <div className="absolute inset-0 flex items-center justify-center opacity-10">
@@ -403,7 +404,7 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                       <span className="text-[9px] text-gray-400">
                         by <span className="text-orange-400">{tmpl.userName}</span>
                       </span>
-                      <span className="text-[9px] text-gray-600 font-mono">
+                      <span className="text-[9px] text-muted-light font-mono">
                         {new Date(tmpl.createdAt).toLocaleDateString()}
                       </span>
                     </div>
@@ -427,7 +428,7 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
             type="checkbox"
             checked={showReplaceWarning}
             onChange={(e) => setShowReplaceWarning(e.target.checked)}
-            className="accent-[#7d2ae8]"
+            className="accent-brand-600"
           />
           <label htmlFor="warn-replace" className="text-[10px] text-gray-500 cursor-pointer select-none">
             Confirm before replacing design

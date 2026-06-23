@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { AppMode, AspectRatio } from '../../types';
 import { Icons } from '../../constants';
 import { Button } from '../Button';
+import { Toggle } from '../Toggle';
 import * as geminiService from '../../services/geminiService';
 
 import { useStore } from '../../store/useStore';
@@ -173,12 +174,12 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
   // -- Contextual Edit Mode --
   if (selectedImageLayer && mode !== AppMode.THEME) {
     return (
-      <div className="flex flex-col h-full bg-[#0a0a0a]">
+      <div className="flex flex-col h-full bg-surface-dark-1">
         <div className="p-6 border-b border-white/5 space-y-6">
           <div className="bg-purple-600/10 rounded-2xl p-4 border border-purple-500/30 shadow-2xl">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-8 h-8 rounded-xl bg-purple-600/20 flex items-center justify-center border border-purple-500/20">
-                <Icons.Magic className="w-4 h-4 text-[#7d2ae8]" />
+                <Icons.Magic className="w-4 h-4 text-brand-600" />
               </div>
               <h4 className="text-xs font-black text-white uppercase tracking-widest">Generative Edit</h4>
             </div>
@@ -190,24 +191,26 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
 
           <div className="relative group">
           <textarea
-            className="w-full h-40 bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-white placeholder-gray-600 focus:border-[#7d2ae8]/50 focus:ring-1 focus:ring-[#7d2ae8]/20 outline-none resize-none custom-scrollbar transition-all font-medium"
+            className="w-full h-40 bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-white placeholder-muted-light focus:border-brand-600/50 focus:ring-1 focus:ring-brand-600/20 outline-none resize-none custom-scrollbar transition-all font-medium"
             placeholder="E.g., Turn the cat into a dog, Change the background to a beach..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             maxLength={500}
           />
-            <button
-              onClick={handleEnhancePrompt}
-              disabled={isEnhancing || !prompt.trim()}
-              className="absolute bottom-3 right-3 text-[9px] font-black uppercase tracking-widest bg-black border border-white/10 text-purple-400 px-3 py-1.5 rounded-lg flex items-center gap-2 hover:bg-[#7d2ae8]/10 hover:border-purple-500/30 transition-all shadow-xl"
-            >
-              {isEnhancing ? (
-                <div className="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full" />
-              ) : (
-                <Icons.Sparkles className="w-3 h-3" />
-              )}
-              Enhance
-            </button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute bottom-3 right-3 text-[9px] font-black uppercase tracking-widest bg-black border border-white/10 text-brand-400 px-3 py-1.5 rounded-xl flex items-center gap-2 hover:bg-brand-600/10 hover:border-brand-500/30 transition-all shadow-xl"
+            onClick={handleEnhancePrompt}
+            disabled={isEnhancing || !prompt.trim()}
+          >
+            {isEnhancing ? (
+              <div className="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full" />
+            ) : (
+              <Icons.Sparkles className="w-3 h-3" />
+            )}
+            Enhance
+          </Button>
           </div>
 
           <Button
@@ -244,25 +247,25 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0a0a0a]">
+    <div className="flex flex-col h-full bg-surface-dark-1">
       {/* Top Tabs */}
       <div className="p-6 border-b border-white/5 space-y-6">
         <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
           <button
             onClick={() => onSetMode(AppMode.GENERATE)}
-            className={`flex-1 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${mode === AppMode.GENERATE ? 'bg-[#7d2ae8] text-white shadow-[0_4px_20px_rgba(125,42,232,0.4)]' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`flex-1 py-2.5 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${mode === AppMode.GENERATE ? 'bg-brand-600 text-white shadow-glow-brand' : 'text-gray-500 hover:text-gray-300'}`}
           >
             Imagine
           </button>
           <button
             onClick={() => onSetMode(AppMode.EDIT)}
-            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${mode === AppMode.EDIT ? 'bg-[#7d2ae8] text-white shadow-[0_0_15px_rgba(125,42,232,0.3)]' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${mode === AppMode.EDIT ? 'bg-brand-600 text-white shadow-glow-brand' : 'text-gray-500 hover:text-gray-300'}`}
           >
             Remix
           </button>
           <button
             onClick={() => onSetMode(AppMode.THEME)}
-            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${mode === AppMode.THEME ? 'bg-[#7d2ae8] text-white shadow-[0_0_15px_rgba(125,42,232,0.3)]' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${mode === AppMode.THEME ? 'bg-brand-600 text-white shadow-glow-brand' : 'text-gray-500 hover:text-gray-300'}`}
           >
             Theme
           </button>
@@ -272,16 +275,18 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
         <div className="relative mb-2">
           <textarea
             data-testid="magic-prompt-input"
-            className="w-full h-28 bg-[#1e1e1e] border border-gray-600 rounded-lg p-3 text-sm text-white placeholder-gray-500 focus:border-[#7d2ae8] focus:ring-1 focus:ring-[#7d2ae8] outline-none resize-none custom-scrollbar shadow-inner"
+            className="w-full h-28 bg-surface-dark-3 border border-gray-600 rounded-xl p-3 text-sm text-white placeholder-muted-light focus:border-brand-600 focus:ring-1 focus:ring-brand-600 outline-none resize-none custom-scrollbar shadow-inner"
             placeholder={mode === AppMode.GENERATE ? 'A futuristic city with flying cars...' : 'Describe changes...'}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             maxLength={500}
           />
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute bottom-3 right-3 text-[11px] font-black uppercase tracking-widest bg-black/80 backdrop-blur-md border border-white/10 text-brand-400 px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-brand-600/20 hover:border-brand-500/30 transition-all shadow-2xl"
             onClick={handleEnhancePrompt}
             disabled={isEnhancing || !prompt.trim()}
-            className="absolute bottom-3 right-3 text-[11px] font-black uppercase tracking-widest bg-black/80 backdrop-blur-md border border-white/10 text-purple-400 px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-[#7d2ae8]/20 hover:border-purple-500/30 transition-all shadow-2xl"
           >
             {isEnhancing ? (
               <div className="animate-spin w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full" />
@@ -289,7 +294,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
               <Icons.Sparkles className="w-3.5 h-3.5" />
             )}
             Enhance
-          </button>
+          </Button>
         </div>
 
         {/* Negative Prompt Toggle */}
@@ -304,12 +309,12 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
         {showNegative && (
           <div className="mb-3 animate-fade-in">
             <textarea
-              className="w-full h-16 bg-[#1e1e1e] border border-red-900/40 rounded-lg p-3 text-xs text-gray-300 placeholder-gray-600 focus:border-red-600/50 outline-none resize-none custom-scrollbar"
+              className="w-full h-16 bg-surface-dark-3 border border-red-900/40 rounded-xl p-3 text-xs text-gray-300 placeholder-muted-light focus:border-red-600/50 outline-none resize-none custom-scrollbar"
               placeholder="What to exclude (e.g., blurry, ugly, watermark, text, bad anatomy)..."
               value={negativePrompt}
               onChange={(e) => setNegativePrompt(e.target.value)}
             />
-            <p className="text-[9px] text-gray-600 mt-1">These elements will be excluded from the generation.</p>
+            <p className="text-[9px] text-muted-light mt-1">These elements will be excluded from the generation.</p>
           </div>
         )}
 
@@ -323,7 +328,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
             <div className="flex bg-white/5 rounded-xl border border-white/5 p-1">
               <button
                 onClick={() => setQuality('standard')}
-                className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${quality === 'standard' ? 'bg-[#7d2ae8] text-white shadow-lg shadow-purple-500/20' : 'text-gray-500 hover:text-gray-300'}`}
+                className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${quality === 'standard' ? 'bg-brand-600 text-white shadow-lg shadow-purple-500/20' : 'text-gray-500 hover:text-gray-300'}`}
               >
                 Turbo
               </button>
@@ -347,7 +352,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                   <button
                     key={r.label}
                     onClick={() => setAspectRatio(r.value)}
-                    className={`flex-1 min-w-[54px] flex-shrink-0 whitespace-nowrap py-2 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${aspectRatio === r.value ? 'bg-[#7d2ae8] text-white shadow-lg shadow-purple-500/20' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
+                    className={`flex-1 min-w-[54px] flex-shrink-0 whitespace-nowrap py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${aspectRatio === r.value ? 'bg-brand-600 text-white shadow-lg shadow-purple-500/20' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
                   >
                     <span>{r.icon}</span>
                     <span>{r.label}</span>
@@ -363,7 +368,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           <div className="mb-4">
             <label className="text-[9px] font-bold text-gray-500 uppercase mb-1 block">Source Image</label>
             {uploadedImage ? (
-              <div className="relative group rounded-lg overflow-hidden border border-gray-600 aspect-[2/1] bg-black/50">
+              <div className="relative group rounded-xl overflow-hidden border border-gray-600 aspect-[2/1] bg-black/50">
                 <img src={uploadedImage} className="w-full h-full object-contain" />
                 <button
                   className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -377,7 +382,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
             ) : (
               <div
                 onClick={() => localFileInputRef.current?.click()}
-                className="border border-dashed border-gray-700 bg-[#1e1e1e] rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:border-gray-500 transition-colors"
+                className="border border-dashed border-gray-700 bg-surface-dark-3 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:border-gray-500 transition-colors"
               >
                 <Icons.Upload className="w-5 h-5 text-gray-500 mb-1" />
                 <span className="text-[10px] text-gray-400">Click to upload reference</span>
@@ -397,18 +402,12 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">
             ✨ Anti-AI-Slop & Quality Control
           </span>
-          <button
-            onClick={() => setAntiAiSlop(!antiAiSlop)}
-            className={`w-9 h-5 flex items-center rounded-full p-0.5 transition-all duration-300 ${
-              antiAiSlop ? 'bg-[#7d2ae8]' : 'bg-gray-800'
-            }`}
-          >
-            <span
-              className={`w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-300 ${
-                antiAiSlop ? 'translate-x-4' : 'translate-x-0'
-              }`}
-            />
-          </button>
+          <Toggle
+            checked={antiAiSlop}
+            onChange={setAntiAiSlop}
+            size="sm"
+            ariaLabel="Anti-AI-Slop quality control"
+          />
         </div>
 
         <Button
@@ -460,7 +459,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                   setPrompt(item.prompt);
                   addToast('Image added to canvas', 'success');
                 }}
-                className="relative flex-shrink-0 w-14 h-14 rounded-lg overflow-hidden border border-gray-700 hover:border-[#7d2ae8] transition-all group"
+                className="relative flex-shrink-0 w-14 h-14 rounded-xl overflow-hidden border border-gray-700 hover:border-brand-600 transition-all group"
                 title={item.prompt}
               >
                 <img src={item.imageUrl} className="w-full h-full object-cover" alt="" />
@@ -475,7 +474,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
 
       {/* Styles Gallery */}
       <div className="flex-1 overflow-y-auto p-6 custom-scrollbar border-t border-white/5">
-        <h4 className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-4 sticky top-0 bg-[#0a0a0a] py-2 z-10">
+        <h4 className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-4 sticky top-0 bg-surface-dark-1 py-2 z-10">
           Curated Styles
         </h4>
         <div className="grid grid-cols-2 gap-3 pb-10">

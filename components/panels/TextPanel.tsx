@@ -13,6 +13,8 @@ import { TextOnPath } from './TextOnPath';
 import { FindReplaceText } from './FindReplaceText';
 import { TextSpacingControls } from './TextSpacingControls';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
+import { Input } from '../Input';
+import { Button } from '../Button';
 
 const FONT_CATEGORIES = {
   'Sans Serif': [
@@ -149,7 +151,7 @@ const FontPreviewItem = ({
       onClick={onClick}
       onMouseEnter={() => onHover(font)}
       onMouseLeave={() => onHover(null)}
-      className="w-full text-left p-3 bg-[#1e1e1e] border border-gray-700/50 rounded-lg hover:border-[#7d2ae8] hover:bg-[#252627] transition-all group overflow-hidden relative"
+      className="w-full text-left p-3 bg-surface-dark-3 border border-gray-700/50 rounded-xl hover:border-brand-600 hover:bg-surface-dark-4 transition-all group overflow-hidden relative"
     >
       <div className="flex justify-between items-center relative z-10">
         <div className="flex flex-col gap-0.5 overflow-hidden">
@@ -161,7 +163,7 @@ const FontPreviewItem = ({
           </span>
           <span className="text-[10px] text-gray-500">{font}</span>
         </div>
-        <div className="w-6 h-6 rounded-full bg-[#7d2ae8]/20 text-[#7d2ae8] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-2 group-hover:translate-x-0">
+        <div className="w-6 h-6 rounded-full bg-brand-600/20 text-brand-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-2 group-hover:translate-x-0">
           <Icons.Plus className="w-3.5 h-3.5" />
         </div>
       </div>
@@ -279,21 +281,21 @@ export const TextPanel: React.FC = () => {
   };
 
   return (
-    <div data-testid="text-panel" className="flex flex-col h-full bg-[#13161a] p-4 overflow-y-auto custom-scrollbar">
+    <div data-testid="text-panel" className="flex flex-col h-full bg-surface-dark-2 p-4 overflow-y-auto custom-scrollbar">
       <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-        <Icons.Text className="w-5 h-5 text-[#7d2ae8]" />
+        <Icons.Text className="w-5 h-5 text-brand-600" />
         Typography
       </h3>
 
       {/* Text Panel Tabs - Row 1 */}
-      <div className="flex gap-1 mb-2 bg-[#0e1318] rounded-lg p-1" role="tablist">
+      <div className="flex gap-1 mb-2 bg-surface-dark-1 rounded-lg p-1" role="tablist">
         <button
           role="tab"
           aria-selected={activeTextTab === 'add'}
           onClick={() => setActiveTextTab('add')}
           className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
             activeTextTab === 'add'
-              ? 'bg-[#7d2ae8] text-white shadow-lg'
+              ? 'bg-brand-600 text-white shadow-lg'
               : 'text-gray-400 hover:text-white hover:bg-gray-700'
           }`}
         >
@@ -305,7 +307,7 @@ export const TextPanel: React.FC = () => {
           onClick={() => setActiveTextTab('styles')}
           className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
             activeTextTab === 'styles'
-              ? 'bg-[#7d2ae8] text-white shadow-lg'
+              ? 'bg-brand-600 text-white shadow-lg'
               : 'text-gray-400 hover:text-white hover:bg-gray-700'
           }`}
         >
@@ -317,7 +319,7 @@ export const TextPanel: React.FC = () => {
           onClick={() => setActiveTextTab('gradient')}
           className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
             activeTextTab === 'gradient'
-              ? 'bg-[#7d2ae8] text-white shadow-lg'
+              ? 'bg-brand-600 text-white shadow-lg'
               : 'text-gray-400 hover:text-white hover:bg-gray-700'
           }`}
         >
@@ -329,7 +331,7 @@ export const TextPanel: React.FC = () => {
           onClick={() => setActiveTextTab('effects')}
           className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
             activeTextTab === 'effects'
-              ? 'bg-[#7d2ae8] text-white shadow-lg'
+              ? 'bg-brand-600 text-white shadow-lg'
               : 'text-gray-400 hover:text-white hover:bg-gray-700'
           }`}
         >
@@ -338,14 +340,14 @@ export const TextPanel: React.FC = () => {
       </div>
 
       {/* Text Panel Tabs - Row 2 */}
-      <div className="flex gap-1 mb-4 bg-[#0e1318] rounded-lg p-1" role="tablist">
+      <div className="flex gap-1 mb-4 bg-surface-dark-1 rounded-lg p-1" role="tablist">
         <button
           role="tab"
           aria-selected={activeTextTab === 'path'}
           onClick={() => setActiveTextTab('path')}
           className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
             activeTextTab === 'path'
-              ? 'bg-[#7d2ae8] text-white shadow-lg'
+              ? 'bg-brand-600 text-white shadow-lg'
               : 'text-gray-400 hover:text-white hover:bg-gray-700'
           }`}
         >
@@ -357,7 +359,7 @@ export const TextPanel: React.FC = () => {
           onClick={() => setActiveTextTab('find')}
           className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
             activeTextTab === 'find'
-              ? 'bg-[#7d2ae8] text-white shadow-lg'
+              ? 'bg-brand-600 text-white shadow-lg'
               : 'text-gray-400 hover:text-white hover:bg-gray-700'
           }`}
         >
@@ -369,7 +371,7 @@ export const TextPanel: React.FC = () => {
           onClick={() => setActiveTextTab('spacing')}
           className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
             activeTextTab === 'spacing'
-              ? 'bg-[#7d2ae8] text-white shadow-lg'
+              ? 'bg-brand-600 text-white shadow-lg'
               : 'text-gray-400 hover:text-white hover:bg-gray-700'
           }`}
         >
@@ -384,45 +386,47 @@ export const TextPanel: React.FC = () => {
             <button
               data-testid="add-heading-btn"
               onClick={() => handleAddText({ text: 'Heading', fontSize: 62, fontWeight: '800' })}
-              className="w-full py-3 bg-[#252627] hover:bg-[#333] border border-gray-700 hover:border-gray-500 rounded-lg text-left px-4 transition-colors"
+              className="w-full py-3 bg-surface-dark-4 hover:bg-surface-dark-5 border border-gray-700 hover:border-gray-500 rounded-xl text-left px-4 transition-colors"
             >
               <span className="text-2xl font-extrabold text-white">Add a heading</span>
             </button>
             <button
               data-testid="add-subheading-btn"
               onClick={() => handleAddText({ text: 'Subheading', fontSize: 38, fontWeight: '600' })}
-              className="w-full py-2.5 bg-[#252627] hover:bg-[#333] border border-gray-700 hover:border-gray-500 rounded-lg text-left px-4 transition-colors"
+              className="w-full py-2.5 bg-surface-dark-4 hover:bg-surface-dark-5 border border-gray-700 hover:border-gray-500 rounded-xl text-left px-4 transition-colors"
             >
               <span className="text-lg font-semibold text-gray-200">Add a subheading</span>
             </button>
             <button
               data-testid="add-body-text-btn"
               onClick={() => handleAddText({ text: 'Body text', fontSize: 24, fontWeight: '400' })}
-              className="w-full py-2 bg-[#252627] hover:bg-[#333] border border-gray-700 hover:border-gray-500 rounded-lg text-left px-4 transition-colors"
+              className="w-full py-2 bg-surface-dark-4 hover:bg-surface-dark-5 border border-gray-700 hover:border-gray-500 rounded-xl text-left px-4 transition-colors"
             >
               <span className="text-sm text-gray-300">Add a little bit of body text</span>
             </button>
           </div>
 
           {/* AI Text Generation */}
-          <div className="mb-6 p-3 bg-[#1e1e1e] border border-gray-700/50 rounded-xl">
+          <div className="mb-6 p-3 bg-surface-dark-3 border border-gray-700/50 rounded-xl">
             <div className="flex items-center gap-2 mb-2">
-              <Icons.Magic className="w-4 h-4 text-[#7d2ae8]" />
+              <Icons.Magic className="w-4 h-4 text-brand-600" />
               <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">AI Text Generator</span>
             </div>
             <div className="flex gap-2">
-              <input
+              <Input
                 type="text"
                 placeholder="Describe what you want to write..."
                 value={textGenPrompt}
                 onChange={(e) => setTextGenPrompt(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleMagicText()}
-                className="flex-1 bg-[#0e1318] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:border-[#7d2ae8] focus:outline-none"
+                className="flex-1 text-xs"
               />
-              <button
+              <Button
+                variant="primary"
+                size="sm"
+                className="shrink-0"
                 onClick={handleMagicText}
                 disabled={isGeneratingText || !textGenPrompt.trim()}
-                className="px-3 py-2 bg-[#7d2ae8] hover:bg-[#6c1fd1] text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50 flex items-center gap-1.5 shrink-0"
               >
                 {isGeneratingText ? (
                   <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
@@ -430,11 +434,11 @@ export const TextPanel: React.FC = () => {
                   <Icons.Magic className="w-3 h-3" />
                 )}
                 Generate
-              </button>
+              </Button>
             </div>
             {isGeneratingText && (
-              <div className="mt-2 flex items-center gap-2 text-[10px] text-[#7d2ae8]">
-                <div className="animate-spin w-3 h-3 border-2 border-[#7d2ae8] border-t-transparent rounded-full" />
+              <div className="mt-2 flex items-center gap-2 text-[10px] text-brand-600">
+                <div className="animate-spin w-3 h-3 border-2 border-brand-600 border-t-transparent rounded-full" />
                 <span>AI is generating text options...</span>
               </div>
             )}
@@ -444,7 +448,7 @@ export const TextPanel: React.FC = () => {
                   <button
                     key={i}
                     onClick={() => handleAddText({ text: result, fontSize: 24, fontWeight: '400' })}
-                    className="w-full text-left px-3 py-2 bg-[#0e1318] border border-gray-700/50 rounded-lg text-xs text-gray-300 hover:border-[#7d2ae8] hover:text-white transition-all"
+                    className="w-full text-left px-3 py-2 bg-surface-dark-1 border border-gray-700/50 rounded-lg text-xs text-gray-300 hover:border-brand-600 hover:text-white transition-all"
                   >
                     {result}
                   </button>
@@ -468,7 +472,7 @@ export const TextPanel: React.FC = () => {
                     shadow: { color: '#00ffff', blur: 20, offsetX: 0, offsetY: 0 },
                   })
                 }
-                className="h-16 bg-[#1a1a1a] rounded border border-gray-800 hover:border-cyan-500 group relative overflow-hidden flex items-center justify-center"
+                className="h-16 bg-[#1a1a1a] rounded-xl border border-gray-800 hover:border-cyan-500 group relative overflow-hidden flex items-center justify-center"
               >
                 <div className="absolute inset-0 bg-cyan-500/5 group-hover:bg-cyan-500/10 transition-colors"></div>
                 <span className="font-bold text-xl text-white drop-shadow-[0_0_8px_rgba(0,255,255,0.8)]">GLOW</span>
@@ -485,7 +489,7 @@ export const TextPanel: React.FC = () => {
                     shadow: { color: '#00ffff', blur: 0, offsetX: 3, offsetY: 3 },
                   })
                 }
-                className="h-16 bg-[#1a1a1a] rounded border border-gray-800 hover:border-pink-500 group relative overflow-hidden flex items-center justify-center"
+                className="h-16 bg-[#1a1a1a] rounded-xl border border-gray-800 hover:border-pink-500 group relative overflow-hidden flex items-center justify-center"
               >
                 <span className="font-display font-bold text-xl text-pink-500 drop-shadow-[2px_2px_0px_#0ff]">
                   RETRO
@@ -503,7 +507,7 @@ export const TextPanel: React.FC = () => {
                     shadow: { color: '#b8860b', blur: 0, offsetX: 1, offsetY: 1 },
                   })
                 }
-                className="h-16 bg-[#1a1a1a] rounded border border-gray-800 hover:border-yellow-500 group relative overflow-hidden flex items-center justify-center"
+                className="h-16 bg-[#1a1a1a] rounded-xl border border-gray-800 hover:border-yellow-500 group relative overflow-hidden flex items-center justify-center"
               >
                 <span className="font-bold text-xl text-yellow-400 drop-shadow-[1px_1px_0px_#b8860b] shadow-yellow-700/50">
                   3D
@@ -522,7 +526,7 @@ export const TextPanel: React.FC = () => {
                     stroke: { color: '#ffffff', width: 1 },
                   })
                 }
-                className="h-16 bg-[#1a1a1a] rounded border border-gray-800 hover:border-white group flex items-center justify-center"
+                className="h-16 bg-[#1a1a1a] rounded-xl border border-gray-800 hover:border-white group flex items-center justify-center"
               >
                 <span className="font-bold text-xl text-transparent [-webkit-text-stroke:1px_white]">HOLLOW</span>
               </button>
@@ -538,7 +542,7 @@ export const TextPanel: React.FC = () => {
                     shadow: { color: '#f00', blur: 2, offsetX: -2, offsetY: 0 },
                   })
                 }
-                className="h-16 bg-[#1a1a1a] rounded border border-gray-800 hover:border-red-500 group flex items-center justify-center"
+                className="h-16 bg-[#1a1a1a] rounded-xl border border-gray-800 hover:border-red-500 group flex items-center justify-center"
               >
                 <span className="font-mono font-bold text-lg text-white tracking-widest">GLITCH</span>
               </button>
@@ -554,7 +558,7 @@ export const TextPanel: React.FC = () => {
                     shadow: { color: '#ff00ff', blur: 15, offsetX: 0, offsetY: 0 },
                   })
                 }
-                className="h-16 bg-[#1a1a1a] rounded border border-gray-800 hover:border-fuchsia-500 group flex items-center justify-center"
+                className="h-16 bg-[#1a1a1a] rounded-xl border border-gray-800 hover:border-fuchsia-500 group flex items-center justify-center"
               >
                 <span className="font-bold text-lg text-fuchsia-400 drop-shadow-[0_0_5px_rgba(255,0,255,0.8)]">
                   NEON
@@ -569,7 +573,7 @@ export const TextPanel: React.FC = () => {
                   <button
                     key={cat}
                     onClick={() => setActiveCategory(cat)}
-                    className={`px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors ${activeCategory === cat ? 'bg-[#7d2ae8] text-white shadow-lg shadow-purple-900/20' : 'bg-[#252627] text-gray-400 hover:text-white hover:bg-gray-700'}`}
+                    className={`px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors ${activeCategory === cat ? 'bg-brand-600 text-white shadow-lg shadow-purple-900/20' : 'bg-surface-dark-4 text-gray-400 hover:text-white hover:bg-gray-700'}`}
                   >
                     {cat}
                   </button>
@@ -608,7 +612,7 @@ export const TextPanel: React.FC = () => {
                     />
                   ))}
                   {customFonts.length === 0 && (
-                    <p className="text-[10px] text-gray-600 text-center py-8">
+                    <p className="text-[10px] text-muted-light text-center py-8">
                       You haven&apos;t uploaded any custom fonts yet.
                     </p>
                   )}

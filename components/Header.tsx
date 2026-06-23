@@ -6,6 +6,7 @@ import { useStore } from '../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { PublishModal } from './modals/PublishModal';
 import { PresenceBar } from './collaboration/PresenceBar';
+import { Button } from './Button';
 
 interface HeaderProps {
   onDownload: () => void;
@@ -112,47 +113,50 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="h-14 bg-[#0a0a0a] text-white flex items-center justify-between px-6 z-50 shrink-0 border-b border-white/5 shadow-2xl relative">
+    <header className="h-14 bg-surface-dark-1 text-white flex items-center justify-between px-6 z-50 shrink-0 border-b border-white/5 shadow-2xl relative">
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 mr-2">
-          <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/20">
+          <div className="w-8 h-8 bg-brand-600 rounded-lg flex items-center justify-center shadow-lg shadow-brand-500/20">
             <Icons.Magic className="w-5 h-5 text-white" />
           </div>
           <span className="font-black text-lg tracking-tighter uppercase hidden lg:block">Kreathief</span>
         </div>
 
         {onBack && (
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onBack}
-            className="p-2 hover:bg-white/5 rounded-lg transition-all text-gray-500 hover:text-white group border border-transparent hover:border-white/10"
             title="Back to Dashboard"
             aria-label="Go back to Dashboard"
           >
             <Icons.ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-          </button>
+          </Button>
         )}
 
         <div className="flex items-center gap-0.5">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={undo}
             disabled={!canUndo}
-            className={`p-1.5 rounded-md transition-all ${canUndo ? 'text-gray-300 hover:bg-white/5 hover:text-white' : 'text-gray-600 cursor-not-allowed'}`}
             title="Undo (Ctrl+Z)"
             aria-label="Undo last action"
             aria-keyshortcuts="Control+z"
           >
             <Icons.Undo className="w-3.5 h-3.5" />
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={redo}
             disabled={!canRedo}
-            className={`p-1.5 rounded-md transition-all ${canRedo ? 'text-gray-300 hover:bg-white/5 hover:text-white' : 'text-gray-600 cursor-not-allowed'}`}
             title="Redo (Ctrl+Y)"
             aria-label="Redo last action"
             aria-keyshortcuts="Control+y"
           >
             <Icons.Redo className="w-3.5 h-3.5" />
-          </button>
+          </Button>
         </div>
 
         <div className="flex items-center gap-2 text-[11px] text-gray-400 ml-2 select-none shrink-0 font-medium tracking-wide">
@@ -176,59 +180,66 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-4">
-        <button
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={onOpenCommunity}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/5 transition-all border border-white/5"
           title="Community Templates"
         >
-          <Icons.Globe className="w-3.5 h-3.5 text-[#7d2ae8]" />
+          <Icons.Globe className="w-3.5 h-3.5 text-brand-600" />
           <span className="hidden lg:inline">Community</span>
-        </button>
+        </Button>
 
         <div className="h-4 w-px bg-gray-800"></div>
 
         <div className="flex items-center gap-1">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onShowShortcuts}
-            className="p-2 text-gray-400 hover:text-white transition-colors"
             title="Keyboard Shortcuts (?)"
             aria-label="Show keyboard shortcuts"
           >
             <Icons.Help className="w-4 h-4" />
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setShowPublishModal(true)}
-            className="p-2 text-gray-400 hover:text-orange-500 transition-colors"
             title="Publish to Community"
             aria-label="Publish design"
           >
             <Icons.Globe className="w-4 h-4" />
-          </button>
+          </Button>
 
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onShare}
-            className="p-2 text-gray-400 hover:text-[#00c4cc] transition-colors"
+            className="hover:text-accent transition-colors"
             title="Share Design"
             aria-label="Share design"
           >
             <Icons.Share className="w-4 h-4" />
-          </button>
+          </Button>
 
           <PresenceBar />
         </div>
 
         <div className="h-4 w-px bg-gray-800"></div>
 
-        <button
+        <Button
           id="export-btn"
           data-testid="export-btn"
+          variant="primary"
+          size="sm"
           onClick={onDownload}
-          className="bg-white text-black hover:bg-[#00c4cc] hover:text-white px-5 h-9 rounded-full font-black text-[10px] uppercase tracking-widest shadow-xl transition-all flex items-center gap-2 active:scale-95"
+          className="hover:bg-accent hover:text-white hover:shadow-glow-accent active:scale-95"
         >
           <Icons.Download className="w-3.5 h-3.5" />
           <span className="hidden md:inline">Export</span>
-        </button>
+        </Button>
 
         {user && (
           <button
@@ -252,7 +263,7 @@ export const Header: React.FC<HeaderProps> = ({
               };
               input.click();
             }}
-            className="w-7 h-7 rounded-full border border-gray-700 flex items-center justify-center overflow-hidden shadow-sm hover:border-[#7d2ae8] transition-colors cursor-pointer relative"
+            className="w-7 h-7 rounded-full border border-surface-dark-5 flex items-center justify-center overflow-hidden shadow-sm hover:border-brand-600 transition-colors cursor-pointer relative"
             title="Click to update profile image"
             aria-label="Update profile image"
           >
@@ -264,7 +275,7 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Zoom Dropdown */}
       {showZoomMenu && (
         <div
-          className="fixed z-[100] mt-2 bg-[#1e1e1e] border border-white/10 rounded-xl shadow-2xl overflow-hidden p-1.5 w-32"
+          className="fixed z-[100] mt-2 bg-surface-dark-3 border border-white/10 rounded-xl shadow-2xl overflow-hidden p-1.5 w-32"
           style={{
             top: zoomButtonRef.current?.getBoundingClientRect().bottom,
             left: zoomButtonRef.current?.getBoundingClientRect().left,
@@ -277,7 +288,7 @@ export const Header: React.FC<HeaderProps> = ({
                 onZoomChange(z);
                 setShowZoomMenu(false);
               }}
-              className={`w-full text-left px-3 py-2 text-[10px] uppercase tracking-wider font-bold transition-colors rounded-lg ${zoom === z ? 'bg-[#7d2ae8] text-white' : 'text-gray-300 hover:bg-white/10'}`}
+              className={`w-full text-left px-3 py-2 text-[10px] uppercase tracking-wider font-bold transition-colors rounded-lg ${zoom === z ? 'bg-brand-600 text-white' : 'text-gray-300 hover:bg-white/10'}`}
             >
               {z * 100}%
             </button>
@@ -314,13 +325,13 @@ export const Header: React.FC<HeaderProps> = ({
               }
             }}
             autoFocus
-            className="bg-[#1e1e1e] border-b-2 border-purple-500 text-white text-sm font-bold px-2 py-1 outline-none w-48 rounded-t shadow-lg text-center"
+              className="bg-surface-dark-3 border-b-2 border-brand-500 text-white text-sm font-bold px-2 py-1 outline-none w-48 rounded-t shadow-lg text-center"
           />
         ) : (
           <button
             data-testid="project-title-display"
             onClick={() => setIsEditingTitle(true)}
-            className="text-sm font-medium text-white hover:text-purple-400 transition-colors px-2 py-1 rounded hover:bg-white/5 text-center"
+            className="text-sm font-medium text-white hover:text-brand-400 transition-colors px-2 py-1 rounded hover:bg-white/5 text-center"
             title="Click to rename"
           >
             {projectTitle}

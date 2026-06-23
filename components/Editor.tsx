@@ -127,7 +127,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       // Show toast notification
       const toast = document.createElement('div');
       toast.className =
-        'fixed top-24 left-1/2 -translate-x-1/2 bg-purple-500 text-white px-6 py-3 rounded-2xl shadow-lg z-[500] font-semibold';
+        'fixed top-24 left-1/2 -translate-x-1/2 bg-brand-500 text-white px-6 py-3 rounded-2xl shadow-lg z-[500] font-semibold';
       toast.textContent = 'Undo';
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 1500);
@@ -568,7 +568,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const hideHeaderOnMobile = isMobile && selectedLayerIds.length > 0;
 
   return (
-    <div id="editor-root" className="flex flex-col h-screen bg-[#0e1318] overflow-hidden text-[#e5e7eb] font-sans">
+    <div id="editor-root" className="flex flex-col h-screen bg-surface-dark-2 overflow-hidden text-[#e5e7eb] font-sans">
       {!hideHeaderOnMobile && (
         <Header
           onDownload={() => setShowExport(true)}
@@ -630,14 +630,14 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           </ErrorBoundary>
         </div>
 
-        <div className="flex-1 relative overflow-hidden bg-[#000000] flex flex-col">
+        <div className="flex-1 relative overflow-hidden bg-surface-dark-0 flex flex-col">
           {activeTab === NavTab.ASSISTANT && !isMobile && (
             <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 pointer-events-none" />
           )}
 
           <div
             data-testid="toolbar"
-            className="h-11 bg-[#0f0f0f]/90 border-b border-white/5 flex items-center z-30 w-full shrink-0 px-4 gap-4 backdrop-blur-md"
+            className="h-11 bg-surface-dark-1/90 border-b border-white/5 flex items-center z-30 w-full shrink-0 px-4 gap-4 backdrop-blur-md"
           >
             <div className="flex items-center gap-4 w-full h-full">
               <Toolbar
@@ -666,7 +666,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             <CursorOverlay />
 
             {/* Floating Zoom & View Controls at bottom right corner */}
-            <div className="absolute bottom-4 right-4 z-[90] flex items-center bg-[#1e1e1e]/90 backdrop-blur-md rounded-xl p-1 border border-white/10 shadow-2xl">
+            <div className="absolute bottom-4 right-4 z-[90] flex items-center bg-surface-dark-3/90 backdrop-blur-md rounded-xl p-1 border border-white/10 shadow-2xl">
               <div className="flex items-center px-1">
                 <button
                   onClick={() => setZoom(Math.max(0.1, zoom - 0.1))}
@@ -689,7 +689,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                     const val = parseInt(e.target.value.replace('%', ''));
                     if (!isNaN(val)) setZoom(Math.max(0.1, Math.min(10, val / 100)));
                   }}
-                  className="px-1 w-[42px] text-center text-[10px] font-black text-gray-300 font-mono bg-transparent border border-white/10 rounded outline-none focus:border-[#7d2ae8]/50"
+                  className="px-1 w-[42px] text-center text-[10px] font-black text-gray-300 font-mono bg-transparent border border-white/10 rounded outline-none focus:border-brand/50"
                   title="Zoom Level"
                 />
                 <button
@@ -764,14 +764,14 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
               <div className="flex items-center gap-1 px-1">
                 <button
                   onClick={() => onToggleGrid(!showGrid)}
-                  className={`p-1.5 rounded-md transition-all ${showGrid ? 'bg-[#7d2ae8]/20 text-[#7d2ae8]' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                  className={`p-1.5 rounded-md transition-all ${showGrid ? 'bg-brand/20 text-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
                   title="Toggle Grid"
                 >
                   <Icons.Grid className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => onToggleRulers(!showRulers)}
-                  className={`p-1.5 rounded-md transition-all ${showRulers ? 'bg-[#7d2ae8]/20 text-[#7d2ae8]' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                  className={`p-1.5 rounded-md transition-all ${showRulers ? 'bg-brand/20 text-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
                   title="Toggle Rulers"
                 >
                   <Icons.Layout className="w-3.5 h-3.5" />
@@ -780,7 +780,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             </div>
 
             {activeTab === NavTab.MOCKUP && !isMobile && (
-              <div className="absolute inset-0 z-[100] bg-[#0e1318] flex animate-in fade-in slide-in-from-right duration-300">
+              <div className="absolute inset-0 z-[100] bg-surface-dark-2 flex animate-in fade-in slide-in-from-right duration-300">
                 <div className="flex-1 relative overflow-hidden flex flex-row">
                   <MockupPanel
                     onExportForMockup={handleExportDataUrl}
