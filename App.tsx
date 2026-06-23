@@ -63,6 +63,7 @@ const App: React.FC = () => {
   const removeToast = useStore((state) => state.removeToast);
   const [currentProject, setCurrentProject] = useState<Project | undefined>(undefined);
   const [loading, setLoading] = useState(true);
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
 
   const [showWelcome, setShowWelcome] = useState(false);
   const [activeTour, setActiveTour] = useState<'dashboard' | 'editor' | null>(null);
@@ -174,6 +175,15 @@ const App: React.FC = () => {
     return () => clearTimeout(timeout);
   }, [location.pathname, user]);
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
   const handleLogin = (user: User) => {
     setUser(user);
     navigate('/dashboard');
@@ -217,6 +227,15 @@ const App: React.FC = () => {
     setShowWelcome(false);
     localStorage.setItem('kreathief_onboarding_seen', 'true');
     setActiveTour(location.pathname === '/editor' ? 'editor' : 'dashboard');
+  };
+
+  const handleInstallApp = async () => {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredInstallPrompt(null);
+    }
   };
 
   const dashboardTourSteps: TourStep[] = [

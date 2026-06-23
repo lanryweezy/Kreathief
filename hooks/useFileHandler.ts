@@ -35,8 +35,17 @@ export const useFileHandler = () => {
   const activeImage = history.length > 0 ? history[history.length - 1] || null : null;
   const uploadedImage = uploads.length > 0 ? uploads[uploads.length - 1] || null : null;
 
-  const handleFileUploads = (files: File[]) => {
-    const readers: Promise<string>[] = files.map(
+  const handleFileUploads = async (files: File[]) => {
+    const { compressImage } = await import('../utils/imageOptimizer');
+    const compressedFiles = await Promise.all(
+      files.map(async (file) => {
+        if (!file.type.startsWith('image/')) return file;
+        const blob = await compressImage(file, 1920, 0.8);
+        return new File([blob], file.name, { type: blob.type });
+      })
+    );
+
+    const readers: Promise<string>[] = compressedFiles.map(
       (file) =>
         new Promise((resolve) => {
           const reader = new FileReader();
@@ -81,7 +90,7 @@ export const useFileHandler = () => {
         // Also add the files to the uploads list so they appear in the UI
         const handleFileUpload = useStore.getState().handleFileUpload;
         if (handleFileUpload) {
-          handleFileUpload(files);
+          handleFileUpload(compressedFiles);
         }
 
         if (setCanvasFilters) {

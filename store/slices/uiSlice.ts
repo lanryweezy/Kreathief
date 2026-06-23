@@ -163,9 +163,16 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
       history: typeof input === 'function' ? input(state.history) : input,
     })),
   clearHistory: () => set({ history: [] }),
-  handleFileUpload: (files) => {
-    const newUploads = files.map((file) => URL.createObjectURL(file));
-    set((state: any) => ({ uploads: [...state.uploads, ...newUploads] }));
+  handleFileUpload: async (files) => {
+    const { compressImage } = await import('../../utils/imageOptimizer');
+    const compressed = await Promise.all(
+      files.map(async (file) => {
+        if (!file.type.startsWith('image/')) return URL.createObjectURL(file);
+        const blob = await compressImage(file, 1920, 0.8);
+        return URL.createObjectURL(blob);
+      })
+    );
+    set((state: any) => ({ uploads: [...state.uploads, ...compressed] }));
   },
   deleteUpload: (index) =>
     set((state: any) => {
