@@ -4,6 +4,7 @@ import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
 import { STARTER_TEMPLATES } from '../../data/templates';
 import { communityService, CommunityTemplate } from '../../services/communityService';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 interface TemplatesPanelProps {
   setPrompt: (s: string) => void;
@@ -291,8 +292,9 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
             </div>
 
             {/* Starter Templates */}
-            {starterTemplates.length > 0 && (
-              <div data-testid="template-panel-grid">
+            <div data-testid="template-panel-grid">
+              {starterTemplates.length > 0 ? (
+              <>
                 <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Professional Templates</h4>
                 <div className="grid grid-cols-1 gap-4">
                   {starterTemplates.map((tmpl) => (
@@ -326,8 +328,14 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                     </button>
                   ))}
                 </div>
+              </>
+              ) : (
+              <div className="text-center py-8 border-2 border-dashed border-gray-800 rounded-2xl">
+                <Icons.Search className="w-8 h-8 text-gray-700 mx-auto mb-2" />
+                <p className="text-gray-500 text-xs font-bold">No templates match your search</p>
               </div>
-            )}
+              )}
+            </div>
           </>
         ) : (
           /* Community View */
@@ -399,4 +407,6 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   );
 };
 
-export default TemplatesPanel;
+export default function TemplatesPanelWrapped(props: React.ComponentProps<typeof TemplatesPanel>) {
+  return <PanelErrorBoundary panelName="Templates"><TemplatesPanel {...props} /></PanelErrorBoundary>;
+}

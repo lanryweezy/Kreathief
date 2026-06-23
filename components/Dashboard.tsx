@@ -331,7 +331,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   data-testid="dashboard-templates-grid"
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 staggered-entry"
                 >
-                  {filteredTemplates.map((tmpl) => (
+                  {filteredTemplates.length > 0 ? filteredTemplates.map((tmpl) => (
                     <button
                       key={tmpl.id}
                       data-testid={`dashboard-template-btn-${tmpl.id}`}
@@ -483,7 +483,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                         <div className="text-[11px] text-gray-400 line-clamp-2">{tmpl.description}</div>
                       </div>
                     </button>
-                  ))}
+                  )) : (
+                    <div className="col-span-full text-center py-12 border-2 border-dashed border-gray-800 rounded-2xl">
+                      <Icons.Search className="w-8 h-8 text-gray-700 mx-auto mb-2" />
+                      <p className="text-gray-500 text-xs font-bold">No templates match your search</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
