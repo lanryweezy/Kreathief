@@ -6,6 +6,9 @@ import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
 import { ColorProfile, batchExportArtboardsZip } from '../../services/exportService';
 import { isWithinCMYKGamut, getClosestCMYKSafeColor } from '../../utils/colorUtils';
+import { Button } from '../Button';
+import { Input } from '../Input';
+import { Toggle } from '../Toggle';
 
 interface ExportModalProps {
   onClose: () => void;
@@ -393,12 +396,14 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       aria-labelledby="export-modal-title"
     >
       <div
-        className="bg-[#1e1e1e] border border-white/10 rounded-[32px] shadow-2xl max-w-5xl w-full overflow-hidden flex flex-col md:flex-row relative max-h-[82vh]"
+        className="bg-surface-dark-3 border border-white/10 rounded-xl shadow-2xl max-w-5xl w-full overflow-hidden flex flex-col md:flex-row relative max-h-[82vh]"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={onClose}
-          className="absolute top-6 right-6 text-gray-400 hover:text-white z-20 p-2 bg-white/5 rounded-full transition-all"
+          className="absolute top-6 right-6 z-20 bg-white/5"
           id="close-export-modal"
           data-testid="close-export-modal"
           aria-label="Close modal"
@@ -406,12 +411,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
           <div className="text-2xl leading-none" aria-hidden="true">
             &times;
           </div>
-        </button>
+        </Button>
 
         {/* Info/Preview Side */}
-        <div className="md:w-[28%] bg-[#13161a] p-10 border-r border-white/5 hidden md:flex flex-col select-none relative overflow-hidden">
+        <div className="md:w-[28%] bg-surface-dark-2 p-10 border-r border-white/5 hidden md:flex flex-col select-none relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-600/10 to-transparent pointer-events-none" />
-          <div className="w-16 h-16 bg-[#7d2ae8] rounded-2xl flex items-center justify-center mb-8 shadow-2xl shadow-purple-900/40 relative z-10">
+          <div className="w-16 h-16 bg-brand-600 rounded-2xl flex items-center justify-center mb-8 shadow-2xl shadow-purple-900/40 relative z-10">
             <Icons.Download className="w-8 h-8 text-white" />
           </div>
           <h2
@@ -420,15 +425,15 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
           >
             Export Design
           </h2>
-          <p className="text-gray-400 text-[11px] leading-relaxed mb-10 font-medium relative z-10">
+          <p className="text-muted-light text-[11px] leading-relaxed mb-10 font-medium relative z-10">
             Download your creation in professional formats. Choose a preset or maintain your native canvas coordinates.
           </p>
 
           <div className="mt-auto p-6 bg-white/5 border border-white/5 rounded-2xl relative z-10 backdrop-blur-md">
-            <h4 className="text-[10px] font-black text-purple-400 uppercase tracking-[0.2em] mb-2">
+            <h4 className="text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] mb-2">
               Neural Optimization
             </h4>
-            <p className="text-[10px] text-gray-500 font-medium leading-relaxed">
+            <p className="text-[10px] text-muted-light font-medium leading-relaxed">
               Our export engine automatically optimizes PNG buffers for maximum compatibility with Adobe Creative Cloud.
             </p>
           </div>
@@ -442,14 +447,14 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
           <div className="space-y-10">
             {/* Format Selection */}
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 block">Format</label>
+              <label className="text-xs font-bold text-muted-light uppercase tracking-wider mb-3 block">Format</label>
               <div className="grid grid-cols-3 gap-2">
                 {(['png', 'jpeg', 'webp', 'svg', 'pdf', 'psd'] as const).map((f) => (
                   <button
                     key={f}
                     data-testid={`export-${f}-btn`}
                     onClick={() => setFormat(f)}
-                    className={`py-2 rounded-lg text-xs font-bold transition-all border ${format === f ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500'}`}
+                    className={`py-2 rounded-xl text-xs font-bold transition-all border ${format === f ? 'bg-brand-600 border-brand-600 text-white' : 'bg-surface-dark-4 border-gray-700 text-gray-400 hover:border-gray-500'}`}
                   >
                     {f.toUpperCase()}
                   </button>
@@ -459,37 +464,31 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
             {/* Batch Export Mode (only when 2+ artboards) */}
             {artboards && artboards.length >= 2 && (
-              <div className="p-4 bg-[#13161a] border border-gray-700 rounded-xl">
+              <div className="p-4 bg-surface-dark-2 border border-gray-700 rounded-xl">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <Icons.Layers className="w-4 h-4 text-[#7d2ae8]" />
+                    <Icons.Layers className="w-4 h-4 text-brand-600" />
                     <h4 className="text-xs font-bold text-white">Batch Export</h4>
                   </div>
-                  <button
-                    onClick={() => {
-                      setBatchMode(!batchMode);
-                      if (batchMode) setSelectedArtboardIds([]);
+                  <Toggle
+                    checked={batchMode}
+                    onChange={(checked) => {
+                      setBatchMode(checked);
+                      if (!checked) setSelectedArtboardIds([]);
                     }}
-                    className={`w-10 h-5 rounded-full transition-all relative ${batchMode ? 'bg-[#7d2ae8]' : 'bg-gray-700'}`}
-                    role="switch"
-                    aria-checked={batchMode}
-                    aria-label="Toggle Batch Export Mode"
-                  >
-                    <div
-                      className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${batchMode ? 'left-6' : 'left-1'}`}
-                    />
-                  </button>
+                    ariaLabel="Toggle Batch Export Mode"
+                  />
                 </div>
 
                 {batchMode && (
                   <div className="animate-fade-in">
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-[10px] text-gray-500">
+                      <p className="text-[10px] text-muted-light">
                         {selectedArtboardIds.length} of {artboards.length} selected
                       </p>
                       <button
                         onClick={toggleSelectAll}
-                        className="text-[10px] text-[#7d2ae8] hover:text-[#9b4af0] font-bold uppercase tracking-wider"
+                        className="text-[10px] text-brand-600 hover:text-brand-400 font-bold uppercase tracking-wider"
                       >
                         {selectedArtboardIds.length === artboards.length ? 'Deselect All' : 'Select All'}
                       </button>
@@ -500,21 +499,21 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                           key={ab.id}
                           className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all ${
                             selectedArtboardIds.includes(ab.id)
-                              ? 'bg-[#7d2ae8]/10 border border-[#7d2ae8]'
-                              : 'bg-[#252627] border border-gray-700 hover:border-gray-600'
+                              ? 'bg-brand-600/10 border border-brand-600'
+                              : 'bg-surface-dark-4 border border-gray-700 hover:border-gray-600'
                           }`}
                         >
                           <input
                             type="checkbox"
                             checked={selectedArtboardIds.includes(ab.id)}
                             onChange={() => toggleArtboardSelection(ab.id)}
-                            className="w-3.5 h-3.5 accent-[#7d2ae8] rounded"
+                            className="w-3.5 h-3.5 accent-brand-600 rounded"
                           />
                           <div className="flex-1 min-w-0">
                             <span className="text-xs text-white truncate block">
                               {ab.name || `Artboard ${ab.id.slice(0, 6)}`}
                             </span>
-                            <span className="text-[9px] text-gray-500">
+                            <span className="text-[9px] text-muted-light">
                               {ab.width} x {ab.height}
                             </span>
                           </div>
@@ -528,10 +527,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
             {/* Print Mode Toggle (PDF only) */}
             {format === 'pdf' && (
-              <div className="flex items-center justify-between p-4 bg-[#13161a] border border-gray-700 rounded-xl">
+              <div className="flex items-center justify-between p-4 bg-surface-dark-2 border border-gray-700 rounded-xl">
                 <div>
                   <h4 className="text-xs font-bold text-white mb-0.5 flex items-center gap-2">
-                    <Icons.Printer className="w-4 h-4 text-[#7d2ae8]" />
+                    <Icons.Printer className="w-4 h-4 text-brand-600" />
                     Professional Print (CMYK)
                     {(!user || user.plan === 'free') && (
                       <span className="bg-yellow-500/20 text-yellow-500 text-[9px] px-1.5 py-0.5 rounded font-black tracking-widest uppercase">
@@ -539,31 +538,25 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                       </span>
                     )}
                   </h4>
-                  <p className="text-[10px] text-gray-500 italic">True ICC CMYK conversion with bleed & crop marks</p>
+                  <p className="text-[10px] text-muted-light italic">True ICC CMYK conversion with bleed & crop marks</p>
                 </div>
-                <button
-                  onClick={() => {
+                <Toggle
+                  checked={isPrintMode}
+                  onChange={(checked) => {
                     if (!user || user.plan === 'free') {
                       addToast('True CMYK Export is a Pro Feature.', 'warning');
                       return;
                     }
-                    setIsPrintMode(!isPrintMode);
+                    setIsPrintMode(checked);
                   }}
-                  className={`w-12 h-6 rounded-full transition-all relative ${isPrintMode ? 'bg-[#7d2ae8]' : 'bg-gray-700'}`}
-                  role="switch"
-                  aria-checked={isPrintMode}
-                  aria-label="Toggle Professional Print Mode (CMYK)"
-                >
-                  <div
-                    className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all shadow-lg ${isPrintMode ? 'left-6' : 'left-0.5'}`}
-                  />
-                </button>
+                  ariaLabel="Toggle Professional Print Mode (CMYK)"
+                />
               </div>
             )}
 
             {/* Print Mode Options */}
             {format === 'pdf' && isPrintMode && (
-              <div className="space-y-4 p-4 bg-[#13161a] border border-[#7d2ae8]/30 rounded-xl animate-fade-in">
+              <div className="space-y-4 p-4 bg-surface-dark-2 border border-brand-600/30 rounded-xl animate-fade-in">
                 {/* Gamut Guard Alert */}
                 {outOfGamutCount > 0 && (
                   <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 flex flex-col gap-2">
@@ -594,7 +587,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                   <select
                     value={colorProfile}
                     onChange={(e) => setColorProfile(e.target.value as ColorProfile)}
-                    className="w-full bg-[#252627] border border-gray-600 rounded-lg px-3 py-2 text-xs text-white focus:border-[#7d2ae8] outline-none"
+                    className="w-full bg-surface-dark-4 border border-gray-600 rounded-xl px-3 py-2 text-xs text-white focus:border-brand-600 outline-none"
                   >
                     <option value="FOGRA39">FOGRA39 (Offset Printing - EU)</option>
                     <option value="GRACoL">GRACoL (Offset Printing - US)</option>
@@ -613,7 +606,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                     >
                       Bleed
                     </label>
-                    <span className="text-xs text-[#7d2ae8] font-mono">
+                    <span className="text-xs text-brand-600 font-mono">
                       {bleed}pt ({(bleed / 72).toFixed(2)}&quot;)
                     </span>
                   </div>
@@ -625,9 +618,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                     step="3"
                     value={bleed}
                     onChange={(e) => setBleed(parseInt(e.target.value))}
-                    className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+                    className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
                   />
-                  <div className="flex justify-between text-[9px] text-gray-500 mt-1">
+                  <div className="flex justify-between text-[9px] text-muted-light mt-1">
                     <span>No Bleed</span>
                     <span>1/2&quot;</span>
                   </div>
@@ -637,19 +630,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="text-xs font-bold text-white mb-0.5">Crop Marks</h4>
-                    <p className="text-[10px] text-gray-500">Add trim guides for printer</p>
-                  </div>
-                  <button
-                    onClick={() => setCropMarks(!cropMarks)}
-                    className={`w-10 h-5 rounded-full transition-all relative ${cropMarks ? 'bg-[#7d2ae8]' : 'bg-gray-700'}`}
-                    role="switch"
-                    aria-checked={cropMarks}
-                    aria-label="Toggle Crop Marks"
-                  >
-                    <div
-                      className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${cropMarks ? 'left-6' : 'left-1'}`}
-                    />
-                  </button>
+                  <p className="text-[10px] text-muted-light">Add trim guides for printer</p>
+                </div>
+                <Toggle
+                  checked={cropMarks}
+                  onChange={(checked) => setCropMarks(checked)}
+                  ariaLabel="Toggle Crop Marks"
+                />
                 </div>
               </div>
             )}
@@ -658,10 +645,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
             {['jpeg', 'webp'].includes(format) ? (
               <div className="animate-fade-in">
                 <div className="flex justify-between items-center mb-2">
-                  <label htmlFor="export-quality" className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <label className="text-xs font-bold text-muted-light uppercase tracking-wider">
                     Quality
                   </label>
-                  <span className="text-xs font-medium text-[#7d2ae8]">{Math.round(quality * 100)}%</span>
+                  <span className="text-xs font-medium text-brand-600">{Math.round(quality * 100)}%</span>
                 </div>
                 <input
                   id="export-quality"
@@ -672,13 +659,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                   step="1"
                   value={Math.round(quality * 100)}
                   onChange={(e) => setQuality(parseFloat(e.target.value) / 100)}
-                  className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+                  className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
                   aria-label="Quality"
                 />
               </div>
             ) : (
               <div className="p-3 bg-gray-800/50 rounded-xl border border-gray-700/50 animate-fade-in">
-                <p className="text-[10px] text-gray-400 flex items-center gap-1.5">
+                <p className="text-[10px] text-muted-light flex items-center gap-1.5">
                   <Icons.Info className="w-3.5 h-3.5 text-blue-400" />
                   {format.toUpperCase()} exports at maximum lossless quality.
                 </p>
@@ -687,22 +674,16 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
             {/* Transparent Background (PNG only) */}
             {format === 'png' && (
-              <div className="flex items-center justify-between p-4 bg-[#13161a] border border-gray-700 rounded-xl">
+              <div className="flex items-center justify-between p-4 bg-surface-dark-2 border border-gray-700 rounded-xl">
                 <div>
                   <h4 className="text-xs font-bold text-white mb-0.5">Transparent Background</h4>
-                  <p className="text-[10px] text-gray-500 italic">Export with alpha channel</p>
+                  <p className="text-[10px] text-muted-light italic">Export with alpha channel</p>
                 </div>
-                <button
-                  onClick={() => setTransparentBg(!transparentBg)}
-                  className={`w-10 h-5 rounded-full transition-all relative ${transparentBg ? 'bg-[#7d2ae8]' : 'bg-gray-700'}`}
-                  role="switch"
-                  aria-checked={transparentBg}
-                  aria-label="Toggle Transparent Background"
-                >
-                  <div
-                    className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${transparentBg ? 'left-6' : 'left-1'}`}
-                  />
-                </button>
+                <Toggle
+                  checked={transparentBg}
+                  onChange={(checked) => setTransparentBg(checked)}
+                  ariaLabel="Toggle Transparent Background"
+                />
               </div>
             )}
 
@@ -710,7 +691,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
             <div>
               <label
                 htmlFor="export-filename"
-                className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 block"
+                className="text-xs font-bold text-muted-light uppercase tracking-wider mb-3 block"
               >
                 Filename
               </label>
@@ -728,11 +709,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                     }
                     setFilename(sanitized);
                   }}
-                  className="flex-1 bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-[#7d2ae8] outline-none transition-colors"
+                  className="flex-1 bg-surface-dark-0/40 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:border-brand-600 outline-none transition-colors"
                   placeholder="design-name"
                   autoFocus
                 />
-                <span className="text-gray-500 text-sm font-mono">.{format}</span>
+                <span className="text-muted-light text-sm font-mono">.{format}</span>
               </div>
               {filenameFeedback && (
                 <p className="text-[10px] text-amber-400 mt-1 font-medium animate-pulse">{filenameFeedback}</p>
@@ -741,7 +722,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
             {/* Scale Multiplier */}
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 block">
+              <label className="text-xs font-bold text-muted-light uppercase tracking-wider mb-3 block">
                 Export Scale
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -749,7 +730,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                   <button
                     key={scale}
                     onClick={() => setExportScale(scale)}
-                    className={`py-2 rounded-lg text-xs font-bold transition-all border ${exportScale === scale ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white'}`}
+                    className={`py-2 rounded-xl text-xs font-bold transition-all border ${exportScale === scale ? 'bg-brand-600 border-brand-600 text-white' : 'bg-surface-dark-4 border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white'}`}
                   >
                     {scale}x
                   </button>
@@ -759,7 +740,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
             {/* Presets */}
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 block">
+              <label className="text-xs font-bold text-muted-light uppercase tracking-wider mb-3 block">
                 Size Presets
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
@@ -767,12 +748,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                   <button
                     key={p.id}
                     onClick={() => setActivePreset(p.id)}
-                    className={`flex flex-col items-start p-3 rounded-xl border transition-all ${activePreset === p.id ? 'bg-[#7d2ae8]/10 border-[#7d2ae8] ring-1 ring-[#7d2ae8]' : 'bg-[#13161a] border-gray-700 hover:border-gray-600'}`}
+                    className={`flex flex-col items-start p-3 rounded-xl border transition-all ${activePreset === p.id ? 'bg-brand-600/10 border-brand-600 ring-1 ring-brand-600' : 'bg-surface-dark-2 border-gray-700 hover:border-gray-600'}`}
                   >
                     <span className={`text-xs font-bold ${activePreset === p.id ? 'text-white' : 'text-gray-300'}`}>
                       {p.name}
                     </span>
-                    <span className="text-[10px] text-gray-500">
+                    <span className="text-[10px] text-muted-light">
                       {p.width} x {p.height} px
                     </span>
                   </button>
@@ -787,8 +768,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 disabled={isExporting || !artboards || artboards.length <= 1}
                 className={`py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed ${
                   format === 'pdf' && isPrintMode
-                    ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white'
-                    : 'bg-[#252627] border-gray-700 text-gray-300 hover:bg-[#2e2e2e] hover:border-gray-500'
+                    ? 'bg-brand-600/20 border-brand-600 text-white'
+                    : 'bg-surface-dark-4 border-gray-700 text-gray-300 hover:bg-surface-dark-5 hover:border-gray-500'
                 }`}
                 title={`Export all ${artboards?.length || 0} artboards as ${format.toUpperCase()}${format === 'pdf' && isPrintMode ? ' (Print-ready)' : ''}`}
               >
@@ -796,14 +777,14 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 <div className="flex flex-col items-start leading-tight">
                   <span>All Artboards ({artboards?.length || 0})</span>
                   {format === 'pdf' && isPrintMode && (
-                    <span className="text-[9px] text-[#7d2ae8]">Print-ready CMYK</span>
+                    <span className="text-[9px] text-brand-600">Print-ready CMYK</span>
                   )}
                 </div>
               </button>
               <button
                 onClick={handleExportSelection}
                 disabled={isExporting || !selectedLayerIds || selectedLayerIds.length === 0}
-                className="py-2.5 rounded-xl border border-gray-700 bg-[#252627] text-xs font-bold text-gray-300 hover:bg-[#2e2e2e] hover:border-gray-500 transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="py-2.5 rounded-xl border border-gray-700 bg-surface-dark-4 text-xs font-bold text-gray-300 hover:bg-surface-dark-5 hover:border-gray-500 transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
                 title={
                   selectedLayerIds?.length
                     ? `Export ${selectedLayerIds.length} selected layer(s)`
@@ -827,7 +808,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 data-testid="copy-png-btn"
                 onClick={handleCopyToClipboard}
                 disabled={isCopying || isExporting}
-                className="flex-1 py-3 rounded-xl font-bold border border-gray-600 bg-[#252627] hover:bg-[#2e2e2e] hover:border-gray-500 text-gray-300 text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                className="flex-1 py-3 rounded-xl font-bold border border-gray-600 bg-surface-dark-4 hover:bg-surface-dark-5 hover:border-gray-500 text-gray-300 text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 title="Copy PNG to clipboard"
               >
                 {isCopying ? (
@@ -843,17 +824,17 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 data-testid="download-btn"
                 onClick={batchMode && selectedArtboardIds.length > 0 ? handleBatchExport : handleExportClick}
                 disabled={isExporting || isCopying || (batchMode && selectedArtboardIds.length === 0)}
-                className={`flex-[2] py-3 rounded-xl font-bold shadow-lg transform transition-all flex flex-col items-center justify-center gap-1 ${isExporting ? 'bg-gray-800' : 'bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] hover:scale-[1.02] active:scale-[0.98] shadow-purple-900/40'}`}
+                className={`flex-[2] py-3 rounded-xl font-bold shadow-lg transform transition-all flex flex-col items-center justify-center gap-1 ${isExporting ? 'bg-gray-800' : 'bg-gradient-to-r from-accent to-brand-600 hover:scale-[1.02] active:scale-[0.98] shadow-purple-900/40'}`}
               >
                 {isExporting ? (
                   <>
                     <div className="flex items-center gap-2">
-                      <div className="animate-spin w-4 h-4 border-2 border-[#00c4cc] border-t-transparent rounded-full"></div>
-                      <span className="text-sm font-black uppercase tracking-widest text-[#00c4cc]">{exportStage}</span>
+                      <div className="animate-spin w-4 h-4 border-2 border-accent border-t-transparent rounded-full"></div>
+                      <span className="text-sm font-black uppercase tracking-widest text-accent">{exportStage}</span>
                     </div>
                     <div className="w-48 h-1 bg-gray-700 rounded-full mt-2 overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] transition-all duration-300"
+                        className="h-full bg-gradient-to-r from-accent to-brand-600 transition-all duration-300"
                         style={{ width: `${exportProgress || 100}%` }}
                       />
                     </div>

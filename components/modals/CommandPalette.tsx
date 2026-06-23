@@ -7,6 +7,7 @@ import { NavTab } from '../../types';
 
 import { iconScoutService, IconScoutAsset } from '../../services/iconScoutService';
 import { communityService, CommunityTemplate } from '../../services/communityService';
+import { Button } from '../Button';
 
 export const CommandPalette: React.FC = () => {
   const isOpen = useStore((state) => state.isCommandPaletteOpen);
@@ -461,7 +462,7 @@ export const CommandPalette: React.FC = () => {
     <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-[15vh] bg-black/60 backdrop-blur-md p-4">
       <div className="absolute inset-0" onClick={() => setOpen(false)} />
 
-      <div role="dialog" aria-modal="true" className="relative w-full max-w-xl bg-[#0a0a0c] border border-white/10 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden animate-fade-in flex flex-col">
+      <div role="dialog" aria-modal="true" className="relative w-full max-w-xl bg-surface-dark-1 border border-white/10 rounded-xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden animate-fade-in flex flex-col">
         {/* Search Input */}
         <div className="flex items-center px-5 py-4 border-b border-white/5 bg-white/5">
           <Icons.Search className="w-5 h-5 text-gray-400 mr-4" />
@@ -473,7 +474,7 @@ export const CommandPalette: React.FC = () => {
             aria-autocomplete="list"
             aria-controls="command-palette-listbox"
             data-command-palette-focusable
-            className="flex-1 bg-transparent text-white text-lg outline-none placeholder-gray-600 font-medium"
+            className="flex-1 bg-transparent text-white text-lg outline-none placeholder-muted-light font-medium"
             placeholder="Type a command or search assets..."
             aria-label="Search commands and assets"
             value={query}
@@ -481,7 +482,7 @@ export const CommandPalette: React.FC = () => {
             onChange={(e) => setQuery(e.target.value)}
           />
           {isSearching && (
-            <div className="mr-4 animate-spin w-4 h-4 border-2 border-[#7d2ae8] border-t-transparent rounded-full" />
+            <div className="mr-4 animate-spin w-4 h-4 border-2 border-brand-600 border-t-transparent rounded-full" />
           )}
           <div className="flex gap-2 text-[9px] font-black text-gray-500 uppercase tracking-widest bg-black/40 px-2 py-1 rounded-md border border-white/5">
             <span className="text-gray-400">ESC</span> to exit
@@ -489,7 +490,7 @@ export const CommandPalette: React.FC = () => {
         </div>
 
         {/* Results */}
-        <div id="command-palette-listbox" role="listbox" className="max-h-[60vh] overflow-y-auto no-scrollbar p-2 bg-[#0e1318]">
+        <div id="command-palette-listbox" role="listbox" className="max-h-[60vh] overflow-y-auto no-scrollbar p-2 bg-surface-dark-2">
           {allResults.length === 0 ? (
             <div className="px-4 py-12 text-center">
               <Icons.Search className="w-12 h-12 text-gray-800 mx-auto mb-3" />
@@ -512,7 +513,7 @@ export const CommandPalette: React.FC = () => {
                       cmd.action();
                       setOpen(false);
                     }}
-                    className={`flex items-center w-full px-4 py-3 rounded-xl text-left transition-all duration-200 ${isSelected ? 'bg-[#7d2ae8] text-white shadow-lg shadow-[#7d2ae8]/20 scale-[1.02]' : 'text-gray-400 hover:bg-white/5'}`}
+                    className={`flex items-center w-full px-4 py-3 rounded-xl text-left transition-all duration-200 ${isSelected ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20 scale-[1.02]' : 'text-gray-400 hover:bg-white/5'}`}
                   >
                     <div
                       className={`flex items-center justify-center w-8 h-8 rounded-lg mr-4 ${isSelected ? 'bg-white/20 text-white' : 'bg-white/5 text-gray-500'}`}
@@ -523,7 +524,7 @@ export const CommandPalette: React.FC = () => {
                       <span className="font-bold text-sm">{cmd.label}</span>
                       {cmd.group && (
                         <span
-                          className={`text-[9px] uppercase tracking-widest font-black ${isSelected ? 'text-white/60' : 'text-gray-600'}`}
+                          className={`text-[9px] uppercase tracking-widest font-black ${isSelected ? 'text-white/60' : 'text-muted-light'}`}
                         >
                           {cmd.group}
                         </span>
@@ -531,7 +532,7 @@ export const CommandPalette: React.FC = () => {
                     </div>
                     {cmd.shortcut && (
                       <span
-                        className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${isSelected ? 'bg-black/20 text-white' : 'bg-white/5 text-gray-600'}`}
+                        className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${isSelected ? 'bg-black/20 text-white' : 'bg-white/5 text-muted-light'}`}
                       >
                         {cmd.shortcut}
                       </span>
@@ -544,7 +545,7 @@ export const CommandPalette: React.FC = () => {
             <div className="space-y-4 py-2">
               {grouped.map(([group, cmds]) => (
                 <div key={group}>
-                  <div className="px-4 py-1 text-[9px] font-black text-gray-600 uppercase tracking-[0.2em]">
+                  <div className="px-4 py-1 text-[9px] font-black text-muted-light uppercase tracking-[0.2em]">
                     {group}
                   </div>
                   <div className="flex flex-col gap-0.5">
@@ -564,7 +565,7 @@ export const CommandPalette: React.FC = () => {
                             cmd.action();
                             setOpen(false);
                           }}
-                          className={`flex items-center w-full px-4 py-2.5 rounded-xl text-left transition-all duration-200 ${isSelected ? 'bg-[#7d2ae8] text-white shadow-lg shadow-[#7d2ae8]/20' : 'text-gray-400 hover:bg-white/5'}`}
+                          className={`flex items-center w-full px-4 py-2.5 rounded-xl text-left transition-all duration-200 ${isSelected ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20' : 'text-gray-400 hover:bg-white/5'}`}
                         >
                           <div
                             className={`flex items-center justify-center w-7 h-7 rounded-lg mr-4 ${isSelected ? 'bg-white/20 text-white' : 'bg-white/5 text-gray-500'}`}
@@ -574,7 +575,7 @@ export const CommandPalette: React.FC = () => {
                           <span className="font-bold text-[13px] flex-1">{cmd.label}</span>
                           {cmd.shortcut && (
                             <span
-                              className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${isSelected ? 'bg-black/20 text-white' : 'bg-white/5 text-gray-600'}`}
+                              className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${isSelected ? 'bg-black/20 text-white' : 'bg-white/5 text-muted-light'}`}
                             >
                               {cmd.shortcut}
                             </span>
@@ -603,7 +604,7 @@ export const CommandPalette: React.FC = () => {
               <span className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">Execute</span>
             </div>
           </div>
-          <div className="text-[10px] text-gray-600 font-bold tracking-widest uppercase italic">
+          <div className="text-[10px] text-muted-light font-bold tracking-widest uppercase italic">
             Powered by Kreathief Core
           </div>
         </div>

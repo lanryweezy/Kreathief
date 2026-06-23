@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Icons } from '../../constants';
 import { log } from '../../utils/log';
 import { useStore } from '../../store/useStore';
+import { Button } from '../Button';
+import { Input } from '../Input';
 
 interface ShareModalProps {
   onClose: () => void;
@@ -73,22 +75,23 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
       onClick={onClose}
     >
       <div
-        className="bg-[#1e1e1e] border border-gray-700 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col relative"
+        className="bg-surface-dark-3 border border-gray-700 rounded-xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col relative"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-6 border-b border-gray-800 flex items-center justify-between">
           <h3 className="text-xl font-bold text-white flex items-center gap-2">
-            <Icons.Send className="w-5 h-5 text-[#00c4cc]" /> Share Design
+            <Icons.Send className="w-5 h-5 text-accent" /> Share Design
           </h3>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
             aria-label="Close share modal"
-            className="text-gray-400 hover:text-white transition-colors"
           >
             <div className="text-2xl leading-none" aria-hidden="true">
               &times;
             </div>
-          </button>
+          </Button>
         </div>
 
         <div className="p-8 space-y-6">
@@ -100,7 +103,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
                 {onlineUsers.slice(0, 8).map((u) => (
                   <div
                     key={u.userId}
-                    className="w-6 h-6 rounded-full border border-[#1e1e1e] flex items-center justify-center text-[9px] font-bold text-white"
+                    className="w-6 h-6 rounded-full border border-surface-dark-3 flex items-center justify-center text-[9px] font-bold text-white"
                     style={{ backgroundColor: u.color }}
                     title={u.userName}
                   >
@@ -113,37 +116,34 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
 
           {/* Share link */}
           <div>
-            <p className="text-gray-400 text-sm mb-3">Generate a link to share your design with others.</p>
+            <p className="text-muted-light text-sm mb-3">Generate a link to share your design with others.</p>
 
             {!shareLink ? (
-              <button
+              <Button
+                variant="primary"
                 onClick={handleGenerateLink}
                 disabled={isGenerating}
-                className="w-full py-3 bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] text-white rounded-xl font-bold shadow-lg shadow-purple-900/40 transform hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                className="w-full"
+                loading={isGenerating}
               >
-                {isGenerating ? (
-                  <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
-                ) : (
-                  <>
-                    Generate Share Link <Icons.Zap className="w-4 h-4" />
-                  </>
-                )}
-              </button>
+                {!isGenerating && <>Generate Share Link <Icons.Zap className="w-4 h-4" /></>}
+              </Button>
             ) : (
               <div className="flex gap-2">
                 <input
                   readOnly
                   value={shareLink}
                   aria-label="Share link"
-                  className="flex-1 bg-[#13161a] border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-[#00c4cc]"
+                  className="flex-1 bg-surface-dark-2 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-accent"
                 />
-                <button
+                <Button
+                  variant="secondary"
                   onClick={copyToClipboard}
-                  className={`px-4 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${copied ? 'bg-green-600 text-white' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
+                  className={copied ? '!bg-green-600 !text-white' : ''}
                 >
                   {copied ? <Icons.Check className="w-4 h-4" /> : <Icons.Copy className="w-4 h-4" />}
                   {copied ? 'Copied' : 'Copy'}
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -151,42 +151,34 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
           {/* Invite by email */}
           {shareLink && (
             <div>
-              <p className="text-gray-400 text-sm mb-3">Or invite someone by email:</p>
+              <p className="text-muted-light text-sm mb-3">Or invite someone by email:</p>
               <div className="flex gap-2">
                 <input
                   type="email"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="colleague@email.com"
-                  className="flex-1 bg-[#13161a] border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-[#00c4cc] placeholder-gray-600"
+                  className="flex-1 bg-surface-dark-2 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-brand-600 placeholder-gray-600"
                   onKeyDown={(e) => e.key === 'Enter' && handleInvite()}
                 />
-                <button
+                <Button
+                  variant={inviteSent ? 'primary' : inviteEmail.trim() ? 'accent' : 'secondary'}
                   onClick={handleInvite}
                   disabled={!inviteEmail.trim()}
-                  className={`px-4 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${
-                    inviteSent
-                      ? 'bg-green-600 text-white'
-                      : inviteEmail.trim()
-                        ? 'bg-[#7d2ae8] text-white hover:bg-[#6b23c5]'
-                        : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                  }`}
+                  className={inviteSent ? '!bg-green-600 !text-white' : ''}
                 >
                   {inviteSent ? <Icons.Check className="w-4 h-4" /> : <Icons.Send className="w-4 h-4" />}
                   {inviteSent ? 'Copied!' : 'Copy Invite Text'}
-                </button>
+                </Button>
               </div>
             </div>
           )}
         </div>
 
-        <div className="p-6 bg-[#13161a] border-t border-gray-800 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 text-gray-400 hover:text-white text-sm font-bold transition-colors"
-          >
+        <div className="p-6 bg-surface-dark-2 border-t border-gray-800 flex justify-end">
+          <Button variant="ghost" onClick={onClose}>
             Close
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ import { useStore } from '../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import CommunityTemplates from './CommunityTemplates';
 import { EmptyState } from './EmptyState';
+import { Button } from './Button';
 
 interface DashboardProps {
   user: User;
@@ -172,11 +173,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   });
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex flex-col relative z-0">
+    <div className="min-h-screen bg-surface-dark-0 text-white flex flex-col relative z-0">
       {/* Header */}
-      <header className="h-20 bg-[#0a0a0a]/80 border-b border-white/5 flex items-center justify-between px-8 sticky top-0 z-30 backdrop-blur-2xl">
+      <header className="h-20 bg-surface-dark-1/80 border-b border-white/5 flex items-center justify-between px-8 sticky top-0 z-30 backdrop-blur-2xl">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
+          <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center shadow-glow-brand">
             <Icons.Magic className="w-6 h-6 text-white" />
           </div>
           <span className="font-black text-2xl tracking-tighter uppercase">Kreathief</span>
@@ -185,7 +186,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         <div className="flex items-center gap-6">
           <div className="relative hidden md:block group">
             <Icons.Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#7d2ae8] transition-colors"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted group-focus-within:text-brand-500 transition-colors"
               aria-hidden="true"
             />
             <input
@@ -195,11 +196,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               aria-label="Search designs"
-              className="bg-white/5 border border-white/10 rounded-full pl-10 pr-4 py-2.5 text-xs uppercase tracking-widest font-black w-64 focus:outline-none focus:border-purple-500 focus:w-80 transition-all"
+              className="bg-white/5 border border-white/10 rounded-full pl-10 pr-4 py-2.5 text-xs uppercase tracking-widest font-black w-64 focus:outline-none focus:border-brand-500 focus:w-80 transition-all"
             />
           </div>
 
-          <div className="h-8 w-px bg-gray-700 mx-2"></div>
+          <div className="h-8 w-px bg-white/10 mx-2"></div>
 
           <div
             className="flex items-center gap-4 group relative"
@@ -212,7 +213,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
           >
             <div className="text-right hidden sm:block">
               <div className="text-xs font-black uppercase tracking-widest text-white">{user.name}</div>
-              <div className="text-[9px] text-purple-400 uppercase font-black tracking-widest">{user.plan} Plan</div>
+              <div className="text-[9px] text-brand-400 uppercase font-black tracking-widest">{user.plan} Plan</div>
             </div>
             <button
               onClick={() => {
@@ -243,7 +244,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 }
                 if (e.key === 'Escape') setProfileDropdownOpen(false);
               }}
-              className="w-10 h-10 rounded-full border-2 border-white/10 group-hover:border-purple-500 focus-visible:border-purple-500 focus-visible:ring-2 focus-visible:ring-purple-500/50 transition-colors overflow-hidden p-0.5 cursor-pointer relative"
+              className="w-10 h-10 rounded-full border-2 border-white/10 group-hover:border-brand-500 focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500/50 transition-colors overflow-hidden p-0.5 cursor-pointer relative"
               title="Click to update profile image"
               aria-label="Update profile image"
             >
@@ -251,7 +252,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
             </button>
 
             <div
-              className="absolute right-0 top-full mt-4 w-56 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl z-50 p-2 transition-all transform origin-top-right focus-within:opacity-100"
+              className="absolute right-0 top-full mt-4 w-56 bg-surface-dark-1 border border-white/10 rounded-xl shadow-2xl z-50 p-2 transition-all transform origin-top-right focus-within:opacity-100"
               role="menu"
               aria-label="Profile menu"
               tabIndex={-1}
@@ -295,13 +296,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   data-testid="nav-projects"
                   aria-selected={sidebarTab === 'projects'}
                   onClick={() => setSidebarTab('projects')}
-                  className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all relative py-2 ${sidebarTab === 'projects' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                  className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all relative py-2 ${sidebarTab === 'projects' ? 'text-white' : 'text-muted hover:text-gray-300'}`}
                 >
                   My Projects
                   {sidebarTab === 'projects' && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute bottom-0 left-0 right-0 h-1 bg-purple-500 rounded-full"
+                      className="absolute bottom-0 left-0 right-0 h-1 bg-brand-500 rounded-full"
                     />
                   )}
                 </button>
@@ -310,13 +311,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   data-testid="nav-templates"
                   aria-selected={sidebarTab === 'templates'}
                   onClick={() => setSidebarTab('templates')}
-                  className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all relative py-2 ${sidebarTab === 'templates' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                  className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all relative py-2 ${sidebarTab === 'templates' ? 'text-white' : 'text-muted hover:text-gray-300'}`}
                 >
                   Templates
                   {sidebarTab === 'templates' && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute bottom-0 left-0 right-0 h-1 bg-purple-500 rounded-full"
+                      className="absolute bottom-0 left-0 right-0 h-1 bg-brand-500 rounded-full"
                     />
                   )}
                 </button>
@@ -325,24 +326,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   data-testid="nav-community"
                   aria-selected={sidebarTab === 'community'}
                   onClick={() => setSidebarTab('community')}
-                  className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all relative py-2 ${sidebarTab === 'community' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                  className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all relative py-2 ${sidebarTab === 'community' ? 'text-white' : 'text-muted hover:text-gray-300'}`}
                 >
                   Community
                   {sidebarTab === 'community' && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute bottom-0 left-0 right-0 h-1 bg-purple-500 rounded-full"
+                      className="absolute bottom-0 left-0 right-0 h-1 bg-brand-500 rounded-full"
                     />
                   )}
                 </button>
               </div>
-              <button
+              <Button
                 id="create-btn"
                 onClick={handleCreateClick}
-                className="bg-[#7d2ae8] text-white hover:bg-[#6c1fd1] px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-[12px] uppercase tracking-widest shadow-lg shadow-purple-900/50 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95 border border-white/10 shrink-0"
+                variant="primary"
+                className="px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-[12px] uppercase tracking-widest flex items-center gap-2 hover:scale-[1.02] active:scale-95 shrink-0"
               >
                 <Icons.Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> New Design
-              </button>
+              </Button>
             </div>
 
             {/* Filter Controls (for Projects) */}
@@ -354,7 +356,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border ${
                     showFavoritesOnly
                       ? 'bg-red-500/10 border-red-500/50 text-red-400'
-                      : 'bg-[#1e1e1e] border-white/5 text-gray-400 hover:text-white hover:border-white/20'
+                      : 'bg-surface-dark-3 border-white/5 text-muted-light hover:text-white hover:border-white/20'
                   }`}
                 >
                   <Icons.Heart className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-current' : ''}`} />
@@ -367,7 +369,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
             {sidebarTab === 'templates' && (
               <div data-testid="dashboard-templates-panel" className="mb-10">
                 <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
-                  <Icons.Templates className="w-4 h-4 text-[#00c4cc]" />
+                  <Icons.Templates className="w-4 h-4 text-accent" />
                   Quick templates
                 </h3>
                 <div
@@ -381,9 +383,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                         key={tmpl.id}
                         data-testid={`dashboard-template-btn-${tmpl.id}`}
                         onClick={() => handleStartFromTemplate(tmpl.id)}
-                        className="group bg-[#0a0a0c] border border-white/5 rounded-2xl overflow-hidden text-left hover:border-white/20 transition-all duration-300 shadow-xl relative"
+                        className="group bg-surface-dark-1 border border-white/5 rounded-xl overflow-hidden text-left hover:border-white/20 transition-all duration-300 shadow-xl relative"
                       >
-                        <div className="aspect-[4/3] bg-[#0a0a0c] flex items-center justify-center relative overflow-hidden group-hover:bg-[#121216] transition-colors border-b border-white/5">
+                        <div className="aspect-[4/3] bg-surface-dark-1 flex items-center justify-center relative overflow-hidden group-hover:bg-surface-dark-2 transition-colors border-b border-white/5">
                           {/* High-fidelity Miniature Render of the template */}
                           <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-3 select-none pointer-events-none">
                             <div
@@ -513,26 +515,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
 
                           {/* Top Overlays */}
                           <div className="absolute inset-x-0 top-0 p-3 flex justify-between items-center bg-gradient-to-b from-black/60 to-transparent pointer-events-none select-none">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-white bg-[#7d2ae8] px-2 py-0.5 rounded shadow-lg border border-white/10">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-white bg-brand-600 px-2 py-0.5 rounded shadow-lg border border-white/10">
                               {tmpl.category}
                             </span>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded border border-white/5">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-muted-light bg-black/60 backdrop-blur-md px-2 py-0.5 rounded border border-white/5">
                               {tmpl.size.name}
                             </span>
                           </div>
                         </div>
-                        <div className="p-4 bg-[#0a0a0a]">
-                          <div className="text-sm font-bold text-white truncate mb-1 group-hover:text-[#00c4cc] transition-colors">
+                        <div className="p-4 bg-surface-dark-1">
+                          <div className="text-sm font-bold text-white truncate mb-1 group-hover:text-accent transition-colors">
                             {tmpl.name}
                           </div>
-                          <div className="text-[11px] text-gray-400 line-clamp-2">{tmpl.description}</div>
+                          <div className="text-[11px] text-muted-light line-clamp-2">{tmpl.description}</div>
                         </div>
                       </button>
                     ))
                   ) : (
-                    <div className="col-span-full text-center py-12 border-2 border-dashed border-gray-800 rounded-2xl">
-                      <Icons.Search className="w-8 h-8 text-gray-700 mx-auto mb-2" />
-                      <p className="text-gray-500 text-xs font-bold">No templates match your search</p>
+                    <div className="col-span-full text-center py-12 border-2 border-dashed border-surface-dark-4 rounded-xl">
+                      <Icons.Search className="w-8 h-8 text-surface-dark-5 mx-auto mb-2" />
+                      <p className="text-muted text-xs font-bold">No templates match your search</p>
                     </div>
                   )}
                 </div>
@@ -544,7 +546,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               (isLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
                   {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden animate-pulse">
+                    <div key={i} className="bg-surface-dark-1 border border-white/5 rounded-xl overflow-hidden animate-pulse">
                       <div className="aspect-[4/3] bg-white/5" />
                       <div className="p-5 space-y-3">
                         <div className="h-4 bg-white/5 rounded w-3/4" />
@@ -573,12 +575,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                     data-testid="blank-canvas-card"
                     role="button"
                     aria-label="Create new blank canvas"
-                    className="aspect-[4/3] glass-card-premium border-2 border-dashed border-gray-700/50 rounded-2xl flex flex-col items-center justify-center cursor-pointer transition-all hover:border-[#7d2ae8]/50 group"
+                    className="aspect-[4/3] glass-card-premium border-2 border-dashed border-surface-dark-5 rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all hover:border-brand-500/50 group"
                   >
-                    <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform group-hover:bg-purple-500/20 group-hover:text-purple-400 text-gray-500 shadow-xl group-hover:shadow-[0_0_20px_rgba(168,85,247,0.2)]">
+                    <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform group-hover:bg-brand-500/20 group-hover:text-brand-400 text-muted shadow-xl group-hover:shadow-glow-brand">
                       <Icons.Plus className="w-8 h-8" />
                     </div>
-                    <span className="font-black text-[10px] text-gray-500 group-hover:text-white uppercase tracking-[0.2em] transition-colors">
+                    <span className="font-black text-[10px] text-muted group-hover:text-white uppercase tracking-[0.2em] transition-colors">
                       Blank Canvas
                     </span>
                   </motion.div>
@@ -598,9 +600,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                         loadProject(project.id);
                         onOpenProject(project);
                       }}
-                      className="group bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden cursor-pointer relative hover:border-white/20 transition-all duration-300 shadow-xl"
+                      className="group bg-surface-dark-1 border border-white/5 rounded-xl overflow-hidden cursor-pointer relative hover:border-white/20 transition-all duration-300 shadow-xl"
                     >
-                      <div className="aspect-[4/3] bg-[#13161a] relative overflow-hidden flex items-center justify-center">
+                      <div className="aspect-[4/3] bg-surface-dark-2 relative overflow-hidden flex items-center justify-center">
                         {project.thumbnail ? (
                           <img
                             src={project.thumbnail}
@@ -608,7 +610,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                           />
                         ) : (
                           /* Fallback Miniature Render for Projects without thumbnails */
-                          <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-4 select-none pointer-events-none group-hover:scale-105 transition-transform duration-700 bg-gradient-to-br from-[#1e293b] to-[#0f172a]">
+                          <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-4 select-none pointer-events-none group-hover:scale-105 transition-transform duration-700 bg-gradient-to-br from-surface-dark-3 to-surface-dark-2">
                             <div
                               style={{
                                 width: `${project.state.canvasSize?.width || 1080}px`,
@@ -745,7 +747,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                               toggleFavoriteProject(project.id);
                             }}
                             aria-label={`${favoriteProjects.includes(project.id) ? 'Remove from' : 'Add to'} Favorites`}
-                            className="p-2 bg-black/60 hover:bg-black text-red-500 rounded-lg backdrop-blur-md transition-all shadow-lg"
+                            className="p-2 bg-black/60 hover:bg-red-500 text-red-500 rounded-xl backdrop-blur-md transition-all shadow-lg"
                           >
                             <Icons.Heart
                               className={`w-3.5 h-3.5 ${favoriteProjects.includes(project.id) ? 'fill-current' : ''}`}
@@ -754,7 +756,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                           <button
                             onClick={(e) => startRenaming(e, project)}
                             aria-label={`Rename ${project.name}`}
-                            className="p-2 bg-black/60 hover:bg-[#7d2ae8] text-white rounded-lg backdrop-blur-md transition-all shadow-lg"
+                            className="p-2 bg-black/60 hover:bg-brand-600 text-white rounded-xl backdrop-blur-md transition-all shadow-lg"
                           >
                             <Icons.Edit className="w-3.5 h-3.5" />
                           </button>
@@ -762,7 +764,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                             onClick={(e) => handleDuplicate(e, project)}
                             aria-label={`Duplicate ${project.name}`}
                             disabled={duplicatingId === project.id}
-                            className="p-2 bg-black/60 hover:bg-[#00c4cc] text-white rounded-lg backdrop-blur-md transition-all shadow-lg disabled:opacity-50"
+                            className="p-2 bg-black/60 hover:bg-accent text-white rounded-xl backdrop-blur-md transition-all shadow-lg disabled:opacity-50"
                           >
                             {duplicatingId === project.id ? (
                               <div className="animate-spin w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full" />
@@ -778,20 +780,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                             }}
                             title="Share with Community"
                             aria-label={`Share ${project.name} to Community`}
-                            className="p-2 bg-black/60 hover:bg-green-500 text-white rounded-lg backdrop-blur-md transition-all shadow-lg"
+                            className="p-2 bg-black/60 hover:bg-green-500 text-white rounded-xl backdrop-blur-md transition-all shadow-lg"
                           >
                             <Icons.Cloud className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={(e) => handleDelete(e, project.id)}
                             aria-label={`Delete ${project.name}`}
-                            className="p-2 bg-black/60 hover:bg-red-500 text-white rounded-lg backdrop-blur-md transition-all shadow-lg"
+                            className="p-2 bg-black/60 hover:bg-red-500 text-white rounded-xl backdrop-blur-md transition-all shadow-lg"
                           >
                             <Icons.Trash className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
-                      <div className="p-5 bg-[#0a0a0a]">
+                      <div className="p-5 bg-surface-dark-1">
                         {editingProjectId === project.id ? (
                           <input
                             autoFocus
@@ -801,14 +803,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                             onBlur={() => handleRename(project.id)}
                             onKeyDown={(e) => e.key === 'Enter' && handleRename(project.id)}
                             onClick={(e) => e.stopPropagation()}
-                            className="w-full bg-[#13161a] border border-[#7d2ae8] rounded px-2 py-1 text-sm text-white focus:outline-none"
+                            className="w-full bg-surface-dark-2 border border-brand-600 rounded px-2 py-1 text-sm text-white focus:outline-none"
                           />
                         ) : (
-                          <h3 className="font-bold text-sm text-white truncate mb-1 group-hover:text-[#00c4cc] transition-colors">
+                          <h3 className="font-bold text-sm text-white truncate mb-1 group-hover:text-accent transition-colors">
                             {project.name}
                           </h3>
                         )}
-                        <div className="flex justify-between items-center text-[9px] text-gray-500 font-black uppercase tracking-widest">
+                        <div className="flex justify-between items-center text-[9px] text-muted font-black uppercase tracking-widest">
                           <span className="flex items-center gap-1.5">
                             <Icons.History className="w-3 h-3" />
                             {new Date(project.updatedAt).toLocaleDateString()}

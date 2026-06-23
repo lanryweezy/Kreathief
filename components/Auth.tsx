@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Icons } from '../constants';
 import { User } from '../types';
 import { authService } from '../services/authService';
+import { Input } from './Input';
+import { Button } from './Button';
 
 interface AuthProps {
   onLogin: (user: User) => void;
@@ -77,7 +79,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     <div className="min-h-screen w-full bg-[#050505] flex items-center justify-center relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-purple-900/10 rounded-full blur-[140px] animate-pulse-slow"></div>
+        <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-brand-900/10 rounded-full blur-[140px] animate-pulse-slow"></div>
         <div
           className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-900/10 rounded-full blur-[140px] animate-pulse-slow"
           style={{ animationDelay: '2s' }}
@@ -93,11 +95,11 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         Back to Home
       </a>
 
-      <div className="flex w-full max-w-[1000px] h-[700px] bg-[#0a0a0a] rounded-[32px] border border-white/5 shadow-2xl relative z-10 overflow-hidden m-6">
+      <div className="flex w-full max-w-[1000px] h-[700px] bg-surface-dark-1 rounded-[32px] border border-white/5 shadow-2xl relative z-10 overflow-hidden m-6">
         {/* Left Side: Illustration/Text (Desktop Only) */}
         <div className="hidden lg:flex flex-1 bg-[#111] relative overflow-hidden p-16 flex-col justify-between border-r border-white/5">
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_20%,_var(--tw-gradient-stops))] from-purple-500/10 via-transparent to-transparent"></div>
+            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_20%,_var(--tw-gradient-stops))] from-brand-500/10 via-transparent to-transparent"></div>
             <img
               src="/images/hero_abstract_glass_1772614949077.png"
               className="absolute -right-20 -bottom-20 w-[120%] h-auto opacity-20 grayscale"
@@ -107,7 +109,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-12">
-              <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
+              <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/20">
                 <Icons.Magic className="w-6 h-6 text-white" />
               </div>
               <span className="font-black text-2xl tracking-tighter uppercase">Kreathief</span>
@@ -115,7 +117,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
             <h2 className="text-5xl font-black tracking-tighter text-white mb-6 leading-[0.9]">
               The future of <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-500">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-accent">
                 Design is AI.
               </span>
             </h2>
@@ -142,7 +144,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             <div className="flex items-center gap-6">
               {['Design', 'AI', 'Export'].map((f) => (
                 <div key={f} className="flex items-center gap-2">
-                  <Icons.Check className="w-3.5 h-3.5 text-purple-500" />
+                  <Icons.Check className="w-3.5 h-3.5 text-brand-500" />
                   <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{f}</span>
                 </div>
               ))}
@@ -151,10 +153,10 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         </div>
 
         {/* Right Side: Auth Form */}
-        <div className="flex-1 flex flex-col items-center justify-center p-8 sm:p-16 relative bg-[#0a0a0a]">
+        <div className="flex-1 flex flex-col items-center justify-center p-8 sm:p-16 relative bg-surface-dark-1">
           <div className="w-full max-w-md">
             <div className="lg:hidden flex flex-col items-center mb-10">
-              <div className="w-12 h-12 bg-gradient-to-br from-[#7d2ae8] to-[#00c4cc] rounded-2xl flex items-center justify-center mb-4 shadow-xl">
+              <div className="w-12 h-12 bg-gradient-to-br from-brand-600 to-accent rounded-2xl flex items-center justify-center mb-4 shadow-xl">
                 <Icons.Magic className="w-7 h-7 text-white" />
               </div>
               <h1 className="text-3xl font-black tracking-tighter text-white uppercase">Kreathief</h1>
@@ -203,13 +205,13 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                       Full Name
                     </label>
                     <div className="relative group">
-                      <Icons.Bot className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-[#00c4cc] transition-colors" />
-                      <input
+                      <Icons.Bot className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-light group-focus-within:text-accent transition-colors z-10" />
+                      <Input
                         id="auth-name"
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full bg-[#13161a] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-[#00c4cc] focus:ring-4 focus:ring-[#00c4cc]/5 transition-all font-medium"
+                        className="pl-12"
                         placeholder="John Doe"
                         required
                       />
@@ -225,15 +227,15 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                     Email Address
                   </label>
                   <div className="relative group">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 text-xs font-black group-focus-within:text-[#00c4cc] transition-colors">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-light text-xs font-black group-focus-within:text-accent transition-colors z-10">
                       @
                     </span>
-                    <input
+                    <Input
                       id="auth-email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-[#13161a] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-[#00c4cc] focus:ring-4 focus:ring-[#00c4cc]/5 transition-all font-medium"
+                      className="pl-12"
                       placeholder="you@example.com"
                       required
                     />
@@ -253,47 +255,43 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                         <button
                           type="button"
                           onClick={() => setIsForgotPassword(true)}
-                          className="text-[9px] font-black text-[#7d2ae8] hover:text-[#00c4cc] uppercase tracking-widest transition-colors"
+                          className="text-[9px] font-black text-brand-600 hover:text-accent uppercase tracking-widest transition-colors"
                         >
                           Forgot?
                         </button>
                       )}
                     </div>
                     <div className="relative group">
-                      <Icons.Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-[#7d2ae8] transition-colors" />
-                      <input
+                      <Icons.Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-light group-focus-within:text-brand-600 transition-colors z-10" />
+                      <Input
                         id="auth-password"
                         type="password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full bg-[#13161a] border border-white/5 rounded-xl py-3.5 pl-12 pr-4 text-white text-sm focus:outline-none focus:border-[#7d2ae8] focus:ring-4 focus:ring-[#7d2ae8]/5 transition-all font-medium"
+                        className="pl-12"
                         placeholder="••••••••"
                         required
                         minLength={8}
                       />
                     </div>
                     {isSignUp && (
-                      <p className="mt-2 text-[9px] text-gray-600 font-medium ml-1 uppercase tracking-wider">
+                      <p className="mt-2 text-[9px] text-muted-light font-medium ml-1 uppercase tracking-wider">
                         Must be at least 8 characters
                       </p>
                     )}
                   </div>
                 )}
 
-                <button
+                <Button
                   type="submit"
-                  disabled={loading}
-                  className="w-full bg-white text-black hover:bg-[#00c4cc] hover:text-white font-black uppercase tracking-[0.2em] py-4 rounded-xl shadow-2xl transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed flex items-center justify-center gap-3 mt-6"
+                  loading={loading}
+                  variant="accent"
+                  size="lg"
+                  className="w-full font-black uppercase tracking-[0.2em] mt-6"
                 >
-                  {loading ? (
-                    <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      {isForgotPassword ? 'Send Reset Link' : isSignUp ? 'Create My Account' : 'Sign In'}
-                      <Icons.ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
+                  {isForgotPassword ? 'Send Reset Link' : isSignUp ? 'Create My Account' : 'Sign In'}
+                  {!loading && <Icons.ArrowRight className="w-4 h-4 ml-3" />}
+                </Button>
               </form>
             )}
 
@@ -304,7 +302,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                     <div className="w-full border-t border-white/5"></div>
                   </div>
                   <div className="relative flex justify-center text-[9px] uppercase font-black tracking-[0.3em] leading-none">
-                    <span className="bg-[#0a0a0a] px-4 text-gray-600">Or continue with</span>
+                    <span className="bg-surface-dark-1 px-4 text-muted-light">Or continue with</span>
                   </div>
                 </div>
 
@@ -338,7 +336,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             )}
 
             <div className="mt-12 text-center">
-              <p className="text-xs text-gray-600 font-bold uppercase tracking-widest">
+              <p className="text-xs text-muted-light font-bold uppercase tracking-widest">
                 {isForgotPassword ? 'Remember your password?' : isSignUp ? 'Already a creator?' : 'New to Kreathief?'}
                 <button
                   onClick={() => {
@@ -349,7 +347,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                     }
                     setError(null);
                   }}
-                  className="ml-3 text-white hover:text-[#00c4cc] font-black transition-all underline underline-offset-4 decoration-white/10 hover:decoration-[#00c4cc]/40"
+                  className="ml-3 text-white hover:text-accent font-black transition-all underline underline-offset-4 decoration-white/10 hover:decoration-accent/40"
                 >
                   {isForgotPassword ? 'Sign In' : isSignUp ? 'Log In' : 'Sign Up'}
                 </button>

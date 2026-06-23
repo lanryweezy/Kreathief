@@ -4,6 +4,8 @@ import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { communityService } from '../../services/communityService';
 import { v4 as uuidv4 } from 'uuid';
+import { Button } from '../Button';
+import { Input } from '../Input';
 
 interface PublishModalProps {
   onClose: () => void;
@@ -87,7 +89,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ onClose }) => {
 
   return (
     <div ref={modalRef} tabIndex={-1} role="dialog" aria-modal="true" className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 outline-none">
-      <div className="bg-[#13161a] border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+      <div className="bg-surface-dark-2 border border-white/10 rounded-xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
         <div className="p-6 border-b border-white/5 flex items-center justify-between bg-gradient-to-r from-orange-500/10 to-transparent">
           <div>
             <h2 className="text-xl font-black text-white flex items-center gap-2">
@@ -96,30 +98,25 @@ export const PublishModal: React.FC<PublishModalProps> = ({ onClose }) => {
             </h2>
             <p className="text-xs text-gray-500 mt-1">Share your creation with thousands of designers.</p>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
             aria-label="Close publish modal"
-            className="p-2 hover:bg-white/5 rounded-full transition-colors"
           >
             <Icons.X aria-hidden="true" className="w-5 h-5 text-gray-400" />
-          </button>
+          </Button>
         </div>
 
         <div className="p-6 space-y-5">
           <div>
-            <label
-              htmlFor="template-name"
-              className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block"
-            >
-              Template Name
-            </label>
-            <input
+            <Input
               id="template-name"
+              label="Template Name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Minimalist Business Deck"
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors"
             />
           </div>
 
@@ -129,71 +126,59 @@ export const PublishModal: React.FC<PublishModalProps> = ({ onClose }) => {
             </label>
             <div className="grid grid-cols-2 gap-2">
               {(['Social', 'Video', 'Business', 'Personal'] as const).map((cat) => (
-                <button
+                <Button
                   key={cat}
+                  variant={category === cat ? 'primary' : 'secondary'}
+                  size="sm"
                   onClick={() => setCategory(cat)}
-                  className={`py-2 rounded-lg text-xs font-bold border transition-all ${
-                    category === cat
-                      ? 'bg-orange-500 border-orange-400 text-white shadow-lg shadow-orange-900/20'
-                      : 'bg-black/20 border-white/5 text-gray-500 hover:border-white/20'
-                  }`}
+                  className={category === cat ? '!bg-orange-500 !border-orange-400 !shadow-lg !shadow-orange-900/20' : ''}
                 >
                   {cat}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
 
           <div>
-            <label
-              htmlFor="template-description"
-              className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block"
-            >
-              Description
-            </label>
-            <textarea
+            <Input
               id="template-description"
+              label="Description"
+              type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Tell others what makes this template special..."
-              rows={3}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors resize-none"
             />
           </div>
 
           <div className="bg-orange-500/5 border border-orange-500/20 rounded-xl p-4 flex items-start gap-3">
             <Icons.Info className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
-            <p className="text-[10px] text-gray-400 leading-relaxed">
+            <p className="text-[10px] text-muted-light leading-relaxed">
               By publishing, you agree to share this design&apos;s layout and settings with the community. Personal
               images and private assets will be included.
             </p>
           </div>
         </div>
 
-        <div className="p-6 bg-black/40 border-t border-white/5 flex gap-3">
-          <button
+        <div className="p-6 bg-surface-dark-0/40 border-t border-white/5 flex gap-3">
+          <Button
+            variant="ghost"
             onClick={onClose}
-            className="flex-1 px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+            className="flex-1"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
             onClick={handlePublish}
             disabled={isPublishing || !name}
-            className="flex-[2] bg-orange-500 hover:bg-orange-400 disabled:bg-gray-800 disabled:text-gray-600 text-white px-4 py-3 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-orange-900/20 transition-all flex items-center justify-center gap-2"
+            className="flex-[2] !bg-orange-500 hover:!bg-orange-400 !shadow-lg !shadow-orange-900/20"
+            loading={isPublishing}
           >
-            {isPublishing ? (
-              <>
-                <Icons.Loader className="w-4 h-4 animate-spin" />
-                Publishing...
-              </>
-            ) : (
-              <>
-                <Icons.Globe className="w-4 h-4" />
-                Publish to Community
-              </>
-            )}
-          </button>
+            {!isPublishing && <>
+              <Icons.Globe className="w-4 h-4" />
+              Publish to Community
+            </>}
+          </Button>
         </div>
       </div>
     </div>

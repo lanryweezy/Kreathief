@@ -4,6 +4,7 @@ import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 import { communityService, CommunityTemplate } from '../../services/communityService';
 import { log } from '../../utils/log';
+import { Button } from '../Button';
 
 interface CommunityModalProps {
   onClose: () => void;
@@ -91,12 +92,12 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
         initial={{ scale: 0.95, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.95, y: 20 }}
-        className="relative w-full max-w-7xl h-full max-h-[90vh] bg-[#0e1318] border border-white/10 rounded-3xl shadow-[0_0_100px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden"
+        className="relative w-full max-w-7xl h-full max-h-[90vh] bg-surface-dark-2 border border-white/10 rounded-xl shadow-[0_0_100px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-8 py-6 border-b border-white/5">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7d2ae8] to-[#6b23c5] flex items-center justify-center shadow-[0_0_20px_rgba(125,42,232,0.3)]">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-700 flex items-center justify-center shadow-[0_0_20px_rgba(125,42,232,0.3)]">
               <Icons.Globe className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -109,19 +110,19 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
 
           <div className="flex items-center gap-4 flex-1 max-w-xl mx-12">
             <div className="relative w-full group">
-              <Icons.Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#7d2ae8] transition-colors" />
+              <Icons.Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-brand-600 transition-colors" />
               <input
                 type="text"
                 placeholder="Search templates, authors..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white/5 border border-white/5 rounded-2xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#7d2ae8]/50 focus:bg-white/10 transition-all"
+                className="w-full bg-white/5 border border-white/5 rounded-xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-600/50 focus:bg-white/10 transition-all"
               />
             </div>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="bg-white/5 border border-white/5 rounded-2xl py-3 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#7d2ae8]/50"
+              className="bg-white/5 border border-white/5 rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-brand-600/50"
             >
               <option value="likes">Most Liked</option>
               <option value="downloads">Most Downloaded</option>
@@ -129,13 +130,15 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
             </select>
           </div>
 
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
             aria-label="Close modal"
-            className="p-3 hover:bg-white/5 rounded-2xl text-gray-400 hover:text-white transition-all border border-transparent hover:border-white/10"
+            className="border border-transparent hover:border-white/10"
           >
             <Icons.Plus className="w-6 h-6 rotate-45" />
-          </button>
+          </Button>
         </div>
 
         <div className="flex-1 flex overflow-hidden">
@@ -148,7 +151,7 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
                 onClick={() => setActiveCategory(cat)}
                 className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${
                   activeCategory === cat
-                    ? 'bg-[#7d2ae8] text-white shadow-[0_4px_15px_rgba(125,42,232,0.4)]'
+                    ? 'bg-brand-600 text-white shadow-[0_4px_15px_rgba(125,42,232,0.4)]'
                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -164,7 +167,7 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {[...Array(6)].map((_, i) => (
                   <div key={i} className="animate-pulse">
-                    <div className="aspect-[4/3] rounded-3xl bg-white/5" />
+                    <div className="aspect-[4/3] rounded-xl bg-white/5" />
                     <div className="mt-4 h-4 bg-white/5 rounded w-2/3" />
                     <div className="mt-2 h-3 bg-white/5 rounded w-1/3" />
                   </div>
@@ -183,7 +186,7 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
                       transition={{ delay: idx * 0.05 }}
                       className="group relative"
                     >
-                      <div className="aspect-[4/3] rounded-3xl overflow-hidden bg-[#1e1e1e] border border-white/5 relative shadow-lg group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] group-hover:border-[#7d2ae8]/30 transition-all duration-500">
+                      <div className="aspect-[4/3] rounded-xl overflow-hidden bg-surface-dark-3 border border-white/5 relative shadow-lg group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] group-hover:border-brand-600/30 transition-all duration-500">
                         {template.thumbnailUrl ? (
                           <img
                             src={template.thumbnailUrl}
@@ -191,8 +194,8 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#7d2ae8]/20 to-[#1e1e1e]">
-                            <Icons.Magic className="w-12 h-12 text-[#7d2ae8]/40" />
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand-600/20 to-surface-dark-3">
+                            <Icons.Magic className="w-12 h-12 text-brand-600/40" />
                           </div>
                         )}
 
@@ -202,7 +205,7 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => onRemix(template)}
-                            className="w-full py-3 bg-[#7d2ae8] text-white rounded-xl font-black text-xs uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(125,42,232,0.5)] flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 pointer-events-auto"
+                            className="w-full py-3 bg-brand-600 text-white rounded-xl font-black text-xs uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(125,42,232,0.5)] flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 pointer-events-auto"
                           >
                             <Icons.Magic className="w-4 h-4" />
                             Remix Design
@@ -215,7 +218,7 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
                             {template.category}
                           </div>
                           {template.remixOf && (
-                            <div className="px-3 py-1 rounded-full bg-[#7d2ae8]/50 backdrop-blur-md border border-[#7d2ae8]/30 text-[9px] font-black uppercase tracking-wider text-white">
+                            <div className="px-3 py-1 rounded-full bg-brand-600/50 backdrop-blur-md border border-brand-600/30 text-[9px] font-black uppercase tracking-wider text-white">
                               Remix
                             </div>
                           )}
@@ -224,10 +227,10 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
 
                       <div className="mt-4 flex items-center justify-between px-2">
                         <div>
-                          <h3 className="text-sm font-bold text-white group-hover:text-[#7d2ae8] transition-colors">
+                          <h3 className="text-sm font-bold text-white group-hover:text-brand-600 transition-colors">
                             {template.name}
                           </h3>
-                          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+                          <p className="text-[10px] text-muted-light font-bold uppercase tracking-widest mt-1">
                             by {template.userName}
                           </p>
                         </div>
@@ -252,10 +255,10 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-center p-12">
                 <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
-                  <Icons.Search className="w-8 h-8 text-gray-600" />
+                  <Icons.Search className="w-8 h-8 text-muted-light" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">No templates found</h3>
-                <p className="text-gray-500 text-sm max-w-xs">
+                  <p className="text-muted-light text-sm max-w-xs">
                   {searchQuery
                     ? `No results for "${searchQuery}". Try different keywords.`
                     : 'Be the first to publish a design to the community!'}
@@ -265,7 +268,7 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
                     setSearchQuery('');
                     setActiveCategory('All');
                   }}
-                  className="mt-6 text-[#7d2ae8] text-sm font-bold hover:underline"
+                  className="mt-6 text-brand-600 text-sm font-bold hover:underline"
                 >
                   Clear all filters
                 </button>
