@@ -3,5 +3,10 @@ dist
 build
 test-results
 playwright-report
+dev-dist
+docs
 services/authService.test.ts
 services/storageService.sync.test.ts
+postcss.config.js
+scripts
+tailwind.config.js
