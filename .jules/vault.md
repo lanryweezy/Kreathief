@@ -18,3 +18,8 @@
 
 **Learning:** The application codebase hardcodes specific categories that the UI depends on for template filtering and display (e.g. `Social`, `Video`, `Business`, `Personal`, `Posters`, `Print`, `Corporate`), but no database constraint was preventing an arbitrary string from being written to the `category` column of `community_templates`. When writing data integrity migrations for check constraints on columns that already contain data, an `UPDATE` block must be executed first to fix or normalize the out-of-bounds strings to an accepted default before the `ALTER TABLE ... ADD CONSTRAINT` step, otherwise Postgres will block the schema change.
 **Action:** Always check the current production data types / valid domain for text/varchar columns using frontend enums, and pair `UPDATE` backfills before applying `CHECK` constraints to previously unbounded text fields.
+
+## 2026-06-23 - Prevent Negative Metrics with Constraints
+
+**Learning:** Integer counter/metric columns (like `likes`, `downloads`, `view_count`) in the database can drop below zero if application-level logic fails, concurrent decrements happen, or race conditions occur (e.g. users un-liking an item multiple times). Without a table-level check constraint, this corrupts analytics data permanently.
+**Action:** When creating metric-tracking numeric columns, always add a `CHECK (col >= 0)` constraint, and when retrofitting existing columns, always run an `UPDATE` data cleanup to fix already corrupted data before applying the constraint.
