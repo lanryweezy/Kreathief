@@ -178,7 +178,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
         <Dropdown anchorRef={popoverRef} isOpen={isOpen} onClose={() => setIsOpen(false)} align="left">
           <div
             ref={dropdownContainerRef}
-            className="bg-[#1e1e1e] border border-gray-700 rounded-lg shadow-2xl p-3 w-[360px] max-h-[calc(100vh-140px)] overflow-y-auto overflow-x-hidden animate-fade-in focus:outline-none"
+            className="bg-surface-dark-2 border border-gray-700 rounded-lg shadow-2xl p-3 w-[360px] max-h-[calc(100vh-140px)] overflow-y-auto overflow-x-hidden animate-fade-in focus:outline-none"
             tabIndex={-1}
             onKeyDown={(e) => {
               if (e.key === 'Escape') {
@@ -192,12 +192,12 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
             }}
           >
             {/* Tabs */}
-            <div className="flex gap-1 mb-3 bg-[#0e1318] rounded-lg p-1">
+            <div className="flex gap-1 mb-3 bg-surface-dark-1 rounded-lg p-1">
               <button
                 onClick={() => setActiveTab('picker')}
                 className={`flex-1 px-2 py-1.5 rounded-md text-[10px] font-bold transition-all ${
                   activeTab === 'picker'
-                    ? 'bg-[#7d2ae8] text-white shadow-lg'
+                    ? 'bg-brand-600 text-white shadow-lg'
                     : 'text-gray-400 hover:text-white hover:bg-gray-700'
                 }`}
               >
@@ -207,7 +207,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                 onClick={() => setActiveTab('harmony')}
                 className={`flex-1 px-2 py-1.5 rounded-md text-[10px] font-bold transition-all ${
                   activeTab === 'harmony'
-                    ? 'bg-[#7d2ae8] text-white shadow-lg'
+                    ? 'bg-brand-600 text-white shadow-lg'
                     : 'text-gray-400 hover:text-white hover:bg-gray-700'
                 }`}
               >
@@ -217,7 +217,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                 onClick={() => setActiveTab('palette')}
                 className={`flex-1 px-2 py-1.5 rounded-md text-[10px] font-bold transition-all ${
                   activeTab === 'palette'
-                    ? 'bg-[#7d2ae8] text-white shadow-lg'
+                    ? 'bg-brand-600 text-white shadow-lg'
                     : 'text-gray-400 hover:text-white hover:bg-gray-700'
                 }`}
               >
@@ -227,7 +227,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                 onClick={() => setActiveTab('gradient')}
                 className={`flex-1 px-2 py-1.5 rounded-md text-[10px] font-bold transition-all ${
                   activeTab === 'gradient'
-                    ? 'bg-[#7d2ae8] text-white shadow-lg'
+                    ? 'bg-brand-600 text-white shadow-lg'
                     : 'text-gray-400 hover:text-white hover:bg-gray-700'
                 }`}
               >
@@ -237,7 +237,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                 onClick={() => setActiveTab('contrast')}
                 className={`flex-1 px-2 py-1.5 rounded-md text-[10px] font-bold transition-all ${
                   activeTab === 'contrast'
-                    ? 'bg-[#7d2ae8] text-white shadow-lg'
+                    ? 'bg-brand-600 text-white shadow-lg'
                     : 'text-gray-400 hover:text-white hover:bg-gray-700'
                 }`}
               >
@@ -252,9 +252,9 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                   <button
                     aria-label="Pick color from screen"
                     onClick={handleNativeEyeDropper}
-                    className="w-full px-3 py-2 bg-[#252627] hover:bg-gray-700 rounded-lg text-[10px] font-bold text-gray-300 transition-colors flex items-center justify-center gap-2 border border-white/5 hover:border-white/10"
+                    className="w-full px-3 py-2 bg-surface-dark-3 hover:bg-gray-700 rounded-lg text-[10px] font-bold text-gray-300 transition-colors flex items-center justify-center gap-2 border border-white/5 hover:border-white/10"
                   >
-                    <Icons.EyeDropper className="w-4 h-4 text-[#7d2ae8]" />
+                    <Icons.EyeDropper className="w-4 h-4 text-brand-600" />
                     {hasEyeDropper ? 'Pick Color from Screen' : 'Simulate Eyedropper'}
                   </button>
                 </div>
@@ -266,7 +266,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                       onChange('transparent');
                       setHexInput('transparent');
                     }}
-                    className={`flex-1 h-9 rounded border flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${value === 'transparent' ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white shadow-lg' : 'bg-black/40 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}
+                    className={`flex-1 h-9 rounded border flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${value === 'transparent' ? 'bg-brand-600 border-brand-600 text-white shadow-lg' : 'bg-black/40 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}
                     title="No Fill"
                   >
                     <Icons.Slash className="w-3 h-3" />
@@ -276,7 +276,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                     <button
                       aria-label="Copy hex code"
                       onClick={copyToClipboard}
-                      className={`absolute left-2 top-1/2 -translate-y-1/2 text-xs transition-colors ${isCopied ? 'text-green-400' : 'text-gray-500 hover:text-[#7d2ae8]'}`}
+                      className={`absolute left-2 top-1/2 -translate-y-1/2 text-xs transition-colors ${isCopied ? 'text-green-400' : 'text-gray-500 hover:text-brand-600'}`}
                       title="Copy Hex"
                     >
                       {isCopied ? <Icons.Check className="w-3 h-3" /> : '#'}
@@ -298,7 +298,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                       }}
                       maxLength={6}
                       placeholder="HEX"
-                      className="w-full bg-[#252627] border border-gray-600 rounded pl-5 pr-2 py-2 text-xs text-white uppercase focus:border-[#7d2ae8] outline-none font-mono"
+                      className="w-full bg-surface-dark-3 border border-gray-600 rounded pl-5 pr-2 py-2 text-xs text-white uppercase focus:border-brand-600 outline-none font-mono"
                     />
                   </div>
                   <div className="w-9 h-9 rounded border border-gray-600 relative overflow-hidden group">
@@ -331,7 +331,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                           aria-label="Toggle CMYK mode"
                           onClick={() => setCmykMode(!cmykMode)}
                           className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded transition-colors ${
-                            cmykMode ? 'bg-[#7d2ae8]/20 text-[#7d2ae8]' : 'bg-black/40 text-gray-500 hover:text-white'
+                            cmykMode ? 'bg-brand-600/20 text-brand-600' : 'bg-black/40 text-gray-500 hover:text-white'
                           }`}
                         >
                           {cmykMode ? '✓ CMYK Mode' : 'CMYK Mode'}
@@ -406,7 +406,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                               onChange(hex);
                               setHexInput(hex);
                             }}
-                            className="w-full bg-[#252627] border border-cyan-500/30 rounded p-1.5 text-xs text-cyan-400 font-mono font-bold text-center focus:border-cyan-500 outline-none"
+                            className="w-full bg-surface-dark-3 border border-cyan-500/30 rounded p-1.5 text-xs text-cyan-400 font-mono font-bold text-center focus:border-cyan-500 outline-none"
                           />
                         </div>
                         <div className="space-y-1">
@@ -434,7 +434,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                               onChange(hex);
                               setHexInput(hex);
                             }}
-                            className="w-full bg-[#252627] border border-pink-500/30 rounded p-1.5 text-xs text-pink-400 font-mono font-bold text-center focus:border-pink-500 outline-none"
+                            className="w-full bg-surface-dark-3 border border-pink-500/30 rounded p-1.5 text-xs text-pink-400 font-mono font-bold text-center focus:border-pink-500 outline-none"
                           />
                         </div>
                         <div className="space-y-1">
@@ -462,7 +462,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                               onChange(hex);
                               setHexInput(hex);
                             }}
-                            className="w-full bg-[#252627] border border-yellow-500/30 rounded p-1.5 text-xs text-yellow-400 font-mono font-bold text-center focus:border-yellow-500 outline-none"
+                            className="w-full bg-surface-dark-3 border border-yellow-500/30 rounded p-1.5 text-xs text-yellow-400 font-mono font-bold text-center focus:border-yellow-500 outline-none"
                           />
                         </div>
                         <div className="space-y-1">
@@ -490,7 +490,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                               onChange(hex);
                               setHexInput(hex);
                             }}
-                            className="w-full bg-[#252627] border border-white/30 rounded p-1.5 text-xs text-white font-mono font-bold text-center focus:border-white outline-none"
+                            className="w-full bg-surface-dark-3 border border-white/30 rounded p-1.5 text-xs text-white font-mono font-bold text-center focus:border-white outline-none"
                           />
                         </div>
                       </div>
@@ -663,9 +663,9 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
             }}
           >
             {/* Instructions */}
-            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#1e1e1e] border border-gray-700 rounded-xl shadow-2xl px-6 py-4 flex items-center gap-6 pointer-events-none">
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-surface-dark-2 border border-gray-700 rounded-xl shadow-2xl px-6 py-4 flex items-center gap-6 pointer-events-none">
               <div className="flex items-center gap-2 text-white">
-                <Icons.EyeDropper className="w-5 h-5 text-[#7d2ae8]" />
+                <Icons.EyeDropper className="w-5 h-5 text-brand-600" />
                 <span className="font-bold text-sm">Click to pick color</span>
               </div>
               <div className="w-px h-6 bg-gray-700" />

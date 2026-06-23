@@ -54,7 +54,7 @@ export const ContextualToolbar = React.memo(({ selectedLayerIds, layers, zoom }:
   };
 
   return (
-    <div className="flex items-center gap-1 bg-[#1e1e1e]/60 backdrop-blur-xl border-x border-white/5 px-3 py-1 animate-in fade-in slide-in-from-top-1 duration-200">
+    <div className="flex items-center gap-1 bg-surface-dark-3/60 backdrop-blur-xl border-x border-white/5 px-3 py-1 animate-in fade-in slide-in-from-top-1 duration-200">
       {/* Opacity Control */}
       <div className="flex items-center gap-2 px-2 border-r border-white/10 mr-1">
         <Icons.Transparency className="w-3.5 h-3.5 text-gray-400" />
@@ -66,7 +66,7 @@ export const ContextualToolbar = React.memo(({ selectedLayerIds, layers, zoom }:
           value={opacity}
           onChange={handleOpacityChange}
           onMouseUp={handleOpacityCommit}
-          className="w-16 accent-[#7d2ae8] cursor-pointer"
+          className="w-16 accent-brand-600 cursor-pointer"
         />
       </div>
 

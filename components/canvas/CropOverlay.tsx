@@ -128,7 +128,7 @@ export const CropOverlay = React.memo(({ layer, zoom, onClose }: CropOverlayProp
       </div>
 
       {/* Controls */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-[#1e1e1e] border border-gray-700 rounded-xl px-4 py-2 shadow-xl z-[160]">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-surface-dark-3 border border-gray-700 rounded-xl px-4 py-2 shadow-xl z-[160]">
         <button onClick={resetCrop} className="text-xs text-gray-400 hover:text-white transition-colors">
           Reset
         </button>
@@ -138,7 +138,7 @@ export const CropOverlay = React.memo(({ layer, zoom, onClose }: CropOverlayProp
         </button>
         <button
           onClick={applyCrop}
-          className="px-4 py-1.5 bg-[#7d2ae8] text-white text-xs font-bold rounded-lg hover:bg-[#6b23c5] transition-colors"
+          className="px-4 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg hover:bg-brand-700 transition-colors"
         >
           Apply Crop
         </button>

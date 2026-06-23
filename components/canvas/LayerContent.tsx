@@ -207,7 +207,7 @@ const ProcessingOverlay = () => (
   <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-[2px] overflow-hidden rounded-[inherit]">
     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-shimmer" />
     <div className="relative flex flex-col items-center gap-2">
-      <div className="w-6 h-6 border-2 border-[#7d2ae8] border-t-transparent rounded-full animate-spin" />
+      <div className="w-6 h-6 border-2 border-brand-600 border-t-transparent rounded-full animate-spin" />
       <span className="text-[8px] font-black text-white uppercase tracking-widest drop-shadow-md">Processing</span>
     </div>
   </div>

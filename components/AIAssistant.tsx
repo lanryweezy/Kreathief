@@ -149,11 +149,11 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-end sm:justify-center">
-      <div className="bg-[#1e1e1e] rounded-lg shadow-2xl w-full sm:w-96 h-[600px] sm:h-[500px] flex flex-col border border-gray-700">
+      <div className="bg-surface-dark-2 rounded-lg shadow-2xl w-full sm:w-96 h-[600px] sm:h-[500px] flex flex-col border border-gray-700">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-brand-600 flex items-center justify-center">
               <Icons.Sparkles className="w-4 h-4 text-white" />
             </div>
             <h2 className="font-bold text-white">AI Assistant</h2>
@@ -170,8 +170,8 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
               <div
                 className={`max-w-xs px-4 py-2 rounded-lg text-sm ${
                   msg.role === 'user'
-                    ? 'bg-indigo-600 text-white rounded-br-none'
-                    : 'bg-gray-800 text-gray-100 rounded-bl-none'
+                    ? 'bg-brand-600 text-white rounded-br-none'
+                    : 'bg-surface-dark-4 text-gray-100 rounded-bl-none'
                 }`}
               >
                 {msg.content}
@@ -180,7 +180,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-gray-800 text-gray-100 px-4 py-2 rounded-lg rounded-bl-none">
+              <div className="bg-surface-dark-4 text-gray-100 px-4 py-2 rounded-lg rounded-bl-none">
                 <div className="flex gap-1">
                   <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" />
                   <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
@@ -207,12 +207,12 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
               }}
               placeholder="Ask me anything... (try /align center)"
               disabled={isLoading || isProcessing}
-              className="flex-1 bg-gray-700 text-white px-3 py-2 rounded outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 text-sm"
+              className="flex-1 bg-surface-dark-3 text-white px-3 py-2 rounded outline-none focus:ring-2 focus:ring-brand-600 disabled:opacity-50 text-sm"
             />
             <button
               onClick={() => handleSendMessage(input)}
               disabled={!input.trim() || isLoading || isProcessing}
-              className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 text-white px-3 py-2 rounded transition-colors disabled:cursor-not-allowed"
+              className="bg-brand-600 hover:bg-brand-700 disabled:bg-gray-600 text-white px-3 py-2 rounded transition-colors disabled:cursor-not-allowed"
               aria-label="Send message"
             >
               <Icons.Send className="w-4 h-4" />

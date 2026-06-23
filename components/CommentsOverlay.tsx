@@ -81,7 +81,7 @@ export const CommentsOverlay: React.FC<CommentsOverlayProps> = ({ zoom }) => {
               className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white shadow-lg border-2 transition-transform ${
                 comment.resolved
                   ? 'bg-gray-500 border-white/50 opacity-70 group-hover:opacity-100'
-                  : 'bg-[#7d2ae8] border-white group-hover:scale-110'
+                  : 'bg-brand-600 border-white group-hover:scale-110'
               }`}
             >
               {comment.resolved ? <Icons.Check className="w-4 h-4" /> : i + 1}
@@ -95,7 +95,7 @@ export const CommentsOverlay: React.FC<CommentsOverlayProps> = ({ zoom }) => {
               >
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#7d2ae8] to-[#00c4cc] flex items-center justify-center text-[10px] font-bold text-white">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-600 to-accent flex items-center justify-center text-[10px] font-bold text-white">
                       {comment.author.name.charAt(0)}
                     </div>
                     <span className="text-xs font-bold text-gray-800">{comment.author.name}</span>
@@ -140,7 +140,7 @@ export const CommentsOverlay: React.FC<CommentsOverlayProps> = ({ zoom }) => {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="relative">
-            <div className="w-8 h-8 rounded-full bg-[#00c4cc] border-2 border-white flex items-center justify-center text-white shadow-lg animate-bounce">
+            <div className="w-8 h-8 rounded-full bg-accent border-2 border-white flex items-center justify-center text-white shadow-lg animate-bounce">
               <Icons.Plus className="w-4 h-4" />
             </div>
 
@@ -156,7 +156,7 @@ export const CommentsOverlay: React.FC<CommentsOverlayProps> = ({ zoom }) => {
                     handleAddComment();
                   }
                 }}
-                className="w-full h-20 text-sm text-gray-800 bg-gray-50 border border-gray-200 rounded-lg p-2 resize-none focus:outline-none focus:border-[#7d2ae8]"
+                className="w-full h-20 text-sm text-gray-800 bg-gray-50 border border-gray-200 rounded-lg p-2 resize-none focus:outline-none focus:border-brand-600"
               />
               <div className="flex justify-between items-center mt-2">
                 <button
@@ -168,7 +168,7 @@ export const CommentsOverlay: React.FC<CommentsOverlayProps> = ({ zoom }) => {
                 <button
                   onClick={handleAddComment}
                   disabled={!newCommentText.trim()}
-                  className="px-4 py-1.5 bg-[#7d2ae8] text-white text-xs font-bold rounded-lg shadow-md disabled:opacity-50 transition-colors"
+                  className="px-4 py-1.5 bg-brand-600 text-white text-xs font-bold rounded-lg shadow-md disabled:opacity-50 transition-colors"
                 >
                   Post
                 </button>

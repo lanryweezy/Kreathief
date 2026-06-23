@@ -737,9 +737,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     return (
       <div className="flex h-full w-full bg-[#0e1318] text-white overflow-hidden relative">
         {/* Left Column: Mockup Library */}
-        <div className="w-[320px] flex flex-col border-r border-gray-800 bg-[#13161a] shrink-0">
+        <div className="w-[320px] flex flex-col border-r border-gray-800 bg-surface-dark-2 shrink-0">
           <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-            <h2 className="text-sm font-black uppercase tracking-widest text-[#7d2ae8]">Smart Mockups</h2>
+            <h2 className="text-sm font-black uppercase tracking-widest text-brand-600">Smart Mockups</h2>
             {onClose && (
               <button
                 onClick={onClose}
@@ -764,7 +764,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
               <button
                 onClick={suggestMockups}
                 disabled={isAnalyzing}
-                className="flex-1 min-w-[120px] px-3 py-2 bg-gradient-to-r from-[#7d2ae8] to-[#00c4cc] rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-purple-900/30"
+                className="flex-1 min-w-[120px] px-3 py-2 bg-gradient-to-r from-brand-600 to-accent rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-purple-900/30"
               >
                 {isAnalyzing ? (
                   <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
@@ -777,8 +777,8 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                 onClick={toggleBatchMode}
                 className={`flex-1 min-w-[120px] px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
                   batchMode
-                    ? 'bg-[#7d2ae8] text-white shadow-lg'
-                    : 'bg-[#1e1e1e] text-gray-400 border border-gray-700 hover:border-white/20'
+                    ? 'bg-brand-600 text-white shadow-lg'
+                    : 'bg-surface-dark-3 text-gray-400 border border-gray-700 hover:border-white/20'
                 }`}
               >
                 <Icons.Layers className="w-3.5 h-3.5" />
@@ -789,7 +789,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                 className={`px-3 py-2 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 ${
                   showFavoritesOnly
                     ? 'bg-red-500 text-white'
-                    : 'bg-[#1e1e1e] text-gray-400 border border-gray-700 hover:border-white/20'
+                    : 'bg-surface-dark-3 text-gray-400 border border-gray-700 hover:border-white/20'
                 }`}
               >
                 <Icons.Heart className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-current' : ''}`} />
@@ -798,9 +798,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
             </div>
 
             {/* App Store Presets */}
-            <div className="p-3 bg-gradient-to-br from-[#7d2ae8]/10 to-[#00c4cc]/10 border border-[#7d2ae8]/20 rounded-lg">
+            <div className="p-3 bg-gradient-to-br from-brand-600/10 to-accent/10 border border-brand-600/20 rounded-lg">
               <h4 className="text-[9px] font-black text-white uppercase tracking-wider mb-2 flex items-center gap-1">
-                <Icons.Zap className="w-3 h-3 text-[#7d2ae8]" />
+                <Icons.Zap className="w-3 h-3 text-brand-600" />
                 Quick Sets
               </h4>
               <div className="flex flex-wrap gap-1.5">
@@ -808,7 +808,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                   <button
                     key={preset}
                     onClick={() => generatePreset(preset)}
-                    className="px-2 py-1 bg-[#1e1e1e] hover:bg-[#7d2ae8]/20 border border-gray-700 hover:border-[#7d2ae8] rounded text-[8px] font-bold text-gray-400 hover:text-white transition-all"
+                    className="px-2 py-1 bg-surface-dark-3 hover:bg-brand-600/20 border border-gray-700 hover:border-brand-600 rounded text-[8px] font-bold text-gray-400 hover:text-white transition-all"
                   >
                     {preset}
                   </button>
@@ -820,7 +820,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
               <input
                 type="text"
                 placeholder="Search mockups..."
-                className="w-full bg-[#1e1e1e] border border-gray-700 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:border-[#7d2ae8] focus:outline-none"
+                className="w-full bg-surface-dark-3 border border-gray-700 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:border-brand-600 focus:outline-none"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -836,7 +836,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                 <button
                   onClick={handleAutoDetect}
                   disabled={isDetecting}
-                  className="px-2 py-1 bg-[#7d2ae8]/20 border border-[#7d2ae8]/50 rounded hover:border-[#7d2ae8] transition-colors text-[#7d2ae8] flex items-center gap-1 disabled:opacity-50"
+                  className="px-2 py-1 bg-brand-600/20 border border-brand-600/50 rounded hover:border-brand-600 transition-colors text-brand-600 flex items-center gap-1 disabled:opacity-50"
                   title="AI Auto-Detect optimal placement"
                 >
                   {isDetecting ? (
@@ -848,7 +848,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                 </button>
                 <button
                   onClick={() => setPlacement({ ...placement, skewX: 0, skewY: 0, rotate: 0 })}
-                  className="px-2 py-1 bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#7d2ae8] transition-colors"
+                  className="px-2 py-1 bg-surface-dark-3 border border-gray-700 rounded hover:border-brand-600 transition-colors"
                 >
                   Reset Perspective
                 </button>
@@ -859,7 +859,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                       setPlacement(current.defaultPlacement);
                     }
                   }}
-                  className="px-2 py-1 bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#7d2ae8] transition-colors"
+                  className="px-2 py-1 bg-surface-dark-3 border border-gray-700 rounded hover:border-brand-600 transition-colors"
                 >
                   Reset All
                 </button>
@@ -867,8 +867,8 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
             </div>
 
             {batchMode && (
-              <div className="p-3 bg-[#7d2ae8]/10 border border-[#7d2ae8]/30 rounded-lg">
-                <p className="text-[9px] text-[#7d2ae8] font-bold mb-2">
+              <div className="p-3 bg-brand-600/10 border border-brand-600/30 rounded-lg">
+                <p className="text-[9px] text-brand-600 font-bold mb-2">
                   📦 Batch Mode: Select multiple mockups to generate
                 </p>
                 {isBatchGenerating && (
@@ -877,9 +877,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                       <span>{batchProgress.name || 'Preparing...'}</span>
                       <span>{batchProgress.current}/{batchProgress.total}</span>
                     </div>
-                    <div className="w-full h-1.5 bg-[#1e1e1e] rounded-full overflow-hidden">
+                    <div className="w-full h-1.5 bg-surface-dark-3 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-[#7d2ae8] rounded-full transition-all duration-300"
+                        className="h-full bg-brand-600 rounded-full transition-all duration-300"
                         style={{ width: `${(batchProgress.current / batchProgress.total) * 100 || 0}%` }}
                       />
                     </div>
@@ -888,7 +888,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                 <button
                   onClick={generateBatchMockups}
                   disabled={selectedMockupIds.length === 0 || isBatchGenerating}
-                  className="w-full py-2 bg-[#7d2ae8] hover:bg-[#6c1fd1] text-white rounded font-bold text-[10px] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-2 bg-brand-600 hover:bg-brand-700 text-white rounded font-bold text-[10px] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isBatchGenerating ? (
                     <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
@@ -907,7 +907,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                   onClick={() => setActiveCategory(cat)}
                   className={`px-2 py-1 text-[10px] font-bold rounded-md transition-all ${
                     activeCategory === cat
-                      ? 'bg-[#7d2ae8] text-white'
+                      ? 'bg-brand-600 text-white'
                       : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
                   }`}
                 >
@@ -921,9 +921,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
             {/* Upload Custom Mockup */}
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-full aspect-square rounded-lg border-2 border-dashed border-gray-700 hover:border-[#7d2ae8] transition-all flex flex-col items-center justify-center gap-2 bg-[#1a1d21] group"
+              className="w-full aspect-square rounded-lg border-2 border-dashed border-gray-700 hover:border-brand-600 transition-all flex flex-col items-center justify-center gap-2 bg-[#1a1d21] group"
             >
-              <Icons.Upload className="w-6 h-6 text-gray-500 group-hover:text-[#7d2ae8] transition-colors" />
+              <Icons.Upload className="w-6 h-6 text-gray-500 group-hover:text-brand-600 transition-colors" />
               <span className="text-[9px] font-bold text-gray-500 group-hover:text-white transition-colors">
                 Upload Your Own
               </span>
@@ -938,11 +938,11 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                     setActiveMockupId('custom');
                   }}
                   className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                    activeMockupId === 'custom' ? 'border-[#7d2ae8]' : 'border-transparent hover:border-gray-600'
+                    activeMockupId === 'custom' ? 'border-brand-600' : 'border-transparent hover:border-gray-600'
                   }`}
                 >
                   <img src={customMockup} alt="Custom mockup" className="w-full h-full object-cover" />
-                  <div className="absolute inset-x-0 bottom-0 bg-[#7d2ae8]/90 p-1.5 backdrop-blur-sm">
+                  <div className="absolute inset-x-0 bottom-0 bg-brand-600/90 p-1.5 backdrop-blur-sm">
                     <span className="text-[8px] font-bold text-white block truncate">Your Upload</span>
                   </div>
                 </button>
@@ -957,7 +957,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                         type="checkbox"
                         checked={selectedMockupIds.includes(m.id)}
                         onChange={() => toggleMockupSelection(m.id)}
-                        className="w-4 h-4 rounded border-2 border-white/50 accent-[#7d2ae8] bg-black/50"
+                        className="w-4 h-4 rounded border-2 border-white/50 accent-brand-600 bg-black/50"
                       />
                     </label>
                   )}
@@ -977,7 +977,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
 
                   {/* Suggested Badge */}
                   {suggestedMockups.includes(m.id) && !showFavoritesOnly && (
-                    <div className="absolute bottom-12 right-1 z-20 px-1.5 py-0.5 bg-[#7d2ae8] text-white text-[7px] font-black uppercase rounded-sm shadow-lg">
+                    <div className="absolute bottom-12 right-1 z-20 px-1.5 py-0.5 bg-brand-600 text-white text-[7px] font-black uppercase rounded-sm shadow-lg">
                       ✨ Suggested
                     </div>
                   )}
@@ -985,7 +985,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                   <button
                     onClick={() => !batchMode && setActiveMockupId(m.id)}
                     className={`w-full aspect-square rounded-lg overflow-hidden border-2 transition-all group ${
-                      activeMockupId === m.id ? 'border-[#7d2ae8]' : 'border-transparent hover:border-gray-600'
+                      activeMockupId === m.id ? 'border-brand-600' : 'border-transparent hover:border-gray-600'
                     } ${batchMode ? 'cursor-pointer' : 'cursor-pointer'}`}
                   >
                     <img src={m.bg} alt={m.name} className="w-full h-full object-cover" />
@@ -1024,7 +1024,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
         </div>
 
         {/* Center Column: Live Preview */}
-        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0a0a0a] relative">
+        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-surface-dark-1 relative">
           {/* Before/After Toggle */}
           {generatedPreview && (
             <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
@@ -1032,8 +1032,8 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                 onClick={() => setShowComparison(!showComparison)}
                 className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all flex items-center gap-2 ${
                   showComparison
-                    ? 'bg-[#7d2ae8] text-white shadow-lg shadow-purple-900/30'
-                    : 'bg-[#1e1e1e] text-gray-400 border border-gray-700 hover:border-white/20'
+                    ? 'bg-brand-600 text-white shadow-lg shadow-purple-900/30'
+                    : 'bg-surface-dark-3 text-gray-400 border border-gray-700 hover:border-white/20'
                 }`}
               >
                 <Icons.Compare className="w-3.5 h-3.5" />
@@ -1048,7 +1048,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
           >
             {isGenerating && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-xl">
-                <div className="animate-spin w-8 h-8 border-4 border-[#7d2ae8] border-t-transparent rounded-full" />
+                <div className="animate-spin w-8 h-8 border-4 border-brand-600 border-t-transparent rounded-full" />
               </div>
             )}
             {generatedPreview ? (
@@ -1080,7 +1080,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
 
                   {/* Slider Handle */}
                   <div
-                    className="absolute inset-y-0 w-1 bg-[#7d2ae8] cursor-ew-resize shadow-[0_0_20px_rgba(125,42,232,0.5)]"
+                    className="absolute inset-y-0 w-1 bg-brand-600 cursor-ew-resize shadow-[0_0_20px_rgba(125,42,232,0.5)]"
                     style={{ left: `${comparisonPosition}%` }}
                     onPointerDown={(e) => {
                       e.currentTarget.setPointerCapture(e.pointerId);
@@ -1100,7 +1100,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                       document.addEventListener('pointerup', handleUp);
                     }}
                   >
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-[#7d2ae8] rounded-full flex items-center justify-center shadow-lg">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-brand-600 rounded-full flex items-center justify-center shadow-lg">
                       <Icons.ChevronLeft className="w-4 h-4 text-white" />
                       <Icons.ChevronRight className="w-4 h-4 text-white" />
                     </div>
@@ -1142,9 +1142,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
         </div>
 
         {/* Right Column: Controls */}
-        <div className="w-[320px] flex flex-col border-l border-gray-800 bg-[#13161a] shrink-0 overflow-y-auto custom-scrollbar">
+        <div className="w-[320px] flex flex-col border-l border-gray-800 bg-surface-dark-2 shrink-0 overflow-y-auto custom-scrollbar">
           <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-[#7d2ae8]">Settings</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-brand-600">Settings</h3>
             <div className="flex gap-2">
               <button
                 onClick={handleDownload}
@@ -1155,7 +1155,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
               </button>
               <button
                 onClick={handleAddToCanvas}
-                className="p-1.5 bg-[#7d2ae8]/20 hover:bg-[#7d2ae8]/30 rounded-md text-[#7d2ae8] transition-all"
+                className="p-1.5 bg-brand-600/20 hover:bg-brand-600/30 rounded-md text-brand-600 transition-all"
                 title="Add to Canvas"
               >
                 <Icons.Plus className="w-4 h-4" />
@@ -1165,7 +1165,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
 
           <div className="p-4 space-y-8">
             {/* Corner Pinning */}
-            <div className="p-4 bg-gradient-to-br from-[#7d2ae8]/10 to-transparent border border-[#7d2ae8]/20 rounded-xl space-y-4">
+            <div className="p-4 bg-gradient-to-br from-brand-600/10 to-transparent border border-brand-600/20 rounded-xl space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black uppercase tracking-widest text-white">
                   Corner Pinning (4-Point Perspective)
@@ -1183,7 +1183,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                     }
                   }}
                   className={`px-3 py-1 rounded-md text-[9px] font-black transition-all ${
-                    useCornerPinning ? 'bg-[#7d2ae8] text-white shadow-lg' : 'bg-white/5 text-gray-500'
+                    useCornerPinning ? 'bg-brand-600 text-white shadow-lg' : 'bg-white/5 text-gray-500'
                   }`}
                 >
                   {useCornerPinning ? 'ON' : 'OFF'}
@@ -1223,7 +1223,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                   <div className="space-y-2">
                     <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
                       <span>Curve Intensity</span>
-                      <span className="text-[#7d2ae8]">{curve}°</span>
+                      <span className="text-brand-600">{curve}°</span>
                     </div>
                     <input
                       type="range"
@@ -1231,7 +1231,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                       max="30"
                       value={curve}
                       onChange={(e) => setCurve(Number(e.target.value))}
-                      className="w-full h-1.5 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
+                      className="w-full h-1.5 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-brand-600"
                     />
                   </div>
                 </div>
@@ -1246,7 +1246,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                   <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
                     Position (X / Y)
                   </span>
-                  <span className="text-[10px] font-mono text-[#7d2ae8]">
+                  <span className="text-[10px] font-mono text-brand-600">
                     {Math.round(placement.left)}%, {Math.round(placement.top)}%
                   </span>
                 </div>
@@ -1257,7 +1257,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                     max="100"
                     value={placement.left}
                     onChange={(e) => updatePlacement('left', Number(e.target.value))}
-                    className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-white"
+                    className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-white"
                   />
                   <input
                     type="range"
@@ -1265,7 +1265,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                     max="100"
                     value={placement.top}
                     onChange={(e) => updatePlacement('top', Number(e.target.value))}
-                    className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-white"
+                    className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-white"
                   />
                 </div>
               </div>
@@ -1282,7 +1282,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                     max="150"
                     value={placement.width}
                     onChange={(e) => updatePlacement('width', Number(e.target.value))}
-                    className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-white"
+                    className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-white"
                   />
                   <input
                     type="range"
@@ -1290,7 +1290,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                     max="180"
                     value={placement.rotate}
                     onChange={(e) => updatePlacement('rotate', Number(e.target.value))}
-                    className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-white"
+                    className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-white"
                   />
                 </div>
               </div>
@@ -1308,7 +1308,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                       max="45"
                       value={placement.skewX || 0}
                       onChange={(e) => updatePlacement('skewX', Number(e.target.value))}
-                      className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#00c4cc]"
+                      className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-accent"
                     />
                     <input
                       type="range"
@@ -1316,7 +1316,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                       max="45"
                       value={placement.skewY || 0}
                       onChange={(e) => updatePlacement('skewY', Number(e.target.value))}
-                      className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#00c4cc]"
+                      className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-accent"
                     />
                   </div>
                 </div>
@@ -1340,7 +1340,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                     step="0.1"
                     value={shadowIntensity}
                     onChange={(e) => setShadowIntensity(Number(e.target.value))}
-                    className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
+                    className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-brand-600"
                   />
                 </div>
 
@@ -1356,7 +1356,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                     step="0.05"
                     value={reflectionIntensity}
                     onChange={(e) => setReflectionIntensity(Number(e.target.value))}
-                    className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
+                    className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-brand-600"
                   />
                 </div>
 
@@ -1372,7 +1372,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                     step="1"
                     value={lightingBrightness}
                     onChange={(e) => setLightingBrightness(Number(e.target.value))}
-                    className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
+                    className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-brand-600"
                   />
                 </div>
 
@@ -1388,7 +1388,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                     step="1"
                     value={lightingContrast}
                     onChange={(e) => setLightingContrast(Number(e.target.value))}
-                    className="w-full h-1 bg-[#1e1e1e] rounded-full appearance-none cursor-pointer accent-[#7d2ae8]"
+                    className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-brand-600"
                   />
                 </div>
               </div>
@@ -1398,7 +1398,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                 <select
                   value={placement.blendMode}
                   onChange={(e) => updatePlacement('blendMode', e.target.value)}
-                  className="w-full bg-[#1e1e1e] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-[#7d2ae8] appearance-none"
+                  className="w-full bg-surface-dark-3 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-600 appearance-none"
                 >
                   <option value="source-over">Normal</option>
                   <option value="multiply">Multiply (Realistic)</option>
@@ -1415,7 +1415,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
               className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
                 isProGenerating
                   ? 'bg-white/5 text-gray-600'
-                  : 'bg-gradient-to-r from-[#7d2ae8] to-[#00c4cc] text-white shadow-lg shadow-purple-500/10'
+                  : 'bg-gradient-to-r from-brand-600 to-accent text-white shadow-lg shadow-purple-500/10'
               }`}
             >
               {isProGenerating ? (
@@ -1433,7 +1433,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#13161a]">
+    <div className="flex flex-col h-full bg-surface-dark-2">
       {/* Category Tabs */}
       <div className="flex overflow-x-auto custom-scrollbar border-b border-gray-800 bg-[#0e1318]">
         {MOCKUP_CATEGORIES.map((cat) => (
@@ -1441,7 +1441,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
             key={cat}
             onClick={() => setActiveCategory(cat)}
             className={`px-4 py-3 text-xs font-medium whitespace-nowrap transition-colors ${
-              activeCategory === cat ? 'text-[#7d2ae8] border-b-2 border-[#7d2ae8]' : 'text-gray-400 hover:text-white'
+              activeCategory === cat ? 'text-brand-600 border-b-2 border-brand-600' : 'text-gray-400 hover:text-white'
             }`}
           >
             {cat}
@@ -1469,7 +1469,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
           <input
             type="text"
             placeholder="Search mockups (e.g., t-shirt, phone, coffee)..."
-            className="w-full bg-[#1e1e1e] border border-gray-700 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white focus:border-[#7d2ae8] focus:outline-none"
+            className="w-full bg-surface-dark-3 border border-gray-700 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white focus:border-brand-600 focus:outline-none"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -1494,7 +1494,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
               onClick={() => {
                 setPlacement({ ...placement, skewX: 0, skewY: 0, rotate: 0 });
               }}
-              className="px-2 py-1 bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#7d2ae8] transition-colors"
+              className="px-2 py-1 bg-surface-dark-3 border border-gray-700 rounded hover:border-brand-600 transition-colors"
               title="Reset perspective"
             >
               Reset Perspective
@@ -1506,7 +1506,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                   setPlacement(current.defaultPlacement);
                 }
               }}
-              className="px-2 py-1 bg-[#1e1e1e] border border-gray-700 rounded hover:border-[#7d2ae8] transition-colors"
+              className="px-2 py-1 bg-surface-dark-3 border border-gray-700 rounded hover:border-brand-600 transition-colors"
               title="Reset all"
             >
               Reset All
@@ -1526,7 +1526,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                 onClick={() => setActiveMockupId(m.id)}
                 className={`relative aspect-video rounded-lg overflow-hidden border-2 transition-all ${
                   activeMockupId === m.id
-                    ? 'border-[#7d2ae8] ring-2 ring-[#7d2ae8]/20'
+                    ? 'border-brand-600 ring-2 ring-brand-600/20'
                     : 'border-gray-800 hover:border-gray-600'
                 }`}
               >
@@ -1546,7 +1546,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
             <div className="text-center py-8 text-gray-500 text-xs">
               <Icons.Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
               <p>No mockups found for &quot;{searchQuery}&quot;</p>
-              <button onClick={() => setSearchQuery('')} className="mt-2 text-[#7d2ae8] hover:underline">
+              <button onClick={() => setSearchQuery('')} className="mt-2 text-brand-600 hover:underline">
                 Clear search
               </button>
             </div>
@@ -1554,7 +1554,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
         </div>
 
         {/* Preview & Controls */}
-        <div className="bg-[#1e1e1e] rounded-xl border border-gray-800 overflow-hidden">
+        <div className="bg-surface-dark-3 rounded-xl border border-gray-800 overflow-hidden">
           <div className="p-3 border-b border-gray-800 flex justify-between items-center bg-[#0e1318]">
             <span className="text-xs font-bold text-gray-300">Preview</span>
             <button
@@ -1576,7 +1576,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
           >
             {isGenerating && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                <div className="animate-spin w-6 h-6 border-2 border-[#7d2ae8] border-t-transparent rounded-full" />
+                <div className="animate-spin w-6 h-6 border-2 border-brand-600 border-t-transparent rounded-full" />
               </div>
             )}
             {generatedPreview ? (
@@ -1611,7 +1611,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                   onClick={() => setActiveTab(tab)}
                   className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${
                     activeTab === tab
-                      ? 'text-[#7d2ae8] border-b-2 border-[#7d2ae8] bg-[#7d2ae8]/5'
+                      ? 'text-brand-600 border-b-2 border-brand-600 bg-brand-600/5'
                       : 'text-gray-500 hover:text-gray-300'
                   }`}
                 >
@@ -1638,7 +1638,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                         max="100"
                         value={placement.left}
                         onChange={(e) => updatePlacement('left', Number(e.target.value))}
-                        className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+                        className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
                       />
                       <input
                         type="range"
@@ -1646,7 +1646,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                         max="100"
                         value={placement.top}
                         onChange={(e) => updatePlacement('top', Number(e.target.value))}
-                        className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+                        className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
                       />
                     </div>
                   </div>
@@ -1663,7 +1663,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                         max="150"
                         value={placement.width}
                         onChange={(e) => updatePlacement('width', Number(e.target.value))}
-                        className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+                        className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
                       />
                       <input
                         type="range"
@@ -1671,7 +1671,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                         max="180"
                         value={placement.rotate}
                         onChange={(e) => updatePlacement('rotate', Number(e.target.value))}
-                        className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+                        className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
                       />
                     </div>
                   </div>
@@ -1736,12 +1736,12 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                           onClick={() => updatePlacement('blendMode', mode)}
                           className={`px-3 py-2 text-[10px] font-bold rounded-lg border transition-all text-left flex justify-between items-center ${
                             placement.blendMode === mode
-                              ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white'
+                              ? 'bg-brand-600/20 border-brand-600 text-white'
                               : 'bg-black border-gray-800 text-gray-500 hover:border-gray-600'
                           }`}
                         >
                           <span className="capitalize">{mode.replace('-', ' ')}</span>
-                          {placement.blendMode === mode && <Icons.Check className="w-3 h-3 text-[#7d2ae8]" />}
+                          {placement.blendMode === mode && <Icons.Check className="w-3 h-3 text-brand-600" />}
                         </button>
                       ))}
                     </div>
@@ -1818,7 +1818,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
           <div className="p-3 bg-[#0e1318] border-t border-gray-800 flex flex-col gap-2">
             <button
               onClick={() => setShowModal(true)}
-              className="w-full bg-[#7d2ae8] hover:bg-[#6c23ce] text-white py-2 rounded text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#7d2ae8]/20"
+              className="w-full bg-brand-600 hover:bg-brand-700 text-white py-2 rounded text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-600/20"
             >
               <Icons.Maximize className="w-4 h-4" />
               Open Full Preview
@@ -1836,7 +1836,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
               className={`w-full py-2 rounded text-xs font-bold transition-all flex items-center justify-center gap-2 ${
                 isProGenerating
                   ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-[#7d2ae8] to-[#00c4cc] hover:from-[#6c23ce] hover:to-[#00b0b8] text-white shadow-lg'
+                  : 'bg-gradient-to-r from-brand-600 to-accent hover:from-brand-700 hover:to-accent-dark text-white shadow-lg'
               }`}
             >
               {isProGenerating ? (

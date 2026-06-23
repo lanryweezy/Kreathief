@@ -81,7 +81,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({ onAddText, onAddSh
   return (
     <div className="fixed top-16 left-0 right-0 z-[100] md:hidden px-4">
       {/* Main Toolbar Container */}
-      <div className="bg-[#1a1d21]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden">
+      <div className="bg-surface-dark-2/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden">
         <div className="flex items-center p-1 overflow-x-auto no-scrollbar">
           {tools.map((tool) => {
             const isActive = activeToolId === tool.id || activeToolId === tool.category;
@@ -161,7 +161,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({ onAddText, onAddSh
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="relative bg-[#1a1d21] border border-white/10 rounded-2xl p-6 w-full max-w-[280px] shadow-2xl"
+              className="relative bg-surface-dark-2 border border-white/10 rounded-2xl p-6 w-full max-w-[280px] shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3 mb-4">
@@ -205,7 +205,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({ onAddText, onAddSh
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             className="mt-2"
           >
-            <div className="bg-[#1a1d21]/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 grid grid-cols-4 gap-2 shadow-2xl">
+            <div className="bg-surface-dark-2/95 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 grid grid-cols-4 gap-2 shadow-2xl">
               {shapes.map((shape) => (
                 <button
                   key={shape.type}
@@ -214,7 +214,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({ onAddText, onAddSh
                     onAddShape(shape.type);
                     setActiveCategory(null);
                   }}
-                  className="flex flex-col items-center justify-center gap-2 w-16 h-16 rounded-xl bg-white/5 border border-white/5 active:bg-[#7d2ae8] active:border-[#7d2ae8] transition-all group"
+                  className="flex flex-col items-center justify-center gap-2 w-16 h-16 rounded-xl bg-white/5 border border-white/5 active:bg-brand-600 active:border-brand-600 transition-all group"
                 >
                   <shape.icon className="w-6 h-6 text-gray-400 group-active:text-white transition-colors" />
                   <span className="text-[9px] font-bold text-gray-500 group-active:text-white uppercase">

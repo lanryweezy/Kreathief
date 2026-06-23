@@ -337,7 +337,7 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
     .sort((a, b) => (b[sortBy] || 0) - (a[sortBy] || 0));
 
   return (
-    <div className="flex flex-col bg-[#050505] min-h-[600px] text-white p-6 md:p-10 border border-white/5 rounded-3xl relative overflow-hidden shadow-2xl backdrop-blur-3xl">
+    <div className="flex flex-col bg-surface-dark-0 min-h-[600px] text-white p-6 md:p-10 border border-white/5 rounded-3xl relative overflow-hidden shadow-2xl backdrop-blur-3xl">
       {/* Decorative Grid Lines / Background Glow */}
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
 
@@ -345,7 +345,7 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10 border-b border-white/5 pb-8 relative z-10">
         <div>
           <h2 className="text-xl md:text-2xl font-black text-white flex items-center gap-3 uppercase tracking-wider">
-            <Icons.Templates className="w-6 h-6 text-purple-500" />
+            <Icons.Templates className="w-6 h-6 text-brand-600" />
             Community Feed
           </h2>
           <p className="text-xs text-gray-400 mt-2 font-medium tracking-wide max-w-xl">
@@ -360,7 +360,7 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
               onClick={() => setSelectedCategory(cat)}
               className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                 selectedCategory === cat
-                  ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30 border border-purple-500'
+                  ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/30 border border-brand-500'
                   : 'bg-white/5 text-gray-400 border border-white/5 hover:bg-white/10 hover:text-white'
               }`}
             >
@@ -380,7 +380,7 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
             aria-label="Search community templates"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-3.5 text-xs font-black uppercase tracking-widest text-white focus:outline-none focus:border-purple-500 focus:bg-white/10 transition-all placeholder:text-gray-600"
+            className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-3.5 text-xs font-black uppercase tracking-widest text-white focus:outline-none focus:border-brand-600 focus:bg-white/10 transition-all placeholder:text-gray-600"
           />
         </div>
 
@@ -398,7 +398,7 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
               onClick={() => setSortBy(sort.id as any)}
               className={`px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
                 sortBy === sort.id
-                  ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20'
+                  ? 'bg-brand-600 text-white shadow-md shadow-brand-600/20'
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -414,12 +414,12 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
           <div
             key={template.id}
             onClick={(e) => handleRemix(e, template)}
-            className="group bg-[#0c0c0e] border border-white/5 hover:border-white/20 rounded-2xl overflow-hidden cursor-pointer flex flex-col relative transition-all duration-300 shadow-xl select-none"
+            className="group bg-surface-dark-1 border border-white/5 hover:border-white/20 rounded-2xl overflow-hidden cursor-pointer flex flex-col relative transition-all duration-300 shadow-xl select-none"
           >
             {/* Image/Live Thumbnail Area */}
-            <div className="aspect-[4/3] bg-[#0c0c0e] flex items-center justify-center relative overflow-hidden group border-b border-white/5 select-none">
+            <div className="aspect-[4/3] bg-surface-dark-1 flex items-center justify-center relative overflow-hidden group border-b border-white/5 select-none">
               {/* High-fidelity Miniature Render (Always Visible) */}
-              <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-2 select-none pointer-events-none bg-[#0a0a0c]">
+              <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-2 select-none pointer-events-none bg-surface-dark-0">
                 <div
                   style={{
                     width: `${template.state?.canvasSize?.width || 1080}px`,
@@ -561,7 +561,7 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
               <div className="absolute inset-0 flex items-center justify-center p-4 z-20 pointer-events-none">
                 <button
                   onClick={(e) => handleRemix(e, template)}
-                  className="bg-[#7d2ae8] text-white hover:bg-[#6a1fc5] px-5 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-xl shadow-purple-900/40 transform scale-95 opacity-0 group-hover:opacity-100 group-hover:scale-100 pointer-events-auto duration-300"
+                  className="bg-brand-600 text-white hover:bg-brand-700 px-5 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-xl shadow-purple-900/40 transform scale-95 opacity-0 group-hover:opacity-100 group-hover:scale-100 pointer-events-auto duration-300"
                 >
                   <Icons.Magic className="w-4 h-4" /> Remix Design
                 </button>
@@ -569,9 +569,9 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
             </div>
 
             {/* Bottom Card Footer */}
-            <div className="p-5 bg-[#0c0c0e] flex-1 flex flex-col justify-between">
+            <div className="p-5 bg-surface-dark-1 flex-1 flex flex-col justify-between">
               <div>
-                <h3 className="font-bold text-sm text-white truncate mb-1 group-hover:text-purple-400 transition-colors">
+                <h3 className="font-bold text-sm text-white truncate mb-1 group-hover:text-brand-400 transition-colors">
                   {template.title}
                 </h3>
                 <div className="flex items-center gap-2 text-[10px] text-gray-500 font-bold tracking-wider">
@@ -599,7 +599,7 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
                   </span>
                 </div>
 
-                <span className="text-[9px] font-black uppercase tracking-wider bg-white/5 border border-white/10 text-purple-400 px-2 py-0.5 rounded-full">
+                <span className="text-[9px] font-black uppercase tracking-wider bg-white/5 border border-white/10 text-brand-400 px-2 py-0.5 rounded-full">
                   {template.category}
                 </span>
               </div>

@@ -169,7 +169,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
     <div className="flex flex-col h-full p-4 overflow-y-auto custom-scrollbar pb-10">
       <div className="flex items-center justify-between mb-6">
         <h3 className="font-bold text-white flex items-center gap-2">
-          <Icons.Brush className="w-5 h-5 text-[#7d2ae8]" />
+          <Icons.Brush className="w-5 h-5 text-brand-600" />
           Creative Drawing
         </h3>
         <button
@@ -196,7 +196,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
       </svg>
 
       {/* Drawing Status Card */}
-      <div className="mb-6 p-4 bg-[#252627] rounded-lg border border-gray-700 relative overflow-hidden">
+      <div className="mb-6 p-4 bg-surface-dark-4 rounded-lg border border-gray-700 relative overflow-hidden">
         <div
           className={`absolute top-0 right-0 p-2 rounded-bl-lg text-[10px] font-bold ${isDrawing ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-400'}`}
         >
@@ -209,7 +209,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
           {!isDrawing ? (
             <button
               onClick={() => setIsDrawing(true)}
-              className="flex-1 bg-[#7d2ae8] hover:bg-[#6b23c5] text-white text-xs font-bold py-3 rounded-lg transition-all hover:scale-[1.02] shadow-lg shadow-purple-900/20"
+              className="flex-1 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold py-3 rounded-lg transition-all hover:scale-[1.02] shadow-lg shadow-purple-900/20"
             >
               Start Drawing
             </button>
@@ -260,7 +260,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
                 className={`aspect-square rounded-lg border flex items-center justify-center p-1 transition-all ${
                   selectedCustomBrushId === brush.id
                     ? 'bg-orange-500/20 border-orange-500 ring-1 ring-orange-500'
-                    : 'bg-[#252627] border-gray-700 text-gray-500 hover:border-gray-600'
+                    : 'bg-surface-dark-4 border-gray-700 text-gray-500 hover:border-gray-600'
                 }`}
                 title={brush.name}
               >
@@ -303,7 +303,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
                   setSelectedCustomBrushId(null);
                 }
               }}
-              className={`relative min-h-[44px] p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id && !selectedCustomBrushId ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white ring-1 ring-[#7d2ae8]' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
+              className={`relative min-h-[44px] p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id && !selectedCustomBrushId ? 'bg-brand-600/20 border-brand-600 text-white ring-1 ring-brand-600' : 'bg-surface-dark-4 border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
             >
               <svg
                 className={`absolute top-0 right-0 w-full h-full opacity-40 pointer-events-none ${type.color}`}
@@ -331,7 +331,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
                   setSelectedCustomBrushId(null);
                 }
               }}
-              className={`relative min-h-[44px] p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id && !selectedCustomBrushId ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white ring-1 ring-[#7d2ae8]' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
+              className={`relative min-h-[44px] p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id && !selectedCustomBrushId ? 'bg-brand-600/20 border-brand-600 text-white ring-1 ring-brand-600' : 'bg-surface-dark-4 border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
             >
               <svg
                 className="absolute top-0 right-0 w-full h-full opacity-30 pointer-events-none text-white"
@@ -342,7 +342,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
                 {BRUSH_PREVIEWS[type.id]}
               </svg>
               <div className="flex items-center gap-1.5 relative z-10">
-                <type.icon className="w-3 h-3 text-[#7d2ae8]" />
+                <type.icon className="w-3 h-3 text-brand-600" />
                 <span className="text-[10px] font-bold">{type.name}</span>
               </div>
             </button>
@@ -390,7 +390,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
         </div>
 
         {/* Sliders */}
-        <div className="bg-[#1e1e1e] p-3 rounded-lg border border-gray-800 space-y-4">
+        <div className="bg-surface-dark-3 p-3 rounded-lg border border-gray-800 space-y-4">
           <div>
             <div className="flex justify-between mb-1.5">
               <label className="text-[10px] font-bold text-gray-400 uppercase">Brush Size</label>
@@ -402,7 +402,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
               max="100"
               value={brushSize}
               onChange={(e) => setBrushSize(parseInt(e.target.value))}
-              className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+              className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
             />
           </div>
 
@@ -420,13 +420,13 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
               step="0.01"
               value={brushOpacity}
               onChange={(e) => setBrushOpacity(parseFloat(e.target.value))}
-              className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+              className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
             />
           </div>
         </div>
 
         {/* Details & Stabilization */}
-        <div className="bg-[#1e1e1e] p-3 rounded-lg border border-gray-800 space-y-4">
+        <div className="bg-surface-dark-3 p-3 rounded-lg border border-gray-800 space-y-4">
           <label className="text-[10px] font-bold text-gray-400 uppercase block border-b border-gray-700 pb-2">
             Stroke Settings
           </label>
@@ -474,7 +474,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
                 type="checkbox"
                 checked={useStore.getState().autoSelectAfterDraw}
                 onChange={(e) => useStore.getState().setAutoSelectAfterDraw(e.target.checked)}
-                className="w-3 h-3 accent-[#7d2ae8] bg-gray-800 rounded border-gray-700 focus:ring-[#7d2ae8]"
+                className="w-3 h-3 accent-brand-600 bg-gray-800 rounded border-gray-700 focus:ring-brand-600"
               />
             </div>
             <span className="text-[9px] text-gray-500 leading-none block mt-1">
@@ -504,7 +504,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
             >
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
-                  <Icons.Brush className="w-5 h-5 text-[#7d2ae8]" />
+                  <Icons.Brush className="w-5 h-5 text-brand-600" />
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-white">Start Drawing?</h4>
@@ -525,7 +525,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
                     setIsDrawing(true);
                     setConfirmDialog(null);
                   }}
-                  className="flex-1 py-2.5 text-xs font-bold text-white bg-[#7d2ae8] hover:bg-[#6b23c5] rounded-xl transition-all"
+                  className="flex-1 py-2.5 text-xs font-bold text-white bg-brand-600 hover:bg-brand-700 rounded-xl transition-all"
                 >
                   Start
                 </button>

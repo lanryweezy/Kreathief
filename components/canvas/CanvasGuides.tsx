@@ -14,7 +14,7 @@ export const CanvasGuides: React.FC<CanvasGuidesProps> = React.memo(({ snapLines
         return (
           <React.Fragment key={i}>
             <div
-              className="absolute bg-[#7d2ae8] z-[100] pointer-events-none transition-opacity duration-150"
+              className="absolute bg-brand-600 z-[100] pointer-events-none transition-opacity duration-150"
               style={{
                 left: line.type === 'vertical' ? line.value : line.origin,
                 top: line.type === 'horizontal' ? line.value : line.origin,
@@ -26,7 +26,7 @@ export const CanvasGuides: React.FC<CanvasGuidesProps> = React.memo(({ snapLines
             />
             {snapDistance > 0 && (
               <div
-                className="absolute z-[101] pointer-events-none bg-[#7d2ae8]/90 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap"
+                className="absolute z-[101] pointer-events-none bg-brand-600/90 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap"
                 style={{
                   left: line.type === 'vertical' ? line.value + 4 : line.origin,
                   top: line.type === 'horizontal' ? line.value + 4 : line.origin,

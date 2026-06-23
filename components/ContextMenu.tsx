@@ -142,8 +142,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
           : red
             ? 'text-red-400 hover:bg-red-500/15 hover:text-red-300'
             : purple
-              ? 'text-[#a855f7] hover:bg-[#a855f7]/15 hover:text-[#c084fc]'
-              : 'text-gray-300 hover:bg-[#7d2ae8] hover:text-white'
+              ? 'text-brand-400 hover:bg-brand-400/15 hover:text-brand-300'
+              : 'text-gray-300 hover:bg-brand-600 hover:text-white'
       }`}
       style={{ width: 'calc(100% - 8px)' }}
     >
@@ -157,7 +157,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
   return (
     <div
       ref={menuRef}
-      className={`fixed z-[9999] w-72 bg-[#1e1e1e]/98 border border-white/10 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] py-4 flex flex-col backdrop-blur-2xl overflow-hidden select-none transition-opacity duration-150 ${visible ? 'opacity-100' : 'opacity-0'}`}
+      className={`fixed z-[9999] w-72 bg-surface-dark-3/98 border border-white/10 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] py-4 flex flex-col backdrop-blur-2xl overflow-hidden select-none transition-opacity duration-150 ${visible ? 'opacity-100' : 'opacity-0'}`}
       style={{ top: adjustedY, left: adjustedX }}
       onContextMenu={(e) => e.preventDefault()}
     >
@@ -186,14 +186,14 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
               }
             }}
             onBlur={handleRename}
-            className="w-full bg-black/40 border border-[#7d2ae8] rounded-xl px-4 py-2.5 text-sm text-white outline-none font-bold"
+            className="w-full bg-black/40 border border-brand-600 rounded-xl px-4 py-2.5 text-sm text-white outline-none font-bold"
             autoFocus
           />
         </div>
       ) : (
         <button
           onClick={() => setIsRenaming(true)}
-          className="w-full flex items-center gap-3.5 px-5 py-3 text-xs font-black uppercase tracking-widest text-slate-400 hover:bg-[#7d2ae8] hover:text-white transition-all rounded-xl mx-2 group"
+          className="w-full flex items-center gap-3.5 px-5 py-3 text-xs font-black uppercase tracking-widest text-slate-400 hover:bg-brand-600 hover:text-white transition-all rounded-xl mx-2 group"
           style={{ width: 'calc(100% - 16px)' }}
         >
           <Icons.Edit className="w-4 h-4 shrink-0 opacity-50 group-hover:opacity-100" />

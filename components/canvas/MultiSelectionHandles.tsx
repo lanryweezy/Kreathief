@@ -52,7 +52,7 @@ export const MultiSelectionHandles = React.memo(({ layers, onResize, onRotate }:
     <div id="multi-selection-box" className="absolute inset-0 pointer-events-none" style={{ zIndex: 50 }}>
       {/* Visual Bounding Box */}
       <div
-        className="absolute border-2 border-[#7d2ae8] border-dashed"
+        className="absolute border-2 border-brand-600 border-dashed"
         style={{
           left: bounds.x,
           top: bounds.y,
@@ -62,7 +62,7 @@ export const MultiSelectionHandles = React.memo(({ layers, onResize, onRotate }:
         }}
       >
         {/* Dimension Badge for Multi-selection */}
-        <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-[#7d2ae8] text-white text-[9px] font-mono px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap z-50 pointer-events-none border border-white/20">
+        <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-brand-600 text-white text-[9px] font-mono px-1.5 py-0.5 rounded shadow-lg whitespace-nowrap z-50 pointer-events-none border border-white/20">
           {Math.round(bounds.width)} × {Math.round(bounds.height)}
         </div>
       </div>
@@ -72,19 +72,19 @@ export const MultiSelectionHandles = React.memo(({ layers, onResize, onRotate }:
         {/* Corner Handles */}
         <div
           onMouseDown={(e) => onResize(e, groupLayer, 'nw')}
-          className="absolute -top-1.5 -left-1.5 w-3.5 h-3.5 bg-white border-2 border-[#7d2ae8] rounded-full pointer-events-auto cursor-nw-resize shadow-md z-50"
+          className="absolute -top-1.5 -left-1.5 w-3.5 h-3.5 bg-white border-2 border-brand-600 rounded-full pointer-events-auto cursor-nw-resize shadow-md z-50"
         ></div>
         <div
           onMouseDown={(e) => onResize(e, groupLayer, 'ne')}
-          className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-white border-2 border-[#7d2ae8] rounded-full pointer-events-auto cursor-ne-resize shadow-md z-50"
+          className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-white border-2 border-brand-600 rounded-full pointer-events-auto cursor-ne-resize shadow-md z-50"
         ></div>
         <div
           onMouseDown={(e) => onResize(e, groupLayer, 'sw')}
-          className="absolute -bottom-1.5 -left-1.5 w-3.5 h-3.5 bg-white border-2 border-[#7d2ae8] rounded-full pointer-events-auto cursor-sw-resize shadow-md z-50"
+          className="absolute -bottom-1.5 -left-1.5 w-3.5 h-3.5 bg-white border-2 border-brand-600 rounded-full pointer-events-auto cursor-sw-resize shadow-md z-50"
         ></div>
         <div
           onMouseDown={(e) => onResize(e, groupLayer, 'se')}
-          className="absolute -bottom-1.5 -right-1.5 w-3.5 h-3.5 bg-white border-2 border-[#7d2ae8] rounded-full pointer-events-auto cursor-se-resize shadow-md z-50"
+          className="absolute -bottom-1.5 -right-1.5 w-3.5 h-3.5 bg-white border-2 border-brand-600 rounded-full pointer-events-auto cursor-se-resize shadow-md z-50"
         ></div>
 
         {/* Edge Handles */}
@@ -92,18 +92,18 @@ export const MultiSelectionHandles = React.memo(({ layers, onResize, onRotate }:
           <>
             <div
               onMouseDown={(e) => onResize(e, groupLayer, 'n')}
-              className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-white border border-[#7d2ae8] rounded-full pointer-events-auto cursor-ns-resize shadow-sm z-40"
+              className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-white border border-brand-600 rounded-full pointer-events-auto cursor-ns-resize shadow-sm z-40"
             ></div>
             <div
               onMouseDown={(e) => onResize(e, groupLayer, 's')}
-              className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-white border border-[#7d2ae8] rounded-full pointer-events-auto cursor-ns-resize shadow-sm z-40"
+              className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-6 h-1.5 bg-white border border-brand-600 rounded-full pointer-events-auto cursor-ns-resize shadow-sm z-40"
             ></div>
           </>
         )}
 
         {/* Rotate Handle for Multi-Selection */}
         <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 pointer-events-auto group/rotate z-50">
-          <div className="w-px h-6 bg-[#7d2ae8]"></div>
+          <div className="w-px h-6 bg-brand-600"></div>
           <div
             onMouseDown={(e) => onRotate(e, groupLayer)}
             onDoubleClick={(e) => {
@@ -112,10 +112,10 @@ export const MultiSelectionHandles = React.memo(({ layers, onResize, onRotate }:
                 new CustomEvent('canvas-reset-rotation', { detail: { ids: layers.map((l) => l.id) } })
               );
             }}
-            className="w-7 h-7 bg-white border-2 border-[#7d2ae8] rounded-full cursor-grab flex items-center justify-center hover:bg-[#7d2ae8] hover:text-white shadow-lg transition-all active:cursor-grabbing hover:scale-110"
+            className="w-7 h-7 bg-white border-2 border-brand-600 rounded-full cursor-grab flex items-center justify-center hover:bg-brand-600 hover:text-white shadow-lg transition-all active:cursor-grabbing hover:scale-110"
             title="Double-click to reset"
           >
-            <Icons.RotateCw className="w-3.5 h-3.5 text-[#7d2ae8] group-hover/rotate:text-white" />
+            <Icons.RotateCw className="w-3.5 h-3.5 text-brand-600 group-hover/rotate:text-white" />
           </div>
         </div>
       </div>

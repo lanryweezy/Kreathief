@@ -44,10 +44,10 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
           layer.locked
             ? 'border-red-500 border-dashed opacity-50'
             : layer.componentId
-              ? 'border-[#a855f7]'
+              ? 'border-brand-400'
               : layer.masterId
-                ? 'border-[#c084fc] border-dashed'
-                : 'border-[#7d2ae8] ring-1 ring-[#7d2ae8]/20'
+                ? 'border-brand-300 border-dashed'
+                : 'border-brand-600 ring-1 ring-brand-600/20'
         }`}
         style={{
           borderRadius: `${typeof (layer as any).cornerRadius === 'number' ? (layer as any).cornerRadius : 0}px`,
@@ -74,7 +74,7 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
       {(layer.locked || layer.componentId || layer.masterId) && (
         <div
           className={`absolute -top-3 -right-3 rounded-full p-1 shadow-md border z-50 flex items-center justify-center cursor-pointer ${
-            layer.locked ? 'bg-red-100 text-red-500 border-red-200' : 'bg-[#a855f7] text-white border-[#9333ea]'
+            layer.locked ? 'bg-red-100 text-red-500 border-red-200' : 'bg-brand-400 text-white border-brand-500'
           }`}
           style={handleContainerStyle}
           title={layer.componentId ? 'Master Component' : layer.masterId ? 'Component Instance' : 'Locked'}
@@ -97,22 +97,22 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
           <div
             onPointerDown={(e) => onResize(e, layer, 'nw')}
             style={handleContainerStyle}
-            className="absolute -top-2 -left-2 w-4 h-4 bg-white border-[2.5px] border-[#7d2ae8] rounded-md pointer-events-auto cursor-nw-resize shadow-[0_2px_10px_rgba(125,42,232,0.4)] hover:scale-125 transition-transform z-50"
+            className="absolute -top-2 -left-2 w-4 h-4 bg-white border-[2.5px] border-brand-600 rounded-md pointer-events-auto cursor-nw-resize shadow-[0_2px_10px_rgba(125,42,232,0.4)] hover:scale-125 transition-transform z-50"
           />
           <div
             onPointerDown={(e) => onResize(e, layer, 'ne')}
             style={handleContainerStyle}
-            className="absolute -top-2 -right-2 w-4 h-4 bg-white border-[2.5px] border-[#7d2ae8] rounded-md pointer-events-auto cursor-ne-resize shadow-[0_2px_10px_rgba(125,42,232,0.4)] hover:scale-125 transition-transform z-50"
+            className="absolute -top-2 -right-2 w-4 h-4 bg-white border-[2.5px] border-brand-600 rounded-md pointer-events-auto cursor-ne-resize shadow-[0_2px_10px_rgba(125,42,232,0.4)] hover:scale-125 transition-transform z-50"
           />
           <div
             onPointerDown={(e) => onResize(e, layer, 'sw')}
             style={handleContainerStyle}
-            className="absolute -bottom-2 -left-2 w-4 h-4 bg-white border-[2.5px] border-[#7d2ae8] rounded-md pointer-events-auto cursor-sw-resize shadow-[0_2px_10px_rgba(125,42,232,0.4)] hover:scale-125 transition-transform z-50"
+            className="absolute -bottom-2 -left-2 w-4 h-4 bg-white border-[2.5px] border-brand-600 rounded-md pointer-events-auto cursor-sw-resize shadow-[0_2px_10px_rgba(125,42,232,0.4)] hover:scale-125 transition-transform z-50"
           />
           <div
             onPointerDown={(e) => onResize(e, layer, 'se')}
             style={handleContainerStyle}
-            className="absolute -bottom-2 -right-2 w-4 h-4 bg-white border-[2.5px] border-[#7d2ae8] rounded-md pointer-events-auto cursor-se-resize shadow-[0_2px_10px_rgba(125,42,232,0.4)] hover:scale-125 transition-transform z-50"
+            className="absolute -bottom-2 -right-2 w-4 h-4 bg-white border-[2.5px] border-brand-600 rounded-md pointer-events-auto cursor-se-resize shadow-[0_2px_10px_rgba(125,42,232,0.4)] hover:scale-125 transition-transform z-50"
           />
 
           {/* Edge Handles (Middle) */}
@@ -121,12 +121,12 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
               <div
                 onPointerDown={(e) => onResize(e, layer, 'n')}
                 style={handleContainerStyle}
-                className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-white border-[1.5px] border-[#7d2ae8] rounded-full pointer-events-auto cursor-ns-resize shadow-md hover:scale-110 transition-transform z-40"
+                className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-white border-[1.5px] border-brand-600 rounded-full pointer-events-auto cursor-ns-resize shadow-md hover:scale-110 transition-transform z-40"
               />
               <div
                 onPointerDown={(e) => onResize(e, layer, 's')}
                 style={handleContainerStyle}
-                className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-white border-[1.5px] border-[#7d2ae8] rounded-full pointer-events-auto cursor-ns-resize shadow-md hover:scale-110 transition-transform z-40"
+                className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-white border-[1.5px] border-brand-600 rounded-full pointer-events-auto cursor-ns-resize shadow-md hover:scale-110 transition-transform z-40"
               />
             </>
           )}
@@ -136,12 +136,12 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
               <div
                 onPointerDown={(e) => onResize(e, layer, 'w')}
                 style={handleContainerStyle}
-                className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-1.5 h-8 bg-white border-[1.5px] border-[#7d2ae8] rounded-full pointer-events-auto cursor-ew-resize shadow-md hover:scale-110 transition-transform z-40"
+                className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-1.5 h-8 bg-white border-[1.5px] border-brand-600 rounded-full pointer-events-auto cursor-ew-resize shadow-md hover:scale-110 transition-transform z-40"
               />
               <div
                 onPointerDown={(e) => onResize(e, layer, 'e')}
                 style={handleContainerStyle}
-                className="absolute top-1/2 -translate-y-1/2 -right-1.5 w-1.5 h-8 bg-white border-[1.5px] border-[#7d2ae8] rounded-full pointer-events-auto cursor-ew-resize shadow-md hover:scale-110 transition-transform z-40"
+                className="absolute top-1/2 -translate-y-1/2 -right-1.5 w-1.5 h-8 bg-white border-[1.5px] border-brand-600 rounded-full pointer-events-auto cursor-ew-resize shadow-md hover:scale-110 transition-transform z-40"
               />
             </>
           )}
@@ -151,17 +151,17 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
             className="absolute -bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-0 pointer-events-auto group/rotate z-50"
             style={handleContainerStyle}
           >
-            <div className="w-0.5 h-6 bg-gradient-to-b from-[#7d2ae8] to-[#9d50ff]" />
+            <div className="w-0.5 h-6 bg-gradient-to-b from-brand-600 to-brand-400" />
             <div
               onPointerDown={(e) => onRotate(e, layer)}
               onDoubleClick={(e) => {
                 e.stopPropagation();
                 (window as any).dispatchEvent(new CustomEvent('canvas-reset-rotation', { detail: { id: layer.id } }));
               }}
-              className="w-8 h-8 bg-white border-[2.5px] border-[#7d2ae8] rounded-full cursor-grab flex items-center justify-center hover:bg-[#7d2ae8] hover:text-white shadow-[0_4px_15px_rgba(125,42,232,0.4)] transition-all active:cursor-grabbing hover:scale-110"
+              className="w-8 h-8 bg-white border-[2.5px] border-brand-600 rounded-full cursor-grab flex items-center justify-center hover:bg-brand-600 hover:text-white shadow-[0_4px_15px_rgba(125,42,232,0.4)] transition-all active:cursor-grabbing hover:scale-110"
               title="Double-click to reset"
             >
-              <Icons.RotateCw className="w-4 h-4 text-[#7d2ae8] group-hover/rotate:text-white transition-colors" />
+              <Icons.RotateCw className="w-4 h-4 text-brand-600 group-hover/rotate:text-white transition-colors" />
             </div>
             {rotation !== 0 && (
               <div className="mt-2 bg-black/90 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-mono font-black text-white border border-white/10 shadow-2xl">

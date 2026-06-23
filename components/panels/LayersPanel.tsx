@@ -110,14 +110,14 @@ const LayerItem = React.memo(
               }
             }
           }}
-          className={`group relative flex items-center gap-3 px-4 py-3 border-b border-white/[0.03] cursor-pointer transition-all duration-200 ${isSelected ? 'bg-white/[0.05] border-l-4 border-l-[#7d2ae8] shadow-inner' : 'hover:bg-white/[0.03]'}`}
+          className={`group relative flex items-center gap-3 px-4 py-3 border-b border-white/[0.03] cursor-pointer transition-all duration-200 ${isSelected ? 'bg-white/[0.05] border-l-4 border-l-brand-600 shadow-inner' : 'hover:bg-white/[0.03]'}`}
           style={{ paddingLeft: isGrouped && !layer.isGroup ? '42px' : '16px' }}
         >
           {/* Mask Indicator Logic */}
-          <div className="w-8 h-8 rounded bg-[#13161a] border border-gray-700 flex items-center justify-center overflow-hidden shrink-0 relative shadow-sm">
+          <div className="w-8 h-8 rounded bg-surface-dark-2 border border-gray-700 flex items-center justify-center overflow-hidden shrink-0 relative shadow-sm">
             {getThumbnail()}
             {(layer.maskLayerId || layer.isMasking) && (
-              <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#7d2ae8] rounded-tl flex items-center justify-center shadow-lg">
+              <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-brand-600 rounded-tl flex items-center justify-center shadow-lg">
                 <Icons.Layers className="w-2.5 h-2.5 text-white" />
               </div>
             )}
@@ -125,7 +125,7 @@ const LayerItem = React.memo(
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              {layer.maskLayerId && <Icons.ArrowRight className="w-2.5 h-2.5 text-[#7d2ae8] rotate-90" />}
+              {layer.maskLayerId && <Icons.ArrowRight className="w-2.5 h-2.5 text-brand-600 rotate-90" />}
               <span className={`text-xs truncate ${isSelected ? 'text-white font-bold' : 'text-gray-400'}`}>
                 {layer.name || getLayerNameFallback(layer)}
               </span>
@@ -149,7 +149,7 @@ const LayerItem = React.memo(
                 e.stopPropagation();
                 setShowSettings(!showSettings);
               }}
-              className={`p-1 rounded ${showSettings ? 'bg-[#7d2ae8] text-white' : 'text-gray-500'}`}
+              className={`p-1 rounded ${showSettings ? 'bg-brand-600 text-white' : 'text-gray-500'}`}
             >
               <Icons.Settings className="w-3.5 h-3.5" />
             </button>
@@ -174,14 +174,14 @@ const LayerItem = React.memo(
                   step="0.01"
                   value={layer.opacity}
                   onChange={(e) => onUpdate({ opacity: parseFloat(e.target.value) })}
-                  className="w-full accent-[#7d2ae8] h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
+                  className="w-full accent-brand-600 h-1 bg-white/10 rounded-full appearance-none cursor-pointer"
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-gray-500 uppercase font-black tracking-widest text-[9px]">Masking</label>
                 <button
                   onClick={() => onUpdate({ isMasking: !layer.isMasking, clippingMaskType: 'clipping' })}
-                  className={`w-full py-1.5 rounded-lg border text-[10px] font-bold uppercase transition-all ${layer.isMasking ? 'bg-[#7d2ae8] border-[#7d2ae8] text-white shadow-lg' : 'border-white/10 text-gray-400 hover:border-white/20'}`}
+                  className={`w-full py-1.5 rounded-lg border text-[10px] font-bold uppercase transition-all ${layer.isMasking ? 'bg-brand-600 border-brand-600 text-white shadow-lg' : 'border-white/10 text-gray-400 hover:border-white/20'}`}
                 >
                   {layer.isMasking ? 'Masking Active' : 'Use as Mask'}
                 </button>
@@ -276,7 +276,7 @@ export const LayersPanel = () => {
           onClick={() => setActiveTab('layers')}
           className={`pb-3 text-xs font-bold transition-all border-b-2 ${
             activeTab === 'layers'
-              ? 'border-[#7d2ae8] text-white'
+              ? 'border-brand-600 text-white'
               : 'border-transparent text-gray-500 hover:text-gray-300'
           }`}
         >
@@ -286,7 +286,7 @@ export const LayersPanel = () => {
           onClick={() => setActiveTab('arrange')}
           className={`pb-3 text-xs font-bold transition-all border-b-2 ${
             activeTab === 'arrange'
-              ? 'border-[#7d2ae8] text-white'
+              ? 'border-brand-600 text-white'
               : 'border-transparent text-gray-500 hover:text-gray-300'
           }`}
         >
@@ -303,7 +303,7 @@ export const LayersPanel = () => {
           <div className="flex flex-col">
             {layers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                <div className="w-14 h-14 rounded-full bg-[#1e1e1e] flex items-center justify-center mb-3">
+                <div className="w-14 h-14 rounded-full bg-surface-dark-3 flex items-center justify-center mb-3">
                   <Icons.Layers className="w-7 h-7 text-gray-600" />
                 </div>
                 <h4 className="text-xs font-bold text-gray-400 mb-1">No Layers Yet</h4>
@@ -337,7 +337,7 @@ export const LayersPanel = () => {
                       reorderLayer(selectedLayerIds[0], idx + 1);
                     }
                   }}
-                  className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold text-gray-400 hover:text-white bg-[#1e1e1e] hover:bg-[#252627] border border-gray-700 rounded-lg transition-all"
+                  className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold text-gray-400 hover:text-white bg-surface-dark-3 hover:bg-surface-dark-4 border border-gray-700 rounded-lg transition-all"
                   title="Move layer up"
                 >
                   <Icons.ArrowUp className="w-3 h-3" />
@@ -350,7 +350,7 @@ export const LayersPanel = () => {
                       reorderLayer(selectedLayerIds[0], idx - 1);
                     }
                   }}
-                  className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold text-gray-400 hover:text-white bg-[#1e1e1e] hover:bg-[#252627] border border-gray-700 rounded-lg transition-all"
+                  className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold text-gray-400 hover:text-white bg-surface-dark-3 hover:bg-surface-dark-4 border border-gray-700 rounded-lg transition-all"
                   title="Move layer down"
                 >
                   <Icons.ArrowDown className="w-3 h-3" />

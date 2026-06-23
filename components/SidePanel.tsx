@@ -50,8 +50,8 @@ const PanelLoading = ({ tab }: { tab: NavTab }) => {
       );
     default:
       return (
-        <div className="flex h-full w-full items-center justify-center bg-[#13161a]">
-          <div className="w-6 h-6 rounded-full border-2 border-[#7d2ae8] border-t-transparent animate-spin"></div>
+        <div className="flex h-full w-full items-center justify-center bg-surface-dark-2">
+          <div className="w-6 h-6 rounded-full border-2 border-brand-600 border-t-transparent animate-spin"></div>
         </div>
       );
   }
@@ -118,7 +118,7 @@ export const SidePanel = React.memo(
           transition={{ type: 'spring', damping: 25, stiffness: 120 }}
           id="side-panel"
           data-testid="side-panel"
-          className="w-full md:w-[320px] bg-transparent md:bg-[#13161a]/95 md:backdrop-blur-xl border-r border-white/5 flex flex-col z-20 shrink-0 shadow-2xl relative overflow-y-auto overflow-x-hidden custom-scrollbar"
+          className="w-full md:w-[320px] bg-transparent md:bg-surface-dark-2/95 md:backdrop-blur-xl border-r border-white/5 flex flex-col z-20 shrink-0 shadow-2xl relative overflow-y-auto overflow-x-hidden custom-scrollbar"
         >
           <AnimatePresence mode="wait">
             <motion.div

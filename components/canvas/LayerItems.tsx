@@ -670,7 +670,7 @@ export const AdjustmentLayerItem = React.memo(
           }}
         >
           {isSelected && (
-            <div className="absolute top-2 left-2 bg-[#7d2ae8] text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow">
+            <div className="absolute top-2 left-2 bg-brand-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow">
               ADJUSTMENT
             </div>
           )}

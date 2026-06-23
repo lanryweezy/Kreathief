@@ -347,12 +347,12 @@ ${displayResult.map((item) => `  <path d="${item.path}" fill="${item.color}" />`
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#0a0a0a] p-6 overflow-y-auto custom-scrollbar border-l border-white/5 shadow-2xl">
+    <div className="flex flex-col h-full bg-surface-dark-1 p-6 overflow-y-auto custom-scrollbar border-l border-white/5 shadow-2xl">
       <div className="mb-8 flex items-center justify-between">
         <div className="flex flex-col gap-1">
           <h3 className="font-black text-white flex items-center gap-3 text-xs uppercase tracking-[0.2em]">
             <div className="w-8 h-8 rounded-xl bg-purple-600/20 flex items-center justify-center border border-purple-500/30">
-              <Icons.Magic className="w-4 h-4 text-[#7d2ae8]" />
+              <Icons.Magic className="w-4 h-4 text-brand-600" />
             </div>
             Vector Studio
           </h3>
@@ -462,7 +462,7 @@ ${displayResult.map((item) => `  <path d="${item.path}" fill="${item.color}" />`
             setActiveTab('image');
             setResult(null);
           }}
-          className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${activeTab === 'image' ? 'bg-[#7d2ae8] text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+          className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${activeTab === 'image' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
         >
           Image to Vector
         </button>
@@ -471,7 +471,7 @@ ${displayResult.map((item) => `  <path d="${item.path}" fill="${item.color}" />`
             setActiveTab('text');
             setResult(null);
           }}
-          className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${activeTab === 'text' ? 'bg-[#7d2ae8] text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+          className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${activeTab === 'text' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
         >
           Text to Vector
         </button>
@@ -484,9 +484,9 @@ ${displayResult.map((item) => `  <path d="${item.path}" fill="${item.color}" />`
               onDragOver={handleDragOver}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className="aspect-square rounded-xl border-2 border-dashed border-gray-700 hover:border-[#7d2ae8] hover:bg-[#7d2ae8]/5 transition-all flex flex-col items-center justify-center gap-3 cursor-pointer group"
+              className="aspect-square rounded-xl border-2 border-dashed border-gray-700 hover:border-brand-600 hover:bg-brand-600/5 transition-all flex flex-col items-center justify-center gap-3 cursor-pointer group"
             >
-              <Icons.Uploads className="w-8 h-8 text-gray-500 group-hover:text-[#7d2ae8] transition-colors" />
+              <Icons.Uploads className="w-8 h-8 text-gray-500 group-hover:text-brand-600 transition-colors" />
               <div className="text-center">
                 <p className="text-[11px] font-bold text-white">Upload Image</p>
                 <p className="text-[10px] text-gray-500">Drag & drop or click to browse</p>
@@ -524,8 +524,8 @@ ${displayResult.map((item) => `  <path d="${item.path}" fill="${item.color}" />`
                   onClick={() => handleStyleChange(preset.id)}
                   className={`p-2 rounded-xl border text-left transition-all ${
                     stylePreset === preset.id
-                      ? 'bg-[#7d2ae8]/15 border-[#7d2ae8]/50 text-[#7d2ae8]'
-                      : 'bg-[#1e1e1e] border-gray-800 text-gray-500 hover:border-gray-700'
+                      ? 'bg-brand-600/15 border-brand-600/50 text-brand-600'
+                      : 'bg-surface-dark-3 border-gray-800 text-gray-500 hover:border-gray-700'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-0.5">
@@ -548,7 +548,7 @@ ${displayResult.map((item) => `  <path d="${item.path}" fill="${item.color}" />`
               max="12"
               value={colors}
               onChange={(e) => setColors(parseInt(e.target.value))}
-              className="w-full h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-[#7d2ae8]"
+              className="w-full h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-brand-600"
             />
           </div>
 
@@ -678,7 +678,7 @@ ${displayResult.map((item) => `  <path d="${item.path}" fill="${item.color}" />`
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Describe the vector graphic (e.g., 'A vintage minimalist mountain logo')"
-            className="w-full h-32 bg-gray-900 border border-gray-700 rounded-xl p-3 text-xs text-white placeholder:text-gray-600 focus:border-[#7d2ae8] focus:ring-1 focus:ring-[#7d2ae8] outline-none transition-all resize-none"
+            className="w-full h-32 bg-gray-900 border border-gray-700 rounded-xl p-3 text-xs text-white placeholder:text-gray-600 focus:border-brand-600 focus:ring-1 focus:ring-brand-600 outline-none transition-all resize-none"
           />
           {/* Quick prompt suggestions */}
           <div className="flex flex-wrap gap-1.5">
@@ -686,7 +686,7 @@ ${displayResult.map((item) => `  <path d="${item.path}" fill="${item.color}" />`
               <button
                 key={suggestion}
                 onClick={() => setPrompt(suggestion)}
-                className="px-2 py-1 rounded-md bg-gray-900 border border-gray-800 text-[9px] text-gray-500 hover:text-[#7d2ae8] hover:border-[#7d2ae8]/30 transition-all"
+                className="px-2 py-1 rounded-md bg-gray-900 border border-gray-800 text-[9px] text-gray-500 hover:text-brand-600 hover:border-brand-600/30 transition-all"
               >
                 {suggestion}
               </button>
@@ -700,7 +700,7 @@ ${displayResult.map((item) => `  <path d="${item.path}" fill="${item.color}" />`
         disabled={
           isProcessing || trials <= 0 || (activeTab === 'image' && !image) || (activeTab === 'text' && !prompt.trim())
         }
-        className="w-full py-3 bg-[#7d2ae8] hover:bg-[#6b23c5] disabled:bg-gray-800 disabled:text-gray-600 rounded-xl text-white font-bold text-xs mt-6 transition-all flex items-center justify-center gap-2"
+        className="w-full py-3 bg-brand-600 hover:bg-brand-700 disabled:bg-gray-800 disabled:text-gray-600 rounded-xl text-white font-bold text-xs mt-6 transition-all flex items-center justify-center gap-2"
       >
         {isProcessing ? (
           <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />

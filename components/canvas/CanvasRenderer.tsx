@@ -171,7 +171,7 @@ const ArtboardItem = React.memo(
         {/* Artboard Header */}
         <div className="absolute -top-10 left-0 flex items-center gap-3 pointer-events-auto">
           <div className="flex flex-col">
-            <span className="text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap bg-[#1e1e1e] px-2 py-1 rounded-t-lg border-x border-t border-white/10 flex items-center gap-2">
+            <span className="text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap bg-surface-dark-3 px-2 py-1 rounded-t-lg border-x border-t border-white/10 flex items-center gap-2">
               {artboard.name}
               <button
                 onClick={handleAddArtboardClick}
@@ -190,7 +190,7 @@ const ArtboardItem = React.memo(
 
         <div
           className={`relative shadow-2xl bg-white overflow-hidden ${
-            activeArtboardId === artboard.id ? 'ring-2 ring-[#7d2ae8]/50' : 'ring-1 ring-white/10'
+            activeArtboardId === artboard.id ? 'ring-2 ring-brand-600/50' : 'ring-1 ring-white/10'
           }`}
           style={{
             width: artboard.width,
