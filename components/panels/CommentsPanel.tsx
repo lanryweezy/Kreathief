@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 export const CommentsPanel: React.FC = () => {
   const { projects, projectId, resolveCanvasComment, deleteCanvasComment } = useStore();
@@ -123,4 +124,6 @@ export const CommentsPanel: React.FC = () => {
   );
 };
 
-export default CommentsPanel;
+export default function CommentsPanelWrapped() {
+  return <PanelErrorBoundary panelName="Comments"><CommentsPanel /></PanelErrorBoundary>;
+}

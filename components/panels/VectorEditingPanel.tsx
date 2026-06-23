@@ -3,6 +3,7 @@ import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
 import { Button } from '../Button';
 import { VectorPoint, PointType } from '../../types';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 export const VectorEditingPanel: React.FC = () => {
   const selectedLayer = useStore((state) => {
@@ -546,3 +547,7 @@ const PathTransformPanel: React.FC = () => {
     </div>
   );
 };
+
+export default function VectorEditingPanelWrapped() {
+  return <PanelErrorBoundary panelName="VectorEditing"><VectorEditingPanel /></PanelErrorBoundary>;
+}

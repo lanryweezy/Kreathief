@@ -12,6 +12,7 @@ import { TextEffectsPanel } from './TextEffectsPanel';
 import { TextOnPath } from './TextOnPath';
 import { FindReplaceText } from './FindReplaceText';
 import { TextSpacingControls } from './TextSpacingControls';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 const FONT_CATEGORIES = {
   'Sans Serif': [
@@ -666,4 +667,6 @@ export const TextPanel: React.FC = () => {
   );
 };
 
-export default TextPanel;
+export default function TextPanelWrapped() {
+  return <PanelErrorBoundary panelName="Text"><TextPanel /></PanelErrorBoundary>;
+}

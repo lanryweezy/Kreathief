@@ -3,6 +3,7 @@ import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { runAccessibilityAudit } from '../../services/accessibilityService';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 export const AccessibilityPanel: React.FC = () => {
   // Use useShallow to prevent unnecessary re-renders when other store values change
@@ -131,3 +132,7 @@ export const AccessibilityPanel: React.FC = () => {
     </div>
   );
 };
+
+export default function AccessibilityPanelWrapped() {
+  return <PanelErrorBoundary panelName="Accessibility"><AccessibilityPanel /></PanelErrorBoundary>;
+}

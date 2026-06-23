@@ -6,6 +6,7 @@ import { BrushType } from '../../types';
 import { useStore } from '../../store/useStore';
 import { AbrParser } from '../../utils/abrParser';
 import { v4 as uuidv4 } from 'uuid';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 interface DrawPanelProps {
   brushColor: string;
@@ -477,4 +478,6 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
     </div>
   );
 };
-export default DrawPanel;
+export default function DrawPanelWrapped(props: React.ComponentProps<typeof DrawPanel>) {
+  return <PanelErrorBoundary panelName="Draw"><DrawPanel {...props} /></PanelErrorBoundary>;
+}

@@ -3,6 +3,7 @@ import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
 import { smartTemplateService, SmartTemplateSuggestion, TemplateContext } from '../../services/smartTemplateService';
 import { AspectRatio } from '../../types';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 interface SmartTemplatesPanelProps {
   onApplyTemplate?: (templateId: string, variables: Record<string, string>) => void;
@@ -425,4 +426,6 @@ const SearchView: React.FC<{ onSelectTemplate: (s: SmartTemplateSuggestion) => v
   );
 };
 
-export default SmartTemplatesPanel;
+export default function SmartTemplatesPanelWrapped(props: React.ComponentProps<typeof SmartTemplatesPanel>) {
+  return <PanelErrorBoundary panelName="SmartTemplates"><SmartTemplatesPanel {...props} /></PanelErrorBoundary>;
+}

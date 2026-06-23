@@ -6,6 +6,7 @@ import { generateLayerId } from '../../utils/layers/layerUtils';
 import { EmptyState } from '../EmptyState';
 import { log } from '../../utils/log';
 import { parsePsdToLayers } from '../../services/psdService';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 interface UploadsPanelProps {}
 
@@ -225,4 +226,6 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
   );
 };
 
-export default UploadsPanel;
+export default function UploadsPanelWrapped() {
+  return <PanelErrorBoundary panelName="Uploads"><UploadsPanel /></PanelErrorBoundary>;
+}

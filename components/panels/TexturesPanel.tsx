@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 import { heavyWorkerService } from '../../services/heavyWorkerService';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 interface TexturesPanelProps {
   onRemoveTexture: () => void;
@@ -267,4 +268,6 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
   );
 };
 
-export default TexturesPanel;
+export default function TexturesPanelWrapped(props: React.ComponentProps<typeof TexturesPanel>) {
+  return <PanelErrorBoundary panelName="Textures"><TexturesPanel {...props} /></PanelErrorBoundary>;
+}

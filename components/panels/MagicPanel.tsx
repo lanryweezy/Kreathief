@@ -9,6 +9,7 @@ import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
 import { getAIErrorMessage } from '../../utils/errorMessages';
 import { v4 as uuidv4 } from 'uuid';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 interface MagicPanelProps {
   onGenerate: (negPrompt?: string) => void;
@@ -490,4 +491,6 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
     </div>
   );
 };
-export default MagicPanel;
+export default function MagicPanelWrapped(props: React.ComponentProps<typeof MagicPanel>) {
+  return <PanelErrorBoundary panelName="Magic"><MagicPanel {...props} /></PanelErrorBoundary>;
+}

@@ -16,6 +16,7 @@ import { getDefaultCornerPoints, applyCurveToCorners, CornerPoints } from '../..
 
 import { useStore } from '../../store/useStore';
 import { v4 as uuidv4 } from 'uuid';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 interface MockupPanelProps {
   onExportForMockup: () => Promise<string>;
@@ -1844,4 +1845,6 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     </div>
   );
 };
-export default MockupPanel;
+export default function MockupPanelWrapped(props: React.ComponentProps<typeof MockupPanel>) {
+  return <PanelErrorBoundary panelName="Mockup"><MockupPanel {...props} /></PanelErrorBoundary>;
+}

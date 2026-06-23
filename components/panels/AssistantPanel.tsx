@@ -4,6 +4,7 @@ import { useStore } from '../../store/useStore';
 import { VariantCard } from '../agent/VariantCard';
 
 import { Icons as AgentIcons } from '../../constants';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 interface AssistantPanelProps {
   getCanvasSnapshot: () => Promise<string>;
@@ -253,4 +254,6 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
   );
 };
 
-export default AssistantPanel;
+export default function AssistantPanelWrapped(props: React.ComponentProps<typeof AssistantPanel>) {
+  return <PanelErrorBoundary panelName="Assistant"><AssistantPanel {...props} /></PanelErrorBoundary>;
+}

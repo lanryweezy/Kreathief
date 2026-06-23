@@ -6,6 +6,7 @@ import * as photoService from '../../services/photoService';
 import { useStore } from '../../store/useStore';
 import { v4 as uuidv4 } from 'uuid';
 import { log } from '../../utils/log';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 export const BrandPanel = () => {
   const brandKits = useStore((state) => state.brandKits);
@@ -495,4 +496,6 @@ export const BrandPanel = () => {
     </div>
   );
 };
-export default BrandPanel;
+export default function BrandPanelWrapped() {
+  return <PanelErrorBoundary panelName="Brand"><BrandPanel /></PanelErrorBoundary>;
+}

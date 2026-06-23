@@ -25,6 +25,7 @@ const EASING_OPTIONS = [
 ];
 
 import { useStore } from '../../store/useStore';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 interface MotionPanelProps {
   onPreviewMotion?: (settings: AnimationSettings) => void;
@@ -181,3 +182,6 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
   );
   MotionPanel.displayName = 'MotionPanel';
 });
+export default function MotionPanelWrapped(props: React.ComponentProps<typeof MotionPanel>) {
+  return <PanelErrorBoundary panelName="Motion"><MotionPanel {...props} /></PanelErrorBoundary>;
+}

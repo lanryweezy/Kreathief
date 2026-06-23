@@ -4,6 +4,7 @@ import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { ArrangePanel } from './ArrangePanel';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 // LayerItem Component Props
 interface LayerItemProps {
@@ -326,4 +327,6 @@ export const LayersPanel = () => {
   );
 };
 
-export default LayersPanel;
+export default function LayersPanelWrapped() {
+  return <PanelErrorBoundary panelName="Layers"><LayersPanel /></PanelErrorBoundary>;
+}
