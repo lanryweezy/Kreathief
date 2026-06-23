@@ -52,6 +52,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   useEffect(() => {
     loadAllProjects().then(() => setIsLoading(false));
@@ -83,7 +85,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
 
   const handleDuplicate = async (e: React.MouseEvent, project: Project) => {
     e.stopPropagation();
-    await duplicateProject(project);
+    setDuplicatingId(project.id);
+    try {
+      await duplicateProject(project);
+    } finally {
+      setDuplicatingId(null);
+    }
   };
 
   const startRenaming = (e: React.MouseEvent, project: Project) => {
@@ -194,12 +201,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
 
           <div className="h-8 w-px bg-gray-700 mx-2"></div>
 
-          <div className="flex items-center gap-4 group relative">
+          <div
+            className="flex items-center gap-4 group relative"
+            onMouseLeave={() => { if (profileDropdownOpen) setProfileDropdownOpen(false); }}
+            onBlur={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                setProfileDropdownOpen(false);
+              }
+            }}
+          >
             <div className="text-right hidden sm:block">
               <div className="text-xs font-black uppercase tracking-widest text-white">{user.name}</div>
               <div className="text-[9px] text-purple-400 uppercase font-black tracking-widest">{user.plan} Plan</div>
             </div>
-            <div
+            <button
               onClick={() => {
                 const input = document.createElement('input');
                 input.type = 'file';
@@ -220,16 +235,44 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 };
                 input.click();
               }}
-              className="w-10 h-10 rounded-full border-2 border-white/10 group-hover:border-purple-500 transition-colors overflow-hidden p-0.5 cursor-pointer relative"
+              onFocus={() => setProfileDropdownOpen(true)}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  setProfileDropdownOpen(true);
+                }
+                if (e.key === 'Escape') setProfileDropdownOpen(false);
+              }}
+              className="w-10 h-10 rounded-full border-2 border-white/10 group-hover:border-purple-500 focus-visible:border-purple-500 focus-visible:ring-2 focus-visible:ring-purple-500/50 transition-colors overflow-hidden p-0.5 cursor-pointer relative"
               title="Click to update profile image"
+              aria-label="Update profile image"
             >
               <img src={user.avatar} className="w-full h-full rounded-full object-cover" alt="Profile" />
-            </div>
+            </button>
 
-            <div className="absolute right-0 top-full mt-4 w-56 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all transform origin-top-right z-50 p-2">
+            <div
+              className="absolute right-0 top-full mt-4 w-56 bg-[#0a0a0a] border border-white/10 rounded-2xl shadow-2xl z-50 p-2 transition-all transform origin-top-right focus-within:opacity-100"
+              role="menu"
+              aria-label="Profile menu"
+              tabIndex={-1}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') setProfileDropdownOpen(false);
+              }}
+              style={{
+                opacity: profileDropdownOpen ? 1 : 0,
+                pointerEvents: profileDropdownOpen ? 'auto' : 'none',
+                visibility: profileDropdownOpen ? 'visible' : 'hidden',
+              }}
+            >
               <button
-                onClick={onLogout}
-                className="w-full text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-400 hover:bg-red-500/10 rounded-xl flex items-center gap-3 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setProfileDropdownOpen(false);
+                  onLogout();
+                }}
+                onKeyDown={(e) => e.key === 'Enter' && setProfileDropdownOpen(false)}
+                className="w-full text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-400 hover:bg-red-500/10 rounded-xl flex items-center gap-3 transition-colors focus-visible:outline-none focus-visible:bg-red-500/10"
+                role="menuitem"
               >
                 <Icons.MicOff className="w-4 h-4" /> Sign Out
               </button>
@@ -718,9 +761,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                           <button
                             onClick={(e) => handleDuplicate(e, project)}
                             aria-label={`Duplicate ${project.name}`}
-                            className="p-2 bg-black/60 hover:bg-[#00c4cc] text-white rounded-lg backdrop-blur-md transition-all shadow-lg"
+                            disabled={duplicatingId === project.id}
+                            className="p-2 bg-black/60 hover:bg-[#00c4cc] text-white rounded-lg backdrop-blur-md transition-all shadow-lg disabled:opacity-50"
                           >
-                            <Icons.Plus className="w-3.5 h-3.5" />
+                            {duplicatingId === project.id ? (
+                              <div className="animate-spin w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full" />
+                            ) : (
+                              <Icons.Plus className="w-3.5 h-3.5" />
+                            )}
                           </button>
                           <button
                             onClick={(e) => {

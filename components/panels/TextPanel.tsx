@@ -259,14 +259,22 @@ export const TextPanel: React.FC = () => {
       return;
     }
 
+    const validExtensions = ['.otf', '.ttf', '.woff', '.woff2'];
+    const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (!validExtensions.includes(ext)) {
+      addToast(`Unsupported font format "${ext}". Please use OTF, TTF, WOFF, or WOFF2.`, 'error');
+      return;
+    }
+
     try {
       const arrayBuffer = await file.arrayBuffer();
       const fontName = file.name.split('.')[0].replace(/[^a-zA-Z0-9 ]/g, '');
       await registerCustomFont(fontName, arrayBuffer);
       addCustomFont(fontName);
+      addToast(`Font "${fontName}" uploaded successfully!`, 'success');
     } catch (err) {
       log.error('[TextPanel] Font upload failed', err, { fileName: file.name });
-      addToast('Font upload failed.', 'error');
+      addToast(`Font upload failed. The file may be corrupted or invalid.`, 'error');
     }
   };
 
@@ -278,8 +286,10 @@ export const TextPanel: React.FC = () => {
       </h3>
 
       {/* Text Panel Tabs - Row 1 */}
-      <div className="flex gap-1 mb-2 bg-[#0e1318] rounded-lg p-1">
+      <div className="flex gap-1 mb-2 bg-[#0e1318] rounded-lg p-1" role="tablist">
         <button
+          role="tab"
+          aria-selected={activeTextTab === 'add'}
           onClick={() => setActiveTextTab('add')}
           className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
             activeTextTab === 'add'
@@ -290,6 +300,8 @@ export const TextPanel: React.FC = () => {
           Add
         </button>
         <button
+          role="tab"
+          aria-selected={activeTextTab === 'styles'}
           onClick={() => setActiveTextTab('styles')}
           className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
             activeTextTab === 'styles'
@@ -300,6 +312,8 @@ export const TextPanel: React.FC = () => {
           Styles
         </button>
         <button
+          role="tab"
+          aria-selected={activeTextTab === 'gradient'}
           onClick={() => setActiveTextTab('gradient')}
           className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
             activeTextTab === 'gradient'
@@ -310,6 +324,8 @@ export const TextPanel: React.FC = () => {
           Gradient
         </button>
         <button
+          role="tab"
+          aria-selected={activeTextTab === 'effects'}
           onClick={() => setActiveTextTab('effects')}
           className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
             activeTextTab === 'effects'
@@ -322,8 +338,10 @@ export const TextPanel: React.FC = () => {
       </div>
 
       {/* Text Panel Tabs - Row 2 */}
-      <div className="flex gap-1 mb-4 bg-[#0e1318] rounded-lg p-1">
+      <div className="flex gap-1 mb-4 bg-[#0e1318] rounded-lg p-1" role="tablist">
         <button
+          role="tab"
+          aria-selected={activeTextTab === 'path'}
           onClick={() => setActiveTextTab('path')}
           className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
             activeTextTab === 'path'
@@ -334,6 +352,8 @@ export const TextPanel: React.FC = () => {
           Path
         </button>
         <button
+          role="tab"
+          aria-selected={activeTextTab === 'find'}
           onClick={() => setActiveTextTab('find')}
           className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
             activeTextTab === 'find'
@@ -344,6 +364,8 @@ export const TextPanel: React.FC = () => {
           Find
         </button>
         <button
+          role="tab"
+          aria-selected={activeTextTab === 'spacing'}
           onClick={() => setActiveTextTab('spacing')}
           className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
             activeTextTab === 'spacing'
@@ -380,6 +402,55 @@ export const TextPanel: React.FC = () => {
             >
               <span className="text-sm text-gray-300">Add a little bit of body text</span>
             </button>
+          </div>
+
+          {/* AI Text Generation */}
+          <div className="mb-6 p-3 bg-[#1e1e1e] border border-gray-700/50 rounded-xl">
+            <div className="flex items-center gap-2 mb-2">
+              <Icons.Magic className="w-4 h-4 text-[#7d2ae8]" />
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">AI Text Generator</span>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Describe what you want to write..."
+                value={textGenPrompt}
+                onChange={(e) => setTextGenPrompt(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleMagicText()}
+                className="flex-1 bg-[#0e1318] border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:border-[#7d2ae8] focus:outline-none"
+              />
+              <button
+                onClick={handleMagicText}
+                disabled={isGeneratingText || !textGenPrompt.trim()}
+                className="px-3 py-2 bg-[#7d2ae8] hover:bg-[#6c1fd1] text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50 flex items-center gap-1.5 shrink-0"
+              >
+                {isGeneratingText ? (
+                  <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full" />
+                ) : (
+                  <Icons.Magic className="w-3 h-3" />
+                )}
+                Generate
+              </button>
+            </div>
+            {isGeneratingText && (
+              <div className="mt-2 flex items-center gap-2 text-[10px] text-[#7d2ae8]">
+                <div className="animate-spin w-3 h-3 border-2 border-[#7d2ae8] border-t-transparent rounded-full" />
+                <span>AI is generating text options...</span>
+              </div>
+            )}
+            {textGenResults.length > 0 && !isGeneratingText && (
+              <div className="mt-3 space-y-1.5">
+                {textGenResults.map((result, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleAddText({ text: result, fontSize: 24, fontWeight: '400' })}
+                    className="w-full text-left px-3 py-2 bg-[#0e1318] border border-gray-700/50 rounded-lg text-xs text-gray-300 hover:border-[#7d2ae8] hover:text-white transition-all"
+                  >
+                    {result}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 pb-10">
@@ -668,5 +739,9 @@ export const TextPanel: React.FC = () => {
 };
 
 export default function TextPanelWrapped() {
-  return <PanelErrorBoundary panelName="Text"><TextPanel /></PanelErrorBoundary>;
+  return (
+    <PanelErrorBoundary panelName="Text">
+      <TextPanel />
+    </PanelErrorBoundary>
+  );
 }

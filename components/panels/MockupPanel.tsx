@@ -90,6 +90,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   const [batchMode, setBatchMode] = useState(false);
   const [selectedMockupIds, setSelectedMockupIds] = useState<string[]>([]);
   const [isBatchGenerating, setIsBatchGenerating] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0, name: '' });
 
   // Favorites
   const [favoriteMockups, setFavoriteMockups] = useState<string[]>(() => {
@@ -330,6 +331,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     }
 
     setIsBatchGenerating(true);
+    setBatchProgress({ current: 0, total: selectedMockupIds.length, name: '' });
     addToast(`Generating ${selectedMockupIds.length} mockups...`, 'info');
 
     try {
@@ -338,11 +340,14 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
         throw new Error('Failed to capture design');
       }
 
-      for (const mockupId of selectedMockupIds) {
+      for (let i = 0; i < selectedMockupIds.length; i++) {
+        const mockupId = selectedMockupIds[i];
         const mockup = getMockupById(mockupId);
         if (!mockup) {
           continue;
         }
+
+        setBatchProgress({ current: i + 1, total: selectedMockupIds.length, name: mockup.name });
 
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -866,6 +871,20 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                 <p className="text-[9px] text-[#7d2ae8] font-bold mb-2">
                   📦 Batch Mode: Select multiple mockups to generate
                 </p>
+                {isBatchGenerating && (
+                  <div className="mb-2">
+                    <div className="flex justify-between text-[9px] text-gray-400 mb-1">
+                      <span>{batchProgress.name || 'Preparing...'}</span>
+                      <span>{batchProgress.current}/{batchProgress.total}</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-[#1e1e1e] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[#7d2ae8] rounded-full transition-all duration-300"
+                        style={{ width: `${(batchProgress.current / batchProgress.total) * 100 || 0}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
                 <button
                   onClick={generateBatchMockups}
                   disabled={selectedMockupIds.length === 0 || isBatchGenerating}
@@ -1063,9 +1082,10 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                   <div
                     className="absolute inset-y-0 w-1 bg-[#7d2ae8] cursor-ew-resize shadow-[0_0_20px_rgba(125,42,232,0.5)]"
                     style={{ left: `${comparisonPosition}%` }}
-                    onMouseDown={(e) => {
-                      const handleMove = (moveEvent: MouseEvent) => {
-                        const rect = e.currentTarget?.parentElement?.getBoundingClientRect();
+                    onPointerDown={(e) => {
+                      e.currentTarget.setPointerCapture(e.pointerId);
+                      const handleMove = (moveEvent: PointerEvent) => {
+                        const rect = (moveEvent.currentTarget as HTMLElement)?.parentElement?.getBoundingClientRect();
                         if (rect) {
                           const x = moveEvent.clientX - rect.left;
                           const newPos = Math.max(0, Math.min(100, (x / rect.width) * 100));
@@ -1073,11 +1093,11 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                         }
                       };
                       const handleUp = () => {
-                        document.removeEventListener('mousemove', handleMove);
-                        document.removeEventListener('mouseup', handleUp);
+                        document.removeEventListener('pointermove', handleMove);
+                        document.removeEventListener('pointerup', handleUp);
                       };
-                      document.addEventListener('mousemove', handleMove);
-                      document.addEventListener('mouseup', handleUp);
+                      document.addEventListener('pointermove', handleMove);
+                      document.addEventListener('pointerup', handleUp);
                     }}
                   >
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-[#7d2ae8] rounded-full flex items-center justify-center shadow-lg">
