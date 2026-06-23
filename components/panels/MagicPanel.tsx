@@ -94,6 +94,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
     aspectRatio,
     setAspectRatio,
     isProcessing,
+    isGenerating,
     addToast,
     quality,
     setQuality,
@@ -418,6 +419,18 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           <Icons.Magic className="w-4 h-4 mr-2" />
           {getButtonLabel()}
         </Button>
+
+        {isGenerating && (
+          <div className="space-y-3 pt-4 animate-pulse">
+            <div className="h-3 bg-white/5 rounded w-1/4" />
+            <div className="aspect-video bg-white/5 rounded-2xl" />
+            <div className="flex gap-2">
+              <div className="h-8 bg-white/5 rounded-lg flex-1" />
+              <div className="h-8 bg-white/5 rounded-lg flex-1" />
+              <div className="h-8 bg-white/5 rounded-lg flex-1" />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Generation History Strip */}
@@ -492,5 +505,9 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
   );
 };
 export default function MagicPanelWrapped(props: React.ComponentProps<typeof MagicPanel>) {
-  return <PanelErrorBoundary panelName="Magic"><MagicPanel {...props} /></PanelErrorBoundary>;
+  return (
+    <PanelErrorBoundary panelName="Magic">
+      <MagicPanel {...props} />
+    </PanelErrorBoundary>
+  );
 }

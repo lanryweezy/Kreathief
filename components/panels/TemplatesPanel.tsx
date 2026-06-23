@@ -294,46 +294,46 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
             {/* Starter Templates */}
             <div data-testid="template-panel-grid">
               {starterTemplates.length > 0 ? (
-              <>
-                <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Professional Templates</h4>
-                <div className="grid grid-cols-1 gap-4">
-                  {starterTemplates.map((tmpl) => (
-                    <button
-                      key={tmpl.id}
-                      data-testid={`template-panel-btn-${tmpl.id}`}
-                      onClick={() => {
-                        if (!onApplyTemplate) {
-                          return;
-                        }
-                        const proceed =
-                          !showReplaceWarning ||
-                          (typeof window !== 'undefined' && (window as any).VITE_QA_BYPASS) ||
-                          window.confirm('Apply template? This will replace your current design.');
-                        if (proceed) {
-                          onApplyTemplate(tmpl.id, showReplaceWarning);
-                        }
-                      }}
-                      className="cursor-pointer group relative aspect-video rounded-lg overflow-hidden bg-[#1e1e1e] border border-gray-700 hover:border-[#7d2ae8] transition-all shadow-lg text-left"
-                    >
-                      <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                        <Icons.Layout className="w-12 h-12" />
-                      </div>
-                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
-                      <div className="absolute bottom-0 left-0 right-0 p-3 bg-black/60 backdrop-blur-sm flex items-center justify-between">
-                        <span className="font-semibold text-xs text-white truncate">{tmpl.name}</span>
-                        <span className="text-[9px] text-gray-400">
-                          {tmpl.size.width}×{tmpl.size.height}
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </>
+                <>
+                  <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Professional Templates</h4>
+                  <div className="grid grid-cols-1 gap-4">
+                    {starterTemplates.map((tmpl) => (
+                      <button
+                        key={tmpl.id}
+                        data-testid={`template-panel-btn-${tmpl.id}`}
+                        onClick={() => {
+                          if (!onApplyTemplate) {
+                            return;
+                          }
+                          const proceed =
+                            !showReplaceWarning ||
+                            (typeof window !== 'undefined' && (window as any).VITE_QA_BYPASS) ||
+                            window.confirm('Apply template? This will replace your current design.');
+                          if (proceed) {
+                            onApplyTemplate(tmpl.id, showReplaceWarning);
+                          }
+                        }}
+                        className="cursor-pointer group relative aspect-video rounded-lg overflow-hidden bg-[#1e1e1e] border border-gray-700 hover:border-[#7d2ae8] transition-all shadow-lg text-left"
+                      >
+                        <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                          <Icons.Layout className="w-12 h-12" />
+                        </div>
+                        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
+                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-black/60 backdrop-blur-sm flex items-center justify-between">
+                          <span className="font-semibold text-xs text-white truncate">{tmpl.name}</span>
+                          <span className="text-[9px] text-gray-400">
+                            {tmpl.size.width}×{tmpl.size.height}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </>
               ) : (
-              <div className="text-center py-8 border-2 border-dashed border-gray-800 rounded-2xl">
-                <Icons.Search className="w-8 h-8 text-gray-700 mx-auto mb-2" />
-                <p className="text-gray-500 text-xs font-bold">No templates match your search</p>
-              </div>
+                <div className="text-center py-8 border-2 border-dashed border-gray-800 rounded-2xl">
+                  <Icons.Search className="w-8 h-8 text-gray-700 mx-auto mb-2" />
+                  <p className="text-gray-500 text-xs font-bold">No templates match your search</p>
+                </div>
               )}
             </div>
           </>
@@ -346,7 +346,20 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
             </h4>
 
             <div className="grid grid-cols-1 gap-4">
-              {communityTemplates.map((tmpl) => (
+              {isLoadingCommunity && [1, 2, 3].map((i) => (
+                <div key={`skel-${i}`} className="animate-pulse bg-[#1e1e1e] border border-gray-800 rounded-xl overflow-hidden">
+                  <div className="aspect-video bg-white/5" />
+                  <div className="p-3 space-y-2">
+                    <div className="h-4 bg-white/5 rounded w-2/3" />
+                    <div className="h-3 bg-white/5 rounded w-1/3" />
+                    <div className="flex justify-between border-t border-white/5 pt-2 mt-2">
+                      <div className="h-3 bg-white/5 rounded w-1/4" />
+                      <div className="h-3 bg-white/5 rounded w-1/6" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {!isLoadingCommunity && communityTemplates.map((tmpl) => (
                 <div
                   key={tmpl.id}
                   onClick={() => handleApplyCommunity(tmpl)}
@@ -408,5 +421,9 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
 };
 
 export default function TemplatesPanelWrapped(props: React.ComponentProps<typeof TemplatesPanel>) {
-  return <PanelErrorBoundary panelName="Templates"><TemplatesPanel {...props} /></PanelErrorBoundary>;
+  return (
+    <PanelErrorBoundary panelName="Templates">
+      <TemplatesPanel {...props} />
+    </PanelErrorBoundary>
+  );
 }

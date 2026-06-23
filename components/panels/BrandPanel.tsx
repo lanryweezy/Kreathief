@@ -58,7 +58,13 @@ export const BrandPanel = () => {
   const [newFonts, setNewFonts] = useState<string[]>(['Space Grotesk', 'Inter']);
   const [newLogos, setNewLogos] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [kitsLoaded, setKitsLoaded] = useState(false);
   const importInputRef = useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    const t = setTimeout(() => setKitsLoaded(true), 400);
+    return () => clearTimeout(t);
+  }, []);
 
   const handleCreate = () => {
     if (!newKitName.trim()) {
@@ -358,7 +364,17 @@ export const BrandPanel = () => {
       )}
 
       <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar pb-10">
-        {brandKits.length === 0 && !isCreating ? (
+        {!kitsLoaded ? (
+          <div className="space-y-4 animate-pulse">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-[#1e1e1e] border border-gray-700 rounded-lg p-3 space-y-3">
+                <div className="h-4 bg-white/5 rounded w-1/2" />
+                <div className="flex gap-1.5">{[1, 2, 3, 4].map((j) => <div key={j} className="w-5 h-5 rounded-full bg-white/5" />)}</div>
+                <div className="h-16 bg-white/5 rounded" />
+              </div>
+            ))}
+          </div>
+        ) : brandKits.length === 0 && !isCreating ? (
           <div className="text-center text-gray-500 mt-10">
             <div className="w-16 h-16 rounded-full bg-[#1e1e1e] flex items-center justify-center mx-auto mb-4">
               <Icons.Brand className="w-8 h-8 opacity-30" />
@@ -497,5 +513,9 @@ export const BrandPanel = () => {
   );
 };
 export default function BrandPanelWrapped() {
-  return <PanelErrorBoundary panelName="Brand"><BrandPanel /></PanelErrorBoundary>;
+  return (
+    <PanelErrorBoundary panelName="Brand">
+      <BrandPanel />
+    </PanelErrorBoundary>
+  );
 }
