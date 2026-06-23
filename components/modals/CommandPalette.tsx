@@ -461,13 +461,18 @@ export const CommandPalette: React.FC = () => {
     <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-[15vh] bg-black/60 backdrop-blur-md p-4">
       <div className="absolute inset-0" onClick={() => setOpen(false)} />
 
-      <div className="relative w-full max-w-xl bg-[#0a0a0c] border border-white/10 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden animate-fade-in flex flex-col">
+      <div role="dialog" aria-modal="true" className="relative w-full max-w-xl bg-[#0a0a0c] border border-white/10 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden animate-fade-in flex flex-col">
         {/* Search Input */}
         <div className="flex items-center px-5 py-4 border-b border-white/5 bg-white/5">
           <Icons.Search className="w-5 h-5 text-gray-400 mr-4" />
           <input
             ref={inputRef}
             type="text"
+            role="combobox"
+            aria-activedescendant={`cmd-option-${selectedIndex}`}
+            aria-autocomplete="list"
+            aria-controls="command-palette-listbox"
+            data-command-palette-focusable
             className="flex-1 bg-transparent text-white text-lg outline-none placeholder-gray-600 font-medium"
             placeholder="Type a command or search assets..."
             aria-label="Search commands and assets"
@@ -484,7 +489,7 @@ export const CommandPalette: React.FC = () => {
         </div>
 
         {/* Results */}
-        <div className="max-h-[60vh] overflow-y-auto no-scrollbar p-2 bg-[#0e1318]">
+        <div id="command-palette-listbox" role="listbox" className="max-h-[60vh] overflow-y-auto no-scrollbar p-2 bg-[#0e1318]">
           {allResults.length === 0 ? (
             <div className="px-4 py-12 text-center">
               <Icons.Search className="w-12 h-12 text-gray-800 mx-auto mb-3" />
@@ -498,6 +503,10 @@ export const CommandPalette: React.FC = () => {
                 return (
                   <button
                     key={cmd.id}
+                    role="option"
+                    id={`cmd-option-${index}`}
+                    aria-selected={isSelected}
+                    data-command-palette-focusable
                     onMouseEnter={() => setSelectedIndex(index)}
                     onClick={() => {
                       cmd.action();
@@ -546,6 +555,10 @@ export const CommandPalette: React.FC = () => {
                       return (
                         <button
                           key={cmd.id}
+                          role="option"
+                          id={`cmd-option-${index}`}
+                          aria-selected={isSelected}
+                          data-command-palette-focusable
                           onMouseEnter={() => setSelectedIndex(index)}
                           onClick={() => {
                             cmd.action();
