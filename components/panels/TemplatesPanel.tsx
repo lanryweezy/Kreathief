@@ -23,6 +23,7 @@ const DESIGN_CATEGORIES = [
   { id: 'Business', label: 'Business', icon: Icons.Briefcase, color: 'from-blue-600 to-indigo-700' },
   { id: 'Video', label: 'Video & Thumbnails', icon: Icons.Monitor, color: 'from-red-500 to-orange-600' },
   { id: 'Personal', label: 'Personal', icon: Icons.User, color: 'from-green-500 to-emerald-600' },
+  { id: 'African Market', label: 'African Market', icon: Icons.Globe, color: 'from-amber-500 to-orange-600' },
 ];
 
 const THEMES = [
