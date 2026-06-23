@@ -50,6 +50,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
   const [isCopying, setIsCopying] = useState(false);
   const [exportStage, setExportStage] = useState<string>('');
   const [exportScale, setExportScale] = useState<number>(1);
+  const [exportProgress, setExportProgress] = useState(0);
   // 🌸 Bloom: Ensure default export filenames strictly adhere to safe character limits and fallback gracefully
   const sanitizeFilename = (name: string) =>
     name
@@ -64,6 +65,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         ? sanitizeFilename(currentSize.name)
         : 'design'
   );
+
+  const [filenameFeedback, setFilenameFeedback] = useState<string>('');
 
   // CMYK Print export options
   const [isPrintMode, setIsPrintMode] = useState(false);
@@ -208,6 +211,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       return;
     }
     setIsExporting(true);
+    setExportProgress(0);
     let successCount = 0;
     const failedArtboards: string[] = [];
 
@@ -216,7 +220,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         const ab = artboards[i];
         const label = ab.name || `Artboard ${i + 1}`;
         const safeFilename = sanitizeFilename(label);
-        setExportStage(`Exporting "${label}" (${i + 1}/${artboards.length})...`);
+        const progressPercent = Math.round(((i + 1) / artboards.length) * 100);
+        setExportStage(`Exporting "${label}" (${i + 1}/${artboards.length}) — ${progressPercent}%`);
+        setExportProgress(progressPercent);
 
         // Switch to this artboard so the canvas snapshot picks it up
         useStore.getState().setActiveArtboardId(ab.id);
@@ -278,6 +284,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     } finally {
       setIsExporting(false);
       setExportStage('');
+      setExportProgress(0);
     }
   };
 
@@ -720,13 +727,24 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                   id="export-filename"
                   type="text"
                   value={filename}
-                  onChange={(e) => setFilename(e.target.value.replace(/[^a-zA-Z0-9_\-\s]/g, ''))}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    const sanitized = raw.replace(/[^a-zA-Z0-9_\-\s]/g, '');
+                    if (raw !== sanitized) {
+                      setFilenameFeedback('Some characters were removed');
+                      setTimeout(() => setFilenameFeedback(''), 2000);
+                    }
+                    setFilename(sanitized);
+                  }}
                   className="flex-1 bg-black/40 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-[#7d2ae8] outline-none transition-colors"
                   placeholder="design-name"
                   autoFocus
                 />
                 <span className="text-gray-500 text-sm font-mono">.{format}</span>
               </div>
+              {filenameFeedback && (
+                <p className="text-[10px] text-amber-400 mt-1 font-medium animate-pulse">{filenameFeedback}</p>
+              )}
             </div>
 
             {/* Scale Multiplier */}
@@ -842,7 +860,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                       <span className="text-sm font-black uppercase tracking-widest text-[#00c4cc]">{exportStage}</span>
                     </div>
                     <div className="w-48 h-1 bg-gray-700 rounded-full mt-2 overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] animate-progress-ind"></div>
+                      <div
+                        className="h-full bg-gradient-to-r from-[#00c4cc] to-[#7d2ae8] transition-all duration-300"
+                        style={{ width: `${exportProgress || 100}%` }}
+                      />
                     </div>
                   </>
                 ) : (

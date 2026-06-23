@@ -132,7 +132,7 @@ const LayerItem = React.memo(
             </div>
           </div>
 
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
             <button
               aria-label={layer.visible ? 'Hide layer' : 'Show layer'}
               onClick={(e) => {
@@ -301,21 +301,63 @@ export const LayersPanel = () => {
       >
         {activeTab === 'layers' ? (
           <div className="flex flex-col">
-            {[...layers].reverse().map((layer, index) => (
-              <LayerItem
-                key={layer.id}
-                layer={layer}
-                index={index}
-                isSelected={selectedLayerIds.includes(layer.id)}
-                onSelect={() => selectLayer(layer.id)}
-                onSelectMultiple={() => multiSelectLayer(layer.id, true)}
-                onUpdate={(c) => updateLayer(layer.id, c)}
-                onDelete={() => deleteLayer(layer.id)}
-                onDrop={(id, target, pos) =>
-                  reorderLayer(id, layers.findIndex((l) => l.id === target) + (pos === 'above' ? 1 : 0))
-                }
-              />
-            ))}
+            {layers.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                <div className="w-14 h-14 rounded-full bg-[#1e1e1e] flex items-center justify-center mb-3">
+                  <Icons.Layers className="w-7 h-7 text-gray-600" />
+                </div>
+                <h4 className="text-xs font-bold text-gray-400 mb-1">No Layers Yet</h4>
+                <p className="text-[10px] text-gray-500 max-w-[180px]">
+                  Add text, shapes, or images to start creating.
+                </p>
+              </div>
+            ) : (
+              [...layers].reverse().map((layer, index) => (
+                <LayerItem
+                  key={layer.id}
+                  layer={layer}
+                  index={index}
+                  isSelected={selectedLayerIds.includes(layer.id)}
+                  onSelect={() => selectLayer(layer.id)}
+                  onSelectMultiple={() => multiSelectLayer(layer.id, true)}
+                  onUpdate={(c) => updateLayer(layer.id, c)}
+                  onDelete={() => deleteLayer(layer.id)}
+                  onDrop={(id, target, pos) =>
+                    reorderLayer(id, layers.findIndex((l) => l.id === target) + (pos === 'above' ? 1 : 0))
+                  }
+                />
+              ))
+            )}
+            {selectedLayerIds.length === 1 && layers.length > 1 && (
+              <div className="flex items-center justify-center gap-2 px-4 py-3 border-t border-white/[0.03]">
+                <button
+                  onClick={() => {
+                    const idx = layers.findIndex((l) => l.id === selectedLayerIds[0]);
+                    if (idx < layers.length - 1) {
+                      reorderLayer(selectedLayerIds[0], idx + 1);
+                    }
+                  }}
+                  className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold text-gray-400 hover:text-white bg-[#1e1e1e] hover:bg-[#252627] border border-gray-700 rounded-lg transition-all"
+                  title="Move layer up"
+                >
+                  <Icons.ArrowUp className="w-3 h-3" />
+                  Up
+                </button>
+                <button
+                  onClick={() => {
+                    const idx = layers.findIndex((l) => l.id === selectedLayerIds[0]);
+                    if (idx > 0) {
+                      reorderLayer(selectedLayerIds[0], idx - 1);
+                    }
+                  }}
+                  className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-bold text-gray-400 hover:text-white bg-[#1e1e1e] hover:bg-[#252627] border border-gray-700 rounded-lg transition-all"
+                  title="Move layer down"
+                >
+                  <Icons.ArrowDown className="w-3 h-3" />
+                  Down
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="h-full">
@@ -328,5 +370,9 @@ export const LayersPanel = () => {
 };
 
 export default function LayersPanelWrapped() {
-  return <PanelErrorBoundary panelName="Layers"><LayersPanel /></PanelErrorBoundary>;
+  return (
+    <PanelErrorBoundary panelName="Layers">
+      <LayersPanel />
+    </PanelErrorBoundary>
+  );
 }

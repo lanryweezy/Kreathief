@@ -139,6 +139,7 @@ export const Header: React.FC<HeaderProps> = ({
             className={`p-1.5 rounded-md transition-all ${canUndo ? 'text-gray-300 hover:bg-white/5 hover:text-white' : 'text-gray-600 cursor-not-allowed'}`}
             title="Undo (Ctrl+Z)"
             aria-label="Undo last action"
+            aria-keyshortcuts="Control+z"
           >
             <Icons.Undo className="w-3.5 h-3.5" />
           </button>
@@ -148,6 +149,7 @@ export const Header: React.FC<HeaderProps> = ({
             className={`p-1.5 rounded-md transition-all ${canRedo ? 'text-gray-300 hover:bg-white/5 hover:text-white' : 'text-gray-600 cursor-not-allowed'}`}
             title="Redo (Ctrl+Y)"
             aria-label="Redo last action"
+            aria-keyshortcuts="Control+y"
           >
             <Icons.Redo className="w-3.5 h-3.5" />
           </button>
@@ -229,7 +231,7 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         {user && (
-          <div
+          <button
             onClick={() => {
               const input = document.createElement('input');
               input.type = 'file';
@@ -252,9 +254,10 @@ export const Header: React.FC<HeaderProps> = ({
             }}
             className="w-7 h-7 rounded-full border border-gray-700 flex items-center justify-center overflow-hidden shadow-sm hover:border-[#7d2ae8] transition-colors cursor-pointer relative"
             title="Click to update profile image"
+            aria-label="Update profile image"
           >
             <img src={user.avatar} className="w-full h-full object-cover" alt={user.name} />
-          </div>
+          </button>
         )}
       </div>
 

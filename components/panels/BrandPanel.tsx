@@ -7,6 +7,7 @@ import { useStore } from '../../store/useStore';
 import { v4 as uuidv4 } from 'uuid';
 import { log } from '../../utils/log';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const BrandPanel = () => {
   const brandKits = useStore((state) => state.brandKits);
@@ -59,6 +60,7 @@ export const BrandPanel = () => {
   const [newLogos, setNewLogos] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [kitsLoaded, setKitsLoaded] = useState(false);
+  const [confirmDeleteKitId, setConfirmDeleteKitId] = useState<string | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
@@ -399,7 +401,7 @@ export const BrandPanel = () => {
             >
               <div className="flex justify-between items-start mb-3">
                 <h4 className="font-bold text-sm text-white">{kit.name}</h4>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex gap-1">
                   <button
                     data-testid="export-brand-kit-btn"
                     onClick={() => handleExportKit(kit)}
@@ -411,7 +413,7 @@ export const BrandPanel = () => {
                   </button>
                   <button
                     data-testid="delete-brand-kit-btn"
-                    onClick={() => onDeleteBrandKit(kit.id)}
+                    onClick={() => setConfirmDeleteKitId(kit.id)}
                     className="text-gray-500 hover:text-red-400 p-1"
                     title="Delete Kit"
                     aria-label="Delete Brand Kit"
@@ -509,6 +511,55 @@ export const BrandPanel = () => {
           ))
         )}
       </div>
+
+      {/* Delete Brand Kit Confirmation Dialog */}
+      <AnimatePresence>
+        {confirmDeleteKitId && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-6"
+            onClick={() => setConfirmDeleteKitId(null)}
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="relative bg-[#1a1d21] border border-white/10 rounded-2xl p-6 w-full max-w-[280px] shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                  <Icons.Trash className="w-5 h-5 text-red-500" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white">Delete Brand Kit?</h4>
+                  <p className="text-[11px] text-gray-400">This action cannot be undone.</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setConfirmDeleteKitId(null)}
+                  className="flex-1 py-2.5 text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    onDeleteBrandKit(confirmDeleteKitId);
+                    setConfirmDeleteKitId(null);
+                  }}
+                  className="flex-1 py-2.5 text-xs font-bold text-white bg-red-500 hover:bg-red-400 rounded-xl transition-all"
+                >
+                  Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

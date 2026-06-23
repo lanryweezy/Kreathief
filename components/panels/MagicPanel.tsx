@@ -189,12 +189,13 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           </div>
 
           <div className="relative group">
-            <textarea
-              className="w-full h-40 bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-white placeholder-gray-600 focus:border-[#7d2ae8]/50 focus:ring-1 focus:ring-[#7d2ae8]/20 outline-none resize-none custom-scrollbar transition-all font-medium"
-              placeholder="E.g., Turn the cat into a dog, Change the background to a beach..."
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-            />
+          <textarea
+            className="w-full h-40 bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-white placeholder-gray-600 focus:border-[#7d2ae8]/50 focus:ring-1 focus:ring-[#7d2ae8]/20 outline-none resize-none custom-scrollbar transition-all font-medium"
+            placeholder="E.g., Turn the cat into a dog, Change the background to a beach..."
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            maxLength={500}
+          />
             <button
               onClick={handleEnhancePrompt}
               disabled={isEnhancing || !prompt.trim()}
@@ -275,13 +276,14 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
             placeholder={mode === AppMode.GENERATE ? 'A futuristic city with flying cars...' : 'Describe changes...'}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
+            maxLength={500}
           />
           <button
             onClick={handleEnhancePrompt}
             disabled={isEnhancing || !prompt.trim()}
             className="absolute bottom-3 right-3 text-[11px] font-black uppercase tracking-widest bg-black/80 backdrop-blur-md border border-white/10 text-purple-400 px-4 py-2 rounded-xl flex items-center gap-2 hover:bg-[#7d2ae8]/20 hover:border-purple-500/30 transition-all shadow-2xl"
           >
-            {isProcessing ? (
+            {isEnhancing ? (
               <div className="animate-spin w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full" />
             ) : (
               <Icons.Sparkles className="w-3.5 h-3.5" />
@@ -485,6 +487,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                 analyticsService.track('generate_image', { mode: 'apply_style', style: item.name });
               }}
               className="group relative h-20 rounded-2xl overflow-hidden hover:scale-[1.05] transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/20 active:scale-95"
+              aria-label={`Apply ${item.name} style preset`}
             >
               {/* Gradient background as visual preview */}
               <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-80`} />

@@ -7,6 +7,7 @@ import { useStore } from '../../store/useStore';
 import { AbrParser } from '../../utils/abrParser';
 import { v4 as uuidv4 } from 'uuid';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface DrawPanelProps {
   brushColor: string;
@@ -104,6 +105,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
   onFinishDrawing,
 }) => {
   const [recentColors, setRecentColors] = useState<string[]>([]);
+  const [confirmDialog, setConfirmDialog] = useState<{ brushType: BrushType } | null>(null);
   const customBrushes = useStore((state) => state.customBrushes) || [];
   const addCustomBrushes = useStore((state) => state.addCustomBrushes);
   const selectedCustomBrushId = useStore((state) => state.selectedCustomBrushId);
@@ -294,11 +296,14 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
             <button
               key={type.id}
               onClick={() => {
-                setBrushType(type.id);
-                setSelectedCustomBrushId(null);
-                setIsDrawing(true);
+                if (!isDrawing) {
+                  setConfirmDialog({ brushType: type.id });
+                } else {
+                  setBrushType(type.id);
+                  setSelectedCustomBrushId(null);
+                }
               }}
-              className={`relative h-14 p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id && !selectedCustomBrushId ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white ring-1 ring-[#7d2ae8]' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
+              className={`relative min-h-[44px] p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id && !selectedCustomBrushId ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white ring-1 ring-[#7d2ae8]' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
             >
               <svg
                 className={`absolute top-0 right-0 w-full h-full opacity-40 pointer-events-none ${type.color}`}
@@ -319,11 +324,14 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
             <button
               key={type.id}
               onClick={() => {
-                setBrushType(type.id);
-                setSelectedCustomBrushId(null);
-                setIsDrawing(true);
+                if (!isDrawing) {
+                  setConfirmDialog({ brushType: type.id });
+                } else {
+                  setBrushType(type.id);
+                  setSelectedCustomBrushId(null);
+                }
               }}
-              className={`relative h-14 p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id && !selectedCustomBrushId ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white ring-1 ring-[#7d2ae8]' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
+              className={`relative min-h-[44px] p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id && !selectedCustomBrushId ? 'bg-[#7d2ae8]/20 border-[#7d2ae8] text-white ring-1 ring-[#7d2ae8]' : 'bg-[#252627] border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
             >
               <svg
                 className="absolute top-0 right-0 w-full h-full opacity-30 pointer-events-none text-white"
@@ -475,9 +483,64 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Confirmation Dialog for Switching Drawing Mode */}
+      <AnimatePresence>
+        {confirmDialog && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-6"
+            onClick={() => setConfirmDialog(null)}
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="relative bg-[#1a1d21] border border-white/10 rounded-2xl p-6 w-full max-w-[280px] shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
+                  <Icons.Brush className="w-5 h-5 text-[#7d2ae8]" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white">Start Drawing?</h4>
+                  <p className="text-[11px] text-gray-400">This will activate drawing mode.</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setConfirmDialog(null)}
+                  className="flex-1 py-2.5 text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setBrushType(confirmDialog.brushType);
+                    setSelectedCustomBrushId(null);
+                    setIsDrawing(true);
+                    setConfirmDialog(null);
+                  }}
+                  className="flex-1 py-2.5 text-xs font-bold text-white bg-[#7d2ae8] hover:bg-[#6b23c5] rounded-xl transition-all"
+                >
+                  Start
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 export default function DrawPanelWrapped(props: React.ComponentProps<typeof DrawPanel>) {
-  return <PanelErrorBoundary panelName="Draw"><DrawPanel {...props} /></PanelErrorBoundary>;
+  return (
+    <PanelErrorBoundary panelName="Draw">
+      <DrawPanel {...props} />
+    </PanelErrorBoundary>
+  );
 }

@@ -13,6 +13,7 @@ interface MobileToolbarProps {
 
 export const MobileToolbar: React.FC<MobileToolbarProps> = ({ onAddText, onAddShape, onAddImage, onDraw }) => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [showClearDialog, setShowClearDialog] = useState(false);
   const setCommandPaletteOpen = useStore((state) => state.setCommandPaletteOpen);
   const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
   const moveLayer = useStore((state) => state.moveLayer);
@@ -134,9 +135,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({ onAddText, onAddSh
           <button
             onClick={() => {
               haptics.heavy();
-              if (confirm('Clear all layers?')) {
-                useStore.getState().setLayers([]);
-              }
+              setShowClearDialog(true);
             }}
             aria-label="Clear all layers"
             className="flex flex-col items-center justify-center gap-1 min-w-[64px] h-14 text-red-500/50 active:text-red-500 transition-colors"
@@ -146,6 +145,56 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({ onAddText, onAddSh
           </button>
         </div>
       </div>
+
+      {/* Clear All Confirmation Dialog */}
+      <AnimatePresence>
+        {showClearDialog && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-6"
+            onClick={() => setShowClearDialog(false)}
+          >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="relative bg-[#1a1d21] border border-white/10 rounded-2xl p-6 w-full max-w-[280px] shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                  <Icons.Trash className="w-5 h-5 text-red-500" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white">Clear All Layers?</h4>
+                  <p className="text-[11px] text-gray-400">This cannot be undone.</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowClearDialog(false)}
+                  className="flex-1 py-2.5 text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    haptics.success();
+                    useStore.getState().setLayers([]);
+                    setShowClearDialog(false);
+                  }}
+                  className="flex-1 py-2.5 text-xs font-bold text-white bg-red-500 hover:bg-red-400 rounded-xl transition-all"
+                >
+                  Clear All
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Expanded Category Submenu */}
       <AnimatePresence>
@@ -165,7 +214,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({ onAddText, onAddSh
                     onAddShape(shape.type);
                     setActiveCategory(null);
                   }}
-                  className="flex flex-col items-center justify-center gap-2 h-20 rounded-xl bg-white/5 border border-white/5 active:bg-[#7d2ae8] active:border-[#7d2ae8] transition-all group"
+                  className="flex flex-col items-center justify-center gap-2 w-16 h-16 rounded-xl bg-white/5 border border-white/5 active:bg-[#7d2ae8] active:border-[#7d2ae8] transition-all group"
                 >
                   <shape.icon className="w-6 h-6 text-gray-400 group-active:text-white transition-colors" />
                   <span className="text-[9px] font-bold text-gray-500 group-active:text-white uppercase">
