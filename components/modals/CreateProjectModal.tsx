@@ -21,6 +21,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
   const [customWidth, setCustomWidth] = useState('1080');
   const [customHeight, setCustomHeight] = useState('1080');
   const [customName, setCustomName] = useState('Untitled Design');
+  const [isCreating, setIsCreating] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -84,8 +85,9 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
               {PRESET_SIZES.map((size) => (
                 <button
                   key={size.name}
-                  onClick={() => onCreate(size)}
-                  className="flex items-center justify-between p-4 bg-[#13161a]/50 border border-gray-800 rounded-2xl hover:border-[#7d2ae8]/50 hover:bg-[#252627] transition-all group overflow-hidden relative"
+                  disabled={isCreating}
+                  onClick={() => { setIsCreating(true); onCreate(size); }}
+                  className="flex items-center justify-between p-4 bg-[#13161a]/50 border border-gray-800 rounded-2xl hover:border-[#7d2ae8]/50 hover:bg-[#252627] transition-all group overflow-hidden relative disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-[#7d2ae8] to-[#00c4cc] opacity-0 group-hover:opacity-100 transition-opacity" />
                   <div className="flex items-center gap-4">
@@ -99,7 +101,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                       </span>
                     </div>
                   </div>
-                  <Icons.Plus className="w-4 h-4 text-gray-700 group-hover:text-[#7d2ae8] transition-transform group-hover:rotate-90" />
+                  {isCreating ? (
+                    <svg className="w-4 h-4 text-[#7d2ae8] animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg>
+                  ) : (
+                    <Icons.Plus className="w-4 h-4 text-gray-700 group-hover:text-[#7d2ae8] transition-transform group-hover:rotate-90" />
+                  )}
                 </button>
               ))}
             </div>
@@ -143,6 +149,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                     <input
                       id="custom-width"
                       type="number"
+                      min={1}
+                      max={10000}
                       value={customWidth}
                       onChange={(e) => setCustomWidth(e.target.value)}
                       className="w-full bg-black/30 border border-gray-700/50 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#7d2ae8] transition-all"
@@ -158,6 +166,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                     <input
                       id="custom-height"
                       type="number"
+                      min={1}
+                      max={10000}
                       value={customHeight}
                       onChange={(e) => setCustomHeight(e.target.value)}
                       className="w-full bg-black/30 border border-gray-700/50 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#7d2ae8] transition-all"
@@ -168,10 +178,15 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
 
               <div className="pt-4">
                 <button
-                  onClick={handleCustomCreate}
-                  className="w-full bg-gradient-to-r from-[#7d2ae8] to-[#6b23c5] hover:to-[#5a1bb0] text-white py-4 rounded-2xl font-black shadow-[0_10px_30px_rgba(125,42,232,0.3)] transition-all transform hover:-translate-y-1 active:translate-y-0.5 active:shadow-inner flex items-center justify-center gap-2 group"
+                  onClick={() => { setIsCreating(true); handleCustomCreate(); }}
+                  disabled={isCreating}
+                  className="w-full bg-gradient-to-r from-[#7d2ae8] to-[#6b23c5] hover:to-[#5a1bb0] text-white py-4 rounded-2xl font-black shadow-[0_10px_30px_rgba(125,42,232,0.3)] transition-all transform hover:-translate-y-1 active:translate-y-0.5 active:shadow-inner flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                 >
-                  <Icons.Magic className="w-5 h-5 group-hover:animate-pulse" />
+                  {isCreating ? (
+                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg>
+                  ) : (
+                    <Icons.Magic className="w-5 h-5 group-hover:animate-pulse" />
+                  )}
                   Launch Editor
                 </button>
                 <p className="text-[9px] text-center text-gray-600 mt-4 font-bold uppercase tracking-[0.1em]">

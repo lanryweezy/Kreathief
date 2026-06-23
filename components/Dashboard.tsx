@@ -51,9 +51,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadAllProjects();
+    loadAllProjects().then(() => setIsLoading(false));
   }, [loadAllProjects]);
 
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; projectId: string | null }>({
@@ -331,159 +332,161 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   data-testid="dashboard-templates-grid"
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 staggered-entry"
                 >
-                  {filteredTemplates.length > 0 ? filteredTemplates.map((tmpl) => (
-                    <button
-                      key={tmpl.id}
-                      data-testid={`dashboard-template-btn-${tmpl.id}`}
-                      onClick={() => handleStartFromTemplate(tmpl.id)}
-                      className="group bg-[#0a0a0c] border border-white/5 rounded-2xl overflow-hidden text-left hover:border-white/20 transition-all duration-300 shadow-xl relative"
-                    >
-                      <div className="aspect-[4/3] bg-[#0a0a0c] flex items-center justify-center relative overflow-hidden group-hover:bg-[#121216] transition-colors border-b border-white/5">
-                        {/* High-fidelity Miniature Render of the template */}
-                        <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-3 select-none pointer-events-none">
-                          <div
-                            style={{
-                              width: `${tmpl.size.width || 1080}px`,
-                              height: `${tmpl.size.height || 1080}px`,
-                              transform: `scale(${Math.min(260 / (tmpl.size.width || 1080), 195 / (tmpl.size.height || 1080))})`,
-                              transformOrigin: 'center center',
-                              backgroundColor: tmpl.state?.canvasBackgroundColor || '#0f172a',
-                            }}
-                            className="relative flex-shrink-0 shadow-2xl rounded-sm border border-white/5 overflow-hidden"
-                          >
-                            {tmpl.state?.layers?.map((l: any, idx: number) => {
-                              if (l.type === 'rectangle') {
-                                return (
-                                  <div
-                                    key={l.id || idx}
-                                    style={{
-                                      position: 'absolute',
-                                      left: `${l.x}px`,
-                                      top: `${l.y}px`,
-                                      width: `${l.width}px`,
-                                      height: `${l.height}px`,
-                                      backgroundColor: l.color || '#fff',
-                                      borderRadius: `${l.cornerRadius || 0}px`,
-                                      opacity: l.opacity ?? 1,
-                                      transform: `rotate(${l.rotation || 0}deg) skew(${l.skewX || 0}deg, ${l.skewY || 0}deg)`,
-                                    }}
-                                  />
-                                );
-                              }
-                              if (l.type === 'circle') {
-                                return (
-                                  <div
-                                    key={l.id || idx}
-                                    style={{
-                                      position: 'absolute',
-                                      left: `${l.x}px`,
-                                      top: `${l.y}px`,
-                                      width: `${l.width}px`,
-                                      height: `${l.height}px`,
-                                      backgroundColor: l.color || '#fff',
-                                      borderRadius: '50%',
-                                      opacity: l.opacity ?? 1,
-                                      transform: `rotate(${l.rotation || 0}deg)`,
-                                    }}
-                                  />
-                                );
-                              }
-                              if (l.type === 'text') {
-                                return (
-                                  <div
-                                    key={l.id || idx}
-                                    style={{
-                                      position: 'absolute',
-                                      left: `${l.x}px`,
-                                      top: `${l.y}px`,
-                                      width: `${l.width}px`,
-                                      height: `${l.height}px`,
-                                      color: l.color || '#fff',
-                                      fontSize: `${l.fontSize || 16}px`,
-                                      fontFamily: l.fontFamily || 'sans-serif',
-                                      fontWeight: l.fontWeight || '400',
-                                      textAlign: l.textAlign || 'left',
-                                      opacity: l.opacity ?? 1,
-                                      transform: `rotate(${l.rotation || 0}deg) skew(${l.skewX || 0}deg, ${l.skewY || 0}deg)`,
-                                      whiteSpace: 'pre-wrap',
-                                      overflow: 'hidden',
-                                    }}
-                                  >
-                                    {l.text}
-                                  </div>
-                                );
-                              }
-                              if (l.type === 'path' || l.type === 'svg' || l.pathData) {
-                                const isDrawing = l.id?.startsWith('draw_') || l.brushType;
-                                const strokeColor = l.stroke?.color || l.color || '#fff';
-                                const strokeWidth = l.stroke?.width || 2;
-                                return (
-                                  <svg
-                                    key={l.id || idx}
-                                    style={{
-                                      position: 'absolute',
-                                      left: `${l.x}px`,
-                                      top: `${l.y}px`,
-                                      width: `${l.width}px`,
-                                      height: `${l.height}px`,
-                                      opacity: l.opacity ?? 1,
-                                      transform: `rotate(${l.rotation || 0}deg)`,
-                                      overflow: 'visible',
-                                    }}
-                                    viewBox={l.viewBox || `0 0 ${l.width || 512} ${l.height || 512}`}
-                                  >
-                                    <path
-                                      d={l.pathData || l.path || l.d}
-                                      fill={isDrawing ? 'none' : l.color || '#fff'}
-                                      stroke={isDrawing ? strokeColor : 'none'}
-                                      strokeWidth={isDrawing ? strokeWidth : 0}
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
+                  {filteredTemplates.length > 0 ? (
+                    filteredTemplates.map((tmpl) => (
+                      <button
+                        key={tmpl.id}
+                        data-testid={`dashboard-template-btn-${tmpl.id}`}
+                        onClick={() => handleStartFromTemplate(tmpl.id)}
+                        className="group bg-[#0a0a0c] border border-white/5 rounded-2xl overflow-hidden text-left hover:border-white/20 transition-all duration-300 shadow-xl relative"
+                      >
+                        <div className="aspect-[4/3] bg-[#0a0a0c] flex items-center justify-center relative overflow-hidden group-hover:bg-[#121216] transition-colors border-b border-white/5">
+                          {/* High-fidelity Miniature Render of the template */}
+                          <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-3 select-none pointer-events-none">
+                            <div
+                              style={{
+                                width: `${tmpl.size.width || 1080}px`,
+                                height: `${tmpl.size.height || 1080}px`,
+                                transform: `scale(${Math.min(260 / (tmpl.size.width || 1080), 195 / (tmpl.size.height || 1080))})`,
+                                transformOrigin: 'center center',
+                                backgroundColor: tmpl.state?.canvasBackgroundColor || '#0f172a',
+                              }}
+                              className="relative flex-shrink-0 shadow-2xl rounded-sm border border-white/5 overflow-hidden"
+                            >
+                              {tmpl.state?.layers?.map((l: any, idx: number) => {
+                                if (l.type === 'rectangle') {
+                                  return (
+                                    <div
+                                      key={l.id || idx}
+                                      style={{
+                                        position: 'absolute',
+                                        left: `${l.x}px`,
+                                        top: `${l.y}px`,
+                                        width: `${l.width}px`,
+                                        height: `${l.height}px`,
+                                        backgroundColor: l.color || '#fff',
+                                        borderRadius: `${l.cornerRadius || 0}px`,
+                                        opacity: l.opacity ?? 1,
+                                        transform: `rotate(${l.rotation || 0}deg) skew(${l.skewX || 0}deg, ${l.skewY || 0}deg)`,
+                                      }}
                                     />
-                                  </svg>
-                                );
-                              }
-                              if (l.type === 'image') {
-                                return (
-                                  <img
-                                    key={l.id || idx}
-                                    src={l.src}
-                                    style={{
-                                      position: 'absolute',
-                                      left: `${l.x}px`,
-                                      top: `${l.y}px`,
-                                      width: `${l.width}px`,
-                                      height: `${l.height}px`,
-                                      opacity: l.opacity ?? 1,
-                                      transform: `rotate(${l.rotation || 0}deg)`,
-                                      objectFit: 'cover',
-                                    }}
-                                  />
-                                );
-                              }
-                              return null;
-                            })}
+                                  );
+                                }
+                                if (l.type === 'circle') {
+                                  return (
+                                    <div
+                                      key={l.id || idx}
+                                      style={{
+                                        position: 'absolute',
+                                        left: `${l.x}px`,
+                                        top: `${l.y}px`,
+                                        width: `${l.width}px`,
+                                        height: `${l.height}px`,
+                                        backgroundColor: l.color || '#fff',
+                                        borderRadius: '50%',
+                                        opacity: l.opacity ?? 1,
+                                        transform: `rotate(${l.rotation || 0}deg)`,
+                                      }}
+                                    />
+                                  );
+                                }
+                                if (l.type === 'text') {
+                                  return (
+                                    <div
+                                      key={l.id || idx}
+                                      style={{
+                                        position: 'absolute',
+                                        left: `${l.x}px`,
+                                        top: `${l.y}px`,
+                                        width: `${l.width}px`,
+                                        height: `${l.height}px`,
+                                        color: l.color || '#fff',
+                                        fontSize: `${l.fontSize || 16}px`,
+                                        fontFamily: l.fontFamily || 'sans-serif',
+                                        fontWeight: l.fontWeight || '400',
+                                        textAlign: l.textAlign || 'left',
+                                        opacity: l.opacity ?? 1,
+                                        transform: `rotate(${l.rotation || 0}deg) skew(${l.skewX || 0}deg, ${l.skewY || 0}deg)`,
+                                        whiteSpace: 'pre-wrap',
+                                        overflow: 'hidden',
+                                      }}
+                                    >
+                                      {l.text}
+                                    </div>
+                                  );
+                                }
+                                if (l.type === 'path' || l.type === 'svg' || l.pathData) {
+                                  const isDrawing = l.id?.startsWith('draw_') || l.brushType;
+                                  const strokeColor = l.stroke?.color || l.color || '#fff';
+                                  const strokeWidth = l.stroke?.width || 2;
+                                  return (
+                                    <svg
+                                      key={l.id || idx}
+                                      style={{
+                                        position: 'absolute',
+                                        left: `${l.x}px`,
+                                        top: `${l.y}px`,
+                                        width: `${l.width}px`,
+                                        height: `${l.height}px`,
+                                        opacity: l.opacity ?? 1,
+                                        transform: `rotate(${l.rotation || 0}deg)`,
+                                        overflow: 'visible',
+                                      }}
+                                      viewBox={l.viewBox || `0 0 ${l.width || 512} ${l.height || 512}`}
+                                    >
+                                      <path
+                                        d={l.pathData || l.path || l.d}
+                                        fill={isDrawing ? 'none' : l.color || '#fff'}
+                                        stroke={isDrawing ? strokeColor : 'none'}
+                                        strokeWidth={isDrawing ? strokeWidth : 0}
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                  );
+                                }
+                                if (l.type === 'image') {
+                                  return (
+                                    <img
+                                      key={l.id || idx}
+                                      src={l.src}
+                                      style={{
+                                        position: 'absolute',
+                                        left: `${l.x}px`,
+                                        top: `${l.y}px`,
+                                        width: `${l.width}px`,
+                                        height: `${l.height}px`,
+                                        opacity: l.opacity ?? 1,
+                                        transform: `rotate(${l.rotation || 0}deg)`,
+                                        objectFit: 'cover',
+                                      }}
+                                    />
+                                  );
+                                }
+                                return null;
+                              })}
+                            </div>
+                          </div>
+
+                          {/* Top Overlays */}
+                          <div className="absolute inset-x-0 top-0 p-3 flex justify-between items-center bg-gradient-to-b from-black/60 to-transparent pointer-events-none select-none">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-white bg-[#7d2ae8] px-2 py-0.5 rounded shadow-lg border border-white/10">
+                              {tmpl.category}
+                            </span>
+                            <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded border border-white/5">
+                              {tmpl.size.name}
+                            </span>
                           </div>
                         </div>
-
-                        {/* Top Overlays */}
-                        <div className="absolute inset-x-0 top-0 p-3 flex justify-between items-center bg-gradient-to-b from-black/60 to-transparent pointer-events-none select-none">
-                          <span className="text-[10px] font-black uppercase tracking-wider text-white bg-[#7d2ae8] px-2 py-0.5 rounded shadow-lg border border-white/10">
-                            {tmpl.category}
-                          </span>
-                          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded border border-white/5">
-                            {tmpl.size.name}
-                          </span>
+                        <div className="p-4 bg-[#0a0a0a]">
+                          <div className="text-sm font-bold text-white truncate mb-1 group-hover:text-[#00c4cc] transition-colors">
+                            {tmpl.name}
+                          </div>
+                          <div className="text-[11px] text-gray-400 line-clamp-2">{tmpl.description}</div>
                         </div>
-                      </div>
-                      <div className="p-4 bg-[#0a0a0a]">
-                        <div className="text-sm font-bold text-white truncate mb-1 group-hover:text-[#00c4cc] transition-colors">
-                          {tmpl.name}
-                        </div>
-                        <div className="text-[11px] text-gray-400 line-clamp-2">{tmpl.description}</div>
-                      </div>
-                    </button>
-                  )) : (
+                      </button>
+                    ))
+                  ) : (
                     <div className="col-span-full text-center py-12 border-2 border-dashed border-gray-800 rounded-2xl">
                       <Icons.Search className="w-8 h-8 text-gray-700 mx-auto mb-2" />
                       <p className="text-gray-500 text-xs font-bold">No templates match your search</p>
@@ -495,7 +498,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
 
             {/* All Projects Tab (default) */}
             {sidebarTab === 'projects' &&
-              (projects.length === 0 ? (
+              (isLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden animate-pulse">
+                      <div className="aspect-[4/3] bg-white/5" />
+                      <div className="p-5 space-y-3">
+                        <div className="h-4 bg-white/5 rounded w-3/4" />
+                        <div className="h-3 bg-white/5 rounded w-1/2" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : projects.length === 0 ? (
                 <EmptyState
                   icon={Icons.FolderPlus}
                   title="No projects yet"

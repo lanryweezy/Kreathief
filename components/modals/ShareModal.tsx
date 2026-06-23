@@ -16,6 +16,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteSent, setInviteSent] = useState(false);
   const onlineUsers = useStore((s) => s.onlineUsers);
+  const addToast = useStore((s) => s.addToast);
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -37,6 +38,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
       setShareLink(link);
     } catch (e) {
       log.error('[ShareModal] Failed to generate share link', e);
+      addToast('Failed to generate share link', 'error');
     } finally {
       setIsGenerating(false);
     }
@@ -132,6 +134,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
                 <input
                   readOnly
                   value={shareLink}
+                  aria-label="Share link"
                   className="flex-1 bg-[#13161a] border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white outline-none focus:border-[#00c4cc]"
                 />
                 <button
@@ -170,7 +173,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
                   }`}
                 >
                   {inviteSent ? <Icons.Check className="w-4 h-4" /> : <Icons.Send className="w-4 h-4" />}
-                  {inviteSent ? 'Copied!' : 'Invite'}
+                  {inviteSent ? 'Copied!' : 'Copy Invite Text'}
                 </button>
               </div>
             </div>

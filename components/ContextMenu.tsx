@@ -16,6 +16,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState('');
   const renameInputRef = useRef<HTMLInputElement>(null);
+  const [visible, setVisible] = useState(false);
 
   // ⚡ Bolt: Using useShallow to prevent unnecessary re-renders when unrelated store properties change.
   // This ensures ContextMenu only re-renders when the specific properties/actions destructured below actually update.
@@ -74,6 +75,10 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
       setTimeout(() => renameInputRef.current?.select(), 50);
     }
   }, [isRenaming]);
+
+  useEffect(() => {
+    requestAnimationFrame(() => setVisible(true));
+  }, []);
 
   useEffect(() => {
     const handleOut = (e: MouseEvent) => {
@@ -152,7 +157,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
   return (
     <div
       ref={menuRef}
-      className="fixed z-[9999] w-72 bg-[#1e1e1e]/98 border border-white/10 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] py-4 flex flex-col backdrop-blur-2xl overflow-hidden select-none"
+      className={`fixed z-[9999] w-72 bg-[#1e1e1e]/98 border border-white/10 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] py-4 flex flex-col backdrop-blur-2xl overflow-hidden select-none transition-opacity duration-150 ${visible ? 'opacity-100' : 'opacity-0'}`}
       style={{ top: adjustedY, left: adjustedX }}
       onContextMenu={(e) => e.preventDefault()}
     >
