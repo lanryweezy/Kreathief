@@ -41,14 +41,22 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
           borderRadius: `${typeof (layer as any).cornerRadius === 'number' ? (layer as any).cornerRadius : 0}px`,
           animation: layer.locked ? 'none' : 'selectionPulse 2s ease-in-out infinite',
         }}
+      />
+
+      {/* Width Label - centered below bottom edge */}
+      <div
+        className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] text-gray-400 bg-black/50 px-1 py-0.5 rounded whitespace-nowrap z-[60]"
+        style={handleContainerStyle}
       >
-        {/* Dimension Pill  high contrast, subtle */}
-        <div
-          className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-md text-white text-[9px] font-black font-mono px-2 py-0.5 rounded-full shadow-2xl border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[60]"
-          style={handleContainerStyle}
-        >
-          {Math.round(Number((layer as any).width) || 0)} × {Math.round(Number((layer as any).height) || 0)}
-        </div>
+        W: {Math.round(Number((layer as any).width) || 0)}px
+      </div>
+
+      {/* Height Label - centered to the right of right edge */}
+      <div
+        className="absolute top-1/2 -translate-y-1/2 -right-[52px] text-[9px] text-gray-400 bg-black/50 px-1 py-0.5 rounded whitespace-nowrap z-[60]"
+        style={handleContainerStyle}
+      >
+        H: {Math.round(Number((layer as any).height) || 0)}px
       </div>
 
       <style>{`
