@@ -122,11 +122,8 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
     }, [value]);
 
     const handleHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      let val = e.target.value;
-      // Auto-fix missing # for #14 on change
-      if (val.length > 0 && !val.startsWith('#')) {
-        val = '#' + val;
-      }
+      let val = e.target.value.replace(/[^0-9A-Fa-f]/g, '').slice(0, 6);
+      if (val.length > 0) val = '#' + val;
       setHexInput(val);
       if (/^#[0-9A-F]{6}$/i.test(val) || /^#[0-9A-F]{3}$/i.test(val)) {
         onChange(val);
@@ -299,6 +296,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                           onChange(val);
                         }
                       }}
+                      maxLength={6}
                       placeholder="HEX"
                       className="w-full bg-[#252627] border border-gray-600 rounded pl-5 pr-2 py-2 text-xs text-white uppercase focus:border-[#7d2ae8] outline-none font-mono"
                     />
