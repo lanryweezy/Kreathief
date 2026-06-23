@@ -1,3 +1,5 @@
+import { cacheHeaders } from '../utils/cacheHeaders';
+
 export const config = {
   runtime: 'edge',
 };
@@ -34,6 +36,7 @@ export default async function handler(req: Request) {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+        ...cacheHeaders(),
       },
     });
   }

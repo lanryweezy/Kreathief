@@ -1,4 +1,5 @@
 import { log } from '../utils/log';
+import { cacheHeaders, noStoreHeaders } from '../utils/cacheHeaders';
 export const config = {
   runtime: 'edge',
 };
@@ -115,6 +116,7 @@ export default async function handler(req: Request) {
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+          ...cacheHeaders(),
         },
       });
     } else if (action === 'search_icons') {
@@ -143,6 +145,7 @@ export default async function handler(req: Request) {
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+          ...cacheHeaders(),
         },
       });
     } else if (action === 'download_resource') {
@@ -179,6 +182,7 @@ export default async function handler(req: Request) {
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+          ...cacheHeaders(),
         },
       });
     }
@@ -215,6 +219,7 @@ export default async function handler(req: Request) {
           headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+            ...noStoreHeaders(),
           },
         });
       } else if (action === 'poll') {
@@ -279,6 +284,7 @@ export default async function handler(req: Request) {
           headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+            ...noStoreHeaders(),
           },
         });
       } else if (action === 'remove_bg') {
@@ -299,6 +305,7 @@ export default async function handler(req: Request) {
           headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+            ...noStoreHeaders(),
           },
         });
       } else if (action === 'upscale' || action === 'upscale_precision') {
@@ -320,6 +327,7 @@ export default async function handler(req: Request) {
           headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+            ...noStoreHeaders(),
           },
         });
       } else if (action === 'style_transfer') {
@@ -340,6 +348,7 @@ export default async function handler(req: Request) {
           headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+            ...noStoreHeaders(),
           },
         });
       } else if (action === 'expand') {
@@ -360,6 +369,7 @@ export default async function handler(req: Request) {
           headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+            ...noStoreHeaders(),
           },
         });
       }

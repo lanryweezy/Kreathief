@@ -2,6 +2,7 @@ import sharp from 'sharp';
 import { PDFDocument } from 'pdf-lib';
 import { log } from '../utils/log';
 import { z } from 'zod';
+import { noStoreHeaders } from '../utils/cacheHeaders';
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
@@ -150,6 +151,7 @@ export default async function handler(req: any, res: any) {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename="print-ready-cmyk.pdf"');
     res.setHeader('Content-Length', pdfBuffer.length);
+    res.setHeader('Cache-Control', 'no-store');
 
     return res.status(200).send(pdfBuffer);
   } catch (error: any) {
