@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
@@ -18,6 +18,19 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'likes' | 'downloads' | 'newest'>('likes');
   const handleApplyTemplate = useStore((state) => state.handleApplyTemplate);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  useEffect(() => {
+    modalRef.current?.focus();
+  }, []);
 
   const loadTemplates = useCallback(async () => {
     setLoading(true);
@@ -63,10 +76,14 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
 
   return (
     <motion.div
+      ref={modalRef}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-12 overflow-hidden"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-12 overflow-hidden outline-none"
     >
       <div className="absolute inset-0 bg-black/60 backdrop-blur-xl" onClick={onClose} />
 

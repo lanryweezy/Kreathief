@@ -415,6 +415,20 @@ export const CommandPalette: React.FC = () => {
       } else if (e.key === 'Escape') {
         e.preventDefault();
         setOpen(false);
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        const focusable = document.querySelectorAll('[data-command-palette-focusable]');
+        const list = Array.from(focusable) as HTMLElement[];
+        if (list.length === 0) return;
+        const current = document.activeElement;
+        const idx = list.indexOf(current as HTMLElement);
+        let next: number;
+        if (e.shiftKey) {
+          next = idx <= 0 ? list.length - 1 : idx - 1;
+        } else {
+          next = idx >= list.length - 1 ? 0 : idx + 1;
+        }
+        list[next].focus();
       }
     };
 

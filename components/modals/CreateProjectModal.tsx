@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Icons } from '../../constants';
 import { CanvasSize } from '../../types';
 
@@ -21,6 +21,19 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
   const [customWidth, setCustomWidth] = useState('1080');
   const [customHeight, setCustomHeight] = useState('1080');
   const [customName, setCustomName] = useState('Untitled Design');
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  useEffect(() => {
+    modalRef.current?.focus();
+  }, []);
 
   if (!isOpen) {
     return null;
@@ -40,7 +53,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div ref={modalRef} tabIndex={-1} role="dialog" aria-modal="true" className="fixed inset-0 z-[100] flex items-center justify-center p-4 outline-none">
       <div className="absolute inset-0 bg-black/90 backdrop-blur-md animate-fadeIn" onClick={onClose} />
 
       <div className="bg-[#1e1e1e] border border-gray-700/50 rounded-3xl w-full max-w-4xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-scaleIn relative z-10 border-t-white/10">

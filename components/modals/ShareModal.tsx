@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Icons } from '../../constants';
 import { log } from '../../utils/log';
 import { useStore } from '../../store/useStore';
@@ -16,6 +16,19 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteSent, setInviteSent] = useState(false);
   const onlineUsers = useStore((s) => s.onlineUsers);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  useEffect(() => {
+    modalRef.current?.focus();
+  }, []);
 
   const handleGenerateLink = async () => {
     setIsGenerating(true);
@@ -50,7 +63,11 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+      ref={modalRef}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 outline-none"
       onClick={onClose}
     >
       <div

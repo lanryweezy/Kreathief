@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -71,7 +71,20 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
   const [bleed, setBleed] = useState<number>(9); // 1/8 inch default
   const [cropMarks, setCropMarks] = useState(true);
 
+  const modalRef = useRef<HTMLDivElement>(null);
   const [transparentBg, setTransparentBg] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  useEffect(() => {
+    modalRef.current?.focus();
+  }, []);
 
   // Batch export state
   const [batchMode, setBatchMode] = useState(false);
@@ -372,7 +385,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto"
+      ref={modalRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto outline-none"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
