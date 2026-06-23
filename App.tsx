@@ -80,6 +80,11 @@ const App: React.FC = () => {
         performanceService.init();
         await storageService.init();
 
+        // Register toast callback for storage service
+        storageService.setToastCallback((message, type) => {
+          useStore.getState().addToast(message, type);
+        });
+
         // Check Supabase auth session
         const savedUser = await authService.getSession();
         if (savedUser) {

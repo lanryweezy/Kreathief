@@ -58,21 +58,32 @@ interface PendingSyncOperation {
   retryCount: number;
 }
 
+export type ConnectionStatus = 'connected' | 'offline' | 'error';
+
+type StatusChangeCallback = (status: ConnectionStatus) => void;
+type ToastCallback = (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
+
 class StorageService {
   private db: IDBDatabase | null = null;
   private initPromise: Promise<void> | null = null;
   private isOnline = navigator.onLine;
   private pendingChanges = new Map<string, PendingSyncOperation>();
   private isSyncing = false;
+  private connectionStatus: ConnectionStatus = navigator.onLine ? 'connected' : 'offline';
+  private lastSyncTime: number | null = null;
+  private statusListeners: Set<StatusChangeCallback> = new Set();
+  private toastCallback: ToastCallback | null = null;
 
   constructor() {
     window.addEventListener('online', () => {
       this.isOnline = true;
+      this.setConnectionStatus('connected');
       logger.info('Storage service: online');
       this.syncOfflineChanges();
     });
     window.addEventListener('offline', () => {
       this.isOnline = false;
+      this.setConnectionStatus('offline');
       logger.info('Storage service: offline');
     });
 
@@ -81,6 +92,38 @@ class StorageService {
 
     // Monitor IndexedDB quota
     this.checkStorageQuota();
+  }
+
+  private setConnectionStatus(status: ConnectionStatus): void {
+    if (this.connectionStatus !== status) {
+      this.connectionStatus = status;
+      this.statusListeners.forEach((cb) => cb(status));
+    }
+  }
+
+  onStatusChange(callback: StatusChangeCallback): () => void {
+    this.statusListeners.add(callback);
+    return () => this.statusListeners.delete(callback);
+  }
+
+  getConnectionStatus(): ConnectionStatus {
+    return this.connectionStatus;
+  }
+
+  getLastSyncTime(): number | null {
+    return this.lastSyncTime;
+  }
+
+  getPendingChangesCount(): number {
+    return this.pendingChanges.size;
+  }
+
+  setToastCallback(callback: ToastCallback): void {
+    this.toastCallback = callback;
+  }
+
+  private showToast(message: string, type: 'success' | 'error' | 'warning' | 'info'): void {
+    this.toastCallback?.(message, type);
   }
 
   private async checkStorageQuota(): Promise<void> {
@@ -540,14 +583,20 @@ class StorageService {
 
         if (!error) {
           logger.debug('Project saved to Supabase', { id: project.id });
+          this.lastSyncTime = Date.now();
+          this.setConnectionStatus('connected');
           // Remove from pending changes if synced successfully
           this.pendingChanges.delete(project.id);
           await this.persistPendingChanges();
           return;
         }
         logger.warn('Supabase save failed, falling back to IndexedDB', { error: error.message });
+        this.setConnectionStatus('error');
+        this.showToast('Cloud sync failed, saved locally', 'warning');
       } catch (err) {
         logger.warn('Supabase error, using IndexedDB', { error: err });
+        this.setConnectionStatus('error');
+        this.showToast('Cloud sync failed, saved locally', 'warning');
       }
     }
 
@@ -625,10 +674,14 @@ class StorageService {
           .order('updated_at', { ascending: false });
 
         if (!error && data) {
+          this.lastSyncTime = Date.now();
+          this.setConnectionStatus('connected');
           return data.map((p: any) => this.supabaseProjectToLocal(p));
         }
       } catch (err) {
         logger.warn('Supabase error, using IndexedDB', { error: err });
+        this.setConnectionStatus('error');
+        this.showToast('Failed to load cloud projects, showing local data', 'warning');
       }
     }
 

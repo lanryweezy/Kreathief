@@ -7,6 +7,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { PublishModal } from './modals/PublishModal';
 import { PresenceBar } from './collaboration/PresenceBar';
 import { Button } from './Button';
+import { ConnectionStatus } from './ConnectionStatus';
 
 interface HeaderProps {
   onDownload: () => void;
@@ -228,6 +229,8 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div className="h-4 w-px bg-gray-800"></div>
+
+        <ConnectionStatus />
 
         <Button
           id="export-btn"
