@@ -124,6 +124,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
             className={`p-2.5 rounded-2xl transition-all duration-500 relative group ${showAllTools && !secondaryTools.some((t) => t.id === activeTab) ? 'text-white bg-white/10 shadow-[0_0_20px_rgba(255,255,255,0.05)] border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
             title="All Tools"
             aria-label="Toggle All Tools"
+            aria-expanded={showAllTools}
           >
             <Icons.LayoutGrid
               className={`w-5 h-5 transition-transform duration-700 ${showAllTools ? 'rotate-90' : 'group-hover:rotate-12'}`}

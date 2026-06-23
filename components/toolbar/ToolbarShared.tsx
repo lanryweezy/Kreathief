@@ -128,6 +128,7 @@ export const IconButton = React.memo(
 export const NumberInput = React.memo(({ value, onChange, title, icon: Icon, unit = '', onFocus, step = 1 }: any) => {
   const [isScrubbing, setIsScrubbing] = React.useState(false);
   const scrubRef = React.useRef<{ startX: number; startVal: number } | null>(null);
+  const iconRef = React.useRef<HTMLDivElement>(null);
 
   const handleMouseDown = React.useCallback(
     (e: React.MouseEvent) => {
@@ -162,11 +163,17 @@ export const NumberInput = React.memo(({ value, onChange, title, icon: Icon, uni
 
   return (
     <div
-      className={`flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 rounded-lg hover:border-white/20 transition-colors group/input ${isScrubbing ? 'ring-1 ring-purple-500/50' : ''}`}
+      className={`flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 rounded-lg hover:border-white/20 transition-colors group/input relative ${isScrubbing ? 'ring-1 ring-purple-500/50' : ''}`}
       title={title}
     >
+      {isScrubbing && (
+        <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-gray-900 text-white text-[10px] font-mono rounded-md border border-gray-700 shadow-lg z-50 whitespace-nowrap pointer-events-none">
+          {Math.round(value)}
+        </div>
+      )}
       {Icon && (
         <div
+          ref={iconRef}
           onMouseDown={handleMouseDown}
           className="cursor-ew-resize flex items-center justify-center p-0.5 rounded hover:bg-white/10"
         >

@@ -1,4 +1,4 @@
-import React, { RefObject, useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AppMode, AspectRatio } from '../../types';
 import { Icons } from '../../constants';
 import { Button } from '../Button';
@@ -14,7 +14,6 @@ import { PanelErrorBoundary } from './PanelErrorBoundary';
 interface MagicPanelProps {
   onGenerate: (negPrompt?: string) => void;
   uploadedImage: string | null;
-  fileInputRef: RefObject<HTMLInputElement>;
 }
 
 // Style presets with inline SVG indicators representing the visual aesthetic
@@ -85,7 +84,8 @@ interface GenerationHistoryItem {
   timestamp: number;
 }
 
-export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImage, fileInputRef }) => {
+export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImage }) => {
+  const localFileInputRef = useRef<HTMLInputElement>(null);
   const {
     mode,
     setMode: onSetMode,
@@ -365,7 +365,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                 <img src={uploadedImage} className="w-full h-full object-contain" />
                 <button
                   className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => localFileInputRef.current?.click()}
                 >
                   <span className="text-xs font-bold text-white bg-black/50 px-3 py-1 rounded-full border border-white/20">
                     Replace
@@ -374,7 +374,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
               </div>
             ) : (
               <div
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => localFileInputRef.current?.click()}
                 className="border border-dashed border-gray-700 bg-[#1e1e1e] rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:border-gray-500 transition-colors"
               >
                 <Icons.Upload className="w-5 h-5 text-gray-500 mb-1" />
@@ -383,6 +383,13 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
             )}
           </div>
         )}
+
+        <input
+          type="file"
+          ref={localFileInputRef}
+          className="hidden"
+          accept="image/*"
+        />
 
         <div className="flex items-center justify-between mb-4 bg-white/5 p-2 rounded-xl border border-white/5">
           <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">

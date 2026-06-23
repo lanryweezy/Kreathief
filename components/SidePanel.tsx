@@ -110,8 +110,6 @@ export const SidePanel = React.memo(
     const selectedLayer = layers?.find((l: any) => l?.id === selectedLayerId) || null;
     const selectedTextLayer = selectedLayer?.type === 'text' ? (selectedLayer as TextLayer) : null;
 
-    const fileInputRef = React.useRef<HTMLInputElement>(null);
-
     return (
       <ErrorBoundary componentName="SidePanel" variant="widget">
         <motion.div
@@ -133,7 +131,7 @@ export const SidePanel = React.memo(
             >
               <React.Suspense fallback={<PanelLoading tab={activeTab} />}>
                 {activeTab === NavTab.MAGIC && (
-                  <MagicPanel onGenerate={onGenerate} uploadedImage={uploadedImage} fileInputRef={fileInputRef} />
+                  <MagicPanel onGenerate={onGenerate} uploadedImage={uploadedImage} />
                 )}
 
                 {activeTab === NavTab.LAYERS && <LayersPanel />}
@@ -244,19 +242,6 @@ export const SidePanel = React.memo(
               </React.Suspense>
             </motion.div>
           </AnimatePresence>
-
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            accept="image/*"
-            multiple
-            onChange={(e) => {
-              if (e.target.files && e.target.files.length > 0) {
-                // handleFileUpload is now used directly in UploadsPanel
-              }
-            }}
-          />
         </motion.div>
       </ErrorBoundary>
     );
