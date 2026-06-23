@@ -712,6 +712,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       }
     } catch (e) {
       log.error('[MockupPanel] Pro mockup render failed', e);
+      addToast('Pro render failed. Please try again.', 'error');
     } finally {
       setIsProGenerating(false);
     }
@@ -1846,5 +1847,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   );
 };
 export default function MockupPanelWrapped(props: React.ComponentProps<typeof MockupPanel>) {
-  return <PanelErrorBoundary panelName="Mockup"><MockupPanel {...props} /></PanelErrorBoundary>;
+  return (
+    <PanelErrorBoundary panelName="Mockup">
+      <MockupPanel {...props} />
+    </PanelErrorBoundary>
+  );
 }

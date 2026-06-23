@@ -5,6 +5,7 @@ import { Icons } from '../../constants';
 import { STARTER_TEMPLATES } from '../../data/templates';
 import { communityService, CommunityTemplate } from '../../services/communityService';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
+import { ConfirmModal } from '../modals/ConfirmModal';
 
 interface TemplatesPanelProps {
   setPrompt: (s: string) => void;
@@ -49,6 +50,12 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   const [activeTab, setActiveTab] = useState<'starter' | 'community'>('starter');
   const [communityTemplates, setCommunityTemplates] = useState<CommunityTemplate[]>([]);
   const [isLoadingCommunity, setIsLoadingCommunity] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+  });
 
   const favoriteTemplates = useStore((state) => state.favoriteTemplates);
   const initializeProject = useStore((state) => state.initializeProject);
@@ -67,11 +74,16 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   };
 
   const handleApplyCommunity = (tmpl: CommunityTemplate) => {
-    const proceed =
-      !showReplaceWarning || window.confirm('Apply community template? This will replace your current project.');
-    if (proceed) {
+    if (!showReplaceWarning) {
       initializeProject(tmpl.state);
+      return;
     }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Apply Template?',
+      message: 'Apply community template? This will replace your current project.',
+      onConfirm: () => initializeProject(tmpl.state),
+    });
   };
 
   const activeCategoryLabel = DESIGN_CATEGORIES.find((c) => c.id === category)?.label || 'All Designs';
@@ -305,12 +317,18 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                           if (!onApplyTemplate) {
                             return;
                           }
-                          const proceed =
+                          if (
                             !showReplaceWarning ||
-                            (typeof window !== 'undefined' && (window as any).VITE_QA_BYPASS) ||
-                            window.confirm('Apply template? This will replace your current design.');
-                          if (proceed) {
+                            (typeof window !== 'undefined' && (window as any).VITE_QA_BYPASS)
+                          ) {
                             onApplyTemplate(tmpl.id, showReplaceWarning);
+                          } else {
+                            setConfirmModal({
+                              isOpen: true,
+                              title: 'Apply Template?',
+                              message: 'Apply template? This will replace your current design.',
+                              onConfirm: () => onApplyTemplate(tmpl.id, showReplaceWarning),
+                            });
                           }
                         }}
                         className="cursor-pointer group relative aspect-video rounded-lg overflow-hidden bg-[#1e1e1e] border border-gray-700 hover:border-[#7d2ae8] transition-all shadow-lg text-left"
@@ -416,6 +434,20 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
           </label>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={() => {
+          confirmModal.onConfirm();
+          setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+        }}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmLabel="Apply"
+        cancelLabel="Cancel"
+        variant="warning"
+      />
     </div>
   );
 };

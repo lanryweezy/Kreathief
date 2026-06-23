@@ -140,7 +140,7 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
 
         <div className="flex-1 flex overflow-hidden">
           {/* Sidebar Filters */}
-          <div className="w-64 border-r border-white/5 p-6 flex flex-col gap-2">
+          <div className="w-64 border-r border-white/5 p-6 flex-col gap-2 hidden md:flex">
             <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4">Categories</span>
             {CATEGORIES.map((cat) => (
               <button

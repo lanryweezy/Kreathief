@@ -6,6 +6,7 @@
 import React from 'react';
 import { Layer } from '../../types';
 import { Icons } from '../../constants';
+import { useStore } from '../../store/useStore';
 
 type ResizeHandle = 'nw' | 'ne' | 'sw' | 'se' | 'w' | 'e' | 'n' | 's';
 
@@ -17,6 +18,7 @@ interface SelectionHandlesProps {
 }
 
 export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: SelectionHandlesProps) => {
+  const updateLayer = useStore((state) => state.updateLayer);
   const rotation = layer.rotation || 0;
 
   // Style to keep handles upright
@@ -68,11 +70,19 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
 
       {(layer.locked || layer.componentId || layer.masterId) && (
         <div
-          className={`absolute -top-3 -right-3 rounded-full p-1 shadow-md border z-50 flex items-center justify-center ${
+          className={`absolute -top-3 -right-3 rounded-full p-1 shadow-md border z-50 flex items-center justify-center cursor-pointer ${
             layer.locked ? 'bg-red-100 text-red-500 border-red-200' : 'bg-[#a855f7] text-white border-[#9333ea]'
           }`}
           style={handleContainerStyle}
           title={layer.componentId ? 'Master Component' : layer.masterId ? 'Component Instance' : 'Locked'}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (layer.locked) {
+              updateLayer(layer.id, { locked: false });
+            } else if (!layer.componentId && !layer.masterId) {
+              updateLayer(layer.id, { locked: true });
+            }
+          }}
         >
           {layer.locked ? <Icons.Lock className="w-3 h-3" /> : <Icons.LayoutGrid className="w-3 h-3" />}
         </div>
@@ -82,22 +92,22 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
         <>
           {/* Corner Handles */}
           <div
-            onMouseDown={(e) => onResize(e, layer, 'nw')}
+            onPointerDown={(e) => onResize(e, layer, 'nw')}
             style={handleContainerStyle}
             className="absolute -top-2 -left-2 w-4 h-4 bg-white border-[2.5px] border-[#7d2ae8] rounded-md pointer-events-auto cursor-nw-resize shadow-[0_2px_10px_rgba(125,42,232,0.4)] hover:scale-125 transition-transform z-50"
           />
           <div
-            onMouseDown={(e) => onResize(e, layer, 'ne')}
+            onPointerDown={(e) => onResize(e, layer, 'ne')}
             style={handleContainerStyle}
             className="absolute -top-2 -right-2 w-4 h-4 bg-white border-[2.5px] border-[#7d2ae8] rounded-md pointer-events-auto cursor-ne-resize shadow-[0_2px_10px_rgba(125,42,232,0.4)] hover:scale-125 transition-transform z-50"
           />
           <div
-            onMouseDown={(e) => onResize(e, layer, 'sw')}
+            onPointerDown={(e) => onResize(e, layer, 'sw')}
             style={handleContainerStyle}
             className="absolute -bottom-2 -left-2 w-4 h-4 bg-white border-[2.5px] border-[#7d2ae8] rounded-md pointer-events-auto cursor-sw-resize shadow-[0_2px_10px_rgba(125,42,232,0.4)] hover:scale-125 transition-transform z-50"
           />
           <div
-            onMouseDown={(e) => onResize(e, layer, 'se')}
+            onPointerDown={(e) => onResize(e, layer, 'se')}
             style={handleContainerStyle}
             className="absolute -bottom-2 -right-2 w-4 h-4 bg-white border-[2.5px] border-[#7d2ae8] rounded-md pointer-events-auto cursor-se-resize shadow-[0_2px_10px_rgba(125,42,232,0.4)] hover:scale-125 transition-transform z-50"
           />
@@ -106,12 +116,12 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
           {layer.width > 30 && (
             <>
               <div
-                onMouseDown={(e) => onResize(e, layer, 'n')}
+                onPointerDown={(e) => onResize(e, layer, 'n')}
                 style={handleContainerStyle}
                 className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-white border-[1.5px] border-[#7d2ae8] rounded-full pointer-events-auto cursor-ns-resize shadow-md hover:scale-110 transition-transform z-40"
               />
               <div
-                onMouseDown={(e) => onResize(e, layer, 's')}
+                onPointerDown={(e) => onResize(e, layer, 's')}
                 style={handleContainerStyle}
                 className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-white border-[1.5px] border-[#7d2ae8] rounded-full pointer-events-auto cursor-ns-resize shadow-md hover:scale-110 transition-transform z-40"
               />
@@ -121,12 +131,12 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
           {(layer.type !== 'text' || layer.width > 30) && (
             <>
               <div
-                onMouseDown={(e) => onResize(e, layer, 'w')}
+                onPointerDown={(e) => onResize(e, layer, 'w')}
                 style={handleContainerStyle}
                 className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-1.5 h-8 bg-white border-[1.5px] border-[#7d2ae8] rounded-full pointer-events-auto cursor-ew-resize shadow-md hover:scale-110 transition-transform z-40"
               />
               <div
-                onMouseDown={(e) => onResize(e, layer, 'e')}
+                onPointerDown={(e) => onResize(e, layer, 'e')}
                 style={handleContainerStyle}
                 className="absolute top-1/2 -translate-y-1/2 -right-1.5 w-1.5 h-8 bg-white border-[1.5px] border-[#7d2ae8] rounded-full pointer-events-auto cursor-ew-resize shadow-md hover:scale-110 transition-transform z-40"
               />
@@ -140,7 +150,7 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
           >
             <div className="w-0.5 h-6 bg-gradient-to-b from-[#7d2ae8] to-[#9d50ff]" />
             <div
-              onMouseDown={(e) => onRotate(e, layer)}
+              onPointerDown={(e) => onRotate(e, layer)}
               onDoubleClick={(e) => {
                 e.stopPropagation();
                 (window as any).dispatchEvent(new CustomEvent('canvas-reset-rotation', { detail: { id: layer.id } }));
