@@ -314,9 +314,18 @@ export const generateAltText = async (src: string): Promise<string> => {
     ];
     const data = await callBackendGeminiAPI({
       modelName: MODEL_FAST,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.STRING,
+          description: 'The descriptive alt text',
+        },
+      },
       contents: [{ role: 'user', parts }],
     });
-    return data.text?.trim().replace(/[.!?]+$/, '') || 'Image';
+    // Astra: Force strict JSON output for strings to eliminate conversational preamble
+    const parsed = safeParseJSON<string | null>(data.text || 'null', null);
+    return parsed?.trim().replace(/[.!?]+$/, '') || 'Image';
   } catch (error) {
     log.error('generateAltText error:', error);
     return 'Image';
