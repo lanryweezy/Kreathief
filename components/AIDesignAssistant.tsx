@@ -42,7 +42,9 @@ export const AIDesignAssistant: React.FC<AIDesignAssistantProps> = ({ className 
   }, [conversationHistory]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) {
+      return;
+    }
 
     const rect = containerRef.current.getBoundingClientRect();
     setDragOffset({
@@ -54,7 +56,9 @@ export const AIDesignAssistant: React.FC<AIDesignAssistantProps> = ({ className 
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return;
+      if (!isDragging) {
+        return;
+      }
 
       const newX = Math.max(0, Math.min(window.innerWidth - 400, e.clientX - dragOffset.x));
       const newY = Math.max(0, Math.min(window.innerHeight - 500, e.clientY - dragOffset.y));
@@ -78,7 +82,9 @@ export const AIDesignAssistant: React.FC<AIDesignAssistantProps> = ({ className 
   }, [isDragging, dragOffset, moveAssistant]);
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isAnalyzing) return;
+    if (!inputMessage.trim() || isAnalyzing) {
+      return;
+    }
 
     const message = inputMessage.trim();
     setInputMessage('');
@@ -120,6 +126,7 @@ export const AIDesignAssistant: React.FC<AIDesignAssistantProps> = ({ className 
     return (
       <motion.button
         onClick={toggleAssistant}
+        aria-label="Open AI Assistant"
         className={`fixed bottom-6 right-6 z-50 bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 ${className}`}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
@@ -165,10 +172,18 @@ export const AIDesignAssistant: React.FC<AIDesignAssistantProps> = ({ className 
         </div>
 
         <div className="flex items-center gap-2">
-          <button onClick={minimizeAssistant} className="p-1 hover:bg-white/20 rounded text-white transition-colors">
+          <button
+            onClick={minimizeAssistant}
+            aria-label="Minimize AI Assistant"
+            className="p-1 hover:bg-white/20 rounded text-white transition-colors"
+          >
             <Icons.Minus className="w-4 h-4" />
           </button>
-          <button onClick={toggleAssistant} className="p-1 hover:bg-white/20 rounded text-white transition-colors">
+          <button
+            onClick={toggleAssistant}
+            aria-label="Close AI Assistant"
+            className="p-1 hover:bg-white/20 rounded text-white transition-colors"
+          >
             <Icons.X className="w-4 h-4" />
           </button>
         </div>
@@ -250,6 +265,7 @@ export const AIDesignAssistant: React.FC<AIDesignAssistantProps> = ({ className 
                     </label>
                     <button
                       onClick={clearConversation}
+                      aria-label="Clear conversation"
                       className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-gray-300"
                       title="Clear conversation"
                     >
@@ -302,6 +318,7 @@ export const AIDesignAssistant: React.FC<AIDesignAssistantProps> = ({ className 
                     <button
                       onClick={handleSendMessage}
                       disabled={!inputMessage.trim() || isAnalyzing}
+                      aria-label="Send message"
                       className="p-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed rounded text-white transition-colors"
                     >
                       <Icons.Send className="w-4 h-4" />
@@ -401,6 +418,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({ suggestion, onDismiss }
 
         <button
           onClick={onDismiss}
+          aria-label="Dismiss suggestion"
           className="p-1 hover:bg-gray-700 rounded text-gray-400 hover:text-gray-300 flex-shrink-0"
         >
           <Icons.X className="w-3 h-3" />
