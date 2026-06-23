@@ -224,11 +224,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         setExportStage(`Exporting "${label}" (${i + 1}/${artboards.length}) — ${progressPercent}%`);
         setExportProgress(progressPercent);
 
-        // Switch to this artboard so the canvas snapshot picks it up
-        useStore.getState().setActiveArtboardId(ab.id);
-        // Give the canvas one frame to re-render
-        await new Promise((r) => requestAnimationFrame(r));
-        await new Promise((r) => setTimeout(r, 120));
+        // Export from stored artboard data — no need to switch active artboard
 
         // Handle print mode PDF separately
         if (format === 'pdf' && isPrintMode) {
@@ -262,9 +258,6 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         successCount++;
       }
 
-      // Restore original active artboard
-      useStore.getState().setActiveArtboardId(activeArtboardId);
-
       const message = isPrintMode
         ? `${successCount} print-ready PDF${successCount !== 1 ? 's' : ''} exported!`
         : `${successCount} artboard${successCount !== 1 ? 's' : ''} exported as ${format.toUpperCase()}!`;
@@ -279,7 +272,6 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       setTimeout(() => onClose(), 1000);
     } catch (e: any) {
       log.error('[ExportModal] Export All failed', e);
-      useStore.getState().setActiveArtboardId(activeArtboardId); // Always restore
       addToast(`Failed after ${successCount} artboard(s). Try exporting individually.`, 'error');
     } finally {
       setIsExporting(false);

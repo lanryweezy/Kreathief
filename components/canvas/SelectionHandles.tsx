@@ -8,6 +8,15 @@ import { Layer } from '../../types';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 
+let selectionPulseInjected = false;
+function ensureSelectionPulseStyle() {
+  if (selectionPulseInjected) return;
+  selectionPulseInjected = true;
+  const style = document.createElement('style');
+  style.textContent = `@keyframes selectionPulse { 0%, 100% { border-color: #7d2ae8; box-shadow: 0 0 10px rgba(125,42,232,0.2); } 50% { border-color: #9d50ff; box-shadow: 0 0 20px rgba(125,42,232,0.4); } }`;
+  document.head.appendChild(style);
+}
+
 type ResizeHandle = 'nw' | 'ne' | 'sw' | 'se' | 'w' | 'e' | 'n' | 's';
 
 interface SelectionHandlesProps {
@@ -18,6 +27,7 @@ interface SelectionHandlesProps {
 }
 
 export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: SelectionHandlesProps) => {
+  ensureSelectionPulseStyle();
   const updateLayer = useStore((state) => state.updateLayer);
   const rotation = layer.rotation || 0;
 
@@ -60,13 +70,6 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
       >
         H: {Math.round(Number((layer as any).height) || 0)}px
       </div>
-
-      <style>{`
-        @keyframes selectionPulse {
-          0%, 100% { border-color: #7d2ae8; box-shadow: 0 0 10px rgba(125,42,232,0.2); }
-          50% { border-color: #9d50ff; box-shadow: 0 0 20px rgba(125,42,232,0.4); }
-        }
-      `}</style>
 
       {(layer.locked || layer.componentId || layer.masterId) && (
         <div
