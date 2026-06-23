@@ -46,6 +46,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
       detachInstance: state.detachInstance,
       resetOverrides: state.resetOverrides,
       addToast: state.addToast,
+      undo: state.undo,
       groupSelected: state.groupSelected,
       ungroupSelected: state.ungroupSelected,
     }))
@@ -298,7 +299,10 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
 
       <MI
         onClick={() => {
-          deleteLayer(layerId);
+          if (window.confirm('Delete layer?')) {
+            deleteLayer(layerId);
+            addToast?.('Layer deleted', 'info', { label: 'Undo', onClick: undo });
+          }
           onClose();
         }}
         icon={Icons.Trash}

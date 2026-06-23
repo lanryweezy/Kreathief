@@ -6,7 +6,7 @@ import { useStore } from '../store/useStore';
 
 interface MobileToolbarProps {
   onAddText: () => void;
-  onAddShape: (shape: 'rectangle' | 'circle' | 'triangle') => void;
+  onAddShape: (shape: 'rectangle' | 'circle' | 'triangle' | 'star') => void;
   onAddImage: () => void;
   onDraw: () => void;
 }
@@ -162,7 +162,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({ onAddText, onAddSh
                   key={shape.type}
                   onClick={() => {
                     haptics.success();
-                    onAddShape(shape.type as any);
+                    onAddShape(shape.type);
                     setActiveCategory(null);
                   }}
                   className="flex flex-col items-center justify-center gap-2 h-20 rounded-xl bg-white/5 border border-white/5 active:bg-[#7d2ae8] active:border-[#7d2ae8] transition-all group"
