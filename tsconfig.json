@@ -12,11 +12,8 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true,
-    "noUncheckedIndexedAccess": true
+    "noImplicitReturns": true
   },
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": [

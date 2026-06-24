@@ -771,7 +771,7 @@ class StorageService {
       ...ab,
       id: typeof ab.id === 'string' ? ab.id : String(ab.id || ''),
       name: typeof ab.name === 'string' ? ab.name : String(ab.name || 'Artboard'),
-      layers: Array.isArray(ab.layers) ? ab.layers.map((l) => this.sanitizeLayer(l)) : [],
+      layers: Array.isArray(ab.layers) ? ab.layers.map((l: any) => this.sanitizeLayer(l)) : [],
     }));
   }
 
