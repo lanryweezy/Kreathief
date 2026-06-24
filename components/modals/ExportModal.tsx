@@ -429,6 +429,49 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     }
   };
 
+  const handleCopySvgToClipboard = async () => {
+    if (!selectedLayerIds || selectedLayerIds.length !== 1) {
+      addToast('Select exactly one layer to copy as SVG', 'warning');
+      return;
+    }
+    try {
+      const activeArtboard = artboards.find((a) => a.id === activeArtboardId);
+      const layer = activeArtboard?.layers.find((l) => l.id === selectedLayerIds[0]);
+      if (!layer || layer.type === 'text' || layer.type === 'image' || layer.type === 'group' || layer.type === 'adjustment') {
+        addToast('Select a shape layer to copy as SVG', 'warning');
+        return;
+      }
+      const shape = layer as any;
+      const viewBox = shape.viewBox || `0 0 ${shape.width} ${shape.height}`;
+      let svgContent = '';
+      if (shape.pathData) {
+        svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="${shape.width}" height="${shape.height}"><path d="${shape.pathData}" fill="${shape.color || '#7d2ae8'}"/></svg>`;
+      } else {
+        svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${shape.width} ${shape.height}" width="${shape.width}" height="${shape.height}"><rect x="0" y="0" width="${shape.width}" height="${shape.height}" fill="${shape.color || '#7d2ae8'}" rx="${shape.cornerRadius || 0}"/></svg>`;
+      }
+      await navigator.clipboard.writeText(svgContent);
+      addToast('SVG copied to clipboard!', 'success');
+      analyticsService.track('export_design', { method: 'clipboard', format: 'svg' });
+    } catch (e) {
+      log.error('[ExportModal] SVG clipboard copy failed', e);
+      addToast('Could not copy SVG to clipboard.', 'error');
+    }
+  };
+
+  const handleExportSelectedAsSvg = async () => {
+    if (!selectedLayerIds || selectedLayerIds.length !== 1) {
+      addToast('Select exactly one shape layer to export as SVG', 'warning');
+      return;
+    }
+    const activeArtboard = artboards.find((a) => a.id === activeArtboardId);
+    const layer = activeArtboard?.layers.find((l) => l.id === selectedLayerIds[0]);
+    if (!layer || layer.type === 'text' || layer.type === 'image' || layer.type === 'group' || layer.type === 'adjustment') {
+      addToast('Select a shape layer to export as SVG', 'warning');
+      return;
+    }
+    await onExport('svg', 1, { width: currentSize.width, height: currentSize.height }, false, filename);
+  };
+
   return (
     <div
       ref={modalRef}
@@ -881,6 +924,34 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 <div className="flex flex-col items-start leading-tight">
                   <span>Export Layer</span>
                   {selectedLayerIds?.length === 1 && <span className="text-[9px] text-gray-400">(single layer)</span>}
+                </div>
+              </button>
+            </div>
+
+            {/* SVG Quick Actions */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={handleExportSelectedAsSvg}
+                disabled={isExporting || !selectedLayerIds || selectedLayerIds.length !== 1}
+                className="py-2.5 rounded-xl border border-gray-700 bg-surface-dark-4 text-xs font-bold text-gray-300 hover:bg-surface-dark-5 hover:border-gray-500 transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                title="Export selected shape as SVG file"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+                <div className="flex flex-col items-start leading-tight">
+                  <span>Export as SVG</span>
+                  <span className="text-[9px] text-gray-400">(selected shape)</span>
+                </div>
+              </button>
+              <button
+                onClick={handleCopySvgToClipboard}
+                disabled={isExporting || !selectedLayerIds || selectedLayerIds.length !== 1}
+                className="py-2.5 rounded-xl border border-gray-700 bg-surface-dark-4 text-xs font-bold text-gray-300 hover:bg-surface-dark-5 hover:border-gray-500 transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                title="Copy selected shape as SVG to clipboard"
+              >
+                <Icons.Copy className="w-3.5 h-3.5" />
+                <div className="flex flex-col items-start leading-tight">
+                  <span>Copy SVG</span>
+                  <span className="text-[9px] text-gray-400">(to clipboard)</span>
                 </div>
               </button>
             </div>

@@ -10,6 +10,23 @@ import { useStore } from '../../store/useStore';
 import { generateLayerId } from '../../utils/layers/layerUtils';
 import { log } from '../../utils/log';
 
+const RECENT_SHAPES_KEY = 'kreathief_recent_shapes';
+const MAX_RECENT = 10;
+
+const getRecentShapes = (): string[] => {
+  try {
+    return JSON.parse(localStorage.getItem(RECENT_SHAPES_KEY) || '[]');
+  } catch {
+    return [];
+  }
+};
+
+const saveRecentShape = (name: string) => {
+  const recent = getRecentShapes().filter((n) => n !== name);
+  recent.unshift(name);
+  localStorage.setItem(RECENT_SHAPES_KEY, JSON.stringify(recent.slice(0, MAX_RECENT)));
+};
+
 type ShapeCategory = 'all' | 'basic' | 'geometric' | 'decorative' | 'ui' | 'arrows' | 'stars';
 type ActiveSource = 'shapes' | 'icons' | 'illustrations';
 
@@ -42,8 +59,10 @@ export const ElementsPanel = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const [_loadingIconId, setLoadingIconId] = useState<string | null>(null);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const [recentNames, setRecentNames] = useState<string[]>(getRecentShapes);
+  const [dragData, setDragData] = useState<ShapePreset | null>(null);
 
-  const internalAddShape = (type: any, style: Partial<ShapeLayer>) => {
+  const internalAddShape = (type: any, style: Partial<ShapeLayer>, shapeName?: string) => {
     const newLayer: ShapeLayer = {
       id: generateLayerId(type),
       type: type as any,
@@ -75,6 +94,10 @@ export const ElementsPanel = () => {
       },
     };
     addLayer(newLayer);
+    if (shapeName) {
+      saveRecentShape(shapeName);
+      setRecentNames(getRecentShapes());
+    }
   };
 
   const internalAddImageLayer = (src: string) => {
@@ -242,6 +265,13 @@ export const ElementsPanel = () => {
     return filtered;
   }, [selectedCategory, searchQuery, shapePresets]);
 
+  const recentShapes = useMemo(() => {
+    if (searchQuery.trim() || selectedCategory !== 'all') return [];
+    return recentNames
+      .map((name) => shapePresets.find((s) => s.name === name))
+      .filter(Boolean) as ShapePreset[];
+  }, [recentNames, shapePresets, searchQuery, selectedCategory]);
+
   const categories = [
     { id: 'all' as ShapeCategory, label: 'All', icon: Icons.Grid },
     { id: 'basic' as ShapeCategory, label: 'Basic', icon: Icons.Square },
@@ -263,8 +293,80 @@ export const ElementsPanel = () => {
       ? ['arrow', 'star', 'heart', 'user', 'home', 'search', 'settings', 'check']
       : ['business', 'technology', 'nature', 'food', 'sport', 'music', 'travel', 'health'];
 
+  const handleDragStart = useCallback((e: React.DragEvent, item: ShapePreset) => {
+    setDragData(item);
+    e.dataTransfer.setData('application/x-shape-preset', JSON.stringify(item));
+    e.dataTransfer.effectAllowed = 'copy';
+    const ghost = document.createElement('div');
+    ghost.style.width = '48px';
+    ghost.style.height = '48px';
+    ghost.style.opacity = '0.8';
+    ghost.style.position = 'absolute';
+    ghost.style.top = '-1000px';
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, 24, 24);
+    setTimeout(() => document.body.removeChild(ghost), 0);
+  }, []);
+
+  const renderShapeItem = (item: ShapePreset, idx: number) => (
+    <button
+      key={idx}
+      data-testid={`shape-btn-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+      id={`shape-btn-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
+      draggable
+      onDragStart={(e) => handleDragStart(e, item)}
+      onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
+      className="aspect-square bg-surface-dark-3 border border-gray-800 rounded-xl hover:border-brand-600 flex flex-col items-center justify-center gap-1 group"
+    >
+      <div className="w-12 h-12 flex items-center justify-center">
+        {item.type === 'path' ? (
+          <svg
+            viewBox={(item.props as any).viewBox || '0 0 100 100'}
+            width="100%"
+            height="100%"
+            className="w-full h-full drop-shadow-sm"
+          >
+            <path d={(item.props as any).pathData} fill={(item.props as any).color} />
+          </svg>
+        ) : (
+          <div
+            style={{
+              width: '36px',
+              height: item.type === 'rectangle' && (item.props as any).height < 10 ? '3px' : '36px',
+              backgroundColor:
+                item.props.color === 'transparent' ? 'transparent' : item.props.color || '#fff',
+              border: item.props.stroke ? `1.5px solid ${item.props.stroke.color}` : 'none',
+              borderRadius: item.type === 'circle' ? '50%' : item.props.cornerRadius ? '4px' : '0',
+              transform: item.type === 'diamond' ? 'rotate(45deg)' : 'none',
+              clipPath: item.type === 'triangle' ? 'polygon(50% 0%, 0% 100%, 100% 100%)' : 'none',
+            }}
+          />
+        )}
+      </div>
+      <span className="text-[8px] text-gray-500 group-hover:text-gray-300 font-medium truncate w-full text-center px-1">
+        {item.name}
+      </span>
+    </button>
+  );
+
   return (
-    <div data-testid="elements-panel" className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-5">
+    <div
+      data-testid="elements-panel"
+      className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-5"
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+      }}
+      onDrop={(e) => {
+        const raw = e.dataTransfer.getData('application/x-shape-preset');
+        if (raw && dragData) {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const preset = dragData;
+          internalAddShape(preset.type, { ...preset.props, name: preset.name }, preset.name);
+          setDragData(null);
+        }
+      }}
+    >
       {/* Tabs */}
       <div className="flex gap-1 p-1 bg-surface-dark-3 rounded-xl border border-gray-800">
         {sources.map((src) => (
@@ -308,45 +410,16 @@ export const ElementsPanel = () => {
               </button>
             ))}
           </div>
+          {recentShapes.length > 0 && (
+            <div>
+              <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Recently Used</h4>
+              <div className="grid grid-cols-3 gap-3">
+                {recentShapes.map((item, idx) => renderShapeItem(item, idx))}
+              </div>
+            </div>
+          )}
           <div className="grid grid-cols-3 gap-3">
-            {filteredShapes.map((item, idx) => (
-              <button
-                key={idx}
-                data-testid={`shape-btn-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
-                id={`shape-btn-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
-                onClick={() => internalAddShape(item.type, { ...item.props, name: item.name })}
-                className="aspect-square bg-surface-dark-3 border border-gray-800 rounded-xl hover:border-brand-600 flex flex-col items-center justify-center gap-1 group"
-              >
-                <div className="w-8 h-8 flex items-center justify-center">
-                  {item.type === 'path' ? (
-                    <svg
-                      viewBox={(item.props as any).viewBox || '0 0 100 100'}
-                      width="100%"
-                      height="100%"
-                      className="w-full h-full drop-shadow-sm"
-                    >
-                      <path d={(item.props as any).pathData} fill={(item.props as any).color} />
-                    </svg>
-                  ) : (
-                    <div
-                      style={{
-                        width: '24px',
-                        height: item.type === 'rectangle' && (item.props as any).height < 10 ? '2px' : '24px',
-                        backgroundColor:
-                          item.props.color === 'transparent' ? 'transparent' : item.props.color || '#fff',
-                        border: item.props.stroke ? `1.5px solid ${item.props.stroke.color}` : 'none',
-                        borderRadius: item.type === 'circle' ? '50%' : item.props.cornerRadius ? '4px' : '0',
-                        transform: item.type === 'diamond' ? 'rotate(45deg)' : 'none',
-                        clipPath: item.type === 'triangle' ? 'polygon(50% 0%, 0% 100%, 100% 100%)' : 'none',
-                      }}
-                    />
-                  )}
-                </div>
-                <span className="text-[8px] text-gray-500 group-hover:text-gray-300 font-medium truncate w-full text-center px-1">
-                  {item.name}
-                </span>
-              </button>
-            ))}
+            {filteredShapes.map((item, idx) => renderShapeItem(item, idx))}
           </div>
         </>
       ) : (

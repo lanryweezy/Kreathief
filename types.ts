@@ -90,6 +90,15 @@ export interface Shadow {
   blur: number;
   offsetX: number;
   offsetY: number;
+  opacity?: number;
+  inset?: boolean;
+}
+
+export interface CornerRadius {
+  tl: number;
+  tr: number;
+  br: number;
+  bl: number;
 }
 
 export interface AdvancedShadow extends Shadow {
@@ -109,6 +118,7 @@ export interface Stroke {
   dashArray?: number[];
   cap?: 'butt' | 'round' | 'square';
   join?: 'round' | 'bevel' | 'miter';
+  alignment?: 'inside' | 'center' | 'outside';
 }
 
 export interface AnimationSettings {
@@ -317,19 +327,21 @@ export interface ShapeLayer extends LayerBase {
   type: ShapeType;
   color: string;
   cornerRadius: number;
+  cornerRadiusPerCorner?: CornerRadius;
   gradient?: Gradient;
   backgroundImage?: string;
-  backgroundScale?: number; // 1 = 100%
+  backgroundScale?: number;
   backgroundPositionX?: number;
   backgroundPositionY?: number;
-  pathData?: string; // SVG Path D attribute for custom shapes
-  viewBox?: string; // SVG ViewBox
-  vectorPath?: VectorPath; // For active editing
+  pathData?: string;
+  viewBox?: string;
+  vectorPath?: VectorPath;
   imageFill?: ImageFillSettings;
   backgroundGradient?: Gradient;
   flipX?: boolean;
   flipY?: boolean;
   strokeProfile?: 'uniform' | 'taper-start' | 'taper-end' | 'taper-both';
+  strokeDasharray?: string;
   pathEffects?: {
     roughen?: { amount: number };
     zigzag?: { amplitude: number; frequency: number };

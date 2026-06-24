@@ -60,6 +60,17 @@ export const ShortcutOverlay: React.FC<ShortcutOverlayProps> = ({ isOpen, onClos
         { key: 'F2', desc: 'Rename Layer' },
       ],
     },
+    {
+      title: 'Alignment (Multi-select)',
+      shortcuts: [
+        { key: 'Alt + 1', desc: 'Align Left' },
+        { key: 'Alt + 2', desc: 'Align Center H' },
+        { key: 'Alt + 3', desc: 'Align Right' },
+        { key: 'Alt + 4', desc: 'Align Top' },
+        { key: 'Alt + 5', desc: 'Align Middle V' },
+        { key: 'Alt + 6', desc: 'Align Bottom' },
+      ],
+    },
   ];
 
   return (

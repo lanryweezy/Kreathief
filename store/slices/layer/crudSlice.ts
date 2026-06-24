@@ -333,7 +333,7 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
       width: 100,
       height: 100,
       rotation: 0,
-      color: '#000000',
+      color: '#334155',
       cornerRadius: 0,
       opacity: 1,
       locked: false,
@@ -345,6 +345,7 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
       perspective: 0,
       rotateX: 0,
       rotateY: 0,
+      stroke: { color: '#94a3b8', width: 1 },
       ...style,
     };
 

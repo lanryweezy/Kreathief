@@ -539,6 +539,74 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         description: 'Command Palette',
       },
       { key: '?', shift: true, action: () => setShowShortcuts(!showShortcuts), description: 'Shortcuts' },
+
+      // Alignment shortcuts (Alt+1-6)
+      {
+        key: '1',
+        alt: true,
+        action: () => {
+          if (selectedLayerIds.length >= 2) {
+            useStore.getState().alignLayers('left');
+            haptics.light();
+          }
+        },
+        description: 'Align Left',
+      },
+      {
+        key: '2',
+        alt: true,
+        action: () => {
+          if (selectedLayerIds.length >= 2) {
+            useStore.getState().alignLayers('center');
+            haptics.light();
+          }
+        },
+        description: 'Align Center H',
+      },
+      {
+        key: '3',
+        alt: true,
+        action: () => {
+          if (selectedLayerIds.length >= 2) {
+            useStore.getState().alignLayers('right');
+            haptics.light();
+          }
+        },
+        description: 'Align Right',
+      },
+      {
+        key: '4',
+        alt: true,
+        action: () => {
+          if (selectedLayerIds.length >= 2) {
+            useStore.getState().alignLayers('top');
+            haptics.light();
+          }
+        },
+        description: 'Align Top',
+      },
+      {
+        key: '5',
+        alt: true,
+        action: () => {
+          if (selectedLayerIds.length >= 2) {
+            useStore.getState().alignLayers('middle');
+            haptics.light();
+          }
+        },
+        description: 'Align Middle V',
+      },
+      {
+        key: '6',
+        alt: true,
+        action: () => {
+          if (selectedLayerIds.length >= 2) {
+            useStore.getState().alignLayers('bottom');
+            haptics.light();
+          }
+        },
+        description: 'Align Bottom',
+      },
     ],
     [
       undo,
@@ -547,7 +615,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       pasteLayer,
       saveProject,
       selectedLayerIds,
-      selectedLayerId,
       duplicateSelected,
       deleteSelected,
       groupSelected,

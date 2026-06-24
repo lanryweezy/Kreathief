@@ -3,7 +3,7 @@
  * Renders the content of a layer based on its type (text, image, shape)
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Layer, TextLayer, ShapeLayer, ImageLayer, AnimationSettings } from '../../types';
 import { getLayerClipPath } from '../../utils/layerRendering';
 import { BrushStrokeRenderer } from '../../services/brushEngine';
@@ -108,7 +108,32 @@ ImageLayerContent.displayName = 'ImageLayerContent';
  * Shape Layer Content
  */
 const ShapeLayerContent = React.memo(({ layer }: { layer: ShapeLayer }) => {
-  const { type, width, height, color, cornerRadius, gradient, pathData, viewBox, imageFill } = layer;
+  const { type, width, height, color, cornerRadius, cornerRadiusPerCorner, gradient, pathData, viewBox, imageFill, strokeDasharray } = layer;
+
+  const getBorderRadius = () => {
+    if (type !== 'rectangle' && type !== 'path') return undefined;
+    if (cornerRadiusPerCorner) {
+      return `${cornerRadiusPerCorner.tl}px ${cornerRadiusPerCorner.tr}px ${cornerRadiusPerCorner.br}px ${cornerRadiusPerCorner.bl}px`;
+    }
+    return cornerRadius ? `${cornerRadius}px` : undefined;
+  };
+
+  const borderRadius = getBorderRadius();
+
+  const gradientStyle = useMemo(() => {
+    if (!gradient?.enabled) return undefined;
+    return {
+      background: `linear-gradient(${gradient.angle || 0}deg, ${gradient.colors.map((c) => `${c.color} ${c.position * 100}%`).join(', ')})`,
+      width: '100%' as const,
+      height: '100%' as const,
+      borderRadius,
+    };
+  }, [gradient?.enabled, gradient?.angle, gradient?.colors, borderRadius]);
+
+  const clipPathStyle = useMemo(() => {
+    if (type === 'path' || imageFill?.src || gradient?.enabled) return undefined;
+    return getLayerClipPath(layer);
+  }, [type, layer, imageFill?.src, gradient?.enabled]);
 
   // Custom SVG path
   if (type === 'path' && pathData) {
@@ -135,7 +160,6 @@ const ShapeLayerContent = React.memo(({ layer }: { layer: ShapeLayer }) => {
     const fill: string | undefined = gradient?.enabled ? undefined : color;
     const strokeColor = layer.stroke?.color || color;
     const strokeWidth = layer.stroke?.width || 1;
-    const strokeDasharray: string | undefined = undefined;
     const strokeLinecap: 'butt' | 'round' | 'square' | undefined = 'round';
 
     return (
@@ -143,6 +167,7 @@ const ShapeLayerContent = React.memo(({ layer }: { layer: ShapeLayer }) => {
         width={width}
         height={height}
         viewBox={viewBox || `0 0 ${width} ${height}`}
+        preserveAspectRatio="xMidYMid meet"
         style={{ overflow: 'visible', opacity: layer.opacity }}
       >
         <path
@@ -168,34 +193,26 @@ const ShapeLayerContent = React.memo(({ layer }: { layer: ShapeLayer }) => {
           backgroundImage: `url(${imageFill.src})`,
           backgroundSize: imageFill.fit || 'cover',
           backgroundPosition: 'center',
-          borderRadius: cornerRadius ? `${cornerRadius}px` : undefined,
+          borderRadius,
         }}
       />
     );
   }
 
   // Gradient fill
-  if (gradient?.enabled) {
-    const gradientStyle: React.CSSProperties = {
-      background: `linear-gradient(${gradient.angle || 0}deg, ${gradient.colors.map((c) => `${c.color} ${c.position * 100}%`).join(', ')})`,
-      width: '100%',
-      height: '100%',
-      borderRadius: cornerRadius ? `${cornerRadius}px` : undefined,
-    };
+  if (gradient?.enabled && gradientStyle) {
     return <div style={gradientStyle} />;
   }
 
   // Solid color with clip-path for shapes
-  const clipPath = getLayerClipPath(layer);
-
   return (
     <div
       style={{
         width: '100%',
         height: '100%',
         backgroundColor: color,
-        borderRadius: type === 'rectangle' || type === 'path' ? `${cornerRadius}px` : undefined,
-        clipPath,
+        borderRadius,
+        clipPath: clipPathStyle,
       }}
     />
   );

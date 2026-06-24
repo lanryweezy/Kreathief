@@ -300,42 +300,61 @@ export const ShapeLayerItem = React.memo(
 
       const containerStyle = React.useMemo(() => {
         const base = getLayerStyle(shapeLayer);
+        const flipX = shapeLayer.flipX ? -1 : 1;
+        const flipY = shapeLayer.flipY ? -1 : 1;
         return {
           ...base,
-          transform: `${shapeLayer.perspective ? `perspective(${shapeLayer.perspective}px)` : ''} rotateX(${shapeLayer.rotateX || 0}deg) rotateY(${shapeLayer.rotateY || 0}deg) ${base.transform} skew(${shapeLayer.skewX || 0}deg, ${shapeLayer.skewY || 0}deg)`,
+          transform: `${shapeLayer.perspective ? `perspective(${shapeLayer.perspective}px)` : ''} rotateX(${shapeLayer.rotateX || 0}deg) rotateY(${shapeLayer.rotateY || 0}deg) ${base.transform} scale(${flipX}, ${flipY}) skew(${shapeLayer.skewX || 0}deg, ${shapeLayer.skewY || 0}deg)`,
           willChange: 'transform',
           zIndex: isSelected ? 100 : isHovered ? 99 : 1,
         };
       }, [shapeLayer, isSelected, isHovered]);
 
       const innerStyle = React.useMemo(
-        () => ({
-          ...animStyle,
-          backgroundColor: shapeLayer.type === 'path' ? 'transparent' : shapeLayer.color,
-          backgroundImage:
-            shapeLayer.type === 'path'
-              ? 'none'
-              : shapeLayer.imageFill
-                ? `url(${shapeLayer.imageFill.src})`
-                : shapeLayer.backgroundImage
-                  ? `url(${shapeLayer.backgroundImage})`
-                  : 'none',
-          backgroundSize: shapeLayer.imageFill?.fit === 'contain' ? 'contain' : 'cover',
-          borderRadius:
-            shapeLayer.type === 'circle'
-              ? '50%'
-              : shapeLayer.type !== 'path'
-                ? `${shapeLayer.cornerRadius}px`
-                : undefined,
-          clipPath: shapeLayer.type === 'path' ? undefined : clipPath,
-          WebkitClipPath: shapeLayer.type === 'path' ? undefined : clipPath,
-          filter: shapeLayer.filters ? buildFilterString(shapeLayer.filters) : 'none',
-          backdropFilter: shapeLayer.filters?.backdropBlur ? `blur(${shapeLayer.filters.backdropBlur}px)` : 'none',
-          WebkitBackdropFilter: shapeLayer.filters?.backdropBlur
-            ? `blur(${shapeLayer.filters.backdropBlur}px)`
-            : 'none',
-          ...(maskPath ? { clipPath: maskPath, WebkitClipPath: maskPath } : {}),
-        }),
+        () => {
+          const getRadius = () => {
+            if (shapeLayer.type === 'circle') return '50%';
+            if (shapeLayer.type === 'path') return undefined;
+            if ((shapeLayer as ShapeLayer).cornerRadiusPerCorner) {
+              const r = (shapeLayer as ShapeLayer).cornerRadiusPerCorner!;
+              return `${r.tl}px ${r.tr}px ${r.br}px ${r.bl}px`;
+            }
+            return `${shapeLayer.cornerRadius}px`;
+          };
+
+          const buildShadow = () => {
+            if (!shapeLayer.shadow) return 'none';
+            const s = shapeLayer.shadow;
+            const opacity = s.opacity ?? 1;
+            const color = s.color;
+            const inset = s.inset ? 'inset ' : '';
+            return `${inset}${s.offsetX}px ${s.offsetY}px ${s.blur}px ${color}`;
+          };
+
+          return {
+            ...animStyle,
+            backgroundColor: shapeLayer.type === 'path' ? 'transparent' : shapeLayer.color,
+            backgroundImage:
+              shapeLayer.type === 'path'
+                ? 'none'
+                : shapeLayer.imageFill
+                  ? `url(${shapeLayer.imageFill.src})`
+                  : shapeLayer.backgroundImage
+                    ? `url(${shapeLayer.backgroundImage})`
+                    : 'none',
+            backgroundSize: shapeLayer.imageFill?.fit === 'contain' ? 'contain' : 'cover',
+            borderRadius: getRadius(),
+            clipPath: shapeLayer.type === 'path' ? undefined : clipPath,
+            WebkitClipPath: shapeLayer.type === 'path' ? undefined : clipPath,
+            filter: shapeLayer.filters ? buildFilterString(shapeLayer.filters) : 'none',
+            backdropFilter: shapeLayer.filters?.backdropBlur ? `blur(${shapeLayer.filters.backdropBlur}px)` : 'none',
+            WebkitBackdropFilter: shapeLayer.filters?.backdropBlur
+              ? `blur(${shapeLayer.filters.backdropBlur}px)`
+              : 'none',
+            boxShadow: buildShadow(),
+            ...(maskPath ? { clipPath: maskPath, WebkitClipPath: maskPath } : {}),
+          };
+        },
         [animStyle, shapeLayer, clipPath, maskPath]
       );
 
@@ -345,8 +364,6 @@ export const ShapeLayerItem = React.memo(
           role="img"
           data-testid={`shape-layer-${shapeLayer.id}`}
           data-layer-id={shapeLayer.id}
-          data-debug-type={shapeLayer.type}
-          data-debug-path={shapeLayer.pathData}
           aria-label={shapeLayer.name || 'Shape layer'}
           onMouseDown={(e) => onMouseDown(e, shapeLayer)}
           onContextMenu={(e) => onContextMenu(e, shapeLayer.id)}
@@ -385,7 +402,7 @@ export const ShapeLayerItem = React.memo(
                     height="100%"
                     viewBox={shapeLayer.viewBox || `0 0 ${shapeLayer.width} ${shapeLayer.height}`}
                     style={{ overflow: 'visible' }}
-                    preserveAspectRatio="none"
+                    preserveAspectRatio="xMidYMid meet"
                   >
                     <defs>
                       {shapeLayer.gradient &&
@@ -488,15 +505,43 @@ export const ShapeLayerItem = React.memo(
                             : undefined
                       }
                     />
-                    {(() => {
+                      {(() => {
                       const stroke = (shapeLayer as any).stroke;
                       const w = stroke?.width || 0;
                       if (w <= 0) {
                         return null;
                       }
                       const profile = (shapeLayer as any).strokeProfile || 'uniform';
+                      const alignment = stroke?.alignment || 'center';
 
                       if (profile === 'uniform') {
+                        if (alignment === 'inside') {
+                          return (
+                            <path
+                              d={shapeLayer.pathData}
+                              fill={shapeLayer.gradient && shapeLayer.gradient.enabled ? `url(#gradient-${shapeLayer.id})` : shapeLayer.color || '#7d2ae8'}
+                              stroke={stroke?.color || shapeLayer.color}
+                              strokeWidth={w}
+                              strokeLinecap={stroke?.cap || 'round'}
+                              strokeLinejoin={stroke?.join || 'round'}
+                              strokeDasharray={(shapeLayer as any).strokeDasharray}
+                              paintOrder="stroke fill"
+                            />
+                          );
+                        }
+                        if (alignment === 'outside') {
+                          return (
+                            <path
+                              d={shapeLayer.pathData}
+                              fill="none"
+                              stroke={stroke?.color || shapeLayer.color}
+                              strokeWidth={w * 2}
+                              strokeLinecap={stroke?.cap || 'round'}
+                              strokeLinejoin={stroke?.join || 'round'}
+                              strokeDasharray={(shapeLayer as any).strokeDasharray}
+                            />
+                          );
+                        }
                         return (
                           <path
                             d={shapeLayer.pathData}
@@ -505,6 +550,7 @@ export const ShapeLayerItem = React.memo(
                             strokeWidth={w}
                             strokeLinecap={stroke?.cap || 'round'}
                             strokeLinejoin={stroke?.join || 'round'}
+                            strokeDasharray={(shapeLayer as any).strokeDasharray}
                           />
                         );
                       } else {

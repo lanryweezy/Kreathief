@@ -29,7 +29,7 @@ const ShadowControls = ({
   onUpdate: (changes: any) => void;
 }) => {
   const sliders = [
-    { label: 'Blur', key: 'blur', max: 50 },
+    { label: 'Blur', key: 'blur', max: 100 },
     { label: 'X', key: 'offsetX', min: -50, max: 50 },
     { label: 'Y', key: 'offsetY', min: -50, max: 50 },
   ];
@@ -60,6 +60,30 @@ const ShadowControls = ({
               onChange={(color) => onUpdate({ shadow: { ...layer.shadow!, color } })}
               small
               documentColors={documentColors}
+            />
+          </div>
+          <div className="space-y-1">
+            <div className="flex justify-between">
+              <span className="text-[9px] text-gray-500 font-bold uppercase">Opacity</span>
+              <span className="text-[9px] text-white font-mono">{Math.round((layer.shadow.opacity ?? 1) * 100)}%</span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={layer.shadow.opacity ?? 1}
+              onChange={(e) => onUpdate({ shadow: { ...layer.shadow!, opacity: parseFloat(e.target.value) } })}
+              className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <label className="text-[9px] text-gray-500 font-bold uppercase">Inner Shadow</label>
+            <input
+              type="checkbox"
+              checked={!!layer.shadow.inset}
+              onChange={(e) => onUpdate({ shadow: { ...layer.shadow!, inset: e.target.checked } })}
+              className="accent-accent w-3 h-3"
             />
           </div>
           {sliders.map((s) => (
@@ -172,7 +196,7 @@ export const ShapeTools = React.memo(
     };
 
     return (
-      <div className="flex items-center gap-3 flex-nowrap">
+      <div className="flex items-center gap-2 flex-nowrap">
         <ColorPicker
           value={(layer as any).color}
           onChange={(color) => handleUpdateLayer({ color, backgroundImage: undefined })}
@@ -199,6 +223,115 @@ export const ShapeTools = React.memo(
             className="w-16 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
             title={`Opacity: ${Math.round(layer.opacity * 100)}%`}
           />
+        </div>
+
+        <Divider />
+
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">R</span>
+          <input
+            type="number"
+            min="0"
+            max="500"
+            value={(layer as any).cornerRadius || 0}
+            onChange={(e) => handleUpdateLayer({ cornerRadius: Math.max(0, parseInt(e.target.value || '0')) })}
+            className="w-12 bg-black/40 border border-white/10 rounded text-center text-[10px] text-white p-1"
+            title="Corner Radius"
+          />
+        </div>
+
+        <Divider />
+
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Fill</span>
+          <ColorPicker
+            small
+            value={(layer as any).color}
+            onChange={(color) => handleUpdateLayer({ color, backgroundImage: undefined })}
+            documentColors={documentColors}
+          />
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Stroke</span>
+          <ColorPicker
+            small
+            value={(layer as any).stroke?.color || '#ffffff'}
+            onChange={(c) =>
+              handleUpdateLayer({
+                stroke: { ...(layer as any).stroke, color: c, width: (layer as any).stroke?.width || 1 },
+              })
+            }
+            documentColors={documentColors}
+          />
+          <input
+            type="number"
+            min="0"
+            max="100"
+            value={(layer as any).stroke?.width ?? 0}
+            onChange={(e) =>
+              handleUpdateLayer({
+                stroke: {
+                  ...(layer as any).stroke,
+                  width: Math.min(100, Math.max(0, parseInt(e.target.value || '0'))),
+                  color: (layer as any).stroke?.color || '#ffffff',
+                },
+              })
+            }
+            className="w-12 bg-black/40 border border-white/10 rounded text-center text-[10px] text-white p-1"
+            title="Stroke Width (0-100)"
+          />
+        </div>
+
+        <Divider />
+
+        <div className="flex items-center gap-0.5">
+          <IconButton
+            onClick={() => handleUpdateLayer({ flipX: !(layer as ShapeLayer).flipX })}
+            active={!!(layer as ShapeLayer).flipX}
+            title="Flip Horizontal"
+          >
+            <Icons.FlipHorizontal className={`w-4 h-4 ${(layer as ShapeLayer).flipX ? 'text-cyan-400' : 'text-gray-400'}`} />
+          </IconButton>
+          <IconButton
+            onClick={() => handleUpdateLayer({ flipY: !(layer as ShapeLayer).flipY })}
+            active={!!(layer as ShapeLayer).flipY}
+            title="Flip Vertical"
+          >
+            <Icons.FlipVertical className={`w-4 h-4 ${(layer as ShapeLayer).flipY ? 'text-cyan-400' : 'text-gray-400'}`} />
+          </IconButton>
+        </div>
+
+        <Divider />
+
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Skew</span>
+          <div className="flex items-center gap-1">
+            <span className="text-[8px] text-gray-500">X</span>
+            <input
+              type="range"
+              min="-45"
+              max="45"
+              step="1"
+              value={(layer as any).skewX ?? 0}
+              onChange={(e) => handleUpdateLayer({ skewX: parseInt(e.target.value) })}
+              className="w-14 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
+              title={`Skew X: ${(layer as any).skewX ?? 0}°`}
+            />
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-[8px] text-gray-500">Y</span>
+            <input
+              type="range"
+              min="-45"
+              max="45"
+              step="1"
+              value={(layer as any).skewY ?? 0}
+              onChange={(e) => handleUpdateLayer({ skewY: parseInt(e.target.value) })}
+              className="w-14 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
+              title={`Skew Y: ${(layer as any).skewY ?? 0}°`}
+            />
+          </div>
         </div>
 
         <Divider />
@@ -253,14 +386,35 @@ export const ShapeTools = React.memo(
               </div>
 
               <div className="bg-white/5 rounded-lg p-3 border border-white/5">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center mb-2">
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Radius</span>
                   <input
                     type="number"
                     value={(layer as any).cornerRadius || 0}
-                    onChange={(e: any) => handleUpdateLayer({ cornerRadius: parseInt(e.target.value) })}
+                    onChange={(e) => handleUpdateLayer({ cornerRadius: parseInt(e.target.value) })}
                     className="w-12 bg-black/40 border border-white/10 rounded text-center text-xs text-white p-1"
                   />
+                </div>
+                <div className="grid grid-cols-2 gap-1 mt-2">
+                  {[
+                    { label: 'TL', key: 'tl' },
+                    { label: 'TR', key: 'tr' },
+                    { label: 'BR', key: 'br' },
+                    { label: 'BL', key: 'bl' },
+                  ].map(({ label, key }) => (
+                    <div key={key} className="flex items-center gap-1">
+                      <span className="text-[8px] text-gray-500 w-4">{label}</span>
+                      <input
+                        type="number"
+                        value={(layer as any).cornerRadiusPerCorner?.[key] ?? (layer as any).cornerRadius ?? 0}
+                        onChange={(e) => {
+                          const current = (layer as any).cornerRadiusPerCorner || { tl: 0, tr: 0, br: 0, bl: 0 };
+                          handleUpdateLayer({ cornerRadiusPerCorner: { ...current, [key]: parseInt(e.target.value) } });
+                        }}
+                        className="w-full bg-black/40 border border-white/10 rounded text-[10px] text-white p-0.5"
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
               {/* Stroke Section */}
@@ -271,13 +425,15 @@ export const ShapeTools = React.memo(
                     <span className="text-[9px] text-gray-500 font-bold uppercase">Width</span>
                     <input
                       type="number"
+                      min="0"
+                      max="100"
                       className="w-14 bg-black/40 border border-white/10 rounded text-center text-xs text-white p-1"
                       value={(layer as any).stroke?.width ?? 0}
-                      onChange={(e: any) =>
+                      onChange={(e) =>
                         handleUpdateLayer({
                           stroke: {
                             ...(layer as any).stroke,
-                            width: parseInt(e.target.value || '0'),
+                            width: Math.min(100, Math.max(0, parseInt(e.target.value || '0'))),
                             color: (layer as any).stroke?.color || '#ffffff',
                           },
                         })
@@ -296,6 +452,32 @@ export const ShapeTools = React.memo(
                       }
                       documentColors={documentColors}
                     />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] text-gray-500 font-bold uppercase">Pattern</span>
+                    <select
+                      className="bg-black/40 border border-white/10 rounded text-xs text-white p-1"
+                      value={(layer as any).strokeDasharray || ''}
+                      onChange={(e) => handleUpdateLayer({ strokeDasharray: e.target.value || undefined })}
+                    >
+                      <option value="">Solid</option>
+                      <option value="8 4">Dashed</option>
+                      <option value="2 4">Dotted</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] text-gray-500 font-bold uppercase">Alignment</span>
+                    <select
+                      className="bg-black/40 border border-white/10 rounded text-xs text-white p-1"
+                      value={(layer as any).stroke?.alignment || 'center'}
+                      onChange={(e) =>
+                        handleUpdateLayer({ stroke: { ...(layer as any).stroke, alignment: e.target.value as any } })
+                      }
+                    >
+                      <option value="inside">Inside</option>
+                      <option value="center">Center</option>
+                      <option value="outside">Outside</option>
+                    </select>
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <select

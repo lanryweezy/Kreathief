@@ -269,6 +269,32 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
                 className="w-full accent-brand-600"
               />
             </div>
+
+            <div>
+              <div className="flex justify-between text-[9px] text-gray-500 mb-1">
+                <span>Alignment</span>
+                <span>{(stroke as any).alignment || 'center'}</span>
+              </div>
+              <div className="flex gap-1">
+                {(['inside', 'center', 'outside'] as const).map((a) => (
+                  <button
+                    key={a}
+                    onClick={() => {
+                      const updated = { ...stroke, alignment: a } as any;
+                      setStroke(updated);
+                      updateLayer(selectedLayer.id, { stroke: updated });
+                    }}
+                    className={`flex-1 py-1 text-[9px] rounded border transition-colors ${
+                      (stroke as any).alignment === a || (!stroke.alignment && a === 'center')
+                        ? 'bg-brand-600 border-brand-600 text-white'
+                        : 'bg-surface-dark-4 border-gray-700 text-gray-400 hover:border-gray-500'
+                    }`}
+                  >
+                    {a.charAt(0).toUpperCase() + a.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </div>
