@@ -129,11 +129,11 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#13161a] border-l border-white/5 shadow-[-20px_0_40px_rgba(0,0,0,0.4)] z-[110]">
+    <div className="flex flex-col h-full bg-surface-dark-3 border-l border-white/5 shadow-[-20px_0_40px_rgba(0,0,0,0.4)] z-[110]">
       {/* Header */}
       <div className="p-6 border-b border-white/5 bg-surface-dark-3/50 backdrop-blur-xl flex items-center justify-between">
         <h3 className="font-black text-white flex items-center gap-3 uppercase tracking-[0.2em] text-xs">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-600 to-[#a855f7] flex items-center justify-center shadow-lg shadow-purple-500/20">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-600 to-brand-400 flex items-center justify-center shadow-lg shadow-purple-500/20">
             <AgentIcons.Zap className="w-5 h-5 text-white" />
           </div>
           Agentic AI
@@ -240,7 +240,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
             <button
               onClick={handleStartWorkflow}
               disabled={!input.trim() || (agentStatus !== 'idle' && agentStatus !== 'done' && agentStatus !== 'error')}
-              className="w-10 h-10 bg-gradient-to-br from-brand-600 to-[#a855f7] rounded-xl flex items-center justify-center text-white shadow-lg shadow-purple-500/30 disabled:opacity-30 disabled:grayscale hover:scale-105 transition-transform group"
+              className="w-10 h-10 bg-gradient-to-br from-brand-600 to-brand-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-purple-500/30 disabled:opacity-30 disabled:grayscale hover:scale-105 transition-transform group"
             >
               <AgentIcons.ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>

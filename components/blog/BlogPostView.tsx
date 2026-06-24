@@ -15,7 +15,7 @@ export const BlogPostView: React.FC = () => {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white">
+      <div className="min-h-screen bg-surface-dark-0 flex items-center justify-center text-white">
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-4 rotate-3 text-red-500">404: Post Not Found</h1>
           <Link
@@ -54,7 +54,7 @@ export const BlogPostView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white selection:bg-brand-600 pt-32 pb-32">
+    <div className="min-h-screen bg-surface-dark-0 text-white selection:bg-brand-600 pt-32 pb-32">
       <SEO
         title={post.title}
         description={post.excerpt}
@@ -144,7 +144,7 @@ export const BlogPostView: React.FC = () => {
 
             <div className="flex items-center gap-4 py-6">
               <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 p-[2px]">
-                <div className="w-full h-full bg-[#050505] rounded-full flex items-center justify-center text-white font-black">
+                <div className="w-full h-full bg-surface-dark-0 rounded-full flex items-center justify-center text-white font-black">
                   {post.author.charAt(0)}
                 </div>
               </div>
@@ -161,7 +161,7 @@ export const BlogPostView: React.FC = () => {
             transition={{ duration: 0.8 }}
             className="aspect-[21/9] rounded-[32px] overflow-hidden mb-16 shadow-[0_30px_60px_rgba(0,0,0,0.6)] border border-white/10 bg-[#111] relative"
           >
-            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent z-10 opacity-60" />
+            <div className="absolute inset-0 bg-gradient-to-t from-surface-dark-0 via-transparent to-transparent z-10 opacity-60" />
             <img src={post.image} alt={post.title} className="w-full h-full object-cover relative z-0" />
           </motion.div>
 
@@ -227,7 +227,7 @@ export const BlogPostView: React.FC = () => {
             </div>
           </article>
 
-          <div className="mt-32 p-12 rounded-[40px] border border-white/10 bg-gradient-to-br from-[#111] to-[#050505] text-center relative overflow-hidden">
+          <div className="mt-32 p-12 rounded-[40px] border border-white/10 bg-gradient-to-br from-[#111] to-surface-dark-0 text-center relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
 

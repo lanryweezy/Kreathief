@@ -143,7 +143,7 @@ export const ContactPage = () => (
     </p>
 
     <div className="space-y-6 max-w-2xl">
-      <div className="p-6 bg-[#0a0a0a] rounded-xl border border-white/10 hover:border-purple-500/50 transition-colors">
+      <div className="p-6 bg-surface-dark-1 rounded-xl border border-white/10 hover:border-purple-500/50 transition-colors">
         <h3 className="text-lg font-bold text-white mb-2">Technical Support & General Inquiries</h3>
         <p className="text-gray-400 mb-4">
           Facing issues with SVG exports or WebSocket connectivity? Ping our core engineers.
@@ -153,7 +153,7 @@ export const ContactPage = () => (
         </a>
       </div>
 
-      <div className="p-6 bg-[#0a0a0a] rounded-xl border border-white/10 hover:border-purple-500/50 transition-colors">
+      <div className="p-6 bg-surface-dark-1 rounded-xl border border-white/10 hover:border-purple-500/50 transition-colors">
         <h3 className="text-lg font-bold text-white mb-2">Enterprise API & Custom Models</h3>
         <p className="text-gray-400 mb-4">
           Want to integrate Kreathief's generative engine directly into your CMS or workflow? Let's talk scale.
@@ -163,7 +163,7 @@ export const ContactPage = () => (
         </a>
       </div>
 
-      <div className="p-6 bg-[#0a0a0a] rounded-xl border border-white/10 hover:border-purple-500/50 transition-colors">
+      <div className="p-6 bg-surface-dark-1 rounded-xl border border-white/10 hover:border-purple-500/50 transition-colors">
         <h3 className="text-lg font-bold text-white mb-2">Press & Partnerships</h3>
         <p className="text-gray-400 mb-4">For media inquiries, brand kit requests, and co-marketing opportunities.</p>
         <a href="mailto:ceo@streetheart.tech" className="text-purple-400 font-bold hover:text-purple-300">
@@ -257,7 +257,7 @@ export const ChangelogPage = () => (
       </div>
 
       <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-        <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white/20 bg-[#0a0a0a] text-gray-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+        <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white/20 bg-surface-dark-1 text-gray-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
           2.0
         </div>
         <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 rounded-2xl bg-white/5 border border-white/10 shadow-lg">
@@ -289,7 +289,7 @@ export const APIPage = () => (
         without ever opening the editor UI.
       </p>
 
-      <div className="bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden mt-8">
+      <div className="bg-surface-dark-1 border border-white/10 rounded-xl overflow-hidden mt-8">
         <div className="bg-white/5 border-b border-white/10 px-6 py-3 flex items-center justify-between">
           <span className="font-mono text-xs text-white uppercase tracking-widest">POST /v1/generations/vector</span>
           <span className="bg-green-500/20 text-green-400 text-[10px] font-bold px-2 py-1 rounded uppercase">Live</span>

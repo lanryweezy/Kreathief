@@ -19,7 +19,7 @@ export const PresenceBar: React.FC = () => {
         {onlineUsers.slice(0, 5).map((user, i) => (
           <div
             key={user.userId}
-            className="w-7 h-7 rounded-full border-2 border-[#0e1318] flex items-center justify-center text-[10px] font-bold text-white relative"
+            className="w-7 h-7 rounded-full border-2 border-surface-dark-2 flex items-center justify-center text-[10px] font-bold text-white relative"
             style={{
               backgroundColor: user.color,
               zIndex: onlineUsers.length - i,
@@ -32,11 +32,11 @@ export const PresenceBar: React.FC = () => {
               user.userName.charAt(0).toUpperCase()
             )}
             {/* Online dot */}
-            <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[#0e1318]" />
+            <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-surface-dark-2" />
           </div>
         ))}
         {onlineUsers.length > 5 && (
-          <div className="w-7 h-7 rounded-full bg-white/10 border-2 border-[#0e1318] flex items-center justify-center text-[10px] font-bold text-white z-0">
+          <div className="w-7 h-7 rounded-full bg-white/10 border-2 border-surface-dark-2 flex items-center justify-center text-[10px] font-bold text-white z-0">
             +{onlineUsers.length - 5}
           </div>
         )}

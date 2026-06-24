@@ -735,7 +735,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
 
   if (variant === 'full') {
     return (
-      <div className="flex h-full w-full bg-[#0e1318] text-white overflow-hidden relative">
+      <div className="flex h-full w-full bg-surface-dark-2 text-white overflow-hidden relative">
         {/* Left Column: Mockup Library */}
         <div className="w-[320px] flex flex-col border-r border-gray-800 bg-surface-dark-2 shrink-0">
           <div className="p-4 border-b border-gray-800 flex justify-between items-center">
@@ -1437,7 +1437,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   return (
     <div className="flex flex-col h-full bg-surface-dark-2">
       {/* Category Tabs */}
-      <div className="flex overflow-x-auto custom-scrollbar border-b border-gray-800 bg-[#0e1318]">
+      <div className="flex overflow-x-auto custom-scrollbar border-b border-gray-800 bg-surface-dark-2">
         {MOCKUP_CATEGORIES.map((cat) => (
           <button
             key={cat}
@@ -1557,7 +1557,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
 
         {/* Preview & Controls */}
         <div className="bg-surface-dark-3 rounded-xl border border-gray-800 overflow-hidden">
-          <div className="p-3 border-b border-gray-800 flex justify-between items-center bg-[#0e1318]">
+          <div className="p-3 border-b border-gray-800 flex justify-between items-center bg-surface-dark-2">
             <span className="text-xs font-bold text-gray-300">Preview</span>
             <button
               onClick={() => setIsLive(!isLive)}
@@ -1574,7 +1574,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
 
           <div
             ref={previewContainerRef}
-            className="aspect-video relative bg-[#0e1318] flex items-center justify-center p-4 overflow-hidden"
+            className="aspect-video relative bg-surface-dark-2 flex items-center justify-center p-4 overflow-hidden"
           >
             {isGenerating && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -1606,7 +1606,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
 
           {/* Tabbed Adjustments */}
           <div className="bg-[#1a1d21]">
-            <div className="flex border-b border-gray-800 bg-[#0e1318]">
+            <div className="flex border-b border-gray-800 bg-surface-dark-2">
               {(['placement', 'effects', 'presets'] as const).map((tab) => (
                 <button
                   key={tab}
@@ -1817,7 +1817,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
           </div>
 
           {/* Actions */}
-          <div className="p-3 bg-[#0e1318] border-t border-gray-800 flex flex-col gap-2">
+          <div className="p-3 bg-surface-dark-2 border-t border-gray-800 flex flex-col gap-2">
             <button
               onClick={() => setShowModal(true)}
               className="w-full bg-brand-600 hover:bg-brand-700 text-white py-2 rounded text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-600/20"
