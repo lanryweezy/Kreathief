@@ -42,3 +42,8 @@
 
 **Learning:** Newly introduced feature panels, specifically the AI Assistant, often lack basic accessibility attributes like `aria-label` on icon-only buttons (minimize, close, clear, send, etc). This pattern makes the interface difficult to navigate for screen reader users.
 **Action:** When auditing new feature components, explicitly check all icon-only buttons (`<button><Icons.X/></button>`) for missing `aria-label` attributes to ensure they announce their purpose correctly.
+
+## 2026-06-24 - Missing ARIA labels on Icon-only buttons in Editor Navigation
+
+**Learning:** Found that quick access bars and dynamic toolbars (like `QuickAccessBar.tsx` and `ShortcutOverlay.tsx`) frequently use icon-only buttons for actions like "Zoom In", "Zoom Out", and "Close". Even when wrapper components like `QuickButton` take a `title` prop, they might fail to forward it as an `aria-label` to the underlying `<button>` element.
+**Action:** When creating reusable button wrappers (e.g. `QuickButton`, `IconButton`), ensure they automatically apply an `aria-label` attribute using the provided `title` or explicit `ariaLabel` prop. Also, systematically audit all instances of `<button><Icon /></button>` across the codebase to ensure they possess a descriptive `aria-label`.
