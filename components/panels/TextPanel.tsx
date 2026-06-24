@@ -115,7 +115,7 @@ const ALL_FONTS = FONT_FAMILIES;
 
 const FontPreviewItem = ({
   font,
-  text = 'Typography',
+  text = 'Hamburgevons',
   onClick,
   onHover,
 }: {
@@ -194,6 +194,7 @@ export const TextPanel: React.FC = () => {
   const [selectedTextStyle, setSelectedTextStyle] = useState<Partial<TextStyle> | null>(null);
   const [textGradient, setTextGradient] = useState<any>(null);
   const [textEffects, setTextEffects] = useState<any>({});
+  const [selectedFontWeight, setSelectedFontWeight] = useState<string>('400');
   const fontInputRef = useRef<HTMLInputElement>(null);
 
   const selectedLayerId =
@@ -289,6 +290,31 @@ export const TextPanel: React.FC = () => {
         <Icons.Text className="w-5 h-5 text-brand-600" />
         Typography
       </h3>
+
+      {/* Font Weight Selector - shown when a text layer is selected */}
+      {selectedTextLayer && (
+        <div className="mb-4">
+          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">Weight</label>
+          <div className="flex flex-wrap gap-1">
+            {['300', '400', '500', '600', '700', '900'].map((weight) => (
+              <button
+                key={weight}
+                onClick={() => {
+                  setSelectedFontWeight(weight);
+                  updateLayer(selectedTextLayer.id, { fontWeight: weight });
+                }}
+                className={`px-2 py-1 rounded text-[10px] font-bold transition-all ${
+                  (selectedTextLayer.fontWeight || '400') === weight
+                    ? 'bg-brand-600 text-white'
+                    : 'bg-surface-dark-3 text-gray-400 hover:text-white hover:bg-surface-dark-4'
+                }`}
+              >
+                {weight}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Text Panel Tabs - Row 1 */}
       <div className="flex gap-1 mb-2 bg-surface-dark-1 rounded-lg p-1" role="tablist">
@@ -609,7 +635,7 @@ export const TextPanel: React.FC = () => {
                     <FontPreviewItem
                       key={`custom-${font}`}
                       font={font}
-                      text={font}
+                      text="Hamburgevons"
                       onClick={() => handleAddText({ text: 'Your Text', fontFamily: font, fontSize: 32 })}
                       onHover={(f) => setPreviewFontFamily(f)}
                     />
@@ -632,7 +658,7 @@ export const TextPanel: React.FC = () => {
                     <FontPreviewItem
                       key={`recent-${font}`}
                       font={font}
-                      text={font}
+                      text="Hamburgevons"
                       onClick={() => handleAddText({ text: 'Your Text', fontFamily: font, fontSize: 32 })}
                       onHover={(f) => setPreviewFontFamily(f)}
                     />
@@ -649,7 +675,7 @@ export const TextPanel: React.FC = () => {
                   <FontPreviewItem
                     key={font}
                     font={font}
-                    text={font}
+                    text="Hamburgevons"
                     onClick={() => handleAddText({ text: 'Your Text', fontFamily: font, fontSize: 32 })}
                     onHover={(f) => setPreviewFontFamily(f)}
                   />

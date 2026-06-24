@@ -10,6 +10,9 @@ import { storageService } from './storageService';
 const loadedFonts = new Set<string>();
 const customFonts = new Set<string>();
 
+// Variable font axes registry: tracks available variation axes per family
+const variableFontAxes = new Map<string, string[]>();
+
 // Preloaded common fonts (loaded immediately)
 const PRELOAD_FONTS = ['Inter', 'Space Grotesk', 'Outfit'];
 
@@ -196,10 +199,26 @@ export async function loadFont(fontFamily: string): Promise<boolean> {
     try {
       const endTimer = logger.time(`Loading font from CDN: ${cleanFamily}`);
 
+      // Request variable font CSS when available
+      const encodedName = cleanFamily.replace(/ /g, '+');
+      let fontUrl = `https://fonts.googleapis.com/css2?family=${encodedName}:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap`;
+      let isVariable = false;
+
+      try {
+        const variableUrl = `https://fonts.googleapis.com/css2?family=${encodedName}:ital,wght@0,300..900;1,300..900&display=swap`;
+        const variableResponse = await fetch(variableUrl);
+        if (variableResponse.ok) {
+          fontUrl = variableUrl;
+          isVariable = true;
+        }
+      } catch {
+        // Fallback to static weights
+      }
+
       // Create link element for Google Fonts
       const link = document.createElement('link');
       link.rel = 'stylesheet';
-      link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(cleanFamily.replace(/ /g, '+'))}:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap`;
+      link.href = fontUrl;
 
       // Wait for font to load
       await new Promise<void>((resolve, reject) => {
@@ -210,6 +229,22 @@ export async function loadFont(fontFamily: string): Promise<boolean> {
 
       // Wait for font to be actually available
       await document.fonts.ready;
+
+      // Parse and store available axes from the loaded CSS
+      if (isVariable) {
+        variableFontAxes.set(cleanFamily, ['wght', 'ital']);
+      } else {
+        // Detect loaded weight variants from document.fonts
+        const detectedWeights = new Set<string>();
+        document.fonts.forEach((face) => {
+          if (face.family === cleanFamily && face.status === 'loaded') {
+            detectedWeights.add(String(face.weight));
+          }
+        });
+        if (detectedWeights.size > 0) {
+          variableFontAxes.set(cleanFamily, Array.from(detectedWeights).sort());
+        }
+      }
 
       loadedFonts.add(cleanFamily);
       endTimer();
@@ -304,6 +339,14 @@ export function isFontLoaded(fontFamily: string): boolean {
  */
 export function getLoadedFonts(): string[] {
   return Array.from(loadedFonts);
+}
+
+/**
+ * Get available variation axes for a font family
+ */
+export function getFontAxes(fontFamily: string): string[] {
+  const cleanFamily = fontFamily.split(',')[0].trim().replace(/['"]/g, '');
+  return variableFontAxes.get(cleanFamily) || ['wght'];
 }
 
 /**

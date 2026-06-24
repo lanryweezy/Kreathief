@@ -8,6 +8,66 @@ import { GeometryOracle } from './geometryOracle';
 import { warpRegistry } from './layers/warpRegistry';
 
 /**
+ * Apply text shadow from layer to canvas context
+ */
+function applyTextShadow(ctx: CanvasRenderingContext2D, layer: TextLayer): void {
+  const shadow = layer.shadow;
+  if (shadow) {
+    ctx.shadowColor = shadow.color || 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = shadow.blur || 0;
+    ctx.shadowOffsetX = shadow.offsetX || 0;
+    ctx.shadowOffsetY = shadow.offsetY || 0;
+  }
+}
+
+/**
+ * Reset shadow settings on canvas context
+ */
+function resetShadow(ctx: CanvasRenderingContext2D): void {
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+}
+
+/**
+ * Apply stroke before fill if textStroke exists
+ */
+function applyTextStroke(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  layer: TextLayer
+): void {
+  const stroke = layer.stroke;
+  if (stroke && stroke.width > 0) {
+    ctx.strokeStyle = stroke.color || '#000000';
+    ctx.lineWidth = stroke.width;
+    ctx.lineJoin = 'round';
+    ctx.strokeText(text, x, y);
+  }
+}
+
+/**
+ * Convert straight quotes to curly quotes and dashes to em-dashes
+ */
+export function applySmartQuotes(text: string): string {
+  // Convert straight double quotes to curly quotes
+  let result = text.replace(/(^|[\s\[{(])"/g, '$1\u201c');
+  result = result.replace(/"/g, '\u201d');
+
+  // Convert straight single quotes to curly quotes
+  result = result.replace(/(^|[\s\[{(])'/g, '$1\u2018');
+  result = result.replace(/'/g, '\u2019');
+
+  // Convert double hyphens to em-dash
+  result = result.replace(/--/g, '\u2014');
+
+  return result;
+}
+
+/**
  * Helper for rendering text along a path
  */
 export const renderTextOnPath = (canvas: HTMLCanvasElement, layer: TextLayer) => {
@@ -27,6 +87,9 @@ export const renderTextOnPath = (canvas: HTMLCanvasElement, layer: TextLayer) =>
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'center';
   try { ctx.textRendering = 'optimizeLegibility'; } catch (_e) {}
+
+  // Apply text effects
+  applyTextShadow(ctx, layer);
 
   const pathMetrics = GeometryOracle.measurePath(layer.textPath);
   const textWidth = ctx.measureText(text).width;
@@ -48,12 +111,15 @@ export const renderTextOnPath = (canvas: HTMLCanvasElement, layer: TextLayer) =>
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(angle);
+      applyTextStroke(ctx, char, 0, 0, layer);
       ctx.fillText(char, 0, 0);
       ctx.restore();
     }
 
     currentDistance += charWidth;
   }
+
+  resetShadow(ctx);
 };
 
 /**
@@ -110,6 +176,9 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
   tempCtx.textAlign = textAlign as CanvasTextAlign;
   try { tempCtx.textRendering = 'optimizeLegibility'; } catch (_e) {}
 
+  // Apply text effects
+  applyTextShadow(tempCtx, layer);
+
   // Get text metrics
   const textWidth = tempCtx.measureText(text).width;
   const startX = textAlign === 'center' ? (width - textWidth) / 2 : textAlign === 'right' ? width - textWidth : 10;
@@ -134,12 +203,15 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
         warpRegistry.applyTransform(effectType, tempCtx, progress, intensity, angle);
       }
 
+      applyTextStroke(tempCtx, char, -charWidth / 2, 0, layer);
       tempCtx.fillText(char, -charWidth / 2, 0);
       tempCtx.restore();
       charX += charWidth;
     }
     charX = startX; // Reset for next line
   }
+
+  resetShadow(tempCtx);
 
   // Copy to main canvas
   canvas.width = tempCanvas.width;
@@ -171,6 +243,9 @@ export const renderMultilineText = (ctx: CanvasRenderingContext2D, layer: TextLa
   ctx.fillStyle = color;
   ctx.textBaseline = 'top';
   try { ctx.textRendering = 'optimizeLegibility'; } catch (_e) {}
+
+  // Apply text effects
+  applyTextShadow(ctx, layer);
 
   // Helper for word wrapping
   const wrapText = (text: string, maxWidth: number): string[] => {
@@ -250,11 +325,15 @@ export const renderMultilineText = (ctx: CanvasRenderingContext2D, layer: TextLa
       let currentX = startX;
       for (let i = 0; i < line.length; i++) {
         const char = line[i];
+        applyTextStroke(ctx, char, currentX, yOffset, layer);
         ctx.fillText(char, currentX, yOffset);
         currentX += ctx.measureText(char).width + letterSpacing;
       }
     } else {
+      applyTextStroke(ctx, line, startX, yOffset, layer);
       ctx.fillText(line, startX, yOffset);
     }
   });
+
+  resetShadow(ctx);
 };

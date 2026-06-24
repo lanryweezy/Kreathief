@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore';
 import { TextLayer, ShapeLayer, ImageLayer, Layer, AnimationSettings } from '../types';
 import { ANIMATION_STYLES } from './canvas/CanvasConstants';
 import { ErrorBoundary } from './ErrorBoundary';
+import { applySmartQuotes } from '../utils/textRendering';
 
 // Specialized Sub-components & Hooks
 import { useCanvasInteractions } from './canvas/useCanvasInteractions';
@@ -321,7 +322,9 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 
   const finishEditingText = useCallback(() => {
     if (editingTextId && textEditRef.current) {
-      const newText = textEditRef.current.innerText || textEditRef.current.textContent || '';
+      let newText = textEditRef.current.innerText || textEditRef.current.textContent || '';
+      // Apply smart quotes on text edit finish
+      newText = applySmartQuotes(newText);
       const currentLayer = allLayers.find((l: Layer) => l.id === editingTextId);
       if (currentLayer && currentLayer.type === 'text' && currentLayer.text !== newText) {
         useStore.getState().saveToHistory();
