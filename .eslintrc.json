@@ -71,8 +71,6 @@
     "dist",
     "build",
     "test-results",
-    "playwright-report",
-    "services/authService.test.ts",
-    "services/storageService.sync.test.ts"
+    "playwright-report"
   ]
 }

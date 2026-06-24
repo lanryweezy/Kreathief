@@ -190,7 +190,8 @@ export const exportToLayeredPSD = async (width: number, height: number, layers: 
 };
 
 /**
- * Main design to Image export
+ * Render all visible layers onto a canvas and return a data URL.
+ * Supports background color, background image with filters, and all layer types.
  */
 export const exportDesignToImage = async (
   width: number,
@@ -273,6 +274,9 @@ export const exportDesignToBlob = async (
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
+/**
+ * Export the design as an SVG string with gradient support, text, images, and shapes.
+ */
 export const exportToSVG = (width: number, height: number, backgroundColor: string, layers: Layer[]): string => {
   const svgParts: string[] = [
     `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`,

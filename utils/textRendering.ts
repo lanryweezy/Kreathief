@@ -50,7 +50,7 @@ function applyTextStroke(
 }
 
 /**
- * Convert straight quotes to curly quotes and dashes to em-dashes
+ * Convert straight quotes to typographic curly quotes and double hyphens to em-dashes.
  */
 export function applySmartQuotes(text: string): string {
   // Convert straight double quotes to curly quotes
@@ -220,8 +220,8 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
 };
 
 /**
- * Helper for rendering multiline text to a canvas
- * Handles word wrap, letter spacing, alignment, and line height.
+ * Render multiline text onto a 2D canvas context.
+ * Handles word wrap, letter spacing, text alignment, and line height.
  */
 export const renderMultilineText = (ctx: CanvasRenderingContext2D, layer: TextLayer) => {
   const {
@@ -341,8 +341,8 @@ export const renderMultilineText = (ctx: CanvasRenderingContext2D, layer: TextLa
 };
 
 /**
- * Convert text to SVG path outlines by rendering to canvas then tracing with ImageTracer.
- * Returns an SVG string with the text as vector paths.
+ * Convert a text layer to SVG path outlines by rendering to canvas then tracing with ImageTracer.
+ * Returns an SVG string containing the text as vector paths.
  */
 export async function convertTextToOutlines(
   layer: TextLayer,

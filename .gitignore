@@ -51,3 +51,4 @@ verification/screenshots/
 append_missing_icons.cjs
 *.timestamp-*
 coverage/
+package-lock.json

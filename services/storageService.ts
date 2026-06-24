@@ -547,6 +547,10 @@ class StorageService {
 
   // ===== Projects =====
 
+  /**
+   * Save a project to Supabase (if online) with IndexedDB fallback.
+   * Enforces free-tier limit of 10 projects for new projects.
+   */
   async saveProject(project: Project): Promise<void> {
     const userId = await this.getUserId();
 
@@ -662,6 +666,11 @@ class StorageService {
     });
   }
 
+  /**
+   * Retrieve all projects for the current user.
+   * Prefers Supabase when online; falls back to IndexedDB.
+   * Returns projects sorted by most recently updated first.
+   */
   async getAllProjects(): Promise<Project[]> {
     const userId = await this.getUserId();
 
@@ -696,6 +705,10 @@ class StorageService {
     });
   }
 
+  /**
+   * Delete a project by ID from Supabase (if online) and local IndexedDB.
+   * Queues the deletion for sync when offline.
+   */
   async deleteProject(id: string): Promise<void> {
     const userId = await this.getUserId();
 
