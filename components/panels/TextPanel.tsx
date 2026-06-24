@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Icons, FONT_FAMILIES } from '../../constants';
+import * as opentype from 'opentype.js';
+import { Icons, FONT_FAMILIES, FONT_CATEGORIES } from '../../constants';
 import { TextLayer } from '../../types';
 import * as geminiService from '../../services/geminiService';
 import { loadFont, registerCustomFont } from '../../services/FontLoader';
@@ -16,101 +17,7 @@ import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { Input } from '../Input';
 import { Button } from '../Button';
 
-const FONT_CATEGORIES = {
-  'Sans Serif': [
-    'Inter',
-    'Roboto',
-    'Open Sans',
-    'Lato',
-    'Montserrat',
-    'Poppins',
-    'Raleway',
-    'Oswald',
-    'Quicksand',
-    'Nunito',
-    'Ubuntu',
-    'Rubik',
-    'Mukta',
-    'Kanit',
-    'Barlow',
-    'Heebo',
-    'Work Sans',
-    'Dosis',
-    'PT Sans',
-    'Source Sans 3',
-    'Public Sans',
-    'Manrope',
-    'Cairo',
-    'Hind',
-    'Oxygen',
-    'Sarabun',
-    'Signika',
-    'Teko',
-    'Titillium Web',
-    'Varela Round',
-    'Josefin Sans',
-    'Exo 2',
-    'Arimo',
-    'Asap',
-    'Cabin',
-    'Catamaran',
-    'Space Grotesk',
-    'DM Sans',
-  ],
-  Serif: [
-    'Playfair Display',
-    'Merriweather',
-    'Lora',
-    'PT Serif',
-    'Noto Serif',
-    'Libre Baskerville',
-    'Cormorant Garamond',
-    'Crimson Text',
-    'EB Garamond',
-    'Slabo 27px',
-    'Vollkorn',
-    'Zilla Slab',
-    'Bitter',
-  ],
-  Display: [
-    'Bebas Neue',
-    'Anton',
-    'Lobster',
-    'Abril Fatface',
-    'Alfa Slab One',
-    'Bangers',
-    'Bungee',
-    'Cinzel',
-    'Comfortaa',
-    'Creepster',
-    'Fjalla One',
-    'Fredericka the Great',
-    'Monoton',
-    'Righteous',
-    'Russo One',
-    'Special Elite',
-    'Sriracha',
-    'Staatliches',
-    'Yellowtail',
-    'Acme',
-  ],
-  Handwriting: [
-    'Caveat',
-    'Pacifico',
-    'Dancing Script',
-    'Indie Flower',
-    'Shadows Into Light',
-    'Amatic SC',
-    'Gloria Hallelujah',
-    'Great Vibes',
-    'Permanent Marker',
-    'Sacramenta',
-    'Satisfy',
-  ],
-  Monospace: ['Roboto Mono', 'Space Mono', 'Source Code Pro', 'IBM Plex Mono', 'Inconsolata'],
-};
-
-// Flatten relevant fonts for "All" tab but prioritize popular ones
+// Flatten relevant fonts for "All" tab
 const ALL_FONTS = FONT_FAMILIES;
 
 const FontPreviewItem = ({
@@ -195,6 +102,8 @@ export const TextPanel: React.FC = () => {
   const [textGradient, setTextGradient] = useState<any>(null);
   const [textEffects, setTextEffects] = useState<any>({});
   const [selectedFontWeight, setSelectedFontWeight] = useState<string>('400');
+  const [pairingFont, setPairingFont] = useState<string | null>(null);
+  const [showPairings, setShowPairings] = useState(false);
   const fontInputRef = useRef<HTMLInputElement>(null);
 
   const selectedLayerId =
@@ -214,11 +123,33 @@ export const TextPanel: React.FC = () => {
     }
   }, []);
 
+  const getFontPairings = (font: string): string[] => {
+    const serifs = ['Playfair Display', 'Cormorant Garamond', 'EB Garamond', 'Libre Baskerville',
+      'Lora', 'Merriweather', 'PT Serif', 'Crimson Text', 'Zilla Slab', 'Vollkorn', 'Bitter',
+      'Noto Serif', 'Slabo 27px'];
+    const displays = ['Bebas Neue', 'Anton', 'Oswald', 'Alfa Slab One', 'Abril Fatface',
+      'Bangers', 'Bungee', 'Monoton', 'Staatliches', 'Russo One', 'Acme', 'Comfortaa',
+      'Fjalla One', 'Sriracha', 'Cinzel', 'Teko'];
+    const scripts = ['Dancing Script', 'Great Vibes', 'Pacifico', 'Satisfy', 'Yellowtail',
+      'Sacramenta', 'Caveat', 'Indie Flower', 'Shadows Into Light', 'Amatic SC',
+      'Gloria Hallelujah', 'Permanent Marker'];
+
+    if (serifs.some((f) => font.includes(f))) {
+      return ['Inter', 'DM Sans', 'Work Sans'];
+    } else if (displays.some((f) => font.includes(f))) {
+      return ['Inter', 'Open Sans', 'Lato'];
+    } else if (scripts.some((f) => font.includes(f))) {
+      return ['Montserrat', 'Poppins', 'Roboto'];
+    }
+    return ['Playfair Display', 'Lora', 'Merriweather'];
+  };
+
   const handleAddText = (style: Partial<TextLayer>) => {
     addTextLayer(style);
     if (style.fontFamily) {
+      setPairingFont(style.fontFamily);
+      setShowPairings(true);
       setRecentFonts((prev) => {
-        // Remove if exists to bubble to top
         const filtered = prev.filter((f) => f !== style.fontFamily);
         const updated = [style.fontFamily!, ...filtered].slice(0, 5);
         localStorage.setItem('kreathief_recent_fonts', JSON.stringify(updated));
@@ -271,7 +202,17 @@ export const TextPanel: React.FC = () => {
 
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const fontName = file.name.split('.')[0].replace(/[^a-zA-Z0-9 ]/g, '');
+      let fontName: string;
+      try {
+        const font = opentype.parse(arrayBuffer);
+        fontName =
+          font.names.fontFamily?.en ||
+          font.names.fontFamily?.['en-US'] ||
+          font.names.fontFamily?.enus ||
+          file.name.split('.')[0].replace(/[^a-zA-Z0-9 ]/g, '');
+      } catch {
+        fontName = file.name.split('.')[0].replace(/[^a-zA-Z0-9 ]/g, '');
+      }
       await registerCustomFont(fontName, arrayBuffer);
       addCustomFont(fontName);
       addToast(`Font "${fontName}" uploaded successfully!`, 'success');
@@ -594,6 +535,37 @@ export const TextPanel: React.FC = () => {
                 </span>
               </button>
             </div>
+
+            {/* Font Pairing Suggestions */}
+            {showPairings && pairingFont && (
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    Pairing Suggestions
+                  </h4>
+                  <button
+                    onClick={() => setShowPairings(false)}
+                    className="text-[9px] text-gray-500 hover:text-white"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+                <p className="text-[9px] text-gray-500 mb-2">
+                  Complementary fonts for <span className="text-white font-medium">{pairingFont}</span>
+                </p>
+                <div className="flex flex-col gap-2">
+                  {getFontPairings(pairingFont).map((font) => (
+                    <FontPreviewItem
+                      key={`pairing-${font}`}
+                      font={font}
+                      text="Hamburgevons"
+                      onClick={() => handleAddText({ text: 'Body Text', fontFamily: font, fontSize: 24, fontWeight: '400' })}
+                      onHover={(f) => setPreviewFontFamily(f)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Categories */}
             <div className="mb-4 overflow-x-auto custom-scrollbar pb-2">

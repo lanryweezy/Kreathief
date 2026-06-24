@@ -296,8 +296,10 @@ export const renderMultilineText = (ctx: CanvasRenderingContext2D, layer: TextLa
     }
   }
 
+  const spaceBeforeOffset = (layer as any).spaceBefore || 0;
+
   allLines.forEach((line, lineIndex) => {
-    const yOffset = lineIndex * lineHeightPx;
+    const yOffset = lineIndex * lineHeightPx + spaceBeforeOffset;
     let startX = 0;
 
     // Calculate line width with letter spacing
@@ -337,3 +339,82 @@ export const renderMultilineText = (ctx: CanvasRenderingContext2D, layer: TextLa
 
   resetShadow(ctx);
 };
+
+/**
+ * Convert text to SVG path outlines by rendering to canvas then tracing with ImageTracer.
+ * Returns an SVG string with the text as vector paths.
+ */
+export async function convertTextToOutlines(
+  layer: TextLayer,
+  options?: { scale?: number }
+): Promise<string> {
+  const scale = options?.scale || 2;
+  const {
+    text,
+    fontSize,
+    fontFamily,
+    fontWeight,
+    fontStyle = 'normal',
+    letterSpacing = 0,
+    lineHeight = 1.2,
+    textAlign = 'left',
+  } = layer;
+
+  const font = `${fontStyle} ${fontWeight} ${fontSize * scale}px ${fontFamily}`;
+
+  const tempCanvas = document.createElement('canvas');
+  const tempCtx = tempCanvas.getContext('2d');
+  if (!tempCtx) throw new Error('Could not create canvas context');
+
+  tempCtx.font = font;
+  const lines = text.split('\n');
+  const lineHeightPx = fontSize * scale * lineHeight;
+
+  let maxWidth = 0;
+  for (const line of lines) {
+    const metrics = tempCtx.measureText(line);
+    if (metrics.width > maxWidth) maxWidth = metrics.width;
+  }
+
+  const padding = fontSize * scale;
+  tempCanvas.width = Math.ceil(maxWidth + padding * 2);
+  tempCanvas.height = Math.ceil(lines.length * lineHeightPx + padding * 2);
+
+  tempCtx.font = font;
+  tempCtx.fillStyle = '#000000';
+  tempCtx.textBaseline = 'top';
+
+  let charX = padding;
+  if (textAlign === 'center') charX = (tempCanvas.width - maxWidth) / 2;
+  else if (textAlign === 'right') charX = tempCanvas.width - maxWidth - padding;
+
+  for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+    const line = lines[lineIdx];
+    const y = padding + lineIdx * lineHeightPx;
+    let currentX = charX;
+
+    if (letterSpacing !== 0) {
+      for (let i = 0; i < line.length; i++) {
+        tempCtx.fillText(line[i], currentX, y);
+        currentX += tempCtx.measureText(line[i]).width + letterSpacing * scale;
+      }
+    } else {
+      tempCtx.fillText(line, charX, y);
+    }
+  }
+
+  const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+
+  const ImageTracerModule = await import('imagetracerjs');
+  const ImageTracer = ImageTracerModule.default || ImageTracerModule;
+
+  const svgString: string = await new Promise((resolve, reject) => {
+    ImageTracer.imageToSVG(
+      imageData,
+      (svg: string) => resolve(svg),
+      { scale: 1 / scale }
+    );
+  });
+
+  return svgString;
+}

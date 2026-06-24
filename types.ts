@@ -284,6 +284,8 @@ export interface TextLayer extends LayerBase {
   // Text features
   kerning?: number;
   ligatures?: boolean;
+  spaceBefore?: number;
+  spaceAfter?: number;
   // Warp parameters for bulge/squeeze/perspective
   warpParams?: {
     rotateX: number;

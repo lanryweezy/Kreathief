@@ -14,6 +14,8 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
   const [kerning, setKerning] = useState(selectedLayer?.kerning || 0);
   const [tracking, setTracking] = useState(selectedLayer?.letterSpacing || 0);
   const [leading, setLeading] = useState(selectedLayer?.lineHeight || 1.5);
+  const [spaceBefore, setSpaceBefore] = useState(selectedLayer?.spaceBefore || 0);
+  const [spaceAfter, setSpaceAfter] = useState(selectedLayer?.spaceAfter || 0);
 
   const handleKerningChange = useCallback(
     (value: number) => {
@@ -45,15 +47,39 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
     [selectedLayer, updateLayer]
   );
 
+  const handleSpaceBeforeChange = useCallback(
+    (value: number) => {
+      setSpaceBefore(value);
+      if (selectedLayer) {
+        updateLayer(selectedLayer.id, { spaceBefore: value });
+      }
+    },
+    [selectedLayer, updateLayer]
+  );
+
+  const handleSpaceAfterChange = useCallback(
+    (value: number) => {
+      setSpaceAfter(value);
+      if (selectedLayer) {
+        updateLayer(selectedLayer.id, { spaceAfter: value });
+      }
+    },
+    [selectedLayer, updateLayer]
+  );
+
   const handleReset = useCallback(() => {
     setKerning(0);
     setTracking(0);
     setLeading(1.5);
+    setSpaceBefore(0);
+    setSpaceAfter(0);
     if (selectedLayer) {
       updateLayer(selectedLayer.id, {
         kerning: 0,
         letterSpacing: 0,
         lineHeight: 1.5,
+        spaceBefore: 0,
+        spaceAfter: 0,
       });
       addToast('Spacing reset to defaults', 'success');
     }
@@ -145,6 +171,48 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
           <span>Loose</span>
         </div>
         <p className="text-[9px] text-gray-600 mt-1">Adjusts vertical spacing between lines of text</p>
+      </div>
+
+      {/* Space Before */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-[10px] text-gray-500">Space Before</label>
+          <span className="text-[10px] text-gray-400 font-mono">{spaceBefore}px</span>
+        </div>
+        <input
+          type="range"
+          min="0"
+          max="50"
+          value={spaceBefore}
+          onChange={(e) => handleSpaceBeforeChange(parseInt(e.target.value))}
+          className="w-full accent-brand-600"
+        />
+        <div className="flex justify-between text-[9px] text-gray-600 mt-1">
+          <span>0px</span>
+          <span>50px</span>
+        </div>
+        <p className="text-[9px] text-gray-600 mt-1">Margin above the text block</p>
+      </div>
+
+      {/* Space After */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-[10px] text-gray-500">Space After</label>
+          <span className="text-[10px] text-gray-400 font-mono">{spaceAfter}px</span>
+        </div>
+        <input
+          type="range"
+          min="0"
+          max="50"
+          value={spaceAfter}
+          onChange={(e) => handleSpaceAfterChange(parseInt(e.target.value))}
+          className="w-full accent-brand-600"
+        />
+        <div className="flex justify-between text-[9px] text-gray-600 mt-1">
+          <span>0px</span>
+          <span>50px</span>
+        </div>
+        <p className="text-[9px] text-gray-600 mt-1">Margin below the text block</p>
       </div>
 
       {/* Quick Presets */}
