@@ -478,15 +478,45 @@ class SmartTemplateService {
   }
 
   /**
-   * Search templates with natural language
+   * Search templates with natural language and typo tolerance
    */
   searchTemplates(query: string): StarterTemplate[] {
-    const q = query.toLowerCase();
-    const keywords = q.split(' ').filter((k) => k.length > 2);
+    const q = query.trim().toLowerCase();
+    if (!q) return STARTER_TEMPLATES;
+
+    const keywords = q.split(/\s+/).filter((k) => k.length > 0);
+
+    // Inline Levenshtein distance
+    const getLevenshteinDistance = (a: string, b: string): number => {
+      if (!a.length) return b.length;
+      if (!b.length) return a.length;
+      const m = Array.from({ length: b.length + 1 }, (_, i) => [i]);
+      for (let j = 0; j <= a.length; j++) m[0][j] = j;
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          m[i][j] =
+            b[i - 1] === a[j - 1]
+              ? m[i - 1][j - 1]
+              : Math.min(m[i - 1][j - 1] + 1, m[i][j - 1] + 1, m[i - 1][j] + 1);
+        }
+      }
+      return m[b.length][a.length];
+    };
 
     return STARTER_TEMPLATES.filter((template) => {
       const searchable = `${template.name} ${template.category} ${template.description}`.toLowerCase();
-      return keywords.every((keyword) => searchable.includes(keyword));
+      const words = searchable.split(/[\s\W]+/);
+
+      return keywords.every((keyword) => {
+        if (searchable.includes(keyword)) return true;
+        // Allow 1 typo for words > 3 chars, 2 typos for words > 5 chars
+        const maxDist = keyword.length > 5 ? 2 : keyword.length > 3 ? 1 : 0;
+        return words.some(
+          (word) =>
+            Math.abs(word.length - keyword.length) <= maxDist &&
+            getLevenshteinDistance(word, keyword) <= maxDist
+        );
+      });
     });
   }
 
