@@ -1,5 +1,6 @@
 import { VectorPath, VectorPoint } from '../types';
 import { VectorUtils } from '../utils/vectorUtils';
+import { log } from '../utils/log';
 import paper from 'paper/dist/paper-core';
 
 let paperInitialized = false;
@@ -113,7 +114,7 @@ export class PathOperationsService {
         try {
           paperPath.remove();
         } catch (e) {
-          // Cleanup error - ignore
+          log.warn('[PathOps] Failed to cleanup paper path', { error: e });
         }
       }, 0);
 
@@ -122,7 +123,7 @@ export class PathOperationsService {
         isClosed: path.isClosed,
       };
     } catch (error) {
-      console.error('Path simplification failed:', error);
+      log.error('Path simplification failed', error);
       return path;
     }
   }
@@ -525,7 +526,7 @@ export class PathOperationsService {
 
       return paperPathToVectorPath(result);
     } catch (error) {
-      console.error('Boolean union failed:', error);
+      log.error('Boolean union failed', error);
       return path1;
     }
   }
@@ -546,7 +547,7 @@ export class PathOperationsService {
 
       return paperPathToVectorPath(result);
     } catch (error) {
-      console.error('Boolean subtract failed:', error);
+      log.error('Boolean subtract failed', error);
       return path1;
     }
   }
@@ -567,7 +568,7 @@ export class PathOperationsService {
 
       return paperPathToVectorPath(result);
     } catch (error) {
-      console.error('Boolean intersect failed:', error);
+      log.error('Boolean intersect failed', error);
       return path1;
     }
   }
@@ -588,7 +589,7 @@ export class PathOperationsService {
 
       return paperPathToVectorPath(result);
     } catch (error) {
-      console.error('Boolean exclude failed:', error);
+      log.error('Boolean exclude failed', error);
       return path1;
     }
   }

@@ -313,7 +313,8 @@ export async function styleTransfer(imageSource: string, stylePrompt: string): P
         const res = await fetch(result.data.url || result.data.image_url);
         const blob = await res.blob();
         return URL.createObjectURL(blob);
-      } catch {
+      } catch (err) {
+        log.warn('[FreepikService] Failed to convert style transfer result to blob', { error: err });
         return result.data.url || result.data.image_url;
       }
     }
@@ -339,7 +340,8 @@ export async function expandImage(imageSource: string): Promise<string | null> {
         const res = await fetch(result.data.url || result.data.image_url);
         const blob = await res.blob();
         return URL.createObjectURL(blob);
-      } catch {
+      } catch (err) {
+        log.warn('[FreepikService] Failed to convert expand result to blob', { error: err });
         return result.data.url || result.data.image_url;
       }
     }
@@ -368,7 +370,8 @@ export async function downloadResource(
     const res = await fetch(data.data.url);
     const blob = await res.blob();
     return URL.createObjectURL(blob);
-  } catch {
+  } catch (err) {
+    log.warn('[FreepikService] Failed to download resource', { error: err });
     return data.data.url;
   }
 }
@@ -385,7 +388,8 @@ export async function downloadIconPNG(iconId: number): Promise<string | null> {
     }
     const blob = await res.blob();
     return URL.createObjectURL(blob);
-  } catch {
+  } catch (err) {
+    log.warn('[FreepikService] Failed to download icon PNG', { error: err });
     return null;
   }
 }

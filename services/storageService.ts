@@ -713,7 +713,9 @@ class StorageService {
           try {
             const localStore = await this.getStore('projects', 'readwrite');
             localStore.delete(id);
-          } catch (e) {}
+          } catch (e) {
+            log.warn('[Storage] Failed to cleanup local IndexedDB after delete', { error: e });
+          }
 
           return;
         }
@@ -1186,7 +1188,8 @@ class StorageService {
         request.onsuccess = () => resolve(request.result || null);
         request.onerror = () => reject(request.error);
       });
-    } catch {
+    } catch (e) {
+      log.warn('[Storage] Failed to get session mirror', { error: e });
       return null;
     }
   }

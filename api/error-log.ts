@@ -5,12 +5,36 @@ export const config = {
   runtime: 'edge',
 };
 
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const MAX_REQUESTS_PER_WINDOW = 20;
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
+
+let lastCleanup = Date.now();
+
 export default async function handler(req: Request) {
+  const origin = process.env.VITE_FRONTEND_URL;
+  if (!origin) {
+    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
+  }
+
+  const now = Date.now();
+
+  // Periodic cleanup of expired rate limit entries to prevent memory leaks
+  if (now - lastCleanup > CLEANUP_INTERVAL_MS) {
+    for (const [ip, state] of rateLimitMap.entries()) {
+      if (now > state.resetTime) {
+        rateLimitMap.delete(ip);
+      }
+    }
+    lastCleanup = now;
+  }
+
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 200,
       headers: {
-        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+        'Access-Control-Allow-Origin': origin,
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
       },
@@ -22,9 +46,31 @@ export default async function handler(req: Request) {
       status: 405,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+        'Access-Control-Allow-Origin': origin,
       },
     });
+  }
+
+  const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
+  const rateLimitState = rateLimitMap.get(clientIp);
+
+  if (rateLimitState) {
+    if (now > rateLimitState.resetTime) {
+      rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    } else {
+      if (rateLimitState.count >= MAX_REQUESTS_PER_WINDOW) {
+        return new Response(JSON.stringify({ error: 'Too many requests' }), {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': origin,
+          },
+        });
+      }
+      rateLimitState.count++;
+    }
+  } else {
+    rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   }
 
   let payload: any = {};
@@ -36,7 +82,7 @@ export default async function handler(req: Request) {
       status: 400,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+        'Access-Control-Allow-Origin': origin,
       },
     });
   }
@@ -48,7 +94,7 @@ export default async function handler(req: Request) {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+        'Access-Control-Allow-Origin': origin,
         ...noStoreHeaders(),
       },
     });
@@ -58,7 +104,7 @@ export default async function handler(req: Request) {
       status: 500,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+        'Access-Control-Allow-Origin': origin,
       },
     });
   }

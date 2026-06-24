@@ -18,6 +18,11 @@ const ExportCmykSchema = z.object({
 });
 
 export default async function handler(req: any, res: any) {
+  const origin = process.env.VITE_FRONTEND_URL;
+  if (!origin) {
+    return res.status(500).json({ error: 'Server misconfigured' });
+  }
+
   const now = Date.now();
 
   // Periodic cleanup of expired rate limit entries to prevent memory leaks
@@ -30,7 +35,7 @@ export default async function handler(req: any, res: any) {
     lastCleanup = now;
   }
   // CORS Headers
-  res.setHeader('Access-Control-Allow-Origin', process.env.VITE_FRONTEND_URL || 'http://localhost:5173');
+  res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 

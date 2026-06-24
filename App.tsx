@@ -74,7 +74,7 @@ const App: React.FC = () => {
       // Safety timeout to ensure app always boots
       const safetyTimeout = setTimeout(() => {
         setLoading(false);
-        console.warn('App initialization timed out, forcing mount');
+        log.warn('App initialization timed out, forcing mount');
       }, 5000);
 
       try {
@@ -98,7 +98,7 @@ const App: React.FC = () => {
           setShowWelcome(true);
         }
       } catch (error) {
-        console.error('App initialization failed:', error);
+        log.error('App initialization failed', error);
       } finally {
         clearTimeout(safetyTimeout);
         setLoading(false);

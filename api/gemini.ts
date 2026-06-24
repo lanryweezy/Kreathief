@@ -13,6 +13,11 @@ const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 let lastCleanup = Date.now();
 
 export default async function handler(req: Request) {
+  const origin = process.env.VITE_FRONTEND_URL;
+  if (!origin) {
+    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
+  }
+
   const now = Date.now();
 
   // Periodic cleanup of expired rate limit entries to prevent memory leaks
@@ -28,7 +33,7 @@ export default async function handler(req: Request) {
     return new Response(null, {
       status: 200,
       headers: {
-        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+        'Access-Control-Allow-Origin': origin,
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
@@ -54,7 +59,7 @@ export default async function handler(req: Request) {
           status: 429,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+            'Access-Control-Allow-Origin': origin,
           },
         });
       }
@@ -72,7 +77,7 @@ export default async function handler(req: Request) {
       status: 400,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+        'Access-Control-Allow-Origin': origin,
       },
     });
   }
@@ -85,7 +90,7 @@ export default async function handler(req: Request) {
       status: 500,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+        'Access-Control-Allow-Origin': origin,
       },
     });
   }
@@ -121,7 +126,7 @@ export default async function handler(req: Request) {
           status: 200,
           headers: {
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+            'Access-Control-Allow-Origin': origin,
             ...cacheHeaders(300),
           },
         }
@@ -132,7 +137,7 @@ export default async function handler(req: Request) {
       status: 400,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+        'Access-Control-Allow-Origin': origin,
       },
     });
   } catch (error: any) {
@@ -141,7 +146,7 @@ export default async function handler(req: Request) {
       status: 500,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+        'Access-Control-Allow-Origin': origin,
       },
     });
   }

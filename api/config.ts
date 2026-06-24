@@ -5,11 +5,16 @@ export const config = {
 };
 
 export default async function handler(req: Request) {
+  const origin = process.env.VITE_FRONTEND_URL;
+  if (!origin) {
+    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
+  }
+
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 200,
       headers: {
-        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+        'Access-Control-Allow-Origin': origin,
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
@@ -35,7 +40,7 @@ export default async function handler(req: Request) {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+        'Access-Control-Allow-Origin': origin,
         ...cacheHeaders(),
       },
     });
@@ -45,7 +50,7 @@ export default async function handler(req: Request) {
     status: 400,
     headers: {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': process.env.VITE_FRONTEND_URL || 'http://localhost:5173',
+      'Access-Control-Allow-Origin': origin,
     },
   });
 }
