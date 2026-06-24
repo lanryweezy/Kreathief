@@ -25,6 +25,7 @@ const EASING_OPTIONS = [
 ];
 
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 interface MotionPanelProps {
@@ -32,7 +33,15 @@ interface MotionPanelProps {
 }
 
 export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) => {
-  const { artboards, selectedLayerIds, updateLayer } = useStore();
+  // ⚡ Bolt Optimization: Wrap multiple specific store selections in useShallow
+  // to prevent unnecessary component re-renders when unrelated store state changes.
+  const { artboards, selectedLayerIds, updateLayer } = useStore(
+    useShallow((state) => ({
+      artboards: state.artboards,
+      selectedLayerIds: state.selectedLayerIds,
+      updateLayer: state.updateLayer,
+    }))
+  );
 
   const allLayers = artboards.flatMap((a) => a.layers);
   const selectedLayerId = selectedLayerIds[selectedLayerIds.length - 1] || null;

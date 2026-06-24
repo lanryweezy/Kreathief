@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { VectorPoint, VectorPath, PointType } from '../../types';
 import { VectorUtils } from '../../utils/vectorUtils';
 import { v4 as uuidv4 } from 'uuid';
@@ -11,7 +12,18 @@ interface PenToolProps {
 }
 
 export const PenTool: React.FC<PenToolProps> = ({ zoom, panOffset, onPathComplete }) => {
-  const { isPenMode, setPenMode, selectedLayerIds, updateLayer, addShapeLayer, saveToHistory } = useStore();
+  // ⚡ Bolt Optimization: Wrap multiple specific store selections in useShallow
+  // to prevent unnecessary component re-renders when unrelated store state changes.
+  const { isPenMode, setPenMode, selectedLayerIds, updateLayer, addShapeLayer, saveToHistory } = useStore(
+    useShallow((state) => ({
+      isPenMode: state.isPenMode,
+      setPenMode: state.setPenMode,
+      selectedLayerIds: state.selectedLayerIds,
+      updateLayer: state.updateLayer,
+      addShapeLayer: state.addShapeLayer,
+      saveToHistory: state.saveToHistory,
+    }))
+  );
 
   const [currentPath, setCurrentPath] = useState<VectorPath>({ points: [], isClosed: false });
   const [hoveredPoint, setHoveredPoint] = useState<string | null>(null);
