@@ -60,6 +60,23 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
     zoomRef.current = zoom;
   }, [zoom]);
 
+  // Eraser cursor preview: show circle matching eraser size
+  useEffect(() => {
+    const updateCursor = () => {
+      if (!canvasRef.current || !isDrawing) return;
+      const { brushType, brushSize } = useStore.getState();
+      if (brushType === 'eraser') {
+        const size = Math.max(4, brushSize * zoom);
+        canvasRef.current.style.cursor = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}'%3E%3Ccircle cx='${size / 2}' cy='${size / 2}' r='${size / 2 - 1}' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E") ${size / 2} ${size / 2}, crosshair`;
+      } else {
+        canvasRef.current.style.cursor = 'crosshair';
+      }
+    };
+    updateCursor();
+    const unsub = useStore.subscribe(updateCursor);
+    return unsub;
+  }, [isDrawing, zoom]);
+
   const redrawCanvas = useCallback((ctx: CanvasRenderingContext2D, previewX?: number, previewY?: number) => {
     const { brushColor, brushSize, brushType } = useStore.getState();
     const canvas = canvasRef.current;
@@ -126,8 +143,9 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
         isDrawingInternalRef.current = true;
         canvasRef.current = canvas;
 
-        // Initialize the physical velocity stroke smoother (40% smoothing)
-        smootherRef.current = new StrokeSmoother(40);
+        // Initialize the physical velocity stroke smoother using UI slider value
+        const { brushSmoothing } = useStore.getState();
+        smootherRef.current = new StrokeSmoother(brushSmoothing);
         const smoothed = smootherRef.current.addPoint(x, y);
         currentPathRef.current = [smoothed || { x, y }];
 

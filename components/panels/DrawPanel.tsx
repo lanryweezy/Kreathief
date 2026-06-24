@@ -1,6 +1,6 @@
 import { log } from '../../utils/log';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Icons } from '../../constants';
 import { BrushType } from '../../types';
 import { useStore } from '../../store/useStore';
@@ -27,70 +27,6 @@ interface DrawPanelProps {
   onFinishDrawing: () => void;
 }
 
-// FIX: Add CSS animations for brush previews
-const BRUSH_PREVIEW_ANIMATIONS: Record<string, React.CSSProperties> = {
-  [BrushType.WATERCOLOR]: {
-    animation: 'brushPulse 2s ease-in-out infinite',
-  },
-  [BrushType.OIL]: {
-    animation: 'brushSkew 1.5s ease-in-out infinite alternate',
-  },
-  [BrushType.SPLATTER]: {
-    animation: 'brushFloat 3s ease-in-out infinite',
-  },
-  [BrushType.TEXTURE]: {
-    animation: 'brushPulse 2.5s ease-in-out infinite',
-  },
-};
-
-const BRUSH_PREVIEWS: Record<string, React.ReactNode> = {
-  [BrushType.BASIC]: (
-    <path d="M5 25 Q 50 5 95 25" stroke="currentColor" strokeWidth="4" fill="none" strokeLinecap="round" />
-  ),
-  [BrushType.CALLIGRAPHY]: (
-    <path d="M5 25 Q 50 5 95 25" stroke="currentColor" strokeWidth="4" fill="none" transform="skewX(-20)" />
-  ),
-  [BrushType.OIL]: (
-    <path
-      d="M5 25 Q 50 5 95 25"
-      stroke="currentColor"
-      strokeWidth="6"
-      strokeDasharray="1 1"
-      fill="none"
-      filter="url(#oilFilter)"
-    />
-  ),
-  [BrushType.CRAYON]: (
-    <path d="M5 25 Q 50 5 95 25" stroke="currentColor" strokeWidth="4" strokeDasharray="0.5 2" fill="none" />
-  ),
-  [BrushType.PENCIL]: <path d="M5 25 Q 50 5 95 25" stroke="currentColor" strokeWidth="1" fill="none" />,
-  [BrushType.WATERCOLOR]: (
-    <path
-      d="M5 25 Q 50 5 95 25"
-      stroke="currentColor"
-      strokeWidth="8"
-      strokeOpacity="0.5"
-      fill="none"
-      filter="url(#watercolorFilter)"
-    />
-  ),
-  [BrushType.VECTOR_PENCIL]: (
-    <path d="M5 25 L 30 15 L 60 30 L 95 25" stroke="currentColor" strokeWidth="2" fill="none" />
-  ),
-  [BrushType.SPLATTER]: (
-    <g>
-      <circle cx="20" cy="20" r="4" fill="currentColor" />
-      <circle cx="50" cy="30" r="2" fill="currentColor" />
-      <circle cx="80" cy="15" r="3" fill="currentColor" />
-      <circle cx="40" cy="10" r="1.5" fill="currentColor" />
-      <circle cx="70" cy="40" r="2.5" fill="currentColor" />
-    </g>
-  ),
-  [BrushType.TEXTURE]: (
-    <rect x="0" y="0" width="100" height="50" fill="currentColor" fillOpacity="0.2" filter="url(#oilFilter)" />
-  ),
-};
-
 export const DrawPanel: React.FC<DrawPanelProps> = ({
   brushColor,
   setBrushColor,
@@ -104,7 +40,18 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
   setBrushType,
   onFinishDrawing,
 }) => {
-  const [recentColors, setRecentColors] = useState<string[]>([]);
+  const [recentColors, setRecentColors] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('kreathief_recent_colors');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('kreathief_recent_colors', JSON.stringify(recentColors));
+  }, [recentColors]);
   const [confirmDialog, setConfirmDialog] = useState<{ brushType: BrushType } | null>(null);
   const customBrushes = useStore((state) => state.customBrushes) || [];
   const addCustomBrushes = useStore((state) => state.addCustomBrushes);
@@ -163,6 +110,56 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
       log.error('Failed to read brush file', err);
       useStore.getState().addToast?.('Failed to read brush file', 'error');
     }
+  };
+
+  // Dynamic brush preview: renders actual stroke based on brushType, brushSize, brushOpacity
+  const DynamicBrushPreview = ({ type }: { type: string }) => {
+    const w = 100;
+    const h = 50;
+    const sw = Math.max(1, brushSize * 0.4); // scale brush size to preview
+    const opacity = brushOpacity;
+
+    const previewStroke: Record<string, React.ReactNode> = {
+      [BrushType.BASIC]: (
+        <path d="M5 25 Q 50 5 95 25" stroke={brushColor} strokeWidth={sw} fill="none" strokeLinecap="round" opacity={opacity} />
+      ),
+      [BrushType.CALLIGRAPHY]: (
+        <path d="M5 25 Q 50 5 95 25" stroke={brushColor} strokeWidth={sw} fill="none" transform="skewX(-20)" strokeLinecap="round" opacity={opacity} />
+      ),
+      [BrushType.OIL]: (
+        <path d="M5 25 Q 50 5 95 25" stroke={brushColor} strokeWidth={sw * 1.8} strokeDasharray="1 1" fill="none" filter="url(#oilFilter)" opacity={opacity} />
+      ),
+      [BrushType.CRAYON]: (
+        <path d="M5 25 Q 50 5 95 25" stroke={brushColor} strokeWidth={sw} strokeDasharray="0.5 2" fill="none" opacity={opacity} />
+      ),
+      [BrushType.PENCIL]: (
+        <path d="M5 25 Q 50 5 95 25" stroke={brushColor} strokeWidth={1} fill="none" opacity={opacity * 0.7} />
+      ),
+      [BrushType.WATERCOLOR]: (
+        <path d="M5 25 Q 50 5 95 25" stroke={brushColor} strokeWidth={sw * 2.5} strokeOpacity={opacity * 0.4} fill="none" filter="url(#watercolorFilter)" />
+      ),
+      [BrushType.VECTOR_PENCIL]: (
+        <path d="M5 25 L 30 15 L 60 30 L 95 25" stroke={brushColor} strokeWidth={2} fill="none" opacity={opacity} />
+      ),
+      [BrushType.SPLATTER]: (
+        <g opacity={opacity}>
+          <circle cx="20" cy="20" r={sw * 0.5} fill={brushColor} />
+          <circle cx="50" cy="30" r={sw * 0.3} fill={brushColor} />
+          <circle cx="80" cy="15" r={sw * 0.4} fill={brushColor} />
+          <circle cx="40" cy="10" r={sw * 0.2} fill={brushColor} />
+          <circle cx="70" cy="40" r={sw * 0.35} fill={brushColor} />
+        </g>
+      ),
+      [BrushType.TEXTURE]: (
+        <rect x="0" y="0" width={w} height={h} fill={brushColor} fillOpacity={opacity * 0.2} filter="url(#oilFilter)" />
+      ),
+    };
+
+    return (
+      <svg className="absolute top-0 right-0 w-full h-full opacity-60 pointer-events-none" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
+        {previewStroke[type] || previewStroke[BrushType.BASIC]}
+      </svg>
+    );
   };
 
   return (
@@ -227,21 +224,6 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
         </div>
       </div>
 
-      <style>{`
-        @keyframes brushPulse {
-          0%, 100% { opacity: 0.3; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(1.05); }
-        }
-        @keyframes brushSkew {
-          0% { transform: skewX(0deg); }
-          100% { transform: skewX(-10deg); }
-        }
-        @keyframes brushFloat {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-3px); }
-        }
-      `}</style>
-
       {/* Custom Brushes */}
       {customBrushes.length > 0 && (
         <div className="mb-6">
@@ -305,14 +287,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
               }}
               className={`relative min-h-[44px] p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id && !selectedCustomBrushId ? 'bg-brand-600/20 border-brand-600 text-white ring-1 ring-brand-600' : 'bg-surface-dark-4 border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
             >
-              <svg
-                className={`absolute top-0 right-0 w-full h-full opacity-40 pointer-events-none ${type.color}`}
-                viewBox="0 0 100 50"
-                preserveAspectRatio="none"
-                style={BRUSH_PREVIEW_ANIMATIONS[type.id]}
-              >
-                {BRUSH_PREVIEWS[type.id]}
-              </svg>
+              <DynamicBrushPreview type={type.id} />
               <span className="text-[10px] font-bold relative z-10">{type.name}</span>
             </button>
           ))}
@@ -333,14 +308,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
               }}
               className={`relative min-h-[44px] p-2 rounded-lg border transition-all overflow-hidden flex flex-col justify-end items-start ${brushType === type.id && !selectedCustomBrushId ? 'bg-brand-600/20 border-brand-600 text-white ring-1 ring-brand-600' : 'bg-surface-dark-4 border-gray-700 text-gray-400 hover:border-gray-500 hover:bg-[#2a2b2c]'}`}
             >
-              <svg
-                className="absolute top-0 right-0 w-full h-full opacity-30 pointer-events-none text-white"
-                viewBox="0 0 100 50"
-                preserveAspectRatio="none"
-                style={BRUSH_PREVIEW_ANIMATIONS[type.id]}
-              >
-                {BRUSH_PREVIEWS[type.id]}
-              </svg>
+              <DynamicBrushPreview type={type.id} />
               <div className="flex items-center gap-1.5 relative z-10">
                 <type.icon className="w-3 h-3 text-brand-600" />
                 <span className="text-[10px] font-bold">{type.name}</span>
@@ -399,7 +367,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
             <input
               type="range"
               min="1"
-              max="100"
+              max="500"
               value={brushSize}
               onChange={(e) => setBrushSize(parseInt(e.target.value))}
               className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"

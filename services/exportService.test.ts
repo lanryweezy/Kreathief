@@ -54,15 +54,31 @@ describe('exportToSVG', () => {
   });
 
   it('should include gradient definitions when layers have gradients', () => {
-    const layers = [{
-      id: 'test', type: 'rectangle', x: 0, y: 0, width: 50, height: 50,
-      rotation: 0, opacity: 1, locked: false, visible: true,
-      color: '#000', cornerRadius: 0,
-      gradient: {
-        enabled: true, type: 'linear' as const, angle: 90,
-        colors: [{ color: '#ff0000', position: 0 }, { color: '#0000ff', position: 1 }],
+    const layers = [
+      {
+        id: 'test',
+        type: 'rectangle',
+        x: 0,
+        y: 0,
+        width: 50,
+        height: 50,
+        rotation: 0,
+        opacity: 1,
+        locked: false,
+        visible: true,
+        color: '#000',
+        cornerRadius: 0,
+        gradient: {
+          enabled: true,
+          type: 'linear' as const,
+          angle: 90,
+          colors: [
+            { color: '#ff0000', position: 0 },
+            { color: '#0000ff', position: 1 },
+          ],
+        },
       },
-    }] as any[];
+    ] as any[];
     const svg = exportToSVG(100, 100, '#ffffff', layers);
     expect(svg).toContain('linearGradient');
     expect(svg).toContain('grad-test');
@@ -75,7 +91,9 @@ describe('downloadBlob', () => {
     const mockAppendChild = vi.fn();
     const mockRemoveChild = vi.fn();
     const mockCreateElement = vi.fn(() => ({
-      href: '', download: '', click: mockClick,
+      href: '',
+      download: '',
+      click: mockClick,
     }));
 
     Object.defineProperty(document, 'createElement', { value: mockCreateElement });

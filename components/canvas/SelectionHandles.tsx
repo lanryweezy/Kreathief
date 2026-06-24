@@ -23,13 +23,28 @@ interface SelectionHandlesProps {
   layer: Layer;
   onResize: (e: React.MouseEvent, layer: Layer, handle: ResizeHandle) => void;
   onRotate: (e: React.MouseEvent, layer: Layer) => void;
+  onKeyboardResize?: (layer: Layer, handle: ResizeHandle, dx: number, dy: number, shiftKey: boolean) => void;
   scale?: number;
 }
 
-export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: SelectionHandlesProps) => {
+export const SelectionHandles = React.memo(({ layer, onResize, onRotate, onKeyboardResize }: SelectionHandlesProps) => {
   ensureSelectionPulseStyle();
   const updateLayer = useStore((state) => state.updateLayer);
   const rotation = layer.rotation || 0;
+
+  const handleKeyDown = (e: React.KeyboardEvent, handle: ResizeHandle) => {
+    if (!onKeyboardResize) return;
+    let dx = 0, dy = 0;
+    switch (e.key) {
+      case 'ArrowUp': dy = -1; break;
+      case 'ArrowDown': dy = 1; break;
+      case 'ArrowLeft': dx = -1; break;
+      case 'ArrowRight': dx = 1; break;
+      default: return;
+    }
+    e.preventDefault();
+    onKeyboardResize(layer, handle, dx, dy, e.shiftKey);
+  };
 
   // Style to keep handles upright
   const handleContainerStyle = {
@@ -95,35 +110,47 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
         <>
           {/* Corner Handles */}
           <div
+            tabIndex={0}
+            onKeyDown={(e) => handleKeyDown(e, 'nw')}
             onPointerDown={(e) => onResize(e, layer, 'nw')}
             style={handleContainerStyle}
             className="absolute -top-2 -left-2 w-4 h-4 bg-white border-[2.5px] border-brand-600 rounded-md pointer-events-auto cursor-nw-resize shadow-[0_2px_10px_rgba(125,42,232,0.4)] hover:scale-125 transition-transform z-50"
           />
           <div
+            tabIndex={0}
+            onKeyDown={(e) => handleKeyDown(e, 'ne')}
             onPointerDown={(e) => onResize(e, layer, 'ne')}
             style={handleContainerStyle}
             className="absolute -top-2 -right-2 w-4 h-4 bg-white border-[2.5px] border-brand-600 rounded-md pointer-events-auto cursor-ne-resize shadow-[0_2px_10px_rgba(125,42,232,0.4)] hover:scale-125 transition-transform z-50"
           />
           <div
+            tabIndex={0}
+            onKeyDown={(e) => handleKeyDown(e, 'sw')}
             onPointerDown={(e) => onResize(e, layer, 'sw')}
             style={handleContainerStyle}
             className="absolute -bottom-2 -left-2 w-4 h-4 bg-white border-[2.5px] border-brand-600 rounded-md pointer-events-auto cursor-sw-resize shadow-[0_2px_10px_rgba(125,42,232,0.4)] hover:scale-125 transition-transform z-50"
           />
           <div
+            tabIndex={0}
+            onKeyDown={(e) => handleKeyDown(e, 'se')}
             onPointerDown={(e) => onResize(e, layer, 'se')}
             style={handleContainerStyle}
             className="absolute -bottom-2 -right-2 w-4 h-4 bg-white border-[2.5px] border-brand-600 rounded-md pointer-events-auto cursor-se-resize shadow-[0_2px_10px_rgba(125,42,232,0.4)] hover:scale-125 transition-transform z-50"
           />
 
           {/* Edge Handles (Middle) */}
-          {layer.width > 30 && (
+          {layer.width > 20 && (
             <>
               <div
+                tabIndex={0}
+                onKeyDown={(e) => handleKeyDown(e, 'n')}
                 onPointerDown={(e) => onResize(e, layer, 'n')}
                 style={handleContainerStyle}
                 className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-white border-[1.5px] border-brand-600 rounded-full pointer-events-auto cursor-ns-resize shadow-md hover:scale-110 transition-transform z-40"
               />
               <div
+                tabIndex={0}
+                onKeyDown={(e) => handleKeyDown(e, 's')}
                 onPointerDown={(e) => onResize(e, layer, 's')}
                 style={handleContainerStyle}
                 className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-8 h-1.5 bg-white border-[1.5px] border-brand-600 rounded-full pointer-events-auto cursor-ns-resize shadow-md hover:scale-110 transition-transform z-40"
@@ -131,14 +158,18 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
             </>
           )}
 
-          {(layer.type !== 'text' || layer.width > 30) && (
+          {(layer.type !== 'text' || layer.width > 20) && (
             <>
               <div
+                tabIndex={0}
+                onKeyDown={(e) => handleKeyDown(e, 'w')}
                 onPointerDown={(e) => onResize(e, layer, 'w')}
                 style={handleContainerStyle}
                 className="absolute top-1/2 -translate-y-1/2 -left-1.5 w-1.5 h-8 bg-white border-[1.5px] border-brand-600 rounded-full pointer-events-auto cursor-ew-resize shadow-md hover:scale-110 transition-transform z-40"
               />
               <div
+                tabIndex={0}
+                onKeyDown={(e) => handleKeyDown(e, 'e')}
                 onPointerDown={(e) => onResize(e, layer, 'e')}
                 style={handleContainerStyle}
                 className="absolute top-1/2 -translate-y-1/2 -right-1.5 w-1.5 h-8 bg-white border-[1.5px] border-brand-600 rounded-full pointer-events-auto cursor-ew-resize shadow-md hover:scale-110 transition-transform z-40"
@@ -156,7 +187,7 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate }: Selec
               onPointerDown={(e) => onRotate(e, layer)}
               onDoubleClick={(e) => {
                 e.stopPropagation();
-                (window as any).dispatchEvent(new CustomEvent('canvas-reset-rotation', { detail: { id: layer.id } }));
+                updateLayer(layer.id, { rotation: 0 });
               }}
               className="w-8 h-8 bg-white border-[2.5px] border-brand-600 rounded-full cursor-grab flex items-center justify-center hover:bg-brand-600 hover:text-white shadow-[0_4px_15px_rgba(125,42,232,0.4)] transition-all active:cursor-grabbing hover:scale-110"
               title="Double-click to reset"

@@ -111,7 +111,7 @@ export const PenToolbar = React.memo(({ options, onUpdateOptions, onClose }: Pen
             <input
               type="range"
               min="1"
-              max="20"
+              max="200"
               value={options.strokeWidth}
               onChange={(e) => onUpdateOptions({ strokeWidth: parseInt(e.target.value) })}
               className="w-16 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"

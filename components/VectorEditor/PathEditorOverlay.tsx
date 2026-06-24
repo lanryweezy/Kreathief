@@ -96,6 +96,11 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
           onClose?.();
           return;
         }
+        if (e.key === 'Backspace' && activeTool === 'pen' && path.points.length > 0 && selectedPointIndices.length === 0) {
+          e.preventDefault();
+          onUpdate({ ...path, points: path.points.slice(0, -1) });
+          return;
+        }
         if ((e.key === 'Delete' || e.key === 'Backspace') && selectedPointIndices.length > 0) {
           e.preventDefault();
           const newPoints = path.points.filter((_, i) => !selectedPointIndices.includes(i));
@@ -134,6 +139,10 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
             setActiveTool((prev) => (prev === 'add' ? 'select' : 'add'));
           }
         }
+        // C to close/open path while pen is active
+        if ((e.key === 'c' || e.key === 'C') && activeTool === 'pen' && path.points.length > 2) {
+          onUpdate({ ...path, isClosed: !path.isClosed });
+        }
         // G to toggle grid snap
         if (e.key === 'g' || e.key === 'G') {
           setPenOptions((prev) => ({ ...prev, snapToGrid: !prev.snapToGrid }));
@@ -158,8 +167,19 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
         // rect.left = panX in screen pixels; rawX = screen offset from transform origin / zoom
         const rawX = (e.clientX - rect.left) / zoom;
         const rawY = (e.clientY - rect.top) / zoom;
-        const clickX = snapCoord(rawX);
-        const clickY = snapCoord(rawY);
+        let clickX = snapCoord(rawX);
+        let clickY = snapCoord(rawY);
+
+        const SNAP_DIST = 5 / zoom;
+        for (const pt of path.points) {
+          const dx = rawX - pt.x;
+          const dy = rawY - pt.y;
+          if (Math.sqrt(dx * dx + dy * dy) < SNAP_DIST) {
+            clickX = pt.x;
+            clickY = pt.y;
+            break;
+          }
+        }
 
         const startX = e.clientX;
         const startY = e.clientY;
@@ -237,12 +257,21 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
         const rect = svg.getBoundingClientRect();
         const rawX = (e.clientX - rect.left) / zoom;
         const rawY = (e.clientY - rect.top) / zoom;
-        setPenPreviewPoint({
-          x: snapCoord(rawX),
-          y: snapCoord(rawY),
-        });
+        let px = snapCoord(rawX);
+        let py = snapCoord(rawY);
+        const SNAP_DIST = 5 / zoom;
+        for (const pt of path.points) {
+          const dx = rawX - pt.x;
+          const dy = rawY - pt.y;
+          if (Math.sqrt(dx * dx + dy * dy) < SNAP_DIST) {
+            px = pt.x;
+            py = pt.y;
+            break;
+          }
+        }
+        setPenPreviewPoint({ x: px, y: py });
       },
-      [activeTool, path.points.length, zoom, snapCoord]
+      [activeTool, path.points, zoom, snapCoord]
     );
 
     // REMOVE POINT TOOL: click to delete
@@ -670,17 +699,25 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
           {/* Pen tool: Preview line from last point to cursor */}
           {activeTool === 'pen' && penPreviewPoint && path.points.length > 0 && !isDrawingCurve && (
             <>
-              <line
-                x1={path.points[path.points.length - 1]!.x}
-                y1={path.points[path.points.length - 1]!.y}
-                x2={penPreviewPoint.x}
-                y2={penPreviewPoint.y}
-                stroke="url(#penPreviewGrad)"
-                strokeWidth={strokeW}
-                strokeDasharray={`${3 * s} ${3 * s}`}
-                opacity={0.6}
-                style={{ pointerEvents: 'none' }}
-              />
+              {(() => {
+                const lastPt = path.points[path.points.length - 1]!;
+                const cp1x = lastPt.x + (lastPt.handleOut?.x ?? 0);
+                const cp1y = lastPt.y + (lastPt.handleOut?.y ?? 0);
+                const previewD = lastPt.handleOut
+                  ? `M ${lastPt.x} ${lastPt.y} C ${cp1x} ${cp1y}, ${penPreviewPoint.x} ${penPreviewPoint.y}, ${penPreviewPoint.x} ${penPreviewPoint.y}`
+                  : `M ${lastPt.x} ${lastPt.y} L ${penPreviewPoint.x} ${penPreviewPoint.y}`;
+                return (
+                  <path
+                    d={previewD}
+                    fill="none"
+                    stroke="url(#penPreviewGrad)"
+                    strokeWidth={strokeW}
+                    strokeDasharray={`${3 * s} ${3 * s}`}
+                    opacity={0.6}
+                    style={{ pointerEvents: 'none' }}
+                  />
+                );
+              })()}
               {/* Preview cursor dot */}
               <circle
                 cx={penPreviewPoint.x}
