@@ -271,9 +271,11 @@ export const exportDesignToBlob = async (
   return await response.blob();
 };
 
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
 export const exportToSVG = (width: number, height: number, backgroundColor: string, layers: Layer[]): string => {
   const svgParts: string[] = [
-    `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">`,
+    `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`,
     `  <defs>`,
   ];
 
@@ -308,7 +310,7 @@ export const exportToSVG = (width: number, height: number, backgroundColor: stri
   svgParts.push(...gradientDefs);
   svgParts.push(`  </defs>`);
 
-  svgParts.push(`  <rect width="100%" height="100%" fill="${backgroundColor}" />`);
+  svgParts.push(`  <rect x="0" y="0" width="${round2(width)}" height="${round2(height)}" fill="${backgroundColor}" />`);
 
   for (const layer of layers) {
     if (!layer.visible) {
@@ -316,8 +318,8 @@ export const exportToSVG = (width: number, height: number, backgroundColor: stri
     }
 
     const transform = [
-      `translate(${layer.x + ('width' in layer ? (layer as any).width / 2 : 0)}, ${layer.y + ('height' in layer ? (layer as any).height / 2 : 0)})`,
-      `rotate(${layer.rotation || 0})`,
+      `translate(${round2(layer.x + ('width' in layer ? (layer as any).width / 2 : 0))}, ${round2(layer.y + ('height' in layer ? (layer as any).height / 2 : 0))})`,
+      `rotate(${round2(layer.rotation || 0)})`,
     ].join(' ');
 
     const opacity = layer.opacity ?? 1;
@@ -330,14 +332,19 @@ export const exportToSVG = (width: number, height: number, backgroundColor: stri
       if (sl.type === 'rectangle') {
         const r = sl.cornerRadius || 0;
         if (r > 0) {
-          shape = `<rect x="${-sl.width / 2}" y="${-sl.height / 2}" width="${sl.width}" height="${sl.height}" rx="${r}" fill="${fill}" />`;
+          shape = `<rect x="${round2(-sl.width / 2)}" y="${round2(-sl.height / 2)}" width="${round2(sl.width)}" height="${round2(sl.height)}" rx="${round2(r)}" fill="${fill}" />`;
         } else {
-          shape = `<rect x="${-sl.width / 2}" y="${-sl.height / 2}" width="${sl.width}" height="${sl.height}" fill="${fill}" />`;
+          shape = `<rect x="${round2(-sl.width / 2)}" y="${round2(-sl.height / 2)}" width="${round2(sl.width)}" height="${round2(sl.height)}" fill="${fill}" />`;
         }
       } else if (sl.type === 'circle') {
-        shape = `<circle cx="0" cy="0" r="${sl.width / 2}" fill="${sl.color}" />`;
+        shape = `<circle cx="0" cy="0" r="${round2(sl.width / 2)}" fill="${sl.color}" />`;
       } else if (sl.type === 'path' && sl.pathData) {
-        shape = `<path d="${sl.pathData}" fill="${sl.id?.startsWith('draw_') || (sl as any).brushType ? 'none' : sl.color}" stroke="${(sl as any).stroke?.color || sl.color}" stroke-width="${(sl as any).stroke?.width || 0}" />`;
+        const sw = round2((sl as any).stroke?.width || 0);
+        const strokeColor = (sl as any).stroke?.color || sl.color;
+        const lineCap = (sl as any).stroke?.lineCap || 'round';
+        const lineJoin = (sl as any).stroke?.lineJoin || 'round';
+        const isBrush = sl.id?.startsWith('draw_') || (sl as any).brushType;
+        shape = `<path d="${sl.pathData}" fill="${isBrush ? 'none' : sl.color}" stroke="${strokeColor}" stroke-width="${sw}" stroke-linecap="${lineCap}" stroke-linejoin="${lineJoin}" />`;
       } else {
         const clipPath = getLayerClipPath(layer);
         if (clipPath && clipPath.startsWith('polygon')) {
@@ -345,7 +352,7 @@ export const exportToSVG = (width: number, height: number, backgroundColor: stri
           if (match) {
             const pts = match[1].split(',').map((p) => {
               const [xPerc, yPerc] = p.trim().split(/\s+/).map(parseFloat);
-              return `${(xPerc / 100) * sl.width - sl.width / 2},${(yPerc / 100) * sl.height - sl.height / 2}`;
+              return `${round2((xPerc / 100) * sl.width - sl.width / 2)},${round2((yPerc / 100) * sl.height - sl.height / 2)}`;
             });
             shape = `<polygon points="${pts.join(' ')}" fill="${sl.color}" />`;
           }
@@ -360,19 +367,19 @@ export const exportToSVG = (width: number, height: number, backgroundColor: stri
       const textLines = (tl.text || '').split('\n');
       const lineHeight = tl.fontSize * (tl.lineHeight || 1.2);
       const textContent = textLines
-        .map((line, i) => `<tspan x="0" dy="${i === 0 ? 0 : lineHeight}">${escapeXml(line)}</tspan>`)
+        .map((line, i) => `<tspan x="0" dy="${i === 0 ? 0 : round2(lineHeight)}">${escapeXml(line)}</tspan>`)
         .join('');
       const textAnchor = tl.textAlign === 'center' ? 'middle' : tl.textAlign === 'right' ? 'end' : 'start';
       svgParts.push(
         `  <g transform="${transform}" opacity="${opacity}">` +
-          `<text font-family="${escapeXml(tl.fontFamily)}" font-size="${tl.fontSize}" fill="${tl.color}" text-anchor="${textAnchor}" font-weight="${tl.fontWeight}">${textContent}</text>` +
+          `<text font-family="${escapeXml(tl.fontFamily)}" font-size="${round2(tl.fontSize)}" fill="${tl.color}" text-anchor="${textAnchor}" font-weight="${tl.fontWeight}">${textContent}</text>` +
           `</g>`
       );
     } else if (layer.type === 'image') {
       const il = layer as ImageLayer;
       svgParts.push(
         `  <g transform="${transform}" opacity="${opacity}">` +
-          `<image href="${il.src}" x="${-il.width / 2}" y="${-il.height / 2}" width="${il.width}" height="${il.height}" />` +
+          `<image href="${il.src}" x="${round2(-il.width / 2)}" y="${round2(-il.height / 2)}" width="${round2(il.width)}" height="${round2(il.height)}" />` +
           `</g>`
       );
     }

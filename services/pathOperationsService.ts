@@ -11,6 +11,54 @@ function initPaper() {
   }
 }
 
+function pathToPaperPath(path: VectorPath): paper.Path {
+  initPaper();
+  const paperPath = new paper.Path();
+
+  path.points.forEach((point, i) => {
+    if (i === 0 || point.isMove) {
+      paperPath.moveTo(new paper.Point(point.x, point.y));
+    } else {
+      const prev = path.points[i - 1];
+      if (prev && (prev.handleOut || point.handleIn)) {
+        const cp1 = prev.handleOut
+          ? new paper.Point(prev.x + prev.handleOut.x, prev.y + prev.handleOut.y)
+          : new paper.Point(prev.x, prev.y);
+        const cp2 = point.handleIn
+          ? new paper.Point(point.x + point.handleIn.x, point.y + point.handleIn.y)
+          : new paper.Point(point.x, point.y);
+        paperPath.cubicCurveTo(cp1, cp2, new paper.Point(point.x, point.y));
+      } else {
+        paperPath.lineTo(new paper.Point(point.x, point.y));
+      }
+    }
+  });
+
+  if (path.isClosed) {
+    paperPath.closed = true;
+  }
+
+  return paperPath;
+}
+
+function paperPathToVectorPath(paperPath: paper.Path): VectorPath {
+  const points: VectorPoint[] = paperPath.segments.map((segment) => {
+    const pt = VectorUtils.createPoint(segment.point.x, segment.point.y);
+    if (segment.handleIn.x !== 0 || segment.handleIn.y !== 0) {
+      pt.handleIn = { x: segment.handleIn.x, y: segment.handleIn.y };
+    }
+    if (segment.handleOut.x !== 0 || segment.handleOut.y !== 0) {
+      pt.handleOut = { x: segment.handleOut.x, y: segment.handleOut.y };
+    }
+    return pt;
+  });
+
+  return {
+    points,
+    isClosed: paperPath.closed,
+  };
+}
+
 export class PathOperationsService {
   /**
    * Simplify path by reducing number of points while maintaining shape
@@ -275,40 +323,35 @@ export class PathOperationsService {
 
     const smoothedPoints = path.points.map((point, i) => {
       if (i === 0 || i === path.points.length - 1) {
-        return point; // Keep endpoints unchanged
+        return point;
       }
 
       const prev = path.points[i - 1];
       const next = path.points[i + 1];
       if (!prev || !next) return point;
 
-      // Calculate smooth handles based on neighboring points
-      const dx1 = point.x - prev.x;
-      const dy1 = point.y - prev.y;
-      const dx2 = next.x - point.x;
-      const dy2 = next.y - point.y;
+      const tangentX = (next.x - prev.x) * factor * 0.5;
+      const tangentY = (next.y - prev.y) * factor * 0.5;
 
-      const dist1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
-      const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
-
-      // Average direction
-      const angle1 = Math.atan2(dy1, dx1);
-      const angle2 = Math.atan2(dy2, dx2);
-      const avgAngle = (angle1 + angle2) / 2;
+      const dist1 = Math.sqrt((point.x - prev.x) ** 2 + (point.y - prev.y) ** 2);
+      const dist2 = Math.sqrt((next.x - point.x) ** 2 + (next.y - point.y) ** 2);
 
       const handleLength1 = dist1 * factor * 0.4;
       const handleLength2 = dist2 * factor * 0.4;
+      const tangentLen = Math.sqrt(tangentX * tangentX + tangentY * tangentY);
+      const scale1 = tangentLen > 0 ? handleLength1 / tangentLen : 0;
+      const scale2 = tangentLen > 0 ? handleLength2 / tangentLen : 0;
 
       return {
         ...point,
         type: 'smooth' as const,
         handleIn: {
-          x: -Math.cos(avgAngle) * handleLength1,
-          y: -Math.sin(avgAngle) * handleLength1,
+          x: -tangentX * scale1,
+          y: -tangentY * scale1,
         },
         handleOut: {
-          x: Math.cos(avgAngle) * handleLength2,
-          y: Math.sin(avgAngle) * handleLength2,
+          x: tangentX * scale2,
+          y: tangentY * scale2,
         },
       };
     });
@@ -416,15 +459,39 @@ export class PathOperationsService {
 
     let length = 0;
 
+    const bezierLength = (p0: { x: number; y: number }, p1: { x: number; y: number }, p2: { x: number; y: number }, p3: { x: number; y: number }) => {
+      const chord = Math.sqrt((p3.x - p0.x) ** 2 + (p3.y - p0.y) ** 2);
+      const tangentLen =
+        Math.sqrt((p1.x - p0.x) ** 2 + (p1.y - p0.y) ** 2) +
+        Math.sqrt((p3.x - p2.x) ** 2 + (p3.y - p2.y) ** 2);
+      return 1.5 * (chord + tangentLen) / 2;
+    };
+
     for (let i = 1; i < path.points.length; i++) {
       const prev = path.points[i - 1];
       const curr = path.points[i];
 
       if (prev && curr) {
-        // Simplified length calculation (not accounting for bezier curves)
-        const dx = curr.x - prev.x;
-        const dy = curr.y - prev.y;
-        length += Math.sqrt(dx * dx + dy * dy);
+        const p0 = { x: prev.x, y: prev.y };
+        const p3 = { x: curr.x, y: curr.y };
+
+        const hasHandles =
+          (prev.handleOut && (prev.handleOut.x !== 0 || prev.handleOut.y !== 0)) ||
+          (curr.handleIn && (curr.handleIn.x !== 0 || curr.handleIn.y !== 0));
+
+        if (hasHandles) {
+          const p1 = prev.handleOut
+            ? { x: prev.x + prev.handleOut.x, y: prev.y + prev.handleOut.y }
+            : p0;
+          const p2 = curr.handleIn
+            ? { x: curr.x + curr.handleIn.x, y: curr.y + curr.handleIn.y }
+            : p3;
+          length += bezierLength(p0, p1, p2, p3);
+        } else {
+          const dx = p3.x - p0.x;
+          const dy = p3.y - p0.y;
+          length += Math.sqrt(dx * dx + dy * dy);
+        }
       }
     }
 
@@ -432,13 +499,114 @@ export class PathOperationsService {
       const first = path.points[0];
       const last = path.points[path.points.length - 1];
       if (first && last) {
-        const dx = first.x - last.x;
-        const dy = first.y - last.y;
-        length += Math.sqrt(dx * dx + dy * dy);
+        const p0 = { x: last.x, y: last.y };
+        const p3 = { x: first.x, y: first.y };
+
+        const hasHandles =
+          (last.handleOut && (last.handleOut.x !== 0 || last.handleOut.y !== 0)) ||
+          (first.handleIn && (first.handleIn.x !== 0 || first.handleIn.y !== 0));
+
+        if (hasHandles) {
+          const p1 = last.handleOut
+            ? { x: last.x + last.handleOut.x, y: last.y + last.handleOut.y }
+            : p0;
+          const p2 = first.handleIn
+            ? { x: first.x + first.handleIn.x, y: first.y + first.handleIn.y }
+            : p3;
+          length += bezierLength(p0, p1, p2, p3);
+        } else {
+          const dx = p3.x - p0.x;
+          const dy = p3.y - p0.y;
+          length += Math.sqrt(dx * dx + dy * dy);
+        }
       }
     }
 
     return length;
+  }
+
+  /**
+   * Boolean union: combine two paths into one
+   */
+  static union(path1: VectorPath, path2: VectorPath): VectorPath {
+    try {
+      initPaper();
+      const paperPath1 = pathToPaperPath(path1);
+      const paperPath2 = pathToPaperPath(path2);
+
+      const result = paperPath1.unite(paperPath2) as paper.Path;
+
+      paperPath1.remove();
+      paperPath2.remove();
+
+      return paperPathToVectorPath(result);
+    } catch (error) {
+      console.error('Boolean union failed:', error);
+      return path1;
+    }
+  }
+
+  /**
+   * Boolean subtract: cut path2 from path1
+   */
+  static subtract(path1: VectorPath, path2: VectorPath): VectorPath {
+    try {
+      initPaper();
+      const paperPath1 = pathToPaperPath(path1);
+      const paperPath2 = pathToPaperPath(path2);
+
+      const result = paperPath1.subtract(paperPath2) as paper.Path;
+
+      paperPath1.remove();
+      paperPath2.remove();
+
+      return paperPathToVectorPath(result);
+    } catch (error) {
+      console.error('Boolean subtract failed:', error);
+      return path1;
+    }
+  }
+
+  /**
+   * Boolean intersect: keep only overlapping area
+   */
+  static intersect(path1: VectorPath, path2: VectorPath): VectorPath {
+    try {
+      initPaper();
+      const paperPath1 = pathToPaperPath(path1);
+      const paperPath2 = pathToPaperPath(path2);
+
+      const result = paperPath1.intersect(paperPath2) as paper.Path;
+
+      paperPath1.remove();
+      paperPath2.remove();
+
+      return paperPathToVectorPath(result);
+    } catch (error) {
+      console.error('Boolean intersect failed:', error);
+      return path1;
+    }
+  }
+
+  /**
+   * Boolean exclude: remove overlapping area
+   */
+  static exclude(path1: VectorPath, path2: VectorPath): VectorPath {
+    try {
+      initPaper();
+      const paperPath1 = pathToPaperPath(path1);
+      const paperPath2 = pathToPaperPath(path2);
+
+      const result = paperPath1.exclude(paperPath2) as paper.Path;
+
+      paperPath1.remove();
+      paperPath2.remove();
+
+      return paperPathToVectorPath(result);
+    } catch (error) {
+      console.error('Boolean exclude failed:', error);
+      return path1;
+    }
   }
 
   /**

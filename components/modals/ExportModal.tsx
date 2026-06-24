@@ -53,6 +53,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
   const [isCopying, setIsCopying] = useState(false);
   const [exportStage, setExportStage] = useState<string>('');
   const [exportScale, setExportScale] = useState<number>(1);
+  const [dpi, setDpi] = useState<number>(150);
   const [exportProgress, setExportProgress] = useState(0);
   // 🌸 Bloom: Ensure default export filenames strictly adhere to safe character limits and fallback gracefully
   const sanitizeFilename = (name: string) =>
@@ -139,6 +140,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     } else {
       setQuality(1);
     }
+    if (format === 'pdf') {
+      setDpi(300);
+    } else {
+      setDpi(150);
+    }
   }, [format]);
 
   const presets = React.useMemo(
@@ -160,10 +166,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
     try {
       const preset = presets.find((p) => p.id === activePreset);
-      const scale = exportScale;
+      const dpiScale = dpi / 72;
+      const scale = exportScale * dpiScale;
       const size = preset
-        ? { width: preset.width * scale, height: preset.height * scale }
-        : { width: currentSize.width * scale, height: currentSize.height * scale };
+        ? { width: Math.round(preset.width * scale), height: Math.round(preset.height * scale) }
+        : { width: Math.round(currentSize.width * scale), height: Math.round(currentSize.height * scale) };
 
       setExportStage('Rendering design...');
 
@@ -229,15 +236,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
         // Export from stored artboard data — no need to switch active artboard
 
-        // Handle print mode PDF separately
+        const dpiScale = dpi / 72;
         if (format === 'pdf' && isPrintMode) {
-          // For print PDF, we need to call the print export function
-          // This would require passing the canvas data URL to exportToPrintPDF
-          // For now, export as regular PDF with _print suffix
           await onExport(
             format,
             quality,
-            { width: ab.width || currentSize.width, height: ab.height || currentSize.height },
+            { width: Math.round((ab.width || currentSize.width) * dpiScale), height: Math.round((ab.height || currentSize.height) * dpiScale) },
             false,
             `${safeFilename}_print`,
             ab.layers
@@ -246,7 +250,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
           await onExport(
             format,
             quality,
-            { width: ab.width || currentSize.width, height: ab.height || currentSize.height },
+            { width: Math.round((ab.width || currentSize.width) * dpiScale), height: Math.round((ab.height || currentSize.height) * dpiScale) },
             transparentBg && format === 'png',
             safeFilename,
             ab.layers
@@ -306,6 +310,40 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       addToast('Export Selection failed', 'error');
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleExportLayer = async () => {
+    if (!selectedLayerIds || selectedLayerIds.length !== 1) {
+      addToast('Select exactly one layer to export as layer', 'warning');
+      return;
+    }
+    setIsExporting(true);
+    const layerId = selectedLayerIds[0];
+    const activeArtboard = artboards.find((a) => a.id === activeArtboardId);
+    const layer = activeArtboard?.layers.find((l) => l.id === layerId);
+    const layerName = layer?.name || `layer-${layerId.slice(0, 6)}`;
+    setExportStage(`Exporting layer "${layerName}"...`);
+    try {
+      const safeLayerFilename = sanitizeFilename(layerName);
+      const dpiScale = dpi / 72;
+      const scale = exportScale * dpiScale;
+      await onExport(
+        format,
+        quality,
+        { width: Math.round(currentSize.width * scale), height: Math.round(currentSize.height * scale) },
+        transparentBg && format === 'png',
+        `${safeLayerFilename}`,
+        layer ? [layer] : undefined
+      );
+      addToast(`Layer "${layerName}" exported as ${format.toUpperCase()}!`, 'success');
+      setTimeout(() => onClose(), 300);
+    } catch (e: any) {
+      log.error('[ExportModal] Export Layer failed', e);
+      addToast('Export Layer failed', 'error');
+    } finally {
+      setIsExporting(false);
+      setExportStage('');
     }
   };
 
@@ -738,6 +776,28 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
               </div>
             </div>
 
+            {/* DPI Selector */}
+            <div>
+              <label className="text-xs font-bold text-muted-light uppercase tracking-wider mb-3 block">
+                DPI (Print Resolution)
+              </label>
+              <div className="grid grid-cols-4 gap-2">
+                {[72, 150, 300, 600].map((d) => (
+                  <button
+                    key={d}
+                    onClick={() => setDpi(d)}
+                    className={`py-2 rounded-xl text-xs font-bold transition-all border ${dpi === d ? 'bg-brand-600 border-brand-600 text-white' : 'bg-surface-dark-4 border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white'}`}
+                  >
+                    {d}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-muted-light mt-2">
+                {dpi <= 72 ? 'Screen quality' : dpi <= 150 ? 'Web standard' : dpi <= 300 ? 'Print quality' : 'High-res print'}
+                {format === 'pdf' ? ' — 300 DPI recommended for print' : ''}
+              </p>
+            </div>
+
             {/* Presets */}
             <div>
               <label className="text-xs font-bold text-muted-light uppercase tracking-wider mb-3 block">
@@ -762,7 +822,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
             </div>
 
             {/* Extra export options */}
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={handleExportAll}
                 disabled={isExporting || !artboards || artboards.length <= 1}
@@ -797,6 +857,24 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                   {selectedLayerIds?.length ? (
                     <span className="text-[9px] text-gray-400">({selectedLayerIds.length} layers)</span>
                   ) : null}
+                </div>
+              </button>
+              <button
+                onClick={handleExportLayer}
+                disabled={isExporting || !selectedLayerIds || selectedLayerIds.length !== 1}
+                className="py-2.5 rounded-xl border border-gray-700 bg-surface-dark-4 text-xs font-bold text-gray-300 hover:bg-surface-dark-5 hover:border-gray-500 transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                title={
+                  selectedLayerIds?.length === 1
+                    ? 'Export selected layer only'
+                    : 'Select exactly one layer'
+                }
+              >
+                <Icons.Layers className="w-3.5 h-3.5" />
+                <div className="flex flex-col items-start leading-tight">
+                  <span>Export Layer</span>
+                  {selectedLayerIds?.length === 1 && (
+                    <span className="text-[9px] text-gray-400">(single layer)</span>
+                  )}
                 </div>
               </button>
             </div>

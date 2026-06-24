@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { VectorPath, VectorPoint } from '../../types';
+import { VectorPath, VectorPoint, Layer, ShapeLayer } from '../../types';
 import { PenToolbar } from '../toolbar/PenToolbar';
 import { GRID_SIZE } from '../canvas/CanvasConstants';
+import { useStore } from '../../store/useStore';
 
 interface PathEditorOverlayProps {
   path: VectorPath;
@@ -12,6 +13,7 @@ interface PathEditorOverlayProps {
   layerX?: number;
   layerY?: number;
   onClose?: () => void;
+  layerId?: string;
 }
 
 type PointMode = 'corner' | 'smooth' | 'symmetric';
@@ -26,6 +28,7 @@ interface PenToolOptions {
   fillColor: string;
   snapToGrid: boolean;
   showPreview: boolean;
+  convertAnchorMode: boolean;
 }
 
 export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
@@ -38,6 +41,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
     layerX: _layerX = 0,
     layerY: _layerY = 0,
     onClose,
+    layerId,
   }) => {
     const [hoveredPointIndex, setHoveredPointIndex] = useState<number | null>(null);
     const [hoveredSegment, setHoveredSegment] = useState<number | null>(null);
@@ -55,8 +59,38 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
       fillColor: '#7d2ae8',
       snapToGrid: false,
       showPreview: true,
+      convertAnchorMode: false,
     });
+    const [snapTarget, setSnapTarget] = useState<{ x: number; y: number } | null>(null);
     const svgRef = useRef<SVGSVGElement>(null);
+
+    // Get all path endpoints from other layers for snapping
+    const getAllPathEndpoints = useCallback(() => {
+      const { artboards, activeArtboardId } = useStore.getState();
+      const artboard = artboards.find((a) => a.id === activeArtboardId);
+      if (!artboard) return [];
+
+      const endpoints: { x: number; y: number; layerId: string; isStart: boolean }[] = [];
+
+      for (const layer of artboard.layers) {
+        if (layer.id === layerId) continue;
+        if (layer.type === 'path' || (layer as ShapeLayer).vectorPath || (layer as ShapeLayer).pathData) {
+          const shapeLayer = layer as ShapeLayer;
+          if (shapeLayer.vectorPath && shapeLayer.vectorPath.points.length > 0) {
+            const firstPt = shapeLayer.vectorPath.points[0];
+            const lastPt = shapeLayer.vectorPath.points[shapeLayer.vectorPath.points.length - 1];
+            if (firstPt) {
+              endpoints.push({ x: firstPt.x + layer.x, y: firstPt.y + layer.y, layerId: layer.id, isStart: true });
+            }
+            if (lastPt && !shapeLayer.vectorPath.isClosed) {
+              endpoints.push({ x: lastPt.x + layer.x, y: lastPt.y + layer.y, layerId: layer.id, isStart: false });
+            }
+          }
+        }
+      }
+
+      return endpoints;
+    }, [layerId]);
 
     // Default to pen tool if path is empty
     useEffect(() => {
@@ -171,13 +205,31 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
         let clickY = snapCoord(rawY);
 
         const SNAP_DIST = 5 / zoom;
+        
+        // First check current path points
         for (const pt of path.points) {
           const dx = rawX - pt.x;
           const dy = rawY - pt.y;
           if (Math.sqrt(dx * dx + dy * dy) < SNAP_DIST) {
             clickX = pt.x;
             clickY = pt.y;
+            setSnapTarget({ x: pt.x, y: pt.y });
             break;
+          }
+        }
+
+        // If not snapped to current path, check other paths
+        if (clickX === snapCoord(rawX) && clickY === snapCoord(rawY)) {
+          const endpoints = getAllPathEndpoints();
+          for (const ep of endpoints) {
+            const dx = rawX - ep.x;
+            const dy = rawY - ep.y;
+            if (Math.sqrt(dx * dx + dy * dy) < SNAP_DIST) {
+              clickX = ep.x;
+              clickY = ep.y;
+              setSnapTarget({ x: ep.x, y: ep.y });
+              break;
+            }
           }
         }
 
@@ -226,7 +278,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
       },
-      [activeTool, path, zoom, onUpdate, onSelectPoint, s, snapCoord]
+      [activeTool, path, zoom, onUpdate, onSelectPoint, s, snapCoord, getAllPathEndpoints]
     );
 
     // PEN TOOL: Close path by clicking first point
@@ -248,6 +300,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
       (e: React.MouseEvent) => {
         if (activeTool !== 'pen' || path.points.length === 0) {
           setPenPreviewPoint(null);
+          setSnapTarget(null);
           return;
         }
         const svg = svgRef.current;
@@ -259,19 +312,45 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
         const rawY = (e.clientY - rect.top) / zoom;
         let px = snapCoord(rawX);
         let py = snapCoord(rawY);
+        let foundSnap = false;
         const SNAP_DIST = 5 / zoom;
+
+        // First check current path points
         for (const pt of path.points) {
           const dx = rawX - pt.x;
           const dy = rawY - pt.y;
           if (Math.sqrt(dx * dx + dy * dy) < SNAP_DIST) {
             px = pt.x;
             py = pt.y;
+            foundSnap = true;
+            setSnapTarget({ x: pt.x, y: pt.y });
             break;
           }
         }
+
+        // If not snapped to current path, check other paths
+        if (!foundSnap) {
+          const endpoints = getAllPathEndpoints();
+          for (const ep of endpoints) {
+            const dx = rawX - ep.x;
+            const dy = rawY - ep.y;
+            if (Math.sqrt(dx * dx + dy * dy) < SNAP_DIST) {
+              px = ep.x;
+              py = ep.y;
+              setSnapTarget({ x: ep.x, y: ep.y });
+              foundSnap = true;
+              break;
+            }
+          }
+        }
+
+        if (!foundSnap) {
+          setSnapTarget(null);
+        }
+
         setPenPreviewPoint({ x: px, y: py });
       },
-      [activeTool, path.points, zoom, snapCoord]
+      [activeTool, path.points, zoom, snapCoord, getAllPathEndpoints]
     );
 
     // REMOVE POINT TOOL: click to delete
@@ -296,6 +375,35 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
     // ==================================
     const handlePointMouseDown = useCallback(
       (e: React.MouseEvent, index: number) => {
+        // In convert anchor mode, toggle between smooth and corner
+        if (penOptions.convertAnchorMode) {
+          e.preventDefault();
+          e.stopPropagation();
+          const pt = path.points[index];
+          if (!pt) return;
+
+          const newType: PointMode = pt.type === 'corner' ? 'smooth' : pt.type === 'smooth' ? 'symmetric' : 'corner';
+
+          const newPoints = [...path.points];
+          const newPt = { ...pt, type: newType };
+
+          if (newType === 'corner') {
+            newPt.handleIn = undefined;
+            newPt.handleOut = undefined;
+          } else if ((newType === 'smooth' || newType === 'symmetric') && !pt.handleIn && !pt.handleOut) {
+            const prev = path.points[(index - 1 + path.points.length) % path.points.length]!;
+            const next = path.points[(index + 1) % path.points.length]!;
+            const dx = (next.x - prev.x) * 0.25;
+            const dy = (next.y - prev.y) * 0.25;
+            newPt.handleIn = { x: -dx, y: -dy };
+            newPt.handleOut = { x: dx, y: dy };
+          }
+
+          newPoints[index] = newPt;
+          onUpdate({ ...path, points: newPoints });
+          return;
+        }
+
         // In remove mode, handle differently
         if (activeTool === 'remove') {
           handleRemovePointClick(e, index);
@@ -620,6 +728,9 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
 
     // Get the cursor style based on active tool
     const getCursorStyle = (): string => {
+      if (penOptions.convertAnchorMode) {
+        return 'pointer';
+      }
       switch (activeTool) {
         case 'pen':
           return 'crosshair';
@@ -765,6 +876,35 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
                   }
                   return null;
                 })()}
+              {/* Snap indicator for other path endpoints */}
+              {snapTarget && (
+                <g style={{ pointerEvents: 'none' }}>
+                  <circle
+                    cx={snapTarget.x}
+                    cy={snapTarget.y}
+                    r={pointRadius * 2.5}
+                    fill="none"
+                    stroke="#fbbf24"
+                    strokeWidth={strokeW * 1.5}
+                    opacity={0.9}
+                  >
+                    <animate
+                      attributeName="r"
+                      values={`${pointRadius * 2};${pointRadius * 3};${pointRadius * 2}`}
+                      dur="0.6s"
+                      repeatCount="indefinite"
+                    />
+                    <animate attributeName="opacity" values="0.9;0.4;0.9" dur="0.6s" repeatCount="indefinite" />
+                  </circle>
+                  <circle
+                    cx={snapTarget.x}
+                    cy={snapTarget.y}
+                    r={pointRadius * 0.5}
+                    fill="#fbbf24"
+                    opacity={0.8}
+                  />
+                </g>
+              )}
             </>
           )}
 

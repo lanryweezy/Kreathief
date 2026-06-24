@@ -10,6 +10,7 @@ interface PenToolOptions {
   fillColor: string;
   snapToGrid: boolean;
   showPreview: boolean;
+  convertAnchorMode: boolean;
 }
 
 interface PenToolbarProps {
@@ -135,6 +136,23 @@ export const PenToolbar = React.memo(({ options, onUpdateOptions, onClose }: Pen
         >
           <Icons.Snap className="w-4 h-4" />
           <span>Snap</span>
+        </button>
+      </div>
+
+      {/* Convert Anchor Mode Toggle */}
+      <div className="flex items-center gap-1 px-2 border-l border-gray-700">
+        <button
+          onClick={() => onUpdateOptions({ convertAnchorMode: !options.convertAnchorMode })}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+            options.convertAnchorMode
+              ? 'bg-accent text-white shadow-lg shadow-cyan-900/20'
+              : 'bg-surface-dark-4 text-gray-400 hover:text-white hover:bg-gray-700'
+          }`}
+          title="Convert Anchor Points (Click to toggle smooth/corner)"
+          aria-label="Convert Anchor Points"
+        >
+          <Icons.Pointer className="w-4 h-4" />
+          <span>Convert</span>
         </button>
       </div>
 

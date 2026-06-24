@@ -4,10 +4,14 @@ import { IconButton, Divider } from './ToolbarShared';
 import { ColorPicker } from '../ColorPicker';
 import { MaskTools } from './MaskTools';
 import { Dropdown } from '../Dropdown';
-import { Layer } from '../../types';
+import { Layer, ShapeLayer } from '../../types';
+import { pathOperationsService } from '../../services/pathOperationsService';
+import { VectorUtils } from '../../utils/vectorUtils';
+import { useStore } from '../../store/useStore';
 
 interface ShapeToolsProps {
   layer: Layer;
+  selectedLayers: Layer[];
   handleUpdateLayer: (changes: any) => void;
   documentColors?: string[];
   isPro?: boolean;
@@ -85,9 +89,68 @@ const ShadowControls = ({
 };
 
 export const ShapeTools = React.memo(
-  ({ layer, handleUpdateLayer, documentColors, isPro, onOpenPricing, onConvertToPath }: ShapeToolsProps) => {
+  ({ layer, selectedLayers, handleUpdateLayer, documentColors, isPro, onOpenPricing, onConvertToPath }: ShapeToolsProps) => {
     const [showEffects, setShowEffects] = React.useState(false);
+    const [showBooleanOps, setShowBooleanOps] = React.useState(false);
     const effectsButtonRef = useRef<HTMLButtonElement>(null);
+    const booleanOpsRef = useRef<HTMLButtonElement>(null);
+
+    const { updateLayer, deleteLayer, saveToHistory } = useStore((state) => ({
+      updateLayer: state.updateLayer,
+      deleteLayer: state.deleteLayer,
+      saveToHistory: state.saveToHistory,
+    }));
+
+    const handleBooleanOp = (operation: 'union' | 'subtract' | 'intersect' | 'exclude') => {
+      if (selectedLayers.length < 2) return;
+
+      const baseLayer = selectedLayers[0] as ShapeLayer;
+      const operandLayer = selectedLayers[1] as ShapeLayer;
+
+      if (!baseLayer || !operandLayer) return;
+
+      const basePathData = (baseLayer as any).pathData;
+      const operandPathData = (operandLayer as any).pathData;
+
+      if (!basePathData || !operandPathData) return;
+
+      const basePath = VectorUtils.parsePath(basePathData);
+      const operandPath = VectorUtils.parsePath(operandPathData);
+
+      if (!basePath || !operandPath) return;
+
+      saveToHistory();
+
+      let resultPath;
+      switch (operation) {
+        case 'union':
+          resultPath = pathOperationsService.union(basePath, operandPath);
+          break;
+        case 'subtract':
+          resultPath = pathOperationsService.subtract(basePath, operandPath);
+          break;
+        case 'intersect':
+          resultPath = pathOperationsService.intersect(basePath, operandPath);
+          break;
+        case 'exclude':
+          resultPath = pathOperationsService.exclude(basePath, operandPath);
+          break;
+      }
+
+      const newPathData = VectorUtils.serializePath(resultPath);
+      const bounds = VectorUtils.getBounds(resultPath);
+
+      updateLayer(baseLayer.id, {
+        pathData: newPathData,
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height,
+      } as any);
+
+      deleteLayer(operandLayer.id);
+      setShowBooleanOps(false);
+    };
 
     const updateFilter = (key: string, value: number) => {
       const currentFilters = (layer as any).filters || {
@@ -361,6 +424,57 @@ export const ShapeTools = React.memo(
           <IconButton onClick={() => onConvertToPath(layer.id)} title="Convert to Path">
             <Icons.ExternalLink className="w-4 h-4" />
           </IconButton>
+        )}
+
+        {/* Boolean Operations - Show when 2+ layers selected */}
+        {selectedLayers.length >= 2 && (
+          <div className="relative">
+            <button
+              ref={booleanOpsRef}
+              onClick={() => setShowBooleanOps(!showBooleanOps)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${showBooleanOps ? 'bg-brand-600 border-brand-600 text-white shadow-lg shadow-purple-900/30' : 'bg-black/20 border-white/10 text-gray-300 hover:border-white/20 hover:bg-black/30'}`}
+            >
+              <Icons.Scissors className="w-3.5 h-3.5" /> Boolean
+            </button>
+            <Dropdown
+              anchorRef={booleanOpsRef}
+              isOpen={showBooleanOps}
+              onClose={() => setShowBooleanOps(false)}
+              align="left"
+            >
+              <div className="w-48 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-2 animate-fadeIn">
+                <div className="space-y-1">
+                  <button
+                    onClick={() => handleBooleanOp('union')}
+                    className="w-full px-3 py-2 rounded-lg text-xs font-bold text-gray-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
+                  >
+                    <span className="text-brand-500">∪</span> Union
+                  </button>
+                  <button
+                    onClick={() => handleBooleanOp('subtract')}
+                    className="w-full px-3 py-2 rounded-lg text-xs font-bold text-gray-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
+                  >
+                    <span className="text-red-500">−</span> Subtract
+                  </button>
+                  <button
+                    onClick={() => handleBooleanOp('intersect')}
+                    className="w-full px-3 py-2 rounded-lg text-xs font-bold text-gray-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
+                  >
+                    <span className="text-green-500">∩</span> Intersect
+                  </button>
+                  <button
+                    onClick={() => handleBooleanOp('exclude')}
+                    className="w-full px-3 py-2 rounded-lg text-xs font-bold text-gray-300 hover:bg-white/10 hover:text-white transition-colors flex items-center gap-2"
+                  >
+                    <span className="text-yellow-500">⊕</span> Exclude
+                  </button>
+                </div>
+                <div className="mt-2 px-3 py-1 text-[9px] text-gray-500">
+                  First selected layer = base, second = operand
+                </div>
+              </div>
+            </Dropdown>
+          </div>
         )}
       </div>
     );
