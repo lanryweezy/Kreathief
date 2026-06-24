@@ -16,7 +16,7 @@ export const CursorOverlay: React.FC = () => {
   }, [onlineUsers]);
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-[200]">
+    <div className="absolute inset-0 pointer-events-none z-raised">
       {Object.entries(cursors).map(([userId, cursor]) => {
         const user = userMap[userId];
         if (!user || !cursor) return null;

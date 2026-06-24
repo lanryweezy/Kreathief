@@ -3,6 +3,7 @@ export const MODEL_FAST = 'gemini-2.0-flash';
 export const MODEL_PRO = 'gemini-2.0-flash';
 // Default Configuration
 export const DEFAULT_ASPECT_RATIO = '1:1';
+export const DEFAULT_CORNER_RADIUS = 8;
 export const CANVAS_W = 1080;
 export const CANVAS_H = 1080;
 

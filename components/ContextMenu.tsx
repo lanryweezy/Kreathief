@@ -158,14 +158,14 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
   return (
     <div
       ref={menuRef}
-      className={`fixed z-[9999] w-72 bg-surface-dark-3/98 border border-white/10 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] py-4 flex flex-col backdrop-blur-2xl overflow-hidden select-none transition-opacity duration-150 ${visible ? 'opacity-100' : 'opacity-0'}`}
+      className={`fixed z-toast w-72 bg-surface-dark-3/98 border border-white/10 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] py-4 flex flex-col backdrop-blur-2xl overflow-hidden select-none transition-opacity duration-150 ${visible ? 'opacity-100' : 'opacity-0'}`}
       style={{ top: adjustedY, left: adjustedX }}
       onContextMenu={(e) => e.preventDefault()}
     >
       {/* Header */}
       <div className="px-5 pb-3 mb-2 border-b border-white/5">
         <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] truncate italic">
-          {layer?.type || 'CORE NODE'} · {layer?.name || layerId.slice(0, 8)}
+          {String(layer?.type || 'CORE NODE')} · {String(layer?.name || layerId.slice(0, 8))}
         </p>
       </div>
 

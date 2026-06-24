@@ -735,13 +735,38 @@ class StorageService {
     });
   }
 
+  private sanitizeLayer(layer: any): any {
+    if (!layer || typeof layer !== 'object') return layer;
+    return {
+      ...layer,
+      id: typeof layer.id === 'string' ? layer.id : String(layer.id || ''),
+      name: typeof layer.name === 'string' ? layer.name : String(layer.name || ''),
+      type: typeof layer.type === 'string' ? layer.type : String(layer.type || 'shape'),
+      x: typeof layer.x === 'number' ? layer.x : Number(layer.x) || 0,
+      y: typeof layer.y === 'number' ? layer.y : Number(layer.y) || 0,
+      width: typeof layer.width === 'number' ? layer.width : Number(layer.width) || 100,
+      height: typeof layer.height === 'number' ? layer.height : Number(layer.height) || 100,
+      rotation: typeof layer.rotation === 'number' ? layer.rotation : Number(layer.rotation) || 0,
+      opacity: typeof layer.opacity === 'number' ? layer.opacity : Number(layer.opacity) ?? 1,
+    };
+  }
+
+  private sanitizeArtboards(artboards: any[]): any[] {
+    return artboards.map((ab) => ({
+      ...ab,
+      id: typeof ab.id === 'string' ? ab.id : String(ab.id || ''),
+      name: typeof ab.name === 'string' ? ab.name : String(ab.name || 'Artboard'),
+      layers: Array.isArray(ab.layers) ? ab.layers.map((l) => this.sanitizeLayer(l)) : [],
+    }));
+  }
+
   private supabaseProjectToLocal(dbProject: any): Project {
     const project: Project = {
       id: dbProject.id,
       name: dbProject.name,
       updatedAt: new Date(dbProject.updated_at).getTime(),
       state: {
-        artboards: dbProject.state?.artboards || [],
+        artboards: this.sanitizeArtboards(dbProject.state?.artboards || []),
         canvasBackgroundColor: dbProject.background_color || '#ffffff',
         canvasFilters: dbProject.canvas_filters || {
           brightness: 100,

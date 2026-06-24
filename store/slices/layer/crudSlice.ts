@@ -7,6 +7,7 @@ import * as geminiService from '../../../services/geminiService';
 import { Layer, TextLayer, ShapeLayer, Artboard, ImageLayer } from '../../../types';
 import { LayerSlice } from './baseSlice';
 import { DEFAULT_LAYER_FILTERS } from './utils';
+import { DEFAULT_CORNER_RADIUS } from '../../../constants';
 
 export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (set, get) => ({
   addArtboard: (name = 'Artboard', width = 1080, height = 1080) => {
@@ -334,7 +335,7 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
       height: 100,
       rotation: 0,
       color: '#334155',
-      cornerRadius: 0,
+      cornerRadius: DEFAULT_CORNER_RADIUS,
       opacity: 1,
       locked: false,
       visible: true,

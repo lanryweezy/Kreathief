@@ -44,6 +44,31 @@ export interface ProjectSlice {
 
 let autoSaveTimer: NodeJS.Timeout | null = null;
 
+function sanitizeLayer(layer: any): any {
+  if (!layer || typeof layer !== 'object') return layer;
+  return {
+    ...layer,
+    id: typeof layer.id === 'string' ? layer.id : String(layer.id || ''),
+    name: typeof layer.name === 'string' ? layer.name : String(layer.name || ''),
+    type: typeof layer.type === 'string' ? layer.type : String(layer.type || 'shape'),
+    x: typeof layer.x === 'number' ? layer.x : Number(layer.x) || 0,
+    y: typeof layer.y === 'number' ? layer.y : Number(layer.y) || 0,
+    width: typeof layer.width === 'number' ? layer.width : Number(layer.width) || 100,
+    height: typeof layer.height === 'number' ? layer.height : Number(layer.height) || 100,
+    rotation: typeof layer.rotation === 'number' ? layer.rotation : Number(layer.rotation) || 0,
+    opacity: typeof layer.opacity === 'number' ? layer.opacity : Number(layer.opacity) ?? 1,
+  };
+}
+
+function sanitizeArtboardLayers(artboards: any[]): any[] {
+  return artboards.map((ab) => ({
+    ...ab,
+    id: typeof ab.id === 'string' ? ab.id : String(ab.id || ''),
+    name: typeof ab.name === 'string' ? ab.name : String(ab.name || 'Artboard'),
+    layers: Array.isArray(ab.layers) ? ab.layers.map(sanitizeLayer) : [],
+  }));
+}
+
 export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set, get) => ({
   projects: [],
   projectId: `proj_${Date.now()}`,
@@ -257,7 +282,7 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
 
   initializeProject: (project) => {
     // Migration: if project has root layers but no artboards, create a default artboard
-    let artboards = project.state.artboards || [];
+    let artboards = sanitizeArtboardLayers(project.state.artboards || []);
     let activeArtboardId = project.state.activeArtboardId || (artboards.length > 0 ? artboards[0].id : 'default');
 
     if (artboards.length === 0 && (project.state as any).layers?.length >= 0) {

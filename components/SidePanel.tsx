@@ -118,7 +118,7 @@ export const SidePanel = React.memo(
           transition={{ type: 'spring', damping: 25, stiffness: 120 }}
           id="side-panel"
           data-testid="side-panel"
-          className="w-full md:w-[320px] bg-transparent md:bg-surface-dark-2/95 md:backdrop-blur-xl border-r border-white/5 flex flex-col z-20 shrink-0 shadow-2xl relative overflow-y-auto overflow-x-hidden custom-scrollbar"
+          className="w-full md:w-[320px] bg-transparent md:bg-surface-dark-2/95 md:backdrop-blur-xl border-r border-white/5 flex flex-col z-dropdown shrink-0 shadow-2xl relative overflow-y-auto overflow-x-hidden custom-scrollbar"
         >
           <AnimatePresence mode="wait">
             <motion.div

@@ -110,7 +110,7 @@ export const Eyedropper: React.FC<EyedropperProps> = ({ onColorPick, onClose, is
     <>
       <div
         ref={overlayRef}
-        className="fixed inset-0 z-[9999] cursor-crosshair"
+        className="fixed inset-0 z-overlay cursor-crosshair"
         style={{
           background: 'rgba(0, 0, 0, 0.3)',
           pointerEvents: 'auto',

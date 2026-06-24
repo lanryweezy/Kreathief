@@ -253,7 +253,7 @@ export const TextStylesPanel = React.memo(({ currentStyle, onApplyStyle, onSaveS
 
       {/* Save Style Modal */}
       {showSaveModal && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50">
+        <div className="fixed inset-0 z-overlay flex items-center justify-center bg-black/50">
           <div className="bg-surface-dark-3 border border-gray-700 rounded-xl p-4 w-80">
             <h4 className="text-sm font-bold text-white mb-4">Save Text Style</h4>
             <input

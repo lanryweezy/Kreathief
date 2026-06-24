@@ -642,7 +642,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
         {/* Eyedropper Overlay */}
         {showEyedropper && (
           <div
-            className="fixed inset-0 z-[9999] cursor-crosshair"
+            className="fixed inset-0 z-overlay cursor-crosshair"
             style={{ background: 'rgba(0, 0, 0, 0.3)' }}
             onClick={(e) => {
               const target = e.target as HTMLElement;

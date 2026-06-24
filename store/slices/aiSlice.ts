@@ -7,6 +7,7 @@ import { aiModelsService } from '../../services/aiModelsService';
 import { removeBackground } from '../../utils/imageProcessor';
 import * as geminiService from '../../services/geminiService';
 import { v4 as uuidv4 } from 'uuid';
+import { DEFAULT_CORNER_RADIUS } from '../../constants';
 
 export interface AISlice {
   prompt: string;
@@ -132,7 +133,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
             opacity: layer.opacity,
             visible: true,
             locked: false,
-            cornerRadius: 0,
+            cornerRadius: DEFAULT_CORNER_RADIUS,
             blendMode: 'normal',
           } as any,
         ]);
@@ -158,7 +159,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
           visible: true,
           locked: false,
           groupId: groupId,
-          cornerRadius: 0,
+          cornerRadius: DEFAULT_CORNER_RADIUS,
           filters: {
             brightness: 100,
             contrast: 100,

@@ -80,7 +80,7 @@ interface ToastContainerProps {
 
 export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onRemove }) => {
   return (
-    <div className="fixed bottom-8 right-8 z-[9999] flex flex-col gap-3 pointer-events-none" aria-live="polite">
+    <div className="fixed bottom-8 right-8 z-toast flex flex-col gap-3 pointer-events-none" aria-live="polite">
       <AnimatePresence mode="popLayout">
         {toasts.map((toast: Toast) => (
           <div key={toast.id} className="pointer-events-auto">

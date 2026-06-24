@@ -123,7 +123,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
   return createPortal(
     <div
       ref={dropdownRef}
-      className={`fixed z-[9999] ${className}`}
+      className={`fixed z-dropdown ${className}`}
       style={{
         top: `${position.top}px`,
         left: `${position.left}px`,

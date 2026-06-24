@@ -459,7 +459,7 @@ export const CommandPalette: React.FC = () => {
   }
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-[15vh] bg-black/60 backdrop-blur-md p-4">
+    <div className="fixed inset-0 z-modal flex items-start justify-center pt-[15vh] bg-black/60 backdrop-blur-md p-4">
       <div className="absolute inset-0" onClick={() => setOpen(false)} />
 
       <div

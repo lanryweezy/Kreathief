@@ -29,7 +29,7 @@ export const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetErrorB
   }
 
   return (
-    <div className="fixed inset-0 bg-[#121212] flex flex-col items-center justify-center p-4 z-[9999]">
+    <div className="fixed inset-0 bg-[#121212] flex flex-col items-center justify-center p-4 z-overlay">
       <div className="max-w-md w-full text-center">
         <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
           <Icons.AlertTriangle className="w-10 h-10 text-red-500" />

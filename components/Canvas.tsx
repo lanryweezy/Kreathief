@@ -519,7 +519,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
         {/* PathEditorOverlay is rendered OUTSIDE the zoom transform — coordinates are computed manually */}
         {isDrawing && brushType === 'vector_pencil' && activeVectorPath && (
           <div
-            className="absolute inset-0 z-[200] pointer-events-none"
+            className="absolute inset-0 z-modal pointer-events-none"
             style={{
               transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
               transformOrigin: '0 0',
