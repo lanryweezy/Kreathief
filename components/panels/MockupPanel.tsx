@@ -1620,7 +1620,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
               ))}
             </div>
 
-            <div className="p-4 space-y-4 min-h-[300px]">
+            <div className="p-4 space-y-4">
               {activeTab === 'placement' && (
                 <div className="space-y-6 animate-in fade-in duration-300">
                   {/* Position */}

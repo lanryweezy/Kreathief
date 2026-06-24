@@ -239,8 +239,6 @@ export const TextTools = React.memo(
 
         <QuickTextEffects layer={layer} onUpdateLayer={(id, changes) => onUpdateTextLayer(id, changes)} />
 
-        <QuickTextEffects layer={layer} onUpdateLayer={(id, changes) => onUpdateTextLayer(id, changes)} />
-
         <MaskTools
           layer={layer}
           onUpdateLayer={(changes: any) => onUpdateTextLayer(layer.id, changes)}
