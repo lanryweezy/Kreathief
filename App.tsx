@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import { Routes, Route, useNavigate, Navigate, useLocation, useParams } from 'react-router-dom';
 import { ToastContainer } from './components/Toast';
+import { OnboardingTour } from './components/OnboardingTour';
 import { useStore } from './store/useStore';
 import { authService } from './services/authService';
 import { storageService } from './services/storageService';
@@ -397,6 +398,7 @@ const App: React.FC = () => {
         )}
       </Suspense>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
+      <OnboardingTour />
       <FeedbackModal />
       <PresentationModal />
       <VersionDiffModal />
