@@ -15,6 +15,75 @@ interface ShapeToolsProps {
   onConvertToPath?: (id: string) => void;
 }
 
+const ShadowControls = ({
+  layer,
+  documentColors,
+  onUpdate,
+}: {
+  layer: Layer;
+  documentColors?: string[];
+  onUpdate: (changes: any) => void;
+}) => {
+  const sliders = [
+    { label: 'Blur', key: 'blur', max: 50 },
+    { label: 'X', key: 'offsetX', min: -50, max: 50 },
+    { label: 'Y', key: 'offsetY', min: -50, max: 50 },
+  ];
+
+  return (
+    <div className="bg-white/5 rounded-lg p-3 border border-white/5">
+      <div className="flex justify-between items-center mb-3">
+        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={!!layer.shadow}
+            onChange={(e) =>
+              onUpdate({
+                shadow: e.target.checked
+                  ? { color: '#000000', blur: 10, offsetX: 5, offsetY: 5 }
+                  : undefined,
+              })
+            }
+            className="accent-accent w-3 h-3"
+          />
+          Drop Shadow
+        </span>
+      </div>
+      {layer.shadow && (
+        <div className="space-y-3 pl-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] text-gray-500 font-bold uppercase">Color</span>
+            <ColorPicker
+              value={layer.shadow.color}
+              onChange={(color) => onUpdate({ shadow: { ...layer.shadow!, color } })}
+              small
+              documentColors={documentColors}
+            />
+          </div>
+          {sliders.map((s) => (
+            <div key={s.key} className="space-y-1">
+              <div className="flex justify-between">
+                <span className="text-[9px] text-gray-500 font-bold uppercase">{s.label}</span>
+                <span className="text-[9px] text-white font-mono">{(layer.shadow as any)[s.key]}</span>
+              </div>
+              <input
+                type="range"
+                min={s.min ?? 0}
+                max={s.max}
+                value={(layer.shadow as any)[s.key]}
+                onChange={(e) =>
+                  onUpdate({ shadow: { ...layer.shadow!, [s.key]: parseInt(e.target.value) } })
+                }
+                className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const ShapeTools = React.memo(
   ({ layer, handleUpdateLayer, documentColors, isPro, onOpenPricing, onConvertToPath }: ShapeToolsProps) => {
     const [showEffects, setShowEffects] = React.useState(false);
@@ -82,59 +151,7 @@ export const ShapeTools = React.memo(
             align="left"
           >
             <div className="w-64 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-4 animate-fadeIn space-y-4 backdrop-blur-xl">
-              {/* Shadow Section */}
-              <div className="bg-white/5 rounded-lg p-3 border border-white/5">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={!!layer.shadow}
-                      onChange={(e) =>
-                        handleUpdateLayer({
-                          shadow: e.target.checked ? { color: '#000000', blur: 10, offsetX: 5, offsetY: 5 } : undefined,
-                        })
-                      }
-                      className="accent-accent w-3 h-3"
-                    />
-                    Drop Shadow
-                  </span>
-                </div>
-                {layer.shadow && (
-                  <div className="space-y-3 pl-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[9px] text-gray-500 font-bold uppercase">Color</span>
-                      <ColorPicker
-                        value={layer.shadow.color}
-                        onChange={(color) => handleUpdateLayer({ shadow: { ...layer.shadow!, color } })}
-                        small
-                        documentColors={documentColors}
-                      />
-                    </div>
-                    {[
-                      { label: 'Blur', key: 'blur', max: 50 },
-                      { label: 'X', key: 'offsetX', min: -50, max: 50 },
-                      { label: 'Y', key: 'offsetY', min: -50, max: 50 },
-                    ].map((idx) => (
-                      <div key={idx.key} className="space-y-1">
-                        <div className="flex justify-between">
-                          <span className="text-[9px] text-gray-500 font-bold uppercase">{idx.label}</span>
-                          <span className="text-[9px] text-white font-mono">{(layer.shadow as any)[idx.key]}</span>
-                        </div>
-                        <input
-                          type="range"
-                          min={idx.min ?? 0}
-                          max={idx.max}
-                          value={(layer.shadow as any)[idx.key]}
-                          onChange={(e) =>
-                            handleUpdateLayer({ shadow: { ...layer.shadow!, [idx.key]: parseInt(e.target.value) } })
-                          }
-                          className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <ShadowControls layer={layer} documentColors={documentColors} onUpdate={handleUpdateLayer} />
 
               {/* Filters Section */}
               <div className="bg-white/5 rounded-lg p-3 border border-white/5">
