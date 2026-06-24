@@ -62,18 +62,21 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
     [effects, onChange]
   );
 
-  const handleNeonChange = useCallback(() => {
-    onChange({
-      ...effects,
-      neonGlow: {
-        enabled: neonEnabled,
-        color: neonColor,
-        intensity: neonIntensity,
-        spread: neonSpread,
-        flicker: neonFlicker,
-      },
-    });
-  }, [effects, neonEnabled, neonColor, neonIntensity, neonSpread, neonFlicker]);
+  const handleNeonChange = useCallback(
+    (enabledOverride?: boolean) => {
+      onChange({
+        ...effects,
+        neonGlow: {
+          enabled: enabledOverride !== undefined ? enabledOverride : neonEnabled,
+          color: neonColor,
+          intensity: neonIntensity,
+          spread: neonSpread,
+          flicker: neonFlicker,
+        },
+      });
+    },
+    [effects, neonEnabled, neonColor, neonIntensity, neonSpread, neonFlicker]
+  );
 
   return (
     <div className="bg-surface-dark-1 rounded-2xl border border-white/5 p-5 space-y-6 shadow-2xl">
@@ -178,8 +181,11 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
           <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Neon Aura</label>
           <button
             onClick={() => {
-              setNeonEnabled(!neonEnabled);
-              handleNeonChange();
+              setNeonEnabled((prev) => {
+                const next = !prev;
+                handleNeonChange(next);
+                return next;
+              });
             }}
             className={`w-10 h-5 rounded-full relative transition-colors ${neonEnabled ? 'bg-brand-600' : 'bg-white/10'}`}
           >

@@ -670,18 +670,32 @@ export const TextPanel: React.FC = () => {
           currentStyle={selectedTextStyle || undefined}
           onApplyStyle={(style) => {
             setSelectedTextStyle(style);
-            handleAddText({
-              text: 'Styled Text',
-              fontFamily: style.fontFamily,
-              fontSize: style.fontSize,
-              fontWeight: style.fontWeight,
-              fontStyle: style.fontStyle,
-              color: style.color,
-              textAlign: style.textAlign,
-              letterSpacing: style.letterSpacing,
-              lineHeight: style.lineHeight,
-              textTransform: style.textTransform,
-            });
+            if (selectedTextLayer) {
+              updateLayer(selectedTextLayer.id, {
+                fontFamily: style.fontFamily,
+                fontSize: style.fontSize,
+                fontWeight: style.fontWeight,
+                fontStyle: style.fontStyle,
+                color: style.color,
+                textAlign: style.textAlign,
+                letterSpacing: style.letterSpacing,
+                lineHeight: style.lineHeight,
+                textTransform: style.textTransform,
+              });
+            } else {
+              handleAddText({
+                text: 'Styled Text',
+                fontFamily: style.fontFamily,
+                fontSize: style.fontSize,
+                fontWeight: style.fontWeight,
+                fontStyle: style.fontStyle,
+                color: style.color,
+                textAlign: style.textAlign,
+                letterSpacing: style.letterSpacing,
+                lineHeight: style.lineHeight,
+                textTransform: style.textTransform,
+              });
+            }
           }}
           onSaveStyle={(_name, _style) => {
             // Save style logic

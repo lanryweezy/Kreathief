@@ -26,6 +26,7 @@ export const renderTextOnPath = (canvas: HTMLCanvasElement, layer: TextLayer) =>
   ctx.fillStyle = color;
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'center';
+  try { ctx.textRendering = 'optimizeLegibility'; } catch (_e) {}
 
   const pathMetrics = GeometryOracle.measurePath(layer.textPath);
   const textWidth = ctx.measureText(text).width;
@@ -107,6 +108,7 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
   tempCtx.fillStyle = color;
   tempCtx.textBaseline = 'top';
   tempCtx.textAlign = textAlign as CanvasTextAlign;
+  try { tempCtx.textRendering = 'optimizeLegibility'; } catch (_e) {}
 
   // Get text metrics
   const textWidth = tempCtx.measureText(text).width;
@@ -168,6 +170,7 @@ export const renderMultilineText = (ctx: CanvasRenderingContext2D, layer: TextLa
   ctx.font = font;
   ctx.fillStyle = color;
   ctx.textBaseline = 'top';
+  try { ctx.textRendering = 'optimizeLegibility'; } catch (_e) {}
 
   // Helper for word wrapping
   const wrapText = (text: string, maxWidth: number): string[] => {
