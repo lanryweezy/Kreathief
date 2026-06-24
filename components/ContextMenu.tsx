@@ -32,6 +32,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
     detachInstance,
     resetOverrides,
     addToast,
+    undo,
     groupSelected,
     ungroupSelected,
   } = useStore(

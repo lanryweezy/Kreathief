@@ -147,7 +147,18 @@ export const ScrollablePanel = React.memo(({ onGenerate, onStartDesign, getCanva
                               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
                                 <div className="px-2 pb-2">
                                   <React.Suspense fallback={<Spinner />}>
-                                    {React.createElement(Panels[it.key as keyof typeof Panels] || Panels.Magic, panelArgs)}
+                                    {expanded === 'magic' && <Panels.Magic {...panelArgs as any} />}
+                                    {expanded === 'assistant' && <Panels.Assistant {...panelArgs as any} />}
+                                    {expanded === 'text' && <Panels.Text />}
+                                    {expanded === 'draw' && <Panels.Draw brushColor="#000000" setBrushColor={()=>{}} brushSize={5} setBrushSize={()=>{}} isDrawing={false} setIsDrawing={()=>{}} brushOpacity={1} setBrushOpacity={()=>{}} brushType={'basic' as any} setBrushType={()=>{}} brushSmoothing={0.5} brushJitter={0} onFinishDrawing={()=>{}} />}
+                                    {expanded === 'uploads' && <Panels.Uploads />}
+                                    {expanded === 'layers' && <Panels.Layers />}
+                                    {expanded === 'mockup' && <Panels.Mockup onExportForMockup={getCanvasSnapshot || (async () => '')} />}
+                                    {expanded === 'textures' && <Panels.Textures onRemoveTexture={()=>{}} currentTexture={undefined} />}
+                                    {expanded === 'brand' && <Panels.Brand />}
+                                    {expanded === 'templates' && <Panels.Templates {...panelArgs as any} />}
+                                    {expanded === 'motion' && <Panels.Motion {...panelArgs as any} />}
+                                    {expanded === 'accessibility' && <Panels.Accessibility />}
                                   </React.Suspense>
                                 </div>
                               </motion.div>
