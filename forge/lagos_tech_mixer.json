@@ -180,17 +180,15 @@
     }
   ],
   "metadata": {
-    "templateName": "Vibrant Tech Startup Mixer Instagram Post",
-    "shortDescription": "Promote your tech meetup or networking event with a modern, high-contrast post",
-    "longDescription": "A sleek, modern Instagram post template perfect for tech meetups, founder mixers, and startup events. Features bold typography, high-contrast neon green accents against a dark background, and a professional layout.",
+    "templateName": "Professional Tech Mixer Instagram Post Meetup",
+    "shortDescription": "Promote your tech meetup or networking event with a modern, high-contrast post.",
+    "longDescription": "Promote your tech meetup or networking event with a modern, high-contrast post. Perfect for tech meetups, founder mixers, and startup events. Features bold typography and high-contrast neon green accents against a dark background.",
     "tags": [
-      "Social media",
+      "Business",
       "Instagram post",
       "Professional",
-      "Events",
-      "Business",
-      "Tech & Startup",
-      "African Market"
+      "African Market",
+      "Events"
     ],
     "searchKeywords": [
       "tech event flyer",
@@ -201,16 +199,26 @@
       "tech community",
       "business mixer",
       "modern event poster",
-      "instagram tech"
+      "instagram tech",
+      "tech conference"
     ],
     "seoMetadata": {
-      "title": "Vibrant Tech Startup Mixer Instagram Post — Free Instagram post Template",
+      "title": "Professional Tech Mixer Instagram Post Meetup — Free Instagram post Template",
       "description": "Promote your tech meetup or networking event with a modern, high-contrast Instagram post template designed for the tech community.",
-      "slug": "vibrant-tech-startup-mixer-instagram-post"
+      "slug": "professional-tech-mixer-instagram-post-meetup"
     },
     "personalisationSignals": {
-      "industry": ["technology", "business", "startups"],
-      "audienceType": ["event organiser", "community manager", "startup founder"],
+      "industry": [
+        "technology",
+        "Business",
+        "startups"
+      ],
+      "audienceType": [
+        "event organiser",
+        "community manager",
+        "startup founder",
+        "marketing professional"
+      ],
       "experienceLevel": "beginner-friendly"
     }
   }

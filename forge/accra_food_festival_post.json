@@ -158,10 +158,17 @@
     }
   ],
   "metadata": {
-    "templateName": "Vibrant Accra Food Festival Instagram Post",
+    "templateName": "Vibrant Food Festival Instagram Post Promotion",
     "shortDescription": "Promote your culinary event with a vibrant, appetizing Instagram post.",
-    "longDescription": "A vibrant, appetite-inducing Instagram post template designed for food festivals, pop-up markets, and restaurant events in Accra and beyond. Features rich warm colours, bold typography, and a prominent image zone to showcase local cuisine.",
-    "tags": ["Social media", "Instagram post", "Vibrant", "Food & Restaurant", "Events", "African Market", "Warm"],
+    "longDescription": "Promote your culinary event with a vibrant, appetizing Instagram post. Ideal for food festivals, pop-up markets, and restaurant events in Accra and beyond. Features rich warm colours and bold typography. Attract food lovers today.",
+    "tags": [
+      "Food & Restaurant",
+      "Instagram post",
+      "Vibrant",
+      "Warm",
+      "Events",
+      "African Market"
+    ],
     "searchKeywords": [
       "accra food festival",
       "ghana food event",
@@ -170,16 +177,27 @@
       "restaurant pop-up",
       "vibrant food flyer",
       "african food festival",
-      "taste of accra"
+      "taste of accra",
+      "food poster",
+      "food menu"
     ],
     "seoMetadata": {
-      "title": "Vibrant Accra Food Festival Instagram Post — Free Template",
+      "title": "Vibrant Food Festival Instagram Post Promotion — Free Instagram post Template",
       "description": "Attract food lovers with this vibrant Accra food festival Instagram post template. Perfect for promoting culinary events and food markets.",
-      "slug": "vibrant-accra-food-festival-instagram-post"
+      "slug": "vibrant-food-festival-instagram-post-promotion"
     },
     "personalisationSignals": {
-      "industry": ["food", "events", "hospitality"],
-      "audienceType": ["event organiser", "restaurant owner", "food vendor"],
+      "industry": [
+        "Food & Restaurant",
+        "hospitality",
+        "Events"
+      ],
+      "audienceType": [
+        "small business",
+        "event organiser",
+        "restaurant owner",
+        "food vendor"
+      ],
       "experienceLevel": "beginner-friendly"
     }
   }

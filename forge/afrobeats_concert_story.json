@@ -157,18 +157,15 @@
     }
   ],
   "metadata": {
-    "templateName": "Bold Afrobeats Concert Instagram Story",
+    "templateName": "Vibrant Afrobeats Concert Story Promotion",
     "shortDescription": "Promote your music event or concert with a high-energy, vibrant Instagram Story.",
-    "longDescription": "A high-energy, bold Instagram Story template built for concerts, Afrobeats events, and artist promotions. Uses striking, vibrant colours, expressive angled typography, and a prominent background photo integration to grab attention instantly.",
+    "longDescription": "Promote your music event or concert with a high-energy, vibrant Instagram Story. Designed for concerts, Afrobeats events, and artist promotions. Uses striking, vibrant colours and expressive angled typography. Grab attention instantly.",
     "tags": [
-      "Social media",
-      "Story",
-      "Bold",
-      "Vibrant",
       "Music & Entertainment",
-      "Events",
+      "Story",
+      "Vibrant",
       "African Market",
-      "Afrocentric"
+      "Events"
     ],
     "searchKeywords": [
       "afrobeats concert story",
@@ -178,16 +175,26 @@
       "live in concert",
       "nigerian music event",
       "afrobeats party",
-      "vibrant event story"
+      "vibrant event story",
+      "music festival story"
     ],
     "seoMetadata": {
-      "title": "Bold Afrobeats Concert Instagram Story — Free Story Template",
-      "description": "Drive ticket sales with this high-energy, bold Afrobeats concert Instagram Story template. Designed for maximum impact and engagement.",
-      "slug": "bold-afrobeats-concert-instagram-story"
+      "title": "Vibrant Afrobeats Concert Story Promotion — Free Story Template",
+      "description": "Drive ticket sales with this high-energy, vibrant Afrobeats concert Instagram Story template. Designed for maximum impact and engagement.",
+      "slug": "vibrant-afrobeats-concert-story-promotion"
     },
     "personalisationSignals": {
-      "industry": ["music", "entertainment", "nightlife"],
-      "audienceType": ["event promoter", "musician", "DJ"],
+      "industry": [
+        "Music & Entertainment",
+        "nightlife",
+        "Events"
+      ],
+      "audienceType": [
+        "event promoter",
+        "musician",
+        "DJ",
+        "small business"
+      ],
       "experienceLevel": "beginner-friendly"
     }
   }

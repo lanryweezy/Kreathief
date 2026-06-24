@@ -211,10 +211,16 @@
     }
   ],
   "metadata": {
-    "templateName": "Premium African Real Estate Listing Instagram Post",
-    "shortDescription": "Showcase luxury properties with this clean, professional real estate listing post",
-    "longDescription": "An elegant, high-converting Instagram post template designed specifically for premium real estate listings in African markets like Abuja and Lagos. Features a large image zone, prominent price tag, and clean typography to highlight property features.",
-    "tags": ["Social media", "Instagram post", "Business", "Real Estate", "Professional", "Clean", "African Market"],
+    "templateName": "Clean Real Estate Instagram Post Listing",
+    "shortDescription": "Showcase luxury properties with this clean, professional real estate listing post.",
+    "longDescription": "Showcase luxury properties with this clean, professional real estate listing post. Designed specifically for premium real estate listings in African markets like Abuja and Lagos. Features a large image zone and prominent price tag to highlight property features.",
+    "tags": [
+      "Business",
+      "Instagram post",
+      "Professional",
+      "African Market",
+      "Clean & minimal"
+    ],
     "searchKeywords": [
       "real estate flyer",
       "property listing",
@@ -224,16 +230,26 @@
       "luxury duplex",
       "realtor template",
       "instagram real estate",
-      "premium property"
+      "premium property",
+      "property post"
     ],
     "seoMetadata": {
-      "title": "Premium African Real Estate Listing Instagram Post — Free Instagram post Template",
+      "title": "Clean Real Estate Instagram Post Listing — Free Instagram post Template",
       "description": "Showcase luxury properties with this clean, professional real estate listing Instagram post template designed for the African property market.",
-      "slug": "premium-african-real-estate-listing-instagram-post"
+      "slug": "clean-real-estate-instagram-post-listing"
     },
     "personalisationSignals": {
-      "industry": ["real estate", "property development", "business"],
-      "audienceType": ["realtor", "real estate agent", "property developer"],
+      "industry": [
+        "Real Estate",
+        "property development",
+        "Business"
+      ],
+      "audienceType": [
+        "realtor",
+        "real estate agent",
+        "property developer",
+        "small business"
+      ],
       "experienceLevel": "beginner-friendly"
     }
   }
