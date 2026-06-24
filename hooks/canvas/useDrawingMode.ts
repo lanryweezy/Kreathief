@@ -55,27 +55,34 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
   const currentPathRef = useRef<{ x: number; y: number }[]>([]);
   const zoomRef = useRef(zoom);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const altHeldRef = useRef(false);
 
   useEffect(() => {
     zoomRef.current = zoom;
   }, [zoom]);
 
-  // Eraser cursor preview: show circle matching eraser size
+  // Eyedropper: track Alt key state while drawing
   useEffect(() => {
-    const updateCursor = () => {
-      if (!canvasRef.current || !isDrawing) return;
-      const { brushType, brushSize } = useStore.getState();
-      if (brushType === 'eraser') {
-        const size = Math.max(4, brushSize * zoom);
-        canvasRef.current.style.cursor = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}'%3E%3Ccircle cx='${size / 2}' cy='${size / 2}' r='${size / 2 - 1}' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E") ${size / 2} ${size / 2}, crosshair`;
-      } else {
-        canvasRef.current.style.cursor = 'crosshair';
+    if (!isDrawing) return;
+    const handleAltDown = (e: KeyboardEvent) => {
+      if (e.key === 'Alt') {
+        e.preventDefault();
+        altHeldRef.current = true;
       }
     };
-    updateCursor();
-    const unsub = useStore.subscribe(updateCursor);
-    return unsub;
-  }, [isDrawing, zoom]);
+    const handleAltUp = (e: KeyboardEvent) => {
+      if (e.key === 'Alt') {
+        altHeldRef.current = false;
+      }
+    };
+    window.addEventListener('keydown', handleAltDown);
+    window.addEventListener('keyup', handleAltUp);
+    return () => {
+      window.removeEventListener('keydown', handleAltDown);
+      window.removeEventListener('keyup', handleAltUp);
+      altHeldRef.current = false;
+    };
+  }, [isDrawing]);
 
   const redrawCanvas = useCallback((ctx: CanvasRenderingContext2D, previewX?: number, previewY?: number) => {
     const { brushColor, brushSize, brushType } = useStore.getState();
@@ -129,6 +136,20 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
       }
       const canvas = e.target as HTMLCanvasElement;
       if (!canvas) {
+        return;
+      }
+
+      // Eyedropper: Alt+click samples color from the canvas beneath
+      if (altHeldRef.current) {
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / zoomRef.current;
+        const y = (e.clientY - rect.top) / zoomRef.current;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (ctx) {
+          const pixel = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
+          const hex = '#' + [pixel[0], pixel[1], pixel[2]].map((c) => c.toString(16).padStart(2, '0')).join('');
+          useStore.getState().setBrushColor(hex);
+        }
         return;
       }
 

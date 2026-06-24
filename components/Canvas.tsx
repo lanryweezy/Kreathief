@@ -66,6 +66,15 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   const brushColor = useStore((state) => state.brushColor) || '#000000';
   const brushSize = useStore((state) => state.brushSize) || 2;
 
+  // Eraser cursor preview: compute SVG cursor when eraser is active
+  const eraserCursor = useMemo(() => {
+    if (!isDrawing || brushType !== 'eraser') return null;
+    const size = Math.max(4, brushSize * zoom);
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}'><circle cx='${size / 2}' cy='${size / 2}' r='${size / 2 - 1}' fill='none' stroke='%23fff' stroke-width='1.5'/><circle cx='${size / 2}' cy='${size / 2}' r='${size / 2 - 1}' fill='none' stroke='%23000' stroke-width='0.5' stroke-dasharray='2,2'/></svg>`;
+    const b64 = btoa(svg);
+    return `url("data:image/svg+xml;base64,${b64}") ${Math.round(size / 2)} ${Math.round(size / 2)}, crosshair`;
+  }, [isDrawing, brushType, brushSize, zoom]);
+
   const [activeVectorPath, setActiveVectorPath] = useState<VectorPath | null>(null);
   const [selectedVectorPointIndices, setSelectedVectorPointIndices] = useState<number[]>([]);
 
@@ -415,7 +424,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
         <div
           ref={viewportRef}
           className="flex-1 overflow-hidden relative bg-surface-dark-0 touch-none select-none canvas-container"
-          style={{ cursor: isPanning ? 'grabbing' : isSpacePressed ? 'grab' : isDrawing ? 'crosshair' : 'default' }}
+          style={{ cursor: isPanning ? 'grabbing' : isSpacePressed ? 'grab' : eraserCursor || (isDrawing ? 'crosshair' : 'default') }}
           onMouseDown={isDrawing && brushType === 'vector_pencil' ? undefined : handleMouseDownCombined}
         >
           {/* Global Workspace Grid - Responds to Zoom */}

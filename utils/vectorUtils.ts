@@ -72,13 +72,16 @@ export class VectorUtils {
       return '';
     }
 
+    // Helper to round to 2 decimal places
+    const round = (n: number): number => Math.round(n * 100) / 100;
+
     let d = '';
     path.points.forEach((point, i) => {
       if (i === 0 || point.isMove) {
         if (i !== 0 && path.isClosed) {
           d += ' Z ';
         }
-        d += `M ${point.x} ${point.y}`;
+        d += `M ${round(point.x)} ${round(point.y)}`;
       } else {
         const prev = path.points[i - 1];
         if (!prev) {
@@ -90,9 +93,9 @@ export class VectorUtils {
           const cp1y = prev.handleOut ? prev.y + prev.handleOut.y : prev.y;
           const cp2x = point.handleIn ? point.x + point.handleIn.x : point.x;
           const cp2y = point.handleIn ? point.y + point.handleIn.y : point.y;
-          d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${point.x} ${point.y}`;
+          d += ` C ${round(cp1x)} ${round(cp1y)}, ${round(cp2x)} ${round(cp2y)}, ${round(point.x)} ${round(point.y)}`;
         } else {
-          d += ` L ${point.x} ${point.y}`;
+          d += ` L ${round(point.x)} ${round(point.y)}`;
         }
       }
     });
@@ -107,7 +110,7 @@ export class VectorUtils {
           const cp2x = first.handleIn ? first.x + first.handleIn.x : first.x;
           const cp2y = first.handleIn ? first.y + first.handleIn.y : first.y;
           // Only draw close curve if first point is not a move, or if we strictly want it
-          d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${first.x} ${first.y}`;
+          d += ` C ${round(cp1x)} ${round(cp1y)}, ${round(cp2x)} ${round(cp2y)}, ${round(first.x)} ${round(first.y)}`;
         }
         d += ' Z';
       }

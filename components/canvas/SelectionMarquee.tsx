@@ -19,7 +19,7 @@ export const SelectionMarquee: React.FC<SelectionMarqueeProps> = React.memo(({ b
 
   return (
     <div
-      className="absolute border border-brand-600 bg-brand-600/10 pointer-events-none z-[100]"
+      className="absolute border-2 border-dashed border-brand-600 bg-brand-600/10 pointer-events-none z-[100]"
       style={{
         left: x,
         top: y,

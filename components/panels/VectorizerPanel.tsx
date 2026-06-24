@@ -21,6 +21,61 @@ function countPathNodes(d: string): number {
   return (d.match(/[MLHVCSQTAZ]/gi) || []).length;
 }
 
+// Calculate bounding box from SVG path data
+function calculatePathBoundingBox(pathData: string): { minX: number; minY: number; maxX: number; maxY: number } {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  // Extract all numeric values from path data
+  const numbers = pathData.match(/-?\d+\.?\d*/g);
+  if (numbers) {
+    // Process pairs of coordinates
+    for (let i = 0; i < numbers.length - 1; i += 2) {
+      const x = parseFloat(numbers[i]!);
+      const y = parseFloat(numbers[i + 1]!);
+      if (!isNaN(x) && !isNaN(y)) {
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+      }
+    }
+  }
+
+  // Return default if no valid coordinates found
+  if (minX === Infinity) {
+    return { minX: 0, minY: 0, maxX: 100, maxY: 100 };
+  }
+
+  return { minX, minY, maxX, maxY };
+}
+
+// Calculate combined bounding box for all paths
+function calculateBounds(paths: Array<{ path: string }>): string {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  for (const item of paths) {
+    const bbox = calculatePathBoundingBox(item.path);
+    minX = Math.min(minX, bbox.minX);
+    minY = Math.min(minY, bbox.minY);
+    maxX = Math.max(maxX, bbox.maxX);
+    maxY = Math.max(maxY, bbox.maxY);
+  }
+
+  // Add small padding
+  const padding = 2;
+  if (minX === Infinity) {
+    return '0 0 100 100';
+  }
+
+  return `${minX - padding} ${minY - padding} ${maxX - minX + padding * 2} ${maxY - minY + padding * 2}`;
+}
+
 // Simplify SVG path data using Ramer-Douglas-Peucker on line segments
 function simplifyPathData(d: string, tolerance: number): string {
   if (tolerance <= 0) {
@@ -235,7 +290,8 @@ export const VectorizerPanel = () => {
     if (!displayResult) {
       return;
     }
-    const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="800" height="800">
+    const viewBox = calculateBounds(displayResult);
+    const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="800" height="800">
 ${displayResult.map((item) => `  <path d="${item.path}" fill="${item.color}" />`).join('\n')}
 </svg>`;
     const blob = new Blob([svgContent], { type: 'image/svg+xml' });
@@ -253,7 +309,8 @@ ${displayResult.map((item) => `  <path d="${item.path}" fill="${item.color}" />`
     if (!displayResult) {
       return;
     }
-    const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">\n${displayResult
+    const viewBox = calculateBounds(displayResult);
+    const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}">\n${displayResult
       .map((item) => `  <path d="${item.path}" fill="${item.color}" />`)
       .join('\n')}\n</svg>`;
     navigator.clipboard.writeText(svgContent).then(() => {
