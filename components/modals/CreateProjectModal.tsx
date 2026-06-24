@@ -56,7 +56,13 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
   };
 
   return (
-    <div ref={modalRef} tabIndex={-1} role="dialog" aria-modal="true" className="fixed inset-0 z-[100] flex items-center justify-center p-4 outline-none">
+    <div
+      ref={modalRef}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 outline-none"
+    >
       <div className="absolute inset-0 bg-black/90 backdrop-blur-md animate-fadeIn" onClick={onClose} />
 
       <div className="bg-surface-dark-3 border border-gray-700/50 rounded-xl w-full max-w-4xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] animate-scaleIn relative z-10 border-t-white/10">
@@ -67,12 +73,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
             </div>
             Create New Design
           </h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            aria-label="Close modal"
-          >
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close modal">
             <Icons.X className="w-6 h-6" />
           </Button>
         </div>
@@ -89,7 +90,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                 <button
                   key={size.name}
                   disabled={isCreating}
-                  onClick={() => { setIsCreating(true); onCreate(size); }}
+                  onClick={() => {
+                    setIsCreating(true);
+                    onCreate(size);
+                  }}
                   className="flex items-center justify-between p-4 bg-surface-dark-2/50 border border-gray-800 rounded-xl hover:border-brand-600/50 hover:bg-surface-dark-4 transition-all group overflow-hidden relative disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-brand-600 to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -105,7 +109,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                     </div>
                   </div>
                   {isCreating ? (
-                    <svg className="w-4 h-4 text-brand-600 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg>
+                    <svg className="w-4 h-4 text-brand-600 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    </svg>
                   ) : (
                     <Icons.Plus className="w-4 h-4 text-gray-700 group-hover:text-brand-600 transition-transform group-hover:rotate-90" />
                   )}
@@ -183,12 +190,18 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                 <Button
                   variant="primary"
                   size="lg"
-                  onClick={() => { setIsCreating(true); handleCustomCreate(); }}
+                  onClick={() => {
+                    setIsCreating(true);
+                    handleCustomCreate();
+                  }}
                   disabled={isCreating}
                   className="w-full group"
                 >
                   {isCreating ? (
-                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" /></svg>
+                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    </svg>
                   ) : (
                     <Icons.Magic className="w-5 h-5 group-hover:animate-pulse" />
                   )}

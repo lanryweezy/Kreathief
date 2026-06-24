@@ -43,9 +43,7 @@ const ShadowControls = ({
             checked={!!layer.shadow}
             onChange={(e) =>
               onUpdate({
-                shadow: e.target.checked
-                  ? { color: '#000000', blur: 10, offsetX: 5, offsetY: 5 }
-                  : undefined,
+                shadow: e.target.checked ? { color: '#000000', blur: 10, offsetX: 5, offsetY: 5 } : undefined,
               })
             }
             className="accent-accent w-3 h-3"
@@ -75,9 +73,7 @@ const ShadowControls = ({
                 min={s.min ?? 0}
                 max={s.max}
                 value={(layer.shadow as any)[s.key]}
-                onChange={(e) =>
-                  onUpdate({ shadow: { ...layer.shadow!, [s.key]: parseInt(e.target.value) } })
-                }
+                onChange={(e) => onUpdate({ shadow: { ...layer.shadow!, [s.key]: parseInt(e.target.value) } })}
                 className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
               />
             </div>
@@ -89,7 +85,15 @@ const ShadowControls = ({
 };
 
 export const ShapeTools = React.memo(
-  ({ layer, selectedLayers, handleUpdateLayer, documentColors, isPro, onOpenPricing, onConvertToPath }: ShapeToolsProps) => {
+  ({
+    layer,
+    selectedLayers,
+    handleUpdateLayer,
+    documentColors,
+    isPro,
+    onOpenPricing,
+    onConvertToPath,
+  }: ShapeToolsProps) => {
     const [showEffects, setShowEffects] = React.useState(false);
     const [showBooleanOps, setShowBooleanOps] = React.useState(false);
     const effectsButtonRef = useRef<HTMLButtonElement>(null);

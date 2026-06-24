@@ -424,7 +424,13 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
         <div
           ref={viewportRef}
           className="flex-1 overflow-hidden relative bg-surface-dark-0 touch-none select-none canvas-container"
-          style={{ cursor: isPanning ? 'grabbing' : isSpacePressed ? 'grab' : eraserCursor || (isDrawing ? 'crosshair' : 'default') }}
+          style={{
+            cursor: isPanning
+              ? 'grabbing'
+              : isSpacePressed
+                ? 'grab'
+                : eraserCursor || (isDrawing ? 'crosshair' : 'default'),
+          }}
           onMouseDown={isDrawing && brushType === 'vector_pencil' ? undefined : handleMouseDownCombined}
         >
           {/* Global Workspace Grid - Responds to Zoom */}

@@ -312,21 +312,23 @@ export const LayersPanel = () => {
                 </p>
               </div>
             ) : (
-              [...layers].reverse().map((layer, index) => (
-                <LayerItem
-                  key={layer.id}
-                  layer={layer}
-                  index={index}
-                  isSelected={selectedLayerIds.includes(layer.id)}
-                  onSelect={() => selectLayer(layer.id)}
-                  onSelectMultiple={() => multiSelectLayer(layer.id, true)}
-                  onUpdate={(c) => updateLayer(layer.id, c)}
-                  onDelete={() => deleteLayer(layer.id)}
-                  onDrop={(id, target, pos) =>
-                    reorderLayer(id, layers.findIndex((l) => l.id === target) + (pos === 'above' ? 1 : 0))
-                  }
-                />
-              ))
+              [...layers]
+                .reverse()
+                .map((layer, index) => (
+                  <LayerItem
+                    key={layer.id}
+                    layer={layer}
+                    index={index}
+                    isSelected={selectedLayerIds.includes(layer.id)}
+                    onSelect={() => selectLayer(layer.id)}
+                    onSelectMultiple={() => multiSelectLayer(layer.id, true)}
+                    onUpdate={(c) => updateLayer(layer.id, c)}
+                    onDelete={() => deleteLayer(layer.id)}
+                    onDrop={(id, target, pos) =>
+                      reorderLayer(id, layers.findIndex((l) => l.id === target) + (pos === 'above' ? 1 : 0))
+                    }
+                  />
+                ))
             )}
             {selectedLayerIds.length === 1 && layers.length > 1 && (
               <div className="flex items-center justify-center gap-2 px-4 py-3 border-t border-white/[0.03]">

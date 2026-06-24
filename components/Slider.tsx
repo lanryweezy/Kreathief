@@ -32,7 +32,8 @@ export const Slider: React.FC<SliderProps> = ({
           {label && <span className="text-[11px] font-medium text-gray-400">{label}</span>}
           {showValue && (
             <span className="text-[11px] font-medium text-gray-300 tabular-nums">
-              {value}{suffix}
+              {value}
+              {suffix}
             </span>
           )}
         </div>

@@ -219,11 +219,7 @@ export class PathOperationsService {
       }
 
       // Apply offset along the normal
-      const newPoint = VectorUtils.createPoint(
-        point.x + normalX * distance,
-        point.y + normalY * distance,
-        point.type
-      );
+      const newPoint = VectorUtils.createPoint(point.x + normalX * distance, point.y + normalY * distance, point.type);
 
       // Preserve handles (adjusted by offset)
       if (point.handleIn) {
@@ -291,16 +287,8 @@ export class PathOperationsService {
       const normalY = tangentX;
 
       // Create left and right points offset by half width
-      const leftPoint = VectorUtils.createPoint(
-        point.x + normalX * halfWidth,
-        point.y + normalY * halfWidth,
-        'sharp'
-      );
-      const rightPoint = VectorUtils.createPoint(
-        point.x - normalX * halfWidth,
-        point.y - normalY * halfWidth,
-        'sharp'
-      );
+      const leftPoint = VectorUtils.createPoint(point.x + normalX * halfWidth, point.y + normalY * halfWidth, 'sharp');
+      const rightPoint = VectorUtils.createPoint(point.x - normalX * halfWidth, point.y - normalY * halfWidth, 'sharp');
 
       leftPoints.push(leftPoint);
       rightPoints.push(rightPoint);
@@ -459,12 +447,16 @@ export class PathOperationsService {
 
     let length = 0;
 
-    const bezierLength = (p0: { x: number; y: number }, p1: { x: number; y: number }, p2: { x: number; y: number }, p3: { x: number; y: number }) => {
+    const bezierLength = (
+      p0: { x: number; y: number },
+      p1: { x: number; y: number },
+      p2: { x: number; y: number },
+      p3: { x: number; y: number }
+    ) => {
       const chord = Math.sqrt((p3.x - p0.x) ** 2 + (p3.y - p0.y) ** 2);
       const tangentLen =
-        Math.sqrt((p1.x - p0.x) ** 2 + (p1.y - p0.y) ** 2) +
-        Math.sqrt((p3.x - p2.x) ** 2 + (p3.y - p2.y) ** 2);
-      return 1.5 * (chord + tangentLen) / 2;
+        Math.sqrt((p1.x - p0.x) ** 2 + (p1.y - p0.y) ** 2) + Math.sqrt((p3.x - p2.x) ** 2 + (p3.y - p2.y) ** 2);
+      return (1.5 * (chord + tangentLen)) / 2;
     };
 
     for (let i = 1; i < path.points.length; i++) {
@@ -480,12 +472,8 @@ export class PathOperationsService {
           (curr.handleIn && (curr.handleIn.x !== 0 || curr.handleIn.y !== 0));
 
         if (hasHandles) {
-          const p1 = prev.handleOut
-            ? { x: prev.x + prev.handleOut.x, y: prev.y + prev.handleOut.y }
-            : p0;
-          const p2 = curr.handleIn
-            ? { x: curr.x + curr.handleIn.x, y: curr.y + curr.handleIn.y }
-            : p3;
+          const p1 = prev.handleOut ? { x: prev.x + prev.handleOut.x, y: prev.y + prev.handleOut.y } : p0;
+          const p2 = curr.handleIn ? { x: curr.x + curr.handleIn.x, y: curr.y + curr.handleIn.y } : p3;
           length += bezierLength(p0, p1, p2, p3);
         } else {
           const dx = p3.x - p0.x;
@@ -507,12 +495,8 @@ export class PathOperationsService {
           (first.handleIn && (first.handleIn.x !== 0 || first.handleIn.y !== 0));
 
         if (hasHandles) {
-          const p1 = last.handleOut
-            ? { x: last.x + last.handleOut.x, y: last.y + last.handleOut.y }
-            : p0;
-          const p2 = first.handleIn
-            ? { x: first.x + first.handleIn.x, y: first.y + first.handleIn.y }
-            : p3;
+          const p1 = last.handleOut ? { x: last.x + last.handleOut.x, y: last.y + last.handleOut.y } : p0;
+          const p2 = first.handleIn ? { x: first.x + first.handleIn.x, y: first.y + first.handleIn.y } : p3;
           length += bezierLength(p0, p1, p2, p3);
         } else {
           const dx = p3.x - p0.x;

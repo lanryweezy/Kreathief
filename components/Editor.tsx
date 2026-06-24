@@ -709,10 +709,15 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                     const state = useStore.getState();
                     const abs = state.artboards || [];
                     if (abs.length === 0) return;
-                    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                    let minX = Infinity,
+                      minY = Infinity,
+                      maxX = -Infinity,
+                      maxY = -Infinity;
                     abs.forEach((a: any) => {
-                      minX = Math.min(minX, a.x); minY = Math.min(minY, a.y);
-                      maxX = Math.max(maxX, a.x + a.width); maxY = Math.max(maxY, a.y + a.height);
+                      minX = Math.min(minX, a.x);
+                      minY = Math.min(minY, a.y);
+                      maxX = Math.max(maxX, a.x + a.width);
+                      maxY = Math.max(maxY, a.y + a.height);
                     });
                     const vw = window.innerWidth * 0.85;
                     const vh = window.innerHeight * 0.85;
@@ -722,41 +727,50 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                     setZoom(newZoom);
                     const centerX = (minX + maxX) / 2;
                     const centerY = (minY + maxY) / 2;
-                    state.setPanOffset({ x: vw / 2 - centerX * newZoom + window.innerWidth * 0.075, y: vh / 2 - centerY * newZoom + 20 });
+                    state.setPanOffset({
+                      x: vw / 2 - centerX * newZoom + window.innerWidth * 0.075,
+                      y: vh / 2 - centerY * newZoom + 20,
+                    });
                   }}
                   className="px-1.5 py-0.5 text-[10px] font-bold text-gray-400 hover:bg-white/10 hover:text-white rounded-md transition-colors"
                   title="Fit to Screen"
                 >
                   Fit
                 </button>
-                {selectedLayerIds.length === 1 && (() => {
-                  const state = useStore.getState();
-                  let layer: any = null;
-                  for (const ab of state.artboards || []) {
-                    layer = ab.layers?.find((l: any) => l.id === selectedLayerIds[0]);
-                    if (layer) break;
-                  }
-                  if (!layer) return null;
-                  return (
-                    <button
-                      onClick={() => {
-                        const vw = window.innerWidth * 0.85;
-                        const vh = window.innerHeight * 0.85;
-                        const lw = layer.width || 100;
-                        const lh = layer.height || 100;
-                        const newZoom = Math.min(vw / lw, vh / lh, 10);
-                        setZoom(newZoom);
-                        const cx = (layer.x || 0) + lw / 2;
-                        const cy = (layer.y || 0) + lh / 2;
-                        useStore.getState().setPanOffset({ x: vw / 2 - cx * newZoom + window.innerWidth * 0.075, y: vh / 2 - cy * newZoom + 20 });
-                      }}
-                      className="px-1.5 py-0.5 text-[10px] font-bold text-gray-400 hover:bg-white/10 hover:text-white rounded-md transition-colors"
-                      title="Zoom to Selection"
-                    >
-                      Sel
-                    </button>
-                  );
-                })()}
+                {selectedLayerIds.length === 1 &&
+                  (() => {
+                    const state = useStore.getState();
+                    let layer: any = null;
+                    for (const ab of state.artboards || []) {
+                      layer = ab.layers?.find((l: any) => l.id === selectedLayerIds[0]);
+                      if (layer) break;
+                    }
+                    if (!layer) return null;
+                    return (
+                      <button
+                        onClick={() => {
+                          const vw = window.innerWidth * 0.85;
+                          const vh = window.innerHeight * 0.85;
+                          const lw = layer.width || 100;
+                          const lh = layer.height || 100;
+                          const newZoom = Math.min(vw / lw, vh / lh, 10);
+                          setZoom(newZoom);
+                          const cx = (layer.x || 0) + lw / 2;
+                          const cy = (layer.y || 0) + lh / 2;
+                          useStore
+                            .getState()
+                            .setPanOffset({
+                              x: vw / 2 - cx * newZoom + window.innerWidth * 0.075,
+                              y: vh / 2 - cy * newZoom + 20,
+                            });
+                        }}
+                        className="px-1.5 py-0.5 text-[10px] font-bold text-gray-400 hover:bg-white/10 hover:text-white rounded-md transition-colors"
+                        title="Zoom to Selection"
+                      >
+                        Sel
+                      </button>
+                    );
+                  })()}
               </div>
 
               <div className="w-px h-4 bg-gray-800 mx-1" />

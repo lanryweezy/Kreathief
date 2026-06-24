@@ -190,27 +190,27 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           </div>
 
           <div className="relative group">
-          <textarea
-            className="w-full h-40 bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-white placeholder-muted-light focus:border-brand-600/50 focus:ring-1 focus:ring-brand-600/20 outline-none resize-none custom-scrollbar transition-all font-medium"
-            placeholder="E.g., Turn the cat into a dog, Change the background to a beach..."
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            maxLength={500}
-          />
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute bottom-3 right-3 text-[9px] font-black uppercase tracking-widest bg-black border border-white/10 text-brand-400 px-3 py-1.5 rounded-xl flex items-center gap-2 hover:bg-brand-600/10 hover:border-brand-500/30 transition-all shadow-xl"
-            onClick={handleEnhancePrompt}
-            disabled={isEnhancing || !prompt.trim()}
-          >
-            {isEnhancing ? (
-              <div className="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full" />
-            ) : (
-              <Icons.Sparkles className="w-3 h-3" />
-            )}
-            Enhance
-          </Button>
+            <textarea
+              className="w-full h-40 bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-white placeholder-muted-light focus:border-brand-600/50 focus:ring-1 focus:ring-brand-600/20 outline-none resize-none custom-scrollbar transition-all font-medium"
+              placeholder="E.g., Turn the cat into a dog, Change the background to a beach..."
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              maxLength={500}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute bottom-3 right-3 text-[9px] font-black uppercase tracking-widest bg-black border border-white/10 text-brand-400 px-3 py-1.5 rounded-xl flex items-center gap-2 hover:bg-brand-600/10 hover:border-brand-500/30 transition-all shadow-xl"
+              onClick={handleEnhancePrompt}
+              disabled={isEnhancing || !prompt.trim()}
+            >
+              {isEnhancing ? (
+                <div className="animate-spin w-3 h-3 border-2 border-current border-t-transparent rounded-full" />
+              ) : (
+                <Icons.Sparkles className="w-3 h-3" />
+              )}
+              Enhance
+            </Button>
           </div>
 
           <Button
@@ -391,23 +391,13 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           </div>
         )}
 
-        <input
-          type="file"
-          ref={localFileInputRef}
-          className="hidden"
-          accept="image/*"
-        />
+        <input type="file" ref={localFileInputRef} className="hidden" accept="image/*" />
 
         <div className="flex items-center justify-between mb-4 bg-white/5 p-2 rounded-xl border border-white/5">
           <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">
             ✨ Anti-AI-Slop & Quality Control
           </span>
-          <Toggle
-            checked={antiAiSlop}
-            onChange={setAntiAiSlop}
-            size="sm"
-            ariaLabel="Anti-AI-Slop quality control"
-          />
+          <Toggle checked={antiAiSlop} onChange={setAntiAiSlop} size="sm" ariaLabel="Anti-AI-Slop quality control" />
         </div>
 
         <Button

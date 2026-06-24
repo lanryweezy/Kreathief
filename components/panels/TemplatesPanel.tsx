@@ -52,7 +52,12 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   const [activeTab, setActiveTab] = useState<'starter' | 'community'>('starter');
   const [communityTemplates, setCommunityTemplates] = useState<CommunityTemplate[]>([]);
   const [isLoadingCommunity, setIsLoadingCommunity] = useState(false);
-  const [confirmModal, setConfirmModal] = useState<{ isOpen: boolean; title: string; message: string; onConfirm: () => void }>({
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
     isOpen: false,
     title: '',
     message: '',
@@ -195,30 +200,30 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
           </div>
         )}
 
-          <div className="relative mt-2">
-            <Icons.Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400 z-10" />
-            <Input
-              data-testid="template-panel-search-input"
-              type="text"
-              placeholder="Search templates..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-9 text-sm"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-2.5 text-gray-500 hover:text-white z-10"
-              >
-                <Icons.X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+        <div className="relative mt-2">
+          <Icons.Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400 z-10" />
+          <Input
+            data-testid="template-panel-search-input"
+            type="text"
+            placeholder="Search templates..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 pr-9 text-sm"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-2.5 text-gray-500 hover:text-white z-10"
+            >
+              <Icons.X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
 
         <div className="flex items-center gap-2 mt-3">
           <button
             onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border w-full justify-center ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border w-full justify-center ${
               showFavoritesOnly
                 ? 'bg-red-500/10 border-red-500/50 text-red-400'
                 : 'bg-surface-dark-3 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'
@@ -366,52 +371,57 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
             </h4>
 
             <div className="grid grid-cols-1 gap-4">
-              {isLoadingCommunity && [1, 2, 3].map((i) => (
-                <div key={`skel-${i}`} className="animate-pulse bg-surface-dark-3 border border-gray-800 rounded-xl overflow-hidden">
-                  <div className="aspect-video bg-white/5" />
-                  <div className="p-3 space-y-2">
-                    <div className="h-4 bg-white/5 rounded w-2/3" />
-                    <div className="h-3 bg-white/5 rounded w-1/3" />
-                    <div className="flex justify-between border-t border-white/5 pt-2 mt-2">
-                      <div className="h-3 bg-white/5 rounded w-1/4" />
-                      <div className="h-3 bg-white/5 rounded w-1/6" />
+              {isLoadingCommunity &&
+                [1, 2, 3].map((i) => (
+                  <div
+                    key={`skel-${i}`}
+                    className="animate-pulse bg-surface-dark-3 border border-gray-800 rounded-xl overflow-hidden"
+                  >
+                    <div className="aspect-video bg-white/5" />
+                    <div className="p-3 space-y-2">
+                      <div className="h-4 bg-white/5 rounded w-2/3" />
+                      <div className="h-3 bg-white/5 rounded w-1/3" />
+                      <div className="flex justify-between border-t border-white/5 pt-2 mt-2">
+                        <div className="h-3 bg-white/5 rounded w-1/4" />
+                        <div className="h-3 bg-white/5 rounded w-1/6" />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              {!isLoadingCommunity && communityTemplates.map((tmpl) => (
-                <div
-                  key={tmpl.id}
-                  onClick={() => handleApplyCommunity(tmpl)}
-                  className="bg-surface-dark-3 border border-gray-800 rounded-xl overflow-hidden group cursor-pointer hover:border-orange-500 transition-all shadow-lg"
-                >
-                  <div className="aspect-video bg-black/40 relative">
-                    <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                      <Icons.Layout className="w-12 h-12" />
+                ))}
+              {!isLoadingCommunity &&
+                communityTemplates.map((tmpl) => (
+                  <div
+                    key={tmpl.id}
+                    onClick={() => handleApplyCommunity(tmpl)}
+                    className="bg-surface-dark-3 border border-gray-800 rounded-xl overflow-hidden group cursor-pointer hover:border-orange-500 transition-all shadow-lg"
+                  >
+                    <div className="aspect-video bg-black/40 relative">
+                      <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                        <Icons.Layout className="w-12 h-12" />
+                      </div>
+                      <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-1 rounded-full border border-white/5">
+                        <Icons.Heart className="w-3 h-3 text-orange-500 fill-orange-500" />
+                        <span className="text-[10px] text-white font-black">{tmpl.likes}</span>
+                      </div>
                     </div>
-                    <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-1 rounded-full border border-white/5">
-                      <Icons.Heart className="w-3 h-3 text-orange-500 fill-orange-500" />
-                      <span className="text-[10px] text-white font-black">{tmpl.likes}</span>
+                    <div className="p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="text-sm font-bold text-white truncate">{tmpl.name}</h4>
+                        <span className="text-[9px] font-black text-orange-500 uppercase tracking-wider">
+                          {tmpl.category}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between border-t border-white/5 pt-2 mt-2">
+                        <span className="text-[9px] text-gray-400">
+                          by <span className="text-orange-400">{tmpl.userName}</span>
+                        </span>
+                        <span className="text-[9px] text-muted-light font-mono">
+                          {new Date(tmpl.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <div className="p-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <h4 className="text-sm font-bold text-white truncate">{tmpl.name}</h4>
-                      <span className="text-[9px] font-black text-orange-500 uppercase tracking-wider">
-                        {tmpl.category}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between border-t border-white/5 pt-2 mt-2">
-                      <span className="text-[9px] text-gray-400">
-                        by <span className="text-orange-400">{tmpl.userName}</span>
-                      </span>
-                      <span className="text-[9px] text-muted-light font-mono">
-                        {new Date(tmpl.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                ))}
 
               {communityTemplates.length === 0 && !isLoadingCommunity && (
                 <div className="text-center py-12 px-4 border-2 border-dashed border-gray-800 rounded-2xl">

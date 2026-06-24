@@ -875,7 +875,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                   <div className="mb-2">
                     <div className="flex justify-between text-[9px] text-gray-400 mb-1">
                       <span>{batchProgress.name || 'Preparing...'}</span>
-                      <span>{batchProgress.current}/{batchProgress.total}</span>
+                      <span>
+                        {batchProgress.current}/{batchProgress.total}
+                      </span>
                     </div>
                     <div className="w-full h-1.5 bg-surface-dark-3 rounded-full overflow-hidden">
                       <div

@@ -23,12 +23,9 @@ export const Button: React.FC<ButtonProps> = ({
       'bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-600/20 hover:shadow-brand-500/30 border border-brand-500/20 rounded-xl',
     secondary:
       'bg-surface-dark-4 hover:bg-surface-dark-5 text-gray-200 border border-white/10 hover:border-white/20 rounded-xl',
-    ghost:
-      'bg-transparent hover:bg-white/5 text-gray-400 hover:text-white rounded-xl',
-    danger:
-      'bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 rounded-xl',
-    accent:
-      'bg-accent hover:bg-accent-light text-surface-dark-0 shadow-lg shadow-accent/20 rounded-xl',
+    ghost: 'bg-transparent hover:bg-white/5 text-gray-400 hover:text-white rounded-xl',
+    danger: 'bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 rounded-xl',
+    accent: 'bg-accent hover:bg-accent-light text-surface-dark-0 shadow-lg shadow-accent/20 rounded-xl',
   };
 
   const sizes = {

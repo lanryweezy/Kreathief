@@ -1,10 +1,7 @@
 import React from 'react';
 import { storageService, ConnectionStatus as ConnectionStatusType } from '../services/storageService';
 
-const STATUS_CONFIG: Record<
-  ConnectionStatusType,
-  { dot: string; text: string; detailText: string }
-> = {
+const STATUS_CONFIG: Record<ConnectionStatusType, { dot: string; text: string; detailText: string }> = {
   connected: {
     dot: 'bg-emerald-500 shadow-emerald-500/50',
     text: 'Cloud sync active',
@@ -23,15 +20,9 @@ const STATUS_CONFIG: Record<
 };
 
 export const ConnectionStatus: React.FC = () => {
-  const [status, setStatus] = React.useState<ConnectionStatusType>(
-    storageService.getConnectionStatus()
-  );
-  const [lastSync, setLastSync] = React.useState<number | null>(
-    storageService.getLastSyncTime()
-  );
-  const [pendingCount, setPendingCount] = React.useState(
-    storageService.getPendingChangesCount()
-  );
+  const [status, setStatus] = React.useState<ConnectionStatusType>(storageService.getConnectionStatus());
+  const [lastSync, setLastSync] = React.useState<number | null>(storageService.getLastSyncTime());
+  const [pendingCount, setPendingCount] = React.useState(storageService.getPendingChangesCount());
   const [showDetails, setShowDetails] = React.useState(false);
   const detailsRef = React.useRef<HTMLDivElement>(null);
 
@@ -107,9 +98,7 @@ export const ConnectionStatus: React.FC = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-400">Network</span>
-              <span className="text-gray-200 font-medium">
-                {navigator.onLine ? 'Online' : 'Offline'}
-              </span>
+              <span className="text-gray-200 font-medium">{navigator.onLine ? 'Online' : 'Offline'}</span>
             </div>
           </div>
         </div>

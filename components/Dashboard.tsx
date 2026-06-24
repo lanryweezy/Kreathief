@@ -204,7 +204,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
 
           <div
             className="flex items-center gap-4 group relative"
-            onMouseLeave={() => { if (profileDropdownOpen) setProfileDropdownOpen(false); }}
+            onMouseLeave={() => {
+              if (profileDropdownOpen) setProfileDropdownOpen(false);
+            }}
             onBlur={(e) => {
               if (!e.currentTarget.contains(e.relatedTarget as Node)) {
                 setProfileDropdownOpen(false);
@@ -546,7 +548,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               (isLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
                   {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="bg-surface-dark-1 border border-white/5 rounded-xl overflow-hidden animate-pulse">
+                    <div
+                      key={i}
+                      className="bg-surface-dark-1 border border-white/5 rounded-xl overflow-hidden animate-pulse"
+                    >
                       <div className="aspect-[4/3] bg-white/5" />
                       <div className="p-5 space-y-3">
                         <div className="h-4 bg-white/5 rounded w-3/4" />

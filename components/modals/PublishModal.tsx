@@ -88,7 +88,13 @@ export const PublishModal: React.FC<PublishModalProps> = ({ onClose }) => {
   };
 
   return (
-    <div ref={modalRef} tabIndex={-1} role="dialog" aria-modal="true" className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 outline-none">
+    <div
+      ref={modalRef}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 outline-none"
+    >
       <div className="bg-surface-dark-2 border border-white/10 rounded-xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
         <div className="p-6 border-b border-white/5 flex items-center justify-between bg-gradient-to-r from-orange-500/10 to-transparent">
           <div>
@@ -98,12 +104,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ onClose }) => {
             </h2>
             <p className="text-xs text-gray-500 mt-1">Share your creation with thousands of designers.</p>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            aria-label="Close publish modal"
-          >
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close publish modal">
             <Icons.X aria-hidden="true" className="w-5 h-5 text-gray-400" />
           </Button>
         </div>
@@ -131,7 +132,9 @@ export const PublishModal: React.FC<PublishModalProps> = ({ onClose }) => {
                   variant={category === cat ? 'primary' : 'secondary'}
                   size="sm"
                   onClick={() => setCategory(cat)}
-                  className={category === cat ? '!bg-orange-500 !border-orange-400 !shadow-lg !shadow-orange-900/20' : ''}
+                  className={
+                    category === cat ? '!bg-orange-500 !border-orange-400 !shadow-lg !shadow-orange-900/20' : ''
+                  }
                 >
                   {cat}
                 </Button>
@@ -160,11 +163,7 @@ export const PublishModal: React.FC<PublishModalProps> = ({ onClose }) => {
         </div>
 
         <div className="p-6 bg-surface-dark-0/40 border-t border-white/5 flex gap-3">
-          <Button
-            variant="ghost"
-            onClick={onClose}
-            className="flex-1"
-          >
+          <Button variant="ghost" onClick={onClose} className="flex-1">
             Cancel
           </Button>
           <Button
@@ -174,10 +173,12 @@ export const PublishModal: React.FC<PublishModalProps> = ({ onClose }) => {
             className="flex-[2] !bg-orange-500 hover:!bg-orange-400 !shadow-lg !shadow-orange-900/20"
             loading={isPublishing}
           >
-            {!isPublishing && <>
-              <Icons.Globe className="w-4 h-4" />
-              Publish to Community
-            </>}
+            {!isPublishing && (
+              <>
+                <Icons.Globe className="w-4 h-4" />
+                Publish to Community
+              </>
+            )}
           </Button>
         </div>
       </div>

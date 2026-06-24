@@ -16,17 +16,30 @@ export const DimensionInputs: React.FC<DimensionInputsProps> = React.memo(({ lay
   const r = Math.round(layer.rotation || 0);
   const cr = Math.round((layer as any).cornerRadius || 0);
 
-  const commit = useCallback(() => { saveToHistory(); }, [saveToHistory]);
+  const commit = useCallback(() => {
+    saveToHistory();
+  }, [saveToHistory]);
 
   const Field = ({
-    label, value, field, suffix = 'px',
+    label,
+    value,
+    field,
+    suffix = 'px',
   }: {
-    label: string; value: number; field: string; suffix?: string;
+    label: string;
+    value: number;
+    field: string;
+    suffix?: string;
   }) => {
     const [local, setLocal] = useState(String(value));
     const [editing, setEditing] = useState(false);
-    useEffect(() => { if (!editing) setLocal(String(value)); }, [value, editing]);
-    const parse = (v: string) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+    useEffect(() => {
+      if (!editing) setLocal(String(value));
+    }, [value, editing]);
+    const parse = (v: string) => {
+      const n = parseFloat(v);
+      return isNaN(n) ? 0 : n;
+    };
     const handleBlur = () => {
       setEditing(false);
       const parsed = parse(local);
@@ -44,7 +57,9 @@ export const DimensionInputs: React.FC<DimensionInputsProps> = React.memo(({ lay
           onFocus={() => setEditing(true)}
           onBlur={handleBlur}
           onChange={(e) => setLocal(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+          }}
           className="w-12 bg-white/5 border border-white/10 rounded px-1 py-0.5 text-[10px] text-gray-200 font-mono focus:border-brand-600 focus:outline-none"
         />
         <span className="text-gray-600">{suffix}</span>

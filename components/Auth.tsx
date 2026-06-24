@@ -190,7 +190,11 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
                 {error && (
-                  <div role="alert" aria-live="assertive" className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-xs font-bold animate-shake flex items-center gap-3">
+                  <div
+                    role="alert"
+                    aria-live="assertive"
+                    className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-xs font-bold animate-shake flex items-center gap-3"
+                  >
                     <Icons.AlertTriangle className="w-4 h-4 shrink-0" />
                     {error}
                   </div>

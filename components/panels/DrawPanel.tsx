@@ -121,22 +121,59 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
 
     const previewStroke: Record<string, React.ReactNode> = {
       [BrushType.BASIC]: (
-        <path d="M5 25 Q 50 5 95 25" stroke={brushColor} strokeWidth={sw} fill="none" strokeLinecap="round" opacity={opacity} />
+        <path
+          d="M5 25 Q 50 5 95 25"
+          stroke={brushColor}
+          strokeWidth={sw}
+          fill="none"
+          strokeLinecap="round"
+          opacity={opacity}
+        />
       ),
       [BrushType.CALLIGRAPHY]: (
-        <path d="M5 25 Q 50 5 95 25" stroke={brushColor} strokeWidth={sw} fill="none" transform="skewX(-20)" strokeLinecap="round" opacity={opacity} />
+        <path
+          d="M5 25 Q 50 5 95 25"
+          stroke={brushColor}
+          strokeWidth={sw}
+          fill="none"
+          transform="skewX(-20)"
+          strokeLinecap="round"
+          opacity={opacity}
+        />
       ),
       [BrushType.OIL]: (
-        <path d="M5 25 Q 50 5 95 25" stroke={brushColor} strokeWidth={sw * 1.8} strokeDasharray="1 1" fill="none" filter="url(#oilFilter)" opacity={opacity} />
+        <path
+          d="M5 25 Q 50 5 95 25"
+          stroke={brushColor}
+          strokeWidth={sw * 1.8}
+          strokeDasharray="1 1"
+          fill="none"
+          filter="url(#oilFilter)"
+          opacity={opacity}
+        />
       ),
       [BrushType.CRAYON]: (
-        <path d="M5 25 Q 50 5 95 25" stroke={brushColor} strokeWidth={sw} strokeDasharray="0.5 2" fill="none" opacity={opacity} />
+        <path
+          d="M5 25 Q 50 5 95 25"
+          stroke={brushColor}
+          strokeWidth={sw}
+          strokeDasharray="0.5 2"
+          fill="none"
+          opacity={opacity}
+        />
       ),
       [BrushType.PENCIL]: (
         <path d="M5 25 Q 50 5 95 25" stroke={brushColor} strokeWidth={1} fill="none" opacity={opacity * 0.7} />
       ),
       [BrushType.WATERCOLOR]: (
-        <path d="M5 25 Q 50 5 95 25" stroke={brushColor} strokeWidth={sw * 2.5} strokeOpacity={opacity * 0.4} fill="none" filter="url(#watercolorFilter)" />
+        <path
+          d="M5 25 Q 50 5 95 25"
+          stroke={brushColor}
+          strokeWidth={sw * 2.5}
+          strokeOpacity={opacity * 0.4}
+          fill="none"
+          filter="url(#watercolorFilter)"
+        />
       ),
       [BrushType.VECTOR_PENCIL]: (
         <path d="M5 25 L 30 15 L 60 30 L 95 25" stroke={brushColor} strokeWidth={2} fill="none" opacity={opacity} />
@@ -156,7 +193,11 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
     };
 
     return (
-      <svg className="absolute top-0 right-0 w-full h-full opacity-60 pointer-events-none" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
+      <svg
+        className="absolute top-0 right-0 w-full h-full opacity-60 pointer-events-none"
+        viewBox={`0 0 ${w} ${h}`}
+        preserveAspectRatio="none"
+      >
         {previewStroke[type] || previewStroke[BrushType.BASIC]}
       </svg>
     );

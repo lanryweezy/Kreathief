@@ -181,12 +181,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-4">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={onOpenCommunity}
-          title="Community Templates"
-        >
+        <Button variant="secondary" size="sm" onClick={onOpenCommunity} title="Community Templates">
           <Icons.Globe className="w-3.5 h-3.5 text-brand-600" />
           <span className="hidden lg:inline">Community</span>
         </Button>
@@ -328,7 +323,7 @@ export const Header: React.FC<HeaderProps> = ({
               }
             }}
             autoFocus
-              className="bg-surface-dark-3 border-b-2 border-brand-500 text-white text-sm font-bold px-2 py-1 outline-none w-48 rounded-t shadow-lg text-center"
+            className="bg-surface-dark-3 border-b-2 border-brand-500 text-white text-sm font-bold px-2 py-1 outline-none w-48 rounded-t shadow-lg text-center"
           />
         ) : (
           <button

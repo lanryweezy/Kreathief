@@ -6,14 +6,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   hint?: string;
 }
 
-export const Input: React.FC<InputProps> = ({
-  label,
-  error,
-  hint,
-  className = '',
-  id,
-  ...props
-}) => {
+export const Input: React.FC<InputProps> = ({ label, error, hint, className = '', id, ...props }) => {
   const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
 
   return (

@@ -26,7 +26,9 @@ export const Toggle: React.FC<ToggleProps> = ({
   const s = sizes[size];
 
   return (
-    <label className={`inline-flex items-center gap-2 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+    <label
+      className={`inline-flex items-center gap-2 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+    >
       <button
         type="button"
         role="switch"

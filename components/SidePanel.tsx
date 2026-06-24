@@ -130,9 +130,7 @@ export const SidePanel = React.memo(
               className="min-h-full flex flex-col"
             >
               <React.Suspense fallback={<PanelLoading tab={activeTab} />}>
-                {activeTab === NavTab.MAGIC && (
-                  <MagicPanel onGenerate={onGenerate} uploadedImage={uploadedImage} />
-                )}
+                {activeTab === NavTab.MAGIC && <MagicPanel onGenerate={onGenerate} uploadedImage={uploadedImage} />}
 
                 {activeTab === NavTab.LAYERS && <LayersPanel />}
 

@@ -34,13 +34,23 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate, onKeybo
 
   const handleKeyDown = (e: React.KeyboardEvent, handle: ResizeHandle) => {
     if (!onKeyboardResize) return;
-    let dx = 0, dy = 0;
+    let dx = 0,
+      dy = 0;
     switch (e.key) {
-      case 'ArrowUp': dy = -1; break;
-      case 'ArrowDown': dy = 1; break;
-      case 'ArrowLeft': dx = -1; break;
-      case 'ArrowRight': dx = 1; break;
-      default: return;
+      case 'ArrowUp':
+        dy = -1;
+        break;
+      case 'ArrowDown':
+        dy = 1;
+        break;
+      case 'ArrowLeft':
+        dx = -1;
+        break;
+      case 'ArrowRight':
+        dx = 1;
+        break;
+      default:
+        return;
     }
     e.preventDefault();
     onKeyboardResize(layer, handle, dx, dy, e.shiftKey);

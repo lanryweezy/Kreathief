@@ -5174,7 +5174,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           id: 'pitch-headline',
           type: 'text',
           name: 'Value Proposition',
-          text: '[BUILDING THE FINANCIAL\nINFRASTRUCTURE FOR\nAFRICA\'s NEXT BILLION]',
+          text: "[BUILDING THE FINANCIAL\nINFRASTRUCTURE FOR\nAFRICA's NEXT BILLION]",
           x: 120,
           y: 500,
           width: 1400,
@@ -5261,7 +5261,8 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
     id: 'amapiano_sundays_flyer',
     name: 'Amapiano Sundays Flyer',
     category: 'African Market',
-    description: 'Bold, high-contrast A4 print flyer for the South African music scene. Deep blacks with vibrant neon accents.',
+    description:
+      'Bold, high-contrast A4 print flyer for the South African music scene. Deep blacks with vibrant neon accents.',
     size: { width: 2480, height: 3508, name: 'A4 Print' },
     state: {
       ...baseState({ width: 2480, height: 3508, name: 'A4 Print' }),

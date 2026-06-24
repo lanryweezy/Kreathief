@@ -462,7 +462,11 @@ export const CommandPalette: React.FC = () => {
     <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-[15vh] bg-black/60 backdrop-blur-md p-4">
       <div className="absolute inset-0" onClick={() => setOpen(false)} />
 
-      <div role="dialog" aria-modal="true" className="relative w-full max-w-xl bg-surface-dark-1 border border-white/10 rounded-xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden animate-fade-in flex flex-col">
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="relative w-full max-w-xl bg-surface-dark-1 border border-white/10 rounded-xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden animate-fade-in flex flex-col"
+      >
         {/* Search Input */}
         <div className="flex items-center px-5 py-4 border-b border-white/5 bg-white/5">
           <Icons.Search className="w-5 h-5 text-gray-400 mr-4" />
@@ -490,7 +494,11 @@ export const CommandPalette: React.FC = () => {
         </div>
 
         {/* Results */}
-        <div id="command-palette-listbox" role="listbox" className="max-h-[60vh] overflow-y-auto no-scrollbar p-2 bg-surface-dark-2">
+        <div
+          id="command-palette-listbox"
+          role="listbox"
+          className="max-h-[60vh] overflow-y-auto no-scrollbar p-2 bg-surface-dark-2"
+        >
           {allResults.length === 0 ? (
             <div className="px-4 py-12 text-center">
               <Icons.Search className="w-12 h-12 text-gray-800 mx-auto mb-3" />

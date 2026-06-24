@@ -241,7 +241,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
           await onExport(
             format,
             quality,
-            { width: Math.round((ab.width || currentSize.width) * dpiScale), height: Math.round((ab.height || currentSize.height) * dpiScale) },
+            {
+              width: Math.round((ab.width || currentSize.width) * dpiScale),
+              height: Math.round((ab.height || currentSize.height) * dpiScale),
+            },
             false,
             `${safeFilename}_print`,
             ab.layers
@@ -250,7 +253,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
           await onExport(
             format,
             quality,
-            { width: Math.round((ab.width || currentSize.width) * dpiScale), height: Math.round((ab.height || currentSize.height) * dpiScale) },
+            {
+              width: Math.round((ab.width || currentSize.width) * dpiScale),
+              height: Math.round((ab.height || currentSize.height) * dpiScale),
+            },
             transparentBg && format === 'png',
             safeFilename,
             ab.layers
@@ -576,7 +582,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                       </span>
                     )}
                   </h4>
-                  <p className="text-[10px] text-muted-light italic">True ICC CMYK conversion with bleed & crop marks</p>
+                  <p className="text-[10px] text-muted-light italic">
+                    True ICC CMYK conversion with bleed & crop marks
+                  </p>
                 </div>
                 <Toggle
                   checked={isPrintMode}
@@ -668,13 +676,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="text-xs font-bold text-white mb-0.5">Crop Marks</h4>
-                  <p className="text-[10px] text-muted-light">Add trim guides for printer</p>
-                </div>
-                <Toggle
-                  checked={cropMarks}
-                  onChange={(checked) => setCropMarks(checked)}
-                  ariaLabel="Toggle Crop Marks"
-                />
+                    <p className="text-[10px] text-muted-light">Add trim guides for printer</p>
+                  </div>
+                  <Toggle
+                    checked={cropMarks}
+                    onChange={(checked) => setCropMarks(checked)}
+                    ariaLabel="Toggle Crop Marks"
+                  />
                 </div>
               </div>
             )}
@@ -683,9 +691,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
             {['jpeg', 'webp'].includes(format) ? (
               <div className="animate-fade-in">
                 <div className="flex justify-between items-center mb-2">
-                  <label className="text-xs font-bold text-muted-light uppercase tracking-wider">
-                    Quality
-                  </label>
+                  <label className="text-xs font-bold text-muted-light uppercase tracking-wider">Quality</label>
                   <span className="text-xs font-medium text-brand-600">{Math.round(quality * 100)}%</span>
                 </div>
                 <input
@@ -793,7 +799,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 ))}
               </div>
               <p className="text-[10px] text-muted-light mt-2">
-                {dpi <= 72 ? 'Screen quality' : dpi <= 150 ? 'Web standard' : dpi <= 300 ? 'Print quality' : 'High-res print'}
+                {dpi <= 72
+                  ? 'Screen quality'
+                  : dpi <= 150
+                    ? 'Web standard'
+                    : dpi <= 300
+                      ? 'Print quality'
+                      : 'High-res print'}
                 {format === 'pdf' ? ' — 300 DPI recommended for print' : ''}
               </p>
             </div>
@@ -863,18 +875,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 onClick={handleExportLayer}
                 disabled={isExporting || !selectedLayerIds || selectedLayerIds.length !== 1}
                 className="py-2.5 rounded-xl border border-gray-700 bg-surface-dark-4 text-xs font-bold text-gray-300 hover:bg-surface-dark-5 hover:border-gray-500 transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
-                title={
-                  selectedLayerIds?.length === 1
-                    ? 'Export selected layer only'
-                    : 'Select exactly one layer'
-                }
+                title={selectedLayerIds?.length === 1 ? 'Export selected layer only' : 'Select exactly one layer'}
               >
                 <Icons.Layers className="w-3.5 h-3.5" />
                 <div className="flex flex-col items-start leading-tight">
                   <span>Export Layer</span>
-                  {selectedLayerIds?.length === 1 && (
-                    <span className="text-[9px] text-gray-400">(single layer)</span>
-                  )}
+                  {selectedLayerIds?.length === 1 && <span className="text-[9px] text-gray-400">(single layer)</span>}
                 </div>
               </button>
             </div>

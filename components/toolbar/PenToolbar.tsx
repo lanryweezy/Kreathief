@@ -55,7 +55,9 @@ export const PenToolbar = React.memo(({ options, onUpdateOptions, onClose }: Pen
         <button
           onClick={() => onUpdateOptions({ hasFill: !options.hasFill })}
           className={`w-8 h-8 rounded-lg border-2 transition-all flex items-center justify-center ${
-            options.hasFill ? 'border-brand-600 bg-brand-600/20' : 'border-gray-600 bg-surface-dark-4 hover:border-gray-500'
+            options.hasFill
+              ? 'border-brand-600 bg-brand-600/20'
+              : 'border-gray-600 bg-surface-dark-4 hover:border-gray-500'
           }`}
           title="Toggle Fill"
           aria-label="Toggle Fill"

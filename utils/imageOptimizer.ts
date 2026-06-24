@@ -14,11 +14,7 @@ function loadImage(file: File): Promise<HTMLImageElement> {
   });
 }
 
-function canvasToBlob(
-  canvas: HTMLCanvasElement,
-  type: string,
-  quality: number
-): Promise<Blob> {
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
       (blob) => {
@@ -31,11 +27,7 @@ function canvasToBlob(
   });
 }
 
-export async function compressImage(
-  file: File,
-  maxWidth: number = 1920,
-  quality: number = 0.8
-): Promise<Blob> {
+export async function compressImage(file: File, maxWidth: number = 1920, quality: number = 0.8): Promise<Blob> {
   const img = await loadImage(file);
   let { width, height } = img;
 
@@ -54,11 +46,7 @@ export async function compressImage(
   return canvasToBlob(canvas, outputType, quality);
 }
 
-export async function resizeImage(
-  file: File,
-  width: number,
-  height: number
-): Promise<Blob> {
+export async function resizeImage(file: File, width: number, height: number): Promise<Blob> {
   const img = await loadImage(file);
 
   const canvas = document.createElement('canvas');
@@ -70,10 +58,7 @@ export async function resizeImage(
   return canvasToBlob(canvas, 'image/jpeg', 0.85);
 }
 
-export async function generateThumbnail(
-  file: File,
-  size: number = 200
-): Promise<string> {
+export async function generateThumbnail(file: File, size: number = 200): Promise<string> {
   const img = await loadImage(file);
   const canvas = document.createElement('canvas');
   canvas.width = size;

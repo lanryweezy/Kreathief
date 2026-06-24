@@ -113,7 +113,10 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({ onAddText, onAddSh
           {hasSelection && (
             <>
               <button
-                onClick={() => { haptics.light(); moveLayer(selectedLayerIds[0], 'front'); }}
+                onClick={() => {
+                  haptics.light();
+                  moveLayer(selectedLayerIds[0], 'front');
+                }}
                 aria-label="Bring to front"
                 className="flex flex-col items-center justify-center gap-1 min-w-[52px] h-14 text-emerald-400/70 active:text-emerald-400 transition-colors"
               >
@@ -121,7 +124,10 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({ onAddText, onAddSh
                 <span className="text-[9px] font-black uppercase tracking-tighter">Front</span>
               </button>
               <button
-                onClick={() => { haptics.light(); moveLayer(selectedLayerIds[0], 'back'); }}
+                onClick={() => {
+                  haptics.light();
+                  moveLayer(selectedLayerIds[0], 'back');
+                }}
                 aria-label="Send to back"
                 className="flex flex-col items-center justify-center gap-1 min-w-[52px] h-14 text-emerald-400/70 active:text-emerald-400 transition-colors"
               >

@@ -130,7 +130,12 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
           onClose?.();
           return;
         }
-        if (e.key === 'Backspace' && activeTool === 'pen' && path.points.length > 0 && selectedPointIndices.length === 0) {
+        if (
+          e.key === 'Backspace' &&
+          activeTool === 'pen' &&
+          path.points.length > 0 &&
+          selectedPointIndices.length === 0
+        ) {
           e.preventDefault();
           onUpdate({ ...path, points: path.points.slice(0, -1) });
           return;
@@ -205,7 +210,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
         let clickY = snapCoord(rawY);
 
         const SNAP_DIST = 5 / zoom;
-        
+
         // First check current path points
         for (const pt of path.points) {
           const dx = rawX - pt.x;
@@ -896,13 +901,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
                     />
                     <animate attributeName="opacity" values="0.9;0.4;0.9" dur="0.6s" repeatCount="indefinite" />
                   </circle>
-                  <circle
-                    cx={snapTarget.x}
-                    cy={snapTarget.y}
-                    r={pointRadius * 0.5}
-                    fill="#fbbf24"
-                    opacity={0.8}
-                  />
+                  <circle cx={snapTarget.x} cy={snapTarget.y} r={pointRadius * 0.5} fill="#fbbf24" opacity={0.8} />
                 </g>
               )}
             </>

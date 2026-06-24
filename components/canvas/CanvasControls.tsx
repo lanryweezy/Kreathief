@@ -24,11 +24,7 @@ export const CanvasControls: React.FC<CanvasControlsProps> = React.memo(
         {/* Alignment Palette for multi-selection */}
         {selectedLayerIds.length >= 2 && (
           <div className="absolute inset-0 pointer-events-none z-[85]">
-            <AlignmentPalette
-              selectedLayerIds={selectedLayerIds}
-              layers={selectedLayers}
-              zoom={zoom}
-            />
+            <AlignmentPalette selectedLayerIds={selectedLayerIds} layers={selectedLayers} zoom={zoom} />
           </div>
         )}
 

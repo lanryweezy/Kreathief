@@ -258,7 +258,7 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
                   <Icons.Search className="w-8 h-8 text-muted-light" />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">No templates found</h3>
-                  <p className="text-muted-light text-sm max-w-xs">
+                <p className="text-muted-light text-sm max-w-xs">
                   {searchQuery
                     ? `No results for "${searchQuery}". Try different keywords.`
                     : 'Be the first to publish a design to the community!'}

@@ -111,9 +111,7 @@ export const Toolbar = React.memo(
     const selectedLayers = useStore((state) => {
       const artboard = state.artboards.find((a) => a.id === state.activeArtboardId);
       if (!artboard || !state.selectedLayerIds) return [];
-      return state.selectedLayerIds
-        .map((id) => artboard.layers.find((l) => l.id === id))
-        .filter(Boolean);
+      return state.selectedLayerIds.map((id) => artboard.layers.find((l) => l.id === id)).filter(Boolean);
     });
 
     // Listen for "open effects panel" event

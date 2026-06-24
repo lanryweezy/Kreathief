@@ -195,12 +195,7 @@ export const BrandPanel = () => {
             <Icons.Plus className="w-3 h-3 rotate-45" /> Import
           </Button>
           {!isCreating && (
-            <Button
-              data-testid="add-brand-kit-btn"
-              variant="primary"
-              size="xs"
-              onClick={() => setIsCreating(true)}
-            >
+            <Button data-testid="add-brand-kit-btn" variant="primary" size="xs" onClick={() => setIsCreating(true)}>
               + New Kit
             </Button>
           )}
@@ -377,7 +372,11 @@ export const BrandPanel = () => {
             {[1, 2].map((i) => (
               <div key={i} className="bg-surface-dark-3 border border-gray-700 rounded-lg p-3 space-y-3">
                 <div className="h-4 bg-white/5 rounded w-1/2" />
-                <div className="flex gap-1.5">{[1, 2, 3, 4].map((j) => <div key={j} className="w-5 h-5 rounded-full bg-white/5" />)}</div>
+                <div className="flex gap-1.5">
+                  {[1, 2, 3, 4].map((j) => (
+                    <div key={j} className="w-5 h-5 rounded-full bg-white/5" />
+                  ))}
+                </div>
                 <div className="h-16 bg-white/5 rounded" />
               </div>
             ))}
@@ -454,7 +453,10 @@ export const BrandPanel = () => {
               </div>
 
               {/* Typography */}
-              <div data-testid="brand-fonts-display" className="bg-surface-dark-4 rounded-xl p-2 mb-3 border border-gray-800">
+              <div
+                data-testid="brand-fonts-display"
+                className="bg-surface-dark-4 rounded-xl p-2 mb-3 border border-gray-800"
+              >
                 <div className="flex justify-between items-center border-b border-gray-700 pb-1 mb-1">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-gray-500 uppercase">Typography</span>
