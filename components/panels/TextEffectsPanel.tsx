@@ -2,8 +2,8 @@ import React, { useState, useCallback } from 'react';
 
 interface TextEffectsPanelProps {
   effects?: {
-    styleType?: 'normal' | 'hollow' | 'lift' | 'echo';
-    warpStyle?: 'none' | 'arc' | 'flag' | 'rise' | 'wave' | 'fish';
+    styleType?: 'normal' | 'hollow' | 'lift' | 'echo' | 'emboss' | 'deboss';
+    warpStyle?: 'none' | 'arc' | 'flag' | 'rise' | 'wave' | 'fish' | 'bulge' | 'squeeze' | 'perspective';
     curve?: number;
     depth?: number;
     neonGlow?: {
@@ -13,15 +13,32 @@ interface TextEffectsPanelProps {
       spread: number;
       flicker: boolean;
     };
+    textShadow?: {
+      offsetX: number;
+      offsetY: number;
+      blur: number;
+      color: string;
+    };
+    textStroke?: {
+      width: number;
+      color: string;
+    };
+    warpParams?: {
+      rotateX: number;
+      rotateY: number;
+      perspective: number;
+    };
   };
   onChange: (effects: object) => void;
 }
 
 export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}, onChange }) => {
-  const [styleType, setStyleType] = useState<'normal' | 'hollow' | 'lift' | 'echo'>(effects.styleType || 'normal');
-  const [warpStyle, setWarpStyle] = useState<'none' | 'arc' | 'flag' | 'rise' | 'wave' | 'fish'>(
-    effects.warpStyle || 'none'
+  const [styleType, setStyleType] = useState<'normal' | 'hollow' | 'lift' | 'echo' | 'emboss' | 'deboss'>(
+    effects.styleType || 'normal'
   );
+  const [warpStyle, setWarpStyle] = useState<
+    'none' | 'arc' | 'flag' | 'rise' | 'wave' | 'fish' | 'bulge' | 'squeeze' | 'perspective'
+  >(effects.warpStyle || 'none');
   const [curve, setCurve] = useState(effects.curve || 0);
   const [depth, setDepth] = useState(effects.depth || 0);
   const [neonEnabled, setNeonEnabled] = useState(effects.neonGlow?.enabled || false);
@@ -30,8 +47,22 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
   const [neonSpread, setNeonSpread] = useState(effects.neonGlow?.spread || 30);
   const [neonFlicker, setNeonFlicker] = useState(effects.neonGlow?.flicker || false);
 
+  const [shadowEnabled, setShadowEnabled] = useState(!!effects.textShadow);
+  const [shadowX, setShadowX] = useState(effects.textShadow?.offsetX || 2);
+  const [shadowY, setShadowY] = useState(effects.textShadow?.offsetY || 2);
+  const [shadowBlur, setShadowBlur] = useState(effects.textShadow?.blur || 4);
+  const [shadowColor, setShadowColor] = useState(effects.textShadow?.color || '#000000');
+
+  const [strokeEnabled, setStrokeEnabled] = useState(!!effects.textStroke);
+  const [strokeWidth, setStrokeWidth] = useState(effects.textStroke?.width || 1);
+  const [strokeColor, setStrokeColor] = useState(effects.textStroke?.color || '#000000');
+
+  const [warpRotateX, setWarpRotateX] = useState(effects.warpParams?.rotateX || 0);
+  const [warpRotateY, setWarpRotateY] = useState(effects.warpParams?.rotateY || 0);
+  const [warpPerspective, setWarpPerspective] = useState(effects.warpParams?.perspective || 800);
+
   const handleStyleTypeChange = useCallback(
-    (type: 'normal' | 'hollow' | 'lift' | 'echo') => {
+    (type: 'normal' | 'hollow' | 'lift' | 'echo' | 'emboss' | 'deboss') => {
       setStyleType(type);
       onChange({ ...effects, styleType: type });
     },
@@ -39,7 +70,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
   );
 
   const handleWarpStyleChange = useCallback(
-    (style: 'none' | 'arc' | 'flag' | 'rise' | 'wave' | 'fish') => {
+    (style: 'none' | 'arc' | 'flag' | 'rise' | 'wave' | 'fish' | 'bulge' | 'squeeze' | 'perspective') => {
       setWarpStyle(style);
       onChange({ ...effects, warpStyle: style });
     },
@@ -78,6 +109,51 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
     [effects, neonEnabled, neonColor, neonIntensity, neonSpread, neonFlicker]
   );
 
+  const handleShadowChange = useCallback(
+    (enabledOverride?: boolean) => {
+      const enabled = enabledOverride !== undefined ? enabledOverride : shadowEnabled;
+      if (enabled) {
+        onChange({
+          ...effects,
+          textShadow: { offsetX: shadowX, offsetY: shadowY, blur: shadowBlur, color: shadowColor },
+        });
+      } else {
+        const { textShadow, ...rest } = effects as any;
+        onChange(rest);
+      }
+    },
+    [effects, shadowEnabled, shadowX, shadowY, shadowBlur, shadowColor]
+  );
+
+  const handleStrokeChange = useCallback(
+    (enabledOverride?: boolean) => {
+      const enabled = enabledOverride !== undefined ? enabledOverride : strokeEnabled;
+      if (enabled) {
+        onChange({
+          ...effects,
+          textStroke: { width: strokeWidth, color: strokeColor },
+        });
+      } else {
+        const { textStroke, ...rest } = effects as any;
+        onChange(rest);
+      }
+    },
+    [effects, strokeEnabled, strokeWidth, strokeColor]
+  );
+
+  const handleWarpParamsChange = useCallback(
+    (updates: Partial<{ rotateX: number; rotateY: number; perspective: number }>) => {
+      const newParams = { rotateX: warpRotateX, rotateY: warpRotateY, perspective: warpPerspective, ...updates };
+      if (updates.rotateX !== undefined) setWarpRotateX(updates.rotateX);
+      if (updates.rotateY !== undefined) setWarpRotateY(updates.rotateY);
+      if (updates.perspective !== undefined) setWarpPerspective(updates.perspective);
+      onChange({ ...effects, warpParams: newParams });
+    },
+    [effects, warpRotateX, warpRotateY, warpPerspective]
+  );
+
+  const needsWarpParams = warpStyle === 'bulge' || warpStyle === 'squeeze' || warpStyle === 'perspective';
+
   return (
     <div className="bg-surface-dark-1 rounded-2xl border border-white/5 p-5 space-y-6 shadow-2xl">
       <div className="flex items-center justify-between mb-2">
@@ -90,12 +166,14 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
       {/* Style Type */}
       <div className="space-y-3">
         <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block">Core Style</label>
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {[
             { id: 'normal', label: 'Normal', icon: 'A' },
             { id: 'hollow', label: 'Hollow', icon: '◐' },
             { id: 'lift', label: 'Lift', icon: '▲' },
             { id: 'echo', label: 'Echo', icon: '≋' },
+            { id: 'emboss', label: 'Emboss', icon: '⬍' },
+            { id: 'deboss', label: 'Deboss', icon: '⬌' },
           ].map((type) => (
             <button
               key={type.id}
@@ -112,6 +190,24 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
         </div>
       </div>
 
+      {/* Emboss/Deboss Depth */}
+      {(styleType === 'emboss' || styleType === 'deboss') && (
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Emboss Depth</label>
+            <span className="text-[9px] font-black text-white font-mono">{depth}px</span>
+          </div>
+          <input
+            type="range"
+            min="1"
+            max="20"
+            value={depth || 3}
+            onChange={(e) => handleDepthChange(parseInt(e.target.value))}
+            className="w-full accent-brand-600"
+          />
+        </div>
+      )}
+
       {/* Warp Effects */}
       <div className="space-y-3">
         <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block">Transformation</label>
@@ -123,6 +219,9 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
             { id: 'rise', label: 'Rise' },
             { id: 'wave', label: 'Wave' },
             { id: 'fish', label: 'Fish' },
+            { id: 'bulge', label: 'Bulge' },
+            { id: 'squeeze', label: 'Squeeze' },
+            { id: 'perspective', label: 'Persp.' },
           ].map((type) => (
             <button
               key={type.id}
@@ -174,6 +273,206 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
           />
         </div>
       )}
+
+      {/* Warp Params (Bulge/Squeeze/Perspective) */}
+      {needsWarpParams && (
+        <div className="space-y-3 bg-white/5 p-4 rounded-xl border border-white/5">
+          <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block">Warp Parameters</label>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Rotate X</label>
+              <span className="text-[9px] font-black text-white font-mono">{warpRotateX}deg</span>
+            </div>
+            <input
+              type="range"
+              min="-90"
+              max="90"
+              value={warpRotateX}
+              onChange={(e) => handleWarpParamsChange({ rotateX: parseInt(e.target.value) })}
+              className="w-full accent-accent"
+            />
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Rotate Y</label>
+              <span className="text-[9px] font-black text-white font-mono">{warpRotateY}deg</span>
+            </div>
+            <input
+              type="range"
+              min="-90"
+              max="90"
+              value={warpRotateY}
+              onChange={(e) => handleWarpParamsChange({ rotateY: parseInt(e.target.value) })}
+              className="w-full accent-accent"
+            />
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Perspective</label>
+              <span className="text-[9px] font-black text-white font-mono">{warpPerspective}px</span>
+            </div>
+            <input
+              type="range"
+              min="100"
+              max="2000"
+              value={warpPerspective}
+              onChange={(e) => handleWarpParamsChange({ perspective: parseInt(e.target.value) })}
+              className="w-full accent-accent"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Text Shadow */}
+      <div className="border-t border-white/5 pt-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Text Shadow</label>
+          <button
+            onClick={() => {
+              setShadowEnabled((prev) => {
+                const next = !prev;
+                handleShadowChange(next);
+                return next;
+              });
+            }}
+            className={`w-10 h-5 rounded-full relative transition-colors ${shadowEnabled ? 'bg-brand-600' : 'bg-white/10'}`}
+          >
+            <div
+              className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${shadowEnabled ? 'left-6' : 'left-1'}`}
+            />
+          </button>
+        </div>
+
+        {shadowEnabled && (
+          <div className="space-y-4 bg-white/5 p-4 rounded-xl border border-white/5">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Shadow Color</span>
+              <div className="flex items-center gap-3">
+                <span className="text-[9px] font-black text-white font-mono uppercase">{shadowColor}</span>
+                <input
+                  type="color"
+                  value={shadowColor}
+                  onChange={(e) => {
+                    setShadowColor(e.target.value);
+                    handleShadowChange();
+                  }}
+                  className="w-6 h-6 rounded-lg bg-transparent border-none cursor-pointer"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">X Offset</label>
+                <span className="text-[9px] font-black text-white font-mono">{shadowX}px</span>
+              </div>
+              <input
+                type="range"
+                min="-20"
+                max="20"
+                value={shadowX}
+                onChange={(e) => {
+                  setShadowX(parseInt(e.target.value));
+                  handleShadowChange();
+                }}
+                className="w-full accent-brand-600"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Y Offset</label>
+                <span className="text-[9px] font-black text-white font-mono">{shadowY}px</span>
+              </div>
+              <input
+                type="range"
+                min="-20"
+                max="20"
+                value={shadowY}
+                onChange={(e) => {
+                  setShadowY(parseInt(e.target.value));
+                  handleShadowChange();
+                }}
+                className="w-full accent-brand-600"
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Blur</label>
+                <span className="text-[9px] font-black text-white font-mono">{shadowBlur}px</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="50"
+                value={shadowBlur}
+                onChange={(e) => {
+                  setShadowBlur(parseInt(e.target.value));
+                  handleShadowChange();
+                }}
+                className="w-full accent-brand-600"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Text Stroke */}
+      <div className="border-t border-white/5 pt-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Text Stroke</label>
+          <button
+            onClick={() => {
+              setStrokeEnabled((prev) => {
+                const next = !prev;
+                handleStrokeChange(next);
+                return next;
+              });
+            }}
+            className={`w-10 h-5 rounded-full relative transition-colors ${strokeEnabled ? 'bg-brand-600' : 'bg-white/10'}`}
+          >
+            <div
+              className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${strokeEnabled ? 'left-6' : 'left-1'}`}
+            />
+          </button>
+        </div>
+
+        {strokeEnabled && (
+          <div className="space-y-4 bg-white/5 p-4 rounded-xl border border-white/5">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Stroke Color</span>
+              <div className="flex items-center gap-3">
+                <span className="text-[9px] font-black text-white font-mono uppercase">{strokeColor}</span>
+                <input
+                  type="color"
+                  value={strokeColor}
+                  onChange={(e) => {
+                    setStrokeColor(e.target.value);
+                    handleStrokeChange();
+                  }}
+                  className="w-6 h-6 rounded-lg bg-transparent border-none cursor-pointer"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Stroke Width</label>
+                <span className="text-[9px] font-black text-white font-mono">{strokeWidth}px</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="10"
+                step="0.5"
+                value={strokeWidth}
+                onChange={(e) => {
+                  setStrokeWidth(parseFloat(e.target.value));
+                  handleStrokeChange();
+                }}
+                className="w-full accent-brand-600"
+              />
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Neon Glow */}
       <div className="border-t border-white/5 pt-6 space-y-4">
@@ -276,10 +575,25 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
               color: neonEnabled ? '#fff' : 'inherit',
               textShadow: neonEnabled
                 ? `0 0 ${neonSpread}px ${neonColor}, 0 0 ${neonSpread * 2}px ${neonColor}, 0 0 ${neonSpread * 3}px ${neonColor}`
-                : 'none',
-              transform: warpStyle === 'arc' ? `rotateX(${curve}deg)` : 'none',
-              WebkitTextStroke: styleType === 'hollow' ? '1px #7d2ae8' : 'none',
+                : shadowEnabled
+                  ? `${shadowX}px ${shadowY}px ${shadowBlur}px ${shadowColor}`
+                  : styleType === 'emboss'
+                    ? '-1px -1px 1px rgba(255,255,255,0.8), 1px 1px 2px rgba(0,0,0,0.6)'
+                    : styleType === 'deboss'
+                      ? '1px 1px 1px rgba(255,255,255,0.8), -1px -1px 2px rgba(0,0,0,0.6)'
+                      : 'none',
+              WebkitTextStroke: strokeEnabled
+                ? `${strokeWidth}px ${strokeColor}`
+                : styleType === 'hollow'
+                  ? '1px #7d2ae8'
+                  : 'none',
               opacity: styleType === 'hollow' ? 0.8 : 1,
+              transform:
+                warpStyle === 'arc'
+                  ? `rotateX(${curve}deg)`
+                  : warpStyle === 'bulge' || warpStyle === 'squeeze' || warpStyle === 'perspective'
+                    ? `perspective(${warpPerspective}px) rotateX(${warpRotateX}deg) rotateY(${warpRotateY}deg)`
+                    : 'none',
             }}
           >
             {styleType === 'hollow' ? 'HOLLOW' : 'NEON TEXT'}

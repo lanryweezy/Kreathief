@@ -151,6 +151,9 @@ export const SidePanel = React.memo(
                       curve: selectedTextLayer.curve,
                       depth: selectedTextLayer.depth,
                       neonGlow: selectedTextLayer.neonGlow,
+                      textShadow: selectedTextLayer.textShadow,
+                      textStroke: selectedTextLayer.textStroke,
+                      warpParams: (selectedTextLayer as any).warpParams,
                     }}
                     onChange={(newEffects) => {
                       updateLayer(selectedTextLayer.id, newEffects as Partial<TextLayer>);

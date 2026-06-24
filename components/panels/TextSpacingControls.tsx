@@ -112,10 +112,10 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
         </div>
         <input
           type="range"
-          min="-20"
-          max="20"
+          min="-200"
+          max="200"
           value={tracking}
-          onChange={(e) => handleTrackingChange(parseInt(e.target.value))}
+          onChange={(e) => handleTrackingChange(parseFloat(e.target.value))}
           className="w-full accent-brand-600"
         />
         <div className="flex justify-between text-[9px] text-gray-600 mt-1">
@@ -133,8 +133,8 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
         </div>
         <input
           type="range"
-          min="0.5"
-          max="3"
+          min="0.3"
+          max="5.0"
           step="0.1"
           value={leading}
           onChange={(e) => handleLeadingChange(parseFloat(e.target.value))}

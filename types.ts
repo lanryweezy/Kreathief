@@ -245,8 +245,8 @@ export interface TextLayer extends LayerBase {
   gradient?: TextGradient;
   // effects...
   curve?: number;
-  warpStyle?: 'none' | 'arc' | 'flag' | 'rise' | 'wave' | 'fish';
-  styleType?: 'normal' | 'hollow' | 'lift' | 'echo';
+  warpStyle?: 'none' | 'arc' | 'flag' | 'rise' | 'wave' | 'fish' | 'bulge' | 'squeeze' | 'perspective';
+  styleType?: 'normal' | 'hollow' | 'lift' | 'echo' | 'emboss' | 'deboss';
   textPath?: string;
   depth?: number;
   depthColor?: string;
@@ -269,9 +269,27 @@ export interface TextLayer extends LayerBase {
     spread: number; // 0-50
     flicker: boolean;
   };
+  // Text shadow
+  textShadow?: {
+    offsetX: number;
+    offsetY: number;
+    blur: number;
+    color: string;
+  };
+  // Text stroke
+  textStroke?: {
+    width: number;
+    color: string;
+  };
   // Text features
   kerning?: number;
   ligatures?: boolean;
+  // Warp parameters for bulge/squeeze/perspective
+  warpParams?: {
+    rotateX: number;
+    rotateY: number;
+    perspective: number;
+  };
 }
 
 export type PointType = 'sharp' | 'smooth' | 'symmetric' | 'corner';

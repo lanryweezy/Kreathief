@@ -660,6 +660,21 @@ export const TextLayerItem = React.memo(
               textTransform: textLayer.textTransform,
               whiteSpace: 'pre-wrap',
               wordBreak: 'break-word',
+              ...(textLayer.textShadow
+                ? { textShadow: `${textLayer.textShadow.offsetX}px ${textLayer.textShadow.offsetY}px ${textLayer.textShadow.blur}px ${textLayer.textShadow.color}` }
+                : textLayer.styleType === 'emboss'
+                  ? { textShadow: '-1px -1px 1px rgba(255,255,255,0.8), 1px 1px 2px rgba(0,0,0,0.6)' }
+                  : textLayer.styleType === 'deboss'
+                    ? { textShadow: '1px 1px 1px rgba(255,255,255,0.8), -1px -1px 2px rgba(0,0,0,0.6)' }
+                    : {}),
+              ...(textLayer.textStroke
+                ? { WebkitTextStroke: `${textLayer.textStroke.width}px ${textLayer.textStroke.color}` }
+                : textLayer.styleType === 'hollow'
+                  ? { WebkitTextStroke: '1px #7d2ae8' }
+                  : {}),
+              ...(textLayer.warpStyle === 'bulge' || textLayer.warpStyle === 'squeeze' || textLayer.warpStyle === 'perspective'
+                ? { transform: `perspective(${textLayer.warpParams?.perspective || 800}px) rotateX(${textLayer.warpParams?.rotateX || 0}deg) rotateY(${textLayer.warpParams?.rotateY || 0}deg)` }
+                : {}),
               ...(maskPath ? { clipPath: maskPath } : {}),
             }}
           >
