@@ -27,3 +27,8 @@
 
 **Learning:** File import operations like PSD parsing in `UploadsPanel` frequently fail silently or display generic "Failed to parse" messages. While `utils/errorMessages.ts` contained a robust `getErrorDetails` utility capable of diagnosing quota, network, timeout, memory, permission, and format errors with actionable suggestions, it was primarily used by AI features and ignored by standard file handling catch blocks.
 **Action:** Replaced hardcoded, generic error strings in non-AI catch blocks (like `parsePsdToLayers`) with `getErrorDetails(err)` to provide specific, actionable guidance to users across all failure touchpoints.
+
+## 2024-11-20 - Typo Tolerance and Short Query Matching in Client-Side Search
+
+**Learning:** Client-side searches often fail silently on valid inputs if they rely on arbitrary keyword length filters (e.g. `k.length > 2`), dropping short queries like "AI" or "UX" entirely. Additionally, strict exact string matching for user input yields a brittle experience where simple typos (like "teech" instead of "tech") return zero results.
+**Action:** When implementing or improving frontend search logic, remove arbitrary keyword length limitations that swallow short valid words. Utilize an inline fuzzy-matching algorithm (like Levenshtein distance) configured with dynamic thresholds based on word length to provide typo tolerance without false positives on short words.
