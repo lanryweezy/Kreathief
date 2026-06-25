@@ -3,6 +3,9 @@ import { Icons } from '../../constants';
 import { ShapeLayer, ImageLayer } from '../../types';
 import * as freepikService from '../../services/freepikService';
 import * as streamlineService from '../../services/streamlineService';
+import * as materialIconService from '../../services/materialIconService';
+import * as lucideIconService from '../../services/lucideIconService';
+import * as phosphorIconService from '../../services/phosphorIconService';
 import { SHAPE_LIBRARY } from '../../constants/shapeLibrary';
 import { ElementSkeleton } from '../Skeleton';
 
@@ -28,7 +31,7 @@ const saveRecentShape = (name: string) => {
 };
 
 type ShapeCategory = 'all' | 'basic' | 'geometric' | 'decorative' | 'ui' | 'arrows' | 'stars';
-type ActiveSource = 'shapes' | 'icons' | 'illustrations';
+type ActiveSource = 'shapes' | 'icons' | 'illustrations' | 'material' | 'lucide' | 'phosphor';
 
 interface ShapePreset {
   name: string;
@@ -42,7 +45,8 @@ interface RemoteIcon {
   id: string;
   name: string;
   thumbnailUrl: string;
-  source: 'freepik' | 'streamline';
+  source: 'freepik' | 'streamline' | 'material' | 'lucide' | 'phosphor';
+  svgData?: string;
   hash?: string;
 }
 
@@ -144,31 +148,45 @@ export const ElementsPanel = () => {
     setIsSearching(true);
     setHasSearched(true);
 
-    try {
-      const [freepikResult, streamlineResult] = await Promise.allSettled([
-        freepikService.searchIcons(query, 12),
-        streamlineService.searchIcons(query, 12),
-      ]);
+    const source = activeSource;
 
+    try {
+      const searchPromises: Promise<any>[] = [];
+
+      if (source === 'icons' || source === 'shapes' || source === 'illustrations') {
+        searchPromises.push(
+          freepikService.searchIcons(query, 12).then((r) => ({ type: 'freepik', data: r })),
+          streamlineService.searchIcons(query, 12).then((r) => ({ type: 'streamline', data: r }))
+        );
+      }
+      if (source === 'material') {
+        searchPromises.push(materialIconService.searchIcons(query, 20).then((r) => ({ type: 'material', data: r })));
+      }
+      if (source === 'lucide') {
+        searchPromises.push(lucideIconService.searchIcons(query, 20).then((r) => ({ type: 'lucide', data: r })));
+      }
+      if (source === 'phosphor') {
+        searchPromises.push(phosphorIconService.searchIcons(query, 20).then((r) => ({ type: 'phosphor', data: r })));
+      }
+
+      const results = await Promise.allSettled(searchPromises);
       const icons: RemoteIcon[] = [];
-      if (freepikResult.status === 'fulfilled' && freepikResult.value.items.length > 0) {
-        freepikResult.value.items.forEach((icon) => {
-          icons.push({ id: `fp-${icon.id}`, name: icon.name, thumbnailUrl: icon.thumbnailUrl, source: 'freepik' });
-        });
-      }
-      if (streamlineResult.status === 'fulfilled' && streamlineResult.value.icons.length > 0) {
-        streamlineResult.value.icons.forEach((icon: any) => {
-          if (icon.thumbnailUrl) {
-            icons.push({
-              id: `sl-${icon.id}`,
-              name: icon.name,
-              thumbnailUrl: icon.thumbnailUrl,
-              source: 'streamline',
-              hash: icon.hash,
-            });
-          }
-        });
-      }
+
+      results.forEach((result) => {
+        if (result.status !== 'fulfilled') return;
+        const { type, data } = result.value;
+        if (type === 'freepik' && data?.items?.length > 0) {
+          data.items.forEach((icon: any) => icons.push({ id: `fp-${icon.id}`, name: icon.name, thumbnailUrl: icon.thumbnailUrl, source: 'freepik' }));
+        } else if (type === 'streamline' && data?.icons?.length > 0) {
+          data.icons.forEach((icon: any) => { if (icon.thumbnailUrl) icons.push({ id: `sl-${icon.id}`, name: icon.name, thumbnailUrl: icon.thumbnailUrl, source: 'streamline', hash: icon.hash }); });
+        } else if (type === 'material' && data?.length > 0) {
+          data.forEach((icon: any) => icons.push({ id: `mi-${icon.name}`, name: icon.name, thumbnailUrl: icon.svgUrl, source: 'material' }));
+        } else if (type === 'lucide' && data?.length > 0) {
+          data.forEach((icon: any) => icons.push({ id: `luc-${icon.name}`, name: icon.name, thumbnailUrl: '', source: 'lucide', svgData: icon.svg }));
+        } else if (type === 'phosphor' && data?.length > 0) {
+          data.forEach((icon: any) => icons.push({ id: `ph-${icon.name}`, name: icon.name, thumbnailUrl: '', source: 'phosphor', svgData: icon.svg }));
+        }
+      });
       setRemoteIcons(icons);
     } catch (err) {
       log.error('[ElementsPanel] Icon search failed', err);
@@ -176,7 +194,7 @@ export const ElementsPanel = () => {
     } finally {
       setIsSearching(false);
     }
-  }, []);
+  }, [activeSource]);
 
   const handleRemoteSearch = useCallback(
     (query: string) => {
@@ -206,12 +224,33 @@ export const ElementsPanel = () => {
         } else {
           internalAddImageLayer(icon.thumbnailUrl);
         }
+      } else if (icon.source === 'material') {
+        const name = icon.id.replace('mi-', '');
+        const svgData = await materialIconService.downloadIconSVG(name);
+        if (svgData) {
+          const blob = new Blob([svgData], { type: 'image/svg+xml' });
+          internalAddImageLayer(URL.createObjectURL(blob));
+        } else {
+          internalAddImageLayer(icon.thumbnailUrl);
+        }
+      } else if (icon.source === 'lucide') {
+        const svgData = icon.svgData || await lucideIconService.downloadIconSVG(icon.name);
+        if (svgData) {
+          const blob = new Blob([svgData], { type: 'image/svg+xml' });
+          internalAddImageLayer(URL.createObjectURL(blob));
+        }
+      } else if (icon.source === 'phosphor') {
+        const svgData = icon.svgData || await phosphorIconService.downloadIconSVG(icon.name);
+        if (svgData) {
+          const blob = new Blob([svgData], { type: 'image/svg+xml' });
+          internalAddImageLayer(URL.createObjectURL(blob));
+        }
       } else {
         internalAddImageLayer(icon.thumbnailUrl);
       }
     } catch (err) {
       log.error('[ElementsPanel] Failed to add icon', err, { iconId: icon.id });
-      internalAddImageLayer(icon.thumbnailUrl);
+      if (icon.thumbnailUrl) internalAddImageLayer(icon.thumbnailUrl);
     } finally {
       setLoadingIconId(null);
     }
@@ -286,12 +325,21 @@ export const ElementsPanel = () => {
     { id: 'shapes' as ActiveSource, label: 'Shapes', icon: Icons.Shapes },
     { id: 'icons' as ActiveSource, label: 'Icons', icon: Icons.Star },
     { id: 'illustrations' as ActiveSource, label: 'Illustrations', icon: Icons.Image },
+    { id: 'material' as ActiveSource, label: 'Material', icon: Icons.Layers },
+    { id: 'lucide' as ActiveSource, label: 'Lucide', icon: Icons.Zap },
+    { id: 'phosphor' as ActiveSource, label: 'Phosphor', icon: Icons.Sparkles },
   ];
 
   const quickSearchTerms =
     activeSource === 'icons'
       ? ['arrow', 'star', 'heart', 'user', 'home', 'search', 'settings', 'check']
-      : ['business', 'technology', 'nature', 'food', 'sport', 'music', 'travel', 'health'];
+      : activeSource === 'material'
+        ? ['home', 'search', 'settings', 'person', 'delete', 'add', 'close', 'menu']
+        : activeSource === 'lucide'
+          ? ['arrow', 'star', 'heart', 'user', 'home', 'search', 'settings', 'check']
+          : activeSource === 'phosphor'
+            ? ['arrow', 'star', 'heart', 'user', 'home', 'search', 'settings', 'check']
+            : ['business', 'technology', 'nature', 'food', 'sport', 'music', 'travel', 'health'];
 
   const handleDragStart = useCallback((e: React.DragEvent, item: ShapePreset) => {
     setDragData(item);
@@ -376,7 +424,9 @@ export const ElementsPanel = () => {
               setActiveSource(src.id);
               setRemoteIcons([]);
               setHasSearched(false);
-              setSearchQuery('');
+              if (searchQuery.trim().length >= 2) {
+                setTimeout(() => searchRemoteIcons(searchQuery), 0);
+              }
             }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-bold ${activeSource === src.id ? 'bg-brand-600 text-white' : 'text-gray-500'}`}
           >
@@ -438,11 +488,17 @@ export const ElementsPanel = () => {
                   onClick={() => handleAddRemoteIcon(icon)}
                   className="aspect-square bg-surface-dark-3 border border-gray-800 rounded-xl hover:border-brand-600 flex items-center justify-center p-2 group"
                 >
-                  <img
-                    src={icon.thumbnailUrl}
-                    alt={icon.name}
-                    className="w-full h-full object-contain group-hover:scale-110 transition-transform"
-                  />
+                  {icon.svgData ? (
+                    <div className="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full" dangerouslySetInnerHTML={{ __html: icon.svgData }} />
+                  ) : icon.thumbnailUrl ? (
+                    <img
+                      src={icon.thumbnailUrl}
+                      alt={icon.name}
+                      className="w-full h-full object-contain group-hover:scale-110 transition-transform"
+                    />
+                  ) : (
+                    <span className="text-[8px] text-gray-500 text-center truncate">{icon.name}</span>
+                  )}
                 </button>
               ))}
             </div>

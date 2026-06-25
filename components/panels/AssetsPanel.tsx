@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Icons } from '../../constants';
 import * as unsplashService from '../../services/unsplashService';
+import * as pixabayService from '../../services/pixabayService';
+import * as pexelsService from '../../services/pexelsService';
 import * as freepikService from '../../services/freepikService';
 import { vecteezyService } from '../../services/vecteezyService';
 import { iconScoutService, IconScoutAssetType } from '../../services/iconScoutService';
@@ -15,11 +17,15 @@ interface PhotoItem {
   alt: string;
   author: string;
   authorLink?: string;
-  source: 'unsplash' | 'freepik' | 'vecteezy' | 'iconscout';
+  source: string;
   type?: string;
 }
 
-export const AssetsPanel: React.FC = () => {
+interface AssetsPanelProps {
+  provider?: 'unsplash' | 'pixabay' | 'pexels';
+}
+
+export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
   const addLayer = useStore((state) => state.addLayer);
   const canvasSize = useStore((state) => state.canvasSize);
 
@@ -45,42 +51,69 @@ export const AssetsPanel: React.FC = () => {
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [activeSource, setActiveSource] = useState<'all' | 'unsplash' | 'freepik' | 'vecteezy' | 'iconscout'>('all');
+  const [activeSource, setActiveSource] = useState<string>(provider || 'all');
   const [iconScoutType, setIconScoutType] = useState<IconScoutAssetType>('3d');
 
   useEffect(() => {
+    if (provider) setActiveSource(provider);
+  }, [provider]);
+
+  useEffect(() => {
     handleSearch('abstract');
-  }, []);
+  }, [activeSource]);
 
   const handleSearch = async (searchQuery: string) => {
     setIsLoading(true);
     setHasSearched(true);
     try {
       const combined: PhotoItem[] = [];
+      const q = searchQuery || 'trending';
 
-      if (activeSource === 'all' || activeSource === 'iconscout') {
+      if (activeSource === 'all' || activeSource === 'pixabay') {
         try {
-          const isResults = await iconScoutService.search(searchQuery || 'trending', iconScoutType);
-          isResults.forEach((asset) => {
+          const results = provider === 'pixabay' && !searchQuery
+            ? await pixabayService.getTrending()
+            : await pixabayService.searchPhotos(q);
+          results.forEach((p) => {
             combined.push({
-              id: `is-${asset.uuid}`,
-              url: asset.previewUrl,
-              thumbnail: asset.previewUrl,
-              alt: asset.name,
-              author: asset.author,
-              source: 'iconscout',
-              type: asset.type === 'lottie' ? 'lottie' : 'image',
+              id: `pb-${p.id}`,
+              url: p.url,
+              thumbnail: p.thumbnail,
+              alt: p.alt,
+              author: p.user,
+              source: 'pixabay',
             });
           });
         } catch (e) {
-          log.error('IconScout search failed', e);
+          log.error('[AssetsPanel] Pixabay search failed', e);
+        }
+      }
+
+      if (activeSource === 'all' || activeSource === 'pexels') {
+        try {
+          const results = provider === 'pexels' && !searchQuery
+            ? await pexelsService.getCurated()
+            : await pexelsService.searchPhotos(q);
+          results.forEach((p) => {
+            combined.push({
+              id: `px-${p.id}`,
+              url: p.url,
+              thumbnail: p.thumbnail,
+              alt: p.alt,
+              author: p.photographer,
+              authorLink: p.photographerUrl,
+              source: 'pexels',
+            });
+          });
+        } catch (e) {
+          log.error('[AssetsPanel] Pexels search failed', e);
         }
       }
 
       if (activeSource === 'all' || activeSource === 'unsplash') {
         try {
-          const unsplashResults = await unsplashService.searchPhotos(searchQuery || 'trending');
-          unsplashResults.forEach((p) => {
+          const results = await unsplashService.searchPhotos(q);
+          results.forEach((p) => {
             combined.push({
               id: `us-${p.id}`,
               url: p.url,
@@ -96,28 +129,47 @@ export const AssetsPanel: React.FC = () => {
         }
       }
 
+      if (activeSource === 'all' || activeSource === 'iconscout') {
+        try {
+          const results = await iconScoutService.search(q, iconScoutType);
+          results.forEach((asset) => {
+            combined.push({
+              id: `is-${asset.uuid}`,
+              url: asset.previewUrl,
+              thumbnail: asset.previewUrl,
+              alt: asset.name,
+              author: asset.author,
+              source: 'iconscout',
+              type: asset.type === 'lottie' ? 'lottie' : 'image',
+            });
+          });
+        } catch (e) {
+          log.error('[AssetsPanel] IconScout search failed', e);
+        }
+      }
+
       if (activeSource === 'all' || activeSource === 'freepik') {
         try {
-          const freepikResults = await freepikService.searchResources(searchQuery || 'trending');
-          freepikResults.items.forEach((r) => {
+          const results = await freepikService.searchResources(q);
+          results.items.forEach((r) => {
             combined.push({
               id: `fp-${r.id}`,
               url: r.thumbnailUrl,
-              thumbnail: r.thumbnailUrl || r.thumbnailUrl,
-              alt: (r as any).name || (r as any).title || '',
+              thumbnail: r.thumbnailUrl,
+              alt: (r as any).name || '',
               author: r.author,
               source: 'freepik',
             });
           });
         } catch (e) {
-          log.error('Freepik search failed', e);
+          log.error('[AssetsPanel] Freepik search failed', e);
         }
       }
 
       if (activeSource === 'all' || activeSource === 'vecteezy') {
         try {
-          const vecteezyResults = await vecteezyService.searchResources(searchQuery || 'trending');
-          vecteezyResults.forEach((r) => {
+          const results = await vecteezyService.searchResources(q);
+          results.forEach((r) => {
             combined.push({
               id: `vz-${r.id}`,
               url: r.preview_url,
@@ -128,30 +180,21 @@ export const AssetsPanel: React.FC = () => {
             });
           });
         } catch (e) {
-          log.error('Vecteezy search failed', e);
+          log.error('[AssetsPanel] Vecteezy search failed', e);
         }
       }
 
-      // Interleave results from all active sources for variety
       if (activeSource === 'all' && combined.length > 0) {
-        const iconscout = combined.filter((p) => p.source === 'iconscout');
-        const unsplash = combined.filter((p) => p.source === 'unsplash');
-        const freepik = combined.filter((p) => p.source === 'freepik');
-        const vecteezy = combined.filter((p) => p.source === 'vecteezy');
+        const groups: Record<string, PhotoItem[]> = {};
+        combined.forEach((p) => {
+          if (!groups[p.source]) groups[p.source] = [];
+          groups[p.source].push(p);
+        });
+        const maxLen = Math.max(...Object.values(groups).map((g) => g.length));
         const interleaved: PhotoItem[] = [];
-        const maxLen = Math.max(iconscout.length, unsplash.length, freepik.length, vecteezy.length);
         for (let i = 0; i < maxLen; i++) {
-          if (i < iconscout.length) {
-            interleaved.push(iconscout[i]);
-          }
-          if (i < unsplash.length) {
-            interleaved.push(unsplash[i]);
-          }
-          if (i < freepik.length) {
-            interleaved.push(freepik[i]);
-          }
-          if (i < vecteezy.length) {
-            interleaved.push(vecteezy[i]);
+          for (const source of Object.keys(groups)) {
+            if (i < groups[source].length) interleaved.push(groups[source][i]);
           }
         }
         setPhotos(interleaved);
@@ -159,18 +202,20 @@ export const AssetsPanel: React.FC = () => {
         setPhotos(combined);
       }
     } catch (e) {
-      log.error('Search error', e);
+      log.error('[AssetsPanel] Search error', e);
     } finally {
       setIsLoading(false);
     }
   };
 
   const sources = [
-    { id: 'all' as const, label: 'All' },
-    { id: 'iconscout' as const, label: 'IconScout' },
-    { id: 'unsplash' as const, label: 'Unsplash' },
-    { id: 'freepik' as const, label: 'Freepik' },
-    { id: 'vecteezy' as const, label: 'Vecteezy' },
+    { id: 'all', label: 'All' },
+    { id: 'unsplash', label: 'Unsplash' },
+    { id: 'pixabay', label: 'Pixabay' },
+    { id: 'pexels', label: 'Pexels' },
+    { id: 'iconscout', label: 'IconScout' },
+    { id: 'freepik', label: 'Freepik' },
+    { id: 'vecteezy', label: 'Vecteezy' },
   ];
 
   const iconScoutTypes: { id: IconScoutAssetType; label: string }[] = [
@@ -180,34 +225,50 @@ export const AssetsPanel: React.FC = () => {
     { id: 'lottie', label: 'Lottie' },
   ];
 
+  const sourceColors: Record<string, string> = {
+    iconscout: 'bg-blue-500/30 text-blue-300',
+    unsplash: 'bg-white/20 text-white',
+    pixabay: 'bg-cyan-500/30 text-cyan-300',
+    pexels: 'bg-teal-500/30 text-teal-300',
+    freepik: 'bg-emerald-500/30 text-emerald-300',
+    vecteezy: 'bg-orange-500/30 text-orange-300',
+  };
+
+  const sourceLabels: Record<string, string> = {
+    iconscout: 'IS',
+    unsplash: 'U',
+    pixabay: 'PB',
+    pexels: 'PX',
+    freepik: 'F',
+    vecteezy: 'V',
+  };
+
   return (
     <div className="flex flex-col h-full bg-[#13161a] p-4 overflow-hidden">
       <h3 className="font-bold text-white mb-4 flex items-center gap-2">
         <Icons.Image className="w-5 h-5 text-accent" />
-        Pro Photos
+        {provider ? `${provider.charAt(0).toUpperCase() + provider.slice(1)} Photos` : 'Pro Photos'}
       </h3>
 
-      {/* Source Tabs */}
-      <div className="flex gap-1 mb-3 p-0.5 bg-[#1a1a1a] rounded-lg">
-        {sources.map((src) => (
-          <button
-            key={src.id}
-            onClick={() => {
-              setActiveSource(src.id);
-              if (hasSearched) {
-                handleSearch(query || 'nature');
-              }
-            }}
-            className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-              activeSource === src.id ? 'bg-accent text-white' : 'text-gray-500 hover:text-gray-300'
-            }`}
-          >
-            {src.label}
-          </button>
-        ))}
-      </div>
+      {!provider && (
+        <div className="flex gap-1 mb-3 p-0.5 bg-[#1a1a1a] rounded-lg overflow-x-auto">
+          {sources.map((src) => (
+            <button
+              key={src.id}
+              onClick={() => {
+                setActiveSource(src.id);
+                if (hasSearched) handleSearch(query || 'nature');
+              }}
+              className={`flex-shrink-0 py-1.5 px-2 rounded-md text-[10px] font-bold transition-all ${
+                activeSource === src.id ? 'bg-accent text-white' : 'text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              {src.label}
+            </button>
+          ))}
+        </div>
+      )}
 
-      {/* IconScout Type Selector */}
       {(activeSource === 'iconscout' || activeSource === 'all') && (
         <div className="flex gap-1 mb-4 p-0.5 bg-[#1a1a1a] rounded-lg">
           {iconScoutTypes.map((type) => (
@@ -215,9 +276,7 @@ export const AssetsPanel: React.FC = () => {
               key={type.id}
               onClick={() => {
                 setIconScoutType(type.id);
-                if (hasSearched) {
-                  handleSearch(query || 'trending');
-                }
+                if (hasSearched) handleSearch(query || 'trending');
               }}
               className={`flex-1 py-1.5 rounded-md text-[9px] font-medium transition-all ${
                 iconScoutType === type.id
@@ -282,23 +341,9 @@ export const AssetsPanel: React.FC = () => {
                       )}
                     </div>
                     <span
-                      className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${
-                        photo.source === 'iconscout'
-                          ? 'bg-blue-500/30 text-blue-300'
-                          : photo.source === 'unsplash'
-                            ? 'bg-white/20 text-white'
-                            : photo.source === 'freepik'
-                              ? 'bg-emerald-500/30 text-emerald-300'
-                              : 'bg-orange-500/30 text-orange-300'
-                      }`}
+                      className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${sourceColors[photo.source] || 'bg-gray-500/30 text-gray-300'}`}
                     >
-                      {photo.source === 'iconscout'
-                        ? 'IS'
-                        : photo.source === 'unsplash'
-                          ? 'U'
-                          : photo.source === 'freepik'
-                            ? 'F'
-                            : 'V'}
+                      {sourceLabels[photo.source] || photo.source.slice(0, 2).toUpperCase()}
                     </span>
                   </div>
                 </div>
