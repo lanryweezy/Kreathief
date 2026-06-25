@@ -175,7 +175,15 @@
     "templateName": "High-Contrast Amapiano Sundays Print Flyer",
     "shortDescription": "Pack the dancefloor with this striking, high-energy A4 event flyer.",
     "longDescription": "A bold, high-contrast A4 print flyer designed specifically for the South African music scene. Features deep blacks, vibrant neon accents, and massive typography to ensure the event name and lineup are readable from a distance on street poles or venue walls.",
-    "tags": ["Print", "Flyer", "Bold", "Music & Entertainment", "Events", "African Market", "Nightlife"],
+    "tags": [
+      "Print",
+      "Flyer",
+      "Bold",
+      "Music & Entertainment",
+      "Events",
+      "African Market",
+      "Nightlife"
+    ],
     "searchKeywords": [
       "amapiano sundays flyer",
       "south african party poster",
@@ -184,7 +192,9 @@
       "high contrast event flyer",
       "johannesburg club event",
       "bold music poster",
-      "weekend party flyer"
+      "weekend party flyer",
+      "amapiano event",
+      "party flyer"
     ],
     "seoMetadata": {
       "title": "High-Contrast Amapiano Sundays Print Flyer — Free Template",
@@ -192,8 +202,16 @@
       "slug": "high-contrast-amapiano-sundays-print-flyer"
     },
     "personalisationSignals": {
-      "industry": ["music", "nightlife", "events"],
-      "audienceType": ["event promoter", "club owner", "DJ"],
+      "industry": [
+        "music",
+        "nightlife",
+        "events"
+      ],
+      "audienceType": [
+        "event promoter",
+        "club owner",
+        "DJ"
+      ],
       "experienceLevel": "intermediate"
     }
   }
