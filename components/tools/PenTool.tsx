@@ -3,6 +3,7 @@ import { useStore } from '../../store/useStore';
 import { VectorPoint, VectorPath, PointType } from '../../types';
 import { VectorUtils } from '../../utils/vectorUtils';
 import { v4 as uuidv4 } from 'uuid';
+import { useShallow } from 'zustand/react/shallow';
 
 interface PenToolProps {
   zoom: number;
@@ -11,7 +12,18 @@ interface PenToolProps {
 }
 
 export const PenTool: React.FC<PenToolProps> = ({ zoom, panOffset, onPathComplete }) => {
-  const { isPenMode, setPenMode, selectedLayerIds, updateLayer, addShapeLayer, saveToHistory } = useStore();
+  // ⚡ Bolt Optimization: Use useShallow with specific selectors to prevent PenTool from
+  // unnecessarily re-rendering on unrelated global state updates, improving drawing performance.
+  const { isPenMode, setPenMode, selectedLayerIds, updateLayer, addShapeLayer, saveToHistory } = useStore(
+    useShallow((state) => ({
+      isPenMode: state.isPenMode,
+      setPenMode: state.setPenMode,
+      selectedLayerIds: state.selectedLayerIds,
+      updateLayer: state.updateLayer,
+      addShapeLayer: state.addShapeLayer,
+      saveToHistory: state.saveToHistory,
+    }))
+  );
 
   const [currentPath, setCurrentPath] = useState<VectorPath>({ points: [], isClosed: false });
   const [hoveredPoint, setHoveredPoint] = useState<string | null>(null);
