@@ -1601,3 +1601,5 @@ export const GitCommit = Code;
 export const GitMerge = Union;
 export const Maximize2 = Maximize;
 export const Palette = Brush;
+export const DollarSign = Zap;
+export const Package = Box;

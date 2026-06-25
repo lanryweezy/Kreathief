@@ -85,7 +85,7 @@ export const MobileLayerItem: React.FC<MobileLayerItemProps> = ({
       {/* Layer Info */}
       <div className="flex-1 min-w-0">
         <h4 className={`text-base font-semibold truncate ${isSelected ? 'text-white' : 'text-gray-300'}`}>
-          {layer.name || `${layer.type} Layer`}
+          {String(layer.name || `${layer.type} Layer`)}
         </h4>
         <p className="text-sm text-gray-500 capitalize">{layer.type}</p>
       </div>

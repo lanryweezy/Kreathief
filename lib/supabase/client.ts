@@ -26,3 +26,9 @@ export const supabase = createClient<Database>(
 
 // Untyped alias used by services for runtime dynamic queries
 export const db = supabase as any;
+
+// Completely untyped client for new tables not in Database type
+export const untypedDb = createClient(
+  supabaseConfig.url || 'https://placeholder.supabase.co',
+  supabaseConfig.anonKey || 'placeholder-key'
+);

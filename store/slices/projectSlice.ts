@@ -294,7 +294,7 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
           y: 0,
           width: project.state.canvasSize?.width || 1080,
           height: project.state.canvasSize?.height || 1080,
-          layers: (project.state as any).layers || [],
+          layers: sanitizeArtboardLayers([{ layers: (project.state as any).layers || [] }])[0]?.layers || [],
         },
       ];
       activeArtboardId = 'default';
@@ -303,7 +303,7 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
       artboards = [
         {
           ...artboards[0],
-          layers: (project.state as any).layers,
+          layers: Array.isArray((project.state as any).layers) ? (project.state as any).layers.map(sanitizeLayer) : [],
         },
         ...artboards.slice(1),
       ];

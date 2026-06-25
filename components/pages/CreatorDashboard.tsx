@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '../Button';
 import { ErrorBoundary } from '../ErrorBoundary';
-import { supabase } from '../../lib/supabase/client';
+import { untypedDb } from '../../lib/supabase/client';
 import { Icons } from '../../constants';
 
 interface Asset {
   id: string;
   title: string;
-  status: 'pending' | 'published' | 'rejected';
-  downloads: number;
+  Status: 'pending' | 'published' | 'rejected';
+  Downloads_count: number;
   created_at: string;
 }
 
@@ -26,21 +26,21 @@ const CreatorDashboardInner: React.FC = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await untypedDb.auth.getUser();
       if (!user) return;
 
-      const { data: assetsData } = await supabase
+      const { data: assetsData } = await untypedDb
         .from('assets')
         .select('*')
         .eq('creator_id', user.id)
         .order('created_at', { ascending: false });
 
       if (assetsData) {
-        setAssets(assetsData);
+        setAssets((assetsData as any) || []);
         setStats({
-          totalDownloads: assetsData.reduce((sum, a) => sum + (a.downloads || 0), 0),
-          totalEarnings: assetsData.reduce((sum, a) => sum + ((a.downloads || 0) * (a.price || 0)), 0),
-          activeAssets: assetsData.filter((a) => a.status === 'published').length,
+          totalDownloads: assetsData.reduce((sum: number, a: any) => sum + (a.Downloads_count || 0), 0),
+          totalEarnings: assetsData.reduce((sum: number, a: any) => sum + ((a.Downloads_count || 0) * (a.Price || 0)), 0),
+          activeAssets: assetsData.filter((a) => a.Status === 'published').length,
         });
       }
     } catch (err) {
@@ -58,7 +58,7 @@ const CreatorDashboardInner: React.FC = () => {
     { label: 'Active Assets', value: stats.activeAssets, icon: Icons.Package },
   ];
 
-  const statusColors: Record<string, string> = {
+  const StatusColors: Record<string, string> = {
     pending: 'bg-yellow-500/20 text-yellow-400',
     published: 'bg-green-500/20 text-green-400',
     rejected: 'bg-red-500/20 text-red-400',
@@ -86,7 +86,7 @@ const CreatorDashboardInner: React.FC = () => {
             <div
               key={stat.label}
               className="bg-surface-dark-2 border border-white/10 rounded-xl p-6"
-              role="status"
+              role="Status"
               aria-label={`${stat.label}: ${stat.value}`}
             >
               <div className="flex items-center gap-3 mb-3">
@@ -119,10 +119,10 @@ const CreatorDashboardInner: React.FC = () => {
                 <div key={asset.id} className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors">
                   <div className="flex-1 min-w-0">
                     <p className="text-white font-medium truncate">{asset.title}</p>
-                    <p className="text-sm text-gray-400">{asset.downloads} downloads</p>
+                    <p className="text-sm text-gray-400">{asset.Downloads_count} Downloads_count</p>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[asset.status]}`}>
-                    {asset.status}
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${StatusColors[asset.Status]}`}>
+                    {asset.Status}
                   </span>
                 </div>
               ))}

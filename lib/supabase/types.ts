@@ -46,6 +46,50 @@ export interface Database {
           updated_at?: string;
         };
       };
+      assets: {
+        Row: {
+          id: string;
+          creator_id: string;
+          title: string;
+          description: string | null;
+          category: string | null;
+          tags: string[];
+          file_url: string;
+          thumbnail_url: string | null;
+          price: number;
+          downloads: number;
+          status: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          creator_id: string;
+          title: string;
+          description?: string | null;
+          category?: string | null;
+          tags?: string[];
+          file_url: string;
+          thumbnail_url?: string | null;
+          price?: number;
+          downloads?: number;
+          status?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          creator_id?: string;
+          title?: string;
+          description?: string | null;
+          category?: string | null;
+          tags?: string[];
+          file_url?: string;
+          thumbnail_url?: string | null;
+          price?: number;
+          downloads?: number;
+          status?: string;
+          created_at?: string;
+        };
+      };
       projects: {
         Row: {
           id: string;

@@ -138,8 +138,8 @@ export const creatorService = {
       if (error) throw error;
 
       const totalAssets = assets?.length || 0;
-      const totalDownloads = assets?.reduce((sum, a) => sum + (a.downloads || 0), 0) || 0;
-      const totalEarnings = assets?.reduce((sum, a) => sum + ((a.downloads || 0) * (a.price || 0)), 0) || 0;
+      const totalDownloads = assets?.reduce((sum: number, a: any) => sum + (a.downloads || 0), 0) || 0;
+      const totalEarnings = assets?.reduce((sum: number, a: any) => sum + ((a.downloads || 0) * (a.price || 0)), 0) || 0;
 
       return { totalAssets, totalDownloads, totalEarnings };
     } catch (error) {

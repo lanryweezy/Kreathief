@@ -127,7 +127,7 @@ const LayerItem = React.memo(
             <div className="flex items-center gap-2">
               {layer.maskLayerId && <Icons.ArrowRight className="w-2.5 h-2.5 text-brand-600 rotate-90" />}
               <span className={`text-xs truncate ${isSelected ? 'text-white font-bold' : 'text-gray-400'}`}>
-                {layer.name || getLayerNameFallback(layer)}
+                {String(layer.name || getLayerNameFallback(layer))}
               </span>
             </div>
           </div>
