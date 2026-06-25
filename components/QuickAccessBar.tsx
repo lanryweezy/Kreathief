@@ -87,6 +87,7 @@ export const QuickAccessBar: React.FC<QuickAccessBarProps> = ({
         disabled ? 'opacity-30 cursor-not-allowed text-gray-600' : 'text-gray-400 hover:text-white hover:bg-gray-700'
       }`}
       title={title}
+      aria-label={title}
     >
       {children}
     </button>
@@ -136,6 +137,7 @@ export const QuickAccessBar: React.FC<QuickAccessBarProps> = ({
           onClick={() => onZoomChange(Math.max(0.1, zoom - 0.1))}
           className="p-1 text-gray-400 hover:text-white hover:bg-gray-600 rounded transition-colors"
           title="Zoom Out"
+          aria-label="Zoom Out"
         >
           <SimpleIcons.ZoomOut />
         </button>
@@ -144,6 +146,7 @@ export const QuickAccessBar: React.FC<QuickAccessBarProps> = ({
           onClick={() => onZoomChange(Math.min(3, zoom + 0.1))}
           className="p-1 text-gray-400 hover:text-white hover:bg-gray-600 rounded transition-colors"
           title="Zoom In"
+          aria-label="Zoom In"
         >
           <SimpleIcons.ZoomIn />
         </button>

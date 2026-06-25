@@ -95,6 +95,7 @@ export const ShortcutOverlay: React.FC<ShortcutOverlayProps> = ({ isOpen, onClos
           <button
             onClick={onClose}
             className="p-2 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all"
+            aria-label="Close shortcuts"
           >
             <Icons.X className="w-4 h-4" />
           </button>
