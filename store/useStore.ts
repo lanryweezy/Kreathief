@@ -10,6 +10,7 @@ import { createBrandSlice, BrandSlice } from './slices/brandSlice';
 import { createAgentSlice, AgentSlice } from './slices/agentSlice';
 import { createCollaborationSlice, CollaborationSlice } from './slices/collaborationSlice';
 import { createAIAssistantSlice, AIAssistantSlice } from './slices/aiAssistantSlice';
+import { DEFAULT_CANVAS_FILTERS, DEFAULT_CANVAS_SIZE } from './slices/canvasSlice';
 
 // Merged type for the full store state
 export type StoreState = UISlice &
@@ -25,20 +26,6 @@ export type StoreState = UISlice &
   AIAssistantSlice & {
     reset: () => void;
   };
-
-const DEFAULT_CANVAS_FILTERS = {
-  brightness: 100,
-  contrast: 100,
-  saturation: 100,
-  sepia: 0,
-  grayscale: 0,
-  blur: 0,
-  opacity: 1,
-  vignette: 0,
-  hueRotate: 0,
-} as const;
-
-const DEFAULT_CANVAS_SIZE = { width: 1080, height: 1080, name: 'Square' } as const;
 
 // Combine all slices into a single store with full type safety
 export const useStore = create<StoreState>()((set, get, store) => ({

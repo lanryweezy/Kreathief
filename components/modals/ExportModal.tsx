@@ -172,6 +172,18 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         ? { width: Math.round(preset.width * scale), height: Math.round(preset.height * scale) }
         : { width: Math.round(currentSize.width * scale), height: Math.round(currentSize.height * scale) };
 
+      // Enforce browser canvas size limits (~16384px max)
+      const MAX_CANVAS_DIM = 16384;
+      if (size.width > MAX_CANVAS_DIM || size.height > MAX_CANVAS_DIM) {
+        addToast(
+          `Canvas too large (${size.width}x${size.height}). Max is ${MAX_CANVAS_DIM}px. Reduce DPI or scale.`,
+          'error'
+        );
+        setIsExporting(false);
+        setExportStage('');
+        return;
+      }
+
       setExportStage('Rendering design...');
 
       // 🌸 Bloom: Handle empty filename edge case by providing a safe fallback instead of failing
@@ -179,10 +191,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
       // Handle print mode PDF export separately
       if (format === 'pdf' && isPrintMode) {
-        // For print mode, we need to get the canvas data URL first
-        await onExport(format, quality, size, false, safeCustomFilename + '_print');
-        // The actual print PDF export would be handled by the parent component
-        // with the exportToPrintPDF function
+        const printOptions = { colorProfile, bleed, cropMarks };
+        await onExport(format, quality, size, false, safeCustomFilename + '_print', undefined, printOptions);
       } else {
         await onExport(format, quality, size, transparentBg && format === 'png', safeCustomFilename);
       }
@@ -302,12 +312,15 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     setExportStage(`Exporting ${selectedLayerIds.length} layer(s)...`);
     try {
       const safeCustomFilename = filename.trim() || 'design';
+      const activeArtboard = artboards.find((a) => a.id === activeArtboardId);
+      const selectedLayers = activeArtboard?.layers.filter((l) => selectedLayerIds.includes(l.id)) || [];
       await onExport(
         format,
         quality,
         { width: currentSize.width, height: currentSize.height },
         transparentBg && format === 'png',
-        `${safeCustomFilename}-selection`
+        `${safeCustomFilename}-selection`,
+        selectedLayers
       );
       addToast(`Selection exported as ${format.toUpperCase()}!`, 'success');
       setTimeout(() => onClose(), 300);

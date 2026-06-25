@@ -8,7 +8,7 @@ import { log } from '../utils/log';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Layer, ImageLayer } from '../types';
 import { maskWorkerService } from '../services/maskWorkerService';
-import { heavyWorkerService } from '../services/heavyWorkerService';
+import { heavyService } from '../services/heavyService';
 
 export const useProcessedImage = (layer: ImageLayer | null) => {
   const [processedUrl, setProcessedUrl] = useState<string | null>(null);
@@ -48,7 +48,7 @@ export const useProcessedImage = (layer: ImageLayer | null) => {
     let isMounted = true;
     const timeout = setTimeout(() => {
       setIsProcessing(true);
-      heavyWorkerService
+      heavyService
         .applyFilters(layer.src, layer.filters!)
         .then((url) => {
           if (isMounted) {

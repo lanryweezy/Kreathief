@@ -44,20 +44,26 @@ export async function loadFont(fontFamily: string): Promise<boolean> {
     const endTimer = logger.time(`Loading font: ${cleanFamily}`);
 
     // Try to load local font files with allSettled (accept partial loads)
+    // Pre-check if font files exist to avoid browser "Failed to decode" warnings
     const localPromises = LOCAL_FONT_WEIGHTS.map((weight) => {
       return new Promise<void>((resolve) => {
-        const fontFace = new FontFace(cleanFamily, `url(/fonts/${cleanFamily.replace(/ /g, '-')}-${weight}.woff2)`, {
-          weight: weight as any,
-          style: 'normal',
-        });
-
-        fontFace
-          .load()
-          .then((loaded) => {
-            (document.fonts as any).add(loaded);
-            resolve();
+        const fontUrl = `/fonts/${cleanFamily.replace(/ /g, '-')}-${weight}.woff2`;
+        // Quick check if font file exists before attempting load
+        fetch(fontUrl, { method: 'HEAD' })
+          .then((res) => {
+            if (!res.ok) { resolve(); return; } // File doesn't exist, skip silently
+            const fontFace = new FontFace(cleanFamily, `url(${fontUrl})`, {
+              weight: weight as any,
+              style: 'normal',
+            });
+            fontFace.load()
+              .then((loaded) => {
+                (document.fonts as any).add(loaded);
+                resolve();
+              })
+              .catch(() => resolve());
           })
-          .catch(() => resolve()); // Don't reject - accept partial loads
+          .catch(() => resolve()); // Network error - skip silently
       });
     });
 

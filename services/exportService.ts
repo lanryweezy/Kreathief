@@ -69,6 +69,10 @@ export const exportToPrintPDF = async (
           if (!error) {
             const { data } = supabase.storage.from('exports').getPublicUrl(tempFileName);
             imageUrlToProcess = data.publicUrl;
+            // Clean up temp file after export completes (fire-and-forget)
+            setTimeout(() => {
+              supabase.storage.from('exports').remove([tempFileName]).catch(() => {});
+            }, 60000);
           }
         }
 
@@ -177,8 +181,9 @@ export const exportToLayeredPSD = async (width: number, height: number, layers: 
         left: origX,
         top: origY,
         canvas: canvas,
-        opacity: layer.opacity,
+        opacity: Math.round((layer.opacity ?? 1) * 255),
         hidden: !layer.visible,
+        blendMode: (layer as any).blendMode || 'normal',
       });
     }
   }
@@ -314,7 +319,9 @@ export const exportToSVG = (width: number, height: number, backgroundColor: stri
   svgParts.push(...gradientDefs);
   svgParts.push(`  </defs>`);
 
-  svgParts.push(`  <rect x="0" y="0" width="${round2(width)}" height="${round2(height)}" fill="${backgroundColor}" />`);
+  if (backgroundColor !== 'transparent') {
+    svgParts.push(`  <rect x="0" y="0" width="${round2(width)}" height="${round2(height)}" fill="${backgroundColor}" />`);
+  }
 
   for (const layer of layers) {
     if (!layer.visible) {
@@ -341,7 +348,7 @@ export const exportToSVG = (width: number, height: number, backgroundColor: stri
           shape = `<rect x="${round2(-sl.width / 2)}" y="${round2(-sl.height / 2)}" width="${round2(sl.width)}" height="${round2(sl.height)}" fill="${fill}" />`;
         }
       } else if (sl.type === 'circle') {
-        shape = `<circle cx="0" cy="0" r="${round2(sl.width / 2)}" fill="${sl.color}" />`;
+        shape = `<circle cx="0" cy="0" r="${round2(sl.width / 2)}" fill="${fill}" />`;
       } else if (sl.type === 'path' && sl.pathData) {
         const sw = round2((sl as any).stroke?.width || 0);
         const strokeColor = (sl as any).stroke?.color || sl.color;
@@ -381,9 +388,10 @@ export const exportToSVG = (width: number, height: number, backgroundColor: stri
       );
     } else if (layer.type === 'image') {
       const il = layer as ImageLayer;
+      const safeSrc = escapeXml(il.src || '');
       svgParts.push(
         `  <g transform="${transform}" opacity="${opacity}">` +
-          `<image href="${il.src}" x="${round2(-il.width / 2)}" y="${round2(-il.height / 2)}" width="${round2(il.width)}" height="${round2(il.height)}" />` +
+          `<image href="${safeSrc}" x="${round2(-il.width / 2)}" y="${round2(-il.height / 2)}" width="${round2(il.width)}" height="${round2(il.height)}" />` +
           `</g>`
       );
     }
@@ -394,17 +402,18 @@ export const exportToSVG = (width: number, height: number, backgroundColor: stri
 };
 
 function escapeXml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 }
 
 /* --- HELPER FUNCTIONS --- */
 
-const loadImage = (url: string): Promise<HTMLImageElement> => {
+const loadImage = (url: string, timeoutMs = 30000): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`Image load timed out after ${timeoutMs}ms: ${url}`)), timeoutMs);
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = () => resolve(img);
-    img.onerror = (e) => reject(e);
+    img.onload = () => { clearTimeout(timer); resolve(img); };
+    img.onerror = (e) => { clearTimeout(timer); reject(e); };
     img.src = url;
   });
 };
@@ -617,9 +626,6 @@ export const batchExportArtboards = async (
       downloadBlob(blob, `${filename}.png`);
     }
 
-    if (i < artboards.length - 1) {
-      await new Promise((r) => setTimeout(r, 300));
-    }
   }
 };
 

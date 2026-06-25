@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Project, User } from '../types';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Project, User, CanvasSize } from '../types';
 import { Icons } from '../constants';
 import { STARTER_TEMPLATES, createProjectFromTemplate } from '../data/templates';
 import { ConfirmModal } from './modals/ConfirmModal';
@@ -10,6 +10,8 @@ import { useShallow } from 'zustand/react/shallow';
 import CommunityTemplates from './CommunityTemplates';
 import { EmptyState } from './EmptyState';
 import { Button } from './Button';
+import * as geminiService from '../services/geminiService';
+import { log } from '../utils/log';
 
 interface DashboardProps {
   user: User;
@@ -55,6 +57,69 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   const [isLoading, setIsLoading] = useState(true);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+
+  // AI Prompt state
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [selectedFormat, setSelectedFormat] = useState(0);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const aiInputRef = useRef<HTMLTextAreaElement>(null);
+
+  const FORMAT_OPTIONS: { label: string; size: CanvasSize }[] = [
+    { label: 'Instagram Post', size: { width: 1080, height: 1080, name: 'Instagram Post' } },
+    { label: 'Story / Reel', size: { width: 1080, height: 1920, name: 'Story / Reel' } },
+    { label: 'YouTube Thumbnail', size: { width: 1280, height: 720, name: 'YouTube Thumbnail' } },
+    { label: 'Facebook Post', size: { width: 1200, height: 630, name: 'Facebook Post' } },
+    { label: 'Logo', size: { width: 1080, height: 1080, name: 'Logo' } },
+    { label: 'Presentation', size: { width: 1920, height: 1080, name: 'Presentation' } },
+  ];
+
+  const STYLE_SUGGESTIONS = [
+    'Modern minimalist', 'Bold and vibrant', 'Elegant luxury',
+    'Neon cyberpunk', 'Warm earthy tones', 'Clean corporate',
+  ];
+
+  const handleAIGenerate = useCallback(async () => {
+    if (!aiPrompt.trim() || isGenerating) return;
+    setIsGenerating(true);
+    const format = FORMAT_OPTIONS[selectedFormat];
+    try {
+      addToast('Generating your design...', 'info');
+      const enhancedPrompt = `${aiPrompt.trim()}. Style: professional, high quality, suitable for ${format.label}. Clean composition, good typography.`;
+      const aspectRatio = format.size.width > format.size.height ? '16:9' : format.size.width === format.size.height ? '1:1' : '9:16';
+      const imageUrl = await geminiService.generateImage(enhancedPrompt, aspectRatio, 'standard');
+
+      const imageLayer = {
+        id: `ai_img_${Date.now()}`, type: 'image' as const, name: 'AI Generated',
+        src: imageUrl, x: 0, y: 0, width: format.size.width, height: format.size.height,
+        rotation: 0, opacity: 1, locked: false, visible: true, flipX: false, flipY: false,
+        filters: { brightness: 100, contrast: 100, saturation: 100, grayscale: 0, sepia: 0, blur: 0, hueRotate: 0, vignette: 0, opacity: 1 },
+        blendMode: 'normal', skewX: 0, skewY: 0, perspective: 0, rotateX: 0, rotateY: 0,
+      };
+
+      const title = aiPrompt.trim().length > 40 ? aiPrompt.trim().slice(0, 40) + '...' : aiPrompt.trim();
+      const initialState = {
+        artboards: [{ id: 'default', name: 'Artboard 1', x: 0, y: 0, width: format.size.width, height: format.size.height, layers: [imageLayer] }],
+        activeArtboardId: 'default', canvasBackgroundColor: '#ffffff',
+        canvasFilters: { brightness: 100, contrast: 100, saturation: 100, sepia: 0, grayscale: 0, blur: 0, opacity: 1, vignette: 0, hueRotate: 0 },
+        canvasSize: format.size,
+      };
+
+      const projectId = await createProject(title, format.size, initialState);
+      const allProjects = useStore.getState().projects;
+      const created = allProjects.find((p) => p.id === projectId);
+      if (created) {
+        loadProject(created.id);
+        addToast('Design created! Opening editor...', 'success');
+        onOpenProject(created);
+      }
+    } catch (error) {
+      log.error('[DashboardAI] Generation failed', error);
+      addToast('Generation failed. Please try again.', 'error');
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [aiPrompt, selectedFormat, isGenerating, createProject, loadProject, addToast, onOpenProject]);
 
   useEffect(() => {
     loadAllProjects().then(() => setIsLoading(false));
@@ -288,6 +353,62 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12 custom-scrollbar">
           <div className="max-w-[1600px] mx-auto">
+            {/* AI Prompt */}
+            <div className="relative mb-8">
+              <div className="max-w-3xl mx-auto">
+                <div className="text-center mb-6">
+                  <h2 className="text-xl md:text-2xl font-black text-white mb-2 tracking-tight">What do you want to create?</h2>
+                  <p className="text-xs text-muted-light font-medium">Describe your vision and AI will bring it to life</p>
+                </div>
+                <div className="relative group">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-brand-600/20 via-accent/20 to-brand-600/20 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
+                  <div className="relative bg-surface-dark-1 border border-white/10 rounded-2xl p-4 group-focus-within:border-brand-500/50 transition-colors">
+                    <textarea
+                      ref={aiInputRef}
+                      value={aiPrompt}
+                      onChange={(e) => setAiPrompt(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAIGenerate(); } }}
+                      onFocus={() => setShowSuggestions(true)}
+                      onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                      placeholder="A bold fitness gym ad with dark background and neon accents..."
+                      rows={2}
+                      className="w-full bg-transparent text-white text-sm md:text-base placeholder:text-muted resize-none focus:outline-none font-medium leading-relaxed"
+                      disabled={isGenerating}
+                    />
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {FORMAT_OPTIONS.map((format, idx) => (
+                          <button key={format.label} onClick={() => setSelectedFormat(idx)}
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${selectedFormat === idx ? 'bg-brand-600 text-white shadow-glow-brand' : 'bg-white/5 text-muted hover:bg-white/10 hover:text-white'}`}>
+                            {format.label}
+                          </button>
+                        ))}
+                      </div>
+                      <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                        onClick={handleAIGenerate} disabled={!aiPrompt.trim() || isGenerating}
+                        className="px-6 py-2.5 bg-gradient-to-r from-brand-600 to-accent rounded-xl text-white text-[11px] font-black uppercase tracking-widest disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-glow-brand hover:shadow-xl transition-shadow ml-3 shrink-0">
+                        {isGenerating ? (<><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Generating</>) : (<><Icons.Magic className="w-4 h-4" />Generate</>)}
+                      </motion.button>
+                    </div>
+                  </div>
+                </div>
+                <AnimatePresence>
+                  {showSuggestions && !aiPrompt && (
+                    <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+                      className="mt-3 flex items-center gap-2 flex-wrap justify-center">
+                      <span className="text-[10px] text-muted font-bold uppercase tracking-wider">Try:</span>
+                      {STYLE_SUGGESTIONS.map((s) => (
+                        <button key={s} onMouseDown={(e) => { e.preventDefault(); setAiPrompt((prev) => prev ? `${prev}, ${s.toLowerCase()}` : s); setShowSuggestions(false); aiInputRef.current?.focus(); }}
+                          className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] text-muted-light hover:text-white hover:border-brand-500/50 transition-all font-medium">
+                          {s}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+
             <div className="flex items-start sm:items-center justify-between gap-4 mb-8 flex-col sm:flex-row">
               <div
                 className="text-xl md:text-2xl font-bold flex items-center gap-3 md:gap-4 overflow-x-auto whitespace-nowrap pb-2 sm:pb-0 w-full sm:w-auto custom-scrollbar"

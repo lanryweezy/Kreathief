@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(({ mode }) => {
-  loadEnv(mode, '.', '');
+  const env = loadEnv(mode, '.', '');
   return {
     plugins: [
       react(),
@@ -80,14 +80,12 @@ export default defineConfig(({ mode }) => {
       },
     },
     define: {
-      'process.env.API_KEY': JSON.stringify(''),
+      'process.env.API_KEY': JSON.stringify(env.VITE_API_KEY || ''),
     },
     optimizeDeps: {
       include: ['onnxruntime-web'],
       exclude: ['@imgly/background-removal'],
     },
-    ssr: {
-      noExternal: ['onnxruntime-web'],
-    },
+
   };
 });

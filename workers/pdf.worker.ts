@@ -66,7 +66,7 @@ self.onmessage = async (e: MessageEvent) => {
   <rdf:Description rdf:about="" xmlns:pdfx="http://ns.adobe.com/pdfx/1.3/">
    <pdfx:ColorProfile>${colorProfile}</pdfx:ColorProfile>
    <pdfx:Quality>${quality}</pdfx:Quality>
-   <pdfx:CreationDate>${timestamp}</pdfx:Quality>
+   <pdfx:CreationDate>${timestamp}</pdfx:CreationDate>
   </rdf:Description>
  </rdf:RDF>
 </x:xmpmeta>

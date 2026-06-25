@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '../Button';
 import { Input } from '../Input';
 import { ModalWrapper } from './ModalWrapper';
-import { untypedDb } from '../../lib/supabase/client';
+import { db } from '../../lib/supabase/client';
 import { Icons } from '../../constants';
 
 interface AssetUploadModalProps {
@@ -51,13 +51,13 @@ export const AssetUploadModal: React.FC<AssetUploadModalProps> = React.memo(({ i
     setIsSubmitting(true);
     setError('');
     try {
-      const { data: { user } } = await untypedDb.auth.getUser();
+      const { data: { user } } = await db.auth.getUser();
       if (!user) throw new Error('Not authenticated');
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-      const { error: uploadError } = await untypedDb.storage.from('assets').upload(fileName, file);
+      const { error: uploadError } = await db.storage.from('assets').upload(fileName, file);
       if (uploadError) throw uploadError;
-      const { error: dbError } = await untypedDb.from('assets').insert({
+      const { error: dbError } = await db.from('assets').insert({
         creator_id: user.id,
         title: title.trim(),
         category,

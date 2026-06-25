@@ -193,11 +193,19 @@ class CollaborationService {
       return;
     }
 
+    const presence = this.channel.presenceState();
+    const myKey = Object.keys(presence).find((key) => {
+      const presences = presence[key];
+      return Array.isArray(presences) && presences.length > 0 && presences[0].userId;
+    });
+    const userId = myKey ? presence[myKey][0].userId : 'unknown';
+
     this.channel.send({
       type: 'broadcast',
       event: 'layer_change',
       payload: {
         ...change,
+        userId,
         timestamp: Date.now(),
       },
     });

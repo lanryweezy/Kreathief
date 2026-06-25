@@ -37,7 +37,7 @@ export const communityService = {
       }
 
       const orderCol = sortBy === 'newest' ? 'created_at' : sortBy === 'downloads' ? 'downloads' : 'likes';
-      q = q.order(orderCol, { ascending: sortBy === 'newest' ? false : false });
+      q = q.order(orderCol, { ascending: sortBy === 'newest' ? false : true });
 
       const { data, error } = await q;
       if (error) throw error;

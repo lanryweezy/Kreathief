@@ -87,6 +87,7 @@ export default async function handler(req: any, res: any) {
       // but this basic check covers simple bypasses for this specific endpoint.
       if (
         hostname === 'localhost' ||
+        hostname === '0.0.0.0' ||
         hostname.includes('127.0.0.1') ||
         hostname.startsWith('127.') ||
         hostname.startsWith('169.254.') ||
@@ -96,6 +97,8 @@ export default async function handler(req: any, res: any) {
         hostname.endsWith('.internal') ||
         hostname === '[::1]' ||
         hostname === '::1' ||
+        hostname.includes('[::ffff:127.0.0.1]') ||
+        hostname === 'localtest.me' ||
         // Octal/Hex encoding bypasses for 127.0.0.1
         hostname === '0177.0.0.1' ||
         hostname === '0x7f.0.0.1' ||
@@ -109,8 +112,15 @@ export default async function handler(req: any, res: any) {
       return res.status(400).json({ error: 'Invalid image URL format' });
     }
 
-    // 1. Fetch the high-res RGB image from the provided URL
-    const imageResponse = await fetch(imageUrl);
+    // 1. Fetch the high-res RGB image with timeout protection
+    const controller = new AbortController();
+    const fetchTimeout = setTimeout(() => controller.abort(), 30000);
+    let imageResponse: Response;
+    try {
+      imageResponse = await fetch(imageUrl, { signal: controller.signal });
+    } finally {
+      clearTimeout(fetchTimeout);
+    }
     if (!imageResponse.ok) {
       throw new Error(`Failed to fetch image: ${imageResponse.statusText}`);
     }
@@ -140,10 +150,10 @@ export default async function handler(req: any, res: any) {
     // Create page matching image dimensions + bleed
     const page = pdfDoc.addPage([width + bleed * 2, height + bleed * 2]);
 
-    // Draw the CMYK image
+    // Draw the CMYK image centered within the bleed area
     page.drawImage(image, {
-      x: 0,
-      y: 0,
+      x: bleed,
+      y: bleed,
       width: width,
       height: height,
     });

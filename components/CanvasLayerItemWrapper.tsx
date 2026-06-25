@@ -4,7 +4,7 @@ import { log } from '../utils/log';
  * Wraps individual layers to handle async masking and optimization hooks.
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Layer, TextLayer, ShapeLayer, ImageLayer, AnimationSettings } from '../types';
 import { ImageLayerItem, ShapeLayerItem, TextLayerItem, AdjustmentLayerItem } from './canvas/LayerItems';
 import { useLayerMask, useProcessedImage } from '../hooks/useLayerWorker';
@@ -94,10 +94,19 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
       previewAnimation,
     } = props;
 
-    // Advanced Masking: Use explicit mask property OR sibling mask from props
+    // Advanced Masking: Build Map once, use O(1) lookup instead of O(n) find
+    const layerMap = useMemo(() => {
+      if (!allLayers) return null;
+      const map = new Map<string, Layer>();
+      for (const ml of allLayers) {
+        map.set(ml.id, ml);
+      }
+      return map;
+    }, [allLayers]);
+
     const effectiveMaskLayer =
       maskLayerOverride ||
-      (l.maskLayerId && allLayers ? allLayers.find((ml) => ml.id === l.maskLayerId) : null) ||
+      (l.maskLayerId && layerMap ? layerMap.get(l.maskLayerId) || null : null) ||
       null;
 
     const { maskPath } = useLayerMask(effectiveMaskLayer);

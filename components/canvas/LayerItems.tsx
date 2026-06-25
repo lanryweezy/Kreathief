@@ -57,23 +57,14 @@ const layerPropsAreEqual = (prevProps: LayerItemProps, nextProps: LayerItemProps
   const p = prevProps.layer;
   const n = nextProps.layer;
 
-  // Deep equality helper for nested objects (filters, stroke, shadow)
-  const deepEqual = (o1: any, o2: any) => {
-    if (o1 === o2) {
-      return true;
-    }
-    if (!o1 || !o2 || typeof o1 !== 'object' || typeof o2 !== 'object') {
-      return o1 === o2;
-    }
+  // Fast shallow comparison for nested objects (filters, stroke, shadow)
+  const shallowEqual = (o1: any, o2: any) => {
+    if (o1 === o2) return true;
+    if (!o1 || !o2 || typeof o1 !== 'object' || typeof o2 !== 'object') return o1 === o2;
     const keys1 = Object.keys(o1);
-    const keys2 = Object.keys(o2);
-    if (keys1.length !== keys2.length) {
-      return false;
-    }
+    if (keys1.length !== Object.keys(o2).length) return false;
     for (const key of keys1) {
-      if (!deepEqual(o1[key], o2[key])) {
-        return false;
-      }
+      if (o1[key] !== o2[key]) return false;
     }
     return true;
   };
@@ -91,9 +82,9 @@ const layerPropsAreEqual = (prevProps: LayerItemProps, nextProps: LayerItemProps
     p.locked === n.locked &&
     p.blendMode === n.blendMode &&
     p.groupId === n.groupId &&
-    deepEqual(p.filters, n.filters) &&
-    deepEqual(p.stroke, n.stroke) &&
-    deepEqual(p.shadow, n.shadow) &&
+    shallowEqual(p.filters, n.filters) &&
+    shallowEqual(p.stroke, n.stroke) &&
+    shallowEqual(p.shadow, n.shadow) &&
     (p as any).text === (n as any).text &&
     (p as any).fontFamily === (n as any).fontFamily &&
     (p as any).fontSize === (n as any).fontSize &&

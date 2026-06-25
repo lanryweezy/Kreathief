@@ -96,25 +96,6 @@ export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>
       artboards: state.artboards.map((a: Artboard) => (a.id === id ? { ...a, ...partial } : a)),
     })),
 
-  updateLayer: (id, partial) =>
-    set((state: any) => {
-      const artboards = state.artboards.map((a: Artboard) => ({
-        ...a,
-        layers: a.layers.map((l: any) => {
-          if (l.id === id) {
-            // Guard: skip updates on locked layers (unless unlocking)
-            if (l.locked && partial.locked !== false && !('locked' in partial && Object.keys(partial).length === 1)) {
-              return l;
-            }
-            const updated = { ...l, ...partial, dirty: true };
-            return updated;
-          }
-          return l;
-        }),
-      }));
-      return { artboards };
-    }),
-
   setLayers: (layersOrFn) =>
     set((state: any) => {
       const artboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);

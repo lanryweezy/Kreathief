@@ -1,30 +1,30 @@
 import { describe, it, expect } from 'vitest';
-import { MatrixMath } from '../../../utils/matrixMath';
+import { MatrixMath } from '../../../services/MatrixMath';
 
 describe('MatrixMath', () => {
   describe('multiply', () => {
     it('returns the product of two matrices when multiplied', () => {
-      const m1 = [1, 0, 0, 1, 10, 20];
-      const m2 = [2, 0, 0, 2, 5, 5];
+      const m1 = { a: 1, b: 0, c: 0, d: 1, e: 10, f: 20 };
+      const m2 = { a: 2, b: 0, c: 0, d: 2, e: 5, f: 5 };
 
       const result = MatrixMath.multiply(m1, m2);
 
-      expect(result).toEqual([2, 0, 0, 2, 15, 25]);
+      expect(result).toEqual({ a: 2, b: 0, c: 0, d: 2, e: 15, f: 25 });
     });
   });
 
   describe('rotate', () => {
-    it('returns a correct rotation matrix when given degrees', () => {
-      const degrees = 90;
+    it('returns a correct rotation matrix when given radians', () => {
+      const angleRad = (90 * Math.PI) / 180;
 
-      const result = MatrixMath.rotate(degrees);
+      const result = MatrixMath.rotate(MatrixMath.identity(), angleRad);
 
-      expect(result[0]).toBeCloseTo(0);
-      expect(result[1]).toBeCloseTo(1);
-      expect(result[2]).toBeCloseTo(-1);
-      expect(result[3]).toBeCloseTo(0);
-      expect(result[4]).toBe(0);
-      expect(result[5]).toBe(0);
+      expect(result.a).toBeCloseTo(0);
+      expect(result.b).toBeCloseTo(1);
+      expect(result.c).toBeCloseTo(-1);
+      expect(result.d).toBeCloseTo(0);
+      expect(result.e).toBe(0);
+      expect(result.f).toBe(0);
     });
   });
 
@@ -33,9 +33,9 @@ describe('MatrixMath', () => {
       const sx = 2;
       const sy = 3;
 
-      const result = MatrixMath.scale(sx, sy);
+      const result = MatrixMath.scale(MatrixMath.identity(), sx, sy);
 
-      expect(result).toEqual([2, 0, 0, 3, 0, 0]);
+      expect(result).toEqual({ a: 2, b: 0, c: 0, d: 3, e: 0, f: 0 });
     });
   });
 
@@ -44,18 +44,17 @@ describe('MatrixMath', () => {
       const tx = 15;
       const ty = 25;
 
-      const result = MatrixMath.translate(tx, ty);
+      const result = MatrixMath.translate(MatrixMath.identity(), tx, ty);
 
-      expect(result).toEqual([1, 0, 0, 1, 15, 25]);
+      expect(result).toEqual({ a: 1, b: 0, c: 0, d: 1, e: 15, f: 25 });
     });
   });
 
-  describe('transformPoint', () => {
+  describe('applyToPoint', () => {
     it('returns a transformed point when given a point and a transformation matrix', () => {
-      const point = { x: 10, y: 20 };
-      const matrix = [2, 0, 0, 2, 5, 10];
+      const m = { a: 2, b: 0, c: 0, d: 2, e: 5, f: 10 };
 
-      const result = MatrixMath.transformPoint(point, matrix);
+      const result = MatrixMath.applyToPoint(m, 10, 20);
 
       expect(result).toEqual({ x: 25, y: 50 });
     });

@@ -3,7 +3,7 @@ import { log } from '../../utils/log';
 import React, { useState, useRef, useEffect } from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
-import { heavyWorkerService } from '../../services/heavyWorkerService';
+import { heavyService } from '../../services/heavyService';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 interface TexturesPanelProps {
@@ -82,7 +82,7 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
 
     setIsGeneratingGrain(true);
     try {
-      const grainUrl = await heavyWorkerService.generateGrain(
+      const grainUrl = await heavyService.generateGrain(
         canvasSize.width,
         canvasSize.height,
         val,

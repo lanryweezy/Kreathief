@@ -381,22 +381,29 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
         sanitizedPartial.opacity = Math.max(0, Math.min(1, partial.opacity));
       }
 
+      // Find master component if this layer is an instance
       let masterComponentId = '';
-      state.artboards.forEach((a: Artboard) => {
+      for (const a of state.artboards) {
         const l = a.layers.find((ly: Layer) => ly.id === id);
         if (l?.componentId) {
           masterComponentId = l.componentId;
+          break;
         }
-      });
+      }
 
       return {
         artboards: state.artboards.map((a: Artboard) => ({
           ...a,
           layers: a.layers.map((l: Layer) => {
             if (l.id === id) {
+              // Guard: skip updates on locked layers (unless unlocking)
+              if (l.locked && sanitizedPartial.locked !== false && !('locked' in sanitizedPartial && Object.keys(sanitizedPartial).length === 1)) {
+                return l;
+              }
               const overrides = l.masterId ? [...(l.overrides || []), ...Object.keys(sanitizedPartial)] : l.overrides;
-              return { ...l, ...sanitizedPartial, overrides };
+              return { ...l, ...sanitizedPartial, overrides, dirty: true };
             }
+            // Sync component instances (skip overridden properties)
             if (masterComponentId && l.masterId === masterComponentId) {
               const overrides = l.overrides || [];
               const syncPartial = { ...sanitizedPartial };

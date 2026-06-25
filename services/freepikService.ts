@@ -212,7 +212,8 @@ async function pollTask(taskId: string, basePath: string, maxAttempts = 30, inte
         try {
           const res = await fetch(imageUrl);
           const blob = await res.blob();
-          return URL.createObjectURL(blob);
+          const objectUrl = URL.createObjectURL(blob);
+          return objectUrl;
         } catch (err) {
           log.error('[FreepikService] Failed to convert image URL to blob', err, { imageUrl });
           return imageUrl;

@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { Button } from '../Button';
 import { Input } from '../Input';
 import { ModalWrapper } from './ModalWrapper';
-import { untypedDb } from '../../lib/supabase/client';
+import { db } from '../../lib/supabase/client';
 
 interface CreatorSignupModalProps {
   isOpen: boolean;
@@ -41,10 +41,10 @@ export const CreatorSignupModal: React.FC<CreatorSignupModalProps> = React.memo(
     setError('');
 
     try {
-      const { data: { user } } = await untypedDb.auth.getUser();
+      const { data: { user } } = await db.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { error: updateError } = await untypedDb
+      const { error: updateError } = await db
         .from('profiles')
         .update({
           name: name.trim(),

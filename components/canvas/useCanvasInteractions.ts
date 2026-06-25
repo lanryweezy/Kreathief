@@ -113,6 +113,14 @@ export const useCanvasInteractions = ({
     isDrawingInternalRef: _isDrawingInternalRef,
   } = useDrawingMode({ zoom, isDrawing });
 
+  // Use refs for values that change frequently but shouldn't re-register listeners
+  const isPanningRef = useRef(isPanning);
+  isPanningRef.current = isPanning;
+  const isDrawingRef = useRef(isDrawing);
+  isDrawingRef.current = isDrawing;
+  const transformStateRef = useRef(transformState);
+  transformStateRef.current = transformState;
+
   // ORCHESTRATION LOGIC
   const handleMouseDownContainer = useCallback(
     (e: React.MouseEvent) => {
@@ -139,7 +147,7 @@ export const useCanvasInteractions = ({
 
   const handleMouseMoveInternal = useCallback(
     (e: MouseEvent) => {
-      if (isPanning) {
+      if (isPanningRef.current) {
         updatePanning(e);
         return;
       }
@@ -154,25 +162,22 @@ export const useCanvasInteractions = ({
         return;
       }
 
-      if (isDrawing) {
+      if (isDrawingRef.current) {
         handleDrawingMouseMove(e as any);
         return;
       }
 
-      if (transformState) {
+      if (transformStateRef.current) {
         updateTransformation(e);
       }
     },
     [
-      isPanning,
       updatePanning,
       updateSelection,
       updateDragging,
       updateTransformation,
       selectionBoxRef,
       dragStateRef,
-      transformState,
-      isDrawing,
       handleDrawingMouseMove,
     ]
   );
@@ -186,11 +191,11 @@ export const useCanvasInteractions = ({
       finalizeDragging();
     }
 
-    if (transformState) {
+    if (transformStateRef.current) {
       finalizeTransformation();
     }
 
-    if (isDrawing) {
+    if (isDrawingRef.current) {
       handleDrawingMouseUp();
     }
 
@@ -203,8 +208,6 @@ export const useCanvasInteractions = ({
     stopPanning,
     selectionBoxRef,
     dragStateRef,
-    transformState,
-    isDrawing,
     handleDrawingMouseUp,
   ]);
 
@@ -221,28 +224,34 @@ export const useCanvasInteractions = ({
     };
   }, [handleMouseMoveInternal, handleMouseUpInternal]);
 
-  // Mobile Pinch/Zoom
+  // Mobile Pinch/Zoom — uses refs to avoid re-registering the listener on every zoom/pan change
   useEffect(() => {
     const el = viewportRef.current;
     if (!el) {
       return;
     }
 
+    const zoomRef = { current: zoom };
+    const panRef = { current: panOffset };
+    zoomRef.current = zoom;
+    panRef.current = panOffset;
+
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
 
-        // ZOOM AT CURSOR POSITION
-        const zoomFactor = 1.05; // More precise zoom
-        const newZoom = e.deltaY > 0 ? Math.max(0.1, zoom / zoomFactor) : Math.min(10, zoom * zoomFactor);
+        const zoomFactor = 1.05;
+        const currentZoom = zoomRef.current;
+        const currentPan = panRef.current;
+        const newZoom = e.deltaY > 0 ? Math.max(0.1, currentZoom / zoomFactor) : Math.min(10, currentZoom * zoomFactor);
 
-        if (newZoom !== zoom && viewportRef.current) {
+        if (newZoom !== currentZoom && viewportRef.current) {
           const rect = viewportRef.current.getBoundingClientRect();
           const mouseX = e.clientX - rect.left;
           const mouseY = e.clientY - rect.top;
 
-          const worldX = (mouseX - panOffset.x) / zoom;
-          const worldY = (mouseY - panOffset.y) / zoom;
+          const worldX = (mouseX - currentPan.x) / currentZoom;
+          const worldY = (mouseY - currentPan.y) / currentZoom;
 
           const newPanX = mouseX - worldX * newZoom;
           const newPanY = mouseY - worldY * newZoom;
@@ -251,7 +260,6 @@ export const useCanvasInteractions = ({
           useStore.getState().setPanOffset({ x: newPanX, y: newPanY });
         }
       } else {
-        // SCROLL PANNING
         e.preventDefault();
         const scrollSpeed = 0.8;
         if (e.shiftKey) {
@@ -272,7 +280,7 @@ export const useCanvasInteractions = ({
     return () => {
       el.removeEventListener('wheel', handleWheel);
     };
-  }, [viewportRef, onZoomChangeValue, zoom, panOffset]);
+  }, [viewportRef, onZoomChangeValue]);
 
   const handleMouseDownCombined = useCallback(
     (e: React.MouseEvent) => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '../Button';
 import { ErrorBoundary } from '../ErrorBoundary';
-import { untypedDb } from '../../lib/supabase/client';
+import { db } from '../../lib/supabase/client';
 import { Icons } from '../../constants';
 
 interface Asset {
@@ -26,10 +26,10 @@ const CreatorDashboardInner: React.FC = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const { data: { user } } = await untypedDb.auth.getUser();
+      const { data: { user } } = await db.auth.getUser();
       if (!user) return;
 
-      const { data: assetsData } = await untypedDb
+      const { data: assetsData } = await db
         .from('assets')
         .select('*')
         .eq('creator_id', user.id)
@@ -40,7 +40,7 @@ const CreatorDashboardInner: React.FC = () => {
         setStats({
           totalDownloads: assetsData.reduce((sum: number, a: any) => sum + (a.Downloads_count || 0), 0),
           totalEarnings: assetsData.reduce((sum: number, a: any) => sum + ((a.Downloads_count || 0) * (a.Price || 0)), 0),
-          activeAssets: assetsData.filter((a) => a.Status === 'published').length,
+          activeAssets: assetsData.filter((a: any) => a.Status === "published").length,
         });
       }
     } catch (err) {

@@ -14,7 +14,6 @@ import { SelectionMarquee } from './canvas/SelectionMarquee';
 import { CanvasProvider, CanvasContextValue } from './canvas/CanvasContext';
 import { useTouchGestures } from '../hooks/useTouchGestures';
 import { Icons } from '../constants';
-import { ContextualToolbar } from './canvas/ContextualToolbar';
 import { PathEditorOverlay } from './VectorEditor/PathEditorOverlay';
 import { VectorPath } from '../types';
 import { v4 as uuidv4 } from 'uuid';
