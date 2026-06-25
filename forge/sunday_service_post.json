@@ -153,10 +153,16 @@
     }
   ],
   "metadata": {
-    "templateName": "Clean Minimal Sunday Service Instagram Post",
+    "templateName": "Clean Sunday Service Instagram Post Invitation",
     "shortDescription": "Invite your congregation to Sunday service with a clean, elegant layout.",
-    "longDescription": "An elegant, clean Instagram post template designed specifically for church Sunday services. Features warm minimal tones, elegant typography, and a central photo zone to highlight worship or the speaking minister.",
-    "tags": ["Social media", "Instagram post", "Clean", "Minimal", "Religious", "Events", "African Market"],
+    "longDescription": "Invite your congregation to Sunday service with a clean, elegant layout. Features warm minimal tones and a central photo zone to highlight worship. An elegant, clean Instagram post template designed specifically for church Sunday services.",
+    "tags": [
+      "Religious",
+      "Instagram post",
+      "Clean & minimal",
+      "African Market",
+      "Events"
+    ],
     "searchKeywords": [
       "sunday service post",
       "church flyer",
@@ -166,16 +172,26 @@
       "ministry template",
       "christian event",
       "elegant church post",
-      "nigerian church flyer"
+      "nigerian church flyer",
+      "church event"
     ],
     "seoMetadata": {
-      "title": "Clean Minimal Sunday Service Instagram Post — Free Instagram Post Template",
+      "title": "Clean Sunday Service Instagram Post Invitation — Free Instagram post Template",
       "description": "Invite your congregation with an elegant and clean Sunday service Instagram post template. Perfect for modern ministries.",
-      "slug": "clean-minimal-sunday-service-instagram-post"
+      "slug": "clean-sunday-service-instagram-post-invitation"
     },
     "personalisationSignals": {
-      "industry": ["religious", "community", "events"],
-      "audienceType": ["church media team", "community manager", "event organiser"],
+      "industry": [
+        "Religious",
+        "community",
+        "Events"
+      ],
+      "audienceType": [
+        "church media team",
+        "community manager",
+        "event organiser",
+        "small business"
+      ],
       "experienceLevel": "beginner-friendly"
     }
   }
