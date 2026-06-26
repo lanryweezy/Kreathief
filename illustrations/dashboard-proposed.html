@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kreathief Dashboard — PROPOSED</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #0e1318; color: #fff; min-height: 100vh; }
+
+  /* Header */
+  .header { height: 72px; background: rgba(15,20,25,0.6); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between; padding: 0 40px; backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 30; }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo-box { width: 36px; height: 36px; background: linear-gradient(135deg, #7d2ae8, #e040fb); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .logo-text { font-weight: 900; font-size: 18px; text-transform: uppercase; letter-spacing: -0.5px; }
+  .header-right { display: flex; align-items: center; gap: 20px; }
+  .search-box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 8px 16px 8px 32px; color: #fff; font-size: 12px; width: 200px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); background: #1a1f2e; }
+
+  /* Content */
+  .content { max-width: 1200px; margin: 0 auto; padding: 40px 40px 80px; }
+
+  /* ─── HERO AI PROMPT ──────────────────────────────────────────────────── */
+  .hero { text-align: center; margin-bottom: 56px; }
+  .hero h1 { font-size: 28px; font-weight: 900; margin-bottom: 8px; background: linear-gradient(135deg, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero p { font-size: 13px; color: #888; font-weight: 500; }
+
+  .prompt-box { position: relative; max-width: 680px; margin: 24px auto 0; }
+  .prompt-glow { position: absolute; inset: -2px; background: linear-gradient(135deg, #7d2ae8, #e040fb, #7d2ae8); border-radius: 20px; opacity: 0.15; filter: blur(20px); }
+  .prompt-card { position: relative; background: #111820; border: 1px solid rgba(125,42,232,0.3); border-radius: 16px; padding: 20px; }
+  .prompt-card textarea { width: 100%; background: transparent; color: #fff; border: none; font-size: 15px; font-weight: 500; resize: none; outline: none; font-family: inherit; line-height: 1.6; min-height: 60px; }
+  .prompt-card textarea::placeholder { color: #555; }
+  .prompt-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.05); }
+  .format-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { padding: 6px 14px; border-radius: 8px; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; background: rgba(255,255,255,0.05); color: #888; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+  .chip.active { background: #7d2ae8; color: #fff; border-color: #7d2ae8; }
+  .chip:hover:not(.active) { background: rgba(255,255,255,0.1); color: #fff; }
+  .prompt-actions { display: flex; gap: 8px; align-items: center; }
+  .model-btn { padding: 8px 14px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #aaa; font-size: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .gen-btn { padding: 10px 24px; border-radius: 12px; background: linear-gradient(135deg, #7d2ae8, #e040fb); color: #fff; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 20px rgba(125,42,232,0.4); }
+
+  /* Suggestions */
+  .suggestions { display: flex; gap: 8px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+  .sug-chip { padding: 5px 14px; border-radius: 20px; font-size: 11px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); color: #888; cursor: pointer; transition: all 0.2s; }
+  .sug-chip:hover { background: rgba(125,42,232,0.1); border-color: rgba(125,42,232,0.3); color: #fff; }
+
+  /* ─── QUICK START ──────────────────────────────────────────────────────── */
+  .section { margin-bottom: 48px; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .section-title { font-size: 13px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.15em; color: #666; }
+  .section-link { font-size: 11px; color: #7d2ae8; font-weight: 700; cursor: pointer; }
+
+  .quick-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+  .quick-card { aspect-ratio: 1; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.05); }
+  .quick-card:hover { border-color: rgba(125,42,232,0.4); background: rgba(125,42,232,0.05); transform: translateY(-2px); }
+  .quick-icon { font-size: 28px; }
+  .quick-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #aaa; }
+  .qc1 { background: linear-gradient(135deg, #1a1a2e, #16213e); }
+  .qc2 { background: linear-gradient(135deg, #1a1a2e, #0f3460); }
+  .qc3 { background: linear-gradient(135deg, #16213e, #1a1a2e); }
+  .qc4 { background: linear-gradient(135deg, #0f3460, #533483); }
+  .qc5 { background: linear-gradient(135deg, #1a1a2e, #e94560); }
+  .qc6 { background: linear-gradient(135deg, #533483, #1a1a2e); }
+
+  /* ─── RECENT ───────────────────────────────────────────────────────────── */
+  .recent-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .recent-card { border-radius: 14px; overflow: hidden; cursor: pointer; transition: all 0.3s; border: 1px solid rgba(255,255,255,0.05); }
+  .recent-card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-2px); }
+  .recent-thumb { aspect-ratio: 16/10; position: relative; }
+  .recent-info { padding: 14px 16px; background: #111820; }
+  .recent-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+  .recent-meta { font-size: 10px; color: #666; font-weight: 600; }
+  .recent-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 6px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; }
+
+  /* ─── TEMPLATES ────────────────────────────────────────────────────────── */
+  .template-filters { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tf { padding: 6px 16px; border-radius: 20px; font-size: 11px; font-weight: 700; background: rgba(255,255,255,0.05); color: #888; cursor: pointer; border: 1px solid transparent; }
+  .tf.active { background: rgba(125,42,232,0.15); color: #c084fc; border-color: rgba(125,42,232,0.3); }
+  .template-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .tmpl-card { border-radius: 14px; overflow: hidden; cursor: pointer; transition: all 0.3s; border: 1px solid rgba(255,255,255,0.05); }
+  .tmpl-card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-2px); }
+  .tmpl-thumb { aspect-ratio: 4/3; position: relative; }
+  .tmpl-info { padding: 12px 14px; background: #111820; }
+  .tmpl-name { font-weight: 700; font-size: 12px; margin-bottom: 2px; }
+  .tmpl-cat { font-size: 9px; color: #666; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+  .tmpl-badge { position: absolute; top: 8px; left: 8px; background: #7d2ae8; padding: 3px 8px; border-radius: 4px; font-size: 8px; font-weight: 900; text-transform: uppercase; }
+
+  .note { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #7d2ae8, #e040fb); color: #fff; padding: 12px 24px; border-radius: 12px; font-size: 12px; font-weight: 700; z-index: 100; box-shadow: 0 4px 20px rgba(125,42,232,0.5); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-box">✨</div>
+    <span class="logo-text">Kreathief</span>
+  </div>
+  <div class="header-right">
+    <input class="search-box" placeholder="Search designs..." />
+    <div class="avatar"></div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- HERO: AI PROMPT -->
+  <div class="hero">
+    <h1>What do you want to create?</h1>
+    <p>Describe your vision and AI will bring it to life</p>
+
+    <div class="prompt-box">
+      <div class="prompt-glow"></div>
+      <div class="prompt-card">
+        <textarea placeholder="A bold fitness gym ad with dark background and neon accents..." rows="2"></textarea>
+        <div class="prompt-bottom">
+          <div class="format-chips">
+            <div class="chip active">Instagram Post</div>
+            <div class="chip">Story / Reel</div>
+            <div class="chip">YouTube</div>
+            <div class="chip">Facebook</div>
+            <div class="chip">Logo</div>
+            <div class="chip">Presentation</div>
+          </div>
+          <div class="prompt-actions">
+            <div class="model-btn">🍌 Nano Banana 2 ▾</div>
+            <button class="gen-btn">✨ Generate</button>
+          </div>
+        </div>
+      </div>
+      <div class="suggestions">
+        <span style="font-size:10px;color:#555;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;">Try:</span>
+        <span class="sug-chip">Modern minimalist</span>
+        <span class="sug-chip">Bold and vibrant</span>
+        <span class="sug-chip">Elegant luxury</span>
+        <span class="sug-chip">Neon cyberpunk</span>
+        <span class="sug-chip">Warm earthy tones</span>
+        <span class="sug-chip">Clean corporate</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK START -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Quick Start</span>
+    </div>
+    <div class="quick-grid">
+      <div class="quick-card qc1"><span class="quick-icon">📸</span><span class="quick-label">IG Post</span></div>
+      <div class="quick-card qc2"><span class="quick-icon">📱</span><span class="quick-label">Story</span></div>
+      <div class="quick-card qc3"><span class="quick-icon">🎬</span><span class="quick-label">YouTube</span></div>
+      <div class="quick-card qc4"><span class="quick-icon">🎨</span><span class="quick-label">Logo</span></div>
+      <div class="quick-card qc5"><span class="quick-icon">📄</span><span class="quick-label">Flyer</span></div>
+      <div class="quick-card qc6"><span class="quick-icon">👕</span><span class="quick-label">T-Shirt</span></div>
+    </div>
+  </div>
+
+  <!-- RECENT -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Recent</span>
+      <span class="section-link">View all →</span>
+    </div>
+    <div class="recent-grid">
+      <div class="recent-card">
+        <div class="recent-thumb" style="background: linear-gradient(135deg, #1a1a2e, #16213e);">
+          <div class="recent-badge">IG Post</div>
+        </div>
+        <div class="recent-info">
+          <div class="recent-title">Gym Ad — Neon Dark</div>
+          <div class="recent-meta">2 hours ago · 1080×1080</div>
+        </div>
+      </div>
+      <div class="recent-card">
+        <div class="recent-thumb" style="background: linear-gradient(135deg, #0f3460, #533483);">
+          <div class="recent-badge">Logo</div>
+        </div>
+        <div class="recent-info">
+          <div class="recent-title">Brand Logo v3</div>
+          <div class="recent-meta">Yesterday · 1080×1080</div>
+        </div>
+      </div>
+      <div class="recent-card">
+        <div class="recent-thumb" style="background: linear-gradient(135deg, #e94560, #0f3460);">
+          <div class="recent-badge">Story</div>
+        </div>
+        <div class="recent-info">
+          <div class="recent-title">IG Story — Flash Sale</div>
+          <div class="recent-meta">3 days ago · 1080×1920</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEMPLATES -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Templates</span>
+      <span class="section-link">Browse all →</span>
+    </div>
+    <div class="template-filters">
+      <div class="tf active">All</div>
+      <div class="tf">Social</div>
+      <div class="tf">Business</div>
+      <div class="tf">Video</div>
+      <div class="tf">Personal</div>
+    </div>
+    <div class="template-grid">
+      <div class="tmpl-card">
+        <div class="tmpl-thumb" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+          <div class="tmpl-badge">Popular</div>
+        </div>
+        <div class="tmpl-info"><div class="tmpl-name">Instagram Promo</div><div class="tmpl-cat">Social</div></div>
+      </div>
+      <div class="tmpl-card">
+        <div class="tmpl-thumb" style="background: linear-gradient(135deg, #f093fb, #f5576c);"></div>
+        <div class="tmpl-info"><div class="tmpl-name">Business Card</div><div class="tmpl-cat">Business</div></div>
+      </div>
+      <div class="tmpl-card">
+        <div class="tmpl-thumb" style="background: linear-gradient(135deg, #4facfe, #00f2fe);"></div>
+        <div class="tmpl-info"><div class="tmpl-name">YouTube Thumb</div><div class="tmpl-cat">Video</div></div>
+      </div>
+      <div class="tmpl-card">
+        <div class="tmpl-thumb" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+          <div class="tmpl-badge">New</div>
+        </div>
+        <div class="tmpl-info"><div class="tmpl-name">Event Poster</div><div class="tmpl-cat">Personal</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="note">PROPOSED DASHBOARD — AI prompt hero + Quick Start + Recent + Templates inline</div>
+
+</body>
+</html>

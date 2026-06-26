@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kreathief Dashboard — CURRENT</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #0e1318; color: #fff; min-height: 100vh; }
+
+  /* Header */
+  .header { height: 80px; background: rgba(15,20,25,0.8); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between; padding: 0 32px; backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 30; }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo-box { width: 40px; height: 40px; background: linear-gradient(135deg, #7d2ae8, #e040fb); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .logo-text { font-weight: 900; font-size: 22px; text-transform: uppercase; letter-spacing: -0.5px; }
+  .header-right { display: flex; align-items: center; gap: 24px; }
+  .search-box { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 10px 16px 10px 36px; color: #fff; font-size: 11px; width: 250px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); background: #1a1f2e; }
+
+  /* Main */
+  .main { display: flex; min-height: calc(100vh - 80px); }
+  .content { flex: 1; padding: 48px; overflow-y: auto; }
+  .content-inner { max-width: 1600px; margin: 0 auto; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 32px; margin-bottom: 32px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0; }
+  .tab { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; padding: 8px 0; cursor: pointer; color: #666; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .tab.active { color: #fff; border-bottom-color: #7d2ae8; }
+  .tab:hover { color: #ccc; }
+
+  /* New Design Button */
+  .new-btn { background: linear-gradient(135deg, #7d2ae8, #e040fb); color: #fff; border: none; padding: 10px 28px; border-radius: 12px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+
+  /* Grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 32px; }
+  .card { background: #111820; border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.3s; }
+  .card:hover { border-color: rgba(255,255,255,0.2); transform: translateY(-2px); }
+  .card-thumb { aspect-ratio: 4/3; background: #1a1f2e; position: relative; overflow: hidden; }
+  .card-thumb img { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
+  .card-thumb .placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 48px; opacity: 0.1; }
+  .card-info { padding: 20px; }
+  .card-title { font-weight: 700; font-size: 14px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-meta { font-size: 10px; color: #666; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; display: flex; justify-content: space-between; }
+
+  /* Blank Canvas Card */
+  .blank-card { border: 2px dashed rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; background: transparent; }
+  .blank-card:hover { border-color: rgba(125,42,232,0.5); background: rgba(125,42,232,0.05); }
+  .blank-card .icon { width: 64px; height: 64px; border-radius: 16px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 16px; }
+  .blank-card .label { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; color: #666; }
+
+  /* Section Label */
+  .section-label { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; color: #666; margin-bottom: 16px; }
+
+  .note { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #7d2ae8; color: #fff; padding: 12px 24px; border-radius: 12px; font-size: 12px; font-weight: 700; z-index: 100; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-box">✨</div>
+    <span class="logo-text">Kreathief</span>
+  </div>
+  <div class="header-right">
+    <input class="search-box" placeholder="Search designs..." />
+    <div class="avatar"></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="content">
+    <div class="content-inner">
+
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:32px;">
+        <div class="tabs">
+          <div class="tab active">My Projects</div>
+          <div class="tab">Templates</div>
+          <div class="tab">Community</div>
+        </div>
+        <button class="new-btn">+ New Design</button>
+      </div>
+
+      <div class="grid">
+        <!-- Blank Canvas -->
+        <div class="card blank-card">
+          <div class="icon">+</div>
+          <div class="label">Blank Canvas</div>
+        </div>
+
+        <!-- Project Cards -->
+        <div class="card">
+          <div class="card-thumb" style="background: linear-gradient(135deg, #1a1a2e, #16213e);">
+            <div class="placeholder">🏋️</div>
+          </div>
+          <div class="card-info">
+            <div class="card-title">Gym Ad — Neon Dark</div>
+            <div class="card-meta"><span>2 hours ago</span><span>1080×1080</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-thumb" style="background: linear-gradient(135deg, #0f3460, #533483);">
+            <div class="placeholder">🎨</div>
+          </div>
+          <div class="card-info">
+            <div class="card-title">Brand Logo v3</div>
+            <div class="card-meta"><span>Yesterday</span><span>1080×1080</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-thumb" style="background: linear-gradient(135deg, #e94560, #0f3460);">
+            <div class="placeholder">📱</div>
+          </div>
+          <div class="card-info">
+            <div class="card-title">IG Story — Sale</div>
+            <div class="card-meta"><span>3 days ago</span><span>1080×1920</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-thumb" style="background: linear-gradient(135deg, #1b1b2f, #162447);">
+            <div class="placeholder">🎬</div>
+          </div>
+          <div class="card-info">
+            <div class="card-title">YouTube Thumbnail</div>
+            <div class="card-meta"><span>1 week ago</span><span>1280×720</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-thumb" style="background: linear-gradient(135deg, #1a1a2e, #e94560);">
+            <div class="placeholder">🏢</div>
+          </div>
+          <div class="card-info">
+            <div class="card-title">Facebook Post — Tech</div>
+            <div class="card-meta"><span>2 weeks ago</span><span>1200×630</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="note">CURRENT DASHBOARD — Tabs + Grid of cards</div>
+
+</body>
+</html>
