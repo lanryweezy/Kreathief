@@ -191,7 +191,7 @@
     }
   ],
   "metadata": {
-    "templateName": "Professional Tech Startup Pitch Deck Slide",
+    "templateName": "Clean Tech Startup Pitch Deck",
     "shortDescription": "Command attention with this trust-signalling pitch deck cover.",
     "longDescription": "Command attention in the boardroom with this modern, trust-signalling pitch deck cover. Engineered for tech startups seeking investment. Uses a deep navy background, technical cyan accents, and clear, authoritative typography to project competence.",
     "tags": [
@@ -214,9 +214,9 @@
       "startup presentation"
     ],
     "seoMetadata": {
-      "title": "Professional Tech Startup Pitch Deck Slide — Free Pitch deck slide Template",
+      "title": "Clean Tech Startup Pitch Deck — Free Slide Template",
       "description": "Secure funding with this professional tech startup pitch deck cover slide. Designed for African founders building the next big thing.",
-      "slug": "professional-tech-startup-pitch-deck-slide"
+      "slug": "clean-tech-startup-pitch-deck"
     },
     "personalisationSignals": {
       "industry": [
@@ -231,6 +231,11 @@
         "small business"
       ],
       "experienceLevel": "intermediate"
-    }
+    },
+    "relatedTemplates": [
+      "accra_food_festival_post",
+      "afrobeats_concert_story",
+      "amapiano_sundays_flyer"
+    ]
   }
 }

@@ -157,7 +157,7 @@
     }
   ],
   "metadata": {
-    "templateName": "Vibrant Afrobeats Concert Story Promotion",
+    "templateName": "Vibrant Afrobeats Concert Story",
     "shortDescription": "Promote your music event or concert with a high-energy, vibrant Instagram Story.",
     "longDescription": "Promote your music event or concert with a high-energy, vibrant Instagram Story. Designed for concerts, Afrobeats events, and artist promotions. Uses striking, vibrant colours and expressive angled typography. Grab attention instantly.",
     "tags": [
@@ -180,9 +180,9 @@
       "afrobeats story"
     ],
     "seoMetadata": {
-      "title": "Vibrant Afrobeats Concert Story Promotion — Free Story Template",
+      "title": "Vibrant Afrobeats Concert Story — Free Story Template",
       "description": "Drive ticket sales with this high-energy, vibrant Afrobeats concert Instagram Story template. Designed for maximum impact and engagement.",
-      "slug": "vibrant-afrobeats-concert-story-promotion"
+      "slug": "vibrant-afrobeats-concert-story"
     },
     "personalisationSignals": {
       "industry": [
@@ -197,6 +197,11 @@
         "small business"
       ],
       "experienceLevel": "beginner-friendly"
-    }
+    },
+    "relatedTemplates": [
+      "accra_food_festival_post",
+      "amapiano_sundays_flyer",
+      "design_state"
+    ]
   }
 }

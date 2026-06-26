@@ -88,7 +88,7 @@
     }
   ],
   "metadata": {
-    "templateName": "Bold Afrobeats Event Instagram Post",
+    "templateName": "Bold Afrobeats Club Post Ad",
     "shortDescription": "Promote your Afrobeats event with a bold, colourful Instagram post",
     "longDescription": "A high-contrast, energetic Instagram post template perfect for Afrobeats nights, DJ sets, and club events. Features bold typography and a dark, moody aesthetic with vibrant red and gold accents.",
     "tags": [
@@ -113,9 +113,9 @@
       "afrobeats post"
     ],
     "seoMetadata": {
-      "title": "Bold Afrobeats Event Instagram Post — Free Instagram post Template",
+      "title": "Bold Afrobeats Club Post Ad — Free Post Template",
       "description": "Promote your Afrobeats event with a bold, colourful Instagram post template designed for high engagement.",
-      "slug": "bold-afrobeats-event-instagram-post"
+      "slug": "bold-afrobeats-club-post-ad"
     },
     "personalisationSignals": {
       "industry": [
@@ -129,6 +129,11 @@
         "promoter"
       ],
       "experienceLevel": "beginner-friendly"
-    }
+    },
+    "relatedTemplates": [
+      "accra_food_festival_post",
+      "afrobeats_concert_story",
+      "amapiano_sundays_flyer"
+    ]
   }
 }

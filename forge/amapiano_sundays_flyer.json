@@ -172,7 +172,7 @@
     }
   ],
   "metadata": {
-    "templateName": "High-Contrast Amapiano Sundays Print Flyer",
+    "templateName": "Striking Amapiano Sundays Flyer Promo",
     "shortDescription": "Pack the dancefloor with this striking, high-energy A4 event flyer.",
     "longDescription": "A bold, high-contrast A4 print flyer designed specifically for the South African music scene. Features deep blacks, vibrant neon accents, and massive typography to ensure the event name and lineup are readable from a distance on street poles or venue walls.",
     "tags": [
@@ -197,9 +197,9 @@
       "party flyer"
     ],
     "seoMetadata": {
-      "title": "High-Contrast Amapiano Sundays Print Flyer — Free Template",
+      "title": "Striking Amapiano Sundays Flyer Promo — Free Flyer Template",
       "description": "Promote your Amapiano event with this high-contrast, striking A4 print flyer template. Designed for maximum visibility in the nightlife scene.",
-      "slug": "high-contrast-amapiano-sundays-print-flyer"
+      "slug": "striking-amapiano-sundays-flyer-promo"
     },
     "personalisationSignals": {
       "industry": [
@@ -213,6 +213,11 @@
         "DJ"
       ],
       "experienceLevel": "intermediate"
-    }
+    },
+    "relatedTemplates": [
+      "accra_food_festival_post",
+      "afrobeats_concert_story",
+      "design_state"
+    ]
   }
 }

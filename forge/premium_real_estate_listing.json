@@ -211,7 +211,7 @@
     }
   ],
   "metadata": {
-    "templateName": "Clean Real Estate Instagram Post Listing",
+    "templateName": "Premium Real Estate Post Listing",
     "shortDescription": "Showcase luxury properties with this clean, professional real estate listing.",
     "longDescription": "Showcase luxury properties with this clean, professional real estate listing post. Designed specifically for premium real estate listings in African markets like Abuja and Lagos. Features a large image zone and prominent price tag to highlight property features.",
     "tags": [
@@ -234,9 +234,9 @@
       "property post"
     ],
     "seoMetadata": {
-      "title": "Clean Real Estate Instagram Post Listing — Free Instagram post Template",
+      "title": "Premium Real Estate Post Listing — Free Post Template",
       "description": "Showcase luxury properties with this clean, professional real estate listing Instagram post template designed for the African property market.",
-      "slug": "clean-real-estate-instagram-post-listing"
+      "slug": "premium-real-estate-post-listing"
     },
     "personalisationSignals": {
       "industry": [
@@ -251,6 +251,11 @@
         "small business"
       ],
       "experienceLevel": "beginner-friendly"
-    }
+    },
+    "relatedTemplates": [
+      "accra_food_festival_post",
+      "afrobeats_concert_story",
+      "amapiano_sundays_flyer"
+    ]
   }
 }

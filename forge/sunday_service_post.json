@@ -153,7 +153,7 @@
     }
   ],
   "metadata": {
-    "templateName": "Clean Sunday Service Instagram Post Invitation",
+    "templateName": "Elegant Sunday Service Post Invite",
     "shortDescription": "Invite your congregation to Sunday service with a clean, elegant layout.",
     "longDescription": "Invite your congregation to Sunday service with a clean, elegant layout. Features warm minimal tones and a central photo zone to highlight worship. An elegant, clean Instagram post template designed specifically for church Sunday services.",
     "tags": [
@@ -176,9 +176,9 @@
       "church event"
     ],
     "seoMetadata": {
-      "title": "Clean Sunday Service Instagram Post Invitation — Free Instagram post Template",
+      "title": "Elegant Sunday Service Post Invite — Free Post Template",
       "description": "Invite your congregation with an elegant and clean Sunday service Instagram post template. Perfect for modern ministries.",
-      "slug": "clean-sunday-service-instagram-post-invitation"
+      "slug": "elegant-sunday-service-post-invite"
     },
     "personalisationSignals": {
       "industry": [
@@ -193,6 +193,11 @@
         "small business"
       ],
       "experienceLevel": "beginner-friendly"
-    }
+    },
+    "relatedTemplates": [
+      "accra_food_festival_post",
+      "afrobeats_concert_story",
+      "amapiano_sundays_flyer"
+    ]
   }
 }

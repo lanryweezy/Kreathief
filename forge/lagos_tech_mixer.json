@@ -180,7 +180,7 @@
     }
   ],
   "metadata": {
-    "templateName": "Professional Tech Mixer Instagram Post Meetup",
+    "templateName": "Modern Tech Mixer Post Invite",
     "shortDescription": "Promote your tech meetup or networking event with a modern, high-contrast post.",
     "longDescription": "Promote your tech meetup or networking event with a modern, high-contrast post. Perfect for tech meetups, founder mixers, and startup events. Features bold typography and high-contrast neon green accents against a dark background.",
     "tags": [
@@ -203,9 +203,9 @@
       "tech conference"
     ],
     "seoMetadata": {
-      "title": "Professional Tech Mixer Instagram Post Meetup — Free Instagram post Template",
+      "title": "Modern Tech Mixer Post Invite — Free Post Template",
       "description": "Promote your tech meetup or networking event with a modern, high-contrast Instagram post template designed for the tech community.",
-      "slug": "professional-tech-mixer-instagram-post-meetup"
+      "slug": "modern-tech-mixer-post-invite"
     },
     "personalisationSignals": {
       "industry": [
@@ -220,6 +220,11 @@
         "marketing professional"
       ],
       "experienceLevel": "beginner-friendly"
-    }
+    },
+    "relatedTemplates": [
+      "accra_food_festival_post",
+      "afrobeats_concert_story",
+      "amapiano_sundays_flyer"
+    ]
   }
 }
