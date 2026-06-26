@@ -81,8 +81,9 @@ export const templateMarketplace = {
 
   async searchTemplates(query: string, limit = 20): Promise<MarketplaceTemplate[]> {
     try {
+      const safeQuery = query.replace(/[",]/g, '');
       const { data, error } = await supabase.from('marketplace_templates').select('*').eq('status', 'approved')
-        .or(`title.ilike.%${query}%,description.ilike.%${query}%,author_name.ilike.%${query}%`)
+        .or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%,author_name.ilike.%${safeQuery}%`)
         .order('likes', { ascending: false }).limit(limit);
       if (error) throw error; return (data || []).map(map);
     } catch (e) { log.error('[TemplateMarketplace] Search failed', e); return []; }
