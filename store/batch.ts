@@ -7,10 +7,15 @@ import { useStore } from './useStore';
 export function runBatched<T>(fn: () => T | Promise<T>): Promise<T> | T {
   const { beginBatch, endBatch } = useStore.getState() as any;
   beginBatch?.();
-  const res = fn();
-  if (res instanceof Promise) {
-    return res.finally(() => endBatch?.()) as Promise<T>;
+  try {
+    const res = fn();
+    if (res instanceof Promise) {
+      return res.finally(() => endBatch?.()) as Promise<T>;
+    }
+    endBatch?.();
+    return res;
+  } catch (err) {
+    endBatch?.();
+    throw err;
   }
-  endBatch?.();
-  return res;
 }

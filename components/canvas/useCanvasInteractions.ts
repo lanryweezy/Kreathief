@@ -42,8 +42,6 @@ export const useCanvasInteractions = ({
 }: UseCanvasInteractionsProps) => {
   const layerRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lastPinchDistanceRef = useRef<number | null>(null);
-  const selectedLayerIdsRef = useRef(selectedLayerIds);
-  selectedLayerIdsRef.current = selectedLayerIds;
 
   const triggerHaptic = useCallback((pattern: number | number[] = 10) => {
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
@@ -186,7 +184,7 @@ export const useCanvasInteractions = ({
 
   const handleMouseUpInternal = useCallback(() => {
     if (selectionBoxRef.current) {
-      finalizeSelection(selectedLayerIdsRef.current);
+      finalizeSelection(selectedLayerIds);
     }
 
     if (dragStateRef.current?.isDragging) {
@@ -217,25 +215,12 @@ export const useCanvasInteractions = ({
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => handleMouseMoveInternal(e);
     const onMouseUp = () => handleMouseUpInternal();
-    const onTouchMove = (e: TouchEvent) => {
-      if (e.touches.length > 0) {
-        const touch = e.touches[0];
-        handleMouseMoveInternal({ clientX: touch.clientX, clientY: touch.clientY, target: e.target } as any);
-      }
-    };
-    const onTouchEnd = () => handleMouseUpInternal();
 
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
-    window.addEventListener('touchmove', onTouchMove, { passive: true });
-    window.addEventListener('touchend', onTouchEnd);
-    window.addEventListener('touchcancel', onTouchEnd);
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
-      window.removeEventListener('touchmove', onTouchMove);
-      window.removeEventListener('touchend', onTouchEnd);
-      window.removeEventListener('touchcancel', onTouchEnd);
     };
   }, [handleMouseMoveInternal, handleMouseUpInternal]);
 

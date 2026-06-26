@@ -90,9 +90,13 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                 <button
                   key={size.name}
                   disabled={isCreating}
-                  onClick={() => {
+                  onClick={async () => {
                     setIsCreating(true);
-                    onCreate(size);
+                    try {
+                      await onCreate(size);
+                    } finally {
+                      setIsCreating(false);
+                    }
                   }}
                   className="flex items-center justify-between p-4 bg-surface-dark-2/50 border border-gray-800 rounded-xl hover:border-brand-600/50 hover:bg-surface-dark-4 transition-all group overflow-hidden relative disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -190,9 +194,13 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({ isOpen, 
                 <Button
                   variant="primary"
                   size="lg"
-                  onClick={() => {
+                  onClick={async () => {
                     setIsCreating(true);
-                    handleCustomCreate();
+                    try {
+                      await handleCustomCreate();
+                    } finally {
+                      setIsCreating(false);
+                    }
                   }}
                   disabled={isCreating}
                   className="w-full group"

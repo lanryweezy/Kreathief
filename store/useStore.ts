@@ -56,6 +56,27 @@ export const useStore = create<StoreState>()((set, get, store) => ({
       showShortcuts: false,
       showShareModal: false,
       zoom: 1,
+      snapToGrid: false,
+      snapToObjects: true,
+      fontPreview: null,
+      customFonts: [],
+      isCropMode: false,
+      croppingLayerId: null,
+      cropArea: { x: 0, y: 0, width: 0, height: 0 },
+      showGoldenRatio: false,
+      isEraserActive: false,
+      isExpanding: false,
+      isRemovingBg: false,
+      toasts: [],
+      comments: [],
+      snapshots: [],
+      tags: [],
+      isPublished: false,
+      favoriteProjects: [],
+      isLassoMode: false,
+      lassoPoints: [],
+      showVersionDiff: false,
+      showPresentation: false,
 
       // Canvas Slice
       canvasBackgroundColor: '#ffffff',
@@ -65,11 +86,17 @@ export const useStore = create<StoreState>()((set, get, store) => ({
 
       // Drawing Slice
       isPenMode: false,
+      brushColor: '#000000',
+      brushSize: 2,
+      brushOpacity: 1,
+      textureIntensity: 50,
 
       // Layer/Base Slice
       artboards: [],
       activeArtboardId: undefined,
       selectedLayerIds: [],
+      clipboardLayer: null,
+      editingPathId: null,
 
       // Project Slice
       projectId: `proj_${Date.now()}`,
@@ -99,8 +126,17 @@ export const useStore = create<StoreState>()((set, get, store) => ({
       agentIntent: '',
       thinkingLog: [],
 
-      // AI Slice (Resetting transient data)
+      // AI Assistant Slice
+      isActive: false,
+      isAnalyzing: false,
+      currentCritique: undefined,
+      conversationHistory: [],
+      autoSuggest: true,
+
+      // AI Slice
       uploads: [],
+      prompt: '',
+      isGenerating: false,
     });
   },
 }));

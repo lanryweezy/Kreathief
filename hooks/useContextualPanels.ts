@@ -33,7 +33,7 @@ export const useContextualPanels = () => {
 
     // 2. Text Context
     if (selectedLayer?.type === 'text') {
-      return [NavTab.TEXT, NavTab.TEXT, NavTab.TEXTURES, NavTab.MEDIA];
+      return [NavTab.TEXT, NavTab.TEXTURES, NavTab.MEDIA];
     }
 
     // 3. Image Context

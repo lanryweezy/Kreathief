@@ -183,7 +183,7 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
       log.error('Save failed', e, { projectId });
       set({ isSaving: false, syncStatus: 'error' });
       // Show error toast
-      get().addToast?.({ message: 'Failed to sync to cloud', type: 'error' });
+      get().addToast?.('Failed to sync to cloud', 'error');
     }
   },
 

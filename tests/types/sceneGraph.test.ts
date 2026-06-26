@@ -208,4 +208,112 @@ describe('SceneGraph', () => {
     expect(output).toContain('shape: Circle');
     expect(output).toContain('shape: Background');
   });
+
+  it('finds deep nested node via nodeMap', () => {
+    const layers = [
+      makeGroup('g1'),
+      makeGroup('g2', 'inner'),
+      makeLayer('a', 'g2'),
+    ];
+    const graph = buildSceneGraph(layers);
+    const node = graph.nodeMap.get('a');
+    expect(node).toBeDefined();
+    expect(node!.parent!.id).toBe('g2');
+    expect(node!.depth).toBe(2);
+  });
+
+  it('buildSceneGraph → flattenSceneGraph roundtrip preserves all layers', () => {
+    const layers = [
+      makeGroup('g1'),
+      makeLayer('a', 'g1'),
+      makeGroup('g2', 'g1'),
+      makeLayer('b', 'g2'),
+      makeLayer('c'),
+    ];
+    const graph = buildSceneGraph(layers);
+    const flat = flattenSceneGraph(graph);
+    expect(flat.map((l) => l.id)).toEqual(['g1', 'a', 'g2', 'b', 'c']);
+  });
+
+  it('getDescendants of a leaf returns empty', () => {
+    const layers = [makeLayer('leaf')];
+    const graph = buildSceneGraph(layers);
+    const desc = getDescendants(graph.nodeMap.get('leaf')!);
+    expect(desc.length).toBe(0);
+  });
+
+  it('getAncestors of a root returns empty', () => {
+    const layers = [makeLayer('root')];
+    const graph = buildSceneGraph(layers);
+    const anc = getAncestors(graph.nodeMap.get('root')!);
+    expect(anc.length).toBe(0);
+  });
+
+  it('deleteNode on non-existent node returns empty', () => {
+    const graph = buildSceneGraph([makeLayer('a')]);
+    const deleted = deleteNode(graph, 'zzz');
+    expect(deleted.length).toBe(0);
+  });
+
+  it('moveNode back to root from group', () => {
+    const layers = [
+      makeGroup('g1'),
+      makeLayer('a', 'g1'),
+    ];
+    const graph = buildSceneGraph(layers);
+    moveNode(graph, 'a', null);
+    expect(graph.roots.length).toBe(2);
+    expect(graph.nodeMap.get('a')!.parent).toBeNull();
+    expect(graph.nodeMap.get('a')!.depth).toBe(0);
+  });
+
+  it('insertNode into a group', () => {
+    const layers = [makeGroup('g1')];
+    const graph = buildSceneGraph(layers);
+    const child = makeLayer('child');
+    insertNode(graph, child, 'g1');
+    const g1 = graph.nodeMap.get('g1')!;
+    expect(g1.children.length).toBe(1);
+    expect(graph.nodeMap.get('child')!.parent!.id).toBe('g1');
+  });
+
+  it('identifies text layer node type', () => {
+    const textLayer = { ...makeLayer('t'), type: 'text' } as Layer;
+    const graph = buildSceneGraph([textLayer]);
+    expect(graph.nodeMap.get('t')!.type).toBe('text');
+  });
+
+  it('identifies image layer node type', () => {
+    const imgLayer = { ...makeLayer('img'), type: 'image', src: '' } as Layer;
+    const graph = buildSceneGraph([imgLayer]);
+    expect(graph.nodeMap.get('img')!.type).toBe('image');
+  });
+
+  it('deeper nesting sets correct depths', () => {
+    const layers = [
+      makeGroup('g1'),
+      makeGroup('g2', 'g1'),
+      makeGroup('g3', 'g2'),
+      makeLayer('leaf', 'g3'),
+    ];
+    const graph = buildSceneGraph(layers);
+    expect(graph.nodeMap.get('g1')!.depth).toBe(0);
+    expect(graph.nodeMap.get('g2')!.depth).toBe(1);
+    expect(graph.nodeMap.get('g3')!.depth).toBe(2);
+    expect(graph.nodeMap.get('leaf')!.depth).toBe(3);
+  });
+
+  it('serialize/deserialize preserves deep nesting', () => {
+    const layers = [
+      makeGroup('g1'),
+      makeGroup('g2', 'g1'),
+      makeLayer('a', 'g2'),
+    ];
+    const graph = buildSceneGraph(layers);
+    const json = serializeSceneGraph(graph);
+    const restored = deserializeSceneGraph(json);
+    const aNode = restored.nodeMap.get('a')!;
+    expect(aNode.depth).toBe(2);
+    expect(aNode.parent!.id).toBe('g2');
+  });
 });

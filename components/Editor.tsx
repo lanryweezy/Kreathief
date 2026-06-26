@@ -69,12 +69,15 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     user
   );
 
-  // Expose store to window for E2E tests
+  // Expose store to window for E2E tests (dev only)
   React.useEffect(() => {
-    (window as any).useStore = useStore;
-    return () => {
-      delete (window as any).useStore;
-    };
+    if (import.meta.env.DEV) {
+      (window as any).useStore = useStore;
+      return () => {
+        delete (window as any).useStore;
+      };
+    }
+    return undefined;
   }, []);
 
   // Connect actions needed for Header/UI

@@ -276,7 +276,7 @@ export const ImageLayerItem = React.memo(
             )}
           </div>
 
-          {isSelected && <SelectionHandles layer={imgLayer} onResize={onResize} onRotate={onRotate} scale={1} />}
+          {isSelected && <SelectionHandles layer={imgLayer} onResize={onResize} onRotate={onRotate} />}
         </div>
       );
     }
@@ -568,7 +568,7 @@ export const ShapeLayerItem = React.memo(
                 );
               })()}
           </div>
-          {isSelected && <SelectionHandles layer={shapeLayer} onResize={onResize} onRotate={onRotate} scale={1} />}
+          {isSelected && <SelectionHandles layer={shapeLayer} onResize={onResize} onRotate={onRotate} />}
         </div>
       );
     }
@@ -682,7 +682,7 @@ export const TextLayerItem = React.memo(
             {String(textLayer.text)}
           </div>
           {isSelected && !isEditing && (
-            <SelectionHandles layer={textLayer} onResize={onResize} onRotate={onRotate} scale={1} />
+            <SelectionHandles layer={textLayer} onResize={onResize} onRotate={onRotate} />
           )}
         </div>
       );
@@ -738,7 +738,7 @@ export const AdjustmentLayerItem = React.memo(
               ADJUSTMENT
             </div>
           )}
-          {isSelected && <SelectionHandles layer={adjLayer} onResize={onResize} onRotate={onRotate} scale={1} />}
+          {isSelected && <SelectionHandles layer={adjLayer} onResize={onResize} onRotate={onRotate} />}
         </div>
       );
     }

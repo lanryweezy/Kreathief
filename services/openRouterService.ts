@@ -55,13 +55,10 @@ export async function generateText(params: GenerateTextParams): Promise<string> 
         }
         messages.push({ role: 'user', content: prompt });
 
-        const response = await fetch(`${OPENROUTER_API_URL}/chat/completions`, {
+        const response = await fetch('/api/openrouter', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${getApiKey()}`,
-            'HTTP-Referer': window.location.origin,
-            'X-Title': 'Kreathief',
           },
           body: JSON.stringify({
             model,

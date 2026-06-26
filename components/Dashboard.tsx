@@ -9,7 +9,7 @@ import { useStore } from '../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import CommunityTemplates from './CommunityTemplates';
 import { IMAGE_GEN_MODELS, DEFAULT_IMAGE_MODEL, IMAGE_MODEL_CATEGORIES, ImageGenModel } from '../config/imageModels';
-import * as aiModelsService from '../services/aiModelsService';
+import { aiModelsService } from '../services/aiModelsService';
 import { EmptyState } from './EmptyState';
 import { Button } from './Button';
 import * as geminiService from '../services/geminiService';
@@ -169,15 +169,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
 
   // Close model picker on outside click
   useEffect(() => {
+    if (!showModelPicker) return;
     const handleClickOutside = (e: MouseEvent) => {
       if (modelPickerRef.current && !modelPickerRef.current.contains(e.target as Node)) {
         setShowModelPicker(false);
       }
     };
-    if (showModelPicker) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showModelPicker]);
 
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; projectId: string | null }>({
@@ -517,552 +516,164 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               </div>
             </div>
 
-            <div className="flex items-start sm:items-center justify-between gap-4 mb-8 flex-col sm:flex-row">
-              <div
-                className="text-xl md:text-2xl font-bold flex items-center gap-3 md:gap-4 overflow-x-auto whitespace-nowrap pb-2 sm:pb-0 w-full sm:w-auto custom-scrollbar"
-                role="tablist"
-              >
-                <button
-                  role="tab"
-                  data-testid="nav-projects"
-                  aria-selected={sidebarTab === 'projects'}
-                  onClick={() => setSidebarTab('projects')}
-                  className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all relative py-2 ${sidebarTab === 'projects' ? 'text-white' : 'text-muted hover:text-gray-300'}`}
-                >
-                  My Projects
-                  {sidebarTab === 'projects' && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute bottom-0 left-0 right-0 h-1 bg-brand-500 rounded-full"
-                    />
-                  )}
-                </button>
-                <button
-                  role="tab"
-                  data-testid="nav-templates"
-                  aria-selected={sidebarTab === 'templates'}
-                  onClick={() => setSidebarTab('templates')}
-                  className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all relative py-2 ${sidebarTab === 'templates' ? 'text-white' : 'text-muted hover:text-gray-300'}`}
-                >
-                  Templates
-                  {sidebarTab === 'templates' && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute bottom-0 left-0 right-0 h-1 bg-brand-500 rounded-full"
-                    />
-                  )}
-                </button>
-                <button
-                  role="tab"
-                  data-testid="nav-community"
-                  aria-selected={sidebarTab === 'community'}
-                  onClick={() => setSidebarTab('community')}
-                  className={`text-[10px] font-black uppercase tracking-[0.2em] transition-all relative py-2 ${sidebarTab === 'community' ? 'text-white' : 'text-muted hover:text-gray-300'}`}
-                >
-                  Community
-                  {sidebarTab === 'community' && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute bottom-0 left-0 right-0 h-1 bg-brand-500 rounded-full"
-                    />
-                  )}
-                </button>
+            {/* Quick Start */}
+            <div className="mb-10">
+              <div className="flex items-center justify-between mb-5">
+                <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Quick Start</span>
               </div>
-              <Button
-                id="create-btn"
-                onClick={handleCreateClick}
-                variant="primary"
-                className="px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-black text-[10px] sm:text-[12px] uppercase tracking-widest flex items-center gap-2 hover:scale-[1.02] active:scale-95 shrink-0"
-              >
-                <Icons.Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> New Design
-              </Button>
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                {FORMAT_OPTIONS.map((format, idx) => (
+                  <button
+                    key={format.label}
+                    onClick={() => { setSelectedFormat(idx); setAiPrompt(''); aiInputRef.current?.focus(); }}
+                    className="group aspect-square rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-200 border border-white/5 hover:border-brand-500/40 hover:bg-brand-500/5 cursor-pointer"
+                    style={{ background: `linear-gradient(135deg, ${['#1a1a2e,#16213e', '#16213e,#0f3460', '#0f3460,#1a1a2e', '#533483,#1a1a2e', '#1a1a2e,#e94560', '#e94560,#533483'][idx]})` }}
+                  >
+                    <span className="text-2xl">{['📸', '📱', '🎬', '📄', '🎨', '👕'][idx]}</span>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-muted group-hover:text-white transition-colors">{format.label}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Filter Controls (for Projects) */}
-            {sidebarTab === 'projects' && (
-              <div data-testid="dashboard-category-filters" className="flex items-center gap-4 mb-6">
-                <button
-                  data-testid="dashboard-favorites-filter"
-                  onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border ${
-                    showFavoritesOnly
-                      ? 'bg-red-500/10 border-red-500/50 text-red-400'
-                      : 'bg-surface-dark-3 border-white/5 text-muted-light hover:text-white hover:border-white/20'
-                  }`}
-                >
-                  <Icons.Heart className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-current' : ''}`} />
-                  Favorites Only
-                </button>
-              </div>
-            )}
-
-            {/* Templates Tab */}
-            {sidebarTab === 'templates' && (
-              <div data-testid="dashboard-templates-panel" className="mb-10">
-                <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
-                  <Icons.Templates className="w-4 h-4 text-accent" />
-                  Quick templates
-                </h3>
-                <div
-                  id="templates-grid"
-                  data-testid="dashboard-templates-grid"
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 staggered-entry"
-                >
-                  {filteredTemplates.length > 0 ? (
-                    filteredTemplates.map((tmpl) => (
-                      <button
-                        key={tmpl.id}
-                        data-testid={`dashboard-template-btn-${tmpl.id}`}
-                        onClick={() => handleStartFromTemplate(tmpl.id)}
-                        className="group bg-surface-dark-1 border border-white/5 rounded-xl overflow-hidden text-left hover:border-white/20 transition-all duration-300 shadow-xl relative"
-                      >
-                        <div className="aspect-[4/3] bg-surface-dark-1 flex items-center justify-center relative overflow-hidden group-hover:bg-surface-dark-2 transition-colors border-b border-white/5">
-                          {/* High-fidelity Miniature Render of the template */}
-                          <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-3 select-none pointer-events-none">
-                            <div
-                              style={{
-                                width: `${tmpl.size.width || 1080}px`,
-                                height: `${tmpl.size.height || 1080}px`,
-                                transform: `scale(${Math.min(260 / (tmpl.size.width || 1080), 195 / (tmpl.size.height || 1080))})`,
-                                transformOrigin: 'center center',
-                                backgroundColor: tmpl.state?.canvasBackgroundColor || '#0f172a',
-                              }}
-                              className="relative flex-shrink-0 shadow-2xl rounded-sm border border-white/5 overflow-hidden"
-                            >
-                              {tmpl.state?.layers?.map((l: any, idx: number) => {
-                                if (l.type === 'rectangle') {
-                                  return (
-                                    <div
-                                      key={l.id || idx}
-                                      style={{
-                                        position: 'absolute',
-                                        left: `${l.x}px`,
-                                        top: `${l.y}px`,
-                                        width: `${l.width}px`,
-                                        height: `${l.height}px`,
-                                        backgroundColor: l.color || '#fff',
-                                        borderRadius: `${l.cornerRadius || 0}px`,
-                                        opacity: l.opacity ?? 1,
-                                        transform: `rotate(${l.rotation || 0}deg) skew(${l.skewX || 0}deg, ${l.skewY || 0}deg)`,
-                                      }}
-                                    />
-                                  );
-                                }
-                                if (l.type === 'circle') {
-                                  return (
-                                    <div
-                                      key={l.id || idx}
-                                      style={{
-                                        position: 'absolute',
-                                        left: `${l.x}px`,
-                                        top: `${l.y}px`,
-                                        width: `${l.width}px`,
-                                        height: `${l.height}px`,
-                                        backgroundColor: l.color || '#fff',
-                                        borderRadius: '50%',
-                                        opacity: l.opacity ?? 1,
-                                        transform: `rotate(${l.rotation || 0}deg)`,
-                                      }}
-                                    />
-                                  );
-                                }
-                                if (l.type === 'text') {
-                                  return (
-                                    <div
-                                      key={l.id || idx}
-                                      style={{
-                                        position: 'absolute',
-                                        left: `${l.x}px`,
-                                        top: `${l.y}px`,
-                                        width: `${l.width}px`,
-                                        height: `${l.height}px`,
-                                        color: l.color || '#fff',
-                                        fontSize: `${l.fontSize || 16}px`,
-                                        fontFamily: l.fontFamily || 'sans-serif',
-                                        fontWeight: l.fontWeight || '400',
-                                        textAlign: l.textAlign || 'left',
-                                        opacity: l.opacity ?? 1,
-                                        transform: `rotate(${l.rotation || 0}deg) skew(${l.skewX || 0}deg, ${l.skewY || 0}deg)`,
-                                        whiteSpace: 'pre-wrap',
-                                        overflow: 'hidden',
-                                      }}
-                                    >
-                                      {l.text}
-                                    </div>
-                                  );
-                                }
-                                if (l.type === 'path' || l.type === 'svg' || l.pathData) {
-                                  const isDrawing = l.id?.startsWith('draw_') || l.brushType;
-                                  const strokeColor = l.stroke?.color || l.color || '#fff';
-                                  const strokeWidth = l.stroke?.width || 2;
-                                  return (
-                                    <svg
-                                      key={l.id || idx}
-                                      style={{
-                                        position: 'absolute',
-                                        left: `${l.x}px`,
-                                        top: `${l.y}px`,
-                                        width: `${l.width}px`,
-                                        height: `${l.height}px`,
-                                        opacity: l.opacity ?? 1,
-                                        transform: `rotate(${l.rotation || 0}deg)`,
-                                        overflow: 'visible',
-                                      }}
-                                      viewBox={l.viewBox || `0 0 ${l.width || 512} ${l.height || 512}`}
-                                    >
-                                      <path
-                                        d={l.pathData || l.path || l.d}
-                                        fill={isDrawing ? 'none' : l.color || '#fff'}
-                                        stroke={isDrawing ? strokeColor : 'none'}
-                                        strokeWidth={isDrawing ? strokeWidth : 0}
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
-                                  );
-                                }
-                                if (l.type === 'image') {
-                                  return (
-                                    <img
-                                      key={l.id || idx}
-                                      src={l.src}
-                                      style={{
-                                        position: 'absolute',
-                                        left: `${l.x}px`,
-                                        top: `${l.y}px`,
-                                        width: `${l.width}px`,
-                                        height: `${l.height}px`,
-                                        opacity: l.opacity ?? 1,
-                                        transform: `rotate(${l.rotation || 0}deg)`,
-                                        objectFit: 'cover',
-                                      }}
-                                    />
-                                  );
-                                }
-                                return null;
-                              })}
-                            </div>
-                          </div>
-
-                          {/* Top Overlays */}
-                          <div className="absolute inset-x-0 top-0 p-3 flex justify-between items-center bg-gradient-to-b from-black/60 to-transparent pointer-events-none select-none">
-                            <span className="text-[10px] font-black uppercase tracking-wider text-white bg-brand-600 px-2 py-0.5 rounded shadow-lg border border-white/10">
-                              {tmpl.category}
-                            </span>
-                            <span className="text-[10px] font-black uppercase tracking-wider text-muted-light bg-black/60 backdrop-blur-md px-2 py-0.5 rounded border border-white/5">
-                              {tmpl.size.name}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="p-4 bg-surface-dark-1">
-                          <div className="text-sm font-bold text-white truncate mb-1 group-hover:text-accent transition-colors">
-                            {tmpl.name}
-                          </div>
-                          <div className="text-[11px] text-muted-light line-clamp-2">{tmpl.description}</div>
-                        </div>
-                      </button>
-                    ))
-                  ) : (
-                    <div className="col-span-full text-center py-12 border-2 border-dashed border-surface-dark-4 rounded-xl">
-                      <Icons.Search className="w-8 h-8 text-surface-dark-5 mx-auto mb-2" />
-                      <p className="text-muted text-xs font-bold">No templates match your search</p>
-                    </div>
-                  )}
+            {/* Recent Projects */}
+            {projects.length > 0 && (
+              <div className="mb-10">
+                <div className="flex items-center justify-between mb-5">
+                  <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Recent</span>
+                  <button onClick={() => setSidebarTab('projects')} className="text-[11px] text-brand-500 font-bold hover:text-brand-400 transition-colors">View all →</button>
                 </div>
-              </div>
-            )}
-
-            {/* All Projects Tab (default) */}
-            {sidebarTab === 'projects' &&
-              (isLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="bg-surface-dark-1 border border-white/5 rounded-xl overflow-hidden animate-pulse"
-                    >
-                      <div className="aspect-[4/3] bg-white/5" />
-                      <div className="p-5 space-y-3">
-                        <div className="h-4 bg-white/5 rounded w-3/4" />
-                        <div className="h-3 bg-white/5 rounded w-1/2" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : projects.length === 0 ? (
-                <EmptyState
-                  icon={Icons.FolderPlus}
-                  title="No projects yet"
-                  description="Start creating amazing designs with AI-powered tools. Your projects will appear here."
-                  action={{
-                    label: 'Create Your First Project',
-                    onClick: handleCreateClick,
-                  }}
-                />
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8 staggered-entry">
-                  {/* Create New Card */}
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleCreateClick}
-                    data-testid="blank-canvas-card"
-                    role="button"
-                    aria-label="Create new blank canvas"
-                    className="aspect-[4/3] glass-card-premium border-2 border-dashed border-surface-dark-5 rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all hover:border-brand-500/50 group"
-                  >
-                    <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform group-hover:bg-brand-500/20 group-hover:text-brand-400 text-muted shadow-xl group-hover:shadow-glow-brand">
-                      <Icons.Plus className="w-8 h-8" />
-                    </div>
-                    <span className="font-black text-[10px] text-muted group-hover:text-white uppercase tracking-[0.2em] transition-colors">
-                      Blank Canvas
-                    </span>
-                  </motion.div>
-
-                  {/* Project Cards */}
-                  {filteredProjects.map((project) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {projects.slice(0, 3).map((project) => (
                     <motion.div
                       layout
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
                       key={project.id}
-                      data-testid={`project-card-${project.id}`}
-                      id={`project-card-${project.id}`}
-                      role="button"
-                      aria-label={`Open ${project.name}`}
-                      onClick={() => {
-                        loadProject(project.id);
-                        onOpenProject(project);
-                      }}
-                      className="group bg-surface-dark-1 border border-white/5 rounded-xl overflow-hidden cursor-pointer relative hover:border-white/20 transition-all duration-300 shadow-xl"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => { loadProject(project.id); onOpenProject(project); }}
+                      className="group bg-surface-dark-1 border border-white/5 rounded-2xl overflow-hidden cursor-pointer hover:border-white/15 transition-all shadow-xl"
                     >
-                      <div className="aspect-[4/3] bg-surface-dark-2 relative overflow-hidden flex items-center justify-center">
-                        {project.thumbnail ? (
-                          <img
-                            src={project.thumbnail}
-                            className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                      <div className="aspect-[16/10] bg-surface-dark-2 relative overflow-hidden">
+                        <div className="absolute top-3 right-3 z-10">
+                          <span className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider text-white">
+                            {project.state.canvasSize?.width}×{project.state.canvasSize?.height}
+                          </span>
+                        </div>
+                        <div className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
+                          <div
+                            style={{
+                              width: `${project.state.canvasSize?.width || 1080}px`,
+                              height: `${project.state.canvasSize?.height || 1080}px`,
+                              transform: `scale(${Math.min(280 / (project.state.canvasSize?.width || 1080), 180 / (project.state.canvasSize?.height || 1080))})`,
+                              transformOrigin: 'center',
+                              backgroundColor: project.state.canvasBackgroundColor || '#ffffff',
+                            }}
+                            className="shadow-2xl rounded border border-white/5 overflow-hidden"
                           />
-                        ) : (
-                          /* Fallback Miniature Render for Projects without thumbnails */
-                          <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-4 select-none pointer-events-none group-hover:scale-105 transition-transform duration-700 bg-gradient-to-br from-surface-dark-3 to-surface-dark-2">
-                            <div
-                              style={{
-                                width: `${project.state.canvasSize?.width || 1080}px`,
-                                height: `${project.state.canvasSize?.height || 1080}px`,
-                                transform: `scale(${Math.min(260 / (project.state.canvasSize?.width || 1080), 195 / (project.state.canvasSize?.height || 1080))})`,
-                                transformOrigin: 'center center',
-                                backgroundColor: project.state.canvasBackgroundColor || '#ffffff',
-                              }}
-                              className="relative flex-shrink-0 shadow-2xl rounded-sm border border-white/5 overflow-hidden"
-                            >
-                              {(project.state as any).layers?.map((l: any, idx: number) => {
-                                if (!l.visible) {
-                                  return null;
-                                }
-                                if (l.type === 'rectangle') {
-                                  return (
-                                    <div
-                                      key={l.id || idx}
-                                      style={{
-                                        position: 'absolute',
-                                        left: `${l.x}px`,
-                                        top: `${l.y}px`,
-                                        width: `${l.width}px`,
-                                        height: `${l.height}px`,
-                                        backgroundColor: l.color || '#fff',
-                                        borderRadius: `${l.cornerRadius || 0}px`,
-                                        opacity: l.opacity ?? 1,
-                                        transform: `rotate(${l.rotation || 0}deg)`,
-                                      }}
-                                    />
-                                  );
-                                }
-                                if (l.type === 'circle') {
-                                  return (
-                                    <div
-                                      key={l.id || idx}
-                                      style={{
-                                        position: 'absolute',
-                                        left: `${l.x}px`,
-                                        top: `${l.y}px`,
-                                        width: `${l.width}px`,
-                                        height: `${l.height}px`,
-                                        backgroundColor: l.color || '#fff',
-                                        borderRadius: '50%',
-                                        opacity: l.opacity ?? 1,
-                                        transform: `rotate(${l.rotation || 0}deg)`,
-                                      }}
-                                    />
-                                  );
-                                }
-                                if (l.type === 'text') {
-                                  return (
-                                    <div
-                                      key={l.id || idx}
-                                      style={{
-                                        position: 'absolute',
-                                        left: `${l.x}px`,
-                                        top: `${l.y}px`,
-                                        width: `${l.width}px`,
-                                        height: `${l.height}px`,
-                                        color: l.color || '#fff',
-                                        fontSize: `${l.fontSize || 16}px`,
-                                        fontFamily: l.fontFamily || 'sans-serif',
-                                        fontWeight: l.fontWeight || '400',
-                                        textAlign: l.textAlign || 'left',
-                                        opacity: l.opacity ?? 1,
-                                        transform: `rotate(${l.rotation || 0}deg)`,
-                                        whiteSpace: 'pre-wrap',
-                                        overflow: 'hidden',
-                                      }}
-                                    >
-                                      {l.text}
-                                    </div>
-                                  );
-                                }
-                                if (l.type === 'path' || l.type === 'svg' || l.pathData) {
-                                  const isDrawing = l.id?.startsWith('draw_') || l.brushType;
-                                  const strokeColor = l.stroke?.color || l.color || '#fff';
-                                  const strokeWidth = l.stroke?.width || 2;
-                                  return (
-                                    <svg
-                                      key={l.id || idx}
-                                      style={{
-                                        position: 'absolute',
-                                        left: `${l.x}px`,
-                                        top: `${l.y}px`,
-                                        width: `${l.width}px`,
-                                        height: `${l.height}px`,
-                                        opacity: l.opacity ?? 1,
-                                        transform: `rotate(${l.rotation || 0}deg)`,
-                                        overflow: 'visible',
-                                      }}
-                                      viewBox={l.viewBox || `0 0 ${l.width || 512} ${l.height || 512}`}
-                                    >
-                                      <path
-                                        d={l.pathData || l.path || l.d}
-                                        fill={isDrawing ? 'none' : l.color || '#fff'}
-                                        stroke={isDrawing ? strokeColor : 'none'}
-                                        strokeWidth={isDrawing ? strokeWidth : 0}
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                      />
-                                    </svg>
-                                  );
-                                }
-                                if (l.type === 'image') {
-                                  return (
-                                    <img
-                                      key={l.id || idx}
-                                      src={l.src}
-                                      style={{
-                                        position: 'absolute',
-                                        left: `${l.x}px`,
-                                        top: `${l.y}px`,
-                                        width: `${l.width}px`,
-                                        height: `${l.height}px`,
-                                        opacity: l.opacity ?? 1,
-                                        transform: `rotate(${l.rotation || 0}deg)`,
-                                        objectFit: 'cover',
-                                      }}
-                                    />
-                                  );
-                                }
-                                return null;
-                              })}
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity translate-y-[-10px] group-hover:translate-y-0 duration-300">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleFavoriteProject(project.id);
-                            }}
-                            aria-label={`${favoriteProjects.includes(project.id) ? 'Remove from' : 'Add to'} Favorites`}
-                            className="p-2 bg-black/60 hover:bg-red-500 text-red-500 rounded-xl backdrop-blur-md transition-all shadow-lg"
-                          >
-                            <Icons.Heart
-                              className={`w-3.5 h-3.5 ${favoriteProjects.includes(project.id) ? 'fill-current' : ''}`}
-                            />
-                          </button>
-                          <button
-                            onClick={(e) => startRenaming(e, project)}
-                            aria-label={`Rename ${project.name}`}
-                            className="p-2 bg-black/60 hover:bg-brand-600 text-white rounded-xl backdrop-blur-md transition-all shadow-lg"
-                          >
-                            <Icons.Edit className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={(e) => handleDuplicate(e, project)}
-                            aria-label={`Duplicate ${project.name}`}
-                            disabled={duplicatingId === project.id}
-                            className="p-2 bg-black/60 hover:bg-accent text-white rounded-xl backdrop-blur-md transition-all shadow-lg disabled:opacity-50"
-                          >
-                            {duplicatingId === project.id ? (
-                              <div className="animate-spin w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full" />
-                            ) : (
-                              <Icons.Plus className="w-3.5 h-3.5" />
-                            )}
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              shareToCommunity(project);
-                              addToast('Design shared successfully with the community!', 'success');
-                            }}
-                            title="Share with Community"
-                            aria-label={`Share ${project.name} to Community`}
-                            className="p-2 bg-black/60 hover:bg-green-500 text-white rounded-xl backdrop-blur-md transition-all shadow-lg"
-                          >
-                            <Icons.Cloud className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={(e) => handleDelete(e, project.id)}
-                            aria-label={`Delete ${project.name}`}
-                            className="p-2 bg-black/60 hover:bg-red-500 text-white rounded-xl backdrop-blur-md transition-all shadow-lg"
-                          >
-                            <Icons.Trash className="w-3.5 h-3.5" />
-                          </button>
                         </div>
                       </div>
-                      <div className="p-5 bg-surface-dark-1">
-                        {editingProjectId === project.id ? (
-                          <input
-                            autoFocus
-                            type="text"
-                            value={newName}
-                            onChange={(e) => setNewName(e.target.value)}
-                            onBlur={() => handleRename(project.id)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleRename(project.id)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-full bg-surface-dark-2 border border-brand-600 rounded px-2 py-1 text-sm text-white focus:outline-none"
-                          />
-                        ) : (
-                          <h3 className="font-bold text-sm text-white truncate mb-1 group-hover:text-accent transition-colors">
-                            {project.name}
-                          </h3>
-                        )}
-                        <div className="flex justify-between items-center text-[9px] text-muted font-black uppercase tracking-widest">
-                          <span className="flex items-center gap-1.5">
-                            <Icons.History className="w-3 h-3" />
-                            {new Date(project.updatedAt).toLocaleDateString()}
-                          </span>
-                          <span className="bg-white/5 px-2 py-0.5 rounded-full border border-white/10">
-                            {project.state.canvasSize?.width} × {project.state.canvasSize?.height}
-                          </span>
-                        </div>
+                      <div className="p-4">
+                        <div className="font-bold text-sm text-white truncate mb-1 group-hover:text-accent transition-colors">{project.name}</div>
+                        <div className="text-[10px] text-muted font-medium">{new Date(project.updatedAt).toLocaleDateString()}</div>
                       </div>
                     </motion.div>
                   ))}
                 </div>
-              ))}
+              </div>
+            )}
 
-            {/* Community Tab */}
-            {sidebarTab === 'community' && (
-              <div className="rounded-3xl overflow-hidden border border-white/5 min-h-[600px]">
-                <CommunityTemplates onOpenProject={onOpenProject} />
+            {/* Templates */}
+            <div className="mb-10">
+              <div className="flex items-center justify-between mb-5">
+                <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Templates</span>
+                <div className="flex gap-2">
+                  {['All', 'Social', 'Business', 'Video'].map((cat) => (
+                    <button key={cat} className="px-3 py-1.5 rounded-full text-[10px] font-bold bg-white/5 text-muted hover:text-white hover:bg-white/10 transition-all">{cat}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {filteredTemplates.slice(0, 8).map((tmpl) => (
+                  <button
+                    key={tmpl.id}
+                    onClick={() => handleStartFromTemplate(tmpl.id)}
+                    className="group bg-surface-dark-1 border border-white/5 rounded-2xl overflow-hidden text-left hover:border-white/15 transition-all shadow-xl"
+                  >
+                    <div className="aspect-[4/3] relative overflow-hidden">
+                      <div className="absolute inset-0 flex items-center justify-center p-3 pointer-events-none">
+                        <div
+                          style={{
+                            width: `${tmpl.size.width || 1080}px`,
+                            height: `${tmpl.size.height || 1080}px`,
+                            transform: `scale(${Math.min(220 / (tmpl.size.width || 1080), 165 / (tmpl.size.height || 1080))})`,
+                            transformOrigin: 'center',
+                            backgroundColor: tmpl.state?.canvasBackgroundColor || '#0f172a',
+                          }}
+                          className="shadow-2xl rounded border border-white/5 overflow-hidden"
+                        />
+                      </div>
+                      <div className="absolute top-2 left-2 z-10">
+                        <span className="bg-brand-600 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider text-white">{tmpl.category}</span>
+                      </div>
+                    </div>
+                    <div className="p-3">
+                      <div className="font-bold text-xs text-white truncate group-hover:text-accent transition-colors">{tmpl.name}</div>
+                      <div className="text-[10px] text-muted mt-0.5">{tmpl.size.name}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Empty State */}
+            {projects.length === 0 && !isLoading && (
+              <EmptyState
+                icon={Icons.FolderPlus}
+                title="No projects yet"
+                description="Start creating amazing designs with AI-powered tools. Your projects will appear here."
+                action={{ label: 'Create Your First Project', onClick: handleCreateClick }}
+              />
+            )}
+
+            {/* Loading State */}
+            {isLoading && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="bg-surface-dark-1 border border-white/5 rounded-2xl overflow-hidden animate-pulse">
+                    <div className="aspect-[16/10] bg-white/5" />
+                    <div className="p-4 space-y-2">
+                      <div className="h-4 bg-white/5 rounded w-3/4" />
+                      <div className="h-3 bg-white/5 rounded w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Empty State */}
+            {projects.length === 0 && !isLoading && (
+              <div className="mt-8">
+                <EmptyState
+                  icon={Icons.FolderPlus}
+                  title="No projects yet"
+                  description="Start creating amazing designs with AI-powered tools. Your projects will appear here."
+                  action={{ label: 'Create Your First Project', onClick: handleCreateClick }}
+                />
+              </div>
+            )}
+
+            {/* Loading State */}
+            {isLoading && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="bg-surface-dark-1 border border-white/5 rounded-2xl overflow-hidden animate-pulse">
+                    <div className="aspect-[16/10] bg-white/5" />
+                    <div className="p-4 space-y-2">
+                      <div className="h-4 bg-white/5 rounded w-3/4" />
+                      <div className="h-3 bg-white/5 rounded w-1/2" />
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>

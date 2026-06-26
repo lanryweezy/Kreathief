@@ -326,7 +326,7 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
     }
 
     const newLayer: ShapeLayer = {
-      id: `${type}_${Date.now()}`,
+      id: `${type}_${uuidv4().substring(0, 8)}`,
       type: type as any,
       name: type.charAt(0).toUpperCase() + type.slice(1),
       x: artboard.width / 2 - 50,
