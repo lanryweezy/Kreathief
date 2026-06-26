@@ -99,6 +99,7 @@ export const IconButton = React.memo(
         }
         aria-label={ariaLabel || title}
         aria-pressed={active}
+        aria-busy={loading}
         className={`p-2 rounded-lg transition-all flex items-center justify-center relative group/btn ${
           active ? 'bg-brand-600 text-white shadow-glow-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'
         } ${disabled || loading ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'} ${className}`}

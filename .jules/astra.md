@@ -60,3 +60,8 @@
 
 **Learning:** Using `responseMimeType: 'application/json'` without a paired `responseSchema` for multi-agent mutation tasks (like `criticAgentReview`) allows the LLM to invent unstructured JSON properties, which breaks expected component UI rendering.
 **Action:** When creating complex LLM mutation requests that require output schemas, explicitly construct the expected `SchemaType` object structure, and include it under `generationConfig.responseSchema`.
+
+## 2026-06-23 - Eliminate Text Generation Preamble in generateAltText
+
+**Learning:** Extracting raw strings from text-based LLM generation APIs (like `generateAltText`) is prone to issues where the LLM wraps the desired response in conversational preamble ("Here is your alt text:"). Relying on regex replacements like `.replace(/[.!?]+$/, '')` alone doesn't prevent or safely remove these preambles, often leading to poorly formatted text in the application.
+**Action:** When a raw string is needed, such as alt text generation, configure the Gemini API request with `generationConfig: { responseMimeType: 'application/json', responseSchema: { type: SchemaType.STRING } }` and parse the text with `safeParseJSON` instead of relying on string replacing methods.
