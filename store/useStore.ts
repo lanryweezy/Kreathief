@@ -10,6 +10,7 @@ import { createBrandSlice, BrandSlice } from './slices/brandSlice';
 import { createAgentSlice, AgentSlice } from './slices/agentSlice';
 import { createCollaborationSlice, CollaborationSlice } from './slices/collaborationSlice';
 import { createAIAssistantSlice, AIAssistantSlice } from './slices/aiAssistantSlice';
+import { createIntentSlice, IntentSlice } from './slices/intentSlice';
 import { DEFAULT_CANVAS_FILTERS, DEFAULT_CANVAS_SIZE } from './slices/canvasSlice';
 
 // Merged type for the full store state
@@ -23,7 +24,8 @@ export type StoreState = UISlice &
   BrandSlice &
   AgentSlice &
   CollaborationSlice &
-  AIAssistantSlice & {
+  AIAssistantSlice &
+  IntentSlice & {
     reset: () => void;
   };
 
@@ -40,6 +42,7 @@ export const useStore = create<StoreState>()((set, get, store) => ({
   ...createAgentSlice(set, get, store),
   ...createCollaborationSlice(set, get, store),
   ...createAIAssistantSlice(set, get, store),
+  ...createIntentSlice(set, get, store),
 
   // Common action to reset the store completely
   reset: () => {

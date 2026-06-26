@@ -460,7 +460,7 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
     const currentArtboards = get().artboards;
     const activeId = get().activeArtboardId;
     const templateLayers = structuredClone(template.state.layers || []);
-    const updatedArtboards = currentArtboards.map((a) =>
+    const updatedArtboards = currentArtboards.map((a: any) =>
       a.id === activeId ? { ...a, layers: templateLayers } : a
     );
     set({

@@ -1,4 +1,4 @@
-import { Layer, Artboard, TextLayer, ShapeLayer, ImageLayer, AdjustmentLayer, GroupLayer } from './types';
+import { Layer, Artboard, TextLayer, ShapeLayer, ImageLayer, AdjustmentLayer, GroupLayer } from '../types';
 
 // ─── Scene Graph Node Types ────────────────────────────────────────────────────
 

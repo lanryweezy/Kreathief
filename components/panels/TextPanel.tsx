@@ -89,7 +89,7 @@ export const TextPanel: React.FC = () => {
   const layers = useMemo(() => artboards.flatMap((a) => a.layers || []), [artboards]);
   const addToast = useStore((state) => state.addToast);
 
-  const [fontSearch, _setFontSearch] = useState('');
+  const [fontSearch, setFontSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [recentFonts, setRecentFonts] = useState<string[]>([]);
   const [textGenPrompt, setTextGenPrompt] = useState('');

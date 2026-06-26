@@ -313,7 +313,7 @@ export const Header: React.FC<HeaderProps> = ({
             type="text"
             value={projectTitle}
             onChange={(e) => setProjectTitle(e.target.value)}
-            onFocus={(e) => e.target.select()}
+            onFocus={(e) => { e.target.select(); titleSnapshotRef.current = projectTitle; }}
             onBlur={() => setIsEditingTitle(false)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
@@ -324,7 +324,6 @@ export const Header: React.FC<HeaderProps> = ({
                 setIsEditingTitle(false);
               }
             }}
-            onFocus={(e) => { e.target.select(); titleSnapshotRef.current = projectTitle; }}
             autoFocus
             className="bg-surface-dark-3 border-b-2 border-brand-500 text-white text-sm font-bold px-2 py-1 outline-none w-48 rounded-t shadow-lg text-center"
           />

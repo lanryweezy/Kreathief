@@ -16,7 +16,7 @@ export class DeleteCommand extends BaseCommand {
   execute() {
     const state = this.store.getState();
     const ab = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
-    const layer = ab?.layers.find((l) => l.id === this.layerId);
+    const layer = ab?.layers.find((l: Layer) => l.id === this.layerId);
     if (!layer) return;
     this.deletedLayer = structuredClone(layer) as Layer;
     this.deletedIndex = ab.layers.indexOf(layer);

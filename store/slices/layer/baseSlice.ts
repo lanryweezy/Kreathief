@@ -56,6 +56,14 @@ export interface LayerSlice {
   instantiateComponent: (masterId: string) => void;
   detachInstance: (id: string) => void;
   resetOverrides: (id: string) => void;
+  syncComponentInstances: (masterId: string) => void;
+  markOverride: (instanceId: string, propertyName: string) => void;
+  updateInstanceLayer: (id: string, partial: Partial<Layer>) => void;
+  swapInstance: (instanceId: string, newMasterId: string) => void;
+  getComponentInstances: (componentId: string) => Layer[];
+  getComponentDefinition: (componentId: string) => any;
+  addVariant: (componentId: string, variantName: string, properties: Record<string, any>) => void;
+  applyVariant: (instanceId: string, variantId: string) => void;
   autoNameLayer: (id: string) => Promise<void>;
 }
 

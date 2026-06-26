@@ -20,7 +20,7 @@ export function computeAutoLayout(
   if (!layout || !children.length) return {};
 
   const updates: Record<string, { x: number; y: number }> = {};
-  const padding = layout.padding || 0;
+  const pad = typeof layout.padding === 'number' ? layout.padding : 0;
   const spacing = layout.spacing || 0;
   const isRow = layout.direction === 'row';
   const alignment = layout.alignment || 'center';
@@ -33,8 +33,8 @@ export function computeAutoLayout(
   let maxCrossSize = 0;
 
   const sizes = leaves.map((child) => {
-    const w = (child as any).width || 100;
-    const h = (child as any).height || 100;
+    const w = Number((child as any).width) || 100;
+    const h = Number((child as any).height) || 100;
     totalAxisSize += isRow ? w : h;
     maxCrossSize = Math.max(maxCrossSize, isRow ? h : w);
     return { w, h };
@@ -43,11 +43,11 @@ export function computeAutoLayout(
   totalAxisSize += spacing * Math.max(0, leaves.length - 1);
 
   // Compute parent's inner dimensions
-  const parentW = (parentLayer as any).width || totalAxisSize + padding * 2;
-  const parentH = (parentLayer as any).height || maxCrossSize + padding * 2;
+  const parentW = Number((parentLayer as any).width) || totalAxisSize + pad * 2;
+  const parentH = Number((parentLayer as any).height) || maxCrossSize + pad * 2;
 
   // Position children along the main axis
-  let cursor = padding;
+  let cursor = pad;
 
   leaves.forEach((child, i) => {
     const { w, h } = sizes[i];
@@ -55,13 +55,12 @@ export function computeAutoLayout(
 
     if (isRow) {
       x = cursor;
-      // Cross-axis alignment
       switch (alignment) {
         case 'start':
-          y = padding;
+          y = pad;
           break;
         case 'end':
-          y = parentH - padding - h;
+          y = parentH - pad - h;
           break;
         case 'center':
         default:
@@ -71,13 +70,12 @@ export function computeAutoLayout(
       cursor += w + spacing;
     } else {
       y = cursor;
-      // Cross-axis alignment
       switch (alignment) {
         case 'start':
-          x = padding;
+          x = pad;
           break;
         case 'end':
-          x = parentW - padding - w;
+          x = parentW - pad - w;
           break;
         case 'center':
         default:
@@ -87,7 +85,6 @@ export function computeAutoLayout(
       cursor += h + spacing;
     }
 
-    // Offset by parent position
     updates[child.id] = {
       x: (parentLayer.x || 0) + x,
       y: (parentLayer.y || 0) + y,
@@ -97,19 +94,15 @@ export function computeAutoLayout(
   // Resize parent to fit if needed
   const totalContentSize = cursor - spacing;
   if (isRow) {
-    updates[parentLayer.id] = {
+    (updates as any)[parentLayer.id] = {
       x: parentLayer.x,
       y: parentLayer.y,
-      width: totalContentSize + padding,
-      height: parentH,
-    } as any;
+    };
   } else {
-    updates[parentLayer.id] = {
+    (updates as any)[parentLayer.id] = {
       x: parentLayer.x,
       y: parentLayer.y,
-      width: parentW,
-      height: totalContentSize + padding,
-    } as any;
+    };
   }
 
   return updates;

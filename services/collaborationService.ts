@@ -49,6 +49,7 @@ function getColorForUser(userId: string): string {
 class CollaborationService {
   private channel: any = null;
   private projectId: string | null = null;
+  private userId: string | null = null;
   private onPresenceChange: ((users: PresenceState[]) => void) | null = null;
   private onCursorMove: ((userId: string, cursor: { x: number; y: number }) => void) | null = null;
   private onLayerChange: ((change: LayerChange) => void) | null = null;
@@ -70,6 +71,8 @@ class CollaborationService {
   ): Promise<void> {
     // Leave any existing channel
     await this.leaveProject();
+
+    this.userId = user.id;
 
     this.projectId = projectId;
     this.onPresenceChange = callbacks.onPresenceChange || null;

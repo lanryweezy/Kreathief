@@ -30,7 +30,7 @@ export class BitmapCache {
 
     try {
       const canvas = new OffscreenCanvas(w, h);
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d') as unknown as CanvasRenderingContext2D;
       if (!ctx) return null;
 
       renderFn(ctx, layer);

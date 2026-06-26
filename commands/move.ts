@@ -1,5 +1,5 @@
 import { BaseCommand } from './base';
-import { Artboard } from '../types';
+import { Artboard, Layer } from '../types';
 
 export class MoveCommand extends BaseCommand {
   readonly description: string;
@@ -21,7 +21,7 @@ export class MoveCommand extends BaseCommand {
   execute() {
     const state = this.store.getState();
     const ab = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
-    const layer = ab?.layers.find((l) => l.id === this.layerId);
+    const layer = ab?.layers.find((l: Layer) => l.id === this.layerId);
     if (!layer || layer.locked) return;
 
     this.prevX = layer.x;

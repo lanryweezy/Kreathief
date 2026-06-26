@@ -1603,3 +1603,20 @@ export const Maximize2 = Maximize;
 export const Palette = Brush;
 export const DollarSign = Zap;
 export const Package = Box;
+export const CreditCard = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('rect', { x: '1', y: '4', width: '22', height: '16', rx: '2', ry: '2' }),
+    React.createElement('line', { x1: '1', y1: '10', x2: '23', y2: '10' })
+  );
+export const Share2 = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('circle', { cx: '18', cy: '5', r: '3' }),
+    React.createElement('circle', { cx: '6', cy: '12', r: '3' }),
+    React.createElement('circle', { cx: '18', cy: '19', r: '3' }),
+    React.createElement('line', { x1: '8.59', y1: '13.51', x2: '15.42', y2: '17.49' }),
+    React.createElement('line', { x1: '15.41', y1: '6.51', x2: '8.59', y2: '10.49' })
+  );

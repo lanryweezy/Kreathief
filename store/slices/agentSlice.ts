@@ -154,7 +154,7 @@ export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get
       return;
     }
 
-    const newArtboards = state.artboards.map((a, i) => i === activeArtboardIndex ? { ...a, layers: [...a.layers] } : a);
+    const newArtboards = state.artboards.map((a: any, i: number) => i === activeArtboardIndex ? { ...a, layers: [...a.layers] } : a);
     const artboard = newArtboards[activeArtboardIndex];
 
     // If it was a refinement, we only replace layers that match IDs in the variant
