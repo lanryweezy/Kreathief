@@ -100,9 +100,29 @@ export default async function handler(req: Request) {
   }
 
   const allowedEndpoints = [
+    // FLUX
     'https://fal.run/fal-ai/flux/dev',
-    'https://fal.run/fal-ai/sdxl/inpainting',
+    'https://fal.run/fal-ai/flux/schnell',
+    'https://fal.run/fal-ai/flux-pro',
+    'https://fal.run/fal-ai/flux-2-pro',
+    // Google Nano Banana
+    'https://fal.run/fal-ai/nano-banana',
+    'https://fal.run/fal-ai/nano-banana-2',
+    'https://fal.run/fal-ai/nano-banana-pro',
+    // Chinese models
+    'https://fal.run/fal-ai/bytedance/seedream/v5/lite/text-to-image',
+    'https://fal.run/fal-ai/bytedance/seedream/v4.5/text-to-image',
+    'https://fal.run/fal-ai/qwen-image',
+    'https://fal.run/fal-ai/ideogram/v3',
+    'https://fal.run/fal-ai/ideogram/v4',
+    // OpenAI
+    'https://fal.run/fal-ai/openai/gpt-image-2',
+    // Recraft
     'https://fal.run/fal-ai/recraft-v3/vector',
+    'https://fal.run/fal-ai/recraft/v4/pro/text-to-image',
+    // SDXL + utilities
+    'https://fal.run/fal-ai/sdxl/inpainting',
+    'https://fal.run/fal-ai/fast-sdxl',
     'https://fal.run/fal-ai/aura-sr',
   ];
 

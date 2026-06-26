@@ -457,9 +457,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                                 initial={{ opacity: 0, y: -8, scale: 0.95 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                                className="absolute right-0 bottom-full mb-2 w-80 bg-surface-dark-1 border border-white/10 rounded-xl shadow-2xl z-50 p-2 max-h-80 overflow-y-auto"
+                                className="absolute right-0 bottom-full mb-2 w-80 bg-surface-dark-1 border border-white/10 rounded-xl shadow-2xl z-50 p-2 max-h-96 overflow-y-auto"
                               >
-                                {(['fast', 'quality', 'vector'] as const).map((cat) => (
+                                {(['google', 'chinese', 'fast', 'quality', 'vector'] as const).map((cat) => (
                                   <div key={cat} className="mb-2">
                                     <div className="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-muted">
                                       {IMAGE_MODEL_CATEGORIES[cat].label} — {IMAGE_MODEL_CATEGORIES[cat].description}
