@@ -54,6 +54,7 @@ export const useLayerDragging = ({
 
   const startDragging = useCallback(
     (e: React.MouseEvent | React.TouchEvent, layer: Layer) => {
+      if ('touches' in e && e.touches.length === 0) return;
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
       const isShift = 'shiftKey' in e ? e.shiftKey : false;
@@ -123,6 +124,17 @@ export const useLayerDragging = ({
       }
 
       onInteractionStart?.();
+
+      // Clear long-press timer on any movement (prevents context menu during drag)
+      const clearLongPress = () => {
+        if (longPressTimerRef.current) {
+          clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+        }
+      };
+      const onMoveForTimer = () => { clearLongPress(); window.removeEventListener('mousemove', onMoveForTimer); window.removeEventListener('touchmove', onMoveForTimer); };
+      window.addEventListener('mousemove', onMoveForTimer, { once: true });
+      window.addEventListener('touchmove', onMoveForTimer, { once: true });
 
       const selectedIds =
         isShift || isAlreadySelected

@@ -36,7 +36,6 @@ const DEFAULT_PALETTE = [
   '#FF00FF',
   '#C0C0C0',
   '#808080',
-  '#800000',
   '#808000',
   '#008000',
   '#800080',
@@ -617,10 +616,8 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
             {activeTab === 'gradient' && (
               <GradientEditor
                 onChange={(gradient) => {
-                  // Build a CSS gradient string and apply it as a special color value
                   const css = `linear-gradient(${gradient.angle ?? 90}deg, ${gradient.stops.map((s: any) => `${s.color} ${s.position}%`).join(', ')})`;
                   onChange(css);
-                  setHexInput(css);
                   addToast(`Gradient applied (${gradient.stops.length} stops)`, 'success');
                 }}
               />
@@ -650,7 +647,6 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
               const bgColor = style.backgroundColor;
 
               if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent') {
-                // Try to extract RGB from rgba
                 const rgbMatch = bgColor.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
                 if (rgbMatch) {
                   const hex = rgbToHex(parseInt(rgbMatch[1]), parseInt(rgbMatch[2]), parseInt(rgbMatch[3]));
@@ -661,6 +657,9 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
               }
               setShowEyedropper(false);
             }}
+            onKeyDown={(e) => { if (e.key === 'Escape') setShowEyedropper(false); }}
+            tabIndex={-1}
+            ref={(el) => { if (el) el.focus(); }}
           >
             {/* Instructions */}
             <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-surface-dark-2 border border-gray-700 rounded-xl shadow-2xl px-6 py-4 flex items-center gap-6 pointer-events-none">

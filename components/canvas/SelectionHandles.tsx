@@ -197,6 +197,7 @@ export const SelectionHandles = React.memo(({ layer, onResize, onRotate, onKeybo
               onPointerDown={(e) => onRotate(e, layer)}
               onDoubleClick={(e) => {
                 e.stopPropagation();
+                e.nativeEvent.stopImmediatePropagation();
                 updateLayer(layer.id, { rotation: 0 });
               }}
               className="w-8 h-8 bg-white border-[2.5px] border-brand-600 rounded-full cursor-grab flex items-center justify-center hover:bg-brand-600 hover:text-white shadow-[0_4px_15px_rgba(125,42,232,0.4)] transition-all active:cursor-grabbing hover:scale-110"

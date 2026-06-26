@@ -227,7 +227,11 @@ export const generateText = async (
     // 🤖 Astra: Force strict JSON output for strings to eliminate conversational preamble
     const parsed = safeParseJSON<string | null>(data.text || 'null', null);
 
-    return parsed?.trim() || currentText;
+    if (!parsed || parsed.trim() === currentText.trim()) {
+      log.warn('[GeminiService] Text rewrite returned same text or failed to parse');
+      return currentText;
+    }
+    return parsed.trim();
   } catch (error) {
     log.error('Text Generation Error:', error);
     throw error;
@@ -661,7 +665,11 @@ const extractImageFromResponse = (response: any): string => {
     throw new Error('No candidates returned from Gemini.');
   }
 
-  const parts = response.candidates[0].content.parts;
+  const candidate = response.candidates[0];
+  if (!candidate.content || !candidate.content.parts) {
+    throw new Error('No valid payload format found.');
+  }
+  const parts = candidate.content.parts;
   if (!parts) {
     throw new Error('No valid payload format found.');
   }

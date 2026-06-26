@@ -39,7 +39,7 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
   saveToHistory: (() => {
     let lastSavedTimestamp = 0;
     const DEBOUNCE_MS = process.env.NODE_ENV === 'test' ? 0 : 250;
-    const MAX_HISTORY = 100;
+    const MAX_HISTORY = 200;
     const SNAPSHOT_INTERVAL = 10;
 
     return () => {
@@ -56,11 +56,12 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
 
       set((state: any) => {
         const currentState: HistoryState = {
-          artboards: state.artboards.map((a: Artboard) => ({ ...a, layers: [...a.layers] })),
+          artboards: state.artboards.map((a: Artboard) => ({ ...a, layers: a.layers.map((l: any) => ({ ...l })) })),
           activeArtboardId: state.activeArtboardId,
           canvasBackgroundColor: state.canvasBackgroundColor,
           canvasFilters: state.canvasFilters ? { ...state.canvasFilters } : undefined,
           canvasSize: state.canvasSize ? { ...state.canvasSize } : undefined,
+          selectedLayerIds: [...(state.selectedLayerIds || [])],
         };
 
         let entry: HistoryEntry;
@@ -105,14 +106,15 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
       const now = Date.now();
       set((state: any) => {
         const currentState: HistoryState = {
-          artboards: state.artboards.map((a: Artboard) => ({ ...a, layers: [...a.layers] })),
+          artboards: state.artboards.map((a: Artboard) => ({ ...a, layers: a.layers.map((l: any) => ({ ...l })) })),
           activeArtboardId: state.activeArtboardId,
           canvasBackgroundColor: state.canvasBackgroundColor,
           canvasFilters: state.canvasFilters ? { ...state.canvasFilters } : undefined,
           canvasSize: state.canvasSize ? { ...state.canvasSize } : undefined,
+          selectedLayerIds: [...(state.selectedLayerIds || [])],
         };
         const entry: HistoryEntry = { timestamp: now, type: 'snapshot', state: currentState };
-        const MAX_HISTORY = 100;
+        const MAX_HISTORY = 200;
         const newPast = state.past.length >= MAX_HISTORY ? [...state.past.slice(1), entry] : [...state.past, entry];
         return { past: newPast, future: [], __hasPendingBatchChange: false, __lastStateSnapshot: currentState };
       });
@@ -120,17 +122,18 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
   },
 
   undo: () => {
-    const { past, artboards, activeArtboardId, canvasBackgroundColor, canvasFilters, canvasSize } = get();
+    const { past, artboards, activeArtboardId, canvasBackgroundColor, canvasFilters, canvasSize, selectedLayerIds } = get();
     if (past.length === 0) {
       return;
     }
 
     const currentFullState: HistoryState = {
-      artboards: artboards.map((a: Artboard) => ({ ...a, layers: [...a.layers] })),
+      artboards: artboards.map((a: Artboard) => ({ ...a, layers: a.layers.map((l: any) => ({ ...l })) })),
       activeArtboardId,
       canvasBackgroundColor,
       canvasFilters: canvasFilters ? { ...canvasFilters } : undefined,
       canvasSize: canvasSize ? { ...canvasSize } : undefined,
+      selectedLayerIds: [...(selectedLayerIds || [])],
     };
 
     const lastEntry = past[past.length - 1];
@@ -196,7 +199,7 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
   },
 
   redo: () => {
-    const { future, artboards, activeArtboardId, canvasBackgroundColor, canvasFilters, canvasSize } = get();
+    const { future, artboards, activeArtboardId, canvasBackgroundColor, canvasFilters, canvasSize, selectedLayerIds } = get();
     if (future.length === 0) {
       return;
     }
@@ -207,6 +210,7 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
       canvasBackgroundColor,
       canvasFilters: structuredClone(canvasFilters),
       canvasSize: structuredClone(canvasSize),
+      selectedLayerIds: [...(selectedLayerIds || [])],
     };
 
     const nextEntry = future[0];
@@ -229,6 +233,7 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
       ...targetState,
       past: [...get().past, { timestamp: Date.now(), type: 'snapshot', state: currentFullState }],
       future: newFuture,
+      __lastStateSnapshot: currentFullState,
     });
     get().addToast?.('Action Redone', 'info');
   },

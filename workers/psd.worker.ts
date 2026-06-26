@@ -346,25 +346,43 @@ async function exportLayersToPsd(width: number, height: number, layers: WorkerLa
     }
 
     if (isImage || isShape) {
-      // Need to draw to OffscreenCanvas
+      const canvasW = layerWidth || 1;
+      const canvasH = layerHeight || 1;
       // @ts-ignore - ignore type mismatch
-      const canvas = new OffscreenCanvas(layerWidth, layerHeight || 1);
+      const canvas = new OffscreenCanvas(canvasW, canvasH);
       const ctx = canvas.getContext('2d');
       if (!ctx) {
         return null;
       }
 
       if (isImage && layer.src) {
-        // Loading image in worker from blob/url
         const response = await fetch(layer.src);
         const blob = await response.blob();
         const bitmap = await createImageBitmap(blob);
-        ctx.drawImage(bitmap, 0, 0, layerWidth, layerHeight);
+        ctx.drawImage(bitmap, 0, 0, canvasW, canvasH);
       } else if (isShape) {
         ctx.save();
-        ctx.fillStyle = layer.color || '#000000';
 
-        // Handle specialized shape rendering in worker
+        // Handle gradient fills
+        if ((layer as any).gradient?.enabled) {
+          const grad = (layer as any).gradient;
+          let fillGrad: CanvasGradient;
+          if (grad.type === 'radial') {
+            fillGrad = ctx.createRadialGradient(canvasW / 2, canvasH / 2, 0, canvasW / 2, canvasH / 2, canvasW / 2);
+          } else {
+            const angle = ((grad.angle || 0) * Math.PI) / 180;
+            const cx = canvasW / 2, cy = canvasH / 2;
+            const len = canvasW / 2;
+            fillGrad = ctx.createLinearGradient(cx - Math.cos(angle) * len, cy - Math.sin(angle) * len, cx + Math.cos(angle) * len, cy + Math.sin(angle) * len);
+          }
+          for (const stop of grad.colors || []) {
+            fillGrad.addColorStop(stop.position, stop.color);
+          }
+          ctx.fillStyle = fillGrad;
+        } else {
+          ctx.fillStyle = layer.color || '#000000';
+        }
+
         if (layer.type === 'path' && (layer as any).pathData) {
           const p = new Path2D((layer as any).pathData);
           if (layer.id?.startsWith('draw_') || (layer as any).brushType) {
@@ -378,12 +396,43 @@ async function exportLayersToPsd(width: number, height: number, layers: WorkerLa
           }
         } else if (layer.type === 'circle') {
           ctx.beginPath();
-          ctx.arc(layerWidth / 2, layerHeight / 2, Math.min(layerWidth, layerHeight) / 2, 0, Math.PI * 2);
+          ctx.arc(canvasW / 2, canvasH / 2, Math.min(canvasW, canvasH) / 2, 0, Math.PI * 2);
           ctx.fill();
         } else {
-          // Default to rectangle
-          ctx.fillRect(0, 0, layerWidth, layerHeight);
+          const r = (layer as any).cornerRadius || 0;
+          if (r > 0) {
+            ctx.beginPath();
+            ctx.moveTo(r, 0);
+            ctx.lineTo(canvasW - r, 0);
+            ctx.quadraticCurveTo(canvasW, 0, canvasW, r);
+            ctx.lineTo(canvasW, canvasH - r);
+            ctx.quadraticCurveTo(canvasW, canvasH, canvasW - r, canvasH);
+            ctx.lineTo(r, canvasH);
+            ctx.quadraticCurveTo(0, canvasH, 0, canvasH - r);
+            ctx.lineTo(0, r);
+            ctx.quadraticCurveTo(0, 0, r, 0);
+            ctx.closePath();
+            ctx.fill();
+          } else {
+            ctx.fillRect(0, 0, canvasW, canvasH);
+          }
         }
+
+        // Draw stroke on top
+        if (layer.stroke && layer.stroke.width > 0) {
+          ctx.strokeStyle = layer.stroke.color || '#000000';
+          ctx.lineWidth = layer.stroke.width;
+          if (layer.type === 'path' && (layer as any).pathData) {
+            ctx.stroke(new Path2D((layer as any).pathData));
+          } else if (layer.type === 'circle') {
+            ctx.beginPath();
+            ctx.arc(canvasW / 2, canvasH / 2, Math.min(canvasW, canvasH) / 2, 0, Math.PI * 2);
+            ctx.stroke();
+          } else {
+            ctx.strokeRect(0, 0, canvasW, canvasH);
+          }
+        }
+
         ctx.restore();
       }
 

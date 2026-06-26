@@ -8,6 +8,8 @@ import { CreateProjectModal } from './modals/CreateProjectModal';
 import { useStore } from '../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import CommunityTemplates from './CommunityTemplates';
+import { IMAGE_GEN_MODELS, DEFAULT_IMAGE_MODEL, IMAGE_MODEL_CATEGORIES, ImageGenModel } from '../config/imageModels';
+import * as aiModelsService from '../services/aiModelsService';
 import { EmptyState } from './EmptyState';
 import { Button } from './Button';
 import * as geminiService from '../services/geminiService';
@@ -61,9 +63,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   // AI Prompt state
   const [aiPrompt, setAiPrompt] = useState('');
   const [selectedFormat, setSelectedFormat] = useState(0);
+  const [selectedImageModel, setSelectedImageModel] = useState(DEFAULT_IMAGE_MODEL);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showModelPicker, setShowModelPicker] = useState(false);
   const aiInputRef = useRef<HTMLTextAreaElement>(null);
+  const modelPickerRef = useRef<HTMLDivElement>(null);
 
   const FORMAT_OPTIONS: { label: string; size: CanvasSize }[] = [
     { label: 'Instagram Post', size: { width: 1080, height: 1080, name: 'Instagram Post' } },
@@ -83,11 +88,48 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     if (!aiPrompt.trim() || isGenerating) return;
     setIsGenerating(true);
     const format = FORMAT_OPTIONS[selectedFormat];
+    const model = IMAGE_GEN_MODELS.find(m => m.id === selectedImageModel);
     try {
-      addToast('Generating your design...', 'info');
-      const enhancedPrompt = `${aiPrompt.trim()}. Style: professional, high quality, suitable for ${format.label}. Clean composition, good typography.`;
+      addToast(`Generating with ${model?.name || 'AI'}...`, 'info');
+
       const aspectRatio = format.size.width > format.size.height ? '16:9' : format.size.width === format.size.height ? '1:1' : '9:16';
-      const imageUrl = await geminiService.generateImage(enhancedPrompt, aspectRatio, 'standard');
+
+      let imageUrl: string;
+
+      if (model?.id === 'recraft-vector') {
+        // Vector generation via Recraft
+        const svgResult = await aiModelsService.generateVectorRecraft(aiPrompt.trim());
+        if (!svgResult) throw new Error('Vector generation failed');
+        // Convert SVG to data URL for layer
+        if (svgResult.startsWith('<svg')) {
+          imageUrl = `data:image/svg+xml;base64,${btoa(svgResult)}`;
+        } else {
+          imageUrl = svgResult;
+        }
+      } else if (model?.falEndpoint) {
+        // Image generation via Fal.ai (FLUX, SDXL, etc.)
+        const falEndpoint = model.falEndpoint;
+        const imageSize = aspectRatio === '1:1' ? 'square' : aspectRatio === '16:9' ? 'landscape_hd' : 'portrait_hd';
+
+        const data = await fetch('/api/fal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            endpoint: falEndpoint,
+            body: {
+              prompt: `${aiPrompt.trim()}. Professional, high quality, suitable for ${format.label}. Clean composition.`,
+              image_size: imageSize,
+            },
+          }),
+        }).then(r => r.json());
+
+        imageUrl = data.images?.[0]?.url || data.image?.url;
+        if (!imageUrl) throw new Error('No image returned from model');
+      } else {
+        // Fallback to Gemini
+        const enhancedPrompt = `${aiPrompt.trim()}. Style: professional, high quality, suitable for ${format.label}. Clean composition, good typography.`;
+        imageUrl = await geminiService.generateImage(enhancedPrompt, aspectRatio, 'standard');
+      }
 
       const imageLayer = {
         id: `ai_img_${Date.now()}`, type: 'image' as const, name: 'AI Generated',
@@ -119,11 +161,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     } finally {
       setIsGenerating(false);
     }
-  }, [aiPrompt, selectedFormat, isGenerating, createProject, loadProject, addToast, onOpenProject]);
+  }, [aiPrompt, selectedFormat, selectedImageModel, isGenerating, createProject, loadProject, addToast, onOpenProject]);
 
   useEffect(() => {
     loadAllProjects().then(() => setIsLoading(false));
   }, [loadAllProjects]);
+
+  // Close model picker on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (modelPickerRef.current && !modelPickerRef.current.contains(e.target as Node)) {
+        setShowModelPicker(false);
+      }
+    };
+    if (showModelPicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showModelPicker]);
 
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; projectId: string | null }>({
     isOpen: false,
@@ -384,11 +439,64 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                           </button>
                         ))}
                       </div>
-                      <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                        onClick={handleAIGenerate} disabled={!aiPrompt.trim() || isGenerating}
-                        className="px-6 py-2.5 bg-gradient-to-r from-brand-600 to-accent rounded-xl text-white text-[11px] font-black uppercase tracking-widest disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-glow-brand hover:shadow-xl transition-shadow ml-3 shrink-0">
-                        {isGenerating ? (<><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Generating</>) : (<><Icons.Magic className="w-4 h-4" />Generate</>)}
-                      </motion.button>
+                      <div className="flex items-center gap-2 ml-3 shrink-0">
+                        {/* Model Picker Dropdown */}
+                        <div className="relative" ref={modelPickerRef}>
+                          <button
+                            onClick={() => setShowModelPicker(!showModelPicker)}
+                            className="px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-wider text-muted hover:text-white hover:border-brand-500/50 transition-all flex items-center gap-1.5"
+                          >
+                            <span>{IMAGE_GEN_MODELS.find(m => m.id === selectedImageModel)?.icon}</span>
+                            <span className="hidden sm:inline">{IMAGE_GEN_MODELS.find(m => m.id === selectedImageModel)?.name}</span>
+                            <Icons.ChevronDown className="w-3 h-3" />
+                          </button>
+
+                          <AnimatePresence>
+                            {showModelPicker && (
+                              <motion.div
+                                initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                                className="absolute right-0 bottom-full mb-2 w-80 bg-surface-dark-1 border border-white/10 rounded-xl shadow-2xl z-50 p-2 max-h-80 overflow-y-auto"
+                              >
+                                {(['fast', 'quality', 'vector'] as const).map((cat) => (
+                                  <div key={cat} className="mb-2">
+                                    <div className="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-muted">
+                                      {IMAGE_MODEL_CATEGORIES[cat].label} — {IMAGE_MODEL_CATEGORIES[cat].description}
+                                    </div>
+                                    {IMAGE_GEN_MODELS.filter(m => m.category === cat).map((model) => (
+                                      <button
+                                        key={model.id}
+                                        onClick={() => { setSelectedImageModel(model.id); setShowModelPicker(false); }}
+                                        className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-medium transition-all flex items-center gap-3 ${
+                                          selectedImageModel === model.id
+                                            ? 'bg-brand-600 text-white'
+                                            : 'text-muted-light hover:bg-white/5 hover:text-white'
+                                        }`}
+                                      >
+                                        <span className="text-lg">{model.icon}</span>
+                                        <div className="flex-1 min-w-0">
+                                          <div className="font-bold truncate">{model.name}</div>
+                                          <div className="text-[9px] opacity-60">{model.provider} · {model.outputType === 'svg' ? 'SVG Vector' : 'Raster Image'}</div>
+                                        </div>
+                                        {selectedImageModel === model.id && (
+                                          <Icons.Check className="w-3.5 h-3.5 text-white shrink-0" />
+                                        )}
+                                      </button>
+                                    ))}
+                                  </div>
+                                ))}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+
+                        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                          onClick={handleAIGenerate} disabled={!aiPrompt.trim() || isGenerating}
+                          className="px-6 py-2.5 bg-gradient-to-r from-brand-600 to-accent rounded-xl text-white text-[11px] font-black uppercase tracking-widest disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-glow-brand hover:shadow-xl transition-shadow">
+                          {isGenerating ? (<><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Generating</>) : (<><Icons.Magic className="w-4 h-4" />Generate</>)}
+                        </motion.button>
+                      </div>
                     </div>
                   </div>
                 </div>

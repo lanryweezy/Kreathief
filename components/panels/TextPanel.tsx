@@ -582,6 +582,17 @@ export const TextPanel: React.FC = () => {
               </div>
             </div>
 
+            {/* Font Search */}
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Search fonts..."
+                value={fontSearch}
+                onChange={(e) => setFontSearch(e.target.value)}
+                className="w-full bg-surface-dark-0/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:border-brand-600 outline-none"
+              />
+            </div>
+
             {/* My Fonts Section */}
             {activeCategory === 'My Fonts' && (
               <div className="mb-6">
@@ -749,7 +760,7 @@ export const TextPanel: React.FC = () => {
       {activeTextTab === 'spacing' && (
         <TextSpacingControls
           selectedLayer={
-            selectedLayerIds.length > 0 ? (layers.find((l) => l.id === selectedLayerIds[0]) as TextLayer) : undefined
+            selectedLayerIds.length > 0 ? (layers.find((l) => l.id === selectedLayerIds[selectedLayerIds.length - 1]) as TextLayer) : undefined
           }
         />
       )}

@@ -21,6 +21,7 @@ interface SortedTarget {
 
 let cachedArtboardId: string | null = null;
 let cachedLayerCount = -1;
+let cachedLayerPositions: string | null = null;
 let cachedSortedX: SortedTarget[] = [];
 let cachedSortedY: SortedTarget[] = [];
 
@@ -129,13 +130,15 @@ export class SnappingOracle {
 
     const movingIds = new Set(movingLayers.map((l) => l.id));
     const layerCount = allLayers.length;
+    const layerPositionHash = allLayers.map((l) => `${l.id}:${l.x}:${l.y}`).join(',');
 
-    if (cachedArtboardId !== activeArtboard.id || cachedLayerCount !== layerCount) {
+    if (cachedArtboardId !== activeArtboard.id || cachedLayerCount !== layerCount || cachedLayerPositions !== layerPositionHash) {
       const targets = buildTargets(allLayers, movingIds, activeArtboard);
       cachedSortedX = targets.sortedX;
       cachedSortedY = targets.sortedY;
       cachedArtboardId = activeArtboard.id;
       cachedLayerCount = layerCount;
+      cachedLayerPositions = layerPositionHash;
     }
 
     const adjustedThreshold = threshold / zoom;

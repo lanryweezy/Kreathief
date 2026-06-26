@@ -143,6 +143,7 @@ const fallbackToWorker = (
 
 /**
  * Exports the design as a layered Photoshop (PSD) file.
+ * Preserves: rotation, blend modes, opacity, group nesting, effects, gradients.
  */
 export const exportToLayeredPSD = async (width: number, height: number, layers: Layer[], fileName: string) => {
   const psd: Psd = {
@@ -151,23 +152,56 @@ export const exportToLayeredPSD = async (width: number, height: number, layers: 
     children: [],
   };
 
-  for (const layer of layers) {
-    if (!layer.visible) {
-      continue;
-    }
+  // Build a map for group nesting
+  const groupChildren: Record<string, any[]> = {};
+  const rootLayers: Layer[] = [];
 
+  for (const layer of layers) {
+    if (!layer.visible) continue;
+    if (layer.groupId && groupChildren[layer.groupId]) {
+      groupChildren[layer.groupId].push(layer);
+    } else if (layer.groupId) {
+      groupChildren[layer.groupId] = [layer];
+    } else {
+      rootLayers.push(layer);
+    }
+  }
+
+  const buildPsdLayer = async (layer: Layer): Promise<any> => {
     const canvas = document.createElement('canvas');
     canvas.width = layer.width || width;
     canvas.height = (layer as any).height || height;
     const ctx = canvas.getContext('2d');
 
     if (ctx) {
-      const origX = layer.x;
-      const origY = layer.y;
+      // Render gradient fills to canvas for shapes
+      if ('gradient' in layer && (layer as any).gradient?.enabled) {
+        const sl = layer as ShapeLayer;
+        const grad = sl.gradient!;
+        let fillGrad: CanvasGradient;
+        if (grad.type === 'radial') {
+          fillGrad = ctx.createRadialGradient(
+            canvas.width / 2, canvas.height / 2, 0,
+            canvas.width / 2, canvas.height / 2, canvas.width / 2
+          );
+        } else {
+          const angle = ((grad.angle || 0) * Math.PI) / 180;
+          const cx = canvas.width / 2, cy = canvas.height / 2;
+          const len = canvas.width / 2;
+          fillGrad = ctx.createLinearGradient(
+            cx - Math.cos(angle) * len, cy - Math.sin(angle) * len,
+            cx + Math.cos(angle) * len, cy + Math.sin(angle) * len
+          );
+        }
+        for (const stop of grad.colors) {
+          fillGrad.addColorStop(stop.position, stop.color);
+        }
+        ctx.fillStyle = fillGrad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
 
-      // Temporary "zeroing" for individual layer render
+      // Render individual layer at (0,0) for PSD
       const tempLayer = { ...layer, x: 0, y: 0 };
-
       if (tempLayer.type === 'image') {
         await drawImageLayerToContext(ctx, tempLayer as ImageLayer);
       } else if (tempLayer.type === 'text') {
@@ -175,17 +209,69 @@ export const exportToLayeredPSD = async (width: number, height: number, layers: 
       } else if (tempLayer.type !== 'adjustment' && tempLayer.type !== 'group') {
         drawShapeToContext(ctx, tempLayer as ShapeLayer);
       }
-
-      psd.children!.push({
-        name: layer.name || `Layer ${layer.id}`,
-        left: origX,
-        top: origY,
-        canvas: canvas,
-        opacity: Math.round((layer.opacity ?? 1) * 255),
-        hidden: !layer.visible,
-        blendMode: (layer as any).blendMode || 'normal',
-      });
     }
+
+    // Build effects from shadow/stroke
+    const effects: any = {};
+    const shadow = (layer as any).shadow;
+    if (shadow) {
+      const match = shadow.color?.match?.(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+      const color = match
+        ? { r: parseInt(match[1]), g: parseInt(match[2]), b: parseInt(match[3]) }
+        : { r: 0, g: 0, b: 0 };
+      const opacity = match?.[4] ? parseFloat(match[4]) : 0.5;
+      const dist = Math.sqrt((shadow.offsetX || 0) ** 2 + (shadow.offsetY || 0) ** 2);
+      const angle = Math.atan2(-(shadow.offsetY || 0), shadow.offsetX || 0) * (180 / Math.PI);
+      effects.dropShadow = [{
+        enabled: true, color, opacity, distance: dist,
+        size: shadow.blur || 5, angle: Math.round(angle),
+      }];
+    }
+
+    const stroke = (layer as any).stroke;
+    if (stroke && stroke.width > 0) {
+      let sColor = { r: 0, g: 0, b: 0 };
+      if (stroke.color?.startsWith('#')) {
+        const hex = stroke.color.replace('#', '');
+        sColor = { r: parseInt(hex.substring(0, 2), 16), g: parseInt(hex.substring(2, 4), 16), b: parseInt(hex.substring(4, 6), 16) };
+      }
+      effects.stroke = [{
+        enabled: true, color: sColor, size: stroke.width,
+        opacity: stroke.opacity ?? 1, position: 'outside',
+      }];
+    }
+
+    // Build group children recursively
+    const layerId = layer.id;
+    const children = groupChildren[layerId];
+
+    const psdEntry: any = {
+      name: layer.name || `Layer ${layer.id}`,
+      left: layer.x,
+      top: layer.y,
+      canvas: canvas,
+      opacity: Math.round((layer.opacity ?? 1) * 255),
+      hidden: !layer.visible,
+      blendMode: (layer as any).blendMode || 'normal',
+      rotation: layer.rotation || 0,
+      effects: Object.keys(effects).length > 0 ? effects : undefined,
+    };
+
+    // If this layer has children, nest them
+    if (children && children.length > 0) {
+      psdEntry.children = [];
+      for (const child of children) {
+        const childPsd = await buildPsdLayer(child);
+        if (childPsd) psdEntry.children.push(childPsd);
+      }
+    }
+
+    return psdEntry;
+  };
+
+  for (const layer of rootLayers) {
+    const psdLayer = await buildPsdLayer(layer);
+    if (psdLayer) psd.children!.push(psdLayer);
   }
 
   const buffer = writePsd(psd);

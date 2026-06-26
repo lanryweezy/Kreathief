@@ -42,7 +42,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
 }) => {
   const [recentColors, setRecentColors] = useState<string[]>(() => {
     try {
-      const saved = localStorage.getItem('kreathief_recent_colors');
+      const saved = localStorage.getItem('kreathief_draw_recent_colors');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -50,7 +50,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
   });
 
   useEffect(() => {
-    localStorage.setItem('kreathief_recent_colors', JSON.stringify(recentColors));
+    localStorage.setItem('kreathief_draw_recent_colors', JSON.stringify(recentColors));
   }, [recentColors]);
   const [confirmDialog, setConfirmDialog] = useState<{ brushType: BrushType } | null>(null);
   const customBrushes = useStore((state) => state.customBrushes) || [];

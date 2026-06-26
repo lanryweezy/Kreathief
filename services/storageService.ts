@@ -366,7 +366,12 @@ class StorageService {
       retryCount: 0,
     };
 
-    this.pendingChanges.set(projectId, syncOp);
+    const existing = this.pendingChanges.get(projectId);
+    if (existing && existing.operation === 'create' && operation === 'update') {
+      // Keep the create; update will happen after sync
+    } else {
+      this.pendingChanges.set(projectId, syncOp);
+    }
     await this.persistPendingChanges();
 
     log.debug('[Storage] Sync operation queued', {
@@ -479,7 +484,9 @@ class StorageService {
       });
 
       if (cached) {
-        return URL.createObjectURL(cached.blob);
+        const url = URL.createObjectURL(cached.blob);
+        setTimeout(() => URL.revokeObjectURL(url), 300000);
+        return url;
       }
 
       // Not cached, fetch and store
@@ -487,7 +494,9 @@ class StorageService {
       const blob = await response.blob();
       await this.addToStore(store, { id, url, blob, timestamp: Date.now() });
 
-      return URL.createObjectURL(blob);
+      const objectUrl = URL.createObjectURL(blob);
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 300000);
+      return objectUrl;
     } catch (err) {
       log.warn('[Storage] Failed to cache asset', { url, error: err });
       return url;
@@ -725,7 +734,11 @@ class StorageService {
           // Try to clean up local IndexedDB as well since it might exist there too
           try {
             const localStore = await this.getStore('projects', 'readwrite');
-            localStore.delete(id);
+            await new Promise<void>((resolve, reject) => {
+              const req = localStore.delete(id);
+              req.onsuccess = () => resolve();
+              req.onerror = () => reject(req.error);
+            });
           } catch (e) {
             log.warn('[Storage] Failed to cleanup local IndexedDB after delete', { error: e });
           }

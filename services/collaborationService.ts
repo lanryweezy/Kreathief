@@ -126,8 +126,8 @@ class CollaborationService {
       }
     });
 
-    // Subscribe and track presence
-    const status = await channel.subscribe(async (status: any) => {
+    // Subscribe and track presence with timeout
+    const subscribePromise = channel.subscribe(async (status: any) => {
       if (status === 'SUBSCRIBED') {
         await channel.track({
           userId: user.id,
@@ -141,6 +141,15 @@ class CollaborationService {
         });
       }
     });
+
+    const timeoutPromise = new Promise<'timeout'>((resolve) =>
+      setTimeout(() => resolve('timeout'), 10000)
+    );
+
+    const result = await Promise.race([subscribePromise, timeoutPromise]);
+    if (result === 'timeout') {
+      log.warn('[Collaboration] Subscribe timed out after 10s', { projectId });
+    }
 
     this.channel = channel;
     log.info('[Collaboration] Joined project channel', { projectId, status });
@@ -196,9 +205,9 @@ class CollaborationService {
     const presence = this.channel.presenceState();
     const myKey = Object.keys(presence).find((key) => {
       const presences = presence[key];
-      return Array.isArray(presences) && presences.length > 0 && presences[0].userId;
+      return Array.isArray(presences) && presences.length > 0 && presences[0].userId === this.userId;
     });
-    const userId = myKey ? presence[myKey][0].userId : 'unknown';
+    const userId = myKey ? presence[myKey][0].userId : this.userId || 'unknown';
 
     this.channel.send({
       type: 'broadcast',

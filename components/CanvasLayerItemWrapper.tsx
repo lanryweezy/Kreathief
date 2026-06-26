@@ -219,6 +219,9 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
     if (prev.previewAnimation !== next.previewAnimation) {
       return false;
     }
+    if (prev.isInteracting !== next.isInteracting) {
+      return false;
+    }
 
     // Selection check: only re-render if THIS layer's selection status changes
     const prevSelected =

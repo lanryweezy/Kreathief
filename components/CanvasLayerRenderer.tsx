@@ -1,6 +1,7 @@
 import React from 'react';
 import { TextLayer, Layer, AnimationSettings } from '../types';
 import { CanvasLayerItemWrapper } from './CanvasLayerItemWrapper';
+import { computeAutoLayout } from '../utils/autoLayout';
 
 const MAX_DOM_LAYERS = 300;
 
@@ -127,6 +128,22 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
       return map;
     }, [layers]);
 
+    // Compute auto-layout positions for groups with autoLayout enabled
+    const autoLayoutOverrides = React.useMemo(() => {
+      const overrides = new Map<string, { x: number; y: number }>();
+      if (!layers) return overrides;
+      for (const l of layers) {
+        if (l.autoLayout) {
+          const children = groupChildrenMap.get(l.id) || [];
+          const positions = computeAutoLayout(l, children, layers);
+          for (const [id, pos] of Object.entries(positions)) {
+            overrides.set(id, pos);
+          }
+        }
+      }
+      return overrides;
+    }, [layers, groupChildrenMap]);
+
     const visibleLayers = React.useMemo(() => {
       const filtered = effectiveLayers.filter((l) => {
         if (l.groupId) {
@@ -208,10 +225,13 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
                 isInteracting={isInteracting}
                 previewAnimation={previewAnimation}
               />
-              {children.map((child) => (
+              {children.map((child) => {
+                const override = autoLayoutOverrides.get(child.id);
+                const effectiveChild = override ? { ...child, x: override.x, y: override.y } : child;
+                return (
                 <CanvasLayerItemWrapper
                   key={child.id}
-                  layer={child}
+                  layer={effectiveChild}
                   allLayers={layers}
                   maskLayerOverride={layerMasks.get(child.id)}
                   selectedLayerId={selectedLayerId}
@@ -235,7 +255,8 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
                   isInteracting={isInteracting}
                   previewAnimation={previewAnimation}
                 />
-              ))}
+                );
+              })}
             </React.Fragment>
           );
         })}

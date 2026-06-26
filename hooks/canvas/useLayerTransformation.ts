@@ -190,12 +190,12 @@ export const useLayerTransformation = ({ layers, zoom, onUpdateLayers }: UseLaye
               const relX = child.x + ((child as any).width || 0) / 2 - gInitialCenterX;
               const relY = child.y + ((child as any).height || 0) / 2 - gInitialCenterY;
 
-              // Rotate center position
+              // Rotate center position — use initial group center for consistent orbit
               const rx = relX * Math.cos(trad) - relY * Math.sin(trad);
               const ry = relX * Math.sin(trad) + relY * Math.cos(trad);
 
-              childUpdate.x = gCurrentX + gCurrentW / 2 + rx - ((child as any).width || 0) / 2;
-              childUpdate.y = gCurrentY + gCurrentH / 2 + ry - ((child as any).height || 0) / 2;
+              childUpdate.x = state.initialX + state.initialWidth / 2 + rx - ((child as any).width || 0) / 2;
+              childUpdate.y = state.initialY + state.initialHeight / 2 + ry - ((child as any).height || 0) / 2;
               childUpdate.rotation = (child.rotation || 0) + dRot;
             }
 

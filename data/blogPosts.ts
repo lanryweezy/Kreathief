@@ -1,6 +1,7 @@
 export interface BlogPost {
   id: string;
   title: string;
+  slug?: string;
   excerpt: string;
   content: string;
   author: string;
@@ -8,6 +9,7 @@ export interface BlogPost {
   image: string;
   category: string;
   readTime: string;
+  tags?: string[];
 }
 
 import { EXTRA_BLOG_POSTS } from './extraBlogPosts';

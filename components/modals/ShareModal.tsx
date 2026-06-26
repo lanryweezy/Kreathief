@@ -167,7 +167,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
                   className={inviteSent ? '!bg-green-600 !text-white' : ''}
                 >
                   {inviteSent ? <Icons.Check className="w-4 h-4" /> : <Icons.Send className="w-4 h-4" />}
-                  {inviteSent ? 'Copied!' : 'Copy Invite Text'}
+                  {inviteSent ? 'Copied to Clipboard!' : 'Copy Invite Link'}
                 </Button>
               </div>
             </div>

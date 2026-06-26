@@ -424,7 +424,15 @@ export const createCRUDSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => ({
         ...a,
-        layers: a.layers.filter((l: Layer) => l.id !== id),
+        layers: a.layers
+          .filter((l: Layer) => l.id !== id)
+          .map((l: Layer) => {
+            const cleaned = { ...l };
+            if (cleaned.maskLayerId === id) cleaned.maskLayerId = undefined;
+            if (cleaned.groupId === id) cleaned.groupId = undefined;
+            if (cleaned.masterId === id) { cleaned.masterId = undefined; cleaned.overrides = []; }
+            return cleaned;
+          }),
       })),
       selectedLayerIds: state.selectedLayerIds.filter((sid: string) => sid !== id),
     }));

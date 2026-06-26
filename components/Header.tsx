@@ -81,6 +81,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [isEditingTitle, setIsEditingTitle] = React.useState(false);
   const [showZoomMenu, setShowZoomMenu] = React.useState(false);
   const zoomButtonRef = React.useRef<HTMLButtonElement>(null);
+  const titleSnapshotRef = React.useRef<string>(projectTitle);
 
   const onShare = () => setShowShareModal(true);
 
@@ -319,9 +320,11 @@ export const Header: React.FC<HeaderProps> = ({
                 setIsEditingTitle(false);
               }
               if (e.key === 'Escape') {
+                setProjectTitle(titleSnapshotRef.current);
                 setIsEditingTitle(false);
               }
             }}
+            onFocus={(e) => { e.target.select(); titleSnapshotRef.current = projectTitle; }}
             autoFocus
             className="bg-surface-dark-3 border-b-2 border-brand-500 text-white text-sm font-bold px-2 py-1 outline-none w-48 rounded-t shadow-lg text-center"
           />

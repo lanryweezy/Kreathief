@@ -7,7 +7,7 @@ import {
   creativeAgentRefine,
   criticAgentReview,
   performanceAgentScore,
-} from '../../services/multiAgentService';
+} from '../../services/aiService';
 import { Layer } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -150,10 +150,11 @@ export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get
 
     const activeArtboardIndex = state.artboards.findIndex((a: any) => a.id === state.activeArtboardId);
     if (activeArtboardIndex === -1) {
+      if (state.endBatch) state.endBatch();
       return;
     }
 
-    const newArtboards = [...state.artboards];
+    const newArtboards = state.artboards.map((a, i) => i === activeArtboardIndex ? { ...a, layers: [...a.layers] } : a);
     const artboard = newArtboards[activeArtboardIndex];
 
     // If it was a refinement, we only replace layers that match IDs in the variant

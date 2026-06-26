@@ -323,7 +323,10 @@ export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set,
       showRulers: project.state?.showRulers || false,
       lastSaved: new Date(project.updatedAt),
       hasUnsavedChanges: false,
-    });
+      past: [],
+      future: [],
+      __lastStateSnapshot: null,
+    } as any);
 
     if (project.state.artboards.length === 0 && project.name === 'Untitled Design') {
       const demo = createNebulaDemoDesign();

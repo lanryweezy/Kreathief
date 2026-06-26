@@ -1,5 +1,5 @@
 import React from 'react';
-import { AgentVariant } from '../../services/multiAgentService';
+import { AgentVariant } from '../../services/aiService';
 import { StaticLayerRenderer } from '../StaticLayerRenderer';
 import { Button } from '../Button';
 import { Icons as AgentIcons } from '../../constants';

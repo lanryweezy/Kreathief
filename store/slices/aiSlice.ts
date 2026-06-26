@@ -457,8 +457,14 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   },
   handleApplyTemplate: (template) => {
     get().saveToHistory();
+    const currentArtboards = get().artboards;
+    const activeId = get().activeArtboardId;
+    const templateLayers = structuredClone(template.state.layers || []);
+    const updatedArtboards = currentArtboards.map((a) =>
+      a.id === activeId ? { ...a, layers: templateLayers } : a
+    );
     set({
-      layers: structuredClone(template.state.layers),
+      artboards: updatedArtboards,
       canvasBackgroundColor: template.state.canvasBackgroundColor,
       canvasFilters: { ...template.state.canvasFilters },
       canvasSize: { ...template.state.canvasSize },

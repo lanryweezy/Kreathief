@@ -471,6 +471,7 @@ export interface HistoryState {
   showGrid?: boolean;
   showRulers?: boolean;
   brandKits?: BrandKit[];
+  selectedLayerIds?: string[];
 }
 
 export interface DesignComment {

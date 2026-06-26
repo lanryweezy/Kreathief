@@ -139,12 +139,15 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
         return;
       }
 
-      // Eyedropper: Alt+click samples color from the canvas beneath
+      // Eyedropper: Alt+click samples color from the composited canvas beneath
       if (altHeldRef.current) {
         const rect = canvas.getBoundingClientRect();
         const x = (e.clientX - rect.left) / zoomRef.current;
         const y = (e.clientY - rect.top) / zoomRef.current;
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        // Find the main artboard canvas (not the drawing overlay) for accurate color sampling
+        const artboardCanvas = canvas.parentElement?.querySelector('canvas:not([data-drawing-overlay])') as HTMLCanvasElement | null;
+        const targetCanvas = artboardCanvas || canvas;
+        const ctx = targetCanvas.getContext('2d', { willReadFrequently: true });
         if (ctx) {
           const pixel = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
           const hex = '#' + [pixel[0], pixel[1], pixel[2]].map((c) => c.toString(16).padStart(2, '0')).join('');
@@ -282,7 +285,7 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
             break;
         }
 
-        ctx.lineTo(x, y);
+        ctx.lineTo(drawX, drawY);
         ctx.stroke();
       }
     },
@@ -399,6 +402,7 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
   useEffect(() => {
     // When drawing mode is turned off, finish any active vector_pencil paths
     if (!isDrawing && isDrawingInternalRef.current) {
+      isDrawingInternalRef.current = false;
       handleDrawingMouseUp(undefined, true);
     }
   }, [isDrawing, handleDrawingMouseUp]);

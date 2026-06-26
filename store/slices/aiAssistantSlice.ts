@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import { AIAssistantState, DesignCritique, DesignSuggestion, ChatMessage, DesignContext } from '../../types';
-import { aiAssistantService } from '../../services/aiAssistantService';
+import * as aiService from '../../services/aiService';
 import { log } from '../../utils/log';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -99,7 +99,7 @@ export const createAIAssistantSlice: StateCreator<any, [], [], AIAssistantSlice>
         purpose: state.projectTitle?.toLowerCase().includes('social') ? 'social_post' : undefined,
       };
 
-      const critique = await aiAssistantService.analyzeDesign(activeArtboard, context, context.brandKit);
+      const critique = await aiService.analyzeDesign(activeArtboard, context, context.brandKit);
 
       set({
         currentCritique: critique,
@@ -172,7 +172,7 @@ export const createAIAssistantSlice: StateCreator<any, [], [], AIAssistantSlice>
         brandKit: state.brandKits?.find((bk: any) => bk.id === state.activeBrandKitId),
       };
 
-      const response = await aiAssistantService.handleConversation(
+      const response = await aiService.handleConversation(
         message,
         activeArtboard,
         context,
@@ -262,7 +262,7 @@ export const createAIAssistantSlice: StateCreator<any, [], [], AIAssistantSlice>
         ] as string[],
       };
 
-      const suggestions = await aiAssistantService.getRealtimeSuggestions(activeArtboard, context, {
+      const suggestions = await aiService.getRealtimeSuggestions(activeArtboard, context, {
         type: changeType || 'unknown',
         layerId,
       });

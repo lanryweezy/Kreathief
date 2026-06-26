@@ -49,6 +49,10 @@ export const config = {
       maxRetries: 3,
       timeout: 30000,
     },
+    openrouter: {
+      apiKey: getOptionalEnv('VITE_OPENROUTER_API_KEY'),
+      apiUrl: 'https://openrouter.ai/api/v1',
+    },
   },
 
   // Storage Configuration

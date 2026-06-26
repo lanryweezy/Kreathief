@@ -134,6 +134,16 @@ export const ImageLayerItem = React.memo(
       const [repositioning, setRepositioning] = React.useState(false);
       const repositionStart = React.useRef({ x: 0, y: 0, cropX: 0, cropY: 0 });
 
+      // Exit reposition mode on Escape key
+      React.useEffect(() => {
+        if (!repositioning) return;
+        const handleEsc = (e: KeyboardEvent) => {
+          if (e.key === 'Escape') setRepositioning(false);
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+      }, [repositioning]);
+
       const handleImageRepositionStart = React.useCallback(
         (e: React.PointerEvent) => {
           e.stopPropagation();

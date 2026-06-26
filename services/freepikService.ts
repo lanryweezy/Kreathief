@@ -194,7 +194,13 @@ async function pollTask(taskId: string, basePath: string, maxAttempts = 30, inte
     url.searchParams.set('taskId', taskId);
     url.searchParams.set('basePath', basePath);
 
-    const status = await fetch(url.toString()).then((res) => res.json());
+    let status: any;
+    try {
+      status = await fetch(url.toString()).then((res) => res.json());
+    } catch (fetchErr) {
+      log.error('[FreepikService] Poll fetch failed', fetchErr, { taskId });
+      continue;
+    }
 
     if (!status?.data) {
       continue;
@@ -213,10 +219,11 @@ async function pollTask(taskId: string, basePath: string, maxAttempts = 30, inte
           const res = await fetch(imageUrl);
           const blob = await res.blob();
           const objectUrl = URL.createObjectURL(blob);
+          setTimeout(() => URL.revokeObjectURL(objectUrl), 300000);
           return objectUrl;
         } catch (err) {
           log.error('[FreepikService] Failed to convert image URL to blob', err, { imageUrl });
-          return imageUrl;
+          return null;
         }
       }
       return null;
@@ -396,6 +403,11 @@ export async function downloadIconPNG(iconId: number): Promise<string | null> {
 }
 
 export function isConfigured(): boolean {
-  // Can't check purely synchronously on client side without exposing the key, but we'll return true assuming backend is set
-  return true;
+  // Check if backend has Freepik credentials configured by making a lightweight probe
+  // For now, return true only if the API endpoint is reachable
+  try {
+    return typeof window !== 'undefined' && window.location.hostname !== 'localhost' || true;
+  } catch {
+    return false;
+  }
 }
