@@ -3,6 +3,8 @@ import { callBackendGeminiAPI } from './geminiService';
 import * as unsplashService from './unsplashService';
 import * as pixabayService from './pixabayService';
 import * as pexelsService from './pexelsService';
+import { safeParseJSON } from '../utils/errorHandling';
+import { SchemaType } from '@google/generative-ai';
 
 export interface RecommendedAsset {
   id: string;
@@ -23,16 +25,31 @@ interface DesignContext {
 
 async function analyzeDesignContext(ctx: DesignContext): Promise<string[]> {
   try {
+    const prompt = `You are a design asset recommendation engine. Given this design context, suggest 5-8 search queries that would find relevant stock photos, icons, and illustrations. Return ONLY a JSON array of strings.\n\nContext: ${JSON.stringify(ctx)}`;
     const response = await callBackendGeminiAPI({
-      action: 'generateContent',
-      prompt: `You are a design asset recommendation engine. Given this design context, suggest 5-8 search queries that would find relevant stock photos, icons, and illustrations. Return ONLY a JSON array of strings.\n\nContext: ${JSON.stringify(ctx)}`,
-      model: 'gemini-2.0-flash',
-      responseMimeType: 'application/json',
+      modelName: 'gemini-2.0-flash',
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.STRING,
+            description: 'Search query',
+          },
+        },
+      },
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
     });
-    const text = response?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const text = response?.text || response?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (text) {
-      const parsed = JSON.parse(text);
-      if (Array.isArray(parsed)) return parsed.slice(0, 8);
+      // 🤖 Astra: Wrap output parsing with safeParseJSON to avoid raw JSON.parse crashes.
+      const parsed = safeParseJSON<string[] | null>(text, null);
+      if (!parsed) {
+        throw new Error('Failed to parse asset recommendations JSON');
+      }
+      if (Array.isArray(parsed)) {
+        return parsed.slice(0, 8);
+      }
     }
   } catch (e) {
     log.error('[AssetRecommendations] AI analysis failed', e);
@@ -42,11 +59,21 @@ async function analyzeDesignContext(ctx: DesignContext): Promise<string[]> {
 
 function buildFallbackQueries(ctx: DesignContext): string[] {
   const queries: string[] = [];
-  if (ctx.description) queries.push(ctx.description);
-  if (ctx.style) queries.push(ctx.style);
-  if (ctx.tags) queries.push(...ctx.tags.slice(0, 3));
-  if (ctx.colors?.length) queries.push(`${ctx.colors[0]} background`);
-  if (queries.length === 0) queries.push('abstract background');
+  if (ctx.description) {
+    queries.push(ctx.description);
+  }
+  if (ctx.style) {
+    queries.push(ctx.style);
+  }
+  if (ctx.tags) {
+    queries.push(...ctx.tags.slice(0, 3));
+  }
+  if (ctx.colors?.length) {
+    queries.push(`${ctx.colors[0]} background`);
+  }
+  if (queries.length === 0) {
+    queries.push('abstract background');
+  }
   return queries.slice(0, 5);
 }
 
