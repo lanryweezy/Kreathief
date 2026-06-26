@@ -5,113 +5,135 @@ const headers = () => ({
   Authorization: `Bearer ${API_KEY}`,
 });
 
-export interface GIHit {
+export interface GIAsset {
   id: string;
-  name: string;
-  thumbnail: string;
+  name?: string;
+  imageUrl: string;
+  thumbnailUrl: string;
   tags?: string;
-}
-
-export interface GISearchResult {
-  hits: GIHit[];
-  total: number;
+  packId?: string;
+  pack?: { id: string; name: string; urlName?: string };
+  svgAvailable?: boolean;
+  hasAccess?: boolean;
 }
 
 export interface GIPack {
-  id: number;
+  id: string;
   name: string;
+  urlName?: string;
+  iconCount?: number;
   illustrationCount?: number;
-  thumbnail?: string;
+  heroPhoto?: string;
+  shortDescription?: string;
 }
 
 export interface GIIconPack {
   id: string;
   name: string;
+  urlName?: string;
   iconCount?: number;
+  heroPhoto?: string;
 }
 
-export async function searchIllustrations(query: string, limit = 20): Promise<GISearchResult> {
-  if (!API_KEY) return { hits: [], total: 0 };
-  const res = await fetch(`${BASE_URL}/search?q=${encodeURIComponent(query)}&type=illustration&limit=${limit}`, {
-    headers: headers(),
-  });
-  if (!res.ok) return { hits: [], total: 0 };
-  return res.json();
+export interface GISearchResult {
+  illustrations: GIAsset[];
+  icons: GIAsset[];
+  packs: GIPack[];
+  iconPacks: GIIconPack[];
 }
 
-export async function searchIcons(query: string, limit = 20): Promise<GISearchResult> {
-  if (!API_KEY) return { hits: [], total: 0 };
-  const res = await fetch(`${BASE_URL}/search?q=${encodeURIComponent(query)}&type=icon&limit=${limit}`, {
-    headers: headers(),
-  });
-  if (!res.ok) return { hits: [], total: 0 };
-  return res.json();
+export async function searchAll(query: string, limit = 20): Promise<GISearchResult> {
+  if (!API_KEY) return { illustrations: [], icons: [], packs: [], iconPacks: [] };
+  try {
+    const res = await fetch(`${BASE_URL}/search?q=${encodeURIComponent(query)}&limit=${limit}`, {
+      headers: headers(),
+    });
+    if (!res.ok) return { illustrations: [], icons: [], packs: [], iconPacks: [] };
+    const data = await res.json();
+    return data.results || { illustrations: [], icons: [], packs: [], iconPacks: [] };
+  } catch {
+    return { illustrations: [], icons: [], packs: [], iconPacks: [] };
+  }
 }
 
-export async function getIllustrationSVG(type: 'illustration' | 'icon', id: string): Promise<string | null> {
-  if (!API_KEY) return null;
-  const res = await fetch(`${BASE_URL}/svg/${type}/${id}?json=true`, {
-    headers: headers(),
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.svg_inline || null;
+export async function searchIllustrations(query: string, limit = 20): Promise<GIAsset[]> {
+  const result = await searchAll(query, limit);
+  return result.illustrations;
 }
 
-export async function downloadAsset(type: 'illustration' | 'icon', packId: string, assetId: string, format: 'svg' | 'png' = 'svg'): Promise<string | null> {
-  if (!API_KEY) return null;
-  const res = await fetch(`${BASE_URL}/download/${type}/${packId}/${assetId}?format=${format}`, {
-    headers: headers(),
-  });
-  if (!res.ok) return null;
-  if (format === 'svg') return res.text();
-  const blob = await res.blob();
-  return URL.createObjectURL(blob);
+export async function searchIcons(query: string, limit = 20): Promise<GIAsset[]> {
+  const result = await searchAll(query, limit);
+  return result.icons;
 }
 
-export async function listPacks(page = 1, limit = 20, featured?: boolean): Promise<GIPack[]> {
+export async function listIconPacks(page = 1, limit = 20, freeOnly = false): Promise<GIIconPack[]> {
   if (!API_KEY) return [];
-  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
-  if (featured) params.set('featured', 'true');
-  const res = await fetch(`${BASE_URL}/packs?${params}`, { headers: headers() });
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (freeOnly) params.set('free', 'true');
+    const res = await fetch(`${BASE_URL}/icon-packs?${params}`, { headers: headers() });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.items || [];
+  } catch {
+    return [];
+  }
 }
 
-export async function listIconPacks(page = 1, limit = 20, featured?: boolean): Promise<GIIconPack[]> {
+export async function listPacks(page = 1, limit = 20, freeOnly = false): Promise<GIPack[]> {
   if (!API_KEY) return [];
-  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
-  if (featured) params.set('featured', 'true');
-  const res = await fetch(`${BASE_URL}/icon-packs?${params}`, { headers: headers() });
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (freeOnly) params.set('free', 'true');
+    const res = await fetch(`${BASE_URL}/packs?${params}`, { headers: headers() });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.items || [];
+  } catch {
+    return [];
+  }
 }
 
-export async function getPackIllustrations(packId: number, page = 1, limit = 20): Promise<GIHit[]> {
+export async function getPackIllustrations(packId: string, page = 1, limit = 20): Promise<GIAsset[]> {
   if (!API_KEY) return [];
-  const res = await fetch(`${BASE_URL}/packs/${packId}/illustrations?page=${page}&limit=${limit}`, {
-    headers: headers(),
-  });
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const res = await fetch(`${BASE_URL}/packs/${packId}/illustrations?page=${page}&limit=${limit}`, {
+      headers: headers(),
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.items || [];
+  } catch {
+    return [];
+  }
 }
 
-export async function getPackIcons(packId: string, page = 1, limit = 20): Promise<GIHit[]> {
+export async function getPackIcons(packId: string, page = 1, limit = 20): Promise<GIAsset[]> {
   if (!API_KEY) return [];
-  const res = await fetch(`${BASE_URL}/icon-packs/${packId}/icons?page=${page}&limit=${limit}`, {
-    headers: headers(),
-  });
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const res = await fetch(`${BASE_URL}/icon-packs/${packId}/icons?page=${page}&limit=${limit}`, {
+      headers: headers(),
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.items || [];
+  } catch {
+    return [];
+  }
 }
 
-export async function getRandomIcons(count = 24, pack?: string): Promise<GIHit[]> {
+export async function getRandomIcons(count = 24, pack?: string): Promise<GIAsset[]> {
   if (!API_KEY) return [];
-  const params = new URLSearchParams({ count: String(count) });
-  if (pack) params.set('pack', pack);
-  const res = await fetch(`${BASE_URL}/icons/random?${params}`, { headers: headers() });
-  if (!res.ok) return [];
-  return res.json();
+  try {
+    const params = new URLSearchParams({ count: String(count) });
+    if (pack) params.set('pack', pack);
+    const res = await fetch(`${BASE_URL}/icons/random?${params}`, { headers: headers() });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.items || data.icons || [];
+  } catch {
+    return [];
+  }
 }
 
 export function isConfigured(): boolean {

@@ -4,6 +4,8 @@ import { log } from '../utils/log';
 import { z } from 'zod';
 import { noStoreHeaders } from '../utils/cacheHeaders';
 
+export const config = { runtime: 'nodejs' };
+
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 10;

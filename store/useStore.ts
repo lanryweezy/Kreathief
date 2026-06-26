@@ -46,6 +46,7 @@ export const useStore = create<StoreState>()((set, get, store) => ({
 
   // Common action to reset the store completely
   reset: () => {
+    get().stopAutoSave?.();
     set({
       // UI Slice
       activeTab: 'MAGIC' as any,

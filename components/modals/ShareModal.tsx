@@ -46,10 +46,14 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
     }
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(shareLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(shareLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      // silent
+    }
   };
 
   const handleInvite = () => {
@@ -58,10 +62,11 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
     // For now, just copy the share link with the email as context
     const inviteLink = shareLink || '';
     if (inviteLink) {
-      navigator.clipboard.writeText(`Hey! Check out my design "${designTitle}" on Kreathief: ${inviteLink}`);
-      setInviteSent(true);
-      setInviteEmail('');
-      setTimeout(() => setInviteSent(false), 3000);
+      navigator.clipboard.writeText(`Hey! Check out my design "${designTitle}" on Kreathief: ${inviteLink}`).then(() => {
+        setInviteSent(true);
+        setInviteEmail('');
+        setTimeout(() => setInviteSent(false), 3000);
+      }).catch(() => {});
     }
   };
 

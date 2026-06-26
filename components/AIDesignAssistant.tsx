@@ -10,23 +10,21 @@ interface AIDesignAssistantProps {
 }
 
 export const AIDesignAssistant: React.FC<AIDesignAssistantProps> = ({ className = '' }) => {
-  const {
-    isActive,
-    isAnalyzing,
-    currentCritique,
-    conversationHistory,
-    autoSuggest,
-    position,
-    isMinimized,
-    toggleAssistant,
-    minimizeAssistant,
-    moveAssistant,
-    analyzeCurrentDesign,
-    sendMessage,
-    clearConversation,
-    dismissSuggestion,
-    setAutoSuggest,
-  } = useStore();
+  const isActive = useStore((s) => s.isActive);
+  const isAnalyzing = useStore((s) => s.isAnalyzing);
+  const currentCritique = useStore((s) => s.currentCritique);
+  const conversationHistory = useStore((s) => s.conversationHistory);
+  const autoSuggest = useStore((s) => s.autoSuggest);
+  const position = useStore((s) => s.position);
+  const isMinimized = useStore((s) => s.isMinimized);
+  const toggleAssistant = useStore((s) => s.toggleAssistant);
+  const minimizeAssistant = useStore((s) => s.minimizeAssistant);
+  const moveAssistant = useStore((s) => s.moveAssistant);
+  const analyzeCurrentDesign = useStore((s) => s.analyzeCurrentDesign);
+  const sendMessage = useStore((s) => s.sendMessage);
+  const clearConversation = useStore((s) => s.clearConversation);
+  const dismissSuggestion = useStore((s) => s.dismissSuggestion);
+  const setAutoSuggest = useStore((s) => s.setAutoSuggest);
 
   const [inputMessage, setInputMessage] = useState('');
   const [isDragging, setIsDragging] = useState(false);

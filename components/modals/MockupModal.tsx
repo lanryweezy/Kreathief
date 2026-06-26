@@ -175,8 +175,9 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
       const bgImg = new Image();
       bgImg.crossOrigin = 'anonymous';
       bgImg.src = (current as any).exportBg || current.bg;
-      await new Promise((resolve) => {
+      await new Promise((resolve, reject) => {
         bgImg.onload = resolve;
+        bgImg.onerror = () => reject(new Error('Image failed to load'));
       });
 
       canvas.width = bgImg.naturalWidth;
@@ -190,8 +191,9 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
         const designImg = new Image();
         designImg.crossOrigin = 'anonymous';
         designImg.src = designImage;
-        await new Promise((resolve) => {
+        await new Promise((resolve, reject) => {
           designImg.onload = resolve;
+          designImg.onerror = () => reject(new Error('Image failed to load'));
         });
 
         const baseTop = (parseFloat(current.overlayStyle.top) / 100) * canvas.height;

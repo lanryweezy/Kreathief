@@ -229,7 +229,7 @@ export const createComponentSlice: StateCreator<any, [], [], Partial<LayerSlice>
             x: l.x,
             y: l.y,
             rotation: l.rotation,
-            masterId: master!.componentId,
+            masterId: master!.id,
             componentId: undefined,
             overrides: [], // All clear — fully inherited
           };

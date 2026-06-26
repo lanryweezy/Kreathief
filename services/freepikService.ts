@@ -1,5 +1,12 @@
 import { log } from '../utils/log';
 
+// Helper to create object URLs with automatic cleanup after 5 minutes
+function createRevocableURL(blob: Blob): string {
+  const url = URL.createObjectURL(blob);
+  setTimeout(() => URL.revokeObjectURL(url), 300000);
+  return url;
+}
+
 export interface FreepikAsset {
   id: number;
   name: string;
@@ -255,7 +262,7 @@ export async function removeBackground(imageSource: string): Promise<string | nu
       try {
         const res = await fetch(result.data.url || result.data.image_url);
         const blob = await res.blob();
-        return URL.createObjectURL(blob);
+        return createRevocableURL(blob);
       } catch (err) {
         log.error('[FreepikService] Failed to convert BG removal result to blob', err);
         return result.data.url || result.data.image_url;
@@ -294,7 +301,7 @@ export async function upscaleImage(
       try {
         const res = await fetch(result.data.url || result.data.image_url);
         const blob = await res.blob();
-        return URL.createObjectURL(blob);
+        return createRevocableURL(blob);
       } catch {
         return result.data.url || result.data.image_url;
       }
@@ -320,7 +327,7 @@ export async function styleTransfer(imageSource: string, stylePrompt: string): P
       try {
         const res = await fetch(result.data.url || result.data.image_url);
         const blob = await res.blob();
-        return URL.createObjectURL(blob);
+        return createRevocableURL(blob);
       } catch (err) {
         log.warn('[FreepikService] Failed to convert style transfer result to blob', { error: err });
         return result.data.url || result.data.image_url;
@@ -347,7 +354,7 @@ export async function expandImage(imageSource: string): Promise<string | null> {
       try {
         const res = await fetch(result.data.url || result.data.image_url);
         const blob = await res.blob();
-        return URL.createObjectURL(blob);
+        return createRevocableURL(blob);
       } catch (err) {
         log.warn('[FreepikService] Failed to convert expand result to blob', { error: err });
         return result.data.url || result.data.image_url;
@@ -406,7 +413,7 @@ export function isConfigured(): boolean {
   // Check if backend has Freepik credentials configured by making a lightweight probe
   // For now, return true only if the API endpoint is reachable
   try {
-    return typeof window !== 'undefined' && window.location.hostname !== 'localhost' || true;
+    return typeof window !== 'undefined' && window.location.hostname !== 'localhost';
   } catch {
     return false;
   }

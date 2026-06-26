@@ -86,9 +86,7 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
             .catch((err) => log.error('[Resilience] Session mirror failed', err, { projectId: state.projectId }));
         }
 
-        state.setHasUnsavedChanges?.(true);
-
-        return { past: newPast, future: [], __lastStateSnapshot: nextSnapshot };
+        return { past: newPast, future: [], __lastStateSnapshot: nextSnapshot, hasUnsavedChanges: true };
       });
     };
   })(),

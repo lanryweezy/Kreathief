@@ -114,7 +114,8 @@ class ShareService {
     try {
       const { data, error } = await supabase.from('share_links').select('password_hash').eq('id', shareId).single();
 
-      if (error || !data || !data.password_hash) return true; // No password set
+      if (error || !data) return false; // DB error = deny access
+      if (!data.password_hash) return true; // No password set
 
       const encoder = new TextEncoder();
       const hashData = encoder.encode(password + shareId);

@@ -7,6 +7,7 @@ import * as materialIconService from '../../services/materialIconService';
 import * as lucideIconService from '../../services/lucideIconService';
 import * as phosphorIconService from '../../services/phosphorIconService';
 import * as giService from '../../services/getillustrationService';
+import DOMPurify from 'dompurify';
 import { SHAPE_LIBRARY } from '../../constants/shapeLibrary';
 import { ElementSkeleton } from '../Skeleton';
 
@@ -161,7 +162,7 @@ export const ElementsPanel = () => {
         );
         if (source === 'illustrations' && giService.isConfigured()) {
           searchPromises.push(
-            giService.searchIllustrations(query, 15).then((r) => ({ type: 'gi', data: r }))
+            giService.searchAll(query, 15).then((r) => ({ type: 'gi', data: r }))
           );
         }
       }
@@ -191,8 +192,11 @@ export const ElementsPanel = () => {
           data.forEach((icon: any) => icons.push({ id: `luc-${icon.name}`, name: icon.name, thumbnailUrl: '', source: 'lucide', svgData: icon.svg }));
         } else if (type === 'phosphor' && data?.length > 0) {
           data.forEach((icon: any) => { if (icon.thumbnailUrl) icons.push({ id: `ph-${icon.name}`, name: icon.name, thumbnailUrl: '', source: 'phosphor', svgData: icon.svg }); });
-        } else if (type === 'gi' && data?.hits?.length > 0) {
-          data.hits.forEach((hit: any) => icons.push({ id: `gi-${hit.id}`, name: hit.name, thumbnailUrl: hit.thumbnail, source: 'gi' }));
+        } else if (type === 'gi' && data) {
+          const ills = data.illustrations || [];
+          const gicons = data.icons || [];
+          ills.forEach((item: any) => icons.push({ id: `gi-${item.id}`, name: item.pack?.name || 'Illustration', thumbnailUrl: item.thumbnailUrl || item.imageUrl, source: 'gi' }));
+          gicons.forEach((item: any) => icons.push({ id: `gi-${item.id}`, name: item.name || item.iconPack?.name || 'Icon', thumbnailUrl: item.thumbnailUrl || item.imageUrl, source: 'gi' }));
         }
       });
       setRemoteIcons(icons);
@@ -254,14 +258,7 @@ export const ElementsPanel = () => {
           internalAddImageLayer(URL.createObjectURL(blob));
         }
       } else if (icon.source === 'gi') {
-        const assetId = icon.id.replace('gi-', '');
-        const svgData = await giService.getIllustrationSVG('illustration', assetId);
-        if (svgData) {
-          const blob = new Blob([svgData], { type: 'image/svg+xml' });
-          internalAddImageLayer(URL.createObjectURL(blob));
-        } else {
-          internalAddImageLayer(icon.thumbnailUrl);
-        }
+        internalAddImageLayer(icon.thumbnailUrl);
       } else {
         internalAddImageLayer(icon.thumbnailUrl);
       }
@@ -506,7 +503,7 @@ export const ElementsPanel = () => {
                   className="aspect-square bg-surface-dark-3 border border-gray-800 rounded-xl hover:border-brand-600 flex items-center justify-center p-2 group"
                 >
                   {icon.svgData ? (
-                    <div className="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full" dangerouslySetInnerHTML={{ __html: icon.svgData.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '').replace(/on\w+="[^"]*"/gi, '').replace(/on\w+='[^']*'/gi, '') }} />
+                    <div className="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(icon.svgData, { USE_PROFILES: { svg: true } }) }} />
                   ) : icon.thumbnailUrl ? (
                     <img
                       src={icon.thumbnailUrl}

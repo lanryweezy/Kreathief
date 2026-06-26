@@ -409,8 +409,9 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
             const localIds = new Set(state.comments.map((c: any) => c.id));
             const newFromDb = dbComments.filter((c) => !localIds.has(c.id));
             if (newFromDb.length > 0) {
-              set({ comments: [...state.comments, ...newFromDb] });
+              return { comments: [...state.comments, ...newFromDb] };
             }
+            return {};
           });
         }
       });

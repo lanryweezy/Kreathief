@@ -255,8 +255,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
 
       const img = new Image();
       img.src = designUrl;
-      await new Promise((resolve) => {
+      await new Promise((resolve, reject) => {
         img.onload = resolve;
+        img.onerror = () => reject(new Error('Image failed to load'));
       });
 
       const canvas = document.createElement('canvas');
@@ -333,8 +334,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
         const bgImg = new Image();
         bgImg.crossOrigin = 'anonymous';
         bgImg.src = mockup.bg;
-        await new Promise((resolve) => {
+        await new Promise((resolve, reject) => {
           bgImg.onload = resolve;
+          bgImg.onerror = () => reject(new Error('Image failed to load'));
         });
 
         canvas.width = bgImg.naturalWidth;
@@ -343,8 +345,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
 
         const designImg = new Image();
         designImg.src = designUrl;
-        await new Promise((resolve) => {
+        await new Promise((resolve, reject) => {
           designImg.onload = resolve;
+          designImg.onerror = () => reject(new Error('Image failed to load'));
         });
 
         const { top, left, width } = mockup.defaultPlacement;

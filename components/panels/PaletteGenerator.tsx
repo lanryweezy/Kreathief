@@ -38,7 +38,9 @@ export const PaletteGenerator: React.FC<PaletteGeneratorProps> = ({ onPaletteSel
   const loadImage = (file: File): Promise<ImageData> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
+      const blobUrl = URL.createObjectURL(file);
       img.onload = () => {
+        URL.revokeObjectURL(blobUrl);
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         if (!ctx) {
@@ -46,7 +48,6 @@ export const PaletteGenerator: React.FC<PaletteGeneratorProps> = ({ onPaletteSel
           return;
         }
 
-        // Resize for faster processing
         const maxSize = 200;
         let width = img.width;
         let height = img.height;
@@ -68,8 +69,11 @@ export const PaletteGenerator: React.FC<PaletteGeneratorProps> = ({ onPaletteSel
         const imageData = ctx.getImageData(0, 0, width, height);
         resolve(imageData);
       };
-      img.onerror = reject;
-      img.src = URL.createObjectURL(file);
+      img.onerror = (e) => {
+        URL.revokeObjectURL(blobUrl);
+        reject(e);
+      };
+      img.src = blobUrl;
     });
   };
 
