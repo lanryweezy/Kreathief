@@ -58,11 +58,12 @@ export const profileService = {
 
   async searchProfiles(query: string, limit: number = 20): Promise<Profile[]> {
     try {
+      const safeQuery = query.replace(/[",]/g, '');
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('is_public', true)
-        .or(`name.ilike.%${query}%`)
+        .or(`name.ilike.%${safeQuery}%`)
         .limit(limit);
 
       if (error) throw error;

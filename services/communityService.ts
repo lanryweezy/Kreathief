@@ -33,7 +33,8 @@ export const communityService = {
         q = q.eq('category', category);
       }
       if (query) {
-        q = q.or(`name.ilike.%${query}%,description.ilike.%${query}%,user_name.ilike.%${query}%`);
+        const safeQuery = query.replace(/[",]/g, '');
+        q = q.or(`name.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%,user_name.ilike.%${safeQuery}%`);
       }
 
       const orderCol = sortBy === 'newest' ? 'created_at' : sortBy === 'downloads' ? 'downloads' : 'likes';
