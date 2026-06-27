@@ -50,3 +50,8 @@
 
 **Learning:** The codebase contained an unused `components/CommentsPanel.tsx` that duplicated functionality of `components/panels/CommentsPanel.tsx`.
 **Action:** Removed dead duplicate code component `components/CommentsPanel.tsx`. Often when multiple files have similar names across directories (e.g. `components/` vs `components/panels/`), one of them is an unused relic that can be cleanly removed to eliminate structural debt and confusion.
+
+## 2024-05-24 - Unused duplicate components removed
+
+**Learning:** Duplicate component files exist across directories, typically a relic from moving files (e.g. `LandingPage.tsx` in `components` and `components/pages`, `CropOverlay.tsx` in `components/overlays` and `components/canvas`). Safe to delete the unused ones when functionality is identical and it is unused.
+**Action:** When working as Mason, always check for duplicate component files and delete the one without importers or which is a relic.
