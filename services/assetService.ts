@@ -16,7 +16,8 @@ export const assetService = {
         .eq('status', 'approved');
 
       if (query) {
-        q = q.or(`title.ilike.%${query}%,description.ilike.%${query}%,tags.cs.{${query}}`);
+        const safeQuery = query.replace(/[",]/g, '');
+        q = q.or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%,tags.cs.{${safeQuery}}`);
       }
 
       if (category) {
