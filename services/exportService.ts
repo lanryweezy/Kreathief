@@ -634,33 +634,27 @@ const drawShapeToContext = (ctx: CanvasRenderingContext2D, layer: ShapeLayer) =>
     ctx.beginPath();
     ctx.arc(0, 0, layer.width / 2, 0, Math.PI * 2);
     ctx.fill();
-  } else if (layer.type === 'triangle') {
-    ctx.beginPath();
-    ctx.moveTo(0, -layer.height / 2);
-    ctx.lineTo(layer.width / 2, layer.height / 2);
-    ctx.lineTo(-layer.width / 2, layer.height / 2);
-    ctx.closePath();
-    ctx.fill();
-  } else if (layer.type === 'star') {
-    const cx = 0,
-      cy = 0;
-    const outerR = layer.width / 2;
-    const innerR = outerR * 0.4;
-    const points = 5;
-    ctx.beginPath();
-    for (let i = 0; i < points * 2; i++) {
-      const angle = (i * Math.PI) / points - Math.PI / 2;
-      const radius = i % 2 === 0 ? outerR : innerR;
-      const px = cx + Math.cos(angle) * radius;
-      const py = cy + Math.sin(angle) * radius;
-      if (i === 0) {
-        ctx.moveTo(px, py);
-      } else {
-        ctx.lineTo(px, py);
+  } else {
+    // Complex polygon shapes
+    const def = getLayerClipPath(layer);
+    if (def && def.startsWith('polygon')) {
+      const points = def.match(/[\d.]+% [\d.]+/g);
+      if (points) {
+        ctx.beginPath();
+        points.forEach((p, i) => {
+          const [xPerc, yPerc] = p.split(' ').map((s) => parseFloat(s));
+          const x = (xPerc / 100) * layer.width - layer.width / 2;
+          const y = (yPerc / 100) * layer.height - layer.height / 2;
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        });
+        ctx.closePath();
+        ctx.fill();
       }
     }
-    ctx.closePath();
-    ctx.fill();
   }
 
   ctx.restore();
