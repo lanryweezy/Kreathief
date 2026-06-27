@@ -41,7 +41,7 @@ export const CanvasTools = React.memo(
             }
           }}
           active={isPenMode && brushType !== BrushType.VECTOR_PENCIL}
-          title="Brush Tool (B)"
+          title="Brush Tool (P)"
         >
           <Icons.Brush className="w-4 h-4" />
         </IconButton>

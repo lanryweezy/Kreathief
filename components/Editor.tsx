@@ -522,6 +522,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       },
       {
         key: 'v',
+        ctrl: true,
+        shift: true,
         action: () => {
           if (selectedLayer && selectedLayer.type !== 'text') {
             useStore.getState().updateLayer(selectedLayer.id, { flipY: !(selectedLayer as any).flipY });
