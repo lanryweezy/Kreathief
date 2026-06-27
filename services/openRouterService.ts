@@ -1,5 +1,5 @@
 import { log } from '../utils/log';
-import { retryWithBackoff } from '../utils/errorHandling';
+import { retryWithBackoff, safeParseJSON } from '../utils/errorHandling';
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1';
 
@@ -116,23 +116,26 @@ export async function generateImage(params: GenerateImageParams): Promise<string
 export async function generateJSON<T>(
   params: GenerateTextParams & { schema?: any }
 ): Promise<T> {
-  const { prompt, model, systemPrompt, maxTokens = 4096 } = params;
+  const { prompt, model, systemPrompt, maxTokens = 4096, schema } = params;
+
+  const schemaContext = schema ? `\n\nEnsure the JSON matches this schema:\n${JSON.stringify(schema, null, 2)}` : '';
 
   const content = await generateText({
-    prompt: `${prompt}\n\nRespond with valid JSON only. No markdown, no explanations.`,
+    prompt: `${prompt}\n\nRespond with valid JSON only. No markdown, no explanations.${schemaContext}`,
     model,
     systemPrompt: systemPrompt || 'You are a JSON response generator. Return only valid JSON.',
     maxTokens,
   });
 
-  try {
-    // Strip markdown code fences if present
-    const cleaned = content.replace(/```json?\s*\n?/g, '').replace(/```\s*$/g, '').trim();
-    return JSON.parse(cleaned) as T;
-  } catch {
+  // Strip markdown code fences if present
+  const cleaned = content.replace(/```json?\s*\n?/g, '').replace(/```\s*$/g, '').trim();
+
+  const parsed = safeParseJSON<T | null>(cleaned, null);
+  if (parsed === null) {
     log.error('[OpenRouter] Failed to parse JSON response', { content });
     throw new Error('Invalid JSON response from AI model');
   }
+  return parsed;
 }
 
 function getApiKey(): string {

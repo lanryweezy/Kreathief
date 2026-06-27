@@ -71,3 +71,7 @@
 
 **Learning:** AI generation requests like `analyzeDesignContext` that directly use `JSON.parse` will crash the application and cause silent failures if the LLM output is malformed, wrapped in markdown, or otherwise invalid JSON. This completely breaks features that rely on arrays, like asset recommendations, instead of allowing a graceful fallback path.
 **Action:** Replace `JSON.parse` with `safeParseJSON<T | null>(text, null)`, check if the result is `null`, and throw a structured error to allow surrounding try/catch blocks to execute graceful fallback routines. Always enforce `generationConfig` with a `responseSchema` and `responseMimeType: 'application/json'` instead of relying solely on the prompt instruction to return valid JSON.
+
+## 2024-05-18 - Missing Schema Enforcements in OpenRouter Prompts
+**Learning:** Accepting a `schema` parameter in AI generation wrappers but failing to inject it into the prompt leaves the AI output structure ambiguous and leads to frequent parsing failures, as the LLM doesn't know the exact data contract to fulfill.
+**Action:** Always inject the stringified JSON schema into the prompt when a schema is provided, and use `safeParseJSON` rather than raw `JSON.parse` to handle the response safely.
