@@ -32,3 +32,11 @@
 
 **Learning:** Destructuring multiple properties from Zustand's `useStore()` without a shallow equality check creates a new object on every state update. This defeats any memoization and triggers a re-render of the component even if none of the destructured values changed.
 **Action:** When a component extracts multiple values from `useStore()` by returning an object, always wrap the selector function in `useShallow` from `zustand/react/shallow`. This ensures the component only re-renders when one of the specifically selected properties has been updated.
+## 2026-06-28 - Unnecessary full-store subscriptions via direct destructuring
+**Learning:** Destructuring directly from  without providing a selector (e.g., `const { a, b } = useStore()` or `const { isActive } = useStore()`) subscribes the calling component to the *entire* global store. This causes the component to re-render whenever *any* state in the store changes, even if the destructured values are completely unrelated. In frequently re-rendered components like canvas overlays, this creates a massive performance bottleneck.
+**Action:** Never use direct destructuring from  without a selector. Always use an explicit selector and wrap it with  when returning multiple values to ensure the component only re-renders when the specific properties it depends on change.
+
+## 2026-06-28 - Unnecessary full-store subscriptions via direct destructuring
+
+**Learning:** Destructuring directly from `useStore()` without providing a selector (e.g., `const { a, b } = useStore()` or `const { isActive } = useStore()`) subscribes the calling component to the *entire* global store. This causes the component to re-render whenever *any* state in the store changes, even if the destructured values are completely unrelated. In frequently re-rendered components like canvas overlays, this creates a massive performance bottleneck.
+**Action:** Never use direct destructuring from `useStore()` without a selector. Always use an explicit selector and wrap it with `useShallow` when returning multiple values to ensure the component only re-renders when the specific properties it depends on change.
