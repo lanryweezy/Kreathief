@@ -741,6 +741,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                   onClick={() => setZoom(Math.max(0.1, zoom - 0.1))}
                   className="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-colors"
                   title="Zoom Out"
+                  aria-label="Zoom Out"
                 >
                   <Icons.Minus className="w-3.5 h-3.5" />
                 </button>
@@ -760,11 +761,13 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                   }}
                   className="px-1 w-[42px] text-center text-[10px] font-black text-gray-300 font-mono bg-transparent border border-white/10 rounded outline-none focus:border-brand/50"
                   title="Zoom Level"
+                  aria-label="Zoom Level"
                 />
                 <button
                   onClick={() => setZoom(Math.min(10, zoom + 0.1))}
                   className="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-colors"
                   title="Zoom In"
+                  aria-label="Zoom In"
                 >
                   <Icons.Plus className="w-3.5 h-3.5" />
                 </button>
@@ -803,6 +806,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                   }}
                   className="px-1.5 py-0.5 text-[10px] font-bold text-gray-400 hover:bg-white/10 hover:text-white rounded-md transition-colors"
                   title="Fit to Screen"
+                  aria-label="Fit to Screen"
                 >
                   Fit
                 </button>
@@ -835,6 +839,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                         }}
                         className="px-1.5 py-0.5 text-[10px] font-bold text-gray-400 hover:bg-white/10 hover:text-white rounded-md transition-colors"
                         title="Zoom to Selection"
+                        aria-label="Zoom to Selection"
                       >
                         Sel
                       </button>
@@ -849,6 +854,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                   onClick={() => onToggleGrid(!showGrid)}
                   className={`p-1.5 rounded-md transition-all ${showGrid ? 'bg-brand/20 text-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
                   title="Toggle Grid"
+                  aria-label="Toggle Grid"
+                  aria-pressed={showGrid}
                 >
                   <Icons.Grid className="w-3.5 h-3.5" />
                 </button>
@@ -856,6 +863,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                   onClick={() => onToggleRulers(!showRulers)}
                   className={`p-1.5 rounded-md transition-all ${showRulers ? 'bg-brand/20 text-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
                   title="Toggle Rulers"
+                  aria-label="Toggle Rulers"
+                  aria-pressed={showRulers}
                 >
                   <Icons.Layout className="w-3.5 h-3.5" />
                 </button>

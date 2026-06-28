@@ -47,3 +47,8 @@
 
 **Learning:** Found that quick access bars and dynamic toolbars (like `QuickAccessBar.tsx` and `ShortcutOverlay.tsx`) frequently use icon-only buttons for actions like "Zoom In", "Zoom Out", and "Close". Even when wrapper components like `QuickButton` take a `title` prop, they might fail to forward it as an `aria-label` to the underlying `<button>` element.
 **Action:** When creating reusable button wrappers (e.g. `QuickButton`, `IconButton`), ensure they automatically apply an `aria-label` attribute using the provided `title` or explicit `ariaLabel` prop. Also, systematically audit all instances of `<button><Icon /></button>` across the codebase to ensure they possess a descriptive `aria-label`.
+
+## 2026-06-28 - Missing ARIA Labels on Editor Floating Controls
+
+**Learning:** Floating utility controls in the Editor interface (e.g., zoom, fit to screen, toggle grid/rulers) often rely exclusively on standard HTML `title` attributes for tooltips but omit `aria-label` attributes. While `title` provides a visual tooltip on hover, it is often insufficient or inconsistently supported by screen readers.
+**Action:** When adding or auditing icon-only or abbreviated-text utility buttons (e.g., "Fit", "Sel"), always explicitly provide an `aria-label` attribute in addition to any `title` attribute to ensure robust screen reader accessibility. Additionally, stateful toggle buttons should utilize the `aria-pressed` attribute.
