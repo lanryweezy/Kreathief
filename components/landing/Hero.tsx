@@ -7,6 +7,19 @@ interface HeroProps {
   onGetStarted: () => void;
 }
 
+const stagger = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15, delayChildren: 0.3 }
+  }
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
+};
+
 export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
   const { scrollY } = useScroll();
 
@@ -32,18 +45,21 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
       <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full flex flex-col items-center">
         {/* Main Headline */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          initial="hidden"
+          animate="visible"
+          variants={stagger}
           className="text-center w-full max-w-5xl mb-10 relative flex flex-col items-center"
         >
           <div className="absolute -inset-10 bg-white/5 blur-[100px] -z-10 rounded-full"></div>
-          <h1 className="text-6xl md:text-[90px] lg:text-[140px] font-black tracking-tighter leading-[0.85] text-white select-none text-balance">
+          <motion.h1
+            variants={fadeUp}
+            className="text-6xl md:text-[90px] lg:text-[140px] font-black tracking-tighter leading-[0.85] text-white select-none text-balance"
+          >
             From idea to design <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 animate-text-gradient">
               in 30 seconds.
             </span>
-          </h1>
+          </motion.h1>
         </motion.div>
 
         <motion.p
@@ -94,6 +110,16 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
               </span>
             </button>
           </MagneticButton>
+
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="px-8 py-5 rounded-full font-bold text-base text-white/60 hover:text-white transition-all flex items-center gap-3 border border-white/10 hover:border-white/20 hover:bg-white/5"
+          >
+            <Icons.Play className="w-4 h-4 fill-current" />
+            Watch demo
+          </motion.button>
         </motion.div>
 
         {/* EXPLODED UI HERO VISUAL */}

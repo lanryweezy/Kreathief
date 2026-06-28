@@ -765,18 +765,41 @@ class StorageService {
 
   private sanitizeLayer(layer: any): any {
     if (!layer || typeof layer !== 'object') return layer;
-    return {
-      ...layer,
-      id: typeof layer.id === 'string' ? layer.id : String(layer.id || ''),
-      name: typeof layer.name === 'string' ? layer.name : String(layer.name || ''),
-      type: typeof layer.type === 'string' ? layer.type : String(layer.type || 'shape'),
-      x: typeof layer.x === 'number' ? layer.x : Number(layer.x) || 0,
-      y: typeof layer.y === 'number' ? layer.y : Number(layer.y) || 0,
-      width: typeof layer.width === 'number' ? layer.width : Number(layer.width) || 100,
-      height: typeof layer.height === 'number' ? layer.height : Number(layer.height) || 100,
-      rotation: typeof layer.rotation === 'number' ? layer.rotation : Number(layer.rotation) || 0,
-      opacity: typeof layer.opacity === 'number' ? layer.opacity : Number(layer.opacity) ?? 1,
+    const safe = { ...layer };
+    const str = (v: any, def = ''): string => {
+      if (v === null || v === undefined) return def;
+      if (typeof v === 'string') return v;
+      if (typeof v === 'object') return def;
+      return String(v);
     };
+    const num = (v: any, def = 0): number => {
+      if (typeof v === 'number') return v;
+      if (typeof v === 'string') { const n = Number(v); return isNaN(n) ? def : n; }
+      return def;
+    };
+    safe.id = str(safe.id, `layer_${Date.now()}`);
+    safe.name = str(safe.name, `${safe.type || 'shape'} Layer`);
+    safe.type = str(safe.type, 'shape');
+    safe.x = num(safe.x);
+    safe.y = num(safe.y);
+    safe.width = num(safe.width, 100);
+    safe.height = num(safe.height, 100);
+    safe.rotation = num(safe.rotation);
+    safe.opacity = typeof safe.opacity === 'number' ? safe.opacity : num(safe.opacity, 1);
+    safe.locked = !!safe.locked;
+    safe.visible = safe.visible !== false;
+    if (typeof safe.text === 'object') safe.text = str(safe.text);
+    if (typeof safe.fontFamily === 'object') safe.fontFamily = str(safe.fontFamily);
+    if (typeof safe.fill === 'object' && typeof safe.fill !== 'string') safe.fill = str(safe.fill);
+    if (typeof safe.blendMode === 'object') safe.blendMode = str(safe.blendMode);
+    if (typeof safe.maskLayerId === 'object') safe.maskLayerId = str(safe.maskLayerId);
+    if (typeof safe.groupId === 'object') safe.groupId = str(safe.groupId);
+    if (typeof safe.masterId === 'object') safe.masterId = str(safe.masterId);
+    if (typeof safe.componentId === 'object') safe.componentId = str(safe.componentId);
+    if (typeof safe.src === 'object') safe.src = str(safe.src);
+    if (typeof safe.pathData === 'object') safe.pathData = str(safe.pathData);
+    if (typeof safe.filter === 'object') safe.filter = str(safe.filter);
+    return safe;
   }
 
   private sanitizeArtboards(artboards: any[]): any[] {

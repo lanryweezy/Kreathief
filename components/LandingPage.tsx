@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, useScroll, useSpring } from 'framer-motion';
 import { Hero } from './landing/Hero';
 import { LogoTicker } from './landing/LogoTicker';
+import { ProblemSolution } from './landing/ProblemSolution';
 import { ReplacementNarrative } from './landing/ReplacementNarrative';
 import { SpeedProof } from './landing/SpeedProof';
 import { Features } from './landing/Features';
@@ -128,12 +129,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
       <main>
         <Hero onGetStarted={onTryGuest || onGetStarted} />
         <LogoTicker />
+        <ProblemSolution />
         <Features />
         <ScrollShowcase />
+        <Stats />
         <TemplateGallery />
         <Testimonials />
         <Pricing onPlanSelect={onGetStarted} />
-        <BlogPreview />
       </main>
 
       <Footer />
