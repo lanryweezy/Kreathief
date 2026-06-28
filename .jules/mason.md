@@ -50,3 +50,4 @@
 
 **Learning:** The codebase contained an unused `components/CommentsPanel.tsx` that duplicated functionality of `components/panels/CommentsPanel.tsx`.
 **Action:** Removed dead duplicate code component `components/CommentsPanel.tsx`. Often when multiple files have similar names across directories (e.g. `components/` vs `components/panels/`), one of them is an unused relic that can be cleanly removed to eliminate structural debt and confusion.
+## 2026-06-28 - Duplicate component file removed\n**Learning:** Found an unused duplicate component `components/pages/LandingPage.tsx`. The actual application relies on `components/LandingPage.tsx`.\n**Action:** Found and removed dead duplicate code components. Often when multiple files have similar names across directories (e.g. `components/` vs `components/pages/`), one of them is an unused relic that can be cleanly removed to eliminate structural debt and confusion.

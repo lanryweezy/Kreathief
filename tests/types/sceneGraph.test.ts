@@ -11,7 +11,7 @@ import {
   serializeSceneGraph,
   deserializeSceneGraph,
   printSceneTree,
-} from '../types/sceneGraph';
+} from '../../types/sceneGraph';
 import { Layer } from '../types';
 
 function makeLayer(id: string, groupId?: string, name?: string): Layer {
