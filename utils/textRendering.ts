@@ -54,11 +54,11 @@ function applyTextStroke(
  */
 export function applySmartQuotes(text: string): string {
   // Convert straight double quotes to curly quotes
-  let result = text.replace(/(^|[\s\[{(])"/g, '$1\u201c');
+  let result = text.replace(/(^|[\s[{(])"/g, '$1\u201c');
   result = result.replace(/"/g, '\u201d');
 
   // Convert straight single quotes to curly quotes
-  result = result.replace(/(^|[\s\[{(])'/g, '$1\u2018');
+  result = result.replace(/(^|[\s[{(])'/g, '$1\u2018');
   result = result.replace(/'/g, '\u2019');
 
   // Convert double hyphens to em-dash
