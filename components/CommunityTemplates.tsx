@@ -488,7 +488,7 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
                             overflow: 'hidden',
                           }}
                         >
-                          {l.text}
+                          {typeof l.text === 'string' ? l.text : String(l.text ?? '')}
                         </div>
                       );
                     }

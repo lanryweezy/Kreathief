@@ -92,7 +92,20 @@ export const useEditorLogic = (initialProject?: Project) => {
         try {
           const parsed = typeof savedState === 'string' ? JSON.parse(savedState) : savedState;
           if (parsed.layers?.length > 0) {
-            setLayers(parsed.layers);
+            const sanitized = parsed.layers.map((l: any) => {
+              if (!l || typeof l !== 'object') return l;
+              const safe = { ...l };
+              if (typeof safe.text === 'object') safe.text = String(safe.text ?? '');
+              if (typeof safe.fontFamily === 'object') safe.fontFamily = String(safe.fontFamily ?? '');
+              if (typeof safe.color === 'object') safe.color = String(safe.color ?? '#000000');
+              if (typeof safe.fill === 'object' && typeof safe.fill !== 'string') safe.fill = String(safe.fill ?? '');
+              if (typeof safe.stroke === 'object' && safe.stroke !== null && typeof safe.stroke?.color !== 'string') {
+                safe.stroke = { ...safe.stroke, color: String(safe.stroke?.color ?? '#000000') };
+              }
+              if (typeof safe.src === 'object') safe.src = String(safe.src ?? '');
+              return safe;
+            });
+            setLayers(sanitized);
             if (parsed.canvasBackgroundColor) {
               setCanvasBackgroundColor(parsed.canvasBackgroundColor);
             }
