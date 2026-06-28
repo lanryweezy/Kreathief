@@ -212,8 +212,9 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   setIsPublished: (isPublished) => set({ isPublished }),
   addToast: (message, type = 'info', action, details) => {
     const id = uuidv4();
+    const safeMessage = typeof message === 'string' ? message : String(message ?? 'Unknown error');
     set((state: any) => ({
-      toasts: [...state.toasts, { id, message, type, action, details }],
+      toasts: [...state.toasts, { id, message: safeMessage, type, action, details }],
     }));
     // If no action, auto-remove after 5s. If action exists, keep it longer (15s).
     setTimeout(() => get().removeToast(id), action ? 15000 : 5000);

@@ -83,6 +83,13 @@ function sanitizeLayer(layer: any): any {
   if (typeof safe.src === 'object') safe.src = str(safe.src);
   if (typeof safe.pathData === 'object') safe.pathData = str(safe.pathData);
   if (typeof safe.filter === 'object') safe.filter = str(safe.filter);
+  if (typeof safe.color === 'object') safe.color = str(safe.color, '#000000');
+  if (typeof safe.shadow === 'object' && safe.shadow !== null) {
+    safe.shadow = { ...safe.shadow, color: str(safe.shadow?.color, '#000000') };
+  }
+  if (typeof safe.cornerRadius === 'object') safe.cornerRadius = num(safe.cornerRadius);
+  if (typeof safe.fontSize === 'object') safe.fontSize = num(safe.fontSize, 16);
+  if (typeof safe.strokeWidth === 'object') safe.strokeWidth = num(safe.strokeWidth, 1);
   return safe;
 }
 
