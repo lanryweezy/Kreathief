@@ -9,6 +9,7 @@ import { useStore } from '../../store/useStore';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
 import { getAIErrorMessage } from '../../utils/errorMessages';
+import { analyzeDesign, DesignAnalysis } from '../../ai/designEngine';
 import { v4 as uuidv4 } from 'uuid';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 
@@ -114,6 +115,8 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
   const [negativePrompt, setNegativePrompt] = useState('');
   const [showNegative, setShowNegative] = useState(false);
   const [antiAiSlop, setAntiAiSlop] = useState(true);
+  const [designAnalysis, setDesignAnalysis] = useState<DesignAnalysis | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [genHistory, setGenHistory] = useState<GenerationHistoryItem[]>(() => {
     try {
       const saved = localStorage.getItem('kreathief_gen_history');
@@ -399,6 +402,61 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           </span>
           <Toggle checked={antiAiSlop} onChange={setAntiAiSlop} size="sm" ariaLabel="Anti-AI-Slop quality control" />
         </div>
+
+        <Button
+          variant="ghost"
+          className="w-full py-2.5 mb-3 border border-white/10 text-gray-300 hover:text-white hover:border-brand-600/50"
+          onClick={() => {
+            setIsAnalyzing(true);
+            try {
+              const result = analyzeDesign(artboards, layers);
+              setDesignAnalysis(result);
+              analyticsService.track('analyze_design', { score: result.score });
+            } catch (e) {
+              log.error('[MagicPanel] Design analysis failed', e);
+              addToast('Analysis failed', 'error');
+            } finally {
+              setIsAnalyzing(false);
+            }
+          }}
+          loading={isAnalyzing}
+        >
+          <Icons.Magic className="w-4 h-4 mr-2" />
+          Analyze Design
+        </Button>
+
+        {designAnalysis && (
+          <div className="mb-4 p-4 bg-surface-dark-3 rounded-xl border border-white/5 space-y-2 animate-fade-in">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Design Score</span>
+              <span className="text-lg font-black text-brand-600">{designAnalysis.score}/100</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="bg-white/5 rounded-lg p-2">
+                <div className="text-[9px] text-gray-500 uppercase">Layout</div>
+                <div className="text-xs font-bold text-white">{designAnalysis.layout.alignment}</div>
+              </div>
+              <div className="bg-white/5 rounded-lg p-2">
+                <div className="text-[9px] text-gray-500 uppercase">Type</div>
+                <div className="text-xs font-bold text-white">{designAnalysis.typography.consistency}</div>
+              </div>
+              <div className="bg-white/5 rounded-lg p-2">
+                <div className="text-[9px] text-gray-500 uppercase">Color</div>
+                <div className="text-xs font-bold text-white">{designAnalysis.color.contrast}</div>
+              </div>
+            </div>
+            {designAnalysis.suggestions.length > 0 && (
+              <div className="space-y-1 pt-1">
+                {designAnalysis.suggestions.map((s, i) => (
+                  <div key={i} className="text-[10px] text-gray-400 flex items-start gap-1.5">
+                    <span className="text-brand-600 mt-0.5">•</span>
+                    {s}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <Button
           variant="primary"

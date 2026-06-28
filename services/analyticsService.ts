@@ -14,7 +14,8 @@ export type AnalyticsEvent =
   | 'feedback_submitted'
   | 'auth_signup'
   | 'auth_signin'
-  | 'auth_signout';
+  | 'auth_signout'
+  | 'analyze_design';
 
 export interface AnalyticsProvider {
   id: string;

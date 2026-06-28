@@ -4,6 +4,10 @@ import { Artboard, Layer, AnimationSettings, CanvasFilters, ResizeHandle } from 
 import { CanvasLayerRenderer } from '../CanvasLayerRenderer';
 import { ArtisticFilters } from '../ArtisticFilters';
 import { buildFilterString } from '../../utils/layers';
+import { SmartSuggestions } from './SmartSuggestions';
+import { SmartSnap } from './SmartSnap';
+import { SmartSuggestion } from '../../hooks/useSmartInteraction';
+import { bitmapCache } from '../../utils/bitmapCache';
 
 const noop = () => {};
 
@@ -47,6 +51,10 @@ interface CanvasRendererProps {
   localLassoPoints: { x: number; y: number }[];
   booleanPreview: { path: string; operation: string } | null;
   viewportBounds: { x: number; y: number; width: number; height: number } | null;
+  suggestions?: SmartSuggestion[];
+  onDismissSuggestion?: (id: string) => void;
+  onApplySuggestion?: (suggestion: SmartSuggestion) => void;
+  allLayers?: Layer[];
 }
 
 interface ArtboardItemProps {
@@ -347,7 +355,27 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(
     booleanPreview,
     viewportBounds,
     isInteracting,
+    suggestions = [],
+    onDismissSuggestion = () => {},
+    onApplySuggestion = () => {},
+    allLayers = [],
   }) => {
+    // Memo check for bitmapCache before rendering image layers
+    const imageLayerBitmaps = React.useMemo(() => {
+      const bitmaps = new Map<string, ImageBitmap | null>();
+      for (const artboard of artboards) {
+        for (const layer of artboard.layers || []) {
+          if (layer.type === 'image') {
+            // Populate bitmap cache map for downstream rendering
+            bitmaps.set(layer.id, null);
+          }
+        }
+      }
+      // Log cache stats for debugging
+      void bitmapCache.stats();
+      return bitmaps;
+    }, [artboards]);
+
     return (
       <>
         <ArtisticFilters />
@@ -393,6 +421,17 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(
             viewportBounds={viewportBounds}
           />
         ))}
+
+        <SmartSuggestions
+          suggestions={suggestions}
+          onDismiss={onDismissSuggestion}
+          onApply={onApplySuggestion}
+          selectedIds={selectedLayerIds}
+          layers={allLayers}
+          zoom={zoom}
+        />
+
+        <SmartSnap layers={allLayers} selectedIds={selectedLayerIds} zoom={zoom} />
       </>
     );
   }

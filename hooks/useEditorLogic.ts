@@ -352,13 +352,6 @@ export const useEditorLogic = (initialProject?: Project) => {
     addToast(active ? 'Shape Builder deactivated.' : 'Shape Builder activated (BETA).', 'info');
   }, [addToast]);
 
-  useEffect(() => {
-    (window as any).toggleShapeBuilder = toggleShapeBuilder;
-    return () => {
-      delete (window as any).toggleShapeBuilder;
-    };
-  }, [toggleShapeBuilder]);
-
   const handleJoinPaths = () => {
     const selectedPaths = layers.filter(
       (l: any) => selectedLayerIds.includes(l.id) && l.type === 'path'

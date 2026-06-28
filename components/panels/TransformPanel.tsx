@@ -2,12 +2,15 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Icons } from '../../constants';
 import { Layer } from '../../types';
 import { useStore } from '../../store/useStore';
+import { Rotation3DControls } from './Rotation3DControls';
 
 export const TransformPanel: React.FC = () => {
   const artboards = useStore((state) => state.artboards) || [];
   const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
   const updateLayers = useStore((state) => state.updateLayers);
   const addToast = useStore((state) => state.addToast);
+  const groupSelected = useStore((state) => state.groupSelected);
+  const ungroupSelected = useStore((state) => state.ungroupSelected);
   const [aspectLocked, setAspectLocked] = useState(false);
 
   const allLayers = useMemo(() => artboards.flatMap((a) => a.layers), [artboards]);
@@ -342,13 +345,19 @@ export const TransformPanel: React.FC = () => {
         </div>
       </div>
 
+      {/* 3D Rotation (Image layers only) */}
+      {selectedLayers.length === 1 && selectedLayers[0].type === 'image' && (
+        <div className="pt-3 border-t border-gray-700">
+          <Rotation3DControls layerId={selectedLayers[0].id} layerType={selectedLayers[0].type} />
+        </div>
+      )}
+
       {/* Quick Actions */}
       <div className="pt-3 border-t border-gray-700">
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => {
-              // Group layers
-              addToast('Grouped layers', 'success');
+              groupSelected();
             }}
             disabled={selectedLayers.length < 2}
             className="py-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white disabled:opacity-50"
@@ -357,8 +366,7 @@ export const TransformPanel: React.FC = () => {
           </button>
           <button
             onClick={() => {
-              // Ungroup
-              addToast('Ungrouped layers', 'success');
+              ungroupSelected();
             }}
             className="py-2 bg-surface-dark-4 hover:bg-gray-700 rounded text-xs text-gray-400 hover:text-white"
           >

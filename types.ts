@@ -423,22 +423,6 @@ export interface Artboard {
   };
 }
 
-export interface StoryEdge {
-  id: string;
-  fromId: string;
-  toIndex: string;
-  label?: string;
-  type?: 'linear' | 'branch' | 'loop';
-}
-
-export interface StoryArc {
-  enabled: boolean;
-  nodes: string[]; // Artboard IDs in order
-  edges: StoryEdge[];
-  zoom: number;
-  pan: { x: number; y: number };
-}
-
 export interface CanvasFilters {
   brightness: number; // %
   contrast: number; // %
@@ -454,12 +438,6 @@ export interface CanvasFilters {
   textureBlendMode?: 'multiply' | 'screen' | 'overlay' | 'soft-light';
   artisticFilter?: string;
   overlayTexture?: string; // CSS url or data URI for vintage texture overlay
-}
-
-export interface GenerationConfig {
-  prompt: string;
-  aspectRatio: AspectRatio;
-  referenceImage?: string; // Base64 string for editing
 }
 
 export interface HistoryState {

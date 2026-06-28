@@ -39,7 +39,9 @@ export const useFileHandler = () => {
     const { compressImage } = await import('../utils/imageOptimizer');
     const compressedFiles = await Promise.all(
       files.map(async (file) => {
-        if (!file.type.startsWith('image/')) return file;
+        if (!file.type.startsWith('image/')) {
+          return file;
+        }
         const blob = await compressImage(file, 1920, 0.8);
         return new File([blob], file.name, { type: blob.type });
       })
@@ -94,17 +96,22 @@ export const useFileHandler = () => {
         }
 
         if (setCanvasFilters) {
-          setCanvasFilters({
-            brightness: 100,
-            contrast: 100,
-            saturation: 100,
-            sepia: 0,
-            grayscale: 0,
-            blur: 0,
-            opacity: 1,
-            vignette: 0,
-            hueRotate: 0,
-          });
+          // Only reset canvasFilters if they haven't been customized
+          const currentFilters = useStore.getState().canvasFilters;
+          const isDefault = currentFilters?.brightness === 100 && currentFilters?.contrast === 100;
+          if (isDefault) {
+            setCanvasFilters({
+              brightness: 100,
+              contrast: 100,
+              saturation: 100,
+              sepia: 0,
+              grayscale: 0,
+              blur: 0,
+              opacity: 1,
+              vignette: 0,
+              hueRotate: 0,
+            });
+          }
         }
       }
     });

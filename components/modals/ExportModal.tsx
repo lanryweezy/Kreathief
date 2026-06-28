@@ -83,7 +83,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -247,38 +249,44 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         // Export from stored artboard data — no need to switch active artboard
 
         const dpiScale = dpi / 72;
-        if (format === 'pdf' && isPrintMode) {
-          await onExport(
-            format,
-            quality,
-            {
-              width: Math.round((ab.width || currentSize.width) * dpiScale),
-              height: Math.round((ab.height || currentSize.height) * dpiScale),
-            },
-            false,
-            `${safeFilename}_print`,
-            ab.layers
-          );
-        } else {
-          await onExport(
-            format,
-            quality,
-            {
-              width: Math.round((ab.width || currentSize.width) * dpiScale),
-              height: Math.round((ab.height || currentSize.height) * dpiScale),
-            },
-            transparentBg && format === 'png',
-            safeFilename,
-            ab.layers
-          );
-        }
 
-        analyticsService.trackExport(format, quality, {
-          batchExport: true,
-          printMode: isPrintMode,
-          colorProfile: isPrintMode ? colorProfile : undefined,
-        });
-        successCount++;
+        try {
+          if (format === 'pdf' && isPrintMode) {
+            await onExport(
+              format,
+              quality,
+              {
+                width: Math.round((ab.width || currentSize.width) * dpiScale),
+                height: Math.round((ab.height || currentSize.height) * dpiScale),
+              },
+              false,
+              `${safeFilename}_print`,
+              ab.layers
+            );
+          } else {
+            await onExport(
+              format,
+              quality,
+              {
+                width: Math.round((ab.width || currentSize.width) * dpiScale),
+                height: Math.round((ab.height || currentSize.height) * dpiScale),
+              },
+              transparentBg && format === 'png',
+              safeFilename,
+              ab.layers
+            );
+          }
+
+          analyticsService.trackExport(format, quality, {
+            batchExport: true,
+            printMode: isPrintMode,
+            colorProfile: isPrintMode ? colorProfile : undefined,
+          });
+          successCount++;
+        } catch (err) {
+          log.error(`[ExportModal] Failed to export artboard: ${label}`, err);
+          failedArtboards.push(label);
+        }
       }
 
       const message = isPrintMode
@@ -450,7 +458,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     try {
       const activeArtboard = artboards.find((a) => a.id === activeArtboardId);
       const layer = activeArtboard?.layers.find((l) => l.id === selectedLayerIds[0]);
-      if (!layer || layer.type === 'text' || layer.type === 'image' || layer.type === 'group' || layer.type === 'adjustment') {
+      if (
+        !layer ||
+        layer.type === 'text' ||
+        layer.type === 'image' ||
+        layer.type === 'group' ||
+        layer.type === 'adjustment'
+      ) {
         addToast('Select a shape layer to copy as SVG', 'warning');
         return;
       }
@@ -478,7 +492,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     }
     const activeArtboard = artboards.find((a) => a.id === activeArtboardId);
     const layer = activeArtboard?.layers.find((l) => l.id === selectedLayerIds[0]);
-    if (!layer || layer.type === 'text' || layer.type === 'image' || layer.type === 'group' || layer.type === 'adjustment') {
+    if (
+      !layer ||
+      layer.type === 'text' ||
+      layer.type === 'image' ||
+      layer.type === 'group' ||
+      layer.type === 'adjustment'
+    ) {
       addToast('Select a shape layer to export as SVG', 'warning');
       return;
     }
@@ -574,7 +594,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                     checked={batchMode}
                     onChange={(checked) => {
                       setBatchMode(checked);
-                      if (!checked) setSelectedArtboardIds([]);
+                      if (!checked) {
+                        setSelectedArtboardIds([]);
+                      }
                     }}
                     ariaLabel="Toggle Batch Export Mode"
                   />
@@ -949,7 +971,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 className="py-2.5 rounded-xl border border-gray-700 bg-surface-dark-4 text-xs font-bold text-gray-300 hover:bg-surface-dark-5 hover:border-gray-500 transition-all flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
                 title="Export selected shape as SVG file"
               >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                  <polyline points="14,2 14,8 20,8" />
+                </svg>
                 <div className="flex flex-col items-start leading-tight">
                   <span>Export as SVG</span>
                   <span className="text-[9px] text-gray-400">(selected shape)</span>

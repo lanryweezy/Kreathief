@@ -23,7 +23,9 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+      }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
@@ -57,16 +59,25 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
   };
 
   const handleInvite = () => {
-    if (!inviteEmail.trim()) return;
-    // In a real app, this would send an email invitation
-    // For now, just copy the share link with the email as context
+    if (!inviteEmail.trim()) {
+      return;
+    }
     const inviteLink = shareLink || '';
     if (inviteLink) {
-      navigator.clipboard.writeText(`Hey! Check out my design "${designTitle}" on Kreathief: ${inviteLink}`).then(() => {
-        setInviteSent(true);
-        setInviteEmail('');
-        setTimeout(() => setInviteSent(false), 3000);
-      }).catch(() => {});
+      const message = `Hey! Check out my design "${designTitle}" on Kreathief: ${inviteLink}`;
+      navigator.clipboard
+        .writeText(message)
+        .then(() => {
+          setInviteSent(true);
+          setInviteEmail('');
+          addToast(`Invite link copied! Send it to ${inviteEmail || 'your colleague'}`, 'success');
+          setTimeout(() => setInviteSent(false), 3000);
+        })
+        .catch(() => {
+          addToast('Failed to copy invite link', 'error');
+        });
+    } else {
+      addToast('Generate a share link first', 'warning');
     }
   };
 

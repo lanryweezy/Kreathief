@@ -81,26 +81,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   ];
 
   const STYLE_SUGGESTIONS = [
-    'Modern minimalist', 'Bold and vibrant', 'Elegant luxury',
-    'Neon cyberpunk', 'Warm earthy tones', 'Clean corporate',
+    'Modern minimalist',
+    'Bold and vibrant',
+    'Elegant luxury',
+    'Neon cyberpunk',
+    'Warm earthy tones',
+    'Clean corporate',
   ];
 
   const handleAIGenerate = useCallback(async () => {
-    if (!aiPrompt.trim() || isGenerating) return;
+    if (!aiPrompt.trim() || isGenerating) {
+      return;
+    }
     setIsGenerating(true);
     const format = FORMAT_OPTIONS[selectedFormat];
-    const model = IMAGE_GEN_MODELS.find(m => m.id === selectedImageModel);
+    const model = IMAGE_GEN_MODELS.find((m) => m.id === selectedImageModel);
     try {
       addToast(`Generating with ${model?.name || 'AI'}...`, 'info');
 
-      const aspectRatio = format.size.width > format.size.height ? '16:9' : format.size.width === format.size.height ? '1:1' : '9:16';
+      const aspectRatio =
+        format.size.width > format.size.height ? '16:9' : format.size.width === format.size.height ? '1:1' : '9:16';
 
       let imageUrl: string;
 
       if (model?.id === 'recraft-vector') {
         // Vector generation via Recraft
         const svgResult = await aiModelsService.generateVectorRecraft(aiPrompt.trim());
-        if (!svgResult) throw new Error('Vector generation failed');
+        if (!svgResult) {
+          throw new Error('Vector generation failed');
+        }
         // Convert SVG to data URL for layer
         if (svgResult.startsWith('<svg')) {
           imageUrl = `data:image/svg+xml;base64,${btoa(svgResult)}`;
@@ -122,10 +131,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               image_size: imageSize,
             },
           }),
-        }).then(r => r.json());
+        }).then((r) => r.json());
 
         imageUrl = data.images?.[0]?.url || data.image?.url;
-        if (!imageUrl) throw new Error('No image returned from model');
+        if (!imageUrl) {
+          throw new Error('No image returned from model');
+        }
       } else {
         // Fallback to Gemini
         const enhancedPrompt = `${aiPrompt.trim()}. Style: professional, high quality, suitable for ${format.label}. Clean composition, good typography.`;
@@ -133,18 +144,65 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       }
 
       const imageLayer = {
-        id: `ai_img_${Date.now()}`, type: 'image' as const, name: 'AI Generated',
-        src: imageUrl, x: 0, y: 0, width: format.size.width, height: format.size.height,
-        rotation: 0, opacity: 1, locked: false, visible: true, flipX: false, flipY: false,
-        filters: { brightness: 100, contrast: 100, saturation: 100, grayscale: 0, sepia: 0, blur: 0, hueRotate: 0, vignette: 0, opacity: 1 },
-        blendMode: 'normal', skewX: 0, skewY: 0, perspective: 0, rotateX: 0, rotateY: 0,
+        id: `ai_img_${Date.now()}`,
+        type: 'image' as const,
+        name: 'AI Generated',
+        src: imageUrl,
+        x: 0,
+        y: 0,
+        width: format.size.width,
+        height: format.size.height,
+        rotation: 0,
+        opacity: 1,
+        locked: false,
+        visible: true,
+        flipX: false,
+        flipY: false,
+        filters: {
+          brightness: 100,
+          contrast: 100,
+          saturation: 100,
+          grayscale: 0,
+          sepia: 0,
+          blur: 0,
+          hueRotate: 0,
+          vignette: 0,
+          opacity: 1,
+        },
+        blendMode: 'normal',
+        skewX: 0,
+        skewY: 0,
+        perspective: 0,
+        rotateX: 0,
+        rotateY: 0,
       };
 
       const title = aiPrompt.trim().length > 40 ? aiPrompt.trim().slice(0, 40) + '...' : aiPrompt.trim();
       const initialState = {
-        artboards: [{ id: 'default', name: 'Artboard 1', x: 0, y: 0, width: format.size.width, height: format.size.height, layers: [imageLayer] }],
-        activeArtboardId: 'default', canvasBackgroundColor: '#ffffff',
-        canvasFilters: { brightness: 100, contrast: 100, saturation: 100, sepia: 0, grayscale: 0, blur: 0, opacity: 1, vignette: 0, hueRotate: 0 },
+        artboards: [
+          {
+            id: 'default',
+            name: 'Artboard 1',
+            x: 0,
+            y: 0,
+            width: format.size.width,
+            height: format.size.height,
+            layers: [imageLayer],
+          },
+        ],
+        activeArtboardId: 'default',
+        canvasBackgroundColor: '#ffffff',
+        canvasFilters: {
+          brightness: 100,
+          contrast: 100,
+          saturation: 100,
+          sepia: 0,
+          grayscale: 0,
+          blur: 0,
+          opacity: 1,
+          vignette: 0,
+          hueRotate: 0,
+        },
         canvasSize: format.size,
       };
 
@@ -170,7 +228,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
 
   // Close model picker on outside click
   useEffect(() => {
-    if (!showModelPicker) return;
+    if (!showModelPicker) {
+      return;
+    }
     const handleClickOutside = (e: MouseEvent) => {
       if (modelPickerRef.current && !modelPickerRef.current.contains(e.target as Node)) {
         setShowModelPicker(false);
@@ -298,8 +358,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       {/* Header */}
       <header className="h-20 bg-surface-dark-1/80 border-b border-white/5 flex items-center justify-between px-8 sticky top-0 z-30 backdrop-blur-2xl">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center shadow-glow-brand">
-            <Icons.Magic className="w-6 h-6 text-white" />
+          <div className="w-10 h-10 bg-[#0E1318] border border-white/10 rounded-xl flex items-center justify-center shadow-lg">
+            <img src="/logo.svg" alt="Kreathief" className="w-7 h-7 object-contain" />
           </div>
           <span className="font-black text-2xl tracking-tighter uppercase">Kreathief</span>
         </div>
@@ -326,7 +386,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
           <div
             className="flex items-center gap-4 group relative"
             onMouseLeave={() => {
-              if (profileDropdownOpen) setProfileDropdownOpen(false);
+              if (profileDropdownOpen) {
+                setProfileDropdownOpen(false);
+              }
             }}
             onBlur={(e) => {
               if (!e.currentTarget.contains(e.relatedTarget as Node)) {
@@ -365,7 +427,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   e.preventDefault();
                   setProfileDropdownOpen(true);
                 }
-                if (e.key === 'Escape') setProfileDropdownOpen(false);
+                if (e.key === 'Escape') {
+                  setProfileDropdownOpen(false);
+                }
               }}
               className="w-10 h-10 rounded-full border-2 border-white/10 group-hover:border-brand-500 focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500/50 transition-colors overflow-hidden p-0.5 cursor-pointer relative"
               title="Click to update profile image"
@@ -380,7 +444,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               aria-label="Profile menu"
               tabIndex={-1}
               onKeyDown={(e) => {
-                if (e.key === 'Escape') setProfileDropdownOpen(false);
+                if (e.key === 'Escape') {
+                  setProfileDropdownOpen(false);
+                }
               }}
               style={{
                 opacity: profileDropdownOpen ? 1 : 0,
@@ -414,7 +480,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               <div className="max-w-3xl mx-auto">
                 <div className="text-center mb-6">
                   <h1 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tight">
-                    <span className="bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent">What do you want to create?</span>
+                    <span className="bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent">
+                      What do you want to create?
+                    </span>
                   </h1>
                   <p className="text-sm text-muted">Describe your vision and AI will bring it to life</p>
                 </div>
@@ -425,7 +493,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                       ref={aiInputRef}
                       value={aiPrompt}
                       onChange={(e) => setAiPrompt(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAIGenerate(); } }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleAIGenerate();
+                        }
+                      }}
                       onFocus={() => setShowSuggestions(true)}
                       onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                       placeholder="A bold fitness gym ad with dark background and neon accents..."
@@ -436,8 +509,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                     <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
                       <div className="flex items-center gap-2 flex-wrap">
                         {FORMAT_OPTIONS.map((format, idx) => (
-                          <button key={format.label} onClick={() => setSelectedFormat(idx)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedFormat === idx ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20' : 'bg-white/5 text-muted hover:bg-white/10 hover:text-white'}`}>
+                          <button
+                            key={format.label}
+                            onClick={() => setSelectedFormat(idx)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedFormat === idx ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20' : 'bg-white/5 text-muted hover:bg-white/10 hover:text-white'}`}
+                          >
                             {format.label}
                           </button>
                         ))}
@@ -449,8 +525,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                             onClick={() => setShowModelPicker(!showModelPicker)}
                             className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-muted hover:text-white hover:border-brand-500/50 transition-all flex items-center gap-1.5"
                           >
-                            <span>{IMAGE_GEN_MODELS.find(m => m.id === selectedImageModel)?.icon}</span>
-                            <span className="hidden sm:inline">{IMAGE_GEN_MODELS.find(m => m.id === selectedImageModel)?.name}</span>
+                            <span>{IMAGE_GEN_MODELS.find((m) => m.id === selectedImageModel)?.icon}</span>
+                            <span className="hidden sm:inline">
+                              {IMAGE_GEN_MODELS.find((m) => m.id === selectedImageModel)?.name}
+                            </span>
                             <Icons.ChevronDown className="w-3 h-3" />
                           </button>
 
@@ -467,10 +545,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                                     <div className="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-muted">
                                       {IMAGE_MODEL_CATEGORIES[cat].label} — {IMAGE_MODEL_CATEGORIES[cat].description}
                                     </div>
-                                    {IMAGE_GEN_MODELS.filter(m => m.category === cat).map((model) => (
+                                    {IMAGE_GEN_MODELS.filter((m) => m.category === cat).map((model) => (
                                       <button
                                         key={model.id}
-                                        onClick={() => { setSelectedImageModel(model.id); setShowModelPicker(false); }}
+                                        onClick={() => {
+                                          setSelectedImageModel(model.id);
+                                          setShowModelPicker(false);
+                                        }}
                                         className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-medium transition-all flex items-center gap-3 ${
                                           selectedImageModel === model.id
                                             ? 'bg-brand-600 text-white'
@@ -480,7 +561,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                                         <span className="text-lg">{model.icon}</span>
                                         <div className="flex-1 min-w-0">
                                           <div className="font-bold truncate">{model.name}</div>
-                                          <div className="text-[9px] opacity-60">{model.provider} · {model.outputType === 'svg' ? 'SVG Vector' : 'Raster Image'}</div>
+                                          <div className="text-[9px] opacity-60">
+                                            {model.provider} ·{' '}
+                                            {model.outputType === 'svg' ? 'SVG Vector' : 'Raster Image'}
+                                          </div>
                                         </div>
                                         {selectedImageModel === model.id && (
                                           <Icons.Check className="w-3.5 h-3.5 text-white shrink-0" />
@@ -494,10 +578,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                           </AnimatePresence>
                         </div>
 
-                        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                          onClick={handleAIGenerate} disabled={!aiPrompt.trim() || isGenerating}
-                          className="px-6 py-2.5 bg-gradient-to-r from-brand-600 to-accent rounded-xl text-white text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-brand-600/20 hover:shadow-xl hover:shadow-brand-600/30 transition-all">
-                          {isGenerating ? (<><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Generating</>) : (<><Icons.Magic className="w-4 h-4" />Generate</>)}
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={handleAIGenerate}
+                          disabled={!aiPrompt.trim() || isGenerating}
+                          className="px-6 py-2.5 bg-gradient-to-r from-brand-600 to-accent rounded-xl text-white text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-brand-600/20 hover:shadow-xl hover:shadow-brand-600/30 transition-all"
+                        >
+                          {isGenerating ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              Generating
+                            </>
+                          ) : (
+                            <>
+                              <Icons.Magic className="w-4 h-4" />
+                              Generate
+                            </>
+                          )}
                         </motion.button>
                       </div>
                     </div>
@@ -505,12 +603,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 </div>
                 <AnimatePresence>
                   {showSuggestions && !aiPrompt && (
-                    <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-                      className="mt-4 flex items-center gap-2 flex-wrap justify-center">
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      className="mt-4 flex items-center gap-2 flex-wrap justify-center"
+                    >
                       <span className="text-xs text-muted font-bold uppercase tracking-wider">Try:</span>
                       {STYLE_SUGGESTIONS.map((s) => (
-                        <button key={s} onMouseDown={(e) => { e.preventDefault(); setAiPrompt((prev) => prev ? `${prev}, ${s.toLowerCase()}` : s); setShowSuggestions(false); aiInputRef.current?.focus(); }}
-                          className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-muted hover:text-white hover:border-brand-500/50 hover:bg-brand-500/5 transition-all">
+                        <button
+                          key={s}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setAiPrompt((prev) => (prev ? `${prev}, ${s.toLowerCase()}` : s));
+                            setShowSuggestions(false);
+                            aiInputRef.current?.focus();
+                          }}
+                          className="px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-muted hover:text-white hover:border-brand-500/50 hover:bg-brand-500/5 transition-all"
+                        >
                           {s}
                         </button>
                       ))}
@@ -529,12 +639,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 {FORMAT_OPTIONS.map((format, idx) => (
                   <button
                     key={format.label}
-                    onClick={() => { setSelectedFormat(idx); setAiPrompt(''); aiInputRef.current?.focus(); }}
+                    onClick={() => {
+                      setSelectedFormat(idx);
+                      setAiPrompt('');
+                      aiInputRef.current?.focus();
+                    }}
                     className="group aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all duration-200 border border-white/5 hover:border-brand-500/40 hover:bg-brand-500/5 hover:scale-[1.03] active:scale-[0.98] cursor-pointer"
-                    style={{ background: `linear-gradient(135deg, ${['#1a1a2e,#16213e', '#16213e,#0f3460', '#0f3460,#1a1a2e', '#533483,#1a1a2e', '#1a1a2e,#e94560', '#e94560,#533483'][idx]})` }}
+                    style={{
+                      background: `linear-gradient(135deg, ${['#1a1a2e,#16213e', '#16213e,#0f3460', '#0f3460,#1a1a2e', '#533483,#1a1a2e', '#1a1a2e,#e94560', '#e94560,#533483'][idx]})`,
+                    }}
                   >
                     <span className="text-2xl">{['📸', '📱', '🎬', '📄', '🎨', '👕'][idx]}</span>
-                    <span className="text-[11px] font-black uppercase tracking-wider text-muted group-hover:text-white transition-colors">{format.label}</span>
+                    <span className="text-[11px] font-black uppercase tracking-wider text-muted group-hover:text-white transition-colors">
+                      {format.label}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -553,7 +671,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                       key={project.id}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => { loadProject(project.id); onOpenProject(project); }}
+                      onClick={() => {
+                        loadProject(project.id);
+                        onOpenProject(project);
+                      }}
                       className="group bg-surface-dark-1 border border-white/5 rounded-xl overflow-hidden cursor-pointer hover:border-white/15 transition-all shadow-lg hover:shadow-xl"
                     >
                       <div className="aspect-[16/10] bg-surface-dark-2 relative overflow-hidden">
@@ -576,7 +697,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                         </div>
                       </div>
                       <div className="p-4">
-                        <div className="font-bold text-sm text-white truncate mb-1 group-hover:text-accent transition-colors">{project.name}</div>
+                        <div className="font-bold text-sm text-white truncate mb-1 group-hover:text-accent transition-colors">
+                          {project.name}
+                        </div>
                         <div className="text-xs text-muted">{new Date(project.updatedAt).toLocaleDateString()}</div>
                       </div>
                     </motion.div>
@@ -622,11 +745,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                         />
                       </div>
                       <div className="absolute top-2 left-2 z-10">
-                        <span className="bg-brand-600 px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-white">{tmpl.category}</span>
+                        <span className="bg-brand-600 px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-white">
+                          {tmpl.category}
+                        </span>
                       </div>
                     </div>
                     <div className="p-3">
-                      <div className="font-bold text-sm text-white truncate group-hover:text-accent transition-colors">{tmpl.name}</div>
+                      <div className="font-bold text-sm text-white truncate group-hover:text-accent transition-colors">
+                        {tmpl.name}
+                      </div>
                       <div className="text-xs text-muted mt-0.5">{tmpl.size.name}</div>
                     </div>
                   </button>
@@ -648,7 +775,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
             {isLoading && (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="bg-surface-dark-1 border border-white/5 rounded-2xl overflow-hidden animate-pulse">
+                  <div
+                    key={i}
+                    className="bg-surface-dark-1 border border-white/5 rounded-2xl overflow-hidden animate-pulse"
+                  >
                     <div className="aspect-[16/10] bg-white/5" />
                     <div className="p-4 space-y-2">
                       <div className="h-4 bg-white/5 rounded w-3/4" />

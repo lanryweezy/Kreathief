@@ -109,8 +109,8 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-12">
-              <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/20">
-                <Icons.Magic className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-[#0E1318] border border-white/10 rounded-xl flex items-center justify-center shadow-lg">
+                <img src="/logo.svg" alt="Kreathief" className="w-7 h-7 object-contain" />
               </div>
               <span className="font-black text-2xl tracking-tighter uppercase">Kreathief</span>
             </div>

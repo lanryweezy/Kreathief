@@ -2,10 +2,7 @@
 export const MODEL_FAST = 'gemini-2.0-flash';
 export const MODEL_PRO = 'gemini-2.0-flash';
 // Default Configuration
-export const DEFAULT_ASPECT_RATIO = '1:1';
 export const DEFAULT_CORNER_RADIUS = 8;
-export const CANVAS_W = 1080;
-export const CANVAS_H = 1080;
 
 export const CANVAS_SIZE_PRESETS = [
   { id: 'ig-post', name: 'Instagram Post', width: 1080, height: 1080, category: 'Social' },
@@ -66,7 +63,7 @@ export const FONT_CATEGORIES: Record<string, string[]> = {
     'Rajdhani',
     'Titillium Web',
   ],
-  'Serif': [
+  Serif: [
     'Playfair Display',
     'Cormorant Garamond',
     'EB Garamond',
@@ -81,7 +78,7 @@ export const FONT_CATEGORIES: Record<string, string[]> = {
     'Noto Serif',
     'Slabo 27px',
   ],
-  'Display': [
+  Display: [
     'Bebas Neue',
     'Anton',
     'Oswald',
@@ -122,13 +119,7 @@ export const FONT_CATEGORIES: Record<string, string[]> = {
     'Permanent Marker',
     'Fredoka One',
   ],
-  'Monospace': [
-    'IBM Plex Mono',
-    'Source Code Pro',
-    'Space Mono',
-    'Inconsolata',
-    'Roboto Mono',
-  ],
+  Monospace: ['IBM Plex Mono', 'Source Code Pro', 'Space Mono', 'Inconsolata', 'Roboto Mono'],
 };
 
 export const FONT_FAMILIES = Array.from(new Set(Object.values(FONT_CATEGORIES).flat())).sort();

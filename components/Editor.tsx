@@ -1,6 +1,6 @@
 import { log } from '../utils/log';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,6 +21,9 @@ import { storageService } from '../services/storageService';
 import { ShareModal } from './modals/ShareModal';
 import { ExportModal } from './modals/ExportModal';
 import { MockupPanel } from './panels/MockupPanel';
+import { HistoryManager } from '../commands/history';
+import { MoveCommand } from '../commands/move';
+import { DeleteCommand } from '../commands/delete';
 
 const CommunityModal = React.lazy(() => import('./modals/CommunityModal'));
 const CommandPalette = React.lazy(() =>
@@ -38,6 +41,7 @@ import { MobileOnboarding } from './MobileOnboarding';
 import { MobileContextMenu } from './MobileContextMenu';
 import { MobileTransformController } from './MobileTransformController';
 import { useCollaboration } from '../hooks/useCollaboration';
+import { CreativeIntentMode } from './CreativeIntentMode';
 import { CursorOverlay } from './collaboration/CursorOverlay';
 import { PresenceBar } from './collaboration/PresenceBar';
 
@@ -63,14 +67,19 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const onToggleRulers = useStore((state) => state.setShowRulers);
   const addArtboard = useStore((state) => state.addArtboard);
   const deleteArtboard = useStore((state) => state.deleteArtboard);
+  const selectedIntent = useStore((state) => state.selectedIntent);
+  const setIntent = useStore((state) => state.setIntent);
 
   const { broadcastCursor, broadcastLayerChange, updatePresence } = useCollaboration(
     useStore((s) => s.projectId),
     user
   );
 
-  // Expose store to window for E2E tests
+  // Expose store to window for E2E tests (dev only)
   React.useEffect(() => {
+    if (!import.meta.env.DEV) {
+      return;
+    }
     (window as any).useStore = useStore;
     return () => {
       delete (window as any).useStore;
@@ -108,6 +117,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const previewTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const [showMobileContextMenu, setShowMobileContextMenu] = useState(false);
   const [contextMenuLayerId, setContextMenuLayerId] = useState<string | null>(null);
+  const historyManagerRef = useRef(new HistoryManager(50));
 
   React.useEffect(() => {
     return () => {
@@ -117,8 +127,14 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     };
   }, []);
 
-  // Mobile detection
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  // Mobile detection — reactive to resize
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Shake to Undo on Mobile
   useShakeToUndo({
@@ -192,6 +208,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         ctrl: true,
         action: () => {
           undo();
+          historyManagerRef.current.undo();
           haptics.light();
         },
         description: 'Undo',
@@ -201,6 +218,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         ctrl: true,
         action: () => {
           redo();
+          historyManagerRef.current.redo();
           haptics.light();
         },
         description: 'Redo',
@@ -211,6 +229,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         shift: true,
         action: () => {
           redo();
+          historyManagerRef.current.redo();
           haptics.light();
         },
         description: 'Redo (Alt)',
@@ -250,6 +269,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         key: 'Delete',
         action: () => {
           if (selectedLayerIds.length > 0) {
+            const storeRef = useStore.getState();
+            selectedLayerIds.forEach((id: string) => {
+              historyManagerRef.current.push(new DeleteCommand({ getState: () => storeRef }, id));
+            });
             deleteSelected();
             haptics.heavy();
           }
@@ -260,6 +283,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         key: 'Backspace',
         action: () => {
           if (selectedLayerIds.length > 0) {
+            const storeRef = useStore.getState();
+            selectedLayerIds.forEach((id: string) => {
+              historyManagerRef.current.push(new DeleteCommand({ getState: () => storeRef }, id));
+            });
             deleteSelected();
             haptics.heavy();
           }
@@ -356,6 +383,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         key: 'ArrowUp',
         action: () => {
           if (selectedLayerId) {
+            const storeRef = useStore.getState();
+            historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 0, -1));
             nudgeLayer(selectedLayerId, 0, -1);
           }
         },
@@ -365,6 +394,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         key: 'ArrowDown',
         action: () => {
           if (selectedLayerId) {
+            const storeRef = useStore.getState();
+            historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 0, 1));
             nudgeLayer(selectedLayerId, 0, 1);
           }
         },
@@ -374,6 +405,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         key: 'ArrowLeft',
         action: () => {
           if (selectedLayerId) {
+            const storeRef = useStore.getState();
+            historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, -1, 0));
             nudgeLayer(selectedLayerId, -1, 0);
           }
         },
@@ -383,6 +416,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         key: 'ArrowRight',
         action: () => {
           if (selectedLayerId) {
+            const storeRef = useStore.getState();
+            historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 1, 0));
             nudgeLayer(selectedLayerId, 1, 0);
           }
         },
@@ -393,6 +428,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         shift: true,
         action: () => {
           if (selectedLayerId) {
+            const storeRef = useStore.getState();
+            historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 0, -10));
             nudgeLayer(selectedLayerId, 0, -10);
           }
         },
@@ -403,6 +440,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         shift: true,
         action: () => {
           if (selectedLayerId) {
+            const storeRef = useStore.getState();
+            historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 0, 10));
             nudgeLayer(selectedLayerId, 0, 10);
           }
         },
@@ -413,6 +452,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         shift: true,
         action: () => {
           if (selectedLayerId) {
+            const storeRef = useStore.getState();
+            historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, -10, 0));
             nudgeLayer(selectedLayerId, -10, 0);
           }
         },
@@ -423,6 +464,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         shift: true,
         action: () => {
           if (selectedLayerId) {
+            const storeRef = useStore.getState();
+            historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 10, 0));
             nudgeLayer(selectedLayerId, 10, 0);
           }
         },
@@ -627,6 +670,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       zoom,
       setZoom,
       selectedLayer,
+      historyManagerRef,
     ]
   );
 
@@ -638,6 +682,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
   return (
     <div id="editor-root" className="flex flex-col h-screen bg-surface-dark-2 overflow-hidden text-[#e5e7eb] font-sans">
+      {!initialProject && !selectedIntent && (
+        <CreativeIntentMode onSelect={() => {}} onSkip={() => setIntent('skip', 1080, 1080)} />
+      )}
+
       {!hideHeaderOnMobile && (
         <Header
           onDownload={() => setShowExport(true)}
@@ -751,12 +799,16 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       const val = parseInt((e.target as HTMLInputElement).value.replace('%', ''));
-                      if (!isNaN(val)) setZoom(Math.max(0.1, Math.min(10, val / 100)));
+                      if (!isNaN(val)) {
+                        setZoom(Math.max(0.1, Math.min(10, val / 100)));
+                      }
                     }
                   }}
                   onBlur={(e) => {
                     const val = parseInt(e.target.value.replace('%', ''));
-                    if (!isNaN(val)) setZoom(Math.max(0.1, Math.min(10, val / 100)));
+                    if (!isNaN(val)) {
+                      setZoom(Math.max(0.1, Math.min(10, val / 100)));
+                    }
                   }}
                   className="px-1 w-[42px] text-center text-[10px] font-black text-gray-300 font-mono bg-transparent border border-white/10 rounded outline-none focus:border-brand/50"
                   title="Zoom Level"
@@ -777,7 +829,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                   onClick={() => {
                     const state = useStore.getState();
                     const abs = state.artboards || [];
-                    if (abs.length === 0) return;
+                    if (abs.length === 0) {
+                      return;
+                    }
                     let minX = Infinity,
                       minY = Infinity,
                       maxX = -Infinity,
@@ -812,9 +866,13 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                     let layer: any = null;
                     for (const ab of state.artboards || []) {
                       layer = ab.layers?.find((l: any) => l.id === selectedLayerIds[0]);
-                      if (layer) break;
+                      if (layer) {
+                        break;
+                      }
                     }
-                    if (!layer) return null;
+                    if (!layer) {
+                      return null;
+                    }
                     return (
                       <button
                         onClick={() => {
@@ -826,12 +884,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                           setZoom(newZoom);
                           const cx = (layer.x || 0) + lw / 2;
                           const cy = (layer.y || 0) + lh / 2;
-                          useStore
-                            .getState()
-                            .setPanOffset({
-                              x: vw / 2 - cx * newZoom + window.innerWidth * 0.075,
-                              y: vh / 2 - cy * newZoom + 20,
-                            });
+                          useStore.getState().setPanOffset({
+                            x: vw / 2 - cx * newZoom + window.innerWidth * 0.075,
+                            y: vh / 2 - cy * newZoom + 20,
+                          });
                         }}
                         className="px-1.5 py-0.5 text-[10px] font-bold text-gray-400 hover:bg-white/10 hover:text-white rounded-md transition-colors"
                         title="Zoom to Selection"

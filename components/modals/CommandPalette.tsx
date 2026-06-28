@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
 import { NavTab } from '../../types';
+import { getAllCommands, searchCommands, Command as RegistryCommand } from '../../commands/registry';
 
 import { iconScoutService, IconScoutAsset } from '../../services/iconScoutService';
 import { communityService, CommunityTemplate } from '../../services/communityService';
@@ -21,22 +22,19 @@ export const CommandPalette: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Store actions
-  const store = useStore();
-  const {
-    addTextLayer,
-    addShapeLayer,
-    addAdjustmentLayer,
-    addImageLayer,
-    setIsExporting,
-    groupSelected,
-    ungroupSelected,
-    initializeProject,
-    moveLayer,
-    alignLayers,
-    setSelectedLayerIds,
-    setPenMode,
-  } = store;
+  // Store actions — use individual selectors to avoid full store subscription
+  const addTextLayer = useStore((s) => s.addTextLayer);
+  const addShapeLayer = useStore((s) => s.addShapeLayer);
+  const addAdjustmentLayer = useStore((s) => s.addAdjustmentLayer);
+  const addImageLayer = useStore((s) => s.addImageLayer);
+  const setIsExporting = useStore((s) => s.setIsExporting);
+  const groupSelected = useStore((s) => s.groupSelected);
+  const ungroupSelected = useStore((s) => s.ungroupSelected);
+  const initializeProject = useStore((s) => s.initializeProject);
+  const moveLayer = useStore((s) => s.moveLayer);
+  const alignLayers = useStore((s) => s.alignLayers);
+  const setSelectedLayerIds = useStore((s) => s.setSelectedLayerIds);
+  const setPenMode = useStore((s) => s.setPenMode);
 
   // Unified Intelligence: Search Assets & Community as user types
   useEffect(() => {
@@ -69,6 +67,19 @@ export const CommandPalette: React.FC = () => {
   }, [query]);
 
   type Cmd = { id: string; label: string; icon: any; action: () => void; group?: string; shortcut?: string };
+
+  const registryToCmd = useMemo(() => {
+    return getAllCommands().map(
+      (rc: RegistryCommand): Cmd => ({
+        id: rc.id,
+        label: rc.label,
+        icon: Icons.Code,
+        action: rc.action,
+        group: rc.category,
+        shortcut: rc.shortcut,
+      })
+    );
+  }, []);
 
   const commandList: Cmd[] = useMemo(
     () => [
@@ -223,7 +234,8 @@ export const CommandPalette: React.FC = () => {
         label: 'Bring to Front',
         icon: Icons.Layers,
         action: () => {
-          const id = store.selectedLayerIds[0];
+          const s = useStore.getState();
+          const id = s.selectedLayerIds[0];
           if (id) {
             moveLayer(id, 'front');
           }
@@ -236,7 +248,8 @@ export const CommandPalette: React.FC = () => {
         label: 'Send to Back',
         icon: Icons.Layers,
         action: () => {
-          const id = store.selectedLayerIds[0];
+          const s = useStore.getState();
+          const id = s.selectedLayerIds[0];
           if (id) {
             moveLayer(id, 'back');
           }
@@ -302,7 +315,7 @@ export const CommandPalette: React.FC = () => {
         id: 'sys_save',
         label: 'Save Design',
         icon: Icons.CheckSquare,
-        action: () => store.saveProject(),
+        action: () => useStore.getState().saveProject?.(),
         group: 'System',
         shortcut: 'Ctrl+S',
       },
@@ -310,7 +323,7 @@ export const CommandPalette: React.FC = () => {
         id: 'sys_undo',
         label: 'Undo Last Action',
         icon: Icons.Undo,
-        action: () => store.undo(),
+        action: () => useStore.getState().undo?.(),
         group: 'System',
         shortcut: 'Ctrl+Z',
       },
@@ -318,7 +331,7 @@ export const CommandPalette: React.FC = () => {
         id: 'sys_redo',
         label: 'Redo Action',
         icon: Icons.Redo,
-        action: () => store.redo(),
+        action: () => useStore.getState().redo?.(),
         group: 'System',
         shortcut: 'Ctrl+Y',
       },
@@ -326,13 +339,15 @@ export const CommandPalette: React.FC = () => {
         id: 'sys_shortcuts',
         label: 'Show Keyboard Shortcuts',
         icon: Icons.Help,
-        action: () => store.setShowShortcuts(true),
+        action: () => useStore.getState().setShowShortcuts?.(true),
         group: 'System',
         shortcut: '?',
       },
+
+      // --- REGISTRY COMMANDS ---
+      ...registryToCmd,
     ],
     [
-      store,
       addTextLayer,
       addShapeLayer,
       addAdjustmentLayer,
@@ -344,6 +359,7 @@ export const CommandPalette: React.FC = () => {
       setSelectedLayerIds,
       setPenMode,
       setActiveTab,
+      registryToCmd,
     ]
   );
 
@@ -352,7 +368,20 @@ export const CommandPalette: React.FC = () => {
       return commandList;
     }
     const q = query.toLowerCase();
-    return commandList.filter((c) => c.label.toLowerCase().includes(q) || c.group?.toLowerCase().includes(q));
+    const localMatches = commandList.filter(
+      (c) => c.label.toLowerCase().includes(q) || c.group?.toLowerCase().includes(q)
+    );
+    const registryMatches: Cmd[] = searchCommands(query).map((rc) => ({
+      id: rc.id,
+      label: rc.label,
+      icon: Icons.Code,
+      action: rc.action,
+      group: rc.category,
+      shortcut: rc.shortcut,
+    }));
+    const seen = new Set(localMatches.map((c) => c.id));
+    const merged = [...localMatches, ...registryMatches.filter((r) => !seen.has(r.id))];
+    return merged;
   }, [query, commandList]);
 
   // Combine all results for unified navigation
@@ -420,7 +449,9 @@ export const CommandPalette: React.FC = () => {
         e.preventDefault();
         const focusable = document.querySelectorAll('[data-command-palette-focusable]');
         const list = Array.from(focusable) as HTMLElement[];
-        if (list.length === 0) return;
+        if (list.length === 0) {
+          return;
+        }
         const current = document.activeElement;
         const idx = list.indexOf(current as HTMLElement);
         let next: number;

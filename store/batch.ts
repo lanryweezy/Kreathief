@@ -5,7 +5,7 @@ import { useStore } from './useStore';
  * Ensures multiple state updates coalesce into one undo step.
  */
 export function runBatched<T>(fn: () => T | Promise<T>): Promise<T> | T {
-  const { beginBatch, endBatch } = useStore.getState() as any;
+  const { beginBatch, endBatch } = useStore.getState() as { beginBatch?: () => void; endBatch?: () => void };
   beginBatch?.();
   try {
     const res = fn();

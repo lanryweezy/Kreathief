@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Icons } from '../../constants';
 
-export const TemplateGallery: React.FC = () => {
+export const TemplateGallery: React.FC<{ onGetStarted?: () => void }> = ({ onGetStarted }) => {
   const templates = [
     // Original Templates
     { id: 1, src: '/images/template_thumb_1_1772615134954.png', style: 'md:col-span-1 md:row-span-2' },
@@ -58,6 +58,7 @@ export const TemplateGallery: React.FC = () => {
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
+            onClick={onGetStarted}
             className="px-8 py-4 rounded-full bg-white/5 border border-white/10 text-white font-bold tracking-[0.2em] text-[11px] uppercase hover:bg-white/10 transition-colors flex items-center gap-3"
           >
             Explore Library

@@ -1,6 +1,15 @@
 import { StateCreator } from 'zustand';
 import { BrandKit, Layer, Artboard } from '../../types';
 
+// Get perceived brightness of a hex color (0-255)
+function getBrightness(hex: string): number {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000;
+}
+
 export interface BrandSlice {
   brandKits: BrandKit[];
   activeBrandKitId: string | null;
@@ -104,25 +113,39 @@ export const createBrandSlice: StateCreator<any, [], [], BrandSlice> = (set, get
     const background = colors[0];
     const colorPool = colors.slice(1).length > 0 ? colors.slice(1) : colors;
 
+    // Smart contrast: determine if background is light or dark
+    const bgBrightness = getBrightness(background);
+    const isLightBg = bgBrightness > 128;
+
+    // Sort colors by brightness for smart assignment
+    const sortedColors = [...colorPool].sort((a, b) => getBrightness(a) - getBrightness(b));
+    const lightColors = sortedColors.filter((c) => getBrightness(c) > 128);
+    const darkColors = sortedColors.filter((c) => getBrightness(c) <= 128);
+
     set((state: any) => ({
       canvasBackgroundColor: background,
       artboards: state.artboards.map((artboard: any) => ({
         ...artboard,
         backgroundColor: background,
-        layers: artboard.layers.map((l: Layer) => {
+        layers: artboard.layers.map((l: Layer, layerIdx: number) => {
           if (l.type === 'text') {
+            // Text gets contrasting color (readable on background)
+            const textColor = isLightBg
+              ? darkColors[0] || colorPool[colorPool.length - 1]
+              : lightColors[0] || colorPool[0];
             return {
               ...l,
-              color: colorPool[0],
+              color: textColor,
               colorToken: kitId ? { kitId, type: 'color', path: 'colors.1' } : undefined,
             };
           }
           if (['rectangle', 'circle', 'triangle', 'path', 'star'].includes(l.type)) {
-            const idx = Math.floor(Math.random() * colorPool.length);
+            // Shapes get rotating brand colors (deterministic by layer index)
+            const colorIdx = layerIdx % colorPool.length;
             return {
               ...l,
-              color: colorPool[idx],
-              colorToken: kitId ? { kitId, type: 'color', path: `colors.${idx + 1}` } : undefined,
+              color: colorPool[colorIdx],
+              colorToken: kitId ? { kitId, type: 'color', path: `colors.${colorIdx + 1}` } : undefined,
             };
           }
           return l;

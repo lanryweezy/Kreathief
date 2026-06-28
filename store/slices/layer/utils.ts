@@ -1,4 +1,5 @@
 import { Layer, TextLayer, LayerFilters } from '../../../types';
+import { computeAutoLayout } from '../../../utils/autoLayout';
 
 export const DEFAULT_LAYER_FILTERS: LayerFilters = {
   brightness: 100,
@@ -25,99 +26,56 @@ export function applyAutoLayout(layers: Layer[]): Layer[] {
       return;
     }
 
-    if (container.autoLayout!.direction === 'row') {
-      children.sort((a, b) => a.x - b.x);
-    } else {
-      children.sort((a, b) => a.y - b.y);
-    }
+    const positions = computeAutoLayout(container, children, nextLayers);
 
-    const pad = container.autoLayout!.padding;
-    const pt = typeof pad === 'number' ? pad : pad.top;
-    const pr = typeof pad === 'number' ? pad : pad.right;
-    const pb = typeof pad === 'number' ? pad : pad.bottom;
-    const pl = typeof pad === 'number' ? pad : pad.left;
-    const spacing = container.autoLayout!.spacing;
-    const align = container.autoLayout!.alignment;
-
-    if (container.autoLayout!.direction === 'row') {
-      let currentX = container.x + pl;
-      let maxH = 0;
-      children.forEach((c) => {
-        const h = (c as any).height || (c.type === 'text' ? (c as TextLayer).fontSize * 1.2 : 0);
-        if (h > maxH) {
-          maxH = h;
-        }
-      });
-
-      const containerHeight = maxH + pt + pb;
-      const targetCenterY = container.y + containerHeight / 2;
-
-      children.forEach((c) => {
-        const w = (c as any).width || 0;
-        const h = (c as any).height || (c.type === 'text' ? (c as TextLayer).fontSize * 1.2 : 0);
-
-        let targetY = container.y + pt;
-        if (align === 'center') {
-          targetY = targetCenterY - h / 2;
-        } else if (align === 'end') {
-          targetY = container.y + containerHeight - pb - h;
-        }
-
-        const idx = nextLayers.findIndex((l) => l.id === c.id);
+    Object.entries(positions).forEach(([id, pos]) => {
+      if (id === container.id) {
+        const idx = nextLayers.findIndex((l) => l.id === id);
         if (idx !== -1) {
-          nextLayers[idx] = { ...nextLayers[idx], x: currentX, y: targetY } as any;
+          const updatedChild = nextLayers[idx];
+          const allChildren = nextLayers.filter((l) => l.groupId === container.groupId && l.id !== container.id);
+          if (container.autoLayout!.direction === 'row') {
+            const maxH = allChildren.reduce(
+              (mx, c) => Math.max(mx, (c as any).height || (c.type === 'text' ? (c as TextLayer).fontSize * 1.2 : 0)),
+              0
+            );
+            const pad =
+              typeof container.autoLayout!.padding === 'number'
+                ? container.autoLayout!.padding
+                : (container.autoLayout!.padding.top || 0) + (container.autoLayout!.padding.bottom || 0);
+            const totalWidth =
+              allChildren.reduce((acc, c) => acc + ((c as any).width || 0), 0) +
+              (container.autoLayout!.spacing || 0) * Math.max(0, allChildren.length - 1) +
+              pad;
+            nextLayers[idx] = {
+              ...updatedChild,
+              width: totalWidth,
+              height: maxH + pad,
+            } as any;
+          } else {
+            const maxW = allChildren.reduce((mx, c) => Math.max(mx, (c as any).width || 0), 0);
+            const pad =
+              typeof container.autoLayout!.padding === 'number'
+                ? container.autoLayout!.padding
+                : (container.autoLayout!.padding.left || 0) + (container.autoLayout!.padding.right || 0);
+            const totalHeight =
+              allChildren.reduce((acc, c) => acc + ((c as any).height || 0), 0) +
+              (container.autoLayout!.spacing || 0) * Math.max(0, allChildren.length - 1) +
+              pad;
+            nextLayers[idx] = {
+              ...updatedChild,
+              width: maxW + pad,
+              height: totalHeight,
+            } as any;
+          }
         }
-        currentX += w + spacing;
-      });
-
-      const cIdx = nextLayers.findIndex((l) => l.id === container.id);
-      if (cIdx !== -1) {
-        nextLayers[cIdx] = {
-          ...nextLayers[cIdx],
-          width: currentX - spacing - container.x + pr,
-          height: containerHeight,
-        } as any;
-      }
-    } else {
-      let currentY = container.y + pt;
-      let maxW = 0;
-      children.forEach((c) => {
-        const w = (c as any).width || 0;
-        if (w > maxW) {
-          maxW = w;
-        }
-      });
-
-      const containerWidth = maxW + pl + pr;
-      const targetCenterX = container.x + containerWidth / 2;
-
-      children.forEach((c) => {
-        const h = (c as any).height || (c.type === 'text' ? (c as TextLayer).fontSize * 1.2 : 0);
-        const w = (c as any).width || 0;
-
-        let targetX = container.x + pl;
-        if (align === 'center') {
-          targetX = targetCenterX - w / 2;
-        } else if (align === 'end') {
-          targetX = container.x + containerWidth - pr - w;
-        }
-
-        const idx = nextLayers.findIndex((l) => l.id === c.id);
+      } else {
+        const idx = nextLayers.findIndex((l) => l.id === id);
         if (idx !== -1) {
-          nextLayers[idx] = { ...nextLayers[idx], x: targetX, y: currentY } as any;
+          nextLayers[idx] = { ...nextLayers[idx], x: pos.x, y: pos.y } as any;
         }
-        currentY += h + spacing;
-      });
-
-      const cIdx = nextLayers.findIndex((l) => l.id === container.id);
-      if (cIdx !== -1) {
-        nextLayers[cIdx] = {
-          ...nextLayers[cIdx],
-          width: containerWidth,
-          height: currentY - spacing - container.y + pb,
-        } as any;
       }
-    }
+    });
   });
 
   return nextLayers;

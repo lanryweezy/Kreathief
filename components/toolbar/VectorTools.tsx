@@ -70,7 +70,7 @@ export const VectorTools = React.memo(
         </IconButton>
         <Divider />
         <IconButton
-          onClick={() => (window as any).toggleShapeBuilder && (window as any).toggleShapeBuilder()}
+          onClick={() => useStore.getState().setIsShapeBuilderActive(!useStore.getState().isShapeBuilderActive)}
           title="Shape Builder Tool"
         >
           <Icons.Magic className="w-4 h-4" />

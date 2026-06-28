@@ -13,8 +13,8 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onS
     <ModalWrapper isOpen={isOpen} onClose={onClose} maxWidth="max-w-2xl">
       <div className="flex flex-col relative">
         <div className="p-10 pb-4 text-center">
-          <div className="w-24 h-24 bg-gradient-to-br from-accent via-brand-600 to-[#ff00ff] rounded-[32px] flex items-center justify-center shadow-[0_20px_50px_rgba(125,42,232,0.3)] mx-auto mb-8 transform -rotate-6 animate-in zoom-in spin-in-6 duration-700">
-            <Icons.Magic className="w-12 h-12 text-white" />
+          <div className="w-24 h-24 bg-[#0E1318] border border-white/10 rounded-[32px] flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.3)] mx-auto mb-8 transform -rotate-6 animate-in zoom-in spin-in-6 duration-700">
+            <img src="/logo.svg" alt="Kreathief" className="w-16 h-16 object-contain" />
           </div>
           <h2 className="text-4xl font-black text-white mb-3 tracking-tighter italic uppercase">
             Welcome to Kreathief

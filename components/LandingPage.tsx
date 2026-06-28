@@ -59,8 +59,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
             className="flex items-center gap-3 group cursor-pointer"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
-            <div className="w-10 h-10 aspect-square rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 shadow-lg group-hover:shadow-purple-500/50 transition-all duration-500 overflow-hidden flex items-center justify-center">
-              <img src="/logo.svg" alt="Kreathief" className="w-6 h-6 object-contain" />
+            <div className="w-10 h-10 aspect-square rounded-xl bg-[#0E1318] border border-white/10 shadow-lg group-hover:shadow-purple-500/30 transition-all duration-500 overflow-hidden flex items-center justify-center">
+              <img src="/logo.svg" alt="Kreathief" className="w-7 h-7 object-contain" />
             </div>
             <span className="font-black text-xl tracking-tighter">Kreathief</span>
           </div>
@@ -133,7 +133,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
         <Features />
         <ScrollShowcase />
         <Stats />
-        <TemplateGallery />
+        <TemplateGallery onGetStarted={onTryGuest || onGetStarted} />
         <Testimonials />
         <Pricing onPlanSelect={onGetStarted} />
       </main>

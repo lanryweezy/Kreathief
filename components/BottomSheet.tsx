@@ -24,10 +24,10 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title
       return;
     } else {
       const timer = setTimeout(() => setMounted(false), 300);
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
       return () => {
         clearTimeout(timer);
-        document.body.style.overflow = 'unset';
+        document.body.style.overflow = '';
       };
     }
   }, [isOpen]);

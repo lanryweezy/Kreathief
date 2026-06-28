@@ -1,4 +1,14 @@
-import { DesignCritique, DesignSuggestion, DesignContext, Layer, Artboard, BrandKit, ChatMessage, ShapeLayer, TextLayer } from '../types';
+import {
+  DesignCritique,
+  DesignSuggestion,
+  DesignContext,
+  Layer,
+  Artboard,
+  BrandKit,
+  ChatMessage,
+  ShapeLayer,
+  TextLayer,
+} from '../types';
 import { callBackendGeminiAPI } from './geminiService';
 import { log } from '../utils/log';
 import { safeParseJSON } from '../utils/errorHandling';
@@ -13,7 +23,9 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 
 function getCached<T>(key: string): T | null {
   const entry = _cache.get(key);
-  if (entry && Date.now() - entry.timestamp < CACHE_TTL_MS) return entry.data as T;
+  if (entry && Date.now() - entry.timestamp < CACHE_TTL_MS) {
+    return entry.data as T;
+  }
   _cache.delete(key);
   return null;
 }
@@ -21,7 +33,9 @@ function getCached<T>(key: string): T | null {
 function setCache(key: string, data: any): void {
   if (_cache.size > 50) {
     const oldest = _cache.keys().next().value;
-    if (oldest) _cache.delete(oldest);
+    if (oldest) {
+      _cache.delete(oldest);
+    }
   }
   _cache.set(key, { data, timestamp: Date.now() });
 }
@@ -80,7 +94,11 @@ function prepareDesignData(artboard: Artboard, context: DesignContext, brandKit?
 
 // ─── Analyze (Assistant) ─────────────────────────────────────────────────────
 
-export async function analyzeDesign(artboard: Artboard, context: DesignContext, brandKit?: BrandKit): Promise<DesignCritique> {
+export async function analyzeDesign(
+  artboard: Artboard,
+  context: DesignContext,
+  brandKit?: BrandKit
+): Promise<DesignCritique> {
   try {
     const designData = prepareDesignData(artboard, context, brandKit);
 
@@ -107,7 +125,10 @@ Be specific, actionable, and encouraging. Rate 0-100 overall.`,
                   title: { type: SchemaType.STRING },
                   message: { type: SchemaType.STRING },
                   layerId: { type: SchemaType.STRING },
-                  category: { type: SchemaType.STRING, enum: ['layout', 'color', 'typography', 'accessibility', 'branding', 'composition'] },
+                  category: {
+                    type: SchemaType.STRING,
+                    enum: ['layout', 'color', 'typography', 'accessibility', 'branding', 'composition'],
+                  },
                 },
                 required: ['type', 'severity', 'title', 'message', 'category'],
               },
@@ -148,9 +169,10 @@ export async function handleConversation(
     const designData = prepareDesignData(artboard, context);
     const recentHistory = conversationHistory.slice(-6);
 
-    const conversationContext = recentHistory.length > 0
-      ? `Recent conversation:\n${recentHistory.map((msg) => `${msg.role}: ${msg.content}`).join('\n')}\n\n`
-      : '';
+    const conversationContext =
+      recentHistory.length > 0
+        ? `Recent conversation:\n${recentHistory.map((msg) => `${msg.role}: ${msg.content}`).join('\n')}\n\n`
+        : '';
 
     const response = await callBackendGeminiAPI({
       modelName: 'gemini-2.0-flash',
@@ -159,10 +181,16 @@ Context: You can see the current design state and should provide specific, actio
 Style: Be friendly, encouraging, and specific. Use design terminology but explain it simply.
 Capabilities: Suggest improvements, explain principles, help with color/typography/layout, provide accessibility guidance, answer questions about the design.
 Always be constructive and helpful.`,
-      contents: [{
-        role: 'user',
-        parts: [{ text: `${conversationContext}Current design state:\n${JSON.stringify(designData, null, 2)}\n\nUser message: ${message}` }],
-      }],
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            {
+              text: `${conversationContext}Current design state:\n${JSON.stringify(designData, null, 2)}\n\nUser message: ${message}`,
+            },
+          ],
+        },
+      ],
     });
 
     return {
@@ -203,13 +231,25 @@ Be concise and specific.`,
               severity: { type: SchemaType.STRING, enum: ['low', 'medium', 'high'] },
               title: { type: SchemaType.STRING },
               message: { type: SchemaType.STRING },
-              category: { type: SchemaType.STRING, enum: ['layout', 'color', 'typography', 'accessibility', 'branding', 'composition'] },
+              category: {
+                type: SchemaType.STRING,
+                enum: ['layout', 'color', 'typography', 'accessibility', 'branding', 'composition'],
+              },
             },
             required: ['type', 'severity', 'title', 'message', 'category'],
           },
         },
       },
-      contents: [{ role: 'user', parts: [{ text: `Design state: ${JSON.stringify(designData, null, 2)}\nRecent change: ${JSON.stringify(lastChange || {}, null, 2)}` }] }],
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            {
+              text: `Design state: ${JSON.stringify(designData, null, 2)}\nRecent change: ${JSON.stringify(lastChange || {}, null, 2)}`,
+            },
+          ],
+        },
+      ],
     });
 
     const suggestions = safeParseJSON<any[]>(response.text || '[]', []);
@@ -229,7 +269,9 @@ export async function creativeAgentDraft(
 ): Promise<AgentVariant[]> {
   const cacheKey = `draft:${intent}:${canvasSize.width}x${canvasSize.height}:${variantCount}`;
   const cached = getCached<AgentVariant[]>(cacheKey);
-  if (cached) return cached;
+  if (cached) {
+    return cached;
+  }
 
   const layerSchema = {
     type: SchemaType.OBJECT,
@@ -271,7 +313,9 @@ Ensure perfect visual composition and contrast.`,
 
   try {
     const rawVariants = safeParseJSON<any[] | null>(data.text || '', null);
-    if (!rawVariants) throw new Error('Creative Agent returned malformed JSON');
+    if (!rawVariants) {
+      throw new Error('Creative Agent returned malformed JSON');
+    }
 
     const result = rawVariants.map((v: any) => ({
       ...v,
@@ -279,8 +323,21 @@ Ensure perfect visual composition and contrast.`,
       layers: v.layers.map((l: any): Layer => {
         const resolvedPos = resolveConstraints(l, canvasSize);
         const structuredConstraints = resolveSemanticConstraints(l.constraints || []);
-        const base = { ...l, ...resolvedPos, constraints: structuredConstraints, id: uuidv4(), name: l.text ? l.text.substring(0, 15) : l.type, visible: true, locked: false, opacity: 1, blendMode: 'normal', rotation: 0 };
-        if (l.type === 'text') return { ...base, type: 'text', fontFamily: 'Inter' } as TextLayer;
+        const base = {
+          ...l,
+          ...resolvedPos,
+          constraints: structuredConstraints,
+          id: uuidv4(),
+          name: l.text ? l.text.substring(0, 15) : l.type,
+          visible: true,
+          locked: false,
+          opacity: 1,
+          blendMode: 'normal',
+          rotation: 0,
+        };
+        if (l.type === 'text') {
+          return { ...base, type: 'text', fontFamily: 'Inter' } as TextLayer;
+        }
         return { ...base, type: 'rectangle' } as ShapeLayer;
       }),
     }));
@@ -337,19 +394,38 @@ Rules: Only return modified TARGET layers. Align visually with CONTEXT layers. Y
       },
       temperature: 0.7,
     },
-    contents: [{ role: 'user', parts: [{ text: `User Intent: "${intent}"\n\nTARGET LAYERS: ${JSON.stringify(targetLayers)}\n\nCONTEXT LAYERS: ${JSON.stringify(contextLayers)}` }] }],
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          {
+            text: `User Intent: "${intent}"\n\nTARGET LAYERS: ${JSON.stringify(targetLayers)}\n\nCONTEXT LAYERS: ${JSON.stringify(contextLayers)}`,
+          },
+        ],
+      },
+    ],
   });
 
   try {
     const rawVariants = safeParseJSON<any[] | null>(data.text || '', null);
-    if (!rawVariants) throw new Error('Creative Refine returned malformed JSON');
+    if (!rawVariants) {
+      throw new Error('Creative Refine returned malformed JSON');
+    }
 
     return rawVariants.map((v: any) => ({
       ...v,
       id: uuidv4(),
       layers: v.layers.map((l: any): Layer => {
         const existing = targetLayers.find((tl) => tl.id === l.id);
-        return { ...existing, ...l, id: l.id === 'new' ? uuidv4() : l.id, name: l.text ? l.text.substring(0, 15) : existing?.name || l.type, visible: true, locked: false, opacity: 1 } as Layer;
+        return {
+          ...existing,
+          ...l,
+          id: l.id === 'new' ? uuidv4() : l.id,
+          name: l.text ? l.text.substring(0, 15) : existing?.name || l.type,
+          visible: true,
+          locked: false,
+          opacity: 1,
+        } as Layer;
       }),
     }));
   } catch (err) {
@@ -380,7 +456,17 @@ export async function criticAgentReview(variants: AgentVariant[]): Promise<Agent
   const simplifiedInput = variants.map((v) => ({
     id: v.id,
     themeIdea: v.themeIdea,
-    layers: v.layers.map((l: any) => ({ id: l.id, type: l.type, x: l.x, y: l.y, color: (l as ShapeLayer | TextLayer).color, text: (l as TextLayer).text, fontSize: (l as TextLayer).fontSize, width: l.width, height: l.height })),
+    layers: v.layers.map((l: any) => ({
+      id: l.id,
+      type: l.type,
+      x: l.x,
+      y: l.y,
+      color: (l as ShapeLayer | TextLayer).color,
+      text: (l as TextLayer).text,
+      fontSize: (l as TextLayer).fontSize,
+      width: l.width,
+      height: l.height,
+    })),
   }));
 
   const data = await callBackendGeminiAPI({
@@ -407,11 +493,15 @@ export async function criticAgentReview(variants: AgentVariant[]): Promise<Agent
 
   try {
     const refined = safeParseJSON<any[] | null>(data.text || '', null);
-    if (!refined) throw new Error('Critic Agent returned malformed JSON');
+    if (!refined) {
+      throw new Error('Critic Agent returned malformed JSON');
+    }
 
     return variants.map((v) => {
       const rf = refined.find((r: any) => r.id === v.id);
-      if (!rf) return v;
+      if (!rf) {
+        return v;
+      }
       return {
         ...v,
         criticFeedback: rf.criticFeedback || ['Self-corrected layout spacing.'],
@@ -460,25 +550,22 @@ export async function performanceAgentScore(variants: AgentVariant[]): Promise<A
 
   try {
     const scores = safeParseJSON<any[] | null>(data.text || '', null);
-    if (!scores) throw new Error('Performance Agent returned malformed JSON');
+    if (!scores) {
+      throw new Error('Performance Agent returned malformed JSON');
+    }
 
     return variants
       .map((v) => {
         const match = scores.find((s: any) => s.id === v.id);
-        return { ...v, performanceScore: match?.score || 50, performanceReasoning: match?.reasoning || 'Neutral baseline score.' };
+        return {
+          ...v,
+          performanceScore: match?.score || 50,
+          performanceReasoning: match?.reasoning || 'Neutral baseline score.',
+        };
       })
       .sort((a, b) => (b.performanceScore || 0) - (a.performanceScore || 0));
   } catch (err) {
     log.error('[AI] Performance Agent failed', err);
     return variants;
   }
-}
-
-// ─── Auto-fix (stub) ────────────────────────────────────────────────────────
-
-export async function generateAutoFixes(
-  suggestion: DesignSuggestion,
-  artboard: Artboard
-): Promise<{ layerId: string; updates: Partial<Layer> }[]> {
-  return [];
 }

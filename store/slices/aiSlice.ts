@@ -179,8 +179,8 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
           rotateX: 0,
           rotateY: 0,
         }));
-        deleteLayer(id);
         addLayers(newPaths);
+        deleteLayer(id);
       }
     } catch (e) {
       log.error('Vectorization failed', e, { layerId: id, options });
@@ -503,10 +503,14 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   handleBooleanOperation: (operation) => {
     const { artboards, activeArtboardId, selectedLayerIds, updateLayer, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
-    if (!artboard || selectedLayerIds.length < 2) return;
+    if (!artboard || selectedLayerIds.length < 2) {
+      return;
+    }
     saveToHistory();
     const layers = selectedLayerIds.map((id: string) => artboard.layers.find((l: any) => l.id === id)).filter(Boolean);
-    if (layers.length < 2) return;
+    if (layers.length < 2) {
+      return;
+    }
     const [base, ...operands] = layers;
     updateLayer(base.id, {
       pathData: (base as any).pathData || '',
@@ -517,10 +521,14 @@ export const createAISlice: StateCreator<any, [], [], AISlice> = (set, get) => (
   handleJoinPaths: () => {
     const { artboards, activeArtboardId, selectedLayerIds, updateLayer, deleteLayer, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
-    if (!artboard || selectedLayerIds.length < 2) return;
+    if (!artboard || selectedLayerIds.length < 2) {
+      return;
+    }
     saveToHistory();
     const layers = selectedLayerIds.map((id: string) => artboard.layers.find((l: any) => l.id === id)).filter(Boolean);
-    if (layers.length < 2) return;
+    if (layers.length < 2) {
+      return;
+    }
     const [base, ...rest] = layers;
     const combinedPath = [base, ...rest].map((l: any) => l.pathData || '').join(' ');
     updateLayer(base.id, { pathData: combinedPath } as any);

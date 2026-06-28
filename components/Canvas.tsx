@@ -13,11 +13,15 @@ import { CanvasGuides } from './canvas/CanvasGuides';
 import { SelectionMarquee } from './canvas/SelectionMarquee';
 import { CanvasProvider, CanvasContextValue } from './canvas/CanvasContext';
 import { useTouchGestures } from '../hooks/useTouchGestures';
+import { useSelectionEngine } from '../hooks/useSelectionEngine';
+import { useSceneGraph } from '../hooks/useSceneGraph';
 import { Icons } from '../constants';
 import { PathEditorOverlay } from './VectorEditor/PathEditorOverlay';
 import { VectorPath } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { BrushFilters } from '../services/brushEngine';
+import { useSmartInteraction } from '../hooks/useSmartInteraction';
+import { boundingBox, pointInBox } from '../geometry/bounding';
 
 interface CanvasProps {
   zoom: number;
@@ -66,9 +70,21 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   const brushColor = useStore((state) => state.brushColor) || '#000000';
   const brushSize = useStore((state) => state.brushSize) || 2;
 
+  // Phase 3: Selection engine — wire select/multiSelect/clearSelection into mouse handlers
+  const { select, multiSelect, clearSelection, isSelected, marqueeSelect } = useSelectionEngine();
+
+  // Phase 3: Scene graph — available for tree-aware operations
+  const activeArtboardLayers = useMemo(
+    () => artboards.find((a) => a.id === activeArtboardId)?.layers || [],
+    [artboards, activeArtboardId]
+  );
+  const sceneGraph = useSceneGraph(activeArtboardLayers);
+
   // Eraser cursor preview: compute SVG cursor when eraser is active
   const eraserCursor = useMemo(() => {
-    if (!isDrawing || brushType !== 'eraser') return null;
+    if (!isDrawing || brushType !== 'eraser') {
+      return null;
+    }
     const size = Math.max(4, brushSize * zoom);
     const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}'><circle cx='${size / 2}' cy='${size / 2}' r='${size / 2 - 1}' fill='none' stroke='%23fff' stroke-width='1.5'/><circle cx='${size / 2}' cy='${size / 2}' r='${size / 2 - 1}' fill='none' stroke='%23000' stroke-width='0.5' stroke-dasharray='2,2'/></svg>`;
     const b64 = btoa(svg);
@@ -156,7 +172,18 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   );
 
   const layers = useMemo(() => activeArtboard?.layers || [], [activeArtboard]);
-  const allLayers = useMemo(() => artboards.flatMap((a) => a.layers || []), [artboards]);
+  const allLayersRef = useRef<Layer[]>([]);
+  const allLayers = useMemo(() => {
+    const newLayers = artboards.flatMap((a) => a.layers || []);
+    // Compare by ID list to avoid unnecessary re-renders
+    const prevIds = allLayersRef.current.map((l) => l.id).join(',');
+    const newIds = newLayers.map((l) => l.id).join(',');
+    if (prevIds === newIds) {
+      return allLayersRef.current;
+    }
+    allLayersRef.current = newLayers;
+    return newLayers;
+  }, [artboards]);
 
   const onUpdateLayers = useStore((state) => state.updateLayers);
   const onToggleGrid = useStore((state) => state.setShowGrid);
@@ -303,6 +330,15 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     [allLayers, selectedLayerIds]
   );
 
+  const { suggestions, snapPoints, applySuggestion, dismissSuggestion } = useSmartInteraction(
+    allLayers,
+    selectedLayerIds
+  );
+
+  // NOTE: pointInBox from geometry/bounding could replace DOM-event-based hit-testing
+  // in handleMouseDownLayer for coordinate-based selection (e.g. for canvas-rendered layers).
+  // Currently hit-testing relies on DOM events on layer elements.
+
   const selectedLayerId = selectedLayerIds[selectedLayerIds.length - 1] || null;
 
   const handleContextMenu = useCallback((e: React.MouseEvent, layerId: string) => {
@@ -347,15 +383,24 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     return () => window.removeEventListener('canvas-reset-rotation', handleReset);
   }, [onUpdateLayers]);
 
-  const viewportBounds = useMemo(
-    () => ({
-      x: -panOffset.x / zoom,
-      y: -panOffset.y / zoom,
-      width: viewportSize.width / zoom,
-      height: viewportSize.height / zoom,
-    }),
-    [panOffset, zoom, viewportSize]
-  );
+  const viewportBoundsRef = useRef({ x: 0, y: 0, width: 0, height: 0 });
+  const viewportBounds = useMemo(() => {
+    const newX = -panOffset.x / zoom;
+    const newY = -panOffset.y / zoom;
+    const newW = viewportSize.width / zoom;
+    const newH = viewportSize.height / zoom;
+    // Only update if values actually changed (avoids new object reference every frame)
+    if (
+      viewportBoundsRef.current.x === newX &&
+      viewportBoundsRef.current.y === newY &&
+      viewportBoundsRef.current.width === newW &&
+      viewportBoundsRef.current.height === newH
+    ) {
+      return viewportBoundsRef.current;
+    }
+    viewportBoundsRef.current = { x: newX, y: newY, width: newW, height: newH };
+    return viewportBoundsRef.current;
+  }, [panOffset.x, panOffset.y, zoom, viewportSize.width, viewportSize.height]);
 
   const textEditRef = useRef<HTMLDivElement>(null);
   const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -496,6 +541,10 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
                 localLassoPoints={emptyLassoPoints}
                 booleanPreview={booleanPreview}
                 viewportBounds={viewportBounds}
+                suggestions={suggestions}
+                onDismissSuggestion={dismissSuggestion}
+                onApplySuggestion={applySuggestion}
+                allLayers={allLayers}
               />
 
               <CanvasControls

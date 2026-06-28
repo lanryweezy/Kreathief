@@ -89,8 +89,11 @@ export const PresentationModal: React.FC = () => {
           aria-label="Previous slide"
           onClick={(e) => {
             e.stopPropagation();
-            setIndex((i) => Math.max(0, i - 1));
-            setActiveArtboardId(artboards[Math.max(0, index - 1)]?.id);
+            setIndex((i) => {
+              const prev = Math.max(0, i - 1);
+              setActiveArtboardId(artboards[prev]?.id);
+              return prev;
+            });
           }}
         >
           <span aria-hidden="true">←</span>
@@ -102,8 +105,11 @@ export const PresentationModal: React.FC = () => {
           aria-label="Next slide"
           onClick={(e) => {
             e.stopPropagation();
-            setIndex((i) => Math.min(artboards.length - 1, i + 1));
-            setActiveArtboardId(artboards[Math.min(artboards.length - 1, index + 1)]?.id);
+            setIndex((i) => {
+              const next = Math.min(artboards.length - 1, i + 1);
+              setActiveArtboardId(artboards[next]?.id);
+              return next;
+            });
           }}
         >
           <span aria-hidden="true">→</span>

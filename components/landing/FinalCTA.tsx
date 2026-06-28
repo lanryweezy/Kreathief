@@ -59,7 +59,10 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({ onGetStarted }) => {
               </button>
             </MagneticButton>
 
-            <button className="px-12 py-5 rounded-full font-bold text-base text-white/70 hover:text-white transition-colors flex items-center gap-3 group border border-white/10 hover:border-white/20">
+            <button
+              className="px-12 py-5 rounded-full font-bold text-base text-white/70 hover:text-white transition-colors flex items-center gap-3 group border border-white/10 hover:border-white/20"
+              onClick={onGetStarted}
+            >
               <Icons.Play className="w-4 h-4 fill-white" />
               Watch 2-min Demo
             </button>
