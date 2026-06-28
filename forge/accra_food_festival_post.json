@@ -158,9 +158,9 @@
     }
   ],
   "metadata": {
-    "templateName": "Vibrant Food Festival Instagram Post Promotion",
+    "templateName": "Vibrant Food Fest Post Promo",
     "shortDescription": "Promote your culinary event with a vibrant, appetizing Instagram post.",
-    "longDescription": "Promote your culinary event with a vibrant, appetizing Instagram post. Ideal for food festivals, pop-up markets, and restaurant events in Accra and beyond. Features rich warm colours and bold typography. Attract food lovers today.",
+    "longDescription": "Promote your culinary event with a vibrant, appetizing Instagram post. Ideal for food festivals, pop-up markets, and restaurant events in Accra and beyond. Features rich warm colours.",
     "tags": [
       "Food & Restaurant",
       "Instagram post",
@@ -182,9 +182,9 @@
       "food menu"
     ],
     "seoMetadata": {
-      "title": "Vibrant Food Festival Instagram Post Promotion — Free Instagram post Template",
+      "title": "Vibrant Food Fest Post Promo — Free Post Template",
       "description": "Attract food lovers with this vibrant Accra food festival Instagram post template. Perfect for promoting culinary events and food markets.",
-      "slug": "vibrant-food-festival-instagram-post-promotion"
+      "slug": "vibrant-food-fest-post-promo"
     },
     "personalisationSignals": {
       "industry": [
@@ -199,6 +199,11 @@
         "food vendor"
       ],
       "experienceLevel": "beginner-friendly"
-    }
+    },
+    "relatedTemplates": [
+      "lagos-tech-mixer",
+      "amapiano-sundays-flyer",
+      "bold-afrobeats-ig-post-promo"
+    ]
   }
 }

@@ -211,9 +211,9 @@
     }
   ],
   "metadata": {
-    "templateName": "Clean Real Estate Instagram Post Listing",
+    "templateName": "Clean Luxury Estate Post Sale",
     "shortDescription": "Showcase luxury properties with this clean, professional real estate listing.",
-    "longDescription": "Showcase luxury properties with this clean, professional real estate listing post. Designed specifically for premium real estate listings in African markets like Abuja and Lagos. Features a large image zone and prominent price tag to highlight property features.",
+    "longDescription": "Showcase luxury properties with this clean, professional real estate listing post. Designed specifically for premium real estate listings in African markets. Uses neutral clean colours.",
     "tags": [
       "Business",
       "Instagram post",
@@ -234,9 +234,9 @@
       "property post"
     ],
     "seoMetadata": {
-      "title": "Clean Real Estate Instagram Post Listing — Free Instagram post Template",
+      "title": "Clean Luxury Estate Post Sale — Free Instagram post Template",
       "description": "Showcase luxury properties with this clean, professional real estate listing Instagram post template designed for the African property market.",
-      "slug": "clean-real-estate-instagram-post-listing"
+      "slug": "clean-luxury-estate-post-sale"
     },
     "personalisationSignals": {
       "industry": [
@@ -251,6 +251,11 @@
         "small business"
       ],
       "experienceLevel": "beginner-friendly"
-    }
+    },
+    "relatedTemplates": [
+      "naija-tech-startup-pitch",
+      "lagos-tech-mixer",
+      "sunday-service-post"
+    ]
   }
 }

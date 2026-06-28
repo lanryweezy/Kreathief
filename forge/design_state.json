@@ -88,9 +88,9 @@
     }
   ],
   "metadata": {
-    "templateName": "Bold Afrobeats Event Instagram Post",
+    "templateName": "Bold Afrobeats IG Post Promo",
     "shortDescription": "Promote your Afrobeats event with a bold, colourful Instagram post",
-    "longDescription": "A high-contrast, energetic Instagram post template perfect for Afrobeats nights, DJ sets, and club events. Features bold typography and a dark, moody aesthetic with vibrant red and gold accents.",
+    "longDescription": "A high-contrast, energetic Instagram post template perfect for Afrobeats nights, DJ sets, and club events. Features bold typography and a dark, moody aesthetic with vibrant accents.",
     "tags": [
       "Social media",
       "Instagram post",
@@ -113,9 +113,9 @@
       "afrobeats post"
     ],
     "seoMetadata": {
-      "title": "Bold Afrobeats Event Instagram Post — Free Instagram post Template",
+      "title": "Bold Afrobeats IG Post Promo — Free Instagram post Template",
       "description": "Promote your Afrobeats event with a bold, colourful Instagram post template designed for high engagement.",
-      "slug": "bold-afrobeats-event-instagram-post"
+      "slug": "bold-afrobeats-ig-post-promo"
     },
     "personalisationSignals": {
       "industry": [
@@ -129,6 +129,11 @@
         "promoter"
       ],
       "experienceLevel": "beginner-friendly"
-    }
+    },
+    "relatedTemplates": [
+      "afrobeats-concert-story",
+      "amapiano-sundays-flyer",
+      "lagos-tech-mixer"
+    ]
   }
 }

@@ -180,9 +180,9 @@
     }
   ],
   "metadata": {
-    "templateName": "Professional Tech Mixer Instagram Post Meetup",
-    "shortDescription": "Promote your tech meetup or networking event with a modern, high-contrast post.",
-    "longDescription": "Promote your tech meetup or networking event with a modern, high-contrast post. Perfect for tech meetups, founder mixers, and startup events. Features bold typography and high-contrast neon green accents against a dark background.",
+    "templateName": "Modern Tech Mixer Post Event",
+    "shortDescription": "Promote your tech meetup with a modern, high-contrast Instagram post.",
+    "longDescription": "Promote your tech meetup or networking event with a modern, high-contrast post. Perfect for tech meetups, founder mixers, and startup events. Features neon green accents.",
     "tags": [
       "Business",
       "Instagram post",
@@ -203,9 +203,9 @@
       "tech conference"
     ],
     "seoMetadata": {
-      "title": "Professional Tech Mixer Instagram Post Meetup — Free Instagram post Template",
+      "title": "Modern Tech Mixer Post Event — Free Instagram post Template",
       "description": "Promote your tech meetup or networking event with a modern, high-contrast Instagram post template designed for the tech community.",
-      "slug": "professional-tech-mixer-instagram-post-meetup"
+      "slug": "modern-tech-mixer-post-event"
     },
     "personalisationSignals": {
       "industry": [
@@ -220,6 +220,11 @@
         "marketing professional"
       ],
       "experienceLevel": "beginner-friendly"
-    }
+    },
+    "relatedTemplates": [
+      "naija-tech-startup-pitch",
+      "premium-real-estate-listing",
+      "accra-food-festival-post"
+    ]
   }
 }
