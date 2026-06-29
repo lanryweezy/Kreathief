@@ -140,3 +140,9 @@
 **Vulnerability:** In Supabase/PostgREST queries, user input (like search `query`) was directly interpolated into the `.or()` filter string (e.g., `.or(\`name.ilike.%${query}%\`)`). If an attacker provided a query containing a comma `,` (the PostgREST OR separator) and a quote `"`, they could inject arbitrary filter conditions, such as `,status.eq.rejected`, potentially bypassing authorization checks or leaking hidden database rows.
 **Learning:** Using raw string interpolation for the `.or()` method in `supabase-js` without escaping or sanitizing commas and double quotes creates a high-severity filter injection vulnerability, as the comma acts as a logical operator separator.
 **Prevention:** To prevent PostgREST/Supabase filter injection vulnerabilities, always sanitize user inputs by stripping commas and quotes (e.g., `query.replace(/[",]/g, '')`) before interpolating them into a Supabase `.or()` filter string, or use the object syntax if available.
+
+## 2024-06-30 - Prevent PostgREST Filter Injection in Asset Service
+
+**Vulnerability:** The `services/assetService.ts` file used string interpolation for the user `query` directly into a Supabase `.or()` condition (`.or(\`title.ilike.%${query}%,...\`)`). If an attacker provided a query with commas (the OR separator) and quotes, they could inject arbitrary filters.
+**Learning:** This is a high-severity filter injection vulnerability, as the comma acts as a logical operator separator in PostgREST.
+**Prevention:** Always sanitize user inputs by stripping commas and quotes (e.g., `query.replace(/[",]/g, '')`) before interpolating them into a Supabase `.or()` filter string, or use the object syntax if available.
