@@ -140,7 +140,11 @@ Be specific, actionable, and encouraging. Rate 0-100 overall.`,
       contents: [{ role: 'user', parts: [{ text: `Analyze this design:\n\n${JSON.stringify(designData, null, 2)}` }] }],
     });
 
-    const parsed = safeParseJSON<Partial<DesignCritique>>(response.text || '{}', {});
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '{}' to prevent silent failures on empty LLM output and ensure error catching logic executes.
+    const parsed = safeParseJSON<Partial<DesignCritique> | null>(response.text || 'null', null);
+    if (!parsed) {
+      throw new Error('Failed to parse analysis JSON');
+    }
 
     return {
       overallScore: parsed.overallScore || 75,
@@ -252,7 +256,11 @@ Be concise and specific.`,
       ],
     });
 
-    const suggestions = safeParseJSON<any[]>(response.text || '[]', []);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '[]' to prevent silent failures on empty LLM output and ensure error catching logic executes.
+    const suggestions = safeParseJSON<any[] | null>(response.text || 'null', null);
+    if (!suggestions) {
+      throw new Error('Failed to parse realtime suggestions JSON');
+    }
     return suggestions.map((s) => ({ ...s, id: uuidv4() }) as DesignSuggestion);
   } catch (error) {
     log.error('[AI] Realtime suggestions failed', error);
@@ -312,7 +320,8 @@ Ensure perfect visual composition and contrast.`,
   });
 
   try {
-    const rawVariants = safeParseJSON<any[] | null>(data.text || '', null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '' to prevent JSON.parse throws and ensure error catching logic executes cleanly.
+    const rawVariants = safeParseJSON<any[] | null>(data.text || 'null', null);
     if (!rawVariants) {
       throw new Error('Creative Agent returned malformed JSON');
     }
@@ -407,7 +416,8 @@ Rules: Only return modified TARGET layers. Align visually with CONTEXT layers. Y
   });
 
   try {
-    const rawVariants = safeParseJSON<any[] | null>(data.text || '', null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '' to prevent JSON.parse throws and ensure error catching logic executes cleanly.
+    const rawVariants = safeParseJSON<any[] | null>(data.text || 'null', null);
     if (!rawVariants) {
       throw new Error('Creative Refine returned malformed JSON');
     }
@@ -492,7 +502,8 @@ export async function criticAgentReview(variants: AgentVariant[]): Promise<Agent
   });
 
   try {
-    const refined = safeParseJSON<any[] | null>(data.text || '', null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '' to prevent JSON.parse throws and ensure error catching logic executes cleanly.
+    const refined = safeParseJSON<any[] | null>(data.text || 'null', null);
     if (!refined) {
       throw new Error('Critic Agent returned malformed JSON');
     }
@@ -549,7 +560,8 @@ export async function performanceAgentScore(variants: AgentVariant[]): Promise<A
   });
 
   try {
-    const scores = safeParseJSON<any[] | null>(data.text || '', null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '' to prevent JSON.parse throws and ensure error catching logic executes cleanly.
+    const scores = safeParseJSON<any[] | null>(data.text || 'null', null);
     if (!scores) {
       throw new Error('Performance Agent returned malformed JSON');
     }
