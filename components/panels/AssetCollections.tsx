@@ -59,7 +59,7 @@ export const AssetCollections: React.FC = () => {
       <h3 className="font-bold text-white mb-4 flex items-center gap-2"><Icons.Folder className="w-5 h-5 text-accent" /> Collections</h3>
       <div className="flex gap-2 mb-4">
         <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && create()} placeholder="New collection..." className={inputCls} />
-        <button onClick={create} className="bg-accent hover:bg-accent-hover text-white rounded-lg px-3 py-2"><Icons.Plus className="w-4 h-4" /></button>
+        <button aria-label="Create collection" onClick={create} className="bg-accent hover:bg-accent-hover text-white rounded-lg px-3 py-2"><Icons.Plus className="w-4 h-4" /></button>
       </div>
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         {loading ? (
@@ -75,8 +75,8 @@ export const AssetCollections: React.FC = () => {
                   {editId === col.id ? (
                     <input autoFocus value={editName} onChange={(e) => setEditName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') rename(col.id); if (e.key === 'Escape') setEditId(null); }} onBlur={() => rename(col.id)} className="flex-1 bg-transparent border-b border-accent text-sm text-white outline-none" onClick={(e) => e.stopPropagation()} />
                   ) : <span className="flex-1 text-sm text-white truncate">{col.name}</span>}
-                  <button onClick={(e) => { e.stopPropagation(); setEditId(col.id); setEditName(col.name); }} className="p-1 rounded hover:bg-white/10"><Icons.Search className="w-3 h-3 text-gray-400" /></button>
-                  <button onClick={(e) => { e.stopPropagation(); setDel(col); }} className="p-1 rounded hover:bg-red-500/20"><Icons.Trash className="w-3 h-3 text-gray-400 hover:text-red-400" /></button>
+                  <button aria-label="Rename collection" onClick={(e) => { e.stopPropagation(); setEditId(col.id); setEditName(col.name); }} className="p-1 rounded hover:bg-white/10"><Icons.Edit className="w-3 h-3 text-gray-400" /></button>
+                  <button aria-label="Delete collection" onClick={(e) => { e.stopPropagation(); setDel(col); }} className="p-1 rounded hover:bg-red-500/20"><Icons.Trash className="w-3 h-3 text-gray-400 hover:text-red-400" /></button>
                 </div>
                 {selId === col.id && items.length > 0 && (
                   <div className="grid grid-cols-3 gap-1 px-3 pb-3">
