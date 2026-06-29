@@ -1,12 +1,24 @@
 import { useCallback, useEffect } from 'react';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { debounce } from '../utils/debounce';
 
 /**
  * Hook to handle AI Assistant interactions and real-time analysis
  */
 export const useAIAssistant = () => {
-  const { isActive, autoSuggest, triggerRealtimeAnalysis, artboards, activeArtboardId } = useStore();
+  // ⚡ Bolt Optimization: Use useShallow with specific selectors to prevent the hook from
+  // unnecessarily re-rendering any calling components on unrelated global state updates.
+  // Impact: Eliminates wasteful re-renders on components using this hook (like AIDesignAssistant) when unrelated state changes.
+  const { isActive, autoSuggest, triggerRealtimeAnalysis, artboards, activeArtboardId } = useStore(
+    useShallow((state) => ({
+      isActive: state.isActive,
+      autoSuggest: state.autoSuggest,
+      triggerRealtimeAnalysis: state.triggerRealtimeAnalysis,
+      artboards: state.artboards,
+      activeArtboardId: state.activeArtboardId,
+    }))
+  );
 
   // Debounced analysis trigger to avoid excessive API calls
   const debouncedAnalysis = useCallback(
