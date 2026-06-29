@@ -27,6 +27,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     log.error('[ErrorBoundary] Caught error', error, { componentStack: errorInfo.componentStack });
+    try {
+      localStorage.setItem('kreathief_crash', JSON.stringify({
+        message: error.message,
+        name: error.name,
+        stack: error.stack?.slice(0, 1000),
+        componentStack: errorInfo.componentStack?.slice(0, 1000),
+        time: new Date().toISOString()
+      }));
+    } catch {}
     this.props.onError?.(error, errorInfo);
   }
 
