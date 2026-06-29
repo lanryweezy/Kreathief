@@ -14,6 +14,7 @@ import { EmptyState } from './EmptyState';
 import { Button } from './Button';
 import * as geminiService from '../services/geminiService';
 import { log } from '../utils/log';
+import { getErrorDetails } from '../utils/errorMessages';
 
 interface DashboardProps {
   user: User;
@@ -216,7 +217,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       }
     } catch (error) {
       log.error('[DashboardAI] Generation failed', error);
-      addToast('Generation failed. Please try again.', 'error');
+      const details = getErrorDetails(error);
+      addToast(`Generation failed: ${details.message}. ${details.suggestion}`, 'error');
     } finally {
       setIsGenerating(false);
     }

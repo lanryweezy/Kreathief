@@ -4,6 +4,7 @@ import { log } from '../../utils/log';
 import { useStore } from '../../store/useStore';
 import { Button } from '../Button';
 import { Input } from '../Input';
+import { getErrorDetails } from '../../utils/errorMessages';
 
 interface ShareModalProps {
   onClose: () => void;
@@ -42,7 +43,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
       setShareLink(link);
     } catch (e) {
       log.error('[ShareModal] Failed to generate share link', e);
-      addToast('Failed to generate share link', 'error');
+      const details = getErrorDetails(e);
+      addToast(`Failed to generate share link: ${details.message}. ${details.suggestion}`, 'error');
     } finally {
       setIsGenerating(false);
     }
@@ -73,8 +75,9 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
           addToast(`Invite link copied! Send it to ${inviteEmail || 'your colleague'}`, 'success');
           setTimeout(() => setInviteSent(false), 3000);
         })
-        .catch(() => {
-          addToast('Failed to copy invite link', 'error');
+        .catch((e) => {
+          const details = getErrorDetails(e);
+          addToast(`Failed to copy invite link: ${details.message}. ${details.suggestion}`, 'error');
         });
     } else {
       addToast('Generate a share link first', 'warning');

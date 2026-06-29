@@ -4,6 +4,7 @@ import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
+import { getErrorDetails } from '../../utils/errorMessages';
 import { ColorProfile, batchExportArtboardsZip } from '../../services/exportService';
 import { isWithinCMYKGamut, getClosestCMYKSafeColor } from '../../utils/colorUtils';
 import { Button } from '../Button';
@@ -215,11 +216,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       setTimeout(() => onClose(), 300);
     } catch (e: any) {
       log.error('[ExportModal] Export failed', e, { format, quality, isPrintMode });
+      const details = getErrorDetails(e);
       addToast(
-        'Export failed',
+        details.message,
         'error',
         { label: 'Try Again', onClick: handleExportClick },
-        e.message || 'The canvas might be too large for this format.'
+        details.suggestion
       );
       setExportStage('');
     } finally {
@@ -303,7 +305,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       setTimeout(() => onClose(), 1000);
     } catch (e: any) {
       log.error('[ExportModal] Export All failed', e);
-      addToast(`Failed after ${successCount} artboard(s). Try exporting individually.`, 'error');
+      const details = getErrorDetails(e);
+      addToast(`Failed after ${successCount} artboard(s). ${details.message}. ${details.suggestion}`, 'error');
     } finally {
       setIsExporting(false);
       setExportStage('');
@@ -334,7 +337,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       setTimeout(() => onClose(), 300);
     } catch (e: any) {
       log.error('[ExportModal] Export Selection failed', e);
-      addToast('Export Selection failed', 'error');
+      const details = getErrorDetails(e);
+      addToast(`Export Selection failed: ${details.message}. ${details.suggestion}`, 'error');
     } finally {
       setIsExporting(false);
     }
@@ -367,7 +371,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       setTimeout(() => onClose(), 300);
     } catch (e: any) {
       log.error('[ExportModal] Export Layer failed', e);
-      addToast('Export Layer failed', 'error');
+      const details = getErrorDetails(e);
+      addToast(`Export Layer failed: ${details.message}. ${details.suggestion}`, 'error');
     } finally {
       setIsExporting(false);
       setExportStage('');
@@ -406,7 +411,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       setTimeout(() => onClose(), 500);
     } catch (e: any) {
       log.error('[ExportModal] Batch export failed', e);
-      addToast('Batch export failed', 'error');
+      const details = getErrorDetails(e);
+      addToast(`Batch export failed: ${details.message}. ${details.suggestion}`, 'error');
     } finally {
       setIsExporting(false);
       setExportStage('');
@@ -444,7 +450,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       addToast('Image downloaded - clipboard copy requires a modern browser.', 'info');
     } catch (e) {
       log.error('[ExportModal] Clipboard copy failed', e);
-      addToast('Could not copy to clipboard. Try downloading instead.', 'error');
+      const details = getErrorDetails(e);
+      addToast(`Could not copy to clipboard: ${details.message}. Try downloading instead.`, 'error');
     } finally {
       setIsCopying(false);
     }
@@ -481,7 +488,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       analyticsService.track('export_design', { method: 'clipboard', format: 'svg' });
     } catch (e) {
       log.error('[ExportModal] SVG clipboard copy failed', e);
-      addToast('Could not copy SVG to clipboard.', 'error');
+      const details = getErrorDetails(e);
+      addToast(`Could not copy SVG to clipboard: ${details.message}`, 'error');
     }
   };
 
