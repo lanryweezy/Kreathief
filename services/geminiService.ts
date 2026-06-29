@@ -358,7 +358,8 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
         },
       ],
     });
-    const parsed = safeParseJSON<string[] | null>(data.text || '[]', null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '[]' to prevent silent failures on empty LLM output and ensure error catching logic executes.
+    const parsed = safeParseJSON<string[] | null>(data.text || 'null', null);
     if (!parsed) {
       throw new Error('Failed to parse text options JSON');
     }
@@ -394,7 +395,8 @@ export const enhancePrompt = async (simplePrompt: string): Promise<string> => {
       ],
     });
 
-    const parsed = safeParseJSON<string | null>(data.text || '""', null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '""' to prevent silent failures on empty LLM output and ensure error catching logic executes.
+    const parsed = safeParseJSON<string | null>(data.text || 'null', null);
     return parsed || simplePrompt;
   } catch (error) {
     log.error('Prompt Enhancer Error:', error);
@@ -615,7 +617,8 @@ export const generateSVGShape = async (prompt: string): Promise<string> => {
       ],
     });
 
-    const parsed = safeParseJSON<string | null>(data.text || '""', null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '""' to prevent silent failures on empty LLM output and ensure error catching logic executes.
+    const parsed = safeParseJSON<string | null>(data.text || 'null', null);
     if (!parsed) {
       throw new Error('Failed to parse SVG path JSON');
     }
@@ -792,7 +795,8 @@ export const generatePaletteFromImage = async (base64Image: string): Promise<str
     });
 
     // Astra: Gemini strict JSON output schema prevents malformed regex parsing bugs
-    const parsed = safeParseJSON<string[] | null>(data.text || '[]', null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '[]' to prevent silent failures on empty LLM output and ensure error catching logic executes.
+    const parsed = safeParseJSON<string[] | null>(data.text || 'null', null);
     if (!parsed) {
       throw new Error('Failed to parse palette JSON');
     }
@@ -844,7 +848,8 @@ export const vectorizeImage = async (
     });
 
     const text = data.text;
-    const parsed = safeParseJSON<Array<{ path: string; color: string }> | null>(text || '[]', null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '[]' to prevent silent failures on empty LLM output and ensure error catching logic executes.
+    const parsed = safeParseJSON<Array<{ path: string; color: string }> | null>(text || 'null', null);
     if (!parsed) {
       throw new Error('Failed to parse vectorize JSON');
     }
@@ -891,7 +896,8 @@ export const generateAIVector = async (
     });
 
     const text = data.text;
-    const parsed = safeParseJSON<Array<{ path: string; color: string }> | null>(text || '[]', null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '[]' to prevent silent failures on empty LLM output and ensure error catching logic executes.
+    const parsed = safeParseJSON<Array<{ path: string; color: string }> | null>(text || 'null', null);
     if (!parsed) {
       throw new Error('Failed to parse AI vector JSON');
     }
@@ -948,7 +954,8 @@ export const suggestFontPairing = async (primaryFont: string): Promise<string> =
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
     });
 
-    const parsed = safeParseJSON<string | null>(data.text || '""', null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '""' to prevent silent failures on empty LLM output and ensure error catching logic executes.
+    const parsed = safeParseJSON<string | null>(data.text || 'null', null);
     return parsed || primaryFont;
   } catch (error) {
     log.error('Font pairing suggestion failed', error);
@@ -981,7 +988,8 @@ export const generateAutoLayoutSuggestions = async (layers: any[], width: number
       },
     });
 
-    const parsed = safeParseJSON<any[] | null>(data.text || '[]', null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '[]' to prevent silent failures on empty LLM output and ensure error catching logic executes.
+    const parsed = safeParseJSON<any[] | null>(data.text || 'null', null);
     if (!parsed) {
       throw new Error('Failed to parse auto-layout suggestions JSON');
     }
@@ -1030,7 +1038,8 @@ export const extractStyleFromImage = async (base64Image: string): Promise<Design
       },
     });
 
-    const parsed = safeParseJSON<DesignTheme | null>(data.text || '{}', null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '{}' to prevent silent failures on empty LLM output and ensure error catching logic executes.
+    const parsed = safeParseJSON<DesignTheme | null>(data.text || 'null', null);
     if (!parsed) {
       throw new Error('Failed to parse style JSON');
     }
