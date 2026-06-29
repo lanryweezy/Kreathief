@@ -1,7 +1,7 @@
 import { log } from '../utils/log';
 import { buildFilterString } from '../utils/layers';
 import { renderMultilineText } from '../utils/textRendering';
-import { getLayerClipPath } from '../utils/layerRendering';
+import { getLayerClipPath, applyShapePolygonToContext } from '../utils/layerRendering';
 
 /**
  * exportWorker.ts
@@ -41,20 +41,7 @@ self.onmessage = async (e: MessageEvent) => {
       ctx.beginPath();
 
       if (def && def.startsWith('polygon')) {
-        const points = def.match(/[\d.]+% [\d.]+/g);
-        if (points) {
-          points.forEach((p, i) => {
-            const [xPerc, yPerc] = p.split(' ').map((s) => parseFloat(s));
-            const x = (xPerc / 100) * w - hw;
-            const y = (yPerc / 100) * h - hh;
-            if (i === 0) {
-              ctx.moveTo(x, y);
-            } else {
-              ctx.lineTo(x, y);
-            }
-          });
-          ctx.closePath();
-        }
+        applyShapePolygonToContext(ctx, def, w, h);
       } else if (maskLayer.type === 'circle') {
         ctx.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2);
       } else if (maskLayer.type === 'path' && maskLayer.pathData) {
@@ -212,23 +199,8 @@ self.onmessage = async (e: MessageEvent) => {
           } else {
             // Complex polygon shapes
             const def = getLayerClipPath(layer);
-            if (def && def.startsWith('polygon')) {
-              const points = def.match(/[\d.]+% [\d.]+/g);
-              if (points) {
-                ctx.beginPath();
-                points.forEach((p, i) => {
-                  const [xPerc, yPerc] = p.split(' ').map((s) => parseFloat(s));
-                  const x = (xPerc / 100) * layer.width - hw;
-                  const y = (yPerc / 100) * layer.height - hh;
-                  if (i === 0) {
-                    ctx.moveTo(x, y);
-                  } else {
-                    ctx.lineTo(x, y);
-                  }
-                });
-                ctx.closePath();
-                ctx.fill();
-              }
+            if (def && applyShapePolygonToContext(ctx, def, layer.width, layer.height)) {
+              ctx.fill();
             }
           }
         }

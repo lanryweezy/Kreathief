@@ -95,3 +95,41 @@ export const getLayerVisibleBounds = (layer: Layer): { x: number; y: number; wid
     height,
   };
 };
+
+/**
+ * Traces a CSS polygon path onto a Canvas 2D context.
+ * Coordinates are computed relative to the center of the bounding box (-width/2, -height/2 to width/2, height/2)
+ */
+export const applyShapePolygonToContext = (
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  def: string,
+  width: number,
+  height: number
+): boolean => {
+  if (!def || !def.startsWith('polygon')) {
+    return false;
+  }
+
+  const points = def.match(/[\d.]+% [\d.]+/g);
+  if (!points || points.length === 0) {
+    return false;
+  }
+
+  const hw = width / 2;
+  const hh = height / 2;
+
+  ctx.beginPath();
+  points.forEach((p, i) => {
+    const [xPerc, yPerc] = p.split(' ').map((s) => parseFloat(s));
+    const x = (xPerc / 100) * width - hw;
+    const y = (yPerc / 100) * height - hh;
+    if (i === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+  ctx.closePath();
+
+  return true;
+};

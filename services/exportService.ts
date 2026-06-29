@@ -4,7 +4,7 @@ import JSZip from 'jszip';
 import { logSecurityEvent } from '../utils/securityLogger';
 import { renderMultilineText } from '../utils/textRendering';
 import { buildFilterString } from '../utils/layers';
-import { getLayerClipPath } from '../utils/layerRendering';
+import { getLayerClipPath, applyShapePolygonToContext } from '../utils/layerRendering';
 
 export type ColorProfile = 'sRGB' | 'CMYK' | 'FOGRA39' | 'GRACoL' | 'SWOP';
 
@@ -634,33 +634,11 @@ const drawShapeToContext = (ctx: CanvasRenderingContext2D, layer: ShapeLayer) =>
     ctx.beginPath();
     ctx.arc(0, 0, layer.width / 2, 0, Math.PI * 2);
     ctx.fill();
-  } else if (layer.type === 'triangle') {
-    ctx.beginPath();
-    ctx.moveTo(0, -layer.height / 2);
-    ctx.lineTo(layer.width / 2, layer.height / 2);
-    ctx.lineTo(-layer.width / 2, layer.height / 2);
-    ctx.closePath();
-    ctx.fill();
-  } else if (layer.type === 'star') {
-    const cx = 0,
-      cy = 0;
-    const outerR = layer.width / 2;
-    const innerR = outerR * 0.4;
-    const points = 5;
-    ctx.beginPath();
-    for (let i = 0; i < points * 2; i++) {
-      const angle = (i * Math.PI) / points - Math.PI / 2;
-      const radius = i % 2 === 0 ? outerR : innerR;
-      const px = cx + Math.cos(angle) * radius;
-      const py = cy + Math.sin(angle) * radius;
-      if (i === 0) {
-        ctx.moveTo(px, py);
-      } else {
-        ctx.lineTo(px, py);
-      }
+  } else {
+    const def = getLayerClipPath(layer);
+    if (def && applyShapePolygonToContext(ctx, def, layer.width, layer.height)) {
+      ctx.fill();
     }
-    ctx.closePath();
-    ctx.fill();
   }
 
   ctx.restore();
