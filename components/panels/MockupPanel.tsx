@@ -3,6 +3,7 @@ import { Icons } from '../../constants';
 import { vecteezyService, VecteezyResource } from '../../services/vecteezyService';
 import { MockupModal } from '../modals/MockupModal';
 import { CornerHandles } from '../mockup/CornerHandles';
+import { getErrorDetails } from '../../utils/errorMessages';
 import {
   getMockupsByCategory,
   searchMockups,
@@ -225,7 +226,8 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       }
     } catch (error) {
       log.error('[MockupPanel] Auto-detect failed', error);
-      addToast('Auto-detect failed. Please adjust manually.', 'error');
+      const details = getErrorDetails(error);
+      addToast(`Auto-detect failed: ${details.message}. ${details.suggestion} Or adjust manually.`, 'error');
     } finally {
       setIsDetecting(false);
     }
@@ -284,7 +286,8 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       addToast(`Found ${suggestions.length} perfect mockups for your design!`, 'success');
     } catch (error) {
       log.error('[MockupPanel] Suggestion failed', error);
-      addToast('Could not analyze design', 'error');
+      const details = getErrorDetails(error);
+      addToast(`Could not analyze design: ${details.message}. ${details.suggestion}`, 'error');
     } finally {
       setIsAnalyzing(false);
     }
@@ -396,7 +399,8 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       setSelectedMockupIds([]);
     } catch (error) {
       log.error('[MockupPanel] Batch generation failed', error);
-      addToast('Batch generation failed', 'error');
+      const details = getErrorDetails(error);
+      addToast(`Batch generation failed: ${details.message}. ${details.suggestion}`, 'error');
     } finally {
       setIsBatchGenerating(false);
     }
@@ -677,7 +681,8 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       }
     } catch (e) {
       log.error('[MockupPanel] Pro mockup render failed', e);
-      addToast('Pro render failed. Please try again.', 'error');
+      const details = getErrorDetails(e);
+      addToast(`Pro render failed: ${details.message}. ${details.suggestion}`, 'error');
     } finally {
       setIsProGenerating(false);
     }
