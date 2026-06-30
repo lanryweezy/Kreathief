@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
-import { useShallow } from 'zustand/react/shallow';
 import { selectedLayerSelector } from '../store/selectors';
 import { NavTab, TextLayer } from '../types';
 import { Icons } from '../constants';
@@ -44,56 +43,32 @@ export const Toolbar = React.memo(
     // Refs
     const rewriteRef = useRef<HTMLButtonElement>(null);
 
-    // Store Actions
-    const {
-      selectedLayerIds,
-      updateLayer,
-      deleteLayer: onDeleteLayer,
-      duplicateLayer: onDuplicateLayer,
-      moveLayer: onMoveLayer,
-      alignLayers: onAlignLayers,
-      groupSelected: onGroup,
-      ungroupSelected: onUngroup,
-      onRmBg,
-      vectorizeLayer,
-      onCrop: onCropAction,
-      onEnhance,
-      onUpscale,
-      onRetouch,
-      onRemix,
-      onMagicExpand,
-      toggleEraser,
-      setIsProcessing,
-      setActiveTab,
-      setIsLassoMode,
-      setRefineBrushMode,
-      setRefineBrushSize,
-    } = useStore(
-      useShallow((state) => ({
-        selectedLayerIds: state.selectedLayerIds,
-        updateLayer: state.updateLayer,
-        deleteLayer: state.deleteLayer,
-        duplicateLayer: state.duplicateLayer,
-        moveLayer: state.moveLayer,
-        alignLayers: state.alignLayers,
-        groupSelected: state.groupSelected,
-        ungroupSelected: state.ungroupSelected,
-        onRmBg: state.onRmBg,
-        vectorizeLayer: state.vectorizeLayer,
-        onCrop: state.onCrop,
-        onEnhance: state.onEnhance,
-        onUpscale: state.onUpscale,
-        onRetouch: state.onRetouch,
-        onRemix: state.onRemix,
-        onMagicExpand: state.onMagicExpand,
-        toggleEraser: state.toggleEraser,
-        setIsProcessing: state.setIsProcessing,
-        setActiveTab: state.setActiveTab,
-        setIsLassoMode: state.setIsLassoMode,
-        setRefineBrushMode: state.setRefineBrushMode,
-        setRefineBrushSize: state.setRefineBrushSize,
-      }))
-    );
+    // Actions are stable refs — safe to grab once without triggering re-renders
+    const s = useStore.getState();
+    const updateLayer = s.updateLayer;
+    const onDeleteLayer = s.deleteLayer;
+    const onDuplicateLayer = s.duplicateLayer;
+    const onMoveLayer = s.moveLayer;
+    const onAlignLayers = s.alignLayers;
+    const onGroup = s.groupSelected;
+    const onUngroup = s.ungroupSelected;
+    const onRmBg = s.onRmBg;
+    const vectorizeLayer = s.vectorizeLayer;
+    const onCropAction = s.onCrop;
+    const onEnhance = s.onEnhance;
+    const onUpscale = s.onUpscale;
+    const onRetouch = s.onRetouch;
+    const onRemix = s.onRemix;
+    const onMagicExpand = s.onMagicExpand;
+    const toggleEraser = s.toggleEraser;
+    const setIsProcessing = s.setIsProcessing;
+    const setActiveTab = s.setActiveTab;
+    const setIsLassoMode = s.setIsLassoMode;
+    const setRefineBrushMode = s.setRefineBrushMode;
+    const setRefineBrushSize = s.setRefineBrushSize;
+
+    // Only subscribe to changing state
+    const selectedLayerIds = useStore((state) => state.selectedLayerIds);
 
     const isRemovingBgStore = useStore((state) => state.isRemovingBg);
     const isExpandingStore = useStore((state) => state.isExpanding);
@@ -113,6 +88,9 @@ export const Toolbar = React.memo(
       if (!artboard || !state.selectedLayerIds) return [];
       return state.selectedLayerIds.map((id) => artboard.layers.find((l) => l.id === id)).filter(Boolean);
     });
+    const selectedLayersRef = React.useRef(selectedLayers);
+    selectedLayersRef.current = selectedLayers;
+    const stableSelectedLayers = React.useMemo(() => selectedLayersRef.current, [selectedLayerIds]);
 
     // Listen for "open effects panel" event
     useEffect(() => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Layer, TextLayer, ShapeLayer, ImageLayer } from '../types';
 
 export interface SmartSuggestion {
@@ -20,9 +20,14 @@ export function useSmartInteraction(layers: Layer[], selectedIds: string[]) {
   const [suggestions, setSuggestions] = useState<SmartSuggestion[]>([]);
   const [snapPoints, setSnapPoints] = useState<SnapPoint[]>([]);
   const timeoutRef = useRef<NodeJS.Timeout>();
-  const selectedLayers = layers.filter(l => selectedIds.includes(l.id));
+  const selectedLayers = useMemo(() => layers.filter(l => selectedIds.includes(l.id)), [layers, selectedIds]);
+  const prevIdsRef = useRef<string>('');
 
   useEffect(() => {
+    const idsKey = selectedIds.join(',');
+    if (idsKey === prevIdsRef.current) return;
+    prevIdsRef.current = idsKey;
+
     if (!selectedLayers.length) { setSuggestions([]); return; }
     const s: SmartSuggestion[] = [];
     if (selectedLayers.length >= 2) {
@@ -52,7 +57,7 @@ export function useSmartInteraction(layers: Layer[], selectedIds: string[]) {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => setSuggestions([]), 5000);
     return () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); };
-  }, [selectedLayers, layers]);
+  }, [selectedLayers, selectedIds]);
 
   const applySuggestion = useCallback((s: SmartSuggestion) => { s.action(); setSuggestions([]); }, []);
   const dismissSuggestion = useCallback((id: string) => { setSuggestions(prev => prev.filter(s => s.id !== id)); }, []);

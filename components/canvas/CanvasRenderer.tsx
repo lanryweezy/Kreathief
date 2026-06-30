@@ -8,6 +8,7 @@ import { SmartSuggestions } from './SmartSuggestions';
 import { SmartSnap } from './SmartSnap';
 import { SmartSuggestion } from '../../hooks/useSmartInteraction';
 import { bitmapCache } from '../../utils/bitmapCache';
+import { ErrorBoundary } from '../ErrorBoundary';
 
 const noop = () => {};
 
@@ -422,16 +423,20 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(
           />
         ))}
 
-        <SmartSuggestions
-          suggestions={suggestions}
-          onDismiss={onDismissSuggestion}
-          onApply={onApplySuggestion}
-          selectedIds={selectedLayerIds}
-          layers={allLayers}
-          zoom={zoom}
-        />
+        <ErrorBoundary componentName="SmartSuggestions" variant="widget">
+          <SmartSuggestions
+            suggestions={suggestions}
+            onDismiss={onDismissSuggestion}
+            onApply={onApplySuggestion}
+            selectedIds={selectedLayerIds}
+            layers={allLayers}
+            zoom={zoom}
+          />
+        </ErrorBoundary>
 
-        <SmartSnap layers={allLayers} selectedIds={selectedLayerIds} zoom={zoom} />
+        <ErrorBoundary componentName="SmartSnap" variant="widget">
+          <SmartSnap layers={allLayers} selectedIds={selectedLayerIds} zoom={zoom} />
+        </ErrorBoundary>
       </>
     );
   }

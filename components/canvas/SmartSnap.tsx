@@ -29,13 +29,18 @@ export const SmartSnap: React.FC<SmartSnapProps> = ({ layers, selectedIds, zoom 
   const threshold = 5 / zoom;
 
   if (selectedLayers.length >= 1 && otherLayers.length >= 1) {
+    const xs = selectedLayers.map(l => l.x);
+    const ys = selectedLayers.map(l => l.y);
+    const xws = selectedLayers.map(l => l.x + (l.width || 0));
+    const yhs = selectedLayers.map(l => l.y + (l.height || 0));
+    if (!xs.every(Number.isFinite) || !ys.every(Number.isFinite) || !xws.every(Number.isFinite) || !yhs.every(Number.isFinite)) return null;
     const bounds = {
-      left: Math.min(...selectedLayers.map(l => l.x)),
-      right: Math.max(...selectedLayers.map(l => l.x + l.width)),
-      top: Math.min(...selectedLayers.map(l => l.y)),
-      bottom: Math.max(...selectedLayers.map(l => l.y + l.height)),
-      centerX: (Math.min(...selectedLayers.map(l => l.x)) + Math.max(...selectedLayers.map(l => l.x + l.width))) / 2,
-      centerY: (Math.min(...selectedLayers.map(l => l.y)) + Math.max(...selectedLayers.map(l => l.y + l.height))) / 2,
+      left: Math.min(...xs),
+      right: Math.max(...xws),
+      top: Math.min(...ys),
+      bottom: Math.max(...yhs),
+      centerX: (Math.min(...xs) + Math.max(...xws)) / 2,
+      centerY: (Math.min(...ys) + Math.max(...yhs)) / 2,
     };
 
     otherLayers.forEach(layer => {

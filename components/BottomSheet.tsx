@@ -99,7 +99,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title
 
           {/* Header */}
           <div className="flex items-center justify-between w-full px-6">
-            <h3 className="text-base font-bold text-white tracking-wide">{title}</h3>
+            <h3 className="text-base font-bold text-white tracking-wide">{typeof title === 'string' ? title : String(title)}</h3>
             <button
               onClick={handleClose}
               className="p-2.5 hover:bg-white/10 active:bg-white/20 rounded-xl transition-all active:scale-95"

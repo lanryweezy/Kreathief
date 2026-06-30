@@ -163,27 +163,23 @@ export const useEditorLogic = (initialProject?: Project) => {
   // Extract Document Colors
   const documentColors = useMemo(() => {
     const colors = new Set<string>();
-    colors.add(canvasBackgroundColor);
+    const addColor = (c: any) => {
+      if (typeof c === 'string') colors.add(c);
+      else if (c != null) colors.add(String(c));
+    };
+    addColor(canvasBackgroundColor);
     layers.forEach((l) => {
       if (l.type === 'text') {
         const tl = l as TextLayer;
-        if (tl.color) {
-          colors.add(tl.color);
-        }
+        if (tl.color) addColor(tl.color);
       } else if (l.type !== 'image') {
         const sl = l as ShapeLayer;
-        if (sl.color) {
-          colors.add(sl.color);
-        }
+        if (sl.color) addColor(sl.color);
       }
-      if (l.stroke?.color) {
-        colors.add(l.stroke.color);
-      }
-      if (l.shadow?.color) {
-        colors.add(l.shadow.color);
-      }
+      if (l.stroke?.color) addColor(l.stroke.color);
+      if (l.shadow?.color) addColor(l.shadow.color);
     });
-    brandKits.forEach((kit) => kit.colors.forEach((c) => colors.add(c)));
+    brandKits.forEach((kit) => kit.colors.forEach((c) => addColor(c)));
     return Array.from(colors);
   }, [layers, canvasBackgroundColor, brandKits]);
 

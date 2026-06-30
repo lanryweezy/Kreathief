@@ -11,6 +11,13 @@ import { buildFilterString, getLayerStyle } from '../../utils/layers';
 import { SelectionHandles } from './SelectionHandles';
 import { BrushStrokeRenderer } from '../../services/brushEngine';
 
+const safeStr = (v: any, fallback = ''): string => {
+  if (v === null || v === undefined) return fallback;
+  if (typeof v === 'string') return v;
+  if (typeof v === 'number') return String(v);
+  return fallback;
+};
+
 interface LayerItemProps {
   layer: Layer;
   isSelected: boolean;
@@ -243,10 +250,10 @@ export const ImageLayerItem = React.memo(
             return {
               ...base,
               transform: `${imgLayer.perspective ? `perspective(${imgLayer.perspective}px)` : ''} rotateX(${imgLayer.rotateX || 0}deg) rotateY(${imgLayer.rotateY || 0}deg) ${base.transform} skew(${imgLayer.skewX || 0}deg, ${imgLayer.skewY || 0}deg)`,
-              boxShadow: imgLayer.shadow
-                ? `${imgLayer.shadow.offsetX}px ${imgLayer.shadow.offsetY}px ${imgLayer.shadow.blur}px ${imgLayer.shadow.color}`
+              boxShadow: imgLayer.shadow && typeof imgLayer.shadow === 'object'
+                ? `${imgLayer.shadow.offsetX}px ${imgLayer.shadow.offsetY}px ${imgLayer.shadow.blur}px ${safeStr(imgLayer.shadow.color, '#000000')}`
                 : 'none',
-              border: imgLayer.stroke ? `${imgLayer.stroke.width}px solid ${imgLayer.stroke.color}` : 'none',
+              border: imgLayer.stroke && typeof imgLayer.stroke === 'object' ? `${imgLayer.stroke.width}px solid ${safeStr(imgLayer.stroke.color, '#000000')}` : 'none',
               borderRadius: `${imgLayer.cornerRadius || 0}px`,
               willChange: 'transform',
               zIndex: isSelected ? 100 : isHovered ? 99 : 1,
@@ -324,17 +331,17 @@ export const ShapeLayerItem = React.memo(
           };
 
           const buildShadow = () => {
-            if (!shapeLayer.shadow) return 'none';
+            if (!shapeLayer.shadow || typeof shapeLayer.shadow !== 'object') return 'none';
             const s = shapeLayer.shadow;
             const opacity = s.opacity ?? 1;
-            const color = s.color;
+            const color = safeStr(s.color, '#000000');
             const inset = s.inset ? 'inset ' : '';
             return `${inset}${s.offsetX}px ${s.offsetY}px ${s.blur}px ${color}`;
           };
 
           return {
             ...animStyle,
-            backgroundColor: shapeLayer.type === 'path' ? 'transparent' : shapeLayer.color,
+            backgroundColor: shapeLayer.type === 'path' ? 'transparent' : safeStr(shapeLayer.color, '#7d2ae8'),
             backgroundImage:
               shapeLayer.type === 'path'
                 ? 'none'
@@ -647,11 +654,11 @@ export const TextLayerItem = React.memo(
             }}
             className={isEditing ? 'outline-none min-w-[30px] select-text' : ''}
             style={{
-              fontFamily: textLayer.fontFamily,
-              fontSize: `${textLayer.fontSize}px`,
+              fontFamily: safeStr(textLayer.fontFamily, 'sans-serif'),
+              fontSize: `${typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 16}px`,
               fontWeight: textLayer.fontWeight,
               fontStyle: textLayer.fontStyle,
-              color: textLayer.color,
+              color: safeStr(textLayer.color, '#000000'),
               textAlign: textLayer.textAlign,
               letterSpacing: textLayer.letterSpacing ? `${textLayer.letterSpacing}px` : undefined,
               lineHeight: textLayer.lineHeight || 1.5,
@@ -661,15 +668,15 @@ export const TextLayerItem = React.memo(
               textTransform: textLayer.textTransform,
               whiteSpace: 'pre-wrap',
               wordBreak: 'break-word',
-              ...(textLayer.textShadow
-                ? { textShadow: `${textLayer.textShadow.offsetX}px ${textLayer.textShadow.offsetY}px ${textLayer.textShadow.blur}px ${textLayer.textShadow.color}` }
+              ...(textLayer.textShadow && typeof textLayer.textShadow === 'object'
+                ? { textShadow: `${textLayer.textShadow.offsetX}px ${textLayer.textShadow.offsetY}px ${textLayer.textShadow.blur}px ${safeStr(textLayer.textShadow.color, '#000000')}` }
                 : textLayer.styleType === 'emboss'
                   ? { textShadow: '-1px -1px 1px rgba(255,255,255,0.8), 1px 1px 2px rgba(0,0,0,0.6)' }
                   : textLayer.styleType === 'deboss'
                     ? { textShadow: '1px 1px 1px rgba(255,255,255,0.8), -1px -1px 2px rgba(0,0,0,0.6)' }
                     : {}),
-              ...(textLayer.textStroke
-                ? { WebkitTextStroke: `${textLayer.textStroke.width}px ${textLayer.textStroke.color}` }
+              ...(textLayer.textStroke && typeof textLayer.textStroke === 'object'
+                ? { WebkitTextStroke: `${textLayer.textStroke.width}px ${safeStr(textLayer.textStroke.color, '#7d2ae8')}` }
                 : textLayer.styleType === 'hollow'
                   ? { WebkitTextStroke: '1px #7d2ae8' }
                   : {}),
@@ -679,7 +686,7 @@ export const TextLayerItem = React.memo(
               ...(maskPath ? { clipPath: maskPath } : {}),
             }}
           >
-            {String(textLayer.text)}
+            {safeStr(textLayer.text, '')}
           </div>
           {isSelected && !isEditing && (
             <SelectionHandles layer={textLayer} onResize={onResize} onRotate={onRotate} />

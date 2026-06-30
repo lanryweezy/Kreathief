@@ -37,11 +37,17 @@ export const SmartSuggestions: React.FC<SmartSuggestionsProps> = ({
     const selectedLayers = layers.filter(l => selectedIds.includes(l.id));
     if (selectedLayers.length === 0) return;
 
+    const xs = selectedLayers.map(l => l.x);
+    const ys = selectedLayers.map(l => l.y);
+    const xws = selectedLayers.map(l => l.x + (l.width || 0));
+    const yhs = selectedLayers.map(l => l.y + (l.height || 0));
+    if (!xs.every(Number.isFinite) || !ys.every(Number.isFinite) || !xws.every(Number.isFinite) || !yhs.every(Number.isFinite)) return;
+
     const bounds = {
-      x: Math.min(...selectedLayers.map(l => l.x)),
-      y: Math.min(...selectedLayers.map(l => l.y)),
-      width: Math.max(...selectedLayers.map(l => l.x + l.width)) - Math.min(...selectedLayers.map(l => l.x)),
-      height: Math.max(...selectedLayers.map(l => l.y + l.height)) - Math.min(...selectedLayers.map(l => l.y)),
+      x: Math.min(...xs),
+      y: Math.min(...ys),
+      width: Math.max(...xws) - Math.min(...xs),
+      height: Math.max(...yhs) - Math.min(...ys),
     };
 
     ref.current.style.left = `${(bounds.x + bounds.width / 2) * zoom}px`;
