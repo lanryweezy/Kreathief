@@ -4,3 +4,4 @@
 **Action:** When creating tests or ensuring 100% coverage on utils files, carefully isolate branch conditions (e.g., all boundaries for RGB/HSL transformations, all boundaries for WCAG, and conditional `if` gaps for strings mapping back to RGB limits) in tests. Then combine tests within the main unit test file for simplicity.
 
 >> 2023-10-xx: Forge metadata rules require stringent verification for JSON payload correctness. Tools like `jq` or short `cjs` scripts are essential for mass-editing attributes in large directory structures without human oversight failures, especially character count constraints limit like `seoMetadata.title` (60 max).
+\n>> 2026-06-30: Forge metadata rules verify format for seoMetadata.title is strict and valid. Checked through python script without requiring file mutation because current state complies with metadata spec.
