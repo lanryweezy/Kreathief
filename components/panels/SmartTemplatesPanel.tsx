@@ -85,6 +85,7 @@ export const SmartTemplatesPanel: React.FC<SmartTemplatesPanelProps> = ({ onAppl
             {onBack && (
               <button
                 onClick={onBack}
+                aria-label="Go back"
                 className="p-1.5 hover:bg-gray-800 rounded-lg text-gray-400 hover:text-white transition-colors"
               >
                 <Icons.ArrowLeft className="w-4 h-4" />

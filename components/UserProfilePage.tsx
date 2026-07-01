@@ -76,6 +76,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-4">
           <button
             onClick={onBack}
+            aria-label="Go back"
             className="p-2 hover:bg-white/5 rounded-xl text-gray-400 hover:text-white transition-colors"
           >
             <Icons.ArrowLeft className="w-5 h-5" />

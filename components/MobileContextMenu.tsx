@@ -107,7 +107,7 @@ export const MobileContextMenu: React.FC<MobileContextMenuProps> = ({
             <div className="px-6 py-4 border-b border-white/5">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-bold text-white">Layer Actions</h3>
-                <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
+                <button onClick={onClose} aria-label="Close" className="p-2 hover:bg-white/10 rounded-xl transition-colors">
                   <Icons.X className="w-5 h-5 text-gray-400" />
                 </button>
               </div>
