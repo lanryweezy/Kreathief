@@ -56,6 +56,78 @@ export default ${componentName};
 `;
 }
 
+
+
+/**
+ * 🔩 Hinge Extension Point: Layer Code Generators
+ *
+ * 🔍 Pressure: The `layerToCode` function contained a growing switch statement
+ *    with hard-coded cases for 'text', 'image', 'rectangle', and 'circle'.
+ *    Adding new shape types (e.g., triangles, paths) or new layer constructs
+ *    (e.g., SVG groups, widgets) required modifying this core export module directly.
+ *
+ * 💡 Extension point: A strategy registry mapping layer types to their specific
+ *    React code generation logic.
+ *
+ * 📋 Contract:
+ *    - Implementors must provide a function matching the `CodeGenerator` type.
+ *    - The function receives the layer data, the requested styling mode ('tailwind', 'css', 'inline'),
+ *      and pre-computed positioning strings (`posClass`, `posStyle`) to handle basic layout.
+ *    - The function must return valid React/JSX string output, or `null` if the layer
+ *      cannot be rendered in code.
+ *    - Generators must escape user-provided text using `escapeJsx` to prevent injection.
+ */
+export type CodeGenerator<T extends Layer = Layer> = (
+
+  layer: T,
+  styling: string,
+  posClass: string,
+  posStyle: string
+) => string | null;
+
+export const codeGenerators = new Map<string, CodeGenerator<any>>();
+
+codeGenerators.set('text', (layer: TextLayer, styling, posClass, posStyle) => {
+  const tl = layer;
+  const style = styling === 'inline' ? posStyle : posClass;
+  const textStyle =
+    styling === 'inline'
+      ? `, fontFamily: '${tl.fontFamily}', fontSize: ${tl.fontSize}, fontWeight: '${tl.fontWeight}', color: '${tl.color}'`
+      : '';
+
+  if (styling === 'tailwind') {
+    return `<p className="${posClass} text-[${tl.fontSize}px] font-${tl.fontWeight === 'bold' ? 'bold' : 'normal'} text-[${tl.color}]">${escapeJsx(tl.text || '')}</p>`;
+  }
+  return `<p style={${posStyle.replace('}', textStyle + '}')}}>${escapeJsx(tl.text || '')}</p>`;
+});
+
+codeGenerators.set('image', (layer: ImageLayer, styling, posClass, posStyle) => {
+  const il = layer;
+  if (styling === 'tailwind') {
+    return `<img src="${il.src}" alt="${layer.name || 'image'}" className="${posClass} object-cover" />`;
+  }
+  return `<img src="${il.src}" alt="${layer.name || 'image'}" style={${posStyle}} />`;
+});
+
+codeGenerators.set('rectangle', (layer: ShapeLayer, styling, posClass, posStyle) => {
+  const sl = layer;
+  const r = sl.cornerRadius || 0;
+  if (styling === 'tailwind') {
+    return `<div className="${posClass} bg-[${sl.color}]${r ? ` rounded-[${r}px]` : ''}" />`;
+  }
+  const bgStyle = `, backgroundColor: '${sl.color}'${r ? `, borderRadius: ${r}` : ''}`;
+  return `<div style={${posStyle.replace('}', bgStyle + '}')}} />`;
+});
+
+codeGenerators.set('circle', (layer: ShapeLayer, styling, posClass, posStyle) => {
+  const sl = layer;
+  if (styling === 'tailwind') {
+    return `<div className="${posClass} bg-[${sl.color}] rounded-full" />`;
+  }
+  const circleStyle = `, backgroundColor: '${sl.color}', borderRadius: '50%'`;
+  return `<div style={${posStyle.replace('}', circleStyle + '}')}} />`;
+});
+
 function layerToCode(layer: Layer, styling: string): string | null {
   const x = Math.round(layer.x);
   const y = Math.round(layer.y);
@@ -74,47 +146,11 @@ function layerToCode(layer: Layer, styling: string): string | null {
       ? `absolute left-[${x}px] top-[${y}px] w-[${w}px] h-[${h}px] opacity-[${opacity}]${rotation ? ` rotate-[${rotation}deg]` : ''}`
       : '';
 
-  switch (layer.type) {
-    case 'text': {
-      const tl = layer as TextLayer;
-      const style = styling === 'inline' ? posStyle : posClass;
-      const textStyle =
-        styling === 'inline'
-          ? `, fontFamily: '${tl.fontFamily}', fontSize: ${tl.fontSize}, fontWeight: '${tl.fontWeight}', color: '${tl.color}'`
-          : '';
-
-      if (styling === 'tailwind') {
-        return `<p className="${posClass} text-[${tl.fontSize}px] font-${tl.fontWeight === 'bold' ? 'bold' : 'normal'} text-[${tl.color}]">${escapeJsx(tl.text || '')}</p>`;
-      }
-      return `<p style={${posStyle.replace('}', textStyle + '}')}>${escapeJsx(tl.text || '')}</p>`;
-    }
-    case 'image': {
-      const il = layer as ImageLayer;
-      if (styling === 'tailwind') {
-        return `<img src="${il.src}" alt="${layer.name || 'image'}" className="${posClass} object-cover" />`;
-      }
-      return `<img src="${il.src}" alt="${layer.name || 'image'}" style={${posStyle}} />`;
-    }
-    case 'rectangle': {
-      const sl = layer as ShapeLayer;
-      const r = sl.cornerRadius || 0;
-      if (styling === 'tailwind') {
-        return `<div className="${posClass} bg-[${sl.color}]${r ? ` rounded-[${r}px]` : ''}" />`;
-      }
-      const bgStyle = `, backgroundColor: '${sl.color}'${r ? `, borderRadius: ${r}` : ''}`;
-      return `<div style={${posStyle.replace('}', bgStyle + '}')}} />`;
-    }
-    case 'circle': {
-      const sl = layer as ShapeLayer;
-      if (styling === 'tailwind') {
-        return `<div className="${posClass} bg-[${sl.color}] rounded-full" />`;
-      }
-      const circleStyle = `, backgroundColor: '${sl.color}', borderRadius: '50%'`;
-      return `<div style={${posStyle.replace('}', circleStyle + '}')}} />`;
-    }
-    default:
-      return null;
+  const generator = codeGenerators.get(layer.type);
+  if (generator) {
+    return generator(layer, styling, posClass, posStyle);
   }
+  return null;
 }
 
 function getArtboardClasses(artboard: Artboard, styling: string): string {

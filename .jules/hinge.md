@@ -17,3 +17,6 @@
 
 **Learning:** Found massive duplication of shape polygon definitions across `exportWorker.ts`, `mask.worker.ts`, and `layerRendering.ts`. Extracting to a registry or central dictionary is highly justified because adding a new shape requires updating three distinct areas.
 **Action:** Extract a `getShapeDefinition` hook/registry into a shared `utils/layers/shapeRegistry.ts` (or similar) to centralize shape logic.
+## 2024-06-25 - Extracted Code Export Layer Generation into Strategy Registry
+**Learning:** The `layerToCode` function in `utils/codeExport.ts` used a growing `switch` statement with hard-coded logic for every layer type ('text', 'image', 'rectangle', 'circle'). Adding support for new layer types (e.g. paths, SVGs) would constantly require editing this core file. By extracting these into a self-registering `codeGenerators` strategy Map and documenting the `CodeGenerator` interface contract, we made the export pipeline additively extensible.
+**Action:** When adding code generation support for new layer types in `utils/codeExport.ts`, register a `CodeGenerator` strategy in the `codeGenerators` Map instead of modifying the core `layerToCode` function.
