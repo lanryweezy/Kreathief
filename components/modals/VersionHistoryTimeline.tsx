@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
 import { Button } from '../Button';
 import { DesignSnapshot } from '../../types';
@@ -9,7 +10,15 @@ import { DesignSnapshot } from '../../types';
  * Shows design history as a scrubable timeline like a video editor.
  */
 export const VersionHistoryTimeline: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const { snapshots, fetchSnapshots, restoreSnapshot, createSnapshot, deleteSnapshot } = useStore();
+  const { snapshots, fetchSnapshots, restoreSnapshot, createSnapshot, deleteSnapshot } = useStore(
+    useShallow((state) => ({
+      snapshots: state.snapshots,
+      fetchSnapshots: state.fetchSnapshots,
+      restoreSnapshot: state.restoreSnapshot,
+      createSnapshot: state.createSnapshot,
+      deleteSnapshot: state.deleteSnapshot,
+    }))
+  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [snapshotName, setSnapshotName] = useState('');

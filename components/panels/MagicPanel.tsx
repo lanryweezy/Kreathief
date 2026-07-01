@@ -6,6 +6,7 @@ import { Toggle } from '../Toggle';
 import * as geminiService from '../../services/geminiService';
 
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
 import { getAIErrorMessage } from '../../utils/errorMessages';
@@ -106,7 +107,26 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
 
     addImageLayer,
     lastGeneratedImageUrl,
-  } = useStore();
+  } = useStore(
+    useShallow((state) => ({
+      mode: state.mode,
+      setMode: state.setMode,
+      prompt: state.prompt,
+      setPrompt: state.setPrompt,
+      aspectRatio: state.aspectRatio,
+      setAspectRatio: state.setAspectRatio,
+      isProcessing: state.isProcessing,
+      isGenerating: state.isGenerating,
+      addToast: state.addToast,
+      quality: state.quality,
+      setQuality: state.setQuality,
+      selectedLayerIds: state.selectedLayerIds,
+      artboards: state.artboards,
+      activeArtboardId: state.activeArtboardId,
+      addImageLayer: state.addImageLayer,
+      lastGeneratedImageUrl: state.lastGeneratedImageUrl,
+    }))
+  );
 
   const layers = artboards?.find((a) => a.id === activeArtboardId)?.layers || [];
   const selectedLayerId = selectedLayerIds[selectedLayerIds.length - 1] || null;
