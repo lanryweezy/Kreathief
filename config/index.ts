@@ -7,7 +7,8 @@ import { log } from '../utils/log';
 
 // Environment variables with validation
 const getEnv = (key: string, defaultValue?: string): string => {
-  const value = import.meta.env[key] || defaultValue;
+  const raw = import.meta.env[key] || defaultValue;
+  const value = typeof raw === 'string' ? raw.trim() : raw;
 
   // For E2E tests, we allow missing env vars if QA bypass is enabled
   const isQABypass = import.meta.env.VITE_QA_BYPASS === 'true';

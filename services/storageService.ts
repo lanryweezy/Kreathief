@@ -549,7 +549,13 @@ class StorageService {
     const store = await this.getStore('projects', 'readonly');
     return new Promise((resolve, reject) => {
       const request = store.get(projectId);
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = () => {
+        const raw = request.result;
+        if (raw && raw.state && raw.state.artboards) {
+          raw.state.artboards = this.sanitizeArtboards(raw.state.artboards);
+        }
+        resolve(raw);
+      };
       request.onerror = () => reject(request.error);
     });
   }
@@ -670,7 +676,13 @@ class StorageService {
     const store = await this.getStore('projects');
     return new Promise((resolve, reject) => {
       const request = store.get(id);
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = () => {
+        const raw = request.result;
+        if (raw && raw.state && raw.state.artboards) {
+          raw.state.artboards = this.sanitizeArtboards(raw.state.artboards);
+        }
+        resolve(raw);
+      };
       request.onerror = () => reject(request.error);
     });
   }
@@ -707,7 +719,12 @@ class StorageService {
     return new Promise((resolve, reject) => {
       const request = store.getAll();
       request.onsuccess = () => {
-        const projects = request.result || [];
+        const projects = (request.result || []).map((p: any) => {
+          if (p && p.state && p.state.artboards) {
+            p.state.artboards = this.sanitizeArtboards(p.state.artboards);
+          }
+          return p;
+        });
         resolve(projects.sort((a: Project, b: Project) => b.updatedAt - a.updatedAt));
       };
       request.onerror = () => reject(request.error);
@@ -791,6 +808,7 @@ class StorageService {
     if (typeof safe.text === 'object') safe.text = str(safe.text);
     if (typeof safe.fontFamily === 'object') safe.fontFamily = str(safe.fontFamily);
     if (typeof safe.fill === 'object' && typeof safe.fill !== 'string') safe.fill = str(safe.fill);
+    if (typeof safe.color === 'object') safe.color = str(safe.color, '#7d2ae8');
     if (typeof safe.blendMode === 'object') safe.blendMode = str(safe.blendMode);
     if (typeof safe.maskLayerId === 'object') safe.maskLayerId = str(safe.maskLayerId);
     if (typeof safe.groupId === 'object') safe.groupId = str(safe.groupId);
@@ -799,6 +817,17 @@ class StorageService {
     if (typeof safe.src === 'object') safe.src = str(safe.src);
     if (typeof safe.pathData === 'object') safe.pathData = str(safe.pathData);
     if (typeof safe.filter === 'object') safe.filter = str(safe.filter);
+    if (typeof safe.fontSize === 'object') safe.fontSize = num(safe.fontSize, 16);
+    if (typeof safe.fontWeight === 'object') safe.fontWeight = str(safe.fontWeight, 'normal');
+    if (typeof safe.fontStyle === 'object') safe.fontStyle = str(safe.fontStyle, 'normal');
+    if (typeof safe.textAlign === 'object') safe.textAlign = str(safe.textAlign, 'left');
+    if (typeof safe.textDecoration === 'object') safe.textDecoration = str(safe.textDecoration);
+    if (typeof safe.textTransform === 'object') safe.textTransform = str(safe.textTransform);
+    if (typeof safe.letterSpacing === 'object') safe.letterSpacing = num(safe.letterSpacing);
+    if (typeof safe.cornerRadius === 'object' && typeof safe.cornerRadius !== 'number') safe.cornerRadius = num(safe.cornerRadius, 8);
+    if (typeof safe.gradient === 'object' && safe.gradient !== null) {
+      if (typeof safe.gradient.type === 'object') safe.gradient.type = str(safe.gradient.type, 'linear');
+    }
     return safe;
   }
 

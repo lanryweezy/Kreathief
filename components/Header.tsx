@@ -3,7 +3,6 @@ import { Icons } from '../constants';
 import { User, Project } from '../types';
 import { DropdownMenu } from './DropdownMenu';
 import { useStore } from '../store/useStore';
-import { useShallow } from 'zustand/react/shallow';
 import { PublishModal } from './modals/PublishModal';
 import { PresenceBar } from './collaboration/PresenceBar';
 import { Button } from './Button';
@@ -40,48 +39,27 @@ export const Header: React.FC<HeaderProps> = ({
   showRulers,
   onToggleRulers,
 }) => {
-  const {
-    undo,
-    redo,
-    past,
-    future,
-    isSaving,
-    lastSaved,
-    hasUnsavedChanges,
-    projectTitle,
-    setProjectTitle,
-    saveProject: onSave,
-    showShortcuts,
-    setShowShortcuts,
-    setShowShareModal,
-  } = useStore(
-    useShallow((state) => ({
-      undo: state.undo,
-      redo: state.redo,
-      past: state.past,
-      future: state.future,
-      isSaving: state.isSaving,
-      lastSaved: state.lastSaved,
-      hasUnsavedChanges: state.hasUnsavedChanges,
-      projectTitle: state.projectTitle,
-      setProjectTitle: state.setProjectTitle,
-      saveProject: state.saveProject,
-      showShortcuts: state.showShortcuts,
-      setShowShortcuts: state.setShowShortcuts,
-      setShowShareModal: state.setShowShareModal,
-      zoom: state.zoom,
-      setZoom: state.setZoom,
-      isCommandPaletteOpen: state.isCommandPaletteOpen,
-      setCommandPaletteOpen: state.setCommandPaletteOpen,
-      syncStatus: state.syncStatus,
-    }))
-  );
+  const s = useStore.getState();
+  const undo = s.undo;
+  const redo = s.redo;
+  const saveProject = s.saveProject;
+  const showShortcuts = s.showShortcuts;
+  const setShowShortcuts = s.setShowShortcuts;
+  const setShowShareModal = s.setShowShareModal;
+  const setProjectTitle = s.setProjectTitle;
+
+  const past = useStore((state) => state.past);
+  const future = useStore((state) => state.future);
+  const isSaving = useStore((state) => state.isSaving);
+  const lastSaved = useStore((state) => state.lastSaved);
+  const hasUnsavedChanges = useStore((state) => state.hasUnsavedChanges);
+  const projectTitle = useStore((state) => state.projectTitle);
 
   const [showPublishModal, setShowPublishModal] = React.useState(false);
   const [isEditingTitle, setIsEditingTitle] = React.useState(false);
   const [showZoomMenu, setShowZoomMenu] = React.useState(false);
   const zoomButtonRef = React.useRef<HTMLButtonElement>(null);
-  const titleSnapshotRef = React.useRef<string>(projectTitle);
+  const titleSnapshotRef = React.useRef<string>(String(projectTitle || ''));
 
   const onShare = () => setShowShareModal(true);
 
@@ -311,11 +289,11 @@ export const Header: React.FC<HeaderProps> = ({
           <input
             data-testid="project-title-input"
             type="text"
-            value={projectTitle}
+            value={String(projectTitle || 'Untitled')}
             onChange={(e) => setProjectTitle(e.target.value)}
             onFocus={(e) => {
               e.target.select();
-              titleSnapshotRef.current = projectTitle;
+              titleSnapshotRef.current = String(projectTitle || '');
             }}
             onBlur={() => setIsEditingTitle(false)}
             onKeyDown={(e) => {
@@ -323,7 +301,7 @@ export const Header: React.FC<HeaderProps> = ({
                 setIsEditingTitle(false);
               }
               if (e.key === 'Escape') {
-                setProjectTitle(titleSnapshotRef.current);
+                setProjectTitle(String(titleSnapshotRef.current || 'Untitled'));
                 setIsEditingTitle(false);
               }
             }}
@@ -337,7 +315,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="text-sm font-medium text-white hover:text-brand-400 transition-colors px-2 py-1 rounded hover:bg-white/5 text-center"
             title="Click to rename"
           >
-            {projectTitle}
+            {String(projectTitle || 'Untitled')}
           </button>
         )}
       </div>

@@ -89,6 +89,12 @@ function sanitizeLayer(layer: any): any {
   }
   if (typeof safe.cornerRadius === 'object') safe.cornerRadius = num(safe.cornerRadius);
   if (typeof safe.fontSize === 'object') safe.fontSize = num(safe.fontSize, 16);
+  if (typeof safe.fontWeight === 'object') safe.fontWeight = str(safe.fontWeight, 'normal');
+  if (typeof safe.fontStyle === 'object') safe.fontStyle = str(safe.fontStyle, 'normal');
+  if (typeof safe.textAlign === 'object') safe.textAlign = str(safe.textAlign, 'left');
+  if (typeof safe.textDecoration === 'object') safe.textDecoration = str(safe.textDecoration);
+  if (typeof safe.textTransform === 'object') safe.textTransform = str(safe.textTransform);
+  if (typeof safe.letterSpacing === 'object') safe.letterSpacing = num(safe.letterSpacing);
   if (typeof safe.strokeWidth === 'object') safe.strokeWidth = num(safe.strokeWidth, 1);
   return safe;
 }
