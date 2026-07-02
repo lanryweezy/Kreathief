@@ -1,27 +1,36 @@
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useNodeGraph } from '../../hooks/useNodeGraph';
+import { useNodeDrag } from '../../hooks/useNodeDrag';
 import { getNodeDefinition } from '../../data/nodeDefinitions';
 import { Node } from './Node';
 import { Wire } from './Wire';
 import { NodeSidebar } from './NodeSidebar';
 import { WorkflowPresets } from './WorkflowPresets';
 import { Icons } from '../../constants';
-import { v4 as uuidv4 } from 'uuid';
 
 export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (result: any) => void }> = ({ onClose, onExportToCanvas }) => {
   const {
     graph, selectedNodeId, nodeOutputs, viewport, wireState,
     addNode, removeNode, selectNode, updateNodeSettings,
-    startWireDrag, endWireDrag, setViewport, loadPreset, clearGraph, executeGraph, isExecuting,
+    endWireDrag, loadPreset, clearGraph, executeGraph, isExecuting,
   } = useNodeGraph();
+
+  const { handlers } = useNodeDrag();
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const [showPresets, setShowPresets] = useState(true);
   const [showSidebar, setShowSidebar] = useState(true);
   const [lastResult, setLastResult] = useState<any>(null);
   const [showSuccess, setShowSuccess] = useState(false);
-  const isPanning = useRef(false);
-  const panStart = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    window.addEventListener('keydown', handlers.onKeyDown);
+    window.addEventListener('keyup', handlers.onKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handlers.onKeyDown);
+      window.removeEventListener('keyup', handlers.onKeyUp);
+    };
+  }, [handlers.onKeyDown, handlers.onKeyUp]);
 
   const findFinalOutput = useCallback(() => {
     const exportNodes = graph.nodes.filter((n) => {
@@ -56,41 +65,6 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
     }
   }, [lastResult, onExportToCanvas]);
 
-  const handleCanvasMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.target === canvasRef.current || (e.target as HTMLElement).classList.contains('node-graph-bg')) {
-      selectNode(null);
-      if (e.button === 1 || e.shiftKey) {
-        isPanning.current = true;
-        panStart.current = { x: e.clientX - viewport.x, y: e.clientY - viewport.y };
-      }
-    }
-  }, [selectNode, viewport]);
-
-  const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isPanning.current) {
-      setViewport({ x: e.clientX - panStart.current.x, y: e.clientY - panStart.current.y, zoom: viewport.zoom });
-    }
-  }, [setViewport, viewport]);
-
-  const handleCanvasMouseUp = useCallback(() => {
-    isPanning.current = false;
-  }, []);
-
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    const newZoom = Math.max(0.1, Math.min(3, viewport.zoom * delta));
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    setViewport({
-      x: mx - (mx - viewport.x) * (newZoom / viewport.zoom),
-      y: my - (my - viewport.y) * (newZoom / viewport.zoom),
-      zoom: newZoom,
-    });
-  }, [viewport, setViewport]);
-
   const handleAddNode = useCallback((type: string, x: number, y: number) => {
     addNode(type, (x - viewport.x) / viewport.zoom, (y - viewport.y) / viewport.zoom);
   }, [addNode, viewport]);
@@ -106,11 +80,11 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
     }
   }, [wireState.isDrawing, endWireDrag]);
 
-  const handlePortMouseDown = useCallback((nodeId: string, portId: string, side: 'input' | 'output') => {
+  const handlePortMouseDown = useCallback((_e: React.MouseEvent, nodeId: string, portId: string, side: 'input' | 'output') => {
     if (side === 'output') {
-      startWireDrag(nodeId, portId);
+      handlers.startWireDraw(nodeId, portId, _e);
     }
-  }, [startWireDrag]);
+  }, [handlers.startWireDraw]);
 
   const getNodePosition = (nodeId: string) => {
     const node = graph.nodes.find((n) => n.id === nodeId);
@@ -131,6 +105,12 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
       y: node.y + headerHeight + (index + 0.5) * portSpacing,
     };
   };
+
+  const handleCanvasClick = useCallback((e: React.MouseEvent) => {
+    if (e.target === canvasRef.current || (e.target as HTMLElement).classList.contains('node-graph-bg')) {
+      handlers.onCanvasMouseDown(e);
+    }
+  }, [handlers.onCanvasMouseDown]);
 
   return (
     <div className="fixed inset-0 z-[200] bg-surface-dark-0 flex flex-col">
@@ -189,11 +169,10 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
         <div
           ref={canvasRef}
           className="flex-1 relative overflow-hidden node-graph-bg"
-          style={{ cursor: isPanning.current ? 'grabbing' : 'default' }}
-          onMouseDown={handleCanvasMouseDown}
-          onMouseMove={handleCanvasMouseMove}
-          onMouseUp={handleCanvasMouseUp}
-          onWheel={handleWheel}
+          onMouseDown={handleCanvasClick}
+          onMouseMove={handlers.onCanvasMouseMove}
+          onMouseUp={handlers.onCanvasMouseUp}
+          onWheel={handlers.onWheel}
         >
           <div
             className="node-graph-bg absolute inset-0"
@@ -245,10 +224,7 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
                 node={node}
                 isSelected={selectedNodeId === node.id}
                 output={nodeOutputs[node.id]}
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                  selectNode(node.id);
-                }}
+                onMouseDown={handlers.onNodeMouseDown}
                 onPortMouseDown={handlePortMouseDown}
                 onPortMouseUp={handlePortMouseUp}
                 onDelete={() => removeNode(node.id)}
@@ -272,7 +248,7 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
               <div className="bg-surface-dark-3/95 border border-white/10 rounded-xl p-3 shadow-2xl backdrop-blur-md">
                 <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Output Preview</p>
                 <img
-                  src={lastResult.image.src}
+                  src={lastResult.image.src || lastResult.image}
                   alt="Node output"
                   className="w-32 h-32 object-cover rounded-lg border border-white/10"
                   onError={(e) => {
