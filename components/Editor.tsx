@@ -13,6 +13,7 @@ import { SidePanel } from './SidePanel';
 import { MobileNavBar } from './MobileNavBar';
 import { BottomSheet } from './BottomSheet';
 import { Canvas } from './Canvas';
+import { EditorAIPanel } from '../hooks/useEditorAI';
 import { User, Project, AnimationSettings } from '../types';
 import { useEditorLogic } from '../hooks/useEditorLogic';
 import { useFileHandler } from '../hooks/useFileHandler';
@@ -162,6 +163,17 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     handleBooleanHover,
     handleLayerDoubleClick,
   } = useEditorLogic(initialProject);
+
+  // AI Panel (Node Graph + AI Generate)
+  const {
+    showNodeGraph,
+    setShowNodeGraph,
+    showAIGenerate,
+    setShowAIGenerate,
+    handleAIGenerate,
+    NodeGraphComponent,
+    AIGenerateComponent,
+  } = EditorAIPanel({ onAddLayer: (layer) => useStore.getState().addLayer(layer) });
 
   // Sync Project from URL ID
   React.useEffect(() => {
@@ -757,6 +769,22 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             className="h-11 bg-surface-dark-1/90 border-b border-white/5 flex items-center z-30 w-full shrink-0 px-4 gap-4 backdrop-blur-md"
           >
             <div className="flex items-center gap-4 w-full h-full">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowAIGenerate(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-brand-600 to-purple-600 text-white rounded-lg hover:from-brand-500 hover:to-purple-500 transition-all shadow-lg shadow-brand-600/20"
+                >
+                  <Icons.Sparkles className="w-3.5 h-3.5" />
+                  AI Generate
+                </button>
+                <button
+                  onClick={() => setShowNodeGraph(!showNodeGraph)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${showNodeGraph ? 'bg-brand-600 text-white' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                >
+                  <Icons.Magic className="w-3.5 h-3.5" />
+                  {showNodeGraph ? 'Close' : 'Workflows'}
+                </button>
+              </div>
               <Toolbar
                 documentColors={documentColors}
                 onBooleanOperation={handleBooleanOperation}
@@ -1070,6 +1098,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         {showCommunityModal && <CommunityModal onClose={() => setShowCommunityModal(false)} />}
         <CommandPalette />
       </React.Suspense>
+
+      {NodeGraphComponent}
+      {AIGenerateComponent}
     </div>
   );
 };
