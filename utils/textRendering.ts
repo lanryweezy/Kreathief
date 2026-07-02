@@ -50,6 +50,16 @@ function applyTextStroke(
 }
 
 /**
+ * Apply CSS-like text transformations (uppercase, lowercase) to a string
+ */
+export function applyTextTransform(text: string, transform?: 'none' | 'uppercase' | 'lowercase'): string {
+  if (!text) return text;
+  if (transform === 'uppercase') return text.toUpperCase();
+  if (transform === 'lowercase') return text.toLowerCase();
+  return text;
+}
+
+/**
  * Convert straight quotes to typographic curly quotes and double hyphens to em-dashes.
  */
 export function applySmartQuotes(text: string): string {
@@ -76,7 +86,8 @@ export const renderTextOnPath = (canvas: HTMLCanvasElement, layer: TextLayer) =>
     return;
   }
 
-  const { text, color, fontSize, fontFamily, fontWeight, fontStyle, width } = layer;
+  const { text: originalText, color, fontSize, fontFamily, fontWeight, fontStyle, width, textTransform } = layer;
+  const text = applyTextTransform(originalText, textTransform);
   const dpr = 2; // High DPI
 
   canvas.width = width * dpr;
@@ -133,7 +144,7 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
   }
 
   const {
-    text,
+    text: originalText,
     color,
     fontSize,
     fontFamily,
@@ -147,7 +158,10 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
     width,
     lineHeight = 1.2,
     textAlign = 'left',
+    textTransform,
   } = layer;
+
+  const text = applyTextTransform(originalText, textTransform);
 
   const dpr = 2;
   const font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
@@ -225,7 +239,7 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
  */
 export const renderMultilineText = (ctx: CanvasRenderingContext2D, layer: TextLayer) => {
   const {
-    text,
+    text: originalText,
     color,
     fontSize,
     fontFamily,
@@ -235,7 +249,10 @@ export const renderMultilineText = (ctx: CanvasRenderingContext2D, layer: TextLa
     lineHeight = 1.2,
     textAlign = 'left',
     letterSpacing = 0,
+    textTransform,
   } = layer;
+
+  const text = applyTextTransform(originalText, textTransform);
 
   const font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
 
@@ -350,7 +367,7 @@ export async function convertTextToOutlines(
 ): Promise<string> {
   const scale = options?.scale || 2;
   const {
-    text,
+    text: originalText,
     fontSize,
     fontFamily,
     fontWeight,
@@ -358,7 +375,10 @@ export async function convertTextToOutlines(
     letterSpacing = 0,
     lineHeight = 1.2,
     textAlign = 'left',
+    textTransform,
   } = layer;
+
+  const text = applyTextTransform(originalText, textTransform);
 
   const font = `${fontStyle} ${fontWeight} ${fontSize * scale}px ${fontFamily}`;
 
