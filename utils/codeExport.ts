@@ -7,6 +7,69 @@ interface CodeExportOptions {
 }
 
 /**
+ * Extensibility Point: CodeGenerator Strategy Registry
+ * Evidence of pressure: The `layerToCode` function relied on a hard-coded switch statement
+ * with 4 cases (text, image, rectangle, circle).
+ * Contract: Implementors must provide a `generate` method that accepts the layer, styling options,
+ * and computed position variables. It should return a code string or null if unsupported.
+ * The registry enables registering new layer generators without touching the core code export logic.
+ */
+export interface CodeGenerator {
+  generate(layer: Layer, styling: string, posClass: string, posStyle: string): string | null;
+}
+
+export const codeGenerators = new Map<string, CodeGenerator>();
+
+codeGenerators.set('text', {
+  generate(layer, styling, posClass, posStyle) {
+    const tl = layer as TextLayer;
+    const style = styling === 'inline' ? posStyle : posClass;
+    const textStyle =
+      styling === 'inline'
+        ? `, fontFamily: '${tl.fontFamily}', fontSize: ${tl.fontSize}, fontWeight: '${tl.fontWeight}', color: '${tl.color}'`
+        : '';
+
+    if (styling === 'tailwind') {
+      return `<p className="${posClass} text-[${tl.fontSize}px] font-${tl.fontWeight === 'bold' ? 'bold' : 'normal'} text-[${tl.color}]">${escapeJsx(tl.text || '')}</p>`;
+    }
+    return `<p style={${posStyle.replace('}', textStyle + '}')}}>${escapeJsx(tl.text || '')}</p>`;
+  }
+});
+
+codeGenerators.set('image', {
+  generate(layer, styling, posClass, posStyle) {
+    const il = layer as ImageLayer;
+    if (styling === 'tailwind') {
+      return `<img src="${il.src}" alt="${layer.name || 'image'}" className="${posClass} object-cover" />`;
+    }
+    return `<img src="${il.src}" alt="${layer.name || 'image'}" style={${posStyle}} />`;
+  }
+});
+
+codeGenerators.set('rectangle', {
+  generate(layer, styling, posClass, posStyle) {
+    const sl = layer as ShapeLayer;
+    const r = sl.cornerRadius || 0;
+    if (styling === 'tailwind') {
+      return `<div className="${posClass} bg-[${sl.color}]${r ? ` rounded-[${r}px]` : ''}" />`;
+    }
+    const bgStyle = `, backgroundColor: '${sl.color}'${r ? `, borderRadius: ${r}` : ''}`;
+    return `<div style={${posStyle.replace('}', bgStyle + '}')}} />`;
+  }
+});
+
+codeGenerators.set('circle', {
+  generate(layer, styling, posClass, posStyle) {
+    const sl = layer as ShapeLayer;
+    if (styling === 'tailwind') {
+      return `<div className="${posClass} bg-[${sl.color}] rounded-full" />`;
+    }
+    const circleStyle = `, backgroundColor: '${sl.color}', borderRadius: '50%'`;
+    return `<div style={${posStyle.replace('}', circleStyle + '}')}} />`;
+  }
+});
+
+/**
  * Feature 4: Export design as clean React/Vue/HTML code with Tailwind.
  */
 export function exportToReactCode(
@@ -74,47 +137,11 @@ function layerToCode(layer: Layer, styling: string): string | null {
       ? `absolute left-[${x}px] top-[${y}px] w-[${w}px] h-[${h}px] opacity-[${opacity}]${rotation ? ` rotate-[${rotation}deg]` : ''}`
       : '';
 
-  switch (layer.type) {
-    case 'text': {
-      const tl = layer as TextLayer;
-      const style = styling === 'inline' ? posStyle : posClass;
-      const textStyle =
-        styling === 'inline'
-          ? `, fontFamily: '${tl.fontFamily}', fontSize: ${tl.fontSize}, fontWeight: '${tl.fontWeight}', color: '${tl.color}'`
-          : '';
-
-      if (styling === 'tailwind') {
-        return `<p className="${posClass} text-[${tl.fontSize}px] font-${tl.fontWeight === 'bold' ? 'bold' : 'normal'} text-[${tl.color}]">${escapeJsx(tl.text || '')}</p>`;
-      }
-      return `<p style={${posStyle.replace('}', textStyle + '}')}>${escapeJsx(tl.text || '')}</p>`;
-    }
-    case 'image': {
-      const il = layer as ImageLayer;
-      if (styling === 'tailwind') {
-        return `<img src="${il.src}" alt="${layer.name || 'image'}" className="${posClass} object-cover" />`;
-      }
-      return `<img src="${il.src}" alt="${layer.name || 'image'}" style={${posStyle}} />`;
-    }
-    case 'rectangle': {
-      const sl = layer as ShapeLayer;
-      const r = sl.cornerRadius || 0;
-      if (styling === 'tailwind') {
-        return `<div className="${posClass} bg-[${sl.color}]${r ? ` rounded-[${r}px]` : ''}" />`;
-      }
-      const bgStyle = `, backgroundColor: '${sl.color}'${r ? `, borderRadius: ${r}` : ''}`;
-      return `<div style={${posStyle.replace('}', bgStyle + '}')}} />`;
-    }
-    case 'circle': {
-      const sl = layer as ShapeLayer;
-      if (styling === 'tailwind') {
-        return `<div className="${posClass} bg-[${sl.color}] rounded-full" />`;
-      }
-      const circleStyle = `, backgroundColor: '${sl.color}', borderRadius: '50%'`;
-      return `<div style={${posStyle.replace('}', circleStyle + '}')}} />`;
-    }
-    default:
-      return null;
+  const generator = codeGenerators.get(layer.type);
+  if (generator) {
+    return generator.generate(layer, styling, posClass, posStyle);
   }
+  return null;
 }
 
 function getArtboardClasses(artboard: Artboard, styling: string): string {
