@@ -4,6 +4,7 @@ import { Icons, FONT_FAMILIES } from '../../constants';
 import * as photoService from '../../services/photoService';
 
 import { useStore } from '../../store/useStore';
+import { getErrorDetails } from '../../utils/errorMessages';
 import { v4 as uuidv4 } from 'uuid';
 import { log } from '../../utils/log';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
@@ -132,7 +133,9 @@ export const BrandPanel = () => {
       }
     } catch (e) {
       log.error('[BrandPanel] Color extraction failed', e);
-      addToast?.('Extraction failed.', 'error');
+      // 🌸 BLOOM: Replaced generic "Extraction failed" with actionable, specific error details
+      const details = getErrorDetails(e);
+      addToast?.(`Color extraction failed: ${details.message}. ${details.suggestion}`, 'error');
     } finally {
       setIsAnalyzing(false);
     }
@@ -163,11 +166,14 @@ export const BrandPanel = () => {
           kit.id = `brand_imported_${Date.now()}`;
           onAddBrandKit(kit);
         } else {
-          addToast?.('Invalid Brand Kit JSON', 'error');
+          // 🌸 BLOOM: Improved technical "Invalid Brand Kit JSON" error to be actionable
+          addToast?.('The imported file is missing required brand kit data (name, colors, or fonts). Please check the file.', 'error');
         }
       } catch (e) {
         log.error('[BrandPanel] Failed to parse imported Brand Kit JSON', e);
-        addToast?.('Error parsing JSON', 'error');
+        // 🌸 BLOOM: Replaced technical "Error parsing JSON" with a user-friendly message
+        const details = getErrorDetails(e);
+        addToast?.(`Failed to import Brand Kit: ${details.message}. Please ensure you are uploading a valid brand kit file.`, 'error');
       }
     };
     reader.readAsText(file);
