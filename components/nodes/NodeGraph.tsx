@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import { useNodeGraph } from '../../hooks/useNodeGraph';
 import { getNodeDefinition } from '../../data/nodeDefinitions';
 import { Node } from './Node';
@@ -18,8 +18,43 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
   const canvasRef = useRef<HTMLDivElement>(null);
   const [showPresets, setShowPresets] = useState(true);
   const [showSidebar, setShowSidebar] = useState(true);
+  const [lastResult, setLastResult] = useState<any>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
   const isPanning = useRef(false);
   const panStart = useRef({ x: 0, y: 0 });
+
+  const findFinalOutput = useCallback(() => {
+    const exportNodes = graph.nodes.filter((n) => {
+      const def = getNodeDefinition(n.type);
+      return def && (def.category === 'export' || n.type === 'export-canvas');
+    });
+    if (exportNodes.length > 0) {
+      const lastExport = exportNodes[exportNodes.length - 1];
+      return nodeOutputs[lastExport.id];
+    }
+    const allOutputs = Object.values(nodeOutputs);
+    if (allOutputs.length > 0) {
+      return allOutputs[allOutputs.length - 1];
+    }
+    return null;
+  }, [graph.nodes, nodeOutputs]);
+
+  const handleRunGraph = useCallback(async () => {
+    await executeGraph();
+    const result = findFinalOutput();
+    if (result && !result.error) {
+      setLastResult(result);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    }
+  }, [executeGraph, findFinalOutput]);
+
+  const handleSendToCanvas = useCallback(() => {
+    if (lastResult) {
+      onExportToCanvas(lastResult);
+      setLastResult(null);
+    }
+  }, [lastResult, onExportToCanvas]);
 
   const handleCanvasMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.target === canvasRef.current || (e.target as HTMLElement).classList.contains('node-graph-bg')) {
@@ -123,12 +158,20 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
             Nodes
           </button>
           <button
-            onClick={executeGraph}
-            disabled={isExecuting}
+            onClick={handleRunGraph}
+            disabled={isExecuting || graph.nodes.length === 0}
             className="px-4 py-1.5 text-[10px] font-black uppercase tracking-wider bg-green-600 text-white rounded-lg hover:bg-green-500 disabled:opacity-50 transition-colors"
           >
             {isExecuting ? 'Running...' : 'Run Graph'}
           </button>
+          {lastResult && (
+            <button
+              onClick={handleSendToCanvas}
+              className="px-4 py-1.5 text-[10px] font-black uppercase tracking-wider bg-brand-600 text-white rounded-lg hover:bg-brand-500 transition-colors animate-pulse"
+            >
+              Send to Canvas
+            </button>
+          )}
           <button onClick={clearGraph} className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-white/5 text-gray-400 rounded-lg hover:text-white transition-colors">
             Clear
           </button>
@@ -215,6 +258,34 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
           <div className="absolute bottom-4 left-4 text-[10px] text-zinc-600 font-mono">
             {graph.nodes.length} nodes · {graph.wires.length} connections · {Math.round(viewport.zoom * 100)}%
           </div>
+
+          {showSuccess && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-green-600/90 text-white text-[11px] font-bold rounded-lg shadow-lg z-50 backdrop-blur-sm">
+              Graph executed successfully — Click "Send to Canvas" to add result
+            </div>
+          )}
+
+          {lastResult && lastResult.image && (
+            <div className="absolute bottom-4 right-4 z-50">
+              <div className="bg-surface-dark-3/95 border border-white/10 rounded-xl p-3 shadow-2xl backdrop-blur-md">
+                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Output Preview</p>
+                <img
+                  src={lastResult.image.src}
+                  alt="Node output"
+                  className="w-32 h-32 object-cover rounded-lg border border-white/10"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://placehold.co/128x128/1a1a2e/7d2ae8?text=Preview';
+                  }}
+                />
+                <button
+                  onClick={handleSendToCanvas}
+                  className="mt-2 w-full px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-brand-600 text-white rounded-lg hover:bg-brand-500 transition-colors"
+                >
+                  Add to Canvas
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {showPresets && (
