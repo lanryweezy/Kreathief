@@ -92,7 +92,7 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
   }, [viewport, setViewport]);
 
   const handleAddNode = useCallback((type: string, x: number, y: number) => {
-    addNode({ id: uuidv4(), type, x: (x - viewport.x) / viewport.zoom, y: (y - viewport.y) / viewport.zoom, settings: getNodeDefinition(type)?.defaults || {} });
+    addNode(type, (x - viewport.x) / viewport.zoom, (y - viewport.y) / viewport.zoom);
   }, [addNode, viewport]);
 
   const handleLoadPreset = useCallback((presetId: string) => {
@@ -100,7 +100,7 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
     setShowPresets(false);
   }, [loadPreset]);
 
-  const handlePortMouseUp = useCallback((nodeId: string, portId: string, side: 'input' | 'output') => {
+  const handlePortMouseUp = useCallback((_e: React.MouseEvent, nodeId: string, portId: string, side: 'input' | 'output') => {
     if (wireState.isDrawing && side === 'input') {
       endWireDrag(nodeId, portId);
     }
@@ -216,6 +216,8 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
                     toX={to.x}
                     toY={to.y}
                     isActive={isExecuting}
+                    onMouseEnter={() => {}}
+                    onMouseLeave={() => {}}
                     onClick={() => selectNode(null)}
                   />
                 </g>

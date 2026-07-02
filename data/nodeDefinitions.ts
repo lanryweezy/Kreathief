@@ -293,7 +293,6 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         return { image: { ...inputs.image, width: (inputs.image?.width || 512) * settings.scale, height: (inputs.image?.height || 512) * settings.scale } };
       }
     },
-    },
   },
   {
     id: 'crop',

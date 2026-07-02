@@ -17,34 +17,34 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({ isOpen, onClos
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [state, setState] = useState<GenerateState>('idle');
   const [result, setResult] = useState<{ image?: string; text?: string; layers?: any[] } | null>(null);
-  const { loadGraph, executeGraph } = useNodeGraph();
+  const { loadPreset, executeGraph, nodeOutputs } = useNodeGraph();
 
-  const presets = Object.values(WORKFLOW_PRESETS);
+  const presets = WORKFLOW_PRESETS;
 
   const handleGenerate = useCallback(async () => {
     if (!selectedPreset || !prompt.trim()) return;
 
     setState('generating');
     try {
-      const preset = WORKFLOW_PRESETS[selectedPreset];
+      const preset = presets.find((p) => p.id === selectedPreset);
       if (!preset) return;
 
-      await loadGraph(preset.workflowId);
-      const output = await executeGraph({ prompt: prompt.trim() });
+      loadPreset(preset.id);
+      await executeGraph();
 
-      const finalNode = output?.finalOutput ?? output;
+      const outputs = Object.values(nodeOutputs);
+      const lastOutput = outputs[outputs.length - 1];
       const generated: { image?: string; text?: string; layers?: any[] } = {};
 
-      if (finalNode?.image) generated.image = finalNode.image;
-      if (finalNode?.text) generated.text = finalNode.text;
-      if (finalNode?.layers) generated.layers = finalNode.layers;
+      if (lastOutput?.image) generated.image = lastOutput.image.src || lastOutput.image;
+      if (lastOutput?.text) generated.text = lastOutput.text;
 
       setResult(generated);
       setState('preview');
     } catch (err) {
       setState('idle');
     }
-  }, [selectedPreset, prompt, loadGraph, executeGraph]);
+  }, [selectedPreset, prompt, loadPreset, executeGraph, presets, nodeOutputs]);
 
   const handleAddToCanvas = useCallback(() => {
     if (result) {

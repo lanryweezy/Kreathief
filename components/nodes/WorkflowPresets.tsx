@@ -1,7 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { WorkflowPreset } from '../../types/nodes';
-import { WORKFLOW_PRESETS, getPresetsByCategory } from '../../data/workflowPresets';
-import { useNodeGraph } from '../../hooks/useNodeGraph';
+import { WORKFLOW_PRESETS } from '../../data/workflowPresets';
 
 interface WorkflowPresetsProps {
   onSelect: (presetId: string) => void;
@@ -60,7 +59,6 @@ function getPresetCategories(presetId: string): CategoryId[] {
 function WorkflowPresets({ onSelect }: WorkflowPresetsProps) {
   const [activeCategory, setActiveCategory] = useState<CategoryId>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const loadPreset = useNodeGraph((s) => s.loadPreset);
 
   const filteredPresets = useMemo(() => {
     let presets = activeCategory === 'all'
@@ -81,10 +79,9 @@ function WorkflowPresets({ onSelect }: WorkflowPresetsProps) {
 
   const handleSelect = useCallback(
     (presetId: string) => {
-      loadPreset(presetId);
       onSelect(presetId);
     },
-    [loadPreset, onSelect]
+    [onSelect]
   );
 
   return (

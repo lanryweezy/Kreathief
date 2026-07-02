@@ -7,9 +7,12 @@ import NodePort from './NodePort';
 interface NodeProps {
   node: GraphNode;
   isSelected: boolean;
+  output?: Record<string, any>;
   onMouseDown: (e: React.MouseEvent, nodeId: string) => void;
   onPortMouseDown: (e: React.MouseEvent, nodeId: string, portId: string, side: 'input' | 'output') => void;
   onPortMouseUp: (e: React.MouseEvent, nodeId: string, portId: string, side: 'input' | 'output') => void;
+  onDelete?: () => void;
+  onSettingsChange?: (key: string, value: any) => void;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -32,7 +35,7 @@ const CATEGORY_BORDER_COLORS: Record<string, string> = {
   export: 'border-red-400/30',
 };
 
-function Node({ node, isSelected, onMouseDown, onPortMouseDown, onPortMouseUp }: NodeProps) {
+function Node({ node, isSelected, output, onMouseDown, onPortMouseDown, onPortMouseUp, onDelete }: NodeProps) {
   const removeNode = useNodeGraph((s) => s.removeNode);
   const nodeOutputs = useNodeGraph((s) => s.nodeOutputs);
   const def = getNodeDefinition(node.type);

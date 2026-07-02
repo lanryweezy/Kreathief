@@ -5,7 +5,6 @@ import { useStore } from '../store/useStore';
 
 const NodeGraph = React.lazy(() => import('./nodes/NodeGraph').then((m) => ({ default: m.NodeGraph })));
 const AIGenerateModal = React.lazy(() => import('./modals/AIGenerateModal').then((m) => ({ default: m.AIGenerateModal })));
-const NodeGraphToggle = React.lazy(() => import('./nodes/NodeGraphToggle').then((m) => ({ default: m.NodeGraphToggle })));
 
 interface AIGenerateResult {
   image?: string;
