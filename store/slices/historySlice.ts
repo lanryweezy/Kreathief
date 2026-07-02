@@ -180,7 +180,12 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
               applyPatch(targetState, newPast[i].patch!);
             }
           }
-        } catch {
+        } catch (error) {
+          log.error('History patch application failed during undo', error, {
+            action: 'undo',
+            snapshotIdx: lastSnapshotIdx,
+            pastLength: newPast.length,
+          });
           get().addToast?.('Undo failed — state corrupted', 'error');
           return;
         }
@@ -222,7 +227,11 @@ export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set,
         targetState = structuredClone(currentFullState);
         applyPatch(targetState, nextEntry.patch!);
       }
-    } catch {
+    } catch (error) {
+      log.error('History patch application failed during redo', error, {
+        action: 'redo',
+        futureLength: future.length,
+      });
       get().addToast?.('Redo failed — state corrupted', 'error');
       return;
     }

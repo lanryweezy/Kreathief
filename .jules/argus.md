@@ -57,3 +57,7 @@
 
 **Learning:** Returning default empty values or `NaN` inside `catch` blocks for UI component logic (like `JSON.parse` in `CommunityModal` or mathematical evaluations in `ToolbarShared`) fails silently. While preventing an immediate UI crash, it completely obscures bad data states and logic errors from production logs.
 **Action:** Always include a structured `log.error` call before falling back to default values in catch blocks, ensuring the error object and relevant context (like the bad JSON string or evaluation expression) are recorded.
+
+## 2024-05-27 - Silent History Corruption in State Time Travel
+**Learning:** Found an empty catch block in `undo` and `redo` operations (`store/slices/historySlice.ts`) when applying JSON patches to reconstruct history states. While a toast notification was presented to the user, the actual failure (often due to `fast-json-patch` applying misaligned diffs) was silently swallowed. Without logs, we had no way of knowing *why* the patch failed or the context of the history stack when the corruption occurred.
+**Action:** Added structured logging to capture `action`, `snapshotIdx`, and the history lengths when an `applyPatch` operation fails so that we can reproduce the state corruption.
