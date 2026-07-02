@@ -102,6 +102,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title
             <h3 className="text-base font-bold text-white tracking-wide">{typeof title === 'string' ? title : String(title)}</h3>
             <button
               onClick={handleClose}
+              aria-label="Close"
               className="p-2.5 hover:bg-white/10 active:bg-white/20 rounded-xl transition-all active:scale-95"
             >
               <Icons.X className="w-5 h-5 text-gray-300" />
