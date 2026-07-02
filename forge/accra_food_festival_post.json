@@ -119,7 +119,7 @@
       "opacity": 1,
       "locked": false,
       "visible": true,
-      "text": "[OCT 15-17 • INDEPENDENCE SQUARE]",
+      "text": "[OCT 15-17 \u2022 INDEPENDENCE SQUARE]",
       "fontSize": 32,
       "fontWeight": "700",
       "fontStyle": "normal",
@@ -161,14 +161,7 @@
     "templateName": "Vibrant Food Fest Post Promo",
     "shortDescription": "Promote your culinary event with a vibrant, appetizing Instagram post.",
     "longDescription": "Promote your culinary event with a vibrant, appetizing Instagram post. Ideal for food festivals, pop-up markets, and restaurant events in Accra and beyond. Features rich warm colours.",
-    "tags": [
-      "Food & Restaurant",
-      "Instagram post",
-      "Vibrant",
-      "Warm",
-      "Events",
-      "African Market"
-    ],
+    "tags": ["Food & Restaurant", "Instagram post", "Vibrant", "Warm", "Events", "African Market"],
     "searchKeywords": [
       "accra food festival",
       "ghana food event",
@@ -182,28 +175,15 @@
       "food menu"
     ],
     "seoMetadata": {
-      "title": "Vibrant Food Fest Post Promo — Free Post Template",
+      "title": "Vibrant Food Fest Post Promo \u2014 Free Instagram post Template",
       "description": "Attract food lovers with this vibrant Accra food festival Instagram post template. Perfect for promoting culinary events and food markets.",
       "slug": "vibrant-food-fest-post-promo"
     },
     "personalisationSignals": {
-      "industry": [
-        "Food & Restaurant",
-        "hospitality",
-        "Events"
-      ],
-      "audienceType": [
-        "small business",
-        "event organiser",
-        "restaurant owner",
-        "food vendor"
-      ],
+      "industry": ["Food & Restaurant", "hospitality", "Events"],
+      "audienceType": ["small business", "event organiser", "restaurant owner", "food vendor"],
       "experienceLevel": "beginner-friendly"
     },
-    "relatedTemplates": [
-      "lagos-tech-mixer",
-      "amapiano-sundays-flyer",
-      "bold-afrobeats-ig-post-promo"
-    ]
+    "relatedTemplates": ["lagos-tech-mixer", "amapiano-sundays-flyer", "bold-afrobeats-ig-post-promo"]
   }
 }

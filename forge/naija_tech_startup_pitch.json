@@ -105,7 +105,7 @@
       "opacity": 1,
       "locked": false,
       "visible": true,
-      "text": "INVESTOR PITCH DECK • Q3 2024",
+      "text": "INVESTOR PITCH DECK \u2022 Q3 2024",
       "fontSize": 24,
       "fontWeight": "600",
       "fontStyle": "normal",
@@ -194,13 +194,7 @@
     "templateName": "Clean Tech Pitch Cover",
     "shortDescription": "Command attention with this trust-signalling pitch deck cover.",
     "longDescription": "Command attention in the boardroom with this modern, trust-signalling pitch deck cover. Engineered for tech startups seeking investment. Uses a deep navy background and cyan accents.",
-    "tags": [
-      "Business",
-      "Pitch deck slide",
-      "Professional",
-      "African Market",
-      "Tech & Startup"
-    ],
+    "tags": ["Business", "Pitch deck slide", "Professional", "African Market", "Tech & Startup"],
     "searchKeywords": [
       "naija tech startup pitch",
       "nigerian fintech presentation",
@@ -214,28 +208,15 @@
       "startup presentation"
     ],
     "seoMetadata": {
-      "title": "Clean Tech Pitch Cover — Free Slide Template",
+      "title": "Clean Tech Pitch Cover \u2014 Free Pitch deck slide Template",
       "description": "Secure funding with this professional tech startup pitch deck cover slide. Designed for African founders building the next big thing.",
       "slug": "clean-tech-pitch-cover"
     },
     "personalisationSignals": {
-      "industry": [
-        "technology",
-        "finance",
-        "Business"
-      ],
-      "audienceType": [
-        "startup founder",
-        "executive",
-        "enterprise",
-        "small business"
-      ],
+      "industry": ["technology", "finance", "Business"],
+      "audienceType": ["startup founder", "executive", "enterprise", "small business"],
       "experienceLevel": "intermediate"
     },
-    "relatedTemplates": [
-      "lagos-tech-mixer",
-      "premium-real-estate-listing",
-      "accra-food-festival-post"
-    ]
+    "relatedTemplates": ["lagos-tech-mixer", "premium-real-estate-listing", "accra-food-festival-post"]
   }
 }
