@@ -43,3 +43,8 @@
 **Root cause:** The canvas export pipeline (`drawShapeToContext` in `exportService.ts` and `exportWorker.ts`) previously used inline, independently hardcoded logic and polygon point parsing to try to match the canvas editor, missing many complex shapes.
 **Fix:** Refactored `drawShapeToContext` in `exportService.ts` and masking in `exportWorker.ts` to utilize a single shared utility `applyShapePolygonToContext` in `utils/layerRendering.ts` to trace all paths matching a CSS polygon definition.
 **Learning:** Hardcoding shape tracing algorithm independently across rendering pipelines will cause them to diverge and break when new shapes are added. Always parse paths through shared path utilities to guarantee identical coordinate logic on Canvas Context paths.
+## 2024-07-02 - Text Transform consistency between Editor and Export/Preview
+**Surface pair:** Editor (DOM) and Canvas/Export Renderers (PNG/SVG)
+**Root cause:** `text-transform` is a CSS property applied directly to the DOM elements in the canvas editor, but Canvas 2D and SVG export pipelines do not natively support this property, causing visual drift.
+**Fix:** Extracted a shared `applyTextTransform` utility in `utils/textRendering.ts` to convert the string natively (toUpperCase/toLowerCase) *before* `ctx.measureText` is called and before the string is rendered across multiline, text on path, warped, and outlines paths.
+**Learning:** For rendering properties that natively exist in CSS but not Canvas/SVG (like text-transform), always apply the transformation to the primitive string *before* measurement functions like `measureText` occur, otherwise character wrapping and alignment logic will break since uppercase letters have different widths than lowercase letters.

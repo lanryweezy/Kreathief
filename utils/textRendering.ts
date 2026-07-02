@@ -68,6 +68,17 @@ export function applySmartQuotes(text: string): string {
 }
 
 /**
+ * Applies text transformation (uppercase, lowercase) to the text string.
+ * This ensures consistency across canvas export/preview and the editor DOM.
+ */
+export function applyTextTransform(text: string, transform?: 'none' | 'uppercase' | 'lowercase'): string {
+  if (transform === 'uppercase') return text.toUpperCase();
+  if (transform === 'lowercase') return text.toLowerCase();
+  return text;
+}
+
+
+/**
  * Helper for rendering text along a path
  */
 export const renderTextOnPath = (canvas: HTMLCanvasElement, layer: TextLayer) => {
@@ -92,14 +103,17 @@ export const renderTextOnPath = (canvas: HTMLCanvasElement, layer: TextLayer) =>
   applyTextShadow(ctx, layer);
 
   const pathMetrics = GeometryOracle.measurePath(layer.textPath);
-  const textWidth = ctx.measureText(text).width;
+
+  const processedText = applyTextTransform(text, layer.textTransform);
+
+  const textWidth = ctx.measureText(processedText).width;
 
   // Center text on path
   const startOffset = (pathMetrics.totalLength - textWidth) / 2;
 
   let currentDistance = startOffset;
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
+  for (let i = 0; i < processedText.length; i++) {
+    const char = processedText[i];
     const charWidth = ctx.measureText(char).width;
 
     // Position at center of character
@@ -154,7 +168,9 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
   const intensity = (transformType ? transformIntensity : curve) / 100;
   const effectType = transformType || warpStyle;
 
-  const lines = text.split('\n');
+  const processedText = applyTextTransform(text, layer.textTransform);
+
+  const lines = processedText.split('\n');
   const totalLineHeight = fontSize * lineHeight;
   const textBlockHeight = lines.length * totalLineHeight;
 
@@ -180,7 +196,7 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
   applyTextShadow(tempCtx, layer);
 
   // Get text metrics
-  const textWidth = tempCtx.measureText(text).width;
+  const textWidth = tempCtx.measureText(processedText).width;
   const startX = textAlign === 'center' ? (width - textWidth) / 2 : textAlign === 'right' ? width - textWidth : 10;
 
   // Render each character with transformations
@@ -270,7 +286,9 @@ export const renderMultilineText = (ctx: CanvasRenderingContext2D, layer: TextLa
     return wrappedLines;
   };
 
-  const manualLines = text.split('\n');
+  const processedText = applyTextTransform(text, layer.textTransform);
+
+  const manualLines = processedText.split('\n');
   const allLines: string[] = [];
 
   // Apply word wrap if width is defined
@@ -367,7 +385,8 @@ export async function convertTextToOutlines(
   if (!tempCtx) throw new Error('Could not create canvas context');
 
   tempCtx.font = font;
-  const lines = text.split('\n');
+  const processedText = applyTextTransform(text, layer.textTransform);
+  const lines = processedText.split('\n');
   const lineHeightPx = fontSize * scale * lineHeight;
 
   let maxWidth = 0;
