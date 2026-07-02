@@ -1,10 +1,21 @@
 import React from 'react';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 export const CommentsPanel: React.FC = () => {
-  const { projects, projectId, resolveCanvasComment, deleteCanvasComment } = useStore();
+  const {
+    projects,
+    projectId,
+    resolveCanvasComment,
+    deleteCanvasComment
+  } = useStore(useShallow((state) => ({
+    projects: state.projects,
+    projectId: state.projectId,
+    resolveCanvasComment: state.resolveCanvasComment,
+    deleteCanvasComment: state.deleteCanvasComment
+  })));
   const project = projects.find((p) => p.id === projectId);
 
   if (!project) {

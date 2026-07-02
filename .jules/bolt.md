@@ -40,3 +40,7 @@
 
 **Learning:** Destructuring directly from `useStore()` without providing a selector (e.g., `const { a, b } = useStore()` or `const { isActive } = useStore()`) subscribes the calling component to the *entire* global store. This causes the component to re-render whenever *any* state in the store changes, even if the destructured values are completely unrelated. In frequently re-rendered components like canvas overlays, this creates a massive performance bottleneck.
 **Action:** Never use direct destructuring from `useStore()` without a selector. Always use an explicit selector and wrap it with `useShallow` when returning multiple values to ensure the component only re-renders when the specific properties it depends on change.
+
+## 2026-07-02 - Unnecessary full-store subscriptions via direct destructuring in panel components
+**Learning:** Destructuring directly from `useStore()` without providing a selector (e.g., `const { a, b } = useStore()` or `const { isActive } = useStore()`) subscribes the calling component to the *entire* global store. This causes the component to re-render whenever *any* state in the store changes, even if the destructured values are completely unrelated. In frequently re-rendered components like canvas overlays, this creates a massive performance bottleneck.
+**Action:** Never use direct destructuring from `useStore()` without a selector. Always use an explicit selector and wrap it with `useShallow` when returning multiple values to ensure the component only re-renders when the specific properties it depends on change.
