@@ -1,18 +1,16 @@
 import { StateCreator } from 'zustand';
+import type { StoreState } from '../../useStore';
 import { Artboard, TextLayer } from '../../../types';
 import { LayerSlice } from './baseSlice';
 
-export const createStyleSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (set) => ({
+export const createStyleSlice: StateCreator<StoreState, [], [], Partial<LayerSlice>> = (set) => ({
   applyTexture: (textureUrl, _intensity) =>
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => ({
         ...a,
         layers: a.layers.map((l) => {
           if (state.selectedLayerIds.includes(l.id) && l.type === 'text') {
-            return {
-              ...l,
-              decorations: { ...(l as TextLayer).decorations, textures: [textureUrl] },
-            } as TextLayer;
+            return { ...l, decorations: { ...(l as TextLayer).decorations, textures: [textureUrl] } } as TextLayer;
           }
           return l;
         }),

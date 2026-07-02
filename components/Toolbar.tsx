@@ -135,21 +135,21 @@ export const Toolbar = React.memo(
               </span>
               <Divider />
               <div className="flex bg-black/40 rounded-xl border border-white/5 p-1 gap-1">
-                <IconButton onClick={() => onAlignLayers?.('left')} title="Align Left">
+                <IconButton onClick={() => onAlignLayers?.('left')} title="Align Left" aria-label="Align Left">
                   <Icons.AlignLeft className="w-4 h-4" />
                 </IconButton>
-                <IconButton onClick={() => onAlignLayers?.('center')} title="Align Center">
+                <IconButton onClick={() => onAlignLayers?.('center')} title="Align Center" aria-label="Align Center">
                   <Icons.AlignCenter className="w-4 h-4" />
                 </IconButton>
-                <IconButton onClick={() => onAlignLayers?.('right')} title="Align Right">
+                <IconButton onClick={() => onAlignLayers?.('right')} title="Align Right" aria-label="Align Right">
                   <Icons.AlignRight className="w-4 h-4" />
                 </IconButton>
               </div>
               <div className="flex items-center gap-1">
-                <IconButton onClick={onGroup} title="Group" shortcut="Ctrl+G">
+                <IconButton onClick={onGroup} title="Group" shortcut="Ctrl+G" aria-label="Group">
                   <Icons.Group className="w-4 h-4" />
                 </IconButton>
-                <IconButton onClick={onUngroup} title="Ungroup" shortcut="Ctrl+Shift+G">
+                <IconButton onClick={onUngroup} title="Ungroup" shortcut="Ctrl+Shift+G" aria-label="Ungroup">
                   <Icons.Ungroup className="w-4 h-4" />
                 </IconButton>
               </div>
@@ -157,6 +157,7 @@ export const Toolbar = React.memo(
               <IconButton
                 onClick={() => (selectedLayerIds || []).forEach((id) => onDeleteLayer(id))}
                 title="Delete All"
+                aria-label="Delete All"
               >
                 <Icons.Trash className="w-4 h-4 text-red-400" />
               </IconButton>

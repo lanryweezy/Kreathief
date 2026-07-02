@@ -1,4 +1,5 @@
 import { StateCreator } from 'zustand';
+import type { StoreState } from '../useStore';
 import { NavTab, AppMode, DesignComment, Toast, ToastType, ImageLayer, GeneratedImage } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 import { storageService } from '../../services/storageService';
@@ -29,13 +30,12 @@ export interface UISlice {
   isCropMode: boolean;
   croppingLayerId: string | null;
   cropArea: { x: number; y: number; width: number; height: number };
-  cropAspectRatio: number | null; // null for Free, or width/height ratio
+  cropAspectRatio: number | null;
   isLassoMode: boolean;
   lassoPoints: { x: number; y: number }[];
   refineBrushMode: 'none' | 'erase' | 'restore';
   refineBrushSize: number;
   showGoldenRatio: boolean;
-
   favoriteTemplates: string[];
   favoriteProjects: string[];
   toasts: Toast[];
@@ -76,15 +76,8 @@ export interface UISlice {
   addTag: (tag: string) => void;
   removeTag: (tag: string) => void;
   setIsPublished: (isPublished: boolean) => void;
-  addToast: (
-    message: string,
-    type?: ToastType,
-    action?: { label: string; onClick: () => void },
-    details?: string
-  ) => void;
+  addToast: (message: string, type?: ToastType, action?: { label: string; onClick: () => void }, details?: string) => void;
   removeToast: (id: string) => void;
-
-  // Crop Actions
   onCrop: (id: string) => Promise<void>;
   setIsCropMode: (active: boolean) => void;
   setCropArea: (area: { x: number; y: number; width: number; height: number }) => void;
@@ -98,17 +91,13 @@ export interface UISlice {
   doneLasso: () => void;
   setRefineBrushMode: (mode: 'none' | 'erase' | 'restore') => void;
   setRefineBrushSize: (size: number) => void;
-
-  // Collaboration
   fetchComments: () => Promise<void>;
   addComment: (text: string, user: any) => Promise<void>;
-
-  // Favorites
   toggleFavoriteTemplate: (id: string) => void;
   toggleFavoriteProject: (id: string) => void;
 }
 
-export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => ({
+export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, get) => ({
   activeTab: NavTab.MAGIC,
   mode: AppMode.GENERATE,
   isProcessing: false,
@@ -148,7 +137,6 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   showVersionDiff: false,
   versionDiffSnapshotId: null,
   user: null,
-
   favoriteTemplates: [],
   favoriteProjects: [],
 
@@ -177,12 +165,8 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
   deleteUpload: (index) =>
     set((state: any) => {
       const url = state.uploads[index];
-      if (url?.startsWith('blob:')) {
-        URL.revokeObjectURL(url);
-      }
-      return {
-        uploads: state.uploads.filter((_: any, i: number) => i !== index),
-      };
+      if (url?.startsWith('blob:')) { URL.revokeObjectURL(url); }
+      return { uploads: state.uploads.filter((_: any, i: number) => i !== index) };
     }),
   setIsShapeBuilderActive: (isShapeBuilderActive) => set({ isShapeBuilderActive }),
   setZoom: (zoom) => set((state: any) => ({ zoom: typeof zoom === 'function' ? zoom(state.zoom) : zoom })),
@@ -216,7 +200,6 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     set((state: any) => ({
       toasts: [...state.toasts, { id, message: safeMessage, type, action, details }],
     }));
-    // If no action, auto-remove after 5s. If action exists, keep it longer (15s).
     setTimeout(() => get().removeToast(id), action ? 15000 : 5000);
   },
   removeToast: (id) =>
@@ -224,32 +207,19 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
       toasts: state.toasts.filter((t: Toast) => t.id !== id),
     })),
 
-  // Crop Implementation
   onCrop: async (id) => {
     const state = get();
-    // Find the layer across all artboards
     let layer: any = null;
     for (const ab of state.artboards) {
       const found = ab.layers.find((l: any) => l.id === id);
-      if (found) {
-        layer = found;
-        break;
-      }
+      if (found) { layer = found; break; }
     }
-    if (!layer || layer.type !== 'image') {
-      return;
-    }
-
+    if (!layer || layer.type !== 'image') return;
     const img = new Image();
     img.src = layer.src;
-    await new Promise((resolve) => {
-      img.onload = resolve;
-      img.onerror = resolve;
-    });
-
+    await new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; });
     const naturalWidth = img.width || (layer as ImageLayer).width;
     const naturalHeight = img.height || (layer as ImageLayer).height;
-
     if (!(layer as ImageLayer).naturalWidth) {
       set((state: any) => ({
         artboards: state.artboards.map((a: any) => ({
@@ -258,19 +228,8 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
         })),
       }));
     }
-
-    const initialCropArea = (layer as ImageLayer).crop || {
-      x: 0,
-      y: 0,
-      width: naturalWidth,
-      height: naturalHeight,
-    };
-
-    set({
-      isCropMode: true,
-      croppingLayerId: id,
-      cropArea: initialCropArea,
-    });
+    const initialCropArea = (layer as ImageLayer).crop || { x: 0, y: 0, width: naturalWidth, height: naturalHeight };
+    set({ isCropMode: true, croppingLayerId: id, cropArea: initialCropArea });
   },
 
   setIsCropMode: (isCropMode) => set({ isCropMode }),
@@ -278,40 +237,25 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
 
   applyCrop: async () => {
     const { croppingLayerId, cropArea, artboards, saveToHistory } = get();
-    if (!croppingLayerId) {
-      return;
-    }
-
-    // Find layer in artboards
+    if (!croppingLayerId) return;
     let layer: any = null;
     for (const ab of artboards) {
       const found = ab.layers.find((l: any) => l.id === croppingLayerId);
-      if (found) {
-        layer = found;
-        break;
-      }
+      if (found) { layer = found; break; }
     }
-    if (!layer || layer.type !== 'image') {
-      return;
-    }
-
+    if (!layer || layer.type !== 'image') return;
     saveToHistory?.();
-
     const naturalWidth = layer.naturalWidth || layer.width;
     const previousCropWidth = layer.crop?.width || naturalWidth;
     const canvasScale = layer.width / previousCropWidth;
-
     set((state: any) => ({
       artboards: state.artboards.map((a: any) => ({
         ...a,
         layers: a.layers.map((l: any) => {
-          if (l.id !== croppingLayerId || l.type !== 'image') {
-            return l;
-          }
+          if (l.id !== croppingLayerId || l.type !== 'image') return l;
           const il = l as ImageLayer;
           const oldCropX = il.crop?.x || 0;
           const oldCropY = il.crop?.y || 0;
-
           return {
             ...il,
             crop: { ...cropArea },
@@ -329,89 +273,46 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
 
   cancelCrop: () => set({ isCropMode: false, croppingLayerId: null }),
   setCropAspectRatio: (cropAspectRatio) => set({ cropAspectRatio }),
-
   setIsLassoMode: (isLassoMode) => set({ isLassoMode, lassoPoints: [] }),
   setLassoPoints: (lassoPoints) => set({ lassoPoints }),
   applyLasso: async () => {
     const { croppingLayerId, lassoPoints, artboards, saveToHistory } = get();
-    if (!croppingLayerId || lassoPoints.length < 3) {
-      set({ isLassoMode: false, lassoPoints: [] });
-      return;
-    }
-
-    // Find layer in artboards
+    if (!croppingLayerId || lassoPoints.length < 3) { set({ isLassoMode: false, lassoPoints: [] }); return; }
     let layer: any = null;
     for (const ab of artboards) {
       const found = ab.layers.find((l: any) => l.id === croppingLayerId);
-      if (found) {
-        layer = found;
-        break;
-      }
+      if (found) { layer = found; break; }
     }
-    if (!layer || layer.type !== 'image') {
-      set({ isLassoMode: false, lassoPoints: [], croppingLayerId: null });
-      return;
-    }
-
+    if (!layer || layer.type !== 'image') { set({ isLassoMode: false, lassoPoints: [], croppingLayerId: null }); return; }
     saveToHistory?.();
-
-    // Convert lasso points to SVG path data
-    const pathData =
-      `M ${lassoPoints[0].x} ${lassoPoints[0].y} ` +
-      lassoPoints
-        .slice(1)
-        .map((p: { x: number; y: number }) => `L ${p.x} ${p.y}`)
-        .join(' ') +
-      ' Z';
-
+    const pathData = `M ${lassoPoints[0].x} ${lassoPoints[0].y} ` + lassoPoints.slice(1).map((p: { x: number; y: number }) => `L ${p.x} ${p.y}`).join(' ') + ' Z';
     set((state: any) => ({
       artboards: state.artboards.map((a: any) => ({
         ...a,
-        layers: a.layers.map((l: any) =>
-          l.id === croppingLayerId ? { ...l, maskPath: pathData, maskType: 'lasso' } : l
-        ),
+        layers: a.layers.map((l: any) => l.id === croppingLayerId ? { ...l, maskPath: pathData, maskType: 'lasso' } : l),
       })),
       isLassoMode: false,
       lassoPoints: [],
       croppingLayerId: null,
     }));
   },
-  cancelLasso: () =>
-    set({
-      isLassoMode: false,
-      lassoPoints: [],
-      croppingLayerId: null,
-      refineBrushMode: 'none',
-    }),
-  doneLasso: () =>
-    set({
-      isLassoMode: false,
-      lassoPoints: [],
-      croppingLayerId: null,
-      refineBrushMode: 'none',
-    }),
-
+  cancelLasso: () => set({ isLassoMode: false, lassoPoints: [], croppingLayerId: null, refineBrushMode: 'none' }),
+  doneLasso: () => set({ isLassoMode: false, lassoPoints: [], croppingLayerId: null, refineBrushMode: 'none' }),
   setRefineBrushMode: (refineBrushMode) => set({ refineBrushMode }),
   setRefineBrushSize: (refineBrushSize) => set({ refineBrushSize }),
 
   fetchComments: async () => {
     const { projectId } = get();
-    if (!projectId) {
-      return;
-    }
+    if (!projectId) return;
     const comments = await storageService.getComments(projectId);
     set({ comments });
-
-    // Also fetch from Supabase and merge
     import('../../services/commentService').then(({ commentService }) => {
       commentService.getDesignComments(projectId).then((dbComments) => {
         if (dbComments.length > 0) {
           set((state: any) => {
             const localIds = new Set(state.comments.map((c: any) => c.id));
             const newFromDb = dbComments.filter((c) => !localIds.has(c.id));
-            if (newFromDb.length > 0) {
-              return { comments: [...state.comments, ...newFromDb] };
-            }
+            if (newFromDb.length > 0) { return { comments: [...state.comments, ...newFromDb] }; }
             return {};
           });
         }
@@ -421,9 +322,7 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
 
   addComment: async (text, user) => {
     const { projectId } = get();
-    if (!projectId) {
-      return;
-    }
+    if (!projectId) return;
     const newComment: DesignComment = {
       id: uuidv4(),
       projectId,
@@ -435,8 +334,6 @@ export const createUISlice: StateCreator<any, [], [], UISlice> = (set, get) => (
     };
     await storageService.saveComment(newComment);
     set((state: any) => ({ comments: [...state.comments, newComment] }));
-
-    // Also persist to Supabase in background
     import('../../services/commentService').then(({ commentService }) => {
       commentService.addDesignComment(projectId, user.id, user.name, user.avatar || null, text);
     });

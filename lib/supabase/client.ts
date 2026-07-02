@@ -24,5 +24,5 @@ export const supabase = createClient<Database>(
   }
 );
 
-// Untyped alias used by services for runtime dynamic queries
-export const db = supabase as any;
+// Typed alias used by services for runtime dynamic queries
+export { supabase as db };

@@ -5,6 +5,8 @@ import { storageService } from '../../services/storageService';
 import { v4 as uuidv4 } from 'uuid';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
+import type { StoreState } from '../useStore';
+
 
 export interface HistoryEntry {
   timestamp: number;
@@ -29,7 +31,7 @@ export interface HistorySlice {
   deleteSnapshot: (snapshotId: string) => Promise<void>;
 }
 
-export const createHistorySlice: StateCreator<any, [], [], HistorySlice> = (set, get) => ({
+export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> = (set, get) => ({
   past: [],
   future: [],
   __batchDepth: 0,

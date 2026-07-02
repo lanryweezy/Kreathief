@@ -1,4 +1,5 @@
 import { StateCreator } from 'zustand';
+import type { StoreState } from '../../useStore';
 import { Layer, TextLayer, ShapeLayer, Artboard } from '../../../types';
 
 export interface LayerSlice {
@@ -8,7 +9,6 @@ export interface LayerSlice {
   clipboardLayer: Layer | null;
   editingPathId: string | null;
 
-  // Artboard Actions
   setArtboards: (artboards: Artboard[]) => void;
   setActiveArtboardId: (id: string) => void;
   addArtboard: (name?: string, width?: number, height?: number) => void;
@@ -16,7 +16,6 @@ export interface LayerSlice {
   updateArtboard: (id: string, partial: Partial<Artboard>) => void;
   magicResize: (newWidth: number, newHeight: number, newName?: string) => void;
 
-  // Layer Actions
   setLayers: (layers: Layer[] | ((prev: Layer[]) => Layer[])) => void;
   addLayer: (layer: Layer) => void;
   addLayers: (layers: Layer[]) => void;
@@ -51,7 +50,6 @@ export interface LayerSlice {
   onUpdatePath: (id: string, updates: Partial<ShapeLayer>) => void;
   applyMask: (targetId: string, maskId: string | null) => void;
 
-  // Design Systems
   convertToComponent: (id: string) => void;
   instantiateComponent: (masterId: string) => void;
   detachInstance: (id: string) => void;
@@ -85,7 +83,7 @@ export const initialLayerState = {
   editingPathId: null,
 };
 
-export const createBaseLayerSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (set, _get) => ({
+export const createBaseLayerSlice: StateCreator<StoreState, [], [], Partial<LayerSlice>> = (set, _get) => ({
   ...initialLayerState,
 
   setArtboards: (artboards) => {

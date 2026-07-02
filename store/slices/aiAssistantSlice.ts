@@ -3,6 +3,8 @@ import { AIAssistantState, DesignCritique, DesignSuggestion, ChatMessage, Design
 import * as aiService from '../../services/aiService';
 import { log } from '../../utils/log';
 import { v4 as uuidv4 } from 'uuid';
+import type { StoreState } from '../useStore';
+
 
 export interface AIAssistantSlice extends AIAssistantState {
   // Actions
@@ -40,7 +42,7 @@ const initialState: AIAssistantState = {
   isMinimized: false,
 };
 
-export const createAIAssistantSlice: StateCreator<any, [], [], AIAssistantSlice> = (set, get) => ({
+export const createAIAssistantSlice: StateCreator<StoreState, [], [], AIAssistantSlice> = (set, get) => ({
   ...initialState,
 
   // Basic UI actions

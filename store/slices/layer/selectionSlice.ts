@@ -1,20 +1,14 @@
 import { StateCreator } from 'zustand';
-import { Artboard } from '../../../types';
+import type { StoreState } from '../../useStore';
 import { LayerSlice } from './baseSlice';
 
-export const createSelectionSlice: StateCreator<any, [], [], Partial<LayerSlice>> = (set) => ({
+export const createSelectionSlice: StateCreator<StoreState, [], [], Partial<LayerSlice>> = (set) => ({
   selectLayer: (id) => set({ selectedLayerIds: id ? [id] : [] }),
 
   multiSelectLayer: (id, shiftKey) => {
     set((state: any) => {
-      const { selectedLayerIds, artboards, activeArtboardId } = state;
-
-      if (!shiftKey) {
-        // Exclusive selection
-        return { selectedLayerIds: [id] };
-      }
-
-      // Toggle selection with Shift
+      const { selectedLayerIds } = state;
+      if (!shiftKey) return { selectedLayerIds: [id] };
       if (selectedLayerIds.includes(id)) {
         return { selectedLayerIds: selectedLayerIds.filter((sid: string) => sid !== id) };
       } else {

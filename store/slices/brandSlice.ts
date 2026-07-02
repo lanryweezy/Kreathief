@@ -1,5 +1,7 @@
 import { StateCreator } from 'zustand';
 import { BrandKit, Layer, Artboard } from '../../types';
+import type { StoreState } from '../useStore';
+
 
 // Get perceived brightness of a hex color (0-255)
 function getBrightness(hex: string): number {
@@ -22,7 +24,7 @@ export interface BrandSlice {
   syncLayersWithTokens: () => void;
 }
 
-export const createBrandSlice: StateCreator<any, [], [], BrandSlice> = (set, get) => ({
+export const createBrandSlice: StateCreator<StoreState, [], [], BrandSlice> = (set, get) => ({
   brandKits: [
     {
       id: 'automotive_procurement',

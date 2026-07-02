@@ -138,7 +138,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
       }
 
       try {
-        // @ts-ignore - EyeDropper is a new API
+        // @ts-expect-error - EyeDropper is a new API
         const eyeDropper = new window.EyeDropper();
         const result = await eyeDropper.open();
         const color = result.sRGBHex;

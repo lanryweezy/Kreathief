@@ -1,5 +1,7 @@
 import { StateCreator } from 'zustand';
 import { CanvasSize, CanvasUnit, CanvasFilters } from '../../types';
+import type { StoreState } from '../useStore';
+
 
 export const DEFAULT_CANVAS_FILTERS: CanvasFilters = {
   brightness: 100,
@@ -34,7 +36,7 @@ export interface CanvasSlice {
   ) => void;
 }
 
-export const createCanvasSlice: StateCreator<any, [], [], CanvasSlice> = (set, get) => ({
+export const createCanvasSlice: StateCreator<StoreState, [], [], CanvasSlice> = (set, get) => ({
   canvasSize: DEFAULT_CANVAS_SIZE,
   canvasBackgroundColor: '#ffffff',
   canvasFilters: DEFAULT_CANVAS_FILTERS,

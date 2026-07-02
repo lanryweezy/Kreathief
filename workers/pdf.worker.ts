@@ -72,9 +72,9 @@ self.onmessage = async (e: MessageEvent) => {
 </x:xmpmeta>
 <?xpacket end="w"?>`.trim();
 
-    // @ts-ignore - addMetadata is not always present in jsPDF types
+    // @ts-expect-error - addMetadata is not always present in jsPDF types
     if (pdf.addMetadata) {
-      // @ts-ignore - xmp metadata is valid but types may vary
+      // @ts-expect-error - xmp metadata is valid but types may vary
       pdf.addMetadata(xmp, 'application/rdf+xml');
     }
 

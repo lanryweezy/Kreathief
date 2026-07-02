@@ -4,6 +4,8 @@ import { storageService } from '../../services/storageService';
 import { v4 as uuidv4 } from 'uuid';
 import { createNebulaDemoDesign } from './project/demoDesign';
 import { log } from '../../utils/log';
+import type { StoreState } from '../useStore';
+
 
 export interface ProjectSlice {
   projects: Project[];
@@ -108,7 +110,7 @@ function sanitizeArtboardLayers(artboards: any[]): any[] {
   }));
 }
 
-export const createProjectSlice: StateCreator<any, [], [], ProjectSlice> = (set, get) => ({
+export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> = (set, get) => ({
   projects: [],
   projectId: `proj_${Date.now()}`,
   projectTitle: 'Untitled Design',

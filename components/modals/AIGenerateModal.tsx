@@ -17,6 +17,7 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({ isOpen, onClos
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [state, setState] = useState<GenerateState>('idle');
   const [result, setResult] = useState<{ image?: string; text?: string; layers?: any[] } | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { loadPreset, executeGraph, nodeOutputs } = useNodeGraph();
 
   const presets = WORKFLOW_PRESETS;
@@ -25,6 +26,7 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({ isOpen, onClos
     if (!selectedPreset || !prompt.trim()) return;
 
     setState('generating');
+    setError(null);
     try {
       const preset = presets.find((p) => p.id === selectedPreset);
       if (!preset) return;
@@ -43,8 +45,14 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({ isOpen, onClos
       setState('preview');
     } catch (err) {
       setState('idle');
+      setError('Something went wrong. Please try again.');
     }
   }, [selectedPreset, prompt, loadPreset, executeGraph, presets, nodeOutputs]);
+
+  const handleRetry = useCallback(() => {
+    setError(null);
+    handleGenerate();
+  }, [handleGenerate]);
 
   const handleAddToCanvas = useCallback(() => {
     if (result) {
@@ -58,6 +66,7 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({ isOpen, onClos
     setSelectedPreset(null);
     setState('idle');
     setResult(null);
+    setError(null);
     onClose();
   }, [onClose]);
 
@@ -85,6 +94,7 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({ isOpen, onClos
                 <button
                   onClick={handleClose}
                   className="p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                  aria-label="Close"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -127,6 +137,18 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({ isOpen, onClos
                 <div className="mb-6 flex items-center justify-center gap-3 py-8">
                   <div className="w-5 h-5 border-2 border-[#7D2AE8] border-t-transparent rounded-full animate-spin" />
                   <span className="text-gray-300">Generating your design...</span>
+                </div>
+              )}
+
+              {error && (
+                <div className="mb-6 bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                  <p className="text-red-400 text-sm">{error}</p>
+                  <button
+                    onClick={handleRetry}
+                    className="mt-2 text-sm font-medium text-[#7D2AE8] hover:text-[#6B21D6] transition-colors"
+                  >
+                    Retry
+                  </button>
                 </div>
               )}
 

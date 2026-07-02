@@ -1,4 +1,6 @@
 import { log } from '../../utils/log';
+import type { StoreState } from '../useStore';
+
 
 import { StateCreator } from 'zustand';
 import {
@@ -34,7 +36,7 @@ export interface AgentSlice {
   addThinkingEvent: (agent: string, message: string) => void;
 }
 
-export const createAgentSlice: StateCreator<any, [], [], AgentSlice> = (set, get) => ({
+export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (set, get) => ({
   agentStatus: 'idle',
   agentVariants: [],
   agentError: null,

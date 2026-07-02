@@ -1,5 +1,6 @@
 import { log } from '../utils/log';
 import { cacheHeaders, noStoreHeaders } from '../utils/cacheHeaders';
+import { requireAuth } from './_auth';
 
 export const config = {
   runtime: 'edge',
@@ -29,6 +30,13 @@ export default async function handler(req: Request) {
     }
     lastCleanup = now;
   }
+
+  try {
+    await requireAuth(req);
+  } catch (response) {
+    return response as Response;
+  }
+
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 200,

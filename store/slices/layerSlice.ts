@@ -7,10 +7,12 @@ import { createGroupingSlice } from './layer/groupingSlice';
 import { createLayoutSlice } from './layer/layoutSlice';
 import { createStyleSlice } from './layer/styleSlice';
 import { createComponentSlice } from './layer/componentSlice';
+import type { StoreState } from '../useStore';
+
 
 export type { LayerSlice };
 
-export const createLayerSlice: StateCreator<any, [], [], LayerSlice> = (set, get, store) => ({
+export const createLayerSlice: StateCreator<StoreState, [], [], LayerSlice> = (set, get, store) => ({
   ...(createBaseLayerSlice(set, get, store) as LayerSlice),
   ...(createCRUDSlice(set, get, store) as LayerSlice),
   ...(createSelectionSlice(set, get, store) as LayerSlice),

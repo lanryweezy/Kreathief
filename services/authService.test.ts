@@ -41,7 +41,7 @@ describe('AuthService', () => {
     it('should return user with valid credentials in QA bypass mode', async () => {
       // Set QA bypass mode
       const originalEnv = import.meta.env.MODE;
-      // @ts-ignore -- testing env mutation
+      // @ts-expect-error -- testing env mutation
       import.meta.env.MODE = 'test';
       import.meta.env.VITE_QA_BYPASS = 'true';
 
@@ -53,7 +53,7 @@ describe('AuthService', () => {
       expect(result.error).toBeNull();
 
       // Restore
-      // @ts-ignore -- testing env mutation
+      // @ts-expect-error -- testing env mutation
       import.meta.env.MODE = originalEnv;
       import.meta.env.VITE_QA_BYPASS = undefined;
     });
@@ -211,7 +211,7 @@ describe('AuthService', () => {
 
   describe('onAuthChange', () => {
     it('should return empty unsubscribe function in QA bypass mode', () => {
-      // @ts-ignore -- testing env mutation
+      // @ts-expect-error -- testing env mutation
       import.meta.env.MODE = 'test';
       import.meta.env.VITE_QA_BYPASS = 'true';
 

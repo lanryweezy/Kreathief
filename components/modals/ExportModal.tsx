@@ -109,7 +109,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     if (!activeArtboard) {
       return 0;
     }
-    // @ts-ignore - necessary due to canvas library typings - color may exist on layer
+    // @ts-expect-error - necessary due to canvas library typings - color may exist on layer
     return activeArtboard.layers.filter((l) => l.color && !isWithinCMYKGamut(l.color)).length;
   }, [format, isPrintMode, artboards, activeArtboardId]);
 
@@ -121,9 +121,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
     const updates: Record<string, any> = {};
     activeArtboard.layers.forEach((l) => {
-      // @ts-ignore - necessary due to canvas library typings - color may exist on layer
+      // @ts-expect-error - necessary due to canvas library typings - color may exist on layer
       if (l.color && !isWithinCMYKGamut(l.color)) {
-        // @ts-ignore - necessary due to canvas library typings
+        // @ts-expect-error - necessary due to canvas library typings
         updates[l.id] = { color: getClosestCMYKSafeColor(l.color) };
       }
     });

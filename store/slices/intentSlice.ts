@@ -1,4 +1,6 @@
 import { StateCreator } from 'zustand';
+import type { StoreState } from '../useStore';
+
 
 export interface IntentSlice {
   selectedIntent: string | null;
@@ -7,7 +9,7 @@ export interface IntentSlice {
   clearIntent: () => void;
 }
 
-export const createIntentSlice: StateCreator<any, [], [], IntentSlice> = (set) => ({
+export const createIntentSlice: StateCreator<StoreState, [], [], IntentSlice> = (set) => ({
   selectedIntent: null,
   intentCanvasSize: null,
   setIntent: (intent, width, height) =>

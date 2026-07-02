@@ -12,6 +12,7 @@ import { createCollaborationSlice, CollaborationSlice } from './slices/collabora
 import { createAIAssistantSlice, AIAssistantSlice } from './slices/aiAssistantSlice';
 import { createIntentSlice, IntentSlice } from './slices/intentSlice';
 import { DEFAULT_CANVAS_FILTERS, DEFAULT_CANVAS_SIZE } from './slices/canvasSlice';
+import type { NavTab } from '../types';
 
 // Merged type for the full store state
 export type StoreState = UISlice &
@@ -49,7 +50,7 @@ export const useStore = create<StoreState>()((set, get, store) => ({
     get().stopAutoSave?.();
     set({
       // UI Slice
-      activeTab: 'MAGIC' as any,
+      activeTab: 'MAGIC' as NavTab,
       showGrid: false,
       showRulers: false,
       isCommandPaletteOpen: false,
@@ -111,7 +112,7 @@ export const useStore = create<StoreState>()((set, get, store) => ({
       // History Slice
       past: [],
       future: [],
-      // @ts-ignore - internal slice property
+      // @ts-expect-error TODO: fix type - internal slice property
       __batchDepth: 0,
       __hasPendingBatchChange: false,
       __lastStateSnapshot: null,

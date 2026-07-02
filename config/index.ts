@@ -51,7 +51,7 @@ export const config = {
       timeout: 30000,
     },
     openrouter: {
-      apiKey: getOptionalEnv('VITE_OPENROUTER_API_KEY'),
+      apiKey: '', // Must use server-side proxy
       apiUrl: 'https://openrouter.ai/api/v1',
     },
   },

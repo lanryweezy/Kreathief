@@ -30,10 +30,6 @@ export default async function handler(req: Request) {
         url: process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL,
         anonKey: process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY,
       },
-      flags: {
-        qaBypass: process.env.VITE_QA_BYPASS === 'true',
-        useQaBypass: process.env.VITE_USE_QA_BYPASS === 'true',
-      },
     };
 
     return new Response(JSON.stringify(publicConfig), {

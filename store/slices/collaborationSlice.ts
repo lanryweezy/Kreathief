@@ -1,5 +1,7 @@
 import { StateCreator } from 'zustand';
 import { PresenceState, LayerChange } from '../../services/collaborationService';
+import type { StoreState } from '../useStore';
+
 
 export interface CollaborationSlice {
   // Presence
@@ -15,7 +17,7 @@ export interface CollaborationSlice {
   clearCollaborationState: () => void;
 }
 
-export const createCollaborationSlice: StateCreator<any, [], [], CollaborationSlice> = (set) => ({
+export const createCollaborationSlice: StateCreator<StoreState, [], [], CollaborationSlice> = (set) => ({
   onlineUsers: [],
   cursors: {},
   activeLayerByUser: {},
