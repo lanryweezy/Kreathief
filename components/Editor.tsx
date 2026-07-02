@@ -57,26 +57,20 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const selectedLayer = useStore(selectedLayerSelector);
   const canvasSize = useStore((state) => state.canvasSize) || { width: 1080, height: 1080, name: 'Square' };
   const activeTab = useStore((state) => state.activeTab);
-  const setActiveTab = useStore((state) => state.setActiveTab);
   const zoom = useStore((state) => state.zoom) || 1;
-  const setZoom = useStore((state) => state.setZoom);
   const showShortcuts = useStore((state) => state.showShortcuts);
-  const setShowShortcuts = useStore((state) => state.setShowShortcuts);
   const showRulers = useStore((state) => state.showRulers);
   const showGrid = useStore((state) => state.showGrid);
-  const onToggleGrid = useStore((state) => state.setShowGrid);
-  const onToggleRulers = useStore((state) => state.setShowRulers);
-  const addArtboard = useStore((state) => state.addArtboard);
-  const deleteArtboard = useStore((state) => state.deleteArtboard);
   const selectedIntent = useStore((state) => state.selectedIntent);
-  const setIntent = useStore((state) => state.setIntent);
+  const projectId = useStore((state) => state.projectId);
+  const projectTitle = useStore((state) => state.projectTitle);
+  const showShareModal = useStore((state) => state.showShareModal);
 
   const { broadcastCursor, broadcastLayerChange, updatePresence } = useCollaboration(
     useStore((s) => s.projectId),
     user
   );
 
-  // Expose store to window for E2E tests (dev only)
   React.useEffect(() => {
     if (!import.meta.env.DEV) {
       return;
@@ -87,29 +81,12 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     };
   }, []);
 
-  // Connect actions needed for Header/UI
-  const initializeProject = useStore((state) => state.initializeProject);
-  const undo = useStore((state) => state.undo);
-  const redo = useStore((state) => state.redo);
-  const copyLayer = useStore((state) => state.copyLayer);
-  const pasteLayer = useStore((state) => state.pasteLayer);
-  const duplicateSelected = useStore((state) => state.duplicateSelected);
-  const deleteSelected = useStore((state) => state.deleteSelected);
-  const groupSelected = useStore((state) => state.groupSelected);
-  const ungroupSelected = useStore((state) => state.ungroupSelected);
-  const nudgeLayer = useStore((state) => state.nudgeLayer);
-  const saveProject = useStore((state) => state.saveProject);
-  const projectId = useStore((state) => state.projectId);
-  const projectTitle = useStore((state) => state.projectTitle);
-  const showShareModal = useStore((state) => state.showShareModal);
-  const setShowShareModal = useStore((state) => state.setShowShareModal);
-  const applyBrandColors = useStore((state) => state.applyBrandColors);
-
-  // Local UI State
-  const selectedLayerId =
-    selectedLayerIds && Array.isArray(selectedLayerIds) && selectedLayerIds.length > 0
+  const selectedLayerId = useMemo(() => {
+    return selectedLayerIds && Array.isArray(selectedLayerIds) && selectedLayerIds.length > 0
       ? selectedLayerIds[selectedLayerIds.length - 1] || null
       : null;
+  }, [selectedLayerIds]);
+
   const [showExport, setShowExport] = useState(false);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [showCommunityModal, setShowCommunityModal] = useState(false);
@@ -128,7 +105,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     };
   }, []);
 
-  // Mobile detection — reactive to resize
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
 
   useEffect(() => {
@@ -137,11 +113,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Shake to Undo on Mobile
   useShakeToUndo({
     onShake: () => {
-      undo();
-      // Show toast notification
+      useStore.getState().undo();
       const toast = document.createElement('div');
       toast.className =
         'fixed top-24 left-1/2 -translate-x-1/2 bg-brand-500 text-white px-6 py-3 rounded-2xl shadow-lg z-[500] font-semibold';
@@ -152,7 +126,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     enabled: isMobile,
   });
 
-  // Use Custom Logic Hooks
   const {
     documentColors,
     booleanPreview,
@@ -164,7 +137,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     handleLayerDoubleClick,
   } = useEditorLogic(initialProject);
 
-  // AI Panel (Node Graph + AI Generate)
   const {
     showNodeGraph,
     setShowNodeGraph,
@@ -175,18 +147,17 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     AIGenerateComponent,
   } = EditorAIPanel({ onAddLayer: (layer) => useStore.getState().addLayer(layer) });
 
-  // Sync Project from URL ID
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
     if (id && id !== projectId) {
       storageService.getProject(id).then((project) => {
         if (project) {
-          initializeProject(project);
+          useStore.getState().initializeProject(project);
         }
       });
     }
-  }, [projectId, initializeProject]);
+  }, [projectId]);
 
   const { handleFileUploads, handleExportDataUrl, handleExportBlob, handleConfirmExport, uploadedImage } =
     useFileHandler();
@@ -209,17 +180,17 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   };
 
   const handleStartDesign = (prompt: string) => {
-    setActiveTab(NavTab.MAGIC);
+    useStore.getState().setActiveTab(NavTab.MAGIC);
     useStore.getState().setPrompt(prompt);
   };
 
-  const shortcuts = useMemo(
-    () => [
+  const shortcuts = useMemo(() => {
+    return [
       {
         key: 'z',
         ctrl: true,
         action: () => {
-          undo();
+          useStore.getState().undo();
           historyManagerRef.current.undo();
           haptics.light();
         },
@@ -229,7 +200,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         key: 'y',
         ctrl: true,
         action: () => {
-          redo();
+          useStore.getState().redo();
           historyManagerRef.current.redo();
           haptics.light();
         },
@@ -240,7 +211,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         ctrl: true,
         shift: true,
         action: () => {
-          redo();
+          useStore.getState().redo();
           historyManagerRef.current.redo();
           haptics.light();
         },
@@ -251,7 +222,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         ctrl: true,
         action: () => {
           if (selectedLayerId) {
-            copyLayer(selectedLayerId);
+            useStore.getState().copyLayer(selectedLayerId);
             haptics.selection();
           }
         },
@@ -261,7 +232,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         key: 'v',
         ctrl: true,
         action: () => {
-          pasteLayer();
+          useStore.getState().pasteLayer();
           haptics.medium();
         },
         description: 'Paste Layer',
@@ -271,7 +242,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         ctrl: true,
         action: () => {
           if (selectedLayerIds.length > 0) {
-            duplicateSelected();
+            useStore.getState().duplicateSelected();
             haptics.medium();
           }
         },
@@ -285,7 +256,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             selectedLayerIds.forEach((id: string) => {
               historyManagerRef.current.push(new DeleteCommand({ getState: () => storeRef }, id));
             });
-            deleteSelected();
+            storeRef.deleteSelected();
             haptics.heavy();
           }
         },
@@ -299,7 +270,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             selectedLayerIds.forEach((id: string) => {
               historyManagerRef.current.push(new DeleteCommand({ getState: () => storeRef }, id));
             });
-            deleteSelected();
+            storeRef.deleteSelected();
             haptics.heavy();
           }
         },
@@ -309,7 +280,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         key: 's',
         ctrl: true,
         action: () => {
-          saveProject();
+          useStore.getState().saveProject();
           haptics.light();
         },
         description: 'Save Project',
@@ -328,7 +299,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         ctrl: true,
         action: () => {
           if (selectedLayerIds.length > 1) {
-            groupSelected();
+            useStore.getState().groupSelected();
             haptics.medium();
           }
         },
@@ -340,13 +311,12 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         shift: true,
         action: () => {
           if (selectedLayerIds.length > 0) {
-            ungroupSelected();
+            useStore.getState().ungroupSelected();
           }
         },
         description: 'Ungroup Layers',
       },
 
-      // Single-Key Tool Shortcuts (Pro Design Workflow)
       {
         key: 'v',
         action: () => {
@@ -397,7 +367,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           if (selectedLayerId) {
             const storeRef = useStore.getState();
             historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 0, -1));
-            nudgeLayer(selectedLayerId, 0, -1);
+            storeRef.nudgeLayer(selectedLayerId, 0, -1);
           }
         },
         description: 'Nudge Up',
@@ -408,7 +378,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           if (selectedLayerId) {
             const storeRef = useStore.getState();
             historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 0, 1));
-            nudgeLayer(selectedLayerId, 0, 1);
+            storeRef.nudgeLayer(selectedLayerId, 0, 1);
           }
         },
         description: 'Nudge Down',
@@ -419,7 +389,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           if (selectedLayerId) {
             const storeRef = useStore.getState();
             historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, -1, 0));
-            nudgeLayer(selectedLayerId, -1, 0);
+            storeRef.nudgeLayer(selectedLayerId, -1, 0);
           }
         },
         description: 'Nudge Left',
@@ -430,7 +400,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           if (selectedLayerId) {
             const storeRef = useStore.getState();
             historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 1, 0));
-            nudgeLayer(selectedLayerId, 1, 0);
+            storeRef.nudgeLayer(selectedLayerId, 1, 0);
           }
         },
         description: 'Nudge Right',
@@ -442,7 +412,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           if (selectedLayerId) {
             const storeRef = useStore.getState();
             historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 0, -10));
-            nudgeLayer(selectedLayerId, 0, -10);
+            storeRef.nudgeLayer(selectedLayerId, 0, -10);
           }
         },
         description: 'Nudge Up 10px',
@@ -454,7 +424,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           if (selectedLayerId) {
             const storeRef = useStore.getState();
             historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 0, 10));
-            nudgeLayer(selectedLayerId, 0, 10);
+            storeRef.nudgeLayer(selectedLayerId, 0, 10);
           }
         },
         description: 'Nudge Down 10px',
@@ -466,7 +436,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           if (selectedLayerId) {
             const storeRef = useStore.getState();
             historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, -10, 0));
-            nudgeLayer(selectedLayerId, -10, 0);
+            storeRef.nudgeLayer(selectedLayerId, -10, 0);
           }
         },
         description: 'Nudge Left 10px',
@@ -478,7 +448,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           if (selectedLayerId) {
             const storeRef = useStore.getState();
             historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 10, 0));
-            nudgeLayer(selectedLayerId, 10, 0);
+            storeRef.nudgeLayer(selectedLayerId, 10, 0);
           }
         },
         description: 'Nudge Right 10px',
@@ -504,7 +474,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         key: '0',
         ctrl: true,
         action: () => {
-          setZoom(1);
+          useStore.getState().setZoom(1);
         },
         description: 'Zoom to 100%',
       },
@@ -512,7 +482,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         key: '=',
         ctrl: true,
         action: () => {
-          setZoom(Math.min(10, zoom + 0.25));
+          const state = useStore.getState();
+          state.setZoom(Math.min(10, state.zoom + 0.25));
         },
         description: 'Zoom In',
       },
@@ -520,7 +491,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         key: '-',
         ctrl: true,
         action: () => {
-          setZoom(Math.max(0.05, zoom - 0.25));
+          const state = useStore.getState();
+          state.setZoom(Math.max(0.05, state.zoom - 0.25));
         },
         description: 'Zoom Out',
       },
@@ -595,9 +567,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         },
         description: 'Command Palette',
       },
-      { key: '?', shift: true, action: () => setShowShortcuts(!showShortcuts), description: 'Shortcuts' },
+      { key: '?', shift: true, action: () => useStore.getState().setShowShortcuts(!useStore.getState().showShortcuts), description: 'Shortcuts' },
 
-      // Alignment shortcuts (Alt+1-6)
       {
         key: '1',
         alt: true,
@@ -664,27 +635,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         },
         description: 'Align Bottom',
       },
-    ],
-    [
-      undo,
-      redo,
-      copyLayer,
-      pasteLayer,
-      saveProject,
-      selectedLayerIds,
-      duplicateSelected,
-      deleteSelected,
-      groupSelected,
-      ungroupSelected,
-      setShowShortcuts,
-      showShortcuts,
-      nudgeLayer,
-      zoom,
-      setZoom,
-      selectedLayer,
-      historyManagerRef,
-    ]
-  );
+    ];
+  }, [selectedLayerIds, selectedLayer, selectedLayerId]);
 
   useKeyboardShortcuts({ shortcuts, enabled: true });
 
@@ -695,24 +647,24 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   return (
     <div id="editor-root" className="flex flex-col h-screen bg-surface-dark-2 overflow-hidden text-[#e5e7eb] font-sans">
       {!initialProject && !selectedIntent && (
-        <CreativeIntentMode onSelect={() => {}} onSkip={() => setIntent('skip', 1080, 1080)} />
+        <CreativeIntentMode onSelect={() => {}} onSkip={() => useStore.getState().setIntent('skip', 1080, 1080)} />
       )}
 
       {!hideHeaderOnMobile && (
         <Header
           onDownload={() => setShowExport(true)}
           onBack={handleBack}
-          onNew={initializeProject}
+          onNew={() => useStore.getState().initializeProject()}
           onOpenCommunity={() => setShowCommunityModal(true)}
           user={user}
           zoom={zoom}
-          onZoomChange={setZoom}
+          onZoomChange={(z) => useStore.getState().setZoom(z)}
           showGrid={showGrid}
-          onToggleGrid={onToggleGrid}
+          onToggleGrid={(v) => useStore.getState().setShowGrid(v)}
           showRulers={showRulers}
-          onToggleRulers={onToggleRulers}
-          onAddArtboard={() => addArtboard()}
-          onDeleteArtboard={() => deleteArtboard(useStore.getState().activeArtboardId)}
+          onToggleRulers={(v) => useStore.getState().setShowRulers(v)}
+          onAddArtboard={() => useStore.getState().addArtboard()}
+          onDeleteArtboard={() => useStore.getState().deleteArtboard(useStore.getState().activeArtboardId)}
         />
       )}
 
@@ -728,7 +680,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
               onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
               onExpand={() => {
                 if (activeTab === NavTab.MOCKUP) {
-                  setActiveTab(NavTab.MAGIC);
+                  useStore.getState().setActiveTab(NavTab.MAGIC);
                 }
                 setIsSidebarCollapsed(false);
               }}
@@ -736,7 +688,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             {!isSidebarCollapsed && activeTab !== NavTab.MOCKUP && (
               <SidePanel
                 onGenerate={handleGenerate}
-                onApplyTheme={applyBrandColors}
+                onApplyTheme={(colors) => useStore.getState().applyBrandColors(colors)}
                 onApplyLayout={handleApplyLayout}
                 getCanvasSnapshot={handleExportDataUrl}
                 uploadedImage={uploadedImage}
@@ -800,7 +752,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
               <Canvas
                 onDoubleClickLayer={handleLayerDoubleClick}
                 zoom={zoom}
-                onZoomChange={setZoom}
+                onZoomChange={(z) => useStore.getState().setZoom(z)}
                 onFileUpload={handleFileUploads}
                 onAddLogoToCanvas={handleAddLogoToCanvas}
                 booleanPreview={booleanPreview}
@@ -810,11 +762,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             </ErrorBoundary>
             <CursorOverlay />
 
-            {/* Floating Zoom & View Controls at bottom right corner */}
             <div className="absolute bottom-4 right-4 z-[90] flex items-center bg-surface-dark-3/90 backdrop-blur-md rounded-xl p-1 border border-white/10 shadow-2xl">
               <div className="flex items-center px-1">
                 <button
-                  onClick={() => setZoom(Math.max(0.1, zoom - 0.1))}
+                  onClick={() => useStore.getState().setZoom(Math.max(0.1, zoom - 0.1))}
                   className="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-colors"
                   title="Zoom Out"
                 >
@@ -828,21 +779,21 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                     if (e.key === 'Enter') {
                       const val = parseInt((e.target as HTMLInputElement).value.replace('%', ''));
                       if (!isNaN(val)) {
-                        setZoom(Math.max(0.1, Math.min(10, val / 100)));
+                        useStore.getState().setZoom(Math.max(0.1, Math.min(10, val / 100)));
                       }
                     }
                   }}
                   onBlur={(e) => {
                     const val = parseInt(e.target.value.replace('%', ''));
                     if (!isNaN(val)) {
-                      setZoom(Math.max(0.1, Math.min(10, val / 100)));
+                      useStore.getState().setZoom(Math.max(0.1, Math.min(10, val / 100)));
                     }
                   }}
                   className="px-1 w-[42px] text-center text-[10px] font-black text-gray-300 font-mono bg-transparent border border-white/10 rounded outline-none focus:border-brand/50"
                   title="Zoom Level"
                 />
                 <button
-                  onClick={() => setZoom(Math.min(10, zoom + 0.1))}
+                  onClick={() => useStore.getState().setZoom(Math.min(10, zoom + 0.1))}
                   className="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-colors"
                   title="Zoom In"
                 >
@@ -875,7 +826,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                     const contentW = maxX - minX;
                     const contentH = maxY - minY;
                     const newZoom = Math.min(vw / contentW, vh / contentH, 5);
-                    setZoom(newZoom);
+                    state.setZoom(newZoom);
                     const centerX = (minX + maxX) / 2;
                     const centerY = (minY + maxY) / 2;
                     state.setPanOffset({
@@ -909,7 +860,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                           const lw = layer.width || 100;
                           const lh = layer.height || 100;
                           const newZoom = Math.min(vw / lw, vh / lh, 10);
-                          setZoom(newZoom);
+                          useStore.getState().setZoom(newZoom);
                           const cx = (layer.x || 0) + lw / 2;
                           const cy = (layer.y || 0) + lh / 2;
                           useStore.getState().setPanOffset({
@@ -930,14 +881,14 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
               <div className="flex items-center gap-1 px-1">
                 <button
-                  onClick={() => onToggleGrid(!showGrid)}
+                  onClick={() => useStore.getState().setShowGrid(!showGrid)}
                   className={`p-1.5 rounded-md transition-all ${showGrid ? 'bg-brand/20 text-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
                   title="Toggle Grid"
                 >
                   <Icons.Grid className="w-3.5 h-3.5" />
                 </button>
                 <button
-                  onClick={() => onToggleRulers(!showRulers)}
+                  onClick={() => useStore.getState().setShowRulers(!showRulers)}
                   className={`p-1.5 rounded-md transition-all ${showRulers ? 'bg-brand/20 text-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
                   title="Toggle Rulers"
                 >
@@ -952,7 +903,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                   <MockupPanel
                     onExportForMockup={handleExportDataUrl}
                     variant="full"
-                    onClose={() => setActiveTab(NavTab.MAGIC)}
+                    onClose={() => useStore.getState().setActiveTab(NavTab.MAGIC)}
                   />
                 </div>
               </div>
@@ -964,19 +915,16 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       <MobileNavBar
         activeTab={activeTab}
         onSelectTab={(tab) => {
-          setActiveTab(tab);
+          useStore.getState().setActiveTab(tab);
           setIsBottomSheetOpen(true);
           haptics.selection();
         }}
       />
 
-      {/* Mobile Transform Controller (Quick Edit) */}
       {isMobile && <MobileTransformController />}
 
-      {/* Mobile Quick Actions FAB */}
       <MobileQuickActions />
 
-      {/* Mobile Toolbar */}
       {isMobile && (
         <MobileToolbar
           onAddText={() => {
@@ -988,18 +936,16 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             haptics.success();
           }}
           onAddImage={() => {
-            // Trigger file upload
             haptics.light();
           }}
           onDraw={() => {
             useStore.getState().setPenMode(true);
-            setActiveTab(NavTab.DRAW);
+            useStore.getState().setActiveTab(NavTab.DRAW);
             haptics.light();
           }}
         />
       )}
 
-      {/* Mobile Context Menu */}
       {isMobile && contextMenuLayerId && (
         <MobileContextMenu
           isOpen={showMobileContextMenu}
@@ -1010,13 +956,13 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           layerId={contextMenuLayerId}
           onDuplicate={() => {
             if (contextMenuLayerId) {
-              duplicateSelected();
+              useStore.getState().duplicateSelected();
               haptics.success();
             }
           }}
           onDelete={() => {
             if (contextMenuLayerId) {
-              deleteSelected();
+              useStore.getState().deleteSelected();
               haptics.heavy();
             }
           }}
@@ -1035,13 +981,12 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         />
       )}
 
-      {/* Mobile Onboarding */}
       {isMobile && <MobileOnboarding />}
 
       <BottomSheet isOpen={isBottomSheetOpen} onClose={() => setIsBottomSheetOpen(false)} title={activeTab}>
         <SidePanel
           onGenerate={handleGenerate}
-          onApplyTheme={applyBrandColors}
+          onApplyTheme={(colors) => useStore.getState().applyBrandColors(colors)}
           onApplyLayout={handleApplyLayout}
           getCanvasSnapshot={handleExportDataUrl}
           uploadedImage={uploadedImage}
@@ -1084,14 +1029,14 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         )}
         {showShareModal && (
           <ShareModal
-            onClose={() => setShowShareModal(false)}
+            onClose={() => useStore.getState().setShowShareModal(false)}
             designTitle={projectTitle}
             onGetShareLink={() => shareService.generateShareLink(projectId, user.id)}
           />
         )}
       </ErrorBoundary>
 
-      <ShortcutOverlay isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
+      <ShortcutOverlay isOpen={showShortcuts} onClose={() => useStore.getState().setShowShortcuts(false)} />
       <FeedbackModal />
 
       <React.Suspense fallback={null}>
