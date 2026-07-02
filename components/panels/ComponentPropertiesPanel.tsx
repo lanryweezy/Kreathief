@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
 import { Button } from '../Button';
 import { Layer, Artboard } from '../../types';
@@ -21,8 +22,21 @@ export const ComponentPropertiesPanel: React.FC = () => {
     getComponentDefinition,
     addVariant,
     applyVariant,
-    updateInstanceLayer,
-  } = useStore();
+    updateInstanceLayer
+  } = useStore(useShallow((state) => ({
+    selectedLayerIds: state.selectedLayerIds,
+    artboards: state.artboards,
+    convertToComponent: state.convertToComponent,
+    instantiateComponent: state.instantiateComponent,
+    detachInstance: state.detachInstance,
+    resetOverrides: state.resetOverrides,
+    swapInstance: state.swapInstance,
+    getComponentInstances: state.getComponentInstances,
+    getComponentDefinition: state.getComponentDefinition,
+    addVariant: state.addVariant,
+    applyVariant: state.applyVariant,
+    updateInstanceLayer: state.updateInstanceLayer
+  })));
 
   const [newVariantName, setNewVariantName] = useState('');
   const [showSwapPicker, setShowSwapPicker] = useState(false);
@@ -276,7 +290,11 @@ const SwapComponentPicker: React.FC<{
   onSelect: (masterId: string) => void;
   onCancel: () => void;
 }> = ({ currentMasterId, onSelect, onCancel }) => {
-  const { artboards } = useStore();
+  const {
+    artboards
+  } = useStore(useShallow((state) => ({
+    artboards: state.artboards
+  })));
 
   // Find all master components
   const allComponents = artboards.flatMap((a: Artboard) =>
