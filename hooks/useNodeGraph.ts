@@ -262,8 +262,14 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
         if (!def) continue;
 
         const inputs = collectInputs(nodeId, graph.wires, outputs);
-        const result = await def.execute(inputs, node.settings);
-        outputs[nodeId] = result;
+
+        try {
+          const result = await def.execute(inputs, node.settings);
+          outputs[nodeId] = result;
+        } catch (err) {
+          console.error(`[NodeGraph] Node ${node.type} (${nodeId}) failed:`, err);
+          outputs[nodeId] = { error: String(err) };
+        }
       }
 
       set({ nodeOutputs: outputs, executionOrder: order });
@@ -326,7 +332,7 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
     }));
   },
 
-  startWireDrag: (fromNode, fromPort, x, y) => {
+  startWireDrag: (fromNode, fromPort, x = 0, y = 0) => {
     set({
       wireState: {
         isDrawing: true,

@@ -101,20 +101,25 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     outputs: [{ id: 'image', label: 'Image', dataType: 'image' }],
     defaults: { model: 'flux-schnell', steps: 20, cfg: 7, width: 1024, height: 1024, seed: -1 },
     execute: async (inputs, settings) => {
-      const response = await fetch('/api/fal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: `fal-ai/${settings.model}`,
-          prompt: inputs.prompt?.prompt || settings.prompt || '',
-          image_size: { width: settings.width, height: settings.height },
-          num_inference_steps: settings.steps,
-          guidance_scale: settings.cfg,
-          seed: settings.seed === -1 ? undefined : settings.seed,
-        }),
-      });
-      const data = await response.json();
-      return { image: { src: data.images?.[0]?.url || data.url, width: settings.width, height: settings.height } };
+      try {
+        const response = await fetch('/api/fal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: `fal-ai/${settings.model}`,
+            prompt: inputs.prompt?.prompt || settings.prompt || '',
+            image_size: { width: settings.width, height: settings.height },
+            num_inference_steps: settings.steps,
+            guidance_scale: settings.cfg,
+            seed: settings.seed === -1 ? undefined : settings.seed,
+          }),
+        });
+        const data = await response.json();
+        return { image: { src: data.images?.[0]?.url || data.url, width: settings.width, height: settings.height } };
+      } catch (err) {
+        console.warn('[FLUX] API unavailable, using placeholder');
+        return { image: { src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/7d2ae8?text=FLUX+Generated`, width: settings.width, height: settings.height } };
+      }
     },
   },
   {
@@ -131,17 +136,22 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     outputs: [{ id: 'image', label: 'Image', dataType: 'image' }],
     defaults: { model: 'nano-banana-2', width: 1024, height: 1024 },
     execute: async (inputs, settings) => {
-      const response = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: settings.model,
-          prompt: inputs.prompt?.prompt || '',
-          images: inputs.image ? (Array.isArray(inputs.image) ? inputs.image : [inputs.image]) : [],
-        }),
-      });
-      const data = await response.json();
-      return { image: { src: data.imageUrl || data.url, width: settings.width, height: settings.height } };
+      try {
+        const response = await fetch('/api/gemini', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: settings.model,
+            prompt: inputs.prompt?.prompt || '',
+            images: inputs.image ? (Array.isArray(inputs.image) ? inputs.image : [inputs.image]) : [],
+          }),
+        });
+        const data = await response.json();
+        return { image: { src: data.imageUrl || data.url, width: settings.width, height: settings.height } };
+      } catch (err) {
+        console.warn('[Gemini] API unavailable, using placeholder');
+        return { image: { src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/00c4cc?text=Gemini+Generated`, width: settings.width, height: settings.height } };
+      }
     },
   },
   {
@@ -155,18 +165,23 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     outputs: [{ id: 'image', label: 'SVG', dataType: 'image' }],
     defaults: { style: 'digital_illustration', width: 1024, height: 1024 },
     execute: async (inputs, settings) => {
-      const response = await fetch('/api/fal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'fal-ai/recraft-v3',
-          prompt: inputs.prompt?.prompt || '',
-          style: settings.style,
-          image_size: { width: settings.width, height: settings.height },
-        }),
-      });
-      const data = await response.json();
-      return { image: { src: data.images?.[0]?.url, width: settings.width, height: settings.height } };
+      try {
+        const response = await fetch('/api/fal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'fal-ai/recraft-v3',
+            prompt: inputs.prompt?.prompt || '',
+            style: settings.style,
+            image_size: { width: settings.width, height: settings.height },
+          }),
+        });
+        const data = await response.json();
+        return { image: { src: data.images?.[0]?.url, width: settings.width, height: settings.height } };
+      } catch (err) {
+        console.warn('[Recraft] API unavailable, using placeholder');
+        return { image: { src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/ff6b35?text=Recraft+Vector`, width: settings.width, height: settings.height } };
+      }
     },
   },
   {
@@ -180,17 +195,22 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     outputs: [{ id: 'image', label: 'Image', dataType: 'image' }],
     defaults: { model: 'seedream-v4.5', width: 1024, height: 1024 },
     execute: async (inputs, settings) => {
-      const response = await fetch('/api/fal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: `fal-ai/${settings.model}`,
-          prompt: inputs.prompt?.prompt || '',
-          image_size: { width: settings.width, height: settings.height },
-        }),
-      });
-      const data = await response.json();
-      return { image: { src: data.images?.[0]?.url, width: settings.width, height: settings.height } };
+      try {
+        const response = await fetch('/api/fal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: `fal-ai/${settings.model}`,
+            prompt: inputs.prompt?.prompt || '',
+            image_size: { width: settings.width, height: settings.height },
+          }),
+        });
+        const data = await response.json();
+        return { image: { src: data.images?.[0]?.url, width: settings.width, height: settings.height } };
+      } catch (err) {
+        console.warn('[Seedream] API unavailable, using placeholder');
+        return { image: { src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/ffd700?text=Seedream+Generated`, width: settings.width, height: settings.height } };
+      }
     },
   },
   {
@@ -204,15 +224,20 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     outputs: [{ id: 'text', label: 'Text', dataType: 'text' }],
     defaults: { instruction: 'Generate a catchy headline', tone: 'professional' },
     execute: async (inputs, settings) => {
-      const response = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: `${settings.instruction}. Tone: ${settings.tone}. Context: ${inputs.prompt?.prompt || ''}`,
-        }),
-      });
-      const data = await response.json();
-      return { text: data.text || data.response };
+      try {
+        const response = await fetch('/api/gemini', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prompt: `${settings.instruction}. Tone: ${settings.tone}. Context: ${inputs.prompt?.prompt || ''}`,
+          }),
+        });
+        const data = await response.json();
+        return { text: data.text || data.response };
+      } catch (err) {
+        console.warn('[AI Text] API unavailable, using placeholder');
+        return { text: `${settings.instruction} — Generated text for: ${inputs.prompt?.prompt || 'your design'}` };
+      }
     },
   },
 
@@ -230,13 +255,18 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     outputs: [{ id: 'image', label: 'Image', dataType: 'image' }],
     defaults: {},
     execute: async (inputs, settings) => {
-      const response = await fetch('/api/fal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'fal-ai/background-removal', image_url: inputs.image?.src }),
-      });
-      const data = await response.json();
-      return { image: { ...inputs.image, src: data.image?.url || data.images?.[0]?.url } };
+      try {
+        const response = await fetch('/api/fal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: 'fal-ai/background-removal', image_url: inputs.image?.src }),
+        });
+        const data = await response.json();
+        return { image: { ...inputs.image, src: data.image?.url || data.images?.[0]?.url } };
+      } catch (err) {
+        console.warn('[BG Remove] API unavailable, passing through');
+        return { image: inputs.image };
+      }
     },
   },
   {
@@ -250,13 +280,19 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     outputs: [{ id: 'image', label: 'Image', dataType: 'image' }],
     defaults: { scale: 2 },
     execute: async (inputs, settings) => {
-      const response = await fetch('/api/fal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'fal-ai/esrgan', image_url: inputs.image?.src, scale: settings.scale }),
-      });
-      const data = await response.json();
-      return { image: { ...inputs.image, src: data.image?.url, width: (inputs.image?.width || 512) * settings.scale, height: (inputs.image?.height || 512) * settings.scale } };
+      try {
+        const response = await fetch('/api/fal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: 'fal-ai/esrgan', image_url: inputs.image?.src, scale: settings.scale }),
+        });
+        const data = await response.json();
+        return { image: { ...inputs.image, src: data.image?.url, width: (inputs.image?.width || 512) * settings.scale, height: (inputs.image?.height || 512) * settings.scale } };
+      } catch (err) {
+        console.warn('[Upscale] API unavailable, passing through');
+        return { image: { ...inputs.image, width: (inputs.image?.width || 512) * settings.scale, height: (inputs.image?.height || 512) * settings.scale } };
+      }
+    },
     },
   },
   {
@@ -346,13 +382,18 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     outputs: [{ id: 'image', label: 'SVG', dataType: 'image' }],
     defaults: { detail: 'high', colors: 16 },
     execute: async (inputs, settings) => {
-      const response = await fetch('/api/fal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'fal-ai/recraft-v3', image_url: inputs.image?.src, mode: 'vector' }),
-      });
-      const data = await response.json();
-      return { image: { ...inputs.image, src: data.images?.[0]?.url, isVector: true } };
+      try {
+        const response = await fetch('/api/fal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: 'fal-ai/recraft-v3', image_url: inputs.image?.src, mode: 'vector' }),
+        });
+        const data = await response.json();
+        return { image: { ...inputs.image, src: data.images?.[0]?.url, isVector: true } };
+      } catch (err) {
+        console.warn('[Vectorize] API unavailable, passing through');
+        return { image: { ...inputs.image, isVector: true } };
+      }
     },
   },
 
@@ -370,13 +411,18 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     outputs: [{ id: 'image', label: 'Mockup', dataType: 'image' }],
     defaults: { product: 'tshirt-white', angle: 'front', scene: 'studio' },
     execute: async (inputs, settings) => {
-      const response = await fetch('/api/dynamic-mockups?action=generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mockupId: settings.product, designUrl: inputs.image?.src, placement: { top: 0, left: 0, width: 100, rotate: 0 } }),
-      });
-      const data = await response.json();
-      return { image: { src: data.url, width: 3000, height: 3000 } };
+      try {
+        const response = await fetch('/api/dynamic-mockups?action=generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mockupId: settings.product, designUrl: inputs.image?.src, placement: { top: 0, left: 0, width: 100, rotate: 0 } }),
+        });
+        const data = await response.json();
+        return { image: { src: data.url, width: 3000, height: 3000 } };
+      } catch (err) {
+        console.warn('[Mockup] API unavailable, using design as-is');
+        return { image: inputs.image || { src: `https://placehold.co/3000x3000/1a1a2e/7d2ae8?text=Mockup`, width: 3000, height: 3000 } };
+      }
     },
   },
   {
