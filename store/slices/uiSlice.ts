@@ -199,8 +199,9 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   addToast: (message, type = 'info', action, details) => {
     const id = uuidv4();
     const safeMessage = typeof message === 'string' ? message : String(message ?? 'Unknown error');
+    const safeDetails = details != null ? String(details) : undefined;
     set((state: any) => ({
-      toasts: [...state.toasts, { id, message: safeMessage, type, action, details }],
+      toasts: [...state.toasts, { id, message: safeMessage, type, action, details: safeDetails }],
     }));
     const timer = setTimeout(() => get().removeToast(id), action ? 15000 : 5000);
     toastTimers.set(id, timer);

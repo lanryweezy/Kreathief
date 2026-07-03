@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { selectedLayerSelector } from '../store/selectors';
 import { NavTab, TextLayer } from '../types';
 import { Icons } from '../constants';
