@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
 import { Button } from '../Button';
 import { analyticsService } from '../../services/analyticsService';
@@ -7,7 +8,13 @@ import { analyticsService } from '../../services/analyticsService';
 import { ModalWrapper } from './ModalWrapper';
 
 export const FeedbackModal: React.FC = () => {
-  const { showFeedbackModal, setShowFeedbackModal, addToast } = useStore();
+  const { showFeedbackModal, setShowFeedbackModal, addToast } = useStore(
+    useShallow((state) => ({
+      showFeedbackModal: state.showFeedbackModal,
+      setShowFeedbackModal: state.setShowFeedbackModal,
+      addToast: state.addToast,
+    }))
+  );
   const [type, setType] = useState<'bug' | 'feature' | 'other'>('feature');
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
