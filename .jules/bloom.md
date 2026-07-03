@@ -37,3 +37,8 @@
 
 **Learning:** Found multiple instances where non-AI operations, such as generating share links in `ShareModal`, auto-detecting mockup placement in `MockupPanel`, and creating AI-generated designs in `Dashboard`, were using generic error messages in `addToast` calls inside `catch` blocks (e.g., `addToast('Batch export failed', 'error')`). While these operations are not directly AI-related, the `getErrorDetails` utility provides a consistent, robust way to extract actionable suggestions (like storage limits, network issues, etc.) for any error type.
 **Action:** Replaced generic error strings in standard `addToast` catch blocks with dynamic messages constructed using `getErrorDetails(e)`. This ensures that standard operations also provide specific, actionable guidance to users when they fail, closing the quality gap in error reporting.
+
+## 2024-07-03 - Replaced generic error messages with specific AI error formatters in AIGenerateModal
+
+**Learning:** The `AIGenerateModal` feature was displaying a generic "Something went wrong" error toast on failure, despite the codebase already having a `getAIErrorMessage` utility in `utils/errorMessages.ts` specifically designed to provide actionable user feedback for AI operations (differentiating timeouts, quota limits, and network errors).
+**Action:** Replaced the hardcoded, generic error string in the catch block of `AIGenerateModal` with `getAIErrorMessage(err)` to provide specific, actionable guidance to users.
