@@ -13,10 +13,12 @@ interface ContextMenuProps {
 
 export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose }) => {
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuItemsRef = useRef<HTMLButtonElement[]>([]);
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState('');
   const renameInputRef = useRef<HTMLInputElement>(null);
   const [visible, setVisible] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   // ⚡ Bolt: Using useShallow to prevent unnecessary re-renders when unrelated store properties change.
   // This ensures ContextMenu only re-renders when the specific properties/actions destructured below actually update.
@@ -82,6 +84,10 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
   }, []);
 
   useEffect(() => {
+    if (visible) menuItemsRef.current[0]?.focus();
+  }, [visible]);
+
+  useEffect(() => {
     const handleOut = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         onClose();
@@ -133,25 +139,54 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
   const adjustedX = Math.min(x, window.innerWidth - 272);
   const adjustedY = Math.min(y, window.innerHeight - 450);
 
-  const MI = ({ onClick, icon: Icon, children, red = false, purple = false, disabled = false }: any) => (
-    <button
-      onClick={disabled ? undefined : onClick}
-      disabled={disabled}
-      className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-sm transition-all text-left rounded-lg mx-1 group/mi ${
-        disabled
-          ? 'text-gray-700 cursor-not-allowed'
-          : red
-            ? 'text-red-400 hover:bg-red-500/15 hover:text-red-300'
-            : purple
-              ? 'text-brand-400 hover:bg-brand-400/15 hover:text-brand-300'
-              : 'text-gray-300 hover:bg-brand-600 hover:text-white'
-      }`}
-      style={{ width: 'calc(100% - 8px)' }}
-    >
-      <Icon className="w-4 h-4 shrink-0 opacity-70 group-hover/mi:opacity-100" />
-      <span className="flex-1">{children}</span>
-    </button>
-  );
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIndex((prev) => {
+        const next = Math.min(prev + 1, menuItemsRef.current.length - 1);
+        menuItemsRef.current[next]?.focus();
+        return next;
+      });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIndex((prev) => {
+        const next = Math.max(prev - 1, 0);
+        menuItemsRef.current[next]?.focus();
+        return next;
+      });
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      menuItemsRef.current[activeIndex]?.click();
+    }
+  };
+
+  let miIndex = 1;
+
+  const MI = ({ onClick, icon: Icon, children, red = false, purple = false, disabled = false }: any) => {
+    const currentIndex = miIndex++;
+    return (
+      <button
+        ref={(el) => { menuItemsRef.current[currentIndex] = el!; }}
+        role="menuitem"
+        tabIndex={currentIndex === activeIndex ? 0 : -1}
+        onClick={disabled ? undefined : onClick}
+        disabled={disabled}
+        className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-sm transition-all text-left rounded-lg mx-1 group/mi ${
+          disabled
+            ? 'text-gray-700 cursor-not-allowed'
+            : red
+              ? 'text-red-400 hover:bg-red-500/15 hover:text-red-300'
+              : purple
+                ? 'text-brand-400 hover:bg-brand-400/15 hover:text-brand-300'
+                : 'text-gray-300 hover:bg-brand-600 hover:text-white'
+        }`}
+        style={{ width: 'calc(100% - 8px)' }}
+      >
+        <Icon className="w-4 h-4 shrink-0 opacity-70 group-hover/mi:opacity-100" />
+        <span className="flex-1">{children}</span>
+      </button>
+    );
+  };
 
   const Div = () => <div className="h-px bg-white/5 my-1 mx-3" />;
 
@@ -159,6 +194,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
     <div
       ref={menuRef}
       data-context-menu
+      role="menu"
+      onKeyDown={handleKeyDown}
       className={`fixed z-toast w-72 bg-surface-dark-3/98 border border-white/10 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] py-4 flex flex-col backdrop-blur-2xl overflow-hidden select-none transition-opacity duration-150 ${visible ? 'opacity-100' : 'opacity-0'}`}
       style={{ top: adjustedY, left: adjustedX }}
       onContextMenu={(e) => e.preventDefault()}
@@ -194,6 +231,9 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
         </div>
       ) : (
         <button
+          ref={(el) => { menuItemsRef.current[0] = el!; }}
+          role="menuitem"
+          tabIndex={0 === activeIndex ? 0 : -1}
           onClick={() => setIsRenaming(true)}
           className="w-full flex items-center gap-3.5 px-5 py-3 text-xs font-black uppercase tracking-widest text-slate-400 hover:bg-brand-600 hover:text-white transition-all rounded-xl mx-2 group"
           style={{ width: 'calc(100% - 16px)' }}

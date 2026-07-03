@@ -11,6 +11,7 @@ import { ConnectionStatus } from './ConnectionStatus';
 interface HeaderProps {
   onDownload: () => void;
   onBack?: () => void;
+  isNavigating?: boolean;
   onNew?: (project: Project) => void;
   onAddArtboard?: () => void;
   onDeleteArtboard?: () => void;
@@ -27,6 +28,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   onDownload,
   onBack,
+  isNavigating,
   onNew,
   onAddArtboard,
   onDeleteArtboard,
@@ -107,10 +109,15 @@ export const Header: React.FC<HeaderProps> = ({
             variant="ghost"
             size="icon"
             onClick={onBack}
+            disabled={isNavigating}
             title="Back to Dashboard"
             aria-label="Go back to Dashboard"
           >
-            <Icons.ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            {isNavigating ? (
+              <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Icons.ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            )}
           </Button>
         )}
 

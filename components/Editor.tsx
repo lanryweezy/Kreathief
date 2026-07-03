@@ -1,6 +1,6 @@
 import { log } from '../utils/log';
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -163,7 +163,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const { handleFileUploads, handleExportDataUrl, handleExportBlob, handleConfirmExport, uploadedImage } =
     useFileHandler();
 
-  const handleBack = async () => {
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  const handleBack = useCallback(async () => {
+    setIsNavigating(true);
     try {
       await useStore.getState().saveProject();
       const thumb = await handleExportDataUrl();
@@ -172,9 +175,11 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       }
     } catch (err) {
       log.error('Failed to capture thumbnail on back', err);
+    } finally {
+      setIsNavigating(false);
     }
     onBack();
-  };
+  }, [onBack, handleExportDataUrl, projectId]);
 
   const handleAddLogoToCanvas = (url: string) => {
     useStore.getState().addImageLayer(url, 'Logo');
@@ -655,6 +660,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         <Header
           onDownload={() => setShowExport(true)}
           onBack={handleBack}
+          isNavigating={isNavigating}
           onNew={() => useStore.getState().initializeProject()}
           onOpenCommunity={() => setShowCommunityModal(true)}
           user={user}

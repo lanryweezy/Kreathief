@@ -53,8 +53,8 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title
   const handleTouchEnd = () => {
     setIsDragging(false);
 
-    // Close if dragged down more than 150px
-    if (dragY > 150) {
+    // Close if dragged down more than 200px
+    if (dragY > 200) {
       haptics.medium();
       onClose();
     }
@@ -84,6 +84,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title
         className={`absolute bottom-0 left-0 right-0 bg-gradient-to-b from-[#1a1d21] to-[#0e1318] border-t border-white/10 rounded-t-[2rem] shadow-2xl transition-all duration-300 ease-out flex flex-col max-h-[85vh] ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}
         style={{
           transform: `translateY(${isOpen ? dragY : '100%'}px)`,
+          opacity: isDragging ? Math.max(0.3, 1 - dragY / 400) : 1,
           transition: isDragging ? 'none' : 'transform 300ms ease-out',
         }}
       >
