@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
 import { IconButton, Divider } from './ToolbarShared';
 import { ColorPicker } from '../ColorPicker';
@@ -123,11 +124,13 @@ export const ShapeTools = React.memo(
     const effectsButtonRef = useRef<HTMLButtonElement>(null);
     const booleanOpsRef = useRef<HTMLButtonElement>(null);
 
-    const { updateLayer, deleteLayer, saveToHistory } = useStore((state) => ({
-      updateLayer: state.updateLayer,
-      deleteLayer: state.deleteLayer,
-      saveToHistory: state.saveToHistory,
-    }));
+    const { updateLayer, deleteLayer, saveToHistory } = useStore(
+      useShallow((state) => ({
+        updateLayer: state.updateLayer,
+        deleteLayer: state.deleteLayer,
+        saveToHistory: state.saveToHistory,
+      }))
+    );
 
     const handleBooleanOp = (operation: 'union' | 'subtract' | 'intersect' | 'exclude') => {
       if (selectedLayers.length < 2) return;
