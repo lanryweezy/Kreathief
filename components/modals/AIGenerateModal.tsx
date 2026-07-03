@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { WORKFLOW_PRESETS } from '../../data/workflowPresets';
 import { getNodeDefinition } from '../../data/nodeDefinitions';
 import { useNodeGraph } from '../../hooks/useNodeGraph';
+import { getAIErrorMessage } from '../../utils/errorMessages';
 
 interface AIGenerateModalProps {
   isOpen: boolean;
@@ -45,7 +46,8 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({ isOpen, onClos
       setState('preview');
     } catch (err) {
       setState('idle');
-      setError('Something went wrong. Please try again.');
+      // Bloom: Replaced generic 'Something went wrong' with specific AI error formatter
+      setError(getAIErrorMessage(err));
     }
   }, [selectedPreset, prompt, loadPreset, executeGraph, presets, nodeOutputs]);
 
