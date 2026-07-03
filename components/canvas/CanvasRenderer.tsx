@@ -181,7 +181,7 @@ const ArtboardItem = React.memo(
         <div className="absolute -top-10 left-0 flex items-center gap-3 pointer-events-auto">
           <div className="flex flex-col">
             <span className="text-[10px] font-black text-white uppercase tracking-widest whitespace-nowrap bg-surface-dark-3 px-2 py-1 rounded-t-lg border-x border-t border-white/10 flex items-center gap-2">
-              {artboard.name}
+              {String(artboard.name || 'Untitled')}
               <button
                 onClick={handleAddArtboardClick}
                 className="w-3.5 h-3.5 flex items-center justify-center bg-green-500/20 text-green-400 border border-green-500/30 rounded hover:bg-green-500 hover:text-white transition-all cursor-pointer"
