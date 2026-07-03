@@ -82,13 +82,25 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
 
         const newPast = state.past.length >= MAX_HISTORY ? [...state.past.slice(1), entry] : [...state.past, entry];
 
+        // If the trimmed entry was a snapshot, ensure __lastStateSnapshot is consistent
+        let nextLastSnapshot = lastSnapshot;
+        if (state.past.length >= MAX_HISTORY && state.past[0]?.type === 'snapshot') {
+          // Find the latest snapshot still in the trimmed past
+          for (let i = newPast.length - 1; i >= 0; i--) {
+            if (newPast[i].type === 'snapshot') {
+              nextLastSnapshot = newPast[i].state!;
+              break;
+            }
+          }
+        }
+
         if (state.projectId) {
           storageService
             .saveSessionMirror(state.projectId, currentState)
             .catch((err) => log.error('[Resilience] Session mirror failed', err, { projectId: state.projectId }));
         }
 
-        return { past: newPast, future: [], __lastStateSnapshot: nextSnapshot, hasUnsavedChanges: true };
+        return { past: newPast, future: [], __lastStateSnapshot: nextLastSnapshot, hasUnsavedChanges: true };
       });
     };
   })(),

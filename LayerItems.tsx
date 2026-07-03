@@ -10,7 +10,6 @@ import { buildVariableStrokeOutline, profileWidthFn } from '../../utils/variable
 import { buildFilterString, getLayerStyle } from '../../utils/layers';
 import { SelectionHandles } from './SelectionHandles';
 import { BrushStrokeRenderer } from '../../services/brushEngine';
-import { useStore } from '../../store/useStore';
 
 const safeStr = (v: any, fallback = ''): string => {
   if (v === null || v === undefined) return fallback;
@@ -186,9 +185,12 @@ export const ImageLayerItem = React.memo(
           const dy = (e.clientY - repositionStart.current.y) / (zoom || 1);
           const newCropX = Math.max(0, Math.min(naturalWidth - crop.width, repositionStart.current.cropX + dx));
           const newCropY = Math.max(0, Math.min(naturalHeight - crop.height, repositionStart.current.cropY + dy));
-          useStore.getState().updateLayer(imgLayer.id, { crop: { ...crop, x: newCropX, y: newCropY } });
+          // Persist the new crop position
+          if (onDoubleClick) {
+            onDoubleClick(e, { ...imgLayer, crop: { ...crop, x: newCropX, y: newCropY } });
+          }
         },
-        [repositioning, naturalWidth, naturalHeight, crop, imgLayer, zoom]
+        [repositioning, naturalWidth, naturalHeight, crop, imgLayer, scaleX, scaleY, zoom, onDoubleClick]
       );
 
       const maskWrapperStyle = React.useMemo(
@@ -215,6 +217,7 @@ export const ImageLayerItem = React.memo(
         [imgLayer.cornerRadius, animStyle, imgLayer.maskType, imgLayer.maskPath, imgLayer.maskDataURL, maskPath]
       );
 
+      const filtersJson = imgLayer.filters ? JSON.stringify(imgLayer.filters) : '';
       const imgStyle = React.useMemo(
         () => ({
           width: naturalWidth * imgScale,
@@ -226,7 +229,7 @@ export const ImageLayerItem = React.memo(
               ? `${imgLayer.filters.artisticFilter ? `url(#${imgLayer.filters.artisticFilter}) ` : ''}${buildFilterString(imgLayer.filters)}`
               : 'none',
         }),
-        [naturalWidth, imgScale, crop.x, crop.y, scaleX, scaleY, imgLayer.filters, optimizedSrc]
+        [naturalWidth, imgScale, crop.x, crop.y, scaleX, scaleY, filtersJson, optimizedSrc]
       );
 
       return (
@@ -263,7 +266,7 @@ export const ImageLayerItem = React.memo(
           )}
 
           <div
-            className="w-full h-full overflow-hidden"
+            className="w-full h-full overflow-hidden relative"
             style={maskWrapperStyle}
             onPointerDown={repositioning ? handleImageRepositionStart : undefined}
             onPointerMove={repositioning ? handleImageRepositionMove : undefined}
@@ -276,6 +279,11 @@ export const ImageLayerItem = React.memo(
               style={imgStyle}
               draggable={false}
             />
+            {imgLayer.isProcessing && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 backdrop-blur-[1px] rounded-lg animate-pulse pointer-events-none">
+                <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+              </div>
+            )}
             {repositioning && (
               <div className="absolute inset-0 border-2 border-dashed border-white/50 pointer-events-none z-10" />
             )}
@@ -350,8 +358,8 @@ export const ShapeLayerItem = React.memo(
                     : 'none',
             backgroundSize: shapeLayer.imageFill?.fit === 'contain' ? 'contain' : 'cover',
             borderRadius: getRadius(),
-            clipPath: shapeLayer.type === 'path' ? undefined : clipPath,
-            WebkitClipPath: shapeLayer.type === 'path' ? undefined : clipPath,
+            clipPath: shapeLayer.type === 'path' && !(shapeLayer.cornerRadius > 0) ? undefined : clipPath,
+            WebkitClipPath: shapeLayer.type === 'path' && !(shapeLayer.cornerRadius > 0) ? undefined : clipPath,
             filter: shapeLayer.filters ? buildFilterString(shapeLayer.filters) : 'none',
             backdropFilter: shapeLayer.filters?.backdropBlur ? `blur(${shapeLayer.filters.backdropBlur}px)` : 'none',
             WebkitBackdropFilter: shapeLayer.filters?.backdropBlur
@@ -658,7 +666,7 @@ export const TextLayerItem = React.memo(
               fontStyle: textLayer.fontStyle,
               color: safeStr(textLayer.color, '#000000'),
               textAlign: textLayer.textAlign,
-              letterSpacing: textLayer.letterSpacing ? `${textLayer.letterSpacing}px` : undefined,
+              letterSpacing: textLayer.letterSpacing != null ? `${textLayer.letterSpacing}px` : undefined,
               lineHeight: textLayer.lineHeight || 1.5,
               fontKerning: textLayer.kerning && textLayer.kerning > 0 ? 'normal' : 'none',
               fontFeatureSettings: textLayer.ligatures !== false ? '"liga" 1, "kern" 1' : '"liga" 0, "kern" 0',

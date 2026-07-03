@@ -1,6 +1,6 @@
 import { log } from '../utils/log';
 
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -96,6 +96,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const [showMobileContextMenu, setShowMobileContextMenu] = useState(false);
   const [contextMenuLayerId, setContextMenuLayerId] = useState<string | null>(null);
   const historyManagerRef = useRef(new HistoryManager(50));
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     return () => {
@@ -106,6 +107,18 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   }, []);
 
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+  const [isOffline, setIsOffline] = useState(() => typeof navigator !== 'undefined' && !navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -162,7 +175,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const { handleFileUploads, handleExportDataUrl, handleExportBlob, handleConfirmExport, uploadedImage } =
     useFileHandler();
 
-  const handleBack = async () => {
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  const handleBack = useCallback(async () => {
+    setIsNavigating(true);
     try {
       await useStore.getState().saveProject();
       const thumb = await handleExportDataUrl();
@@ -171,9 +187,11 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       }
     } catch (err) {
       log.error('Failed to capture thumbnail on back', err);
+    } finally {
+      setIsNavigating(false);
     }
     onBack();
-  };
+  }, [onBack, handleExportDataUrl, projectId]);
 
   const handleAddLogoToCanvas = (url: string) => {
     useStore.getState().addImageLayer(url, 'Logo');
@@ -646,6 +664,12 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
   return (
     <div id="editor-root" className="flex flex-col h-screen bg-surface-dark-2 overflow-hidden text-[#e5e7eb] font-sans">
+      {isOffline && (
+        <div className="bg-amber-600 text-white text-xs font-bold text-center py-2 px-4 z-50" role="alert" aria-live="polite">
+          You are offline — some features may be unavailable
+        </div>
+      )}
+
       {!initialProject && !selectedIntent && (
         <CreativeIntentMode onSelect={() => {}} onSkip={() => useStore.getState().setIntent('skip', 1080, 1080)} />
       )}
@@ -654,6 +678,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         <Header
           onDownload={() => setShowExport(true)}
           onBack={handleBack}
+          isNavigating={isNavigating}
           onNew={() => useStore.getState().initializeProject()}
           onOpenCommunity={() => setShowCommunityModal(true)}
           user={user}
@@ -711,7 +736,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           </ErrorBoundary>
         </div>
 
-        <div className="flex-1 relative overflow-hidden bg-surface-dark-0 flex flex-col">
+        <div ref={canvasContainerRef} className="flex-1 relative overflow-hidden bg-surface-dark-0 flex flex-col">
           {activeTab === NavTab.ASSISTANT && !isMobile && (
             <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 pointer-events-none" />
           )}
@@ -775,7 +800,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                   type="text"
                   value={Math.round(zoom * 100) + '%'}
                   onChange={() => {}}
-                  onFocus={(e) => e.target.select()}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       const val = parseInt((e.target as HTMLInputElement).value.replace('%', ''));
@@ -822,7 +846,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                       maxX = Math.max(maxX, a.x + a.width);
                       maxY = Math.max(maxY, a.y + a.height);
                     });
-                    const vw = window.innerWidth * 0.85;
+                    const containerWidth = canvasContainerRef.current?.clientWidth || window.innerWidth;
+                    const vw = containerWidth * 0.85;
                     const vh = window.innerHeight * 0.85;
                     const contentW = maxX - minX;
                     const contentH = maxY - minY;
@@ -831,7 +856,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                     const centerX = (minX + maxX) / 2;
                     const centerY = (minY + maxY) / 2;
                     state.setPanOffset({
-                      x: vw / 2 - centerX * newZoom + window.innerWidth * 0.075,
+                      x: vw / 2 - centerX * newZoom + containerWidth * 0.075,
                       y: vh / 2 - centerY * newZoom + 20,
                     });
                   }}
@@ -856,7 +881,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                     return (
                       <button
                         onClick={() => {
-                          const vw = window.innerWidth * 0.85;
+                          const containerWidth = canvasContainerRef.current?.clientWidth || window.innerWidth;
+                          const vw = containerWidth * 0.85;
                           const vh = window.innerHeight * 0.85;
                           const lw = layer.width || 100;
                           const lh = layer.height || 100;
@@ -865,7 +891,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                           const cx = (layer.x || 0) + lw / 2;
                           const cy = (layer.y || 0) + lh / 2;
                           useStore.getState().setPanOffset({
-                            x: vw / 2 - cx * newZoom + window.innerWidth * 0.075,
+                            x: vw / 2 - cx * newZoom + containerWidth * 0.075,
                             y: vh / 2 - cy * newZoom + 20,
                           });
                         }}

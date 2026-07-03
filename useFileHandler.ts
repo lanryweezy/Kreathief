@@ -1,4 +1,5 @@
 import { useStore } from '../store/useStore';
+import { useState } from 'react';
 import { ImageLayer } from '../types';
 import * as exportService from '../services/exportService';
 import { storageService } from '../services/storageService';
@@ -31,11 +32,34 @@ export const useFileHandler = () => {
   const setCanvasFilters = useStore((state) => state.setCanvasFilters);
   const setIsExporting = useStore((state) => state.setIsExporting);
   const addToast = useStore((state) => state.addToast);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const activeImage = history.length > 0 ? history[history.length - 1] || null : null;
   const uploadedImage = uploads.length > 0 ? uploads[uploads.length - 1] || null : null;
 
+  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+  const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/bmp'];
+
+  const validateFile = (file: File): string | null => {
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return `Unsupported file type "${file.type}". Use JPG, PNG, GIF, WebP, SVG, or BMP.`;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+      return `File "${file.name}" is ${sizeMB}MB. Maximum size is 50MB.`;
+    }
+    return null;
+  };
+
   const handleFileUploads = async (files: File[]) => {
+    for (const file of files) {
+      const error = validateFile(file);
+      if (error) {
+        addToast(error, 'error');
+        return;
+      }
+    }
+
     const { compressImage } = await import('../utils/imageOptimizer');
     const compressedFiles = await Promise.all(
       files.map(async (file) => {
@@ -49,14 +73,24 @@ export const useFileHandler = () => {
 
     const readers: Promise<string>[] = compressedFiles.map(
       (file) =>
-        new Promise((resolve) => {
+        new Promise<string>((resolve) => {
           const reader = new FileReader();
+          reader.onprogress = (e) => {
+            if (e.lengthComputable) {
+              setUploadProgress(Math.round((e.loaded / e.total) * 100));
+            }
+          };
           reader.onload = (e) => resolve((e.target?.result as string) || '');
+          reader.onerror = () => {
+            addToast(`Failed to read "${file.name}". The file may be corrupted.`, 'error');
+            resolve('');
+          };
           reader.readAsDataURL(file);
         })
     );
 
     Promise.all(readers).then(async (urls: string[]) => {
+      setUploadProgress(0);
       const validUrls = urls.filter((u) => u);
       if (validUrls.length > 0) {
         // Local-First: Cache assets in IndexedDB
@@ -260,5 +294,6 @@ export const useFileHandler = () => {
     handleExportBlob,
     handleConfirmExport,
     uploadedImage,
+    uploadProgress,
   };
 };

@@ -48,6 +48,7 @@ export default defineConfig(({ mode }) => {
             'vendor-ui': ['framer-motion', 'zustand', 'zod'],
             'vendor-ai': ['@google/generative-ai'],
             'vendor-pdf': ['jspdf', 'pdf-lib', 'ag-psd'],
+            'vendor-math': ['mathjs'],
           },
         },
         onwarn(warning, warn) {

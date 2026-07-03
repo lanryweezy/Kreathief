@@ -1,4 +1,3 @@
-import { TextEffectsPanel } from './panels/TextEffectsPanel';
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NavTab, TextLayer, AnimationSettings } from '../types';
@@ -6,12 +5,13 @@ import { useStore } from '../store/useStore';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Icons } from '../constants';
 
-import TemplatesPanel from './panels/TemplatesPanel';
-import BrandPanel from './panels/BrandPanel';
-import VectorizerPanel from './panels/VectorizerPanel';
-import { ElementsPanel } from './panels/ElementsPanel';
+const TextEffectsPanel = React.lazy(() => import('./panels/TextEffectsPanel').then((m) => ({ default: m.TextEffectsPanel })));
+const TemplatesPanel = React.lazy(() => import('./panels/TemplatesPanel'));
+const BrandPanel = React.lazy(() => import('./panels/BrandPanel'));
+const VectorizerPanel = React.lazy(() => import('./panels/VectorizerPanel'));
+const ElementsPanel = React.lazy(() => import('./panels/ElementsPanel').then((m) => ({ default: m.ElementsPanel })));
+const MockupPanel = React.lazy(() => import('./panels/MockupPanel').then((m) => ({ default: m.MockupPanel })));
 
-// Lazy load other panels
 const MagicPanel = React.lazy(() => import('./panels/MagicPanel'));
 const TexturesPanel = React.lazy(() => import('./panels/TexturesPanel'));
 const AssistantPanel = React.lazy(() => import('./panels/AssistantPanel'));
@@ -27,7 +27,6 @@ const MotionPanel = React.lazy(() => import('./panels/MotionPanel').then((m) => 
 const AccessibilityPanel = React.lazy(() =>
   import('./panels/AccessibilityPanel').then((m) => ({ default: m.AccessibilityPanel }))
 );
-import { MockupPanel } from './panels/MockupPanel';
 import { ListSkeleton, GridSkeleton, CardSkeleton } from './Skeleton';
 
 const PanelLoading = ({ tab }: { tab: NavTab }) => {
@@ -118,8 +117,6 @@ export const SidePanel = React.memo(
           transition={{ type: 'spring', damping: 25, stiffness: 120 }}
           id="side-panel"
           data-testid="side-panel"
-          role="complementary"
-          aria-label="Properties panel"
           className="w-full md:w-[320px] bg-transparent md:bg-surface-dark-2/95 md:backdrop-blur-xl border-r border-white/5 flex flex-col z-dropdown shrink-0 shadow-2xl relative overflow-y-auto overflow-x-hidden custom-scrollbar"
         >
           <AnimatePresence mode="wait">

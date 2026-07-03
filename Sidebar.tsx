@@ -7,6 +7,8 @@ import { ErrorBoundary } from './ErrorBoundary';
 import { useContextualPanels } from '../hooks/useContextualPanels';
 import { Button } from './Button';
 
+const ADVANCED_TABS = new Set([NavTab.MOCKUP, NavTab.VECTORIZER]);
+
 interface SidebarProps {
   isCollapsed: boolean;
   isAutoCollapsed?: boolean;
@@ -38,52 +40,22 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
     const setActiveTab = useStore((state) => state.setActiveTab);
     const contextualTabs = useContextualPanels();
     const [showAllTools, setShowAllTools] = useState(false);
+    const hasEdited = useStore((state) => state.history?.length > 0);
 
     const primaryTools = useMemo(() => {
-      // Persistent core tools
       const persistent = [NavTab.LAYERS, NavTab.BRAND];
       const combined = Array.from(new Set([...contextualTabs, ...persistent]));
-      return ALL_TABS.filter((t) => combined.includes(t.id));
-    }, [contextualTabs]);
+      return ALL_TABS.filter((t) => {
+        if (!combined.includes(t.id)) return false;
+        if (ADVANCED_TABS.has(t.id) && !showAllTools && !hasEdited) return false;
+        return true;
+      });
+    }, [contextualTabs, showAllTools, hasEdited]);
 
     const secondaryTools = useMemo(() => {
       const primaryIds = primaryTools.map((t) => t.id);
       return ALL_TABS.filter((t) => !primaryIds.includes(t.id));
     }, [primaryTools]);
-
-    const allVisibleTabs = useMemo(() => [...primaryTools, ...(showAllTools ? secondaryTools : [])], [primaryTools, secondaryTools, showAllTools]);
-
-    const handleTabKeyDown = useCallback(
-      (e: React.KeyboardEvent, item: any) => {
-        const currentIndex = allVisibleTabs.findIndex((t) => t.id === item.id);
-        let nextIndex = -1;
-
-        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-          e.preventDefault();
-          nextIndex = (currentIndex + 1) % allVisibleTabs.length;
-        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-          e.preventDefault();
-          nextIndex = (currentIndex - 1 + allVisibleTabs.length) % allVisibleTabs.length;
-        } else if (e.key === 'Home') {
-          e.preventDefault();
-          nextIndex = 0;
-        } else if (e.key === 'End') {
-          e.preventDefault();
-          nextIndex = allVisibleTabs.length - 1;
-        }
-
-        if (nextIndex >= 0) {
-          const nextTab = allVisibleTabs[nextIndex];
-          setActiveTab(nextTab.id);
-          if (isCollapsed || isAutoCollapsed) {
-            onExpand();
-          }
-          const nextButton = document.querySelector(`[data-tab-id="${nextTab.id}"]`) as HTMLElement;
-          nextButton?.focus();
-        }
-      },
-      [allVisibleTabs, setActiveTab, isCollapsed, isAutoCollapsed, onExpand]
-    );
 
     const renderTool = useCallback(
       (item: any) => {
@@ -91,10 +63,6 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
         return (
           <button
             key={item.id}
-            data-tab-id={item.id}
-            role="tab"
-            aria-selected={isActive}
-            tabIndex={isActive ? 0 : -1}
             onClick={() => {
               if (activeTab === item.id) {
                 onToggleCollapse();
@@ -105,13 +73,12 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
                 }
               }
             }}
-            onKeyDown={(e) => handleTabKeyDown(e, item)}
             className={`w-full flex flex-col items-center justify-center gap-1 py-1.5 transition-all relative group shrink-0 tooltip-trigger ${isActive ? 'text-white' : 'text-gray-500 hover:text-gray-200'}`}
             data-tooltip={item.label}
             aria-label={item.label}
           >
             <div
-              className={`p-2 rounded-[14px] transition-all duration-500 ${isActive ? 'bg-gradient-to-br from-brand-600/30 to-pink-500/20 text-white shadow-glow-brand border border-white/10' : 'group-hover:bg-white/5 group-hover:scale-110'}`}
+              className={`p-2 rounded-[14px] transition-all duration-200 ${isActive ? 'bg-gradient-to-br from-brand-600/30 to-pink-500/20 text-white shadow-glow-brand border border-white/10' : 'group-hover:bg-white/5 group-hover:scale-110'}`}
             >
               <item.icon
                 className={`w-5 h-5 transition-all duration-500 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' : 'group-hover:text-gray-100'}`}
@@ -127,7 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
           </button>
         );
       },
-      [activeTab, isCollapsed, isAutoCollapsed, onToggleCollapse, setActiveTab, onExpand, handleTabKeyDown]
+      [activeTab, isCollapsed, isAutoCollapsed, onToggleCollapse, setActiveTab, onExpand]
     );
 
     return (
@@ -139,7 +106,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
         <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-brand-600/5 to-transparent pointer-events-none" />
 
         <ErrorBoundary fallback={<div className="text-xs text-red-400 p-2">Sidebar error</div>}>
-          <div className="sticky top-0 z-20 w-full flex flex-col items-center gap-2 px-2 pt-6 pb-2 bg-surface-dark-1/95 backdrop-blur-3xl shadow-md border-b border-white/5" role="tablist" aria-label="Design tools tabs">
+          <div className="sticky top-0 z-20 w-full flex flex-col items-center gap-2 px-2 pt-6 pb-2 bg-surface-dark-1/95 backdrop-blur-3xl shadow-md border-b border-white/5">
             <AnimatePresence mode="popLayout">
               {primaryTools.map((item) => (
                 <motion.div
@@ -164,8 +131,8 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
             size="icon"
             onClick={() => setShowAllTools(!showAllTools)}
             className={`transition-all duration-500 ${showAllTools && !secondaryTools.some((t) => t.id === activeTab) ? 'text-white bg-white/10 shadow-[0_0_20px_rgba(255,255,255,0.05)] border border-white/10' : ''}`}
-            title="All Tools"
-            aria-label="Toggle All Tools"
+            title={showAllTools ? 'Fewer tools' : 'More tools'}
+            aria-label={showAllTools ? 'Show fewer tools' : 'Show more tools'}
             aria-expanded={showAllTools}
           >
             <Icons.LayoutGrid
