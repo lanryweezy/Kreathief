@@ -78,6 +78,16 @@ export function applySmartQuotes(text: string): string {
 }
 
 /**
+ * Applies text transformation (uppercase, lowercase) to the text string.
+ * This ensures consistency across canvas export/preview and the editor DOM.
+ */
+export function applyTextTransform(text: string, transform?: 'none' | 'uppercase' | 'lowercase'): string {
+  if (transform === 'uppercase') return text.toUpperCase();
+  if (transform === 'lowercase') return text.toLowerCase();
+  return text;
+}
+
+/**
  * Helper for rendering text along a path
  */
 export const renderTextOnPath = (canvas: HTMLCanvasElement, layer: TextLayer) => {
