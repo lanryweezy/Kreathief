@@ -96,6 +96,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const [showMobileContextMenu, setShowMobileContextMenu] = useState(false);
   const [contextMenuLayerId, setContextMenuLayerId] = useState<string | null>(null);
   const historyManagerRef = useRef(new HistoryManager(50));
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     return () => {
@@ -711,7 +712,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           </ErrorBoundary>
         </div>
 
-        <div className="flex-1 relative overflow-hidden bg-surface-dark-0 flex flex-col">
+        <div ref={canvasContainerRef} className="flex-1 relative overflow-hidden bg-surface-dark-0 flex flex-col">
           {activeTab === NavTab.ASSISTANT && !isMobile && (
             <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm animate-in fade-in duration-300 pointer-events-none" />
           )}
@@ -821,7 +822,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                       maxX = Math.max(maxX, a.x + a.width);
                       maxY = Math.max(maxY, a.y + a.height);
                     });
-                    const vw = window.innerWidth * 0.85;
+                    const containerWidth = canvasContainerRef.current?.clientWidth || window.innerWidth;
+                    const vw = containerWidth * 0.85;
                     const vh = window.innerHeight * 0.85;
                     const contentW = maxX - minX;
                     const contentH = maxY - minY;
@@ -830,7 +832,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                     const centerX = (minX + maxX) / 2;
                     const centerY = (minY + maxY) / 2;
                     state.setPanOffset({
-                      x: vw / 2 - centerX * newZoom + window.innerWidth * 0.075,
+                      x: vw / 2 - centerX * newZoom + containerWidth * 0.075,
                       y: vh / 2 - centerY * newZoom + 20,
                     });
                   }}
@@ -855,7 +857,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                     return (
                       <button
                         onClick={() => {
-                          const vw = window.innerWidth * 0.85;
+                          const containerWidth = canvasContainerRef.current?.clientWidth || window.innerWidth;
+                          const vw = containerWidth * 0.85;
                           const vh = window.innerHeight * 0.85;
                           const lw = layer.width || 100;
                           const lh = layer.height || 100;
@@ -864,7 +867,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                           const cx = (layer.x || 0) + lw / 2;
                           const cy = (layer.y || 0) + lh / 2;
                           useStore.getState().setPanOffset({
-                            x: vw / 2 - cx * newZoom + window.innerWidth * 0.075,
+                            x: vw / 2 - cx * newZoom + containerWidth * 0.075,
                             y: vh / 2 - cy * newZoom + 20,
                           });
                         }}

@@ -158,6 +158,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
   return (
     <div
       ref={menuRef}
+      data-context-menu
       className={`fixed z-toast w-72 bg-surface-dark-3/98 border border-white/10 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] py-4 flex flex-col backdrop-blur-2xl overflow-hidden select-none transition-opacity duration-150 ${visible ? 'opacity-100' : 'opacity-0'}`}
       style={{ top: adjustedY, left: adjustedX }}
       onContextMenu={(e) => e.preventDefault()}

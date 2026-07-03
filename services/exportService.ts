@@ -157,7 +157,7 @@ export const exportToLayeredPSD = async (width: number, height: number, layers: 
   const rootLayers: Layer[] = [];
 
   for (const layer of layers) {
-    if (!layer.visible) continue;
+    if (layer.visible === false) continue;
     if (layer.groupId && groupChildren[layer.groupId]) {
       groupChildren[layer.groupId].push(layer);
     } else if (layer.groupId) {

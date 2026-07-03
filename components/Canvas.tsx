@@ -85,7 +85,8 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     if (!isDrawing || brushType !== 'eraser') {
       return null;
     }
-    const size = Math.max(4, brushSize * zoom);
+    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+    const size = Math.max(4, brushSize * zoom * dpr);
     const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}'><circle cx='${size / 2}' cy='${size / 2}' r='${size / 2 - 1}' fill='none' stroke='%23fff' stroke-width='1.5'/><circle cx='${size / 2}' cy='${size / 2}' r='${size / 2 - 1}' fill='none' stroke='%23000' stroke-width='0.5' stroke-dasharray='2,2'/></svg>`;
     const b64 = btoa(svg);
     return `url("data:image/svg+xml;base64,${b64}") ${Math.round(size / 2)} ${Math.round(size / 2)}, crosshair`;
@@ -346,6 +347,19 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     e.stopPropagation();
     setContextMenu({ x: e.clientX, y: e.clientY, layerId });
   }, []);
+
+  // Close context menu on click outside
+  useEffect(() => {
+    if (!contextMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-context-menu]')) {
+        setContextMenu(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [contextMenu]);
 
   const handleTextDoubleClick = useCallback((e: React.MouseEvent, layer: Layer) => {
     if (layer.type === 'text') {

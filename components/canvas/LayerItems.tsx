@@ -217,6 +217,7 @@ export const ImageLayerItem = React.memo(
         [imgLayer.cornerRadius, animStyle, imgLayer.maskType, imgLayer.maskPath, imgLayer.maskDataURL, maskPath]
       );
 
+      const filtersJson = imgLayer.filters ? JSON.stringify(imgLayer.filters) : '';
       const imgStyle = React.useMemo(
         () => ({
           width: naturalWidth * imgScale,
@@ -228,7 +229,7 @@ export const ImageLayerItem = React.memo(
               ? `${imgLayer.filters.artisticFilter ? `url(#${imgLayer.filters.artisticFilter}) ` : ''}${buildFilterString(imgLayer.filters)}`
               : 'none',
         }),
-        [naturalWidth, imgScale, crop.x, crop.y, scaleX, scaleY, imgLayer.filters, optimizedSrc]
+        [naturalWidth, imgScale, crop.x, crop.y, scaleX, scaleY, filtersJson, optimizedSrc]
       );
 
       return (
@@ -665,7 +666,7 @@ export const TextLayerItem = React.memo(
               fontStyle: textLayer.fontStyle,
               color: safeStr(textLayer.color, '#000000'),
               textAlign: textLayer.textAlign,
-              letterSpacing: textLayer.letterSpacing ? `${textLayer.letterSpacing}px` : undefined,
+              letterSpacing: textLayer.letterSpacing != null ? `${textLayer.letterSpacing}px` : undefined,
               lineHeight: textLayer.lineHeight || 1.5,
               fontKerning: textLayer.kerning && textLayer.kerning > 0 ? 'normal' : 'none',
               fontFeatureSettings: textLayer.ligatures !== false ? '"liga" 1, "kern" 1' : '"liga" 0, "kern" 0',

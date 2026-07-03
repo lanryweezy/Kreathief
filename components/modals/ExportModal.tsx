@@ -47,7 +47,22 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       user: state.user,
     }))
   );
-  const [format, setFormat] = useState<'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd'>('png');
+  const [format, setFormatState] = useState<'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd'>(() => {
+    try {
+      const saved = localStorage.getItem('kreathief_export_format');
+      if (saved && ['png', 'jpeg', 'webp', 'svg', 'pdf', 'psd'].includes(saved)) {
+        return saved as 'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd';
+      }
+    } catch {}
+    return 'png';
+  });
+
+  const setFormat = (f: 'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd') => {
+    setFormatState(f);
+    try {
+      localStorage.setItem('kreathief_export_format', f);
+    } catch {}
+  };
   const [quality, setQuality] = useState(0.95);
   const [activePreset, setActivePreset] = useState<string>('current');
   const [isExporting, setIsExporting] = useState(false);

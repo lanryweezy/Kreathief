@@ -72,7 +72,7 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
             aria-label={item.label}
           >
             <div
-              className={`p-2 rounded-[14px] transition-all duration-500 ${isActive ? 'bg-gradient-to-br from-brand-600/30 to-pink-500/20 text-white shadow-glow-brand border border-white/10' : 'group-hover:bg-white/5 group-hover:scale-110'}`}
+              className={`p-2 rounded-[14px] transition-all duration-200 ${isActive ? 'bg-gradient-to-br from-brand-600/30 to-pink-500/20 text-white shadow-glow-brand border border-white/10' : 'group-hover:bg-white/5 group-hover:scale-110'}`}
             >
               <item.icon
                 className={`w-5 h-5 transition-all duration-500 ${isActive ? 'scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]' : 'group-hover:text-gray-100'}`}

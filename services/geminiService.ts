@@ -397,6 +397,9 @@ export const enhancePrompt = async (simplePrompt: string): Promise<string> => {
 
     // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '""' to prevent silent failures on empty LLM output and ensure error catching logic executes.
     const parsed = safeParseJSON<string | null>(data.text || 'null', null);
+    if (!parsed) {
+      log.warn('[GeminiService] enhancePrompt failed to parse response, using original prompt');
+    }
     return parsed || simplePrompt;
   } catch (error) {
     log.error('Prompt Enhancer Error:', error);

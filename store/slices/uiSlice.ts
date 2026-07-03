@@ -4,6 +4,8 @@ import { NavTab, AppMode, DesignComment, Toast, ToastType, ImageLayer, Generated
 import { v4 as uuidv4 } from 'uuid';
 import { storageService } from '../../services/storageService';
 
+const toastTimers = new Map<string, NodeJS.Timeout>();
+
 export interface UISlice {
   activeTab: NavTab;
   mode: AppMode;
@@ -106,7 +108,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   isExpanding: false,
   isEraserActive: false,
   isShapeBuilderActive: false,
-  zoom: 0.5,
+  zoom: 1,
   showGrid: false,
   showRulers: false,
   snapToGrid: true,
@@ -170,7 +172,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
     }),
   setIsShapeBuilderActive: (isShapeBuilderActive) => set({ isShapeBuilderActive }),
   setZoom: (zoom) => set((state: any) => ({ zoom: typeof zoom === 'function' ? zoom(state.zoom) : zoom })),
-  resetZoom: () => set({ zoom: 0.8 }),
+  resetZoom: () => set({ zoom: 1 }),
   setShowGrid: (show) => set({ showGrid: show }),
   setShowRulers: (show) => set({ showRulers: show }),
   setSnapToGrid: (snap) => set({ snapToGrid: snap }),
@@ -200,12 +202,19 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
     set((state: any) => ({
       toasts: [...state.toasts, { id, message: safeMessage, type, action, details }],
     }));
-    setTimeout(() => get().removeToast(id), action ? 15000 : 5000);
+    const timer = setTimeout(() => get().removeToast(id), action ? 15000 : 5000);
+    toastTimers.set(id, timer);
   },
-  removeToast: (id) =>
+  removeToast: (id) => {
+    const timer = toastTimers.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      toastTimers.delete(id);
+    }
     set((state: any) => ({
       toasts: state.toasts.filter((t: Toast) => t.id !== id),
-    })),
+    }));
+  },
 
   onCrop: async (id) => {
     const state = get();

@@ -150,15 +150,25 @@ export const useEditorLogic = (initialProject?: Project) => {
 
   // Font Auto-Loader
   const lastFontsRef = useRef<string>('');
+  const debouncedFontLoad = useMemo(
+    () =>
+      debounce((fonts: string[]) => {
+        if (fonts.length > 0) {
+          loadFonts(fonts);
+        }
+      }, 300),
+    []
+  );
+
   useEffect(() => {
     const textLayers = layers.filter((l) => l.type === 'text') as TextLayer[];
     const uniqueFonts = Array.from(new Set(textLayers.map((l) => l.fontFamily))).sort();
     const fontsKey = uniqueFonts.join(',');
     if (fontsKey !== lastFontsRef.current && uniqueFonts.length > 0) {
       lastFontsRef.current = fontsKey;
-      loadFonts(uniqueFonts);
+      debouncedFontLoad(uniqueFonts);
     }
-  }, [layers]);
+  }, [layers, debouncedFontLoad]);
 
   // Extract Document Colors
   const documentColors = useMemo(() => {
