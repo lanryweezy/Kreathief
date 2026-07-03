@@ -83,11 +83,11 @@ export const Toolbar = React.memo(
     const selectedLayer = useStore(selectedLayerSelector);
     const isMultiSelect = (selectedLayerIds || []).length > 1;
 
-    const selectedLayers = useStore((state) => {
+    const selectedLayers = useStore(useShallow((state) => {
       const artboard = state.artboards.find((a) => a.id === state.activeArtboardId);
       if (!artboard || !state.selectedLayerIds) return [];
       return state.selectedLayerIds.map((id) => artboard.layers.find((l) => l.id === id)).filter(Boolean);
-    });
+    }));
     const selectedLayersRef = React.useRef(selectedLayers);
     selectedLayersRef.current = selectedLayers;
     const stableSelectedLayers = React.useMemo(() => selectedLayersRef.current, [selectedLayerIds]);

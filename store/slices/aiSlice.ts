@@ -193,15 +193,18 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
   },
 
   onRemix: async (id) => {
-    const prompt = window.prompt('Enter a style or description to remix this image:');
-    if (!prompt) {
+    const { addToast, artboards, activeArtboardId, updateLayer, saveToHistory } = get();
+    addToast('Remix feature — enter style in the AI panel', 'info');
+
+    const { artboards: abState } = get();
+    const artboard = abState.find((a: any) => a.id === activeArtboardId);
+    const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
+    if (!layer || layer.type !== 'image') {
       return;
     }
 
-    const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
-    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
-    const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
-    if (!layer || layer.type !== 'image') {
+    const remixPrompt = get().prompt;
+    if (!remixPrompt) {
       return;
     }
 
@@ -216,7 +219,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
           // Using generative fill with a full mask acts as a remix
           const fullWhiteMask =
             'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
-          newSrc = await aiModelsService.generativeFillSDXL(layer.src, fullWhiteMask, prompt);
+          newSrc = await aiModelsService.generativeFillSDXL(layer.src, fullWhiteMask, remixPrompt);
         } catch (e) {
           log.warn('High-end remix failed, falling back to Gemini', { error: e });
         }
@@ -224,7 +227,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
 
       // Fallback: Gemini
       if (!newSrc) {
-        newSrc = await geminiService.editImage(layer.src, prompt);
+        newSrc = await geminiService.editImage(layer.src, remixPrompt);
       }
 
       if (newSrc) {
@@ -232,7 +235,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
         updateLayer(id, { src: newSrc, isProcessing: false });
       }
     } catch (error) {
-      log.error('Remix failed', error, { layerId: id, prompt });
+      log.error('Remix failed', error, { layerId: id, prompt: remixPrompt });
       updateLayer(id, { isProcessing: false });
     } finally {
       set({ isGenerating: false });

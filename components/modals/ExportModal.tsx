@@ -59,7 +59,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
   // 🌸 Bloom: Ensure default export filenames strictly adhere to safe character limits and fallback gracefully
   const sanitizeFilename = (name: string) =>
     name
-      .replace(/[^a-zA-Z0-9_\-\s]/g, '')
+      .replace(/[^a-zA-Z0-9_\-\s+#&]/g, '')
       .replace(/\s+/g, '-')
       .toLowerCase() || 'design';
 
@@ -155,8 +155,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       {
         id: 'current',
         name: `Current (${currentSize.width}x${currentSize.height})`,
-        width: currentSize.width,
-        height: currentSize.height,
+        width: currentSize.width || 1080,
+        height: currentSize.height || 1080,
       },
       ...EXPORT_PRESETS.slice(1),
     ],
@@ -832,7 +832,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                   value={filename}
                   onChange={(e) => {
                     const raw = e.target.value;
-                    const sanitized = raw.replace(/[^a-zA-Z0-9_\-\s]/g, '');
+                    const sanitized = raw.replace(/[^a-zA-Z0-9_\-\s+#&]/g, '');
                     if (raw !== sanitized) {
                       setFilenameFeedback('Some characters were removed');
                       setTimeout(() => setFilenameFeedback(''), 2000);

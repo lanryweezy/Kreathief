@@ -196,6 +196,7 @@ export const useEditorLogic = (initialProject?: Project) => {
         const theme = await geminiService.generateDesignTheme(prompt);
         applyBrandColors([theme.primaryColor, theme.secondaryColor, theme.accentColor]);
       } else {
+        saveToHistory();
         addLayer({
           id: tempId,
           type: 'image',

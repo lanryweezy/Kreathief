@@ -10,6 +10,7 @@ import { buildVariableStrokeOutline, profileWidthFn } from '../../utils/variable
 import { buildFilterString, getLayerStyle } from '../../utils/layers';
 import { SelectionHandles } from './SelectionHandles';
 import { BrushStrokeRenderer } from '../../services/brushEngine';
+import { useStore } from '../../store/useStore';
 
 const safeStr = (v: any, fallback = ''): string => {
   if (v === null || v === undefined) return fallback;
@@ -185,12 +186,9 @@ export const ImageLayerItem = React.memo(
           const dy = (e.clientY - repositionStart.current.y) / (zoom || 1);
           const newCropX = Math.max(0, Math.min(naturalWidth - crop.width, repositionStart.current.cropX + dx));
           const newCropY = Math.max(0, Math.min(naturalHeight - crop.height, repositionStart.current.cropY + dy));
-          // Persist the new crop position
-          if (onDoubleClick) {
-            onDoubleClick(e, { ...imgLayer, crop: { ...crop, x: newCropX, y: newCropY } });
-          }
+          useStore.getState().updateLayer(imgLayer.id, { crop: { ...crop, x: newCropX, y: newCropY } });
         },
-        [repositioning, naturalWidth, naturalHeight, crop, imgLayer, scaleX, scaleY, zoom, onDoubleClick]
+        [repositioning, naturalWidth, naturalHeight, crop, imgLayer, zoom]
       );
 
       const maskWrapperStyle = React.useMemo(
@@ -265,7 +263,7 @@ export const ImageLayerItem = React.memo(
           )}
 
           <div
-            className="w-full h-full overflow-hidden relative"
+            className="w-full h-full overflow-hidden"
             style={maskWrapperStyle}
             onPointerDown={repositioning ? handleImageRepositionStart : undefined}
             onPointerMove={repositioning ? handleImageRepositionMove : undefined}
@@ -278,11 +276,6 @@ export const ImageLayerItem = React.memo(
               style={imgStyle}
               draggable={false}
             />
-            {imgLayer.isProcessing && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 backdrop-blur-[1px] rounded-lg animate-pulse pointer-events-none">
-                <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-              </div>
-            )}
             {repositioning && (
               <div className="absolute inset-0 border-2 border-dashed border-white/50 pointer-events-none z-10" />
             )}
