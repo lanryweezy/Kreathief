@@ -1,5 +1,6 @@
 import { CanvasSize, BrandKit, AspectRatio, Project } from '../types';
 import { STARTER_TEMPLATES, StarterTemplate } from '../data/templates';
+import { getLevenshteinDistance } from '../utils/search';
 
 export interface SmartTemplateVariable {
   key: string;
@@ -485,23 +486,6 @@ class SmartTemplateService {
     if (!q) return STARTER_TEMPLATES;
 
     const keywords = q.split(/\s+/).filter((k) => k.length > 0);
-
-    // Inline Levenshtein distance
-    const getLevenshteinDistance = (a: string, b: string): number => {
-      if (!a.length) return b.length;
-      if (!b.length) return a.length;
-      const m = Array.from({ length: b.length + 1 }, (_, i) => [i]);
-      for (let j = 0; j <= a.length; j++) m[0][j] = j;
-      for (let i = 1; i <= b.length; i++) {
-        for (let j = 1; j <= a.length; j++) {
-          m[i][j] =
-            b[i - 1] === a[j - 1]
-              ? m[i - 1][j - 1]
-              : Math.min(m[i - 1][j - 1] + 1, m[i][j - 1] + 1, m[i - 1][j] + 1);
-        }
-      }
-      return m[b.length][a.length];
-    };
 
     return STARTER_TEMPLATES.filter((template) => {
       const searchable = `${template.name} ${template.category} ${template.description}`.toLowerCase();
