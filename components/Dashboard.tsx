@@ -15,6 +15,7 @@ import { Button } from './Button';
 import * as geminiService from '../services/geminiService';
 import { log } from '../utils/log';
 import { getErrorDetails } from '../utils/errorMessages';
+import { fuzzyMatch } from '../utils/search';
 
 interface DashboardProps {
   user: User;
@@ -341,16 +342,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   };
 
   const filteredProjects = projects.filter((p) => {
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = fuzzyMatch(searchQuery, p.name);
     const matchesFavorites = !showFavoritesOnly || favoriteProjects.includes(p.id);
     return matchesSearch && matchesFavorites;
   });
 
   const filteredTemplates = STARTER_TEMPLATES.filter((t) => {
     const matchesSearch =
-      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.category.toLowerCase().includes(searchQuery.toLowerCase());
+      fuzzyMatch(searchQuery, t.name) ||
+      fuzzyMatch(searchQuery, t.description) ||
+      fuzzyMatch(searchQuery, t.category);
     const matchesCategory = templateCategory === 'All' || t.category === templateCategory;
     return matchesSearch && matchesCategory;
   });
