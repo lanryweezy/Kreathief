@@ -47,3 +47,7 @@
 ## 2026-07-03 - Zustand useShallow Optimization
 **Learning:** Found several components (`CommunityTemplates`, `VersionHistoryTimeline`, `FeedbackModal`, `ShapeTools`) in this specific codebase subscribing to the entire Zustand store without a selector (e.g., `const { a, b } = useStore();`) or returning objects from selectors without `useShallow` (e.g. `useStore((state) => ({a: state.a}))`). This anti-pattern breaks referential equality and forces components to re-render on *every* store update (like mouse movements or other layer updates).
 **Action:** Always use an explicit selector wrapped in `useShallow` from `zustand/react/shallow` when extracting multiple properties from the store to prevent catastrophic re-rendering loops.
+
+## 2026-07-04 - Zustand Store Subscriptions in Overlay Components
+**Learning:** Overlay components like FeedbackModal destructured the entire Zustand store without using a selector. This caused the component to re-render constantly on every minor canvas state update, hurting global app performance.
+**Action:** Never use parameterless destructuring with `useStore()`. Always use explicit selectors wrapped in `useShallow` from `zustand/react/shallow` so the component only renders when its specific dependencies change.
