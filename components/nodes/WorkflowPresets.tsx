@@ -56,7 +56,7 @@ function getPresetCategories(presetId: string): CategoryId[] {
   return PRESET_CATEGORIES[presetId] || ['kreathief'];
 }
 
-function WorkflowPresets({ onSelect }: WorkflowPresetsProps) {
+export function WorkflowPresets({ onSelect }: WorkflowPresetsProps) {
   const [activeCategory, setActiveCategory] = useState<CategoryId>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
