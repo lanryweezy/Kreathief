@@ -9,3 +9,6 @@
 ## 2026-07-04 - Vitest and global navigator properties
 **Learning:** When mocking `global.navigator` properties like `userAgent` in Vitest environments, direct assignment throws a 'Cannot set property... which has only a getter' error. Additionally, when using `vi.runAllTimersAsync()` to test async retry or timeout logic, unhandled rejection warnings can occur if the pending promise isn't caught.
 **Action:** Use `Object.defineProperty(global.navigator, 'propertyName', { value: '...', configurable: true })` to mock getter-only properties on the navigator object. Explicitly catch pending promises (e.g., `promise.catch(() => {})`) before advancing timers in Vitest to prevent false positive unhandled errors.
+## 2026-07-08 - Search utils test coverage
+**Learning:** Testing Levenshtein or fuzzy match behaviors (e.g., `fuzzyMatch` in `utils/search.ts`) requires exact match of maximum permissible distances (0, 1, 2) allowed for their string lengths (<=2, <=5, >5).
+**Action:** When testing Levenshtein or fuzzy match behaviors, test query strings must exactly match the maximum permissible distances (0, 1, 2) allowed for their string lengths (<=2, <=5, >5). Strictly comment and annotate the specific distance being triggered in tests to prevent future developers from breaking assertions by 'fixing' typos.
