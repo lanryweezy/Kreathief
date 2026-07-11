@@ -3,8 +3,8 @@ import React, { useState, useMemo, useEffect, useRef, useCallback, Suspense } fr
 import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
 
-const NodeGraph = React.lazy(() => import('./nodes/NodeGraph').then((m) => ({ default: m.NodeGraph })));
-const AIGenerateModal = React.lazy(() => import('./modals/AIGenerateModal').then((m) => ({ default: m.AIGenerateModal })));
+const NodeGraph = React.lazy(() => import('../components/nodes/NodeGraph').then((m) => ({ default: m.NodeGraph })));
+const AIGenerateModal = React.lazy(() => import('../components/modals/AIGenerateModal').then((m) => ({ default: m.AIGenerateModal })));
 
 interface AIGenerateResult {
   image?: string;

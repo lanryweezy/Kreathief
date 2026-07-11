@@ -4,7 +4,7 @@ import { Layer } from '../../types';
  * Generates a unique layer ID
  */
 export const generateLayerId = (type: string): string => {
-  return `${type}_${Date.now()}_${crypto.randomUUID().substring(0, 5)}`;
+  return `${type}_${crypto.randomUUID()}`;
 };
 
 /**

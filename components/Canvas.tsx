@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { TextLayer, ShapeLayer, ImageLayer, Layer, AnimationSettings } from '../types';
 import { ANIMATION_STYLES } from './canvas/CanvasConstants';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -18,7 +19,7 @@ import { useSceneGraph } from '../hooks/useSceneGraph';
 import { Icons } from '../constants';
 import { PathEditorOverlay } from './VectorEditor/PathEditorOverlay';
 import { VectorPath } from '../types';
-import { v4 as uuidv4 } from 'uuid';
+import { generateLayerId } from '../utils/layers/layerUtils';
 import { BrushFilters } from '../services/brushEngine';
 import { useSmartInteraction } from '../hooks/useSmartInteraction';
 import { boundingBox, pointInBox } from '../geometry/bounding';
@@ -57,18 +58,35 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   const [hoveredLayerId, setHoveredLayerId] = useState<string | null>(null);
 
   // Essential store state - split for granular re-renders
-  const artboards = useStore((state) => state.artboards) || [];
-  const activeArtboardId = useStore((state) => state.activeArtboardId);
-  const canvasBackgroundColor = useStore((state) => state.canvasBackgroundColor) || '#ffffff';
-  const canvasFilters = useStore((state) => state.canvasFilters) || {};
-  const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
-  const showGrid = useStore((state) => state.showGrid) || false;
-  const showRulers = useStore((state) => state.showRulers) || false;
-  const isDrawing = useStore((state) => state.isPenMode) || false;
-  const setPenMode = useStore((state) => state.setPenMode);
-  const brushType = useStore((state) => state.brushType);
-  const brushColor = useStore((state) => state.brushColor) || '#000000';
-  const brushSize = useStore((state) => state.brushSize) || 2;
+  const {
+    artboards,
+    activeArtboardId,
+    canvasBackgroundColor,
+    canvasFilters,
+    selectedLayerIds,
+    showGrid,
+    showRulers,
+    isDrawing,
+    setPenMode,
+    brushType,
+    brushColor,
+    brushSize,
+  } = useStore(
+    useShallow((state) => ({
+      artboards: state.artboards || [],
+      activeArtboardId: state.activeArtboardId,
+      canvasBackgroundColor: state.canvasBackgroundColor || '#ffffff',
+      canvasFilters: state.canvasFilters || {},
+      selectedLayerIds: state.selectedLayerIds || [],
+      showGrid: state.showGrid || false,
+      showRulers: state.showRulers || false,
+      isDrawing: state.isPenMode || false,
+      setPenMode: state.setPenMode,
+      brushType: state.brushType,
+      brushColor: state.brushColor || '#000000',
+      brushSize: state.brushSize || 2,
+    }))
+  );
 
   // Phase 3: Selection engine — wire select/multiSelect/clearSelection into mouse handlers
   const { select, multiSelect, clearSelection, isSelected, marqueeSelect } = useSelectionEngine();
@@ -126,7 +144,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
           }));
 
           const newLayer: ShapeLayer = {
-            id: `path_${uuidv4()}`,
+            id: generateLayerId('path'),
             type: 'path',
             name: 'Vector Path',
             x: minX,

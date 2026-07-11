@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import type { StoreState } from '../../useStore';
-import { v4 as uuidv4 } from 'uuid';
+import { generateLayerId } from '../../../utils/layers/layerUtils';
 import { Layer, Artboard } from '../../../types';
 import { LayerSlice } from './baseSlice';
 
@@ -10,7 +10,7 @@ export const createGroupingSlice: StateCreator<StoreState, [], [], Partial<Layer
     if (selectedLayerIds.length < 2) return;
     get().saveToHistory?.();
 
-    const newGroupId = `group_${uuidv4()}`;
+    const newGroupId = generateLayerId('group');
     const activeArtboard = get().artboards.find((a: Artboard) => a.id === activeArtboardId);
     const groupCount = activeArtboard?.layers.filter((l: Layer) => l.groupId === newGroupId).length ?? 0;
     const groupName = `Group ${groupCount + 1}`;

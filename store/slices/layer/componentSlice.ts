@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import type { StoreState } from '../../useStore';
-import { v4 as uuidv4 } from 'uuid';
+import { generateLayerId } from '../../../utils/layers/layerUtils';
 import { Layer, Artboard } from '../../../types';
 import { LayerSlice } from './baseSlice';
 
@@ -31,7 +31,7 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
 
   convertToComponent: (id) => {
     get().saveToHistory?.();
-    const componentId = `comp_${uuidv4()}`;
+    const componentId = generateLayerId('comp');
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => ({
         ...a, layers: a.layers.map((l) => l.id === id ? { ...l, componentId } : l),
@@ -43,8 +43,8 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
       const defs = new Map(state.componentDefinitions || new Map());
       defs.set(componentId, {
         id: componentId, name: layer.name || 'Component',
-        variants: [{ id: `var_${uuidv4()}`, name: 'Default', properties: {}, defaultVariantId: '' }],
-        defaultVariantId: `var_${uuidv4()}`,
+        variants: [{ id: generateLayerId('var'), name: 'Default', properties: {}, defaultVariantId: '' }],
+        defaultVariantId: generateLayerId('var'),
       });
       set({ componentDefinitions: defs } as any);
     }
@@ -57,7 +57,7 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
     state.artboards.forEach((a: Artboard) => { const found = a.layers.find((l) => l.componentId === componentId); if (found) master = found; });
     if (!master) return;
     const instance: Layer = {
-      ...(structuredClone(master) as any), id: `${(master as any).type}_instance_${uuidv4()}`,
+      ...(structuredClone(master) as any), id: generateLayerId(`${(master as any).type}_instance`),
       masterId: componentId, componentId: undefined, overrides: [],
       x: (master as any).x + 40, y: (master as any).y + 40,
     };
@@ -190,7 +190,7 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
     const defs = new Map(state.componentDefinitions as Map<string, ComponentDefinition> || new Map());
     const def = defs.get(componentId);
     if (!def) return;
-    const variant: ComponentVariant = { id: `var_${uuidv4()}`, name: variantName, properties };
+    const variant: ComponentVariant = { id: generateLayerId('var'), name: variantName, properties };
     def.variants.push(variant);
     defs.set(componentId, { ...def });
     set({ componentDefinitions: defs } as any);

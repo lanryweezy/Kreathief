@@ -9,7 +9,7 @@ import { VectorUtils } from '../utils/vectorUtils';
 import { getAIErrorMessage } from '../utils/errorMessages';
 import { log } from '../utils/log';
 import { debounce } from '../utils/debounce';
-import { v4 as uuidv4 } from 'uuid';
+import { generateLayerId } from '../utils/layers/layerUtils';
 
 const DEFAULT_FILTERS: CanvasFilters = {
   brightness: 100,
@@ -200,7 +200,7 @@ export const useEditorLogic = (initialProject?: Project) => {
     }
     const apiPrompt = prompt + (negativePrompt?.trim() ? ` | negative: ${negativePrompt.trim()}` : '');
     setIsProcessing(true);
-    const tempId = uuidv4();
+    const tempId = generateLayerId('temp');
     try {
       if (mode === AppMode.THEME) {
         const theme = await geminiService.generateDesignTheme(prompt);
@@ -296,7 +296,7 @@ export const useEditorLogic = (initialProject?: Project) => {
     };
     const newLayer: ShapeLayer = {
       ...baseLayer,
-      id: uuidv4(),
+      id: generateLayerId('path'),
       type: 'path',
       x: bounds.x,
       y: bounds.y,
@@ -406,7 +406,7 @@ export const useEditorLogic = (initialProject?: Project) => {
 
     const newLayer: ShapeLayer = {
       ...baseLayer,
-      id: uuidv4(),
+      id: generateLayerId('path'),
       type: 'path',
       x: bounds.x,
       y: bounds.y,

@@ -53,7 +53,7 @@ export const MobileLayerItem: React.FC<MobileLayerItemProps> = ({
   };
 
   const LayerIcon = getLayerIcon();
-  const updateLayer = useStore((state) => state.updateLayer);
+  const updateLayer = useStore.getState().updateLayer;
 
   return (
     <motion.div
