@@ -1,6 +1,7 @@
-import { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { NodeCategory } from '../../types/nodes';
 import { NODE_DEFINITIONS, getNodesByCategory } from '../../data/nodeDefinitions';
+import { Icons } from '../../constants';
 
 interface NodeSidebarProps {
   onAddNode: (type: string, x: number, y: number) => void;
@@ -26,13 +27,15 @@ const CATEGORY_COLORS: Record<NodeCategory, string> = {
   export: 'border-l-red-500',
 };
 
-function NodeSidebar({ onAddNode }: NodeSidebarProps) {
+export function NodeSidebar({ onAddNode }: NodeSidebarProps) {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<NodeCategory | null>(null);
 
   const filteredNodes = useMemo(() => {
     const nodes = activeCategory ? getNodesByCategory(activeCategory) : NODE_DEFINITIONS;
-    if (!search) return nodes;
+    if (!search) {
+      return nodes;
+    }
     const q = search.toLowerCase();
     return nodes.filter(
       (n) =>
@@ -95,7 +98,11 @@ function NodeSidebar({ onAddNode }: NodeSidebarProps) {
             className={`w-full text-left p-2 rounded-md bg-surface-dark-3 border border-white/5 hover:border-white/20 transition-colors border-l-2 ${CATEGORY_COLORS[nodeDef.category]}`}
           >
             <div className="flex items-center gap-2">
-              <span className="text-sm">{nodeDef.icon}</span>
+              {nodeDef.icon && (Icons as any)[nodeDef.icon] ? (
+                React.createElement((Icons as any)[nodeDef.icon], { className: 'w-3.5 h-3.5 text-white/70' })
+              ) : (
+                <span className="text-sm">{nodeDef.icon}</span>
+              )}
               <span className="text-xs font-medium text-white">{nodeDef.label}</span>
             </div>
             <p className="text-[10px] text-white/40 mt-0.5 ml-6 line-clamp-1">

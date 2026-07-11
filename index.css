@@ -267,6 +267,12 @@ h4,
   .animate-scale-in {
     animation: scale-in 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
+
+  @keyframes dash {
+    to {
+      stroke-dashoffset: -16;
+    }
+  }
 }
 
 /* Rotating Neon Border */
