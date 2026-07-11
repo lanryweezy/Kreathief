@@ -26,7 +26,7 @@ const CATEGORY_COLORS: Record<NodeCategory, string> = {
   export: 'border-l-red-500',
 };
 
-function NodeSidebar({ onAddNode }: NodeSidebarProps) {
+export function NodeSidebar({ onAddNode }: NodeSidebarProps) {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<NodeCategory | null>(null);
 

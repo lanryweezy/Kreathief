@@ -35,7 +35,7 @@ const CATEGORY_BORDER_COLORS: Record<string, string> = {
   export: 'border-red-400/30',
 };
 
-function Node({ node, isSelected, output, onMouseDown, onPortMouseDown, onPortMouseUp, onDelete }: NodeProps) {
+export function Node({ node, isSelected, output, onMouseDown, onPortMouseDown, onPortMouseUp, onDelete }: NodeProps) {
   const removeNode = useNodeGraph((s) => s.removeNode);
   const nodeOutputs = useNodeGraph((s) => s.nodeOutputs);
   const def = getNodeDefinition(node.type);
