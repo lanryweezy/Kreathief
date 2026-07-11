@@ -69,11 +69,12 @@ class CollaborationService {
       onUserLeft?: (userId: string) => void;
     }
   ): Promise<void> {
-    // Leave any existing channel
-    await this.leaveProject();
+    // Leave any existing channel completely
+    if (this.channel) {
+      await this.leaveProject();
+    }
 
     this.userId = user.id;
-
     this.projectId = projectId;
     this.onPresenceChange = callbacks.onPresenceChange || null;
     this.onCursorMove = callbacks.onCursorMove || null;
@@ -81,13 +82,23 @@ class CollaborationService {
     this.onUserJoined = callbacks.onUserJoined || null;
     this.onUserLeft = callbacks.onUserLeft || null;
 
-    const channel = supabase.channel(`project:${projectId}`, {
+    // Use a unique channel name if possible to avoid factory singleton collisions during rapid re-joins
+    const channelName = `project:${projectId}`;
+    const channel = supabase.channel(channelName, {
       config: {
         presence: {
           key: user.id,
         },
       },
     });
+
+    // Check if we are already subscribed (Supabase internal state check)
+    // If so, we must untrack and unsubscribe before re-adding listeners
+    if ((channel as any).state === 'joined' || (channel as any).state === 'joining') {
+      log.debug('[Collaboration] Channel already active, skipping re-init', { channelName });
+      this.channel = channel;
+      return;
+    }
 
     // Track presence
     channel
@@ -130,32 +141,36 @@ class CollaborationService {
     });
 
     // Subscribe and track presence with timeout
-    const subscribePromise = channel.subscribe(async (status: any) => {
-      if (status === 'SUBSCRIBED') {
-        await channel.track({
-          userId: user.id,
-          userName: user.name,
-          userAvatar: user.avatar,
-          cursor: null,
-          color: getColorForUser(user.id),
-          activeLayerId: null,
-          isTyping: false,
-          lastSeen: Date.now(),
-        });
-      }
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        log.warn('[Collaboration] Subscribe timed out after 10s', { projectId });
+        this.channel = channel;
+        resolve();
+      }, 10000);
+
+      channel.subscribe(async (status: any) => {
+        if (status === 'SUBSCRIBED') {
+          clearTimeout(timeout);
+          await channel.track({
+            userId: user.id,
+            userName: user.name,
+            userAvatar: user.avatar,
+            cursor: null,
+            color: getColorForUser(user.id),
+            activeLayerId: null,
+            isTyping: false,
+            lastSeen: Date.now(),
+          });
+          this.channel = channel;
+          log.info('[Collaboration] Joined project channel', { projectId, status });
+          resolve();
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          clearTimeout(timeout);
+          log.error('[Collaboration] Failed to join channel', { status, projectId });
+          resolve();
+        }
+      });
     });
-
-    const timeoutPromise = new Promise<'timeout'>((resolve) =>
-      setTimeout(() => resolve('timeout'), 10000)
-    );
-
-    const result = await Promise.race([subscribePromise, timeoutPromise]);
-    if (result === 'timeout') {
-      log.warn('[Collaboration] Subscribe timed out after 10s', { projectId });
-    }
-
-    this.channel = channel;
-    log.info('[Collaboration] Joined project channel', { projectId, status });
   }
 
   async leaveProject(): Promise<void> {

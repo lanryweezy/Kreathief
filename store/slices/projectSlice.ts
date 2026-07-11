@@ -1,7 +1,7 @@
 import { StateCreator } from 'zustand';
 import { Project, CanvasSize, Artboard } from '../../types';
 import { storageService } from '../../services/storageService';
-import { v4 as uuidv4 } from 'uuid';
+import { generateLayerId } from '../../utils/layers/layerUtils';
 import { createNebulaDemoDesign } from './project/demoDesign';
 import { log } from '../../utils/log';
 import type { StoreState } from '../useStore';
@@ -60,7 +60,7 @@ function sanitizeLayer(layer: any): any {
     if (typeof v === 'string') { const n = Number(v); return isNaN(n) ? def : n; }
     return def;
   };
-  safe.id = str(safe.id, `layer_${Date.now()}`);
+  safe.id = str(safe.id, generateLayerId(safe.type || 'shape'));
   safe.name = str(safe.name, `${safe.type || 'shape'} Layer`);
   safe.type = str(safe.type, 'shape');
   safe.x = num(safe.x);
@@ -112,7 +112,7 @@ function sanitizeArtboardLayers(artboards: any[]): any[] {
 
 export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> = (set, get) => ({
   projects: [],
-  projectId: `proj_${Date.now()}`,
+  projectId: `proj_${crypto.randomUUID()}`,
   projectTitle: 'Untitled Design',
   isSaving: false,
   syncStatus: 'synced',
@@ -124,7 +124,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
     set((state: any) => ({
       communityProjects: [
         {
-          id: `tpl_shared_${Date.now()}`,
+          id: `tpl_shared_${crypto.randomUUID()}`,
           title: project.name,
           author: 'You',
           likes: 0,
@@ -229,7 +229,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
   },
 
   createProject: async (name, size, initialState) => {
-    const id = uuidv4();
+    const id = crypto.randomUUID();
     const defaultArtboard: Artboard =
       name.toLowerCase().includes('demo') || name.toLowerCase().includes('nebula')
         ? createNebulaDemoDesign()
@@ -244,7 +244,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
           };
 
     if (defaultArtboard.id === 'nebula_demo') {
-      defaultArtboard.id = uuidv4();
+      defaultArtboard.id = crypto.randomUUID();
     }
 
     const newProject: Project = {
@@ -284,7 +284,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
   duplicateProject: async (project) => {
     const newProject = {
       ...project,
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       name: `${project.name} Copy`,
       updatedAt: Date.now(),
     };
@@ -386,7 +386,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
     }
 
     const newComment = {
-      id: uuidv4(),
+      id: crypto.randomUUID(),
       x,
       y,
       content,

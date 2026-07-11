@@ -69,59 +69,75 @@ function useMathInputHandlers({ value, onChange, step = 1 }: { value: any; onCha
 }
 
 export const IconButton = React.memo(
-  ({ onClick, active, title, children, disabled, loading, shortcut, className = '', 'aria-label': ariaLabel }: any) => {
-    const [showTooltip, setShowTooltip] = React.useState(false);
-    const timeoutRef = React.useRef<any>(null);
+  React.forwardRef(
+    (
+      {
+        onClick,
+        active,
+        title,
+        children,
+        disabled,
+        loading,
+        shortcut,
+        className = '',
+        'aria-label': ariaLabel,
+      }: any,
+      ref: React.ForwardedRef<HTMLButtonElement>
+    ) => {
+      const [showTooltip, setShowTooltip] = React.useState(false);
+      const timeoutRef = React.useRef<any>(null);
 
-    const handleMouseEnter = () => {
-      timeoutRef.current = setTimeout(() => setShowTooltip(true), 250);
-    };
+      const handleMouseEnter = () => {
+        timeoutRef.current = setTimeout(() => setShowTooltip(true), 250);
+      };
 
-    const handleMouseLeave = () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      setShowTooltip(false);
-    };
-
-    return (
-      <button
-        onClick={onClick}
-        disabled={disabled || loading}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        data-testid={
-          ariaLabel
-            ? `icon-button-${ariaLabel.toLowerCase().replace(/\s+/g, '-')}`
-            : title
-              ? `icon-button-${title.toLowerCase().replace(/\s+/g, '-')}`
-              : undefined
+      const handleMouseLeave = () => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
         }
-        aria-label={ariaLabel || title}
-        aria-pressed={active}
-        aria-busy={loading}
-        className={`p-2 rounded-lg transition-all flex items-center justify-center relative group/btn ${
-          active ? 'bg-brand-600 text-white shadow-glow-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'
-        } ${disabled || loading ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
-      >
-        {loading ? <Icons.RotateCw className="w-3.5 h-3.5 animate-spin text-purple-400" /> : children}
+        setShowTooltip(false);
+      };
 
-        {title && showTooltip && (
-          <div
-            className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-gray-900 text-white text-[10px] rounded-md border border-gray-800 shadow-2xl z-[100] animate-scale-in flex flex-col items-center gap-1 min-w-max"
-            aria-hidden="true"
-          >
-            <span className="font-bold tracking-wide">{loading ? 'Processing...' : title}</span>
-            {shortcut && !loading && (
-              <span className="text-[8px] text-gray-500 font-mono tracking-widest px-1.5 py-0.5 bg-black/40 rounded border border-white/5 lowercase">
-                {shortcut}
-              </span>
-            )}
-          </div>
-        )}
-      </button>
-    );
-  }
+      return (
+        <button
+          ref={ref}
+          onClick={onClick}
+          disabled={disabled || loading}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          data-testid={
+            ariaLabel
+              ? `icon-button-${ariaLabel.toLowerCase().replace(/\s+/g, '-')}`
+              : title
+                ? `icon-button-${title.toLowerCase().replace(/\s+/g, '-')}`
+                : undefined
+          }
+          aria-label={ariaLabel || title}
+          aria-pressed={active}
+          aria-busy={loading}
+          className={`p-2 rounded-lg transition-all flex items-center justify-center relative group/btn ${
+            active ? 'bg-brand-600 text-white shadow-glow-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'
+          } ${disabled || loading ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
+        >
+          {loading ? <Icons.RotateCw className="w-3.5 h-3.5 animate-spin text-purple-400" /> : children}
+
+          {title && showTooltip && (
+            <div
+              className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-gray-900 text-white text-[10px] rounded-md border border-gray-800 shadow-2xl z-[100] animate-scale-in flex flex-col items-center gap-1 min-w-max"
+              aria-hidden="true"
+            >
+              <span className="font-bold tracking-wide">{loading ? 'Processing...' : title}</span>
+              {shortcut && !loading && (
+                <span className="text-[8px] text-gray-500 font-mono tracking-widest px-1.5 py-0.5 bg-black/40 rounded border border-white/5 lowercase">
+                  {shortcut}
+                </span>
+              )}
+            </div>
+          )}
+        </button>
+      );
+    }
+  )
 );
 
 export const NumberInput = React.memo(({ value, onChange, title, icon: Icon, unit = '', onFocus, step = 1 }: any) => {
