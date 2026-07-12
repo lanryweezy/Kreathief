@@ -3,10 +3,10 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { Icons } from '../../constants';
 
 const problems = [
-  { icon: '🎨', tool: 'Canva', issue: 'No vector editing, no layers, no precision' },
-  { icon: '✏️', tool: 'Figma', issue: 'No AI generation, no image editing, no export variety' },
-  { icon: '🤖', tool: 'Midjourney', issue: 'No editing after generation, no text control, no layout' },
-  { icon: '📐', tool: 'Illustrator', issue: 'Desktop-only, expensive, no AI, no collaboration' },
+  { icon: Icons.Brush, tool: 'Canva', issue: 'No vector editing, no layers, no precision' },
+  { icon: Icons.Edit, tool: 'Figma', issue: 'No AI generation, no image editing, no export variety' },
+  { icon: Icons.Bot, tool: 'Midjourney', issue: 'No editing after generation, no text control, no layout' },
+  { icon: Icons.Layout, tool: 'Illustrator', issue: 'Desktop-only, expensive, no AI, no collaboration' },
 ];
 
 const solutions = [
@@ -60,7 +60,9 @@ export const ProblemSolution: React.FC = () => {
               transition={{ delay: i * 0.1 }}
               className="bg-surface-dark-1 border border-white/5 rounded-xl p-5 text-center group hover:border-red-500/30 transition-all"
             >
-              <div className="text-3xl mb-3">{p.icon}</div>
+              <div className="flex justify-center mb-3">
+                <p.icon className="w-8 h-8 text-white/50 group-hover:text-red-400 transition-colors" />
+              </div>
               <div className="text-sm font-bold text-white mb-1">{p.tool}</div>
               <div className="text-xs text-gray-500 leading-relaxed">{p.issue}</div>
             </motion.div>

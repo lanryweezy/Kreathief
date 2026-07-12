@@ -25,59 +25,59 @@ const STYLE_PRESETS = [
     name: 'Photorealistic',
     style: 'highly detailed, photorealistic, 8k, cinematic lighting, depth of field',
     gradient: 'from-sky-800 via-blue-700 to-indigo-900',
-    icon: '📷',
+    icon: 'Camera',
   },
   {
     name: '3D Render',
     style: '3d render, blender, octane render, vivid colors, smooth textures',
     gradient: 'from-violet-800 via-purple-700 to-fuchsia-900',
-    icon: '🧊',
+    icon: 'Box',
   },
   {
     name: 'Cyberpunk',
     style: 'cyberpunk aesthetic, neon lights, futuristic, high contrast, dark atmosphere',
     gradient: 'from-cyan-900 via-teal-800 to-purple-900',
-    icon: '⚡',
+    icon: 'Zap',
   },
   {
     name: 'Watercolor',
     style: 'watercolor painting, artistic, soft edges, pastel colors, paper texture',
     gradient: 'from-pink-700 via-rose-600 to-orange-700',
-    icon: '🎨',
+    icon: 'Brush',
   },
   {
     name: 'Line Art',
     style: 'minimalist line art, vector style, clean lines, black and white, simple',
     gradient: 'from-gray-700 via-slate-600 to-gray-800',
-    icon: '✏️',
+    icon: 'Edit',
   },
   {
     name: 'Oil Painting',
     style: 'oil painting style, visible brushstrokes, textured, classical art',
     gradient: 'from-amber-800 via-yellow-700 to-orange-800',
-    icon: '🖌️',
+    icon: 'Brush',
   },
   {
     name: 'Pixel Art',
     style: 'pixel art, 8-bit, retro game style, limited palette',
     gradient: 'from-green-800 via-emerald-700 to-teal-800',
-    icon: '👾',
+    icon: 'Code',
   },
   {
     name: 'Anime',
     style: 'anime style, studio ghibli, vibrant colors, detailed background',
     gradient: 'from-red-800 via-pink-700 to-rose-800',
-    icon: '🌸',
+    icon: 'Sparkles',
   },
 ];
 
 // Extended aspect ratios
 const ASPECT_RATIOS = [
-  { label: '1:1', value: AspectRatio.SQUARE, icon: '⬛' },
-  { label: '16:9', value: AspectRatio.LANDSCAPE, icon: '▬' },
-  { label: '9:16', value: AspectRatio.PORTRAIT, icon: '▮' },
-  { label: '4:5', value: 'PORTRAIT_45' as any, icon: '▯' },
-  { label: '4:3', value: 'LANDSCAPE_43' as any, icon: '▭' },
+  { label: '1:1', value: AspectRatio.SQUARE, icon: 'Square' },
+  { label: '16:9', value: AspectRatio.LANDSCAPE, icon: 'LayoutCol' },
+  { label: '9:16', value: AspectRatio.PORTRAIT, icon: 'LayoutRow' },
+  { label: '4:5', value: 'PORTRAIT_45' as any, icon: 'LayoutRow' },
+  { label: '4:3', value: 'LANDSCAPE_43' as any, icon: 'LayoutCol' },
 ];
 
 interface GenerationHistoryItem {
@@ -368,16 +368,19 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                 AI Generation Ratio
               </label>
               <div className="flex bg-white/5 rounded-xl border border-white/5 p-1 gap-1 overflow-x-auto no-scrollbar select-none">
-                {ASPECT_RATIOS.map((r) => (
-                  <button
-                    key={r.label}
-                    onClick={() => setAspectRatio(r.value)}
-                    className={`flex-1 min-w-[54px] flex-shrink-0 whitespace-nowrap py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${aspectRatio === r.value ? 'bg-brand-600 text-white shadow-lg shadow-purple-500/20' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
-                  >
-                    <span>{r.icon}</span>
-                    <span>{r.label}</span>
-                  </button>
-                ))}
+                {ASPECT_RATIOS.map((r) => {
+                  const AspectIcon = (Icons as any)[r.icon] || Icons.Square;
+                  return (
+                    <button
+                      key={r.label}
+                      onClick={() => setAspectRatio(r.value)}
+                      className={`flex-1 min-w-[54px] flex-shrink-0 whitespace-nowrap py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 transition-all ${aspectRatio === r.value ? 'bg-brand-600 text-white shadow-lg shadow-purple-500/20' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
+                    >
+                      <AspectIcon className="w-3 h-3" />
+                      <span>{r.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -564,9 +567,12 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
               />
               <div className="absolute inset-0 flex flex-col items-start justify-end p-3 bg-gradient-to-t from-black/80 via-black/20 to-transparent">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg leading-none transform group-hover:scale-110 transition-transform">
-                    {item.icon}
-                  </span>
+                  {(() => {
+                    const PresetIcon = (Icons as any)[item.icon] || Icons.Magic;
+                    return (
+                      <PresetIcon className="w-5 h-5 text-white/90 transform group-hover:scale-110 transition-transform" />
+                    );
+                  })()}
                   <span className="text-[13px] font-black text-white tracking-tight drop-shadow-lg">{item.name}</span>
                 </div>
               </div>

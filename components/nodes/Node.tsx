@@ -3,6 +3,7 @@ import { GraphNode } from '../../types/nodes';
 import { getNodeDefinition } from '../../data/nodeDefinitions';
 import { useNodeGraph } from '../../hooks/useNodeGraph';
 import NodePort from './NodePort';
+import * as Icons from '../icons';
 
 interface NodeProps {
   node: GraphNode;
@@ -75,7 +76,10 @@ export function Node({ node, isSelected, output, onMouseDown, onPortMouseDown, o
     >
       <div className={`bg-surface-dark-3 rounded-lg border ${borderColor} shadow-lg overflow-hidden`}>
         <div className={`${headerColor} px-3 py-2 flex items-center gap-2`}>
-          <span className="text-sm">{def.icon}</span>
+          {(() => {
+            const NodeIcon = (Icons as any)[def.icon] || Icons.Box;
+            return <NodeIcon className="w-3.5 h-3.5 text-white/90" />;
+          })()}
           <span className="text-xs font-medium text-white truncate flex-1">{def.label}</span>
           {isSelected && (
             <button

@@ -9,7 +9,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Drop Day Tee Machine',
     description: 'Generate a full streetwear collection — 10 tees, all mockup-ready — before your coffee gets cold',
     category: 'kreathief',
-    icon: '👕',
+    icon: 'Shirt',
     graph: {
       name: 'Drop Day Tee Machine',
       description: 'Prompt → Gemini → BG Remove → Filter → Color Palette → Mockup → Social Resize → Export',
@@ -39,7 +39,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Sticker Bomb Pack',
     description: 'Turn one prompt into a 12-piece sticker sheet — die-cut ready, print-ready, done',
     category: 'kreathief',
-    icon: '🏷️',
+    icon: 'Tag',
     graph: {
       name: 'Sticker Bomb Pack',
       description: 'Prompt → FLUX → BG Remove → Resize → Auto Layout → Vectorize → Export',
@@ -67,7 +67,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Listing Pro — Mockup Factory',
     description: 'One design → 8 marketplace mockups in under 60 seconds',
     category: 'glorify',
-    icon: '📦',
+    icon: 'Box',
     graph: {
       name: 'Listing Pro',
       description: 'Upload → Color Match → Mockup → Scene → Filter → Social Resize → Export',
@@ -95,7 +95,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Embroidery Forge',
     description: 'Designs optimized for embroidery machines — clean lines, limited colors, production-ready',
     category: 'kreathief',
-    icon: '🧵',
+    icon: 'Activity',
     graph: {
       name: 'Embroidery Forge',
       description: 'Prompt → Gemini → Color Palette → BG Remove → Vectorize → Export',
@@ -120,7 +120,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Flyer Drop',
     description: 'Concert poster to Instagram story in one click — type, hierarchy, and print layout automatic',
     category: 'kreathief',
-    icon: '🎤',
+    icon: 'Mic',
     graph: {
       name: 'Flyer Drop',
       description: 'Prompt → Gemini → Text Overlay → Auto Layout → Social Resize → Export',
@@ -148,7 +148,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Album Art Engine',
     description: 'From vibe to vinyl-ready album cover — front, back, and spine, 300 DPI',
     category: 'kreathief',
-    icon: '💿',
+    icon: 'Disc',
     graph: {
       name: 'Album Art Engine',
       description: 'Prompt → Gemini → Style Ref → Color Palette → BG Remove → Text Overlay → Canvas Size → Export',
@@ -175,7 +175,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Brand-in-a-Box — Full Identity',
     description: 'Logo, patterns, mockups, social kit — a complete brand identity from one prompt',
     category: 'kreathief',
-    icon: '🏷️',
+    icon: 'Tag',
     graph: {
       name: 'Brand-in-a-Box Full',
       description: 'Prompt → Gemini → Color Palette → Vectorize → Auto Layout → Brand Kit → Mockup → Export',
@@ -207,7 +207,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Thumbnail Magnet',
     description: 'Turn any topic into a click-worthy YouTube thumbnail in 30 seconds',
     category: 'kreathief',
-    icon: '📺',
+    icon: 'Monitor',
     graph: {
       name: 'Thumbnail Magnet',
       description: 'Prompt → Gemini → BG Remove → Filter → Text Overlay → Social Resize → Export',
@@ -233,7 +233,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'The Content Multiplier',
     description: 'Design once, publish everywhere — automatically resized for 7 platforms in one click',
     category: 'kreathief',
-    icon: '📱',
+    icon: 'Smartphone',
     graph: {
       name: 'Content Multiplier',
       description: 'Upload → Color Match → Social Resize × 7 → Export',
@@ -259,7 +259,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Quote Card Factory',
     description: 'Turn any quote into a scroll-stopping branded graphic in 10 seconds flat',
     category: 'kreathief',
-    icon: '💬',
+    icon: 'MessageSquare',
     graph: {
       name: 'Quote Card Factory',
       description: 'Prompt → AI Text Gen → Gemini → Text Overlay → Brand Kit → Social Resize → Export',
@@ -287,7 +287,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Glow Up Transformer',
     description: 'The before/after format that stops the scroll — perfect for fitness, beauty, DIY',
     category: 'kreathief',
-    icon: '✨',
+    icon: 'Sparkles',
     graph: {
       name: 'Glow Up Transformer',
       description: 'Upload → FLUX → Crop → Color Match → Merge → Text Overlay → Social Resize → Export',
@@ -315,7 +315,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Carousel Course Creator',
     description: 'Turn any topic into a 10-slide educational carousel that boosts engagement 3x',
     category: 'kreathief',
-    icon: '📚',
+    icon: 'FileText',
     graph: {
       name: 'Carousel Course Creator',
       description: 'Prompt → AI Text Gen → Gemini → Brand Kit → Auto Layout → Social Resize → Export',
@@ -341,7 +341,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Podcast Cover Factory',
     description: 'Professional episode art that matches your brand — generated fresh for every episode',
     category: 'kreathief',
-    icon: '🎙️',
+    icon: 'Mic',
     graph: {
       name: 'Podcast Cover Factory',
       description: 'Prompt → Gemini → Color Palette → Text Overlay → Brand Kit → Export',
@@ -365,7 +365,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Story Sequence Builder',
     description: 'Build a 5-story sequence that keeps viewers swiping and drives conversions',
     category: 'kreathief',
-    icon: '📖',
+    icon: 'FileText',
     graph: {
       name: 'Story Sequence Builder',
       description: 'Prompt → AI Text Gen → Gemini → Brand Kit → Text Overlay → Social Resize → Export',
@@ -392,7 +392,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Trend Jacking Machine',
     description: 'Jump on any viral trend with custom memes and graphics before the moment passes',
     category: 'kreathief',
-    icon: '🔥',
+    icon: 'Zap',
     graph: {
       name: 'Trend Jacking Machine',
       description: 'Prompt → FLUX → BG Remove → Text Overlay → Social Resize → Export',
@@ -422,7 +422,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Logo Rescue',
     description: 'Turn your $500 logo you hate into something you love — 100 variations in minutes',
     category: 'kreathief',
-    icon: '🆘',
+    icon: 'AlertTriangle',
     graph: {
       name: 'Logo Rescue',
       description: 'Upload (old logo) → FLUX → Recraft → Brand Kit → Export',
@@ -446,7 +446,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Product Photo Glow-Up',
     description: 'Make your phone-shot product photos look like $5,000 studio shoots',
     category: 'glorify',
-    icon: '📸',
+    icon: 'Camera',
     graph: {
       name: 'Product Photo Glow-Up',
       description: 'Upload → BG Remove → Gemini (studio) → Color Match → Upscale → Export',
@@ -472,7 +472,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Launch-Ready Packaging',
     description: 'Design professional product packaging from scratch — no designer, no deadline panic',
     category: 'glorify',
-    icon: '📦',
+    icon: 'Box',
     graph: {
       name: 'Launch-Ready Packaging',
       description: 'Prompt → Seedream → Text Overlay → Color Swap → Mockup → Export',
@@ -496,7 +496,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Label Factory',
     description: 'Design labels for bottles, jars, candles, coffee bags — see them on the actual product instantly',
     category: 'glorify',
-    icon: '🏷️',
+    icon: 'Tag',
     graph: {
       name: 'Label Factory',
       description: 'Color Palette → Recraft → Text Overlay → Mockup → Export',
@@ -520,7 +520,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Mockup Machine',
     description: 'Turn any flat design into a realistic product mockup for client presentations in seconds',
     category: 'glorify',
-    icon: '🎭',
+    icon: 'User',
     graph: {
       name: 'Mockup Machine',
       description: 'Upload → Scene Builder → Filter → Upscale → Export',
@@ -544,7 +544,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Menu Maker Pro',
     description: 'Design restaurant menus that make food look as good as it tastes',
     category: 'kreathief',
-    icon: '🍽️',
+    icon: 'Box',
     graph: {
       name: 'Menu Maker Pro',
       description: 'Upload (food) → BG Remove → Gemini → Auto Layout → Text Overlay → Export',
@@ -570,7 +570,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Vehicle Wrap Vision',
     description: 'See your brand on a car before spending $3,000 on a wrap',
     category: 'glorify',
-    icon: '🚗',
+    icon: 'Move',
     graph: {
       name: 'Vehicle Wrap Vision',
       description: 'Upload (car) → Prompt → FLUX → Color Match → Mockup → Export',
@@ -600,7 +600,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Logo Forge 100',
     description: 'Generate 100 logo variations in one click and export only the winners',
     category: 'kreathief',
-    icon: '⚡',
+    icon: 'Zap',
     graph: {
       name: 'Logo Forge 100',
       description: 'Prompt → Style Ref → Color Palette → FLUX → Recraft → Split → Auto Layout → Export',
@@ -627,7 +627,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Character Sheet Studio',
     description: 'One character description → full turntable sheet with front, side, back views',
     category: 'kreathief',
-    icon: '🧑',
+    icon: 'User',
     graph: {
       name: 'Character Sheet Studio',
       description: 'Prompt → Style Ref → Canvas Size → Gemini → FLUX → Merge → Export',
@@ -654,7 +654,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Style Transfer Engine',
     description: 'Steal any art style and apply it to any image without losing structure',
     category: 'kreathief',
-    icon: '🎨',
+    icon: 'Brush',
     graph: {
       name: 'Style Transfer Engine',
       description: 'Upload → Style Ref → Gemini → Color Match → Filter → Upscale → Export',
@@ -682,7 +682,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Product Photo Pro',
     description: 'Turn amateur product shots into magazine-quality in 30 seconds',
     category: 'glorify',
-    icon: '💎',
+    icon: 'Star',
     graph: {
       name: 'Product Photo Pro',
       description: 'Upload → BG Remove → Scene Builder → Color Match → FLUX → Filter → Upscale → Export',
@@ -710,7 +710,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Environment Concept Pipeline',
     description: 'Generate cohesive world-building concepts with consistent atmosphere',
     category: 'kreathief',
-    icon: '🌍',
+    icon: 'Globe',
     graph: {
       name: 'Environment Concept',
       description: 'Prompt → Style Ref → Canvas Size → Gemini → Seedream → Merge → Color Match → Export',
@@ -740,7 +740,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Fashion Lookbook Generator',
     description: 'One model description → complete lookbook with 5 outfits, multiple angles',
     category: 'kreathief',
-    icon: '👗',
+    icon: 'User',
     graph: {
       name: 'Fashion Lookbook',
       description: 'Prompt → Style Ref → Canvas Size → Gemini → FLUX → Auto Layout → Social Resize → Export',
@@ -768,7 +768,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Texture Vault',
     description: 'Generate seamless, tileable textures for 3D and 2D projects',
     category: 'kreathief',
-    icon: '🧱',
+    icon: 'Box',
     graph: {
       name: 'Texture Vault',
       description: 'Prompt → Style Ref → Color Palette → FLUX → Vectorize → Resize → Export',
@@ -795,7 +795,7 @@ export const WORKFLOW_PRESETS: WorkflowPreset[] = [
     name: 'Social Content Blitz',
     description: 'One prompt → 10 platform-optimized social posts ready to publish',
     category: 'kreathief',
-    icon: '🚀',
+    icon: 'Send',
     graph: {
       name: 'Social Content Blitz',
       description: 'Prompt → AI Text Gen → FLUX → Text Overlay → Social Resize → Brand Kit → Export',
