@@ -11,7 +11,7 @@ import { Icons } from '../../constants';
 export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (result: any) => void }> = ({ onClose, onExportToCanvas }) => {
   const {
     graph, selectedNodeId, nodeOutputs, viewport, wireState,
-    addNode, removeNode, selectNode, updateNodeSettings,
+    addNode, selectNode, updateNodeSettings,
     endWireDrag, loadPreset, clearGraph, executeGraph, isExecuting,
   } = useNodeGraph();
 
@@ -86,16 +86,16 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
     }
   }, [handlers.startWireDraw]);
 
-  const getNodePosition = (nodeId: string) => {
-    const node = graph.nodes.find((n) => n.id === nodeId);
-    return node ? { x: node.x, y: node.y } : { x: 0, y: 0 };
-  };
 
   const getPortPosition = (nodeId: string, portId: string, side: 'input' | 'output') => {
     const node = graph.nodes.find((n) => n.id === nodeId);
-    if (!node) return { x: 0, y: 0 };
+    if (!node) {
+      return { x: 0, y: 0 };
+    }
     const def = getNodeDefinition(node.type);
-    if (!def) return { x: node.x, y: node.y };
+    if (!def) {
+      return { x: node.x, y: node.y };
+    }
     const ports = side === 'input' ? def.inputs : def.outputs;
     const index = ports.findIndex((p) => p.id === portId);
     const portSpacing = 28;
@@ -140,8 +140,17 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
           <button
             onClick={handleRunGraph}
             disabled={isExecuting || graph.nodes.length === 0}
-            className="px-4 py-1.5 text-[10px] font-black uppercase tracking-wider bg-green-600 text-white rounded-lg hover:bg-green-500 disabled:opacity-50 transition-colors"
+            className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-wider flex items-center gap-2 transition-all ${
+              isExecuting
+                ? 'bg-green-600/50 text-white/50 cursor-not-allowed'
+                : 'bg-green-600 text-white hover:bg-green-500 hover:scale-105 active:scale-95 shadow-lg shadow-green-600/20'
+            } rounded-lg`}
           >
+            {isExecuting ? (
+              <Icons.Loader className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Icons.Play className="w-3.5 h-3.5 fill-current" />
+            )}
             {isExecuting ? 'Running...' : 'Run Graph'}
           </button>
           {lastResult && (
@@ -227,7 +236,6 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
                 onMouseDown={handlers.onNodeMouseDown}
                 onPortMouseDown={handlePortMouseDown}
                 onPortMouseUp={handlePortMouseUp}
-                onDelete={() => removeNode(node.id)}
                 onSettingsChange={(key, value) => updateNodeSettings(node.id, key, value)}
               />
             ))}
@@ -244,20 +252,28 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
           )}
 
           {lastResult && lastResult.image && (
-            <div className="absolute bottom-4 right-4 z-50">
-              <div className="bg-surface-dark-3/95 border border-white/10 rounded-xl p-3 shadow-2xl backdrop-blur-md">
-                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Output Preview</p>
-                <img
-                  src={lastResult.image.src || lastResult.image}
-                  alt="Node output"
-                  className="w-32 h-32 object-cover rounded-lg border border-white/10"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://placehold.co/128x128/1a1a2e/7d2ae8?text=Preview';
-                  }}
-                />
+            <div className="absolute bottom-4 right-4 z-50 animate-fade-in">
+              <div className="bg-surface-dark-3/80 border border-white/10 rounded-2xl p-4 shadow-2xl backdrop-blur-xl ring-1 ring-white/10">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest">Output Preview</p>
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                </div>
+                <div className="relative group overflow-hidden rounded-xl border border-white/10">
+                  <img
+                    src={lastResult.image.src || lastResult.image}
+                    alt="Node output"
+                    className="w-40 h-40 object-cover group-hover:scale-110 transition-transform duration-500"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://placehold.co/128x128/1a1a2e/7d2ae8?text=Preview';
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                    <p className="text-[10px] text-white font-medium">Ready to export</p>
+                  </div>
+                </div>
                 <button
                   onClick={handleSendToCanvas}
-                  className="mt-2 w-full px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-brand-600 text-white rounded-lg hover:bg-brand-500 transition-colors"
+                  className="mt-4 w-full px-4 py-2 text-[10px] font-black uppercase tracking-wider bg-brand-600 text-white rounded-xl hover:bg-brand-500 transition-all shadow-lg shadow-brand-600/20 active:scale-95"
                 >
                   Add to Canvas
                 </button>

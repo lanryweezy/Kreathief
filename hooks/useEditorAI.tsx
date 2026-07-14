@@ -1,6 +1,4 @@
-import { log } from '../utils/log';
-import React, { useState, useMemo, useEffect, useRef, useCallback, Suspense } from 'react';
-import { Icons } from '../constants';
+import React, { useState, useCallback, Suspense } from 'react';
 import { useStore } from '../store/useStore';
 
 const NodeGraph = React.lazy(() => import('../components/nodes/NodeGraph').then((m) => ({ default: m.NodeGraph })));
@@ -13,8 +11,8 @@ interface AIGenerateResult {
 }
 
 export const EditorAIPanel: React.FC<{
-  onAddLayer: (layer: any) => void;
-}> = ({ onAddLayer }) => {
+  onAddLayer?: (layer: any) => void;
+}> = () => {
   const [showNodeGraph, setShowNodeGraph] = useState(false);
   const [showAIGenerate, setShowAIGenerate] = useState(false);
   const addLayer = useStore((state) => state.addLayer);

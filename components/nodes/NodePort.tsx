@@ -44,7 +44,7 @@ function NodePort({ port, side, nodeId, color, onMouseDown, onMouseUp }: NodePor
     >
       <div className="relative group">
         <div
-          className={`w-3 h-3 rounded-full border-2 border-surface-dark-2 ${color} cursor-crosshair hover:scale-125 transition-transform`}
+          className={`w-3.5 h-3.5 rounded-full border-2 border-surface-dark-1 ${color} cursor-crosshair hover:scale-125 transition-all shadow-lg group-hover:ring-4 group-hover:ring-white/10`}
         />
         {showTooltip && (
           <div

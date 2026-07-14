@@ -1137,6 +1137,15 @@ export const Tag = (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement('path', { d: 'm5 8 2 2' })
   );
 
+export const Target = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('circle', { cx: '12', cy: '12', r: '10' }),
+    React.createElement('circle', { cx: '12', cy: '12', r: '6' }),
+    React.createElement('circle', { cx: '12', cy: '12', r: '2' })
+  );
+
 export const Sun = (props: React.SVGProps<SVGSVGElement>) =>
   React.createElement(
     'svg',

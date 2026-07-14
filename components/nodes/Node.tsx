@@ -1,4 +1,4 @@
-import { memo, useCallback } from 'react';
+import React, { memo, useCallback } from 'react';
 import { GraphNode } from '../../types/nodes';
 import { getNodeDefinition } from '../../data/nodeDefinitions';
 import { useNodeGraph } from '../../hooks/useNodeGraph';
@@ -17,25 +17,40 @@ interface NodeProps {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  input: 'bg-blue-500',
-  ai: 'bg-purple-500',
-  edit: 'bg-green-500',
-  layout: 'bg-orange-500',
-  mockup: 'bg-pink-500',
-  composite: 'bg-cyan-500',
-  export: 'bg-red-500',
+  input: 'from-blue-600 to-blue-500',
+  ai: 'from-purple-600 to-purple-500',
+  edit: 'from-green-600 to-green-500',
+  layout: 'from-orange-600 to-orange-500',
+  mockup: 'from-pink-600 to-pink-500',
+  composite: 'from-cyan-600 to-cyan-500',
+  export: 'from-red-600 to-red-500',
 };
 
 const CATEGORY_BORDER_COLORS: Record<string, string> = {
-  input: 'border-blue-400/30',
-  ai: 'border-purple-400/30',
-  edit: 'border-green-400/30',
-  layout: 'border-orange-400/30',
-  mockup: 'border-pink-400/30',
-  composite: 'border-cyan-400/30',
-  export: 'border-red-400/30',
+  input: 'border-blue-500/50',
+  ai: 'border-purple-500/50',
+  edit: 'border-green-500/50',
+  layout: 'border-orange-500/50',
+  mockup: 'border-pink-500/50',
+  composite: 'border-cyan-500/50',
+  export: 'border-red-500/50',
 };
 
+const CATEGORY_GLOWS: Record<string, string> = {
+  input: 'shadow-blue-500/20',
+  ai: 'shadow-purple-500/20',
+  edit: 'shadow-green-500/20',
+  layout: 'shadow-orange-500/20',
+  mockup: 'shadow-pink-500/20',
+  composite: 'shadow-cyan-500/20',
+  export: 'shadow-red-500/20',
+};
+
+/**
+ * Quality Gap: The node workflow UI felt detached from the main app's high-fidelity aesthetic,
+ * using static emojis and flat designs. Improved with glassmorphism, category-specific
+ * gradients, and professional SVG iconography to match 'Pro' creative tool standards.
+ */
 export function Node({ node, isSelected, output, onMouseDown, onPortMouseDown, onPortMouseUp, onDelete }: NodeProps) {
   const removeNode = useNodeGraph((s) => s.removeNode);
   const nodeOutputs = useNodeGraph((s) => s.nodeOutputs);
@@ -57,25 +72,28 @@ export function Node({ node, isSelected, output, onMouseDown, onPortMouseDown, o
     [removeNode, node.id]
   );
 
-  if (!def) return null;
+  if (!def) {
+    return null;
+  }
 
   const outputs = nodeOutputs[node.id];
   const hasOutput = outputs && Object.keys(outputs).length > 0;
   const imageOutput = outputs?.image as { src?: string } | undefined;
 
-  const headerColor = CATEGORY_COLORS[def.category] || 'bg-gray-500';
+  const headerGradient = CATEGORY_COLORS[def.category] || 'from-gray-600 to-gray-500';
   const borderColor = CATEGORY_BORDER_COLORS[def.category] || 'border-white/10';
+  const glowColor = CATEGORY_GLOWS[def.category] || 'shadow-white/5';
 
   return (
     <div
-      className={`absolute select-none cursor-grab active:cursor-grabbing ${
-        isSelected ? 'ring-2 ring-brand-600' : ''
+      className={`absolute select-none cursor-grab active:cursor-grabbing transition-shadow duration-200 ${
+        isSelected ? `ring-2 ring-brand-500 shadow-2xl ${glowColor}` : 'shadow-xl'
       }`}
       style={{ left: node.x, top: node.y, width: node.width || 200 }}
       onMouseDown={handleMouseDown}
     >
-      <div className={`bg-surface-dark-3 rounded-lg border ${borderColor} shadow-lg overflow-hidden`}>
-        <div className={`${headerColor} px-3 py-2 flex items-center gap-2`}>
+      <div className={`bg-surface-dark-3/90 backdrop-blur-md rounded-xl border ${borderColor} overflow-hidden flex flex-col`}>
+        <div className={`bg-gradient-to-r ${headerGradient} px-3 py-2 flex items-center gap-2 border-b border-white/10`}>
           {(() => {
             const NodeIcon = (Icons as any)[def.icon] || Icons.Box;
             return <NodeIcon className="w-3.5 h-3.5 text-white/90" />;
@@ -92,28 +110,28 @@ export function Node({ node, isSelected, output, onMouseDown, onPortMouseDown, o
         </div>
 
         <div className="relative px-3 py-2">
-          <div className="space-y-1">
+          <div className="space-y-2">
             {def.inputs.map((port) => (
               <NodePort
                 key={port.id}
                 port={port}
                 side="input"
                 nodeId={node.id}
-                color={headerColor}
+                color={headerGradient.split(' ')[0].replace('from-', 'bg-')}
                 onMouseDown={onPortMouseDown}
                 onMouseUp={onPortMouseUp}
               />
             ))}
           </div>
 
-          <div className="space-y-1 absolute right-3 top-2">
+          <div className="space-y-2 absolute right-3 top-2">
             {def.outputs.map((port) => (
               <NodePort
                 key={port.id}
                 port={port}
                 side="output"
                 nodeId={node.id}
-                color={headerColor}
+                color={headerGradient.split(' ')[0].replace('from-', 'bg-')}
                 onMouseDown={onPortMouseDown}
                 onMouseUp={onPortMouseUp}
               />
@@ -122,8 +140,8 @@ export function Node({ node, isSelected, output, onMouseDown, onPortMouseDown, o
         </div>
 
         {hasOutput && imageOutput?.src && (
-          <div className="px-3 pb-2">
-            <div className="w-full h-16 rounded bg-surface-dark-2 overflow-hidden">
+          <div className="px-3 pb-3">
+            <div className="w-full h-24 rounded-lg bg-surface-dark-2 border border-white/5 overflow-hidden">
               <img
                 src={imageOutput.src}
                 alt=""

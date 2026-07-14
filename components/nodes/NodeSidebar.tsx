@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { NodeCategory } from '../../types/nodes';
 import { NODE_DEFINITIONS, getNodesByCategory } from '../../data/nodeDefinitions';
 import * as Icons from '../icons';
