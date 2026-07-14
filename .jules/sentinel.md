@@ -148,3 +148,9 @@
 **Vulnerability:** The `services/assetService.ts` explicitly interpolated an unsanitized search `query` into a Supabase `.or()` condition, allowing filter injection via commas and quotes.
 **Learning:** Using raw string interpolation for the `.or()` method in `supabase-js` without escaping or sanitizing commas and double quotes creates a high-severity filter injection vulnerability, as the comma acts as a logical operator separator.
 **Prevention:** Always sanitize user inputs by stripping commas and quotes (e.g., `query.replace(/[",]/g, '')`) before interpolating them into a Supabase `.or()` filter string, or use the object syntax if available.
+
+## 2026-07-04 - Fix SSRF and DNS Rebinding Bypass in CMYK Export
+
+**Vulnerability:** The `api/export-cmyk.ts` endpoint included basic SSRF protection by checking the requested hostname against a static blocklist of strings like 'localhost' and '127.0.0.1'. This approach is heavily flawed as it does not prevent bypasses such as IPv6 representations (`[::1]`), or DNS rebinding (pointing a custom, benign-looking domain to `127.0.0.1` or internal IP addresses), allowing an attacker to fetch internal services via the API.
+**Learning:** Static string matching of URLs for SSRF protection is insufficient. Attackers can always obfuscate localhost representations or use DNS rebinding. To mitigate this effectively, the server must resolve the hostname's IP addresses and validate that none of the resolved IPs fall within the private, loopback, or reserved IP address blocks before proceeding with the fetch.
+**Prevention:** Use Node.js's native `dns.promises.lookup` to retrieve the IP address for the hostname derived from the untrusted URL. Check the resulting IP address string to ensure it does not start with `127.`, `10.`, `192.168.`, `169.254.` or match the `172.16.0.0/12` block. For IPv6, check against `::1`, `::`, `fc00:`, `fd00:`, `fe80:`, and IPv4-mapped IPv6 formats before initiating an HTTP request.
