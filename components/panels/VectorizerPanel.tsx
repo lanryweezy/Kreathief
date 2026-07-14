@@ -10,10 +10,10 @@ import { getAIErrorMessage } from '../../utils/errorMessages';
 type Tab = 'image' | 'text';
 
 const STYLE_PRESETS = [
-  { id: 'default', label: 'Clean', icon: '◇', desc: 'Precise vector tracing' },
-  { id: 'minimal', label: 'Minimal', icon: '○', desc: 'Simplified flat shapes' },
-  { id: 'detailed', label: 'Detailed', icon: '◈', desc: 'High-fidelity paths' },
-  { id: 'artistic', label: 'Artistic', icon: '✦', desc: 'Stylized interpretation' },
+  { id: 'default', label: 'Clean', icon: 'Check', desc: 'Precise vector tracing' },
+  { id: 'minimal', label: 'Minimal', icon: 'Square', desc: 'Simplified flat shapes' },
+  { id: 'detailed', label: 'Detailed', icon: 'Zap', desc: 'High-fidelity paths' },
+  { id: 'artistic', label: 'Artistic', icon: 'Brush', desc: 'Stylized interpretation' },
 ];
 
 // Simple path command counter for stats
@@ -586,7 +586,10 @@ ${displayResult.map((item) => `  <path d="${item.path}" fill="${item.color}" />`
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-sm">{preset.icon}</span>
+                    {(() => {
+                      const PresetIcon = (Icons as any)[preset.icon] || Icons.Magic;
+                      return <PresetIcon className="w-3 h-3" />;
+                    })()}
                     <span className="text-[10px] font-bold">{preset.label}</span>
                   </div>
                   <p className="text-[8px] opacity-60">{preset.desc}</p>

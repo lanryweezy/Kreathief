@@ -15,3 +15,6 @@
 
 **Learning:** Found a wired-but-empty UI component (`TextEffectsPanel` and `TextGradientEditor`) in `components/panels/TextPanel.tsx` where the `onChange` handler correctly updated local component state but failed to synchronize those changes to the actual canvas layer via the global store (`updateLayer`). It had placeholder comments like `// Apply effects to selected text layer would go here`.
 **Action:** When finding incomplete integrations where UI state changes are handled locally but not persisted, ensure that the corresponding layer update function (like `updateLayer` from `useStore`) is retrieved and invoked with the selected layer's ID.
+## 2024-07-04 - Wired empty stubs in commands registry
+**Learning:** Empty command action stubs `() => {}` in `commands/registry.ts` are a pattern of incompleteness for side-panel features.
+**Action:** Always check `commands/registry.ts` for empty action handlers and wire them up to `setActiveTab` with the corresponding `NavTab` string enum value.

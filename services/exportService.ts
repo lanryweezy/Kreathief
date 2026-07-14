@@ -15,6 +15,105 @@ export interface PDFExportOptions {
   quality?: 'draft' | 'print' | 'high' | 'screen' | 'prepress';
 }
 
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+function escapeXml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+}
+
+/**
+ * Extensibility Point: Layer Export Strategy Registry
+ * Evidence of pressure: Canvas drawing and SVG generation both relied on hard-coded if/else chains
+ * switching on \`layer.type\` across multiple functions (exportDesignToImage, exportToSVG, PSD, Zip).
+ * Contract: Implementors provide \`drawToContext\` and \`exportToSVG\` methods to handle layer rendering.
+ * The registry enables registering new layer types without touching the core export pipelines.
+ */
+export interface LayerExportStrategy {
+  drawToContext: (ctx: CanvasRenderingContext2D, layer: Layer) => void | Promise<void>;
+  exportToSVG: (layer: Layer, transform: string, opacity: number) => string | null;
+}
+
+export const layerExportStrategies = new Map<string, LayerExportStrategy>();
+
+layerExportStrategies.set('image', {
+  drawToContext: async (ctx, layer) => {
+    await drawImageLayerToContext(ctx, layer as ImageLayer);
+  },
+  exportToSVG: (layer, transform, opacity) => {
+    const il = layer as ImageLayer;
+    const safeSrc = escapeXml(il.src || '');
+    return `  <g transform="${transform}" opacity="${opacity}">` +
+      `<image href="${safeSrc}" x="${round2(-il.width / 2)}" y="${round2(-il.height / 2)}" width="${round2(il.width)}" height="${round2(il.height)}" />` +
+      `</g>`;
+  }
+});
+
+layerExportStrategies.set('text', {
+  drawToContext: (ctx, layer) => {
+    drawTextLayerToContext(ctx, layer as TextLayer);
+  },
+  exportToSVG: (layer, transform, opacity) => {
+    const tl = layer as TextLayer;
+    const textLines = (tl.text || '').split('\n');
+    const lineHeight = tl.fontSize * (tl.lineHeight || 1.2);
+    const textContent = textLines
+      .map((line, i) => `<tspan x="0" dy="${i === 0 ? 0 : round2(lineHeight)}">${escapeXml(line)}</tspan>`)
+      .join('');
+    const textAnchor = tl.textAlign === 'center' ? 'middle' : tl.textAlign === 'right' ? 'end' : 'start';
+    return `  <g transform="${transform}" opacity="${opacity}">` +
+      `<text font-family="${escapeXml(tl.fontFamily)}" font-size="${round2(tl.fontSize)}" fill="${tl.color}" text-anchor="${textAnchor}" font-weight="${tl.fontWeight}">${textContent}</text>` +
+      `</g>`;
+  }
+});
+
+
+layerExportStrategies.set('shape', {
+  drawToContext: (ctx, layer) => {
+    drawShapeToContext(ctx, layer as ShapeLayer);
+  },
+  exportToSVG: (layer, transform, opacity) => {
+    const sl = layer as ShapeLayer;
+    let shape = '';
+    const fill = sl.gradient?.enabled ? `url(#grad-${sl.id})` : sl.color;
+
+    if (sl.type === 'rectangle') {
+      const r = sl.cornerRadius || 0;
+      if (r > 0) {
+        shape = `<rect x="${round2(-sl.width / 2)}" y="${round2(-sl.height / 2)}" width="${round2(sl.width)}" height="${round2(sl.height)}" rx="${round2(r)}" fill="${fill}" />`;
+      } else {
+        shape = `<rect x="${round2(-sl.width / 2)}" y="${round2(-sl.height / 2)}" width="${round2(sl.width)}" height="${round2(sl.height)}" fill="${fill}" />`;
+      }
+    } else if (sl.type === 'circle') {
+      shape = `<circle cx="0" cy="0" r="${round2(sl.width / 2)}" fill="${fill}" />`;
+    } else if (sl.type === 'path' && sl.pathData) {
+      const sw = round2((sl as any).stroke?.width || 0);
+      const strokeColor = (sl as any).stroke?.color || sl.color;
+      const lineCap = (sl as any).stroke?.lineCap || 'round';
+      const lineJoin = (sl as any).stroke?.lineJoin || 'round';
+      const isBrush = sl.id?.startsWith('draw_') || (sl as any).brushType;
+      shape = `<path d="${sl.pathData}" fill="${isBrush ? 'none' : sl.color}" stroke="${strokeColor}" stroke-width="${sw}" stroke-linecap="${lineCap}" stroke-linejoin="${lineJoin}" />`;
+    } else {
+      const clipPath = getLayerClipPath(layer);
+      if (clipPath && clipPath.startsWith('polygon')) {
+        const match = clipPath.match(/polygon\((.*)\)/);
+        if (match) {
+          const pts = match[1].split(',').map((p) => {
+            const [xPerc, yPerc] = p.trim().split(/\s+/).map(parseFloat);
+            return `${round2((xPerc / 100) * sl.width - sl.width / 2)},${round2((yPerc / 100) * sl.height - sl.height / 2)}`;
+          });
+          shape = `<polygon points="${pts.join(' ')}" fill="${sl.color}" />`;
+        }
+      }
+    }
+
+    if (shape) {
+      return `  <g transform="${transform}" opacity="${opacity}">${shape}</g>`;
+    }
+    return null;
+  }
+});
+
+
 /**
  * Downloads a Blob object as a file.
  */
@@ -202,12 +301,13 @@ export const exportToLayeredPSD = async (width: number, height: number, layers: 
 
       // Render individual layer at (0,0) for PSD
       const tempLayer = { ...layer, x: 0, y: 0 };
-      if (tempLayer.type === 'image') {
-        await drawImageLayerToContext(ctx, tempLayer as ImageLayer);
-      } else if (tempLayer.type === 'text') {
-        drawTextLayerToContext(ctx, tempLayer as TextLayer);
+      const strategy = layerExportStrategies.get(tempLayer.type);
+      if (strategy) {
+        await strategy.drawToContext(ctx, tempLayer);
       } else if (tempLayer.type !== 'adjustment' && tempLayer.type !== 'group') {
-        drawShapeToContext(ctx, tempLayer as ShapeLayer);
+        // Fallback to shape for unregistered legacy types, mimicking old behavior
+        const fallback = layerExportStrategies.get('shape');
+        if (fallback) await fallback.drawToContext(ctx, tempLayer);
       }
     }
 
@@ -327,12 +427,12 @@ export const exportDesignToImage = async (
     if (!layer.visible) {
       continue;
     }
-    if (layer.type === 'image') {
-      await drawImageLayerToContext(ctx, layer as ImageLayer);
-    } else if (layer.type === 'text') {
-      drawTextLayerToContext(ctx, layer as TextLayer);
+    const strategy = layerExportStrategies.get(layer.type);
+    if (strategy) {
+      await strategy.drawToContext(ctx, layer);
     } else if (layer.type !== 'adjustment' && layer.type !== 'group') {
-      drawShapeToContext(ctx, layer as ShapeLayer);
+      const fallback = layerExportStrategies.get('shape');
+      if (fallback) await fallback.drawToContext(ctx, layer);
     }
   }
 
@@ -362,8 +462,6 @@ export const exportDesignToBlob = async (
   const response = await fetch(dataUrl);
   return await response.blob();
 };
-
-const round2 = (n: number) => Math.round(n * 100) / 100;
 
 /**
  * Export the design as an SVG string with gradient support, text, images, and shapes.
@@ -421,75 +519,22 @@ export const exportToSVG = (width: number, height: number, backgroundColor: stri
 
     const opacity = layer.opacity ?? 1;
 
-    if (layer.type !== 'text' && layer.type !== 'image') {
-      const sl = layer as ShapeLayer;
-      let shape = '';
-      const fill = sl.gradient?.enabled ? `url(#grad-${sl.id})` : sl.color;
-
-      if (sl.type === 'rectangle') {
-        const r = sl.cornerRadius || 0;
-        if (r > 0) {
-          shape = `<rect x="${round2(-sl.width / 2)}" y="${round2(-sl.height / 2)}" width="${round2(sl.width)}" height="${round2(sl.height)}" rx="${round2(r)}" fill="${fill}" />`;
-        } else {
-          shape = `<rect x="${round2(-sl.width / 2)}" y="${round2(-sl.height / 2)}" width="${round2(sl.width)}" height="${round2(sl.height)}" fill="${fill}" />`;
-        }
-      } else if (sl.type === 'circle') {
-        shape = `<circle cx="0" cy="0" r="${round2(sl.width / 2)}" fill="${fill}" />`;
-      } else if (sl.type === 'path' && sl.pathData) {
-        const sw = round2((sl as any).stroke?.width || 0);
-        const strokeColor = (sl as any).stroke?.color || sl.color;
-        const lineCap = (sl as any).stroke?.lineCap || 'round';
-        const lineJoin = (sl as any).stroke?.lineJoin || 'round';
-        const isBrush = sl.id?.startsWith('draw_') || (sl as any).brushType;
-        shape = `<path d="${sl.pathData}" fill="${isBrush ? 'none' : sl.color}" stroke="${strokeColor}" stroke-width="${sw}" stroke-linecap="${lineCap}" stroke-linejoin="${lineJoin}" />`;
-      } else {
-        const clipPath = getLayerClipPath(layer);
-        if (clipPath && clipPath.startsWith('polygon')) {
-          const match = clipPath.match(/polygon\((.*)\)/);
-          if (match) {
-            const pts = match[1].split(',').map((p) => {
-              const [xPerc, yPerc] = p.trim().split(/\s+/).map(parseFloat);
-              return `${round2((xPerc / 100) * sl.width - sl.width / 2)},${round2((yPerc / 100) * sl.height - sl.height / 2)}`;
-            });
-            shape = `<polygon points="${pts.join(' ')}" fill="${sl.color}" />`;
-          }
-        }
+    const strategy = layerExportStrategies.get(layer.type);
+    if (strategy) {
+      const svgCode = strategy.exportToSVG(layer, transform, opacity);
+      if (svgCode) svgParts.push(svgCode);
+    } else if (layer.type !== 'adjustment' && layer.type !== 'group') {
+      const fallback = layerExportStrategies.get('shape');
+      if (fallback) {
+        const svgCode = fallback.exportToSVG(layer, transform, opacity);
+        if (svgCode) svgParts.push(svgCode);
       }
-
-      if (shape) {
-        svgParts.push(`  <g transform="${transform}" opacity="${opacity}">${shape}</g>`);
-      }
-    } else if (layer.type === 'text') {
-      const tl = layer as TextLayer;
-      const textLines = (tl.text || '').split('\n');
-      const lineHeight = tl.fontSize * (tl.lineHeight || 1.2);
-      const textContent = textLines
-        .map((line, i) => `<tspan x="0" dy="${i === 0 ? 0 : round2(lineHeight)}">${escapeXml(line)}</tspan>`)
-        .join('');
-      const textAnchor = tl.textAlign === 'center' ? 'middle' : tl.textAlign === 'right' ? 'end' : 'start';
-      svgParts.push(
-        `  <g transform="${transform}" opacity="${opacity}">` +
-          `<text font-family="${escapeXml(tl.fontFamily)}" font-size="${round2(tl.fontSize)}" fill="${tl.color}" text-anchor="${textAnchor}" font-weight="${tl.fontWeight}">${textContent}</text>` +
-          `</g>`
-      );
-    } else if (layer.type === 'image') {
-      const il = layer as ImageLayer;
-      const safeSrc = escapeXml(il.src || '');
-      svgParts.push(
-        `  <g transform="${transform}" opacity="${opacity}">` +
-          `<image href="${safeSrc}" x="${round2(-il.width / 2)}" y="${round2(-il.height / 2)}" width="${round2(il.width)}" height="${round2(il.height)}" />` +
-          `</g>`
-      );
     }
   }
 
   svgParts.push('</svg>');
   return svgParts.join('\n');
 };
-
-function escapeXml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
-}
 
 /* --- HELPER FUNCTIONS --- */
 
@@ -675,12 +720,12 @@ export const batchExportArtboards = async (
         if (!layer.visible) {
           continue;
         }
-        if (layer.type === 'text') {
-          drawTextLayerToContext(ctx, layer as TextLayer);
-        } else if (layer.type === 'image') {
-          await drawImageLayerToContext(ctx, layer as ImageLayer);
-        } else {
-          drawShapeToContext(ctx, layer as ShapeLayer);
+        const strategy = layerExportStrategies.get(layer.type);
+        if (strategy) {
+          await strategy.drawToContext(ctx, layer);
+        } else if (layer.type !== 'adjustment' && layer.type !== 'group') {
+          const fallback = layerExportStrategies.get('shape');
+          if (fallback) await fallback.drawToContext(ctx, layer);
         }
       }
 
@@ -741,12 +786,12 @@ export const batchExportArtboardsZip = async (
 
       for (const layer of ab.layers) {
         if (!layer.visible) continue;
-        if (layer.type === 'text') {
-          drawTextLayerToContext(ctx, layer as TextLayer);
-        } else if (layer.type === 'image') {
-          await drawImageLayerToContext(ctx, layer as ImageLayer);
+        const strategy = layerExportStrategies.get(layer.type);
+        if (strategy) {
+          await strategy.drawToContext(ctx, layer);
         } else if (layer.type !== 'adjustment' && layer.type !== 'group') {
-          drawShapeToContext(ctx, layer as ShapeLayer);
+          const fallback = layerExportStrategies.get('shape');
+          if (fallback) await fallback.drawToContext(ctx, layer);
         }
       }
 
