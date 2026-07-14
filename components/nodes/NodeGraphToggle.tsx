@@ -1,4 +1,5 @@
 import React from 'react';
+import * as Icons from '../icons';
 
 interface NodeGraphToggleProps {
   onClick: () => void;
@@ -24,7 +25,7 @@ export const NodeGraphToggle: React.FC<NodeGraphToggleProps> = ({ onClick, isOpe
         </>
       ) : (
         <>
-          <span className="text-sm">⚡</span>
+          <Icons.Zap className="w-3.5 h-3.5" />
           <span>Workflows</span>
         </>
       )}

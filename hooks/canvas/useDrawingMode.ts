@@ -1,6 +1,6 @@
 import { useRef, useCallback, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
-import { v4 as uuidv4 } from 'uuid';
+import { generateLayerId } from '../../utils/layers/layerUtils';
 import { StrokeSmoother } from '../../utils/variableStroke';
 
 // Ramer-Douglas-Peucker path simplification
@@ -134,8 +134,10 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
       if (!isDrawing) {
         return;
       }
+      // FIX: Defensive check for canvas element to prevent "canvas.getContext is not a function"
+      // Drawing handlers should only proceed if clicking directly on a canvas element.
       const canvas = e.target as HTMLCanvasElement;
-      if (!canvas) {
+      if (!canvas || typeof canvas.getContext !== 'function') {
         return;
       }
 
@@ -147,11 +149,15 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
         // Find the main artboard canvas (not the drawing overlay) for accurate color sampling
         const artboardCanvas = canvas.parentElement?.querySelector('canvas:not([data-drawing-overlay])') as HTMLCanvasElement | null;
         const targetCanvas = artboardCanvas || canvas;
-        const ctx = targetCanvas.getContext('2d', { willReadFrequently: true });
-        if (ctx) {
-          const pixel = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
-          const hex = '#' + [pixel[0], pixel[1], pixel[2]].map((c) => c.toString(16).padStart(2, '0')).join('');
-          useStore.getState().setBrushColor(hex);
+
+        // Final sanity check before calling getContext
+        if (targetCanvas && typeof targetCanvas.getContext === 'function') {
+          const ctx = targetCanvas.getContext('2d', { willReadFrequently: true });
+          if (ctx) {
+            const pixel = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
+            const hex = '#' + [pixel[0], pixel[1], pixel[2]].map((c) => c.toString(16).padStart(2, '0')).join('');
+            useStore.getState().setBrushColor(hex);
+          }
         }
         return;
       }
@@ -364,7 +370,7 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
     const pathData = simplifyAndSmoothPath(simplified);
 
     addLayer({
-      id: `draw_${uuidv4()}`,
+      id: generateLayerId('draw'),
       type: 'path',
       name: `${brushType} Stroke`,
       x: minX,

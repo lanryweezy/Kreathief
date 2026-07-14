@@ -6,8 +6,24 @@ let paperInitialized = false;
 
 function initPaper() {
   if (!paperInitialized) {
-    paper.setup(new paper.Size(1, 1));
-    paperInitialized = true;
+    // FIX: Use a real canvas element for paper.js initialization to avoid
+    // "canvas.getContext is not a function" errors in some headless environments
+    // or when OffscreenCanvas support is incomplete.
+    if (typeof document !== 'undefined') {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1;
+      canvas.height = 1;
+      paper.setup(canvas);
+      paperInitialized = true;
+    } else if (typeof OffscreenCanvas !== 'undefined') {
+      try {
+        const canvas = new OffscreenCanvas(1, 1);
+        paper.setup(canvas as any);
+        paperInitialized = true;
+      } catch (e) {
+        log.error('[BooleanOperations] Failed to init paper with OffscreenCanvas', e);
+      }
+    }
   }
 }
 

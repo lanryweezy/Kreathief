@@ -2,7 +2,7 @@ import React, { useState, useCallback, Suspense } from 'react';
 import { useStore } from '../store/useStore';
 
 const NodeGraph = React.lazy(() => import('../components/nodes/NodeGraph').then((m) => ({ default: m.NodeGraph })));
-const AIGenerateModal = React.lazy(() => import('../components/modals/AIGenerateModal').then((m) => ({ default: m.AIGenerateModal })));
+const AIGenerateModal = React.lazy(() => import('../components/modals/AIGenerateModal').then((m) => ({ default: (m as any).AIGenerateModal })));
 
 interface AIGenerateResult {
   image?: string;

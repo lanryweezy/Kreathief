@@ -3,7 +3,7 @@ import { GraphNode } from '../../types/nodes';
 import { getNodeDefinition } from '../../data/nodeDefinitions';
 import { useNodeGraph } from '../../hooks/useNodeGraph';
 import NodePort from './NodePort';
-import { Icons } from '../../constants';
+import * as Icons from '../icons';
 
 interface NodeProps {
   node: GraphNode;
@@ -51,7 +51,7 @@ const CATEGORY_GLOWS: Record<string, string> = {
  * using static emojis and flat designs. Improved with glassmorphism, category-specific
  * gradients, and professional SVG iconography to match 'Pro' creative tool standards.
  */
-export function Node({ node, isSelected, onMouseDown, onPortMouseDown, onPortMouseUp }: NodeProps) {
+export function Node({ node, isSelected, output, onMouseDown, onPortMouseDown, onPortMouseUp, onDelete }: NodeProps) {
   const removeNode = useNodeGraph((s) => s.removeNode);
   const nodeOutputs = useNodeGraph((s) => s.nodeOutputs);
   const def = getNodeDefinition(node.type);
@@ -94,11 +94,10 @@ export function Node({ node, isSelected, onMouseDown, onPortMouseDown, onPortMou
     >
       <div className={`bg-surface-dark-3/90 backdrop-blur-md rounded-xl border ${borderColor} overflow-hidden flex flex-col`}>
         <div className={`bg-gradient-to-r ${headerGradient} px-3 py-2 flex items-center gap-2 border-b border-white/10`}>
-          {def.icon && (Icons as any)[def.icon] ? (
-            React.createElement((Icons as any)[def.icon], { className: 'w-3.5 h-3.5 text-white/90' })
-          ) : (
-            <span className="text-sm">{def.icon}</span>
-          )}
+          {(() => {
+            const NodeIcon = (Icons as any)[def.icon] || Icons.Box;
+            return <NodeIcon className="w-3.5 h-3.5 text-white/90" />;
+          })()}
           <span className="text-xs font-medium text-white truncate flex-1">{def.label}</span>
           {isSelected && (
             <button

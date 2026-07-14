@@ -1,20 +1,21 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { NodeCategory } from '../../types/nodes';
 import { NODE_DEFINITIONS, getNodesByCategory } from '../../data/nodeDefinitions';
-import { Icons } from '../../constants';
+import * as Icons from '../icons';
+import { fuzzyMatch } from '../../utils/search';
 
 interface NodeSidebarProps {
   onAddNode: (type: string, x: number, y: number) => void;
 }
 
 const CATEGORIES: { id: NodeCategory; label: string; icon: string }[] = [
-  { id: 'input', label: 'Input', icon: '📥' },
-  { id: 'ai', label: 'AI Models', icon: '⚡' },
-  { id: 'edit', label: 'Edit', icon: '✏️' },
-  { id: 'mockup', label: 'Mockup', icon: '📦' },
-  { id: 'layout', label: 'Layout', icon: '📐' },
-  { id: 'composite', label: 'Composite', icon: '🔀' },
-  { id: 'export', label: 'Export', icon: '💾' },
+  { id: 'input', label: 'Input', icon: 'Upload' },
+  { id: 'ai', label: 'AI Models', icon: 'Zap' },
+  { id: 'edit', label: 'Edit', icon: 'Edit' },
+  { id: 'mockup', label: 'Mockup', icon: 'Box' },
+  { id: 'layout', label: 'Layout', icon: 'Layout' },
+  { id: 'composite', label: 'Composite', icon: 'Layers' },
+  { id: 'export', label: 'Export', icon: 'Download' },
 ];
 
 const CATEGORY_COLORS: Record<NodeCategory, string> = {
@@ -33,15 +34,9 @@ export function NodeSidebar({ onAddNode }: NodeSidebarProps) {
 
   const filteredNodes = useMemo(() => {
     const nodes = activeCategory ? getNodesByCategory(activeCategory) : NODE_DEFINITIONS;
-    if (!search) {
-      return nodes;
-    }
-    const q = search.toLowerCase();
+    if (!search) return nodes;
     return nodes.filter(
-      (n) =>
-        n.label.toLowerCase().includes(q) ||
-        n.description.toLowerCase().includes(q) ||
-        n.type.toLowerCase().includes(q)
+      (n) => fuzzyMatch(search, n.label) || fuzzyMatch(search, n.description) || fuzzyMatch(search, n.type)
     );
   }, [search, activeCategory]);
 
@@ -75,43 +70,52 @@ export function NodeSidebar({ onAddNode }: NodeSidebarProps) {
         >
           All
         </button>
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
-            className={`px-2 py-1 rounded text-[10px] whitespace-nowrap transition-colors ${
-              activeCategory === cat.id
-                ? 'bg-brand-600 text-white'
-                : 'bg-surface-dark-3 text-white/60 hover:text-white'
-            }`}
-          >
-            {cat.icon} {cat.label}
-          </button>
-        ))}
+        {CATEGORIES.map((cat) => {
+          const Icon = (Icons as any)[cat.icon] || Icons.Box;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded text-[10px] whitespace-nowrap transition-colors ${
+                activeCategory === cat.id
+                  ? 'bg-brand-600 text-white'
+                  : 'bg-surface-dark-3 text-white/60 hover:text-white'
+              }`}
+            >
+              <Icon className="w-3 h-3" />
+              {cat.label}
+            </button>
+          );
+        })}
       </div>
 
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
-        {filteredNodes.map((nodeDef) => (
-          <button
-            key={nodeDef.id}
-            onClick={() => handleAddNode(nodeDef.type)}
-            className={`w-full text-left p-2 rounded-md bg-surface-dark-3 border border-white/5 hover:border-white/20 transition-colors border-l-2 ${CATEGORY_COLORS[nodeDef.category]}`}
-          >
-            <div className="flex items-center gap-2">
-              {nodeDef.icon && (Icons as any)[nodeDef.icon] ? (
-                React.createElement((Icons as any)[nodeDef.icon], { className: 'w-3.5 h-3.5 text-white/70' })
-              ) : (
-                <span className="text-sm">{nodeDef.icon}</span>
-              )}
-              <span className="text-xs font-medium text-white">{nodeDef.label}</span>
-            </div>
-            <p className="text-[10px] text-white/40 mt-0.5 ml-6 line-clamp-1">
-              {nodeDef.description}
-            </p>
-          </button>
-        ))}
+        {filteredNodes.map((nodeDef) => {
+          const NodeIcon = (Icons as any)[nodeDef.icon] || Icons.Box;
+          return (
+            <button
+              key={nodeDef.id}
+              onClick={() => handleAddNode(nodeDef.type)}
+              className={`w-full text-left p-2 rounded-md bg-surface-dark-3 border border-white/5 hover:border-white/20 transition-colors border-l-2 ${CATEGORY_COLORS[nodeDef.category]}`}
+            >
+              <div className="flex items-center gap-2">
+                <NodeIcon className="w-4 h-4 text-white/70" />
+                <span className="text-xs font-medium text-white">{nodeDef.label}</span>
+              </div>
+              <p className="text-[10px] text-white/40 mt-0.5 ml-6 line-clamp-1">
+                {nodeDef.description}
+              </p>
+            </button>
+          );
+        })}
         {filteredNodes.length === 0 && (
-          <div className="text-center text-white/30 text-xs py-8">No nodes found</div>
+          <div className="text-center py-12">
+            <div className="flex justify-center mb-3">
+              <Icons.Search className="w-8 h-8 text-zinc-800" />
+            </div>
+            <div className="text-white/30 text-xs font-bold uppercase tracking-widest">No nodes found</div>
+            <p className="text-[10px] text-white/10 mt-1 uppercase">Try a different keyword</p>
+          </div>
         )}
       </div>
     </div>

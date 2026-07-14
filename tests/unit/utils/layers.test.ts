@@ -73,7 +73,7 @@ describe('layers module', () => {
   describe('generateLayerId', () => {
     it('should generate a unique id with the given prefix', () => {
       const id = generateLayerId('test');
-      expect(id).toMatch(/^test_\d+_[a-z0-9]+$/);
+      expect(id).toMatch(/^test_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
     });
   });
 
