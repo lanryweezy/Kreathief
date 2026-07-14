@@ -15,6 +15,7 @@ import {
   generateTints,
   generateShades,
   generateTones,
+  extractPalette,
   isWithinCMYKGamut,
   getCMYKGamutWarning,
   getClosestCMYKSafeColor,
@@ -169,6 +170,60 @@ describe('colorUtils', () => {
     it('generates tones', () => {
       const result = generateTones('#ff0000', 3);
       expect(result.length).toBe(3);
+    });
+  });
+
+  describe('extractPalette', () => {
+    it('extracts top colors from image data', async () => {
+      // Create a dummy image data array:
+      // 40 red pixels, 40 blue pixels, 40 green pixels, so 120 pixels in total.
+      // We will loop i from 0 to 480 (4 channels per pixel).
+      // 60 red pixels, 30 blue pixels, 30 green pixels.
+      const data = new Uint8ClampedArray(480);
+
+      // 60 red pixels
+      for (let i = 0; i < 60 * 4; i += 4) {
+        data[i] = 255;
+        data[i+1] = 0;
+        data[i+2] = 0;
+        data[i+3] = 255;
+      }
+
+      // 30 blue pixels
+      for (let i = 60 * 4; i < 90 * 4; i += 4) {
+        data[i] = 0;
+        data[i+1] = 0;
+        data[i+2] = 255;
+        data[i+3] = 255;
+      }
+
+      // 30 green pixels
+      for (let i = 90 * 4; i < 120 * 4; i += 4) {
+        data[i] = 0;
+        data[i+1] = 255;
+        data[i+2] = 0;
+        data[i+3] = 255;
+      }
+
+      const imgData = { data, width: 120, height: 1 } as unknown as ImageData;
+
+      const palette = await extractPalette(imgData, 2);
+      expect(palette.length).toBe(2);
+      expect(palette[0]).toBe('#ff0000');
+    });
+
+    it('limits colors to the requested count', async () => {
+      const data = new Uint8ClampedArray(160);
+      for (let i = 0; i < 160; i += 4) {
+        data[i] = i; // varying colors
+        data[i+1] = i;
+        data[i+2] = i;
+        data[i+3] = 255;
+      }
+      const imgData = { data, width: 40, height: 1 } as unknown as ImageData;
+
+      const palette = await extractPalette(imgData, 2);
+      expect(palette.length).toBe(2);
     });
   });
 
