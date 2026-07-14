@@ -3,6 +3,7 @@ import { PDFDocument } from 'pdf-lib';
 import { log } from '../utils/log';
 import { z } from 'zod';
 import { noStoreHeaders } from '../utils/cacheHeaders';
+import dns from 'dns';
 
 export const config = { runtime: 'nodejs' };
 
@@ -74,7 +75,7 @@ export default async function handler(req: any, res: any) {
 
     const { imageUrl, bleed } = parsed.data;
 
-    // SSRF Protection: Validate URL before fetching
+    // SSRF Protection: Validate URL and resolve DNS to prevent bypasses
     try {
       const url = new URL(imageUrl);
 
@@ -82,36 +83,49 @@ export default async function handler(req: any, res: any) {
         return res.status(400).json({ error: 'Invalid URL protocol' });
       }
 
-      const hostname = url.hostname.toLowerCase();
-
-      // Basic blocklist for local/internal IPs to prevent simple SSRF.
-      // Note: A robust solution would resolve the DNS and check the IP before fetching,
-      // but this basic check covers simple bypasses for this specific endpoint.
-      if (
-        hostname === 'localhost' ||
-        hostname === '0.0.0.0' ||
-        hostname.includes('127.0.0.1') ||
-        hostname.startsWith('127.') ||
-        hostname.startsWith('169.254.') ||
-        hostname.startsWith('10.') ||
-        hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./) ||
-        hostname.startsWith('192.168.') ||
-        hostname.endsWith('.internal') ||
-        hostname === '[::1]' ||
-        hostname === '::1' ||
-        hostname.includes('[::ffff:127.0.0.1]') ||
-        hostname === 'localtest.me' ||
-        // Octal/Hex encoding bypasses for 127.0.0.1
-        hostname === '0177.0.0.1' ||
-        hostname === '0x7f.0.0.1' ||
-        hostname === '2130706433' ||
-        hostname === '0x7f000001' ||
-        hostname === '017700000001'
-      ) {
-        return res.status(400).json({ error: 'Invalid image URL (internal/reserved IP)' });
+      let hostname = url.hostname.toLowerCase();
+      if (hostname.startsWith('[') && hostname.endsWith(']')) {
+        hostname = hostname.slice(1, -1);
       }
-    } catch (e) {
-      return res.status(400).json({ error: 'Invalid image URL format' });
+
+      const lookup = await dns.promises.lookup(hostname, { all: true });
+
+      const isPrivateIp = (ip: string) => {
+        if (!ip) return true;
+        if (
+          ip.startsWith('10.') ||
+          ip.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./) ||
+          ip.startsWith('192.168.') ||
+          ip.startsWith('127.') ||
+          ip.startsWith('169.254.') ||
+          ip === '0.0.0.0'
+        ) {
+          return true;
+        }
+        if (
+          ip === '::1' ||
+          ip === '::' ||
+          ip.toLowerCase().startsWith('fc00:') ||
+          ip.toLowerCase().startsWith('fd00:') ||
+          ip.toLowerCase().startsWith('fe80:')
+        ) {
+          return true;
+        }
+        if (ip.toLowerCase().startsWith('::ffff:')) {
+          const ipv4Part = ip.substring(7);
+          return isPrivateIp(ipv4Part);
+        }
+        return false;
+      };
+
+      for (const address of lookup) {
+        if (isPrivateIp(address.address)) {
+          return res.status(400).json({ error: 'Invalid image URL (internal/reserved IP)' });
+        }
+      }
+    } catch (e: any) {
+      log.error('[ExportCMYK] URL validation/DNS resolution failed', e);
+      return res.status(400).json({ error: 'Invalid or unresolvable image URL' });
     }
 
     // 1. Fetch the high-res RGB image with timeout protection
