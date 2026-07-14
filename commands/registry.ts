@@ -45,7 +45,7 @@ function run(id: string): void {
 
 // Pre-register built-in commands
 const builtins: Command[] = [
-  { id: 'generate', label: 'Generate Image', shortcut: 'Ctrl+G', category: 'AI', icon: '✨', action: () => {} },
+  { id: 'generate', label: 'Generate Image', shortcut: 'Ctrl+G', category: 'AI', icon: '✨', action: () => (useStore.getState() as any).setActiveTab?.('MAGIC') },
   { id: 'export', label: 'Export Design', shortcut: 'Ctrl+E', category: 'File', icon: '📤', action: () => (useStore.getState() as any).setIsExporting?.(true) },
   { id: 'undo', label: 'Undo', shortcut: 'Ctrl+Z', category: 'Edit', icon: '↩', action: () => (useStore.getState() as any).undo?.() },
   { id: 'redo', label: 'Redo', shortcut: 'Ctrl+Shift+Z', category: 'Edit', icon: '↪', action: () => (useStore.getState() as any).redo?.() },
@@ -53,7 +53,7 @@ const builtins: Command[] = [
   { id: 'toggle-rulers', label: 'Toggle Rulers', shortcut: 'Ctrl+R', category: 'View', icon: '📏', action: () => (useStore.getState() as any).toggleRulers?.() },
   { id: 'add-text', label: 'Add Text Layer', category: 'Layers', icon: 'T', action: () => (useStore.getState() as any).addTextLayer?.('Text', 100, 100) },
   { id: 'add-shape', label: 'Add Shape', category: 'Layers', icon: '□', action: () => (useStore.getState() as any).addShapeLayer?.('rectangle', {}) },
-  { id: 'add-image', label: 'Add Image', category: 'Layers', icon: '🖼', action: () => {} },
+  { id: 'add-image', label: 'Add Image', category: 'Layers', icon: '🖼', action: () => (useStore.getState() as any).setActiveTab?.('MEDIA') },
   { id: 'group', label: 'Group Selection', shortcut: 'Ctrl+G', category: 'Edit', icon: '📁', action: () => (useStore.getState() as any).groupSelected?.() },
   { id: 'ungroup', label: 'Ungroup Selection', shortcut: 'Ctrl+Shift+G', category: 'Edit', icon: '📂', action: () => (useStore.getState() as any).ungroupSelected?.() },
   { id: 'duplicate', label: 'Duplicate Layer', shortcut: 'Ctrl+D', category: 'Edit', icon: '⧉', action: () => (useStore.getState() as any).duplicateSelected?.() },
@@ -66,8 +66,8 @@ const builtins: Command[] = [
   { id: 'zoom-100', label: 'Zoom to 100%', shortcut: 'Ctrl+1', category: 'View', icon: '100', action: () => (useStore.getState() as any).setZoom?.(1) },
   { id: 'save', label: 'Save Project', shortcut: 'Ctrl+S', category: 'File', icon: '💾', action: () => (useStore.getState() as any).saveProject?.() },
   { id: 'shortcuts', label: 'Keyboard Shortcuts', shortcut: 'Ctrl+/', category: 'Help', icon: '⌨', action: () => (useStore.getState() as any).toggleShortcuts?.() },
-  { id: 'vectorize', label: 'Vectorize Selection', category: 'AI', icon: '🔀', action: () => {} },
-  { id: 'brand-kit', label: 'Apply Brand Kit', category: 'Brand', icon: '🎨', action: () => {} },
+  { id: 'vectorize', label: 'Vectorize Selection', category: 'AI', icon: '🔀', action: () => (useStore.getState() as any).setActiveTab?.('VECTORIZER') },
+  { id: 'brand-kit', label: 'Apply Brand Kit', category: 'Brand', icon: '🎨', action: () => (useStore.getState() as any).setActiveTab?.('BRAND') },
   { id: 'magic-resize', label: 'Magic Resize', category: 'AI', icon: '📐', action: () => (useStore.getState() as any).magicResize?.(1080, 1080) },
 ];
 

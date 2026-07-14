@@ -29,7 +29,17 @@ export class BitmapCache {
     const h = Math.max(1, Math.min((layer as any).height || 100, 4096));
 
     try {
+      // FIX: Add environment check for OffscreenCanvas support to prevent TypeError: canvas.getContext is not a function
+      if (typeof OffscreenCanvas === 'undefined') {
+        return null;
+      }
+
       const canvas = new OffscreenCanvas(w, h);
+      if (!canvas || typeof canvas.getContext !== 'function') {
+        log.warn('[BitmapCache] OffscreenCanvas found but getContext is missing');
+        return null;
+      }
+
       const ctx = canvas.getContext('2d') as unknown as CanvasRenderingContext2D;
       if (!ctx) return null;
 

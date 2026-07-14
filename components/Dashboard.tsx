@@ -639,25 +639,36 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 <span className="text-xs font-black text-muted uppercase tracking-[0.2em]">Quick Start</span>
               </div>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-                {FORMAT_OPTIONS.map((format, idx) => (
-                  <button
-                    key={format.label}
-                    onClick={() => {
-                      setSelectedFormat(idx);
-                      setAiPrompt('');
-                      aiInputRef.current?.focus();
-                    }}
-                    className="group aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all duration-200 border border-white/5 hover:border-brand-500/40 hover:bg-brand-500/5 hover:scale-[1.03] active:scale-[0.98] cursor-pointer"
-                    style={{
-                      background: `linear-gradient(135deg, ${['#1a1a2e,#16213e', '#16213e,#0f3460', '#0f3460,#1a1a2e', '#533483,#1a1a2e', '#1a1a2e,#e94560', '#e94560,#533483'][idx]})`,
-                    }}
-                  >
-                    <span className="text-2xl">{['📸', '📱', '🎬', '📄', '🎨', '👕'][idx]}</span>
-                    <span className="text-[11px] font-black uppercase tracking-wider text-muted group-hover:text-white transition-colors">
-                      {format.label}
-                    </span>
-                  </button>
-                ))}
+                {FORMAT_OPTIONS.map((format, idx) => {
+                  const QuickIcon = [
+                    Icons.Camera,
+                    Icons.Smartphone,
+                    Icons.Play,
+                    Icons.FileText,
+                    Icons.Brush,
+                    Icons.Monitor,
+                  ][idx];
+
+                  return (
+                    <button
+                      key={format.label}
+                      onClick={() => {
+                        setSelectedFormat(idx);
+                        setAiPrompt('');
+                        aiInputRef.current?.focus();
+                      }}
+                      className="group aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all duration-200 border border-white/5 hover:border-brand-500/40 hover:bg-brand-500/5 hover:scale-[1.03] active:scale-[0.98] cursor-pointer"
+                      style={{
+                        background: `linear-gradient(135deg, ${['#1a1a2e,#16213e', '#16213e,#0f3460', '#0f3460,#1a1a2e', '#533483,#1a1a2e', '#1a1a2e,#e94560', '#e94560,#533483'][idx]})`,
+                      }}
+                    >
+                      <QuickIcon className="w-8 h-8 text-white/80 group-hover:text-white group-hover:scale-110 transition-all" />
+                      <span className="text-[11px] font-black uppercase tracking-wider text-muted group-hover:text-white transition-colors">
+                        {format.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

@@ -101,7 +101,7 @@ export const useStore = create<StoreState>()((set, get, store) => ({
       editingPathId: null,
 
       // Project Slice
-      projectId: `proj_${Date.now()}`,
+      projectId: `proj_${crypto.randomUUID()}`,
       projectTitle: 'Untitled Design',
       isSaving: false,
       syncStatus: 'synced',

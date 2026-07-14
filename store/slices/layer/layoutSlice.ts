@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import type { StoreState } from '../../useStore';
-import { v4 as uuidv4 } from 'uuid';
+import { generateLayerId } from '../../../utils/layers/layerUtils';
 import { Layer, Artboard } from '../../../types';
 import { LayerSlice } from './baseSlice';
 
@@ -110,7 +110,7 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
       const scaleX = CANVAS_W / templateBaseW;
       const scaleY = CANVAS_H / templateBaseH;
       const newLayers = typeOrShapes.map((shape) => ({
-        id: uuidv4(), type: 'rectangle', ...shape,
+	        id: generateLayerId('rectangle'), type: 'rectangle', ...shape,
         x: (shape.x || 0) * scaleX, y: (shape.y || 0) * scaleY,
         width: (shape.width || 100) * scaleX, height: (shape.height || 100) * scaleY,
         rotation: shape.rotation || 0, opacity: shape.opacity ?? 1,

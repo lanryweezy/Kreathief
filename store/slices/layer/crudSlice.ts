@@ -3,7 +3,6 @@ import { log } from '../../../utils/log';
 
 import { StateCreator } from 'zustand';
 import type { StoreState } from '../../useStore';
-import { v4 as uuidv4 } from 'uuid';
 import * as geminiService from '../../../services/geminiService';
 import { Layer, TextLayer, ShapeLayer, Artboard, ImageLayer } from '../../../types';
 import { LayerSlice } from './baseSlice';
@@ -13,7 +12,7 @@ import { DEFAULT_CORNER_RADIUS } from '../../../constants';
 export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlice>> = (set, get) => ({
   addArtboard: (name = 'Artboard', width = 1080, height = 1080) => {
     get().saveToHistory?.();
-    const id = uuidv4();
+    const id = generateLayerId('artboard');
     const lastArtboard = get().artboards[get().artboards.length - 1];
     const x = lastArtboard ? lastArtboard.x + lastArtboard.width + 100 : 0;
 
@@ -36,13 +35,13 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
     const oldWidth = currentArtboard.width;
     const oldHeight = currentArtboard.height;
 
-    const id = uuidv4();
+    const id = generateLayerId('artboard');
     const lastArtboard = state.artboards[state.artboards.length - 1];
     const x = lastArtboard ? lastArtboard.x + lastArtboard.width + 100 : 0;
 
     const newLayers = currentArtboard.layers.map((l: Layer) => {
       const cloned = structuredClone(l);
-      cloned.id = uuidv4();
+      cloned.id = generateLayerId(l.type);
 
       const constraints = l.constraints || { horizontal: 'scale', vertical: 'scale' };
       let lx = l.x;
@@ -125,7 +124,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
     const textContent = style.text || 'Add your text';
     const autoName = textContent.length > 20 ? textContent.slice(0, 20) + '…' : textContent;
     const newLayer: TextLayer = {
-      id: uuidv4(), type: 'text', name: autoName, text: textContent,
+      id: generateLayerId('text'), type: 'text', name: autoName, text: textContent,
       x: artboard.width / 2 - 100, y: artboard.height / 2 - 25,
       width: 200, height: style.fontSize || 40, rotation: 0,
       fontSize: style.fontSize || 40, fontWeight: style.fontWeight || '700',
@@ -153,7 +152,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
     const artboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
     if (!artboard) return;
     const newLayer = {
-      id: `adj_${Date.now()}`, type: 'adjustment' as const, name: 'Adjustment Layer',
+      id: generateLayerId('adj'), type: 'adjustment' as const, name: 'Adjustment Layer',
       x: 0, y: 0, width: artboard.width, height: artboard.height, rotation: 0, opacity: 1,
       locked: false, visible: true,
       adjustmentFilters: { brightness: 100, contrast: 100, saturation: 100, blur: 0, hueRotate: 0, sepia: 0, invert: 0 },
@@ -189,7 +188,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
     const artboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
     if (!artboard) return;
     const newLayer: ShapeLayer = {
-      id: `${type}_${uuidv4().substring(0, 8)}`, type: type as any,
+      id: generateLayerId(type), type: type as any,
       name: type.charAt(0).toUpperCase() + type.slice(1),
       x: artboard.width / 2 - 50, y: artboard.height / 2 - 50,
       width: 100, height: 100, rotation: 0, color: '#334155',
@@ -278,7 +277,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
       const artboards = state.artboards.map((a: Artboard) => {
         const layer = a.layers.find((l) => l.id === id);
         if (layer) {
-          const newLayer = { ...structuredClone(layer), id: uuidv4(), x: layer.x + 20, y: layer.y + 20, name: (layer.name || 'Layer') + ' Copy' };
+          const newLayer = { ...structuredClone(layer), id: generateLayerId(layer.type), x: layer.x + 20, y: layer.y + 20, name: (layer.name || 'Layer') + ' Copy' };
           newLayerId = newLayer.id;
           return { ...a, layers: [...a.layers, newLayer] };
         }
@@ -297,7 +296,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
       const artboards = state.artboards.map((a: Artboard) => {
         if (a.id !== activeArtboardId) return a;
         const duplicated = a.layers.filter((l) => selectedLayerIds.includes(l.id)).map((l) => {
-          const nl = { ...structuredClone(l), id: uuidv4(), x: l.x + 20, y: l.y + 20, name: (l.name || 'Layer') + ' Copy' };
+          const nl = { ...structuredClone(l), id: generateLayerId(l.type), x: l.x + 20, y: l.y + 20, name: (l.name || 'Layer') + ' Copy' };
           newLayers.push(nl);
           return nl;
         });
@@ -320,7 +319,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
     if (!clipboardLayer) return;
     get().saveToHistory?.();
     const newLayer = {
-      ...clipboardLayer, id: `${clipboardLayer.type}_${Date.now()}`,
+      ...clipboardLayer, id: generateLayerId(clipboardLayer.type),
       x: clipboardLayer.x + 20, y: clipboardLayer.y + 20,
       name: (clipboardLayer.name || 'Layer') + ' Copy', ...style,
     };

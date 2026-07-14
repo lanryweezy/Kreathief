@@ -11,7 +11,7 @@ import { communityService, CommunityTemplate } from '../../services/communitySer
 import { Button } from '../Button';
 
 export const CommandPalette: React.FC = () => {
-  const isOpen = useStore((state) => state.isCommandPaletteOpen);
+  const isOpen = useStore((state) => (state as any).isCommandPaletteOpen);
   const setOpen = useStore((state) => state.setCommandPaletteOpen);
   const setActiveTab = useStore((state) => state.setActiveTab);
 

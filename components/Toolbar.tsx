@@ -135,6 +135,23 @@ export const Toolbar = React.memo(
                 Selected ({(selectedLayerIds || []).length})
               </span>
               <Divider />
+
+              {/* Boolean Operations for Multi-Path Selection */}
+              {selectedLayers.length >= 2 &&
+                selectedLayers.every((l) => (l as any).type === 'path' || (l as any).vectorPath) && (
+                  <>
+                    <VectorTools
+                      layer={selectedLayer!}
+                      handleUpdateLayer={handleUpdateLayer}
+                      onCompletePath={onCompletePath}
+                      onBooleanOperation={onBooleanOperation}
+                      onBooleanHover={onBooleanHover}
+                      documentColors={documentColors}
+                    />
+                    <Divider />
+                  </>
+                )}
+
               <div className="flex bg-black/40 rounded-xl border border-white/5 p-1 gap-1">
                 <IconButton onClick={() => onAlignLayers?.('left')} title="Align Left" aria-label="Align Left">
                   <Icons.AlignLeft className="w-4 h-4" />

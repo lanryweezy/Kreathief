@@ -11,7 +11,7 @@ interface WireProps {
   onClick: () => void;
 }
 
-function Wire({ fromX, fromY, toX, toY, isActive, onMouseEnter, onMouseLeave, onClick }: WireProps) {
+export function Wire({ fromX, fromY, toX, toY, isActive, onMouseEnter, onMouseLeave, onClick }: WireProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   const dx = Math.abs(toX - fromX) * 0.5;
