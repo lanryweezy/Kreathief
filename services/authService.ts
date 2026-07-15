@@ -5,6 +5,7 @@ import { logger } from './logger';
 import { log } from '../utils/log';
 import { logSecurityEvent } from '../utils/securityLogger';
 import { analyticsService } from './analyticsService';
+import { getErrorDetails } from '../utils/errorMessages';
 
 export interface AuthResult {
   user: User | null;
@@ -133,7 +134,7 @@ export class AuthService {
         method: 'email',
         error: err instanceof Error ? err.message : String(err),
       });
-      return { user: null, error: 'An unexpected error occurred' };
+      return { user: null, error: getErrorDetails(err).message };
     }
   }
 
@@ -199,7 +200,7 @@ export class AuthService {
         method: 'email',
         error: err instanceof Error ? err.message : String(err),
       });
-      return { user: null, error: 'An unexpected error occurred' };
+      return { user: null, error: getErrorDetails(err).message };
     }
   }
 
@@ -231,7 +232,7 @@ export class AuthService {
         method: 'google',
         error: err instanceof Error ? err.message : String(err),
       });
-      return { user: null, error: 'An unexpected error occurred' };
+      return { user: null, error: getErrorDetails(err).message };
     }
   }
 
@@ -344,7 +345,7 @@ export class AuthService {
       return { error: null };
     } catch (err) {
       logger.error('Profile update error', { error: err });
-      return { error: 'An unexpected error occurred' };
+      return { error: getErrorDetails(err).message };
     }
   }
 
@@ -365,7 +366,7 @@ export class AuthService {
       return { error: null };
     } catch (err) {
       logger.error('Password reset error', { error: err });
-      return { error: 'An unexpected error occurred' };
+      return { error: getErrorDetails(err).message };
     }
   }
 }

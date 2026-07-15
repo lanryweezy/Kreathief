@@ -4,6 +4,7 @@ import { User } from '../types';
 import { authService } from '../services/authService';
 import { Input } from './Input';
 import { Button } from './Button';
+import { getErrorDetails } from '../utils/errorMessages';
 
 interface AuthProps {
   onLogin: (user: User) => void;
@@ -53,7 +54,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         onLogin(result.user);
       }
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError(getErrorDetails(err).message);
       setLoading(false);
     }
   };

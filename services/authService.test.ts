@@ -108,7 +108,7 @@ describe('AuthService', () => {
       const result = await authService.signIn('test@example.com', 'password');
 
       expect(result.user).toBeNull();
-      expect(result.error).toBe('An unexpected error occurred');
+      expect(result.error).toBe('Network connection error');
     });
   });
 

@@ -94,7 +94,7 @@ export default async function handler(req: any, res: any) {
         if (!ip) return true;
         if (
           ip.startsWith('10.') ||
-          ip.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./) ||
+      ip.match(/^172\.(1[6-9]|2\d|3[0-1])\./) ||
           ip.startsWith('192.168.') ||
           ip.startsWith('127.') ||
           ip.startsWith('169.254.') ||
@@ -102,12 +102,18 @@ export default async function handler(req: any, res: any) {
         ) {
           return true;
         }
+
+    const ipv6Lower = ip.toLowerCase();
+    // Handle various IPv6 loopback/unspecified representations
         if (
-          ip === '::1' ||
-          ip === '::' ||
-          ip.toLowerCase().startsWith('fc00:') ||
-          ip.toLowerCase().startsWith('fd00:') ||
-          ip.toLowerCase().startsWith('fe80:')
+      ipv6Lower === '::1' ||
+      ipv6Lower === '::' ||
+      /^0*:0*:0*:0*:0*:0*:0*:1$/.test(ipv6Lower) ||
+      /^0*:0*:0*:0*:0*:0*:0*:0$/.test(ipv6Lower) ||
+      /^::0*:1$/.test(ipv6Lower) ||
+      ipv6Lower.startsWith('fc00:') ||
+      ipv6Lower.startsWith('fd00:') ||
+      ipv6Lower.startsWith('fe80:')
         ) {
           return true;
         }
