@@ -32,6 +32,21 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
     };
   }, [handlers.onKeyDown, handlers.onKeyUp]);
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      handlers.onWheel(e);
+    };
+
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
+    return () => {
+      canvas.removeEventListener('wheel', handleWheel);
+    };
+  }, [handlers.onWheel]);
+
   const findFinalOutput = useCallback(() => {
     const exportNodes = graph.nodes.filter((n) => {
       const def = getNodeDefinition(n.type);
@@ -100,8 +115,9 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
     const index = ports.findIndex((p) => p.id === portId);
     const portSpacing = 28;
     const headerHeight = 40;
+    const nodeWidth = node.width || 220;
     return {
-      x: side === 'input' ? node.x : node.x + 200,
+      x: side === 'input' ? node.x : node.x + nodeWidth,
       y: node.y + headerHeight + (index + 0.5) * portSpacing,
     };
   };
@@ -181,7 +197,6 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
           onMouseDown={handleCanvasClick}
           onMouseMove={handlers.onCanvasMouseMove}
           onMouseUp={handlers.onCanvasMouseUp}
-          onWheel={handlers.onWheel}
         >
           <div
             className="node-graph-bg absolute inset-0"
@@ -236,7 +251,7 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
                 onMouseDown={handlers.onNodeMouseDown}
                 onPortMouseDown={handlePortMouseDown}
                 onPortMouseUp={handlePortMouseUp}
-                onSettingsChange={(key, value) => updateNodeSettings(node.id, key, value)}
+                onSettingsChange={(key, value) => updateNodeSettings(node.id, { [key]: value })}
               />
             ))}
           </div>

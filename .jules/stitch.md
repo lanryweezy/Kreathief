@@ -1,20 +1,5 @@
-## 2026-06-16 - API routes missing implementations
+## 2025-01-24 - Completing Node Interactive Inputs and Settings Propagation
 
-**Learning:** Client-side telemetry explicitly references backend endpoints like `/api/error-log` via `navigator.sendBeacon` (in `utils/errorHandling.ts`) which were previously not implemented in the `/api` directory.
-**Action:** When adding or verifying client-side API telemetry and fallback hooks, check if the corresponding Edge Function exists and is wired correctly with CORS and structured logging.
+**Learning:** When developing complex client-side canvas systems such as Node Graphs, UI input elements rendered inside draggable node containers must explicitly stop event propagation (`onMouseDown`, `onPointerDown`, `onWheel`, etc.) to prevent dragging/selection systems from intercepting interactions. Furthermore, when syncing node state with a centralized store (like Zustand), the update function signature (e.g., passing `(id, settingsObject)` vs `(id, key, value)`) must be thoroughly verified across the consumer and the store to prevent silent state synchronization failures.
 
-**Learning:** Found a wired-but-empty UI implementation where a component prop (`effects` on `TextEffectsPanel`) exists and is passed but always receives an empty object `{}`, and the `onChange` prop receives an empty function `() => {}`. This happens in `components/SidePanel.tsx`. The `TextLayer` interface in `types.ts` defines the various text effects properties.
-**Action:** When finding incomplete integrations, wire up the component to the state so that the effects are properly read from and written to the selected text layer.
-
-## 2026-06-18 - Unwired UI Props
-
-**Learning:** Found a wired-but-empty UI callback (`onMagicWrite`) in `components/Toolbar.tsx` that was passed into `components/toolbar/TextTools.tsx` as `() => {}`, missing its intended UI button element.
-**Action:** When inspecting component props that are callbacks (like `onMagicWrite`), verify whether their corresponding UI elements (e.g., `<IconButton>`) exist in the child component. If missing, complete the implementation by adding the button that wires the callback to the user interface.
-
-## 2026-06-21 - Unwired UI Panel States
-
-**Learning:** Found a wired-but-empty UI component (`TextEffectsPanel` and `TextGradientEditor`) in `components/panels/TextPanel.tsx` where the `onChange` handler correctly updated local component state but failed to synchronize those changes to the actual canvas layer via the global store (`updateLayer`). It had placeholder comments like `// Apply effects to selected text layer would go here`.
-**Action:** When finding incomplete integrations where UI state changes are handled locally but not persisted, ensure that the corresponding layer update function (like `updateLayer` from `useStore`) is retrieved and invoked with the selected layer's ID.
-## 2024-07-04 - Wired empty stubs in commands registry
-**Learning:** Empty command action stubs `() => {}` in `commands/registry.ts` are a pattern of incompleteness for side-panel features.
-**Action:** Always check `commands/registry.ts` for empty action handlers and wire them up to `setActiveTab` with the corresponding `NavTab` string enum value.
+**Action:** Always wrap input interactions, range sliders, custom dropdowns, color pickers, and text fields within node components in `stopPropagation` handlers to isolate node drag events. Always check store action definitions in the hook/store implementation rather than assuming the prop types matching the target element handlers.

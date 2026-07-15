@@ -10,7 +10,6 @@ export const useNodeDrag = () => {
   const spaceDown = useRef(false);
 
   const {
-    dragState,
     viewport,
     moveNode,
     startWireDrag,
@@ -148,14 +147,15 @@ export const useNodeDrag = () => {
   );
 
   const onWheel = useCallback(
-    (e: React.WheelEvent) => {
+    (e: any) => {
       e.preventDefault();
       const { viewport: vp } = useNodeGraph.getState();
 
       const delta = e.deltaY > 0 ? 0.9 : 1.1;
       const newZoom = Math.min(Math.max(vp.zoom * delta, 0.1), 5);
 
-      const rect = (e.target as HTMLElement).getBoundingClientRect();
+      const container = document.querySelector('.node-graph-bg') || (e.currentTarget || e.target) as HTMLElement;
+      const rect = container ? container.getBoundingClientRect() : { left: 0, top: 0 };
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
 
