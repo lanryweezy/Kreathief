@@ -7,7 +7,6 @@ import { buildFilterString } from '../../utils/layers';
 import { SmartSuggestions } from './SmartSuggestions';
 import { SmartSnap } from './SmartSnap';
 import { SmartSuggestion } from '../../hooks/useSmartInteraction';
-import { bitmapCache } from '../../utils/bitmapCache';
 import { ErrorBoundary } from '../ErrorBoundary';
 
 const noop = () => {};
@@ -361,21 +360,6 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(
     onApplySuggestion = () => {},
     allLayers = [],
   }) => {
-    // Memo check for bitmapCache before rendering image layers
-    const imageLayerBitmaps = React.useMemo(() => {
-      const bitmaps = new Map<string, ImageBitmap | null>();
-      for (const artboard of artboards) {
-        for (const layer of artboard.layers || []) {
-          if (layer.type === 'image') {
-            // Populate bitmap cache map for downstream rendering
-            bitmaps.set(layer.id, null);
-          }
-        }
-      }
-      // Log cache stats for debugging
-      void bitmapCache.stats();
-      return bitmaps;
-    }, [artboards]);
 
     return (
       <>
