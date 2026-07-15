@@ -82,4 +82,6 @@ export interface NodeGraphState {
     y: number;
     zoom: number;
   };
+  executingNodeId?: string | null;
+  snapToGrid?: boolean;
 }

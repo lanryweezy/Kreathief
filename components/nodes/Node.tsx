@@ -8,6 +8,7 @@ import * as Icons from '../icons';
 interface NodeProps {
   node: GraphNode;
   isSelected: boolean;
+  isVisible?: boolean; // LOD Optimization
   output?: Record<string, any>;
   onMouseDown: (e: React.MouseEvent, nodeId: string) => void;
   onPortMouseDown: (e: React.MouseEvent, nodeId: string, portId: string, side: 'input' | 'output') => void;
@@ -54,6 +55,7 @@ const CATEGORY_GLOWS: Record<string, string> = {
 export function Node({
   node,
   isSelected,
+  isVisible = true,
   onMouseDown,
   onPortMouseDown,
   onPortMouseUp,
@@ -63,6 +65,7 @@ export function Node({
   const nodeOutputs = useNodeGraph((s) => s.nodeOutputs);
   const executeGraph = useNodeGraph((s) => s.executeGraph);
   const isExecuting = useNodeGraph((s) => s.isExecuting);
+  const executingNodeId = useNodeGraph((s) => s.executingNodeId);
   const def = getNodeDefinition(node.type);
 
   const handleMouseDown = useCallback(
@@ -94,11 +97,13 @@ export function Node({
   const glowColor = CATEGORY_GLOWS[def.category] || 'shadow-white/5';
   const defaultNodeWidth = 220;
 
+  const isExecutingNode = node.id === executingNodeId;
+
   return (
     <div
-      className={`absolute select-none cursor-grab active:cursor-grabbing transition-shadow duration-200 ${
+      className={`absolute select-none cursor-grab active:cursor-grabbing transition-all duration-200 ${
         isSelected ? `ring-2 ring-brand-500 shadow-2xl ${glowColor}` : 'shadow-xl'
-      }`}
+      } ${isExecutingNode ? 'ring-2 ring-green-500 shadow-2xl shadow-green-500/30 animate-pulse scale-[1.01]' : ''}`}
       style={{ left: node.x, top: node.y, width: node.width || defaultNodeWidth }}
       onMouseDown={handleMouseDown}
     >
@@ -110,7 +115,13 @@ export function Node({
             return <NodeIcon className="w-3.5 h-3.5 text-white/90" />;
           })()}
           <span className="text-xs font-medium text-white truncate flex-1">{def.label}</span>
-          {isSelected && (
+          {isExecutingNode && (
+            <div className="flex items-center gap-1 bg-white/20 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-wider">
+              <Icons.Loader className="w-2.5 h-2.5 animate-spin" />
+              <span>Running</span>
+            </div>
+          )}
+          {isSelected && !isExecutingNode && (
             <button
               onClick={handleDelete}
               className="w-4 h-4 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center text-white/70 hover:text-white text-xs"
@@ -152,9 +163,10 @@ export function Node({
         </div>
 
         {/* Custom Interactive Settings Inputs */}
-        <div className="px-3 pb-3 space-y-2.5">
-          {/* TEXT PROMPT NODE */}
-          {node.type === 'text-prompt' && (
+        {isVisible && (
+          <div className="px-3 pb-3 space-y-2.5">
+            {/* TEXT PROMPT NODE */}
+            {node.type === 'text-prompt' && (
             <div className="space-y-2 pt-1 border-t border-white/5" onMouseDown={(e) => e.stopPropagation()}>
               <div>
                 <label className="text-[9px] text-white/40 uppercase font-black tracking-wider block mb-1">Prompt</label>
@@ -446,46 +458,47 @@ export function Node({
             </div>
           )}
 
-          {/* EDIT TEXT OVERLAY NODE */}
-          {node.type === 'text-overlay' && (
-            <div className="space-y-1.5 pt-1 border-t border-white/5" onMouseDown={(e) => e.stopPropagation()}>
-              <label className="text-[9px] text-white/40 uppercase font-black tracking-wider block">Text Overlay</label>
-              <input
-                type="text"
-                className="w-full bg-surface-dark-1 border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white focus:outline-none focus:border-brand-500"
-                placeholder="Overlay text..."
-                value={node.settings.text || ''}
-                onChange={(e) => onSettingsChange?.('text', e.target.value)}
-              />
-              <div className="grid grid-cols-2 gap-1.5">
-                <div>
-                  <label className="text-[8px] text-white/40">Font Size</label>
-                  <input
-                    type="number"
-                    className="w-full bg-surface-dark-1 border border-white/10 rounded-lg px-1.5 py-0.5 text-[9px] text-white focus:outline-none focus:border-brand-500"
-                    value={node.settings.fontSize ?? 72}
-                    onChange={(e) => onSettingsChange?.('fontSize', parseInt(e.target.value) || 72)}
-                  />
-                </div>
-                <div>
-                  <label className="text-[8px] text-white/40 block">Color</label>
-                  <div className="flex items-center gap-1 mt-0.5">
+            {/* EDIT TEXT OVERLAY NODE */}
+            {node.type === 'text-overlay' && (
+              <div className="space-y-1.5 pt-1 border-t border-white/5" onMouseDown={(e) => e.stopPropagation()}>
+                <label className="text-[9px] text-white/40 uppercase font-black tracking-wider block">Text Overlay</label>
+                <input
+                  type="text"
+                  className="w-full bg-surface-dark-1 border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white focus:outline-none focus:border-brand-500"
+                  placeholder="Overlay text..."
+                  value={node.settings.text || ''}
+                  onChange={(e) => onSettingsChange?.('text', e.target.value)}
+                />
+                <div className="grid grid-cols-2 gap-1.5">
+                  <div>
+                    <label className="text-[8px] text-white/40">Font Size</label>
                     <input
-                      type="color"
-                      className="w-4 h-4 rounded cursor-pointer border-0 bg-transparent"
-                      value={node.settings.color || '#FFFFFF'}
-                      onChange={(e) => onSettingsChange?.('color', e.target.value)}
+                      type="number"
+                      className="w-full bg-surface-dark-1 border border-white/10 rounded-lg px-1.5 py-0.5 text-[9px] text-white focus:outline-none focus:border-brand-500"
+                      value={node.settings.fontSize ?? 72}
+                      onChange={(e) => onSettingsChange?.('fontSize', parseInt(e.target.value) || 72)}
                     />
-                    <span className="text-[8px] font-mono">{node.settings.color || '#FFFFFF'}</span>
+                  </div>
+                  <div>
+                    <label className="text-[8px] text-white/40 block">Color</label>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <input
+                        type="color"
+                        className="w-4 h-4 rounded cursor-pointer border-0 bg-transparent"
+                        value={node.settings.color || '#FFFFFF'}
+                        onChange={(e) => onSettingsChange?.('color', e.target.value)}
+                      />
+                      <span className="text-[8px] font-mono">{node.settings.color || '#FFFFFF'}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Output Previews */}
-        {hasOutput && imageOutput?.src && (
+        {isVisible && hasOutput && imageOutput?.src && (
           <div className="px-3 pb-3">
             <div className="w-full h-24 rounded-lg bg-surface-dark-2 border border-white/5 overflow-hidden flex items-center justify-center">
               <img
@@ -497,7 +510,7 @@ export function Node({
           </div>
         )}
 
-        {hasOutput && !imageOutput?.src && (
+        {isVisible && hasOutput && !imageOutput?.src && (
           <div className="px-3 pb-2">
             <div className="text-[10px] text-white/40 truncate">
               {Object.keys(outputs)

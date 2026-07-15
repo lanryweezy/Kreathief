@@ -13,6 +13,7 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
     graph, selectedNodeId, nodeOutputs, viewport, wireState,
     addNode, selectNode, updateNodeSettings,
     endWireDrag, loadPreset, clearGraph, executeGraph, isExecuting,
+    snapToGrid, toggleSnapToGrid,
   } = useNodeGraph();
 
   const { handlers } = useNodeDrag();
@@ -154,6 +155,18 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
             Nodes
           </button>
           <button
+            onClick={toggleSnapToGrid}
+            title={snapToGrid ? "Disable grid alignment" : "Enable grid alignment"}
+            className={`px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg border transition-all flex items-center gap-1.5 ${
+              snapToGrid
+                ? 'bg-purple-600/20 text-purple-400 border-purple-500/30'
+                : 'bg-white/5 text-gray-400 hover:text-white border-transparent'
+            }`}
+          >
+            <Icons.Grid className="w-3.5 h-3.5" />
+            <span>Snap to Grid</span>
+          </button>
+          <button
             onClick={handleRunGraph}
             disabled={isExecuting || graph.nodes.length === 0}
             className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-wider flex items-center gap-2 transition-all ${
@@ -202,7 +215,7 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
             className="node-graph-bg absolute inset-0"
             style={{
               backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px)',
-              backgroundSize: `${24 * viewport.zoom}px ${24 * viewport.zoom}px`,
+              backgroundSize: `${20 * viewport.zoom}px ${20 * viewport.zoom}px`,
               backgroundPosition: `${viewport.x}px ${viewport.y}px`,
             }}
           />
@@ -242,18 +255,37 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
           </svg>
 
           <div className="absolute inset-0" style={{ zIndex: 2, transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.zoom})`, transformOrigin: '0 0' }}>
-            {graph.nodes.map((node) => (
-              <Node
-                key={node.id}
-                node={node}
-                isSelected={selectedNodeId === node.id}
-                output={nodeOutputs[node.id]}
-                onMouseDown={handlers.onNodeMouseDown}
-                onPortMouseDown={handlePortMouseDown}
-                onPortMouseUp={handlePortMouseUp}
-                onSettingsChange={(key, value) => updateNodeSettings(node.id, { [key]: value })}
-              />
-            ))}
+            {graph.nodes.map((node) => {
+              const nodeWidth = node.width || 220;
+              const nodeHeight = 250;
+              const margin = 300;
+
+              const minX = -viewport.x / viewport.zoom - margin;
+              const minY = -viewport.y / viewport.zoom - margin;
+              const maxX = (window.innerWidth - viewport.x) / viewport.zoom + margin;
+              const maxY = (window.innerHeight - viewport.y) / viewport.zoom + margin;
+
+              const isVisible = (
+                node.x + nodeWidth >= minX &&
+                node.x <= maxX &&
+                node.y + nodeHeight >= minY &&
+                node.y <= maxY
+              );
+
+              return (
+                <Node
+                  key={node.id}
+                  node={node}
+                  isSelected={selectedNodeId === node.id}
+                  isVisible={isVisible}
+                  output={nodeOutputs[node.id]}
+                  onMouseDown={handlers.onNodeMouseDown}
+                  onPortMouseDown={handlePortMouseDown}
+                  onPortMouseUp={handlePortMouseUp}
+                  onSettingsChange={(key, value) => updateNodeSettings(node.id, { [key]: value })}
+                />
+              );
+            })}
           </div>
 
           <div className="absolute bottom-4 left-4 text-[10px] text-zinc-600 font-mono">

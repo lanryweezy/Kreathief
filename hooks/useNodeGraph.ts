@@ -91,6 +91,7 @@ interface NodeGraphActions {
   startWireDrag: (fromNode: string, fromPort: string, x: number, y: number) => void;
   updateWireDrag: (x: number, y: number) => void;
   endWireDrag: (toNode: string | null, toPort: string | null) => void;
+  toggleSnapToGrid: () => void;
 }
 
 type NodeGraphStore = NodeGraphState & NodeGraphActions;
@@ -128,6 +129,8 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
     y: 0,
     zoom: 1,
   },
+  executingNodeId: null,
+  snapToGrid: true,
 
   addNode: (type, x = 100, y = 100) => {
     const id = genNodeId();
@@ -248,7 +251,7 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
     const { graph } = get();
     if (graph.nodes.length === 0) return;
 
-    set({ isExecuting: true });
+    set({ isExecuting: true, executingNodeId: null });
 
     try {
       const order = topologicalSort(graph.nodes, graph.wires);
@@ -263,6 +266,8 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
 
         const inputs = collectInputs(nodeId, graph.wires, outputs);
 
+        set({ executingNodeId: nodeId });
+
         try {
           const result = await def.execute(inputs, node.settings);
           outputs[nodeId] = result;
@@ -274,7 +279,7 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
 
       set({ nodeOutputs: outputs, executionOrder: order });
     } finally {
-      set({ isExecuting: false });
+      set({ isExecuting: false, executingNodeId: null });
     }
   },
 
@@ -362,5 +367,9 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
         mousePos: { x: 0, y: 0 },
       },
     });
+  },
+
+  toggleSnapToGrid: () => {
+    set((state) => ({ snapToGrid: !state.snapToGrid }));
   },
 }));

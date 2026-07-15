@@ -47,12 +47,19 @@ export const useNodeDrag = () => {
 
   const onCanvasMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      const { dragState: ds, wireState: ws, viewport: vp } =
+      const { dragState: ds, wireState: ws, viewport: vp, snapToGrid } =
         useNodeGraph.getState();
 
       if (ds.isDragging && ds.nodeId) {
-        const newX = (e.clientX - vp.x) / vp.zoom - ds.offset.x;
-        const newY = (e.clientY - vp.y) / vp.zoom - ds.offset.y;
+        let newX = (e.clientX - vp.x) / vp.zoom - ds.offset.x;
+        let newY = (e.clientY - vp.y) / vp.zoom - ds.offset.y;
+
+        if (snapToGrid) {
+          const gridSize = 20;
+          newX = Math.round(newX / gridSize) * gridSize;
+          newY = Math.round(newY / gridSize) * gridSize;
+        }
+
         moveNode(ds.nodeId, newX, newY);
         return;
       }
