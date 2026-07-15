@@ -13,10 +13,24 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
     graph, selectedNodeId, nodeOutputs, viewport, wireState,
     addNode, selectNode, updateNodeSettings,
     endWireDrag, loadPreset, clearGraph, executeGraph, isExecuting,
-    snapToGrid, toggleSnapToGrid,
+    snapToGrid, toggleSnapToGrid, setViewport,
   } = useNodeGraph();
 
   const { handlers } = useNodeDrag();
+
+  const handleZoomIn = useCallback(() => {
+    const newZoom = Math.min(viewport.zoom * 1.2, 5);
+    setViewport({ zoom: newZoom });
+  }, [viewport.zoom, setViewport]);
+
+  const handleZoomOut = useCallback(() => {
+    const newZoom = Math.max(viewport.zoom / 1.2, 0.1);
+    setViewport({ zoom: newZoom });
+  }, [viewport.zoom, setViewport]);
+
+  const handleZoomReset = useCallback(() => {
+    setViewport({ x: 0, y: 0, zoom: 1 });
+  }, [setViewport]);
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const [showPresets, setShowPresets] = useState(true);
@@ -290,8 +304,37 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
             })}
           </div>
 
-          <div className="absolute bottom-4 left-4 text-[10px] text-zinc-600 font-mono">
-            {graph.nodes.length} nodes · {graph.wires.length} connections · {Math.round(viewport.zoom * 100)}%
+          <div className="absolute bottom-4 left-4 z-40 flex items-center gap-4 bg-surface-dark-3/80 border border-white/10 p-2 rounded-xl backdrop-blur-md shadow-lg select-none ring-1 ring-white/5">
+            <div className="text-[10px] text-zinc-400 font-mono font-bold">
+              {graph.nodes.length} nodes · {graph.wires.length} connections
+            </div>
+            <div className="w-[1px] h-3.5 bg-white/10" />
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={handleZoomOut}
+                title="Zoom Out"
+                className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+              >
+                <Icons.Minus className="w-3.5 h-3.5" />
+              </button>
+              <span className="text-[9.5px] font-black font-mono text-brand-400 min-w-[36px] text-center">
+                {Math.round(viewport.zoom * 100)}%
+              </span>
+              <button
+                onClick={handleZoomIn}
+                title="Zoom In"
+                className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+              >
+                <Icons.Plus className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={handleZoomReset}
+                title="Reset Workspace (100%)"
+                className="p-1 rounded-lg text-zinc-500 hover:text-white transition-colors text-[8px] font-black uppercase tracking-wider ml-1"
+              >
+                Reset
+              </button>
+            </div>
           </div>
 
           {showSuccess && (
