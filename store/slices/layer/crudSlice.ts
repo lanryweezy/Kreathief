@@ -32,8 +32,8 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
     const currentArtboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
     if (!currentArtboard) return;
 
-    const oldWidth = currentArtboard.width;
-    const oldHeight = currentArtboard.height;
+    const oldWidth = Math.max(1, currentArtboard.width);
+    const oldHeight = Math.max(1, currentArtboard.height);
 
     const id = generateLayerId('artboard');
     const lastArtboard = state.artboards[state.artboards.length - 1];

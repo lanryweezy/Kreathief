@@ -13,6 +13,8 @@ interface TransformationState {
   initialHeight: number;
   initialRotation: number;
   aspectRatio: number;
+  // For rotation: angle from layer center to initial mouse position
+  initialAngle?: number;
 }
 
 interface UseLayerTransformationProps {
@@ -52,6 +54,15 @@ export const useLayerTransformation = ({ layers, zoom, onUpdateLayers }: UseLaye
 
   const handleRotateStart = useCallback((e: React.MouseEvent, layer: Layer) => {
     e.stopPropagation();
+    const width = (layer as any).width || 0;
+    const height = (layer as any).height || 0;
+    // Calculate center of layer in screen coordinates
+    const centerX = layer.x + width / 2;
+    const centerY = layer.y + height / 2;
+    // Calculate angle from center to initial mouse position (in canvas coords)
+    const mouseCanvasX = (e.clientX / zoomRef.current);
+    const mouseCanvasY = (e.clientY / zoomRef.current);
+    const initialAngle = Math.atan2(mouseCanvasY - centerY, mouseCanvasX - centerX);
     setTransformState({
       type: 'rotate',
       layerId: layer.id,
@@ -59,10 +70,11 @@ export const useLayerTransformation = ({ layers, zoom, onUpdateLayers }: UseLaye
       startY: e.clientY,
       initialX: layer.x,
       initialY: layer.y,
-      initialWidth: (layer as any).width || 0,
-      initialHeight: (layer as any).height || 0,
+      initialWidth: width,
+      initialHeight: height,
       initialRotation: layer.rotation || 0,
-      aspectRatio: 1, // Not used for rotate
+      aspectRatio: 1,
+      initialAngle,
     });
   }, []);
 
@@ -151,10 +163,28 @@ export const useLayerTransformation = ({ layers, zoom, onUpdateLayers }: UseLaye
           return;
         }
 
-        // We need screen coordinates for center to calculate angle to mouse
-        // This is hard without DOM. Let's use the delta drag for now as a simple rotation
-        const rotationSpeed = 0.5;
-        partial.rotation = (state.initialRotation + dx * rotationSpeed) % 360;
+        // Calculate center of layer in screen coordinates
+        const width = state.initialWidth;
+        const height = state.initialHeight;
+        const centerX = state.initialX + width / 2;
+        const centerY = state.initialY + height / 2;
+
+        // Current mouse position in canvas coordinates
+        const mouseCanvasX = e.clientX / zoomRef.current;
+        const mouseCanvasY = e.clientY / zoomRef.current;
+
+        // Calculate angle from center to current mouse position
+        const currentAngle = Math.atan2(mouseCanvasY - centerY, mouseCanvasX - centerX);
+
+        // Calculate angle delta from initial angle
+        const angleDelta = currentAngle - (state.initialAngle || 0);
+
+        // Convert to degrees and add to initial rotation
+        const angleDeltaDeg = (angleDelta * 180) / Math.PI;
+        const newRotation = state.initialRotation + angleDeltaDeg;
+
+        // Normalize to 0-360 range
+        partial.rotation = ((newRotation % 360) + 360) % 360;
       }
 
       updates[state.layerId] = partial;

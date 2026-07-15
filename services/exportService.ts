@@ -371,7 +371,9 @@ export const exportToLayeredPSD = async (width: number, height: number, layers: 
 
   for (const layer of rootLayers) {
     const psdLayer = await buildPsdLayer(layer);
-    if (psdLayer) psd.children!.push(psdLayer);
+    if (psdLayer && psd.children) {
+      psd.children.push(psdLayer);
+    }
   }
 
   const buffer = writePsd(psd);
