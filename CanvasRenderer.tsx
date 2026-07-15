@@ -366,19 +366,21 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(
     onApplySuggestion = () => {},
     allLayers = [],
   }) => {
-    // Memo check for bitmapCache before rendering image layers
+    // Bitmap cache for image layers - improves performance by caching rendered bitmaps
     const imageLayerBitmaps = React.useMemo(() => {
       const bitmaps = new Map<string, ImageBitmap | null>();
+      // Pre-populate cache entries for image layers
       for (const artboard of artboards) {
         for (const layer of artboard.layers || []) {
-          if (layer.type === 'image') {
-            // Populate bitmap cache map for downstream rendering
-            bitmaps.set(layer.id, null);
+          if (layer.type === 'image' && layer.src) {
+            // Check if already cached
+            const cached = bitmapCache.stats();
+            if (cached.size < cached.maxEntries) {
+              bitmaps.set(layer.id, null); // Will be lazily populated by CanvasLayerRenderer
+            }
           }
         }
       }
-      // Log cache stats for debugging
-      void bitmapCache.stats();
       return bitmaps;
     }, [artboards]);
 

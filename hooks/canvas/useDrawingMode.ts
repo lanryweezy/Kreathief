@@ -181,8 +181,23 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
 
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          // Eraser mode: use destination-out composite to erase existing content
+          // Eraser mode: capture the artboard state for erasing
           if (brushType === 'eraser') {
+            // Find the artboard container and its rendered content
+            const artboardContainer = canvas.parentElement;
+            if (artboardContainer) {
+              // Store the artboard snapshot for erasing operations
+              const artboardCanvas = artboardContainer.querySelector('canvas:not([data-drawing-overlay])') as HTMLCanvasElement | null;
+              if (artboardCanvas) {
+                // Capture the current artboard state
+                const artboardCtx = artboardCanvas.getContext('2d');
+                if (artboardCtx) {
+                  const imageData = artboardCtx.getImageData(0, 0, artboardCanvas.width, artboardCanvas.height);
+                  // Store the snapshot on the drawing canvas for erasing
+                  (canvas as any).__artboardSnapshot = imageData;
+                }
+              }
+            }
             ctx.globalCompositeOperation = 'destination-out';
           }
           ctx.beginPath();
@@ -243,8 +258,10 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
         if (brushType === 'eraser') {
           ctx.globalCompositeOperation = 'destination-out';
           ctx.strokeStyle = 'rgba(0,0,0,1)';
-          ctx.lineWidth = brushSize;
+          ctx.lineWidth = brushSize * 2; // Eraser is 2x brush size for better UX
           ctx.globalAlpha = 1;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
         } else {
           ctx.globalCompositeOperation = 'source-over';
           ctx.strokeStyle = brushColor;
@@ -388,11 +405,53 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
       stroke: { color: brushColor, width: brushSize },
     } as any);
 
-    // Clear temporary canvas
-    if (canvasRef.current) {
+    // For eraser: apply the erasure to the artboard by creating an image layer
+    if (brushType === 'eraser' && canvasRef.current) {
+      const drawingCanvas = canvasRef.current;
+      const ctx = drawingCanvas.getContext('2d');
+      if (ctx) {
+        // Get the artboard snapshot that was captured on mouse down
+        const artboardSnapshot = (drawingCanvas as any).__artboardSnapshot as ImageData | undefined;
+        if (artboardSnapshot) {
+          // Create a temporary canvas to composite the erasure
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = drawingCanvas.width;
+          tempCanvas.height = drawingCanvas.height;
+          const tempCtx = tempCanvas.getContext('2d');
+          if (tempCtx) {
+            // Draw the artboard snapshot
+            tempCtx.putImageData(artboardSnapshot, 0, 0);
+            // Apply the eraser stroke using destination-out
+            tempCtx.globalCompositeOperation = 'destination-out';
+            tempCtx.drawImage(drawingCanvas, 0, 0);
+            // Convert to image and add as a layer
+            const dataUrl = tempCanvas.toDataURL('image/png');
+            const { addLayer } = useStore.getState();
+            addLayer({
+              id: generateLayerId('eraser'),
+              type: 'image',
+              name: 'Eraser Cutout',
+              x: 0,
+              y: 0,
+              width: drawingCanvas.width,
+              height: drawingCanvas.height,
+              rotation: 0,
+              opacity: 1,
+              locked: false,
+              visible: true,
+              src: dataUrl,
+            } as any);
+          }
+        }
+        // Reset and clear
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+        delete (drawingCanvas as any).__artboardSnapshot;
+      }
+    } else if (canvasRef.current) {
+      // Clear temporary canvas for non-eraser tools
       const ctx = canvasRef.current.getContext('2d');
       if (ctx) {
-        // Reset composite operation to default
         ctx.globalCompositeOperation = 'source-over';
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
       }
