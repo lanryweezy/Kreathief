@@ -51,3 +51,6 @@
 ## 2026-07-04 - Zustand Store Subscriptions in Overlay Components
 **Learning:** Overlay components like FeedbackModal destructured the entire Zustand store without using a selector. This caused the component to re-render constantly on every minor canvas state update, hurting global app performance.
 **Action:** Never use parameterless destructuring with `useStore()`. Always use explicit selectors wrapped in `useShallow` from `zustand/react/shallow` so the component only renders when its specific dependencies change.
+## 2024-05-24 - Unnecessary Iterations for Logging in Render Cycle
+**Learning:** Found an instance where an entire nested iteration loop over all layers in the scene was enclosed inside a `useMemo` specifically to execute a debug logging method (`bitmapCache.stats()`). This forced the application to trace every layer on virtually every prop update (since `artboards` reference frequently changed) without generating any usable output.
+**Action:** Avoid placing debug logging loops that iterate through the whole component hierarchy inside standard render flows. In a performance-obsessed codebase, operations strictly meant for debug stats should either be placed behind developer tools toggles, debounced outside the main thread, or removed completely when unnecessary to avoid O(N) penalties during critical renders.
