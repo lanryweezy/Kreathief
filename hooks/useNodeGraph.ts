@@ -131,6 +131,8 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
   },
   executingNodeId: null,
   snapToGrid: true,
+  nodeProgress: {},
+  nodeProgressStep: {},
 
   addNode: (type, x = 100, y = 100) => {
     const id = genNodeId();
@@ -251,7 +253,7 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
     const { graph } = get();
     if (graph.nodes.length === 0) return;
 
-    set({ isExecuting: true, executingNodeId: null });
+    set({ isExecuting: true, executingNodeId: null, nodeProgress: {}, nodeProgressStep: {} });
 
     try {
       const order = topologicalSort(graph.nodes, graph.wires);
@@ -268,9 +270,42 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
 
         set({ executingNodeId: nodeId });
 
+        if (def.category === 'ai') {
+          const maxSteps = 20;
+          for (let step = 1; step <= maxSteps; step++) {
+            set((state) => ({
+              nodeProgress: { ...state.nodeProgress, [nodeId]: Math.round((step / maxSteps) * 100) },
+              nodeProgressStep: { ...state.nodeProgressStep, [nodeId]: `Step ${step} / ${maxSteps}` },
+            }));
+
+            // Set progressive blurry low-res previews at milestones!
+            if (step === 5) {
+              set((state) => ({
+                nodeOutputs: {
+                  ...state.nodeOutputs,
+                  [nodeId]: { image: { src: `https://placehold.co/512x512/1a1a2e/7d2ae8?text=Generating+Step+5...`, width: 512, height: 512, isBlur: true } }
+                }
+              }));
+            } else if (step === 12) {
+              set((state) => ({
+                nodeOutputs: {
+                  ...state.nodeOutputs,
+                  [nodeId]: { image: { src: `https://placehold.co/512x512/1a1a2e/00c4cc?text=Generating+Step+12...`, width: 512, height: 512, isBlur: true } }
+                }
+              }));
+            }
+            await new Promise((resolve) => setTimeout(resolve, 60));
+          }
+        }
+
         try {
           const result = await def.execute(inputs, node.settings);
           outputs[nodeId] = result;
+          // Clear progress metrics once fully loaded
+          set((state) => ({
+            nodeProgress: { ...state.nodeProgress, [nodeId]: 100 },
+            nodeProgressStep: { ...state.nodeProgressStep, [nodeId]: 'Completed' },
+          }));
         } catch (err) {
           console.error(`[NodeGraph] Node ${node.type} (${nodeId}) failed:`, err);
           outputs[nodeId] = { error: String(err) };

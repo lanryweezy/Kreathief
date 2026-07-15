@@ -84,4 +84,6 @@ export interface NodeGraphState {
   };
   executingNodeId?: string | null;
   snapToGrid?: boolean;
+  nodeProgress?: Record<string, number>;
+  nodeProgressStep?: Record<string, string>;
 }

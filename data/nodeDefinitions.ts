@@ -83,6 +83,20 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
       colors: settings.colors,
     }),
   },
+  {
+    id: 'canvas-layer',
+    type: 'canvas-layer',
+    category: 'input',
+    label: 'Canvas Layer',
+    description: 'Reference a live canvas layer',
+    icon: 'Layers',
+    inputs: [],
+    outputs: [{ id: 'layer', label: 'Layer', dataType: 'layer' }],
+    defaults: { layerId: 'layer_1', layerName: 'Vector Path 1' },
+    execute: async (inputs, settings) => ({
+      layer: { id: settings.layerId, name: settings.layerName, type: 'vector' },
+    }),
+  },
 
   // ═══════════════════════════════════════════════════════════════════
   // AI MODEL NODES
@@ -393,6 +407,34 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         console.warn('[Vectorize] API unavailable, passing through');
         return { image: { ...inputs.image, isVector: true } };
       }
+    },
+  },
+  {
+    id: 'typographic-style',
+    type: 'typographic-style',
+    category: 'edit',
+    label: 'Typographic Style',
+    description: 'Apply Kittl-style curved typographic text effects',
+    icon: 'Text',
+    inputs: [{ id: 'text', label: 'Text', dataType: 'text' }],
+    outputs: [{ id: 'image', label: 'SVG', dataType: 'image' }],
+    defaults: { text: 'CREATIVE', fontFamily: 'Inter', color: '#7D2AE8', curvature: 50 },
+    execute: async (inputs, settings) => {
+      const txt = inputs.text?.text || settings.text || 'CREATIVE';
+      const col = settings.color || '#7D2AE8';
+      const curveVal = settings.curvature ?? 50;
+
+      const pathD = `M 10 90 Q 100 ${90 - curveVal} 190 90`;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" width="100%" height="100%">
+        <path id="text-path" d="${pathD}" fill="none" stroke="none"/>
+        <text font-family="${settings.fontFamily || 'Inter'}" font-size="22" font-weight="black" fill="${col}" text-anchor="middle">
+          <textPath href="#text-path" startOffset="50%">${txt}</textPath>
+        </text>
+      </svg>`;
+      const base64 = typeof btoa !== 'undefined' ? btoa(svg) : Buffer.from(svg).toString('base64');
+      return {
+        image: { src: `data:image/svg+xml;base64,${base64}`, width: 512, height: 256, isVector: true },
+      };
     },
   },
 

@@ -15,6 +15,7 @@ interface NodeProps {
   onPortMouseUp: (e: React.MouseEvent, nodeId: string, portId: string, side: 'input' | 'output') => void;
   onDelete?: () => void;
   onSettingsChange?: (key: string, value: any) => void;
+  onInspect?: (nodeId: string) => void;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -60,12 +61,15 @@ export function Node({
   onPortMouseDown,
   onPortMouseUp,
   onSettingsChange,
+  onInspect,
 }: NodeProps) {
   const removeNode = useNodeGraph((s) => s.removeNode);
   const nodeOutputs = useNodeGraph((s) => s.nodeOutputs);
   const executeGraph = useNodeGraph((s) => s.executeGraph);
   const isExecuting = useNodeGraph((s) => s.isExecuting);
   const executingNodeId = useNodeGraph((s) => s.executingNodeId);
+  const nodeProgress = useNodeGraph((s) => s.nodeProgress);
+  const nodeProgressStep = useNodeGraph((s) => s.nodeProgressStep);
   const def = getNodeDefinition(node.type);
 
   const handleMouseDown = useCallback(
@@ -74,6 +78,14 @@ export function Node({
       onMouseDown(e, node.id);
     },
     [onMouseDown, node.id]
+  );
+
+  const handleDoubleClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onInspect?.(node.id);
+    },
+    [onInspect, node.id]
   );
 
   const handleDelete = useCallback(
@@ -106,6 +118,7 @@ export function Node({
       } ${isExecutingNode ? 'ring-2 ring-green-500 shadow-2xl shadow-green-500/30 animate-pulse scale-[1.01]' : ''}`}
       style={{ left: node.x, top: node.y, width: node.width || defaultNodeWidth }}
       onMouseDown={handleMouseDown}
+      onDoubleClick={handleDoubleClick}
     >
       <div className={`bg-surface-dark-3/90 backdrop-blur-md rounded-xl border ${borderColor} overflow-hidden flex flex-col`}>
         {/* Header */}
@@ -130,6 +143,22 @@ export function Node({
             </button>
           )}
         </div>
+
+        {/* Progress Bar Loader */}
+        {isExecutingNode && nodeProgress?.[node.id] !== undefined && nodeProgress[node.id] > 0 && nodeProgress[node.id] < 100 && (
+          <div className="bg-surface-dark-2 px-3 py-1.5 border-b border-white/5 space-y-1">
+            <div className="flex justify-between text-[8px] font-mono font-bold text-zinc-400">
+              <span className="uppercase tracking-wider">{nodeProgressStep?.[node.id] || 'Generating'}</span>
+              <span className="text-brand-400">{nodeProgress[node.id]}%</span>
+            </div>
+            <div className="w-full bg-white/10 h-1 rounded-full overflow-hidden">
+              <div
+                className="bg-gradient-to-r from-brand-500 to-purple-500 h-full transition-all duration-300"
+                style={{ width: `${nodeProgress[node.id]}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Ports Container */}
         <div className="relative px-3 py-2">
@@ -491,6 +520,112 @@ export function Node({
                       <span className="text-[8px] font-mono">{node.settings.color || '#FFFFFF'}</span>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* BRAND KIT NODE */}
+            {node.type === 'brand-kit' && (
+              <div className="space-y-2 pt-1 border-t border-white/5" onMouseDown={(e) => e.stopPropagation()}>
+                <label className="text-[9px] text-white/40 uppercase font-black tracking-wider block mb-1">Brand Swatches</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {['primaryColor', 'secondaryColor', 'tertiaryColor'].map((key) => {
+                    const label = key.replace('Color', '');
+                    const color = node.settings[key] || (key === 'primaryColor' ? '#7D2AE8' : key === 'secondaryColor' ? '#00C4CC' : '#FFFFFF');
+                    return (
+                      <div key={key} className="flex flex-col items-center bg-surface-dark-1/40 border border-white/5 p-1.5 rounded-lg gap-1">
+                        <span className="text-[8px] font-mono text-zinc-500 font-bold capitalize">{label}</span>
+                        <input
+                          type="color"
+                          value={color}
+                          onChange={(e) => onSettingsChange?.(key, e.target.value)}
+                          className="w-8 h-8 rounded-lg cursor-pointer border border-white/10 bg-transparent overflow-hidden"
+                          style={{ padding: 0 }}
+                        />
+                        <span className="text-[7px] font-mono text-zinc-400 font-bold">{color.toUpperCase()}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* CANVAS LAYER NODE */}
+            {node.type === 'canvas-layer' && (
+              <div className="space-y-2 pt-1 border-t border-white/5" onMouseDown={(e) => e.stopPropagation()}>
+                <label className="text-[9px] text-white/40 uppercase font-black tracking-wider block mb-1">Active Target Layer</label>
+                <select
+                  value={node.settings.layerId || 'layer_1'}
+                  onChange={(e) => {
+                    const names: Record<string, string> = { layer_1: 'Vector Path 1', layer_2: 'Headline Brand Text', layer_3: 'Product Cutout Mask' };
+                    onSettingsChange?.('layerId', e.target.value);
+                    onSettingsChange?.('layerName', names[e.target.value] || 'Canvas Layer');
+                  }}
+                  className="w-full bg-surface-dark-1 border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white focus:outline-none focus:border-brand-500 font-bold"
+                >
+                  <option value="layer_1 font-bold">Vector Path 1 (Pen Tool)</option>
+                  <option value="layer_2">Headline Brand Text (Text Tool)</option>
+                  <option value="layer_3">Product Cutout Mask (Mask Tool)</option>
+                </select>
+                <div className="flex items-center gap-1.5 mt-2 bg-brand-500/5 px-2 py-1 border border-brand-500/10 rounded-lg">
+                  <div className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-pulse" />
+                  <span className="text-[8px] font-mono text-brand-300 font-bold uppercase tracking-wider">Listening live...</span>
+                </div>
+              </div>
+            )}
+
+            {/* TYPOGRAPHIC STYLE NODE */}
+            {node.type === 'typographic-style' && (
+              <div className="space-y-2 pt-1 border-t border-white/5" onMouseDown={(e) => e.stopPropagation()}>
+                <label className="text-[9px] text-white/40 uppercase font-black tracking-wider block mb-1">Text Style Settings</label>
+                <input
+                  type="text"
+                  className="w-full bg-surface-dark-1 border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white focus:outline-none"
+                  placeholder="Enter stylized text..."
+                  value={node.settings.text || ''}
+                  onChange={(e) => onSettingsChange?.('text', e.target.value)}
+                />
+                <div className="grid grid-cols-2 gap-1.5">
+                  <div>
+                    <label className="text-[8px] text-white/40 block mb-0.5">Font Family</label>
+                    <select
+                      value={node.settings.fontFamily || 'Inter'}
+                      onChange={(e) => onSettingsChange?.('fontFamily', e.target.value)}
+                      className="w-full bg-surface-dark-1 border border-white/10 rounded-lg px-1.5 py-0.5 text-[9px] text-white focus:outline-none"
+                    >
+                      <option value="Inter">Inter</option>
+                      <option value="Bebas Neue">Bebas Neue</option>
+                      <option value="Lobster">Lobster</option>
+                      <option value="Pacifico">Pacifico</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[8px] text-white/40 block mb-0.5">Color</label>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <input
+                        type="color"
+                        value={node.settings.color || '#7D2AE8'}
+                        onChange={(e) => onSettingsChange?.('color', e.target.value)}
+                        className="w-5 h-5 rounded cursor-pointer border border-white/10 bg-transparent overflow-hidden"
+                        style={{ padding: 0 }}
+                      />
+                      <span className="text-[8px] font-mono font-bold text-zinc-400">{node.settings.color || '#7D2A'}</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-[8px] text-white/40 mb-1">
+                    <span className="uppercase font-black tracking-wider">Curvature</span>
+                    <span className="font-mono font-bold text-brand-400">{node.settings.curvature ?? 50}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    className="w-full h-1 bg-surface-dark-1 rounded-lg appearance-none cursor-pointer accent-brand-500"
+                    value={node.settings.curvature ?? 50}
+                    onChange={(e) => onSettingsChange?.('curvature', parseInt(e.target.value))}
+                  />
                 </div>
               </div>
             )}
