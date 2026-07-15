@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import { GraphNode } from '../../types/nodes';
 import { getNodeDefinition } from '../../data/nodeDefinitions';
 import { useNodeGraph } from '../../hooks/useNodeGraph';
@@ -63,6 +63,7 @@ export function Node({
   onSettingsChange,
   onInspect,
 }: NodeProps) {
+  const [activeScenicId, setActiveScenicId] = useState<string>('tshirt');
   const removeNode = useNodeGraph((s) => s.removeNode);
   const nodeOutputs = useNodeGraph((s) => s.nodeOutputs);
   const executeGraph = useNodeGraph((s) => s.executeGraph);
@@ -629,11 +630,57 @@ export function Node({
                 </div>
               </div>
             )}
+
+            {/* MOCKUP SCENIC PRESET NODE */}
+            {node.type === 'mockup-scenic-preset' && (
+              <div className="space-y-2 pt-1 border-t border-white/5" onMouseDown={(e) => e.stopPropagation()}>
+                <label className="text-[9px] text-white/40 uppercase font-black tracking-wider block mb-1">Scenic Renders (10 Concurrent)</label>
+                {outputs?.images ? (
+                  <div className="space-y-2.5">
+                    <div className="grid grid-cols-5 gap-1">
+                      {outputs.images.map((img: any) => {
+                        const isActive = img.id === activeScenicId;
+                        return (
+                          <button
+                            key={img.id}
+                            title={img.name}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveScenicId(img.id);
+                            }}
+                            className={`aspect-square rounded border overflow-hidden bg-surface-dark-2 transition-all ${
+                              isActive ? 'border-brand-500 scale-105 ring-1 ring-brand-500' : 'border-white/10 hover:border-white/30'
+                            }`}
+                          >
+                            <img src={img.src} alt="" className="w-full h-full object-cover" />
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {(() => {
+                      const featured = outputs.images.find((x: any) => x.id === activeScenicId) || outputs.images[0];
+                      return (
+                        <div className="rounded-lg overflow-hidden border border-white/10 aspect-video relative bg-surface-dark-3 flex flex-col justify-end">
+                          <img src={featured.src} alt="" className="w-full h-full object-cover opacity-80" />
+                          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-1.5">
+                            <span className="text-[8px] font-bold text-white uppercase tracking-wider">{featured.name}</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                ) : (
+                  <div className="py-3 px-2 rounded-lg border border-dashed border-white/10 bg-white/[0.01] text-center">
+                    <span className="text-[9px] text-zinc-500">Run graph to render 10 mockups concurrently</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
         {/* Output Previews */}
-        {isVisible && hasOutput && imageOutput?.src && (
+        {isVisible && node.type !== 'mockup-scenic-preset' && hasOutput && imageOutput?.src && (
           <div className="px-3 pb-3">
             <div className="w-full h-24 rounded-lg bg-surface-dark-2 border border-white/5 overflow-hidden flex items-center justify-center">
               <img

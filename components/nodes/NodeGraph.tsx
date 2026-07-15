@@ -368,7 +368,18 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
                 <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest">Render Output Preview</p>
                 {inspectedOutputs ? (
                   <div className="rounded-xl overflow-hidden border border-white/10 bg-surface-dark-3/50 aspect-square flex items-center justify-center p-4 relative group">
-                    {inspectedImage?.src ? (
+                    {inspectedOutputs.images ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 w-full max-h-[60vh] overflow-y-auto p-2">
+                        {inspectedOutputs.images.map((img: any) => (
+                          <div key={img.id} className="relative group rounded-lg overflow-hidden border border-white/5 bg-surface-dark-3 flex flex-col justify-end aspect-square">
+                            <img src={img.src} alt={img.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-2">
+                              <p className="text-[9px] font-black text-white uppercase tracking-wider">{img.name}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : inspectedImage?.src ? (
                       <img
                         src={inspectedImage.src}
                         alt="High-res output"

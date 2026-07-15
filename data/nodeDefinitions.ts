@@ -137,6 +137,45 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     },
   },
   {
+    id: 'mockup-scenic-preset',
+    type: 'mockup-scenic-preset',
+    category: 'mockup',
+    label: 'One-Click Scenic Preset',
+    description: 'Render design across 10 concurrent scenic mockup layouts',
+    icon: 'Mockup',
+    inputs: [{ id: 'image', label: 'Design', dataType: 'image' }],
+    outputs: [
+      { id: 'images', label: 'Mockups', dataType: 'any' },
+      { id: 'image', label: 'Featured', dataType: 'image' },
+    ],
+    defaults: { sceneStyle: 'studio-minimal', borderPadding: 5 },
+    execute: async (inputs, settings) => {
+      const products = [
+        { id: 'tshirt', name: 'Premium Tee', color: '1a1a2e', textCol: '7d2ae8' },
+        { id: 'mug', name: 'Ceramic Mug', color: '151515', textCol: '00c4cc' },
+        { id: 'tote', name: 'Canvas Tote', color: '2a2a2a', textCol: 'ff6b35' },
+        { id: 'hat', name: 'Trucker Hat', color: '1a3a2e', textCol: 'ffb800' },
+        { id: 'billboard', name: 'City Billboard', color: '0a0a1a', textCol: '00e5ff' },
+        { id: 'hoodie', name: 'Streetwear Hoodie', color: '1f1a3a', textCol: 'e040fb' },
+        { id: 'poster', name: 'Framed Poster', color: '1a2a1a', textCol: '00e676' },
+        { id: 'cup', name: 'Coffee Cup', color: '3a1a1a', textCol: 'ff5252' },
+        { id: 'phone', name: 'Matte Phone Case', color: '1a3a3a', textCol: '18ffff' },
+        { id: 'sticker', name: 'Die-Cut Sticker', color: '2a1a2a', textCol: 'ff4081' },
+      ];
+
+      const renders = products.map((p) => ({
+        id: p.id,
+        name: p.name,
+        src: `https://placehold.co/512x512/${p.color}/${p.textCol}?text=${encodeURIComponent(p.name)}+Mockup`,
+      }));
+
+      return {
+        images: renders,
+        image: { src: renders[0].src, width: 512, height: 512 },
+      };
+    },
+  },
+  {
     id: 'ai-gemini',
     type: 'ai-gemini',
     category: 'ai',
