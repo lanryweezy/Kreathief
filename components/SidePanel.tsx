@@ -27,7 +27,7 @@ const MotionPanel = React.lazy(() => import('./panels/MotionPanel').then((m) => 
 const AccessibilityPanel = React.lazy(() =>
   import('./panels/AccessibilityPanel').then((m) => ({ default: m.AccessibilityPanel }))
 );
-import { MockupPanel } from './panels/MockupPanel';
+const MockupPanel = React.lazy(() => import('./panels/MockupPanel').then((m) => ({ default: m.MockupPanel })));
 import { ListSkeleton, GridSkeleton, CardSkeleton } from './Skeleton';
 
 const PanelLoading = ({ tab }: { tab: NavTab }) => {

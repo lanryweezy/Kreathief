@@ -5,7 +5,7 @@ import { Layer, NavTab } from '../../types';
 import { Canvas } from '../Canvas';
 import { CursorOverlay } from '../collaboration/CursorOverlay';
 import { ErrorBoundary } from '../ErrorBoundary';
-import { MockupPanel } from '../panels/MockupPanel';
+const MockupPanel = React.lazy(() => import('../panels/MockupPanel').then((m) => ({ default: m.MockupPanel })));
 
 interface EditorCanvasProps {
   zoom: number;

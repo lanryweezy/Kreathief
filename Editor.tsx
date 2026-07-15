@@ -21,7 +21,7 @@ import { shareService } from '../services/shareService';
 import { storageService } from '../services/storageService';
 import { ShareModal } from './modals/ShareModal';
 import { ExportModal } from './modals/ExportModal';
-import { MockupPanel } from './panels/MockupPanel';
+const MockupPanel = React.lazy(() => import('./panels/MockupPanel').then((m) => ({ default: m.MockupPanel })));
 import { HistoryManager } from '../commands/history';
 import { MoveCommand } from '../commands/move';
 import { DeleteCommand } from '../commands/delete';
