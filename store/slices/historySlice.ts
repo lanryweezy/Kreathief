@@ -143,7 +143,11 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
     let nextLastSnapshot = get().__lastStateSnapshot;
 
     if (lastEntry.type === 'snapshot') {
-      targetState = lastEntry.state!;
+      if (!lastEntry.state) {
+        get().addToast?.('Undo failed — snapshot missing', 'error');
+        return;
+      }
+      targetState = lastEntry.state;
       // Need to find the previous snapshot to update __lastStateSnapshot
       let prevSnapshotIdx = -1;
       for (let i = newPast.length - 1; i >= 0; i--) {
@@ -152,8 +156,8 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
           break;
         }
       }
-      if (prevSnapshotIdx !== -1) {
-        nextLastSnapshot = newPast[prevSnapshotIdx].state!;
+      if (prevSnapshotIdx !== -1 && newPast[prevSnapshotIdx].state) {
+        nextLastSnapshot = newPast[prevSnapshotIdx].state;
       } else {
         nextLastSnapshot = null;
       }
@@ -168,18 +172,23 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
 
       if (lastSnapshotIdx === -1) {
         // No snapshot found to reconstruct from — try full-state snapshot as last resort
-        if (newPast.length > 0 && newPast[0].type === 'snapshot') {
-          targetState = newPast[0].state!;
+        if (newPast.length > 0 && newPast[0].type === 'snapshot' && newPast[0].state) {
+          targetState = newPast[0].state;
         } else {
           get().addToast?.('Nothing to undo', 'info');
           return;
         }
       } else {
+        const snapshotState = newPast[lastSnapshotIdx].state;
+        if (!snapshotState) {
+          get().addToast?.('Undo failed — snapshot missing', 'error');
+          return;
+        }
         try {
-          targetState = structuredClone(newPast[lastSnapshotIdx].state!);
+          targetState = structuredClone(snapshotState);
           for (let i = lastSnapshotIdx + 1; i < newPast.length; i++) {
-            if (newPast[i].type === 'patch') {
-              applyPatch(targetState, newPast[i].patch!);
+            if (newPast[i].type === 'patch' && newPast[i].patch) {
+              applyPatch(targetState, newPast[i].patch);
             }
           }
         } catch (error) {
@@ -224,10 +233,18 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
     let targetState: HistoryState;
     try {
       if (nextEntry.type === 'snapshot') {
-        targetState = nextEntry.state!;
+        if (!nextEntry.state) {
+          get().addToast?.('Redo failed — snapshot missing', 'error');
+          return;
+        }
+        targetState = nextEntry.state;
       } else {
+        if (!nextEntry.patch) {
+          get().addToast?.('Redo failed — patch missing', 'error');
+          return;
+        }
         targetState = structuredClone(currentFullState);
-        applyPatch(targetState, nextEntry.patch!);
+        applyPatch(targetState, nextEntry.patch);
       }
     } catch (error) {
       log.error('History patch application failed during redo', error, {
