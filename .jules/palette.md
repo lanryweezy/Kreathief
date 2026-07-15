@@ -52,3 +52,8 @@
 ## 2025-05-18 - Icon-Only Button Accessibility
 **Learning:** Icon-only buttons (such as back arrows and close icons) frequently lack `aria-label` attributes across different components (e.g., `MobileContextMenu`, `BottomSheet`, `UserProfilePage`, `SmartTemplatesPanel`). This is a common pattern where rapid UI development skips over crucial accessibility hints, leaving screen reader users without context for interactive elements.
 **Action:** Always verify that buttons containing only icons (or primarily icons with no visible text) have a descriptive `aria-label` so that screen readers can communicate their purpose effectively.
+
+## 2026-07-15 - Missing ARIA labels in Node Editor
+
+**Learning:** Found multiple instances in `Node.tsx` and `NodeGraph.tsx` where icon-only buttons (`×`, `+`, `<Icons.Minus />`, `<Icons.Plus />`) lacked `aria-label` attributes. This breaks keyboard accessibility and renders them invisible to screen readers, which is especially critical in an interactive visual tool like a node graph editor.
+**Action:** When implementing custom workspace controls, zooming tools, and interactive layer configurations, ensure all buttons with icons or symbols have clear and descriptive `aria-label`s.

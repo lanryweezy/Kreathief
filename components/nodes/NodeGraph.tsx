@@ -208,7 +208,7 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
           <button onClick={clearGraph} className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-white/5 text-gray-400 rounded-lg hover:text-white transition-colors">
             Clear
           </button>
-          <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
+          <button onClick={onClose} aria-label="Close node graph" className="text-zinc-500 hover:text-white transition-colors">
             <Icons.X className="w-5 h-5" />
           </button>
         </div>
@@ -313,6 +313,7 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
               <button
                 onClick={handleZoomOut}
                 title="Zoom Out"
+                aria-label="Zoom out"
                 className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
               >
                 <Icons.Minus className="w-3.5 h-3.5" />
@@ -323,6 +324,7 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
               <button
                 onClick={handleZoomIn}
                 title="Zoom In"
+                aria-label="Zoom in"
                 className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
               >
                 <Icons.Plus className="w-3.5 h-3.5" />
@@ -398,6 +400,7 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
               </div>
               <button
                 onClick={() => setInspectingNodeId(null)}
+                aria-label="Close inspector"
                 className="text-zinc-400 hover:text-white transition-colors p-1"
               >
                 <Icons.X className="w-5 h-5" />

@@ -138,6 +138,7 @@ export function Node({
           {isSelected && !isExecutingNode && (
             <button
               onClick={handleDelete}
+              aria-label="Delete node"
               className="w-4 h-4 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center text-white/70 hover:text-white text-xs"
             >
               ×
@@ -239,6 +240,7 @@ export function Node({
                       e.stopPropagation();
                       onSettingsChange?.('src', '');
                     }}
+                    aria-label="Clear image"
                     className="absolute top-1 right-1 p-1 rounded-full bg-black/60 hover:bg-red-600 text-white/80 hover:text-white transition-colors"
                     title="Clear Image"
                   >
@@ -313,6 +315,7 @@ export function Node({
                         const newColors = (node.settings.colors || []).filter((_: any, i: number) => i !== idx);
                         onSettingsChange?.('colors', newColors);
                       }}
+                      aria-label="Remove color"
                       className="text-white/30 hover:text-red-400 text-[8px] ml-0.5"
                     >
                       ×
@@ -324,6 +327,7 @@ export function Node({
                     const newColors = [...(node.settings.colors || []), '#FFFFFF'];
                     onSettingsChange?.('colors', newColors);
                   }}
+                  aria-label="Add color"
                   className="w-5 h-5 rounded-full border border-dashed border-white/20 hover:border-brand-500/50 flex items-center justify-center text-[10px] text-white/40 hover:text-brand-400 bg-white/[0.01]"
                 >
                   +
