@@ -91,6 +91,7 @@ interface NodeGraphActions {
   startWireDrag: (fromNode: string, fromPort: string, x: number, y: number) => void;
   updateWireDrag: (x: number, y: number) => void;
   endWireDrag: (toNode: string | null, toPort: string | null) => void;
+  toggleSnapToGrid: () => void;
 }
 
 type NodeGraphStore = NodeGraphState & NodeGraphActions;
@@ -128,6 +129,10 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
     y: 0,
     zoom: 1,
   },
+  executingNodeId: null,
+  snapToGrid: true,
+  nodeProgress: {},
+  nodeProgressStep: {},
 
   addNode: (type, x = 100, y = 100) => {
     const id = genNodeId();
@@ -248,7 +253,7 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
     const { graph } = get();
     if (graph.nodes.length === 0) return;
 
-    set({ isExecuting: true });
+    set({ isExecuting: true, executingNodeId: null, nodeProgress: {}, nodeProgressStep: {} });
 
     try {
       const order = topologicalSort(graph.nodes, graph.wires);
@@ -263,9 +268,44 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
 
         const inputs = collectInputs(nodeId, graph.wires, outputs);
 
+        set({ executingNodeId: nodeId });
+
+        if (def.category === 'ai') {
+          const maxSteps = 20;
+          for (let step = 1; step <= maxSteps; step++) {
+            set((state) => ({
+              nodeProgress: { ...state.nodeProgress, [nodeId]: Math.round((step / maxSteps) * 100) },
+              nodeProgressStep: { ...state.nodeProgressStep, [nodeId]: `Step ${step} / ${maxSteps}` },
+            }));
+
+            // Set progressive blurry low-res previews at milestones!
+            if (step === 5) {
+              set((state) => ({
+                nodeOutputs: {
+                  ...state.nodeOutputs,
+                  [nodeId]: { image: { src: `https://placehold.co/512x512/1a1a2e/7d2ae8?text=Generating+Step+5...`, width: 512, height: 512, isBlur: true } }
+                }
+              }));
+            } else if (step === 12) {
+              set((state) => ({
+                nodeOutputs: {
+                  ...state.nodeOutputs,
+                  [nodeId]: { image: { src: `https://placehold.co/512x512/1a1a2e/00c4cc?text=Generating+Step+12...`, width: 512, height: 512, isBlur: true } }
+                }
+              }));
+            }
+            await new Promise((resolve) => setTimeout(resolve, 60));
+          }
+        }
+
         try {
           const result = await def.execute(inputs, node.settings);
           outputs[nodeId] = result;
+          // Clear progress metrics once fully loaded
+          set((state) => ({
+            nodeProgress: { ...state.nodeProgress, [nodeId]: 100 },
+            nodeProgressStep: { ...state.nodeProgressStep, [nodeId]: 'Completed' },
+          }));
         } catch (err) {
           console.error(`[NodeGraph] Node ${node.type} (${nodeId}) failed:`, err);
           outputs[nodeId] = { error: String(err) };
@@ -274,7 +314,7 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
 
       set({ nodeOutputs: outputs, executionOrder: order });
     } finally {
-      set({ isExecuting: false });
+      set({ isExecuting: false, executingNodeId: null });
     }
   },
 
@@ -362,5 +402,9 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
         mousePos: { x: 0, y: 0 },
       },
     });
+  },
+
+  toggleSnapToGrid: () => {
+    set((state) => ({ snapToGrid: !state.snapToGrid }));
   },
 }));

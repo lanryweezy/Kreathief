@@ -83,6 +83,20 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
       colors: settings.colors,
     }),
   },
+  {
+    id: 'canvas-layer',
+    type: 'canvas-layer',
+    category: 'input',
+    label: 'Canvas Layer',
+    description: 'Reference a live canvas layer',
+    icon: 'Layers',
+    inputs: [],
+    outputs: [{ id: 'layer', label: 'Layer', dataType: 'layer' }],
+    defaults: { layerId: 'layer_1', layerName: 'Vector Path 1' },
+    execute: async (inputs, settings) => ({
+      layer: { id: settings.layerId, name: settings.layerName, type: 'vector' },
+    }),
+  },
 
   // ═══════════════════════════════════════════════════════════════════
   // AI MODEL NODES
@@ -120,6 +134,45 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         console.warn('[FLUX] API unavailable, using placeholder');
         return { image: { src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/7d2ae8?text=FLUX+Generated`, width: settings.width, height: settings.height } };
       }
+    },
+  },
+  {
+    id: 'mockup-scenic-preset',
+    type: 'mockup-scenic-preset',
+    category: 'mockup',
+    label: 'One-Click Scenic Preset',
+    description: 'Render design across 10 concurrent scenic mockup layouts',
+    icon: 'Mockup',
+    inputs: [{ id: 'image', label: 'Design', dataType: 'image' }],
+    outputs: [
+      { id: 'images', label: 'Mockups', dataType: 'any' },
+      { id: 'image', label: 'Featured', dataType: 'image' },
+    ],
+    defaults: { sceneStyle: 'studio-minimal', borderPadding: 5 },
+    execute: async (inputs, settings) => {
+      const products = [
+        { id: 'tshirt', name: 'Premium Tee', color: '1a1a2e', textCol: '7d2ae8' },
+        { id: 'mug', name: 'Ceramic Mug', color: '151515', textCol: '00c4cc' },
+        { id: 'tote', name: 'Canvas Tote', color: '2a2a2a', textCol: 'ff6b35' },
+        { id: 'hat', name: 'Trucker Hat', color: '1a3a2e', textCol: 'ffb800' },
+        { id: 'billboard', name: 'City Billboard', color: '0a0a1a', textCol: '00e5ff' },
+        { id: 'hoodie', name: 'Streetwear Hoodie', color: '1f1a3a', textCol: 'e040fb' },
+        { id: 'poster', name: 'Framed Poster', color: '1a2a1a', textCol: '00e676' },
+        { id: 'cup', name: 'Coffee Cup', color: '3a1a1a', textCol: 'ff5252' },
+        { id: 'phone', name: 'Matte Phone Case', color: '1a3a3a', textCol: '18ffff' },
+        { id: 'sticker', name: 'Die-Cut Sticker', color: '2a1a2a', textCol: 'ff4081' },
+      ];
+
+      const renders = products.map((p) => ({
+        id: p.id,
+        name: p.name,
+        src: `https://placehold.co/512x512/${p.color}/${p.textCol}?text=${encodeURIComponent(p.name)}+Mockup`,
+      }));
+
+      return {
+        images: renders,
+        image: { src: renders[0].src, width: 512, height: 512 },
+      };
     },
   },
   {
@@ -393,6 +446,34 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         console.warn('[Vectorize] API unavailable, passing through');
         return { image: { ...inputs.image, isVector: true } };
       }
+    },
+  },
+  {
+    id: 'typographic-style',
+    type: 'typographic-style',
+    category: 'edit',
+    label: 'Typographic Style',
+    description: 'Apply Kittl-style curved typographic text effects',
+    icon: 'Text',
+    inputs: [{ id: 'text', label: 'Text', dataType: 'text' }],
+    outputs: [{ id: 'image', label: 'SVG', dataType: 'image' }],
+    defaults: { text: 'CREATIVE', fontFamily: 'Inter', color: '#7D2AE8', curvature: 50 },
+    execute: async (inputs, settings) => {
+      const txt = inputs.text?.text || settings.text || 'CREATIVE';
+      const col = settings.color || '#7D2AE8';
+      const curveVal = settings.curvature ?? 50;
+
+      const pathD = `M 10 90 Q 100 ${90 - curveVal} 190 90`;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" width="100%" height="100%">
+        <path id="text-path" d="${pathD}" fill="none" stroke="none"/>
+        <text font-family="${settings.fontFamily || 'Inter'}" font-size="22" font-weight="black" fill="${col}" text-anchor="middle">
+          <textPath href="#text-path" startOffset="50%">${txt}</textPath>
+        </text>
+      </svg>`;
+      const base64 = typeof btoa !== 'undefined' ? btoa(svg) : Buffer.from(svg).toString('base64');
+      return {
+        image: { src: `data:image/svg+xml;base64,${base64}`, width: 512, height: 256, isVector: true },
+      };
     },
   },
 
