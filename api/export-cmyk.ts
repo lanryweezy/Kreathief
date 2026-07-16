@@ -76,8 +76,12 @@ export default async function handler(req: any, res: any) {
     const { imageUrl, bleed } = parsed.data;
 
     // SSRF Protection: Validate URL and resolve DNS to prevent bypasses
+    let safeFetchUrl = imageUrl;
+    let originalHostname = '';
+
     try {
       const url = new URL(imageUrl);
+      originalHostname = url.hostname;
 
       if (url.protocol !== 'http:' && url.protocol !== 'https:') {
         return res.status(400).json({ error: 'Invalid URL protocol' });
@@ -129,6 +133,12 @@ export default async function handler(req: any, res: any) {
           return res.status(400).json({ error: 'Invalid image URL (internal/reserved IP)' });
         }
       }
+
+      // Re-assign the URL's hostname to the validated target IP to prevent DNS rebinding attacks (TOCTOU).
+      const targetIp = lookup[0].address;
+      url.hostname = targetIp.includes(':') ? `[${targetIp}]` : targetIp;
+      safeFetchUrl = url.toString();
+
     } catch (e: any) {
       log.error('[ExportCMYK] URL validation/DNS resolution failed', e);
       return res.status(400).json({ error: 'Invalid or unresolvable image URL' });
@@ -139,7 +149,12 @@ export default async function handler(req: any, res: any) {
     const fetchTimeout = setTimeout(() => controller.abort(), 30000);
     let imageResponse: Response;
     try {
-      imageResponse = await fetch(imageUrl, { signal: controller.signal });
+      imageResponse = await fetch(safeFetchUrl, {
+        signal: controller.signal,
+        headers: {
+          'Host': originalHostname
+        }
+      });
     } finally {
       clearTimeout(fetchTimeout);
     }
