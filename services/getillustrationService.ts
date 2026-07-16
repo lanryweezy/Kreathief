@@ -1,9 +1,6 @@
-const BASE_URL = 'https://getillustrations.com/api/v1/plugin';
-const API_KEY = import.meta.env.VITE_GETILLUSTRATION_KEY || '';
+import { log } from '../utils/log';
 
-const headers = () => ({
-  Authorization: `Bearer ${API_KEY}`,
-});
+const BASE_URL = '/api/getillustration';
 
 export interface GIAsset {
   id: string;
@@ -43,11 +40,8 @@ export interface GISearchResult {
 }
 
 export async function searchAll(query: string, limit = 20): Promise<GISearchResult> {
-  if (!API_KEY) return { illustrations: [], icons: [], packs: [], iconPacks: [] };
   try {
-    const res = await fetch(`${BASE_URL}/search?q=${encodeURIComponent(query)}&limit=${limit}`, {
-      headers: headers(),
-    });
+    const res = await fetch(`${BASE_URL}?action=search&query=${encodeURIComponent(query)}&limit=${limit}`);
     if (!res.ok) return { illustrations: [], icons: [], packs: [], iconPacks: [] };
     const data = await res.json();
     return data.results || { illustrations: [], icons: [], packs: [], iconPacks: [] };
@@ -67,11 +61,10 @@ export async function searchIcons(query: string, limit = 20): Promise<GIAsset[]>
 }
 
 export async function listIconPacks(page = 1, limit = 20, freeOnly = false): Promise<GIIconPack[]> {
-  if (!API_KEY) return [];
   try {
-    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    const params = new URLSearchParams({ action: 'icon-packs', page: String(page), limit: String(limit) });
     if (freeOnly) params.set('free', 'true');
-    const res = await fetch(`${BASE_URL}/icon-packs?${params}`, { headers: headers() });
+    const res = await fetch(`${BASE_URL}?${params}`);
     if (!res.ok) return [];
     const data = await res.json();
     return data.items || [];
@@ -81,11 +74,10 @@ export async function listIconPacks(page = 1, limit = 20, freeOnly = false): Pro
 }
 
 export async function listPacks(page = 1, limit = 20, freeOnly = false): Promise<GIPack[]> {
-  if (!API_KEY) return [];
   try {
-    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    const params = new URLSearchParams({ action: 'packs', page: String(page), limit: String(limit) });
     if (freeOnly) params.set('free', 'true');
-    const res = await fetch(`${BASE_URL}/packs?${params}`, { headers: headers() });
+    const res = await fetch(`${BASE_URL}?${params}`);
     if (!res.ok) return [];
     const data = await res.json();
     return data.items || [];
@@ -95,11 +87,8 @@ export async function listPacks(page = 1, limit = 20, freeOnly = false): Promise
 }
 
 export async function getPackIllustrations(packId: string, page = 1, limit = 20): Promise<GIAsset[]> {
-  if (!API_KEY) return [];
   try {
-    const res = await fetch(`${BASE_URL}/packs/${packId}/illustrations?page=${page}&limit=${limit}`, {
-      headers: headers(),
-    });
+    const res = await fetch(`${BASE_URL}?action=pack-illustrations&packId=${encodeURIComponent(packId)}&page=${page}&limit=${limit}`);
     if (!res.ok) return [];
     const data = await res.json();
     return data.items || [];
@@ -109,11 +98,8 @@ export async function getPackIllustrations(packId: string, page = 1, limit = 20)
 }
 
 export async function getPackIcons(packId: string, page = 1, limit = 20): Promise<GIAsset[]> {
-  if (!API_KEY) return [];
   try {
-    const res = await fetch(`${BASE_URL}/icon-packs/${packId}/icons?page=${page}&limit=${limit}`, {
-      headers: headers(),
-    });
+    const res = await fetch(`${BASE_URL}?action=pack-icons&packId=${encodeURIComponent(packId)}&page=${page}&limit=${limit}`);
     if (!res.ok) return [];
     const data = await res.json();
     return data.items || [];
@@ -123,11 +109,10 @@ export async function getPackIcons(packId: string, page = 1, limit = 20): Promis
 }
 
 export async function getRandomIcons(count = 24, pack?: string): Promise<GIAsset[]> {
-  if (!API_KEY) return [];
   try {
-    const params = new URLSearchParams({ count: String(count) });
+    const params = new URLSearchParams({ action: 'random-icons', count: String(count) });
     if (pack) params.set('pack', pack);
-    const res = await fetch(`${BASE_URL}/icons/random?${params}`, { headers: headers() });
+    const res = await fetch(`${BASE_URL}?${params}`);
     if (!res.ok) return [];
     const data = await res.json();
     return data.items || data.icons || [];
@@ -136,6 +121,18 @@ export async function getRandomIcons(count = 24, pack?: string): Promise<GIAsset
   }
 }
 
+let configuredCache: boolean | null = null;
+export async function isConfiguredAsync(): Promise<boolean> {
+  if (configuredCache !== null) return configuredCache;
+  try {
+    const res = await fetch(`${BASE_URL}?action=check-config`);
+    configuredCache = res.ok;
+    return configuredCache;
+  } catch {
+    return false;
+  }
+}
+
 export function isConfigured(): boolean {
-  return !!API_KEY;
+  return configuredCache !== false;
 }
