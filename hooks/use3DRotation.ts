@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { applyRotation3D, fillEmptyRegionsCanvas, Rotation3DResult } from '../utils/rotation3d';
 import { log } from '../utils/log';
+import { useShallow } from 'zustand/react/shallow';
 
 interface Use3DRotationReturn {
   /** Start 3D rotation mode for an image layer */
@@ -42,7 +43,10 @@ export function use3DRotation(): Use3DRotationReturn {
   const imageRef = useRef<HTMLImageElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const { updateLayer, addToast } = useStore();
+  const { updateLayer, addToast } = useStore(useShallow((state) => ({
+    updateLayer: state.updateLayer,
+    addToast: state.addToast,
+  })));
 
   /**
    * Load the image from a layer's src and prepare for 3D rotation.

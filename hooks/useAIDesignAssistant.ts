@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore';
 import { Layer, TextLayer, ShapeLayer, ImageLayer } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { log } from '../utils/log';
+import { useShallow } from 'zustand/react/shallow';
 
 interface ChatMessage {
   id: string;
@@ -29,7 +30,16 @@ export function useAIDesignAssistant() {
   const chatRef = useRef<HTMLDivElement>(null);
 
   const { artboards, activeArtboardId, selectedLayerIds, updateLayers, addLayer, deleteLayer, updateLayer, addToast } =
-    useStore();
+    useStore(useShallow((state) => ({
+      artboards: state.artboards,
+      activeArtboardId: state.activeArtboardId,
+      selectedLayerIds: state.selectedLayerIds,
+      updateLayers: state.updateLayers,
+      addLayer: state.addLayer,
+      deleteLayer: state.deleteLayer,
+      updateLayer: state.updateLayer,
+      addToast: state.addToast,
+    })));
 
   const getSelectedLayers = useCallback((): Layer[] => {
     const ab = artboards.find((a) => a.id === activeArtboardId);

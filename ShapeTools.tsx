@@ -8,6 +8,7 @@ import { Layer, ShapeLayer } from '../../types';
 import { pathOperationsService } from '../../services/pathOperationsService';
 import { VectorUtils } from '../../utils/vectorUtils';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 
 interface ShapeToolsProps {
   layer: Layer;
@@ -123,11 +124,11 @@ export const ShapeTools = React.memo(
     const effectsButtonRef = useRef<HTMLButtonElement>(null);
     const booleanOpsRef = useRef<HTMLButtonElement>(null);
 
-    const { updateLayer, deleteLayer, saveToHistory } = useStore((state) => ({
+    const { updateLayer, deleteLayer, saveToHistory } = useStore(useShallow((state) => ({
       updateLayer: state.updateLayer,
       deleteLayer: state.deleteLayer,
       saveToHistory: state.saveToHistory,
-    }));
+    })));
 
     const handleBooleanOp = (operation: 'union' | 'subtract' | 'intersect' | 'exclude') => {
       if (selectedLayers.length < 2) return;

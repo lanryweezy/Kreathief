@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { Icons } from '../constants';
 import { Project } from '../types';
+import { useShallow } from 'zustand/react/shallow';
 
 interface CommunityTemplatesProps {
   onOpenProject: (project: Project) => void;
@@ -276,7 +277,11 @@ const SkeletonCard: React.FC = () => (
 );
 
 const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }) => {
-  const { createProject, loadProject, communityProjects } = useStore();
+  const { createProject, loadProject, communityProjects } = useStore(useShallow((state) => ({
+    createProject: state.createProject,
+    loadProject: state.loadProject,
+    communityProjects: state.communityProjects,
+  })));
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [templates, setTemplates] = useState([...INITIAL_COMMUNITY_TEMPLATES, ...(communityProjects || [])]);

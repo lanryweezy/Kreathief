@@ -54,3 +54,7 @@
 ## 2024-05-24 - Unnecessary Iterations for Logging in Render Cycle
 **Learning:** Found an instance where an entire nested iteration loop over all layers in the scene was enclosed inside a `useMemo` specifically to execute a debug logging method (`bitmapCache.stats()`). This forced the application to trace every layer on virtually every prop update (since `artboards` reference frequently changed) without generating any usable output.
 **Action:** Avoid placing debug logging loops that iterate through the whole component hierarchy inside standard render flows. In a performance-obsessed codebase, operations strictly meant for debug stats should either be placed behind developer tools toggles, debounced outside the main thread, or removed completely when unnecessary to avoid O(N) penalties during critical renders.
+## 2026-07-16 - Zustand store selective destructuring with useShallow
+
+**Learning:** When extracting multiple values from Zustand's `useStore` in React components, avoid parameterless destructuring (e.g., `const { a, b } = useStore();`) or returning objects without `useShallow` (e.g., `useStore(state => ({a: state.a}))`). This subscribes the component to the entire store or breaks referential equality, causing catastrophic re-renders on every store update (like simple mouse movements).
+**Action:** Always use an explicit selector returning an object and wrap it with `useShallow` from `zustand/react/shallow` to preserve referential equality and prevent unnecessary component re-renders.
