@@ -94,6 +94,7 @@ export function WorkflowPresets({ onSelect }: WorkflowPresetsProps) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search workflows..."
+            aria-label="Search workflows"
             className="w-full pl-9 pr-3 py-2 text-[11px] bg-surface-dark-3 border border-white/10 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-brand-600/50 transition-colors"
           />
           {searchQuery && (
