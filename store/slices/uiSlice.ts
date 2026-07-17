@@ -199,7 +199,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   addToast: (message, type = 'info', action, details) => {
     const id = uuidv4();
     const safeMessage = typeof message === 'string' ? message : String(message ?? 'Unknown error');
-    const safeDetails = details != null ? String(details) : undefined;
+    const safeDetails = details !== null && details !== undefined ? String(details) : undefined;
     set((state: any) => ({
       toasts: [...state.toasts, { id, message: safeMessage, type, action, details: safeDetails }],
     }));

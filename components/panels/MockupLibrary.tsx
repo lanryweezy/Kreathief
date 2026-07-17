@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Icons } from '../../constants';
-import { MOCKUP_CATEGORIES, MockupPlacement } from '../../services/enhancedMockupsLibrary';
+import { MOCKUP_CATEGORIES, MockupPlacement, getMockupById } from '../../services/enhancedMockupsLibrary';
 import { VecteezyResource } from '../../services/vecteezyService';
 
 export interface MockupLibraryProps {
@@ -194,7 +194,6 @@ export const MockupLibrary: React.FC<MockupLibraryProps> = ({
               </button>
               <button
                 onClick={() => {
-                  const { getMockupById } = require('../../services/enhancedMockupsLibrary');
                   const current = getMockupById(activeMockupId);
                   if (current) {
                     setPlacement(current.defaultPlacement);
@@ -423,7 +422,6 @@ export const MockupLibrary: React.FC<MockupLibraryProps> = ({
             </button>
             <button
               onClick={() => {
-                const { getMockupById } = require('../../services/enhancedMockupsLibrary');
                 const current = getMockupById(activeMockupId);
                 if (current) {
                   setPlacement(current.defaultPlacement);

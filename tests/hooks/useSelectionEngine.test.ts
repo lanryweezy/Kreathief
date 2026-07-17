@@ -9,7 +9,10 @@ const mockSetSelectedLayerIds = vi.fn();
 let mockState: any;
 
 vi.mock('../../store/useStore', () => ({
-  useStore: vi.fn((sel) => typeof sel === 'function' ? sel(mockState) : mockState),
+  useStore: Object.assign(
+    vi.fn((sel: any) => typeof sel === 'function' ? sel(mockState) : mockState),
+    { getState: () => mockState }
+  ),
 }));
 
 const layer = (o?: Partial<ShapeLayer>): ShapeLayer => ({

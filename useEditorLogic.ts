@@ -177,7 +177,7 @@ export const useEditorLogic = (initialProject?: Project) => {
     const colors = new Set<string>();
     const addColor = (c: any) => {
       if (typeof c === 'string') colors.add(c);
-      else if (c != null) colors.add(String(c));
+      else if (c !== null && c !== undefined) colors.add(String(c));
     };
     addColor(canvasBackgroundColor);
     layers.forEach((l) => {

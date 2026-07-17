@@ -666,7 +666,7 @@ export const TextLayerItem = React.memo(
               fontStyle: textLayer.fontStyle,
               color: safeStr(textLayer.color, '#000000'),
               textAlign: textLayer.textAlign,
-              letterSpacing: textLayer.letterSpacing != null ? `${textLayer.letterSpacing}px` : undefined,
+              letterSpacing: textLayer.letterSpacing !== null && textLayer.letterSpacing !== undefined ? `${textLayer.letterSpacing}px` : undefined,
               lineHeight: textLayer.lineHeight || 1.5,
               fontKerning: textLayer.kerning && textLayer.kerning > 0 ? 'normal' : 'none',
               fontFeatureSettings: textLayer.ligatures !== false ? '"liga" 1, "kern" 1' : '"liga" 0, "kern" 0',

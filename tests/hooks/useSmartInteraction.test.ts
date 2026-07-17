@@ -70,11 +70,13 @@ describe('useSmartInteraction', () => {
     expect(ids).toContain('match-colors');
   });
   it('suggestions auto-clear after 5s', () => {
-    vi.useFakeTimers();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     const layers = [shape({ id: 'a' }), shape({ id: 'b' })];
     const { result } = renderHook(() => useSmartInteraction(layers, ['a', 'b']));
     expect(result.current.suggestions.length).toBeGreaterThan(0);
-    act(() => vi.advanceTimersByTime(5000));
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
     expect(result.current.suggestions).toEqual([]);
   });
 });

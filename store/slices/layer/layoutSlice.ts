@@ -110,7 +110,7 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
       const scaleX = CANVAS_W / templateBaseW;
       const scaleY = CANVAS_H / templateBaseH;
       const newLayers = typeOrShapes.map((shape) => ({
-	        id: generateLayerId('rectangle'), type: 'rectangle', ...shape,
+        id: generateLayerId('rectangle'), type: 'rectangle', ...shape,
         x: (shape.x || 0) * scaleX, y: (shape.y || 0) * scaleY,
         width: (shape.width || 100) * scaleX, height: (shape.height || 100) * scaleY,
         rotation: shape.rotation || 0, opacity: shape.opacity ?? 1,
