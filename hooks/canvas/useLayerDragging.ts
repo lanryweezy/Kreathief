@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Layer, Artboard } from '../../types';
-import { SnappingOracle, SnapLine } from '../../utils/snappingOracle';
+import { SnapLine } from '../../utils/snappingOracle';
+import { calculateSnaps as wasmCalculateSnaps, initEngine } from '../../utils/geometry-wasm';
 import { SNAP_THRESHOLD } from '../../components/canvas/CanvasConstants';
 
 interface UseLayerDraggingProps {
@@ -44,6 +45,10 @@ export const useLayerDragging = ({
   const dragUpdateBuffer = useRef<Record<string, Partial<Layer>>>({});
   const bulkDragPreviewRef = useRef<Record<string, Partial<Layer>>>({});
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    initEngine();
+  }, []);
 
   useEffect(() => {
     dragStateRef.current = dragState;
@@ -199,7 +204,7 @@ export const useLayerDragging = ({
           y: currentDragState.initialPositions[l.id].y + dy,
         }));
 
-        const snap = SnappingOracle.calculateSnaps(
+        const snap = wasmCalculateSnaps(
           currentMovingLayers,
           staticLayersRef.current,
           currentActiveArtboard,
