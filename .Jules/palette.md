@@ -35,3 +35,8 @@
 
 **Learning:** Discovered icon-only buttons in `components/blog/BlogPostView.tsx` used for sharing (Twitter, Website, Link) lacked `aria-label` attributes, rendering them unintelligible to screen readers.
 **Action:** Always verify that buttons containing only icons (e.g., `<Icons.Twitter />`) have a descriptive `aria-label` attribute (e.g., `aria-label="Share on Twitter"`) to ensure keyboard and screen reader accessibility.
+
+## 2026-07-17 - [Dynamic Node Graphs and Inputs]
+
+**Learning:** Inputs (like text, number, color, or file inputs) within complex node-based structures (e.g., `Node.tsx`) are often visually labeled but lack programmatic associations because generating and passing unique IDs for every dynamically rendered input inside every node is cumbersome. As a result, screen readers only announce the generic input type rather than its purpose.
+**Action:** When implementing or modifying dynamically rendered inputs inside list items, nodes, or cards where unique ID generation for `<label htmlFor="...">` is impractical, always provide a descriptive `aria-label` attribute directly on the `<input>` element (e.g., `aria-label="Filter strength"`) to ensure the control remains accessible.
