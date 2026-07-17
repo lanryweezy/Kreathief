@@ -22,7 +22,7 @@ const SPECIALIZATIONS = [
   'Web Design',
 ] as const;
 
-export const CreatorSignupModal: React.FC<CreatorSignupModalProps> = React.memo(({ isOpen, onClose }) => {
+export const CreatorSignupModal: React.FC<CreatorSignupModalProps> = React.memo(function CreatorSignupModal({ isOpen, onClose }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [portfolioUrl, setPortfolioUrl] = useState('');

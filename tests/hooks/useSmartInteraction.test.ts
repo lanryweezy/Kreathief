@@ -69,12 +69,12 @@ describe('useSmartInteraction', () => {
     expect(ids).toContain('remove-bg');
     expect(ids).toContain('match-colors');
   });
-  it('suggestions auto-clear after 5s', () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
+  it('suggestions auto-clear after 5s', async () => {
+    vi.useFakeTimers();
     const layers = [shape({ id: 'a' }), shape({ id: 'b' })];
     const { result } = renderHook(() => useSmartInteraction(layers, ['a', 'b']));
     expect(result.current.suggestions.length).toBeGreaterThan(0);
-    act(() => {
+    await act(async () => {
       vi.advanceTimersByTime(5000);
     });
     expect(result.current.suggestions).toEqual([]);

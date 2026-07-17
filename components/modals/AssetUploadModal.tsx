@@ -12,7 +12,7 @@ interface AssetUploadModalProps {
 
 const CATEGORIES = ['Templates', 'Icons', 'Illustrations', 'Fonts', 'Textures', 'UI Kits', 'Social Media', 'Print'] as const;
 
-export const AssetUploadModal: React.FC<AssetUploadModalProps> = React.memo(({ isOpen, onClose }) => {
+export const AssetUploadModal: React.FC<AssetUploadModalProps> = React.memo(function AssetUploadModal({ isOpen, onClose }) {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [tags, setTags] = useState('');
