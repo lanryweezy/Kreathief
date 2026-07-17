@@ -26,22 +26,22 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 }) => {
   const variantStyles = {
     danger: {
-      icon: <Icons.Trash className="w-6 h-6 text-red-500" />,
-      button: 'bg-red-500 hover:bg-red-600 shadow-red-900/20',
-      bg: 'bg-red-500/10 border-red-500/20',
-      accent: 'text-red-400',
+      icon: <Icons.Trash className="w-6 h-6 text-error" />,
+      button: 'bg-error hover:bg-error-dark shadow-error/20',
+      bg: 'bg-error-subtle',
+      accent: 'text-error',
     },
     warning: {
-      icon: <Icons.AlertTriangle className="w-6 h-6 text-amber-500" />,
-      button: 'bg-amber-500 hover:bg-amber-600 shadow-amber-900/20',
-      bg: 'bg-amber-500/10 border-amber-500/20',
-      accent: 'text-amber-400',
+      icon: <Icons.AlertTriangle className="w-6 h-6 text-warning" />,
+      button: 'bg-warning hover:bg-warning-dark shadow-warning/20',
+      bg: 'bg-warning-subtle',
+      accent: 'text-warning',
     },
     info: {
-      icon: <Icons.Help className="w-6 h-6 text-blue-500" />,
-      button: 'bg-brand-600 hover:bg-[#6b23c5] shadow-purple-900/20',
-      bg: 'bg-blue-500/10 border-blue-500/20',
-      accent: 'text-blue-400',
+      icon: <Icons.Help className="w-6 h-6 text-info" />,
+      button: 'bg-brand-600 hover:bg-brand-700 shadow-brand-600/20',
+      bg: 'bg-info-subtle',
+      accent: 'text-info',
     },
   };
 

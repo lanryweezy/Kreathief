@@ -25,7 +25,7 @@ export const Input: React.FC<InputProps> = ({ label, error, hint, className = ''
           placeholder:text-gray-500
           focus:outline-none focus:ring-2 focus:ring-brand-400/50 focus:border-brand-600
           disabled:opacity-50 disabled:cursor-not-allowed
-          ${error ? 'border-red-500/50 focus:ring-red-400/50 focus:border-red-500' : 'border-white/10 hover:border-white/20'}
+          ${error ? 'border-error/50 focus:ring-error/50 focus:border-error' : 'border-white/10 hover:border-white/20'}
           ${className}
         `}
         aria-invalid={!!error}
@@ -33,7 +33,7 @@ export const Input: React.FC<InputProps> = ({ label, error, hint, className = ''
         {...props}
       />
       {error && (
-        <p id={`${inputId}-error`} className="text-xs text-red-400" role="alert">
+        <p id={`${inputId}-error`} className="text-xs text-error" role="alert">
           {error}
         </p>
       )}

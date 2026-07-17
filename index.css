@@ -4,13 +4,20 @@
 
 /* ===== Base Styles ===== */
 :root {
-  --ultra-indigo: #9d75ff;
+  --ultra-indigo: #8b5cf6;
   --cosmic-cyan: #22d3ee;
-  --cyber-pink: #fb7185;
-  --deep-space: #000000;
-  --matte-black: #0a0a0c;
-  --glass-white: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.05);
+  --cyber-pink: #e8909c;
+  --deep-space: #0d0d12;
+  --matte-black: #111118;
+  --glass-white: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  /* 2026 semantic tokens */
+  --color-success: #34d399;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+  --color-info: #60a5fa;
+  --surface-warm: #16161e;
+  --surface-elevated: #1e1e28;
 }
 
 body {
@@ -44,9 +51,9 @@ h4,
 
 .mesh-gradient {
   background:
-    radial-gradient(circle at 0% 0%, rgba(157, 117, 255, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 100% 0%, rgba(34, 211, 238, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 50% 100%, rgba(251, 113, 133, 0.1) 0%, transparent 50%), var(--deep-space);
+    radial-gradient(circle at 0% 0%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 100% 0%, rgba(34, 211, 238, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 50% 100%, rgba(232, 144, 156, 0.06) 0%, transparent 50%), var(--deep-space);
   background-attachment: fixed;
 }
 
@@ -70,10 +77,9 @@ h4,
 }
 
 .glass-morphism {
-  background: var(--glass-white);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--surface-warm, #16161e);
   border: 1px solid var(--glass-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .premium-button {
@@ -196,6 +202,49 @@ h4,
   .bg-noise {
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   }
+
+  /* 2026: Richer surfaces with soft noise texture */
+  .surface-textured {
+    position: relative;
+    background: var(--surface-warm, #16161e);
+  }
+  .surface-textured::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 128px;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+
+  /* 2026: Sculpted depth — layered shadows */
+  .shadow-sculpted {
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.15),
+      0 4px 8px rgba(0, 0, 0, 0.1),
+      0 0 0 1px rgba(255, 255, 255, 0.03);
+  }
+
+  /* 2026: Micro-interaction — hover lift */
+  .hover-lift {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  /* 2026: Semantic status colors */
+  .status-success { color: var(--color-success); }
+  .status-warning { color: var(--color-warning); }
+  .status-error { color: var(--color-error); }
+  .status-info { color: var(--color-info); }
+  .bg-success-subtle { background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.2); }
+  .bg-warning-subtle { background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.2); }
+  .bg-error-subtle { background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.2); }
+  .bg-info-subtle { background: rgba(96, 165, 250, 0.1); border: 1px solid rgba(96, 165, 250, 0.2); }
   .glass-edge {
     box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
   }
@@ -299,7 +348,7 @@ h4,
   position: absolute;
   inset: -1.5px;
   border-radius: inherit;
-  background: conic-gradient(from var(--angle), transparent 70%, #a855f7 90%, #fb7185 100%);
+  background: conic-gradient(from var(--angle), transparent 70%, #7c3aed 90%, #e8909c 100%);
   animation: spin-gradient 3s linear infinite;
   z-index: -1;
   opacity: 0;
