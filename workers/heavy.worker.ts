@@ -4,6 +4,9 @@ import { removeBackground as imglyRemoveBackground } from '@imgly/background-rem
 /**
  * Heavy Worker
  * Handles compute-intensive tasks for Kreathief.
+ *
+ * WASM-accelerated: image tracing, pixel enhance, palette extraction, grain generation.
+ * Still uses JS: background removal (ONNX model is the bottleneck, not JS).
  */
 
 self.onmessage = async (e: MessageEvent) => {
@@ -153,76 +156,18 @@ async function algorithmicEnhance(imageSrc: string): Promise<string> {
   const bitmap = await fetchImageBitmap(imageSrc);
   const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
   const ctx = canvas.getContext('2d');
-  if (!ctx) {
-    throw new Error('Offscreen context failed');
-  }
+  if (!ctx) throw new Error('Offscreen context failed');
 
   ctx.drawImage(bitmap, 0, 0);
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const data = imageData.data;
 
-  // Histogram Stretching & AWB Logic
-  let minR = 255,
-    maxR = 0,
-    minG = 255,
-    maxG = 0,
-    minB = 255,
-    maxB = 0;
-  let sumR = 0,
-    sumG = 0,
-    sumB = 0;
-  const pixelCount = data.length / 4;
-
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i],
-      g = data[i + 1],
-      b = data[i + 2];
-    if (r < minR) {
-      minR = r;
-    }
-    if (r > maxR) {
-      maxR = r;
-    }
-    if (g < minG) {
-      minG = g;
-    }
-    if (g > maxG) {
-      maxG = g;
-    }
-    if (b < minB) {
-      minB = b;
-    }
-    if (b > maxB) {
-      maxB = b;
-    }
-    sumR += r;
-    sumG += g;
-    sumB += b;
-  }
-
-  const avgR = sumR / pixelCount;
-  const avgG = sumG / pixelCount;
-  const avgB = sumB / pixelCount;
-  const avgGray = (avgR + avgG + avgB) / 3;
-
-  const scaleR = avgGray / avgR;
-  const scaleG = avgGray / avgG;
-  const scaleB = avgGray / avgB;
-
-  for (let i = 0; i < data.length; i += 4) {
-    let r = (data[i] - minR) * (255 / (maxR - minR || 1));
-    let g = (data[i + 1] - minG) * (255 / (maxG - minG || 1));
-    let b = (data[i + 2] - minB) * (255 / (maxB - minB || 1));
-    r *= scaleR;
-    g *= scaleG;
-    b *= scaleB;
-    const contrast = 1.1;
-    r = (r - 128) * contrast + 128;
-    g = (g - 128) * contrast + 128;
-    b = (b - 128) * contrast + 128;
-    data[i] = Math.max(0, Math.min(255, r));
-    data[i + 1] = Math.max(0, Math.min(255, g));
-    data[i + 2] = Math.max(0, Math.min(255, b));
+  // Try WASM first, fall back to JS
+  try {
+    const wasm = await import('../utils/image-tracer-wasm');
+    wasm.enhancePixels(imageData.data);
+  } catch {
+    // JS fallback: histogram stretch + AWB
+    enhancePixelsJS(imageData.data);
   }
 
   ctx.putImageData(imageData, 0, 0);
@@ -230,61 +175,79 @@ async function algorithmicEnhance(imageSrc: string): Promise<string> {
   return URL.createObjectURL(blob);
 }
 
+function enhancePixelsJS(data: Uint8ClampedArray) {
+  let minR = 255, maxR = 0, minG = 255, maxG = 0, minB = 255, maxB = 0;
+  let sumR = 0, sumG = 0, sumB = 0;
+  const pixelCount = data.length / 4;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i], g = data[i+1], b = data[i+2];
+    if (r < minR) minR = r; if (r > maxR) maxR = r;
+    if (g < minG) minG = g; if (g > maxG) maxG = g;
+    if (b < minB) minB = b; if (b > maxB) maxB = b;
+    sumR += r; sumG += g; sumB += b;
+  }
+
+  const avgR = sumR / pixelCount, avgG = sumG / pixelCount, avgB = sumB / pixelCount;
+  const avgGray = (avgR + avgG + avgB) / 3;
+  const scaleR = avgGray / avgR, scaleG = avgGray / avgG, scaleB = avgGray / avgB;
+
+  for (let i = 0; i < data.length; i += 4) {
+    let r = (data[i] - minR) * (255 / (maxR - minR || 1)) * scaleR;
+    let g = (data[i+1] - minG) * (255 / (maxG - minG || 1)) * scaleG;
+    let b = (data[i+2] - minB) * (255 / (maxB - minB || 1)) * scaleB;
+    const contrast = 1.1;
+    r = (r - 128) * contrast + 128;
+    g = (g - 128) * contrast + 128;
+    b = (b - 128) * contrast + 128;
+    data[i] = Math.max(0, Math.min(255, r));
+    data[i+1] = Math.max(0, Math.min(255, g));
+    data[i+2] = Math.max(0, Math.min(255, b));
+  }
+}
+
 async function extractPalette(imageSrc: string, colorCount: number = 5): Promise<string[]> {
   const bitmap = await fetchImageBitmap(imageSrc);
   const canvas = new OffscreenCanvas(100, (bitmap.height / bitmap.width) * 100);
   const ctx = canvas.getContext('2d');
-  if (!ctx) {
-    throw new Error('Offscreen context failed');
-  }
+  if (!ctx) throw new Error('Offscreen context failed');
 
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+  // Try WASM first, fall back to JS
+  try {
+    const wasm = await import('../utils/image-tracer-wasm');
+    return wasm.extractPalette(imageData.data, colorCount, 3);
+  } catch {
+    return extractPaletteJS(imageData.data, colorCount);
+  }
+}
+
+function extractPaletteJS(data: Uint8ClampedArray, colorCount: number): string[] {
   const colors: { r: number; g: number; b: number; count: number }[] = [];
-
   for (let i = 0; i < data.length; i += 12) {
-    const r = data[i],
-      g = data[i + 1],
-      b = data[i + 2],
-      a = data[i + 3];
-    if (a < 128) {
-      continue;
-    }
-
-    let bestMatch = -1;
-    let minDist = 1600;
-
+    const r = data[i], g = data[i+1], b = data[i+2], a = data[i+3];
+    if (a < 128) continue;
+    let best = -1, minDist = 1600;
     for (let j = 0; j < colors.length; j++) {
-      const dr = colors[j].r - r,
-        dg = colors[j].g - g,
-        db = colors[j].b - b;
-      const dist = dr * dr + dg * dg + db * db;
-      if (dist < minDist) {
-        minDist = dist;
-        bestMatch = j;
-      }
+      const dr = colors[j].r - r, dg = colors[j].g - g, db = colors[j].b - b;
+      const dist = dr*dr + dg*dg + db*db;
+      if (dist < minDist) { minDist = dist; best = j; }
     }
-
-    if (bestMatch !== -1) {
-      const m = colors[bestMatch];
-      m.count++;
-      m.r = (m.r * 3 + r) / 4;
-      m.g = (m.g * 3 + g) / 4;
-      m.b = (m.b * 3 + b) / 4;
+    if (best !== -1) {
+      const m = colors[best]; m.count++;
+      m.r = (m.r * 3 + r) / 4; m.g = (m.g * 3 + g) / 4; m.b = (m.b * 3 + b) / 4;
     } else if (colors.length < colorCount * 4) {
       colors.push({ r, g, b, count: 1 });
     }
   }
-
-  return colors
-    .sort((a, b) => b.count - a.count)
-    .slice(0, colorCount)
-    .map((c) => {
-      const r = Math.round(c.r).toString(16).padStart(2, '0');
-      const g = Math.round(c.g).toString(16).padStart(2, '0');
-      const b = Math.round(c.b).toString(16).padStart(2, '0');
-      return `#${r}${g}${b}`;
-    });
+  return colors.sort((a, b) => b.count - a.count).slice(0, colorCount).map(c => {
+    const r = Math.round(c.r).toString(16).padStart(2, '0');
+    const g = Math.round(c.g).toString(16).padStart(2, '0');
+    const b = Math.round(c.b).toString(16).padStart(2, '0');
+    return `#${r}${g}${b}`;
+  });
 }
 
 async function traceImageToSVG(imageSrc: string, colors: number = 2): Promise<any[]> {
@@ -292,33 +255,40 @@ async function traceImageToSVG(imageSrc: string, colors: number = 2): Promise<an
   const size = 64;
   const canvas = new OffscreenCanvas(size, (bitmap.height / bitmap.width) * size);
   const ctx = canvas.getContext('2d');
-  if (!ctx) {
-    throw new Error('Offscreen context failed');
-  }
+  if (!ctx) throw new Error('Offscreen context failed');
 
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-  const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
+  // Try WASM first — Rust contour tracing + Douglas-Peucker simplification
+  try {
+    const wasm = await import('../utils/image-tracer-wasm');
+    return wasm.traceImageToSvg(
+      new Uint8Array(imageData.data),
+      canvas.width,
+      canvas.height,
+      Math.min(colors, 16)
+    );
+  } catch {
+    // JS fallback: naive row-scanning
+    return traceImageToSVGJS(imageData.data, canvas.width, canvas.height, colors);
+  }
+}
+
+function traceImageToSVGJS(data: Uint8ClampedArray, w: number, h: number, colors: number): any[] {
   const results: { path: string; color: string }[] = [];
   const colorGrids = new Map<string, boolean[][]>();
 
-  for (let y = 0; y < canvas.height; y++) {
-    for (let x = 0; x < canvas.width; x++) {
-      const i = (y * canvas.width + x) * 4;
-      if (data[i + 3] < 128) {
-        continue;
-      }
-
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      if (data[i + 3] < 128) continue;
       const r = Math.round(data[i] / 64) * 64;
-      const g = Math.round(data[i + 1] / 64) * 64;
-      const b = Math.round(data[i + 2] / 64) * 64;
-      const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-
+      const g = Math.round(data[i+1] / 64) * 64;
+      const b = Math.round(data[i+2] / 64) * 64;
+      const hex = `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
       if (!colorGrids.has(hex)) {
-        colorGrids.set(
-          hex,
-          Array.from({ length: Math.ceil(canvas.height) }, () => new Array(Math.ceil(canvas.width)).fill(false))
-        );
+        colorGrids.set(hex, Array.from({ length: Math.ceil(h) }, () => new Array(Math.ceil(w)).fill(false)));
       }
       colorGrids.get(hex)![y][x] = true;
     }
@@ -326,25 +296,22 @@ async function traceImageToSVG(imageSrc: string, colors: number = 2): Promise<an
 
   colorGrids.forEach((grid, color) => {
     let d = '';
-    const nh = (1 / canvas.height) * 100;
-    for (let y = 0; y < canvas.height; y++) {
+    const nh = (1 / h) * 100;
+    for (let y = 0; y < h; y++) {
       let startX = -1;
-      for (let x = 0; x <= canvas.width; x++) {
-        const hasPixel = x < canvas.width && grid[y][x];
-        if (hasPixel && startX === -1) {
-          startX = x;
-        } else if (!hasPixel && startX !== -1) {
-          const nx = (startX / canvas.width) * 100;
-          const ny = (y / canvas.height) * 100;
-          const spanW = ((x - startX) / canvas.width) * 100;
+      for (let x = 0; x <= w; x++) {
+        const hasPixel = x < w && grid[y][x];
+        if (hasPixel && startX === -1) { startX = x; }
+        else if (!hasPixel && startX !== -1) {
+          const nx = (startX / w) * 100;
+          const ny = (y / h) * 100;
+          const spanW = ((x - startX) / w) * 100;
           d += `M${nx},${ny} h${spanW} v${nh} h-${spanW} z `;
           startX = -1;
         }
       }
     }
-    if (d) {
-      results.push({ path: d, color });
-    }
+    if (d) results.push({ path: d, color });
   });
 
   return results.slice(0, colors);
