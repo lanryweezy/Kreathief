@@ -2,6 +2,7 @@ import { log } from '../../utils/log';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
 import { NavTab } from '../../types';
 import { getAllCommands, searchCommands, Command as RegistryCommand } from '../../commands/registry';
@@ -11,9 +12,41 @@ import { communityService, CommunityTemplate } from '../../services/communitySer
 import { Button } from '../Button';
 
 export const CommandPalette: React.FC = () => {
-  const isOpen = useStore((state) => (state as any).isCommandPaletteOpen);
-  const setOpen = useStore((state) => state.setCommandPaletteOpen);
-  const setActiveTab = useStore((state) => state.setActiveTab);
+  const {
+    isOpen,
+    setOpen,
+    setActiveTab,
+    addTextLayer,
+    addShapeLayer,
+    addAdjustmentLayer,
+    addImageLayer,
+    setIsExporting,
+    groupSelected,
+    ungroupSelected,
+    initializeProject,
+    moveLayer,
+    alignLayers,
+    setSelectedLayerIds,
+    setPenMode,
+  } = useStore(
+    useShallow((state) => ({
+      isOpen: (state as any).isCommandPaletteOpen,
+      setOpen: state.setCommandPaletteOpen,
+      setActiveTab: state.setActiveTab,
+      addTextLayer: state.addTextLayer,
+      addShapeLayer: state.addShapeLayer,
+      addAdjustmentLayer: state.addAdjustmentLayer,
+      addImageLayer: state.addImageLayer,
+      setIsExporting: state.setIsExporting,
+      groupSelected: state.groupSelected,
+      ungroupSelected: state.ungroupSelected,
+      initializeProject: state.initializeProject,
+      moveLayer: state.moveLayer,
+      alignLayers: state.alignLayers,
+      setSelectedLayerIds: state.setSelectedLayerIds,
+      setPenMode: state.setPenMode,
+    }))
+  );
 
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -21,20 +54,6 @@ export const CommandPalette: React.FC = () => {
   const [communityResults, setCommunityResults] = useState<CommunityTemplate[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Store actions — use individual selectors to avoid full store subscription
-  const addTextLayer = useStore((s) => s.addTextLayer);
-  const addShapeLayer = useStore((s) => s.addShapeLayer);
-  const addAdjustmentLayer = useStore((s) => s.addAdjustmentLayer);
-  const addImageLayer = useStore((s) => s.addImageLayer);
-  const setIsExporting = useStore((s) => s.setIsExporting);
-  const groupSelected = useStore((s) => s.groupSelected);
-  const ungroupSelected = useStore((s) => s.ungroupSelected);
-  const initializeProject = useStore((s) => s.initializeProject);
-  const moveLayer = useStore((s) => s.moveLayer);
-  const alignLayers = useStore((s) => s.alignLayers);
-  const setSelectedLayerIds = useStore((s) => s.setSelectedLayerIds);
-  const setPenMode = useStore((s) => s.setPenMode);
 
   // Unified Intelligence: Search Assets & Community as user types
   useEffect(() => {
