@@ -161,14 +161,7 @@
     "templateName": "Vibrant Food Fest Post Promo",
     "shortDescription": "Promote your culinary event with a vibrant, appetizing Instagram post.",
     "longDescription": "Promote your culinary event with a vibrant, appetizing Instagram post. Ideal for food festivals, pop-up markets, and restaurant events in Accra and beyond. Features rich warm colours.",
-    "tags": [
-      "Food & Restaurant",
-      "Instagram post",
-      "Vibrant",
-      "Warm",
-      "Events",
-      "African Market"
-    ],
+    "tags": ["Food & Restaurant", "Instagram post", "Vibrant", "Warm", "Events", "African Market"],
     "searchKeywords": [
       "accra food festival",
       "ghana food event",
@@ -187,23 +180,10 @@
       "slug": "vibrant-food-fest-post-promo"
     },
     "personalisationSignals": {
-      "industry": [
-        "Food & Restaurant",
-        "hospitality",
-        "Events"
-      ],
-      "audienceType": [
-        "small business",
-        "event organiser",
-        "restaurant owner",
-        "food vendor"
-      ],
+      "industry": ["Food & Restaurant", "hospitality", "Events"],
+      "audienceType": ["small business", "event organiser", "restaurant owner", "food vendor"],
       "experienceLevel": "beginner-friendly"
     },
-    "relatedTemplates": [
-      "modern-tech-mixer-post-event",
-      "bold-amapiano-print-flyer",
-      "bold-afrobeats-ig-post-promo"
-    ]
+    "relatedTemplates": ["modern-tech-mixer-post-event", "bold-amapiano-print-flyer", "bold-afrobeats-ig-post-promo"]
   }
 }

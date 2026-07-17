@@ -2,7 +2,6 @@ import { StateCreator } from 'zustand';
 import { BrandKit, Layer, Artboard } from '../../types';
 import type { StoreState } from '../useStore';
 
-
 // Get perceived brightness of a hex color (0-255)
 function getBrightness(hex: string): number {
   const h = hex.replace('#', '');

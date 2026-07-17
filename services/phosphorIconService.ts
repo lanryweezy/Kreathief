@@ -25,7 +25,10 @@ export async function searchIcons(query: string, limit = 20): Promise<PhosphorIc
   return icons.slice(0, limit);
 }
 
-export async function downloadIconSVG(name: string, weight: 'thin' | 'light' | 'regular' | 'bold' | 'fill' | 'duotone' = 'regular'): Promise<string | null> {
+export async function downloadIconSVG(
+  name: string,
+  weight: 'thin' | 'light' | 'regular' | 'bold' | 'fill' | 'duotone' = 'regular'
+): Promise<string | null> {
   try {
     const res = await fetch(`https://api.phosphoricons.com/v1/icons/${encodeURIComponent(name)}/${weight}`);
     if (!res.ok) return null;

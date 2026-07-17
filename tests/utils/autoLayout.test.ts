@@ -4,8 +4,17 @@ import type { Layer } from '../../types';
 
 function makeLayer(overrides: Partial<Layer> = {}): Layer {
   return {
-    id: 'l1', type: 'rectangle', x: 0, y: 0, width: 100, height: 50,
-    rotation: 0, opacity: 1, locked: false, visible: true, color: '#000',
+    id: 'l1',
+    type: 'rectangle',
+    x: 0,
+    y: 0,
+    width: 100,
+    height: 50,
+    rotation: 0,
+    opacity: 1,
+    locked: false,
+    visible: true,
+    color: '#000',
     cornerRadius: 0,
     ...overrides,
   } as Layer;
@@ -24,10 +33,7 @@ function makeParent(overrides: Partial<Layer> = {}): Layer {
 describe('computeAutoLayout', () => {
   it('horizontal layout arranges elements left-to-right', () => {
     const parent = makeParent();
-    const children = [
-      makeLayer({ id: 'a', width: 100, height: 50 }),
-      makeLayer({ id: 'b', width: 80, height: 50 }),
-    ];
+    const children = [makeLayer({ id: 'a', width: 100, height: 50 }), makeLayer({ id: 'b', width: 80, height: 50 })];
     const result = computeAutoLayout(parent, children, [parent, ...children]);
     expect(result['a'].x).toBeLessThan(result['b'].x);
   });
@@ -36,10 +42,7 @@ describe('computeAutoLayout', () => {
     const parent = makeParent({
       autoLayout: { direction: 'col', padding: 10, spacing: 5, alignment: 'center' },
     });
-    const children = [
-      makeLayer({ id: 'a', width: 100, height: 50 }),
-      makeLayer({ id: 'b', width: 100, height: 60 }),
-    ];
+    const children = [makeLayer({ id: 'a', width: 100, height: 50 }), makeLayer({ id: 'b', width: 100, height: 60 })];
     const result = computeAutoLayout(parent, children, [parent, ...children]);
     expect(result['a'].y).toBeLessThan(result['b'].y);
   });

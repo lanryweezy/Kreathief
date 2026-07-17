@@ -17,12 +17,6 @@ vi.mock('../../../store/useStore', () => ({
 
 describe('ShareModal', () => {
   it('renders without crashing', () => {
-    render(
-      <ShareModal
-        onClose={vi.fn()}
-        designTitle="Test Design"
-        onGetShareLink={vi.fn()}
-      />
-    );
+    render(<ShareModal onClose={vi.fn()} designTitle="Test Design" onGetShareLink={vi.fn()} />);
   });
 });

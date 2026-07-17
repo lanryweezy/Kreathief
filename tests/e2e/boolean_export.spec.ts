@@ -2,11 +2,11 @@ import { test, expect } from '@playwright/test';
 
 test('Boolean operations and Export pipeline exploration', async ({ page }) => {
   // Capture console logs from the beginning
-  page.on('console', msg => {
+  page.on('console', (msg) => {
     const text = msg.text();
     console.log(`BROWSER [${msg.type()}]: ${text}`);
     if (text.includes('Maximum update depth exceeded') || text.includes('error #185')) {
-       console.error('CRITICAL: DETECTED INFINITE LOOP ERROR (#185)');
+      console.error('CRITICAL: DETECTED INFINITE LOOP ERROR (#185)');
     }
   });
 
@@ -17,7 +17,7 @@ test('Boolean operations and Export pipeline exploration', async ({ page }) => {
       id: 'qa-user-id',
       email: 'qa@example.com',
       name: 'QA User',
-      plan: 'pro'
+      plan: 'pro',
     };
     window.localStorage.setItem('kreathief_qa_session', JSON.stringify(mockUser));
     window.localStorage.setItem('kreathief_onboarding_seen', 'true');
@@ -29,7 +29,7 @@ test('Boolean operations and Export pipeline exploration', async ({ page }) => {
     console.log('Waiting for editor root or intent overlay...');
     await page.waitForSelector('#editor-root, h1', { timeout: 15000 });
 
-    const skipIntentBtn = page.getByRole('button', { name: 'Skip — I\'ll figure it out' });
+    const skipIntentBtn = page.getByRole('button', { name: "Skip — I'll figure it out" });
     if (await skipIntentBtn.isVisible()) {
       console.log('Clicking Skip on CreativeIntentMode overlay');
       await skipIntentBtn.click({ force: true });
@@ -51,8 +51,8 @@ test('Boolean operations and Export pipeline exploration', async ({ page }) => {
   console.log('Opening Draw tab in Sidebar');
   const drawTab = page.getByRole('button', { name: 'Draw' });
   if (!(await drawTab.isVisible())) {
-      console.log('Draw tab not visible, clicking All Tools');
-      await page.getByLabel('Toggle All Tools').click();
+    console.log('Draw tab not visible, clicking All Tools');
+    await page.getByLabel('Toggle All Tools').click();
   }
   await drawTab.click();
 
@@ -62,8 +62,8 @@ test('Boolean operations and Export pipeline exploration', async ({ page }) => {
 
   const startBtn = page.getByRole('button', { name: 'Start', exact: true });
   if (await startBtn.isVisible()) {
-      console.log('Confirming start drawing');
-      await startBtn.click();
+    console.log('Confirming start drawing');
+    await startBtn.click();
   }
 
   const canvasContainer = page.locator('.canvas-container');
@@ -89,7 +89,7 @@ test('Boolean operations and Export pipeline exploration', async ({ page }) => {
   // Re-select tool if it was auto-deselected
   await vectorPenBtn.click();
   if (await startBtn.isVisible()) {
-      await startBtn.click();
+    await startBtn.click();
   }
 
   const startX2 = startX + 30;
@@ -104,21 +104,21 @@ test('Boolean operations and Export pipeline exploration', async ({ page }) => {
   // 2. Select both paths
   console.log('Selecting both paths via evaluate (force state)');
   await page.evaluate(() => {
-      const s = (window as any).useStore.getState();
-      const ab = s.artboards.find((a: any) => a.id === s.activeArtboardId);
-      const ids = ab.layers.map((l: any) => l.id);
-      s.setSelectedLayerIds(ids);
+    const s = (window as any).useStore.getState();
+    const ab = s.artboards.find((a: any) => a.id === s.activeArtboardId);
+    const ids = ab.layers.map((l: any) => l.id);
+    s.setSelectedLayerIds(ids);
   });
 
   // Verify selection
   const appState = await page.evaluate(() => {
-      const s = (window as any).useStore.getState();
-      const ab = s.artboards.find((a: any) => a.id === s.activeArtboardId);
-      return {
-          layerCount: ab?.layers?.length || 0,
-          selectedCount: s.selectedLayerIds?.length || 0,
-          layers: ab?.layers?.map((l: any) => ({ id: l.id, type: l.type }))
-      };
+    const s = (window as any).useStore.getState();
+    const ab = s.artboards.find((a: any) => a.id === s.activeArtboardId);
+    return {
+      layerCount: ab?.layers?.length || 0,
+      selectedCount: s.selectedLayerIds?.length || 0,
+      layers: ab?.layers?.map((l: any) => ({ id: l.id, type: l.type })),
+    };
   });
   console.log('App State after force selection:', appState);
 
@@ -127,21 +127,21 @@ test('Boolean operations and Export pipeline exploration', async ({ page }) => {
   const unionBtn = page.getByTitle('Union', { exact: true });
 
   try {
-      await unionBtn.waitFor({ state: 'visible', timeout: 5000 });
-      console.log('Union button found, hovering');
-      await unionBtn.hover();
+    await unionBtn.waitFor({ state: 'visible', timeout: 5000 });
+    console.log('Union button found, hovering');
+    await unionBtn.hover();
 
-      // Take screenshot of preview
-      await page.screenshot({ path: 'screenshots/boolean_preview_hover.png' });
+    // Take screenshot of preview
+    await page.screenshot({ path: 'screenshots/boolean_preview_hover.png' });
 
-      // 4. Perform Boolean Union
-      console.log('Performing Boolean Union');
-      await unionBtn.click();
+    // 4. Perform Boolean Union
+    console.log('Performing Boolean Union');
+    await unionBtn.click();
 
-      await page.screenshot({ path: 'screenshots/boolean_result.png' });
+    await page.screenshot({ path: 'screenshots/boolean_result.png' });
   } catch (e) {
-      console.warn('Union button not found despite selection');
-      await page.screenshot({ path: 'screenshots/union_button_missing.png' });
+    console.warn('Union button not found despite selection');
+    await page.screenshot({ path: 'screenshots/union_button_missing.png' });
   }
 
   // 5. Trigger Export Modal
@@ -152,34 +152,34 @@ test('Boolean operations and Export pipeline exploration', async ({ page }) => {
 
   const exportModal = page.locator('[data-testid="export-modal"]');
   try {
-      await expect(exportModal).toBeVisible({ timeout: 5000 });
+    await expect(exportModal).toBeVisible({ timeout: 5000 });
 
-      // Change format to JPEG
-      console.log('Changing format to JPEG');
-      await page.locator('[data-testid="export-jpeg-btn"]').click();
+    // Change format to JPEG
+    console.log('Changing format to JPEG');
+    await page.locator('[data-testid="export-jpeg-btn"]').click();
 
-      // Adjust quality slider
-      console.log('Adjusting quality slider');
-      const qualitySlider = page.locator('[data-testid="export-quality-slider"]');
-      await qualitySlider.fill('80');
+    // Adjust quality slider
+    console.log('Adjusting quality slider');
+    const qualitySlider = page.locator('[data-testid="export-quality-slider"]');
+    await qualitySlider.fill('80');
 
-      // 6. Perform Export
-      console.log('Clicking Download');
-      const downloadBtn = page.locator('[data-testid="download-btn"]');
+    // 6. Perform Export
+    console.log('Clicking Download');
+    const downloadBtn = page.locator('[data-testid="download-btn"]');
 
-      const [download] = await Promise.all([
-        page.waitForEvent('download', { timeout: 10000 }).catch(() => null),
-        downloadBtn.click(),
-      ]);
+    const [download] = await Promise.all([
+      page.waitForEvent('download', { timeout: 10000 }).catch(() => null),
+      downloadBtn.click(),
+    ]);
 
-      if (download) {
-        console.log('Download started:', download.suggestedFilename());
-      } else {
-        console.log('Download event not caught, checking for errors');
-      }
+    if (download) {
+      console.log('Download started:', download.suggestedFilename());
+    } else {
+      console.log('Download event not caught, checking for errors');
+    }
   } catch (e) {
-      console.warn('Export modal not visible or failed');
-      await page.screenshot({ path: 'screenshots/export_failed.png' });
+    console.warn('Export modal not visible or failed');
+    await page.screenshot({ path: 'screenshots/export_failed.png' });
   }
 
   await page.screenshot({ path: 'screenshots/post_export.png' });

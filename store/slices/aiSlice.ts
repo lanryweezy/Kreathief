@@ -1,7 +1,6 @@
 import { log } from '../../utils/log';
 import type { StoreState } from '../useStore';
 
-
 import { StateCreator } from 'zustand';
 import { AspectRatio, GenerationQuality, ShapeLayer, ImageLayer, Layer, TextLayer } from '../../types';
 import { vectorizerService, VectorizeOptions } from '../../services/vectorizerService';

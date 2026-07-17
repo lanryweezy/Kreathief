@@ -59,9 +59,11 @@
 **Action:** Always include a structured `log.error` call before falling back to default values in catch blocks, ensuring the error object and relevant context (like the bad JSON string or evaluation expression) are recorded.
 
 ## 2024-05-27 - Silent History Corruption in State Time Travel
-**Learning:** Found an empty catch block in `undo` and `redo` operations (`store/slices/historySlice.ts`) when applying JSON patches to reconstruct history states. While a toast notification was presented to the user, the actual failure (often due to `fast-json-patch` applying misaligned diffs) was silently swallowed. Without logs, we had no way of knowing *why* the patch failed or the context of the history stack when the corruption occurred.
+
+**Learning:** Found an empty catch block in `undo` and `redo` operations (`store/slices/historySlice.ts`) when applying JSON patches to reconstruct history states. While a toast notification was presented to the user, the actual failure (often due to `fast-json-patch` applying misaligned diffs) was silently swallowed. Without logs, we had no way of knowing _why_ the patch failed or the context of the history stack when the corruption occurred.
 **Action:** Added structured logging to capture `action`, `snapshotIdx`, and the history lengths when an `applyPatch` operation fails so that we can reproduce the state corruption.
 
 ## 2026-07-11 - Modernized Identifier Generation in Unit Tests
+
 **Learning:** Found pre-existing unit tests in `tests/unit/utils/layers.test.ts` that expected a legacy ID format (`prefix_timestamp_hash`). After migrating the application to `crypto.randomUUID()`, these tests failed because the new format (`prefix_uuid`) didn't match the hardcoded regex in the test file.
 **Action:** Updated unit test regex patterns to correctly validate the standard UUIDv4 format, ensuring test suite alignment with the new identifier hardening strategy.

@@ -78,7 +78,12 @@ export interface UISlice {
   addTag: (tag: string) => void;
   removeTag: (tag: string) => void;
   setIsPublished: (isPublished: boolean) => void;
-  addToast: (message: string, type?: ToastType, action?: { label: string; onClick: () => void }, details?: string) => void;
+  addToast: (
+    message: string,
+    type?: ToastType,
+    action?: { label: string; onClick: () => void },
+    details?: string
+  ) => void;
   removeToast: (id: string) => void;
   onCrop: (id: string) => Promise<void>;
   setIsCropMode: (active: boolean) => void;
@@ -167,7 +172,9 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   deleteUpload: (index) =>
     set((state: any) => {
       const url = state.uploads[index];
-      if (url?.startsWith('blob:')) { URL.revokeObjectURL(url); }
+      if (url?.startsWith('blob:')) {
+        URL.revokeObjectURL(url);
+      }
       return { uploads: state.uploads.filter((_: any, i: number) => i !== index) };
     }),
   setIsShapeBuilderActive: (isShapeBuilderActive) => set({ isShapeBuilderActive }),
@@ -222,12 +229,18 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
     let layer: any = null;
     for (const ab of state.artboards) {
       const found = ab.layers.find((l: any) => l.id === id);
-      if (found) { layer = found; break; }
+      if (found) {
+        layer = found;
+        break;
+      }
     }
     if (!layer || layer.type !== 'image') return;
     const img = new Image();
     img.src = layer.src;
-    await new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; });
+    await new Promise((resolve) => {
+      img.onload = resolve;
+      img.onerror = resolve;
+    });
     const naturalWidth = img.width || (layer as ImageLayer).width;
     const naturalHeight = img.height || (layer as ImageLayer).height;
     if (!(layer as ImageLayer).naturalWidth) {
@@ -251,7 +264,10 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
     let layer: any = null;
     for (const ab of artboards) {
       const found = ab.layers.find((l: any) => l.id === croppingLayerId);
-      if (found) { layer = found; break; }
+      if (found) {
+        layer = found;
+        break;
+      }
     }
     if (!layer || layer.type !== 'image') return;
     saveToHistory?.();
@@ -287,19 +303,36 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   setLassoPoints: (lassoPoints) => set({ lassoPoints }),
   applyLasso: async () => {
     const { croppingLayerId, lassoPoints, artboards, saveToHistory } = get();
-    if (!croppingLayerId || lassoPoints.length < 3) { set({ isLassoMode: false, lassoPoints: [] }); return; }
+    if (!croppingLayerId || lassoPoints.length < 3) {
+      set({ isLassoMode: false, lassoPoints: [] });
+      return;
+    }
     let layer: any = null;
     for (const ab of artboards) {
       const found = ab.layers.find((l: any) => l.id === croppingLayerId);
-      if (found) { layer = found; break; }
+      if (found) {
+        layer = found;
+        break;
+      }
     }
-    if (!layer || layer.type !== 'image') { set({ isLassoMode: false, lassoPoints: [], croppingLayerId: null }); return; }
+    if (!layer || layer.type !== 'image') {
+      set({ isLassoMode: false, lassoPoints: [], croppingLayerId: null });
+      return;
+    }
     saveToHistory?.();
-    const pathData = `M ${lassoPoints[0].x} ${lassoPoints[0].y} ` + lassoPoints.slice(1).map((p: { x: number; y: number }) => `L ${p.x} ${p.y}`).join(' ') + ' Z';
+    const pathData =
+      `M ${lassoPoints[0].x} ${lassoPoints[0].y} ` +
+      lassoPoints
+        .slice(1)
+        .map((p: { x: number; y: number }) => `L ${p.x} ${p.y}`)
+        .join(' ') +
+      ' Z';
     set((state: any) => ({
       artboards: state.artboards.map((a: any) => ({
         ...a,
-        layers: a.layers.map((l: any) => l.id === croppingLayerId ? { ...l, maskPath: pathData, maskType: 'lasso' } : l),
+        layers: a.layers.map((l: any) =>
+          l.id === croppingLayerId ? { ...l, maskPath: pathData, maskType: 'lasso' } : l
+        ),
       })),
       isLassoMode: false,
       lassoPoints: [],
@@ -322,7 +355,9 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
           set((state: any) => {
             const localIds = new Set(state.comments.map((c: any) => c.id));
             const newFromDb = dbComments.filter((c) => !localIds.has(c.id));
-            if (newFromDb.length > 0) { return { comments: [...state.comments, ...newFromDb] }; }
+            if (newFromDb.length > 0) {
+              return { comments: [...state.comments, ...newFromDb] };
+            }
             return {};
           });
         }

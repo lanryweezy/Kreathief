@@ -105,25 +105,27 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
     artboards,
     activeArtboardId,
     addImageLayer,
-    lastGeneratedImageUrl
-  } = useStore(useShallow((state) => ({
-    mode: state.mode,
-    setMode: state.setMode,
-    prompt: state.prompt,
-    setPrompt: state.setPrompt,
-    aspectRatio: state.aspectRatio,
-    setAspectRatio: state.setAspectRatio,
-    isProcessing: state.isProcessing,
-    isGenerating: state.isGenerating,
-    addToast: state.addToast,
-    quality: state.quality,
-    setQuality: state.setQuality,
-    selectedLayerIds: state.selectedLayerIds,
-    artboards: state.artboards,
-    activeArtboardId: state.activeArtboardId,
-    addImageLayer: state.addImageLayer,
-    lastGeneratedImageUrl: state.lastGeneratedImageUrl
-  })));
+    lastGeneratedImageUrl,
+  } = useStore(
+    useShallow((state) => ({
+      mode: state.mode,
+      setMode: state.setMode,
+      prompt: state.prompt,
+      setPrompt: state.setPrompt,
+      aspectRatio: state.aspectRatio,
+      setAspectRatio: state.setAspectRatio,
+      isProcessing: state.isProcessing,
+      isGenerating: state.isGenerating,
+      addToast: state.addToast,
+      quality: state.quality,
+      setQuality: state.setQuality,
+      selectedLayerIds: state.selectedLayerIds,
+      artboards: state.artboards,
+      activeArtboardId: state.activeArtboardId,
+      addImageLayer: state.addImageLayer,
+      lastGeneratedImageUrl: state.lastGeneratedImageUrl,
+    }))
+  );
 
   const layers = artboards?.find((a) => a.id === activeArtboardId)?.layers || [];
   const selectedLayerId = selectedLayerIds[selectedLayerIds.length - 1] || null;

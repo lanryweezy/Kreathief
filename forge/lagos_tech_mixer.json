@@ -183,13 +183,7 @@
     "templateName": "Modern Tech Mixer Post Event",
     "shortDescription": "Promote your tech meetup with a modern, high-contrast Instagram post.",
     "longDescription": "Promote your tech meetup or networking event with a modern, high-contrast post. Perfect for tech meetups, founder mixers, and startup events. Features neon green accents.",
-    "tags": [
-      "Business",
-      "Instagram post",
-      "Professional",
-      "African Market",
-      "Events"
-    ],
+    "tags": ["Business", "Instagram post", "Professional", "African Market", "Events"],
     "searchKeywords": [
       "tech event flyer",
       "startup mixer",
@@ -208,23 +202,10 @@
       "slug": "modern-tech-mixer-post-event"
     },
     "personalisationSignals": {
-      "industry": [
-        "technology",
-        "Business",
-        "startups"
-      ],
-      "audienceType": [
-        "event organiser",
-        "community manager",
-        "startup founder",
-        "marketing professional"
-      ],
+      "industry": ["technology", "Business", "startups"],
+      "audienceType": ["event organiser", "community manager", "startup founder", "marketing professional"],
       "experienceLevel": "beginner-friendly"
     },
-    "relatedTemplates": [
-      "clean-tech-pitch-cover",
-      "clean-luxury-estate-post-sale",
-      "vibrant-food-fest-post-promo"
-    ]
+    "relatedTemplates": ["clean-tech-pitch-cover", "clean-luxury-estate-post-sale", "vibrant-food-fest-post-promo"]
   }
 }

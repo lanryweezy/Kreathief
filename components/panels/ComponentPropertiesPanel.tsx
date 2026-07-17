@@ -22,37 +22,33 @@ export const ComponentPropertiesPanel: React.FC = () => {
     getComponentDefinition,
     addVariant,
     applyVariant,
-    updateInstanceLayer
-  } = useStore(useShallow((state) => ({
-    selectedLayerIds: state.selectedLayerIds,
-    artboards: state.artboards,
-    convertToComponent: state.convertToComponent,
-    instantiateComponent: state.instantiateComponent,
-    detachInstance: state.detachInstance,
-    resetOverrides: state.resetOverrides,
-    swapInstance: state.swapInstance,
-    getComponentInstances: state.getComponentInstances,
-    getComponentDefinition: state.getComponentDefinition,
-    addVariant: state.addVariant,
-    applyVariant: state.applyVariant,
-    updateInstanceLayer: state.updateInstanceLayer
-  })));
+    updateInstanceLayer,
+  } = useStore(
+    useShallow((state) => ({
+      selectedLayerIds: state.selectedLayerIds,
+      artboards: state.artboards,
+      convertToComponent: state.convertToComponent,
+      instantiateComponent: state.instantiateComponent,
+      detachInstance: state.detachInstance,
+      resetOverrides: state.resetOverrides,
+      swapInstance: state.swapInstance,
+      getComponentInstances: state.getComponentInstances,
+      getComponentDefinition: state.getComponentDefinition,
+      addVariant: state.addVariant,
+      applyVariant: state.applyVariant,
+      updateInstanceLayer: state.updateInstanceLayer,
+    }))
+  );
 
   const [newVariantName, setNewVariantName] = useState('');
   const [showSwapPicker, setShowSwapPicker] = useState(false);
 
   // Get selected layer
   const selectedId = selectedLayerIds?.[0];
-  const selectedLayer = artboards
-    .flatMap((a: Artboard) => a.layers)
-    .find((l) => l.id === selectedId);
+  const selectedLayer = artboards.flatMap((a: Artboard) => a.layers).find((l) => l.id === selectedId);
 
   if (!selectedLayer) {
-    return (
-      <div className="p-4 text-center text-gray-500 text-xs">
-        Select a layer to view component properties
-      </div>
-    );
+    return <div className="p-4 text-center text-gray-500 text-xs">Select a layer to view component properties</div>;
   }
 
   const isMaster = !!selectedLayer.componentId;
@@ -65,14 +61,8 @@ export const ComponentPropertiesPanel: React.FC = () => {
       <div className="p-4 space-y-4">
         <div className="text-center">
           <Icons.Layers className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-          <p className="text-xs text-gray-400 mb-3">
-            Convert this layer into a reusable component
-          </p>
-          <Button
-            variant="primary"
-            onClick={() => convertToComponent(selectedLayer.id)}
-            className="w-full"
-          >
+          <p className="text-xs text-gray-400 mb-3">Convert this layer into a reusable component</p>
+          <Button variant="primary" onClick={() => convertToComponent(selectedLayer.id)} className="w-full">
             Create Component
           </Button>
         </div>
@@ -95,7 +85,9 @@ export const ComponentPropertiesPanel: React.FC = () => {
           </div>
           <div>
             <h3 className="text-xs font-bold text-white">Master Component</h3>
-            <p className="text-[10px] text-gray-400">{instances.length} instance{instances.length !== 1 ? 's' : ''}</p>
+            <p className="text-[10px] text-gray-400">
+              {instances.length} instance{instances.length !== 1 ? 's' : ''}
+            </p>
           </div>
         </div>
 
@@ -119,11 +111,7 @@ export const ComponentPropertiesPanel: React.FC = () => {
         )}
 
         {/* Create Instance Button */}
-        <Button
-          variant="accent"
-          onClick={() => instantiateComponent(componentId)}
-          className="w-full"
-        >
+        <Button variant="accent" onClick={() => instantiateComponent(componentId)} className="w-full">
           <Icons.Plus className="w-3.5 h-3.5 mr-1.5" />
           New Instance
         </Button>
@@ -205,10 +193,7 @@ export const ComponentPropertiesPanel: React.FC = () => {
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Overrides</span>
             <div className="flex flex-wrap gap-1">
               {overrides.map((prop) => (
-                <span
-                  key={prop}
-                  className="px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded text-[9px] font-mono"
-                >
+                <span key={prop} className="px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded text-[9px] font-mono">
                   {prop}
                 </span>
               ))}
@@ -228,20 +213,12 @@ export const ComponentPropertiesPanel: React.FC = () => {
             Reset to Master
           </Button>
 
-          <Button
-            variant="ghost"
-            onClick={() => detachInstance(selectedLayer.id)}
-            className="w-full"
-          >
+          <Button variant="ghost" onClick={() => detachInstance(selectedLayer.id)} className="w-full">
             <Icons.Scissors className="w-3.5 h-3.5 mr-1.5" />
             Detach Instance
           </Button>
 
-          <Button
-            variant="accent"
-            onClick={() => setShowSwapPicker(!showSwapPicker)}
-            className="w-full"
-          >
+          <Button variant="accent" onClick={() => setShowSwapPicker(!showSwapPicker)} className="w-full">
             <Icons.RefreshCw className="w-3.5 h-3.5 mr-1.5" />
             Swap Component
           </Button>
@@ -290,11 +267,11 @@ const SwapComponentPicker: React.FC<{
   onSelect: (masterId: string) => void;
   onCancel: () => void;
 }> = ({ currentMasterId, onSelect, onCancel }) => {
-  const {
-    artboards
-  } = useStore(useShallow((state) => ({
-    artboards: state.artboards
-  })));
+  const { artboards } = useStore(
+    useShallow((state) => ({
+      artboards: state.artboards,
+    }))
+  );
 
   // Find all master components
   const allComponents = artboards.flatMap((a: Artboard) =>

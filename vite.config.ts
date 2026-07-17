@@ -87,6 +87,5 @@ export default defineConfig(({ mode }) => {
       include: ['onnxruntime-web'],
       exclude: ['@imgly/background-removal'],
     },
-
   };
 });

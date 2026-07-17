@@ -5,7 +5,9 @@ import { useStore } from '../store/useStore';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Icons } from '../constants';
 
-const TextEffectsPanel = React.lazy(() => import('./panels/TextEffectsPanel').then((m) => ({ default: m.TextEffectsPanel })));
+const TextEffectsPanel = React.lazy(() =>
+  import('./panels/TextEffectsPanel').then((m) => ({ default: m.TextEffectsPanel }))
+);
 const TemplatesPanel = React.lazy(() => import('./panels/TemplatesPanel'));
 const BrandPanel = React.lazy(() => import('./panels/BrandPanel'));
 const VectorizerPanel = React.lazy(() => import('./panels/VectorizerPanel'));

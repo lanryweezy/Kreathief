@@ -657,9 +657,13 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
               }
               setShowEyedropper(false);
             }}
-            onKeyDown={(e) => { if (e.key === 'Escape') setShowEyedropper(false); }}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setShowEyedropper(false);
+            }}
             tabIndex={-1}
-            ref={(el) => { if (el) el.focus(); }}
+            ref={(el) => {
+              if (el) el.focus();
+            }}
           >
             {/* Instructions */}
             <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-surface-dark-2 border border-gray-700 rounded-xl shadow-2xl px-6 py-4 flex items-center gap-6 pointer-events-none">

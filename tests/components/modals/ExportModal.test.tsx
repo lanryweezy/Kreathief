@@ -22,11 +22,7 @@ vi.mock('../../../store/useStore', () => ({
 describe('ExportModal', () => {
   it('renders without crashing', () => {
     render(
-      <ExportModal
-        onClose={vi.fn()}
-        onExport={vi.fn()}
-        currentSize={{ width: 800, height: 600, name: 'Canvas' }}
-      />
+      <ExportModal onClose={vi.fn()} onExport={vi.fn()} currentSize={{ width: 800, height: 600, name: 'Canvas' }} />
     );
   });
 });

@@ -9,10 +9,7 @@ let wireIdCounter = 0;
 const genNodeId = () => `node-${++nodeIdCounter}`;
 const genWireId = () => `wire-${++wireIdCounter}`;
 
-const buildAdjacencyList = (
-  nodes: GraphNode[],
-  wires: GraphWire[]
-): Map<string, string[]> => {
+const buildAdjacencyList = (nodes: GraphNode[], wires: GraphWire[]): Map<string, string[]> => {
   const adj = new Map<string, string[]>();
   for (const node of nodes) {
     adj.set(node.id, []);
@@ -159,13 +156,10 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
       graph: {
         ...state.graph,
         nodes: state.graph.nodes.filter((n) => n.id !== nodeId),
-        wires: state.graph.wires.filter(
-          (w) => w.fromNode !== nodeId && w.toNode !== nodeId
-        ),
+        wires: state.graph.wires.filter((w) => w.fromNode !== nodeId && w.toNode !== nodeId),
         updatedAt: Date.now(),
       },
-      selectedNodeId:
-        state.selectedNodeId === nodeId ? null : state.selectedNodeId,
+      selectedNodeId: state.selectedNodeId === nodeId ? null : state.selectedNodeId,
     }));
   },
 
@@ -173,9 +167,7 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
     set((state) => ({
       graph: {
         ...state.graph,
-        nodes: state.graph.nodes.map((n) =>
-          n.id === nodeId ? { ...n, x, y } : n
-        ),
+        nodes: state.graph.nodes.map((n) => (n.id === nodeId ? { ...n, x, y } : n)),
         updatedAt: Date.now(),
       },
     }));
@@ -184,17 +176,11 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
   addWire: (fromNode, fromPort, toNode, toPort) => {
     const { graph } = get();
     const exists = graph.wires.some(
-      (w) =>
-        w.fromNode === fromNode &&
-        w.fromPort === fromPort &&
-        w.toNode === toNode &&
-        w.toPort === toPort
+      (w) => w.fromNode === fromNode && w.fromPort === fromPort && w.toNode === toNode && w.toPort === toPort
     );
     if (exists || fromNode === toNode) return;
 
-    const dominated = graph.wires.some(
-      (w) => w.toNode === toNode && w.toPort === toPort
-    );
+    const dominated = graph.wires.some((w) => w.toNode === toNode && w.toPort === toPort);
 
     const newWire: GraphWire = {
       id: genWireId(),
@@ -208,9 +194,7 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
       graph: {
         ...state.graph,
         wires: dominated
-          ? [...state.graph.wires.filter(
-              (w) => !(w.toNode === toNode && w.toPort === toPort)
-            ), newWire]
+          ? [...state.graph.wires.filter((w) => !(w.toNode === toNode && w.toPort === toPort)), newWire]
           : [...state.graph.wires, newWire],
         updatedAt: Date.now(),
       },
@@ -224,8 +208,7 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
         wires: state.graph.wires.filter((w) => w.id !== wireId),
         updatedAt: Date.now(),
       },
-      selectedWireId:
-        state.selectedWireId === wireId ? null : state.selectedWireId,
+      selectedWireId: state.selectedWireId === wireId ? null : state.selectedWireId,
     }));
   },
 
@@ -241,9 +224,7 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
     set((state) => ({
       graph: {
         ...state.graph,
-        nodes: state.graph.nodes.map((n) =>
-          n.id === nodeId ? { ...n, settings: { ...n.settings, ...settings } } : n
-        ),
+        nodes: state.graph.nodes.map((n) => (n.id === nodeId ? { ...n, settings: { ...n.settings, ...settings } } : n)),
         updatedAt: Date.now(),
       },
     }));
@@ -283,15 +264,29 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
               set((state) => ({
                 nodeOutputs: {
                   ...state.nodeOutputs,
-                  [nodeId]: { image: { src: `https://placehold.co/512x512/1a1a2e/7d2ae8?text=Generating+Step+5...`, width: 512, height: 512, isBlur: true } }
-                }
+                  [nodeId]: {
+                    image: {
+                      src: `https://placehold.co/512x512/1a1a2e/7d2ae8?text=Generating+Step+5...`,
+                      width: 512,
+                      height: 512,
+                      isBlur: true,
+                    },
+                  },
+                },
               }));
             } else if (step === 12) {
               set((state) => ({
                 nodeOutputs: {
                   ...state.nodeOutputs,
-                  [nodeId]: { image: { src: `https://placehold.co/512x512/1a1a2e/00c4cc?text=Generating+Step+12...`, width: 512, height: 512, isBlur: true } }
-                }
+                  [nodeId]: {
+                    image: {
+                      src: `https://placehold.co/512x512/1a1a2e/00c4cc?text=Generating+Step+12...`,
+                      width: 512,
+                      height: 512,
+                      isBlur: true,
+                    },
+                  },
+                },
               }));
             }
             await new Promise((resolve) => setTimeout(resolve, 60));

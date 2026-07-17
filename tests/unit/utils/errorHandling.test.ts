@@ -35,7 +35,7 @@ describe('errorHandling utils', () => {
 
     Object.defineProperty(global.navigator, 'userAgent', {
       value: 'test-agent',
-      configurable: true
+      configurable: true,
     });
   });
 
@@ -95,10 +95,7 @@ describe('errorHandling utils', () => {
       const error = new Error('Test error');
       logError(error, { action: 'test' });
 
-      expect(global.navigator.sendBeacon).toHaveBeenCalledWith(
-        '/api/error-log',
-        expect.any(String)
-      );
+      expect(global.navigator.sendBeacon).toHaveBeenCalledWith('/api/error-log', expect.any(String));
       const calledArgs = (global.navigator.sendBeacon as any).mock.calls[0];
       const parsedInfo = JSON.parse(calledArgs[1]);
       expect(parsedInfo.message).toBe('Test error');
@@ -201,7 +198,9 @@ describe('errorHandling utils', () => {
 
     it('returns the default value and logs if function throws', () => {
       import.meta.env.DEV = true;
-      const fn = () => { throw new Error('fail'); };
+      const fn = () => {
+        throw new Error('fail');
+      };
       const result = safeExecute(fn, 'default');
       expect(result).toBe('default');
       expect(log.error).toHaveBeenCalled();
@@ -216,23 +215,29 @@ describe('errorHandling utils', () => {
     });
 
     it('returns the fallback value if provided and function throws', async () => {
-      const fn = async () => { throw new Error('fail'); };
+      const fn = async () => {
+        throw new Error('fail');
+      };
       const result = await withErrorHandling(fn, 'test action', 'fallback');
       expect(result).toBe('fallback');
     });
 
     it('throws a standardized AppError if no fallback provided', async () => {
-      const fn = async () => { throw new Error('fail'); };
+      const fn = async () => {
+        throw new Error('fail');
+      };
       await expect(withErrorHandling(fn, 'test action')).rejects.toThrow('fail');
       await expect(withErrorHandling(fn, 'test action')).rejects.toMatchObject({
         name: 'AppError',
         code: 'ASYNC_OPERATION_FAILED',
-        severity: 'error'
+        severity: 'error',
       });
     });
 
     it('handles non-Error objects thrown', async () => {
-      const fn = async () => { throw 'string error'; };
+      const fn = async () => {
+        throw 'string error';
+      };
       await expect(withErrorHandling(fn, 'test action')).rejects.toThrow('Unknown error occurred');
     });
   });
@@ -323,9 +328,7 @@ describe('errorHandling utils', () => {
     it('retries on retryable error and succeeds', async () => {
       const error = new Error('timeout');
       error.name = 'TimeoutError';
-      const fn = vi.fn()
-        .mockRejectedValueOnce(error)
-        .mockResolvedValueOnce('success');
+      const fn = vi.fn().mockRejectedValueOnce(error).mockResolvedValueOnce('success');
 
       const promise = retryWithBackoff(fn, 3, 100);
 

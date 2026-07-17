@@ -162,7 +162,9 @@ export const useEditorLogic = (initialProject?: Project) => {
 
   const fontsKey = useMemo(() => {
     const textLayers = layers.filter((l) => l.type === 'text') as TextLayer[];
-    return Array.from(new Set(textLayers.map((l) => l.fontFamily))).sort().join(',');
+    return Array.from(new Set(textLayers.map((l) => l.fontFamily)))
+      .sort()
+      .join(',');
   }, [layers]);
 
   useEffect(() => {

@@ -162,9 +162,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
           <div className="space-y-6">
             <div className="space-y-3">
               <div className="flex justify-between items-center mb-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
-                  Position (X / Y)
-                </span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Position (X / Y)</span>
                 <span className="text-[10px] font-mono text-brand-600">
                   {Math.round(placement.left)}%, {Math.round(placement.top)}%
                 </span>
@@ -396,9 +394,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
             </div>
 
             <div className="space-y-3">
-              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">
-                Scale / Rotate
-              </span>
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Scale / Rotate</span>
               <div className="grid grid-cols-2 gap-2">
                 <input
                   type="range"
@@ -468,9 +464,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
         {activeTab === 'effects' && (
           <div className="space-y-6 animate-in fade-in duration-300">
             <div className="space-y-3">
-              <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">
-                Blend Mode
-              </label>
+              <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Blend Mode</label>
               <div className="grid grid-cols-1 gap-2">
                 {['source-over', 'multiply', 'screen', 'overlay', 'soft-light'].map((mode) => (
                   <button

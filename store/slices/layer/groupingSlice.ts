@@ -16,33 +16,60 @@ export const createGroupingSlice: StateCreator<StoreState, [], [], Partial<Layer
     const groupName = `Group ${groupCount + 1}`;
 
     const layerIndexMap = new Map<string, number>();
-    activeArtboard?.layers.forEach((l: Layer, idx: number) => { layerIndexMap.set(l.id, idx); });
+    activeArtboard?.layers.forEach((l: Layer, idx: number) => {
+      layerIndexMap.set(l.id, idx);
+    });
 
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => {
         if (a.id !== activeArtboardId) return a;
-        const indices = selectedLayerIds.map((id: string) => layerIndexMap.get(id)).filter((idx: number | undefined): idx is number => idx !== undefined);
+        const indices = selectedLayerIds
+          .map((id: string) => layerIndexMap.get(id))
+          .filter((idx: number | undefined): idx is number => idx !== undefined);
         if (indices.length === 0) return a;
         const minIndex = Math.min(...indices);
         const selectedLayers = a.layers.filter((l) => selectedLayerIds.includes(l.id));
-        let minX = Infinity; let minY = Infinity; let maxX = -Infinity; let maxY = -Infinity;
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
         selectedLayers.forEach((l) => {
           const lw = (l as any).width || 0;
           const lh = (l as any).height || 0;
-          minX = Math.min(minX, l.x); minY = Math.min(minY, l.y);
-          maxX = Math.max(maxX, l.x + lw); maxY = Math.max(maxY, l.y + lh);
+          minX = Math.min(minX, l.x);
+          minY = Math.min(minY, l.y);
+          maxX = Math.max(maxX, l.x + lw);
+          maxY = Math.max(maxY, l.y + lh);
         });
 
         const groupMarker: Layer = {
-          id: newGroupId, type: 'shape', name: groupName, x: minX, y: minY,
-          width: maxX - minX, height: maxY - minY, rotation: 0, opacity: 1,
-          locked: false, visible: true, groupId: undefined, isGroup: true,
-          isExpanded: true, color: 'transparent',
+          id: newGroupId,
+          type: 'shape',
+          name: groupName,
+          x: minX,
+          y: minY,
+          width: maxX - minX,
+          height: maxY - minY,
+          rotation: 0,
+          opacity: 1,
+          locked: false,
+          visible: true,
+          groupId: undefined,
+          isGroup: true,
+          isExpanded: true,
+          color: 'transparent',
         } as any;
 
         const remainingLayers = a.layers.filter((l: Layer) => !selectedLayerIds.includes(l.id));
-        const groupedLayers = a.layers.filter((l: Layer) => selectedLayerIds.includes(l.id)).map((l: Layer) => ({ ...l, groupId: newGroupId }));
-        const newLayers = [...remainingLayers.slice(0, minIndex), groupMarker, ...groupedLayers, ...remainingLayers.slice(minIndex)];
+        const groupedLayers = a.layers
+          .filter((l: Layer) => selectedLayerIds.includes(l.id))
+          .map((l: Layer) => ({ ...l, groupId: newGroupId }));
+        const newLayers = [
+          ...remainingLayers.slice(0, minIndex),
+          groupMarker,
+          ...groupedLayers,
+          ...remainingLayers.slice(minIndex),
+        ];
         return { ...a, layers: newLayers };
       }),
       selectedLayerIds: [newGroupId],
@@ -60,13 +87,15 @@ export const createGroupingSlice: StateCreator<StoreState, [], [], Partial<Layer
         const layersToUngroup = a.layers.filter((l: Layer) => selectedLayerIds.includes(l.id) && l.groupId);
         if (layersToUngroup.length === 0) return a;
         const groupIdsToUngroup = Array.from(new Set(layersToUngroup.map((l: Layer) => l.groupId!)));
-        const newLayers = a.layers.filter((l: Layer) => !groupIdsToUngroup.includes(l.id)).map((l: Layer) => {
-          if (groupIdsToUngroup.includes(l.groupId!)) {
-            const { groupId: _groupId, ...rest } = l;
-            return rest as Layer;
-          }
-          return l;
-        });
+        const newLayers = a.layers
+          .filter((l: Layer) => !groupIdsToUngroup.includes(l.id))
+          .map((l: Layer) => {
+            if (groupIdsToUngroup.includes(l.groupId!)) {
+              const { groupId: _groupId, ...rest } = l;
+              return rest as Layer;
+            }
+            return l;
+          });
         return { ...a, layers: newLayers };
       }),
       selectedLayerIds: [],

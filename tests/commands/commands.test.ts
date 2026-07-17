@@ -5,9 +5,19 @@ import { Layer } from '../../types';
 
 function makeLayer(id: string, x = 0, y = 0): Layer {
   return {
-    id, type: 'shape', name: `Layer ${id}`, x, y,
-    width: 100, height: 100, rotation: 0, opacity: 1,
-    locked: false, visible: true, color: '#ff0000', cornerRadius: 0,
+    id,
+    type: 'shape',
+    name: `Layer ${id}`,
+    x,
+    y,
+    width: 100,
+    height: 100,
+    rotation: 0,
+    opacity: 1,
+    locked: false,
+    visible: true,
+    color: '#ff0000',
+    cornerRadius: 0,
   } as Layer;
 }
 
@@ -16,16 +26,30 @@ function makeStore(layers: Layer[]) {
   const updateLayer = vi.fn((id: string, props: Partial<Layer>) => {
     currentLayers = currentLayers.map((l) => (l.id === id ? { ...l, ...props } : l));
   });
-  const deleteLayer = vi.fn((id: string) => { currentLayers = currentLayers.filter((l) => l.id !== id); });
-  const setLayers = vi.fn((l: Layer[]) => { currentLayers = l; });
+  const deleteLayer = vi.fn((id: string) => {
+    currentLayers = currentLayers.filter((l) => l.id !== id);
+  });
+  const setLayers = vi.fn((l: Layer[]) => {
+    currentLayers = l;
+  });
   const setSelectedLayerIds = vi.fn();
   return {
     getState: () => ({
       artboards: [{ id: 'ab1', name: 'AB', x: 0, y: 0, width: 800, height: 600, layers: currentLayers }],
-      activeArtboardId: 'ab1', updateLayer, deleteLayer, setLayers, setSelectedLayerIds,
-      beginBatch: vi.fn(), endBatch: vi.fn(), saveToHistory: vi.fn(),
+      activeArtboardId: 'ab1',
+      updateLayer,
+      deleteLayer,
+      setLayers,
+      setSelectedLayerIds,
+      beginBatch: vi.fn(),
+      endBatch: vi.fn(),
+      saveToHistory: vi.fn(),
     }),
-    _layers: () => currentLayers, updateLayer, deleteLayer, setLayers, setSelectedLayerIds,
+    _layers: () => currentLayers,
+    updateLayer,
+    deleteLayer,
+    setLayers,
+    setSelectedLayerIds,
   };
 }
 
@@ -44,7 +68,8 @@ describe('MoveCommand', () => {
   });
 
   it('does not move locked layer', () => {
-    const l = makeLayer('l1', 50, 60); (l as any).locked = true;
+    const l = makeLayer('l1', 50, 60);
+    (l as any).locked = true;
     const store = makeStore([l]);
     new MoveCommand(store, 'l1', 10, 20).execute();
     expect(store.updateLayer).not.toHaveBeenCalled();

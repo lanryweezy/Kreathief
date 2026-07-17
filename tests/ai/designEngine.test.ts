@@ -1,35 +1,61 @@
 import { describe, it, expect } from 'vitest';
-import {
-  analyzeDesign,
-  applyDesignIntent,
-  generateLayoutVariants,
-  optimizeForPlatform,
-} from '../../ai/designEngine';
+import { analyzeDesign, applyDesignIntent, generateLayoutVariants, optimizeForPlatform } from '../../ai/designEngine';
 import type { Artboard, TextLayer, ShapeLayer } from '../../types';
 
 function makeText(overrides: Partial<TextLayer> = {}): TextLayer {
   return {
-    id: 't1', type: 'text', text: 'Hello', x: 0, y: 0, width: 100, height: 40,
-    rotation: 0, opacity: 1, locked: false, visible: true,
-    fontSize: 24, fontWeight: '400', fontStyle: 'normal', textDecoration: 'none',
-    color: '#000000', fontFamily: 'Arial', textAlign: 'left',
-    letterSpacing: 0, lineHeight: 1.2, textTransform: 'none',
+    id: 't1',
+    type: 'text',
+    text: 'Hello',
+    x: 0,
+    y: 0,
+    width: 100,
+    height: 40,
+    rotation: 0,
+    opacity: 1,
+    locked: false,
+    visible: true,
+    fontSize: 24,
+    fontWeight: '400',
+    fontStyle: 'normal',
+    textDecoration: 'none',
+    color: '#000000',
+    fontFamily: 'Arial',
+    textAlign: 'left',
+    letterSpacing: 0,
+    lineHeight: 1.2,
+    textTransform: 'none',
     ...overrides,
   };
 }
 
 function makeShape(overrides: Partial<ShapeLayer> = {}): ShapeLayer {
   return {
-    id: 's1', type: 'rectangle', color: '#ff0000', cornerRadius: 0,
-    x: 0, y: 0, width: 100, height: 100, rotation: 0, opacity: 1,
-    locked: false, visible: true,
+    id: 's1',
+    type: 'rectangle',
+    color: '#ff0000',
+    cornerRadius: 0,
+    x: 0,
+    y: 0,
+    width: 100,
+    height: 100,
+    rotation: 0,
+    opacity: 1,
+    locked: false,
+    visible: true,
     ...overrides,
   };
 }
 
 function makeArtboard(layers: Artboard['layers'] = [], overrides: Partial<Artboard> = {}): Artboard {
   return {
-    id: 'ab1', name: 'Test', x: 0, y: 0, width: 500, height: 500, layers,
+    id: 'ab1',
+    name: 'Test',
+    x: 0,
+    y: 0,
+    width: 500,
+    height: 500,
+    layers,
     ...overrides,
   };
 }
@@ -57,10 +83,7 @@ describe('analyzeDesign', () => {
   });
 
   it('suggests alignment when text layers have mixed alignment', () => {
-    const layers = [
-      makeText({ id: 't1', textAlign: 'left' }),
-      makeText({ id: 't2', textAlign: 'right' }),
-    ];
+    const layers = [makeText({ id: 't1', textAlign: 'left' }), makeText({ id: 't2', textAlign: 'right' })];
     const result = analyzeDesign([], layers);
     expect(result.suggestions).toContain('Align text elements');
   });
@@ -155,9 +178,23 @@ describe('generateLayoutVariants', () => {
 
 describe('optimizeForPlatform', () => {
   const ab = makeArtboard([
-    makeText({ id: 't1', fontSize: 16, fontWeight: '400', textAlign: 'center', fontFamily: 'Arial',
-      text: 'Hi', fontStyle: 'normal', textDecoration: 'none', color: '#000',
-      letterSpacing: 0, lineHeight: 1.2, textTransform: 'none', x: 50, y: 50, width: 200, height: 40,
+    makeText({
+      id: 't1',
+      fontSize: 16,
+      fontWeight: '400',
+      textAlign: 'center',
+      fontFamily: 'Arial',
+      text: 'Hi',
+      fontStyle: 'normal',
+      textDecoration: 'none',
+      color: '#000',
+      letterSpacing: 0,
+      lineHeight: 1.2,
+      textTransform: 'none',
+      x: 50,
+      y: 50,
+      width: 200,
+      height: 40,
     }),
   ]);
 

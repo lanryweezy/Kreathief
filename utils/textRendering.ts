@@ -33,13 +33,7 @@ function resetShadow(ctx: CanvasRenderingContext2D): void {
 /**
  * Apply stroke before fill if textStroke exists
  */
-function applyTextStroke(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
-  layer: TextLayer
-): void {
+function applyTextStroke(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, layer: TextLayer): void {
   const stroke = layer.stroke;
   if (stroke && stroke.width > 0) {
     ctx.strokeStyle = stroke.color || '#000000';
@@ -97,7 +91,9 @@ export const renderTextOnPath = (canvas: HTMLCanvasElement, layer: TextLayer) =>
   ctx.fillStyle = color;
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'center';
-  try { ctx.textRendering = 'optimizeLegibility'; } catch (_e) {}
+  try {
+    ctx.textRendering = 'optimizeLegibility';
+  } catch (_e) {}
 
   // Apply text effects
   applyTextShadow(ctx, layer);
@@ -188,7 +184,9 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
   tempCtx.fillStyle = color;
   tempCtx.textBaseline = 'top';
   tempCtx.textAlign = textAlign as CanvasTextAlign;
-  try { tempCtx.textRendering = 'optimizeLegibility'; } catch (_e) {}
+  try {
+    tempCtx.textRendering = 'optimizeLegibility';
+  } catch (_e) {}
 
   // Apply text effects
   applyTextShadow(tempCtx, layer);
@@ -259,7 +257,9 @@ export const renderMultilineText = (ctx: CanvasRenderingContext2D, layer: TextLa
   ctx.font = font;
   ctx.fillStyle = color;
   ctx.textBaseline = 'top';
-  try { ctx.textRendering = 'optimizeLegibility'; } catch (_e) {}
+  try {
+    ctx.textRendering = 'optimizeLegibility';
+  } catch (_e) {}
 
   // Apply text effects
   applyTextShadow(ctx, layer);
@@ -361,10 +361,7 @@ export const renderMultilineText = (ctx: CanvasRenderingContext2D, layer: TextLa
  * Convert a text layer to SVG path outlines by rendering to canvas then tracing with ImageTracer.
  * Returns an SVG string containing the text as vector paths.
  */
-export async function convertTextToOutlines(
-  layer: TextLayer,
-  options?: { scale?: number }
-): Promise<string> {
+export async function convertTextToOutlines(layer: TextLayer, options?: { scale?: number }): Promise<string> {
   const scale = options?.scale || 2;
   const {
     text: originalText,
@@ -429,11 +426,7 @@ export async function convertTextToOutlines(
   const ImageTracer = ImageTracerModule.default || ImageTracerModule;
 
   const svgString: string = await new Promise((resolve, reject) => {
-    ImageTracer.imageToSVG(
-      imageData,
-      (svg: string) => resolve(svg),
-      { scale: 1 / scale }
-    );
+    ImageTracer.imageToSVG(imageData, (svg: string) => resolve(svg), { scale: 1 / scale });
   });
 
   return svgString;

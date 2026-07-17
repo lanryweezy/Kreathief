@@ -20,10 +20,24 @@ export interface ComponentDefinition {
 }
 
 export const COMPONENT_SYNCABLE_PROPERTIES = [
-  'color', 'fontSize', 'fontFamily', 'fontWeight', 'fontStyle',
-  'width', 'height', 'cornerRadius', 'opacity', 'visible',
-  'stroke', 'shadow', 'blendMode', 'text', 'textAlign',
-  'letterSpacing', 'lineHeight', 'gradient',
+  'color',
+  'fontSize',
+  'fontFamily',
+  'fontWeight',
+  'fontStyle',
+  'width',
+  'height',
+  'cornerRadius',
+  'opacity',
+  'visible',
+  'stroke',
+  'shadow',
+  'blendMode',
+  'text',
+  'textAlign',
+  'letterSpacing',
+  'lineHeight',
+  'gradient',
 ] as const;
 
 export const createComponentSlice: StateCreator<StoreState, [], [], Partial<LayerSlice>> = (set, get) => ({
@@ -34,7 +48,8 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
     const componentId = generateLayerId('comp');
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => ({
-        ...a, layers: a.layers.map((l) => l.id === id ? { ...l, componentId } : l),
+        ...a,
+        layers: a.layers.map((l) => (l.id === id ? { ...l, componentId } : l)),
       })),
     }));
     const state = get();
@@ -42,7 +57,8 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
     if (layer) {
       const defs = new Map(state.componentDefinitions || new Map());
       defs.set(componentId, {
-        id: componentId, name: layer.name || 'Component',
+        id: componentId,
+        name: layer.name || 'Component',
         variants: [{ id: generateLayerId('var'), name: 'Default', properties: {}, defaultVariantId: '' }],
         defaultVariantId: generateLayerId('var'),
       });
@@ -54,16 +70,25 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
     get().saveToHistory?.();
     const state = get();
     let master: Layer | null = null;
-    state.artboards.forEach((a: Artboard) => { const found = a.layers.find((l) => l.componentId === componentId); if (found) master = found; });
+    state.artboards.forEach((a: Artboard) => {
+      const found = a.layers.find((l) => l.componentId === componentId);
+      if (found) master = found;
+    });
     if (!master) return;
     const instance: Layer = {
-      ...(structuredClone(master) as any), id: generateLayerId(`${(master as any).type}_instance`),
-      masterId: componentId, componentId: undefined, overrides: [],
-      x: (master as any).x + 40, y: (master as any).y + 40,
+      ...(structuredClone(master) as any),
+      id: generateLayerId(`${(master as any).type}_instance`),
+      masterId: componentId,
+      componentId: undefined,
+      overrides: [],
+      x: (master as any).x + 40,
+      y: (master as any).y + 40,
     };
     const activeArtboardId = state.activeArtboardId;
     set((state: any) => ({
-      artboards: state.artboards.map((a: Artboard) => a.id === activeArtboardId ? { ...a, layers: [...a.layers, instance] } : a),
+      artboards: state.artboards.map((a: Artboard) =>
+        a.id === activeArtboardId ? { ...a, layers: [...a.layers, instance] } : a
+      ),
       selectedLayerIds: [instance.id],
     }));
   },
@@ -71,7 +96,10 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
   syncComponentInstances: (masterId: string) => {
     const state = get();
     let master: Layer | null = null;
-    state.artboards.forEach((a: Artboard) => { const found = a.layers.find((l) => l.componentId === masterId); if (found) master = found; });
+    state.artboards.forEach((a: Artboard) => {
+      const found = a.layers.find((l) => l.componentId === masterId);
+      if (found) master = found;
+    });
     if (!master) return;
     const masterRef = master;
     set((state: any) => ({
@@ -108,7 +136,10 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
     get().saveToHistory?.();
     const state = get();
     let targetLayer: Layer | null = null;
-    state.artboards.forEach((a: Artboard) => { const found = a.layers.find((l) => l.id === id); if (found) targetLayer = found; });
+    state.artboards.forEach((a: Artboard) => {
+      const found = a.layers.find((l) => l.id === id);
+      if (found) targetLayer = found;
+    });
     if (!targetLayer || !('masterId' in targetLayer) || !(targetLayer as any).masterId) {
       get().updateLayer(id, partial);
       return;
@@ -120,7 +151,8 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
     }
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => ({
-        ...a, layers: a.layers.map((l) => l.id === id ? { ...l, ...partial, overrides: Array.from(overrides) } : l),
+        ...a,
+        layers: a.layers.map((l) => (l.id === id ? { ...l, ...partial, overrides: Array.from(overrides) } : l)),
       })),
     }));
   },
@@ -131,14 +163,26 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
     const layer = state.artboards.flatMap((a: Artboard) => a.layers).find((l: Layer) => l.id === id);
     if (!layer?.masterId) return;
     let master: Layer | null = null;
-    state.artboards.forEach((a: Artboard) => { const found = a.layers.find((l: Layer) => l.componentId === layer.masterId); if (found) master = found; });
+    state.artboards.forEach((a: Artboard) => {
+      const found = a.layers.find((l: Layer) => l.componentId === layer.masterId);
+      if (found) master = found;
+    });
     if (!master) return;
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => ({
         ...a,
         layers: a.layers.map((l: Layer) => {
           if (l.id !== id) return l;
-          return { ...structuredClone(master), id: l.id, x: l.x, y: l.y, rotation: l.rotation, masterId: master!.id, componentId: undefined, overrides: [] };
+          return {
+            ...structuredClone(master),
+            id: l.id,
+            x: l.x,
+            y: l.y,
+            rotation: l.rotation,
+            masterId: master!.id,
+            componentId: undefined,
+            overrides: [],
+          };
         }),
       })),
     }));
@@ -148,7 +192,10 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
     get().saveToHistory?.();
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => ({
-        ...a, layers: a.layers.map((l) => l.id === id ? { ...l, masterId: undefined, overrides: undefined, componentId: undefined } : l),
+        ...a,
+        layers: a.layers.map((l) =>
+          l.id === id ? { ...l, masterId: undefined, overrides: undefined, componentId: undefined } : l
+        ),
       })),
     }));
   },
@@ -157,20 +204,33 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
     get().saveToHistory?.();
     const state = get();
     let newMaster: Layer | null = null;
-    state.artboards.forEach((a: Artboard) => { const found = a.layers.find((l) => l.componentId === newMasterId); if (found) newMaster = found; });
+    state.artboards.forEach((a: Artboard) => {
+      const found = a.layers.find((l) => l.componentId === newMasterId);
+      if (found) newMaster = found;
+    });
     if (!newMaster) return;
     let currentInstance: Layer | null = null;
-    state.artboards.forEach((a: Artboard) => { const found = a.layers.find((l) => l.id === instanceId); if (found) currentInstance = found; });
+    state.artboards.forEach((a: Artboard) => {
+      const found = a.layers.find((l) => l.id === instanceId);
+      if (found) currentInstance = found;
+    });
     if (!currentInstance) return;
     const ci = currentInstance as Layer;
     const nm = newMaster as Layer;
     const swapped: Layer = {
-      ...(structuredClone(nm) as any), id: ci.id, masterId: newMasterId, componentId: undefined,
-      overrides: [], x: ci.x, y: ci.y, rotation: ci.rotation,
+      ...(structuredClone(nm) as any),
+      id: ci.id,
+      masterId: newMasterId,
+      componentId: undefined,
+      overrides: [],
+      x: ci.x,
+      y: ci.y,
+      rotation: ci.rotation,
     } as Layer;
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => ({
-        ...a, layers: a.layers.map((l) => (l.id === instanceId ? swapped : l)),
+        ...a,
+        layers: a.layers.map((l) => (l.id === instanceId ? swapped : l)),
       })),
     }));
   },
@@ -187,7 +247,7 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
 
   addVariant: (componentId: string, variantName: string, properties: Record<string, any>) => {
     const state = get();
-    const defs = new Map(state.componentDefinitions as Map<string, ComponentDefinition> || new Map());
+    const defs = new Map((state.componentDefinitions as Map<string, ComponentDefinition>) || new Map());
     const def = defs.get(componentId);
     if (!def) return;
     const variant: ComponentVariant = { id: generateLayerId('var'), name: variantName, properties };
@@ -199,7 +259,10 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
   applyVariant: (instanceId: string, variantId: string) => {
     const state = get();
     let instance: Layer | null = null;
-    state.artboards.forEach((a: Artboard) => { const found = a.layers.find((l: Layer) => l.id === instanceId); if (found) instance = found; });
+    state.artboards.forEach((a: Artboard) => {
+      const found = a.layers.find((l: Layer) => l.id === instanceId);
+      if (found) instance = found;
+    });
     if (!instance || !('masterId' in instance) || !(instance as any).masterId) return;
     const def = (state.componentDefinitions as Map<string, ComponentDefinition>)?.get((instance as any).masterId);
     if (!def) return;
@@ -207,11 +270,17 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
     if (!variant) return;
     const overrides = new Set<string>((instance as any).overrides || []);
     const partial: Record<string, any> = {};
-    for (const [key, value] of Object.entries(variant.properties)) { overrides.add(key); partial[key] = value; }
+    for (const [key, value] of Object.entries(variant.properties)) {
+      overrides.add(key);
+      partial[key] = value;
+    }
     const instanceIdFinal = instanceId;
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => ({
-        ...a, layers: a.layers.map((l) => l.id === instanceIdFinal ? { ...l, ...partial, overrides: Array.from(overrides) } : l),
+        ...a,
+        layers: a.layers.map((l) =>
+          l.id === instanceIdFinal ? { ...l, ...partial, overrides: Array.from(overrides) } : l
+        ),
       })),
     }));
   },

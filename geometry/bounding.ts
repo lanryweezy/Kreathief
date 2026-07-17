@@ -9,7 +9,10 @@ export interface BBox {
 
 export function boundingBox(points: Point[]): BBox {
   if (points.length === 0) return { x: 0, y: 0, width: 0, height: 0 };
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
   for (const p of points) {
     if (p.x < minX) minX = p.x;
     if (p.y < minY) minY = p.y;
@@ -37,12 +40,7 @@ export function pointInBox(p: Point, box: BBox, padding = 0): boolean {
 }
 
 export function boxesOverlap(a: BBox, b: BBox): boolean {
-  return (
-    a.x < b.x + b.width &&
-    a.x + a.width > b.x &&
-    a.y < b.y + b.height &&
-    a.y + a.height > b.y
-  );
+  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
 }
 
 export function boxContains(outer: BBox, inner: BBox): boolean {

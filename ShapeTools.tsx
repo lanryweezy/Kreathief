@@ -124,11 +124,13 @@ export const ShapeTools = React.memo(
     const effectsButtonRef = useRef<HTMLButtonElement>(null);
     const booleanOpsRef = useRef<HTMLButtonElement>(null);
 
-    const { updateLayer, deleteLayer, saveToHistory } = useStore(useShallow((state) => ({
-      updateLayer: state.updateLayer,
-      deleteLayer: state.deleteLayer,
-      saveToHistory: state.saveToHistory,
-    })));
+    const { updateLayer, deleteLayer, saveToHistory } = useStore(
+      useShallow((state) => ({
+        updateLayer: state.updateLayer,
+        deleteLayer: state.deleteLayer,
+        saveToHistory: state.saveToHistory,
+      }))
+    );
 
     const handleBooleanOp = (operation: 'union' | 'subtract' | 'intersect' | 'exclude') => {
       if (selectedLayers.length < 2) return;
@@ -292,14 +294,18 @@ export const ShapeTools = React.memo(
             active={!!(layer as ShapeLayer).flipX}
             title="Flip Horizontal"
           >
-            <Icons.FlipHorizontal className={`w-4 h-4 ${(layer as ShapeLayer).flipX ? 'text-cyan-400' : 'text-gray-400'}`} />
+            <Icons.FlipHorizontal
+              className={`w-4 h-4 ${(layer as ShapeLayer).flipX ? 'text-cyan-400' : 'text-gray-400'}`}
+            />
           </IconButton>
           <IconButton
             onClick={() => handleUpdateLayer({ flipY: !(layer as ShapeLayer).flipY })}
             active={!!(layer as ShapeLayer).flipY}
             title="Flip Vertical"
           >
-            <Icons.FlipVertical className={`w-4 h-4 ${(layer as ShapeLayer).flipY ? 'text-cyan-400' : 'text-gray-400'}`} />
+            <Icons.FlipVertical
+              className={`w-4 h-4 ${(layer as ShapeLayer).flipY ? 'text-cyan-400' : 'text-gray-400'}`}
+            />
           </IconButton>
         </div>
 

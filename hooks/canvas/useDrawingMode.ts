@@ -147,7 +147,9 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
         const x = (e.clientX - rect.left) / zoomRef.current;
         const y = (e.clientY - rect.top) / zoomRef.current;
         // Find the main artboard canvas (not the drawing overlay) for accurate color sampling
-        const artboardCanvas = canvas.parentElement?.querySelector('canvas:not([data-drawing-overlay])') as HTMLCanvasElement | null;
+        const artboardCanvas = canvas.parentElement?.querySelector(
+          'canvas:not([data-drawing-overlay])'
+        ) as HTMLCanvasElement | null;
         const targetCanvas = artboardCanvas || canvas;
 
         // Final sanity check before calling getContext
@@ -187,7 +189,9 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
             const artboardContainer = canvas.parentElement;
             if (artboardContainer) {
               // Store the artboard snapshot for erasing operations
-              const artboardCanvas = artboardContainer.querySelector('canvas:not([data-drawing-overlay])') as HTMLCanvasElement | null;
+              const artboardCanvas = artboardContainer.querySelector(
+                'canvas:not([data-drawing-overlay])'
+              ) as HTMLCanvasElement | null;
               if (artboardCanvas) {
                 // Capture the current artboard state
                 const artboardCtx = artboardCanvas.getContext('2d');

@@ -93,7 +93,9 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
 
     return (
       <div
-        id="sidebar" role="navigation" aria-label="Design tools"
+        id="sidebar"
+        role="navigation"
+        aria-label="Design tools"
         className="w-[78px] bg-surface-dark-1/90 backdrop-blur-3xl flex flex-col items-center z-30 shrink-0 border-r border-white/5 h-full overflow-y-auto no-scrollbar relative shadow-[20px_0_50px_rgba(0,0,0,0.5)]"
       >
         {/* Visual Accent */}

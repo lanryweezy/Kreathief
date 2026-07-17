@@ -51,12 +51,16 @@ export async function loadFont(fontFamily: string): Promise<boolean> {
         // Quick check if font file exists before attempting load
         fetch(fontUrl, { method: 'HEAD' })
           .then((res) => {
-            if (!res.ok) { resolve(); return; } // File doesn't exist, skip silently
+            if (!res.ok) {
+              resolve();
+              return;
+            } // File doesn't exist, skip silently
             const fontFace = new FontFace(cleanFamily, `url(${fontUrl})`, {
               weight: weight as any,
               style: 'normal',
             });
-            fontFace.load()
+            fontFace
+              .load()
               .then((loaded) => {
                 (document.fonts as any).add(loaded);
                 resolve();

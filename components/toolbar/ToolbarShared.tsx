@@ -71,17 +71,7 @@ function useMathInputHandlers({ value, onChange, step = 1 }: { value: any; onCha
 export const IconButton = React.memo(
   React.forwardRef(
     (
-      {
-        onClick,
-        active,
-        title,
-        children,
-        disabled,
-        loading,
-        shortcut,
-        className = '',
-        'aria-label': ariaLabel,
-      }: any,
+      { onClick, active, title, children, disabled, loading, shortcut, className = '', 'aria-label': ariaLabel }: any,
       ref: React.ForwardedRef<HTMLButtonElement>
     ) => {
       const [showTooltip, setShowTooltip] = React.useState(false);

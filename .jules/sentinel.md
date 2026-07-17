@@ -137,14 +137,17 @@
 
 ## 2026-06-26 - Prevent PostgREST Filter Injection
 
-**Vulnerability:** In Supabase/PostgREST queries, user input (like search `query`) was directly interpolated into the `.or()` filter string (e.g., `.or(\`name.ilike.%${query}%\`)`). If an attacker provided a query containing a comma `,` (the PostgREST OR separator) and a quote `"`, they could inject arbitrary filter conditions, such as `,status.eq.rejected`, potentially bypassing authorization checks or leaking hidden database rows.
-**Learning:** Using raw string interpolation for the `.or()` method in `supabase-js` without escaping or sanitizing commas and double quotes creates a high-severity filter injection vulnerability, as the comma acts as a logical operator separator.
-**Prevention:** To prevent PostgREST/Supabase filter injection vulnerabilities, always sanitize user inputs by stripping commas and quotes (e.g., `query.replace(/[",]/g, '')`) before interpolating them into a Supabase `.or()` filter string, or use the object syntax if available.
+**Vulnerability:** In Supabase/PostgREST queries, user input (like search `query`) was directly interpolated into the `.or()` filter string (e.g., `.or(\`name.ilike.%${query}%\`)`). If an attacker provided a query containing a comma `,`(the PostgREST OR separator) and a quote`"`, they could inject arbitrary filter conditions, such as `,status.eq.rejected`, potentially bypassing authorization checks or leaking hidden database rows.
+**Learning:** Using raw string interpolation for the `.or()`method in`supabase-js`without escaping or sanitizing commas and double quotes creates a high-severity filter injection vulnerability, as the comma acts as a logical operator separator.
+**Prevention:** To prevent PostgREST/Supabase filter injection vulnerabilities, always sanitize user inputs by stripping commas and quotes (e.g.,`query.replace(/[",]/g, '')`) before interpolating them into a Supabase `.or()` filter string, or use the object syntax if available.
+
 ## 2026-06-28 - [Fix PostgREST Filter Injection in Asset Service]
+
 **Vulnerability:** The `services/assetService.ts` explicitly interpolated an unsanitized search `query` into a Supabase `.or()` condition, allowing filter injection via commas and quotes.
 **Learning:** Using raw string interpolation for the `.or()` method in `supabase-js` without escaping or sanitizing commas and double quotes creates a high-severity filter injection vulnerability, as the comma acts as a logical operator separator.
 
 ## 2026-06-28 - [Fix PostgREST Filter Injection in Asset Service]
+
 **Vulnerability:** The `services/assetService.ts` explicitly interpolated an unsanitized search `query` into a Supabase `.or()` condition, allowing filter injection via commas and quotes.
 **Learning:** Using raw string interpolation for the `.or()` method in `supabase-js` without escaping or sanitizing commas and double quotes creates a high-severity filter injection vulnerability, as the comma acts as a logical operator separator.
 **Prevention:** Always sanitize user inputs by stripping commas and quotes (e.g., `query.replace(/[",]/g, '')`) before interpolating them into a Supabase `.or()` filter string, or use the object syntax if available.
@@ -168,15 +171,19 @@
 **Prevention:** When validating IPv6 addresses against a blocklist, either use a robust IP parsing library that normalizes the address to its canonical form before comparison, or use comprehensive regular expressions that account for zero compression and expansion (e.g., `/^0*:0*:0*:0*:0*:0*:0*:1$/`).
 
 ## 2026-07-16 - Prevent SSRF TOCTOU / DNS Rebinding in CMYK Export API
+
 **Vulnerability:** The `api/export-cmyk.ts` endpoint included basic SSRF protection by resolving the hostname of the provided `imageUrl` and checking against a blocklist of private IPs. However, it still used the original `imageUrl` for the subsequent `fetch()` call. This pattern is vulnerable to Time-of-Check to Time-of-Use (TOCTOU) DNS rebinding attacks, where the DNS record changes between the validation step and the actual fetch, potentially pointing to an internal IP.
 **Learning:** Performing a DNS lookup to validate an IP is insufficient if the subsequent HTTP request relies on a separate DNS resolution (which `fetch` does natively). The IP validated must be the exact IP used for the connection.
 **Prevention:** When validating URLs against SSRF, resolve the hostname to an IP address, validate that specific IP, and then explicitly use that validated IP in the actual HTTP request URL (e.g., `http://<safe_ip>/path`). Ensure you manually set the `Host` header to the original hostname so the upstream server routes the request correctly (Server Name Indication / Virtual Hosting).
+
 ## 2026-07-16 - Removed Client-Side Exposure of GetIllustration API Key
+
 **Vulnerability:** The application was fetching `import.meta.env.VITE_GETILLUSTRATION_KEY` on the client-side within `services/getillustrationService.ts`, directly exposing a secret API key to users via the compiled frontend bundle.
 **Learning:** In Vite, any environment variable prefixed with `VITE_` is statically injected into the client bundle at build time. Secret keys or tokens for backend services should never use this prefix if they are imported directly in client code.
 **Prevention:** If an external service requires a secret API key, implement a server-side proxy route (e.g., an Edge Function like `api/getillustration.ts`) to handle the requests securely. The client should only interact with this proxy, and the secret key should be safely stored in the server's environment without the `VITE_` prefix.
 
 ## 2026-07-20 - Missing Authentication on AI API Proxy Endpoints
+
 **Vulnerability:** The AI proxy endpoints (`api/gemini.ts`, `api/openrouter.ts`, `api/fal.ts`) had their `requireAuth` check commented out, leaving these endpoints entirely unauthenticated.
 **Learning:** Removing authentication checks from backend proxy endpoints—even temporarily "for a build fix"—exposes the backend's secret API keys to unauthenticated public access, essentially turning the server into an open proxy for expensive third-party AI APIs. This leads directly to quota exhaustion and financial loss.
 **Prevention:** Never remove or comment out authentication layers on proxy endpoints that utilize secure backend secrets. If the build or tests are failing due to auth, mock the authentication in tests or fix the calling client to provide the correct token, rather than lowering security on the server.

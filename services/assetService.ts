@@ -10,10 +10,7 @@ export const assetService = {
     limit: number = 20
   ): Promise<{ assets: Asset[]; total: number }> {
     try {
-      let q = supabase
-        .from('assets')
-        .select('*', { count: 'exact' })
-        .eq('status', 'approved');
+      let q = supabase.from('assets').select('*', { count: 'exact' }).eq('status', 'approved');
 
       if (query) {
         const safeQuery = query.replace(/[",]/g, '');
@@ -32,7 +29,7 @@ export const assetService = {
 
       return {
         assets: data || [],
-        total: count || 0
+        total: count || 0,
       };
     } catch (error) {
       log.error('[AssetService] searchAssets failed', error);
@@ -42,11 +39,7 @@ export const assetService = {
 
   async getAssetById(id: string): Promise<Asset | null> {
     try {
-      const { data, error } = await supabase
-        .from('assets')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const { data, error } = await supabase.from('assets').select('*').eq('id', id).single();
 
       if (error) throw error;
       return data;
@@ -66,11 +59,7 @@ export const assetService = {
           .update({ downloads: supabase.rpc ? undefined : 0 })
           .eq('id', id);
 
-        const { data: asset } = await supabase
-          .from('assets')
-          .select('downloads')
-          .eq('id', id)
-          .single();
+        const { data: asset } = await supabase.from('assets').select('downloads').eq('id', id).single();
 
         if (asset) {
           const { error: retryError } = await supabase
@@ -137,5 +126,5 @@ export const assetService = {
       log.error('[AssetService] getAssetsByCategory failed', error);
       return [];
     }
-  }
+  },
 };

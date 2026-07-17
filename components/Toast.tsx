@@ -39,9 +39,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onRemove }) => {
           <Icon className="w-5 h-5" />
         </div>
         <div className="flex-1 flex flex-col gap-0.5">
-          <span className="text-sm font-black tracking-tight leading-snug">
-            {String(toast.message ?? '')}
-          </span>
+          <span className="text-sm font-black tracking-tight leading-snug">{String(toast.message ?? '')}</span>
           {toast.details && <p className="text-[11px] opacity-70 leading-tight">{String(toast.details)}</p>}
         </div>
         <button

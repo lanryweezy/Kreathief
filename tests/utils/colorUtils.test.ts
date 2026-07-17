@@ -184,25 +184,25 @@ describe('colorUtils', () => {
       // 60 red pixels
       for (let i = 0; i < 60 * 4; i += 4) {
         data[i] = 255;
-        data[i+1] = 0;
-        data[i+2] = 0;
-        data[i+3] = 255;
+        data[i + 1] = 0;
+        data[i + 2] = 0;
+        data[i + 3] = 255;
       }
 
       // 30 blue pixels
       for (let i = 60 * 4; i < 90 * 4; i += 4) {
         data[i] = 0;
-        data[i+1] = 0;
-        data[i+2] = 255;
-        data[i+3] = 255;
+        data[i + 1] = 0;
+        data[i + 2] = 255;
+        data[i + 3] = 255;
       }
 
       // 30 green pixels
       for (let i = 90 * 4; i < 120 * 4; i += 4) {
         data[i] = 0;
-        data[i+1] = 255;
-        data[i+2] = 0;
-        data[i+3] = 255;
+        data[i + 1] = 255;
+        data[i + 2] = 0;
+        data[i + 3] = 255;
       }
 
       const imgData = { data, width: 120, height: 1 } as unknown as ImageData;
@@ -216,9 +216,9 @@ describe('colorUtils', () => {
       const data = new Uint8ClampedArray(160);
       for (let i = 0; i < 160; i += 4) {
         data[i] = i; // varying colors
-        data[i+1] = i;
-        data[i+2] = i;
-        data[i+3] = 255;
+        data[i + 1] = i;
+        data[i + 2] = i;
+        data[i + 3] = 255;
       }
       const imgData = { data, width: 40, height: 1 } as unknown as ImageData;
 

@@ -33,7 +33,7 @@ codeGenerators.set('text', {
       return `<p className="${posClass} text-[${tl.fontSize}px] font-${tl.fontWeight === 'bold' ? 'bold' : 'normal'} text-[${tl.color}]">${escapeJsx(tl.text || '')}</p>`;
     }
     return `<p style={${posStyle.replace('}', textStyle + '}')}}>${escapeJsx(tl.text || '')}</p>`;
-  }
+  },
 });
 
 codeGenerators.set('image', {
@@ -43,7 +43,7 @@ codeGenerators.set('image', {
       return `<img src="${il.src}" alt="${layer.name || 'image'}" className="${posClass} object-cover" />`;
     }
     return `<img src="${il.src}" alt="${layer.name || 'image'}" style={${posStyle}} />`;
-  }
+  },
 });
 
 codeGenerators.set('rectangle', {
@@ -55,7 +55,7 @@ codeGenerators.set('rectangle', {
     }
     const bgStyle = `, backgroundColor: '${sl.color}'${r ? `, borderRadius: ${r}` : ''}`;
     return `<div style={${posStyle.replace('}', bgStyle + '}')}} />`;
-  }
+  },
 });
 
 codeGenerators.set('circle', {
@@ -66,7 +66,7 @@ codeGenerators.set('circle', {
     }
     const circleStyle = `, backgroundColor: '${sl.color}', borderRadius: '50%'`;
     return `<div style={${posStyle.replace('}', circleStyle + '}')}} />`;
-  }
+  },
 });
 
 /**

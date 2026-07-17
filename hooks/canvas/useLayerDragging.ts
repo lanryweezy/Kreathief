@@ -132,7 +132,11 @@ export const useLayerDragging = ({
           longPressTimerRef.current = null;
         }
       };
-      const onMoveForTimer = () => { clearLongPress(); window.removeEventListener('mousemove', onMoveForTimer); window.removeEventListener('touchmove', onMoveForTimer); };
+      const onMoveForTimer = () => {
+        clearLongPress();
+        window.removeEventListener('mousemove', onMoveForTimer);
+        window.removeEventListener('touchmove', onMoveForTimer);
+      };
       window.addEventListener('mousemove', onMoveForTimer, { once: true });
       window.addEventListener('touchmove', onMoveForTimer, { once: true });
 

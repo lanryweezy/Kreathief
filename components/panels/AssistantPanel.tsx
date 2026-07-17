@@ -23,19 +23,21 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
     runAgenticRefine,
     applyAgentVariant,
     resetAgentState,
-    selectedLayerIds
-  } = useStore(useShallow((state) => ({
-    agentStatus: state.agentStatus,
-    agentVariants: state.agentVariants,
-    agentError: state.agentError,
-    agentIntent: state.agentIntent,
-    thinkingLog: state.thinkingLog,
-    runAgenticWorkflow: state.runAgenticWorkflow,
-    runAgenticRefine: state.runAgenticRefine,
-    applyAgentVariant: state.applyAgentVariant,
-    resetAgentState: state.resetAgentState,
-    selectedLayerIds: state.selectedLayerIds
-  })));
+    selectedLayerIds,
+  } = useStore(
+    useShallow((state) => ({
+      agentStatus: state.agentStatus,
+      agentVariants: state.agentVariants,
+      agentError: state.agentError,
+      agentIntent: state.agentIntent,
+      thinkingLog: state.thinkingLog,
+      runAgenticWorkflow: state.runAgenticWorkflow,
+      runAgenticRefine: state.runAgenticRefine,
+      applyAgentVariant: state.applyAgentVariant,
+      resetAgentState: state.resetAgentState,
+      selectedLayerIds: state.selectedLayerIds,
+    }))
+  );
 
   const isRefining = selectedLayerIds && selectedLayerIds.length > 0;
 

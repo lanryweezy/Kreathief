@@ -140,73 +140,118 @@ export const ElementsPanel = () => {
     addLayer(newLayer);
   };
 
-  const searchRemoteIcons = useCallback(async (query: string) => {
-    if (!query.trim() || query.trim().length < 2) {
-      setRemoteIcons([]);
-      setHasSearched(false);
-      return;
-    }
+  const searchRemoteIcons = useCallback(
+    async (query: string) => {
+      if (!query.trim() || query.trim().length < 2) {
+        setRemoteIcons([]);
+        setHasSearched(false);
+        return;
+      }
 
-    setIsSearching(true);
-    setHasSearched(true);
+      setIsSearching(true);
+      setHasSearched(true);
 
-    const source = activeSource;
+      const source = activeSource;
 
-    try {
-      const searchPromises: Promise<any>[] = [];
+      try {
+        const searchPromises: Promise<any>[] = [];
 
-      if (source === 'icons' || source === 'shapes' || source === 'illustrations') {
-        searchPromises.push(
-          freepikService.searchIcons(query, 12).then((r) => ({ type: 'freepik', data: r })),
-          streamlineService.searchIcons(query, 12).then((r) => ({ type: 'streamline', data: r }))
-        );
-        if (source === 'illustrations' && giService.isConfigured()) {
+        if (source === 'icons' || source === 'shapes' || source === 'illustrations') {
           searchPromises.push(
-            giService.searchAll(query, 15).then((r) => ({ type: 'gi', data: r }))
+            freepikService.searchIcons(query, 12).then((r) => ({ type: 'freepik', data: r })),
+            streamlineService.searchIcons(query, 12).then((r) => ({ type: 'streamline', data: r }))
           );
+          if (source === 'illustrations' && giService.isConfigured()) {
+            searchPromises.push(giService.searchAll(query, 15).then((r) => ({ type: 'gi', data: r })));
+          }
         }
-      }
-      if (source === 'material') {
-        searchPromises.push(materialIconService.searchIcons(query, 20).then((r) => ({ type: 'material', data: r })));
-      }
-      if (source === 'lucide') {
-        searchPromises.push(lucideIconService.searchIcons(query, 20).then((r) => ({ type: 'lucide', data: r })));
-      }
-      if (source === 'phosphor') {
-        searchPromises.push(phosphorIconService.searchIcons(query, 20).then((r) => ({ type: 'phosphor', data: r })));
-      }
-
-      const results = await Promise.allSettled(searchPromises);
-      const icons: RemoteIcon[] = [];
-
-      results.forEach((result) => {
-        if (result.status !== 'fulfilled') return;
-        const { type, data } = result.value;
-        if (type === 'freepik' && data?.items?.length > 0) {
-          data.items.forEach((icon: any) => icons.push({ id: `fp-${icon.id}`, name: icon.name, thumbnailUrl: icon.thumbnailUrl, source: 'freepik' }));
-        } else if (type === 'streamline' && data?.icons?.length > 0) {
-          data.icons.forEach((icon: any) => { if (icon.thumbnailUrl) icons.push({ id: `sl-${icon.id}`, name: icon.name, thumbnailUrl: icon.thumbnailUrl, source: 'streamline', hash: icon.hash }); });
-        } else if (type === 'material' && data?.length > 0) {
-          data.forEach((icon: any) => icons.push({ id: `mi-${icon.name}`, name: icon.name, thumbnailUrl: icon.svgUrl, source: 'material' }));
-        } else if (type === 'lucide' && data?.length > 0) {
-          data.forEach((icon: any) => icons.push({ id: `luc-${icon.name}`, name: icon.name, thumbnailUrl: '', source: 'lucide', svgData: icon.svg }));
-        } else if (type === 'phosphor' && data?.length > 0) {
-          data.forEach((icon: any) => { if (icon.thumbnailUrl) icons.push({ id: `ph-${icon.name}`, name: icon.name, thumbnailUrl: '', source: 'phosphor', svgData: icon.svg }); });
-        } else if (type === 'gi' && data) {
-          const ills = data.illustrations || [];
-          const gicons = data.icons || [];
-          ills.forEach((item: any) => icons.push({ id: `gi-${item.id}`, name: item.pack?.name || 'Illustration', thumbnailUrl: item.thumbnailUrl || item.imageUrl, source: 'gi' }));
-          gicons.forEach((item: any) => icons.push({ id: `gi-${item.id}`, name: item.name || item.iconPack?.name || 'Icon', thumbnailUrl: item.thumbnailUrl || item.imageUrl, source: 'gi' }));
+        if (source === 'material') {
+          searchPromises.push(materialIconService.searchIcons(query, 20).then((r) => ({ type: 'material', data: r })));
         }
-      });
-      setRemoteIcons(icons);
-    } catch (err) {
-      log.error('[ElementsPanel] Icon search failed', err);
-      setRemoteIcons([]);
-    } finally {
-      setIsSearching(false);
-    }
-  }, [activeSource]);
+        if (source === 'lucide') {
+          searchPromises.push(lucideIconService.searchIcons(query, 20).then((r) => ({ type: 'lucide', data: r })));
+        }
+        if (source === 'phosphor') {
+          searchPromises.push(phosphorIconService.searchIcons(query, 20).then((r) => ({ type: 'phosphor', data: r })));
+        }
+
+        const results = await Promise.allSettled(searchPromises);
+        const icons: RemoteIcon[] = [];
+
+        results.forEach((result) => {
+          if (result.status !== 'fulfilled') return;
+          const { type, data } = result.value;
+          if (type === 'freepik' && data?.items?.length > 0) {
+            data.items.forEach((icon: any) =>
+              icons.push({ id: `fp-${icon.id}`, name: icon.name, thumbnailUrl: icon.thumbnailUrl, source: 'freepik' })
+            );
+          } else if (type === 'streamline' && data?.icons?.length > 0) {
+            data.icons.forEach((icon: any) => {
+              if (icon.thumbnailUrl)
+                icons.push({
+                  id: `sl-${icon.id}`,
+                  name: icon.name,
+                  thumbnailUrl: icon.thumbnailUrl,
+                  source: 'streamline',
+                  hash: icon.hash,
+                });
+            });
+          } else if (type === 'material' && data?.length > 0) {
+            data.forEach((icon: any) =>
+              icons.push({ id: `mi-${icon.name}`, name: icon.name, thumbnailUrl: icon.svgUrl, source: 'material' })
+            );
+          } else if (type === 'lucide' && data?.length > 0) {
+            data.forEach((icon: any) =>
+              icons.push({
+                id: `luc-${icon.name}`,
+                name: icon.name,
+                thumbnailUrl: '',
+                source: 'lucide',
+                svgData: icon.svg,
+              })
+            );
+          } else if (type === 'phosphor' && data?.length > 0) {
+            data.forEach((icon: any) => {
+              if (icon.thumbnailUrl)
+                icons.push({
+                  id: `ph-${icon.name}`,
+                  name: icon.name,
+                  thumbnailUrl: '',
+                  source: 'phosphor',
+                  svgData: icon.svg,
+                });
+            });
+          } else if (type === 'gi' && data) {
+            const ills = data.illustrations || [];
+            const gicons = data.icons || [];
+            ills.forEach((item: any) =>
+              icons.push({
+                id: `gi-${item.id}`,
+                name: item.pack?.name || 'Illustration',
+                thumbnailUrl: item.thumbnailUrl || item.imageUrl,
+                source: 'gi',
+              })
+            );
+            gicons.forEach((item: any) =>
+              icons.push({
+                id: `gi-${item.id}`,
+                name: item.name || item.iconPack?.name || 'Icon',
+                thumbnailUrl: item.thumbnailUrl || item.imageUrl,
+                source: 'gi',
+              })
+            );
+          }
+        });
+        setRemoteIcons(icons);
+      } catch (err) {
+        log.error('[ElementsPanel] Icon search failed', err);
+        setRemoteIcons([]);
+      } finally {
+        setIsSearching(false);
+      }
+    },
+    [activeSource]
+  );
 
   const handleRemoteSearch = useCallback(
     (query: string) => {
@@ -246,13 +291,13 @@ export const ElementsPanel = () => {
           internalAddImageLayer(icon.thumbnailUrl);
         }
       } else if (icon.source === 'lucide') {
-        const svgData = icon.svgData || await lucideIconService.downloadIconSVG(icon.name);
+        const svgData = icon.svgData || (await lucideIconService.downloadIconSVG(icon.name));
         if (svgData) {
           const blob = new Blob([svgData], { type: 'image/svg+xml' });
           internalAddImageLayer(URL.createObjectURL(blob));
         }
       } else if (icon.source === 'phosphor') {
-        const svgData = icon.svgData || await phosphorIconService.downloadIconSVG(icon.name);
+        const svgData = icon.svgData || (await phosphorIconService.downloadIconSVG(icon.name));
         if (svgData) {
           const blob = new Blob([svgData], { type: 'image/svg+xml' });
           internalAddImageLayer(URL.createObjectURL(blob));
@@ -320,9 +365,7 @@ export const ElementsPanel = () => {
 
   const recentShapes = useMemo(() => {
     if (searchQuery.trim() || selectedCategory !== 'all') return [];
-    return recentNames
-      .map((name) => shapePresets.find((s) => s.name === name))
-      .filter(Boolean) as ShapePreset[];
+    return recentNames.map((name) => shapePresets.find((s) => s.name === name)).filter(Boolean) as ShapePreset[];
   }, [recentNames, shapePresets, searchQuery, selectedCategory]);
 
   const categories = [
@@ -395,8 +438,7 @@ export const ElementsPanel = () => {
             style={{
               width: '36px',
               height: item.type === 'rectangle' && (item.props as any).height < 10 ? '3px' : '36px',
-              backgroundColor:
-                item.props.color === 'transparent' ? 'transparent' : item.props.color || '#fff',
+              backgroundColor: item.props.color === 'transparent' ? 'transparent' : item.props.color || '#fff',
               border: item.props.stroke ? `1.5px solid ${item.props.stroke.color}` : 'none',
               borderRadius: item.type === 'circle' ? '50%' : item.props.cornerRadius ? '4px' : '0',
               transform: item.type === 'diamond' ? 'rotate(45deg)' : 'none',
@@ -482,9 +524,7 @@ export const ElementsPanel = () => {
               </div>
             </div>
           )}
-          <div className="grid grid-cols-3 gap-3">
-            {filteredShapes.map((item, idx) => renderShapeItem(item, idx))}
-          </div>
+          <div className="grid grid-cols-3 gap-3">{filteredShapes.map((item, idx) => renderShapeItem(item, idx))}</div>
         </>
       ) : (
         <div className="space-y-4">
@@ -503,7 +543,12 @@ export const ElementsPanel = () => {
                   className="aspect-square bg-surface-dark-3 border border-gray-800 rounded-xl hover:border-brand-600 flex items-center justify-center p-2 group"
                 >
                   {icon.svgData ? (
-                    <div className="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(icon.svgData, { USE_PROFILES: { svg: true } }) }} />
+                    <div
+                      className="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(icon.svgData, { USE_PROFILES: { svg: true } }),
+                      }}
+                    />
                   ) : icon.thumbnailUrl ? (
                     <img
                       src={icon.thumbnailUrl}

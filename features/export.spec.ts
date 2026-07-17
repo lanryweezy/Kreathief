@@ -3,10 +3,16 @@ import { test, expect } from '@playwright/test';
 test.describe('Export System', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
-      window.localStorage.setItem('kreathief_qa_session', JSON.stringify({
-        id: 'qa-user', email: 'qa@kreathief.app', name: 'QA Engineer',
-        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=qa', plan: 'pro',
-      }));
+      window.localStorage.setItem(
+        'kreathief_qa_session',
+        JSON.stringify({
+          id: 'qa-user',
+          email: 'qa@kreathief.app',
+          name: 'QA Engineer',
+          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=qa',
+          plan: 'pro',
+        })
+      );
       window.localStorage.setItem('kreathief_onboarding_seen', 'true');
     });
     await page.goto('/editor');
@@ -14,9 +20,11 @@ test.describe('Export System', () => {
   });
 
   test('should open export modal from header download button', async ({ page }) => {
-    const downloadBtn = page.locator('header').getByRole('button', { name: /download/i }).or(
-      page.locator('[data-testid="open-export"]')
-    ).first();
+    const downloadBtn = page
+      .locator('header')
+      .getByRole('button', { name: /download/i })
+      .or(page.locator('[data-testid="open-export"]'))
+      .first();
 
     if (await downloadBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
       await downloadBtn.click();

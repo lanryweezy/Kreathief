@@ -497,8 +497,7 @@ class SmartTemplateService {
         const maxDist = keyword.length > 5 ? 2 : keyword.length > 3 ? 1 : 0;
         return words.some(
           (word) =>
-            Math.abs(word.length - keyword.length) <= maxDist &&
-            getLevenshteinDistance(word, keyword) <= maxDist
+            Math.abs(word.length - keyword.length) <= maxDist && getLevenshteinDistance(word, keyword) <= maxDist
         );
       });
     });

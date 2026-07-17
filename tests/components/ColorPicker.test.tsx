@@ -16,11 +16,6 @@ vi.mock('../../store/useStore', () => ({
 
 describe('ColorPicker', () => {
   it('renders without crashing', () => {
-    render(
-      <ColorPicker
-        value="#ff0000"
-        onChange={vi.fn()}
-      />
-    );
+    render(<ColorPicker value="#ff0000" onChange={vi.fn()} />);
   });
 });

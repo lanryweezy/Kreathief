@@ -34,14 +34,20 @@ export const SmartSuggestions: React.FC<SmartSuggestionsProps> = ({
   useEffect(() => {
     if (!ref.current || selectedIds.length === 0) return;
 
-    const selectedLayers = layers.filter(l => selectedIds.includes(l.id));
+    const selectedLayers = layers.filter((l) => selectedIds.includes(l.id));
     if (selectedLayers.length === 0) return;
 
-    const xs = selectedLayers.map(l => l.x);
-    const ys = selectedLayers.map(l => l.y);
-    const xws = selectedLayers.map(l => l.x + (l.width || 0));
-    const yhs = selectedLayers.map(l => l.y + (l.height || 0));
-    if (!xs.every(Number.isFinite) || !ys.every(Number.isFinite) || !xws.every(Number.isFinite) || !yhs.every(Number.isFinite)) return;
+    const xs = selectedLayers.map((l) => l.x);
+    const ys = selectedLayers.map((l) => l.y);
+    const xws = selectedLayers.map((l) => l.x + (l.width || 0));
+    const yhs = selectedLayers.map((l) => l.y + (l.height || 0));
+    if (
+      !xs.every(Number.isFinite) ||
+      !ys.every(Number.isFinite) ||
+      !xws.every(Number.isFinite) ||
+      !yhs.every(Number.isFinite)
+    )
+      return;
 
     const bounds = {
       x: Math.min(...xs),
@@ -75,7 +81,7 @@ export const SmartSuggestions: React.FC<SmartSuggestionsProps> = ({
 
   const handleAction = (suggestion: SmartSuggestion) => {
     if (suggestion.id === 'lock-ratio') {
-      selectedIds.forEach(id => handleLockRatio(id));
+      selectedIds.forEach((id) => handleLockRatio(id));
     }
     onApply(suggestion);
   };
@@ -99,7 +105,7 @@ export const SmartSuggestions: React.FC<SmartSuggestionsProps> = ({
         </button>
       ))}
       <button
-        onClick={() => suggestions.forEach(s => onDismiss(s.id))}
+        onClick={() => suggestions.forEach((s) => onDismiss(s.id))}
         className="ml-1 p-1 text-gray-500 hover:text-gray-300 rounded"
       >
         <Icons.X className="w-3 h-3" />

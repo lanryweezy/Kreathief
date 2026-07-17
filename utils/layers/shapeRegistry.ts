@@ -16,19 +16,31 @@ export const ShapeRegistry: Record<string, ShapeDefinition> = {
   hexagon: { clipPath: 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)', defaultColor: '#334155' },
   diamond: { clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)', defaultColor: '#334155' },
   arrow: { clipPath: 'polygon(0% 20%, 60% 20%, 60% 0%, 100% 50%, 60% 100%, 60% 80%, 0% 80%)', defaultColor: '#334155' },
-  heart: { clipPath: 'polygon(50% 85%, 15% 50%, 15% 25%, 30% 10%, 50% 25%, 70% 10%, 85% 25%, 85% 50%)', defaultColor: '#334155' },
-  speech_bubble: { clipPath: 'polygon(0% 0%, 100% 0%, 100% 75%, 75% 75%, 75% 100%, 50% 75%, 0% 75%)', defaultColor: '#334155' },
+  heart: {
+    clipPath: 'polygon(50% 85%, 15% 50%, 15% 25%, 30% 10%, 50% 25%, 70% 10%, 85% 25%, 85% 50%)',
+    defaultColor: '#334155',
+  },
+  speech_bubble: {
+    clipPath: 'polygon(0% 0%, 100% 0%, 100% 75%, 75% 75%, 75% 100%, 50% 75%, 0% 75%)',
+    defaultColor: '#334155',
+  },
   shield: { clipPath: 'polygon(50% 0, 100% 10%, 100% 80%, 50% 100%, 0 80%, 0 10%)', defaultColor: '#334155' },
   ribbon: { clipPath: 'polygon(0 0, 100% 0, 90% 50%, 100% 100%, 0 100%, 10% 50%)', defaultColor: '#334155' },
   banner: { clipPath: 'polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%)', defaultColor: '#334155' },
   pentagon: { clipPath: 'polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)', defaultColor: '#334155' },
-  octagon: { clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)', defaultColor: '#334155' },
+  octagon: {
+    clipPath: 'polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)',
+    defaultColor: '#334155',
+  },
   plus: {
     clipPath:
       'polygon(35% 0%, 65% 0%, 65% 35%, 100% 35%, 100% 65%, 65% 65%, 65% 100%, 35% 100%, 35% 65%, 0% 65%, 0% 35%, 35% 35%)',
     defaultColor: '#334155',
   },
-  star_4: { clipPath: 'polygon(50% 0%, 61% 35%, 100% 50%, 61% 65%, 50% 100%, 39% 65%, 0% 50%, 39% 35%)', defaultColor: '#334155' },
+  star_4: {
+    clipPath: 'polygon(50% 0%, 61% 35%, 100% 50%, 61% 65%, 50% 100%, 39% 65%, 0% 50%, 39% 35%)',
+    defaultColor: '#334155',
+  },
   star_8: {
     clipPath:
       'polygon(50% 0%, 61% 22%, 85% 15%, 72% 35%, 100% 50%, 72% 65%, 85% 85%, 61% 72%, 50% 100%, 39% 72%, 15% 85%, 28% 65%, 0% 50%, 28% 35%, 15% 15%, 39% 22%)',

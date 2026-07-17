@@ -166,7 +166,9 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
     const currentIndex = miIndex++;
     return (
       <button
-        ref={(el) => { menuItemsRef.current[currentIndex] = el!; }}
+        ref={(el) => {
+          menuItemsRef.current[currentIndex] = el!;
+        }}
         role="menuitem"
         tabIndex={currentIndex === activeIndex ? 0 : -1}
         onClick={disabled ? undefined : onClick}
@@ -231,7 +233,9 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
         </div>
       ) : (
         <button
-          ref={(el) => { menuItemsRef.current[0] = el!; }}
+          ref={(el) => {
+            menuItemsRef.current[0] = el!;
+          }}
           role="menuitem"
           tabIndex={0 === activeIndex ? 0 : -1}
           onClick={() => setIsRenaming(true)}

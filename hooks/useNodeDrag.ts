@@ -9,14 +9,7 @@ export const useNodeDrag = () => {
   const panStartViewport = useRef<{ x: number; y: number } | null>(null);
   const spaceDown = useRef(false);
 
-  const {
-    viewport,
-    moveNode,
-    startWireDrag,
-    updateWireDrag,
-    endWireDrag,
-    setViewport,
-  } = useNodeGraph();
+  const { viewport, moveNode, startWireDrag, updateWireDrag, endWireDrag, setViewport } = useNodeGraph();
 
   const onNodeMouseDown = useCallback(
     (e: React.MouseEvent, nodeId: string) => {
@@ -47,8 +40,7 @@ export const useNodeDrag = () => {
 
   const onCanvasMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      const { dragState: ds, wireState: ws, viewport: vp, snapToGrid } =
-        useNodeGraph.getState();
+      const { dragState: ds, wireState: ws, viewport: vp, snapToGrid } = useNodeGraph.getState();
 
       if (ds.isDragging && ds.nodeId) {
         let newX = (e.clientX - vp.x) / vp.zoom - ds.offset.x;
@@ -84,8 +76,7 @@ export const useNodeDrag = () => {
   );
 
   const onCanvasMouseUp = useCallback(() => {
-    const { dragState: ds, wireState: ws, endWireDrag: endWire } =
-      useNodeGraph.getState();
+    const { dragState: ds, wireState: ws, endWireDrag: endWire } = useNodeGraph.getState();
 
     if (ds.isDragging) {
       useNodeGraph.setState({
@@ -132,26 +123,23 @@ export const useNodeDrag = () => {
     [endWireDrag]
   );
 
-  const onCanvasMouseDown = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.button === 1 || (e.button === 0 && spaceDown.current)) {
-        e.preventDefault();
-        isPanning.current = true;
-        panStartPos.current = { x: e.clientX, y: e.clientY };
-        const { viewport: vp } = useNodeGraph.getState();
-        panStartViewport.current = { x: vp.x, y: vp.y };
-        return;
-      }
+  const onCanvasMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button === 1 || (e.button === 0 && spaceDown.current)) {
+      e.preventDefault();
+      isPanning.current = true;
+      panStartPos.current = { x: e.clientX, y: e.clientY };
+      const { viewport: vp } = useNodeGraph.getState();
+      panStartViewport.current = { x: vp.x, y: vp.y };
+      return;
+    }
 
-      if (e.button === 0) {
-        useNodeGraph.setState({
-          selectedNodeId: null,
-          selectedWireId: null,
-        });
-      }
-    },
-    []
-  );
+    if (e.button === 0) {
+      useNodeGraph.setState({
+        selectedNodeId: null,
+        selectedWireId: null,
+      });
+    }
+  }, []);
 
   const onWheel = useCallback(
     (e: any) => {
@@ -161,7 +149,7 @@ export const useNodeDrag = () => {
       const delta = e.deltaY > 0 ? 0.9 : 1.1;
       const newZoom = Math.min(Math.max(vp.zoom * delta, 0.1), 5);
 
-      const container = document.querySelector('.node-graph-bg') || (e.currentTarget || e.target) as HTMLElement;
+      const container = document.querySelector('.node-graph-bg') || ((e.currentTarget || e.target) as HTMLElement);
       const rect = container ? container.getBoundingClientRect() : { left: 0, top: 0 };
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;

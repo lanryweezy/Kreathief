@@ -4,9 +4,15 @@ import { Command } from '../../commands/base';
 
 function makeCmd(label: string): Command & { executed: number; undone: number } {
   const cmd = {
-    description: label, executed: 0, undone: 0,
-    execute() { cmd.executed++; },
-    undo() { cmd.undone++; },
+    description: label,
+    executed: 0,
+    undone: 0,
+    execute() {
+      cmd.executed++;
+    },
+    undo() {
+      cmd.undone++;
+    },
   };
   return cmd;
 }
@@ -34,7 +40,9 @@ describe('HistoryManager', () => {
   it('redo re-applies', () => {
     const h = new HistoryManager();
     const c = makeCmd('c1');
-    h.push(c); h.undo(); h.redo();
+    h.push(c);
+    h.undo();
+    h.redo();
     expect(c.executed).toBe(2);
     expect(h.canRedo()).toBe(false);
   });
@@ -65,13 +73,18 @@ describe('HistoryManager', () => {
     const h = new HistoryManager(3);
     for (let i = 0; i < 5; i++) h.push(makeCmd(`c${i}`));
     let count = 0;
-    while (h.canUndo()) { h.undo(); count++; }
+    while (h.canUndo()) {
+      h.undo();
+      count++;
+    }
     expect(count).toBe(3);
   });
 
   it('clear resets both stacks', () => {
     const h = new HistoryManager();
-    h.push(makeCmd('c1')); h.push(makeCmd('c2')); h.undo();
+    h.push(makeCmd('c1'));
+    h.push(makeCmd('c2'));
+    h.undo();
     h.clear();
     expect(h.canUndo()).toBe(false);
     expect(h.canRedo()).toBe(false);

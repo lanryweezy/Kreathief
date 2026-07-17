@@ -132,7 +132,11 @@ export class SnappingOracle {
     const layerCount = allLayers.length;
     const layerPositionHash = allLayers.map((l) => `${l.id}:${l.x}:${l.y}`).join(',');
 
-    if (cachedArtboardId !== activeArtboard.id || cachedLayerCount !== layerCount || cachedLayerPositions !== layerPositionHash) {
+    if (
+      cachedArtboardId !== activeArtboard.id ||
+      cachedLayerCount !== layerCount ||
+      cachedLayerPositions !== layerPositionHash
+    ) {
       const targets = buildTargets(allLayers, movingIds, activeArtboard);
       cachedSortedX = targets.sortedX;
       cachedSortedY = targets.sortedY;

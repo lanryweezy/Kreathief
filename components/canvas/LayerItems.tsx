@@ -251,10 +251,14 @@ export const ImageLayerItem = React.memo(
             return {
               ...base,
               transform: `${imgLayer.perspective ? `perspective(${imgLayer.perspective}px)` : ''} rotateX(${imgLayer.rotateX || 0}deg) rotateY(${imgLayer.rotateY || 0}deg) ${base.transform} skew(${imgLayer.skewX || 0}deg, ${imgLayer.skewY || 0}deg)`,
-              boxShadow: imgLayer.shadow && typeof imgLayer.shadow === 'object'
-                ? `${imgLayer.shadow.offsetX}px ${imgLayer.shadow.offsetY}px ${imgLayer.shadow.blur}px ${safeStr(imgLayer.shadow.color, '#000000')}`
-                : 'none',
-              border: imgLayer.stroke && typeof imgLayer.stroke === 'object' ? `${imgLayer.stroke.width}px solid ${safeStr(imgLayer.stroke.color, '#000000')}` : 'none',
+              boxShadow:
+                imgLayer.shadow && typeof imgLayer.shadow === 'object'
+                  ? `${imgLayer.shadow.offsetX}px ${imgLayer.shadow.offsetY}px ${imgLayer.shadow.blur}px ${safeStr(imgLayer.shadow.color, '#000000')}`
+                  : 'none',
+              border:
+                imgLayer.stroke && typeof imgLayer.stroke === 'object'
+                  ? `${imgLayer.stroke.width}px solid ${safeStr(imgLayer.stroke.color, '#000000')}`
+                  : 'none',
               borderRadius: `${imgLayer.cornerRadius || 0}px`,
               willChange: 'transform',
               zIndex: isSelected ? 100 : isHovered ? 99 : 1,
@@ -324,53 +328,50 @@ export const ShapeLayerItem = React.memo(
         };
       }, [shapeLayer, isSelected, isHovered]);
 
-      const innerStyle = React.useMemo(
-        () => {
-          const getRadius = () => {
-            if (shapeLayer.type === 'circle') return '50%';
-            if (shapeLayer.type === 'path') return undefined;
-            if ((shapeLayer as ShapeLayer).cornerRadiusPerCorner) {
-              const r = (shapeLayer as ShapeLayer).cornerRadiusPerCorner!;
-              return `${r.tl}px ${r.tr}px ${r.br}px ${r.bl}px`;
-            }
-            return `${shapeLayer.cornerRadius}px`;
-          };
+      const innerStyle = React.useMemo(() => {
+        const getRadius = () => {
+          if (shapeLayer.type === 'circle') return '50%';
+          if (shapeLayer.type === 'path') return undefined;
+          if ((shapeLayer as ShapeLayer).cornerRadiusPerCorner) {
+            const r = (shapeLayer as ShapeLayer).cornerRadiusPerCorner!;
+            return `${r.tl}px ${r.tr}px ${r.br}px ${r.bl}px`;
+          }
+          return `${shapeLayer.cornerRadius}px`;
+        };
 
-          const buildShadow = () => {
-            if (!shapeLayer.shadow || typeof shapeLayer.shadow !== 'object') return 'none';
-            const s = shapeLayer.shadow;
-            const opacity = s.opacity ?? 1;
-            const color = safeStr(s.color, '#000000');
-            const inset = s.inset ? 'inset ' : '';
-            return `${inset}${s.offsetX}px ${s.offsetY}px ${s.blur}px ${color}`;
-          };
+        const buildShadow = () => {
+          if (!shapeLayer.shadow || typeof shapeLayer.shadow !== 'object') return 'none';
+          const s = shapeLayer.shadow;
+          const opacity = s.opacity ?? 1;
+          const color = safeStr(s.color, '#000000');
+          const inset = s.inset ? 'inset ' : '';
+          return `${inset}${s.offsetX}px ${s.offsetY}px ${s.blur}px ${color}`;
+        };
 
-          return {
-            ...animStyle,
-            backgroundColor: shapeLayer.type === 'path' ? 'transparent' : safeStr(shapeLayer.color, '#7d2ae8'),
-            backgroundImage:
-              shapeLayer.type === 'path'
-                ? 'none'
-                : shapeLayer.imageFill
-                  ? `url(${shapeLayer.imageFill.src})`
-                  : shapeLayer.backgroundImage
-                    ? `url(${shapeLayer.backgroundImage})`
-                    : 'none',
-            backgroundSize: shapeLayer.imageFill?.fit === 'contain' ? 'contain' : 'cover',
-            borderRadius: getRadius(),
-            clipPath: shapeLayer.type === 'path' ? undefined : clipPath,
-            WebkitClipPath: shapeLayer.type === 'path' ? undefined : clipPath,
-            filter: shapeLayer.filters ? buildFilterString(shapeLayer.filters) : 'none',
-            backdropFilter: shapeLayer.filters?.backdropBlur ? `blur(${shapeLayer.filters.backdropBlur}px)` : 'none',
-            WebkitBackdropFilter: shapeLayer.filters?.backdropBlur
-              ? `blur(${shapeLayer.filters.backdropBlur}px)`
-              : 'none',
-            boxShadow: buildShadow(),
-            ...(maskPath ? { clipPath: maskPath, WebkitClipPath: maskPath } : {}),
-          };
-        },
-        [animStyle, shapeLayer, clipPath, maskPath]
-      );
+        return {
+          ...animStyle,
+          backgroundColor: shapeLayer.type === 'path' ? 'transparent' : safeStr(shapeLayer.color, '#7d2ae8'),
+          backgroundImage:
+            shapeLayer.type === 'path'
+              ? 'none'
+              : shapeLayer.imageFill
+                ? `url(${shapeLayer.imageFill.src})`
+                : shapeLayer.backgroundImage
+                  ? `url(${shapeLayer.backgroundImage})`
+                  : 'none',
+          backgroundSize: shapeLayer.imageFill?.fit === 'contain' ? 'contain' : 'cover',
+          borderRadius: getRadius(),
+          clipPath: shapeLayer.type === 'path' ? undefined : clipPath,
+          WebkitClipPath: shapeLayer.type === 'path' ? undefined : clipPath,
+          filter: shapeLayer.filters ? buildFilterString(shapeLayer.filters) : 'none',
+          backdropFilter: shapeLayer.filters?.backdropBlur ? `blur(${shapeLayer.filters.backdropBlur}px)` : 'none',
+          WebkitBackdropFilter: shapeLayer.filters?.backdropBlur
+            ? `blur(${shapeLayer.filters.backdropBlur}px)`
+            : 'none',
+          boxShadow: buildShadow(),
+          ...(maskPath ? { clipPath: maskPath, WebkitClipPath: maskPath } : {}),
+        };
+      }, [animStyle, shapeLayer, clipPath, maskPath]);
 
       return (
         <div
@@ -519,7 +520,7 @@ export const ShapeLayerItem = React.memo(
                             : undefined
                       }
                     />
-                      {(() => {
+                    {(() => {
                       const stroke = (shapeLayer as any).stroke;
                       const w = stroke?.width || 0;
                       if (w <= 0) {
@@ -533,7 +534,11 @@ export const ShapeLayerItem = React.memo(
                           return (
                             <path
                               d={shapeLayer.pathData}
-                              fill={shapeLayer.gradient && shapeLayer.gradient.enabled ? `url(#gradient-${shapeLayer.id})` : shapeLayer.color || '#7d2ae8'}
+                              fill={
+                                shapeLayer.gradient && shapeLayer.gradient.enabled
+                                  ? `url(#gradient-${shapeLayer.id})`
+                                  : shapeLayer.color || '#7d2ae8'
+                              }
                               stroke={stroke?.color || shapeLayer.color}
                               strokeWidth={w}
                               strokeLinecap={stroke?.cap || 'round'}
@@ -666,7 +671,10 @@ export const TextLayerItem = React.memo(
               fontStyle: textLayer.fontStyle,
               color: safeStr(textLayer.color, '#000000'),
               textAlign: textLayer.textAlign,
-              letterSpacing: textLayer.letterSpacing !== null && textLayer.letterSpacing !== undefined ? `${textLayer.letterSpacing}px` : undefined,
+              letterSpacing:
+                textLayer.letterSpacing !== null && textLayer.letterSpacing !== undefined
+                  ? `${textLayer.letterSpacing}px`
+                  : undefined,
               lineHeight: textLayer.lineHeight || 1.5,
               fontKerning: textLayer.kerning && textLayer.kerning > 0 ? 'normal' : 'none',
               fontFeatureSettings: textLayer.ligatures !== false ? '"liga" 1, "kern" 1' : '"liga" 0, "kern" 0',
@@ -675,28 +683,34 @@ export const TextLayerItem = React.memo(
               whiteSpace: 'pre-wrap',
               wordBreak: 'break-word',
               ...(textLayer.textShadow && typeof textLayer.textShadow === 'object'
-                ? { textShadow: `${textLayer.textShadow.offsetX}px ${textLayer.textShadow.offsetY}px ${textLayer.textShadow.blur}px ${safeStr(textLayer.textShadow.color, '#000000')}` }
+                ? {
+                    textShadow: `${textLayer.textShadow.offsetX}px ${textLayer.textShadow.offsetY}px ${textLayer.textShadow.blur}px ${safeStr(textLayer.textShadow.color, '#000000')}`,
+                  }
                 : textLayer.styleType === 'emboss'
                   ? { textShadow: '-1px -1px 1px rgba(255,255,255,0.8), 1px 1px 2px rgba(0,0,0,0.6)' }
                   : textLayer.styleType === 'deboss'
                     ? { textShadow: '1px 1px 1px rgba(255,255,255,0.8), -1px -1px 2px rgba(0,0,0,0.6)' }
                     : {}),
               ...(textLayer.textStroke && typeof textLayer.textStroke === 'object'
-                ? { WebkitTextStroke: `${textLayer.textStroke.width}px ${safeStr(textLayer.textStroke.color, '#7d2ae8')}` }
+                ? {
+                    WebkitTextStroke: `${textLayer.textStroke.width}px ${safeStr(textLayer.textStroke.color, '#7d2ae8')}`,
+                  }
                 : textLayer.styleType === 'hollow'
                   ? { WebkitTextStroke: '1px #7d2ae8' }
                   : {}),
-              ...(textLayer.warpStyle === 'bulge' || textLayer.warpStyle === 'squeeze' || textLayer.warpStyle === 'perspective'
-                ? { transform: `perspective(${textLayer.warpParams?.perspective || 800}px) rotateX(${textLayer.warpParams?.rotateX || 0}deg) rotateY(${textLayer.warpParams?.rotateY || 0}deg)` }
+              ...(textLayer.warpStyle === 'bulge' ||
+              textLayer.warpStyle === 'squeeze' ||
+              textLayer.warpStyle === 'perspective'
+                ? {
+                    transform: `perspective(${textLayer.warpParams?.perspective || 800}px) rotateX(${textLayer.warpParams?.rotateX || 0}deg) rotateY(${textLayer.warpParams?.rotateY || 0}deg)`,
+                  }
                 : {}),
               ...(maskPath ? { clipPath: maskPath } : {}),
             }}
           >
             {safeStr(textLayer.text, '')}
           </div>
-          {isSelected && !isEditing && (
-            <SelectionHandles layer={textLayer} onResize={onResize} onRotate={onRotate} />
-          )}
+          {isSelected && !isEditing && <SelectionHandles layer={textLayer} onResize={onResize} onRotate={onRotate} />}
         </div>
       );
     }

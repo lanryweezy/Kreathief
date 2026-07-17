@@ -1,6 +1,30 @@
-.cursor-select { cursor: url('/cursors/select.svg') 4 4, auto; }
-.cursor-draw { cursor: url('/cursors/draw.svg') 8 8, crosshair; }
-.cursor-text { cursor: url('/cursors/text.svg') 8 8, text; }
-.cursor-eraser { cursor: url('/cursors/eraser.svg') 8 8, crosshair; }
-.cursor-hand { cursor: url('/cursors/hand.svg') 8 8, grab; }
-.cursor-move { cursor: url('/cursors/move.svg') 8 8, move; }
+.cursor-select {
+  cursor:
+    url('/cursors/select.svg') 4 4,
+    auto;
+}
+.cursor-draw {
+  cursor:
+    url('/cursors/draw.svg') 8 8,
+    crosshair;
+}
+.cursor-text {
+  cursor:
+    url('/cursors/text.svg') 8 8,
+    text;
+}
+.cursor-eraser {
+  cursor:
+    url('/cursors/eraser.svg') 8 8,
+    crosshair;
+}
+.cursor-hand {
+  cursor:
+    url('/cursors/hand.svg') 8 8,
+    grab;
+}
+.cursor-move {
+  cursor:
+    url('/cursors/move.svg') 8 8,
+    move;
+}

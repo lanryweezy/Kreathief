@@ -24,8 +24,10 @@ describe('pointOnCurve', () => {
   });
 
   it('handles straight line (collinear control points)', () => {
-    const a: Point = { x: 0, y: 0 }, b: Point = { x: 5, y: 5 };
-    const c: Point = { x: 10, y: 10 }, d: Point = { x: 15, y: 15 };
+    const a: Point = { x: 0, y: 0 },
+      b: Point = { x: 5, y: 5 };
+    const c: Point = { x: 10, y: 10 },
+      d: Point = { x: 15, y: 15 };
     expect(pointOnCurve(a, b, c, d, 0.5)).toEqual({ x: 7.5, y: 7.5 });
   });
 });
@@ -59,8 +61,10 @@ describe('curveLength', () => {
   });
 
   it('matches straight-line distance for collinear points', () => {
-    const a: Point = { x: 0, y: 0 }, b: Point = { x: 5, y: 0 };
-    const c: Point = { x: 10, y: 0 }, d: Point = { x: 15, y: 0 };
+    const a: Point = { x: 0, y: 0 },
+      b: Point = { x: 5, y: 0 };
+    const c: Point = { x: 10, y: 0 },
+      d: Point = { x: 15, y: 0 };
     expect(curveLength(a, b, c, d)).toBeCloseTo(15, 0);
   });
 

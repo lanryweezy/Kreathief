@@ -15,7 +15,7 @@ const createLayer = (id: string, x: number, y: number, width: number, height: nu
     locked: false,
     visible: true,
     color: '#000',
-    cornerRadius: 0
+    cornerRadius: 0,
   } as ShapeLayer;
 };
 
@@ -36,9 +36,9 @@ describe('tidyUpLayers', () => {
     const result = tidyUpLayers(layers);
 
     expect(result.length).toBe(4);
-    expect(result.find(r => r.id === '1')).toEqual({ id: '1', changes: { x: 0, y: 0 } });
-    expect(result.find(r => r.id === '2')).toEqual({ id: '2', changes: { x: 70, y: 0 } });
-    expect(result.find(r => r.id === '3')).toEqual({ id: '3', changes: { x: 0, y: 90 } });
-    expect(result.find(r => r.id === '4')).toEqual({ id: '4', changes: { x: 70, y: 90 } });
+    expect(result.find((r) => r.id === '1')).toEqual({ id: '1', changes: { x: 0, y: 0 } });
+    expect(result.find((r) => r.id === '2')).toEqual({ id: '2', changes: { x: 70, y: 0 } });
+    expect(result.find((r) => r.id === '3')).toEqual({ id: '3', changes: { x: 0, y: 90 } });
+    expect(result.find((r) => r.id === '4')).toEqual({ id: '4', changes: { x: 70, y: 90 } });
   });
 });

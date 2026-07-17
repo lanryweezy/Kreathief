@@ -32,28 +32,37 @@
 
 **Learning:** Destructuring multiple properties from Zustand's `useStore()` without a shallow equality check creates a new object on every state update. This defeats any memoization and triggers a re-render of the component even if none of the destructured values changed.
 **Action:** When a component extracts multiple values from `useStore()` by returning an object, always wrap the selector function in `useShallow` from `zustand/react/shallow`. This ensures the component only re-renders when one of the specifically selected properties has been updated.
-## 2026-06-28 - Unnecessary full-store subscriptions via direct destructuring
-**Learning:** Destructuring directly from  without providing a selector (e.g., `const { a, b } = useStore()` or `const { isActive } = useStore()`) subscribes the calling component to the *entire* global store. This causes the component to re-render whenever *any* state in the store changes, even if the destructured values are completely unrelated. In frequently re-rendered components like canvas overlays, this creates a massive performance bottleneck.
-**Action:** Never use direct destructuring from  without a selector. Always use an explicit selector and wrap it with  when returning multiple values to ensure the component only re-renders when the specific properties it depends on change.
 
 ## 2026-06-28 - Unnecessary full-store subscriptions via direct destructuring
 
-**Learning:** Destructuring directly from `useStore()` without providing a selector (e.g., `const { a, b } = useStore()` or `const { isActive } = useStore()`) subscribes the calling component to the *entire* global store. This causes the component to re-render whenever *any* state in the store changes, even if the destructured values are completely unrelated. In frequently re-rendered components like canvas overlays, this creates a massive performance bottleneck.
+**Learning:** Destructuring directly from without providing a selector (e.g., `const { a, b } = useStore()` or `const { isActive } = useStore()`) subscribes the calling component to the _entire_ global store. This causes the component to re-render whenever _any_ state in the store changes, even if the destructured values are completely unrelated. In frequently re-rendered components like canvas overlays, this creates a massive performance bottleneck.
+**Action:** Never use direct destructuring from without a selector. Always use an explicit selector and wrap it with when returning multiple values to ensure the component only re-renders when the specific properties it depends on change.
+
+## 2026-06-28 - Unnecessary full-store subscriptions via direct destructuring
+
+**Learning:** Destructuring directly from `useStore()` without providing a selector (e.g., `const { a, b } = useStore()` or `const { isActive } = useStore()`) subscribes the calling component to the _entire_ global store. This causes the component to re-render whenever _any_ state in the store changes, even if the destructured values are completely unrelated. In frequently re-rendered components like canvas overlays, this creates a massive performance bottleneck.
 **Action:** Never use direct destructuring from `useStore()` without a selector. Always use an explicit selector and wrap it with `useShallow` when returning multiple values to ensure the component only re-renders when the specific properties it depends on change.
 
 ## 2026-07-02 - Unnecessary full-store subscriptions via direct destructuring in panel components
-**Learning:** Destructuring directly from `useStore()` without providing a selector (e.g., `const { a, b } = useStore()` or `const { isActive } = useStore()`) subscribes the calling component to the *entire* global store. This causes the component to re-render whenever *any* state in the store changes, even if the destructured values are completely unrelated. In frequently re-rendered components like canvas overlays, this creates a massive performance bottleneck.
+
+**Learning:** Destructuring directly from `useStore()` without providing a selector (e.g., `const { a, b } = useStore()` or `const { isActive } = useStore()`) subscribes the calling component to the _entire_ global store. This causes the component to re-render whenever _any_ state in the store changes, even if the destructured values are completely unrelated. In frequently re-rendered components like canvas overlays, this creates a massive performance bottleneck.
 **Action:** Never use direct destructuring from `useStore()` without a selector. Always use an explicit selector and wrap it with `useShallow` when returning multiple values to ensure the component only re-renders when the specific properties it depends on change.
+
 ## 2026-07-03 - Zustand useShallow Optimization
-**Learning:** Found several components (`CommunityTemplates`, `VersionHistoryTimeline`, `FeedbackModal`, `ShapeTools`) in this specific codebase subscribing to the entire Zustand store without a selector (e.g., `const { a, b } = useStore();`) or returning objects from selectors without `useShallow` (e.g. `useStore((state) => ({a: state.a}))`). This anti-pattern breaks referential equality and forces components to re-render on *every* store update (like mouse movements or other layer updates).
+
+**Learning:** Found several components (`CommunityTemplates`, `VersionHistoryTimeline`, `FeedbackModal`, `ShapeTools`) in this specific codebase subscribing to the entire Zustand store without a selector (e.g., `const { a, b } = useStore();`) or returning objects from selectors without `useShallow` (e.g. `useStore((state) => ({a: state.a}))`). This anti-pattern breaks referential equality and forces components to re-render on _every_ store update (like mouse movements or other layer updates).
 **Action:** Always use an explicit selector wrapped in `useShallow` from `zustand/react/shallow` when extracting multiple properties from the store to prevent catastrophic re-rendering loops.
 
 ## 2026-07-04 - Zustand Store Subscriptions in Overlay Components
+
 **Learning:** Overlay components like FeedbackModal destructured the entire Zustand store without using a selector. This caused the component to re-render constantly on every minor canvas state update, hurting global app performance.
 **Action:** Never use parameterless destructuring with `useStore()`. Always use explicit selectors wrapped in `useShallow` from `zustand/react/shallow` so the component only renders when its specific dependencies change.
+
 ## 2024-05-24 - Unnecessary Iterations for Logging in Render Cycle
+
 **Learning:** Found an instance where an entire nested iteration loop over all layers in the scene was enclosed inside a `useMemo` specifically to execute a debug logging method (`bitmapCache.stats()`). This forced the application to trace every layer on virtually every prop update (since `artboards` reference frequently changed) without generating any usable output.
 **Action:** Avoid placing debug logging loops that iterate through the whole component hierarchy inside standard render flows. In a performance-obsessed codebase, operations strictly meant for debug stats should either be placed behind developer tools toggles, debounced outside the main thread, or removed completely when unnecessary to avoid O(N) penalties during critical renders.
+
 ## 2026-07-16 - Zustand store selective destructuring with useShallow
 
 **Learning:** When extracting multiple values from Zustand's `useStore` in React components, avoid parameterless destructuring (e.g., `const { a, b } = useStore();`) or returning objects without `useShallow` (e.g., `useStore(state => ({a: state.a}))`). This subscribes the component to the entire store or breaks referential equality, causing catastrophic re-renders on every store update (like simple mouse movements).

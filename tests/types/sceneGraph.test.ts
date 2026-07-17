@@ -53,12 +53,7 @@ describe('SceneGraph', () => {
   });
 
   it('builds a nested graph from groupId references', () => {
-    const layers = [
-      makeGroup('g1', 'Group'),
-      makeLayer('a', 'g1'),
-      makeLayer('b', 'g1'),
-      makeLayer('c'),
-    ];
+    const layers = [makeGroup('g1', 'Group'), makeLayer('a', 'g1'), makeLayer('b', 'g1'), makeLayer('c')];
     const graph = buildSceneGraph(layers);
 
     expect(graph.roots.length).toBe(2); // g1 and c
@@ -71,12 +66,7 @@ describe('SceneGraph', () => {
   });
 
   it('flattens back to correct z-order', () => {
-    const layers = [
-      makeGroup('g1'),
-      makeLayer('a', 'g1'),
-      makeLayer('b', 'g1'),
-      makeLayer('c'),
-    ];
+    const layers = [makeGroup('g1'), makeLayer('a', 'g1'), makeLayer('b', 'g1'), makeLayer('c')];
     const graph = buildSceneGraph(layers);
     const flat = flattenSceneGraph(graph);
 
@@ -88,13 +78,7 @@ describe('SceneGraph', () => {
   });
 
   it('getDescendants returns all nested layers', () => {
-    const layers = [
-      makeGroup('g1'),
-      makeLayer('a', 'g1'),
-      makeGroup('g2', 'g1'),
-      makeLayer('b', 'g2'),
-      makeLayer('c'),
-    ];
+    const layers = [makeGroup('g1'), makeLayer('a', 'g1'), makeGroup('g2', 'g1'), makeLayer('b', 'g2'), makeLayer('c')];
     const graph = buildSceneGraph(layers);
     const descendants = getDescendants(graph.nodeMap.get('g1')!);
 
@@ -103,11 +87,7 @@ describe('SceneGraph', () => {
   });
 
   it('getAncestors returns parent chain', () => {
-    const layers = [
-      makeGroup('g1'),
-      makeGroup('g2', 'g1'),
-      makeLayer('a', 'g2'),
-    ];
+    const layers = [makeGroup('g1'), makeGroup('g2', 'g1'), makeLayer('a', 'g2')];
     const graph = buildSceneGraph(layers);
     const ancestors = getAncestors(graph.nodeMap.get('a')!);
 
@@ -117,12 +97,7 @@ describe('SceneGraph', () => {
   });
 
   it('getLeaves returns only leaf nodes', () => {
-    const layers = [
-      makeGroup('g1'),
-      makeLayer('a', 'g1'),
-      makeGroup('g2', 'g1'),
-      makeLayer('b', 'g2'),
-    ];
+    const layers = [makeGroup('g1'), makeLayer('a', 'g1'), makeGroup('g2', 'g1'), makeLayer('b', 'g2')];
     const graph = buildSceneGraph(layers);
     const leaves = getLeaves(graph.nodeMap.get('g1')!);
 
@@ -131,12 +106,7 @@ describe('SceneGraph', () => {
   });
 
   it('moveNode re-parents correctly', () => {
-    const layers = [
-      makeGroup('g1'),
-      makeGroup('g2'),
-      makeLayer('a', 'g1'),
-      makeLayer('b'),
-    ];
+    const layers = [makeGroup('g1'), makeGroup('g2'), makeLayer('a', 'g1'), makeLayer('b')];
     const graph = buildSceneGraph(layers);
 
     moveNode(graph, 'b', 'g1');
@@ -148,12 +118,7 @@ describe('SceneGraph', () => {
   });
 
   it('deleteNode removes node and descendants', () => {
-    const layers = [
-      makeGroup('g1'),
-      makeLayer('a', 'g1'),
-      makeLayer('b', 'g1'),
-      makeLayer('c'),
-    ];
+    const layers = [makeGroup('g1'), makeLayer('a', 'g1'), makeLayer('b', 'g1'), makeLayer('c')];
     const graph = buildSceneGraph(layers);
 
     const deleted = deleteNode(graph, 'g1');
@@ -177,11 +142,7 @@ describe('SceneGraph', () => {
   });
 
   it('serializes and deserializes correctly', () => {
-    const layers = [
-      makeGroup('g1'),
-      makeLayer('a', 'g1'),
-      makeLayer('b'),
-    ];
+    const layers = [makeGroup('g1'), makeLayer('a', 'g1'), makeLayer('b')];
     const graph = buildSceneGraph(layers);
 
     const json = serializeSceneGraph(graph);
@@ -210,11 +171,7 @@ describe('SceneGraph', () => {
   });
 
   it('finds deep nested node via nodeMap', () => {
-    const layers = [
-      makeGroup('g1'),
-      makeGroup('g2', 'inner'),
-      makeLayer('a', 'g2'),
-    ];
+    const layers = [makeGroup('g1'), makeGroup('g2', 'inner'), makeLayer('a', 'g2')];
     const graph = buildSceneGraph(layers);
     const node = graph.nodeMap.get('a');
     expect(node).toBeDefined();
@@ -223,13 +180,7 @@ describe('SceneGraph', () => {
   });
 
   it('buildSceneGraph → flattenSceneGraph roundtrip preserves all layers', () => {
-    const layers = [
-      makeGroup('g1'),
-      makeLayer('a', 'g1'),
-      makeGroup('g2', 'g1'),
-      makeLayer('b', 'g2'),
-      makeLayer('c'),
-    ];
+    const layers = [makeGroup('g1'), makeLayer('a', 'g1'), makeGroup('g2', 'g1'), makeLayer('b', 'g2'), makeLayer('c')];
     const graph = buildSceneGraph(layers);
     const flat = flattenSceneGraph(graph);
     expect(flat.map((l) => l.id)).toEqual(['g1', 'a', 'g2', 'b', 'c']);
@@ -256,10 +207,7 @@ describe('SceneGraph', () => {
   });
 
   it('moveNode back to root from group', () => {
-    const layers = [
-      makeGroup('g1'),
-      makeLayer('a', 'g1'),
-    ];
+    const layers = [makeGroup('g1'), makeLayer('a', 'g1')];
     const graph = buildSceneGraph(layers);
     moveNode(graph, 'a', null);
     expect(graph.roots.length).toBe(2);
@@ -290,12 +238,7 @@ describe('SceneGraph', () => {
   });
 
   it('deeper nesting sets correct depths', () => {
-    const layers = [
-      makeGroup('g1'),
-      makeGroup('g2', 'g1'),
-      makeGroup('g3', 'g2'),
-      makeLayer('leaf', 'g3'),
-    ];
+    const layers = [makeGroup('g1'), makeGroup('g2', 'g1'), makeGroup('g3', 'g2'), makeLayer('leaf', 'g3')];
     const graph = buildSceneGraph(layers);
     expect(graph.nodeMap.get('g1')!.depth).toBe(0);
     expect(graph.nodeMap.get('g2')!.depth).toBe(1);
@@ -304,11 +247,7 @@ describe('SceneGraph', () => {
   });
 
   it('serialize/deserialize preserves deep nesting', () => {
-    const layers = [
-      makeGroup('g1'),
-      makeGroup('g2', 'g1'),
-      makeLayer('a', 'g2'),
-    ];
+    const layers = [makeGroup('g1'), makeGroup('g2', 'g1'), makeLayer('a', 'g2')];
     const graph = buildSceneGraph(layers);
     const json = serializeSceneGraph(graph);
     const restored = deserializeSceneGraph(json);

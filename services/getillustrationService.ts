@@ -88,7 +88,9 @@ export async function listPacks(page = 1, limit = 20, freeOnly = false): Promise
 
 export async function getPackIllustrations(packId: string, page = 1, limit = 20): Promise<GIAsset[]> {
   try {
-    const res = await fetch(`${BASE_URL}?action=pack-illustrations&packId=${encodeURIComponent(packId)}&page=${page}&limit=${limit}`);
+    const res = await fetch(
+      `${BASE_URL}?action=pack-illustrations&packId=${encodeURIComponent(packId)}&page=${page}&limit=${limit}`
+    );
     if (!res.ok) return [];
     const data = await res.json();
     return data.items || [];
@@ -99,7 +101,9 @@ export async function getPackIllustrations(packId: string, page = 1, limit = 20)
 
 export async function getPackIcons(packId: string, page = 1, limit = 20): Promise<GIAsset[]> {
   try {
-    const res = await fetch(`${BASE_URL}?action=pack-icons&packId=${encodeURIComponent(packId)}&page=${page}&limit=${limit}`);
+    const res = await fetch(
+      `${BASE_URL}?action=pack-icons&packId=${encodeURIComponent(packId)}&page=${page}&limit=${limit}`
+    );
     if (!res.ok) return [];
     const data = await res.json();
     return data.items || [];

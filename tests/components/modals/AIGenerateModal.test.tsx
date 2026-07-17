@@ -46,9 +46,7 @@ describe('AIGenerateModal', () => {
     // Make executeGraph reject with a simulated network error
     mockExecuteGraph.mockRejectedValue(new Error('fetch failed'));
 
-    render(
-      <AIGenerateModal isOpen={true} onClose={mockOnClose} onGenerate={mockOnGenerate} />
-    );
+    render(<AIGenerateModal isOpen={true} onClose={mockOnClose} onGenerate={mockOnGenerate} />);
 
     // Enter a prompt
     const textarea = screen.getByPlaceholderText('What do you want to create?');
@@ -66,7 +64,9 @@ describe('AIGenerateModal', () => {
     // Wait for the specific error message to appear
     await waitFor(() => {
       // getAIErrorMessage should return this string for network errors
-      expect(screen.getByText('AI generation failed: Network error. Check your connection and try again.')).toBeInTheDocument();
+      expect(
+        screen.getByText('AI generation failed: Network error. Check your connection and try again.')
+      ).toBeInTheDocument();
     });
   });
 
@@ -74,9 +74,7 @@ describe('AIGenerateModal', () => {
     // Make executeGraph reject with a simulated timeout error
     mockExecuteGraph.mockRejectedValue(new Error('Operation timed out'));
 
-    render(
-      <AIGenerateModal isOpen={true} onClose={mockOnClose} onGenerate={mockOnGenerate} />
-    );
+    render(<AIGenerateModal isOpen={true} onClose={mockOnClose} onGenerate={mockOnGenerate} />);
 
     // Enter a prompt
     const textarea = screen.getByPlaceholderText('What do you want to create?');

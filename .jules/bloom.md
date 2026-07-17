@@ -42,10 +42,13 @@
 
 **Learning:** The `AIGenerateModal` feature was displaying a generic "Something went wrong" error toast on failure, despite the codebase already having a `getAIErrorMessage` utility in `utils/errorMessages.ts` specifically designed to provide actionable user feedback for AI operations (differentiating timeouts, quota limits, and network errors).
 **Action:** Replaced the hardcoded, generic error string in the catch block of `AIGenerateModal` with `getAIErrorMessage(err)` to provide specific, actionable guidance to users.
+
 ## 2024-11-20 - Typo Tolerance and Short Query Matching in Client-Side Search
 
 **Learning:** Client-side searches often fail silently on valid inputs if they rely on exact substring matches (`String.includes`), yielding a brittle experience where simple typos (like "teech" instead of "tech") return zero results. In addition, reusing inline logic like `getLevenshteinDistance` leads to code duplication across services.
 **Action:** Created a centralized `utils/search.ts` with a `fuzzyMatch` utility that applies Levenshtein distance typo tolerance. Replaced exact `.includes()` matching in Dashboard to gracefully handle user typos without changing the external interface of the search feature.
+
 ## 2026-07-11 - High-fidelity Node Workflow UI Upgrade
+
 **Learning:** Node-based UIs in high-end design tools require more than just functional connectivity; they need visual "weight" (glassmorphism, gradients) and animated feedback (flow indicators) to feel integrated with a premium WebGL-driven application. Emojis, while convenient, break the "Pro" immersion.
 **Action:** Always prefer SVG icon libraries (like the project's internal Icons) over emojis for core feature interfaces, and use CSS animations for "active" states in graph-based workflows.

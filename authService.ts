@@ -169,7 +169,11 @@ export class AuthService {
 
       if (error) {
         log.error('[AuthService] Sign in failed', error, { email: maskEmail(email) });
-        logSecurityEvent('LOGIN_ATTEMPT', 'anonymous', { email: maskEmail(email), success: false, error: error.message });
+        logSecurityEvent('LOGIN_ATTEMPT', 'anonymous', {
+          email: maskEmail(email),
+          success: false,
+          error: error.message,
+        });
         analyticsService.track('auth_signin', { success: false, method: 'email', error: error.message });
         return { user: null, error: error.message };
       }

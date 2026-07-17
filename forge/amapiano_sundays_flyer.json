@@ -175,15 +175,7 @@
     "templateName": "Bold Amapiano Print Flyer",
     "shortDescription": "Pack the dancefloor with this striking, high-energy A4 event flyer.",
     "longDescription": "A bold, high-contrast A4 print flyer designed specifically for the South African music scene. Features deep blacks, vibrant neon accents, and massive typography.",
-    "tags": [
-      "Print",
-      "Flyer",
-      "Bold",
-      "Music & Entertainment",
-      "Events",
-      "African Market",
-      "Nightlife"
-    ],
+    "tags": ["Print", "Flyer", "Bold", "Music & Entertainment", "Events", "African Market", "Nightlife"],
     "searchKeywords": [
       "amapiano sundays flyer",
       "south african party poster",
@@ -202,16 +194,8 @@
       "slug": "bold-amapiano-print-flyer"
     },
     "personalisationSignals": {
-      "industry": [
-        "music",
-        "nightlife",
-        "events"
-      ],
-      "audienceType": [
-        "event promoter",
-        "club owner",
-        "DJ"
-      ],
+      "industry": ["music", "nightlife", "events"],
+      "audienceType": ["event promoter", "club owner", "DJ"],
       "experienceLevel": "intermediate"
     },
     "relatedTemplates": [

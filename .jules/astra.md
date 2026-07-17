@@ -49,6 +49,7 @@
 **Action:** To guarantee clean primitive outputs for layer naming, replace textual instruction and regex sanitization with strict schema enforcement (`responseMimeType: 'application/json'` and `responseSchema: { type: SchemaType.STRING }`), parsing the result safely with `safeParseJSON`.
 
 ## 2026-06-21 - Prevent AI App Freeze on External Model Fallbacks
+
 **Learning:** Relying on raw `fetch` calls without abort controllers or retry wrappers for external AI models (like Fal.ai Proxies) can cause the application generation state to freeze indefinitely if the request drops or silently fails on a 429/500 backend error.
 **Action:** When making external AI API calls (e.g., `fetch` to `/api/fal` or Gemini), always wrap them with `retryWithBackoff` from `utils/errorHandling.ts` and use an `AbortController` (e.g., 30s timeout) to ensure transient network errors are handled gracefully and hanging connections are terminated.
 
@@ -74,5 +75,6 @@
 \n## 2026-06-29 - Explicit null string fallback to prevent silent JSON parsing failures\n**Learning:** When using `safeParseJSON<T | null>(text, null)`, if `text` is falsy (like an empty string from a model refusal), falling back to a stringified empty array (`'[]'`) or object (`'{}'`) before parsing will cause the parser to successfully return `[]` or `{}`. These truthy values bypass checks like `if (!parsed)`, leading to silent application failures where downstream code operates on empty data structures rather than executing error recovery logic.\n**Action:** When extracting data from LLMs where an empty response should be treated as a failure, use `'null'` as the fallback string (e.g., `data.text || 'null'`). This ensures `safeParseJSON` parses the literal `null`, which then correctly triggers subsequent `if (!parsed)` checks and fails loudly.
 
 ## 2026-06-29 - Null fallback standard for safeParseJSON masking silent failures
+
 **Learning:** `safeParseJSON` returns the provided fallback when parsing fails. Using `[]` or `{}` as the fallback value coupled with an empty string fallback parameter (e.g., `data.text || '{}'`) silently masks LLM empty outputs/failures, because the returned empty structure is truthy and bypasses `!parsed` checks, leading to default state corruption.
 **Action:** When extracting data from LLMs where an empty response should be treated as a failure, use `'null'` as the fallback string and `null` as the fallback value (e.g., `safeParseJSON<T | null>(data.text || 'null', null)`). This ensures `safeParseJSON` parses the literal `null`, which then correctly triggers subsequent `if (!parsed)` checks and fails loudly.

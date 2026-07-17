@@ -42,7 +42,9 @@ export const CanvasSizePicker: React.FC<CanvasSizePickerProps> = ({ currentSize,
           <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider leading-none mb-0.5">
             Canvas Size
           </span>
-          <span className="text-xs text-white font-medium truncate max-w-[120px]">{String(currentSize?.name || 'Untitled')}</span>
+          <span className="text-xs text-white font-medium truncate max-w-[120px]">
+            {String(currentSize?.name || 'Untitled')}
+          </span>
         </div>
         <Icons.ChevronDown
           className={`w-3.5 h-3.5 text-gray-400 group-hover:text-white transition-transform ${isOpen ? 'rotate-180' : ''}`}

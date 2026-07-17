@@ -9,5 +9,6 @@
 **Action:** When evaluating test coverage, explicitly use `pnpm vitest run --coverage <path>` to execute without watch mode and target specific files.
 
 ## 2024-06-28 - Missing errorMessages Tests
+
 **Learning:** Found pure utility functions (`getErrorDetails` and `getAIErrorMessage` in `utils/errorMessages.ts`) lacking test coverage. Unrelated pre-existing errors in global suites, combined with a manual deletion mistake, temporarily blocked verification but fixing test suite stability locally helped verify these utils properly.
 **Action:** When adding missing pure utility tests, always ensure no existing local tests or unrelated files are affected or overwritten, allowing focused DX improvements.

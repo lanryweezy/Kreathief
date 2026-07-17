@@ -37,10 +37,7 @@ interface UseSceneGraphReturn {
 export function useSceneGraph(layers: Layer[]): UseSceneGraphReturn {
   const graph = useMemo(() => buildSceneGraph(layers), [layers]);
 
-  const getNode = useCallback(
-    (id: string) => graph.nodeMap.get(id),
-    [graph]
-  );
+  const getNode = useCallback((id: string) => graph.nodeMap.get(id), [graph]);
 
   const getChildren = useCallback(
     (id: string) => {

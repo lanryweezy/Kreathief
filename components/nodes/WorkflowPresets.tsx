@@ -19,7 +19,7 @@ const CATEGORIES = [
   { id: 'music', label: 'Music', icon: 'Disc' },
 ] as const;
 
-type CategoryId = typeof CATEGORIES[number]['id'];
+type CategoryId = (typeof CATEGORIES)[number]['id'];
 
 const PRESET_CATEGORIES: Record<string, CategoryId[]> = {
   'drop-day-tee': ['streetwear', 'kreathief'],
@@ -86,8 +86,18 @@ export function WorkflowPresets({ onSelect }: WorkflowPresetsProps) {
     <div className="flex flex-col h-full bg-surface-dark-1">
       <div className="p-3 border-b border-white/10">
         <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
           </svg>
           <input
             type="text"
@@ -147,11 +157,16 @@ export function WorkflowPresets({ onSelect }: WorkflowPresetsProps) {
                   <div className="text-[11px] font-bold text-white truncate">{preset.name}</div>
                   <div className="text-[10px] text-zinc-500 line-clamp-2 mt-0.5">{preset.description}</div>
                   <div className="flex gap-1 mt-1.5">
-                    {getPresetCategories(preset.id).slice(0, 3).map((cat) => (
-                      <span key={cat} className="px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider bg-surface-dark-3 text-zinc-500 rounded">
-                        {cat}
-                      </span>
-                    ))}
+                    {getPresetCategories(preset.id)
+                      .slice(0, 3)
+                      .map((cat) => (
+                        <span
+                          key={cat}
+                          className="px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider bg-surface-dark-3 text-zinc-500 rounded"
+                        >
+                          {cat}
+                        </span>
+                      ))}
                   </div>
                 </div>
                 <div className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">

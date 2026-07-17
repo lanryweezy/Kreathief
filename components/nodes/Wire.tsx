@@ -30,11 +30,7 @@ export function Wire({ fromX, fromY, toX, toY, isActive, onMouseEnter, onMouseLe
     onMouseLeave();
   }, [onMouseLeave]);
 
-  const strokeColor = isHovered
-    ? '#ef4444'
-    : isActive
-    ? '#7D2AE8'
-    : 'rgba(255,255,255,0.2)';
+  const strokeColor = isHovered ? '#ef4444' : isActive ? '#7D2AE8' : 'rgba(255,255,255,0.2)';
 
   return (
     <g>

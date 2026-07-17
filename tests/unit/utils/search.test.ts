@@ -60,9 +60,9 @@ describe('search utils', () => {
     it('handles query length <= 5 with 1 distance tolerance', () => {
       // Query "test" (length 4): allows 1 typo
       expect(fuzzyMatch('test', 'tets cases')).toBe(false); // dist 2 (swap) not allowed
-      expect(fuzzyMatch('test', 'text cases')).toBe(true);  // dist 1 (substitution) allowed
+      expect(fuzzyMatch('test', 'text cases')).toBe(true); // dist 1 (substitution) allowed
       expect(fuzzyMatch('hello', 'hallo world')).toBe(true); // dist 1 (substitution) allowed
-      expect(fuzzyMatch('hello', 'helo world')).toBe(true);  // dist 1 (deletion) allowed
+      expect(fuzzyMatch('hello', 'helo world')).toBe(true); // dist 1 (deletion) allowed
       expect(fuzzyMatch('hello', 'hellos world')).toBe(true); // dist 1 (insertion) allowed
       expect(fuzzyMatch('hello', 'haloo world')).toBe(false); // dist 2 (substitution x2) not allowed
     });
@@ -72,9 +72,9 @@ describe('search utils', () => {
       expect(fuzzyMatch('testing', 'testign code')).toBe(true); // dist 2 (swap) allowed
       expect(fuzzyMatch('testing', 'tetsing code')).toBe(true); // dist 2 (swap) allowed
       expect(fuzzyMatch('testing', 'texting code')).toBe(true); // dist 1 (substitution) allowed
-      expect(fuzzyMatch('testing', 'tsting code')).toBe(true);  // dist 1 (deletion) allowed
-      expect(fuzzyMatch('testing', 'tstng code')).toBe(true);   // dist 2 (deletion x2) allowed
-      expect(fuzzyMatch('testing', 'tatng code')).toBe(false);  // dist 3 (sub + del x2) not allowed
+      expect(fuzzyMatch('testing', 'tsting code')).toBe(true); // dist 1 (deletion) allowed
+      expect(fuzzyMatch('testing', 'tstng code')).toBe(true); // dist 2 (deletion x2) allowed
+      expect(fuzzyMatch('testing', 'tatng code')).toBe(false); // dist 3 (sub + del x2) not allowed
     });
 
     it('returns true if direct substring inclusion works before word splitting', () => {

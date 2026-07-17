@@ -22,7 +22,10 @@ const SPECIALIZATIONS = [
   'Web Design',
 ] as const;
 
-export const CreatorSignupModal: React.FC<CreatorSignupModalProps> = React.memo(function CreatorSignupModal({ isOpen, onClose }) {
+export const CreatorSignupModal: React.FC<CreatorSignupModalProps> = React.memo(function CreatorSignupModal({
+  isOpen,
+  onClose,
+}) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [portfolioUrl, setPortfolioUrl] = useState('');
@@ -30,40 +33,45 @@ export const CreatorSignupModal: React.FC<CreatorSignupModalProps> = React.memo(
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || !email.trim() || !specialization) {
-      setError('Please fill in all required fields');
-      return;
-    }
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!name.trim() || !email.trim() || !specialization) {
+        setError('Please fill in all required fields');
+        return;
+      }
 
-    setIsSubmitting(true);
-    setError('');
+      setIsSubmitting(true);
+      setError('');
 
-    try {
-      const { data: { user } } = await db.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      try {
+        const {
+          data: { user },
+        } = await db.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
 
-      const { error: updateError } = await db
-        .from('profiles')
-        .update({
-          name: name.trim(),
-          website: portfolioUrl.trim() || null,
-          bio: `Specialization: ${specialization}`,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id);
+        const { error: updateError } = await db
+          .from('profiles')
+          .update({
+            name: name.trim(),
+            website: portfolioUrl.trim() || null,
+            bio: `Specialization: ${specialization}`,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', user.id);
 
-      if (updateError) throw updateError;
+        if (updateError) throw updateError;
 
-      localStorage.setItem('kreathief_creator_status', 'pending');
-      onClose();
-    } catch (err: any) {
-      setError(err.message || 'Failed to become a creator');
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [name, email, portfolioUrl, specialization, onClose]);
+        localStorage.setItem('kreathief_creator_status', 'pending');
+        onClose();
+      } catch (err: any) {
+        setError(err.message || 'Failed to become a creator');
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [name, email, portfolioUrl, specialization, onClose]
+  );
 
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose} maxWidth="max-w-lg">
@@ -115,13 +123,17 @@ export const CreatorSignupModal: React.FC<CreatorSignupModalProps> = React.memo(
             >
               <option value="">Select a specialization</option>
               {SPECIALIZATIONS.map((spec) => (
-                <option key={spec} value={spec}>{spec}</option>
+                <option key={spec} value={spec}>
+                  {spec}
+                </option>
               ))}
             </select>
           </div>
 
           {error && (
-            <p className="text-sm text-red-400" role="alert">{error}</p>
+            <p className="text-sm text-red-400" role="alert">
+              {error}
+            </p>
           )}
 
           <Button

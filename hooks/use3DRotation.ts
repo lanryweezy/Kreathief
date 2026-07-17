@@ -43,10 +43,12 @@ export function use3DRotation(): Use3DRotationReturn {
   const imageRef = useRef<HTMLImageElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const { updateLayer, addToast } = useStore(useShallow((state) => ({
-    updateLayer: state.updateLayer,
-    addToast: state.addToast,
-  })));
+  const { updateLayer, addToast } = useStore(
+    useShallow((state) => ({
+      updateLayer: state.updateLayer,
+      addToast: state.addToast,
+    }))
+  );
 
   /**
    * Load the image from a layer's src and prepare for 3D rotation.

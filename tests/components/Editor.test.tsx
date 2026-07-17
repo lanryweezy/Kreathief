@@ -62,11 +62,6 @@ vi.mock('../../store/useStore', () => ({
 
 describe('Editor', () => {
   it('renders without crashing', () => {
-    render(
-      <Editor
-        onBack={vi.fn()}
-        user={{ id: 'user-1', email: 'test@test.com', name: 'Test User' } as any}
-      />
-    );
+    render(<Editor onBack={vi.fn()} user={{ id: 'user-1', email: 'test@test.com', name: 'Test User' } as any} />);
   });
 });

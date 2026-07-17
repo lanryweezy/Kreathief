@@ -585,7 +585,12 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         },
         description: 'Command Palette',
       },
-      { key: '?', shift: true, action: () => useStore.getState().setShowShortcuts(!useStore.getState().showShortcuts), description: 'Shortcuts' },
+      {
+        key: '?',
+        shift: true,
+        action: () => useStore.getState().setShowShortcuts(!useStore.getState().showShortcuts),
+        description: 'Shortcuts',
+      },
 
       {
         key: '1',
@@ -665,7 +670,11 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   return (
     <div id="editor-root" className="flex flex-col h-screen bg-surface-dark-2 overflow-hidden text-[#e5e7eb] font-sans">
       {isOffline && (
-        <div className="bg-amber-600 text-white text-xs font-bold text-center py-2 px-4 z-50" role="alert" aria-live="polite">
+        <div
+          className="bg-amber-600 text-white text-xs font-bold text-center py-2 px-4 z-50"
+          role="alert"
+          aria-live="polite"
+        >
           You are offline — some features may be unavailable
         </div>
       )}
@@ -742,7 +751,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           )}
 
           <div
-            data-testid="toolbar" role="toolbar" aria-label="Editor toolbar"
+            data-testid="toolbar"
+            role="toolbar"
+            aria-label="Editor toolbar"
             className="h-11 bg-surface-dark-1/90 border-b border-white/5 flex items-center z-30 w-full shrink-0 px-4 gap-4 backdrop-blur-md"
           >
             <div className="flex items-center gap-4 w-full h-full">

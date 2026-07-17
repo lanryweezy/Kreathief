@@ -71,7 +71,10 @@ export const exportToPrintPDF = async (
             imageUrlToProcess = data.publicUrl;
             // Clean up temp file after export completes (fire-and-forget)
             setTimeout(() => {
-              supabase.storage.from('exports').remove([tempFileName]).catch(() => {});
+              supabase.storage
+                .from('exports')
+                .remove([tempFileName])
+                .catch(() => {});
             }, 60000);
           }
         }
@@ -181,16 +184,23 @@ export const exportToLayeredPSD = async (width: number, height: number, layers: 
         let fillGrad: CanvasGradient;
         if (grad.type === 'radial') {
           fillGrad = ctx.createRadialGradient(
-            canvas.width / 2, canvas.height / 2, 0,
-            canvas.width / 2, canvas.height / 2, canvas.width / 2
+            canvas.width / 2,
+            canvas.height / 2,
+            0,
+            canvas.width / 2,
+            canvas.height / 2,
+            canvas.width / 2
           );
         } else {
           const angle = ((grad.angle || 0) * Math.PI) / 180;
-          const cx = canvas.width / 2, cy = canvas.height / 2;
+          const cx = canvas.width / 2,
+            cy = canvas.height / 2;
           const len = canvas.width / 2;
           fillGrad = ctx.createLinearGradient(
-            cx - Math.cos(angle) * len, cy - Math.sin(angle) * len,
-            cx + Math.cos(angle) * len, cy + Math.sin(angle) * len
+            cx - Math.cos(angle) * len,
+            cy - Math.sin(angle) * len,
+            cx + Math.cos(angle) * len,
+            cy + Math.sin(angle) * len
           );
         }
         for (const stop of grad.colors) {
@@ -222,10 +232,16 @@ export const exportToLayeredPSD = async (width: number, height: number, layers: 
       const opacity = match?.[4] ? parseFloat(match[4]) : 0.5;
       const dist = Math.sqrt((shadow.offsetX || 0) ** 2 + (shadow.offsetY || 0) ** 2);
       const angle = Math.atan2(-(shadow.offsetY || 0), shadow.offsetX || 0) * (180 / Math.PI);
-      effects.dropShadow = [{
-        enabled: true, color, opacity, distance: dist,
-        size: shadow.blur || 5, angle: Math.round(angle),
-      }];
+      effects.dropShadow = [
+        {
+          enabled: true,
+          color,
+          opacity,
+          distance: dist,
+          size: shadow.blur || 5,
+          angle: Math.round(angle),
+        },
+      ];
     }
 
     const stroke = (layer as any).stroke;
@@ -233,12 +249,21 @@ export const exportToLayeredPSD = async (width: number, height: number, layers: 
       let sColor = { r: 0, g: 0, b: 0 };
       if (stroke.color?.startsWith('#')) {
         const hex = stroke.color.replace('#', '');
-        sColor = { r: parseInt(hex.substring(0, 2), 16), g: parseInt(hex.substring(2, 4), 16), b: parseInt(hex.substring(4, 6), 16) };
+        sColor = {
+          r: parseInt(hex.substring(0, 2), 16),
+          g: parseInt(hex.substring(2, 4), 16),
+          b: parseInt(hex.substring(4, 6), 16),
+        };
       }
-      effects.stroke = [{
-        enabled: true, color: sColor, size: stroke.width,
-        opacity: stroke.opacity ?? 1, position: 'outside',
-      }];
+      effects.stroke = [
+        {
+          enabled: true,
+          color: sColor,
+          size: stroke.width,
+          opacity: stroke.opacity ?? 1,
+          position: 'outside',
+        },
+      ];
     }
 
     // Build group children recursively
@@ -408,7 +433,9 @@ export const exportToSVG = (width: number, height: number, backgroundColor: stri
   svgParts.push(`  </defs>`);
 
   if (backgroundColor !== 'transparent') {
-    svgParts.push(`  <rect x="0" y="0" width="${round2(width)}" height="${round2(height)}" fill="${backgroundColor}" />`);
+    svgParts.push(
+      `  <rect x="0" y="0" width="${round2(width)}" height="${round2(height)}" fill="${backgroundColor}" />`
+    );
   }
 
   for (const layer of layers) {
@@ -490,7 +517,12 @@ export const exportToSVG = (width: number, height: number, backgroundColor: stri
 };
 
 function escapeXml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
 }
 
 /* --- HELPER FUNCTIONS --- */
@@ -500,8 +532,14 @@ const loadImage = (url: string, timeoutMs = 30000): Promise<HTMLImageElement> =>
     const timer = setTimeout(() => reject(new Error(`Image load timed out after ${timeoutMs}ms: ${url}`)), timeoutMs);
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    img.onload = () => { clearTimeout(timer); resolve(img); };
-    img.onerror = (e) => { clearTimeout(timer); reject(e); };
+    img.onload = () => {
+      clearTimeout(timer);
+      resolve(img);
+    };
+    img.onerror = (e) => {
+      clearTimeout(timer);
+      reject(e);
+    };
     img.src = url;
   });
 };
@@ -691,7 +729,6 @@ export const batchExportArtboards = async (
       });
       downloadBlob(blob, `${filename}.png`);
     }
-
   }
 };
 

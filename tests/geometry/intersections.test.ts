@@ -4,41 +4,26 @@ import { lineLineIntersect, curveLineIntersect } from '../../geometry/intersecti
 
 describe('lineLineIntersect', () => {
   it('crossing lines → intersection point', () => {
-    const hit = lineLineIntersect(
-      { x: 0, y: 0 }, { x: 10, y: 10 },
-      { x: 0, y: 10 }, { x: 10, y: 0 },
-    );
+    const hit = lineLineIntersect({ x: 0, y: 0 }, { x: 10, y: 10 }, { x: 0, y: 10 }, { x: 10, y: 0 });
     expect(hit).not.toBeNull();
     expect(hit!.x).toBeCloseTo(5);
     expect(hit!.y).toBeCloseTo(5);
   });
 
   it('parallel lines → null', () => {
-    expect(lineLineIntersect(
-      { x: 0, y: 0 }, { x: 10, y: 0 },
-      { x: 0, y: 5 }, { x: 10, y: 5 },
-    )).toBeNull();
+    expect(lineLineIntersect({ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 0, y: 5 }, { x: 10, y: 5 })).toBeNull();
   });
 
   it('collinear lines → null', () => {
-    expect(lineLineIntersect(
-      { x: 0, y: 0 }, { x: 10, y: 0 },
-      { x: 5, y: 0 }, { x: 15, y: 0 },
-    )).toBeNull();
+    expect(lineLineIntersect({ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 5, y: 0 }, { x: 15, y: 0 })).toBeNull();
   });
 
   it('intersection outside segment bounds → null', () => {
-    expect(lineLineIntersect(
-      { x: 0, y: 0 }, { x: 2, y: 2 },
-      { x: 5, y: 0 }, { x: 5, y: 10 },
-    )).toBeNull();
+    expect(lineLineIntersect({ x: 0, y: 0 }, { x: 2, y: 2 }, { x: 5, y: 0 }, { x: 5, y: 10 })).toBeNull();
   });
 
   it('shared endpoint → intersection', () => {
-    const hit = lineLineIntersect(
-      { x: 0, y: 0 }, { x: 5, y: 5 },
-      { x: 5, y: 5 }, { x: 10, y: 0 },
-    );
+    const hit = lineLineIntersect({ x: 0, y: 0 }, { x: 5, y: 5 }, { x: 5, y: 5 }, { x: 10, y: 0 });
     expect(hit).not.toBeNull();
     expect(hit!.x).toBeCloseTo(5);
   });

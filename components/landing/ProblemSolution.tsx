@@ -39,7 +39,8 @@ export const ProblemSolution: React.FC = () => {
             </span>
           </div>
           <h2 className="text-4xl md:text-6xl font-black tracking-tight text-white mb-6 leading-[1.1]">
-            You're using 5 tools<br />
+            You're using 5 tools
+            <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400">
               to do 1 job.
             </span>
@@ -82,7 +83,8 @@ export const ProblemSolution: React.FC = () => {
             </span>
           </div>
           <h2 className="text-4xl md:text-6xl font-black tracking-tight text-white mb-6 leading-[1.1]">
-            One tool.<br />
+            One tool.
+            <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
               Everything.
             </span>
@@ -128,7 +130,13 @@ export const ProblemSolution: React.FC = () => {
               <span className="text-sm font-black text-red-400 uppercase tracking-wider">Before</span>
             </div>
             <div className="space-y-3">
-              {['Open Canva for quick graphics', 'Switch to Figma for UI design', 'Use Midjourney for AI images', 'Export from 3 different tools', 'Pay for 4 subscriptions'].map((item, i) => (
+              {[
+                'Open Canva for quick graphics',
+                'Switch to Figma for UI design',
+                'Use Midjourney for AI images',
+                'Export from 3 different tools',
+                'Pay for 4 subscriptions',
+              ].map((item, i) => (
                 <div key={i} className="flex items-center gap-3 text-sm text-gray-400">
                   <div className="w-1.5 h-1.5 rounded-full bg-red-500/50 shrink-0" />
                   {item}
@@ -150,7 +158,13 @@ export const ProblemSolution: React.FC = () => {
               <span className="text-sm font-black text-green-400 uppercase tracking-wider">After</span>
             </div>
             <div className="space-y-3">
-              {['Open Kreathief', 'AI generates your design', 'Edit with vector tools', 'Export any format', 'One tool, one price'].map((item, i) => (
+              {[
+                'Open Kreathief',
+                'AI generates your design',
+                'Edit with vector tools',
+                'Export any format',
+                'One tool, one price',
+              ].map((item, i) => (
                 <div key={i} className="flex items-center gap-3 text-sm text-gray-300">
                   <div className="w-1.5 h-1.5 rounded-full bg-green-500/50 shrink-0" />
                   {item}

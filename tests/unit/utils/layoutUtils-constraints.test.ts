@@ -19,15 +19,27 @@ describe('resolveConstraints', () => {
   });
 
   it('resolves horizontal constraints correctly (center, start, end)', () => {
-    expect(resolveConstraints({ width: 100, constraints: { horizontal: 'center', vertical: 'start' } } as any, canvasSize).x).toBe(350);
-    expect(resolveConstraints({ width: 100, constraints: { horizontal: 'start', vertical: 'start' } } as any, canvasSize).x).toBe(20);
-    expect(resolveConstraints({ width: 100, constraints: { horizontal: 'end', vertical: 'start' } } as any, canvasSize).x).toBe(680);
+    expect(
+      resolveConstraints({ width: 100, constraints: { horizontal: 'center', vertical: 'start' } } as any, canvasSize).x
+    ).toBe(350);
+    expect(
+      resolveConstraints({ width: 100, constraints: { horizontal: 'start', vertical: 'start' } } as any, canvasSize).x
+    ).toBe(20);
+    expect(
+      resolveConstraints({ width: 100, constraints: { horizontal: 'end', vertical: 'start' } } as any, canvasSize).x
+    ).toBe(680);
   });
 
   it('resolves vertical constraints correctly (center, start, end)', () => {
-    expect(resolveConstraints({ height: 100, constraints: { horizontal: 'start', vertical: 'center' } } as any, canvasSize).y).toBe(250);
-    expect(resolveConstraints({ height: 100, constraints: { horizontal: 'start', vertical: 'start' } } as any, canvasSize).y).toBe(20);
-    expect(resolveConstraints({ height: 100, constraints: { horizontal: 'start', vertical: 'end' } } as any, canvasSize).y).toBe(480);
+    expect(
+      resolveConstraints({ height: 100, constraints: { horizontal: 'start', vertical: 'center' } } as any, canvasSize).y
+    ).toBe(250);
+    expect(
+      resolveConstraints({ height: 100, constraints: { horizontal: 'start', vertical: 'start' } } as any, canvasSize).y
+    ).toBe(20);
+    expect(
+      resolveConstraints({ height: 100, constraints: { horizontal: 'start', vertical: 'end' } } as any, canvasSize).y
+    ).toBe(480);
   });
 });
 
@@ -52,11 +64,11 @@ describe('resolveSemanticConstraints', () => {
   it('handles multiple constraints at the same time', () => {
     expect(resolveSemanticConstraints(['center-h', 'pin-bottom'])).toEqual({
       horizontal: 'center',
-      vertical: 'end'
+      vertical: 'end',
     });
     expect(resolveSemanticConstraints(['fill'])).toEqual({
       horizontal: 'scale',
-      vertical: 'scale'
+      vertical: 'scale',
     });
   });
 });

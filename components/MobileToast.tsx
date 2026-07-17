@@ -131,7 +131,9 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
           </div>
 
           {/* Message */}
-          <p className="flex-1 text-base font-medium text-white">{typeof toast.message === 'string' ? toast.message : String(toast.message ?? '')}</p>
+          <p className="flex-1 text-base font-medium text-white">
+            {typeof toast.message === 'string' ? toast.message : String(toast.message ?? '')}
+          </p>
 
           {/* Close Button */}
           <button

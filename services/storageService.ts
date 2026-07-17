@@ -791,7 +791,10 @@ class StorageService {
     };
     const num = (v: any, def = 0): number => {
       if (typeof v === 'number') return v;
-      if (typeof v === 'string') { const n = Number(v); return isNaN(n) ? def : n; }
+      if (typeof v === 'string') {
+        const n = Number(v);
+        return isNaN(n) ? def : n;
+      }
       return def;
     };
     safe.id = str(safe.id, `layer_${Date.now()}`);
@@ -824,7 +827,8 @@ class StorageService {
     if (typeof safe.textDecoration === 'object') safe.textDecoration = str(safe.textDecoration);
     if (typeof safe.textTransform === 'object') safe.textTransform = str(safe.textTransform);
     if (typeof safe.letterSpacing === 'object') safe.letterSpacing = num(safe.letterSpacing);
-    if (typeof safe.cornerRadius === 'object' && typeof safe.cornerRadius !== 'number') safe.cornerRadius = num(safe.cornerRadius, 8);
+    if (typeof safe.cornerRadius === 'object' && typeof safe.cornerRadius !== 'number')
+      safe.cornerRadius = num(safe.cornerRadius, 8);
     if (typeof safe.gradient === 'object' && safe.gradient !== null) {
       if (typeof safe.gradient.type === 'object') safe.gradient.type = str(safe.gradient.type, 'linear');
     }

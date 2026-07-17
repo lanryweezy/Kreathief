@@ -3,10 +3,16 @@ import { test, expect } from '@playwright/test';
 test.describe('Keyboard Shortcuts', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
-      window.localStorage.setItem('kreathief_qa_session', JSON.stringify({
-        id: 'qa-user', email: 'qa@kreathief.app', name: 'QA Engineer',
-        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=qa', plan: 'pro',
-      }));
+      window.localStorage.setItem(
+        'kreathief_qa_session',
+        JSON.stringify({
+          id: 'qa-user',
+          email: 'qa@kreathief.app',
+          name: 'QA Engineer',
+          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=qa',
+          plan: 'pro',
+        })
+      );
       window.localStorage.setItem('kreathief_onboarding_seen', 'true');
     });
     await page.goto('/editor');
@@ -29,7 +35,8 @@ test.describe('Keyboard Shortcuts', () => {
     await page.waitForTimeout(500);
 
     const storeAfter = await page.evaluate(() => (window as any).useStore.getState());
-    const layerCountAfter = storeAfter.artboards.find((a: any) => a.id === storeAfter.activeArtboardId)?.layers?.length || 0;
+    const layerCountAfter =
+      storeAfter.artboards.find((a: any) => a.id === storeAfter.activeArtboardId)?.layers?.length || 0;
     expect(layerCountAfter).toBeLessThan(layerCountBefore);
   });
 
@@ -38,7 +45,8 @@ test.describe('Keyboard Shortcuts', () => {
     await page.waitForTimeout(500);
 
     const storeBefore = await page.evaluate(() => (window as any).useStore.getState());
-    const layerCountBefore = storeBefore.artboards.find((a: any) => a.id === storeBefore.activeArtboardId)?.layers?.length || 0;
+    const layerCountBefore =
+      storeBefore.artboards.find((a: any) => a.id === storeBefore.activeArtboardId)?.layers?.length || 0;
 
     await page.keyboard.press('Control+z');
     await page.waitForTimeout(300);
@@ -46,7 +54,8 @@ test.describe('Keyboard Shortcuts', () => {
     await page.waitForTimeout(500);
 
     const storeAfter = await page.evaluate(() => (window as any).useStore.getState());
-    const layerCountAfter = storeAfter.artboards.find((a: any) => a.id === storeAfter.activeArtboardId)?.layers?.length || 0;
+    const layerCountAfter =
+      storeAfter.artboards.find((a: any) => a.id === storeAfter.activeArtboardId)?.layers?.length || 0;
     expect(layerCountAfter).toBe(layerCountBefore);
   });
 
@@ -69,7 +78,8 @@ test.describe('Keyboard Shortcuts', () => {
       await page.waitForTimeout(500);
 
       const storeAfter = await page.evaluate(() => (window as any).useStore.getState());
-      const layerCountAfter = storeAfter.artboards.find((a: any) => a.id === storeAfter.activeArtboardId)?.layers?.length || 0;
+      const layerCountAfter =
+        storeAfter.artboards.find((a: any) => a.id === storeAfter.activeArtboardId)?.layers?.length || 0;
       expect(layerCountAfter).toBe(layerCountBefore + 1);
     }
   });
@@ -91,7 +101,8 @@ test.describe('Keyboard Shortcuts', () => {
       await page.waitForTimeout(500);
 
       const storeAfter = await page.evaluate(() => (window as any).useStore.getState());
-      const layerCountAfter = storeAfter.artboards.find((a: any) => a.id === storeAfter.activeArtboardId)?.layers?.length || 0;
+      const layerCountAfter =
+        storeAfter.artboards.find((a: any) => a.id === storeAfter.activeArtboardId)?.layers?.length || 0;
       expect(layerCountAfter).toBe(layerCountBefore - 1);
     }
   });
@@ -113,7 +124,8 @@ test.describe('Keyboard Shortcuts', () => {
       await page.waitForTimeout(500);
 
       const storeAfter = await page.evaluate(() => (window as any).useStore.getState());
-      const layerCountAfter = storeAfter.artboards.find((a: any) => a.id === storeAfter.activeArtboardId)?.layers?.length || 0;
+      const layerCountAfter =
+        storeAfter.artboards.find((a: any) => a.id === storeAfter.activeArtboardId)?.layers?.length || 0;
       expect(layerCountAfter).toBe(layerCountBefore - 1);
     }
   });

@@ -277,11 +277,13 @@ const SkeletonCard: React.FC = () => (
 );
 
 const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }) => {
-  const { createProject, loadProject, communityProjects } = useStore(useShallow((state) => ({
-    createProject: state.createProject,
-    loadProject: state.loadProject,
-    communityProjects: state.communityProjects,
-  })));
+  const { createProject, loadProject, communityProjects } = useStore(
+    useShallow((state) => ({
+      createProject: state.createProject,
+      loadProject: state.loadProject,
+      communityProjects: state.communityProjects,
+    }))
+  );
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [templates, setTemplates] = useState([...INITIAL_COMMUNITY_TEMPLATES, ...(communityProjects || [])]);
@@ -435,201 +437,203 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
         {isLoading
           ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={`skeleton-${i}`} />)
           : filteredTemplates.map((template) => (
-          <div
-            key={template.id}
-            onClick={(e) => handleRemix(e, template)}
-            className="group bg-surface-dark-1 border border-white/5 hover:border-white/20 rounded-2xl overflow-hidden cursor-pointer flex flex-col relative transition-all duration-300 shadow-xl select-none"
-          >
-            {/* Image/Live Thumbnail Area */}
-            <div className="aspect-[4/3] bg-surface-dark-1 flex items-center justify-center relative overflow-hidden group border-b border-white/5 select-none">
-              {/* High-fidelity Miniature Render (Always Visible) */}
-              <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-2 select-none pointer-events-none bg-surface-dark-0">
-                <div
-                  style={{
-                    width: `${template.state?.canvasSize?.width || 1080}px`,
-                    height: `${template.state?.canvasSize?.height || 1080}px`,
-                    transform: `scale(${Math.min(260 / (template.state?.canvasSize?.width || 1080), 195 / (template.state?.canvasSize?.height || 1080))})`,
-                    transformOrigin: 'center center',
-                    backgroundColor: template.state?.canvasBackgroundColor || '#0f172a',
-                  }}
-                  className="relative flex-shrink-0 shadow-2xl rounded-sm border border-white/5 overflow-hidden"
-                >
-                  {template.state?.layers?.map((l: any, idx: number) => {
-                    if (l.type === 'rectangle') {
-                      return (
-                        <div
-                          key={l.id || idx}
-                          style={{
-                            position: 'absolute',
-                            left: `${l.x}px`,
-                            top: `${l.y}px`,
-                            width: `${l.width}px`,
-                            height: `${l.height}px`,
-                            backgroundColor: l.color || '#fff',
-                            borderRadius: `${l.cornerRadius || 0}px`,
-                            opacity: l.opacity ?? 1,
-                            transform: `rotate(${l.rotation || 0}deg) skew(${l.skewX || 0}deg, ${l.skewY || 0}deg)`,
-                          }}
-                        />
-                      );
-                    }
-                    if (l.type === 'circle') {
-                      return (
-                        <div
-                          key={l.id || idx}
-                          style={{
-                            position: 'absolute',
-                            left: `${l.x}px`,
-                            top: `${l.y}px`,
-                            width: `${l.width}px`,
-                            height: `${l.height}px`,
-                            backgroundColor: l.color || '#fff',
-                            borderRadius: '50%',
-                            opacity: l.opacity ?? 1,
-                            transform: `rotate(${l.rotation || 0}deg)`,
-                          }}
-                        />
-                      );
-                    }
-                    if (l.type === 'text') {
-                      return (
-                        <div
-                          key={l.id || idx}
-                          style={{
-                            position: 'absolute',
-                            left: `${l.x}px`,
-                            top: `${l.y}px`,
-                            width: `${l.width}px`,
-                            height: `${l.height}px`,
-                            color: l.color || '#fff',
-                            fontSize: `${l.fontSize || 16}px`,
-                            fontFamily: l.fontFamily || 'sans-serif',
-                            fontWeight: l.fontWeight || '400',
-                            textAlign: l.textAlign || 'left',
-                            opacity: l.opacity ?? 1,
-                            transform: `rotate(${l.rotation || 0}deg) skew(${l.skewX || 0}deg, ${l.skewY || 0}deg)`,
-                            whiteSpace: 'pre-wrap',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          {typeof l.text === 'string' ? l.text : String(l.text ?? '')}
-                        </div>
-                      );
-                    }
-                    if (l.type === 'path' || l.type === 'svg' || l.pathData) {
-                      const isDrawing = l.id?.startsWith('draw_') || l.brushType;
-                      const strokeColor = l.stroke?.color || l.color || '#fff';
-                      const strokeWidth = l.stroke?.width || 2;
-                      return (
-                        <svg
-                          key={l.id || idx}
-                          style={{
-                            position: 'absolute',
-                            left: `${l.x}px`,
-                            top: `${l.y}px`,
-                            width: `${l.width}px`,
-                            height: `${l.height}px`,
-                            opacity: l.opacity ?? 1,
-                            transform: `rotate(${l.rotation || 0}deg)`,
-                            overflow: 'visible',
-                          }}
-                          viewBox={l.viewBox || `0 0 ${l.width || 512} ${l.height || 512}`}
-                        >
-                          <path
-                            d={l.pathData || l.path || l.d}
-                            fill={isDrawing ? 'none' : l.color || '#fff'}
-                            stroke={isDrawing ? strokeColor : 'none'}
-                            strokeWidth={isDrawing ? strokeWidth : 0}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      );
-                    }
-                    if (l.type === 'image') {
-                      return (
-                        <img
-                          key={l.id || idx}
-                          src={l.src}
-                          style={{
-                            position: 'absolute',
-                            left: `${l.x}px`,
-                            top: `${l.y}px`,
-                            width: `${l.width}px`,
-                            height: `${l.height}px`,
-                            opacity: l.opacity ?? 1,
-                            transform: `rotate(${l.rotation || 0}deg)`,
-                            objectFit: 'cover',
-                          }}
-                        />
-                      );
-                    }
-                    return null;
-                  })}
-                </div>
-              </div>
+              <div
+                key={template.id}
+                onClick={(e) => handleRemix(e, template)}
+                className="group bg-surface-dark-1 border border-white/5 hover:border-white/20 rounded-2xl overflow-hidden cursor-pointer flex flex-col relative transition-all duration-300 shadow-xl select-none"
+              >
+                {/* Image/Live Thumbnail Area */}
+                <div className="aspect-[4/3] bg-surface-dark-1 flex items-center justify-center relative overflow-hidden group border-b border-white/5 select-none">
+                  {/* High-fidelity Miniature Render (Always Visible) */}
+                  <div className="absolute inset-0 flex items-center justify-center overflow-hidden p-2 select-none pointer-events-none bg-surface-dark-0">
+                    <div
+                      style={{
+                        width: `${template.state?.canvasSize?.width || 1080}px`,
+                        height: `${template.state?.canvasSize?.height || 1080}px`,
+                        transform: `scale(${Math.min(260 / (template.state?.canvasSize?.width || 1080), 195 / (template.state?.canvasSize?.height || 1080))})`,
+                        transformOrigin: 'center center',
+                        backgroundColor: template.state?.canvasBackgroundColor || '#0f172a',
+                      }}
+                      className="relative flex-shrink-0 shadow-2xl rounded-sm border border-white/5 overflow-hidden"
+                    >
+                      {template.state?.layers?.map((l: any, idx: number) => {
+                        if (l.type === 'rectangle') {
+                          return (
+                            <div
+                              key={l.id || idx}
+                              style={{
+                                position: 'absolute',
+                                left: `${l.x}px`,
+                                top: `${l.y}px`,
+                                width: `${l.width}px`,
+                                height: `${l.height}px`,
+                                backgroundColor: l.color || '#fff',
+                                borderRadius: `${l.cornerRadius || 0}px`,
+                                opacity: l.opacity ?? 1,
+                                transform: `rotate(${l.rotation || 0}deg) skew(${l.skewX || 0}deg, ${l.skewY || 0}deg)`,
+                              }}
+                            />
+                          );
+                        }
+                        if (l.type === 'circle') {
+                          return (
+                            <div
+                              key={l.id || idx}
+                              style={{
+                                position: 'absolute',
+                                left: `${l.x}px`,
+                                top: `${l.y}px`,
+                                width: `${l.width}px`,
+                                height: `${l.height}px`,
+                                backgroundColor: l.color || '#fff',
+                                borderRadius: '50%',
+                                opacity: l.opacity ?? 1,
+                                transform: `rotate(${l.rotation || 0}deg)`,
+                              }}
+                            />
+                          );
+                        }
+                        if (l.type === 'text') {
+                          return (
+                            <div
+                              key={l.id || idx}
+                              style={{
+                                position: 'absolute',
+                                left: `${l.x}px`,
+                                top: `${l.y}px`,
+                                width: `${l.width}px`,
+                                height: `${l.height}px`,
+                                color: l.color || '#fff',
+                                fontSize: `${l.fontSize || 16}px`,
+                                fontFamily: l.fontFamily || 'sans-serif',
+                                fontWeight: l.fontWeight || '400',
+                                textAlign: l.textAlign || 'left',
+                                opacity: l.opacity ?? 1,
+                                transform: `rotate(${l.rotation || 0}deg) skew(${l.skewX || 0}deg, ${l.skewY || 0}deg)`,
+                                whiteSpace: 'pre-wrap',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              {typeof l.text === 'string' ? l.text : String(l.text ?? '')}
+                            </div>
+                          );
+                        }
+                        if (l.type === 'path' || l.type === 'svg' || l.pathData) {
+                          const isDrawing = l.id?.startsWith('draw_') || l.brushType;
+                          const strokeColor = l.stroke?.color || l.color || '#fff';
+                          const strokeWidth = l.stroke?.width || 2;
+                          return (
+                            <svg
+                              key={l.id || idx}
+                              style={{
+                                position: 'absolute',
+                                left: `${l.x}px`,
+                                top: `${l.y}px`,
+                                width: `${l.width}px`,
+                                height: `${l.height}px`,
+                                opacity: l.opacity ?? 1,
+                                transform: `rotate(${l.rotation || 0}deg)`,
+                                overflow: 'visible',
+                              }}
+                              viewBox={l.viewBox || `0 0 ${l.width || 512} ${l.height || 512}`}
+                            >
+                              <path
+                                d={l.pathData || l.path || l.d}
+                                fill={isDrawing ? 'none' : l.color || '#fff'}
+                                stroke={isDrawing ? strokeColor : 'none'}
+                                strokeWidth={isDrawing ? strokeWidth : 0}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          );
+                        }
+                        if (l.type === 'image') {
+                          return (
+                            <img
+                              key={l.id || idx}
+                              src={l.src}
+                              style={{
+                                position: 'absolute',
+                                left: `${l.x}px`,
+                                top: `${l.y}px`,
+                                width: `${l.width}px`,
+                                height: `${l.height}px`,
+                                opacity: l.opacity ?? 1,
+                                transform: `rotate(${l.rotation || 0}deg)`,
+                                objectFit: 'cover',
+                              }}
+                            />
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+                  </div>
 
-              {/* Tag Overlays */}
-              <div className="absolute top-3 left-3 flex gap-1 flex-wrap pointer-events-none z-10">
-                {template.tags.slice(0, 2).map((tag: string) => (
-                  <span
-                    key={tag}
-                    className="text-[9px] font-black uppercase tracking-wider text-white bg-black/60 backdrop-blur-md px-2 py-1 rounded border border-white/10"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
+                  {/* Tag Overlays */}
+                  <div className="absolute top-3 left-3 flex gap-1 flex-wrap pointer-events-none z-10">
+                    {template.tags.slice(0, 2).map((tag: string) => (
+                      <span
+                        key={tag}
+                        className="text-[9px] font-black uppercase tracking-wider text-white bg-black/60 backdrop-blur-md px-2 py-1 rounded border border-white/10"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
 
-              {/* Action Button: Visible on Hover */}
-              <div className="absolute inset-0 flex items-center justify-center p-4 z-20 pointer-events-none">
-                <button
-                  onClick={(e) => handleRemix(e, template)}
-                  className="bg-brand-600 text-white hover:bg-brand-700 px-5 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-xl shadow-purple-900/40 transform scale-95 opacity-0 group-hover:opacity-100 group-hover:scale-100 pointer-events-auto duration-300"
-                >
-                  <Icons.Magic className="w-4 h-4" /> Remix Design
-                </button>
-              </div>
-            </div>
-
-            {/* Bottom Card Footer */}
-            <div className="p-5 bg-surface-dark-1 flex-1 flex flex-col justify-between">
-              <div>
-                <h3 className="font-bold text-sm text-white truncate mb-1 group-hover:text-brand-400 transition-colors">
-                  {template.title}
-                </h3>
-                <div className="flex items-center gap-2 text-[10px] text-gray-500 font-bold tracking-wider">
-                  <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-[8px] border border-white/10">
-                    {template.author[0]}
-                  </span>
-                  {template.author}
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center mt-4 pt-4 border-t border-white/5">
-                <div className="flex gap-4 text-[10px] font-black tracking-widest uppercase text-gray-400">
-                  <span
-                    onClick={(e) => handleLike(e, template.id)}
-                    className={`flex items-center gap-1 cursor-pointer transition-colors ${
-                      likedIds.includes(template.id) ? 'text-red-500 font-bold' : 'hover:text-red-400'
-                    }`}
-                  >
-                    <Icons.Heart className={`w-3.5 h-3.5 ${likedIds.includes(template.id) ? 'fill-current' : ''}`} />
-                    {template.likes}
-                  </span>
-                  <span className="flex items-center gap-1 text-gray-500">
-                    <Icons.History className="w-3.5 h-3.5" />
-                    {template.downloads}
-                  </span>
+                  {/* Action Button: Visible on Hover */}
+                  <div className="absolute inset-0 flex items-center justify-center p-4 z-20 pointer-events-none">
+                    <button
+                      onClick={(e) => handleRemix(e, template)}
+                      className="bg-brand-600 text-white hover:bg-brand-700 px-5 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-xl shadow-purple-900/40 transform scale-95 opacity-0 group-hover:opacity-100 group-hover:scale-100 pointer-events-auto duration-300"
+                    >
+                      <Icons.Magic className="w-4 h-4" /> Remix Design
+                    </button>
+                  </div>
                 </div>
 
-                <span className="text-[9px] font-black uppercase tracking-wider bg-white/5 border border-white/10 text-brand-400 px-2 py-0.5 rounded-full">
-                  {template.category}
-                </span>
+                {/* Bottom Card Footer */}
+                <div className="p-5 bg-surface-dark-1 flex-1 flex flex-col justify-between">
+                  <div>
+                    <h3 className="font-bold text-sm text-white truncate mb-1 group-hover:text-brand-400 transition-colors">
+                      {template.title}
+                    </h3>
+                    <div className="flex items-center gap-2 text-[10px] text-gray-500 font-bold tracking-wider">
+                      <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-[8px] border border-white/10">
+                        {template.author[0]}
+                      </span>
+                      {template.author}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center mt-4 pt-4 border-t border-white/5">
+                    <div className="flex gap-4 text-[10px] font-black tracking-widest uppercase text-gray-400">
+                      <span
+                        onClick={(e) => handleLike(e, template.id)}
+                        className={`flex items-center gap-1 cursor-pointer transition-colors ${
+                          likedIds.includes(template.id) ? 'text-red-500 font-bold' : 'hover:text-red-400'
+                        }`}
+                      >
+                        <Icons.Heart
+                          className={`w-3.5 h-3.5 ${likedIds.includes(template.id) ? 'fill-current' : ''}`}
+                        />
+                        {template.likes}
+                      </span>
+                      <span className="flex items-center gap-1 text-gray-500">
+                        <Icons.History className="w-3.5 h-3.5" />
+                        {template.downloads}
+                      </span>
+                    </div>
+
+                    <span className="text-[9px] font-black uppercase tracking-wider bg-white/5 border border-white/10 text-brand-400 px-2 py-0.5 rounded-full">
+                      {template.category}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
+            ))}
       </div>
     </div>
   );

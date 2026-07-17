@@ -83,7 +83,9 @@ export default async function handler(req: Request) {
     if (action === 'search') {
       const query = url.searchParams.get('query') || '';
       const limit = url.searchParams.get('limit') || '20';
-      const res = await fetch(`${BASE_URL}/search?q=${encodeURIComponent(query)}&limit=${encodeURIComponent(limit)}`, { headers });
+      const res = await fetch(`${BASE_URL}/search?q=${encodeURIComponent(query)}&limit=${encodeURIComponent(limit)}`, {
+        headers,
+      });
       if (!res.ok) throw new Error('GetIllustration search failed');
       const data = await res.json();
       return new Response(JSON.stringify(data), {
@@ -94,7 +96,10 @@ export default async function handler(req: Request) {
       const page = url.searchParams.get('page') || '1';
       const limit = url.searchParams.get('limit') || '20';
       const free = url.searchParams.get('free') === 'true' ? '&free=true' : '';
-      const res = await fetch(`${BASE_URL}/icon-packs?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}${free}`, { headers });
+      const res = await fetch(
+        `${BASE_URL}/icon-packs?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}${free}`,
+        { headers }
+      );
       if (!res.ok) throw new Error('GetIllustration icon-packs failed');
       const data = await res.json();
       return new Response(JSON.stringify(data), {
@@ -105,7 +110,10 @@ export default async function handler(req: Request) {
       const page = url.searchParams.get('page') || '1';
       const limit = url.searchParams.get('limit') || '20';
       const free = url.searchParams.get('free') === 'true' ? '&free=true' : '';
-      const res = await fetch(`${BASE_URL}/packs?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}${free}`, { headers });
+      const res = await fetch(
+        `${BASE_URL}/packs?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}${free}`,
+        { headers }
+      );
       if (!res.ok) throw new Error('GetIllustration packs failed');
       const data = await res.json();
       return new Response(JSON.stringify(data), {
@@ -114,10 +122,17 @@ export default async function handler(req: Request) {
       });
     } else if (action === 'pack-illustrations') {
       const packId = url.searchParams.get('packId');
-      if (!packId) return new Response(JSON.stringify({ error: 'packId required' }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin } });
+      if (!packId)
+        return new Response(JSON.stringify({ error: 'packId required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin },
+        });
       const page = url.searchParams.get('page') || '1';
       const limit = url.searchParams.get('limit') || '20';
-      const res = await fetch(`${BASE_URL}/packs/${encodeURIComponent(packId)}/illustrations?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}`, { headers });
+      const res = await fetch(
+        `${BASE_URL}/packs/${encodeURIComponent(packId)}/illustrations?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}`,
+        { headers }
+      );
       if (!res.ok) throw new Error('GetIllustration pack illustrations failed');
       const data = await res.json();
       return new Response(JSON.stringify(data), {
@@ -126,10 +141,17 @@ export default async function handler(req: Request) {
       });
     } else if (action === 'pack-icons') {
       const packId = url.searchParams.get('packId');
-      if (!packId) return new Response(JSON.stringify({ error: 'packId required' }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin } });
+      if (!packId)
+        return new Response(JSON.stringify({ error: 'packId required' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin },
+        });
       const page = url.searchParams.get('page') || '1';
       const limit = url.searchParams.get('limit') || '20';
-      const res = await fetch(`${BASE_URL}/icon-packs/${encodeURIComponent(packId)}/icons?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}`, { headers });
+      const res = await fetch(
+        `${BASE_URL}/icon-packs/${encodeURIComponent(packId)}/icons?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}`,
+        { headers }
+      );
       if (!res.ok) throw new Error('GetIllustration pack icons failed');
       const data = await res.json();
       return new Response(JSON.stringify(data), {

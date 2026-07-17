@@ -167,13 +167,19 @@ export const BrandPanel = () => {
           onAddBrandKit(kit);
         } else {
           // 🌸 BLOOM: Improved technical "Invalid Brand Kit JSON" error to be actionable
-          addToast?.('The imported file is missing required brand kit data (name, colors, or fonts). Please check the file.', 'error');
+          addToast?.(
+            'The imported file is missing required brand kit data (name, colors, or fonts). Please check the file.',
+            'error'
+          );
         }
       } catch (e) {
         log.error('[BrandPanel] Failed to parse imported Brand Kit JSON', e);
         // 🌸 BLOOM: Replaced technical "Error parsing JSON" with a user-friendly message
         const details = getErrorDetails(e);
-        addToast?.(`Failed to import Brand Kit: ${details.message}. Please ensure you are uploading a valid brand kit file.`, 'error');
+        addToast?.(
+          `Failed to import Brand Kit: ${details.message}. Please ensure you are uploading a valid brand kit file.`,
+          'error'
+        );
       }
     };
     reader.readAsText(file);

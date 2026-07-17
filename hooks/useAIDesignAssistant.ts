@@ -30,16 +30,18 @@ export function useAIDesignAssistant() {
   const chatRef = useRef<HTMLDivElement>(null);
 
   const { artboards, activeArtboardId, selectedLayerIds, updateLayers, addLayer, deleteLayer, updateLayer, addToast } =
-    useStore(useShallow((state) => ({
-      artboards: state.artboards,
-      activeArtboardId: state.activeArtboardId,
-      selectedLayerIds: state.selectedLayerIds,
-      updateLayers: state.updateLayers,
-      addLayer: state.addLayer,
-      deleteLayer: state.deleteLayer,
-      updateLayer: state.updateLayer,
-      addToast: state.addToast,
-    })));
+    useStore(
+      useShallow((state) => ({
+        artboards: state.artboards,
+        activeArtboardId: state.activeArtboardId,
+        selectedLayerIds: state.selectedLayerIds,
+        updateLayers: state.updateLayers,
+        addLayer: state.addLayer,
+        deleteLayer: state.deleteLayer,
+        updateLayer: state.updateLayer,
+        addToast: state.addToast,
+      }))
+    );
 
   const getSelectedLayers = useCallback((): Layer[] => {
     const ab = artboards.find((a) => a.id === activeArtboardId);

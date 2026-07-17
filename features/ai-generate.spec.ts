@@ -3,10 +3,16 @@ import { test, expect } from '@playwright/test';
 test.describe('AI Generate Modal', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
-      window.localStorage.setItem('kreathief_qa_session', JSON.stringify({
-        id: 'qa-user', email: 'qa@kreathief.app', name: 'QA Engineer',
-        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=qa', plan: 'pro',
-      }));
+      window.localStorage.setItem(
+        'kreathief_qa_session',
+        JSON.stringify({
+          id: 'qa-user',
+          email: 'qa@kreathief.app',
+          name: 'QA Engineer',
+          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=qa',
+          plan: 'pro',
+        })
+      );
       window.localStorage.setItem('kreathief_onboarding_seen', 'true');
     });
     await page.goto('/editor');

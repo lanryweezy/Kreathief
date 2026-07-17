@@ -573,7 +573,12 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         },
         description: 'Command Palette',
       },
-      { key: '?', shift: true, action: () => useStore.getState().setShowShortcuts(!useStore.getState().showShortcuts), description: 'Shortcuts' },
+      {
+        key: '?',
+        shift: true,
+        action: () => useStore.getState().setShowShortcuts(!useStore.getState().showShortcuts),
+        description: 'Shortcuts',
+      },
 
       {
         key: '1',
@@ -724,7 +729,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           )}
 
           <div
-            data-testid="toolbar" role="toolbar" aria-label="Editor toolbar"
+            data-testid="toolbar"
+            role="toolbar"
+            aria-label="Editor toolbar"
             className="h-11 bg-surface-dark-1/90 border-b border-white/5 flex items-center z-30 w-full shrink-0 px-4 gap-4 backdrop-blur-md"
           >
             <div className="flex items-center gap-4 w-full h-full">

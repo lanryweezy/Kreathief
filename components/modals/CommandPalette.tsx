@@ -69,16 +69,14 @@ export const CommandPalette: React.FC = () => {
   type Cmd = { id: string; label: string; icon: any; action: () => void; group?: string; shortcut?: string };
 
   const registryToCmd = useMemo(() => {
-    return getAllCommands().map(
-      (rc: RegistryCommand): Cmd => ({
-        id: rc.id,
-        label: rc.label,
-        icon: Icons.Code,
-        action: rc.action,
-        group: rc.category,
-        shortcut: rc.shortcut,
-      })
-    );
+    return getAllCommands().map((rc: RegistryCommand): Cmd => ({
+      id: rc.id,
+      label: rc.label,
+      icon: Icons.Code,
+      action: rc.action,
+      group: rc.category,
+      shortcut: rc.shortcut,
+    }));
   }, []);
 
   const commandList: Cmd[] = useMemo(

@@ -2,7 +2,6 @@ import { StateCreator } from 'zustand';
 import { PresenceState, LayerChange } from '../../services/collaborationService';
 import type { StoreState } from '../useStore';
 
-
 export interface CollaborationSlice {
   // Presence
   onlineUsers: PresenceState[];

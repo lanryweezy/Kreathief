@@ -27,8 +27,10 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
         if (type === 'right') value = Math.max(...selected.map((l) => l.x + (l as any).width));
         if (type === 'top') value = Math.min(...selected.map((l) => l.y));
         if (type === 'bottom') value = Math.max(...selected.map((l) => l.y + ((l as any).height || 0)));
-        if (type === 'center') value = selected.reduce((acc, l) => acc + l.x + (l as any).width / 2, 0) / selected.length;
-        if (type === 'middle') value = selected.reduce((acc, l) => acc + l.y + ((l as any).height || 0) / 2, 0) / selected.length;
+        if (type === 'center')
+          value = selected.reduce((acc, l) => acc + l.x + (l as any).width / 2, 0) / selected.length;
+        if (type === 'middle')
+          value = selected.reduce((acc, l) => acc + l.y + ((l as any).height || 0) / 2, 0) / selected.length;
 
         return {
           ...a,
@@ -110,15 +112,23 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
       const scaleX = CANVAS_W / templateBaseW;
       const scaleY = CANVAS_H / templateBaseH;
       const newLayers = typeOrShapes.map((shape) => ({
-        id: generateLayerId('rectangle'), type: 'rectangle', ...shape,
-        x: (shape.x || 0) * scaleX, y: (shape.y || 0) * scaleY,
-        width: (shape.width || 100) * scaleX, height: (shape.height || 100) * scaleY,
-        rotation: shape.rotation || 0, opacity: shape.opacity ?? 1,
-        visible: shape.visible ?? true, locked: shape.locked ?? false,
+        id: generateLayerId('rectangle'),
+        type: 'rectangle',
+        ...shape,
+        x: (shape.x || 0) * scaleX,
+        y: (shape.y || 0) * scaleY,
+        width: (shape.width || 100) * scaleX,
+        height: (shape.height || 100) * scaleY,
+        rotation: shape.rotation || 0,
+        opacity: shape.opacity ?? 1,
+        visible: shape.visible ?? true,
+        locked: shape.locked ?? false,
         color: shape.color || '#333333',
       })) as Layer[];
       set((state: any) => ({
-        artboards: state.artboards.map((a: Artboard) => a.id === state.activeArtboardId ? { ...a, layers: [...a.layers, ...newLayers] } : a),
+        artboards: state.artboards.map((a: Artboard) =>
+          a.id === state.activeArtboardId ? { ...a, layers: [...a.layers, ...newLayers] } : a
+        ),
       }));
       return;
     }
@@ -128,7 +138,9 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
     if (visibleLayers.length === 0 && !type.startsWith('golden')) return;
 
     const newPositions = new Map<string, { x: number; y: number; width?: number; height?: number }>();
-    const selectedLayers = artboard.layers.filter((l: Layer) => state.selectedLayerIds.includes(l.id) && !l.locked && l.visible);
+    const selectedLayers = artboard.layers.filter(
+      (l: Layer) => state.selectedLayerIds.includes(l.id) && !l.locked && l.visible
+    );
     const layersToLayout = selectedLayers.length > 0 ? selectedLayers : visibleLayers;
 
     if (type === 'golden_v') {

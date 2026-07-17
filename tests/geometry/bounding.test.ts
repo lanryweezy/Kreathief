@@ -12,7 +12,11 @@ describe('boundingBox', () => {
   });
 
   it('multiple points → correct min/max', () => {
-    const box = boundingBox([{ x: 1, y: 2 }, { x: 5, y: 8 }, { x: -3, y: 0 }]);
+    const box = boundingBox([
+      { x: 1, y: 2 },
+      { x: 5, y: 8 },
+      { x: -3, y: 0 },
+    ]);
     expect(box).toEqual({ x: -3, y: 0, width: 8, height: 8 });
   });
 });

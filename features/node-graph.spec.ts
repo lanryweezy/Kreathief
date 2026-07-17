@@ -3,10 +3,16 @@ import { test, expect } from '@playwright/test';
 test.describe('Node Graph Engine', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
-      window.localStorage.setItem('kreathief_qa_session', JSON.stringify({
-        id: 'qa-user', email: 'qa@kreathief.app', name: 'QA Engineer',
-        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=qa', plan: 'pro',
-      }));
+      window.localStorage.setItem(
+        'kreathief_qa_session',
+        JSON.stringify({
+          id: 'qa-user',
+          email: 'qa@kreathief.app',
+          name: 'QA Engineer',
+          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=qa',
+          plan: 'pro',
+        })
+      );
       window.localStorage.setItem('kreathief_onboarding_seen', 'true');
     });
     await page.goto('/editor');
@@ -26,7 +32,11 @@ test.describe('Node Graph Engine', () => {
     await page.getByRole('button', { name: /Workflows/i }).click();
     await expect(page.getByText('Node Workflow')).toBeVisible();
 
-    await page.locator('[data-testid="close-node-graph"]').or(page.locator('button:has(svg)').filter({ hasText: '' }).last()).first().click();
+    await page
+      .locator('[data-testid="close-node-graph"]')
+      .or(page.locator('button:has(svg)').filter({ hasText: '' }).last())
+      .first()
+      .click();
     await expect(page.getByText('Node Workflow')).not.toBeVisible({ timeout: 5000 });
   });
 

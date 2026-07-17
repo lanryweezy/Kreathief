@@ -10,14 +10,25 @@ let mockState: any;
 
 vi.mock('../../store/useStore', () => ({
   useStore: Object.assign(
-    vi.fn((sel: any) => typeof sel === 'function' ? sel(mockState) : mockState),
+    vi.fn((sel: any) => (typeof sel === 'function' ? sel(mockState) : mockState)),
     { getState: () => mockState }
   ),
 }));
 
 const layer = (o?: Partial<ShapeLayer>): ShapeLayer => ({
-  id: 'l1', type: 'rectangle', color: '#f00', cornerRadius: 0,
-  x: 10, y: 10, width: 80, height: 80, rotation: 0, opacity: 1, locked: false, visible: true, ...o,
+  id: 'l1',
+  type: 'rectangle',
+  color: '#f00',
+  cornerRadius: 0,
+  x: 10,
+  y: 10,
+  width: 80,
+  height: 80,
+  rotation: 0,
+  opacity: 1,
+  locked: false,
+  visible: true,
+  ...o,
 });
 
 beforeEach(() => {
@@ -26,7 +37,9 @@ beforeEach(() => {
     selectedLayerIds: [],
     artboards: [{ id: 'ab1', layers: [layer({ id: 'l1' }), layer({ id: 'l2', x: 200, y: 200 })] }],
     activeArtboardId: 'ab1',
-    selectLayer: mockSelectLayer, multiSelectLayer: mockMultiSelectLayer, setSelectedLayerIds: mockSetSelectedLayerIds,
+    selectLayer: mockSelectLayer,
+    multiSelectLayer: mockMultiSelectLayer,
+    setSelectedLayerIds: mockSetSelectedLayerIds,
   };
 });
 

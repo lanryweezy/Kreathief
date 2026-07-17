@@ -156,13 +156,7 @@
     "templateName": "Elegant Sunday Post Invite",
     "shortDescription": "Invite your congregation to Sunday service with a clean, elegant layout.",
     "longDescription": "Invite your congregation to Sunday service with a clean, elegant layout. Features warm minimal tones and a central photo zone to highlight worship.",
-    "tags": [
-      "Religious",
-      "Instagram post",
-      "Clean & minimal",
-      "African Market",
-      "Events"
-    ],
+    "tags": ["Religious", "Instagram post", "Clean & minimal", "African Market", "Events"],
     "searchKeywords": [
       "sunday service post",
       "church flyer",
@@ -181,17 +175,8 @@
       "slug": "elegant-sunday-post-invite"
     },
     "personalisationSignals": {
-      "industry": [
-        "Religious",
-        "community",
-        "Events"
-      ],
-      "audienceType": [
-        "church media team",
-        "community manager",
-        "event organiser",
-        "small business"
-      ],
+      "industry": ["Religious", "community", "Events"],
+      "audienceType": ["church media team", "community manager", "event organiser", "small business"],
       "experienceLevel": "beginner-friendly"
     },
     "relatedTemplates": [

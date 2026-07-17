@@ -3,10 +3,16 @@ import { test, expect } from '@playwright/test';
 test.describe('Layer Management', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
-      window.localStorage.setItem('kreathief_qa_session', JSON.stringify({
-        id: 'qa-user', email: 'qa@kreathief.app', name: 'QA Engineer',
-        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=qa', plan: 'pro',
-      }));
+      window.localStorage.setItem(
+        'kreathief_qa_session',
+        JSON.stringify({
+          id: 'qa-user',
+          email: 'qa@kreathief.app',
+          name: 'QA Engineer',
+          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=qa',
+          plan: 'pro',
+        })
+      );
       window.localStorage.setItem('kreathief_onboarding_seen', 'true');
     });
     await page.goto('/editor');
@@ -90,7 +96,8 @@ test.describe('Layer Management', () => {
     await page.waitForTimeout(500);
 
     const storeAfter = await page.evaluate(() => (window as any).useStore.getState());
-    const layerCountAfter = storeAfter.artboards.find((a: any) => a.id === storeAfter.activeArtboardId)?.layers?.length || 0;
+    const layerCountAfter =
+      storeAfter.artboards.find((a: any) => a.id === storeAfter.activeArtboardId)?.layers?.length || 0;
     expect(layerCountAfter).toBe(layerCountBefore - 1);
   });
 
@@ -107,10 +114,10 @@ test.describe('Layer Management', () => {
     expect(layers.length).toBeGreaterThanOrEqual(3);
 
     const firstLayerId = layers[0].id;
-    await page.evaluate(
-      ({ id, idx }) => (window as any).useStore.getState().reorderLayer(id, idx),
-      { id: firstLayerId, idx: layers.length - 1 }
-    );
+    await page.evaluate(({ id, idx }) => (window as any).useStore.getState().reorderLayer(id, idx), {
+      id: firstLayerId,
+      idx: layers.length - 1,
+    });
     await page.waitForTimeout(300);
 
     const storeAfter = await page.evaluate(() => (window as any).useStore.getState());
@@ -127,20 +134,18 @@ test.describe('Layer Management', () => {
     const layers = store.artboards.find((a: any) => a.id === store.activeArtboardId)?.layers || [];
     const layerId = layers[layers.length - 1].id;
 
-    await page.evaluate(
-      ({ id }) => (window as any).useStore.getState().updateLayer(id, { locked: true }),
-      { id: layerId }
-    );
+    await page.evaluate(({ id }) => (window as any).useStore.getState().updateLayer(id, { locked: true }), {
+      id: layerId,
+    });
     await page.waitForTimeout(200);
 
-    const storeAfter = await page.evaluate(
-      (id) => {
-        const state = (window as any).useStore.getState();
-        const layer = state.artboards.find((a: any) => a.id === state.activeArtboardId)?.layers.find((l: any) => l.id === id);
-        return layer?.locked;
-      },
-      layerId
-    );
+    const storeAfter = await page.evaluate((id) => {
+      const state = (window as any).useStore.getState();
+      const layer = state.artboards
+        .find((a: any) => a.id === state.activeArtboardId)
+        ?.layers.find((l: any) => l.id === id);
+      return layer?.locked;
+    }, layerId);
     expect(storeAfter).toBe(true);
   });
 
@@ -152,26 +157,23 @@ test.describe('Layer Management', () => {
     const layers = store.artboards.find((a: any) => a.id === store.activeArtboardId)?.layers || [];
     const layerId = layers[layers.length - 1].id;
 
-    await page.evaluate(
-      ({ id }) => (window as any).useStore.getState().updateLayer(id, { locked: true }),
-      { id: layerId }
-    );
+    await page.evaluate(({ id }) => (window as any).useStore.getState().updateLayer(id, { locked: true }), {
+      id: layerId,
+    });
     await page.waitForTimeout(200);
 
-    await page.evaluate(
-      ({ id }) => (window as any).useStore.getState().updateLayer(id, { locked: false }),
-      { id: layerId }
-    );
+    await page.evaluate(({ id }) => (window as any).useStore.getState().updateLayer(id, { locked: false }), {
+      id: layerId,
+    });
     await page.waitForTimeout(200);
 
-    const storeAfter = await page.evaluate(
-      (id) => {
-        const state = (window as any).useStore.getState();
-        const layer = state.artboards.find((a: any) => a.id === state.activeArtboardId)?.layers.find((l: any) => l.id === id);
-        return layer?.locked;
-      },
-      layerId
-    );
+    const storeAfter = await page.evaluate((id) => {
+      const state = (window as any).useStore.getState();
+      const layer = state.artboards
+        .find((a: any) => a.id === state.activeArtboardId)
+        ?.layers.find((l: any) => l.id === id);
+      return layer?.locked;
+    }, layerId);
     expect(storeAfter).toBe(false);
   });
 
@@ -183,20 +185,18 @@ test.describe('Layer Management', () => {
     const layers = store.artboards.find((a: any) => a.id === store.activeArtboardId)?.layers || [];
     const layerId = layers[layers.length - 1].id;
 
-    await page.evaluate(
-      ({ id }) => (window as any).useStore.getState().updateLayer(id, { visible: false }),
-      { id: layerId }
-    );
+    await page.evaluate(({ id }) => (window as any).useStore.getState().updateLayer(id, { visible: false }), {
+      id: layerId,
+    });
     await page.waitForTimeout(200);
 
-    const storeAfter = await page.evaluate(
-      (id) => {
-        const state = (window as any).useStore.getState();
-        const layer = state.artboards.find((a: any) => a.id === state.activeArtboardId)?.layers.find((l: any) => l.id === id);
-        return layer?.visible;
-      },
-      layerId
-    );
+    const storeAfter = await page.evaluate((id) => {
+      const state = (window as any).useStore.getState();
+      const layer = state.artboards
+        .find((a: any) => a.id === state.activeArtboardId)
+        ?.layers.find((l: any) => l.id === id);
+      return layer?.visible;
+    }, layerId);
     expect(storeAfter).toBe(false);
   });
 
@@ -208,26 +208,23 @@ test.describe('Layer Management', () => {
     const layers = store.artboards.find((a: any) => a.id === store.activeArtboardId)?.layers || [];
     const layerId = layers[layers.length - 1].id;
 
-    await page.evaluate(
-      ({ id }) => (window as any).useStore.getState().updateLayer(id, { visible: false }),
-      { id: layerId }
-    );
+    await page.evaluate(({ id }) => (window as any).useStore.getState().updateLayer(id, { visible: false }), {
+      id: layerId,
+    });
     await page.waitForTimeout(200);
 
-    await page.evaluate(
-      ({ id }) => (window as any).useStore.getState().updateLayer(id, { visible: true }),
-      { id: layerId }
-    );
+    await page.evaluate(({ id }) => (window as any).useStore.getState().updateLayer(id, { visible: true }), {
+      id: layerId,
+    });
     await page.waitForTimeout(200);
 
-    const storeAfter = await page.evaluate(
-      (id) => {
-        const state = (window as any).useStore.getState();
-        const layer = state.artboards.find((a: any) => a.id === state.activeArtboardId)?.layers.find((l: any) => l.id === id);
-        return layer?.visible;
-      },
-      layerId
-    );
+    const storeAfter = await page.evaluate((id) => {
+      const state = (window as any).useStore.getState();
+      const layer = state.artboards
+        .find((a: any) => a.id === state.activeArtboardId)
+        ?.layers.find((l: any) => l.id === id);
+      return layer?.visible;
+    }, layerId);
     expect(storeAfter).toBe(true);
   });
 });

@@ -6,9 +6,7 @@ export function getLevenshteinDistance(a: string, b: string): number {
   for (let i = 1; i <= b.length; i++) {
     for (let j = 1; j <= a.length; j++) {
       m[i][j] =
-        b[i - 1] === a[j - 1]
-          ? m[i - 1][j - 1]
-          : Math.min(m[i - 1][j - 1] + 1, m[i][j - 1] + 1, m[i - 1][j] + 1);
+        b[i - 1] === a[j - 1] ? m[i - 1][j - 1] : Math.min(m[i - 1][j - 1] + 1, m[i][j - 1] + 1, m[i - 1][j] + 1);
     }
   }
   return m[b.length][a.length];
@@ -25,9 +23,8 @@ export function fuzzyMatch(query: string, target: string): boolean {
 
   return queryWords.every((qw) => {
     const maxDist = qw.length <= 2 ? 0 : qw.length <= 5 ? 1 : 2;
-    return targetWords.some((tw) =>
-      Math.abs(tw.length - qw.length) <= maxDist &&
-      getLevenshteinDistance(tw, qw) <= maxDist
+    return targetWords.some(
+      (tw) => Math.abs(tw.length - qw.length) <= maxDist && getLevenshteinDistance(tw, qw) <= maxDist
     );
   });
 }

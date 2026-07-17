@@ -20,7 +20,11 @@ export function pointOnCurve(p0: Point, p1: Point, p2: Point, p3: Point, t: numb
 }
 
 export function splitCurve(
-  p0: Point, p1: Point, p2: Point, p3: Point, t: number,
+  p0: Point,
+  p1: Point,
+  p2: Point,
+  p3: Point,
+  t: number
 ): [Point, Point, Point, Point, Point, Point, Point, Point] {
   const a = { x: lerp(p0.x, p1.x, t), y: lerp(p0.y, p1.y, t) };
   const b = { x: lerp(p1.x, p2.x, t), y: lerp(p1.y, p2.y, t) };

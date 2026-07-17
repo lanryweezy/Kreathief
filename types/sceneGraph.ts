@@ -15,9 +15,9 @@ export interface SceneNode {
 }
 
 export interface SceneGraph {
-  roots: SceneNode[];  // Top-level nodes (artboard children)
-  nodeMap: Map<string, SceneNode>;  // Quick lookup by ID
-  flatLayers: Layer[];  // Backwards-compatible flat array
+  roots: SceneNode[]; // Top-level nodes (artboard children)
+  nodeMap: Map<string, SceneNode>; // Quick lookup by ID
+  flatLayers: Layer[]; // Backwards-compatible flat array
 }
 
 // ─── Build Scene Graph from Flat Layers ────────────────────────────────────────
@@ -127,12 +127,7 @@ export function getLeaves(node: SceneNode): SceneNode[] {
 /**
  * Move a node to a new parent (or root if newParent is null).
  */
-export function moveNode(
-  graph: SceneGraph,
-  nodeId: string,
-  newParentId: string | null,
-  index?: number
-): void {
+export function moveNode(graph: SceneGraph, nodeId: string, newParentId: string | null, index?: number): void {
   const node = graph.nodeMap.get(nodeId);
   if (!node) return;
 
@@ -195,12 +190,7 @@ export function deleteNode(graph: SceneGraph, nodeId: string): Layer[] {
 /**
  * Insert a layer into the graph.
  */
-export function insertNode(
-  graph: SceneGraph,
-  layer: Layer,
-  parentId: string | null,
-  index?: number
-): SceneNode {
+export function insertNode(graph: SceneGraph, layer: Layer, parentId: string | null, index?: number): SceneNode {
   const node: SceneNode = {
     id: layer.id,
     type: getLayerNodeType(layer),
@@ -277,10 +267,14 @@ export function deserializeSceneGraph(json: string): SceneGraph {
 function getLayerNodeType(layer: Layer): SceneNodeType {
   if ((layer as any).isGroup) return 'group';
   switch (layer.type) {
-    case 'text': return 'text';
-    case 'image': return 'image';
-    case 'adjustment': return 'adjustment';
-    default: return 'shape';
+    case 'text':
+      return 'text';
+    case 'image':
+      return 'image';
+    case 'adjustment':
+      return 'adjustment';
+    default:
+      return 'shape';
   }
 }
 

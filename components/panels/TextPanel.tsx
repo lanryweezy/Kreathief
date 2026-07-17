@@ -124,15 +124,53 @@ export const TextPanel: React.FC = () => {
   }, []);
 
   const getFontPairings = (font: string): string[] => {
-    const serifs = ['Playfair Display', 'Cormorant Garamond', 'EB Garamond', 'Libre Baskerville',
-      'Lora', 'Merriweather', 'PT Serif', 'Crimson Text', 'Zilla Slab', 'Vollkorn', 'Bitter',
-      'Noto Serif', 'Slabo 27px'];
-    const displays = ['Bebas Neue', 'Anton', 'Oswald', 'Alfa Slab One', 'Abril Fatface',
-      'Bangers', 'Bungee', 'Monoton', 'Staatliches', 'Russo One', 'Acme', 'Comfortaa',
-      'Fjalla One', 'Sriracha', 'Cinzel', 'Teko'];
-    const scripts = ['Dancing Script', 'Great Vibes', 'Pacifico', 'Satisfy', 'Yellowtail',
-      'Sacramenta', 'Caveat', 'Indie Flower', 'Shadows Into Light', 'Amatic SC',
-      'Gloria Hallelujah', 'Permanent Marker'];
+    const serifs = [
+      'Playfair Display',
+      'Cormorant Garamond',
+      'EB Garamond',
+      'Libre Baskerville',
+      'Lora',
+      'Merriweather',
+      'PT Serif',
+      'Crimson Text',
+      'Zilla Slab',
+      'Vollkorn',
+      'Bitter',
+      'Noto Serif',
+      'Slabo 27px',
+    ];
+    const displays = [
+      'Bebas Neue',
+      'Anton',
+      'Oswald',
+      'Alfa Slab One',
+      'Abril Fatface',
+      'Bangers',
+      'Bungee',
+      'Monoton',
+      'Staatliches',
+      'Russo One',
+      'Acme',
+      'Comfortaa',
+      'Fjalla One',
+      'Sriracha',
+      'Cinzel',
+      'Teko',
+    ];
+    const scripts = [
+      'Dancing Script',
+      'Great Vibes',
+      'Pacifico',
+      'Satisfy',
+      'Yellowtail',
+      'Sacramenta',
+      'Caveat',
+      'Indie Flower',
+      'Shadows Into Light',
+      'Amatic SC',
+      'Gloria Hallelujah',
+      'Permanent Marker',
+    ];
 
     if (serifs.some((f) => font.includes(f))) {
       return ['Inter', 'DM Sans', 'Work Sans'];
@@ -540,13 +578,8 @@ export const TextPanel: React.FC = () => {
             {showPairings && pairingFont && (
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                    Pairing Suggestions
-                  </h4>
-                  <button
-                    onClick={() => setShowPairings(false)}
-                    className="text-[9px] text-gray-500 hover:text-white"
-                  >
+                  <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Pairing Suggestions</h4>
+                  <button onClick={() => setShowPairings(false)} className="text-[9px] text-gray-500 hover:text-white">
                     Dismiss
                   </button>
                 </div>
@@ -559,7 +592,9 @@ export const TextPanel: React.FC = () => {
                       key={`pairing-${font}`}
                       font={font}
                       text="Hamburgevons"
-                      onClick={() => handleAddText({ text: 'Body Text', fontFamily: font, fontSize: 24, fontWeight: '400' })}
+                      onClick={() =>
+                        handleAddText({ text: 'Body Text', fontFamily: font, fontSize: 24, fontWeight: '400' })
+                      }
                       onHover={(f) => setPreviewFontFamily(f)}
                     />
                   ))}
@@ -760,7 +795,9 @@ export const TextPanel: React.FC = () => {
       {activeTextTab === 'spacing' && (
         <TextSpacingControls
           selectedLayer={
-            selectedLayerIds.length > 0 ? (layers.find((l) => l.id === selectedLayerIds[selectedLayerIds.length - 1]) as TextLayer) : undefined
+            selectedLayerIds.length > 0
+              ? (layers.find((l) => l.id === selectedLayerIds[selectedLayerIds.length - 1]) as TextLayer)
+              : undefined
           }
         />
       )}

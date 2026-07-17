@@ -6,7 +6,6 @@ import { createNebulaDemoDesign } from './project/demoDesign';
 import { log } from '../../utils/log';
 import type { StoreState } from '../useStore';
 
-
 export interface ProjectSlice {
   projects: Project[];
   projectId: string;
@@ -57,7 +56,10 @@ function sanitizeLayer(layer: any): any {
   };
   const num = (v: any, def = 0): number => {
     if (typeof v === 'number') return v;
-    if (typeof v === 'string') { const n = Number(v); return isNaN(n) ? def : n; }
+    if (typeof v === 'string') {
+      const n = Number(v);
+      return isNaN(n) ? def : n;
+    }
     return def;
   };
   safe.id = str(safe.id, generateLayerId(safe.type || 'shape'));

@@ -132,7 +132,13 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         return { image: { src: data.images?.[0]?.url || data.url, width: settings.width, height: settings.height } };
       } catch (err) {
         console.warn('[FLUX] API unavailable, using placeholder');
-        return { image: { src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/7d2ae8?text=FLUX+Generated`, width: settings.width, height: settings.height } };
+        return {
+          image: {
+            src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/7d2ae8?text=FLUX+Generated`,
+            width: settings.width,
+            height: settings.height,
+          },
+        };
       }
     },
   },
@@ -203,7 +209,13 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         return { image: { src: data.imageUrl || data.url, width: settings.width, height: settings.height } };
       } catch (err) {
         console.warn('[Gemini] API unavailable, using placeholder');
-        return { image: { src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/00c4cc?text=Gemini+Generated`, width: settings.width, height: settings.height } };
+        return {
+          image: {
+            src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/00c4cc?text=Gemini+Generated`,
+            width: settings.width,
+            height: settings.height,
+          },
+        };
       }
     },
   },
@@ -233,7 +245,13 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         return { image: { src: data.images?.[0]?.url, width: settings.width, height: settings.height } };
       } catch (err) {
         console.warn('[Recraft] API unavailable, using placeholder');
-        return { image: { src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/ff6b35?text=Recraft+Vector`, width: settings.width, height: settings.height } };
+        return {
+          image: {
+            src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/ff6b35?text=Recraft+Vector`,
+            width: settings.width,
+            height: settings.height,
+          },
+        };
       }
     },
   },
@@ -262,7 +280,13 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         return { image: { src: data.images?.[0]?.url, width: settings.width, height: settings.height } };
       } catch (err) {
         console.warn('[Seedream] API unavailable, using placeholder');
-        return { image: { src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/ffd700?text=Seedream+Generated`, width: settings.width, height: settings.height } };
+        return {
+          image: {
+            src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/ffd700?text=Seedream+Generated`,
+            width: settings.width,
+            height: settings.height,
+          },
+        };
       }
     },
   },
@@ -340,10 +364,23 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
           body: JSON.stringify({ model: 'fal-ai/esrgan', image_url: inputs.image?.src, scale: settings.scale }),
         });
         const data = await response.json();
-        return { image: { ...inputs.image, src: data.image?.url, width: (inputs.image?.width || 512) * settings.scale, height: (inputs.image?.height || 512) * settings.scale } };
+        return {
+          image: {
+            ...inputs.image,
+            src: data.image?.url,
+            width: (inputs.image?.width || 512) * settings.scale,
+            height: (inputs.image?.height || 512) * settings.scale,
+          },
+        };
       } catch (err) {
         console.warn('[Upscale] API unavailable, passing through');
-        return { image: { ...inputs.image, width: (inputs.image?.width || 512) * settings.scale, height: (inputs.image?.height || 512) * settings.scale } };
+        return {
+          image: {
+            ...inputs.image,
+            width: (inputs.image?.width || 512) * settings.scale,
+            height: (inputs.image?.height || 512) * settings.scale,
+          },
+        };
       }
     },
   },
@@ -401,7 +438,18 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
       { id: 'text', label: 'Text', dataType: 'text' },
     ],
     outputs: [{ id: 'image', label: 'Image', dataType: 'image' }],
-    defaults: { text: 'Your Text', fontSize: 72, fontFamily: 'Inter', fontWeight: 'bold', color: '#FFFFFF', x: 50, y: 50, textAlign: 'center', shadow: true, stroke: false },
+    defaults: {
+      text: 'Your Text',
+      fontSize: 72,
+      fontFamily: 'Inter',
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+      x: 50,
+      y: 50,
+      textAlign: 'center',
+      shadow: true,
+      stroke: false,
+    },
     execute: async (inputs, settings) => ({
       image: { ...inputs.image, textOverlay: { ...settings, text: inputs.text?.text || settings.text } },
     }),
@@ -495,13 +543,23 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         const response = await fetch('/api/dynamic-mockups?action=generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mockupId: settings.product, designUrl: inputs.image?.src, placement: { top: 0, left: 0, width: 100, rotate: 0 } }),
+          body: JSON.stringify({
+            mockupId: settings.product,
+            designUrl: inputs.image?.src,
+            placement: { top: 0, left: 0, width: 100, rotate: 0 },
+          }),
         });
         const data = await response.json();
         return { image: { src: data.url, width: 3000, height: 3000 } };
       } catch (err) {
         console.warn('[Mockup] API unavailable, using design as-is');
-        return { image: inputs.image || { src: `https://placehold.co/3000x3000/1a1a2e/7d2ae8?text=Mockup`, width: 3000, height: 3000 } };
+        return {
+          image: inputs.image || {
+            src: `https://placehold.co/3000x3000/1a1a2e/7d2ae8?text=Mockup`,
+            width: 3000,
+            height: 3000,
+          },
+        };
       }
     },
   },
@@ -548,11 +606,12 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     outputs: [{ id: 'layers', label: 'Layers', dataType: 'layers' }],
     defaults: { type: 'grid', columns: 2, gap: 20, padding: 40 },
     execute: async (inputs, settings) => ({
-      layers: inputs.layers?.map((l: any, i: number) => ({
-        ...l,
-        x: (i % settings.columns) * (l.width + settings.gap) + settings.padding,
-        y: Math.floor(i / settings.columns) * (l.height + settings.gap) + settings.padding,
-      })) || [],
+      layers:
+        inputs.layers?.map((l: any, i: number) => ({
+          ...l,
+          x: (i % settings.columns) * (l.width + settings.gap) + settings.padding,
+          y: Math.floor(i / settings.columns) * (l.height + settings.gap) + settings.padding,
+        })) || [],
     }),
   },
   {
@@ -665,10 +724,10 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
       const sizes: Record<string, { w: number; h: number }> = {
         'instagram-square': { w: 1080, h: 1080 },
         'instagram-story': { w: 1080, h: 1920 },
-        'tiktok': { w: 1080, h: 1920 },
-        'linkedin': { w: 1200, h: 627 },
+        tiktok: { w: 1080, h: 1920 },
+        linkedin: { w: 1200, h: 627 },
         'youtube-thumb': { w: 1280, h: 720 },
-        'twitter': { w: 1200, h: 675 },
+        twitter: { w: 1200, h: 675 },
       };
       const exports = settings.platforms.map((p: string) => ({
         platform: p,

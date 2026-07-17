@@ -60,8 +60,8 @@ export const useLayerTransformation = ({ layers, zoom, onUpdateLayers }: UseLaye
     const centerX = layer.x + width / 2;
     const centerY = layer.y + height / 2;
     // Calculate angle from center to initial mouse position (in canvas coords)
-    const mouseCanvasX = (e.clientX / zoomRef.current);
-    const mouseCanvasY = (e.clientY / zoomRef.current);
+    const mouseCanvasX = e.clientX / zoomRef.current;
+    const mouseCanvasY = e.clientY / zoomRef.current;
     const initialAngle = Math.atan2(mouseCanvasY - centerY, mouseCanvasX - centerX);
     setTransformState({
       type: 'rotate',

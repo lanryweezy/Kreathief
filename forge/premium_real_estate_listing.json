@@ -214,13 +214,7 @@
     "templateName": "Clean Luxury Estate Post Sale",
     "shortDescription": "Showcase luxury properties with this clean, professional real estate listing.",
     "longDescription": "Showcase luxury properties with this clean, professional real estate listing post. Designed specifically for premium real estate listings in African markets. Uses neutral clean colours.",
-    "tags": [
-      "Business",
-      "Instagram post",
-      "Professional",
-      "African Market",
-      "Clean & minimal"
-    ],
+    "tags": ["Business", "Instagram post", "Professional", "African Market", "Clean & minimal"],
     "searchKeywords": [
       "real estate flyer",
       "property listing",
@@ -239,23 +233,10 @@
       "slug": "clean-luxury-estate-post-sale"
     },
     "personalisationSignals": {
-      "industry": [
-        "Real Estate",
-        "property development",
-        "Business"
-      ],
-      "audienceType": [
-        "realtor",
-        "real estate agent",
-        "property developer",
-        "small business"
-      ],
+      "industry": ["Real Estate", "property development", "Business"],
+      "audienceType": ["realtor", "real estate agent", "property developer", "small business"],
       "experienceLevel": "beginner-friendly"
     },
-    "relatedTemplates": [
-      "clean-tech-pitch-cover",
-      "modern-tech-mixer-post-event",
-      "elegant-sunday-post-invite"
-    ]
+    "relatedTemplates": ["clean-tech-pitch-cover", "modern-tech-mixer-post-event", "elegant-sunday-post-invite"]
   }
 }

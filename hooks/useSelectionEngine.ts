@@ -62,10 +62,7 @@ export function useSelectionEngine() {
 
   const isSelected = useCallback((id: string) => selectedIds.includes(id), [selectedIds]);
 
-  const isLocked = useCallback(
-    (id: string) => activeLayers.find((l) => l.id === id)?.locked ?? false,
-    [activeLayers]
-  );
+  const isLocked = useCallback((id: string) => activeLayers.find((l) => l.id === id)?.locked ?? false, [activeLayers]);
 
   return { selectionState, selectedIds, select, multiSelect, marqueeSelect, clearSelection, isSelected, isLocked };
 }

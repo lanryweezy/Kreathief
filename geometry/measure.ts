@@ -26,7 +26,8 @@ export function pathLength(segments: Segment[]): number {
 
 export function bezierPathLength(points: Point[], closed = false, steps = 24): number {
   if (points.length < 2) return 0;
-  let length = 0, prev = points[0];
+  let length = 0,
+    prev = points[0];
   const walk = (a: Point, b: Point) => {
     for (let s = 1; s <= steps; s++) {
       const t = s / steps;
@@ -52,7 +53,11 @@ export function pathArea(points: Point[]): number {
 
 export function centroid(points: Point[]): Point {
   if (!points.length) return { x: 0, y: 0 };
-  let sx = 0, sy = 0;
-  for (const p of points) { sx += p.x; sy += p.y; }
+  let sx = 0,
+    sy = 0;
+  for (const p of points) {
+    sx += p.x;
+    sy += p.y;
+  }
   return { x: sx / points.length, y: sy / points.length };
 }

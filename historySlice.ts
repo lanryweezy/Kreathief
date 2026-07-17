@@ -7,7 +7,6 @@ import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
 import type { StoreState } from '../useStore';
 
-
 export interface HistoryEntry {
   timestamp: number;
   type: 'snapshot' | 'patch';
@@ -134,7 +133,8 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
   },
 
   undo: () => {
-    const { past, artboards, activeArtboardId, canvasBackgroundColor, canvasFilters, canvasSize, selectedLayerIds } = get();
+    const { past, artboards, activeArtboardId, canvasBackgroundColor, canvasFilters, canvasSize, selectedLayerIds } =
+      get();
     if (past.length === 0) {
       return;
     }
@@ -216,7 +216,8 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
   },
 
   redo: () => {
-    const { future, artboards, activeArtboardId, canvasBackgroundColor, canvasFilters, canvasSize, selectedLayerIds } = get();
+    const { future, artboards, activeArtboardId, canvasBackgroundColor, canvasFilters, canvasSize, selectedLayerIds } =
+      get();
     if (future.length === 0) {
       return;
     }

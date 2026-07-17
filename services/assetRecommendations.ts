@@ -89,10 +89,7 @@ function normalizePhotos(photos: any[], provider: string): RecommendedAsset[] {
   }));
 }
 
-export async function getRecommendedAssets(
-  designContext: DesignContext,
-  limit = 20
-): Promise<RecommendedAsset[]> {
+export async function getRecommendedAssets(designContext: DesignContext, limit = 20): Promise<RecommendedAsset[]> {
   const queries = await analyzeDesignContext(designContext);
   const allResults: RecommendedAsset[] = [];
   const seen = new Set<string>();
@@ -105,9 +102,10 @@ export async function getRecommendedAssets(
         pexelsService.searchPhotos(query).catch(() => []),
       ]);
 
-      [...normalizePhotos(usResults, 'unsplash'),
-       ...normalizePhotos(pbResults, 'pixabay'),
-       ...normalizePhotos(pxResults, 'pexels'),
+      [
+        ...normalizePhotos(usResults, 'unsplash'),
+        ...normalizePhotos(pbResults, 'pixabay'),
+        ...normalizePhotos(pxResults, 'pexels'),
       ].forEach((asset) => {
         if (!seen.has(asset.url) && allResults.length < limit) {
           seen.add(asset.url);

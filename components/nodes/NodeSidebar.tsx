@@ -63,9 +63,7 @@ export function NodeSidebar({ onAddNode }: NodeSidebarProps) {
         <button
           onClick={() => setActiveCategory(null)}
           className={`px-2 py-1 rounded text-[10px] whitespace-nowrap transition-colors ${
-            activeCategory === null
-              ? 'bg-brand-600 text-white'
-              : 'bg-surface-dark-3 text-white/60 hover:text-white'
+            activeCategory === null ? 'bg-brand-600 text-white' : 'bg-surface-dark-3 text-white/60 hover:text-white'
           }`}
         >
           All
@@ -102,9 +100,7 @@ export function NodeSidebar({ onAddNode }: NodeSidebarProps) {
                 <NodeIcon className="w-4 h-4 text-white/70" />
                 <span className="text-xs font-medium text-white">{nodeDef.label}</span>
               </div>
-              <p className="text-[10px] text-white/40 mt-0.5 ml-6 line-clamp-1">
-                {nodeDef.description}
-              </p>
+              <p className="text-[10px] text-white/40 mt-0.5 ml-6 line-clamp-1">{nodeDef.description}</p>
             </button>
           );
         })}

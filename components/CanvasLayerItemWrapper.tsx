@@ -105,9 +105,7 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
     }, [allLayers]);
 
     const effectiveMaskLayer =
-      maskLayerOverride ||
-      (l.maskLayerId && layerMap ? layerMap.get(l.maskLayerId) || null : null) ||
-      null;
+      maskLayerOverride || (l.maskLayerId && layerMap ? layerMap.get(l.maskLayerId) || null : null) || null;
 
     const { maskPath } = useLayerMask(effectiveMaskLayer);
     const { processedUrl, isProcessing: isFiltering } = useProcessedImage(

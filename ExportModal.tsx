@@ -232,12 +232,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     } catch (e: any) {
       log.error('[ExportModal] Export failed', e, { format, quality, isPrintMode });
       const details = getErrorDetails(e);
-      addToast(
-        details.message,
-        'error',
-        { label: 'Try Again', onClick: handleExportClick },
-        details.suggestion
-      );
+      addToast(details.message, 'error', { label: 'Try Again', onClick: handleExportClick }, details.suggestion);
       setExportStage('');
     } finally {
       setIsExporting(false);

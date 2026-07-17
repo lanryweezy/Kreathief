@@ -1,8 +1,6 @@
 import { Point } from './bezier';
 
-export function lineLineIntersect(
-  a1: Point, a2: Point, b1: Point, b2: Point,
-): Point | null {
+export function lineLineIntersect(a1: Point, a2: Point, b1: Point, b2: Point): Point | null {
   const d1x = a2.x - a1.x;
   const d1y = a2.y - a1.y;
   const d2x = b2.x - b1.x;
@@ -20,9 +18,13 @@ export function lineLineIntersect(
 }
 
 export function curveLineIntersect(
-  p0: Point, p1: Point, p2: Point, p3: Point,
-  a: Point, b: Point,
-  segments = 24,
+  p0: Point,
+  p1: Point,
+  p2: Point,
+  p3: Point,
+  a: Point,
+  b: Point,
+  segments = 24
 ): Point[] {
   const results: Point[] = [];
   let prev = p0;

@@ -46,7 +46,9 @@ function NodePort({ port, side, nodeId, color, onMouseDown, onMouseUp }: NodePor
 
     if (!showMatchIndicator) return '';
     const fromNode = graph.nodes?.find((n) => n.id === wireState.fromNode);
-    const fromPortDef = fromNode ? getNodeDefinition(fromNode.type)?.outputs.find((p) => p.id === wireState.fromPort) : null;
+    const fromPortDef = fromNode
+      ? getNodeDefinition(fromNode.type)?.outputs.find((p) => p.id === wireState.fromPort)
+      : null;
     const activeDataType = fromPortDef?.dataType;
     const isCompatible = activeDataType === 'any' || port.dataType === 'any' || port.dataType === activeDataType;
 

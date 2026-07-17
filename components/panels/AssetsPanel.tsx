@@ -71,9 +71,10 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
 
       if (activeSource === 'all' || activeSource === 'pixabay') {
         try {
-          const results = provider === 'pixabay' && !searchQuery
-            ? await pixabayService.getTrending()
-            : await pixabayService.searchPhotos(q);
+          const results =
+            provider === 'pixabay' && !searchQuery
+              ? await pixabayService.getTrending()
+              : await pixabayService.searchPhotos(q);
           results.forEach((p) => {
             combined.push({
               id: `pb-${p.id}`,
@@ -91,9 +92,10 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
 
       if (activeSource === 'all' || activeSource === 'pexels') {
         try {
-          const results = provider === 'pexels' && !searchQuery
-            ? await pexelsService.getCurated()
-            : await pexelsService.searchPhotos(q);
+          const results =
+            provider === 'pexels' && !searchQuery
+              ? await pexelsService.getCurated()
+              : await pexelsService.searchPhotos(q);
           results.forEach((p) => {
             combined.push({
               id: `px-${p.id}`,

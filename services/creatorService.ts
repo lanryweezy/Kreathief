@@ -41,7 +41,9 @@ export const creatorService = {
     specialization?: string;
   }): Promise<Creator | null> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
       const { data: creator, error } = await supabase
@@ -52,7 +54,7 @@ export const creatorService = {
           email: data.email,
           portfolio_url: data.portfolio_url || null,
           specialization: data.specialization || null,
-          is_verified: false
+          is_verified: false,
         })
         .select()
         .single();
@@ -75,14 +77,12 @@ export const creatorService = {
     price?: number;
   }): Promise<Asset | null> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data: creator } = await supabase
-        .from('creators')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
+      const { data: creator } = await supabase.from('creators').select('id').eq('user_id', user.id).single();
 
       if (!creator) throw new Error('Not a creator');
 
@@ -98,7 +98,7 @@ export const creatorService = {
           thumbnail_url: data.thumbnail_url || null,
           price: data.price || 0,
           downloads: 0,
-          status: 'pending'
+          status: 'pending',
         })
         .select()
         .single();
@@ -139,7 +139,7 @@ export const creatorService = {
 
       const totalAssets = assets?.length || 0;
       const totalDownloads = assets?.reduce((sum: number, a: any) => sum + (a.downloads || 0), 0) || 0;
-      const totalEarnings = assets?.reduce((sum: number, a: any) => sum + ((a.downloads || 0) * (a.price || 0)), 0) || 0;
+      const totalEarnings = assets?.reduce((sum: number, a: any) => sum + (a.downloads || 0) * (a.price || 0), 0) || 0;
 
       return { totalAssets, totalDownloads, totalEarnings };
     } catch (error) {
@@ -150,10 +150,7 @@ export const creatorService = {
 
   async approveAsset(assetId: string): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('assets')
-        .update({ status: 'approved' })
-        .eq('id', assetId);
+      const { error } = await supabase.from('assets').update({ status: 'approved' }).eq('id', assetId);
 
       if (error) throw error;
       return true;
@@ -165,10 +162,7 @@ export const creatorService = {
 
   async rejectAsset(assetId: string, reason: string): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('assets')
-        .update({ status: 'rejected' })
-        .eq('id', assetId);
+      const { error } = await supabase.from('assets').update({ status: 'rejected' }).eq('id', assetId);
 
       if (error) throw error;
       return true;
@@ -180,11 +174,7 @@ export const creatorService = {
 
   async getAssetById(assetId: string): Promise<Asset | null> {
     try {
-      const { data, error } = await supabase
-        .from('assets')
-        .select('*')
-        .eq('id', assetId)
-        .single();
+      const { data, error } = await supabase.from('assets').select('*').eq('id', assetId).single();
 
       if (error) throw error;
       return data;
@@ -192,5 +182,5 @@ export const creatorService = {
       log.error('[CreatorService] getAssetById failed', error);
       return null;
     }
-  }
+  },
 };

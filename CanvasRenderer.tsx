@@ -164,10 +164,7 @@ const ArtboardItem = React.memo(
       useStore.getState().addArtboard();
     }, []);
 
-    const cachedFilterString = React.useMemo(
-      () => buildFilterString(canvasFilters),
-      [canvasFilters]
-    );
+    const cachedFilterString = React.useMemo(() => buildFilterString(canvasFilters), [canvasFilters]);
 
     return (
       <div

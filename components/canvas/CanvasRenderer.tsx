@@ -360,7 +360,6 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(
     onApplySuggestion = () => {},
     allLayers = [],
   }) => {
-
     return (
       <>
         <ArtisticFilters />

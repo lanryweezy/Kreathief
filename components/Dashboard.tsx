@@ -349,9 +349,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
 
   const filteredTemplates = STARTER_TEMPLATES.filter((t) => {
     const matchesSearch =
-      fuzzyMatch(searchQuery, t.name) ||
-      fuzzyMatch(searchQuery, t.description) ||
-      fuzzyMatch(searchQuery, t.category);
+      fuzzyMatch(searchQuery, t.name) || fuzzyMatch(searchQuery, t.description) || fuzzyMatch(searchQuery, t.category);
     const matchesCategory = templateCategory === 'All' || t.category === templateCategory;
     return matchesSearch && matchesCategory;
   });

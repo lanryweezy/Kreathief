@@ -39,8 +39,16 @@ describe('CreativeIntentMode', () => {
   it('shows 10 intent cards', () => {
     render(<CreativeIntentMode onSelect={vi.fn()} onSkip={vi.fn()} />);
     const titles = [
-      'Social Post', 'Flyer', 'Presentation', 'Brand Kit', 'Logo',
-      'YouTube Thumbnail', 'Product Mockup', 'Website Hero', 'Business Card', 'Poster',
+      'Social Post',
+      'Flyer',
+      'Presentation',
+      'Brand Kit',
+      'Logo',
+      'YouTube Thumbnail',
+      'Product Mockup',
+      'Website Hero',
+      'Business Card',
+      'Poster',
     ];
     titles.forEach((t) => expect(screen.getByText(t)).toBeInTheDocument());
   });

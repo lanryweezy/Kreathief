@@ -13,7 +13,11 @@ interface FavoriteAsset {
 
 const LS_KEY = 'kreathief_asset_favorites';
 const loadLocal = (): FavoriteAsset[] => {
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch { return []; }
+  try {
+    return JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+  } catch {
+    return [];
+  }
 };
 const saveLocal = (items: FavoriteAsset[]) => localStorage.setItem(LS_KEY, JSON.stringify(items));
 
@@ -25,23 +29,46 @@ export const AssetFavorites: React.FC = () => {
     setLoading(true);
     setFavorites(loadLocal());
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
-      const { data } = await supabase.from('user_favorites')
-        .select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-      if (data) { setFavorites(data as FavoriteAsset[]); saveLocal(data as FavoriteAsset[]); }
-    } catch (e) { log.error('[AssetFavorites] Load failed', e); }
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      const { data } = await supabase
+        .from('user_favorites')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      if (data) {
+        setFavorites(data as FavoriteAsset[]);
+        saveLocal(data as FavoriteAsset[]);
+      }
+    } catch (e) {
+      log.error('[AssetFavorites] Load failed', e);
+    }
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const remove = async (fav: FavoriteAsset) => {
-    setFavorites((prev) => { const next = prev.filter((f) => f.asset_id !== fav.asset_id); saveLocal(next); return next; });
+    setFavorites((prev) => {
+      const next = prev.filter((f) => f.asset_id !== fav.asset_id);
+      saveLocal(next);
+      return next;
+    });
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) await supabase.from('user_favorites').delete().eq('user_id', user.id).eq('asset_id', fav.asset_id);
-    } catch (e) { log.error('[AssetFavorites] Remove failed', e); }
+    } catch (e) {
+      log.error('[AssetFavorites] Remove failed', e);
+    }
   };
 
   return (
@@ -62,9 +89,20 @@ export const AssetFavorites: React.FC = () => {
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {favorites.map((fav) => (
-              <div key={fav.asset_id} className="aspect-square rounded-lg overflow-hidden relative group bg-surface-dark-3 border border-gray-700 hover:border-accent transition-all">
-                <img src={fav.thumbnail_url || fav.asset_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" loading="lazy" />
-                <button onClick={() => remove(fav)} className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500">
+              <div
+                key={fav.asset_id}
+                className="aspect-square rounded-lg overflow-hidden relative group bg-surface-dark-3 border border-gray-700 hover:border-accent transition-all"
+              >
+                <img
+                  src={fav.thumbnail_url || fav.asset_url}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  alt=""
+                  loading="lazy"
+                />
+                <button
+                  onClick={() => remove(fav)}
+                  className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                >
                   <Icons.X className="w-3 h-3 text-white" />
                 </button>
                 <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">

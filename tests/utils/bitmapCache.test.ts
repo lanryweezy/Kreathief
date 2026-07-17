@@ -4,8 +4,17 @@ import type { Layer } from '../../types';
 
 function makeLayer(id: string, overrides: Partial<Layer> = {}): Layer {
   return {
-    id, type: 'rectangle', x: 0, y: 0, width: 100, height: 100,
-    rotation: 0, opacity: 1, locked: false, visible: true, color: '#000',
+    id,
+    type: 'rectangle',
+    x: 0,
+    y: 0,
+    width: 100,
+    height: 100,
+    rotation: 0,
+    opacity: 1,
+    locked: false,
+    visible: true,
+    color: '#000',
     cornerRadius: 0,
     ...overrides,
   } as Layer;
@@ -21,7 +30,10 @@ beforeEach(() => {
   (globalThis as any).OffscreenCanvas = class {
     width = 0;
     height = 0;
-    constructor(w: number, h: number) { this.width = w; this.height = h; }
+    constructor(w: number, h: number) {
+      this.width = w;
+      this.height = h;
+    }
     getContext() {
       return {
         clearRect: vi.fn(),
@@ -30,7 +42,9 @@ beforeEach(() => {
         strokeRect: vi.fn(),
       };
     }
-    convertToBlob() { return Promise.resolve(new Blob()); }
+    convertToBlob() {
+      return Promise.resolve(new Blob());
+    }
   };
 });
 

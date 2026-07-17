@@ -39,11 +39,14 @@
 **Learning:** To ensure identical visual formatting and clipping of complex shapes (like stars, hexagons, arrows) across the canvas and export/mask workers, use the shared `getLayerClipPath` utility from `utils/layerRendering.ts` rather than hardcoding SVG polygons or CSS `clip-path` definitions independently.
 
 ## 2026-06-28 - Shape export uses independent polygon logic
+
 **Surface pair:** Canvas Editor and Export Pipeline
 **Root cause:** The canvas export pipeline (`drawShapeToContext` in `exportService.ts` and `exportWorker.ts`) previously used inline, independently hardcoded logic and polygon point parsing to try to match the canvas editor, missing many complex shapes.
 **Fix:** Refactored `drawShapeToContext` in `exportService.ts` and masking in `exportWorker.ts` to utilize a single shared utility `applyShapePolygonToContext` in `utils/layerRendering.ts` to trace all paths matching a CSS polygon definition.
 **Learning:** Hardcoding shape tracing algorithm independently across rendering pipelines will cause them to diverge and break when new shapes are added. Always parse paths through shared path utilities to guarantee identical coordinate logic on Canvas Context paths.
+
 ## 2026-07-02 - TextTransform Export Divergence
+
 **Surface pair:** Canvas Editor and Export Pipeline
 **Root cause:** The canvas editor properly respected `textTransform` (uppercase/lowercase) via DOM CSS applied in `components/canvas/LayerItems.tsx`, but `utils/textRendering.ts` ignored it entirely, causing all exported surfaces (PNG, PSD, SVG, workers) to output unmodified text instead of transformed text.
 **Fix:** Extracted a shared `applyTextTransform` utility in `utils/textRendering.ts` and integrated it into all path, wrapped, multiline, and SVG text rendering pipelines so the string is transformed natively before rendering.

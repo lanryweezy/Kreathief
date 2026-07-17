@@ -371,9 +371,15 @@ async function exportLayersToPsd(width: number, height: number, layers: WorkerLa
             fillGrad = ctx.createRadialGradient(canvasW / 2, canvasH / 2, 0, canvasW / 2, canvasH / 2, canvasW / 2);
           } else {
             const angle = ((grad.angle || 0) * Math.PI) / 180;
-            const cx = canvasW / 2, cy = canvasH / 2;
+            const cx = canvasW / 2,
+              cy = canvasH / 2;
             const len = canvasW / 2;
-            fillGrad = ctx.createLinearGradient(cx - Math.cos(angle) * len, cy - Math.sin(angle) * len, cx + Math.cos(angle) * len, cy + Math.sin(angle) * len);
+            fillGrad = ctx.createLinearGradient(
+              cx - Math.cos(angle) * len,
+              cy - Math.sin(angle) * len,
+              cx + Math.cos(angle) * len,
+              cy + Math.sin(angle) * len
+            );
           }
           for (const stop of grad.colors || []) {
             fillGrad.addColorStop(stop.position, stop.color);
