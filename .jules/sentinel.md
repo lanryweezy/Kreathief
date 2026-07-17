@@ -175,3 +175,9 @@
 **Vulnerability:** The application was fetching `import.meta.env.VITE_GETILLUSTRATION_KEY` on the client-side within `services/getillustrationService.ts`, directly exposing a secret API key to users via the compiled frontend bundle.
 **Learning:** In Vite, any environment variable prefixed with `VITE_` is statically injected into the client bundle at build time. Secret keys or tokens for backend services should never use this prefix if they are imported directly in client code.
 **Prevention:** If an external service requires a secret API key, implement a server-side proxy route (e.g., an Edge Function like `api/getillustration.ts`) to handle the requests securely. The client should only interact with this proxy, and the secret key should be safely stored in the server's environment without the `VITE_` prefix.
+
+## 2026-07-17 - Prevent Unauthorized Access to Generative AI Proxies
+
+**Vulnerability:** The API routes for generative AI services (`api/gemini.ts`, `api/openrouter.ts`, `api/fal.ts`) had their authentication checks temporarily commented out (`// Auth check removed for build fix`), allowing unauthenticated attackers to access these endpoints, potentially bypassing CORS/Origin restrictions via direct API calls and consuming the application's AI quotas.
+**Learning:** Temporary workarounds or 'build fixes' that disable core security mechanisms like authentication are critical vulnerabilities, especially on endpoints that proxy requests to paid third-party services.
+**Prevention:** Always verify that security-critical validation logic (e.g., `requireAuth`) is active and properly tested on all proxy endpoints handling sensitive operations or interacting with external APIs. Do not disable security checks to pass builds; fix the underlying build issue instead.
