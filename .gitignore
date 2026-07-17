@@ -52,3 +52,5 @@ append_missing_icons.cjs
 *.timestamp-*
 coverage/
 package-lock.json
+rust-engine/pkg/
+rust-engine/target/
