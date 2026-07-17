@@ -206,6 +206,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({
                 }
               }}
               placeholder="Ask me anything... (try /align center)"
+              aria-label="Message AI assistant"
               disabled={isLoading || isProcessing}
               className="flex-1 bg-surface-dark-3 text-white px-3 py-2 rounded outline-none focus:ring-2 focus:ring-brand-600 disabled:opacity-50 text-sm"
             />

@@ -57,3 +57,8 @@
 
 **Learning:** Found multiple instances in `Node.tsx` and `NodeGraph.tsx` where icon-only buttons (`×`, `+`, `<Icons.Minus />`, `<Icons.Plus />`) lacked `aria-label` attributes. This breaks keyboard accessibility and renders them invisible to screen readers, which is especially critical in an interactive visual tool like a node graph editor.
 **Action:** When implementing custom workspace controls, zooming tools, and interactive layer configurations, ensure all buttons with icons or symbols have clear and descriptive `aria-label`s.
+
+## 2024-07-16 - [Missing ARIA Labels on Search and Chat Inputs]
+
+**Learning:** Text inputs that rely solely on a `placeholder` attribute to convey their purpose (like search bars in `WorkflowPresets` or chat inputs in `AIAssistant`) without an explicitly linked `<label>` tag are difficult or impossible for screen readers to interpret correctly. Screen readers often announce these simply as "edit text" or similar, leaving users without context.
+**Action:** When creating text input fields where visual space constraints prevent the use of an explicitly linked `<label>`, always ensure the `<input>` element has a descriptive `aria-label` attribute (e.g., `aria-label="Search workflows"` or `aria-label="Message AI assistant"`).
