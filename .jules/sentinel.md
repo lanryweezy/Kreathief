@@ -175,3 +175,8 @@
 **Vulnerability:** The application was fetching `import.meta.env.VITE_GETILLUSTRATION_KEY` on the client-side within `services/getillustrationService.ts`, directly exposing a secret API key to users via the compiled frontend bundle.
 **Learning:** In Vite, any environment variable prefixed with `VITE_` is statically injected into the client bundle at build time. Secret keys or tokens for backend services should never use this prefix if they are imported directly in client code.
 **Prevention:** If an external service requires a secret API key, implement a server-side proxy route (e.g., an Edge Function like `api/getillustration.ts`) to handle the requests securely. The client should only interact with this proxy, and the secret key should be safely stored in the server's environment without the `VITE_` prefix.
+
+## 2026-07-20 - Missing Authentication on AI API Proxy Endpoints
+**Vulnerability:** The AI proxy endpoints (`api/gemini.ts`, `api/openrouter.ts`, `api/fal.ts`) had their `requireAuth` check commented out, leaving these endpoints entirely unauthenticated.
+**Learning:** Removing authentication checks from backend proxy endpoints—even temporarily "for a build fix"—exposes the backend's secret API keys to unauthenticated public access, essentially turning the server into an open proxy for expensive third-party AI APIs. This leads directly to quota exhaustion and financial loss.
+**Prevention:** Never remove or comment out authentication layers on proxy endpoints that utilize secure backend secrets. If the build or tests are failing due to auth, mock the authentication in tests or fix the calling client to provide the correct token, rather than lowering security on the server.
