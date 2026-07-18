@@ -155,7 +155,10 @@ export const SlidesPanel: React.FC = () => {
   const handleDrop = (e: React.DragEvent, targetId: string) => {
     e.preventDefault();
     const srcId = dragSrcRef.current;
-    if (!srcId || srcId === targetId) { setDragOverId(null); return; }
+    if (!srcId || srcId === targetId) {
+      setDragOverId(null);
+      return;
+    }
 
     const boards = [...artboards];
     const srcIdx = boards.findIndex((a: Artboard) => a.id === srcId);
@@ -169,7 +172,10 @@ export const SlidesPanel: React.FC = () => {
     setDragOverId(null);
     dragSrcRef.current = null;
   };
-  const handleDragEnd = () => { setDragOverId(null); dragSrcRef.current = null; };
+  const handleDragEnd = () => {
+    setDragOverId(null);
+    dragSrcRef.current = null;
+  };
 
   // ── Add slide with layout ──
   const addWithLayout = (layoutId: string) => {
@@ -194,15 +200,17 @@ export const SlidesPanel: React.FC = () => {
   };
 
   // ── Navigate slides ──
-  const goTo = useCallback((idx: number) => {
-    const t = artboards[idx];
-    if (t) setActiveArtboardId(t.id);
-  }, [artboards, setActiveArtboardId]);
+  const goTo = useCallback(
+    (idx: number) => {
+      const t = artboards[idx];
+      if (t) setActiveArtboardId(t.id);
+    },
+    [artboards, setActiveArtboardId]
+  );
 
   return (
     <PanelErrorBoundary componentName="SlidesPanel">
       <div className="flex flex-col h-full bg-surface-dark-2 text-white">
-
         {/* ─── Header ─── */}
         <div className="p-3 border-b border-surface-dark-0 shrink-0">
           <div className="flex items-center justify-between mb-2.5">
@@ -222,10 +230,11 @@ export const SlidesPanel: React.FC = () => {
                 className="p-1.5 rounded-lg bg-surface-dark-0 hover:bg-surface-dark-1 text-gray-400 hover:text-white transition-colors"
                 title={view === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
               >
-                {view === 'grid'
-                  ? <Icons.LayoutGrid className="w-3.5 h-3.5" />
-                  : <Icons.Layers className="w-3.5 h-3.5" />
-                }
+                {view === 'grid' ? (
+                  <Icons.LayoutGrid className="w-3.5 h-3.5" />
+                ) : (
+                  <Icons.Layers className="w-3.5 h-3.5" />
+                )}
               </button>
               {/* Present button */}
               <button
@@ -399,14 +408,18 @@ export const SlidesPanel: React.FC = () => {
                       isActive
                         ? 'border-brand-500/80 ring-1 ring-brand-500/20 shadow-lg shadow-brand-900/20'
                         : isDragOver
-                        ? 'border-brand-400/60 bg-brand-500/5 scale-[0.97]'
-                        : 'border-surface-dark-1/50 hover:border-surface-dark-1'
+                          ? 'border-brand-400/60 bg-brand-500/5 scale-[0.97]'
+                          : 'border-surface-dark-1/50 hover:border-surface-dark-1'
                     }`}
                   >
                     {/* Slide number badge */}
-                    <div className={`absolute top-1.5 left-1.5 z-10 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black border transition-all ${
-                      isActive ? 'bg-brand-600 border-brand-500 text-white shadow' : 'bg-surface-dark-1 border-surface-dark-0 text-gray-400'
-                    }`}>
+                    <div
+                      className={`absolute top-1.5 left-1.5 z-10 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black border transition-all ${
+                        isActive
+                          ? 'bg-brand-600 border-brand-500 text-white shadow'
+                          : 'bg-surface-dark-1 border-surface-dark-0 text-gray-400'
+                      }`}
+                    >
                       {index + 1}
                     </div>
 
@@ -438,7 +451,10 @@ export const SlidesPanel: React.FC = () => {
                       ) : (
                         <span
                           className={`text-[10px] font-semibold truncate ${isActive ? 'text-brand-300' : 'text-gray-400'}`}
-                          onDoubleClick={(e) => { e.stopPropagation(); handleRename(artboard.id, artboard.name); }}
+                          onDoubleClick={(e) => {
+                            e.stopPropagation();
+                            handleRename(artboard.id, artboard.name);
+                          }}
                           title="Double-click to rename"
                         >
                           {artboard.name || `Slide ${index + 1}`}
@@ -453,14 +469,20 @@ export const SlidesPanel: React.FC = () => {
                     {/* Hover actions */}
                     <div className="absolute inset-0 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 bg-black/40 backdrop-blur-sm transition-all duration-150 rounded-xl">
                       <button
-                        onClick={(e) => { e.stopPropagation(); duplicateArtboard(artboard.id); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          duplicateArtboard(artboard.id);
+                        }}
                         className="p-1.5 rounded-lg bg-surface-dark-1/90 text-gray-300 hover:text-brand-300 hover:bg-surface-dark-2 transition-colors shadow"
                         title="Duplicate"
                       >
                         <Icons.Copy className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleRename(artboard.id, artboard.name); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRename(artboard.id, artboard.name);
+                        }}
                         className="p-1.5 rounded-lg bg-surface-dark-1/90 text-gray-300 hover:text-white transition-colors shadow"
                         title="Rename"
                       >
@@ -468,7 +490,10 @@ export const SlidesPanel: React.FC = () => {
                       </button>
                       {artboards.length > 1 && (
                         <button
-                          onClick={(e) => { e.stopPropagation(); deleteArtboard(artboard.id); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteArtboard(artboard.id);
+                          }}
                           className="p-1.5 rounded-lg bg-surface-dark-1/90 text-gray-300 hover:text-red-400 transition-colors shadow"
                           title="Delete"
                         >
@@ -479,7 +504,10 @@ export const SlidesPanel: React.FC = () => {
 
                     {/* Notes indicator */}
                     {slide.notes && (
-                      <div className="absolute bottom-7 right-1.5 w-1.5 h-1.5 rounded-full bg-yellow-400" title="Has speaker notes" />
+                      <div
+                        className="absolute bottom-7 right-1.5 w-1.5 h-1.5 rounded-full bg-yellow-400"
+                        title="Has speaker notes"
+                      />
                     )}
                   </div>
                 );
@@ -507,14 +535,18 @@ export const SlidesPanel: React.FC = () => {
                       isActive
                         ? 'bg-surface-dark-1/80 border-brand-500/70 ring-1 ring-brand-500/15'
                         : isDragOver
-                        ? 'border-brand-400/40 bg-brand-500/5'
-                        : 'bg-surface-dark-0/30 border-surface-dark-1/40 hover:bg-surface-dark-1/30'
+                          ? 'border-brand-400/40 bg-brand-500/5'
+                          : 'bg-surface-dark-0/30 border-surface-dark-1/40 hover:bg-surface-dark-1/30'
                     }`}
                   >
                     {/* Number */}
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 border transition-all ${
-                      isActive ? 'bg-brand-600 border-brand-500 text-white' : 'bg-surface-dark-1 border-surface-dark-0 text-gray-500'
-                    }`}>
+                    <span
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 border transition-all ${
+                        isActive
+                          ? 'bg-brand-600 border-brand-500 text-white'
+                          : 'bg-surface-dark-1 border-surface-dark-0 text-gray-500'
+                      }`}
+                    >
                       {index + 1}
                     </span>
 
@@ -537,7 +569,9 @@ export const SlidesPanel: React.FC = () => {
                           onClick={(e) => e.stopPropagation()}
                         />
                       ) : (
-                        <p className={`text-xs font-semibold truncate ${isActive ? 'text-brand-300' : 'text-gray-300'}`}>
+                        <p
+                          className={`text-xs font-semibold truncate ${isActive ? 'text-brand-300' : 'text-gray-300'}`}
+                        >
                           {artboard.name || `Slide ${index + 1}`}
                         </p>
                       )}
@@ -549,21 +583,32 @@ export const SlidesPanel: React.FC = () => {
                         {slide.duration > 0 && (
                           <span className="text-[8px] text-gray-600 font-mono">{slide.duration}s</span>
                         )}
-                        {slide.notes && <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block" title="Has speaker notes" />}
+                        {slide.notes && (
+                          <span
+                            className="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"
+                            title="Has speaker notes"
+                          />
+                        )}
                       </div>
                     </div>
 
                     {/* Actions */}
                     <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
-                        onClick={(e) => { e.stopPropagation(); duplicateArtboard(artboard.id); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          duplicateArtboard(artboard.id);
+                        }}
                         className="p-1 rounded hover:bg-surface-dark-2 text-gray-400 hover:text-brand-300 transition-colors"
                         title="Duplicate"
                       >
                         <Icons.Copy className="w-3.5 h-3.5" />
                       </button>
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleRename(artboard.id, artboard.name); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRename(artboard.id, artboard.name);
+                        }}
                         className="p-1 rounded hover:bg-surface-dark-2 text-gray-400 hover:text-white transition-colors"
                         title="Rename"
                       >
@@ -571,7 +616,10 @@ export const SlidesPanel: React.FC = () => {
                       </button>
                       {artboards.length > 1 && (
                         <button
-                          onClick={(e) => { e.stopPropagation(); deleteArtboard(artboard.id); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteArtboard(artboard.id);
+                          }}
                           className="p-1 rounded hover:bg-surface-dark-2 text-gray-400 hover:text-red-400 transition-colors"
                           title="Delete"
                         >
@@ -649,12 +697,14 @@ const PresenterView: React.FC<PresenterViewProps> = ({
 
   const slide = artboards[current];
   const meta = slide ? getSlide(slide) : {};
-  const hasNotes = !!(meta.notes);
+  const hasNotes = !!meta.notes;
 
   // Global timer
   useEffect(() => {
     timerRef.current = setInterval(() => setElapsed((t) => t + 1), 1000);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, []);
 
   // Auto-advance
@@ -666,7 +716,9 @@ const PresenterView: React.FC<PresenterViewProps> = ({
         if (current < artboards.length - 1) setCurrent((c) => c + 1);
       }, dur * 1000);
     }
-    return () => { if (autoRef.current) clearTimeout(autoRef.current); };
+    return () => {
+      if (autoRef.current) clearTimeout(autoRef.current);
+    };
   }, [current, meta.duration]);
 
   // Keyboard navigation
@@ -716,17 +768,20 @@ const PresenterView: React.FC<PresenterViewProps> = ({
 
   const syncToAudience = useCallback(() => {
     if (popupRef.current && !popupRef.current.closed) {
-      popupRef.current.postMessage({
-        type: 'SYNC_PRESENTATION',
-        artboards,
-        activeIndex: current
-      }, '*');
+      popupRef.current.postMessage(
+        {
+          type: 'SYNC_PRESENTATION',
+          artboards,
+          activeIndex: current,
+        },
+        '*'
+      );
     }
   }, [artboards, current]);
 
   // Sync change to canvas and audience
-  useEffect(() => { 
-    onSlideChange(current); 
+  useEffect(() => {
+    onSlideChange(current);
     syncToAudience();
   }, [current, syncToAudience]);
 
@@ -777,15 +832,16 @@ const PresenterView: React.FC<PresenterViewProps> = ({
       } else if (layer.type === 'image' && layer.src) {
         const img = new Image();
         img.crossOrigin = 'anonymous';
-        img.onload = () => { ctx.drawImage(img, lx, ly, lw, lh); };
+        img.onload = () => {
+          ctx.drawImage(img, lx, ly, lw, lh);
+        };
         img.src = layer.src;
       }
       ctx.globalAlpha = 1;
     });
   }, [current, slide]);
 
-  const formatTime = (s: number) =>
-    `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  const formatTime = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
   const progressPct = artboards.length > 1 ? ((current + 1) / artboards.length) * 100 : 100;
 
@@ -811,10 +867,7 @@ const PresenterView: React.FC<PresenterViewProps> = ({
 
       {/* ── Progress bar ── */}
       <div className="h-1 bg-white/5 shrink-0">
-        <div
-          className="h-full bg-brand-500 transition-all duration-700"
-          style={{ width: `${progressPct}%` }}
-        />
+        <div className="h-full bg-brand-500 transition-all duration-700" style={{ width: `${progressPct}%` }} />
       </div>
 
       <div className="flex-1 flex overflow-hidden">
@@ -822,7 +875,9 @@ const PresenterView: React.FC<PresenterViewProps> = ({
         <div className="flex-1 flex flex-col border-r border-white/5">
           <div className="p-3 shrink-0 flex items-center justify-between border-b border-white/5 bg-white/5">
             <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Current Slide</span>
-            <span className="text-xs font-mono text-brand-300">{current + 1} / {artboards.length}</span>
+            <span className="text-xs font-mono text-brand-300">
+              {current + 1} / {artboards.length}
+            </span>
           </div>
           <div className="flex-1 flex items-center justify-center p-8 relative">
             <div className="relative shadow-2xl shadow-black ring-1 ring-white/10 rounded-lg overflow-hidden bg-black max-w-full max-h-full">
@@ -834,7 +889,7 @@ const PresenterView: React.FC<PresenterViewProps> = ({
                 style={{ aspectRatio: `${slide?.width || 1920}/${slide?.height || 1080}` }}
               />
             </div>
-            
+
             {/* Nav Overlays */}
             <button
               onClick={() => setCurrent((c) => Math.max(c - 1, 0))}
@@ -884,7 +939,9 @@ const PresenterView: React.FC<PresenterViewProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-ping"></div>
-                <span className="text-[10px] uppercase tracking-wider font-extrabold text-yellow-500/90">SPEAKER NOTES</span>
+                <span className="text-[10px] uppercase tracking-wider font-extrabold text-yellow-500/90">
+                  SPEAKER NOTES
+                </span>
               </div>
               {hasNotes && (
                 <span className="text-[9px] text-yellow-500/50 bg-yellow-500/5 border border-yellow-500/10 px-2 py-0.5 rounded-full font-semibold">

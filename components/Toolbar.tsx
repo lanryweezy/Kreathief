@@ -74,6 +74,8 @@ export const Toolbar = React.memo(
     const isRemovingBgStore = useStore((state) => state.isRemovingBg);
     const isExpandingStore = useStore((state) => state.isExpanding);
     const isEraserActiveStore = useStore((state) => state.isEraserActive);
+    const isSmartMaskModeStore = useStore((state) => state.isSmartMaskMode);
+    const setIsSmartMaskMode = useStore((state) => state.setIsSmartMaskMode);
     const isLassoModeStore = useStore((state) => state.isLassoMode);
     const refineBrushModeStore = useStore((state) => state.refineBrushMode);
     const refineBrushSizeStore = useStore((state) => state.refineBrushSize);
@@ -232,6 +234,8 @@ export const Toolbar = React.memo(
                     isRemovingBg={isRemovingBgStore}
                     isExpanding={isExpandingStore}
                     isEraserActive={isEraserActiveStore}
+                    isSmartMaskMode={isSmartMaskModeStore}
+                    setIsSmartMaskMode={setIsSmartMaskMode}
                     handleRemoveBackground={() => onRmBg(selectedLayer.id)}
                     handleEraserClick={toggleEraser}
                     handleMagicExpand={() => onMagicExpand(selectedLayer.id)}

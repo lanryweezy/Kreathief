@@ -8,7 +8,11 @@ import JSZip from 'jszip';
 
 // ─── Thumbnail renderer — canvas-based snapshot ───────────────────────────────
 
-const SlideThumbnail: React.FC<{ artboard: Artboard; isActive: boolean; format: 'square' | 'portrait' }> = ({ artboard, isActive, format }) => {
+const SlideThumbnail: React.FC<{ artboard: Artboard; isActive: boolean; format: 'square' | 'portrait' }> = ({
+  artboard,
+  isActive,
+  format,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -91,7 +95,7 @@ export const CarouselPanel: React.FC = () => {
   const setSlideCount = useStore((s) => s.setCarouselSlideCount);
   const isContinuousMode = useStore((s) => s.carouselContinuousMode) || false;
   const setIsContinuousMode = useStore((s) => s.setCarouselContinuousMode);
-  
+
   const [showAIModal, setShowAIModal] = useState(false);
   const [aiPromptText, setAIPromptText] = useState('');
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
@@ -114,7 +118,10 @@ export const CarouselPanel: React.FC = () => {
   const handleDrop = (e: React.DragEvent, targetId: string) => {
     e.preventDefault();
     const srcId = dragSrcRef.current;
-    if (!srcId || srcId === targetId) { setDragOverId(null); return; }
+    if (!srcId || srcId === targetId) {
+      setDragOverId(null);
+      return;
+    }
 
     const boards = [...artboards];
     const srcIdx = boards.findIndex((a: Artboard) => a.id === srcId);
@@ -128,7 +135,10 @@ export const CarouselPanel: React.FC = () => {
     setDragOverId(null);
     dragSrcRef.current = null;
   };
-  const handleDragEnd = () => { setDragOverId(null); dragSrcRef.current = null; };
+  const handleDragEnd = () => {
+    setDragOverId(null);
+    dragSrcRef.current = null;
+  };
 
   // ── AI Generation Logic ──
   const handleGenerateCarousel = async () => {
@@ -136,13 +146,13 @@ export const CarouselPanel: React.FC = () => {
     setIsGeneratingAI(true);
     try {
       const generated = await generateCarouselDesign(aiPromptText, slideCount);
-      
+
       const W = carouselFormat === 'square' ? 1080 : 1080;
       const H = carouselFormat === 'square' ? 1080 : 1350;
 
       // Clear existing artboards
       useStore.setState({ artboards: [] });
-      
+
       const newArtboards: any[] = [];
       const boardId = `board_${Date.now()}_carousel`;
 
@@ -157,7 +167,7 @@ export const CarouselPanel: React.FC = () => {
           height: H,
           backgroundColor: generated.theme.primaryColor,
           layers: [],
-          isResponsive: false
+          isResponsive: false,
         };
         newArtboards.push(newBoard);
       } else {
@@ -171,7 +181,7 @@ export const CarouselPanel: React.FC = () => {
             height: H,
             backgroundColor: idx === 0 ? generated.theme.primaryColor : '#ffffff',
             layers: [],
-            isResponsive: false
+            isResponsive: false,
           };
           newArtboards.push(newBoard);
         });
@@ -208,7 +218,7 @@ export const CarouselPanel: React.FC = () => {
               opacity: 0.5,
               locked: true,
               visible: true,
-              blendMode: 'multiply'
+              blendMode: 'multiply',
             });
           }
 
@@ -245,7 +255,7 @@ export const CarouselPanel: React.FC = () => {
           // Swipe Indicator or CTA
           state.addTextLayer({
             name: idx === generated.slides.length - 1 ? 'CTA' : 'Swipe Indicator',
-            text: idx === generated.slides.length - 1 ? (slide.cta || 'Save for later!') : 'Swipe →',
+            text: idx === generated.slides.length - 1 ? slide.cta || 'Save for later!' : 'Swipe →',
             x: offsetX + 100,
             y: H - 150,
             width: W - 200,
@@ -254,7 +264,7 @@ export const CarouselPanel: React.FC = () => {
             fontWeight: '700',
             fontFamily: generated.theme.fontFamily,
             color: isTitle ? 'rgba(255,255,255,0.7)' : generated.theme.secondaryColor,
-            textAlign: idx === generated.slides.length - 1 ? 'center' : 'right'
+            textAlign: idx === generated.slides.length - 1 ? 'center' : 'right',
           });
 
           // Footer branding
@@ -277,7 +287,6 @@ export const CarouselPanel: React.FC = () => {
         setShowAIModal(false);
         setAIPromptText('');
       }, 100);
-
     } catch (error) {
       console.error(error);
       alert('Failed to generate carousel. Check console for details.');
@@ -292,16 +301,16 @@ export const CarouselPanel: React.FC = () => {
 
   const handleExportSliced = async () => {
     if (!activeArtboard || !isContinuousMode) return;
-    
+
     // We render the continuous canvas onto a hidden canvas, then slice it.
     const W = 1080;
     const H = carouselFormat === 'portrait' ? 1350 : 1080;
     const numSlides = Math.floor(activeArtboard.width / W);
-    
-    // In a real implementation we would render the actual canvas elements via html2canvas 
+
+    // In a real implementation we would render the actual canvas elements via html2canvas
     // or draw them manually like in DocumentThumbnail. Since we're demonstrating the concept:
     alert(`Slicing continuous canvas into ${numSlides} images of ${W}x${H}...`);
-    
+
     // Simulate ZIP download
     const zip = new JSZip();
     for (let i = 0; i < numSlides; i++) {
@@ -344,7 +353,9 @@ export const CarouselPanel: React.FC = () => {
             <button
               onClick={() => setCarouselFormat('square')}
               className={`flex-1 py-1.5 rounded text-[10px] font-bold ${
-                carouselFormat === 'square' ? 'bg-brand-500 text-white shadow-sm' : 'bg-surface-dark-0 text-gray-400 hover:text-gray-200'
+                carouselFormat === 'square'
+                  ? 'bg-brand-500 text-white shadow-sm'
+                  : 'bg-surface-dark-0 text-gray-400 hover:text-gray-200'
               }`}
             >
               Square (1:1)
@@ -352,16 +363,20 @@ export const CarouselPanel: React.FC = () => {
             <button
               onClick={() => setCarouselFormat('portrait')}
               className={`flex-1 py-1.5 rounded text-[10px] font-bold ${
-                carouselFormat === 'portrait' ? 'bg-brand-500 text-white shadow-sm' : 'bg-surface-dark-0 text-gray-400 hover:text-gray-200'
+                carouselFormat === 'portrait'
+                  ? 'bg-brand-500 text-white shadow-sm'
+                  : 'bg-surface-dark-0 text-gray-400 hover:text-gray-200'
               }`}
             >
               Portrait (4:5)
             </button>
-            
+
             <button
               onClick={() => setIsContinuousMode(!isContinuousMode)}
               className={`flex-1 py-1.5 rounded text-[10px] font-bold ${
-                isContinuousMode ? 'bg-brand-500 text-white shadow-sm' : 'bg-surface-dark-0 text-gray-400 hover:text-gray-200'
+                isContinuousMode
+                  ? 'bg-brand-500 text-white shadow-sm'
+                  : 'bg-surface-dark-0 text-gray-400 hover:text-gray-200'
               }`}
               title="Continuous Canvas Mode"
             >
@@ -415,11 +430,9 @@ export const CarouselPanel: React.FC = () => {
                     </div>
 
                     <SlideThumbnail artboard={slide} isActive={isActive} format={format} />
-                    
+
                     <div className="mt-2 flex items-center justify-between px-1">
-                      <span className="text-xs font-medium text-white truncate pr-2">
-                        {slide.name}
-                      </span>
+                      <span className="text-xs font-medium text-white truncate pr-2">{slide.name}</span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -434,10 +447,12 @@ export const CarouselPanel: React.FC = () => {
                   </div>
                 );
               })}
-              
+
               {/* Add New Slide Button */}
-              <div 
-                onClick={() => addArtboard(`Slide ${carouselSlides.length + 1}`, 1080, format === 'portrait' ? 1350 : 1080)}
+              <div
+                onClick={() =>
+                  addArtboard(`Slide ${carouselSlides.length + 1}`, 1080, format === 'portrait' ? 1350 : 1080)
+                }
                 className="aspect-[4/5] rounded-lg border-2 border-dashed border-surface-dark-0 hover:border-brand-500 hover:bg-brand-500/5 flex flex-col items-center justify-center cursor-pointer transition-all text-gray-500 hover:text-brand-400"
               >
                 <Icons.Plus className="w-8 h-8 mb-2" />
@@ -451,7 +466,7 @@ export const CarouselPanel: React.FC = () => {
         {carouselSlides.length > 0 && (
           <div className="flex-none p-4 border-t border-surface-dark-1 bg-surface-dark-2">
             {isContinuousMode ? (
-              <button 
+              <button
                 onClick={handleExportSliced}
                 className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-glow-brand"
               >
@@ -459,7 +474,7 @@ export const CarouselPanel: React.FC = () => {
                 Slice & Export ZIP
               </button>
             ) : (
-              <button 
+              <button
                 onClick={handleExportZIP}
                 className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-surface-dark-0 hover:bg-surface-dark-1 text-white text-xs font-semibold rounded-lg transition-colors"
               >
@@ -480,25 +495,27 @@ export const CarouselPanel: React.FC = () => {
                 <Icons.Sparkles className="w-4 h-4 text-brand-400" />
                 AI Carousel Generator
               </h3>
-              <button 
+              <button
                 onClick={() => !isGeneratingAI && setShowAIModal(false)}
                 className="text-gray-400 hover:text-white"
               >
                 <Icons.X className="w-4 h-4" />
               </button>
             </div>
-            
+
             <div className="p-6">
               <p className="text-xs text-gray-400 mb-4 leading-relaxed">
-                Describe the topic for your carousel. Our AI will write the copy, split it into slides, and apply a cohesive design system automatically.
+                Describe the topic for your carousel. Our AI will write the copy, split it into slides, and apply a
+                cohesive design system automatically.
               </p>
-              
+
               <div className="mb-4">
                 <label className="text-xs font-medium text-gray-400 mb-1.5 block">Number of Slides</label>
-                <input 
-                  type="range" 
-                  min="3" max="10" 
-                  value={slideCount} 
+                <input
+                  type="range"
+                  min="3"
+                  max="10"
+                  value={slideCount}
                   onChange={(e) => setSlideCount(parseInt(e.target.value))}
                   className="w-full accent-brand-500"
                 />
@@ -512,7 +529,7 @@ export const CarouselPanel: React.FC = () => {
                 className="w-full h-32 bg-surface-dark-1 border border-surface-dark-0 rounded-xl p-3 text-sm text-white resize-none focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all placeholder-gray-500 mb-6"
                 disabled={isGeneratingAI}
               />
-              
+
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowAIModal(false)}

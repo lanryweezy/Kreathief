@@ -93,6 +93,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
   const [colorProfile, setColorProfile] = useState<ColorProfile>('FOGRA39');
   const [bleed, setBleed] = useState<number>(9); // 1/8 inch default
   const [cropMarks, setCropMarks] = useState(true);
+  const [autoUpscale, setAutoUpscale] = useState(true); // Pro: silently upscale low-DPI images
 
   const modalRef = useRef<HTMLDivElement>(null);
   const [transparentBg, setTransparentBg] = useState(false);
@@ -126,6 +127,28 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     }
     // @ts-expect-error - necessary due to canvas library typings - color may exist on layer
     return activeArtboard.layers.filter((l) => l.color && !isWithinCMYKGamut(l.color)).length;
+  }, [format, isPrintMode, artboards, activeArtboardId]);
+
+  // Prepress Image Resolution Validation
+  const lowResImages = React.useMemo(() => {
+    if (format !== 'pdf' || !isPrintMode) {
+      return [];
+    }
+    const activeArtboard = artboards.find((a) => a.id === activeArtboardId);
+    if (!activeArtboard) {
+      return [];
+    }
+
+    return activeArtboard.layers.filter((l) => {
+      if (l.type !== 'image') return false;
+      const imgLayer = l as any;
+      if (!imgLayer.naturalWidth) return false;
+      // Calculate effective DPI. Base unit is 1pt = 1/72 inch.
+      // Physical width in inches = rendered width / 72.
+      // Effective DPI = naturalWidth / physical width = naturalWidth / (width / 72).
+      const effectiveDPI = (imgLayer.naturalWidth / imgLayer.width) * 72;
+      return effectiveDPI < 300;
+    });
   }, [format, isPrintMode, artboards, activeArtboardId]);
 
   const handleSnapAllToSafe = useCallback(() => {
@@ -209,7 +232,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
       // Handle print mode PDF export separately
       if (format === 'pdf' && isPrintMode) {
-        const printOptions = { colorProfile, bleed, cropMarks };
+        const printOptions = { colorProfile, bleed, cropMarks, isPro: autoUpscale };
         await onExport(format, quality, size, false, safeCustomFilename + '_print', undefined, printOptions);
       } else {
         await onExport(format, quality, size, transparentBg && format === 'png', safeCustomFilename);
@@ -699,6 +722,49 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
             {/* Print Mode Options */}
             {format === 'pdf' && isPrintMode && (
               <div className="space-y-4 p-4 bg-surface-dark-2 border border-brand-600/30 rounded-xl animate-fade-in">
+                {/* Prepress Validation Report */}
+                <div className="bg-surface-dark-3 border border-brand-600/20 rounded-lg p-3 flex flex-col gap-2">
+                  <h4 className="text-[10px] font-bold text-gray-300 uppercase tracking-widest mb-1 flex items-center gap-2">
+                    <Icons.CheckCircle className="w-3.5 h-3.5 text-brand-500" />
+                    Prepress Report
+                  </h4>
+
+                  <div className="flex items-start gap-2">
+                    <Icons.Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                    <p className="text-[9px] text-gray-400">
+                      <strong className="text-white">Vector Colors:</strong> Converted to true CMYK.
+                    </p>
+                  </div>
+
+                  {lowResImages.length > 0 ? (
+                    <div className="flex items-start gap-2">
+                      {autoUpscale ? (
+                        <Icons.Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                      ) : (
+                        <Icons.AlertTriangle className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
+                      )}
+                      <div>
+                        <p className={`text-[9px] ${autoUpscale ? 'text-emerald-300' : 'text-red-300'}`}>
+                          <strong className={autoUpscale ? 'text-emerald-400' : 'text-red-400'}>
+                            {autoUpscale ? 'Auto-Upscale Active:' : 'Low-Res Warning:'}
+                          </strong>{' '}
+                          {lowResImages.length} image{lowResImages.length > 1 ? 's' : ''}{' '}
+                          {autoUpscale
+                            ? 'will be silently enhanced to 300 DPI before export.'
+                            : 'below 300 effective DPI — may be pixelated in print.'}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-2">
+                      <Icons.Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                      <p className="text-[9px] text-gray-400">
+                        <strong className="text-white">Image Resolution:</strong> All images pass 300 DPI check.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 {/* Gamut Guard Alert */}
                 {outOfGamutCount > 0 && (
                   <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 flex flex-col gap-2">
@@ -707,8 +773,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                       <div className="flex-1">
                         <p className="text-[10px] text-amber-200 font-bold uppercase tracking-tight">Gamut Warning</p>
                         <p className="text-[9px] text-amber-500/70 leading-relaxed font-medium">
-                          {outOfGamutCount} layer{outOfGamutCount > 1 ? 's' : ''} contain colors that cannot be
-                          reproduced in print.
+                          {outOfGamutCount} layer{outOfGamutCount > 1 ? 's' : ''} contain RGB colors that fall outside
+                          the printable CMYK spectrum.
                         </p>
                       </div>
                     </div>
@@ -716,7 +782,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                       onClick={handleSnapAllToSafe}
                       className="w-full py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-md text-[9px] font-black uppercase tracking-widest transition-all"
                     >
-                      Auto-Fix Gamut Issues
+                      Auto-Convert to CMYK Safe
                     </button>
                   </div>
                 )}
@@ -778,6 +844,32 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                     checked={cropMarks}
                     onChange={(checked) => setCropMarks(checked)}
                     ariaLabel="Toggle Crop Marks"
+                  />
+                </div>
+
+                {/* Pro: Auto-Upscale low-res images */}
+                <div className="flex items-center justify-between p-3 bg-brand-600/5 border border-brand-600/20 rounded-xl">
+                  <div>
+                    <h4 className="text-xs font-bold text-white mb-0.5 flex items-center gap-1.5">
+                      AI Auto-Upscale
+                      <span className="text-[9px] font-black bg-brand-600 text-white px-1.5 py-0.5 rounded-full uppercase tracking-widest">
+                        Pro
+                      </span>
+                    </h4>
+                    <p className="text-[10px] text-muted-light">
+                      Silently enhances low-DPI images to 300+ DPI before export
+                    </p>
+                  </div>
+                  <Toggle
+                    checked={autoUpscale}
+                    onChange={(checked) => {
+                      if (!user || user.plan === 'free') {
+                        addToast('AI Auto-Upscale is a Pro feature.', 'warning');
+                        return;
+                      }
+                      setAutoUpscale(checked);
+                    }}
+                    ariaLabel="Toggle AI Auto-Upscale for Print"
                   />
                 </div>
               </div>

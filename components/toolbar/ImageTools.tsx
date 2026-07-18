@@ -6,12 +6,15 @@ import { ImageLayer } from '../../types';
 import { Dropdown } from '../Dropdown';
 import { useStore } from '../../store/useStore';
 import { NavTab } from '../../types';
+import { useMagicActions } from '../../hooks/useMagicActions';
 
 interface ImageToolsProps {
   layer: ImageLayer;
   isRemovingBg: boolean;
   isExpanding: boolean;
   isEraserActive: boolean;
+  isSmartMaskMode: boolean;
+  setIsSmartMaskMode: (active: boolean) => void;
   isPro: boolean;
   handleRemoveBackground: () => void;
   handleEraserClick: () => void;
@@ -43,6 +46,8 @@ export const ImageTools = React.memo(
     isRemovingBg,
     isExpanding,
     isEraserActive,
+    isSmartMaskMode,
+    setIsSmartMaskMode,
     isPro,
     handleRemoveBackground,
     handleEraserClick,
@@ -70,7 +75,10 @@ export const ImageTools = React.memo(
     const resizeButtonRef = useRef<HTMLButtonElement>(null);
     const mockupButtonRef = useRef<HTMLButtonElement>(null);
     const [showMockupQuickSelect, setShowMockupQuickSelect] = React.useState(false);
+    const [showPatchNodes, setShowPatchNodes] = React.useState(false);
+    const patchNodesButtonRef = useRef<HTMLButtonElement>(null);
     const setActiveTab = useStore((state) => state.setActiveTab);
+    const { isProcessing, handleEraseObject, handleMagicExtract } = useMagicActions();
 
     const handleApplyMockup = () => {
       // Select the current image layer before opening mockup panel
@@ -98,6 +106,21 @@ export const ImageTools = React.memo(
               </div>
             )}
           </IconButton>
+
+          <Divider />
+
+          <IconButton
+            onClick={() => setIsSmartMaskMode(!isSmartMaskMode)}
+            active={isSmartMaskMode}
+            title="Smart Mask (Hover & Click)"
+            className="px-3"
+          >
+            <div className="flex items-center gap-1.5">
+              <Icons.Target className="w-4 h-4 text-pink-400" />
+              <span className="text-[10px] font-bold text-white uppercase tracking-wider">Smart Mask</span>
+            </div>
+          </IconButton>
+
           <Divider />
           <IconButton
             onClick={() => setIsLassoMode(!isLassoMode)}
@@ -108,6 +131,98 @@ export const ImageTools = React.memo(
             <Icons.Brush className={`w-4 h-4 ${isLassoMode ? 'text-white' : 'text-indigo-400'}`} />
           </IconButton>
         </div>
+
+        {layer.maskPath && (
+          <>
+            <Divider />
+            <div className="flex bg-surface-dark-4 rounded-lg border border-pink-500/50 p-0.5 shadow-lg shadow-pink-900/10 animate-slideIn gap-1">
+              <IconButton
+                onClick={() => handleEraseObject(layer, layer.maskPath!)}
+                loading={isProcessing}
+                title="Erase Object (AI)"
+                className="px-3"
+              >
+                <div className="flex items-center gap-1.5">
+                  <Icons.Trash2 className="w-4 h-4 text-pink-400" />
+                  <span className="text-[10px] font-bold text-white uppercase tracking-wider">Erase</span>
+                </div>
+              </IconButton>
+              <IconButton
+                onClick={() => handleMagicExtract(layer, layer.maskPath!)}
+                loading={isProcessing}
+                title="Magic Extract (Separate Layer)"
+                className="px-3"
+              >
+                <div className="flex items-center gap-1.5">
+                  <Icons.Layers className="w-4 h-4 text-pink-400" />
+                  <span className="text-[10px] font-bold text-white uppercase tracking-wider">Extract</span>
+                </div>
+              </IconButton>
+            </div>
+          </>
+        )}
+
+        {layer.inpaintNodes && layer.inpaintNodes.length > 0 && (
+          <>
+            <Divider />
+            <div className="relative">
+              <button
+                ref={patchNodesButtonRef}
+                onClick={() => setShowPatchNodes(!showPatchNodes)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${showPatchNodes ? 'bg-brand-600 border-brand-600 text-white shadow-lg shadow-brand-600/30' : 'bg-black/20 border-white/10 text-brand-300 hover:border-white/20 hover:bg-black/30'}`}
+              >
+                <Icons.Layers className="w-3.5 h-3.5" /> Patches ({layer.inpaintNodes.length})
+              </button>
+              <Dropdown
+                anchorRef={patchNodesButtonRef}
+                isOpen={showPatchNodes}
+                onClose={() => setShowPatchNodes(false)}
+                align="left"
+              >
+                <div className="w-56 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-3 animate-fadeIn space-y-2 backdrop-blur-xl">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block text-center mb-2">
+                    Inpaint Nodes
+                  </span>
+                  {layer.inpaintNodes.map((node, i) => (
+                    <div
+                      key={node.id}
+                      className="flex items-center justify-between bg-surface-dark-4 border border-white/5 rounded-lg p-2 hover:border-white/10"
+                    >
+                      <span className="text-[10px] text-gray-300 font-bold truncate flex-1">Patch {i + 1}</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            const newNodes = [...layer.inpaintNodes!];
+                            newNodes[i] = { ...node, enabled: !node.enabled };
+                            handleUpdateLayer({ inpaintNodes: newNodes });
+                          }}
+                          className="text-gray-400 hover:text-white"
+                          title="Toggle Visibility"
+                        >
+                          {node.enabled ? (
+                            <Icons.Eye className="w-3.5 h-3.5" />
+                          ) : (
+                            <Icons.EyeOff className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => {
+                            const newNodes = layer.inpaintNodes!.filter((_, index) => index !== i);
+                            handleUpdateLayer({ inpaintNodes: newNodes.length > 0 ? newNodes : undefined });
+                          }}
+                          className="text-red-400 hover:text-red-300"
+                          title="Delete Patch"
+                        >
+                          <Icons.Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Dropdown>
+            </div>
+          </>
+        )}
 
         {isLassoMode && (
           <>

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
@@ -192,13 +193,13 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
 
   const Div = () => <div className="h-px bg-white/5 my-1 mx-3" />;
 
-  return (
+  return createPortal(
     <div
       ref={menuRef}
       data-context-menu
       role="menu"
       onKeyDown={handleKeyDown}
-      className={`fixed z-toast w-72 bg-surface-dark-3/98 border border-white/10 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] py-4 flex flex-col backdrop-blur-2xl overflow-hidden select-none transition-opacity duration-150 ${visible ? 'opacity-100' : 'opacity-0'}`}
+      className={`fixed z-toast w-72 bg-surface-dark-3/98 border border-white/10 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] py-4 flex flex-col backdrop-blur-2xl overflow-hidden select-none transition-opacity duration-150 pointer-events-auto ${visible ? 'opacity-100' : 'opacity-0'}`}
       style={{ top: adjustedY, left: adjustedX }}
       onContextMenu={(e) => e.preventDefault()}
     >
@@ -362,6 +363,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
         Delete Node{' '}
         <span className="ml-auto text-[10px] text-slate-600 font-mono group-hover/mi:text-white/50">Del</span>
       </MI>
-    </div>
+      <Div />
+    </div>,
+    document.body
   );
 };

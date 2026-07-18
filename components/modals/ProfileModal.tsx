@@ -97,7 +97,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
               {/* Form */}
               <div className="space-y-4">
                 <div>
-                  <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-2 block">Name</label>
+                  <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-2 block">
+                    Name
+                  </label>
                   <input
                     type="text"
                     value={name}
@@ -106,7 +108,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) =
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-2 block">Email</label>
+                  <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-2 block">
+                    Email
+                  </label>
                   <input
                     type="email"
                     value={email}

@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore';
 import { applyRotation3D, fillEmptyRegionsCanvas, Rotation3DResult } from '../utils/rotation3d';
 import { log } from '../utils/log';
 import { useShallow } from 'zustand/react/shallow';
+import { aiInpaint } from '../services/inpaintService';
 
 interface Use3DRotationReturn {
   /** Start 3D rotation mode for an image layer */
@@ -280,62 +281,4 @@ export function use3DRotation(): Use3DRotationReturn {
     fillProgress,
     is3DRotating,
   };
-}
-
-/**
- * Call AI inpainting API to fill empty regions.
- */
-async function aiInpaint(
-  transformedCanvas: HTMLCanvasElement,
-  maskCanvas: HTMLCanvasElement,
-  rotateX: number,
-  rotateY: number
-): Promise<HTMLCanvasElement | null> {
-  // Convert canvases to data URLs
-  const imageDataUrl = transformedCanvas.toDataURL('image/png');
-  const maskDataUrl = maskCanvas.toDataURL('image/png');
-
-  // Determine which edges need filling based on rotation direction
-  const emptyRegion =
-    Math.abs(rotateY) > Math.abs(rotateX) ? (rotateY > 0 ? 'right' : 'left') : rotateX > 0 ? 'bottom' : 'top';
-
-  try {
-    const response = await fetch('/api/gemini', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'inpaint',
-        image: imageDataUrl,
-        mask: maskDataUrl,
-        prompt: `Fill in the transparent areas of this image that became visible after a ${Math.round(Math.sqrt(rotateX * rotateX + rotateY * rotateY))}-degree 3D rotation. The empty ${emptyRegion} areas should be filled with content that matches the style, lighting, colors, and context of the original image. Make it look natural and continuous.`,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`AI inpaint failed: ${response.status}`);
-    }
-
-    const result = await response.json();
-    if (result.image || result.url) {
-      const imgUrl = result.image || result.url;
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      return new Promise((resolve) => {
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = transformedCanvas.width;
-          canvas.height = transformedCanvas.height;
-          const ctx = canvas.getContext('2d')!;
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          resolve(canvas);
-        };
-        img.onerror = () => resolve(null);
-        img.src = imgUrl;
-      });
-    }
-    return null;
-  } catch (err) {
-    log.warn('[3DRotation] AI inpaint request failed', { error: err });
-    return null;
-  }
 }

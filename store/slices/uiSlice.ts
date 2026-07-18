@@ -15,6 +15,8 @@ export interface UISlice {
   isExpanding: boolean;
   isEraserActive: boolean;
   isShapeBuilderActive: boolean;
+  isSmartMaskMode: boolean;
+  hoveredMaskBoundary: any | null;
   showPresentation: boolean;
   zoom: number;
   showGrid: boolean;
@@ -64,6 +66,8 @@ export interface UISlice {
   handleFileUpload: (files: File[]) => void;
   deleteUpload: (index: number) => void;
   setIsShapeBuilderActive: (active: boolean) => void;
+  setIsSmartMaskMode: (active: boolean) => void;
+  setHoveredMaskBoundary: (mask: any | null) => void;
   setZoom: (zoom: number | ((prev: number) => number)) => void;
   resetZoom: () => void;
   setShowGrid: (show: boolean) => void;
@@ -124,6 +128,10 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   isExpanding: false,
   isEraserActive: false,
   isShapeBuilderActive: false,
+  isSmartMaskMode: false,
+  hoveredMaskBoundary: null,
+  useLocalInpainting: false,
+  setUseLocalInpainting: (useLocal) => set({ useLocalInpainting: useLocal }),
   zoom: 1,
   showGrid: false,
   showRulers: false,
@@ -193,6 +201,8 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
       return { uploads: state.uploads.filter((_: any, i: number) => i !== index) };
     }),
   setIsShapeBuilderActive: (isShapeBuilderActive) => set({ isShapeBuilderActive }),
+  setIsSmartMaskMode: (active) => set({ isSmartMaskMode: active, hoveredMaskBoundary: null }),
+  setHoveredMaskBoundary: (mask) => set({ hoveredMaskBoundary: mask }),
   setZoom: (zoom) => set((state: any) => ({ zoom: typeof zoom === 'function' ? zoom(state.zoom) : zoom })),
   resetZoom: () => set({ zoom: 1 }),
   setShowGrid: (show) => set({ showGrid: show }),

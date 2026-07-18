@@ -12,6 +12,8 @@ export enum ErrorCode {
   UNSUPPORTED_FORMAT = 'UNSUPPORTED_FORMAT',
   PERMISSION_DENIED = 'PERMISSION_DENIED',
   TIMEOUT = 'TIMEOUT',
+  RATE_LIMIT = 'RATE_LIMIT',
+  CONTENT_POLICY = 'CONTENT_POLICY',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -106,6 +108,30 @@ export function getErrorDetails(error: Error | unknown): ErrorDetails {
     };
   }
 
+  // Rate limit errors
+  if (
+    errorMessage.includes('429') ||
+    errorMessage.includes('too many requests') ||
+    errorMessage.includes('rate limit')
+  ) {
+    return {
+      code: ErrorCode.RATE_LIMIT,
+      message: 'Too many requests',
+      suggestion: 'Please wait a moment before trying again.',
+      recoverable: true,
+    };
+  }
+
+  // Content policy errors
+  if (errorMessage.includes('safety') || errorMessage.includes('content policy') || errorMessage.includes('nsfw')) {
+    return {
+      code: ErrorCode.CONTENT_POLICY,
+      message: 'Content policy violation',
+      suggestion: 'Your request was blocked by the safety filter. Try modifying your prompt or image.',
+      recoverable: true,
+    };
+  }
+
   // Unknown error
   return {
     code: ErrorCode.UNKNOWN,
@@ -131,6 +157,14 @@ export function getAIErrorMessage(error: Error | unknown): string {
 
   if (details.code === ErrorCode.QUOTA_EXCEEDED) {
     return 'AI generation limit reached. Please upgrade your plan or try again later.';
+  }
+
+  if (details.code === ErrorCode.RATE_LIMIT) {
+    return 'AI generation failed: Too many requests. Please wait a moment and try again.';
+  }
+
+  if (details.code === ErrorCode.CONTENT_POLICY) {
+    return 'AI generation blocked: Your prompt or image triggered the safety filter. Please modify it and try again.';
   }
 
   return `AI generation failed: ${details.message}. ${details.suggestion}`;

@@ -3,6 +3,7 @@ import { ImageLayer } from '../types';
 import * as exportService from '../services/exportService';
 import { storageService } from '../services/storageService';
 import { generateLayerId } from '../utils/layers/layerUtils';
+import { validatePrepress } from '../utils/prepress';
 import { log } from '../utils/log';
 import { haptics } from '../utils/haptics';
 
@@ -197,24 +198,28 @@ export const useFileHandler = () => {
       if (format === 'psd') {
         await exportService.exportToLayeredPSD(exportWidth, exportHeight, scaledLayers, fileName);
       } else if (format === 'pdf' && printOptions) {
-        // High-end Print Export
-        const imgDataUrl = await exportService.exportDesignToImage(
-          exportWidth,
-          exportHeight,
-          bgColor,
-          activeImage?.url || uploadedImage || null,
-          scaledLayers,
-          canvasFilters,
-          'png',
-          1
-        );
-        await exportService.exportToPrintPDF(exportWidth, exportHeight, imgDataUrl, fileName, printOptions);
+        // High-end Print Export (Vector)
+
+        // Prepress Validation
+        const warnings = validatePrepress(scaledLayers, printOptions.targetDPI || 300);
+        if (warnings.length > 0) {
+          const warnMsg = warnings.map((w) => w.message).join(' | ');
+          if (addToast) addToast(`Prepress Warning: ${warnMsg}`, 'warning');
+        }
+
+        await exportService.exportToPrintPDF(exportWidth, exportHeight, scaledLayers, fileName, printOptions);
       } else if (format === 'svg') {
         const svgString = await exportService.exportToSVG(exportWidth, exportHeight, bgColor, scaledLayers);
         const blob = new Blob([svgString], { type: 'image/svg+xml' });
         exportService.downloadBlob(blob, `${fileName}.svg`);
+      } else if (format === 'pdf') {
+        // Legacy/Fallback PDF (Vector)
+        await exportService.exportToPrintPDF(exportWidth, exportHeight, scaledLayers, fileName, {
+          colorProfile: 'sRGB',
+          bleed: 0,
+          cropMarks: false,
+        });
       } else {
-        const imgFormat = format === 'pdf' ? 'png' : format;
         const downloadUrl = await exportService.exportDesignToImage(
           exportWidth,
           exportHeight,
@@ -222,23 +227,14 @@ export const useFileHandler = () => {
           activeImage?.url || uploadedImage || null,
           scaledLayers,
           canvasFilters,
-          imgFormat,
+          format,
           quality
         );
 
-        if (format === 'pdf') {
-          // Legacy/Fallback PDF
-          await exportService.exportToPrintPDF(exportWidth, exportHeight, downloadUrl, fileName, {
-            colorProfile: 'sRGB',
-            bleed: 0,
-            cropMarks: false,
-          });
-        } else {
-          const link = document.createElement('a');
-          link.href = downloadUrl;
-          link.download = `${fileName}.${format}`;
-          link.click();
-        }
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = `${fileName}.${format}`;
+        link.click();
       }
 
       if (onComplete) {

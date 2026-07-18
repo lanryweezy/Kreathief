@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
 import { log } from '../utils/log';
@@ -92,9 +93,7 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({ x, y, onCl
         onClick={disabled ? undefined : onClick}
         disabled={disabled}
         className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-sm transition-all text-left rounded-lg mx-1 group/mi ${
-          disabled
-            ? 'text-gray-700 cursor-not-allowed'
-            : 'text-gray-300 hover:bg-brand-600 hover:text-white'
+          disabled ? 'text-gray-700 cursor-not-allowed' : 'text-gray-300 hover:bg-brand-600 hover:text-white'
         }`}
         style={{ width: 'calc(100% - 8px)' }}
       >
@@ -106,20 +105,18 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({ x, y, onCl
 
   const Div = () => <div className="h-px bg-white/5 my-1 mx-3" />;
 
-  return (
+  return createPortal(
     <div
       ref={menuRef}
       data-context-menu
       role="menu"
       onKeyDown={handleKeyDown}
-      className={`fixed z-toast w-72 bg-surface-dark-3/98 border border-white/10 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] py-4 flex flex-col backdrop-blur-2xl overflow-hidden select-none transition-opacity duration-150 ${visible ? 'opacity-100' : 'opacity-0'}`}
+      className={`fixed z-[9999] w-72 bg-surface-dark-3/98 border border-white/10 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] py-4 flex flex-col backdrop-blur-2xl overflow-hidden select-none transition-opacity duration-150 pointer-events-auto ${visible ? 'opacity-100' : 'opacity-0'}`}
       style={{ top: adjustedY, left: adjustedX }}
       onContextMenu={(e) => e.preventDefault()}
     >
       <div className="px-5 pb-3 mb-2 border-b border-white/5">
-        <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] truncate italic">
-          WORKSPACE
-        </p>
+        <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] truncate italic">WORKSPACE</p>
       </div>
 
       <MI
@@ -193,6 +190,7 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({ x, y, onCl
         Redo
         <span className="ml-auto text-[10px] text-slate-600 font-mono group-hover/mi:text-white/50">Ctrl+Y</span>
       </MI>
-    </div>
+    </div>,
+    document.body
   );
 };

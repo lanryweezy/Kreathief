@@ -37,13 +37,13 @@ export const AudienceView: React.FC = () => {
 
     const W = canvas.width;
     const H = canvas.height;
-    
+
     let startTime: number | null = null;
     const duration = 500; // ms
 
     const currSlide = artboards[currentIdx];
     const prevSlide = prevIdx >= 0 && prevIdx !== currentIdx ? artboards[prevIdx] : null;
-    
+
     // Check what transition to use based on currSlide's settings
     const meta = (currSlide as any).storyNode || {};
     const transition = meta.transition || 'none';
@@ -52,18 +52,10 @@ export const AudienceView: React.FC = () => {
       if (!hex) return [255, 255, 255];
       const c = hex.replace('#', '');
       if (c.length === 3) {
-        return [
-          parseInt(c[0] + c[0], 16),
-          parseInt(c[1] + c[1], 16),
-          parseInt(c[2] + c[2], 16)
-        ];
+        return [parseInt(c[0] + c[0], 16), parseInt(c[1] + c[1], 16), parseInt(c[2] + c[2], 16)];
       }
       if (c.length === 6) {
-        return [
-          parseInt(c.slice(0, 2), 16),
-          parseInt(c.slice(2, 4), 16),
-          parseInt(c.slice(4, 6), 16)
-        ];
+        return [parseInt(c.slice(0, 2), 16), parseInt(c.slice(2, 4), 16), parseInt(c.slice(4, 6), 16)];
       }
       return [255, 255, 255];
     };
@@ -79,17 +71,11 @@ export const AudienceView: React.FC = () => {
       return `rgb(${r}, ${g}, ${b})`;
     };
 
-    const renderLayer = (
-      layer: any,
-      ctx: CanvasRenderingContext2D,
-      alpha: number,
-      scaleX: number,
-      scaleY: number
-    ) => {
+    const renderLayer = (layer: any, ctx: CanvasRenderingContext2D, alpha: number, scaleX: number, scaleY: number) => {
       if (layer.visible === false) return;
       ctx.save();
       ctx.globalAlpha = alpha * (layer.opacity ?? 1);
-      
+
       const lx = (layer.x || 0) * scaleX;
       const ly = (layer.y || 0) * scaleY;
       const lw = (layer.width || 0) * scaleX;
@@ -123,10 +109,16 @@ export const AudienceView: React.FC = () => {
       ctx.restore();
     };
 
-    const renderSlide = (slide: Artboard, ctx: CanvasRenderingContext2D, alpha: number, offsetX: number = 0, scale: number = 1) => {
+    const renderSlide = (
+      slide: Artboard,
+      ctx: CanvasRenderingContext2D,
+      alpha: number,
+      offsetX: number = 0,
+      scale: number = 1
+    ) => {
       ctx.save();
       ctx.globalAlpha = alpha;
-      
+
       const scaleX = W / slide.width;
       const scaleY = H / slide.height;
 
@@ -150,7 +142,7 @@ export const AudienceView: React.FC = () => {
       if (!startTime) startTime = timestamp;
       const elapsed = timestamp - startTime;
       let progress = Math.min(elapsed / duration, 1);
-      
+
       // Easing (ease-in-out cubic)
       progress = progress < 0.5 ? 4 * progress * progress * progress : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
@@ -182,7 +174,11 @@ export const AudienceView: React.FC = () => {
 
         // Render Background
         ctx.save();
-        ctx.fillStyle = interpolateColor(prevSlide.backgroundColor || '#1e293b', currSlide.backgroundColor || '#1e293b', progress);
+        ctx.fillStyle = interpolateColor(
+          prevSlide.backgroundColor || '#1e293b',
+          currSlide.backgroundColor || '#1e293b',
+          progress
+        );
         ctx.fillRect(0, 0, W, H);
 
         const matchedCurrIds = new Set<string>();
@@ -191,7 +187,9 @@ export const AudienceView: React.FC = () => {
 
         currSlide.layers.forEach((currLayer: any) => {
           if (!currLayer.name) return;
-          const prevLayer = prevSlide.layers.find((pl: any) => pl.name === currLayer.name && pl.type === currLayer.type);
+          const prevLayer = prevSlide.layers.find(
+            (pl: any) => pl.name === currLayer.name && pl.type === currLayer.type
+          );
           if (prevLayer) {
             matches.push({ prev: prevLayer, curr: currLayer });
             matchedCurrIds.add(currLayer.id);
@@ -243,12 +241,7 @@ export const AudienceView: React.FC = () => {
 
   return (
     <div className="fixed inset-0 bg-black flex items-center justify-center overflow-hidden m-0 p-0">
-      <canvas
-        ref={canvasRef}
-        width={1920}
-        height={1080}
-        className="w-full h-full object-contain"
-      />
+      <canvas ref={canvasRef} width={1920} height={1080} className="w-full h-full object-contain" />
     </div>
   );
 };

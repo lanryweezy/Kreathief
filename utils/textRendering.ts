@@ -232,6 +232,62 @@ export const renderWarpedText = (canvas: HTMLCanvasElement, layer: TextLayer) =>
 };
 
 /**
+ * Resolve exactly how text wraps across lines, to be shared by all renderers (Canvas, PDF, SVG).
+ */
+export const resolveTextLines = (layer: TextLayer, measureTextFn?: (text: string) => number): string[] => {
+  const { text: originalText, width, textTransform, fontStyle = 'normal', fontWeight, fontSize, fontFamily } = layer;
+  const text = applyTextTransform(originalText, textTransform) || '';
+  const manualLines = text.split('\n');
+
+  if (!width) return manualLines;
+
+  let measure = measureTextFn;
+  if (!measure) {
+    let tempCtx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null = null;
+    if (typeof document !== 'undefined') {
+      tempCtx = document.createElement('canvas').getContext('2d');
+    } else if (typeof OffscreenCanvas !== 'undefined') {
+      tempCtx = new OffscreenCanvas(1, 1).getContext('2d');
+    }
+
+    if (tempCtx) {
+      tempCtx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
+      measure = (t: string) => tempCtx!.measureText(t).width;
+    } else {
+      measure = (t: string) => t.length * (fontSize * 0.6); // Very rough fallback
+    }
+  }
+
+  const allLines: string[] = [];
+  const wrapText = (lineText: string, maxWidth: number): string[] => {
+    const words = lineText.split(' ');
+    const wrappedLines: string[] = [];
+    let currentLine = '';
+
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      const testLine = currentLine + word + ' ';
+      const testWidth = measure!(testLine);
+
+      if (testWidth > maxWidth && i > 0) {
+        wrappedLines.push(currentLine.trimEnd());
+        currentLine = word + ' ';
+      } else {
+        currentLine = testLine;
+      }
+    }
+    wrappedLines.push(currentLine.trimEnd());
+    return wrappedLines;
+  };
+
+  manualLines.forEach((line) => {
+    allLines.push(...wrapText(line, width));
+  });
+
+  return allLines;
+};
+
+/**
  * Render multiline text onto a 2D canvas context.
  * Handles word wrap, letter spacing, text alignment, and line height.
  */
@@ -264,40 +320,7 @@ export const renderMultilineText = (ctx: CanvasRenderingContext2D, layer: TextLa
   // Apply text effects
   applyTextShadow(ctx, layer);
 
-  // Helper for word wrapping
-  const wrapText = (text: string, maxWidth: number): string[] => {
-    const words = text.split(' ');
-    const wrappedLines: string[] = [];
-    let currentLine = '';
-
-    for (let i = 0; i < words.length; i++) {
-      const word = words[i];
-      const testLine = currentLine + word + ' ';
-      const metrics = ctx.measureText(testLine);
-      const testWidth = metrics.width;
-
-      if (testWidth > maxWidth && i > 0) {
-        wrappedLines.push(currentLine.trimEnd());
-        currentLine = word + ' ';
-      } else {
-        currentLine = testLine;
-      }
-    }
-    wrappedLines.push(currentLine.trimEnd());
-    return wrappedLines;
-  };
-
-  const manualLines = text.split('\n');
-  const allLines: string[] = [];
-
-  // Apply word wrap if width is defined
-  if (width) {
-    manualLines.forEach((line) => {
-      allLines.push(...wrapText(line, width));
-    });
-  } else {
-    allLines.push(...manualLines);
-  }
+  const allLines = resolveTextLines(layer, (t) => ctx.measureText(t).width);
 
   // Safe line height computation
   const lineHeightStr = lineHeight || 1.2;

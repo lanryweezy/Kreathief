@@ -83,7 +83,7 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
 
         if (state.projectId) {
           storageService
-            .saveSessionMirror(state.projectId, currentState)
+            .saveSessionMirror(state.projectId, currentState, newPast, [])
             .catch((err) => log.error('[Resilience] Session mirror failed', err, { projectId: state.projectId }));
         }
 
@@ -209,6 +209,17 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
       future: [{ timestamp: Date.now(), type: 'snapshot', state: currentFullState }, ...get().future],
       __lastStateSnapshot: nextLastSnapshot,
     });
+
+    const projectId = get().projectId;
+    if (projectId) {
+      storageService
+        .saveSessionMirror(projectId, targetState, newPast, [
+          { timestamp: Date.now(), type: 'snapshot', state: currentFullState },
+          ...get().future,
+        ])
+        .catch((err) => log.error('[Resilience] Session mirror failed', err, { projectId }));
+    }
+
     get().addToast?.('Action Undone', 'info');
   },
 
@@ -262,6 +273,19 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
       future: newFuture,
       __lastStateSnapshot: currentFullState,
     });
+
+    const projectId = get().projectId;
+    if (projectId) {
+      storageService
+        .saveSessionMirror(
+          projectId,
+          targetState,
+          [...get().past, { timestamp: Date.now(), type: 'snapshot', state: currentFullState }],
+          newFuture
+        )
+        .catch((err) => log.error('[Resilience] Session mirror failed', err, { projectId }));
+    }
+
     get().addToast?.('Action Redone', 'info');
   },
 

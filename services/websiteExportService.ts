@@ -6,7 +6,7 @@ import { Artboard, Layer, TextLayer, ShapeLayer, ImageLayer, SiteSettings } from
  * Converts absolute (x,y) layers into Flexbox rows.
  */
 function groupLayersIntoRows(layers: Layer[]): Layer[][] {
-  const visibleLayers = layers.filter(l => l.visible !== false);
+  const visibleLayers = layers.filter((l) => l.visible !== false);
   // Sort primarily by Y coordinate
   const sorted = [...visibleLayers].sort((a, b) => a.y - b.y);
 
@@ -14,7 +14,7 @@ function groupLayersIntoRows(layers: Layer[]): Layer[][] {
   let currentRow: Layer[] = [];
   let currentRowBottom = -1;
 
-  sorted.forEach(layer => {
+  sorted.forEach((layer) => {
     if (currentRow.length === 0) {
       currentRow.push(layer);
       currentRowBottom = layer.y + layer.height;
@@ -37,8 +37,8 @@ function groupLayersIntoRows(layers: Layer[]): Layer[][] {
   }
 
   // Sort each row by X coordinate
-  rows.forEach(row => row.sort((a, b) => a.x - b.x));
-  
+  rows.forEach((row) => row.sort((a, b) => a.x - b.x));
+
   return rows;
 }
 
@@ -47,12 +47,13 @@ function groupLayersIntoRows(layers: Layer[]): Layer[][] {
  */
 function getTailwindClasses(layer: Layer): string {
   const classes: string[] = ['relative'];
-  
+
   // Interactive Hover states
   if (layer.hoverEffects) {
     classes.push('transition-all duration-300');
     if (layer.hoverEffects.scale) classes.push(`hover:scale-105`);
-    if (layer.hoverEffects.opacity !== undefined) classes.push(`hover:opacity-${Math.round(layer.hoverEffects.opacity * 100)}`);
+    if (layer.hoverEffects.opacity !== undefined)
+      classes.push(`hover:opacity-${Math.round(layer.hoverEffects.opacity * 100)}`);
     if (layer.hoverEffects.shadow) classes.push(`hover:shadow-xl hover:shadow-brand-500/20`);
     if (layer.hoverEffects.color) classes.push(`hover:text-[${layer.hoverEffects.color}]`);
   }
@@ -74,23 +75,24 @@ function layerToJSX(layer: Layer, isFullWidthRow: boolean, globalDelayOffset: nu
   const tw = getTailwindClasses(layer);
   const base = layer as any;
   const isTransparent = (base.opacity ?? 1) < 0.9;
-  
+
   // Calculate a staggered delay based on Y position (approx 0.1s per 100px)
   const staggerDelay = Math.min((layer.y / 100) * 0.05, 0.5) + globalDelayOffset;
   const motionProps = `initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.6, delay: ${staggerDelay.toFixed(2)}, ease: "easeOut" }}`;
 
   let inlineStyles = `style={{ opacity: ${base.opacity ?? 1}`;
-  
+
   if (layer.type === 'text') {
     const tl = layer as TextLayer;
-    
+
     let isHeading = tl.fontSize > 32;
     let tag = isHeading ? 'h1' : tl.fontSize > 24 ? 'h2' : tl.fontSize > 18 ? 'h3' : 'p';
-    
+
     // AI Trend: Metallic Text Gradients for large headings that are light colored
     let textClasses = tw;
-    const isLightColor = tl.color && (tl.color === '#ffffff' || tl.color.toLowerCase() === '#fff' || tl.color.startsWith('rgb(255, 255'));
-    
+    const isLightColor =
+      tl.color && (tl.color === '#ffffff' || tl.color.toLowerCase() === '#fff' || tl.color.startsWith('rgb(255, 255'));
+
     if (isHeading && isLightColor) {
       textClasses += ` bg-clip-text text-transparent bg-gradient-to-b from-white via-white/90 to-white/30`;
       // We must remove the inline color so the gradient shows
@@ -98,36 +100,40 @@ function layerToJSX(layer: Layer, isFullWidthRow: boolean, globalDelayOffset: nu
     } else {
       inlineStyles += `, color: '${tl.color}', fontSize: '${tl.fontSize}px', fontWeight: '${tl.fontWeight}', fontFamily: '${tl.fontFamily}', letterSpacing: '${tl.letterSpacing}px' }}`;
     }
-    
+
     let content = `<motion.${tag} className="${textClasses}" ${inlineStyles} ${motionProps}>${tl.text}</motion.${tag}>`;
-    return layer.websiteLink ? `<a href="${layer.websiteLink}" className="block cursor-pointer z-10 hover:opacity-80 transition-opacity">${content}</a>` : content;
+    return layer.websiteLink
+      ? `<a href="${layer.websiteLink}" className="block cursor-pointer z-10 hover:opacity-80 transition-opacity">${content}</a>`
+      : content;
   }
 
   if (layer.type === 'image') {
     const il = layer as ImageLayer;
     inlineStyles += `, objectFit: 'cover' }}`;
     const alt = il.name || 'image';
-    
+
     // If full width, likely an atmospheric background or hero image
-    const extraClasses = isFullWidthRow 
-      ? 'w-full object-cover shadow-[0_0_100px_rgba(255,255,255,0.05)]' 
+    const extraClasses = isFullWidthRow
+      ? 'w-full object-cover shadow-[0_0_100px_rgba(255,255,255,0.05)]'
       : `w-full h-auto aspect-[${Math.round(il.width)}/${Math.round(il.height)}] rounded-3xl shadow-[0_0_50px_rgba(255,255,255,0.05)] border border-white/5`;
-    
+
     let content = `<motion.img src="${il.src}" alt="${alt}" className="${tw} ${extraClasses}" ${inlineStyles} ${motionProps} loading="lazy" />`;
-    return layer.websiteLink ? `<a href="${layer.websiteLink}" className="block w-full cursor-pointer z-10 hover:scale-[1.02] transition-transform">${content}</a>` : content;
+    return layer.websiteLink
+      ? `<a href="${layer.websiteLink}" className="block w-full cursor-pointer z-10 hover:scale-[1.02] transition-transform">${content}</a>`
+      : content;
   }
 
   if (['rectangle', 'circle'].includes(layer.type)) {
     const sl = layer as ShapeLayer;
     let bg = sl.color || '#334155';
-    
+
     // AI Trend Bento Box / Glassmorphism heuristic
-    let glassClass = isTransparent 
-      ? 'backdrop-blur-2xl bg-white/[0.02] border border-white/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] hover:bg-white/[0.04] hover:shadow-[0_0_40px_rgba(255,255,255,0.05)] transition-all duration-500 rounded-3xl' 
+    let glassClass = isTransparent
+      ? 'backdrop-blur-2xl bg-white/[0.02] border border-white/5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] hover:bg-white/[0.04] hover:shadow-[0_0_40px_rgba(255,255,255,0.05)] transition-all duration-500 rounded-3xl'
       : 'shadow-2xl rounded-3xl border border-white/5';
-    
+
     inlineStyles += `, background: '${bg}', borderRadius: '${layer.type === 'circle' ? '50%' : (sl.cornerRadius || 0) + 'px'}', minHeight: ${layer.websiteLink ? `'${sl.height}px'` : 'auto'} }}`;
-    
+
     const shapeClasses = layer.websiteLink
       ? 'w-auto px-8'
       : `w-full aspect-[${Math.round(sl.width)}/${Math.round(sl.height)}]`;
@@ -140,7 +146,9 @@ function layerToJSX(layer: Layer, isFullWidthRow: boolean, globalDelayOffset: nu
     }
 
     let content = `<motion.div className="${tw} ${shapeClasses} ${glassClass}" ${inlineStyles} ${motionProps}></motion.div>`;
-    return layer.websiteLink ? `<a href="${layer.websiteLink}" className="block w-full z-10 cursor-pointer hover:scale-[1.02] transition-transform">${content}</a>` : content;
+    return layer.websiteLink
+      ? `<a href="${layer.websiteLink}" className="block w-full z-10 cursor-pointer hover:scale-[1.02] transition-transform">${content}</a>`
+      : content;
   }
 
   return '';
@@ -150,37 +158,38 @@ function layerToJSX(layer: Layer, isFullWidthRow: boolean, globalDelayOffset: nu
  * Generate a React Component for a Page
  */
 function generateReactPage(artboard: Artboard): string {
-  const pageName = (artboard as any).websitePage?.slug === '/' 
-    ? 'Home' 
-    : ((artboard.name || 'Page').replace(/[^a-zA-Z0-9]/g, ''));
+  const pageName =
+    (artboard as any).websitePage?.slug === '/' ? 'Home' : (artboard.name || 'Page').replace(/[^a-zA-Z0-9]/g, '');
 
   const rows = groupLayersIntoRows(artboard.layers);
 
-  const rowsJSX = rows.map((row, idx) => {
-    // Determine section type roughly by position
-    const isHero = idx === 0;
-    const isFooter = idx === rows.length - 1;
-    const tag = isHero ? 'header' : isFooter ? 'footer' : 'section';
+  const rowsJSX = rows
+    .map((row, idx) => {
+      // Determine section type roughly by position
+      const isHero = idx === 0;
+      const isFooter = idx === rows.length - 1;
+      const tag = isHero ? 'header' : isFooter ? 'footer' : 'section';
 
-    if (row.length === 1) {
-      // Single element row (maybe full width banner, or centered text)
-      const isBanner = row[0].width >= artboard.width * 0.8;
-      const alignClass = isBanner ? 'w-full' : 'w-full flex justify-center';
-      return `
+      if (row.length === 1) {
+        // Single element row (maybe full width banner, or centered text)
+        const isBanner = row[0].width >= artboard.width * 0.8;
+        const alignClass = isBanner ? 'w-full' : 'w-full flex justify-center';
+        return `
       {/* Section ${idx + 1} */}
       <${tag} className="relative py-12 ${alignClass} z-10">
         ${layerToJSX(row[0], isBanner, idx * 0.1)}
       </${tag}>`;
-    } else {
-      // Multi-element row (columns)
-      const cols = row.length;
-      return `
+      } else {
+        // Multi-element row (columns)
+        const cols = row.length;
+        return `
       {/* Section ${idx + 1} */}
       <${tag} className="relative py-12 w-full grid grid-cols-1 md:grid-cols-${cols} items-center gap-8 max-w-7xl mx-auto px-6 z-10">
-        ${row.map(l => layerToJSX(l, false, idx * 0.1)).join('\n        ')}
+        ${row.map((l) => layerToJSX(l, false, idx * 0.1)).join('\n        ')}
       </${tag}>`;
-    }
-  }).join('\n');
+      }
+    })
+    .join('\n');
 
   return `import React from 'react';
 import { motion } from 'framer-motion';
@@ -211,18 +220,22 @@ export default function ${pageName}() {
  * Generate App.tsx router
  */
 function generateAppTsx(pages: Artboard[]): string {
-  const imports = pages.map(p => {
-    const isHome = (p as any).websitePage?.slug === '/';
-    const compName = isHome ? 'Home' : (p.name || 'Page').replace(/[^a-zA-Z0-9]/g, '');
-    return `import ${compName} from './pages/${compName}';`;
-  }).join('\n');
+  const imports = pages
+    .map((p) => {
+      const isHome = (p as any).websitePage?.slug === '/';
+      const compName = isHome ? 'Home' : (p.name || 'Page').replace(/[^a-zA-Z0-9]/g, '');
+      return `import ${compName} from './pages/${compName}';`;
+    })
+    .join('\n');
 
-  const routes = pages.map(p => {
-    const isHome = (p as any).websitePage?.slug === '/';
-    const compName = isHome ? 'Home' : (p.name || 'Page').replace(/[^a-zA-Z0-9]/g, '');
-    const path = isHome ? '/' : (p as any).websitePage?.slug || `/${compName.toLowerCase()}`;
-    return `<Route path="${path}" element={<${compName} />} />`;
-  }).join('\n            ');
+  const routes = pages
+    .map((p) => {
+      const isHome = (p as any).websitePage?.slug === '/';
+      const compName = isHome ? 'Home' : (p.name || 'Page').replace(/[^a-zA-Z0-9]/g, '');
+      const path = isHome ? '/' : (p as any).websitePage?.slug || `/${compName.toLowerCase()}`;
+      return `<Route path="${path}" element={<${compName} />} />`;
+    })
+    .join('\n            ');
 
   return `import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
@@ -246,11 +259,15 @@ export default function App() {
       <nav className="w-full h-20 bg-slate-900/60 backdrop-blur-xl border-b border-white/10 sticky top-0 z-50 flex items-center px-8 shadow-2xl transition-all">
         <div className="flex gap-8 mx-auto w-full max-w-7xl items-center">
           <div className="text-xl font-black tracking-tighter text-white mr-auto bg-clip-text text-transparent bg-gradient-to-r from-brand-400 to-purple-400">Kreathief</div>
-          ${pages.map(p => {
-            const isHome = (p as any).websitePage?.slug === '/';
-            const path = isHome ? '/' : (p as any).websitePage?.slug || `/${(p.name || 'Page').replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}`;
-            return `<Link to="${path}" className="text-white/70 hover:text-white font-semibold text-sm transition-colors hover:scale-105 active:scale-95">${p.name}</Link>`;
-          }).join('\n          ')}
+          ${pages
+            .map((p) => {
+              const isHome = (p as any).websitePage?.slug === '/';
+              const path = isHome
+                ? '/'
+                : (p as any).websitePage?.slug || `/${(p.name || 'Page').replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}`;
+              return `<Link to="${path}" className="text-white/70 hover:text-white font-semibold text-sm transition-colors hover:scale-105 active:scale-95">${p.name}</Link>`;
+            })
+            .join('\n          ')}
         </div>
       </nav>
       <main className="w-full overflow-hidden bg-[#0a0a0a]">
@@ -364,10 +381,7 @@ const INDEX_CSS = `@tailwind base;
 /**
  * Download website as a React/Vite/Tailwind ZIP
  */
-export async function downloadWebsiteAsZip(
-  artboards: Artboard[],
-  siteSettings: SiteSettings | null
-): Promise<void> {
+export async function downloadWebsiteAsZip(artboards: Artboard[], siteSettings: SiteSettings | null): Promise<void> {
   const websitePages = artboards.filter((a) => (a as any).websitePage);
   if (websitePages.length === 0) return;
 
@@ -416,20 +430,17 @@ export async function downloadWebsiteAsZip(
 // requires static files for simple deployments (without build steps), we can generate an HTML build too.
 // However, the user asked for full React+Tailwind+Vite export. If Vercel needs HTML, we can provide a basic HTML string.
 // Let's provide a fallback `exportWebsite` for the deploy integration.
-export async function exportWebsite(
-  artboards: Artboard[],
-  siteSettings: SiteSettings | null
-) {
-  // Return the raw React files as an array for the deployer if it supports it, 
+export async function exportWebsite(artboards: Artboard[], siteSettings: SiteSettings | null) {
+  // Return the raw React files as an array for the deployer if it supports it,
   // or a very simplified HTML fallback.
   // The Vercel deployer currently expects { filename: string, html: string }[] and css.
   // We can simulate a Vite "build" by returning the React files.
   // But wait, Vercel REST API needs static assets or a proper framework config.
-  // To keep `vercelService` working seamlessly (which uploads raw files), we should probably 
+  // To keep `vercelService` working seamlessly (which uploads raw files), we should probably
   // just return the React project files! Vercel auto-detects Vite if package.json is present.
-  
+
   const pages = artboards.filter((a) => (a as any).websitePage);
-  
+
   const files = [
     { filename: 'package.json', html: PACKAGE_JSON },
     { filename: 'vite.config.ts', html: VITE_CONFIG },
@@ -438,7 +449,7 @@ export async function exportWebsite(
     { filename: 'index.html', html: INDEX_HTML },
     { filename: 'src/main.tsx', html: MAIN_TSX },
     { filename: 'src/index.css', html: INDEX_CSS },
-    { filename: 'src/App.tsx', html: generateAppTsx(pages) }
+    { filename: 'src/App.tsx', html: generateAppTsx(pages) },
   ];
 
   pages.forEach((page) => {
@@ -446,13 +457,13 @@ export async function exportWebsite(
     const compName = isHome ? 'Home' : (page.name || 'Page').replace(/[^a-zA-Z0-9]/g, '');
     files.push({
       filename: `src/pages/${compName}.tsx`,
-      html: generateReactPage(page)
+      html: generateReactPage(page),
     });
   });
 
   return {
     pages: files,
     css: '', // Not needed, it's in src/index.css
-    siteSettings
+    siteSettings,
   };
 }

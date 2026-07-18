@@ -10,8 +10,18 @@ interface HelpModalProps {
 const HELP_ITEMS = [
   { icon: Icons.Book, title: 'Documentation', desc: 'Learn how to use Kreathief', url: 'https://docs.kreathief.com' },
   { icon: Icons.Globe, title: 'Website', desc: 'Visit kreathief.com', url: 'https://kreathief.com' },
-  { icon: Icons.MessageSquare, title: 'Contact Support', desc: 'Get help from our team', url: 'mailto:support@kreathief.com' },
-  { icon: Icons.Github, title: 'GitHub', desc: 'Report issues or contribute', url: 'https://github.com/lanryweezy/Kreathief' },
+  {
+    icon: Icons.MessageSquare,
+    title: 'Contact Support',
+    desc: 'Get help from our team',
+    url: 'mailto:support@kreathief.com',
+  },
+  {
+    icon: Icons.Github,
+    title: 'GitHub',
+    desc: 'Report issues or contribute',
+    url: 'https://github.com/lanryweezy/Kreathief',
+  },
 ];
 
 export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {

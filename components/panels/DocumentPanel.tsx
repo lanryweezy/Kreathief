@@ -8,7 +8,7 @@ import { jsPDF } from 'jspdf';
 
 const PAGE_FORMATS = {
   a4: { name: 'A4', width: 794, height: 1123 },
-  letter: { name: 'US Letter', width: 816, height: 1056 }
+  letter: { name: 'US Letter', width: 816, height: 1056 },
 };
 
 const DocumentThumbnail: React.FC<{ artboard: Artboard; isActive: boolean }> = ({ artboard, isActive }) => {
@@ -96,12 +96,12 @@ export const DocumentPanel: React.FC = () => {
     setIsGeneratingAI(true);
     try {
       const generated = await generateDocumentDesign(aiPromptText, docType);
-      
+
       const W = PAGE_FORMATS[documentFormat].width;
       const H = PAGE_FORMATS[documentFormat].height;
 
       useStore.setState({ artboards: [] });
-      
+
       const boardId = `board_${Date.now()}_doc`;
       const newBoard: Artboard = {
         id: boardId,
@@ -112,7 +112,7 @@ export const DocumentPanel: React.FC = () => {
         height: H,
         backgroundColor: '#ffffff',
         layers: [],
-        isResponsive: false
+        isResponsive: false,
       };
 
       useStore.setState({ artboards: [newBoard] });
@@ -138,10 +138,10 @@ export const DocumentPanel: React.FC = () => {
               fontWeight: '800',
               fontFamily: generated.theme.fontFamily,
               color: generated.theme.primaryColor,
-              letterSpacing: 2
+              letterSpacing: 2,
             });
             currentY += 40;
-            
+
             // Separator line
             state.addShapeLayer('rectangle', {
               name: 'Separator',
@@ -149,7 +149,7 @@ export const DocumentPanel: React.FC = () => {
               y: currentY - 10,
               width: W - 100,
               height: 2,
-              color: '#e2e8f0'
+              color: '#e2e8f0',
             });
           }
 
@@ -165,10 +165,10 @@ export const DocumentPanel: React.FC = () => {
               fontSize: 32,
               fontWeight: '700',
               fontFamily: generated.theme.fontFamily,
-              color: '#1e293b'
+              color: '#1e293b',
             });
             currentY += 50;
-            
+
             if (section.items[1]) {
               state.addTextLayer({
                 name: 'Doc Header Contact',
@@ -180,7 +180,7 @@ export const DocumentPanel: React.FC = () => {
                 fontSize: 12,
                 fontWeight: '400',
                 fontFamily: generated.theme.fontFamily,
-                color: generated.theme.secondaryColor
+                color: generated.theme.secondaryColor,
               });
               currentY += 40;
             }
@@ -190,7 +190,7 @@ export const DocumentPanel: React.FC = () => {
               item.label || 'Item',
               '1',
               item.value || '$0.00',
-              item.value || '$0.00'
+              item.value || '$0.00',
             ]);
             state.addTableLayer({
               name: section.title || 'Table',
@@ -218,7 +218,7 @@ export const DocumentPanel: React.FC = () => {
                   fontSize: 12,
                   fontWeight: '700',
                   fontFamily: generated.theme.fontFamily,
-                  color: '#1e293b'
+                  color: '#1e293b',
                 });
               }
 
@@ -232,9 +232,9 @@ export const DocumentPanel: React.FC = () => {
                 fontSize: 12,
                 fontWeight: '400',
                 fontFamily: generated.theme.fontFamily,
-                color: generated.theme.secondaryColor
+                color: generated.theme.secondaryColor,
               });
-              
+
               if (item.subValue) {
                 state.addTextLayer({
                   name: 'SubValue',
@@ -247,7 +247,7 @@ export const DocumentPanel: React.FC = () => {
                   fontWeight: '400',
                   fontFamily: generated.theme.fontFamily,
                   color: '#94a3b8',
-                  textAlign: 'right'
+                  textAlign: 'right',
                 });
               }
               currentY += 30;
@@ -255,9 +255,7 @@ export const DocumentPanel: React.FC = () => {
             currentY += 20; // Space between sections
           }
         });
-
       }, 100);
-
     } catch (error) {
       console.error(error);
       alert('Failed to generate document. Check console.');
@@ -269,30 +267,30 @@ export const DocumentPanel: React.FC = () => {
 
   const handleExportPDF = () => {
     if (documentPages.length === 0) return;
-    
+
     // Scale from internal pixels (e.g. 794x1123 for A4) to mm
     // A4 is 210x297mm.
     const W_MM = documentFormat === 'a4' ? 210 : 215.9; // Letter width 8.5inch ~ 215.9mm
     const H_MM = documentFormat === 'a4' ? 297 : 279.4; // Letter height 11inch ~ 279.4mm
-    
+
     const scale = W_MM / PAGE_FORMATS[documentFormat].width;
 
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: documentFormat === 'a4' ? 'a4' : 'letter'
+      format: documentFormat === 'a4' ? 'a4' : 'letter',
     });
 
     documentPages.forEach((page: Artboard, index: number) => {
       if (index > 0) pdf.addPage();
-      
+
       // bg
       pdf.setFillColor(page.backgroundColor || '#ffffff');
       pdf.rect(0, 0, W_MM, H_MM, 'F');
 
-      const visibleLayers = [...page.layers].filter(l => l.visible !== false);
-      
-      visibleLayers.forEach(layer => {
+      const visibleLayers = [...page.layers].filter((l) => l.visible !== false);
+
+      visibleLayers.forEach((layer) => {
         const lx = (layer.x || 0) * scale;
         const ly = (layer.y || 0) * scale;
         const lw = (layer.width || 0) * scale;
@@ -304,39 +302,39 @@ export const DocumentPanel: React.FC = () => {
           // Approximating fontSize conversion px to pt
           pdf.setFontSize((tl.fontSize || 16) * 0.75);
           // @ts-ignore
-          pdf.text(tl.text || '', lx, ly + ((tl.fontSize || 16) * 0.75 * scale), { baseline: 'bottom' });
+          pdf.text(tl.text || '', lx, ly + (tl.fontSize || 16) * 0.75 * scale, { baseline: 'bottom' });
         } else if (['rectangle', 'circle'].includes(layer.type)) {
           const sl = layer as any;
           pdf.setFillColor(sl.color || '#e2e8f0');
           if (layer.type === 'circle') {
-            pdf.circle(lx + lw/2, ly + lh/2, lw/2, 'F');
+            pdf.circle(lx + lw / 2, ly + lh / 2, lw / 2, 'F');
           } else {
             pdf.rect(lx, ly, lw, lh, 'F');
           }
         } else if (layer.type === 'table') {
           const tl = layer as TableLayer;
-          
+
           pdf.setDrawColor(tl.borderColor || '#cbd5e1');
           pdf.setFillColor(tl.headerColor || '#f8fafc');
           pdf.rect(lx, ly, lw, 10, 'FD'); // Header row approx 10mm high
-          
+
           pdf.setTextColor(tl.textColor || '#1e293b');
           pdf.setFontSize((tl.fontSize || 12) * 0.75);
-          
+
           // Draw Headers
           const colWidth = lw / Math.max(1, tl.columns.length);
           tl.columns.forEach((col, cIdx) => {
-             // @ts-ignore
-             pdf.text(col, lx + (cIdx * colWidth) + 2, ly + 7);
+            // @ts-ignore
+            pdf.text(col, lx + cIdx * colWidth + 2, ly + 7);
           });
-          
+
           // Draw Rows
           tl.rows.forEach((row, rIdx) => {
-            const rowY = ly + 10 + (rIdx * 10);
+            const rowY = ly + 10 + rIdx * 10;
             pdf.rect(lx, rowY, lw, 10, 'D'); // Cell borders
             row.forEach((cell, cIdx) => {
-               // @ts-ignore
-               pdf.text(cell, lx + (cIdx * colWidth) + 2, rowY + 7);
+              // @ts-ignore
+              pdf.text(cell, lx + cIdx * colWidth + 2, rowY + 7);
             });
           });
         }
@@ -380,7 +378,9 @@ export const DocumentPanel: React.FC = () => {
             <button
               onClick={() => setDocumentFormat('letter')}
               className={`flex-1 flex items-center justify-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                documentFormat === 'letter' ? 'bg-surface-dark-0 text-white shadow-sm' : 'text-gray-400 hover:text-gray-200'
+                documentFormat === 'letter'
+                  ? 'bg-surface-dark-0 text-white shadow-sm'
+                  : 'text-gray-400 hover:text-gray-200'
               }`}
             >
               <Icons.FileText className="w-3.5 h-3.5" />
@@ -410,9 +410,7 @@ export const DocumentPanel: React.FC = () => {
                 >
                   <DocumentThumbnail artboard={page} isActive={activeArtboardId === page.id} />
                   <div className="mt-2 flex items-center justify-between px-1">
-                    <span className="text-xs font-medium text-white truncate pr-2">
-                      {page.name}
-                    </span>
+                    <span className="text-xs font-medium text-white truncate pr-2">{page.name}</span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -425,8 +423,15 @@ export const DocumentPanel: React.FC = () => {
                   </div>
                 </div>
               ))}
-              <div 
-                onClick={() => addArtboard(`Page ${documentPages.length + 1}`, PAGE_FORMATS[format].width, PAGE_FORMATS[format].height, '#ffffff')}
+              <div
+                onClick={() =>
+                  addArtboard(
+                    `Page ${documentPages.length + 1}`,
+                    PAGE_FORMATS[format].width,
+                    PAGE_FORMATS[format].height,
+                    '#ffffff'
+                  )
+                }
                 className="aspect-[1/1.414] rounded border-2 border-dashed border-surface-dark-0 hover:border-brand-500 hover:bg-brand-500/5 flex flex-col items-center justify-center cursor-pointer transition-all text-gray-500 hover:text-brand-400"
               >
                 <Icons.Plus className="w-8 h-8 mb-2" />
@@ -438,7 +443,7 @@ export const DocumentPanel: React.FC = () => {
 
         {documentPages.length > 0 && (
           <div className="flex-none p-4 border-t border-surface-dark-1 bg-surface-dark-2">
-            <button 
+            <button
               onClick={handleExportPDF}
               className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold rounded-lg transition-colors shadow-glow-brand"
             >
@@ -457,14 +462,14 @@ export const DocumentPanel: React.FC = () => {
                 <Icons.Sparkles className="w-4 h-4 text-brand-400" />
                 AI Document Generator
               </h3>
-              <button 
+              <button
                 onClick={() => !isGeneratingAI && setShowAIModal(false)}
                 className="text-gray-400 hover:text-white"
               >
                 <Icons.X className="w-4 h-4" />
               </button>
             </div>
-            
+
             <div className="p-6">
               <div className="mb-4">
                 <label className="text-xs font-medium text-gray-400 mb-1.5 block">Document Type</label>
@@ -487,7 +492,7 @@ export const DocumentPanel: React.FC = () => {
                 className="w-full h-32 bg-surface-dark-1 border border-surface-dark-0 rounded-xl p-3 text-sm text-white resize-none focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 mb-6"
                 disabled={isGeneratingAI}
               />
-              
+
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowAIModal(false)}

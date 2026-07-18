@@ -45,80 +45,83 @@ test.describe('Premium Pro User: 30 Visual Simulation Stress Scenarios', () => {
       console.log(`--- Running Simulation Scenario ${simIndex}/30 ---`);
 
       // Determine dimensions, colors, and node counts per index
-      const width = 1000 + (simIndex * 80);
-      const height = 800 + (simIndex * 40);
-      const shapesCount = 20 + (simIndex * 3);
+      const width = 1000 + simIndex * 80;
+      const height = 800 + simIndex * 40;
+      const shapesCount = 20 + simIndex * 3;
       const baseHue = (simIndex * 12) % 360;
       const themeColor = `hsl(${baseHue}, 85%, 60%)`;
       const ambientGlowColor = `hsl(${(baseHue + 120) % 360}, 90%, 50%)`;
 
-      const renderMetrics = await page.evaluate(({ index, w, h, sc, col, glowCol }) => {
-        const store = (window as any).useStore.getState();
-        const activeId = store.activeArtboardId || store.artboards[0]?.id;
-        const artboard = store.artboards.find((a: any) => a.id === activeId);
+      const renderMetrics = await page.evaluate(
+        ({ index, w, h, sc, col, glowCol }) => {
+          const store = (window as any).useStore.getState();
+          const activeId = store.activeArtboardId || store.artboards[0]?.id;
+          const artboard = store.artboards.find((a: any) => a.id === activeId);
 
-        if (artboard) {
-          artboard.layers = [];
-          store.updateArtboard(artboard.id, { backgroundColor: '#03030F' });
-        }
+          if (artboard) {
+            artboard.layers = [];
+            store.updateArtboard(artboard.id, { backgroundColor: '#03030F' });
+          }
 
-        // Change artboard size dynamically
-        store.setCanvasSize({ width: w, height: h, name: `Simulation Canvas ${index}` });
+          // Change artboard size dynamically
+          store.setCanvasSize({ width: w, height: h, name: `Simulation Canvas ${index}` });
 
-        // Add backdrop layer
-        store.addShapeLayer('rectangle', {
-          x: 0,
-          y: 0,
-          width: w,
-          height: h,
-          name: `Void ${index}`,
-          color: '#03030F',
-        });
-
-        // Add ambient light source
-        store.addShapeLayer('circle', {
-          x: w / 3,
-          y: h / 3,
-          width: Math.min(w, h) * 0.8,
-          height: Math.min(w, h) * 0.8,
-          name: `Ambient Glow ${index}`,
-          color: glowCol,
-          opacity: 0.15,
-          blur: 300,
-        });
-
-        // Draw multiple geometric components to simulate high layout workload
-        for (let i = 0; i < sc; i++) {
-          const type = i % 2 === 0 ? 'circle' : 'rectangle';
-          const size = 50 + (i * 12);
-          store.addShapeLayer(type, {
-            x: (w / 2) + Math.sin(i * 0.4) * (w * 0.3) - (size / 2),
-            y: (h / 2) + Math.cos(i * 0.4) * (h * 0.3) - (size / 2),
-            width: size,
-            height: size,
-            name: `Shape ${i}`,
-            color: col,
-            opacity: 0.3 + (i * 0.01),
+          // Add backdrop layer
+          store.addShapeLayer('rectangle', {
+            x: 0,
+            y: 0,
+            width: w,
+            height: h,
+            name: `Void ${index}`,
+            color: '#03030F',
           });
-        }
 
-        // Write title info
-        store.addTextLayer({
-          x: 50,
-          y: h - 120,
-          width: w - 100,
-          height: 60,
-          text: `STRESS SCENARIO ${index}: ${w}x${h}px`,
-          fontSize: 32,
-          fontWeight: 'bold',
-          color: '#FFFFFF',
-          fontFamily: 'Outfit',
-        });
+          // Add ambient light source
+          store.addShapeLayer('circle', {
+            x: w / 3,
+            y: h / 3,
+            width: Math.min(w, h) * 0.8,
+            height: Math.min(w, h) * 0.8,
+            name: `Ambient Glow ${index}`,
+            color: glowCol,
+            opacity: 0.15,
+            blur: 300,
+          });
 
-        return {
-          layersCount: store.artboards.find((a: any) => a.id === store.activeArtboardId)?.layers?.length || 0,
-        };
-      }, { index: simIndex, w: width, h: height, sc: shapesCount, col: themeColor, glowCol: ambientGlowColor });
+          // Draw multiple geometric components to simulate high layout workload
+          for (let i = 0; i < sc; i++) {
+            const type = i % 2 === 0 ? 'circle' : 'rectangle';
+            const size = 50 + i * 12;
+            store.addShapeLayer(type, {
+              x: w / 2 + Math.sin(i * 0.4) * (w * 0.3) - size / 2,
+              y: h / 2 + Math.cos(i * 0.4) * (h * 0.3) - size / 2,
+              width: size,
+              height: size,
+              name: `Shape ${i}`,
+              color: col,
+              opacity: 0.3 + i * 0.01,
+            });
+          }
+
+          // Write title info
+          store.addTextLayer({
+            x: 50,
+            y: h - 120,
+            width: w - 100,
+            height: 60,
+            text: `STRESS SCENARIO ${index}: ${w}x${h}px`,
+            fontSize: 32,
+            fontWeight: 'bold',
+            color: '#FFFFFF',
+            fontFamily: 'Outfit',
+          });
+
+          return {
+            layersCount: store.artboards.find((a: any) => a.id === store.activeArtboardId)?.layers?.length || 0,
+          };
+        },
+        { index: simIndex, w: width, h: height, sc: shapesCount, col: themeColor, glowCol: ambientGlowColor }
+      );
 
       // Let rendering pipeline commit changes
       await page.waitForTimeout(1000);

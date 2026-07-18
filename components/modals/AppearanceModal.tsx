@@ -39,7 +39,9 @@ export const AppearanceModal: React.FC<AppearanceModalProps> = ({ isOpen, onClos
             <div className="p-6 space-y-4">
               {/* Theme */}
               <div>
-                <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-3 block">Theme</label>
+                <label className="text-[10px] font-bold text-white/50 uppercase tracking-widest mb-3 block">
+                  Theme
+                </label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => setTheme('dark')}
@@ -73,7 +75,9 @@ export const AppearanceModal: React.FC<AppearanceModalProps> = ({ isOpen, onClos
                     <Icons.Wand className="w-4 h-4 text-white/50" />
                     <div>
                       <div className="text-xs font-bold text-white uppercase tracking-widest">Creator Mode</div>
-                      <div className="text-[10px] text-white/50 mt-0.5">Access advanced tools and template publishing</div>
+                      <div className="text-[10px] text-white/50 mt-0.5">
+                        Access advanced tools and template publishing
+                      </div>
                     </div>
                   </div>
                   <button

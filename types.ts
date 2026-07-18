@@ -369,6 +369,14 @@ export interface ShapeLayer extends LayerBase {
   };
 }
 
+export interface InpaintNode {
+  id: string;
+  patchSrc: string; // The AI-generated patch (transparent background)
+  maskPath: string; // The path that was patched
+  opacity: number; // Defaults to 1.0
+  enabled: boolean; // Defaults to true
+}
+
 export interface ImageLayer extends LayerBase {
   type: 'image';
   src: string;
@@ -382,6 +390,7 @@ export interface ImageLayer extends LayerBase {
   maskDataURL?: string; // Base64 data for refined bitmap masks
   maskType?: 'none' | 'lasso' | 'ai' | 'bitmap';
   altText?: string;
+  inpaintNodes?: InpaintNode[];
 }
 
 export interface AdjustmentLayer extends LayerBase {

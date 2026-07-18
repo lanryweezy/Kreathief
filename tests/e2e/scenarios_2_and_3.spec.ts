@@ -54,7 +54,7 @@ test.describe('Premium Pro User: Visual Design E2E Scenarios 2 & 3', () => {
     // DESIGN TEST SCENARIO 2 — "AFRICAN CYBER BANK"
     // ==========================================
     console.log('Building Scenario 2: African Cyber Bank...');
-    
+
     await page.evaluate(() => {
       const store = (window as any).useStore.getState();
 
@@ -135,7 +135,7 @@ test.describe('Premium Pro User: Visual Design E2E Scenarios 2 & 3', () => {
       for (let i = 0; i < 15; i++) {
         store.addShapeLayer('circle', {
           x: 900 + Math.sin(i) * 120,
-          y: 350 + (i * 25),
+          y: 350 + i * 25,
           width: 8,
           height: 8,
           name: `Hub Dot ${i}`,
@@ -477,7 +477,11 @@ test.describe('Premium Pro User: Visual Design E2E Scenarios 2 & 3', () => {
 
     // 7. Verify export functionality
     console.log('Testing Export Dialog panel validation...');
-    await page.locator('button').filter({ hasText: /^Export$/i }).first().click({ force: true });
+    await page
+      .locator('button')
+      .filter({ hasText: /^Export$/i })
+      .first()
+      .click({ force: true });
     await page.waitForTimeout(1000);
     await page.screenshot({ path: 'verification/screenshots/export_dialog_active_scenarios.png' });
 
@@ -496,7 +500,7 @@ test.describe('Premium Pro User: Visual Design E2E Scenarios 2 & 3', () => {
 
     const downloadPath = path.join('verification/screenshots', 'export_scenarios.png');
     if (exportBase64) {
-      const base64Data = exportBase64.replace(/^data:image\/png;base64,/, "");
+      const base64Data = exportBase64.replace(/^data:image\/png;base64,/, '');
       fs.writeFileSync(downloadPath, base64Data, 'base64');
       console.log(`Design exported cleanly to: ${downloadPath}`);
     } else {

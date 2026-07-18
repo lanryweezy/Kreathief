@@ -49,18 +49,15 @@ export const WebsitePreviewModal: React.FC<WebsitePreviewModalProps> = ({ onClos
         return;
       }
       const result = await exportWebsite(artboards, siteSettings);
-      const pageResult = result.pages.find(
-        (p) =>
+      const pageResult =
+        result.pages.find((p) =>
           (currentArtboard as any).websitePage?.isHomePage
             ? p.filename === 'index.html'
             : p.html.includes(currentArtboard.name)
-      ) || result.pages[0];
+        ) || result.pages[0];
 
       if (pageResult) {
-        const fullHTML = pageResult.html.replace(
-          '</head>',
-          `<style>${result.css}</style></head>`
-        );
+        const fullHTML = pageResult.html.replace('</head>', `<style>${result.css}</style></head>`);
         setPreviewHTML(fullHTML);
       }
     } catch (err) {
@@ -135,9 +132,7 @@ export const WebsitePreviewModal: React.FC<WebsitePreviewModalProps> = ({ onClos
                   onClick={() => setBreakpoint(key)}
                   title={`${label} — ${hint}`}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    breakpoint === key
-                      ? 'bg-surface-dark-2 text-white shadow'
-                      : 'text-gray-500 hover:text-gray-300'
+                    breakpoint === key ? 'bg-surface-dark-2 text-white shadow' : 'text-gray-500 hover:text-gray-300'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -213,14 +208,15 @@ export const WebsitePreviewModal: React.FC<WebsitePreviewModalProps> = ({ onClos
           {/* Bottom info bar */}
           <div className="flex items-center gap-4 px-6 py-2 bg-surface-dark-1/95 backdrop-blur-xl border-t border-white/5 text-[10px] text-gray-500 shrink-0">
             <span>
-              Previewing: <strong className="text-gray-300">{allPages.find((p: Artboard) => p.id === activePage)?.name || 'Page'}</strong>
+              Previewing:{' '}
+              <strong className="text-gray-300">
+                {allPages.find((p: Artboard) => p.id === activePage)?.name || 'Page'}
+              </strong>
             </span>
             <span>
               Viewport: <strong className="text-gray-300 font-mono">{bpWidth}px</strong>
             </span>
-            <span className="ml-auto">
-              This is an approximate preview. Final output may vary with custom CSS.
-            </span>
+            <span className="ml-auto">This is an approximate preview. Final output may vary with custom CSS.</span>
           </div>
         </motion.div>
       </motion.div>

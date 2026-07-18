@@ -5,6 +5,7 @@ import { useCanvasSelection } from '../../hooks/canvas/useCanvasSelection';
 import { useLayerDragging } from '../../hooks/canvas/useLayerDragging';
 import { useLayerTransformation } from '../../hooks/canvas/useLayerTransformation';
 import { useDrawingMode } from '../../hooks/canvas/useDrawingMode';
+import { useSmartMaskWorker } from '../../hooks/canvas/useSmartMaskWorker';
 import { useStore } from '../../store/useStore';
 
 interface UseCanvasInteractionsProps {
@@ -66,7 +67,7 @@ export const useCanvasInteractions = ({
     startPanning,
     updatePanning,
     stopPanning,
-    panOffsetRef: _panOffsetRef,
+    panOffsetRef,
   } = useCanvasPanning();
 
   const { selectionBox, startSelection, updateSelection, finalizeSelection, selectionBoxRef } = useCanvasSelection({
@@ -115,6 +116,12 @@ export const useCanvasInteractions = ({
     isDrawingInternalRef: _isDrawingInternalRef,
   } = useDrawingMode({ zoom, isDrawing });
 
+  // 6. Smart Mask Worker Hook
+  const { processImage, inferMask } = useSmartMaskWorker();
+  const isSmartMaskMode = useStore((state) => state.isSmartMaskMode);
+  const isSmartMaskModeRef = useRef(isSmartMaskMode);
+  isSmartMaskModeRef.current = isSmartMaskMode;
+
   // Use refs for values that change frequently but shouldn't re-register listeners
   const isPanningRef = useRef(isPanning);
   isPanningRef.current = isPanning;
@@ -122,6 +129,8 @@ export const useCanvasInteractions = ({
   isDrawingRef.current = isDrawing;
   const transformStateRef = useRef(transformState);
   transformStateRef.current = transformState;
+  const zoomRef = useRef(zoom);
+  zoomRef.current = zoom;
 
   // ORCHESTRATION LOGIC
   const handleMouseDownContainer = useCallback(
@@ -139,6 +148,17 @@ export const useCanvasInteractions = ({
 
   const handleMouseDownLayer = useCallback(
     (e: React.MouseEvent | React.TouchEvent, layer: Layer) => {
+      if (isSmartMaskModeRef.current) {
+        const store = useStore.getState();
+        const mask = store.hoveredMaskBoundary;
+        if (mask && layer.type === 'image') {
+          store.setIsSmartMaskMode(false);
+          store.updateLayer(layer.id, { maskPath: mask.path, maskType: 'lasso' });
+          store.addToast?.('Smart mask applied!', 'success');
+        }
+        return;
+      }
+
       if (isSpacePressed || isDrawing || layer.locked) {
         return;
       }
@@ -151,6 +171,20 @@ export const useCanvasInteractions = ({
     (e: MouseEvent) => {
       if (isPanningRef.current) {
         updatePanning(e);
+        return;
+      }
+
+      if (isSmartMaskModeRef.current) {
+        if (viewportRef.current) {
+          const rect = viewportRef.current.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
+
+          const worldX = (mouseX - panOffsetRef.current.x) / zoomRef.current;
+          const worldY = (mouseY - panOffsetRef.current.y) / zoomRef.current;
+
+          inferMask(worldX, worldY);
+        }
         return;
       }
 

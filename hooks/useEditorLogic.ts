@@ -81,6 +81,17 @@ export const useEditorLogic = (initialProject?: Project) => {
       setProjectId(initialProject.id);
       setProjectTitle(initialProject.name);
       initializeProject(initialProject);
+
+      // Restore session mirror history stacks if they match the loaded project
+      storageService.getSessionMirror().then((mirror) => {
+        if (mirror && mirror.projectId === initialProject.id) {
+          useStore.setState({
+            past: mirror.past || [],
+            future: mirror.future || [],
+            __lastStateSnapshot: mirror.state,
+          } as any);
+        }
+      });
     }
   }, [initialProject, setProjectId, setProjectTitle, initializeProject]);
 

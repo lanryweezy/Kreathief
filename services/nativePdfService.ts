@@ -6,18 +6,13 @@
  * Falls back to raster embedding for individual layers with complex effects.
  */
 import { jsPDF } from 'jspdf';
-import {
-  Layer,
-  TextLayer,
-  ShapeLayer,
-  ImageLayer,
-  TableLayer,
-  Artboard,
-} from '../types';
+import { Layer, TextLayer, ShapeLayer, ImageLayer, TableLayer, Artboard } from '../types';
 import { getLayerClipPath } from '../utils/layerRendering';
 import { downloadBlob, exportDesignToImage } from './exportService';
 import { logSecurityEvent } from '../utils/securityLogger';
 import { log } from '../utils/log';
+import { resolveTextLines } from '../utils/textRendering';
+import { upscaleForPrint } from './upscaleService';
 
 // Conversion: 1px = 0.75pt (at 72 DPI)
 const PX_TO_PT = 72 / 96;
@@ -114,16 +109,7 @@ function hasComplexEffects(layer: Layer): boolean {
  * Rasterize a single layer into a data URL using the existing canvas strategy.
  */
 async function rasterizeLayer(layer: Layer, width: number, height: number): Promise<string> {
-  return exportDesignToImage(
-    width,
-    height,
-    'transparent',
-    null,
-    [layer],
-    undefined,
-    'png',
-    1
-  );
+  return exportDesignToImage(width, height, 'transparent', null, [layer], undefined, 'png', 1);
 }
 
 /**
@@ -187,7 +173,7 @@ function drawTextLayer(pdf: jsPDF, layer: TextLayer): void {
   if (layer.textTransform === 'uppercase') text = text.toUpperCase();
   if (layer.textTransform === 'lowercase') text = text.toLowerCase();
 
-  const lines = text.split('\n');
+  const lines = resolveTextLines(layer);
   const lineHeight = layer.fontSize * (layer.lineHeight || 1.2);
 
   // Determine text alignment
@@ -347,12 +333,7 @@ function drawSvgPathToPdf(
 /**
  * Draw a CSS polygon clip-path shape to jsPDF.
  */
-function drawPolygonToPdf(
-  pdf: jsPDF,
-  clipPath: string,
-  layer: ShapeLayer,
-  drawMode: 'F' | 'S' | 'FD'
-): void {
+function drawPolygonToPdf(pdf: jsPDF, clipPath: string, layer: ShapeLayer, drawMode: 'F' | 'S' | 'FD'): void {
   const match = clipPath.match(/polygon\((.*)\)/);
   if (!match) return;
 
@@ -370,12 +351,7 @@ function drawPolygonToPdf(
   if (points.length < 3) return;
 
   if (points.length === 3) {
-    pdf.triangle(
-      points[0].x, points[0].y,
-      points[1].x, points[1].y,
-      points[2].x, points[2].y,
-      drawMode
-    );
+    pdf.triangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y, drawMode);
   } else {
     for (let i = 0; i < points.length; i++) {
       const next = points[(i + 1) % points.length];
@@ -385,13 +361,32 @@ function drawPolygonToPdf(
 }
 
 /**
- * Draw an image layer to jsPDF.
+ * Draw an image layer to jsPDF, with optional Pro auto-upscale for low-DPI images.
  */
-async function drawImageLayer(pdf: jsPDF, layer: ImageLayer): Promise<void> {
+async function drawImageLayer(pdf: jsPDF, layer: ImageLayer, isPro = false): Promise<void> {
   if (!layer.src) return;
 
   try {
-    const dataUrl = await loadImageAsDataUrl(layer.src);
+    let srcToEmbed = layer.src;
+
+    if (isPro) {
+      // Silently check DPI and upscale if needed
+      const result = await upscaleForPrint(
+        layer.src,
+        layer.width,
+        layer.height,
+        layer.naturalWidth,
+        layer.naturalHeight
+      );
+      if (result.wasUpscaled) {
+        log.info(`[NativePDF] Auto-upscaled image from ${result.originalDpi} DPI to ${result.finalDpi} DPI`, {
+          layerId: layer.id,
+        });
+        srcToEmbed = result.dataUrl;
+      }
+    }
+
+    const dataUrl = await loadImageAsDataUrl(srcToEmbed);
     const imgFormat = dataUrl.includes('image/png') ? 'PNG' : 'JPEG';
 
     const x = pxToPt(layer.x);
@@ -488,6 +483,8 @@ export interface NativePdfOptions {
   bleed?: number;
   cropMarks?: boolean;
   fileName?: string;
+  /** Enable Pro-tier auto-upscale of low-DPI images before embedding */
+  isPro?: boolean;
 }
 
 /**
@@ -540,10 +537,8 @@ export async function exportArtboardToNativePdf(
     }
 
     // Offset by bleed
-    const offsetLayer = bleed > 0
-      ? { ...layer, x: layer.x + bleed, y: layer.y + bleed } as any
-      : layer;
-    await drawLayerToPdf(pdf, offsetLayer);
+    const offsetLayer = bleed > 0 ? ({ ...layer, x: layer.x + bleed, y: layer.y + bleed } as any) : layer;
+    await drawLayerToPdf(pdf, offsetLayer, options.isPro ?? false);
 
     // Reset opacity
     if (opacity < 1) {
@@ -567,7 +562,7 @@ export async function exportArtboardToNativePdf(
 /**
  * Draw a single layer to PDF, using native rendering or raster fallback.
  */
-async function drawLayerToPdf(pdf: jsPDF, layer: Layer): Promise<void> {
+async function drawLayerToPdf(pdf: jsPDF, layer: Layer, isPro = false): Promise<void> {
   // Check if this layer needs raster fallback
   if (hasComplexEffects(layer)) {
     try {
@@ -597,7 +592,7 @@ async function drawLayerToPdf(pdf: jsPDF, layer: Layer): Promise<void> {
       drawTextLayer(pdf, layer as TextLayer);
       break;
     case 'image':
-      await drawImageLayer(pdf, layer as ImageLayer);
+      await drawImageLayer(pdf, layer as ImageLayer, isPro);
       break;
     case 'table':
       drawTableLayer(pdf, layer as TableLayer);
@@ -678,19 +673,21 @@ export async function exportToNativePdf(
         try {
           const gState = (pdf as any).GState({ opacity });
           (pdf as any).setGState(gState);
-        } catch { /* skip */ }
+        } catch {
+          /* skip */
+        }
       }
 
-      const offsetLayer = bleed > 0
-        ? { ...layer, x: layer.x + bleed, y: layer.y + bleed } as any
-        : layer;
-      await drawLayerToPdf(pdf, offsetLayer);
+      const offsetLayer = bleed > 0 ? ({ ...layer, x: layer.x + bleed, y: layer.y + bleed } as any) : layer;
+      await drawLayerToPdf(pdf, offsetLayer, options.isPro ?? false);
 
       if (opacity < 1) {
         try {
           const resetState = (pdf as any).GState({ opacity: 1 });
           (pdf as any).setGState(resetState);
-        } catch { /* skip */ }
+        } catch {
+          /* skip */
+        }
       }
     }
 

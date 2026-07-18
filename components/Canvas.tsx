@@ -527,14 +527,14 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
                   linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)
                 `,
                 backgroundSize: `${100 * zoom}px ${100 * zoom}px`,
-                backgroundPosition: `${panOffset.x}px ${panOffset.y}px`,
+                backgroundPosition: `var(--pan-x, ${panOffset.x}px) var(--pan-y, ${panOffset.y}px)`,
               }}
             />
           )}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
-              transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
+              transform: `translate(var(--pan-x, ${panOffset.x}px), var(--pan-y, ${panOffset.y}px)) scale(var(--zoom, ${zoom}))`,
               transformOrigin: '0 0',
             }}
           >
@@ -609,7 +609,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
           <div
             className="absolute inset-0 z-modal pointer-events-none"
             style={{
-              transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
+              transform: `translate(var(--pan-x, ${panOffset.x}px), var(--pan-y, ${panOffset.y}px)) scale(var(--zoom, ${zoom}))`,
               transformOrigin: '0 0',
             }}
           >

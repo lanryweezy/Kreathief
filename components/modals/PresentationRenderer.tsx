@@ -94,8 +94,8 @@ export const PresentationRenderer: React.FC<PresentationRendererProps> = ({
               position: 'absolute',
               left: l.x,
               top: l.y,
-              width: ('width' in l) ? (l as any).width : 0,
-              height: ('height' in l) ? (l as any).height : 0,
+              width: 'width' in l ? (l as any).width : 0,
+              height: 'height' in l ? (l as any).height : 0,
               zIndex: l.locked ? 49 : 50,
             }}
           >

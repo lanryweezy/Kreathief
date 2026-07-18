@@ -157,13 +157,14 @@ export const WebsitePanel: React.FC = () => {
 
   const handleGenerateWebsite = async () => {
     if (!aiPromptText.trim() || isGeneratingAI) return;
-    
+
     setIsGeneratingAI(true);
     try {
       const generated = await generateWebsiteDesign(aiPromptText);
-      
+
       const state = useStore.getState();
-      const { updateSiteSettings, addWebsitePage, updateArtboard, setActiveArtboardId, addShapeLayer, addTextLayer } = state as any;
+      const { updateSiteSettings, addWebsitePage, updateArtboard, setActiveArtboardId, addShapeLayer, addTextLayer } =
+        state as any;
 
       // Update Site Settings
       updateSiteSettings({
@@ -175,11 +176,11 @@ export const WebsitePanel: React.FC = () => {
       // Build each page
       for (const page of generated.pages) {
         addWebsitePage(page.name);
-        
+
         // Let state update and grab the new artboard
         const newState = useStore.getState();
         const newArtboard = newState.artboards[newState.artboards.length - 1];
-        
+
         if (!newArtboard) continue;
 
         // Set Metadata
@@ -189,21 +190,23 @@ export const WebsitePanel: React.FC = () => {
             isHomePage: page.isHomePage,
             seoKeywords: page.seoKeywords,
             metaDescription: page.metaDescription,
-          }
+          },
         });
 
         // Set as active so addShapeLayer/addTextLayer works on it
         setActiveArtboardId(newArtboard.id);
-        
+
         // We must re-fetch state to get the correct activeArtboard for the layers functions
         let currentYOffset = 0;
-        
+
         for (const section of page.sections) {
-          const block = SECTION_BLOCKS.find(b => b.id === section.type) || SECTION_BLOCKS.find(b => b.id === 'hero-fullscreen')!;
-          
+          const block =
+            SECTION_BLOCKS.find((b) => b.id === section.type) ||
+            SECTION_BLOCKS.find((b) => b.id === 'hero-fullscreen')!;
+
           const title = section.title || block.name;
           const desc = section.content || block.description;
-          
+
           const sState = useStore.getState() as any;
 
           // Background rect
@@ -276,11 +279,11 @@ export const WebsitePanel: React.FC = () => {
               textAlign: 'center',
             });
           }
-          
+
           currentYOffset += block.defaultHeight;
         }
       }
-      
+
       setShowAIModal(false);
       setAIPromptText('');
     } catch (e) {
@@ -296,19 +299,19 @@ export const WebsitePanel: React.FC = () => {
       setDeployError('Please provide a valid Vercel API Token.');
       return;
     }
-    
+
     setIsDeploying(true);
     setDeployError('');
     try {
       localStorage.setItem('vercel_token', vercelToken);
-      
+
       const result = await exportWebsite(websitePages, siteSettings);
-      
+
       const vercelFiles = [
-        ...result.pages.map(p => ({ file: p.filename, data: p.html })),
-        { file: 'styles.css', data: result.css }
+        ...result.pages.map((p) => ({ file: p.filename, data: p.html })),
+        { file: 'styles.css', data: result.css },
       ];
-      
+
       const deployRes = await deployToVercel(vercelFiles, vercelToken, siteSettings?.name || 'kreathief-site');
       setDeployUrl(deployRes.url);
     } catch (err: any) {
@@ -376,18 +379,18 @@ export const WebsitePanel: React.FC = () => {
 
           {/* Tab switcher */}
           <div className="flex rounded-lg bg-surface-dark-0 p-0.5">
-            {([
-              { key: 'pages', label: 'Pages', icon: Icons.FileText },
-              { key: 'sections', label: 'Sections', icon: Icons.LayoutGrid },
-              { key: 'settings', label: 'Settings', icon: Icons.Settings },
-            ] as const).map((tab) => (
+            {(
+              [
+                { key: 'pages', label: 'Pages', icon: Icons.FileText },
+                { key: 'sections', label: 'Sections', icon: Icons.LayoutGrid },
+                { key: 'settings', label: 'Settings', icon: Icons.Settings },
+              ] as const
+            ).map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as ActiveTab)}
                 className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${
-                  activeTab === tab.key
-                    ? 'bg-surface-dark-2 text-white shadow'
-                    : 'text-gray-500 hover:text-gray-300'
+                  activeTab === tab.key ? 'bg-surface-dark-2 text-white shadow' : 'text-gray-500 hover:text-gray-300'
                 }`}
               >
                 <tab.icon className="w-3 h-3" />
@@ -589,7 +592,8 @@ export const WebsitePanel: React.FC = () => {
               {artboards.filter((a: Artboard) => !(a as any).websitePage).length > 0 && (
                 <div className="mt-4 p-3 rounded-xl border border-dashed border-surface-dark-1/60 text-center">
                   <p className="text-[10px] text-gray-500">
-                    {artboards.filter((a: Artboard) => !(a as any).websitePage).length} non-website artboard(s) on canvas
+                    {artboards.filter((a: Artboard) => !(a as any).websitePage).length} non-website artboard(s) on
+                    canvas
                   </p>
                 </div>
               )}
@@ -702,9 +706,7 @@ export const WebsitePanel: React.FC = () => {
             <div className="p-4 space-y-5">
               {/* Site Identity */}
               <div>
-                <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">
-                  Site Identity
-                </h3>
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Site Identity</h3>
                 <div className="space-y-3">
                   <label className="block">
                     <span className="text-[11px] text-gray-400 font-medium">Site Name</span>
@@ -741,9 +743,7 @@ export const WebsitePanel: React.FC = () => {
 
               {/* Design System */}
               <div>
-                <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">
-                  Design System
-                </h3>
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Design System</h3>
                 <div className="space-y-3">
                   <label className="block">
                     <span className="text-[11px] text-gray-400 font-medium">Primary Color</span>
@@ -769,8 +769,21 @@ export const WebsitePanel: React.FC = () => {
                       onChange={(e) => updateSiteSettings({ fontFamily: e.target.value })}
                       className="w-full mt-1 bg-surface-dark-0 border border-surface-dark-1 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500"
                     >
-                      {['Inter', 'Roboto', 'Poppins', 'Montserrat', 'Raleway', 'Open Sans', 'Lato', 'Playfair Display', 'Bebas Neue', 'DM Sans'].map((f) => (
-                        <option key={f} value={f}>{f}</option>
+                      {[
+                        'Inter',
+                        'Roboto',
+                        'Poppins',
+                        'Montserrat',
+                        'Raleway',
+                        'Open Sans',
+                        'Lato',
+                        'Playfair Display',
+                        'Bebas Neue',
+                        'DM Sans',
+                      ].map((f) => (
+                        <option key={f} value={f}>
+                          {f}
+                        </option>
                       ))}
                     </select>
                   </label>
@@ -826,9 +839,7 @@ export const WebsitePanel: React.FC = () => {
 
               {/* Code Injection */}
               <div>
-                <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">
-                  Code Injection
-                </h3>
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Code Injection</h3>
                 <div className="space-y-3">
                   <label className="block">
                     <span className="text-[11px] text-gray-400 font-medium">Global Head Code</span>
@@ -855,9 +866,7 @@ export const WebsitePanel: React.FC = () => {
 
               {/* Export / Publish */}
               <div>
-                <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">
-                  Publish & Export
-                </h3>
+                <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-3">Publish & Export</h3>
                 <div className="space-y-2">
                   <button
                     className="w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-colors shadow-lg shadow-emerald-900/30"
@@ -904,17 +913,18 @@ export const WebsitePanel: React.FC = () => {
                 <Icons.Sparkles className="w-4 h-4 text-brand-400" />
                 Generate Website Structure
               </h3>
-              <button 
+              <button
                 onClick={() => !isGeneratingAI && setShowAIModal(false)}
                 className="text-gray-400 hover:text-white"
               >
                 <Icons.X className="w-4 h-4" />
               </button>
             </div>
-            
+
             <div className="p-6">
               <p className="text-xs text-gray-400 mb-4 leading-relaxed">
-                Describe the website you want to build. Our AI will automatically create the pages, select the best structural sections (heroes, features, footers), and lay them out on the canvas.
+                Describe the website you want to build. Our AI will automatically create the pages, select the best
+                structural sections (heroes, features, footers), and lay them out on the canvas.
               </p>
               <textarea
                 value={aiPromptText}
@@ -923,7 +933,7 @@ export const WebsitePanel: React.FC = () => {
                 className="w-full h-32 bg-surface-dark-1 border border-surface-dark-0 rounded-xl p-3 text-sm text-white resize-none focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all placeholder-gray-500 mb-6"
                 disabled={isGeneratingAI}
               />
-              
+
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => setShowAIModal(false)}
@@ -964,14 +974,14 @@ export const WebsitePanel: React.FC = () => {
                 <Icons.Rocket className="w-4 h-4 text-brand-400" />
                 Publish Website
               </h3>
-              <button 
+              <button
                 onClick={() => !isDeploying && setShowDeployModal(false)}
                 className="text-gray-400 hover:text-white"
               >
                 <Icons.X className="w-4 h-4" />
               </button>
             </div>
-            
+
             <div className="p-6">
               {deployUrl ? (
                 <div className="text-center py-6">
@@ -980,18 +990,18 @@ export const WebsitePanel: React.FC = () => {
                   </div>
                   <h4 className="text-lg font-bold text-white mb-2">Deployment Successful!</h4>
                   <p className="text-sm text-gray-400 mb-6">Your website is now live on Vercel.</p>
-                  
+
                   <div className="flex items-center justify-center gap-3">
-                    <a 
-                      href={deployUrl} 
-                      target="_blank" 
+                    <a
+                      href={deployUrl}
+                      target="_blank"
                       rel="noreferrer"
                       className="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 text-white font-semibold rounded-xl shadow-glow-brand transition-all flex items-center gap-2"
                     >
                       <Icons.ExternalLink className="w-4 h-4" />
                       Visit Site
                     </a>
-                    <button 
+                    <button
                       onClick={() => setDeployUrl('')}
                       className="px-6 py-2.5 bg-surface-dark-1 hover:bg-surface-dark-0 text-white font-semibold rounded-xl border border-surface-dark-0 transition-all"
                     >
@@ -1019,19 +1029,41 @@ export const WebsitePanel: React.FC = () => {
                   </div>
 
                   <div className="relative py-2 mb-6">
-                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-surface-dark-1"></div></div>
-                    <div className="relative flex justify-center"><span className="px-2 bg-surface-dark-2 text-xs text-gray-500 font-semibold uppercase">OR DEPLOY LIVE</span></div>
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-surface-dark-1"></div>
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="px-2 bg-surface-dark-2 text-xs text-gray-500 font-semibold uppercase">
+                        OR DEPLOY LIVE
+                      </span>
+                    </div>
                   </div>
 
                   <div>
                     <h4 className="text-sm font-semibold text-white mb-1 flex items-center gap-2">
-                      <svg viewBox="0 0 76 65" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-white"><path d="M37.5274 0L75.0548 65H0L37.5274 0Z" fill="currentColor"/></svg>
+                      <svg
+                        viewBox="0 0 76 65"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-4 h-4 text-white"
+                      >
+                        <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" fill="currentColor" />
+                      </svg>
                       Deploy to Vercel
                     </h4>
                     <p className="text-xs text-gray-400 mb-4 leading-relaxed">
-                      Push your website directly to your Vercel account. Provide a <a href="https://vercel.com/account/tokens" target="_blank" rel="noreferrer" className="text-brand-400 hover:underline">Vercel API Token</a> to authorize the deployment.
+                      Push your website directly to your Vercel account. Provide a{' '}
+                      <a
+                        href="https://vercel.com/account/tokens"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-brand-400 hover:underline"
+                      >
+                        Vercel API Token
+                      </a>{' '}
+                      to authorize the deployment.
                     </p>
-                    
+
                     <div className="space-y-3 mb-6">
                       <input
                         type="password"
@@ -1047,7 +1079,7 @@ export const WebsitePanel: React.FC = () => {
                         </p>
                       )}
                     </div>
-                    
+
                     <div className="flex justify-end gap-3">
                       <button
                         onClick={() => setShowDeployModal(false)}

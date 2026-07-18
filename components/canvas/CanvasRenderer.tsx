@@ -6,6 +6,7 @@ import { ArtisticFilters } from '../ArtisticFilters';
 import { buildFilterString } from '../../utils/layers';
 import { SmartSuggestions } from './SmartSuggestions';
 import { SmartSnap } from './SmartSnap';
+import { useStore } from '../../store/useStore';
 import { SmartSuggestion } from '../../hooks/useSmartInteraction';
 import { ErrorBoundary } from '../ErrorBoundary';
 
@@ -141,6 +142,8 @@ const ArtboardItem = React.memo(
     viewportBounds,
     isInteracting,
   }: ArtboardItemProps) => {
+    const hoveredMaskBoundary = useStore((state) => state.hoveredMaskBoundary);
+
     const effectiveLayers = React.useMemo(() => {
       const layers = artboard.layers || [];
       // Skip map if getEffectiveLayer is basically an identity function
@@ -302,6 +305,18 @@ const ArtboardItem = React.memo(
                     stroke="#a855f7"
                     strokeWidth={3 / zoom}
                     strokeDasharray={`${6 / zoom},${4 / zoom}`}
+                    className="animate-pulse"
+                  />
+                </svg>
+              )}
+
+              {hoveredMaskBoundary && (
+                <svg className="absolute inset-0 z-[80] pointer-events-none w-full h-full">
+                  <path
+                    d={hoveredMaskBoundary.path}
+                    fill="rgba(236, 72, 153, 0.2)"
+                    stroke="#ec4899"
+                    strokeWidth={2 / zoom}
                     className="animate-pulse"
                   />
                 </svg>

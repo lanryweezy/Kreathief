@@ -9,8 +9,8 @@ export interface SectionBlock {
   description: string;
   tags: string[];
   defaultHeight: number; // pixels at 1440px artboard width
-  icon: string;          // icon name from Icons
-  variants?: string[];   // variant names
+  icon: string; // icon name from Icons
+  variants?: string[]; // variant names
   isPremium?: boolean;
 }
 

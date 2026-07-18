@@ -46,7 +46,9 @@ const Editor = React.lazy(() => import('./components/Editor').then((module) => (
 const AuthCallback = React.lazy(() =>
   import('./components/AuthCallback').then((module) => ({ default: module.AuthCallback }))
 );
-const AudienceView = React.lazy(() => import('./components/AudienceView').then((module) => ({ default: module.AudienceView })));
+const AudienceView = React.lazy(() =>
+  import('./components/AudienceView').then((module) => ({ default: module.AudienceView }))
+);
 import { EditorSkeleton } from './components/EditorSkeleton';
 
 const LoadingFallback = () => (
@@ -171,7 +173,7 @@ const App: React.FC = () => {
         showGrid: state.showGrid,
         showRulers: state.showRulers,
       };
-      storageService.saveSessionMirror(state.projectId, mirrorState as any);
+      storageService.saveSessionMirror(state.projectId, mirrorState as any, state.past, state.future);
     }, 2000);
 
     return () => clearTimeout(timeout);

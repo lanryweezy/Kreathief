@@ -19,10 +19,7 @@ export interface WebsiteSlice {
   setPageSlug: (artboardId: string, slug: string) => void;
 }
 
-export const createWebsiteSlice: StateCreator<StoreState, [], [], Partial<WebsiteSlice>> = (
-  set,
-  get
-) => ({
+export const createWebsiteSlice: StateCreator<StoreState, [], [], Partial<WebsiteSlice>> = (set, get) => ({
   websiteMode: false,
   siteSettings: { ...DEFAULT_SITE_SETTINGS },
 
