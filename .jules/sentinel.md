@@ -187,3 +187,9 @@
 **Vulnerability:** The AI proxy endpoints (`api/gemini.ts`, `api/openrouter.ts`, `api/fal.ts`) had their `requireAuth` check commented out, leaving these endpoints entirely unauthenticated.
 **Learning:** Removing authentication checks from backend proxy endpoints—even temporarily "for a build fix"—exposes the backend's secret API keys to unauthenticated public access, essentially turning the server into an open proxy for expensive third-party AI APIs. This leads directly to quota exhaustion and financial loss.
 **Prevention:** Never remove or comment out authentication layers on proxy endpoints that utilize secure backend secrets. If the build or tests are failing due to auth, mock the authentication in tests or fix the calling client to provide the correct token, rather than lowering security on the server.
+
+## 2026-07-21 - Missing Authentication on Third-Party Proxy Endpoints
+
+**Vulnerability:** The proxy endpoint `api/dynamic-mockups.ts` was missing an authentication check (`requireAuth`), leaving the endpoint unauthenticated.
+**Learning:** Removing or omitting authentication checks from backend proxy endpoints exposes backend secret API keys (e.g., `DYNAMIC_MOCKUPS_API_KEY`) to unauthenticated public access. This turns the server into an open proxy for expensive third-party APIs, leading to quota exhaustion and financial loss.
+**Prevention:** Never omit authentication layers on proxy endpoints that utilize secure backend secrets. Always ensure that `requireAuth` (or equivalent middleware) protects all endpoints interacting with external API keys.
