@@ -12,6 +12,8 @@ import { CanvasRenderer } from './canvas/CanvasRenderer';
 import { CanvasControls } from './canvas/CanvasControls';
 import { CanvasGuides } from './canvas/CanvasGuides';
 import { SelectionMarquee } from './canvas/SelectionMarquee';
+import { Rulers } from './Rulers';
+import { GoldenRatioOverlay } from './GoldenRatioOverlay';
 import { CanvasProvider, CanvasContextValue } from './canvas/CanvasContext';
 import { useTouchGestures } from '../hooks/useTouchGestures';
 import { useSelectionEngine } from '../hooks/useSelectionEngine';
@@ -71,6 +73,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     brushType,
     brushColor,
     brushSize,
+    canvasSize,
   } = useStore(
     useShallow((state) => ({
       artboards: state.artboards || [],
@@ -80,11 +83,13 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
       selectedLayerIds: state.selectedLayerIds || [],
       showGrid: state.showGrid || false,
       showRulers: state.showRulers || false,
+      showGoldenRatio: state.showGoldenRatio || false,
       isDrawing: state.isPenMode || false,
       setPenMode: state.setPenMode,
       brushType: state.brushType,
       brushColor: state.brushColor || '#000000',
       brushSize: state.brushSize || 2,
+      canvasSize: state.canvasSize || { width: 1080, height: 1080 },
     }))
   );
 
@@ -590,6 +595,9 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               />
 
               <CanvasGuides snapLines={snapLines} />
+
+              {showRulers && <Rulers width={canvasSize.width} height={canvasSize.height} zoom={zoom} panX={panOffset.x} panY={panOffset.y} visible={showRulers} />}
+              {showGoldenRatio && <GoldenRatioOverlay width={canvasSize.width} height={canvasSize.height} />}
 
               {selectionBox && <SelectionMarquee box={selectionBox} />}
             </CanvasProvider>

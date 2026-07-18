@@ -113,6 +113,14 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
     setIntensity(textureIntensity);
   }, [textureIntensity]);
 
+  useEffect(() => {
+    setNoiseLevel(canvasFilters.noise || 0);
+  }, [canvasFilters.noise]);
+
+  useEffect(() => {
+    setGrainScale(canvasFilters.grainScale || 50);
+  }, [canvasFilters.grainScale]);
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {

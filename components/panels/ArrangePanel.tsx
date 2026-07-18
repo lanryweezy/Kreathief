@@ -40,7 +40,8 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
   const allLayers = artboards.flatMap((a) => a.layers);
   const selectedLayers = allLayers.filter((l) => selectedLayerIds.includes(l.id));
   const onUpdateLayers = updateLayers;
-  const [isAspectRatioLocked, setIsAspectRatioLocked] = React.useState(true);
+  const isAspectRatioLocked = useStore((state) => state.aspectLocked) || false;
+  const setIsAspectRatioLocked = useStore((state) => state.setAspectLocked);
   const [alignToPage, setAlignToPage] = React.useState(false);
 
   if (selectedLayers.length === 0) {

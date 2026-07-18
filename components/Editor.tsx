@@ -897,14 +897,14 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
               <div className="flex items-center gap-1 px-1">
                 <button
-                  onClick={() => useStore.getState().setShowGrid(!showGrid)}
+                  onClick={() => useStore.getState().setShowGrid(!useStore.getState().showGrid)}
                   className={`p-1.5 rounded-md transition-all ${showGrid ? 'bg-brand/20 text-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
                   title="Toggle Grid"
                 >
                   <Icons.Grid className="w-3.5 h-3.5" />
                 </button>
                 <button
-                  onClick={() => useStore.getState().setShowRulers(!showRulers)}
+                  onClick={() => useStore.getState().setShowRulers(!useStore.getState().showRulers)}
                   className={`p-1.5 rounded-md transition-all ${showRulers ? 'bg-brand/20 text-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
                   title="Toggle Rulers"
                 >

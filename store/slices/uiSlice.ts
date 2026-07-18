@@ -19,6 +19,9 @@ export interface UISlice {
   zoom: number;
   showGrid: boolean;
   showRulers: boolean;
+  gridSize: number;
+  gridColor: string;
+  guides: { type: 'horizontal' | 'vertical'; position: number }[];
   snapToGrid: boolean;
   snapToObjects: boolean;
   showShortcuts: boolean;
@@ -38,6 +41,7 @@ export interface UISlice {
   refineBrushMode: 'none' | 'erase' | 'restore';
   refineBrushSize: number;
   showGoldenRatio: boolean;
+  aspectLocked: boolean;
   favoriteTemplates: string[];
   favoriteProjects: string[];
   toasts: Toast[];
@@ -64,6 +68,12 @@ export interface UISlice {
   resetZoom: () => void;
   setShowGrid: (show: boolean) => void;
   setShowRulers: (show: boolean) => void;
+  setGridSize: (size: number) => void;
+  setGridColor: (color: string) => void;
+  setGuides: (guides: { type: 'horizontal' | 'vertical'; position: number }[]) => void;
+  addGuide: (type: 'horizontal' | 'vertical', position: number) => void;
+  removeGuide: (index: number) => void;
+  clearGuides: () => void;
   setSnapToGrid: (snap: boolean) => void;
   setSnapToObjects: (snap: boolean) => void;
   setShowShortcuts: (show: boolean) => void;
@@ -74,6 +84,7 @@ export interface UISlice {
   setPreviewFontFamily: (font: string | null) => void;
   addCustomFont: (font: string) => void;
   setShowGoldenRatio: (show: boolean) => void;
+  setAspectLocked: (locked: boolean) => void;
   setTags: (tags: string[]) => void;
   addTag: (tag: string) => void;
   removeTag: (tag: string) => void;
@@ -116,6 +127,9 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   zoom: 1,
   showGrid: false,
   showRulers: false,
+  gridSize: 20,
+  gridColor: '#7c3aed',
+  guides: [],
   snapToGrid: true,
   snapToObjects: true,
   showShortcuts: false,
@@ -130,6 +144,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   tags: [],
   isPublished: false,
   showGoldenRatio: false,
+  aspectLocked: true,
   toasts: [],
   isCropMode: false,
   croppingLayerId: null,
@@ -182,6 +197,14 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   resetZoom: () => set({ zoom: 1 }),
   setShowGrid: (show) => set({ showGrid: show }),
   setShowRulers: (show) => set({ showRulers: show }),
+  setGridSize: (size) => set({ gridSize: size }),
+  setGridColor: (color) => set({ gridColor: color }),
+  setGuides: (guides) => set({ guides }),
+  addGuide: (type, position) =>
+    set((state: any) => ({ guides: [...state.guides, { type, position }] })),
+  removeGuide: (index) =>
+    set((state: any) => ({ guides: state.guides.filter((_: any, i: number) => i !== index) })),
+  clearGuides: () => set({ guides: [] }),
   setSnapToGrid: (snap) => set({ snapToGrid: snap }),
   setSnapToObjects: (snap) => set({ snapToObjects: snap }),
   setShowShortcuts: (show) => set({ showShortcuts: show }),
@@ -193,6 +216,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   setPreviewFontFamily: (font) => set({ fontPreview: font }),
   addCustomFont: (font: string) => set((state: any) => ({ customFonts: [...state.customFonts, font] })),
   setShowGoldenRatio: (show) => set({ showGoldenRatio: show }),
+  setAspectLocked: (locked) => set({ aspectLocked: locked }),
   setTags: (tags) => set({ tags }),
   addTag: (tag) =>
     set((state: any) => ({
