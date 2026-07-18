@@ -8,9 +8,15 @@ const CURSOR_SIZE = 20;
  * pulse animation, avatar, name labels, and selection awareness.
  */
 export const CursorOverlay: React.FC = () => {
-  const cursors = useStore((s) => s.cursors);
-  const onlineUsers = useStore((s) => s.onlineUsers);
-  const activeLayerByUser = useStore((s) => s.activeLayerByUser);
+  // ⚡ Bolt Optimization: Use useShallow with specific selectors to prevent the component from
+  // unnecessarily re-rendering on unrelated global state updates and reduce React hook overhead (3 hooks down to 1).
+  const { cursors, onlineUsers, activeLayerByUser } = useStore(
+    useShallow((s) => ({
+      cursors: s.cursors,
+      onlineUsers: s.onlineUsers,
+      activeLayerByUser: s.activeLayerByUser,
+    }))
+  );
 
   const userMap = React.useMemo(() => {
     const map: Record<string, { name: string; color: string; avatar: string | null }> = {};

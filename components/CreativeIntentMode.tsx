@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 
 interface IntentCard {
   id: string;
@@ -94,8 +95,14 @@ interface CreativeIntentModeProps {
 }
 
 export const CreativeIntentMode: React.FC<CreativeIntentModeProps> = ({ onSelect, onSkip }) => {
-  const setIntent = useStore((s) => s.setIntent);
-  const setCanvasSize = useStore((s) => s.setCanvasSize);
+  // ⚡ Bolt Optimization: Use useShallow with specific selectors to prevent the component from
+  // unnecessarily re-rendering on unrelated global state updates and reduce React hook overhead (2 hooks down to 1).
+  const { setIntent, setCanvasSize } = useStore(
+    useShallow((s) => ({
+      setIntent: s.setIntent,
+      setCanvasSize: s.setCanvasSize,
+    }))
+  );
 
   const handleSelect = (intent: IntentCard) => {
     setIntent(intent.id, intent.width, intent.height);
