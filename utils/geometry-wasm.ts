@@ -28,7 +28,9 @@ export async function initEngine(): Promise<void> {
     if (typeof (mod as any).default === 'function') {
       await (mod as any).default();
     }
-  } catch { /* Node.js — WASM loads automatically */ }
+  } catch {
+    /* Node.js — WASM loads automatically */
+  }
   initialized = true;
 }
 
@@ -48,26 +50,32 @@ export interface BBox {
 
 // ─── Geometry functions ────────────────────────────────────────
 
-export function pointOnCurve(
-  p0: Point, p1: Point, p2: Point, p3: Point, t: number
-): Point {
+export function pointOnCurve(p0: Point, p1: Point, p2: Point, p3: Point, t: number): Point {
   const r = _pointOnCurve(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, t);
   return { x: r.x, y: r.y };
 }
 
-export function curveLength(
-  p0: Point, p1: Point, p2: Point, p3: Point, segments = 32
-): number {
+export function curveLength(p0: Point, p1: Point, p2: Point, p3: Point, segments = 32): number {
   return _curveLength(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, segments);
 }
 
 export function splitCurve(
-  p0: Point, p1: Point, p2: Point, p3: Point, t: number
+  p0: Point,
+  p1: Point,
+  p2: Point,
+  p3: Point,
+  t: number
 ): [Point, Point, Point, Point, Point, Point, Point, Point] {
   const r = _splitCurve(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, t);
   return [
-    { x: r[0], y: r[1] }, { x: r[2], y: r[3] }, { x: r[4], y: r[5] }, { x: r[6], y: r[7] },
-    { x: r[8], y: r[9] }, { x: r[10], y: r[11] }, { x: r[12], y: r[13] }, { x: r[14], y: r[15] },
+    { x: r[0], y: r[1] },
+    { x: r[2], y: r[3] },
+    { x: r[4], y: r[5] },
+    { x: r[6], y: r[7] },
+    { x: r[8], y: r[9] },
+    { x: r[10], y: r[11] },
+    { x: r[12], y: r[13] },
+    { x: r[14], y: r[15] },
   ];
 }
 
@@ -98,7 +106,13 @@ export function lineLineIntersect(a1: Point, a2: Point, b1: Point, b2: Point): P
 }
 
 export function curveLineIntersect(
-  p0: Point, p1: Point, p2: Point, p3: Point, a: Point, b: Point, segments = 24
+  p0: Point,
+  p1: Point,
+  p2: Point,
+  p3: Point,
+  a: Point,
+  b: Point,
+  segments = 24
 ): Point[] {
   const r = _curveLineIntersect(p0.x, p0.y, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, a.x, a.y, b.x, b.y, segments);
   const pts: Point[] = [];
@@ -189,7 +203,10 @@ export function calculateSnaps(
   if (!oracle) oracle = new _SnappingOracle();
 
   // Compute selection bounds
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
   for (const l of movingLayers) {
     minX = Math.min(minX, l.x);
     minY = Math.min(minY, l.y);
@@ -198,7 +215,7 @@ export function calculateSnaps(
   }
 
   // Build flat layer data for WASM: [x, y, w, h, 0, locked, visible, has_group, ...]
-  const movingIds = new Set(movingLayers.map(l => l.id));
+  const movingIds = new Set(movingLayers.map((l) => l.id));
   const layerData = new Float64Array(allLayers.length * 8);
   const movingIdxs: number[] = [];
 
@@ -216,7 +233,14 @@ export function calculateSnaps(
     if (movingIds.has(l.id)) movingIdxs.push(i);
   }
 
-  oracle.build_targets(layerData, new Uint32Array(movingIdxs), activeArtboard.x, activeArtboard.y, activeArtboard.width, activeArtboard.height);
+  oracle.build_targets(
+    layerData,
+    new Uint32Array(movingIdxs),
+    activeArtboard.x,
+    activeArtboard.y,
+    activeArtboard.width,
+    activeArtboard.height
+  );
 
   const snapResult = oracle.calculate_snaps(minX, minY, maxX, maxY, threshold);
 

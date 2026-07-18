@@ -42,3 +42,8 @@
 
 **Learning:** Inputs (like text, number, color, or file inputs) within complex node-based structures (e.g., `Node.tsx`) are often visually labeled but lack programmatic associations because generating and passing unique IDs for every dynamically rendered input inside every node is cumbersome. As a result, screen readers only announce the generic input type rather than its purpose.
 **Action:** When implementing or modifying dynamically rendered inputs inside list items, nodes, or cards where unique ID generation for `<label htmlFor="...">` is impractical, always provide a descriptive `aria-label` attribute directly on the `<input>` element (e.g., `aria-label="Filter strength"`) to ensure the control remains accessible.
+
+## 2024-05-18 - Missing ARIA Labels on Text Spacing Input Sliders
+
+**Learning:** Discovered that range inputs used for adjusting text spacing (kerning, tracking, etc.) lacked `aria-label` attributes. Without these, screen readers would simply announce them as "slider", providing no context on what setting was being adjusted, since they were separated from their descriptive UI text.
+**Action:** When implementing custom slider controls where the `<input type="range">` isn't wrapped in a semantic `<label>` linking to its ID, explicitly provide an `aria-label` attribute (e.g., `aria-label="Kerning"`) to ensure the control remains fully accessible to screen readers.

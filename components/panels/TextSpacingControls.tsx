@@ -104,7 +104,11 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
           <Icons.Spacing className="w-4 h-4 text-gray-400" />
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Spacing</h3>
         </div>
-        <button onClick={handleReset} className="text-[10px] text-gray-500 hover:text-white flex items-center gap-1">
+        <button
+          aria-label="Reset spacing"
+          onClick={handleReset}
+          className="text-[10px] text-gray-500 hover:text-white flex items-center gap-1"
+        >
           <Icons.Refresh className="w-3 h-3" /> Reset
         </button>
       </div>
@@ -117,6 +121,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
         </div>
         <input
           type="range"
+          aria-label="Kerning"
           min="-50"
           max="50"
           value={kerning}
@@ -138,6 +143,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
         </div>
         <input
           type="range"
+          aria-label="Tracking"
           min="-200"
           max="200"
           value={tracking}
@@ -159,6 +165,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
         </div>
         <input
           type="range"
+          aria-label="Leading (Line Height)"
           min="0.3"
           max="5.0"
           step="0.1"
@@ -181,6 +188,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
         </div>
         <input
           type="range"
+          aria-label="Space Before"
           min="0"
           max="50"
           value={spaceBefore}
@@ -202,6 +210,7 @@ export const TextSpacingControls: React.FC<TextSpacingControlsProps> = ({ select
         </div>
         <input
           type="range"
+          aria-label="Space After"
           min="0"
           max="50"
           value={spaceAfter}
