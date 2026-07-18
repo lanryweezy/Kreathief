@@ -167,10 +167,7 @@ export const GridGuidesPanel: React.FC = () => {
                 <span>
                   {guide.type === 'horizontal' ? '↔' : '↕'} {guide.position}px
                 </span>
-                <button
-                  onClick={() => removeGuide(index)}
-                  className="text-gray-600 hover:text-red-400"
-                >
+                <button onClick={() => removeGuide(index)} className="text-gray-600 hover:text-red-400">
                   ×
                 </button>
               </div>

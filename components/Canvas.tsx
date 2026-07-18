@@ -596,7 +596,16 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 
               <CanvasGuides snapLines={snapLines} />
 
-              {showRulers && <Rulers width={canvasSize.width} height={canvasSize.height} zoom={zoom} panX={panOffset.x} panY={panOffset.y} visible={showRulers} />}
+              {showRulers && (
+                <Rulers
+                  width={canvasSize.width}
+                  height={canvasSize.height}
+                  zoom={zoom}
+                  panX={panOffset.x}
+                  panY={panOffset.y}
+                  visible={showRulers}
+                />
+              )}
               {showGoldenRatio && <GoldenRatioOverlay width={canvasSize.width} height={canvasSize.height} />}
 
               {selectionBox && <SelectionMarquee box={selectionBox} />}

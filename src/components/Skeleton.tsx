@@ -15,12 +15,7 @@ const roundedMap = {
   full: 'rounded-full',
 };
 
-export const Skeleton: React.FC<SkeletonProps> = ({
-  className = '',
-  width,
-  height,
-  rounded = 'md',
-}) => {
+export const Skeleton: React.FC<SkeletonProps> = ({ className = '', width, height, rounded = 'md' }) => {
   return (
     <div
       className={`animate-pulse bg-neutral-800 ${roundedMap[rounded]} ${className}`}
@@ -33,18 +28,10 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   );
 };
 
-export const SkeletonText: React.FC<{ lines?: number; className?: string }> = ({
-  lines = 3,
-  className = '',
-}) => (
+export const SkeletonText: React.FC<{ lines?: number; className?: string }> = ({ lines = 3, className = '' }) => (
   <div className={`space-y-2 ${className}`}>
     {Array.from({ length: lines }).map((_, i) => (
-      <Skeleton
-        key={i}
-        height="12px"
-        width={i === lines - 1 ? '60%' : '100%'}
-        rounded="sm"
-      />
+      <Skeleton key={i} height="12px" width={i === lines - 1 ? '60%' : '100%'} rounded="sm" />
     ))}
   </div>
 );
@@ -57,23 +44,10 @@ export const SkeletonCard: React.FC<{ className?: string }> = ({ className = '' 
   </div>
 );
 
-export const SkeletonAvatar: React.FC<{ size?: number; className?: string }> = ({
-  size = 40,
-  className = '',
-}) => (
-  <Skeleton
-    width={size}
-    height={size}
-    rounded="full"
-    className={className}
-  />
+export const SkeletonAvatar: React.FC<{ size?: number; className?: string }> = ({ size = 40, className = '' }) => (
+  <Skeleton width={size} height={size} rounded="full" className={className} />
 );
 
 export const SkeletonButton: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <Skeleton
-    height="36px"
-    width="80px"
-    rounded="lg"
-    className={className}
-  />
+  <Skeleton height="36px" width="80px" rounded="lg" className={className} />
 );

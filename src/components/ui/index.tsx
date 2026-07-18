@@ -8,23 +8,14 @@ interface BadgeProps {
   className?: string;
 }
 
-export const Badge: React.FC<BadgeProps> = ({
-  children,
-  variant = 'default',
-  size = 'sm',
-  className = '',
-}) => {
+export const Badge: React.FC<BadgeProps> = ({ children, variant = 'default', size = 'sm', className = '' }) => {
   const base = 'inline-flex items-center font-medium';
   const sizes = { sm: 'px-2 py-0.5 text-[10px]', md: 'px-2.5 py-1 text-xs' };
   const variants = {
     default: 'bg-neutral-800 text-neutral-300',
     outline: 'border border-neutral-700 text-neutral-400',
   };
-  return (
-    <span className={`${base} ${sizes[size]} ${variants[variant]} rounded-md ${className}`}>
-      {children}
-    </span>
-  );
+  return <span className={`${base} ${sizes[size]} ${variants[variant]} rounded-md ${className}`}>{children}</span>;
 };
 
 // === Tooltip ===
@@ -34,11 +25,7 @@ interface TooltipProps {
   side?: 'top' | 'bottom' | 'left' | 'right';
 }
 
-export const Tooltip: React.FC<TooltipProps> = ({
-  content,
-  children,
-  side = 'top',
-}) => {
+export const Tooltip: React.FC<TooltipProps> = ({ content, children, side = 'top' }) => {
   const positionClasses = {
     top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
     bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
@@ -77,13 +64,7 @@ interface EmptyStateProps {
   className?: string;
 }
 
-export const EmptyState: React.FC<EmptyStateProps> = ({
-  icon,
-  title,
-  description,
-  action,
-  className = '',
-}) => (
+export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, description, action, className = '' }) => (
   <div className={`flex flex-col items-center justify-center py-12 px-4 ${className}`}>
     {icon && <div className="mb-3 text-neutral-600">{icon}</div>}
     <h3 className="text-sm font-medium text-neutral-300 mb-1">{title}</h3>
@@ -99,18 +80,17 @@ interface ProgressProps {
   className?: string;
 }
 
-export const Progress: React.FC<ProgressProps> = ({
-  value,
-  max = 100,
-  className = '',
-}) => {
+export const Progress: React.FC<ProgressProps> = ({ value, max = 100, className = '' }) => {
   const percentage = Math.min(100, (value / max) * 100);
   return (
-    <div className={`h-1 bg-neutral-800 rounded-full overflow-hidden ${className}`} role="progressbar" aria-valuenow={value} aria-valuemin={0} aria-valuemax={max}>
-      <div
-        className="h-full bg-neutral-500 transition-all duration-300 ease-out"
-        style={{ width: `${percentage}%` }}
-      />
+    <div
+      className={`h-1 bg-neutral-800 rounded-full overflow-hidden ${className}`}
+      role="progressbar"
+      aria-valuenow={value}
+      aria-valuemin={0}
+      aria-valuemax={max}
+    >
+      <div className="h-full bg-neutral-500 transition-all duration-300 ease-out" style={{ width: `${percentage}%` }} />
     </div>
   );
 };
@@ -164,23 +144,11 @@ interface AvatarProps {
   className?: string;
 }
 
-export const Avatar: React.FC<AvatarProps> = ({
-  src,
-  alt = '',
-  size = 'md',
-  fallback,
-  className = '',
-}) => {
+export const Avatar: React.FC<AvatarProps> = ({ src, alt = '', size = 'md', fallback, className = '' }) => {
   const sizes = { sm: 'w-6 h-6 text-[10px]', md: 'w-8 h-8 text-xs', lg: 'w-10 h-10 text-sm' };
 
   if (src) {
-    return (
-      <img
-        src={src}
-        alt={alt}
-        className={`${sizes[size]} rounded-full object-cover ${className}`}
-      />
-    );
+    return <img src={src} alt={alt} className={`${sizes[size]} rounded-full object-cover ${className}`} />;
   }
 
   return (

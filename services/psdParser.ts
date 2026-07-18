@@ -47,12 +47,12 @@ function colorToRGBA(c: Color | undefined): string | null {
 
 function parseBlendMode(psdBlendMode: string | undefined): DesignNode['blendMode'] {
   const map: Record<string, DesignNode['blendMode']> = {
-    'normal': 'normal',
-    'multiply': 'multiply',
-    'screen': 'screen',
-    'overlay': 'overlay',
-    'darken': 'darken',
-    'lighten': 'lighten',
+    normal: 'normal',
+    multiply: 'multiply',
+    screen: 'screen',
+    overlay: 'overlay',
+    darken: 'darken',
+    lighten: 'lighten',
   };
   return map[psdBlendMode || 'normal'] || 'normal';
 }
@@ -64,9 +64,7 @@ function effectsFromPSD(layer: Layer): DesignNode['effects'] {
   if (!layerEffects) return effects;
 
   if (layerEffects.dropShadow) {
-    const shadows = Array.isArray(layerEffects.dropShadow)
-      ? layerEffects.dropShadow
-      : [layerEffects.dropShadow];
+    const shadows = Array.isArray(layerEffects.dropShadow) ? layerEffects.dropShadow : [layerEffects.dropShadow];
     for (const ds of shadows) {
       if (ds?.enabled) {
         effects.push({
@@ -84,9 +82,7 @@ function effectsFromPSD(layer: Layer): DesignNode['effects'] {
   }
 
   if (layerEffects.innerShadow) {
-    const shadows = Array.isArray(layerEffects.innerShadow)
-      ? layerEffects.innerShadow
-      : [layerEffects.innerShadow];
+    const shadows = Array.isArray(layerEffects.innerShadow) ? layerEffects.innerShadow : [layerEffects.innerShadow];
     for (const is of shadows) {
       if (is?.enabled) {
         effects.push({
@@ -172,7 +168,7 @@ function processPSDNode(
   options: PSDCompressionOptions,
   layerVisibility: boolean = true
 ): string | null {
-  const isVisible = layerVisibility && (psdNode.hidden !== true);
+  const isVisible = layerVisibility && psdNode.hidden !== true;
 
   if (options.stripHiddenLayers && psdNode.hidden) return null;
 
@@ -263,11 +259,7 @@ function processPSDNode(
   return nodeId;
 }
 
-function generateThumbnail(
-  psd: Psd,
-  canvas: HTMLCanvasElement,
-  size: number
-): string {
+function generateThumbnail(psd: Psd, canvas: HTMLCanvasElement, size: number): string {
   const ctx = canvas.getContext('2d');
   if (!ctx) return '';
 
@@ -295,10 +287,7 @@ function generateThumbnail(
   return canvas.toDataURL('image/jpeg', 0.7);
 }
 
-export async function parsePSDFile(
-  file: File,
-  options: Partial<PSDCompressionOptions> = {}
-): Promise<ParsedPSD> {
+export async function parsePSDFile(file: File, options: Partial<PSDCompressionOptions> = {}): Promise<ParsedPSD> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   const originalSize = file.size;
 
@@ -370,7 +359,7 @@ export async function parsePSDFile(
 
 export function getCompressionRatio(parsed: ParsedPSD): number {
   if (parsed.originalSize === 0) return 0;
-  return 1 - (parsed.compressedSize / parsed.originalSize);
+  return 1 - parsed.compressedSize / parsed.originalSize;
 }
 
 export function estimateMemoryUsage(parsed: ParsedPSD): number {

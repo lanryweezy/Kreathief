@@ -17,8 +17,12 @@ export interface ExportOptions {
 // ── Shared helpers (used by both SVG and Canvas export) ──────────────
 
 function escapeXml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
 }
 
 function resolveFill(node: DesignNode): string {
@@ -30,18 +34,18 @@ function resolveFill(node: DesignNode): string {
 
 function renderGradientDef(id: string, fill: GradientFill, node: DesignNode): string {
   if (fill.type === 'linear') {
-    const angle = (fill.angle || 0) * Math.PI / 180;
-    const x1 = node.x + Math.cos(angle) * node.width / 2;
-    const y1 = node.y + Math.sin(angle) * node.height / 2;
-    const x2 = node.x + node.width / 2 - Math.cos(angle) * node.width / 2;
-    const y2 = node.y + node.height / 2 - Math.sin(angle) * node.height / 2;
-    const stops = fill.stops.map(s => `<stop offset="${s.offset}" stop-color="${s.color}" />`).join('');
+    const angle = ((fill.angle || 0) * Math.PI) / 180;
+    const x1 = node.x + (Math.cos(angle) * node.width) / 2;
+    const y1 = node.y + (Math.sin(angle) * node.height) / 2;
+    const x2 = node.x + node.width / 2 - (Math.cos(angle) * node.width) / 2;
+    const y2 = node.y + node.height / 2 - (Math.sin(angle) * node.height) / 2;
+    const stops = fill.stops.map((s) => `<stop offset="${s.offset}" stop-color="${s.color}" />`).join('');
     return `<linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">${stops}</linearGradient>`;
   }
   const cx = node.x + node.width / 2;
   const cy = node.y + node.height / 2;
   const r = node.width / 2;
-  const stops = fill.stops.map(s => `<stop offset="${s.offset}" stop-color="${s.color}" />`).join('');
+  const stops = fill.stops.map((s) => `<stop offset="${s.offset}" stop-color="${s.color}" />`).join('');
   return `<radialGradient id="${id}" cx="${cx}" cy="${cy}" r="${r}">${stops}</radialGradient>`;
 }
 
@@ -101,7 +105,7 @@ function renderNodeToSvg(
   node: DesignNode,
   nodesMap: Map<string, DesignNode>,
   offsetX: number,
-  offsetY: number,
+  offsetY: number
 ): string {
   const x = node.x - offsetX;
   const y = node.y - offsetY;
@@ -112,7 +116,7 @@ function renderNodeToSvg(
     ? ` transform="rotate(${node.rotation} ${x + node.width / 2} ${y + node.height / 2})"`
     : '';
   const blendMode = node.blendMode !== 'normal' ? ` style="mix-blend-mode:${node.blendMode}"` : '';
-  const filterAttr = node.effects?.some(e => e.enabled) ? ` filter="url(#filter-${node.id})"` : '';
+  const filterAttr = node.effects?.some((e) => e.enabled) ? ` filter="url(#filter-${node.id})"` : '';
 
   // Resolve fill: string → solid, object → gradient url(#id)
   let fillAttr: string;
@@ -126,11 +130,14 @@ function renderNodeToSvg(
   // Group children
   if (node.type === 'group' || node.type === 'frame') {
     const childSvgs = node.children
-      .map(id => nodesMap.get(id))
+      .map((id) => nodesMap.get(id))
       .filter(Boolean)
-      .map(child => renderNodeToSvg(child!, nodesMap, offsetX, offsetY))
+      .map((child) => renderNodeToSvg(child!, nodesMap, offsetX, offsetY))
       .join('\n    ');
-    const fillBg = node.type === 'frame' ? `<rect x="${x}" y="${y}" width="${node.width}" height="${node.height}" ${fillAttr}${stroke} />` : '';
+    const fillBg =
+      node.type === 'frame'
+        ? `<rect x="${x}" y="${y}" width="${node.width}" height="${node.height}" ${fillAttr}${stroke} />`
+        : '';
     return `<g id="${node.id}"${opacity}${blendMode}${filterAttr}>\n    ${fillBg}\n    ${childSvgs}\n  </g>`;
   }
 
@@ -157,9 +164,9 @@ function renderNodeToSvg(
       if (lines.length === 1) {
         return `<text id="${node.id}" x="${tx}" y="${y + fontSize}" fill="${textFill}" font-size="${fontSize}" font-family="${node.fontFamily || 'system-ui'}" font-weight="${node.fontWeight || 400}" text-anchor="${textAnchor}"${ls}${opacity}${transform}${blendMode}${filterAttr}>${escapeXml(lines[0])}</text>`;
       }
-      const tspans = lines.map((line, i) =>
-        `<tspan x="${tx}" dy="${i === 0 ? 0 : yStep}">${escapeXml(line)}</tspan>`
-      ).join('');
+      const tspans = lines
+        .map((line, i) => `<tspan x="${tx}" dy="${i === 0 ? 0 : yStep}">${escapeXml(line)}</tspan>`)
+        .join('');
       return `<text id="${node.id}" x="${tx}" y="${y + fontSize}" fill="${textFill}" font-size="${fontSize}" font-family="${node.fontFamily || 'system-ui'}" font-weight="${node.fontWeight || 400}" text-anchor="${textAnchor}"${ls}${opacity}${transform}${blendMode}${filterAttr}>${tspans}</text>`;
     }
 
@@ -169,7 +176,7 @@ function renderNodeToSvg(
     case 'path': {
       if (!node.points || node.points.length < 2) return '';
       // Translate points by offset
-      const translated = node.points.map(p => ({
+      const translated = node.points.map((p) => ({
         ...p,
         x: p.x - offsetX,
         y: p.y - offsetY,
@@ -186,9 +193,7 @@ function renderNodeToSvg(
       // actual images, but SVG export was still showing placeholder text.
       if (node.imageUrl) {
         // Use preserveAspectRatio based on imageFit
-        const ar = node.imageFit === 'contain' ? 'xMidYMid meet'
-          : node.imageFit === 'fill' ? 'none'
-          : 'xMidYMid slice'; // cover (default)
+        const ar = node.imageFit === 'contain' ? 'xMidYMid meet' : node.imageFit === 'fill' ? 'none' : 'xMidYMid slice'; // cover (default)
         return `<image id="${node.id}" x="${x}" y="${y}" width="${node.width}" height="${node.height}" href="${escapeXml(node.imageUrl)}" preserveAspectRatio="${ar}"${opacity}${transform}${blendMode}${filterAttr} />`;
       }
       return `<g id="${node.id}"${opacity}${transform}${blendMode}${filterAttr}>
@@ -206,10 +211,13 @@ function renderNodeToSvg(
 export function exportToSvg(nodes: DesignNode[], background = true): string {
   if (nodes.length === 0) return '<svg xmlns="http://www.w3.org/2000/svg"></svg>';
 
-  const nodesMap = new Map(nodes.map(n => [n.id, n]));
+  const nodesMap = new Map(nodes.map((n) => [n.id, n]));
 
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  nodes.forEach(n => {
+  let minX = Infinity,
+    minY = Infinity,
+    maxX = -Infinity,
+    maxY = -Infinity;
+  nodes.forEach((n) => {
     minX = Math.min(minX, n.x);
     minY = Math.min(minY, n.y);
     maxX = Math.max(maxX, n.x + n.width);
@@ -221,7 +229,7 @@ export function exportToSvg(nodes: DesignNode[], background = true): string {
 
   // Collect <defs> — gradients and filters for all nodes
   const defs: string[] = [];
-  nodes.forEach(node => {
+  nodes.forEach((node) => {
     if (node.fill && typeof node.fill === 'object' && 'stops' in node.fill) {
       defs.push(renderGradientDef(`grad-${node.id}`, node.fill, node));
     }
@@ -235,7 +243,7 @@ export function exportToSvg(nodes: DesignNode[], background = true): string {
 
   const inner = nodes
     .sort((a, b) => (a as any).zIndex - (b as any).zIndex)
-    .map(n => `  ${renderNodeToSvg(n, nodesMap, minX, minY)}`)
+    .map((n) => `  ${renderNodeToSvg(n, nodesMap, minX, minY)}`)
     .join('\n');
 
   const defsBlock = defs.length > 0 ? `<defs>\n    ${defs.join('\n    ')}\n  </defs>\n` : '';
@@ -256,10 +264,16 @@ export function exportToCanvas(
   options: ExportOptions
 ): Promise<Blob | null> {
   return new Promise((resolve) => {
-    if (nodes.length === 0) { resolve(null); return; }
+    if (nodes.length === 0) {
+      resolve(null);
+      return;
+    }
 
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    nodes.forEach(n => {
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
+    nodes.forEach((n) => {
       minX = Math.min(minX, n.x);
       minY = Math.min(minY, n.y);
       maxX = Math.max(maxX, n.x + n.width);
@@ -274,7 +288,10 @@ export function exportToCanvas(
     offscreen.width = w;
     offscreen.height = h;
     const ctx = offscreen.getContext('2d');
-    if (!ctx) { resolve(null); return; }
+    if (!ctx) {
+      resolve(null);
+      return;
+    }
 
     ctx.scale(options.scale, options.scale);
 
@@ -436,18 +453,34 @@ export function exportToCanvas(
               ctx.rect(x, y, node.width, node.height);
               ctx.clip();
               const fit = node.imageFit || 'cover';
-              let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
-              let dx = x, dy = y, dw = node.width, dh = node.height;
+              let sx = 0,
+                sy = 0,
+                sw = img.naturalWidth,
+                sh = img.naturalHeight;
+              let dx = x,
+                dy = y,
+                dw = node.width,
+                dh = node.height;
               if (fit === 'cover') {
                 const imgRatio = sw / sh;
                 const nodeRatio = dw / dh;
-                if (imgRatio > nodeRatio) { sw = sh * nodeRatio; sx = (img.naturalWidth - sw) / 2; }
-                else { sh = sw / nodeRatio; sy = (img.naturalHeight - sh) / 2; }
+                if (imgRatio > nodeRatio) {
+                  sw = sh * nodeRatio;
+                  sx = (img.naturalWidth - sw) / 2;
+                } else {
+                  sh = sw / nodeRatio;
+                  sy = (img.naturalHeight - sh) / 2;
+                }
               } else if (fit === 'contain') {
                 const imgRatio = sw / sh;
                 const nodeRatio = dw / dh;
-                if (imgRatio > nodeRatio) { dh = dw / imgRatio; dy = y + (node.height - dh) / 2; }
-                else { dw = dh * imgRatio; dx = x + (node.width - dw) / 2; }
+                if (imgRatio > nodeRatio) {
+                  dh = dw / imgRatio;
+                  dy = y + (node.height - dh) / 2;
+                } else {
+                  dw = dh * imgRatio;
+                  dx = x + (node.width - dw) / 2;
+                }
               }
               ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
               ctx.restore();
@@ -485,21 +518,25 @@ export function exportToCanvas(
 // Same gradient formula as canvasEngine.createGradient (line 1340)
 function createCanvasGradient(ctx: CanvasRenderingContext2D, fill: GradientFill, node: DesignNode): CanvasGradient {
   if (fill.type === 'linear') {
-    const angle = (fill.angle || 0) * Math.PI / 180;
+    const angle = ((fill.angle || 0) * Math.PI) / 180;
     const grad = ctx.createLinearGradient(
-      node.x + Math.cos(angle) * node.width / 2,
-      node.y + Math.sin(angle) * node.height / 2,
-      node.x + node.width / 2 - Math.cos(angle) * node.width / 2,
-      node.y + node.height / 2 - Math.sin(angle) * node.height / 2,
+      node.x + (Math.cos(angle) * node.width) / 2,
+      node.y + (Math.sin(angle) * node.height) / 2,
+      node.x + node.width / 2 - (Math.cos(angle) * node.width) / 2,
+      node.y + node.height / 2 - (Math.sin(angle) * node.height) / 2
     );
-    fill.stops.forEach(s => grad.addColorStop(s.offset, s.color));
+    fill.stops.forEach((s) => grad.addColorStop(s.offset, s.color));
     return grad;
   }
   const grad = ctx.createRadialGradient(
-    node.x + node.width / 2, node.y + node.height / 2, 0,
-    node.x + node.width / 2, node.y + node.height / 2, node.width / 2,
+    node.x + node.width / 2,
+    node.y + node.height / 2,
+    0,
+    node.x + node.width / 2,
+    node.y + node.height / 2,
+    node.width / 2
   );
-  fill.stops.forEach(s => grad.addColorStop(s.offset, s.color));
+  fill.stops.forEach((s) => grad.addColorStop(s.offset, s.color));
   return grad;
 }
 

@@ -23,13 +23,29 @@ const CreatorDashboard = lazy(() => import('./components/CreatorDashboard'));
 const PaymentSettings = lazy(() => import('./components/PaymentSettings'));
 
 // Lazy-loaded: editor modals (only loaded on explicit user action)
-const ExportModal = lazy(() => import('./components/ExportModal').then(m => ({ default: m.ExportModal })));
-const VersionHistory = lazy(() => import('./components/VersionHistory').then(m => ({ default: m.VersionHistory })));
+const ExportModal = lazy(() => import('./components/ExportModal').then((m) => ({ default: m.ExportModal })));
+const VersionHistory = lazy(() => import('./components/VersionHistory').then((m) => ({ default: m.VersionHistory })));
 
 type View = 'editor' | 'marketplace' | 'creator';
 
 const App: React.FC = () => {
-  const { darkMode, setTool, undo, redo, showProperties, toggleExpertMode, initMemory, memoryReady, selectNode, zoom, selectedIds, nodes, autoSave, lastSaved, activeTool } = useKreathiefStore();
+  const {
+    darkMode,
+    setTool,
+    undo,
+    redo,
+    showProperties,
+    toggleExpertMode,
+    initMemory,
+    memoryReady,
+    selectNode,
+    zoom,
+    selectedIds,
+    nodes,
+    autoSave,
+    lastSaved,
+    activeTool,
+  } = useKreathiefStore();
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -42,7 +58,12 @@ const App: React.FC = () => {
   const [showCreatorReg, setShowCreatorReg] = useState(false);
   const [showPaymentSettings, setShowPaymentSettings] = useState(false);
   const [creator, setCreator] = useState<Creator | null>(() => {
-    try { const d = localStorage.getItem('kreathief_creator'); return d ? JSON.parse(d) : null; } catch { return null; }
+    try {
+      const d = localStorage.getItem('kreathief_creator');
+      return d ? JSON.parse(d) : null;
+    } catch {
+      return null;
+    }
   });
 
   useEffect(() => {
@@ -88,7 +109,7 @@ const App: React.FC = () => {
 
       if (e.key === '?' || (e.key === '/' && e.shiftKey)) {
         e.preventDefault();
-        setShowShortcuts(prev => !prev);
+        setShowShortcuts((prev) => !prev);
         return;
       }
 
@@ -116,19 +137,19 @@ const App: React.FC = () => {
 
       if (e.key === 'h' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
-        setShowHistory(prev => !prev);
+        setShowHistory((prev) => !prev);
         return;
       }
 
       if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
-        setShowCommandPalette(prev => !prev);
+        setShowCommandPalette((prev) => !prev);
         return;
       }
 
       if (e.key === 'v' && (e.ctrlKey || e.metaKey) && e.shiftKey) {
         e.preventDefault();
-        setShowVersionHistory(prev => !prev);
+        setShowVersionHistory((prev) => !prev);
         return;
       }
 
@@ -138,7 +159,7 @@ const App: React.FC = () => {
         const state = useKreathiefStore.getState();
         const ids = Array.from(state.selectedIds);
         if (ids.length > 0) {
-          ids.forEach(id => state.removeNode(id));
+          ids.forEach((id) => state.removeNode(id));
           state.addToast('info', `Deleted ${ids.length} element${ids.length !== 1 ? 's' : ''}`);
         }
         return;
@@ -158,10 +179,16 @@ const App: React.FC = () => {
         const state = useKreathiefStore.getState();
         const ids = Array.from(state.selectedIds);
         if (ids.length > 0) {
-          ids.forEach(id => {
+          ids.forEach((id) => {
             const node = state.nodes.get(id);
             if (node) {
-              state.addNode({ ...node, id: `${node.id}_dup_${Date.now()}`, x: node.x + 20, y: node.y + 20, name: `${node.name} copy` });
+              state.addNode({
+                ...node,
+                id: `${node.id}_dup_${Date.now()}`,
+                x: node.x + 20,
+                y: node.y + 20,
+                name: `${node.name} copy`,
+              });
             }
           });
           state.addToast('success', `Duplicated ${ids.length} element${ids.length !== 1 ? 's' : ''}`);
@@ -176,7 +203,7 @@ const App: React.FC = () => {
         const step = e.shiftKey ? 10 : 1;
         const dx = e.key === 'ArrowRight' ? step : e.key === 'ArrowLeft' ? -step : 0;
         const dy = e.key === 'ArrowDown' ? step : e.key === 'ArrowUp' ? -step : 0;
-        state.selectedIds.forEach(id => {
+        state.selectedIds.forEach((id) => {
           const node = state.nodes.get(id);
           if (node) state.updateNode(id, { x: node.x + dx, y: node.y + dy });
         });
@@ -184,16 +211,31 @@ const App: React.FC = () => {
       }
 
       const toolMap: Record<string, string> = {
-        'v': 'select', 'h': 'hand', 'f': 'frame', 'r': 'rectangle',
-        'o': 'ellipse', 'l': 'line', 'p': 'pen', 't': 'text',
-        'i': 'image', 'k': 'component', 'a': 'ai-generate', 'd': 'eyedropper',
+        v: 'select',
+        h: 'hand',
+        f: 'frame',
+        r: 'rectangle',
+        o: 'ellipse',
+        l: 'line',
+        p: 'pen',
+        t: 'text',
+        i: 'image',
+        k: 'component',
+        a: 'ai-generate',
+        d: 'eyedropper',
       };
       if (toolMap[e.key.toLowerCase()] && !e.ctrlKey && !e.metaKey) {
         setTool(toolMap[e.key.toLowerCase()] as any);
       }
 
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) { e.preventDefault(); redo(); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        redo();
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -238,9 +280,13 @@ const App: React.FC = () => {
   const nodeCount = nodes.size;
 
   return (
-    <div className={`h-screen flex flex-col overflow-hidden ${darkMode ? 'bg-slate-950 text-white' : 'bg-neutral-50 text-neutral-800'}`}>
+    <div
+      className={`h-screen flex flex-col overflow-hidden ${darkMode ? 'bg-slate-950 text-white' : 'bg-neutral-50 text-neutral-800'}`}
+    >
       {/* Top Navigation */}
-      <div className={`flex items-center justify-between px-4 py-2 border-b shrink-0 ${darkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-slate-200'}`}>
+      <div
+        className={`flex items-center justify-between px-4 py-2 border-b shrink-0 ${darkMode ? 'bg-neutral-900 border-neutral-700' : 'bg-white border-slate-200'}`}
+      >
         <div className="flex items-center gap-4">
           <span className="text-sm font-bold bg-gradient-to-r from-neutral-600 to-neutral-800 bg-clip-text text-transparent">
             Kreathief
@@ -297,27 +343,31 @@ const App: React.FC = () => {
           <Toolbar onExport={() => setShowExport(true)} />
           <div className="flex-1 flex overflow-hidden">
             <div className="flex-1 relative overflow-hidden">
-          <Canvas />
-          <LayoutToolbar />
-          <BooleanToolbar />
-          <MiniMap />
+              <Canvas />
+              <LayoutToolbar />
+              <BooleanToolbar />
+              <MiniMap />
               <div className="absolute bottom-4 left-4 text-xs text-neutral-500 pointer-events-none">
                 Space+Drag to pan · Scroll to zoom · Click to select · Ctrl+E to export
               </div>
             </div>
-            {showProperties && <div className="animate-slide-in-right"><RightPanel /></div>}
+            {showProperties && (
+              <div className="animate-slide-in-right">
+                <RightPanel />
+              </div>
+            )}
           </div>
-          <div className={`h-6 flex items-center justify-between px-3 text-xs shrink-0 border-t ${darkMode ? 'bg-neutral-900 border-neutral-700 text-neutral-500' : 'bg-neutral-100 border-slate-200 text-neutral-400'}`}>
+          <div
+            className={`h-6 flex items-center justify-between px-3 text-xs shrink-0 border-t ${darkMode ? 'bg-neutral-900 border-neutral-700 text-neutral-500' : 'bg-neutral-100 border-slate-200 text-neutral-400'}`}
+          >
             <div className="flex items-center gap-3">
-              <span>{nodeCount} element{nodeCount !== 1 ? 's' : ''}</span>
-              {selectedCount > 0 && (
-                <span className="text-neutral-300">{selectedCount} selected</span>
-              )}
+              <span>
+                {nodeCount} element{nodeCount !== 1 ? 's' : ''}
+              </span>
+              {selectedCount > 0 && <span className="text-neutral-300">{selectedCount} selected</span>}
             </div>
             <div className="flex items-center gap-3">
-              {lastSaved && (
-                <span className="text-neutral-600">Saved {formatTimeAgo(lastSaved)}</span>
-              )}
+              {lastSaved && <span className="text-neutral-600">Saved {formatTimeAgo(lastSaved)}</span>}
               <span className="font-mono">{Math.round(zoom * 100)}%</span>
             </div>
           </div>
@@ -325,20 +375,30 @@ const App: React.FC = () => {
       )}
 
       {currentView === 'marketplace' && (
-        <Suspense fallback={<div className="flex-1 flex items-center justify-center text-neutral-500 text-sm">Loading marketplace...</div>}>
+        <Suspense
+          fallback={
+            <div className="flex-1 flex items-center justify-center text-neutral-500 text-sm">
+              Loading marketplace...
+            </div>
+          }
+        >
           <div className="flex-1 overflow-hidden">
-            <TemplateGallery
-              onSelectTemplate={handlePreviewTemplate}
-              onPreviewTemplate={handlePreviewTemplate}
-            />
+            <TemplateGallery onSelectTemplate={handlePreviewTemplate} onPreviewTemplate={handlePreviewTemplate} />
           </div>
         </Suspense>
       )}
 
       {currentView === 'creator' && (
-        <Suspense fallback={<div className="flex-1 flex items-center justify-center text-neutral-500 text-sm">Loading dashboard...</div>}>
+        <Suspense
+          fallback={
+            <div className="flex-1 flex items-center justify-center text-neutral-500 text-sm">Loading dashboard...</div>
+          }
+        >
           <div className="flex-1 overflow-hidden">
-            <CreatorDashboard onOpenUpload={() => setShowUpload(true)} onOpenPaymentSettings={() => setShowPaymentSettings(true)} />
+            <CreatorDashboard
+              onOpenUpload={() => setShowUpload(true)}
+              onOpenPaymentSettings={() => setShowPaymentSettings(true)}
+            />
           </div>
         </Suspense>
       )}
@@ -364,12 +424,13 @@ const App: React.FC = () => {
         <CreatorRegistration
           isOpen={showCreatorReg}
           onClose={() => setShowCreatorReg(false)}
-          onRegistered={(c) => { setCreator(c); setShowCreatorReg(false); setCurrentView('creator'); }}
+          onRegistered={(c) => {
+            setCreator(c);
+            setShowCreatorReg(false);
+            setCurrentView('creator');
+          }}
         />
-        <PaymentSettings
-          isOpen={showPaymentSettings}
-          onClose={() => setShowPaymentSettings(false)}
-        />
+        <PaymentSettings isOpen={showPaymentSettings} onClose={() => setShowPaymentSettings(false)} />
       </Suspense>
     </div>
   );

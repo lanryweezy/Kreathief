@@ -29,3 +29,8 @@
 
 **Learning:** Testing logic for Levenshtein-based search thresholds (e.g., `fuzzyMatch` in `search.ts`) requires matching the exact test query strings to the maximum permissible distances (0, 1, 2) allowed for their string lengths (<=2, <=5, >5) respectively, making string formulation for tests highly constrained to trigger specific boundary conditions (e.g. insertions vs substitutions).
 **Action:** When testing Levenshtein or fuzzy match behaviors, strictly comment and annotate the specific distance being triggered and why, to prevent future developers from breaking test assertions while "fixing" typos in strings meant to be incorrect for testing.
+
+## 2024-08-01 - Vitest sorting coverage edges
+
+**Learning:** Array manipulation with `.sort` methods mapped from immutable copies (e.g. `[...layers].sort()`) will retain exactly the array length that was passed to it. Edge cases checking `if (sorted.length < 2)` following a prior early exit check of `if (layers.length < 3)` are unreachable dead-code and cannot be tested via standard Javascript execution logic without deliberately breaking Vitest array prototypes.
+**Action:** Avoid attempting to structure tests designed solely to trigger logically unreachable edge cases embedded within array mutation logic. Trust early-exit validations and document untestable dead-code segments rather than attempting to hack the runtime prototype context.
