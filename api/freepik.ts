@@ -1,5 +1,7 @@
 import { log } from '../utils/log';
 import { cacheHeaders, noStoreHeaders } from '../utils/cacheHeaders';
+import { requireAuth } from './_auth';
+
 export const config = {
   runtime: 'edge',
 };
@@ -29,6 +31,12 @@ export default async function handler(req: Request) {
   const origin = process.env.VITE_FRONTEND_URL;
   if (!origin) {
     return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
+  }
+
+  try {
+    await requireAuth(req);
+  } catch (response) {
+    return response as Response;
   }
 
   const now = Date.now();
