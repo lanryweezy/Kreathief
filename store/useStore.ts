@@ -656,3 +656,4 @@ export const useKreathiefStore = create<KreathiefStore>((set, get) => ({
     }
   },
 }));
+export { useKreathiefStore as useStore };
