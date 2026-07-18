@@ -10,9 +10,28 @@ export interface NormalizedAsset {
   alt: string;
   author: string;
   authorUrl?: string;
-  provider: 'unsplash' | 'pixabay' | 'pexels';
+  provider: string; // Made extensible (was union 'unsplash' | 'pixabay' | 'pexels')
   width?: number;
   height?: number;
+}
+
+/**
+ * Extensibility Point: AssetSearchProvider Registry
+ * Evidence of pressure: The searchAllProviders function relied on hard-coded if blocks
+ * to call 3 different asset APIs (Unsplash, Pixabay, Pexels). Adding a fourth would
+ * require modifying this core function.
+ * Contract: Implementors provide an id and a search method returning NormalizedAssets.
+ * Registration allows adding new asset providers without changing core logic.
+ */
+export interface AssetSearchProvider {
+  id: string;
+  search(query: string): Promise<NormalizedAsset[]>;
+}
+
+const searchProviders = new Map<string, AssetSearchProvider>();
+
+export function registerSearchProvider(provider: AssetSearchProvider) {
+  searchProviders.set(provider.id, provider);
 }
 
 interface CacheEntry {
@@ -37,40 +56,53 @@ function checkRateLimit(provider: string): boolean {
   return true;
 }
 
-function normalizeUnsplash(results: any[]): NormalizedAsset[] {
-  return results.map((p) => ({
-    id: `us-${p.id}`,
-    url: p.url,
-    thumbnail: p.thumbnail,
-    alt: p.alt,
-    author: p.user.name,
-    authorUrl: p.user.link,
-    provider: 'unsplash' as const,
-  }));
-}
+// Register default providers
+registerSearchProvider({
+  id: 'unsplash',
+  search: (query) =>
+    unsplashService.searchPhotos(query).then((results) =>
+      results.map((p) => ({
+        id: `us-${p.id}`,
+        url: p.url,
+        thumbnail: p.thumbnail,
+        alt: p.alt,
+        author: p.user.name,
+        authorUrl: p.user.link,
+        provider: 'unsplash',
+      }))
+    ),
+});
 
-function normalizePixabay(results: any[]): NormalizedAsset[] {
-  return results.map((p) => ({
-    id: `pb-${p.id}`,
-    url: p.url,
-    thumbnail: p.thumbnail,
-    alt: p.alt,
-    author: p.user,
-    provider: 'pixabay' as const,
-  }));
-}
+registerSearchProvider({
+  id: 'pixabay',
+  search: (query) =>
+    pixabayService.searchPhotos(query).then((results) =>
+      results.map((p) => ({
+        id: `pb-${p.id}`,
+        url: p.url,
+        thumbnail: p.thumbnail,
+        alt: p.alt,
+        author: p.user,
+        provider: 'pixabay',
+      }))
+    ),
+});
 
-function normalizePexels(results: any[]): NormalizedAsset[] {
-  return results.map((p) => ({
-    id: `px-${p.id}`,
-    url: p.url,
-    thumbnail: p.thumbnail,
-    alt: p.alt,
-    author: p.photographer,
-    authorUrl: p.photographerUrl,
-    provider: 'pexels' as const,
-  }));
-}
+registerSearchProvider({
+  id: 'pexels',
+  search: (query) =>
+    pexelsService.searchPhotos(query).then((results) =>
+      results.map((p) => ({
+        id: `px-${p.id}`,
+        url: p.url,
+        thumbnail: p.thumbnail,
+        alt: p.alt,
+        author: p.photographer,
+        authorUrl: p.photographerUrl,
+        provider: 'pexels',
+      }))
+    ),
+});
 
 export async function searchAllProviders(query: string): Promise<NormalizedAsset[]> {
   const cacheKey = `all:${query}`;
@@ -79,38 +111,15 @@ export async function searchAllProviders(query: string): Promise<NormalizedAsset
 
   const promises: Promise<NormalizedAsset[]>[] = [];
 
-  if (checkRateLimit('unsplash')) {
-    promises.push(
-      unsplashService
-        .searchPhotos(query)
-        .then(normalizeUnsplash)
-        .catch((e) => {
-          log.error('[AssetSearch] Unsplash failed', e);
+  for (const provider of searchProviders.values()) {
+    if (checkRateLimit(provider.id)) {
+      promises.push(
+        provider.search(query).catch((e) => {
+          log.error(`[AssetSearch] ${provider.id} failed`, e);
           return [];
         })
-    );
-  }
-  if (checkRateLimit('pixabay')) {
-    promises.push(
-      pixabayService
-        .searchPhotos(query)
-        .then(normalizePixabay)
-        .catch((e) => {
-          log.error('[AssetSearch] Pixabay failed', e);
-          return [];
-        })
-    );
-  }
-  if (checkRateLimit('pexels')) {
-    promises.push(
-      pexelsService
-        .searchPhotos(query)
-        .then(normalizePexels)
-        .catch((e) => {
-          log.error('[AssetSearch] Pexels failed', e);
-          return [];
-        })
-    );
+      );
+    }
   }
 
   const results = await Promise.all(promises);
