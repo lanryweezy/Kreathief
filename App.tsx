@@ -46,6 +46,7 @@ const Editor = React.lazy(() => import('./components/Editor').then((module) => (
 const AuthCallback = React.lazy(() =>
   import('./components/AuthCallback').then((module) => ({ default: module.AuthCallback }))
 );
+const AudienceView = React.lazy(() => import('./components/AudienceView').then((module) => ({ default: module.AudienceView })));
 import { EditorSkeleton } from './components/EditorSkeleton';
 
 const LoadingFallback = () => (

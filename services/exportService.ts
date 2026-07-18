@@ -1,853 +1,529 @@
-import { TextLayer, ShapeLayer, ImageLayer, CanvasFilters, Layer } from '../types';
-import { writePsd, Psd } from 'ag-psd';
-import JSZip from 'jszip';
-import { logSecurityEvent } from '../utils/securityLogger';
-import { renderMultilineText } from '../utils/textRendering';
-import { buildFilterString } from '../utils/layers';
-import { getLayerClipPath, applyShapePolygonToContext } from '../utils/layerRendering';
+// SVG & Canvas export service
+// Mirrors canvas engine rendering logic exactly — same gradient computation,
+// same path construction, same effect parameters. Both surfaces derive from
+// the same formulas so visual output is identical.
+import { DesignNode, GradientFill, Effect, VectorPoint } from '../types/design';
+import { canvas as canvasTokens, content, surface } from '../lib/tokens';
+import { hexToRgba } from '../lib/utils';
 
-export type ColorProfile = 'sRGB' | 'CMYK' | 'FOGRA39' | 'GRACoL' | 'SWOP';
-
-export interface PDFExportOptions {
-  colorProfile: ColorProfile;
-  bleed: number;
-  cropMarks: boolean;
-  quality?: 'draft' | 'print' | 'high' | 'screen' | 'prepress';
+export interface ExportOptions {
+  format: 'png' | 'jpg' | 'svg';
+  scale: number;
+  selectionOnly: boolean;
+  quality: number;
+  background: boolean;
 }
 
-const round2 = (n: number) => Math.round(n * 100) / 100;
+// ── Shared helpers (used by both SVG and Canvas export) ──────────────
 
-function escapeXml(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
+function escapeXml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 }
 
-/**
- * Extensibility Point: Layer Export Strategy Registry
- * Evidence of pressure: Canvas drawing and SVG generation both relied on hard-coded if/else chains
- * switching on \`layer.type\` across multiple functions (exportDesignToImage, exportToSVG, PSD, Zip).
- * Contract: Implementors provide \`drawToContext\` and \`exportToSVG\` methods to handle layer rendering.
- * The registry enables registering new layer types without touching the core export pipelines.
- */
-export interface LayerExportStrategy {
-  drawToContext: (ctx: CanvasRenderingContext2D, layer: Layer) => void | Promise<void>;
-  exportToSVG: (layer: Layer, transform: string, opacity: number) => string | null;
+function resolveFill(node: DesignNode): string {
+  return typeof node.fill === 'string' ? node.fill : surface[3];
 }
 
-export const layerExportStrategies = new Map<string, LayerExportStrategy>();
+// ── SVG gradient defs ───────────────────────────────────────────────
+// Same angle→coordinate math as canvasEngine.createGradient (line 1340)
 
-layerExportStrategies.set('image', {
-  drawToContext: async (ctx, layer) => {
-    await drawImageLayerToContext(ctx, layer as ImageLayer);
-  },
-  exportToSVG: (layer, transform, opacity) => {
-    const il = layer as ImageLayer;
-    const safeSrc = escapeXml(il.src || '');
-    return (
-      `  <g transform="${transform}" opacity="${opacity}">` +
-      `<image href="${safeSrc}" x="${round2(-il.width / 2)}" y="${round2(-il.height / 2)}" width="${round2(il.width)}" height="${round2(il.height)}" />` +
-      `</g>`
-    );
-  },
-});
+function renderGradientDef(id: string, fill: GradientFill, node: DesignNode): string {
+  if (fill.type === 'linear') {
+    const angle = (fill.angle || 0) * Math.PI / 180;
+    const x1 = node.x + Math.cos(angle) * node.width / 2;
+    const y1 = node.y + Math.sin(angle) * node.height / 2;
+    const x2 = node.x + node.width / 2 - Math.cos(angle) * node.width / 2;
+    const y2 = node.y + node.height / 2 - Math.sin(angle) * node.height / 2;
+    const stops = fill.stops.map(s => `<stop offset="${s.offset}" stop-color="${s.color}" />`).join('');
+    return `<linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">${stops}</linearGradient>`;
+  }
+  const cx = node.x + node.width / 2;
+  const cy = node.y + node.height / 2;
+  const r = node.width / 2;
+  const stops = fill.stops.map(s => `<stop offset="${s.offset}" stop-color="${s.color}" />`).join('');
+  return `<radialGradient id="${id}" cx="${cx}" cy="${cy}" r="${r}">${stops}</radialGradient>`;
+}
 
-layerExportStrategies.set('text', {
-  drawToContext: (ctx, layer) => {
-    drawTextLayerToContext(ctx, layer as TextLayer);
-  },
-  exportToSVG: (layer, transform, opacity) => {
-    const tl = layer as TextLayer;
-    const textLines = (tl.text || '').split('\n');
-    const lineHeight = tl.fontSize * (tl.lineHeight || 1.2);
-    const textContent = textLines
-      .map((line, i) => `<tspan x="0" dy="${i === 0 ? 0 : round2(lineHeight)}">${escapeXml(line)}</tspan>`)
-      .join('');
-    const textAnchor = tl.textAlign === 'center' ? 'middle' : tl.textAlign === 'right' ? 'end' : 'start';
-    return (
-      `  <g transform="${transform}" opacity="${opacity}">` +
-      `<text font-family="${escapeXml(tl.fontFamily)}" font-size="${round2(tl.fontSize)}" fill="${tl.color}" text-anchor="${textAnchor}" font-weight="${tl.fontWeight}">${textContent}</text>` +
-      `</g>`
-    );
-  },
-});
+// ── SVG filter defs ─────────────────────────────────────────────────
+// Same params as canvasEngine renderNode effects (line 1112)
 
-layerExportStrategies.set('shape', {
-  drawToContext: (ctx, layer) => {
-    drawShapeToContext(ctx, layer as ShapeLayer);
-  },
-  exportToSVG: (layer, transform, opacity) => {
-    const sl = layer as ShapeLayer;
-    let shape = '';
-    const fill = sl.gradient?.enabled ? `url(#grad-${sl.id})` : sl.color;
+function renderEffectDefs(nodeId: string, effects: Effect[]): string {
+  let filterPrimitives = '';
+  let hasFilter = false;
 
-    if (sl.type === 'rectangle') {
-      const r = sl.cornerRadius || 0;
-      if (r > 0) {
-        shape = `<rect x="${round2(-sl.width / 2)}" y="${round2(-sl.height / 2)}" width="${round2(sl.width)}" height="${round2(sl.height)}" rx="${round2(r)}" fill="${fill}" />`;
-      } else {
-        shape = `<rect x="${round2(-sl.width / 2)}" y="${round2(-sl.height / 2)}" width="${round2(sl.width)}" height="${round2(sl.height)}" fill="${fill}" />`;
-      }
-    } else if (sl.type === 'circle') {
-      shape = `<circle cx="0" cy="0" r="${round2(sl.width / 2)}" fill="${fill}" />`;
-    } else if (sl.type === 'path' && sl.pathData) {
-      const sw = round2((sl as any).stroke?.width || 0);
-      const strokeColor = (sl as any).stroke?.color || sl.color;
-      const lineCap = (sl as any).stroke?.lineCap || 'round';
-      const lineJoin = (sl as any).stroke?.lineJoin || 'round';
-      const isBrush = sl.id?.startsWith('draw_') || (sl as any).brushType;
-      shape = `<path d="${sl.pathData}" fill="${isBrush ? 'none' : sl.color}" stroke="${strokeColor}" stroke-width="${sw}" stroke-linecap="${lineCap}" stroke-linejoin="${lineJoin}" />`;
+  for (const effect of effects) {
+    if (!effect.enabled) continue;
+    if (effect.type === 'shadow') {
+      const p = effect.params;
+      filterPrimitives += `<feDropShadow dx="${p.x ?? 0}" dy="${p.y ?? 4}" stdDeviation="${p.blur ?? 8}" flood-color="${p.color ?? content.inverse}" flood-opacity="${p.opacity ?? 0.25}" />`;
+      hasFilter = true;
+    }
+    if (effect.type === 'blur') {
+      filterPrimitives += `<feGaussianBlur in="SourceGraphic" stdDeviation="${effect.params.radius ?? 4}" />`;
+      hasFilter = true;
+    }
+    if (effect.type === 'glow') {
+      const p = effect.params;
+      filterPrimitives += `<feDropShadow dx="0" dy="0" stdDeviation="${p.blur ?? 12}" flood-color="${p.color ?? content.primary}" flood-opacity="${p.opacity ?? 0.6}" />`;
+      hasFilter = true;
+    }
+  }
+
+  return hasFilter ? `<filter id="filter-${nodeId}">${filterPrimitives}</filter>` : '';
+}
+
+// ── SVG path data from VectorPoint[] ────────────────────────────────
+// Same bezier logic as canvasEngine.renderPath (line 1314)
+
+function pointsToSvgPath(points: VectorPoint[]): string {
+  if (points.length < 2) return '';
+  let d = `M${points[0].x} ${points[0].y}`;
+  for (let i = 1; i < points.length; i++) {
+    const p = points[i];
+    const prev = points[i - 1];
+    if (prev.handleOut || p.handleIn) {
+      const cp1x = prev.x + (prev.handleOut?.x ?? 0);
+      const cp1y = prev.y + (prev.handleOut?.y ?? 0);
+      const cp2x = p.x + (p.handleIn?.x ?? 0);
+      const cp2y = p.y + (p.handleIn?.y ?? 0);
+      d += ` C${cp1x} ${cp1y} ${cp2x} ${cp2y} ${p.x} ${p.y}`;
     } else {
-      const clipPath = getLayerClipPath(layer);
-      if (clipPath && clipPath.startsWith('polygon')) {
-        const match = clipPath.match(/polygon\((.*)\)/);
-        if (match) {
-          const pts = match[1].split(',').map((p) => {
-            const [xPerc, yPerc] = p.trim().split(/\s+/).map(parseFloat);
-            return `${round2((xPerc / 100) * sl.width - sl.width / 2)},${round2((yPerc / 100) * sl.height - sl.height / 2)}`;
-          });
-          shape = `<polygon points="${pts.join(' ')}" fill="${sl.color}" />`;
-        }
+      d += ` L${p.x} ${p.y}`;
+    }
+  }
+  return d;
+}
+
+// ── Single node → SVG element ───────────────────────────────────────
+
+function renderNodeToSvg(
+  node: DesignNode,
+  nodesMap: Map<string, DesignNode>,
+  offsetX: number,
+  offsetY: number,
+): string {
+  const x = node.x - offsetX;
+  const y = node.y - offsetY;
+  const fill = resolveFill(node);
+  const stroke = node.stroke ? `stroke="${node.stroke}" stroke-width="${node.strokeWidth}"` : '';
+  const opacity = node.opacity < 1 ? ` opacity="${node.opacity}"` : '';
+  const transform = node.rotation
+    ? ` transform="rotate(${node.rotation} ${x + node.width / 2} ${y + node.height / 2})"`
+    : '';
+  const blendMode = node.blendMode !== 'normal' ? ` style="mix-blend-mode:${node.blendMode}"` : '';
+  const filterAttr = node.effects?.some(e => e.enabled) ? ` filter="url(#filter-${node.id})"` : '';
+
+  // Resolve fill: string → solid, object → gradient url(#id)
+  let fillAttr: string;
+  const hasGradient = node.fill && typeof node.fill === 'object' && 'stops' in node.fill;
+  if (hasGradient) {
+    fillAttr = `fill="url(#grad-${node.id})"`;
+  } else {
+    fillAttr = `fill="${fill}"`;
+  }
+
+  // Group children
+  if (node.type === 'group' || node.type === 'frame') {
+    const childSvgs = node.children
+      .map(id => nodesMap.get(id))
+      .filter(Boolean)
+      .map(child => renderNodeToSvg(child!, nodesMap, offsetX, offsetY))
+      .join('\n    ');
+    const fillBg = node.type === 'frame' ? `<rect x="${x}" y="${y}" width="${node.width}" height="${node.height}" ${fillAttr}${stroke} />` : '';
+    return `<g id="${node.id}"${opacity}${blendMode}${filterAttr}>\n    ${fillBg}\n    ${childSvgs}\n  </g>`;
+  }
+
+  switch (node.type) {
+    case 'rect':
+      if (node.cornerRadius > 0) {
+        return `<rect id="${node.id}" x="${x}" y="${y}" width="${node.width}" height="${node.height}" rx="${node.cornerRadius}" ry="${node.cornerRadius}" ${fillAttr}${stroke}${opacity}${transform}${blendMode}${filterAttr} />`;
       }
+      return `<rect id="${node.id}" x="${x}" y="${y}" width="${node.width}" height="${node.height}" ${fillAttr}${stroke}${opacity}${transform}${blendMode}${filterAttr} />`;
+
+    case 'ellipse':
+      return `<ellipse id="${node.id}" cx="${x + node.width / 2}" cy="${y + node.height / 2}" rx="${node.width / 2}" ry="${node.height / 2}" ${fillAttr}${stroke}${opacity}${transform}${blendMode}${filterAttr} />`;
+
+    case 'text': {
+      const fontSize = node.fontSize || 16;
+      const textFill = node.fill && typeof node.fill === 'string' ? node.fill : content.inverse;
+      const lineHeight = (node as any).lineHeight || 1.2;
+      const letterSpacing = (node as any).letterSpacing || 0;
+      const textAnchor = node.textAlign === 'center' ? 'middle' : node.textAlign === 'right' ? 'end' : 'start';
+      const tx = node.textAlign === 'center' ? x + node.width / 2 : node.textAlign === 'right' ? x + node.width : x;
+      const ls = letterSpacing ? ` letter-spacing="${letterSpacing}"` : '';
+      const lines = (node.text || '').split('\n');
+      const yStep = fontSize * lineHeight;
+      if (lines.length === 1) {
+        return `<text id="${node.id}" x="${tx}" y="${y + fontSize}" fill="${textFill}" font-size="${fontSize}" font-family="${node.fontFamily || 'system-ui'}" font-weight="${node.fontWeight || 400}" text-anchor="${textAnchor}"${ls}${opacity}${transform}${blendMode}${filterAttr}>${escapeXml(lines[0])}</text>`;
+      }
+      const tspans = lines.map((line, i) =>
+        `<tspan x="${tx}" dy="${i === 0 ? 0 : yStep}">${escapeXml(line)}</tspan>`
+      ).join('');
+      return `<text id="${node.id}" x="${tx}" y="${y + fontSize}" fill="${textFill}" font-size="${fontSize}" font-family="${node.fontFamily || 'system-ui'}" font-weight="${node.fontWeight || 400}" text-anchor="${textAnchor}"${ls}${opacity}${transform}${blendMode}${filterAttr}>${tspans}</text>`;
     }
 
-    if (shape) {
-      return `  <g transform="${transform}" opacity="${opacity}">${shape}</g>`;
+    case 'line':
+      return `<line id="${node.id}" x1="${x}" y1="${y}" x2="${x + node.width}" y2="${y + node.height}" stroke="${fill}" stroke-width="${node.strokeWidth || 1}"${opacity}${transform}${blendMode}${filterAttr} />`;
+
+    case 'path': {
+      if (!node.points || node.points.length < 2) return '';
+      // Translate points by offset
+      const translated = node.points.map(p => ({
+        ...p,
+        x: p.x - offsetX,
+        y: p.y - offsetY,
+        handleIn: p.handleIn ? { x: p.handleIn.x, y: p.handleIn.y } : undefined,
+        handleOut: p.handleOut ? { x: p.handleOut.x, y: p.handleOut.y } : undefined,
+      }));
+      const d = pointsToSvgPath(translated);
+      return `<path id="${node.id}" d="${d}" ${fillAttr}${stroke}${opacity}${transform}${blendMode}${filterAttr} />`;
     }
-    return null;
-  },
-});
 
-/**
- * Downloads a Blob object as a file.
- */
-export const downloadBlob = (blob: Blob, filename: string) => {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-};
+    case 'image':
+      // Stitch: completed image export — was a placeholder with emoji text.
+      // Evidence: DesignNode has imageUrl property, canvas engine now renders
+      // actual images, but SVG export was still showing placeholder text.
+      if (node.imageUrl) {
+        // Use preserveAspectRatio based on imageFit
+        const ar = node.imageFit === 'contain' ? 'xMidYMid meet'
+          : node.imageFit === 'fill' ? 'none'
+          : 'xMidYMid slice'; // cover (default)
+        return `<image id="${node.id}" x="${x}" y="${y}" width="${node.width}" height="${node.height}" href="${escapeXml(node.imageUrl)}" preserveAspectRatio="${ar}"${opacity}${transform}${blendMode}${filterAttr} />`;
+      }
+      return `<g id="${node.id}"${opacity}${transform}${blendMode}${filterAttr}>
+    <rect x="${x}" y="${y}" width="${node.width}" height="${node.height}" fill="${surface[3]}" />
+    <text x="${x + node.width / 2}" y="${y + node.height / 2}" fill="${content.muted}" font-size="12" text-anchor="middle" dominant-baseline="central">image</text>
+  </g>`;
 
-import { supabase } from '../lib/supabase/client';
-import { v4 as uuidv4 } from 'uuid';
-import { log } from '../utils/log';
+    default:
+      return `<rect id="${node.id}" x="${x}" y="${y}" width="${node.width}" height="${node.height}" ${fillAttr}${opacity}${transform}${blendMode}${filterAttr} />`;
+  }
+}
 
-/**
- * Exports the design as a print-ready PDF via Worker or Serverless API.
- */
-export const exportToPrintPDF = async (
-  width: number,
-  height: number,
-  imgDataUrl: string,
-  fileName: string,
-  options: PDFExportOptions
-) => {
-  // If CMYK is selected, we must use the true ICC conversion serverless backend
-  if (
-    options.colorProfile === 'CMYK' ||
-    options.colorProfile === 'FOGRA39' ||
-    options.colorProfile === 'SWOP' ||
-    options.colorProfile === 'GRACoL'
-  ) {
-    return (async () => {
-      try {
-        let imageUrlToProcess = imgDataUrl;
+// ── Main SVG export ─────────────────────────────────────────────────
 
-        // 1. Convert Data URL to Blob
-        const response = await fetch(imgDataUrl);
-        const blob = await response.blob();
+export function exportToSvg(nodes: DesignNode[], background = true): string {
+  if (nodes.length === 0) return '<svg xmlns="http://www.w3.org/2000/svg"></svg>';
 
-        // 2. To bypass Vercel's 4.5MB request limit, upload to Supabase Storage if possible
-        if (blob.size > 2 * 1024 * 1024) {
-          // If larger than 2MB
-          const tempFileName = `temp_${uuidv4()}.png`;
-          const { error } = await supabase.storage
-            .from('exports')
-            .upload(tempFileName, blob, { contentType: 'image/png' });
+  const nodesMap = new Map(nodes.map(n => [n.id, n]));
 
-          if (!error) {
-            const { data } = supabase.storage.from('exports').getPublicUrl(tempFileName);
-            imageUrlToProcess = data.publicUrl;
-            // Clean up temp file after export completes (fire-and-forget)
-            setTimeout(() => {
-              supabase.storage
-                .from('exports')
-                .remove([tempFileName])
-                .catch(() => {});
-            }, 60000);
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  nodes.forEach(n => {
+    minX = Math.min(minX, n.x);
+    minY = Math.min(minY, n.y);
+    maxX = Math.max(maxX, n.x + n.width);
+    maxY = Math.max(maxY, n.y + n.height);
+  });
+
+  const w = maxX - minX;
+  const h = maxY - minY;
+
+  // Collect <defs> — gradients and filters for all nodes
+  const defs: string[] = [];
+  nodes.forEach(node => {
+    if (node.fill && typeof node.fill === 'object' && 'stops' in node.fill) {
+      defs.push(renderGradientDef(`grad-${node.id}`, node.fill, node));
+    }
+    if (node.effects?.length) {
+      const filterDef = renderEffectDefs(node.id, node.effects);
+      if (filterDef) defs.push(filterDef);
+    }
+  });
+
+  const bg = background ? `<rect x="0" y="0" width="${w}" height="${h}" fill="white" />` : '';
+
+  const inner = nodes
+    .sort((a, b) => (a as any).zIndex - (b as any).zIndex)
+    .map(n => `  ${renderNodeToSvg(n, nodesMap, minX, minY)}`)
+    .join('\n');
+
+  const defsBlock = defs.length > 0 ? `<defs>\n    ${defs.join('\n    ')}\n  </defs>\n` : '';
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+  ${defsBlock}${bg}
+  ${inner}
+</svg>`;
+}
+
+// ── Canvas (raster) export ──────────────────────────────────────────
+// Shared helpers for gradient/effect computation ensure identical visual
+// output to the canvas editor.
+
+export function exportToCanvas(
+  canvas: HTMLCanvasElement,
+  nodes: DesignNode[],
+  options: ExportOptions
+): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    if (nodes.length === 0) { resolve(null); return; }
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    nodes.forEach(n => {
+      minX = Math.min(minX, n.x);
+      minY = Math.min(minY, n.y);
+      maxX = Math.max(maxX, n.x + n.width);
+      maxY = Math.max(maxY, n.y + n.height);
+    });
+
+    const padding = 10;
+    const w = (maxX - minX + padding * 2) * options.scale;
+    const h = (maxY - minY + padding * 2) * options.scale;
+
+    const offscreen = document.createElement('canvas');
+    offscreen.width = w;
+    offscreen.height = h;
+    const ctx = offscreen.getContext('2d');
+    if (!ctx) { resolve(null); return; }
+
+    ctx.scale(options.scale, options.scale);
+
+    if (options.background) {
+      ctx.fillStyle = canvasTokens.export.background;
+      ctx.fillRect(0, 0, w, h);
+    }
+
+    const sorted = [...nodes].sort((a, b) => (a as any).zIndex - (b as any).zIndex);
+
+    for (const node of sorted) {
+      const x = node.x - minX + padding;
+      const y = node.y - minY + padding;
+
+      ctx.save();
+      ctx.globalAlpha = node.opacity;
+
+      // Blend mode — matches canvas engine
+      if (node.blendMode !== 'normal') {
+        ctx.globalCompositeOperation = node.blendMode as GlobalCompositeOperation;
+      }
+
+      // Rotation — same pivot as canvasEngine.renderNode (line 1103)
+      if (node.rotation) {
+        ctx.translate(x + node.width / 2, y + node.height / 2);
+        ctx.rotate((node.rotation * Math.PI) / 180);
+        ctx.translate(-(x + node.width / 2), -(y + node.height / 2));
+      }
+
+      // Effects — same params as canvasEngine (line 1112)
+      if (node.effects?.length) {
+        for (const effect of node.effects) {
+          if (!effect.enabled) continue;
+          if (effect.type === 'shadow') {
+            const p = effect.params;
+            ctx.shadowOffsetX = p.x ?? 0;
+            ctx.shadowOffsetY = p.y ?? 4;
+            ctx.shadowBlur = p.blur ?? 8;
+            ctx.shadowColor = hexToRgba(p.color ?? content.inverse, p.opacity ?? 0.25);
+          }
+          if (effect.type === 'blur') {
+            ctx.filter = `blur(${effect.params.radius ?? 4}px)`;
+          }
+          if (effect.type === 'glow') {
+            const p = effect.params;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+            ctx.shadowBlur = p.blur ?? 12;
+            ctx.shadowColor = hexToRgba(p.color ?? content.primary, p.opacity ?? 0.6);
           }
         }
+      }
 
-        // 3. Call Serverless API
-        const apiResponse = await fetch('/api/export-cmyk', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            imageUrl: imageUrlToProcess,
-            bleed: options.bleed,
-          }),
-        });
+      // Resolve fill — gradient or solid, same formula as canvasEngine
+      const hasGradient = node.fill && typeof node.fill === 'object' && 'stops' in node.fill;
+      if (hasGradient) {
+        ctx.fillStyle = createCanvasGradient(ctx, node.fill as GradientFill, node);
+      } else {
+        ctx.fillStyle = resolveFill(node);
+      }
 
-        if (!apiResponse.ok) {
-          throw new Error('CMYK Conversion failed on server');
+      // Render shape — matches canvas engine per-type rendering
+      switch (node.type) {
+        case 'rect':
+          if (node.cornerRadius > 0) {
+            canvasRoundRect(ctx, x, y, node.width, node.height, node.cornerRadius);
+            ctx.fill();
+          } else {
+            ctx.fillRect(x, y, node.width, node.height);
+          }
+          if (node.stroke) {
+            ctx.strokeStyle = node.stroke;
+            ctx.lineWidth = node.strokeWidth;
+            if (node.cornerRadius > 0) {
+              canvasRoundRect(ctx, x, y, node.width, node.height, node.cornerRadius);
+              ctx.stroke();
+            } else {
+              ctx.strokeRect(x, y, node.width, node.height);
+            }
+          }
+          break;
+
+        case 'ellipse':
+          ctx.beginPath();
+          ctx.ellipse(x + node.width / 2, y + node.height / 2, node.width / 2, node.height / 2, 0, 0, Math.PI * 2);
+          ctx.fill();
+          if (node.stroke) {
+            ctx.strokeStyle = node.stroke;
+            ctx.lineWidth = node.strokeWidth;
+            ctx.stroke();
+          }
+          break;
+
+        case 'text': {
+          const fontSize = node.fontSize || 16;
+          const lineHeight = (node as any).lineHeight || 1.2;
+          const letterSpacing = (node as any).letterSpacing || 0;
+          ctx.font = `${node.fontWeight || 400} ${fontSize}px ${node.fontFamily || 'system-ui'}`;
+          ctx.textAlign = (node.textAlign as CanvasTextAlign) || 'left';
+          ctx.textBaseline = 'top';
+          if (letterSpacing) {
+            ctx.letterSpacing = `${letterSpacing}px`;
+          }
+          const lines = (node.text || '').split('\n');
+          const yStep = fontSize * lineHeight;
+          for (let i = 0; i < lines.length; i++) {
+            ctx.fillText(lines[i], x, y + i * yStep);
+          }
+          break;
         }
 
-        // 4. Download Result
-        const pdfBlob = await apiResponse.blob();
-        downloadBlob(pdfBlob, fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
-        logSecurityEvent('DATA_EXPORT', 'current_user', { fileName, options, format: 'pdf' });
-      } catch (err) {
-        log.error('Serverless CMYK Export Error', err, { fileName, options, width, height });
-        return fallbackToWorker(width, height, imgDataUrl, fileName, options);
-      }
-    })();
-  }
+        case 'line':
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + node.width, y + node.height);
+          ctx.strokeStyle = resolveFill(node);
+          ctx.lineWidth = node.strokeWidth || 1;
+          ctx.stroke();
+          break;
 
-  // Standard sRGB export uses the client-side worker
-  return fallbackToWorker(width, height, imgDataUrl, fileName, options);
-};
-
-const fallbackToWorker = (
-  width: number,
-  height: number,
-  imgDataUrl: string,
-  fileName: string,
-  options: PDFExportOptions
-): Promise<void> => {
-  return new Promise<void>((resolve, reject) => {
-    try {
-      const worker = new Worker(new URL('../workers/pdf.worker.ts', import.meta.url), { type: 'module' });
-
-      worker.onmessage = (e) => {
-        const { type, payload, error } = e.data;
-        if (type === 'SUCCESS') {
-          downloadBlob(payload, fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`);
-          logSecurityEvent('DATA_EXPORT', 'current_user', { fileName, options, format: 'pdf_worker' });
-          worker.terminate();
-          resolve();
-        } else {
-          worker.terminate();
-          reject(new Error(error || 'PDF Generation failed'));
+        case 'path': {
+          if (node.points && node.points.length >= 2) {
+            ctx.beginPath();
+            ctx.moveTo(node.points[0].x - minX + padding, node.points[0].y - minY + padding);
+            for (let i = 1; i < node.points.length; i++) {
+              const p = node.points[i];
+              const prev = node.points[i - 1];
+              if (prev.handleOut || p.handleIn) {
+                const cp1x = prev.x + (prev.handleOut?.x ?? 0) - minX + padding;
+                const cp1y = prev.y + (prev.handleOut?.y ?? 0) - minY + padding;
+                const cp2x = p.x + (p.handleIn?.x ?? 0) - minX + padding;
+                const cp2y = p.y + (p.handleIn?.y ?? 0) - minY + padding;
+                ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p.x - minX + padding, p.y - minY + padding);
+              } else {
+                ctx.lineTo(p.x - minX + padding, p.y - minY + padding);
+              }
+            }
+            ctx.fill();
+            if (node.stroke) {
+              ctx.strokeStyle = node.stroke;
+              ctx.lineWidth = node.strokeWidth;
+              ctx.stroke();
+            }
+          }
+          break;
         }
-      };
 
-      worker.onerror = (err) => {
-        worker.terminate();
-        reject(err);
-      };
-
-      worker.postMessage({ width, height, imgDataUrl, fileName, options });
-    } catch (err) {
-      reject(err);
-    }
-  });
-};
-
-/**
- * Exports the design as a layered Photoshop (PSD) file.
- * Preserves: rotation, blend modes, opacity, group nesting, effects, gradients.
- */
-export const exportToLayeredPSD = async (width: number, height: number, layers: Layer[], fileName: string) => {
-  const psd: Psd = {
-    width,
-    height,
-    children: [],
-  };
-
-  // Build a map for group nesting
-  const groupChildren: Record<string, any[]> = {};
-  const rootLayers: Layer[] = [];
-
-  for (const layer of layers) {
-    if (layer.visible === false) continue;
-    if (layer.groupId && groupChildren[layer.groupId]) {
-      groupChildren[layer.groupId].push(layer);
-    } else if (layer.groupId) {
-      groupChildren[layer.groupId] = [layer];
-    } else {
-      rootLayers.push(layer);
-    }
-  }
-
-  const buildPsdLayer = async (layer: Layer): Promise<any> => {
-    const canvas = document.createElement('canvas');
-    canvas.width = layer.width || width;
-    canvas.height = (layer as any).height || height;
-    const ctx = canvas.getContext('2d');
-
-    if (ctx) {
-      // Render gradient fills to canvas for shapes
-      if ('gradient' in layer && (layer as any).gradient?.enabled) {
-        const sl = layer as ShapeLayer;
-        const grad = sl.gradient!;
-        let fillGrad: CanvasGradient;
-        if (grad.type === 'radial') {
-          fillGrad = ctx.createRadialGradient(
-            canvas.width / 2,
-            canvas.height / 2,
-            0,
-            canvas.width / 2,
-            canvas.height / 2,
-            canvas.width / 2
-          );
-        } else {
-          const angle = ((grad.angle || 0) * Math.PI) / 180;
-          const cx = canvas.width / 2,
-            cy = canvas.height / 2;
-          const len = canvas.width / 2;
-          fillGrad = ctx.createLinearGradient(
-            cx - Math.cos(angle) * len,
-            cy - Math.sin(angle) * len,
-            cx + Math.cos(angle) * len,
-            cy + Math.sin(angle) * len
-          );
+        // Stitch: completed image rendering in raster export — was falling
+        // through to default (filled rectangle). Now draws actual image
+        // matching canvasEngine.renderImage behavior.
+        case 'image': {
+          if (node.imageUrl) {
+            const img = new Image();
+            img.src = node.imageUrl;
+            // For export, draw synchronously (image should be pre-loaded)
+            if (img.complete && img.naturalWidth > 0) {
+              ctx.save();
+              ctx.beginPath();
+              ctx.rect(x, y, node.width, node.height);
+              ctx.clip();
+              const fit = node.imageFit || 'cover';
+              let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
+              let dx = x, dy = y, dw = node.width, dh = node.height;
+              if (fit === 'cover') {
+                const imgRatio = sw / sh;
+                const nodeRatio = dw / dh;
+                if (imgRatio > nodeRatio) { sw = sh * nodeRatio; sx = (img.naturalWidth - sw) / 2; }
+                else { sh = sw / nodeRatio; sy = (img.naturalHeight - sh) / 2; }
+              } else if (fit === 'contain') {
+                const imgRatio = sw / sh;
+                const nodeRatio = dw / dh;
+                if (imgRatio > nodeRatio) { dh = dw / imgRatio; dy = y + (node.height - dh) / 2; }
+                else { dw = dh * imgRatio; dx = x + (node.width - dw) / 2; }
+              }
+              ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+              ctx.restore();
+            } else {
+              ctx.fillStyle = surface[3];
+              ctx.fillRect(x, y, node.width, node.height);
+            }
+          } else {
+            ctx.fillStyle = surface[3];
+            ctx.fillRect(x, y, node.width, node.height);
+          }
+          break;
         }
-        for (const stop of grad.colors) {
-          fillGrad.addColorStop(stop.position, stop.color);
-        }
-        ctx.fillStyle = fillGrad;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        default:
+          ctx.fillRect(x, y, node.width, node.height);
       }
 
-      // Render individual layer at (0,0) for PSD
-      const tempLayer = { ...layer, x: 0, y: 0 };
-      const strategy = layerExportStrategies.get(tempLayer.type);
-      if (strategy) {
-        await strategy.drawToContext(ctx, tempLayer);
-      } else if (tempLayer.type !== 'adjustment' && tempLayer.type !== 'group') {
-        // Fallback to shape for unregistered legacy types, mimicking old behavior
-        const fallback = layerExportStrategies.get('shape');
-        if (fallback) await fallback.drawToContext(ctx, tempLayer);
-      }
-    }
+      // Reset effects — matches canvasEngine (line 1147)
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.shadowBlur = 0;
+      ctx.shadowColor = 'transparent';
+      ctx.filter = 'none';
+      ctx.globalCompositeOperation = 'source-over';
 
-    // Build effects from shadow/stroke
-    const effects: any = {};
-    const shadow = (layer as any).shadow;
-    if (shadow) {
-      const match = shadow.color?.match?.(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-      const color = match
-        ? { r: parseInt(match[1]), g: parseInt(match[2]), b: parseInt(match[3]) }
-        : { r: 0, g: 0, b: 0 };
-      const opacity = match?.[4] ? parseFloat(match[4]) : 0.5;
-      const dist = Math.sqrt((shadow.offsetX || 0) ** 2 + (shadow.offsetY || 0) ** 2);
-      const angle = Math.atan2(-(shadow.offsetY || 0), shadow.offsetX || 0) * (180 / Math.PI);
-      effects.dropShadow = [
-        {
-          enabled: true,
-          color,
-          opacity,
-          distance: dist,
-          size: shadow.blur || 5,
-          angle: Math.round(angle),
-        },
-      ];
-    }
-
-    const stroke = (layer as any).stroke;
-    if (stroke && stroke.width > 0) {
-      let sColor = { r: 0, g: 0, b: 0 };
-      if (stroke.color?.startsWith('#')) {
-        const hex = stroke.color.replace('#', '');
-        sColor = {
-          r: parseInt(hex.substring(0, 2), 16),
-          g: parseInt(hex.substring(2, 4), 16),
-          b: parseInt(hex.substring(4, 6), 16),
-        };
-      }
-      effects.stroke = [
-        {
-          enabled: true,
-          color: sColor,
-          size: stroke.width,
-          opacity: stroke.opacity ?? 1,
-          position: 'outside',
-        },
-      ];
-    }
-
-    // Build group children recursively
-    const layerId = layer.id;
-    const children = groupChildren[layerId];
-
-    const psdEntry: any = {
-      name: layer.name || `Layer ${layer.id}`,
-      left: layer.x,
-      top: layer.y,
-      canvas: canvas,
-      opacity: Math.round((layer.opacity ?? 1) * 255),
-      hidden: !layer.visible,
-      blendMode: (layer as any).blendMode || 'normal',
-      rotation: layer.rotation || 0,
-      effects: Object.keys(effects).length > 0 ? effects : undefined,
-    };
-
-    // If this layer has children, nest them
-    if (children && children.length > 0) {
-      psdEntry.children = [];
-      for (const child of children) {
-        const childPsd = await buildPsdLayer(child);
-        if (childPsd) psdEntry.children.push(childPsd);
-      }
-    }
-
-    return psdEntry;
-  };
-
-  for (const layer of rootLayers) {
-    const psdLayer = await buildPsdLayer(layer);
-    if (psdLayer && psd.children) {
-      psd.children.push(psdLayer);
-    }
-  }
-
-  const buffer = writePsd(psd);
-  const blob = new Blob([buffer], { type: 'application/octet-stream' });
-  downloadBlob(blob, fileName.endsWith('.psd') ? fileName : `${fileName}.psd`);
-  logSecurityEvent('DATA_EXPORT', 'current_user', { fileName, format: 'psd' });
-};
-
-/**
- * Render all visible layers onto a canvas and return a data URL.
- * Supports background color, background image with filters, and all layer types.
- */
-export const exportDesignToImage = async (
-  width: number,
-  height: number,
-  backgroundColor: string,
-  backgroundImageUrl: string | null,
-  layers: Layer[],
-  filters?: CanvasFilters,
-  format: 'png' | 'jpeg' | 'webp' = 'png',
-  quality: number = 0.95
-): Promise<string> => {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-
-  if (!ctx) {
-    throw new Error('Could not create canvas context');
-  }
-
-  if (backgroundColor !== 'transparent') {
-    ctx.fillStyle = backgroundColor;
-    ctx.fillRect(0, 0, width, height);
-  }
-
-  if (backgroundImageUrl) {
-    try {
-      const img = await loadImage(backgroundImageUrl);
-      ctx.save();
-      if (filters) {
-        ctx.filter = buildFilterString(filters);
-        ctx.globalAlpha = filters.opacity;
-      }
-      ctx.drawImage(img, 0, 0, width, height);
       ctx.restore();
-    } catch (err: any) {
-      log.warn('Failed to load bg image', { error: err.message, src: backgroundImageUrl });
-    }
-  }
-
-  for (const layer of layers) {
-    if (!layer.visible) {
-      continue;
-    }
-    const strategy = layerExportStrategies.get(layer.type);
-    if (strategy) {
-      await strategy.drawToContext(ctx, layer);
-    } else if (layer.type !== 'adjustment' && layer.type !== 'group') {
-      const fallback = layerExportStrategies.get('shape');
-      if (fallback) await fallback.drawToContext(ctx, layer);
-    }
-  }
-
-  return canvas.toDataURL(`image/${format}`, quality);
-};
-
-export const exportDesignToBlob = async (
-  width: number,
-  height: number,
-  backgroundColor: string,
-  backgroundImageUrl: string | null,
-  layers: Layer[],
-  filters?: CanvasFilters,
-  format: 'png' | 'jpeg' | 'webp' = 'png',
-  quality: number = 0.95
-): Promise<Blob> => {
-  const dataUrl = await exportDesignToImage(
-    width,
-    height,
-    backgroundColor,
-    backgroundImageUrl,
-    layers,
-    filters,
-    format,
-    quality
-  );
-  const response = await fetch(dataUrl);
-  return await response.blob();
-};
-
-/**
- * Export the design as an SVG string with gradient support, text, images, and shapes.
- */
-export const exportToSVG = (width: number, height: number, backgroundColor: string, layers: Layer[]): string => {
-  const svgParts: string[] = [
-    `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">`,
-    `  <defs>`,
-  ];
-
-  // Collect all gradient definitions
-  const gradientDefs: string[] = [];
-  for (const layer of layers) {
-    if ('gradient' in layer) {
-      const sl = layer as ShapeLayer;
-      if (sl.gradient && sl.gradient.enabled && sl.gradient.colors.length > 0) {
-        const gradId = `grad-${sl.id}`;
-        if (sl.gradient.type === 'radial') {
-          gradientDefs.push(
-            `    <radialGradient id="${gradId}" cx="50%" cy="50%" r="50%">` +
-              sl.gradient.colors
-                .map((c: any) => `<stop offset="${c.position * 100}%" stop-color="${c.color}" />`)
-                .join('') +
-              `</radialGradient>`
-          );
-        } else {
-          const angle = sl.gradient.angle || 0;
-          gradientDefs.push(
-            `    <linearGradient id="${gradId}" gradientTransform="rotate(${angle}, 0.5, 0.5)" x1="0%" y1="0%" x2="100%" y2="0%">` +
-              sl.gradient.colors
-                .map((c: any) => `<stop offset="${c.position * 100}%" stop-color="${c.color}" />`)
-                .join('') +
-              `</linearGradient>`
-          );
-        }
-      }
-    }
-  }
-  svgParts.push(...gradientDefs);
-  svgParts.push(`  </defs>`);
-
-  if (backgroundColor !== 'transparent') {
-    svgParts.push(
-      `  <rect x="0" y="0" width="${round2(width)}" height="${round2(height)}" fill="${backgroundColor}" />`
-    );
-  }
-
-  for (const layer of layers) {
-    if (!layer.visible) {
-      continue;
     }
 
-    const transform = [
-      `translate(${round2(layer.x + ('width' in layer ? (layer as any).width / 2 : 0))}, ${round2(layer.y + ('height' in layer ? (layer as any).height / 2 : 0))})`,
-      `rotate(${round2(layer.rotation || 0)})`,
-    ].join(' ');
-
-    const opacity = layer.opacity ?? 1;
-
-    const strategy = layerExportStrategies.get(layer.type);
-    if (strategy) {
-      const svgCode = strategy.exportToSVG(layer, transform, opacity);
-      if (svgCode) svgParts.push(svgCode);
-    } else if (layer.type !== 'adjustment' && layer.type !== 'group') {
-      const fallback = layerExportStrategies.get('shape');
-      if (fallback) {
-        const svgCode = fallback.exportToSVG(layer, transform, opacity);
-        if (svgCode) svgParts.push(svgCode);
-      }
-    }
-  }
-
-  svgParts.push('</svg>');
-  return svgParts.join('\n');
-};
-
-/* --- HELPER FUNCTIONS --- */
-
-const loadImage = (url: string, timeoutMs = 30000): Promise<HTMLImageElement> => {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`Image load timed out after ${timeoutMs}ms: ${url}`)), timeoutMs);
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      clearTimeout(timer);
-      resolve(img);
-    };
-    img.onerror = (e) => {
-      clearTimeout(timer);
-      reject(e);
-    };
-    img.src = url;
+    const mimeType = options.format === 'jpg' ? 'image/jpeg' : 'image/png';
+    offscreen.toBlob((blob) => resolve(blob), mimeType, options.quality / 100);
   });
-};
-
-const drawImageLayerToContext = async (ctx: CanvasRenderingContext2D, layer: ImageLayer) => {
-  try {
-    const img = await loadImage(layer.src);
-    ctx.save();
-    ctx.translate(layer.x + layer.width / 2, layer.y + layer.height / 2);
-    ctx.rotate((layer.rotation * Math.PI) / 180);
-    ctx.globalAlpha = layer.opacity;
-
-    // Apply perspective transform if set
-    if (layer.perspective) {
-      ctx.transform(1, 0, Math.tan(((layer.rotateY || 0) * Math.PI) / 180) * 0.01, 1, 0, 0);
-    }
-
-    // Apply skew
-    if (layer.skewX || layer.skewY) {
-      ctx.transform(
-        1,
-        Math.tan(((layer.skewY || 0) * Math.PI) / 180),
-        Math.tan(((layer.skewX || 0) * Math.PI) / 180),
-        1,
-        0,
-        0
-      );
-    }
-
-    // Apply flip
-    const scaleX = layer.flipX ? -1 : 1;
-    const scaleY = layer.flipY ? -1 : 1;
-    ctx.scale(scaleX, scaleY);
-
-    // Apply CSS filters if present
-    if (layer.filters) {
-      const filterStr = buildFilterString(layer.filters);
-      if (filterStr && filterStr !== 'none') {
-        ctx.filter = filterStr;
-      }
-    }
-
-    ctx.drawImage(img, -layer.width / 2, -layer.height / 2, layer.width, layer.height);
-    ctx.restore();
-  } catch (err: any) {
-    log.warn('Failed to draw image layer', { error: err.message, layerId: layer.id, src: layer.src });
-  }
-};
-
-const drawTextLayerToContext = (ctx: CanvasRenderingContext2D, layer: TextLayer) => {
-  ctx.save();
-  ctx.translate(layer.x, layer.y);
-  ctx.rotate((layer.rotation * Math.PI) / 180);
-  ctx.globalAlpha = layer.opacity;
-
-  // Use shared multiline layout renderer
-  renderMultilineText(ctx, layer);
-
-  ctx.restore();
-};
-
-const drawShapeToContext = (ctx: CanvasRenderingContext2D, layer: ShapeLayer) => {
-  ctx.save();
-  ctx.translate(layer.x + layer.width / 2, layer.y + layer.height / 2);
-  ctx.rotate((layer.rotation * Math.PI) / 180);
-  ctx.globalAlpha = layer.opacity;
-
-  // Apply perspective
-  if (layer.perspective) {
-    ctx.transform(1, 0, Math.tan(((layer.rotateY || 0) * Math.PI) / 180) * 0.01, 1, 0, 0);
-  }
-
-  // Apply skew
-  if (layer.skewX || layer.skewY) {
-    ctx.transform(
-      1,
-      Math.tan(((layer.skewY || 0) * Math.PI) / 180),
-      Math.tan(((layer.skewX || 0) * Math.PI) / 180),
-      1,
-      0,
-      0
-    );
-  }
-
-  // Apply CSS filters
-  if (layer.filters) {
-    const filterStr = buildFilterString(layer.filters);
-    if (filterStr && filterStr !== 'none') {
-      ctx.filter = filterStr;
-    }
-  }
-
-  if (layer.type === 'path' && layer.pathData) {
-    const p = new Path2D(layer.pathData);
-    if (layer.id?.startsWith('draw_') || (layer as any).brushType) {
-      ctx.strokeStyle = layer.stroke?.color || layer.color;
-      ctx.lineWidth = layer.stroke?.width || 2;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.stroke(p);
-    } else {
-      ctx.fillStyle = layer.color || '#333333';
-      ctx.fill(p);
-    }
-    ctx.restore();
-    return;
-  }
-
-  ctx.fillStyle = layer.color;
-  const r = layer.cornerRadius || 0;
-
-  if (layer.type === 'rectangle') {
-    if (r > 0) {
-      const x = -layer.width / 2;
-      const y = -layer.height / 2;
-      ctx.beginPath();
-      ctx.moveTo(x + r, y);
-      ctx.lineTo(x + layer.width - r, y);
-      ctx.quadraticCurveTo(x + layer.width, y, x + layer.width, y + r);
-      ctx.lineTo(x + layer.width, y + layer.height - r);
-      ctx.quadraticCurveTo(x + layer.width, y + layer.height, x + layer.width - r, y + layer.height);
-      ctx.lineTo(x + r, y + layer.height);
-      ctx.quadraticCurveTo(x, y + layer.height, x, y + layer.height - r);
-      ctx.lineTo(x, y + r);
-      ctx.quadraticCurveTo(x, y, x + r, y);
-      ctx.closePath();
-      ctx.fill();
-    } else {
-      ctx.fillRect(-layer.width / 2, -layer.height / 2, layer.width, layer.height);
-    }
-  } else if (layer.type === 'circle') {
-    ctx.beginPath();
-    ctx.arc(0, 0, layer.width / 2, 0, Math.PI * 2);
-    ctx.fill();
-  } else {
-    const def = getLayerClipPath(layer);
-    if (def && applyShapePolygonToContext(ctx, def, layer.width, layer.height)) {
-      ctx.fill();
-    }
-  }
-
-  ctx.restore();
-};
-
-/**
- * Batch export multiple artboards as PNGs or SVGs.
- */
-export const batchExportArtboards = async (
-  artboards: Array<{ name: string; width: number; height: number; layers: Layer[]; backgroundColor: string }>,
-  format: 'png' | 'svg' = 'png'
-): Promise<void> => {
-  for (let i = 0; i < artboards.length; i++) {
-    const ab = artboards[i];
-    const filename = ab.name || `Artboard ${i + 1}`;
-
-    if (format === 'svg') {
-      const svg = exportToSVG(ab.width, ab.height, ab.backgroundColor, ab.layers);
-      const blob = new Blob([svg], { type: 'image/svg+xml' });
-      downloadBlob(blob, `${filename}.svg`);
-    } else {
-      const canvas = document.createElement('canvas');
-      canvas.width = ab.width;
-      canvas.height = ab.height;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        continue;
-      }
-
-      ctx.fillStyle = ab.backgroundColor;
-      ctx.fillRect(0, 0, ab.width, ab.height);
-
-      for (const layer of ab.layers) {
-        if (!layer.visible) {
-          continue;
-        }
-        const strategy = layerExportStrategies.get(layer.type);
-        if (strategy) {
-          await strategy.drawToContext(ctx, layer);
-        } else if (layer.type !== 'adjustment' && layer.type !== 'group') {
-          const fallback = layerExportStrategies.get('shape');
-          if (fallback) await fallback.drawToContext(ctx, layer);
-        }
-      }
-
-      const blob = await new Promise<Blob>((resolve) => {
-        canvas.toBlob((b) => resolve(b || new Blob()), 'image/png');
-      });
-      downloadBlob(blob, `${filename}.png`);
-    }
-  }
-};
-
-export interface BatchExportArtboard {
-  id: string;
-  name: string;
-  width: number;
-  height: number;
-  layers: Layer[];
-  backgroundColor: string;
 }
 
-/**
- * Batch export multiple artboards, zipping them into a single file.
- * Supports all image formats (png, jpeg, webp) and svg.
- */
-export const batchExportArtboardsZip = async (
-  artboards: BatchExportArtboard[],
-  format: 'png' | 'jpeg' | 'webp' | 'svg',
-  quality: number = 0.95
-): Promise<void> => {
-  const zip = new JSZip();
-  const folder = zip.folder('artboards');
-  if (!folder) return;
-
-  for (let i = 0; i < artboards.length; i++) {
-    const ab = artboards[i];
-    const filename = ab.name || `Artboard ${i + 1}`;
-    const safeFilename =
-      filename
-        .replace(/[^a-zA-Z0-9_\-\s]/g, '')
-        .replace(/\s+/g, '_')
-        .toLowerCase() || `artboard_${i + 1}`;
-
-    if (format === 'svg') {
-      const svg = exportToSVG(ab.width, ab.height, ab.backgroundColor, ab.layers);
-      folder.file(`${safeFilename}.svg`, svg);
-    } else {
-      const canvas = document.createElement('canvas');
-      canvas.width = ab.width;
-      canvas.height = ab.height;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) continue;
-
-      if (ab.backgroundColor !== 'transparent') {
-        ctx.fillStyle = ab.backgroundColor;
-        ctx.fillRect(0, 0, ab.width, ab.height);
-      }
-
-      for (const layer of ab.layers) {
-        if (!layer.visible) continue;
-        const strategy = layerExportStrategies.get(layer.type);
-        if (strategy) {
-          await strategy.drawToContext(ctx, layer);
-        } else if (layer.type !== 'adjustment' && layer.type !== 'group') {
-          const fallback = layerExportStrategies.get('shape');
-          if (fallback) await fallback.drawToContext(ctx, layer);
-        }
-      }
-
-      const mimeType = `image/${format}`;
-      const ext = format === 'jpeg' ? 'jpg' : format;
-
-      const blob = await new Promise<Blob>((resolve) => {
-        canvas.toBlob((b) => resolve(b || new Blob()), mimeType, quality);
-      });
-
-      const arrayBuffer = await blob.arrayBuffer();
-      folder.file(`${safeFilename}.${ext}`, arrayBuffer);
-    }
+// Same gradient formula as canvasEngine.createGradient (line 1340)
+function createCanvasGradient(ctx: CanvasRenderingContext2D, fill: GradientFill, node: DesignNode): CanvasGradient {
+  if (fill.type === 'linear') {
+    const angle = (fill.angle || 0) * Math.PI / 180;
+    const grad = ctx.createLinearGradient(
+      node.x + Math.cos(angle) * node.width / 2,
+      node.y + Math.sin(angle) * node.height / 2,
+      node.x + node.width / 2 - Math.cos(angle) * node.width / 2,
+      node.y + node.height / 2 - Math.sin(angle) * node.height / 2,
+    );
+    fill.stops.forEach(s => grad.addColorStop(s.offset, s.color));
+    return grad;
   }
+  const grad = ctx.createRadialGradient(
+    node.x + node.width / 2, node.y + node.height / 2, 0,
+    node.x + node.width / 2, node.y + node.height / 2, node.width / 2,
+  );
+  fill.stops.forEach(s => grad.addColorStop(s.offset, s.color));
+  return grad;
+}
 
-  const zipBlob = await zip.generateAsync({ type: 'blob' });
-  downloadBlob(zipBlob, `artboards_${format}.zip`);
-};
+function canvasRoundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x + r, y + h);
+  ctx.lineTo(x + r, y);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+export function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}

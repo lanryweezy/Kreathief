@@ -508,4 +508,66 @@ export class VectorUtils {
       isClosed: false, // Joining usually results in an open composite path
     };
   }
+
+  /**
+   * Parses a viewBox string to extract width and height.
+   */
+  static parseViewBox(viewBoxStr?: string): { width: number; height: number } {
+    if (!viewBoxStr) return { width: 100, height: 100 };
+    const parts = viewBoxStr.trim().split(/\s+/).map(Number);
+    if (parts.length === 4 && !parts.some(isNaN)) {
+      return { width: parts[2], height: parts[3] };
+    }
+    return { width: 100, height: 100 };
+  }
+
+  /**
+   * Converts a basic shape layer to a VectorPath, scaling coordinates to the layer's actual width and height.
+   */
+  static convertShapeToVectorPath(layer: any): VectorPath {
+    let pathData = layer.pathData;
+    let viewBox = layer.viewBox;
+
+    if (!pathData) {
+      if (layer.type === 'circle') {
+        pathData = 'M 50,0 A 50,50 0 1,1 50,100 A 50,50 0 1,1 50,0';
+        viewBox = '0 0 100 100';
+      } else {
+        pathData = 'M 0,0 H 100 V 100 H 0 Z';
+        viewBox = '0 0 100 100';
+      }
+    }
+
+    const { width: vbWidth, height: vbHeight } = this.parseViewBox(viewBox);
+    const parsedPath = this.parsePath(pathData);
+
+    const scaleX = (layer.width || 100) / (vbWidth || 100);
+    const scaleY = (layer.height || 100) / (vbHeight || 100);
+
+    const scaledPoints = parsedPath.points.map((pt) => {
+      const scaledPt = {
+        ...pt,
+        x: pt.x * scaleX,
+        y: pt.y * scaleY,
+      };
+      if (pt.handleIn) {
+        scaledPt.handleIn = {
+          x: pt.handleIn.x * scaleX,
+          y: pt.handleIn.y * scaleY,
+        };
+      }
+      if (pt.handleOut) {
+        scaledPt.handleOut = {
+          x: pt.handleOut.x * scaleX,
+          y: pt.handleOut.y * scaleY,
+        };
+      }
+      return scaledPt;
+    });
+
+    return {
+      points: scaledPoints,
+      isClosed: parsedPath.isClosed,
+    };
+  }
 }
