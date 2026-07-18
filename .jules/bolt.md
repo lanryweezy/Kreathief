@@ -67,3 +67,8 @@
 
 **Learning:** When extracting multiple values from Zustand's `useStore` in React components, avoid parameterless destructuring (e.g., `const { a, b } = useStore();`) or returning objects without `useShallow` (e.g., `useStore(state => ({a: state.a}))`). This subscribes the component to the entire store or breaks referential equality, causing catastrophic re-renders on every store update (like simple mouse movements).
 **Action:** Always use an explicit selector returning an object and wrap it with `useShallow` from `zustand/react/shallow` to preserve referential equality and prevent unnecessary component re-renders.
+
+## 2026-07-18 - Zustand Store Subscriptions in Panel Components
+
+**Learning:** Destructuring directly from `useStore()` without providing a selector (e.g., `const past = useStore((state) => state.past); const future = useStore((state) => state.future);`) in panels subscribes the calling component to the global store, triggering unnecessary re-renders when any state in the store changes. In frequently re-rendered components like `HistoryPanel`, this creates a performance bottleneck.
+**Action:** When a component extracts multiple values from `useStore()`, use an explicit selector and wrap it with `useShallow` from `zustand/react/shallow` to ensure the component only re-renders when the specific properties it depends on change.

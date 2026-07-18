@@ -1,13 +1,20 @@
 import React from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 
 export const HistoryPanel: React.FC = () => {
-  const past = useStore((state) => state.past) || [];
-  const future = useStore((state) => state.future) || [];
-  const undo = useStore((state) => state.undo);
-  const redo = useStore((state) => state.redo);
-  const addToast = useStore((state) => state.addToast);
+  // ⚡ Bolt Optimization: Wrap multiple specific store selections in useShallow
+  // to prevent unnecessary re-renders of the HistoryPanel when unrelated global state changes.
+  const { past, future, undo, redo, addToast } = useStore(
+    useShallow((state) => ({
+      past: state.past || [],
+      future: state.future || [],
+      undo: state.undo,
+      redo: state.redo,
+      addToast: state.addToast,
+    }))
+  );
 
   const handleUndo = () => {
     if (past.length === 0) {
