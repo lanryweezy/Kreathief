@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { DesignNode, ToolType, HistoryCommand } from '../types/design';
-import { surface, content, semantic } from '../lib/tokens';
+import { surface, content, semantic } from './lib/tokens';
 import {
   UserPreferences,
   DesignPattern,
