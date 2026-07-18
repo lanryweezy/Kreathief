@@ -11,7 +11,8 @@ export const TransformPanel: React.FC = () => {
   const addToast = useStore((state) => state.addToast);
   const groupSelected = useStore((state) => state.groupSelected);
   const ungroupSelected = useStore((state) => state.ungroupSelected);
-  const [aspectLocked, setAspectLocked] = useState(false);
+  const aspectLocked = useStore((state) => state.aspectLocked) || false;
+  const setAspectLocked = useStore((state) => state.setAspectLocked);
 
   const allLayers = useMemo(() => artboards.flatMap((a) => a.layers), [artboards]);
   const selectedLayers = useMemo(

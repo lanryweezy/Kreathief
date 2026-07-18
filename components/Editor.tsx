@@ -19,9 +19,9 @@ import { useEditorLogic } from '../hooks/useEditorLogic';
 import { useFileHandler } from '../hooks/useFileHandler';
 import { shareService } from '../services/shareService';
 import { storageService } from '../services/storageService';
-import { PresentationModal } from './modals/PresentationModal';
 import { ShareModal } from './modals/ShareModal';
-import { MockupPanel } from './panels/MockupPanel';
+import { ExportModal } from './modals/ExportModal';
+const MockupPanel = React.lazy(() => import('./panels/MockupPanel').then((m) => ({ default: m.MockupPanel })));
 import { HistoryManager } from '../commands/history';
 import { MoveCommand } from '../commands/move';
 import { DeleteCommand } from '../commands/delete';
@@ -65,7 +65,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const projectId = useStore((state) => state.projectId);
   const projectTitle = useStore((state) => state.projectTitle);
   const showShareModal = useStore((state) => state.showShareModal);
-  const showFeedbackModal = useStore((state) => state.showFeedbackModal);
 
   const { broadcastCursor, broadcastLayerChange, updatePresence } = useCollaboration(
     useStore((s) => s.projectId),
@@ -749,7 +748,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${showNodeGraph ? 'bg-brand-600 text-white' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
                 >
                   <Icons.Magic className="w-3.5 h-3.5" />
-                  {showNodeGraph ? 'Close' : 'Pipeline Mode'}
+                  {showNodeGraph ? 'Close' : 'Workflows'}
                 </button>
               </div>
               <Toolbar
@@ -898,14 +897,14 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
               <div className="flex items-center gap-1 px-1">
                 <button
-                  onClick={() => { const state = useStore.getState(); state.setShowGrid(!state.showGrid); }}
+                  onClick={() => useStore.getState().setShowGrid(!useStore.getState().showGrid)}
                   className={`p-1.5 rounded-md transition-all ${showGrid ? 'bg-brand/20 text-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
-                  title={showGrid ? 'Hide Grid' : 'Show Grid'}
+                  title="Toggle Grid"
                 >
                   <Icons.Grid className="w-3.5 h-3.5" />
                 </button>
                 <button
-                  onClick={() => { const state = useStore.getState(); state.setShowRulers(!state.showRulers); }}
+                  onClick={() => useStore.getState().setShowRulers(!useStore.getState().showRulers)}
                   className={`p-1.5 rounded-md transition-all ${showRulers ? 'bg-brand/20 text-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
                   title="Toggle Rulers"
                 >
@@ -1054,10 +1053,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       </ErrorBoundary>
 
       <ShortcutOverlay isOpen={showShortcuts} onClose={() => useStore.getState().setShowShortcuts(false)} />
-        {showFeedbackModal && <FeedbackModal onClose={() => useStore.getState().setShowFeedbackModal(false)} />}
-        
-        {/* Mount the PresentationModal so it can react to global store changes */}
-        <PresentationModal />
+      <FeedbackModal />
 
       <React.Suspense fallback={null}>
         {showCommunityModal && <CommunityModal onClose={() => setShowCommunityModal(false)} />}

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 
@@ -13,26 +13,27 @@ export const GridGuidesPanel: React.FC = () => {
   const setSnapToObjects = useStore((state) => state.setSnapToObjects);
   const addToast = useStore((state) => state.addToast);
 
-  const [gridSize, setGridSize] = useState(20);
-  const [gridColor, setGridColor] = useState('#7d2ae8');
-  const [guides, setGuides] = useState<{ type: 'horizontal' | 'vertical'; position: number }[]>([]);
+  const gridSize = useStore((state) => state.gridSize) || 20;
+  const setGridSize = useStore((state) => state.setGridSize);
+  const gridColor = useStore((state) => state.gridColor) || '#7c3aed';
+  const setGridColor = useStore((state) => state.setGridColor);
+  const guides = useStore((state) => state.guides) || [];
+  const addGuide = useStore((state) => state.addGuide);
+  const removeGuide = useStore((state) => state.removeGuide);
+  const clearGuides = useStore((state) => state.clearGuides);
 
   const handleAddGuide = useCallback(
     (type: 'horizontal' | 'vertical') => {
-      const newGuide = {
-        type,
-        position: type === 'horizontal' ? 500 : 500,
-      };
-      setGuides([...guides, newGuide]);
+      addGuide(type, 500);
       addToast(`${type === 'horizontal' ? 'Horizontal' : 'Vertical'} guide added`, 'success');
     },
-    [guides, addToast]
+    [addGuide, addToast]
   );
 
   const handleClearGuides = useCallback(() => {
-    setGuides([]);
+    clearGuides();
     addToast('All guides cleared', 'info');
-  }, [addToast]);
+  }, [clearGuides, addToast]);
 
   return (
     <div className="bg-surface-dark-3 rounded-xl border border-gray-700 p-4 space-y-4">
@@ -167,10 +168,7 @@ export const GridGuidesPanel: React.FC = () => {
                   {guide.type === 'horizontal' ? '↔' : '↕'} {guide.position}px
                 </span>
                 <button
-                  onClick={() => {
-                    const newGuides = guides.filter((_, i) => i !== index);
-                    setGuides(newGuides);
-                  }}
+                  onClick={() => removeGuide(index)}
                   className="text-gray-600 hover:text-red-400"
                 >
                   ×
