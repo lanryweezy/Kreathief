@@ -180,10 +180,16 @@
     }
   ],
   "metadata": {
-    "templateName": "Modern Tech Mixer Post Event",
-    "shortDescription": "Promote your tech meetup with a modern, high-contrast Instagram post.",
-    "longDescription": "Promote your tech meetup or networking event with a modern, high-contrast post. Perfect for tech meetups, founder mixers, and startup events. Features neon green accents.",
-    "tags": ["Business", "Instagram post", "Professional", "African Market", "Events"],
+    "templateName": "Professional Tech Mixer Instagram Post Meetup",
+    "shortDescription": "Promote your tech meetup or networking event with a modern, high-contrast post.",
+    "longDescription": "Promote your tech meetup or networking event with a modern, high-contrast post. Perfect for tech meetups, founder mixers, and startup events. Features bold typography and high-contrast neon green accents against a dark background.",
+    "tags": [
+      "Business",
+      "Instagram post",
+      "Professional",
+      "African Market",
+      "Events"
+    ],
     "searchKeywords": [
       "tech event flyer",
       "startup mixer",
@@ -197,15 +203,23 @@
       "tech conference"
     ],
     "seoMetadata": {
-      "title": "Modern Tech Mixer Post Event — Free Instagram post Template",
+      "title": "Professional Tech Mixer Instagram Post Meetup — Free Instagram post Template",
       "description": "Promote your tech meetup or networking event with a modern, high-contrast Instagram post template designed for the tech community.",
-      "slug": "modern-tech-mixer-post-event"
+      "slug": "professional-tech-mixer-instagram-post-meetup"
     },
     "personalisationSignals": {
-      "industry": ["technology", "Business", "startups"],
-      "audienceType": ["event organiser", "community manager", "startup founder", "marketing professional"],
+      "industry": [
+        "technology",
+        "Business",
+        "startups"
+      ],
+      "audienceType": [
+        "event organiser",
+        "community manager",
+        "startup founder",
+        "marketing professional"
+      ],
       "experienceLevel": "beginner-friendly"
-    },
-    "relatedTemplates": ["clean-tech-pitch-cover", "clean-luxury-estate-post-sale", "vibrant-food-fest-post-promo"]
+    }
   }
 }

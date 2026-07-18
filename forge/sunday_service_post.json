@@ -153,10 +153,16 @@
     }
   ],
   "metadata": {
-    "templateName": "Elegant Sunday Post Invite",
+    "templateName": "Clean Sunday Service Instagram Post Invitation",
     "shortDescription": "Invite your congregation to Sunday service with a clean, elegant layout.",
-    "longDescription": "Invite your congregation to Sunday service with a clean, elegant layout. Features warm minimal tones and a central photo zone to highlight worship.",
-    "tags": ["Religious", "Instagram post", "Clean & minimal", "African Market", "Events"],
+    "longDescription": "Invite your congregation to Sunday service with a clean, elegant layout. Features warm minimal tones and a central photo zone to highlight worship. An elegant, clean Instagram post template designed specifically for church Sunday services.",
+    "tags": [
+      "Religious",
+      "Instagram post",
+      "Clean & minimal",
+      "African Market",
+      "Events"
+    ],
     "searchKeywords": [
       "sunday service post",
       "church flyer",
@@ -170,19 +176,23 @@
       "church event"
     ],
     "seoMetadata": {
-      "title": "Elegant Sunday Post Invite — Free Instagram post Template",
+      "title": "Clean Sunday Service Instagram Post Invitation — Free Instagram post Template",
       "description": "Invite your congregation with an elegant and clean Sunday service Instagram post template. Perfect for modern ministries.",
-      "slug": "elegant-sunday-post-invite"
+      "slug": "clean-sunday-service-instagram-post-invitation"
     },
     "personalisationSignals": {
-      "industry": ["Religious", "community", "Events"],
-      "audienceType": ["church media team", "community manager", "event organiser", "small business"],
+      "industry": [
+        "Religious",
+        "community",
+        "Events"
+      ],
+      "audienceType": [
+        "church media team",
+        "community manager",
+        "event organiser",
+        "small business"
+      ],
       "experienceLevel": "beginner-friendly"
-    },
-    "relatedTemplates": [
-      "clean-luxury-estate-post-sale",
-      "vibrant-food-fest-post-promo",
-      "modern-tech-mixer-post-event"
-    ]
+    }
   }
 }

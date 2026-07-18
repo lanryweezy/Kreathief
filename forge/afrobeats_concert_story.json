@@ -157,10 +157,16 @@
     }
   ],
   "metadata": {
-    "templateName": "Vibrant Afrobeats Story Promo",
-    "shortDescription": "Promote your concert with a high-energy, vibrant Instagram Story.",
-    "longDescription": "Promote your music event or concert with a high-energy, vibrant Instagram Story. Designed for concerts, Afrobeats events, and artist promotions. Uses striking, vibrant colours.",
-    "tags": ["Music & Entertainment", "Story", "Vibrant", "African Market", "Events"],
+    "templateName": "Vibrant Afrobeats Concert Story Promotion",
+    "shortDescription": "Promote your music event or concert with a high-energy, vibrant Instagram Story.",
+    "longDescription": "Promote your music event or concert with a high-energy, vibrant Instagram Story. Designed for concerts, Afrobeats events, and artist promotions. Uses striking, vibrant colours and expressive angled typography. Grab attention instantly.",
+    "tags": [
+      "Music & Entertainment",
+      "Story",
+      "Vibrant",
+      "African Market",
+      "Events"
+    ],
     "searchKeywords": [
       "afrobeats concert story",
       "music event promo",
@@ -170,19 +176,26 @@
       "nigerian music event",
       "afrobeats party",
       "vibrant event story",
-      "music festival story",
-      "afrobeats story"
+      "music festival story"
     ],
     "seoMetadata": {
-      "title": "Vibrant Afrobeats Story Promo — Free Story Template",
+      "title": "Vibrant Afrobeats Concert Story Promotion — Free Story Template",
       "description": "Drive ticket sales with this high-energy, vibrant Afrobeats concert Instagram Story template. Designed for maximum impact and engagement.",
-      "slug": "vibrant-afrobeats-story-promo"
+      "slug": "vibrant-afrobeats-concert-story-promotion"
     },
     "personalisationSignals": {
-      "industry": ["Music & Entertainment", "nightlife", "Events"],
-      "audienceType": ["event promoter", "musician", "DJ", "small business"],
+      "industry": [
+        "Music & Entertainment",
+        "nightlife",
+        "Events"
+      ],
+      "audienceType": [
+        "event promoter",
+        "musician",
+        "DJ",
+        "small business"
+      ],
       "experienceLevel": "beginner-friendly"
-    },
-    "relatedTemplates": ["bold-afrobeats-ig-post-promo", "bold-amapiano-print-flyer", "modern-tech-mixer-post-event"]
+    }
   }
 }

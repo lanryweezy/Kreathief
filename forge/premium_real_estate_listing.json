@@ -211,10 +211,16 @@
     }
   ],
   "metadata": {
-    "templateName": "Clean Luxury Estate Post Sale",
-    "shortDescription": "Showcase luxury properties with this clean, professional real estate listing.",
-    "longDescription": "Showcase luxury properties with this clean, professional real estate listing post. Designed specifically for premium real estate listings in African markets. Uses neutral clean colours.",
-    "tags": ["Business", "Instagram post", "Professional", "African Market", "Clean & minimal"],
+    "templateName": "Clean Real Estate Instagram Post Listing",
+    "shortDescription": "Showcase luxury properties with this clean, professional real estate listing post.",
+    "longDescription": "Showcase luxury properties with this clean, professional real estate listing post. Designed specifically for premium real estate listings in African markets like Abuja and Lagos. Features a large image zone and prominent price tag to highlight property features.",
+    "tags": [
+      "Business",
+      "Instagram post",
+      "Professional",
+      "African Market",
+      "Clean & minimal"
+    ],
     "searchKeywords": [
       "real estate flyer",
       "property listing",
@@ -228,15 +234,23 @@
       "property post"
     ],
     "seoMetadata": {
-      "title": "Clean Luxury Estate Post Sale — Free Instagram post Template",
+      "title": "Clean Real Estate Instagram Post Listing — Free Instagram post Template",
       "description": "Showcase luxury properties with this clean, professional real estate listing Instagram post template designed for the African property market.",
-      "slug": "clean-luxury-estate-post-sale"
+      "slug": "clean-real-estate-instagram-post-listing"
     },
     "personalisationSignals": {
-      "industry": ["Real Estate", "property development", "Business"],
-      "audienceType": ["realtor", "real estate agent", "property developer", "small business"],
+      "industry": [
+        "Real Estate",
+        "property development",
+        "Business"
+      ],
+      "audienceType": [
+        "realtor",
+        "real estate agent",
+        "property developer",
+        "small business"
+      ],
       "experienceLevel": "beginner-friendly"
-    },
-    "relatedTemplates": ["clean-tech-pitch-cover", "modern-tech-mixer-post-event", "elegant-sunday-post-invite"]
+    }
   }
 }

@@ -191,10 +191,16 @@
     }
   ],
   "metadata": {
-    "templateName": "Clean Tech Pitch Cover",
+    "templateName": "Professional Tech Startup Pitch Deck Slide",
     "shortDescription": "Command attention with this trust-signalling pitch deck cover.",
-    "longDescription": "Command attention in the boardroom with this modern, trust-signalling pitch deck cover. Engineered for tech startups seeking investment. Uses a deep navy background and cyan accents.",
-    "tags": ["Business", "Pitch deck slide", "Professional", "African Market", "Tech & Startup"],
+    "longDescription": "Command attention in the boardroom with this modern, trust-signalling pitch deck cover. Engineered for tech startups seeking investment. Uses a deep navy background, technical cyan accents, and clear, authoritative typography to project competence.",
+    "tags": [
+      "Business",
+      "Pitch deck slide",
+      "Professional",
+      "African Market",
+      "Tech & Startup"
+    ],
     "searchKeywords": [
       "naija tech startup pitch",
       "nigerian fintech presentation",
@@ -208,19 +214,23 @@
       "startup presentation"
     ],
     "seoMetadata": {
-      "title": "Clean Tech Pitch Cover — Free Pitch deck slide Template",
+      "title": "Professional Tech Startup Pitch Deck Slide — Free Pitch deck slide Template",
       "description": "Secure funding with this professional tech startup pitch deck cover slide. Designed for African founders building the next big thing.",
-      "slug": "clean-tech-pitch-cover"
+      "slug": "professional-tech-startup-pitch-deck-slide"
     },
     "personalisationSignals": {
-      "industry": ["technology", "finance", "Business"],
-      "audienceType": ["startup founder", "executive", "enterprise", "small business"],
+      "industry": [
+        "technology",
+        "finance",
+        "Business"
+      ],
+      "audienceType": [
+        "startup founder",
+        "executive",
+        "enterprise",
+        "small business"
+      ],
       "experienceLevel": "intermediate"
-    },
-    "relatedTemplates": [
-      "modern-tech-mixer-post-event",
-      "clean-luxury-estate-post-sale",
-      "vibrant-food-fest-post-promo"
-    ]
+    }
   }
 }

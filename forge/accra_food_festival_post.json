@@ -158,10 +158,17 @@
     }
   ],
   "metadata": {
-    "templateName": "Vibrant Food Fest Post Promo",
+    "templateName": "Vibrant Food Festival Instagram Post Promotion",
     "shortDescription": "Promote your culinary event with a vibrant, appetizing Instagram post.",
-    "longDescription": "Promote your culinary event with a vibrant, appetizing Instagram post. Ideal for food festivals, pop-up markets, and restaurant events in Accra and beyond. Features rich warm colours.",
-    "tags": ["Food & Restaurant", "Instagram post", "Vibrant", "Warm", "Events", "African Market"],
+    "longDescription": "Promote your culinary event with a vibrant, appetizing Instagram post. Ideal for food festivals, pop-up markets, and restaurant events in Accra and beyond. Features rich warm colours and bold typography. Attract food lovers today.",
+    "tags": [
+      "Food & Restaurant",
+      "Instagram post",
+      "Vibrant",
+      "Warm",
+      "Events",
+      "African Market"
+    ],
     "searchKeywords": [
       "accra food festival",
       "ghana food event",
@@ -175,15 +182,23 @@
       "food menu"
     ],
     "seoMetadata": {
-      "title": "Vibrant Food Fest Post Promo — Free Instagram post Template",
+      "title": "Vibrant Food Festival Instagram Post Promotion — Free Instagram post Template",
       "description": "Attract food lovers with this vibrant Accra food festival Instagram post template. Perfect for promoting culinary events and food markets.",
-      "slug": "vibrant-food-fest-post-promo"
+      "slug": "vibrant-food-festival-instagram-post-promotion"
     },
     "personalisationSignals": {
-      "industry": ["Food & Restaurant", "hospitality", "Events"],
-      "audienceType": ["small business", "event organiser", "restaurant owner", "food vendor"],
+      "industry": [
+        "Food & Restaurant",
+        "hospitality",
+        "Events"
+      ],
+      "audienceType": [
+        "small business",
+        "event organiser",
+        "restaurant owner",
+        "food vendor"
+      ],
       "experienceLevel": "beginner-friendly"
-    },
-    "relatedTemplates": ["modern-tech-mixer-post-event", "bold-amapiano-print-flyer", "bold-afrobeats-ig-post-promo"]
+    }
   }
 }
