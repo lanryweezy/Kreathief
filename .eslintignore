@@ -3,12 +3,3 @@ dist
 build
 test-results
 playwright-report
-coverage
-*.log
-.DS_Store
-Thumbs.db
-*.local
-.env
-.env.*.local
-*.tsbuildinfo
-debug_error.ts
