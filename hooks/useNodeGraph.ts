@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { GraphNode, GraphWire, NodeGraph, NodeGraphState } from '../types/nodes';
 import { getNodeDefinition } from '../data/nodeDefinitions';
 import { WORKFLOW_PRESETS } from '../data/workflowPresets';
+import { log } from '../utils/log';
 
 let nodeIdCounter = 0;
 let wireIdCounter = 0;
@@ -302,7 +303,7 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
             nodeProgressStep: { ...state.nodeProgressStep, [nodeId]: 'Completed' },
           }));
         } catch (err) {
-          console.error(`[NodeGraph] Node ${node.type} (${nodeId}) failed:`, err);
+          log.error(`[NodeGraph] Node ${node.type} (${nodeId}) failed:`, err);
           outputs[nodeId] = { error: String(err) };
         }
       }

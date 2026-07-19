@@ -5,6 +5,7 @@ import { Artboard, TableLayer } from '../../types';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { generateDocumentDesign } from '../../services/geminiService';
 import { jsPDF } from 'jspdf';
+import { log } from '../../utils/log';
 
 const PAGE_FORMATS = {
   a4: { name: 'A4', width: 794, height: 1123 },
@@ -257,7 +258,7 @@ export const DocumentPanel: React.FC = () => {
         });
       }, 100);
     } catch (error) {
-      console.error(error);
+      log.error('Failed to generate document.', error);
       alert('Failed to generate document. Check console.');
     } finally {
       setIsGeneratingAI(false);

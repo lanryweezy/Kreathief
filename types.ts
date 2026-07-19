@@ -344,6 +344,8 @@ export type ShapeType =
   | 'path';
 
 export interface ShapeLayer extends LayerBase {
+  brushType?: string;
+  strokeQuality?: 'fast' | 'best';
   type: ShapeType;
   color: string;
   cornerRadius: number;
@@ -433,6 +435,7 @@ export interface Artboard {
 }
 
 export interface CanvasFilters {
+  invert?: number; // %
   brightness: number; // %
   contrast: number; // %
   saturation: number; // %

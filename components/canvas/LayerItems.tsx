@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Layer, TextLayer, ShapeLayer, ImageLayer, AnimationSettings, ResizeHandle } from '../../types';
+import { Layer, TextLayer, ShapeLayer, ImageLayer, AdjustmentLayer, AnimationSettings, ResizeHandle, CanvasFilters } from '../../types';
 import { getLayerClipPath, getAnimationStyle } from '../../utils/layerRendering';
 import { buildVariableStrokeOutline, profileWidthFn } from '../../utils/variableStroke';
 import { buildFilterString, getLayerStyle } from '../../utils/layers';
@@ -81,8 +81,8 @@ const layerPropsAreEqual = (prevProps: LayerItemProps, nextProps: LayerItemProps
     p.id === n.id &&
     p.x === n.x &&
     p.y === n.y &&
-    (p as any).width === (n as any).width &&
-    (p as any).height === (n as any).height &&
+    p.width === n.width &&
+    p.height === n.height &&
     p.rotation === n.rotation &&
     p.opacity === n.opacity &&
     p.visible === n.visible &&
@@ -92,16 +92,16 @@ const layerPropsAreEqual = (prevProps: LayerItemProps, nextProps: LayerItemProps
     shallowEqual(p.filters, n.filters) &&
     shallowEqual(p.stroke, n.stroke) &&
     shallowEqual(p.shadow, n.shadow) &&
-    (p as any).text === (n as any).text &&
-    (p as any).fontFamily === (n as any).fontFamily &&
-    (p as any).fontSize === (n as any).fontSize &&
-    (p as any).pathData === (n as any).pathData &&
-    (p as any).src === (n as any).src &&
-    (p as any).cornerRadius === (n as any).cornerRadius &&
-    (p as any).color === (n as any).color &&
-    (p as any).maskPath === (n as any).maskPath &&
-    (p as any).maskType === (n as any).maskType &&
-    (p as any).maskLayerId === (n as any).maskLayerId
+    (p as TextLayer).text === (n as TextLayer).text &&
+    (p as TextLayer).fontFamily === (n as TextLayer).fontFamily &&
+    (p as TextLayer).fontSize === (n as TextLayer).fontSize &&
+    (p as ShapeLayer).pathData === (n as ShapeLayer).pathData &&
+    (p as ImageLayer).src === (n as ImageLayer).src &&
+    (p as ShapeLayer | ImageLayer).cornerRadius === (n as ShapeLayer | ImageLayer).cornerRadius &&
+    (p as TextLayer | ShapeLayer).color === (n as TextLayer | ShapeLayer).color &&
+    (p as ImageLayer).maskPath === (n as ImageLayer).maskPath &&
+    (p as ImageLayer).maskType === (n as ImageLayer).maskType &&
+    p.maskLayerId === n.maskLayerId
   );
 };
 
@@ -406,7 +406,7 @@ export const ShapeLayerItem = React.memo(
           <div className="w-full h-full relative" style={innerStyle}>
             {shapeLayer.pathData &&
               (() => {
-                const brushType = (shapeLayer as any).brushType;
+                const brushType = shapeLayer.brushType;
                 const isDrawingPath = shapeLayer.id?.startsWith('draw_') || !!brushType;
 
                 if (isDrawingPath) {
@@ -419,7 +419,7 @@ export const ShapeLayerItem = React.memo(
                       viewBox={shapeLayer.viewBox}
                       brushType={brushType}
                       color={shapeLayer.color}
-                      strokeWidth={(shapeLayer as any).stroke?.width}
+                      strokeWidth={shapeLayer.stroke?.width}
                       opacity={shapeLayer.opacity}
                       mode="canvas"
                     />
@@ -459,47 +459,47 @@ export const ShapeLayerItem = React.memo(
                             ))}
                           </linearGradient>
                         ))}
-                      {(shapeLayer as any).pathEffects?.roughen?.amount > 0 && (
+                      {(shapeLayer.pathEffects?.roughen?.amount ?? 0) > 0 && (
                         <filter id={`roughen-${shapeLayer.id}`}>
                           <feTurbulence type="turbulence" baseFrequency="0.8" numOctaves="1" result="noise" />
                           <feDisplacementMap
                             in="SourceGraphic"
                             in2="noise"
-                            scale={(shapeLayer as any).pathEffects?.roughen?.amount || 0}
+                            scale={shapeLayer.pathEffects?.roughen?.amount || 0}
                             xChannelSelector="R"
                             yChannelSelector="G"
                           />
                         </filter>
                       )}
-                      {(shapeLayer as any).pathEffects?.zigzag?.amplitude > 0 && (
+                      {(shapeLayer.pathEffects?.zigzag?.amplitude ?? 0) > 0 && (
                         <filter id={`zigzag-${shapeLayer.id}`}>
                           <feTurbulence
                             type="turbulence"
-                            baseFrequency={((shapeLayer as any).pathEffects?.zigzag?.frequency || 1) / 100}
+                            baseFrequency={(shapeLayer.pathEffects?.zigzag?.frequency || 1) / 100}
                             numOctaves="1"
                             result="noise"
                           />
                           <feDisplacementMap
                             in="SourceGraphic"
                             in2="noise"
-                            scale={(shapeLayer as any).pathEffects?.zigzag?.amplitude || 0}
+                            scale={shapeLayer.pathEffects?.zigzag?.amplitude || 0}
                             xChannelSelector="R"
                             yChannelSelector="G"
                           />
                         </filter>
                       )}
-                      {(shapeLayer as any).strokeProfile && (shapeLayer as any).strokeProfile !== 'uniform' && (
+                      {shapeLayer.strokeProfile && shapeLayer.strokeProfile !== 'uniform' && (
                         <>
                           <linearGradient id={`taper-mask-${shapeLayer.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                            {(shapeLayer as any).strokeProfile === 'taper-start' ||
-                            (shapeLayer as any).strokeProfile === 'taper-both' ? (
+                            {shapeLayer.strokeProfile === 'taper-start' ||
+                            shapeLayer.strokeProfile === 'taper-both' ? (
                               <stop offset="0%" stopColor="#000" stopOpacity="0" />
                             ) : (
                               <stop offset="0%" stopColor="#000" stopOpacity="1" />
                             )}
                             <stop offset="50%" stopColor="#000" stopOpacity="1" />
-                            {(shapeLayer as any).strokeProfile === 'taper-end' ||
-                            (shapeLayer as any).strokeProfile === 'taper-both' ? (
+                            {shapeLayer.strokeProfile === 'taper-end' ||
+                            shapeLayer.strokeProfile === 'taper-both' ? (
                               <stop offset="100%" stopColor="#000" stopOpacity="0" />
                             ) : (
                               <stop offset="100%" stopColor="#000" stopOpacity="1" />
@@ -511,12 +511,12 @@ export const ShapeLayerItem = React.memo(
                         </>
                       )}
                     </defs>
-                    {(shapeLayer as any).pathEffects?.offset?.distance > 0 && (
+                    {(shapeLayer.pathEffects?.offset?.distance ?? 0) > 0 && (
                       <path
                         d={shapeLayer.pathData}
                         fill="none"
                         stroke={shapeLayer.color}
-                        strokeWidth={((shapeLayer as any).pathEffects?.offset?.distance || 0) * 2}
+                        strokeWidth={(shapeLayer.pathEffects?.offset?.distance || 0) * 2}
                         opacity={0.35}
                       />
                     )}
@@ -528,20 +528,20 @@ export const ShapeLayerItem = React.memo(
                           : shapeLayer.color || '#7d2ae8'
                       }
                       filter={
-                        (shapeLayer as any).pathEffects?.zigzag?.amplitude > 0
+                        (shapeLayer.pathEffects?.zigzag?.amplitude ?? 0) > 0
                           ? `url(#zigzag-${shapeLayer.id})`
-                          : (shapeLayer as any).pathEffects?.roughen?.amount > 0
+                          : (shapeLayer.pathEffects?.roughen?.amount ?? 0) > 0
                             ? `url(#roughen-${shapeLayer.id})`
                             : undefined
                       }
                     />
                     {(() => {
-                      const stroke = (shapeLayer as any).stroke;
+                      const stroke = shapeLayer.stroke;
                       const w = stroke?.width || 0;
                       if (w <= 0) {
                         return null;
                       }
-                      const profile = (shapeLayer as any).strokeProfile || 'uniform';
+                      const profile = shapeLayer.strokeProfile || 'uniform';
                       const alignment = stroke?.alignment || 'center';
 
                       if (profile === 'uniform') {
@@ -558,7 +558,7 @@ export const ShapeLayerItem = React.memo(
                               strokeWidth={w}
                               strokeLinecap={stroke?.cap || 'round'}
                               strokeLinejoin={stroke?.join || 'round'}
-                              strokeDasharray={(shapeLayer as any).strokeDasharray}
+                              strokeDasharray={shapeLayer.strokeDasharray}
                               paintOrder="stroke fill"
                             />
                           );
@@ -572,7 +572,7 @@ export const ShapeLayerItem = React.memo(
                               strokeWidth={w * 2}
                               strokeLinecap={stroke?.cap || 'round'}
                               strokeLinejoin={stroke?.join || 'round'}
-                              strokeDasharray={(shapeLayer as any).strokeDasharray}
+                              strokeDasharray={shapeLayer.strokeDasharray}
                             />
                           );
                         }
@@ -584,12 +584,12 @@ export const ShapeLayerItem = React.memo(
                             strokeWidth={w}
                             strokeLinecap={stroke?.cap || 'round'}
                             strokeLinejoin={stroke?.join || 'round'}
-                            strokeDasharray={(shapeLayer as any).strokeDasharray}
+                            strokeDasharray={shapeLayer.strokeDasharray}
                           />
                         );
                       } else {
                         const widthFn = profileWidthFn(profile, w);
-                        const samples = (shapeLayer as any).strokeQuality === 'fast' ? 48 : 128;
+                        const samples = shapeLayer.strokeQuality === 'fast' ? 48 : 128;
                         const outline = buildVariableStrokeOutline(shapeLayer.pathData!, widthFn, samples);
                         if (!outline) {
                           return null;
@@ -742,7 +742,7 @@ TextLayerItem.displayName = 'TextLayerItem';
 export const AdjustmentLayerItem = React.memo(
   React.forwardRef<HTMLDivElement, LayerItemProps>(
     ({ layer, isSelected, isHovered, onMouseDown, onResize, onRotate, onContextMenu }, ref) => {
-      const adjLayer = layer as any; // Using any to avoid type complaints before sync
+      const adjLayer = layer as AdjustmentLayer;
       const filters = adjLayer.adjustmentFilters || {
         brightness: 100,
         contrast: 100,
@@ -754,7 +754,7 @@ export const AdjustmentLayerItem = React.memo(
       };
 
       // We apply a backdrop filter to affect everything rendered underneath
-      const backdropFilter = buildFilterString(filters as any);
+      const backdropFilter = buildFilterString(filters as CanvasFilters);
 
       return (
         <div

@@ -1,5 +1,6 @@
 import { Layer, Artboard } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import { log } from '../utils/log';
 
 /**
  * Feature 9: Plugin System — basic extension architecture.
@@ -66,7 +67,7 @@ const plugins = new Map<string, { manifest: PluginManifest; iframe: HTMLIFrameEl
  */
 export function registerPlugin(manifest: PluginManifest): boolean {
   if (plugins.has(manifest.id)) {
-    console.warn(`[PluginSystem] Plugin ${manifest.id} already registered`);
+    log.warn(`[PluginSystem] Plugin ${manifest.id} already registered`);
     return false;
   }
 
@@ -82,7 +83,7 @@ export function registerPlugin(manifest: PluginManifest): boolean {
   const api = buildPluginAPI(manifest);
 
   plugins.set(manifest.id, { manifest, iframe, api });
-  console.log(`[PluginSystem] Registered plugin: ${manifest.name} v${manifest.version}`);
+  log.info(`[PluginSystem] Registered plugin: ${manifest.name} v${manifest.version}`);
   return true;
 }
 
@@ -94,7 +95,7 @@ export function unregisterPlugin(pluginId: string): void {
   if (plugin) {
     plugin.iframe.remove();
     plugins.delete(pluginId);
-    console.log(`[PluginSystem] Unregistered plugin: ${pluginId}`);
+    log.info(`[PluginSystem] Unregistered plugin: ${pluginId}`);
   }
 }
 
@@ -188,12 +189,12 @@ function buildPluginAPI(manifest: PluginManifest): PluginAPI {
 
     registerToolbar: (config) => {
       // Toolbar registration is handled by the Editor component
-      console.log(`[PluginSystem] Toolbar registered: ${config.label}`);
+      log.info(`[PluginSystem] Toolbar registered: ${config.label}`);
     },
 
     registerContextMenu: (config) => {
       // Context menu registration is handled by the ContextMenu component
-      console.log(`[PluginSystem] Context menu registered: ${config.label}`);
+      log.info(`[PluginSystem] Context menu registered: ${config.label}`);
     },
   };
 }
