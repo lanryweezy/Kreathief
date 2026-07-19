@@ -3,15 +3,15 @@ import { cacheHeaders, noStoreHeaders } from '../../../utils/cacheHeaders';
 
 describe('cacheHeaders', () => {
   it('returns default cache headers when no ttl is provided', () => {
-    const result = cacheHeaders();
-    expect(result).toEqual({
+    const headers = cacheHeaders();
+    expect(headers).toEqual({
       'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
     });
   });
 
-  it('returns custom cache headers when a ttl is provided', () => {
-    const result = cacheHeaders(120);
-    expect(result).toEqual({
+  it('returns cache headers based on the provided ttl', () => {
+    const headers = cacheHeaders(120);
+    expect(headers).toEqual({
       'Cache-Control': 'public, max-age=120, stale-while-revalidate=600',
     });
   });
@@ -26,8 +26,8 @@ describe('cacheHeaders', () => {
 
 describe('noStoreHeaders', () => {
   it('returns no-store cache headers', () => {
-    const result = noStoreHeaders();
-    expect(result).toEqual({
+    const headers = noStoreHeaders();
+    expect(headers).toEqual({
       'Cache-Control': 'no-store',
     });
   });

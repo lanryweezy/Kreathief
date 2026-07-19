@@ -12,3 +12,8 @@
 
 **Learning:** Found pure utility functions (`getErrorDetails` and `getAIErrorMessage` in `utils/errorMessages.ts`) lacking test coverage. Unrelated pre-existing errors in global suites, combined with a manual deletion mistake, temporarily blocked verification but fixing test suite stability locally helped verify these utils properly.
 **Action:** When adding missing pure utility tests, always ensure no existing local tests or unrelated files are affected or overwritten, allowing focused DX improvements.
+
+## 2024-07-19 - Safe unit testing for pure utilities
+
+**Learning:** Utility functions in `utils/cacheHeaders.ts` control core application behaviours via side effect logic or HTTP headers, and it was entirely missing tests. This risks regressions that would silently break caching. Testing these requires isolated validation of pure logic.
+**Action:** Add tests for pure cache logic functions to ensure expected HTTP headers are robustly provided without regressions.
