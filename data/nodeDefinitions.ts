@@ -1,4 +1,5 @@
 import { NodeDefinition, NodeCategory } from '../types/nodes';
+import { log } from '../utils/log';
 
 export const NODE_DEFINITIONS: NodeDefinition[] = [
   // ═══════════════════════════════════════════════════════════════════
@@ -131,7 +132,7 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         const data = await response.json();
         return { image: { src: data.images?.[0]?.url || data.url, width: settings.width, height: settings.height } };
       } catch (err) {
-        console.warn('[FLUX] API unavailable, using placeholder');
+        log.warn('[FLUX] API unavailable, using placeholder');
         return {
           image: {
             src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/7d2ae8?text=FLUX+Generated`,
@@ -208,7 +209,7 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         const data = await response.json();
         return { image: { src: data.imageUrl || data.url, width: settings.width, height: settings.height } };
       } catch (err) {
-        console.warn('[Gemini] API unavailable, using placeholder');
+        log.warn('[Gemini] API unavailable, using placeholder');
         return {
           image: {
             src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/00c4cc?text=Gemini+Generated`,
@@ -244,7 +245,7 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         const data = await response.json();
         return { image: { src: data.images?.[0]?.url, width: settings.width, height: settings.height } };
       } catch (err) {
-        console.warn('[Recraft] API unavailable, using placeholder');
+        log.warn('[Recraft] API unavailable, using placeholder');
         return {
           image: {
             src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/ff6b35?text=Recraft+Vector`,
@@ -279,7 +280,7 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         const data = await response.json();
         return { image: { src: data.images?.[0]?.url, width: settings.width, height: settings.height } };
       } catch (err) {
-        console.warn('[Seedream] API unavailable, using placeholder');
+        log.warn('[Seedream] API unavailable, using placeholder');
         return {
           image: {
             src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/ffd700?text=Seedream+Generated`,
@@ -312,7 +313,7 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         const data = await response.json();
         return { text: data.text || data.response };
       } catch (err) {
-        console.warn('[AI Text] API unavailable, using placeholder');
+        log.warn('[AI Text] API unavailable, using placeholder');
         return { text: `${settings.instruction} — Generated text for: ${inputs.prompt?.prompt || 'your design'}` };
       }
     },
@@ -341,7 +342,7 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         const data = await response.json();
         return { image: { ...inputs.image, src: data.image?.url || data.images?.[0]?.url } };
       } catch (err) {
-        console.warn('[BG Remove] API unavailable, passing through');
+        log.warn('[BG Remove] API unavailable, passing through');
         return { image: inputs.image };
       }
     },
@@ -373,7 +374,7 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
           },
         };
       } catch (err) {
-        console.warn('[Upscale] API unavailable, passing through');
+        log.warn('[Upscale] API unavailable, passing through');
         return {
           image: {
             ...inputs.image,
@@ -491,7 +492,7 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         const data = await response.json();
         return { image: { ...inputs.image, src: data.images?.[0]?.url, isVector: true } };
       } catch (err) {
-        console.warn('[Vectorize] API unavailable, passing through');
+        log.warn('[Vectorize] API unavailable, passing through');
         return { image: { ...inputs.image, isVector: true } };
       }
     },
@@ -552,7 +553,7 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         const data = await response.json();
         return { image: { src: data.url, width: 3000, height: 3000 } };
       } catch (err) {
-        console.warn('[Mockup] API unavailable, using design as-is');
+        log.warn('[Mockup] API unavailable, using design as-is');
         return {
           image: inputs.image || {
             src: `https://placehold.co/3000x3000/1a1a2e/7d2ae8?text=Mockup`,

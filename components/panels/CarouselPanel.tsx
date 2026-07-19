@@ -5,6 +5,7 @@ import { Artboard } from '../../types';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { generateCarouselDesign } from '../../services/geminiService';
 import JSZip from 'jszip';
+import { log } from '../../utils/log';
 
 // ─── Thumbnail renderer — canvas-based snapshot ───────────────────────────────
 
@@ -288,7 +289,7 @@ export const CarouselPanel: React.FC = () => {
         setAIPromptText('');
       }, 100);
     } catch (error) {
-      console.error(error);
+      log.error('Generation failed', error);
       alert('Failed to generate carousel. Check console for details.');
     } finally {
       setIsGeneratingAI(false);

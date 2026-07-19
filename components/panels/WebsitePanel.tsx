@@ -7,6 +7,7 @@ import { SECTION_BLOCKS, SECTION_CATEGORIES, SectionCategory, SectionBlock } fro
 import { generateWebsiteDesign, GeneratedWebsiteData } from '../../services/geminiService';
 import { deployToVercel } from '../../services/vercelService';
 import { exportWebsite, downloadWebsiteAsZip } from '../../services/websiteExportService';
+import { log } from '../../utils/log';
 
 type ActiveTab = 'pages' | 'sections' | 'settings' | 'seo';
 
@@ -287,7 +288,7 @@ export const WebsitePanel: React.FC = () => {
       setShowAIModal(false);
       setAIPromptText('');
     } catch (e) {
-      console.error(e);
+      log.error('Failed to generate website with AI.', e);
       alert('Failed to generate website with AI.');
     } finally {
       setIsGeneratingAI(false);
@@ -325,7 +326,7 @@ export const WebsitePanel: React.FC = () => {
     try {
       await downloadWebsiteAsZip(websitePages, siteSettings, siteSettings?.name);
     } catch (error) {
-      console.error('Failed to export zip:', error);
+      log.error('Failed to export zip:', error);
       alert('Failed to generate ZIP file.');
     }
   };

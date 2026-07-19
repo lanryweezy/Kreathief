@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { resolveTextLines } from '../utils/textRendering';
+import { log } from '../utils/log';
 
 // Helper to convert ArrayBuffer to Base64 (since btoa requires strings)
 function arrayBufferToBase64(buffer: ArrayBuffer) {
@@ -145,7 +146,7 @@ self.onmessage = async (e: MessageEvent) => {
             const format = layer.src.includes('jpeg') || layer.src.includes('jpg') ? 'JPEG' : 'PNG';
             pdf.addImage(layer.src, format, x - layer.width / 2, y - layer.height / 2, layer.width, layer.height);
           } catch (imgErr) {
-            console.error('Failed to embed image layer', imgErr);
+            log.error('Failed to embed image layer', imgErr);
           }
         }
       }

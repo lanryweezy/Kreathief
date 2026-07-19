@@ -5,6 +5,7 @@ import { Icons } from '../constants';
 import { WebsiteBreakpoint, WEBSITE_BREAKPOINTS, Artboard, SiteSettings } from '../types';
 import { exportWebsite } from '../services/websiteExportService';
 import { ErrorBoundary } from './ErrorBoundary';
+import { log } from '../utils/log';
 
 const BREAKPOINT_CONFIG: Array<{
   key: WebsiteBreakpoint;
@@ -61,7 +62,7 @@ export const WebsitePreviewModal: React.FC<WebsitePreviewModalProps> = ({ onClos
         setPreviewHTML(fullHTML);
       }
     } catch (err) {
-      console.error('Preview generation failed', err);
+      log.error('Preview generation failed', err);
     }
     setIsGenerating(false);
   };
