@@ -1,4 +1,5 @@
 import { cacheHeaders } from '../utils/cacheHeaders';
+import { requireAuth } from './_auth';
 
 export const config = { runtime: 'edge' };
 
@@ -16,6 +17,12 @@ export default async function handler(req: Request) {
         'Access-Control-Allow-Headers': 'Content-Type',
       },
     });
+  }
+
+  try {
+    await requireAuth(req);
+  } catch (response) {
+    return response as Response;
   }
 
   try {

@@ -410,10 +410,8 @@ export async function downloadIconPNG(iconId: number): Promise<string | null> {
 }
 
 export function isConfigured(): boolean {
-  // Check if backend has Freepik credentials configured by making a lightweight probe
-  // For now, return true only if the API endpoint is reachable
   try {
-    return typeof window !== 'undefined' && window.location.hostname !== 'localhost';
+    return typeof window !== 'undefined' && !!import.meta.env.VITE_FREEPIK_API_KEY;
   } catch {
     return false;
   }
