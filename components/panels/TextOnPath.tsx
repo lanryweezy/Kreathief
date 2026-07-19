@@ -159,6 +159,7 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({ text = 'Curved Text', cu
           <label className="text-[10px] text-gray-500 block mb-2">Curvature: {curvatureValue}</label>
           <input
             type="range"
+            aria-label="Curvature"
             min="-100"
             max="100"
             value={curvatureValue}
@@ -173,6 +174,7 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({ text = 'Curved Text', cu
         <label className="text-[10px] text-gray-500 block mb-2">Font Size: {fontSize}px</label>
         <input
           type="range"
+          aria-label="Font Size"
           min="12"
           max="72"
           value={fontSize}
@@ -187,6 +189,7 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({ text = 'Curved Text', cu
           <label className="text-[10px] text-gray-500 block mb-2">Start Angle: {startAngle}°</label>
           <input
             type="range"
+            aria-label="Start Angle"
             min="-180"
             max="180"
             value={startAngle}
