@@ -52,7 +52,10 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, items, onClose }
         <React.Fragment key={i}>
           {item.divider && <div className="my-1 border-t border-neutral-700" />}
           <button
-            onClick={() => { item.action(); onClose(); }}
+            onClick={() => {
+              item.action();
+              onClose();
+            }}
             disabled={item.disabled}
             className={`w-full flex items-center gap-2 px-3 py-1 text-xs transition-colors focus:outline-none focus:bg-neutral-700 ${
               item.danger
@@ -83,16 +86,48 @@ export const CanvasContextMenu: React.FC<{ x: number; y: number; onClose: () => 
     const selectedNode = nodes.get(Array.from(selectedIds)[0]);
     if (selectedNode) {
       items.push(
-        { label: 'Duplicate', icon: <Copy size={14} />, action: () => {
-          const { addNode } = useKreathiefStore.getState();
-          const copy = { ...selectedNode, id: `${selectedNode.id}_copy_${Date.now()}`, x: selectedNode.x + 20, y: selectedNode.y + 20, name: `${selectedNode.name} copy` };
-          addNode(copy);
-          addToast('success', 'Duplicated');
-        }},
-        { label: 'Delete', icon: <Trash2 size={14} />, action: () => { removeNode(selectedNode.id); addToast('info', `Deleted "${selectedNode.name}"`); }, danger: true },
+        {
+          label: 'Duplicate',
+          icon: <Copy size={14} />,
+          action: () => {
+            const { addNode } = useKreathiefStore.getState();
+            const copy = {
+              ...selectedNode,
+              id: `${selectedNode.id}_copy_${Date.now()}`,
+              x: selectedNode.x + 20,
+              y: selectedNode.y + 20,
+              name: `${selectedNode.name} copy`,
+            };
+            addNode(copy);
+            addToast('success', 'Duplicated');
+          },
+        },
+        {
+          label: 'Delete',
+          icon: <Trash2 size={14} />,
+          action: () => {
+            removeNode(selectedNode.id);
+            addToast('info', `Deleted "${selectedNode.name}"`);
+          },
+          danger: true,
+        },
         { divider: true, label: '', icon: null, action: () => {} },
-        { label: selectedNode.locked ? 'Unlock' : 'Lock', icon: selectedNode.locked ? <Unlock size={14} /> : <Lock size={14} />, action: () => { updateNode(selectedNode.id, { locked: !selectedNode.locked }); addToast('info', selectedNode.locked ? 'Unlocked' : 'Locked'); } },
-        { label: selectedNode.visible ? 'Hide' : 'Show', icon: selectedNode.visible ? <EyeOff size={14} /> : <Eye size={14} />, action: () => { updateNode(selectedNode.id, { visible: !selectedNode.visible }); addToast('info', selectedNode.visible ? 'Hidden' : 'Shown'); } },
+        {
+          label: selectedNode.locked ? 'Unlock' : 'Lock',
+          icon: selectedNode.locked ? <Unlock size={14} /> : <Lock size={14} />,
+          action: () => {
+            updateNode(selectedNode.id, { locked: !selectedNode.locked });
+            addToast('info', selectedNode.locked ? 'Unlocked' : 'Locked');
+          },
+        },
+        {
+          label: selectedNode.visible ? 'Hide' : 'Show',
+          icon: selectedNode.visible ? <EyeOff size={14} /> : <Eye size={14} />,
+          action: () => {
+            updateNode(selectedNode.id, { visible: !selectedNode.visible });
+            addToast('info', selectedNode.visible ? 'Hidden' : 'Shown');
+          },
+        }
       );
     }
   } else if (selectedCount > 1) {
@@ -100,26 +135,37 @@ export const CanvasContextMenu: React.FC<{ x: number; y: number; onClose: () => 
     items.push(
       { label: `${selectedCount} elements selected`, icon: <Layers size={14} />, action: () => {}, disabled: true },
       { divider: true, label: '', icon: null, action: () => {} },
-      { label: 'Delete All', icon: <Trash2 size={14} />, action: () => {
-        const { removeNode: rm } = useKreathiefStore.getState();
-        Array.from(selectedIds).forEach(id => rm(id));
-        addToast('info', `Deleted ${selectedCount} elements`);
-      }, danger: true },
-      { label: 'Lock All', icon: <Lock size={14} />, action: () => {
-        const state = useKreathiefStore.getState();
-        Array.from(selectedIds).forEach(id => state.updateNode(id, { locked: true }));
-        addToast('info', `Locked ${selectedCount} elements`);
-      }},
-      { label: 'Hide All', icon: <EyeOff size={14} />, action: () => {
-        const state = useKreathiefStore.getState();
-        Array.from(selectedIds).forEach(id => state.updateNode(id, { visible: false }));
-        addToast('info', `Hidden ${selectedCount} elements`);
-      }},
+      {
+        label: 'Delete All',
+        icon: <Trash2 size={14} />,
+        action: () => {
+          const { removeNode: rm } = useKreathiefStore.getState();
+          Array.from(selectedIds).forEach((id) => rm(id));
+          addToast('info', `Deleted ${selectedCount} elements`);
+        },
+        danger: true,
+      },
+      {
+        label: 'Lock All',
+        icon: <Lock size={14} />,
+        action: () => {
+          const state = useKreathiefStore.getState();
+          Array.from(selectedIds).forEach((id) => state.updateNode(id, { locked: true }));
+          addToast('info', `Locked ${selectedCount} elements`);
+        },
+      },
+      {
+        label: 'Hide All',
+        icon: <EyeOff size={14} />,
+        action: () => {
+          const state = useKreathiefStore.getState();
+          Array.from(selectedIds).forEach((id) => state.updateNode(id, { visible: false }));
+          addToast('info', `Hidden ${selectedCount} elements`);
+        },
+      }
     );
   } else {
-    items.push(
-      { label: 'No selection', icon: <Layers size={14} />, action: () => {}, disabled: true },
-    );
+    items.push({ label: 'No selection', icon: <Layers size={14} />, action: () => {}, disabled: true });
   }
 
   return <ContextMenu x={x} y={y} items={items} onClose={onClose} />;

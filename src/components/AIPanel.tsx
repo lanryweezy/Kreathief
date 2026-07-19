@@ -7,9 +7,17 @@ const AI_STYLE_PRESETS = [
   { name: 'Flat Design', icon: <Box size={12} />, prompt: 'flat design, minimal, clean shapes, vector style' },
   { name: '3D Render', icon: <Layers size={12} />, prompt: '3D render, isometric, smooth lighting, soft shadows' },
   { name: 'Watercolor', icon: <Palette size={12} />, prompt: 'watercolor painting, soft edges, artistic, organic' },
-  { name: 'Neon Glow', icon: <Sparkles size={12} />, prompt: 'neon glowing, cyberpunk, dark background, vibrant colors' },
+  {
+    name: 'Neon Glow',
+    icon: <Sparkles size={12} />,
+    prompt: 'neon glowing, cyberpunk, dark background, vibrant colors',
+  },
   { name: 'Sketch', icon: <PenTool size={12} />, prompt: 'pencil sketch, hand-drawn, rough lines, white background' },
-  { name: 'Photorealistic', icon: <Camera size={12} />, prompt: 'photorealistic, high detail, 8k, professional photography' },
+  {
+    name: 'Photorealistic',
+    icon: <Camera size={12} />,
+    prompt: 'photorealistic, high detail, 8k, professional photography',
+  },
   { name: 'Cartoon', icon: <Clapperboard size={12} />, prompt: 'cartoon style, bold outlines, bright colors, playful' },
 ];
 
@@ -17,12 +25,16 @@ export const AIPanel: React.FC = () => {
   const [prompt, setPrompt] = useState('');
   const { addToast } = useKreathiefStore();
   const [history, setHistory] = useState<string[]>(() => {
-    try { return JSON.parse(localStorage.getItem('kreathief_ai_history') || '[]'); } catch { return []; }
+    try {
+      return JSON.parse(localStorage.getItem('kreathief_ai_history') || '[]');
+    } catch {
+      return [];
+    }
   });
   const [showHistory, setShowHistory] = useState(false);
 
   const addToHistory = (p: string) => {
-    const updated = [p, ...history.filter(h => h !== p)].slice(0, 20);
+    const updated = [p, ...history.filter((h) => h !== p)].slice(0, 20);
     setHistory(updated);
     localStorage.setItem('kreathief_ai_history', JSON.stringify(updated));
   };
@@ -42,7 +54,12 @@ export const AIPanel: React.FC = () => {
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); handleGenerate(); } }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+              e.preventDefault();
+              handleGenerate();
+            }
+          }}
           placeholder="Describe what you want to create..."
           className="w-full px-3 py-2 text-xs bg-neutral-800 rounded-lg border border-neutral-600 text-white outline-none resize-none h-20 focus:border-neutral-500 focus:ring-1 focus:ring-neutral-500"
           aria-label="AI prompt"
@@ -93,7 +110,7 @@ export const AIPanel: React.FC = () => {
           {AI_STYLE_PRESETS.map((preset) => (
             <button
               key={preset.name}
-              onClick={() => setPrompt(prev => prev ? `${prev}, ${preset.prompt}` : preset.prompt)}
+              onClick={() => setPrompt((prev) => (prev ? `${prev}, ${preset.prompt}` : preset.prompt))}
               className="flex items-center gap-1 px-2 py-1 text-xs text-neutral-300 bg-neutral-800/50 hover:bg-neutral-800 rounded-lg transition-colors text-left focus:outline-none focus:ring-1 focus:ring-neutral-500"
               aria-label={`Add ${preset.name} style`}
             >

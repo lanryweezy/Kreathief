@@ -210,10 +210,8 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   setGridSize: (size) => set({ gridSize: size }),
   setGridColor: (color) => set({ gridColor: color }),
   setGuides: (guides) => set({ guides }),
-  addGuide: (type, position) =>
-    set((state: any) => ({ guides: [...state.guides, { type, position }] })),
-  removeGuide: (index) =>
-    set((state: any) => ({ guides: state.guides.filter((_: any, i: number) => i !== index) })),
+  addGuide: (type, position) => set((state: any) => ({ guides: [...state.guides, { type, position }] })),
+  removeGuide: (index) => set((state: any) => ({ guides: state.guides.filter((_: any, i: number) => i !== index) })),
   clearGuides: () => set({ guides: [] }),
   setSnapToGrid: (snap) => set({ snapToGrid: snap }),
   setSnapToObjects: (snap) => set({ snapToObjects: snap }),

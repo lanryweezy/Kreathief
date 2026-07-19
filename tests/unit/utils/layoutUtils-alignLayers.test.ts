@@ -19,6 +19,22 @@ const createLayer = (id: string, x: number, y: number, width: number, height: nu
   } as ShapeLayer;
 };
 
+const createLayerWithoutHeight = (id: string, x: number, y: number, width: number): any => {
+  return {
+    id,
+    type: 'rectangle',
+    x,
+    y,
+    width,
+    rotation: 0,
+    opacity: 1,
+    locked: false,
+    visible: true,
+    color: '#000',
+    cornerRadius: 0,
+  };
+};
+
 describe('alignLayers', () => {
   it('returns an empty array when no layers are provided', () => {
     const result = alignLayers([], 'left', { width: 1000, height: 1000 });
@@ -86,6 +102,13 @@ describe('alignLayers', () => {
         { id: '1', changes: { x: 0, y: 10 } },
         { id: '2', changes: { x: 0, y: 50 } },
       ]);
+    });
+
+    it('uses width when height is undefined in alignLayers', () => {
+      const layers = [createLayerWithoutHeight('1', 10, 10, 50)];
+      const result = alignLayers(layers, 'v-center', canvasSize);
+      // canvas height is 1000. layer height is undefined, fallback to width (50). (1000 - 50) / 2 = 475.
+      expect(result).toEqual([{ id: '1', changes: { x: 10, y: 475 } }]);
     });
   });
 

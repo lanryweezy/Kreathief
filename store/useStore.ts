@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { DesignNode, ToolType, HistoryCommand } from '../types/design';
-import { surface, content, semantic } from './lib/tokens';
+import { surface, content, semantic } from '../lib/tokens';
 import {
   UserPreferences,
   DesignPattern,
@@ -192,113 +192,162 @@ export const useKreathiefStore = create<KreathiefStore>((set, get) => ({
   toasts: [],
   addToast: (type, message, duration) => {
     const id = `toast_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-    set(state => ({
+    set((state) => ({
       toasts: [...state.toasts, { id, type, message, duration }].slice(-5),
     }));
   },
-  removeToast: (id) => set(state => ({
-    toasts: state.toasts.filter(t => t.id !== id),
-  })),
+  removeToast: (id) =>
+    set((state) => ({
+      toasts: state.toasts.filter((t) => t.id !== id),
+    })),
 
-  recentColors: [surface[3], content.inverse, semantic.info, content.primary, semantic.error, semantic.success, semantic.warning, semantic.info],
-  addRecentColor: (color) => set(state => ({
-    recentColors: [color, ...state.recentColors.filter(c => c !== color)].slice(0, 12),
-  })),
+  recentColors: [
+    surface[3],
+    content.inverse,
+    semantic.info,
+    content.primary,
+    semantic.error,
+    semantic.success,
+    semantic.warning,
+    semantic.info,
+  ],
+  addRecentColor: (color) =>
+    set((state) => ({
+      recentColors: [color, ...state.recentColors.filter((c) => c !== color)].slice(0, 12),
+    })),
 
   setTool: (tool) => {
     set({ activeTool: tool });
-    getDesignMemory().then(dm => dm.record('tool_switch', { tool }, {
-      activeTool: tool,
-      zoom: get().zoom,
-      nodeCount: get().nodes.size,
-      selectedCount: get().selectedIds.size,
-    }));
+    getDesignMemory().then((dm) =>
+      dm.record(
+        'tool_switch',
+        { tool },
+        {
+          activeTool: tool,
+          zoom: get().zoom,
+          nodeCount: get().nodes.size,
+          selectedCount: get().selectedIds.size,
+        }
+      )
+    );
   },
 
-  addNode: (node) => set(state => {
-    const nodes = new Map(state.nodes);
-    nodes.set(node.id, node);
-    getDesignMemory().then(dm => dm.record('node_create', {
-      type: node.type,
-      x: node.x,
-      y: node.y,
-      width: node.width,
-      height: node.height,
-      fill: typeof node.fill === 'string' ? node.fill : undefined,
-      fontFamily: node.fontFamily,
-      fontSize: node.fontSize,
-    }, {
-      activeTool: state.activeTool,
-      zoom: state.zoom,
-      nodeCount: nodes.size,
-      selectedCount: state.selectedIds.size,
-      hasText: node.type === 'text',
-      hasImages: node.type === 'image',
-    }));
-    return { nodes };
-  }),
+  addNode: (node) =>
+    set((state) => {
+      const nodes = new Map(state.nodes);
+      nodes.set(node.id, node);
+      getDesignMemory().then((dm) =>
+        dm.record(
+          'node_create',
+          {
+            type: node.type,
+            x: node.x,
+            y: node.y,
+            width: node.width,
+            height: node.height,
+            fill: typeof node.fill === 'string' ? node.fill : undefined,
+            fontFamily: node.fontFamily,
+            fontSize: node.fontSize,
+          },
+          {
+            activeTool: state.activeTool,
+            zoom: state.zoom,
+            nodeCount: nodes.size,
+            selectedCount: state.selectedIds.size,
+            hasText: node.type === 'text',
+            hasImages: node.type === 'image',
+          }
+        )
+      );
+      return { nodes };
+    }),
 
-  updateNode: (id, updates) => set(state => {
-    const nodes = new Map(state.nodes);
-    const node = nodes.get(id);
-    if (node) {
-      nodes.set(id, { ...node, ...updates });
-      if (updates.fill || updates.fontFamily || updates.fontSize || updates.stroke) {
-        getDesignMemory().then(dm => dm.record('node_style', {
-          nodeId: id,
-          color: typeof updates.fill === 'string' ? updates.fill : undefined,
-          fontFamily: updates.fontFamily,
-          fontSize: updates.fontSize,
-          stroke: updates.stroke,
-        }, {
-          activeTool: state.activeTool,
-          zoom: state.zoom,
-          nodeCount: nodes.size,
-          selectedCount: state.selectedIds.size,
-        }));
+  updateNode: (id, updates) =>
+    set((state) => {
+      const nodes = new Map(state.nodes);
+      const node = nodes.get(id);
+      if (node) {
+        nodes.set(id, { ...node, ...updates });
+        if (updates.fill || updates.fontFamily || updates.fontSize || updates.stroke) {
+          getDesignMemory().then((dm) =>
+            dm.record(
+              'node_style',
+              {
+                nodeId: id,
+                color: typeof updates.fill === 'string' ? updates.fill : undefined,
+                fontFamily: updates.fontFamily,
+                fontSize: updates.fontSize,
+                stroke: updates.stroke,
+              },
+              {
+                activeTool: state.activeTool,
+                zoom: state.zoom,
+                nodeCount: nodes.size,
+                selectedCount: state.selectedIds.size,
+              }
+            )
+          );
+        }
+        if (
+          updates.x !== undefined ||
+          updates.y !== undefined ||
+          updates.width !== undefined ||
+          updates.height !== undefined
+        ) {
+          getDesignMemory().then((dm) =>
+            dm.record(
+              'node_transform',
+              {
+                nodeId: id,
+                x: updates.x ?? node.x,
+                y: updates.y ?? node.y,
+                width: updates.width ?? node.width,
+                height: updates.height ?? node.height,
+              },
+              {
+                activeTool: state.activeTool,
+                zoom: state.zoom,
+                nodeCount: nodes.size,
+                selectedCount: state.selectedIds.size,
+              }
+            )
+          );
+        }
       }
-      if (updates.x !== undefined || updates.y !== undefined || updates.width !== undefined || updates.height !== undefined) {
-        getDesignMemory().then(dm => dm.record('node_transform', {
-          nodeId: id,
-          x: updates.x ?? node.x,
-          y: updates.y ?? node.y,
-          width: updates.width ?? node.width,
-          height: updates.height ?? node.height,
-        }, {
-          activeTool: state.activeTool,
-          zoom: state.zoom,
-          nodeCount: nodes.size,
-          selectedCount: state.selectedIds.size,
-        }));
-      }
-    }
-    return { nodes };
-  }),
+      return { nodes };
+    }),
 
-  removeNode: (id) => set(state => {
-    const nodes = new Map(state.nodes);
-    const node = nodes.get(id);
-    nodes.delete(id);
-    const selectedIds = new Set(state.selectedIds);
-    selectedIds.delete(id);
-    if (node) {
-      getDesignMemory().then(dm => dm.record('node_delete', {
-        type: node.type,
-        nodeId: id,
-      }, {
-        activeTool: state.activeTool,
-        zoom: state.zoom,
-        nodeCount: nodes.size,
-        selectedCount: selectedIds.size,
-      }));
-    }
-    return { nodes, selectedIds };
-  }),
+  removeNode: (id) =>
+    set((state) => {
+      const nodes = new Map(state.nodes);
+      const node = nodes.get(id);
+      nodes.delete(id);
+      const selectedIds = new Set(state.selectedIds);
+      selectedIds.delete(id);
+      if (node) {
+        getDesignMemory().then((dm) =>
+          dm.record(
+            'node_delete',
+            {
+              type: node.type,
+              nodeId: id,
+            },
+            {
+              activeTool: state.activeTool,
+              zoom: state.zoom,
+              nodeCount: nodes.size,
+              selectedCount: selectedIds.size,
+            }
+          )
+        );
+      }
+      return { nodes, selectedIds };
+    }),
 
   selectNode: (ids) => set({ selectedIds: new Set(ids) }),
   setHovered: (id) => set({ hoveredId: id }),
 
-  toggleDarkMode: () => set(state => ({ darkMode: !state.darkMode })),
+  toggleDarkMode: () => set((state) => ({ darkMode: !state.darkMode })),
   setTheme: (theme: 'light' | 'dark' | 'system') => {
     if (theme === 'system') {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -307,44 +356,51 @@ export const useKreathiefStore = create<KreathiefStore>((set, get) => ({
       set({ darkMode: theme === 'dark' });
     }
   },
-  toggleGrid: () => set(state => ({ showGrid: !state.showGrid })),
-  toggleRulers: () => set(state => ({ showRulers: !state.showRulers })),
-  toggleExpertMode: () => set(state => ({ expertMode: !state.expertMode })),
+  toggleGrid: () => set((state) => ({ showGrid: !state.showGrid })),
+  toggleRulers: () => set((state) => ({ showRulers: !state.showRulers })),
+  toggleExpertMode: () => set((state) => ({ expertMode: !state.expertMode })),
   toggleSnapToGrid: () => {
-    set(state => ({ snapToGrid: !state.snapToGrid }));
+    set((state) => ({ snapToGrid: !state.snapToGrid }));
     const engine = (window as any).__kreathiefEngine;
     if (engine) engine.setSnapToGrid(!get().snapToGrid);
   },
 
   setZoom: (zoom) => {
     set({ zoom });
-    getDesignMemory().then(dm => dm.record('zoom_change', { zoom }, {
-      activeTool: get().activeTool,
-      zoom,
-      nodeCount: get().nodes.size,
-      selectedCount: get().selectedIds.size,
-    }));
+    getDesignMemory().then((dm) =>
+      dm.record(
+        'zoom_change',
+        { zoom },
+        {
+          activeTool: get().activeTool,
+          zoom,
+          nodeCount: get().nodes.size,
+          selectedCount: get().selectedIds.size,
+        }
+      )
+    );
   },
   setPan: (x, y) => set({ panX: x, panY: y }),
   setRightPanelTab: (tab) => set({ rightPanelTab: tab }),
 
-  pushCommand: (label, undoPatch, redoPatch) => set(state => {
-    const command: HistoryCommand = {
-      id: `cmd_${Date.now()}`,
-      label,
-      timestamp: Date.now(),
-      undoPatch,
-      redoPatch,
-    };
-    const past = [...state.past, command].slice(-500);
-    return { past, future: [] };
-  }),
+  pushCommand: (label, undoPatch, redoPatch) =>
+    set((state) => {
+      const command: HistoryCommand = {
+        id: `cmd_${Date.now()}`,
+        label,
+        timestamp: Date.now(),
+        undoPatch,
+        redoPatch,
+      };
+      const past = [...state.past, command].slice(-500);
+      return { past, future: [] };
+    }),
 
   undo: () => {
     const { past, future } = get();
     if (past.length === 0) return;
     const command = past[past.length - 1];
-    getDesignMemory().then(dm => dm.record('undo', { label: command.label }));
+    getDesignMemory().then((dm) => dm.record('undo', { label: command.label }));
     set({
       ...command.undoPatch,
       past: past.slice(0, -1),
@@ -357,7 +413,7 @@ export const useKreathiefStore = create<KreathiefStore>((set, get) => ({
     const { past, future } = get();
     if (future.length === 0) return;
     const command = future[0];
-    getDesignMemory().then(dm => dm.record('redo', { label: command.label }));
+    getDesignMemory().then((dm) => dm.record('redo', { label: command.label }));
     set({
       ...command.redoPatch,
       past: [...past, command],
@@ -497,7 +553,7 @@ export const useKreathiefStore = create<KreathiefStore>((set, get) => ({
     cd.start();
     cd.onSuggestion((suggestion) => {
       const state = get();
-      const existing = state.creativeSuggestions.find(s => s.id === suggestion.id);
+      const existing = state.creativeSuggestions.find((s) => s.id === suggestion.id);
       if (!existing) {
         set({ creativeSuggestions: [...state.creativeSuggestions, suggestion].slice(-10) });
       }
@@ -522,24 +578,24 @@ export const useKreathiefStore = create<KreathiefStore>((set, get) => ({
   acceptSuggestion: async (suggestion: CreativeSuggestion) => {
     const cd = await getCreativeDirector();
     cd.acceptSuggestion(suggestion);
-    set(state => ({
-      creativeSuggestions: state.creativeSuggestions.filter(s => s.id !== suggestion.id),
+    set((state) => ({
+      creativeSuggestions: state.creativeSuggestions.filter((s) => s.id !== suggestion.id),
     }));
   },
 
   rejectSuggestion: async (suggestion: CreativeSuggestion) => {
     const cd = await getCreativeDirector();
     cd.rejectSuggestion(suggestion);
-    set(state => ({
-      creativeSuggestions: state.creativeSuggestions.filter(s => s.id !== suggestion.id),
+    set((state) => ({
+      creativeSuggestions: state.creativeSuggestions.filter((s) => s.id !== suggestion.id),
     }));
   },
 
   dismissSuggestion: async (id: string) => {
     const cd = await getCreativeDirector();
     cd.dismissSuggestion(id);
-    set(state => ({
-      creativeSuggestions: state.creativeSuggestions.filter(s => s.id !== id),
+    set((state) => ({
+      creativeSuggestions: state.creativeSuggestions.filter((s) => s.id !== id),
     }));
   },
 

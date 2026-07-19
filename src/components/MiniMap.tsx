@@ -17,8 +17,11 @@ export const MiniMap: React.FC = () => {
     const h = canvas.height;
 
     // Find bounds of all nodes
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    nodes.forEach(n => {
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
+    nodes.forEach((n) => {
       if (!n.visible) return;
       minX = Math.min(minX, n.x);
       minY = Math.min(minY, n.y);
@@ -27,7 +30,10 @@ export const MiniMap: React.FC = () => {
     });
 
     if (nodes.size === 0) {
-      minX = 0; minY = 0; maxX = 1000; maxY = 1000;
+      minX = 0;
+      minY = 0;
+      maxX = 1000;
+      maxY = 1000;
     }
 
     const padding = 50;
@@ -40,13 +46,13 @@ export const MiniMap: React.FC = () => {
     ctx.fillRect(0, 0, w, h);
 
     // Draw nodes
-    nodes.forEach(n => {
+    nodes.forEach((n) => {
       if (!n.visible) return;
       const x = (n.x - minX + padding) * scale;
       const y = (n.y - minY + padding) * scale;
       const nw = n.width * scale;
       const nh = n.height * scale;
-      const fill = typeof n.fill === 'string' ? n.fill : (darkMode ? content.muted : content.tertiary);
+      const fill = typeof n.fill === 'string' ? n.fill : darkMode ? content.muted : content.tertiary;
       ctx.fillStyle = fill;
       ctx.globalAlpha = 0.7;
       ctx.fillRect(x, y, Math.max(nw, 1), Math.max(nh, 1));
@@ -71,12 +77,7 @@ export const MiniMap: React.FC = () => {
   return (
     <div className="absolute bottom-4 right-4 z-10 animate-fade-in">
       <div className="bg-neutral-900/90 backdrop-blur-sm border border-neutral-700 rounded-lg shadow-xl overflow-hidden">
-        <canvas
-          ref={canvasRef}
-          width={160}
-          height={100}
-          className="block"
-        />
+        <canvas ref={canvasRef} width={160} height={100} className="block" />
         <button
           onClick={() => setVisible(false)}
           className="absolute top-1 right-1 text-[8px] text-neutral-500 hover:text-white px-1 rounded bg-neutral-800/50 focus:outline-none"

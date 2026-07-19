@@ -32,7 +32,26 @@ export const Canvas: React.FC = () => {
   const [ripples, setRipples] = useState<Ripple[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const rippleIdRef = useRef(0);
-  const { nodes, selectedIds, hoveredId, darkMode, showGrid, showRulers, zoom, panX, panY, selectNode, setHovered, setZoom, setPan, updateNode, activeTool, addRecentColor, addToast, setTool } = useKreathiefStore();
+  const {
+    nodes,
+    selectedIds,
+    hoveredId,
+    darkMode,
+    showGrid,
+    showRulers,
+    zoom,
+    panX,
+    panY,
+    selectNode,
+    setHovered,
+    setZoom,
+    setPan,
+    updateNode,
+    activeTool,
+    addRecentColor,
+    addToast,
+    setTool,
+  } = useKreathiefStore();
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -45,7 +64,10 @@ export const Canvas: React.FC = () => {
       selectNode(ids);
     });
     engine.on('hover', (id: string | null) => setHovered(id));
-    engine.on('viewportChange', (v: { zoom: number; x: number; y: number }) => { setZoom(v.zoom); setPan(v.x, v.y); });
+    engine.on('viewportChange', (v: { zoom: number; x: number; y: number }) => {
+      setZoom(v.zoom);
+      setPan(v.x, v.y);
+    });
     engine.on('doubleClick', (id: string) => {
       const node = useKreathiefStore.getState().nodes.get(id);
       if (node && node.type === 'text') {
@@ -69,7 +91,7 @@ export const Canvas: React.FC = () => {
       const id = `node_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
       const node = {
         id,
-        type: detail.type === 'ellipse' ? 'ellipse' as const : 'rect' as const,
+        type: detail.type === 'ellipse' ? ('ellipse' as const) : ('rect' as const),
         name: `${detail.type} ${id.slice(-4)}`,
         x: detail.x,
         y: detail.y,
@@ -104,7 +126,7 @@ export const Canvas: React.FC = () => {
   useEffect(() => {
     const engine = engineRef.current;
     if (!engine) return;
-    engine.getAllNodes().forEach(n => {
+    engine.getAllNodes().forEach((n) => {
       if (!nodes.has(n.id)) engine.removeNode(n.id);
     });
     nodes.forEach((node, id) => {
@@ -123,8 +145,12 @@ export const Canvas: React.FC = () => {
     let rafId: number;
     const renderLoop = () => {
       const options: RenderOptions = {
-        showGrid, showRulers, showBounds: true,
-        selectedIds, hoveredId, darkMode,
+        showGrid,
+        showRulers,
+        showBounds: true,
+        selectedIds,
+        hoveredId,
+        darkMode,
       };
       engine.render(options);
       rafId = requestAnimationFrame(renderLoop);
@@ -167,7 +193,7 @@ export const Canvas: React.FC = () => {
       const engine = engineRef.current;
       if (engine) {
         let topNode: any = null;
-        engine.getAllNodes().forEach(n => {
+        engine.getAllNodes().forEach((n) => {
           if (!n.visible || n.locked) return;
           if (worldX >= n.x && worldX <= n.x + n.width && worldY >= n.y && worldY <= n.y + n.height) {
             topNode = n;
@@ -181,8 +207,8 @@ export const Canvas: React.FC = () => {
 
   const addRipple = useCallback((x: number, y: number) => {
     const id = rippleIdRef.current++;
-    setRipples(prev => [...prev, { id, x, y }]);
-    setTimeout(() => setRipples(prev => prev.filter(r => r.id !== id)), 400);
+    setRipples((prev) => [...prev, { id, x, y }]);
+    setTimeout(() => setRipples((prev) => prev.filter((r) => r.id !== id)), 400);
   }, []);
 
   const handleCanvasClick = (e: React.MouseEvent) => {
@@ -199,7 +225,7 @@ export const Canvas: React.FC = () => {
     if (!engine) return;
 
     let topNode: any = null;
-    engine.getAllNodes().forEach(n => {
+    engine.getAllNodes().forEach((n) => {
       if (!n.visible) return;
       if (worldX >= n.x && worldX <= n.x + n.width && worldY >= n.y && worldY <= n.y + n.height) {
         topNode = n;
@@ -223,13 +249,14 @@ export const Canvas: React.FC = () => {
     setTool('select');
   };
 
-  const cursorClass = activeTool === 'eyedropper'
-    ? 'cursor-crosshair'
-    : activeTool === 'hand'
-      ? 'cursor-grab'
-      : activeTool === 'text'
-        ? 'cursor-text'
-        : 'cursor-default';
+  const cursorClass =
+    activeTool === 'eyedropper'
+      ? 'cursor-crosshair'
+      : activeTool === 'hand'
+        ? 'cursor-grab'
+        : activeTool === 'text'
+          ? 'cursor-text'
+          : 'cursor-default';
 
   return (
     <div className="relative w-full h-full">
@@ -241,22 +268,23 @@ export const Canvas: React.FC = () => {
         onClick={handleCanvasClick}
       />
       {/* Ripple effects */}
-      {ripples.map(r => (
-        <div
-          key={r.id}
-          className="canvas-ripple"
-          style={{ left: r.x, top: r.y }}
-        />
+      {ripples.map((r) => (
+        <div key={r.id} className="canvas-ripple" style={{ left: r.x, top: r.y }} />
       ))}
       {editingText && (
         <textarea
           ref={textareaRef}
           value={editingText.text}
-          onChange={(e) => setEditingText(prev => prev ? { ...prev, text: e.target.value } : null)}
+          onChange={(e) => setEditingText((prev) => (prev ? { ...prev, text: e.target.value } : null))}
           onBlur={commitTextEdit}
           onKeyDown={(e) => {
-            if (e.key === 'Escape') { setEditingText(null); }
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commitTextEdit(); }
+            if (e.key === 'Escape') {
+              setEditingText(null);
+            }
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              commitTextEdit();
+            }
           }}
           className="absolute bg-transparent border-2 border-neutral-500 rounded outline-none resize-none text-neutral-900 p-1 overflow-hidden"
           style={{
@@ -273,9 +301,7 @@ export const Canvas: React.FC = () => {
           aria-label="Edit text"
         />
       )}
-      {contextMenu && (
-        <CanvasContextMenu x={contextMenu.x} y={contextMenu.y} onClose={() => setContextMenu(null)} />
-      )}
+      {contextMenu && <CanvasContextMenu x={contextMenu.x} y={contextMenu.y} onClose={() => setContextMenu(null)} />}
     </div>
   );
 };

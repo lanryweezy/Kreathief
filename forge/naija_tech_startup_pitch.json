@@ -194,13 +194,7 @@
     "templateName": "Professional Tech Startup Pitch Deck Slide",
     "shortDescription": "Command attention with this trust-signalling pitch deck cover.",
     "longDescription": "Command attention in the boardroom with this modern, trust-signalling pitch deck cover. Engineered for tech startups seeking investment. Uses a deep navy background, technical cyan accents, and clear, authoritative typography to project competence.",
-    "tags": [
-      "Business",
-      "Pitch deck slide",
-      "Professional",
-      "African Market",
-      "Tech & Startup"
-    ],
+    "tags": ["Business", "Pitch deck slide", "Professional", "African Market", "Tech & Startup"],
     "searchKeywords": [
       "naija tech startup pitch",
       "nigerian fintech presentation",
@@ -219,17 +213,8 @@
       "slug": "professional-tech-startup-pitch-deck-slide"
     },
     "personalisationSignals": {
-      "industry": [
-        "technology",
-        "finance",
-        "Business"
-      ],
-      "audienceType": [
-        "startup founder",
-        "executive",
-        "enterprise",
-        "small business"
-      ],
+      "industry": ["technology", "finance", "Business"],
+      "audienceType": ["startup founder", "executive", "enterprise", "small business"],
       "experienceLevel": "intermediate"
     }
   }

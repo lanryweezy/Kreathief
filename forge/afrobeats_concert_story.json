@@ -160,13 +160,7 @@
     "templateName": "Vibrant Afrobeats Concert Story Promotion",
     "shortDescription": "Promote your music event or concert with a high-energy, vibrant Instagram Story.",
     "longDescription": "Promote your music event or concert with a high-energy, vibrant Instagram Story. Designed for concerts, Afrobeats events, and artist promotions. Uses striking, vibrant colours and expressive angled typography. Grab attention instantly.",
-    "tags": [
-      "Music & Entertainment",
-      "Story",
-      "Vibrant",
-      "African Market",
-      "Events"
-    ],
+    "tags": ["Music & Entertainment", "Story", "Vibrant", "African Market", "Events"],
     "searchKeywords": [
       "afrobeats concert story",
       "music event promo",
@@ -184,17 +178,8 @@
       "slug": "vibrant-afrobeats-concert-story-promotion"
     },
     "personalisationSignals": {
-      "industry": [
-        "Music & Entertainment",
-        "nightlife",
-        "Events"
-      ],
-      "audienceType": [
-        "event promoter",
-        "musician",
-        "DJ",
-        "small business"
-      ],
+      "industry": ["Music & Entertainment", "nightlife", "Events"],
+      "audienceType": ["event promoter", "musician", "DJ", "small business"],
       "experienceLevel": "beginner-friendly"
     }
   }
