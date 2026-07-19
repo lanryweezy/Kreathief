@@ -33,6 +33,12 @@ export default async function handler(req: Request) {
     return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
   }
 
+  try {
+    await requireAuth(req);
+  } catch (response) {
+    return response as Response;
+  }
+
   const now = Date.now();
 
   // Periodic cleanup of expired rate limit entries to prevent memory leaks
