@@ -29,3 +29,7 @@
 
 **Learning:** Testing logic for Levenshtein-based search thresholds (e.g., `fuzzyMatch` in `search.ts`) requires matching the exact test query strings to the maximum permissible distances (0, 1, 2) allowed for their string lengths (<=2, <=5, >5) respectively, making string formulation for tests highly constrained to trigger specific boundary conditions (e.g. insertions vs substitutions).
 **Action:** When testing Levenshtein or fuzzy match behaviors, strictly comment and annotate the specific distance being triggered and why, to prevent future developers from breaking test assertions while "fixing" typos in strings meant to be incorrect for testing.
+## 2024-07-19 - Testing applyTextTransform
+
+**Learning:** `applyTextTransform` was lacking tests. Added test coverage covering uppercase, lowercase, empty strings, and no transform behaviors.
+**Action:** Always include comprehensive tests for text manipulation utilities to prevent edge-case regressions.
