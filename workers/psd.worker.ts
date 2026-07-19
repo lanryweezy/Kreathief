@@ -451,8 +451,10 @@ async function exportLayersToPsd(width: number, height: number, layers: WorkerLa
     return null;
   };
 
-  for (const layer of layers) {
-    const psdLayer = await convertLayer(layer);
+  // ⚡ Bolt Optimization: Use Promise.all to parallelize layer conversion,
+  // drastically reducing export time for PSDs with multiple layers.
+  const convertedLayers = await Promise.all(layers.map((l) => convertLayer(l)));
+  for (const psdLayer of convertedLayers) {
     if (psdLayer) {
       psd.children?.push(psdLayer);
     }
