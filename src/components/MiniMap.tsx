@@ -1,10 +1,20 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useKreathiefStore } from '../store/useStore';
 import { canvas as canvasTokens, surface, content } from '../lib/tokens';
 
 export const MiniMap: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { nodes, zoom, panX, panY, darkMode } = useKreathiefStore();
+  // ⚡ Bolt Optimization: Use useShallow to prevent unnecessary re-renders and costly canvas redraws when unrelated store state changes.
+  const { nodes, zoom, panX, panY, darkMode } = useKreathiefStore(
+    useShallow((state) => ({
+      nodes: state.nodes,
+      zoom: state.zoom,
+      panX: state.panX,
+      panY: state.panY,
+      darkMode: state.darkMode,
+    }))
+  );
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
