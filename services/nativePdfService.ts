@@ -12,7 +12,6 @@ import { downloadBlob, exportDesignToImage } from './exportService';
 import { logSecurityEvent } from '../utils/securityLogger';
 import { log } from '../utils/log';
 import { resolveTextLines } from '../utils/textRendering';
-import { upscaleForPrint } from './upscaleService';
 
 // Conversion: 1px = 0.75pt (at 72 DPI)
 const PX_TO_PT = 72 / 96;
@@ -370,20 +369,7 @@ async function drawImageLayer(pdf: jsPDF, layer: ImageLayer, isPro = false): Pro
     let srcToEmbed = layer.src;
 
     if (isPro) {
-      // Silently check DPI and upscale if needed
-      const result = await upscaleForPrint(
-        layer.src,
-        layer.width,
-        layer.height,
-        layer.naturalWidth,
-        layer.naturalHeight
-      );
-      if (result.wasUpscaled) {
-        log.info(`[NativePDF] Auto-upscaled image from ${result.originalDpi} DPI to ${result.finalDpi} DPI`, {
-          layerId: layer.id,
-        });
-        srcToEmbed = result.dataUrl;
-      }
+      // Upscale service not available — use original image
     }
 
     const dataUrl = await loadImageAsDataUrl(srcToEmbed);

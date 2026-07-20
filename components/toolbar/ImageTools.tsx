@@ -6,7 +6,6 @@ import { ImageLayer } from '../../types';
 import { Dropdown } from '../Dropdown';
 import { useStore } from '../../store/useStore';
 import { NavTab } from '../../types';
-import { useMagicActions } from '../../hooks/useMagicActions';
 
 interface ImageToolsProps {
   layer: ImageLayer;
@@ -78,7 +77,9 @@ export const ImageTools = React.memo(
     const [showPatchNodes, setShowPatchNodes] = React.useState(false);
     const patchNodesButtonRef = useRef<HTMLButtonElement>(null);
     const setActiveTab = useStore((state) => state.setActiveTab);
-    const { isProcessing, handleEraseObject, handleMagicExtract } = useMagicActions();
+    const isProcessing = false;
+    const handleEraseObject = () => {};
+    const handleMagicExtract = () => {};
 
     const handleApplyMockup = () => {
       // Select the current image layer before opening mockup panel

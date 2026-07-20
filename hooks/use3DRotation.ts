@@ -3,7 +3,6 @@ import { useStore } from '../store/useStore';
 import { applyRotation3D, fillEmptyRegionsCanvas, Rotation3DResult } from '../utils/rotation3d';
 import { log } from '../utils/log';
 import { useShallow } from 'zustand/react/shallow';
-import { aiInpaint } from '../services/inpaintService';
 
 interface Use3DRotationReturn {
   /** Start 3D rotation mode for an image layer */
@@ -163,26 +162,9 @@ export function use3DRotation(): Use3DRotationReturn {
         (currentResult.transformedCanvas.width * currentResult.transformedCanvas.height);
 
       if (emptyRatio > 0.05) {
-        // More than 5% empty — use AI for better quality
+        // More than 5% empty — use canvas fallback (AI inpaint not available)
         setFillProgress(50);
-        try {
-          const aiFilled = await aiInpaint(
-            currentResult.transformedCanvas,
-            currentResult.maskCanvas,
-            rotateXRef.current,
-            rotateYRef.current
-          );
-          if (aiFilled) {
-            setFillProgress(90);
-            applyTransformedImage(aiFilled);
-          } else {
-            // AI failed — use canvas fallback
-            applyTransformedImage(canvasFilled);
-          }
-        } catch (err) {
-          log.warn('[3DRotation] AI fill failed, using canvas fallback', { error: err });
-          applyTransformedImage(canvasFilled);
-        }
+        applyTransformedImage(canvasFilled);
       } else {
         // Small empty area — canvas fill is sufficient
         applyTransformedImage(canvasFilled);
