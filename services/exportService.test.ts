@@ -18,24 +18,24 @@ describe('exportDesignToImage', () => {
 });
 
 describe('exportToSVG', () => {
-  it('should generate valid SVG with correct dimensions', () => {
-    const svg = exportToSVG(200, 100, '#ffffff', []);
+  it('should generate valid SVG with correct dimensions', async () => {
+    const svg = await exportToSVG(200, 100, '#ffffff', []);
     expect(svg).toContain('<svg');
     expect(svg).toContain('200');
     expect(svg).toContain('100');
   });
 
-  it('should include background rect', () => {
-    const svg = exportToSVG(100, 100, '#ff0000', []);
+  it('should include background rect', async () => {
+    const svg = await exportToSVG(100, 100, '#ff0000', []);
     expect(svg).toContain('#ff0000');
   });
 
-  it('should handle empty layers', () => {
-    const svg = exportToSVG(100, 100, '#ffffff', []);
+  it('should handle empty layers', async () => {
+    const svg = await exportToSVG(100, 100, '#ffffff', []);
     expect(svg).toContain('<svg');
   });
 
-  it('should include gradient definitions when layers have gradients', () => {
+  it('should include gradient definitions when layers have gradients', async () => {
     const layers = [
       {
         id: 'test',
@@ -48,7 +48,7 @@ describe('exportToSVG', () => {
         opacity: 1,
       },
     ] as any[];
-    const svg = exportToSVG(100, 100, '#ffffff', layers);
+    const svg = await exportToSVG(100, 100, '#ffffff', layers);
     expect(svg).toContain('<svg');
   });
 });

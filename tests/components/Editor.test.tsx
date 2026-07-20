@@ -57,12 +57,6 @@ vi.mock('../../store/useStore', () => ({
   }),
 }));
 
-(useStore as any).getState = vi.fn(() => ({
-  selectedLayerIds: [],
-  artboards: [],
-  activeArtboardId: null,
-}));
-
 vi.mock('../../store/selectors', () => ({
   selectedLayerSelector: vi.fn(() => null),
   activeArtboardSelector: vi.fn(() => undefined),
