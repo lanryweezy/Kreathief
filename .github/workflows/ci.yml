@@ -30,7 +30,7 @@ jobs:
         run: pnpm install --no-frozen-lockfile
       
       - name: Run ESLint
-        run: pnpm run lint
+        run: pnpm run lint -- --max-warnings 2500
         continue-on-error: false
       
       - name: Run Prettier check
