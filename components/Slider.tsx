@@ -10,6 +10,7 @@ interface SliderProps {
   showValue?: boolean;
   suffix?: string;
   disabled?: boolean;
+  ariaLabel?: string;
 }
 
 export const Slider: React.FC<SliderProps> = ({
@@ -22,6 +23,7 @@ export const Slider: React.FC<SliderProps> = ({
   showValue = true,
   suffix = '',
   disabled = false,
+  ariaLabel,
 }) => {
   const percentage = ((value - min) / (max - min)) * 100;
 
@@ -43,6 +45,7 @@ export const Slider: React.FC<SliderProps> = ({
           type="range"
           min={min}
           max={max}
+          aria-label={ariaLabel || label || 'Slider'}
           step={step}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
