@@ -131,10 +131,7 @@ class ShareService {
   }
 
   private generateId(): string {
-    return Array.from(crypto.getRandomValues(new Uint8Array(6)))
-      .map((b) => b.toString(36).padStart(2, '0'))
-      .join('')
-      .substring(0, 8);
+    return crypto.randomUUID();
   }
 
   private formatShareUrl(shareId: string): string {

@@ -205,3 +205,9 @@
 **Vulnerability:** The AI proxy endpoint for freepik (`api/freepik.ts`) did not have the `requireAuth` check, leaving it entirely unauthenticated.
 **Learning:** Removing authentication checks from backend proxy endpoints—even temporarily "for a build fix"—exposes the backend's secret API keys to unauthenticated public access. This leads directly to quota exhaustion and financial loss.
 **Prevention:** Never remove or comment out authentication layers on proxy endpoints that utilize secure backend secrets.
+
+## 2026-07-22 - Strengthened Share Link ID Generation to Prevent IDOR
+
+**Vulnerability:** In `services/shareService.ts`, the `generateId` method was creating 8-character base36 strings for share link identifiers using `crypto.getRandomValues(new Uint8Array(6))`. While using cryptographically secure random values is good, 8 characters of base36 only provides ~41 bits of entropy (36^8 combinations). This makes the share links susceptible to offline generation analysis and brute-force IDOR (Insecure Direct Object Reference) attacks, allowing unauthorized users to discover and access private shared designs.
+**Learning:** For public-facing, unguessable identifiers (like share links, password reset tokens, or invite codes), short alphanumeric strings do not provide sufficient entropy against modern brute-force capabilities. The convenience of a short URL should not override the security requirement of true unguessability.
+**Prevention:** Always use `crypto.randomUUID()` (which provides 122 bits of entropy) for generating secure, universally unique identifiers that act as access tokens or unauthenticated reference keys.
