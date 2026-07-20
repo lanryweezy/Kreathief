@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { KreathiefCanvas, RenderOptions } from '../lib/canvasEngine';
+import { useShallow } from 'zustand/react/shallow';
 import { useKreathiefStore } from '../store/useStore';
 import { CanvasContextMenu } from './ContextMenu';
 import { canvas as canvasTokens, content } from '../lib/tokens';
@@ -32,6 +33,7 @@ export const Canvas: React.FC = () => {
   const [ripples, setRipples] = useState<Ripple[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const rippleIdRef = useRef(0);
+  // ⚡ Bolt Optimization: Use useShallow to prevent Canvas from re-rendering on every unrelated store change.
   const {
     nodes,
     selectedIds,
@@ -51,7 +53,28 @@ export const Canvas: React.FC = () => {
     addRecentColor,
     addToast,
     setTool,
-  } = useKreathiefStore();
+  } = useKreathiefStore(
+    useShallow((state) => ({
+      nodes: state.nodes,
+      selectedIds: state.selectedIds,
+      hoveredId: state.hoveredId,
+      darkMode: state.darkMode,
+      showGrid: state.showGrid,
+      showRulers: state.showRulers,
+      zoom: state.zoom,
+      panX: state.panX,
+      panY: state.panY,
+      selectNode: state.selectNode,
+      setHovered: state.setHovered,
+      setZoom: state.setZoom,
+      setPan: state.setPan,
+      updateNode: state.updateNode,
+      activeTool: state.activeTool,
+      addRecentColor: state.addRecentColor,
+      addToast: state.addToast,
+      setTool: state.setTool,
+    }))
+  );
 
   useEffect(() => {
     if (!canvasRef.current) return;
