@@ -72,6 +72,8 @@
 
 **Learning:** Destructuring directly from `useStore()` without providing a selector (e.g., `const past = useStore((state) => state.past); const future = useStore((state) => state.future);`) in panels subscribes the calling component to the global store, triggering unnecessary re-renders when any state in the store changes. In frequently re-rendered components like `HistoryPanel`, this creates a performance bottleneck.
 **Action:** When a component extracts multiple values from `useStore()`, use an explicit selector and wrap it with `useShallow` from `zustand/react/shallow` to ensure the component only re-renders when the specific properties it depends on change.
+
 ## 2026-07-20 - Missing useShallow with useStore pattern in Canvas components
+
 **Learning:** In a codebase heavily relying on Zustand's useStore pattern, extracting multiple values from the store without using an explicit object selector wrapped in `useShallow` results in unnecessary component re-renders. This is particularly noticeable in complex React components with frequent state updates like a `<Canvas>` or `<MiniMap>` which can perform costly redraws on every unassociated state change (e.g. `hoveredId` changing, causing `<Canvas>` and `<MiniMap>` to unnecessarily re-render).
 **Action:** When extracting multiple state values from a Zustand store, always use an explicit object selector and wrap it with `useShallow` to preserve referential equality and avoid wasteful renders.
