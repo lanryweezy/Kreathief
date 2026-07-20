@@ -580,10 +580,20 @@ export async function exportDesignToImage(
   nodes: DesignNode[],
   options: { width: number; height: number; format?: string; quality?: number; background?: boolean } = { width: 1080, height: 1080 }
 ): Promise<Blob> {
-  const canvas = await exportToCanvas(nodes, options.width, options.height, options.background !== false);
-  return new Promise((resolve) => {
-    canvas.toBlob((blob) => resolve(blob || new Blob()), `image/${options.format || 'png'}`, options.quality || 1);
+  if (!Array.isArray(nodes) || nodes.length === 0) {
+    return new Blob(['<svg></svg>'], { type: 'image/svg+xml' });
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = options.width;
+  canvas.height = options.height;
+  const result = await exportToCanvas(canvas, nodes, {
+    format: (options.format || 'png') as any,
+    scale: 1,
+    selectionOnly: false,
+    quality: options.quality || 1,
+    background: options.background !== false,
   });
+  return result || new Blob();
 }
 
 export async function exportDesignToBlob(
@@ -599,6 +609,9 @@ export async function exportToSVG(
   background: string,
   layers: any[]
 ): Promise<string> {
+  if (!Array.isArray(layers) || layers.length === 0) {
+    return `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><rect width="${width}" height="${height}" fill="${background}"/></svg>`;
+  }
   const nodes: DesignNode[] = layers.map((l: any) => ({
     id: l.id || 'layer',
     type: l.type || 'rectangle',
