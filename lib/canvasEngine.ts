@@ -1567,7 +1567,6 @@ export class KreathiefCanvas {
 
       if (t < 1) {
         this.zoomAnimId = requestAnimationFrame(animate);
-        this.zoomAnimId = this.zoomAnimId;
       } else {
         this.zoomAnimId = null;
       }
