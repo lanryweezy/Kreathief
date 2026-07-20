@@ -302,7 +302,7 @@ export const DocumentPanel: React.FC = () => {
           pdf.setTextColor(tl.color || '#333');
           // Approximating fontSize conversion px to pt
           pdf.setFontSize((tl.fontSize || 16) * 0.75);
-          // @ts-ignore
+          // @ts-ignore - jspdf text() signature varies by version
           pdf.text(tl.text || '', lx, ly + (tl.fontSize || 16) * 0.75 * scale, { baseline: 'bottom' });
         } else if (['rectangle', 'circle'].includes(layer.type)) {
           const sl = layer as any;
@@ -325,7 +325,7 @@ export const DocumentPanel: React.FC = () => {
           // Draw Headers
           const colWidth = lw / Math.max(1, tl.columns.length);
           tl.columns.forEach((col, cIdx) => {
-            // @ts-ignore
+            // @ts-ignore - jspdf text() signature varies by version
             pdf.text(col, lx + cIdx * colWidth + 2, ly + 7);
           });
 
@@ -334,7 +334,7 @@ export const DocumentPanel: React.FC = () => {
             const rowY = ly + 10 + rIdx * 10;
             pdf.rect(lx, rowY, lw, 10, 'D'); // Cell borders
             row.forEach((cell, cIdx) => {
-              // @ts-ignore
+              // @ts-ignore - jspdf text() signature varies by version
               pdf.text(cell, lx + cIdx * colWidth + 2, rowY + 7);
             });
           });
