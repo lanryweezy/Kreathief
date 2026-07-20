@@ -1,4 +1,4 @@
-import type { Artboard, Layer, TextLayer, ShapeLayer } from "../types";
+import type { Artboard, Layer, TextLayer, ShapeLayer } from '../types';
 
 export interface DesignAnalysis {
   score: number;
@@ -14,18 +14,14 @@ export interface LayoutVariant {
   layers: Layer[];
 }
 
-type DesignIntent = "premium" | "apple" | "colorful" | "minimal" | string;
-type Platform =
-  | "Instagram Post"
-  | "Instagram Story"
-  | "YouTube Thumbnail"
-  | "Business Card";
+type DesignIntent = 'premium' | 'apple' | 'colorful' | 'minimal' | string;
+type Platform = 'Instagram Post' | 'Instagram Story' | 'YouTube Thumbnail' | 'Business Card';
 
 const PLATFORM_SIZES: Record<Platform, { width: number; height: number }> = {
-  "Instagram Post": { width: 1080, height: 1080 },
-  "Instagram Story": { width: 1080, height: 1920 },
-  "YouTube Thumbnail": { width: 1280, height: 720 },
-  "Business Card": { width: 1050, height: 600 },
+  'Instagram Post': { width: 1080, height: 1080 },
+  'Instagram Story': { width: 1080, height: 1920 },
+  'YouTube Thumbnail': { width: 1280, height: 720 },
+  'Business Card': { width: 1050, height: 600 },
 };
 
 function clamp(v: number, min: number, max: number): number {
@@ -33,29 +29,29 @@ function clamp(v: number, min: number, max: number): number {
 }
 
 function isTextLayer(l: Layer): l is TextLayer {
-  return l.type === "text";
+  return l.type === 'text';
 }
 
 function isShapeLayer(l: Layer): l is ShapeLayer {
   return [
-    "rectangle",
-    "circle",
-    "triangle",
-    "star",
-    "hexagon",
-    "diamond",
-    "arrow",
-    "heart",
-    "speech_bubble",
-    "ribbon",
-    "shield",
-    "banner",
-    "pentagon",
-    "octagon",
-    "plus",
-    "star_4",
-    "star_8",
-    "path",
+    'rectangle',
+    'circle',
+    'triangle',
+    'star',
+    'hexagon',
+    'diamond',
+    'arrow',
+    'heart',
+    'speech_bubble',
+    'ribbon',
+    'shield',
+    'banner',
+    'pentagon',
+    'octagon',
+    'plus',
+    'star_4',
+    'star_8',
+    'path',
   ].includes(l.type);
 }
 
@@ -71,14 +67,7 @@ function hexToHsl(hex: string): { h: number; s: number; l: number } {
     l = (max + min) / 2;
   if (d === 0) return { h: 0, s: 0, l };
   return {
-    h:
-      ((max === r
-        ? (g - b) / d + (g < b ? 6 : 0)
-        : max === g
-          ? (b - r) / d + 2
-          : (r - g) / d + 4) /
-        6) *
-      360,
+    h: ((max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4) / 6) * 360,
     s: l > 0.5 ? d / (2 - max - min) : d / (max + min),
     l,
   };
@@ -90,50 +79,25 @@ function getAllLayers(artboards: Artboard[], layers: Layer[]): Layer[] {
 
 function getColors(layers: Layer[]): string[] {
   return Array.from(
-    new Set(
-      layers
-        .map((l) =>
-          isTextLayer(l) || isShapeLayer(l) ? (l as any).color : null,
-        )
-        .filter(Boolean),
-    ),
+    new Set(layers.map((l) => (isTextLayer(l) || isShapeLayer(l) ? (l as any).color : null)).filter(Boolean))
   );
 }
 
 function getFonts(layers: Layer[]): string[] {
-  return Array.from(
-    new Set(layers.filter(isTextLayer).map((t) => t.fontFamily)),
-  );
+  return Array.from(new Set(layers.filter(isTextLayer).map((t) => t.fontFamily)));
 }
 
-export function analyzeDesign(
-  artboards: Artboard[],
-  layers: Layer[],
-): DesignAnalysis {
+export function analyzeDesign(artboards: Artboard[], layers: Layer[]): DesignAnalysis {
   const all = getAllLayers(artboards, layers);
   const textLayers = all.filter(isTextLayer);
   const colors = getColors(all),
     fonts = getFonts(all);
   const fontSizes = textLayers.map((t) => t.fontSize);
-  const hasHierarchy =
-    fontSizes.length > 1
-      ? Math.max(...fontSizes) / Math.min(...fontSizes) > 1.5
-      : true;
-  const alignment =
-    textLayers.length > 0
-      ? new Set(textLayers.map((t) => t.textAlign)).size === 1
-        ? 100
-        : 60
-      : 100;
+  const hasHierarchy = fontSizes.length > 1 ? Math.max(...fontSizes) / Math.min(...fontSizes) > 1.5 : true;
+  const alignment = textLayers.length > 0 ? (new Set(textLayers.map((t) => t.textAlign)).size === 1 ? 100 : 60) : 100;
   const avgSpacing =
     all.length > 1
-      ? all.reduce(
-          (a, l, i) =>
-            i === 0
-              ? 0
-              : a + Math.abs(l.y - (all[i - 1].y + all[i - 1].height)),
-          0,
-        ) /
+      ? all.reduce((a, l, i) => (i === 0 ? 0 : a + Math.abs(l.y - (all[i - 1].y + all[i - 1].height))), 0) /
         (all.length - 1)
       : 0;
   const spacing = clamp(100 - Math.abs(avgSpacing - 20) * 2, 0, 100);
@@ -141,13 +105,10 @@ export function analyzeDesign(
     all.length > 0
       ? clamp(
           100 -
-            Math.abs(
-              all.reduce((a, l) => a + l.x + l.width / 2, 0) / all.length -
-                (artboards[0]?.width || 500) / 2,
-            ) *
+            Math.abs(all.reduce((a, l) => a + l.x + l.width / 2, 0) / all.length - (artboards[0]?.width || 500) / 2) *
               0.5,
           0,
-          100,
+          100
         )
       : 100;
   const contrast =
@@ -157,15 +118,15 @@ export function analyzeDesign(
             (Math.min(hexToHsl(colors[0]).l, hexToHsl(colors[1]).l) + 0.05)) *
             25,
           0,
-          100,
+          100
         )
       : 100;
   const suggestions: string[] = [];
-  if (fonts.length > 3) suggestions.push("Reduce font families to max 3");
-  if (!hasHierarchy) suggestions.push("Add font size variation for hierarchy");
-  if (colors.length > 5) suggestions.push("Limit palette to 5 colors");
-  if (spacing < 50) suggestions.push("Increase spacing between elements");
-  if (alignment < 80) suggestions.push("Align text elements");
+  if (fonts.length > 3) suggestions.push('Reduce font families to max 3');
+  if (!hasHierarchy) suggestions.push('Add font size variation for hierarchy');
+  if (colors.length > 5) suggestions.push('Limit palette to 5 colors');
+  if (spacing < 50) suggestions.push('Increase spacing between elements');
+  if (alignment < 80) suggestions.push('Align text elements');
   const score = Math.round((alignment + spacing + balance + contrast) / 4);
   return {
     score,
@@ -187,39 +148,34 @@ export function analyzeDesign(
   };
 }
 
-export function applyDesignIntent(
-  intent: DesignIntent,
-  artboards: Artboard[],
-  layers: Layer[],
-): Layer[] {
+export function applyDesignIntent(intent: DesignIntent, artboards: Artboard[], layers: Layer[]): Layer[] {
   const norm = intent.toLowerCase();
   return getAllLayers(artboards, layers).map((layer) => {
     const l = { ...layer };
-    if (norm.includes("premium") || norm.includes("luxury")) {
+    if (norm.includes('premium') || norm.includes('luxury')) {
       if (isTextLayer(l)) {
-        l.fontFamily = "Playfair Display, Georgia, serif";
+        l.fontFamily = 'Playfair Display, Georgia, serif';
         l.letterSpacing = 2;
         l.lineHeight = Math.max(l.lineHeight, 1.6);
       }
       if (isShapeLayer(l))
         l.shadow = {
-          color: "rgba(0,0,0,0.15)",
+          color: 'rgba(0,0,0,0.15)',
           blur: 20,
           offsetX: 0,
           offsetY: 4,
         };
       l.opacity = clamp(l.opacity + 0.05, 0, 1);
     }
-    if (norm.includes("apple") || norm.includes("clean")) {
+    if (norm.includes('apple') || norm.includes('clean')) {
       if (isTextLayer(l)) {
-        l.fontFamily =
-          "-apple-system, BlinkMacSystemFont, SF Pro Display, sans-serif";
-        l.fontWeight = "400";
-        l.color = "#1d1d1f";
+        l.fontFamily = '-apple-system, BlinkMacSystemFont, SF Pro Display, sans-serif';
+        l.fontWeight = '400';
+        l.color = '#1d1d1f';
       }
       if (isShapeLayer(l)) {
         l.shadow = {
-          color: "rgba(0,0,0,0.08)",
+          color: 'rgba(0,0,0,0.08)',
           blur: 12,
           offsetX: 0,
           offsetY: 2,
@@ -228,7 +184,7 @@ export function applyDesignIntent(
       }
       l.opacity = 1;
     }
-    if (norm.includes("color") || norm.includes("vibrant")) {
+    if (norm.includes('color') || norm.includes('vibrant')) {
       const applyHsl = (c: string, sMul: number, lAdd = 0) => {
         const h = hexToHsl(c);
         return `hsl(${h.h},${clamp(h.s * sMul, 0, 1)},${clamp(h.l + lAdd, 0, 1)})`;
@@ -236,7 +192,7 @@ export function applyDesignIntent(
       if (isTextLayer(l)) l.color = applyHsl(l.color, 1.4);
       if (isShapeLayer(l)) l.color = applyHsl(l.color, 1.3, 0.05);
     }
-    if (norm.includes("minimal") || norm.includes("simple")) {
+    if (norm.includes('minimal') || norm.includes('simple')) {
       if (isShapeLayer(l)) {
         l.shadow = undefined;
         l.stroke = undefined;
@@ -247,15 +203,11 @@ export function applyDesignIntent(
   });
 }
 
-export function generateLayoutVariants(
-  artboards: Artboard[],
-  layers: Layer[],
-): LayoutVariant[] {
+export function generateLayoutVariants(artboards: Artboard[], layers: Layer[]): LayoutVariant[] {
   const ab = artboards[0] || { width: 800, height: 600 };
   const all = getAllLayers(artboards, layers);
-  const makePositions = (
-    fn: (l: Layer, i: number) => { x: number; y: number },
-  ) => all.map((layer, i) => ({ ...layer, ...fn(layer, i) }));
+  const makePositions = (fn: (l: Layer, i: number) => { x: number; y: number }) =>
+    all.map((layer, i) => ({ ...layer, ...fn(layer, i) }));
   const centered = makePositions((l, i) => {
     const totalH = all.reduce((a, c) => a + c.height + 20, -20);
     return {
@@ -279,27 +231,24 @@ export function generateLayoutVariants(
   });
   return [
     {
-      name: "Centered & Balanced",
-      description: "Symmetrical centered layout",
+      name: 'Centered & Balanced',
+      description: 'Symmetrical centered layout',
       layers: centered,
     },
     {
-      name: "Asymmetric & Dynamic",
-      description: "Off-center with varied angles",
+      name: 'Asymmetric & Dynamic',
+      description: 'Off-center with varied angles',
       layers: asymmetric,
     },
     {
-      name: "Grid-Based & Structured",
-      description: "Organized grid placement",
+      name: 'Grid-Based & Structured',
+      description: 'Organized grid placement',
       layers: grid,
     },
   ];
 }
 
-export function optimizeForPlatform(
-  artboards: Artboard[],
-  targetPlatform: Platform,
-): Artboard[] {
+export function optimizeForPlatform(artboards: Artboard[], targetPlatform: Platform): Artboard[] {
   const target = PLATFORM_SIZES[targetPlatform];
   if (!target) return artboards;
   const srcW = artboards[0]?.width || 800,
@@ -319,12 +268,11 @@ export function optimizeForPlatform(
       };
       if (isTextLayer(l)) {
         l.fontSize *= scale;
-        if (targetPlatform === "YouTube Thumbnail") {
+        if (targetPlatform === 'YouTube Thumbnail') {
           l.fontSize = Math.max(l.fontSize, 24);
-          l.fontWeight = "700";
+          l.fontWeight = '700';
         }
-        if (targetPlatform === "Business Card")
-          l.fontSize = Math.min(l.fontSize, 12);
+        if (targetPlatform === 'Business Card') l.fontSize = Math.min(l.fontSize, 12);
       }
       return l;
     }),
