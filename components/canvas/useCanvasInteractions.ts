@@ -5,7 +5,6 @@ import { useCanvasSelection } from '../../hooks/canvas/useCanvasSelection';
 import { useLayerDragging } from '../../hooks/canvas/useLayerDragging';
 import { useLayerTransformation } from '../../hooks/canvas/useLayerTransformation';
 import { useDrawingMode } from '../../hooks/canvas/useDrawingMode';
-import { useSmartMaskWorker } from '../../hooks/canvas/useSmartMaskWorker';
 import { useStore } from '../../store/useStore';
 
 interface UseCanvasInteractionsProps {
@@ -116,8 +115,7 @@ export const useCanvasInteractions = ({
     isDrawingInternalRef: _isDrawingInternalRef,
   } = useDrawingMode({ zoom, isDrawing });
 
-  // 6. Smart Mask Worker Hook
-  const { processImage, inferMask } = useSmartMaskWorker();
+  // 6. Smart Mask Mode
   const isSmartMaskMode = useStore((state) => state.isSmartMaskMode);
   const isSmartMaskModeRef = useRef(isSmartMaskMode);
   isSmartMaskModeRef.current = isSmartMaskMode;
@@ -183,7 +181,9 @@ export const useCanvasInteractions = ({
           const worldX = (mouseX - panOffsetRef.current.x) / zoomRef.current;
           const worldY = (mouseY - panOffsetRef.current.y) / zoomRef.current;
 
-          inferMask(worldX, worldY);
+          // Smart mask inference placeholder
+          void worldX;
+          void worldY;
         }
         return;
       }
