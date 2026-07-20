@@ -55,11 +55,12 @@ vi.mock('../../store/useStore', () => ({
     };
     return typeof selector === 'function' ? selector(state) : state;
   }),
-  useStore.getState = vi.fn(() => ({
-    selectedLayerIds: [],
-    artboards: [],
-    activeArtboardId: null,
-  })),
+}));
+
+(useStore as any).getState = vi.fn(() => ({
+  selectedLayerIds: [],
+  artboards: [],
+  activeArtboardId: null,
 }));
 
 vi.mock('../../store/selectors', () => ({
