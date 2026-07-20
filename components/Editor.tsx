@@ -21,6 +21,7 @@ import { shareService } from '../services/shareService';
 import { storageService } from '../services/storageService';
 import { PresentationModal } from './modals/PresentationModal';
 import { ShareModal } from './modals/ShareModal';
+import { ExportModal } from './modals/ExportModal';
 import { MockupPanel } from './panels/MockupPanel';
 import { HistoryManager } from '../commands/history';
 import { MoveCommand } from '../commands/move';
