@@ -33,7 +33,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title
   }, [isOpen]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    startY.current = e.touches[0].clientY;
+    startY.current = e.touches[0]?.clientY;
     setIsDragging(true);
   };
 
@@ -41,7 +41,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, title
     if (!isDragging) {
       return;
     }
-    const currentY = e.touches[0].clientY;
+    const currentY = e.touches[0]?.clientY;
     const diff = currentY - startY.current;
 
     // Only allow dragging down
