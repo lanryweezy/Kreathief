@@ -564,3 +564,100 @@ export function downloadBlob(blob: Blob, filename: string) {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
+
+// ── Stub exports for backward compatibility ────────────────────
+
+export type ColorProfile = 'srgb' | 'cmyk' | 'p3';
+
+export interface PDFExportOptions {
+  format?: 'pdf';
+  bleed?: number;
+  cropMarks?: boolean;
+  colorProfile?: ColorProfile;
+}
+
+export async function exportDesignToImage(
+  nodes: DesignNode[],
+  options: { width: number; height: number; format?: string; quality?: number; background?: boolean } = { width: 1080, height: 1080 }
+): Promise<Blob> {
+  const canvas = await exportToCanvas(nodes, options.width, options.height, options.background !== false);
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => resolve(blob || new Blob()), `image/${options.format || 'png'}`, options.quality || 1);
+  });
+}
+
+export async function exportDesignToBlob(
+  nodes: DesignNode[],
+  options: { width: number; height: number; format?: string; quality?: number } = { width: 1080, height: 1080 }
+): Promise<Blob> {
+  return exportDesignToImage(nodes, options);
+}
+
+export async function exportToSVG(
+  width: number,
+  height: number,
+  background: string,
+  layers: any[]
+): Promise<string> {
+  const nodes: DesignNode[] = layers.map((l: any) => ({
+    id: l.id || 'layer',
+    type: l.type || 'rectangle',
+    x: l.x || 0,
+    y: l.y || 0,
+    width: l.width || 100,
+    height: l.height || 100,
+    rotation: l.rotation || 0,
+    opacity: l.opacity ?? 1,
+  } as any));
+  return exportToSvg(nodes, !!background);
+}
+
+export async function exportToLayeredPSD(
+  width: number,
+  height: number,
+  layers: any[],
+  filename?: string
+): Promise<void> {
+  const svg = await exportToSVG(width, height, '#ffffff', layers);
+  const blob = new Blob([svg], { type: 'image/svg+xml' });
+  downloadBlob(blob, `${filename || 'export'}.svg`);
+}
+
+export async function exportToPrintPDF(
+  width: number,
+  height: number,
+  layers: any[],
+  filename?: string,
+  _options?: PDFExportOptions
+): Promise<void> {
+  const svg = await exportToSVG(width, height, '#ffffff', layers);
+  const blob = new Blob([svg], { type: 'image/svg+xml' });
+  downloadBlob(blob, `${filename || 'export'}.pdf`);
+}
+
+export async function batchExportArtboardsZip(
+  artboards: any[],
+  options?: { format?: string; quality?: number }
+): Promise<Blob> {
+  const JSZip = (await import('jszip')).default;
+  const zip = new JSZip();
+  for (let i = 0; i < artboards.length; i++) {
+    const ab = artboards[i];
+    const nodes: DesignNode[] = (ab.layers || []).map((l: any) => ({
+      id: l.id || `layer-${i}`,
+      type: l.type || 'rectangle',
+      x: l.x || 0,
+      y: l.y || 0,
+      width: l.width || 100,
+      height: l.height || 100,
+      rotation: l.rotation || 0,
+      opacity: l.opacity ?? 1,
+    } as any));
+    const canvas = await exportToCanvas(nodes, ab.width || 1080, ab.height || 1080);
+    const blob = await new Promise<Blob>((resolve) => {
+      canvas.toBlob((b) => resolve(b || new Blob()), `image/${options?.format || 'png'}`, options?.quality || 1);
+    });
+    zip.file(`${ab.name || `artboard-${i}`}.${options?.format || 'png'}`, blob);
+  }
+  return zip.generateAsync({ type: 'blob' });
+}
