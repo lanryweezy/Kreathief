@@ -22,10 +22,12 @@ async function loadWasm() {
   if (loadAttempted) return;
   loadAttempted = true;
   try {
-    wasmMod = await import('../rust-engine/pkg/kreathief_engine');
-    if (typeof wasmMod.default === 'function') {
-      await wasmMod.default();
+    const path = '../rust-engine/pkg/kreathief_engine';
+    const mod = await (Function('p', 'return import(p)'))(path);
+    if (typeof mod.default === 'function') {
+      await mod.default();
     }
+    wasmMod = mod;
   } catch {
     wasmMod = null;
   }
