@@ -260,11 +260,7 @@ describe('useKreathiefStore', () => {
     it('pushes commands to past', () => {
       const { result } = renderHook(() => useKreathiefStore());
       act(() => {
-        result.current.pushCommand(
-          'Move node',
-          { panX: 0 } as any,
-          { panX: 100 } as any
-        );
+        result.current.pushCommand('Move node', { panX: 0 } as any, { panX: 100 } as any);
       });
       expect(result.current.past.length).toBe(1);
       expect(result.current.past[0].label).toBe('Move node');
@@ -273,11 +269,7 @@ describe('useKreathiefStore', () => {
     it('undo pops from past to future', () => {
       const { result } = renderHook(() => useKreathiefStore());
       act(() => {
-        result.current.pushCommand(
-          'Move node',
-          { panX: 0 } as any,
-          { panX: 100 } as any
-        );
+        result.current.pushCommand('Move node', { panX: 0 } as any, { panX: 100 } as any);
       });
       expect(result.current.past.length).toBe(1);
       act(() => {
@@ -290,11 +282,7 @@ describe('useKreathiefStore', () => {
     it('redo pops from future to past', () => {
       const { result } = renderHook(() => useKreathiefStore());
       act(() => {
-        result.current.pushCommand(
-          'Move node',
-          { panX: 0 } as any,
-          { panX: 100 } as any
-        );
+        result.current.pushCommand('Move node', { panX: 0 } as any, { panX: 100 } as any);
       });
       act(() => {
         result.current.undo();

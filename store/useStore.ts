@@ -1,14 +1,7 @@
 import { create } from 'zustand';
 import { DesignNode, ToolType, HistoryCommand } from '../types/design';
 import { surface, content, semantic } from '../lib/tokens';
-import {
-  UserPreferences,
-  DesignPattern,
-  BrandGuideline,
-  DesignAction,
-  SkillLevel,
-  DesignStyle,
-} from '../types/memory';
+import { UserPreferences, DesignPattern, BrandGuideline, DesignAction, SkillLevel, DesignStyle } from '../types/memory';
 import { CreativeSuggestion } from '../types/creativeDirector';
 import type { BrandViolation } from '../services/brandMemory';
 import { ToastMessage } from '../components/Toast';
