@@ -77,3 +77,6 @@
 
 **Learning:** In a codebase heavily relying on Zustand's useStore pattern, extracting multiple values from the store without using an explicit object selector wrapped in `useShallow` results in unnecessary component re-renders. This is particularly noticeable in complex React components with frequent state updates like a `<Canvas>` or `<MiniMap>` which can perform costly redraws on every unassociated state change (e.g. `hoveredId` changing, causing `<Canvas>` and `<MiniMap>` to unnecessarily re-render).
 **Action:** When extracting multiple state values from a Zustand store, always use an explicit object selector and wrap it with `useShallow` to preserve referential equality and avoid wasteful renders.
+## 2026-07-21 - Optimize Supabase Delete N+1 Queries
+**Learning:** Looping and firing individual queries for deletions (N+1 queries) results in significant network roundtrip latency which blocks the main execution flow unnecessarily. In the `storageService.ts` cleanOldVersions method, deleting 80 versions took ~431ms.
+**Action:** Replace looped individual delete queries with a single batch operation using Supabase's `.in()` method to reduce network roundtrips. This reduced the time taken from ~431ms to ~5.55ms in the benchmark.

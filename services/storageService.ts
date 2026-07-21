@@ -1011,10 +1011,10 @@ class StorageService {
     if (this.isOnline) {
       try {
         const userId = await this.getUserId();
-        if (userId) {
-          for (const version of toDelete) {
-            await supabase.from('project_versions').delete().eq('id', version.id).eq('user_id', userId);
-          }
+        if (userId && toDelete.length > 0) {
+          // ⚡ Bolt Optimization: Replace N+1 delete queries with a single batch query using `.in()` to minimize network roundtrips.
+          const idsToDelete = toDelete.map((v) => v.id);
+          await supabase.from('project_versions').delete().eq('user_id', userId).in('id', idsToDelete);
         }
       } catch (err) {
         logger.warn('Supabase clean error', { error: err });

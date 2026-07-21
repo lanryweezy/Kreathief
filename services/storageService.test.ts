@@ -8,6 +8,7 @@ vi.mock('../lib/supabase/client', () => {
       upsert: vi.fn(),
       delete: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
       single: vi.fn(),
     }),
