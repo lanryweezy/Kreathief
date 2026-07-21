@@ -77,3 +77,8 @@
 
 **Learning:** In a codebase heavily relying on Zustand's useStore pattern, extracting multiple values from the store without using an explicit object selector wrapped in `useShallow` results in unnecessary component re-renders. This is particularly noticeable in complex React components with frequent state updates like a `<Canvas>` or `<MiniMap>` which can perform costly redraws on every unassociated state change (e.g. `hoveredId` changing, causing `<Canvas>` and `<MiniMap>` to unnecessarily re-render).
 **Action:** When extracting multiple state values from a Zustand store, always use an explicit object selector and wrap it with `useShallow` to preserve referential equality and avoid wasteful renders.
+
+## 2026-07-25 - Optimizing Array Intersection for Selected Layers
+
+**Learning:** When retrieving multiple entities from a large array by their IDs (e.g., matching a list of `selectedLayerIds` against an `artboard.layers` array), using `.map(id => layers.find(l => l.id === id))` creates an O(N\*M) nested loop. This significantly degrades performance, especially during operations involving many selected items (like grouping, bulk moving, or bulk deleting) as the component re-renders.
+**Action:** Replace nested array searches with an O(N) Set-based filter (e.g., `const selectedIdsSet = new Set(selectedLayerIds); layers.filter(l => selectedIdsSet.has(l.id))`) to improve render performance and reduce CPU overhead when interacting with multiple items simultaneously.
