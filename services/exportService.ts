@@ -578,7 +578,10 @@ export interface PDFExportOptions {
 
 export async function exportDesignToImage(
   nodes: DesignNode[],
-  options: { width: number; height: number; format?: string; quality?: number; background?: boolean } = { width: 1080, height: 1080 }
+  options: { width: number; height: number; format?: string; quality?: number; background?: boolean } = {
+    width: 1080,
+    height: 1080,
+  }
 ): Promise<Blob> {
   if (!Array.isArray(nodes) || nodes.length === 0) {
     return new Blob(['<svg></svg>'], { type: 'image/svg+xml' });
@@ -603,25 +606,23 @@ export async function exportDesignToBlob(
   return exportDesignToImage(nodes, options);
 }
 
-export async function exportToSVG(
-  width: number,
-  height: number,
-  background: string,
-  layers: any[]
-): Promise<string> {
+export async function exportToSVG(width: number, height: number, background: string, layers: any[]): Promise<string> {
   if (!Array.isArray(layers) || layers.length === 0) {
     return `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><rect width="${width}" height="${height}" fill="${background}"/></svg>`;
   }
-  const nodes: DesignNode[] = layers.map((l: any) => ({
-    id: l.id || 'layer',
-    type: l.type || 'rectangle',
-    x: l.x || 0,
-    y: l.y || 0,
-    width: l.width || 100,
-    height: l.height || 100,
-    rotation: l.rotation || 0,
-    opacity: l.opacity ?? 1,
-  } as any));
+  const nodes: DesignNode[] = layers.map(
+    (l: any) =>
+      ({
+        id: l.id || 'layer',
+        type: l.type || 'rectangle',
+        x: l.x || 0,
+        y: l.y || 0,
+        width: l.width || 100,
+        height: l.height || 100,
+        rotation: l.rotation || 0,
+        opacity: l.opacity ?? 1,
+      }) as any
+  );
   return exportToSvg(nodes, !!background);
 }
 
@@ -656,16 +657,19 @@ export async function batchExportArtboardsZip(
   const zip = new JSZip();
   for (let i = 0; i < artboards.length; i++) {
     const ab = artboards[i];
-    const nodes: DesignNode[] = (ab.layers || []).map((l: any) => ({
-      id: l.id || `layer-${i}`,
-      type: l.type || 'rectangle',
-      x: l.x || 0,
-      y: l.y || 0,
-      width: l.width || 100,
-      height: l.height || 100,
-      rotation: l.rotation || 0,
-      opacity: l.opacity ?? 1,
-    } as any));
+    const nodes: DesignNode[] = (ab.layers || []).map(
+      (l: any) =>
+        ({
+          id: l.id || `layer-${i}`,
+          type: l.type || 'rectangle',
+          x: l.x || 0,
+          y: l.y || 0,
+          width: l.width || 100,
+          height: l.height || 100,
+          rotation: l.rotation || 0,
+          opacity: l.opacity ?? 1,
+        }) as any
+    );
     const canvas = await exportToCanvas(nodes, ab.width || 1080, ab.height || 1080);
     const blob = await new Promise<Blob>((resolve) => {
       canvas.toBlob((b) => resolve(b || new Blob()), `image/${options?.format || 'png'}`, options?.quality || 1);
