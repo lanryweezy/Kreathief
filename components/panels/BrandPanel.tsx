@@ -58,7 +58,7 @@ export const BrandPanel = () => {
   };
   const [isCreating, setIsCreating] = useState(false);
   const [newKitName, setNewKitName] = useState('');
-  const [newColors, setNewColors] = useState<string[]>(['#000000', '#ffffff', 'brand-600']);
+  const [newColors, setNewColors] = useState<string[]>(['#000000', '#ffffff', '#7D2AE8']);
   const [newFonts, setNewFonts] = useState<string[]>(['Space Grotesk', 'Inter']);
   const [newLogos, setNewLogos] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -91,7 +91,7 @@ export const BrandPanel = () => {
 
   const resetForm = () => {
     setNewKitName('');
-    setNewColors(['#000000', '#ffffff', 'brand-600']);
+    setNewColors(['#000000', '#ffffff', '#7D2AE8']);
     setNewFonts(['Space Grotesk', 'Inter']);
     setNewLogos([]);
   };

@@ -12,7 +12,7 @@ export default async function handler(req: Request) {
     return new Response(null, {
       status: 200,
       headers: {
-        'Access-Control-Allow-Origin': origin!,
+        'Access-Control-Allow-Origin': origin || '*',
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
       },
@@ -31,7 +31,7 @@ export default async function handler(req: Request) {
     if (!query)
       return new Response(JSON.stringify({ icons: [] }), {
         status: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin!, ...cacheHeaders(86400) },
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin || '*', ...cacheHeaders(86400) },
       });
 
     const cacheKey = query.toLowerCase();
@@ -39,7 +39,7 @@ export default async function handler(req: Request) {
     if (cached && cached.expiry > Date.now()) {
       return new Response(JSON.stringify({ icons: cached.data }), {
         status: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin!, ...cacheHeaders(86400) },
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin || '*', ...cacheHeaders(86400) },
       });
     }
 
@@ -57,7 +57,7 @@ export default async function handler(req: Request) {
     iconCache.set(cacheKey, { data: icons, expiry: Date.now() + CACHE_TTL });
     return new Response(JSON.stringify({ icons }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin!, ...cacheHeaders(86400) },
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin || '*', ...cacheHeaders(86400) },
     });
   } catch (err: any) {
     return new Response(JSON.stringify({ error: err.message || 'Internal error', icons: [] }), {

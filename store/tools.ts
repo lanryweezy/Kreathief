@@ -4,8 +4,17 @@ import { selectedLayerSelector } from './selectors';
 import * as gemini from '../services/geminiService';
 import { vectorizerService } from '../services/vectorizerService';
 import { generateLayerId } from '../utils/layers/layerUtils';
+import { alignLayers as alignLayersUtil, distributeLayers as distributeLayersUtil } from '../utils/layoutUtils';
 
 type ToolHandler<P> = (params: P) => Promise<void> | void;
+
+// Helper to get selected nodes as array
+function getSelectedNodes() {
+  const state = useStore.getState();
+  const nodes = state.nodes;
+  const ids = Array.from(state.selectedIds);
+  return ids.map(id => nodes.get(id)).filter(Boolean);
+}
 
 // Schemas
 const alignSchema = z.object({
@@ -48,29 +57,61 @@ const textToVectorSchema = z.object({
   color: z.string().optional(),
 });
 
-// Tool handlers - thin wrappers around existing actions
+// Tool handlers - use layout utilities directly
 const alignLayers: ToolHandler<z.infer<typeof alignSchema>> = ({ type }) => {
-  useStore.getState().alignLayers(type);
+  const nodes = getSelectedNodes();
+  if (nodes.length === 0) return;
+  const state = useStore.getState();
+  const alignmentType = type === 'center' ? 'h-center' : type === 'middle' ? 'v-center' : type;
+  const changes = alignLayersUtil(nodes as any, alignmentType as any, { width: 1080, height: 1080 });
+  changes.forEach(c => state.updateNode(c.id, c.changes as any));
 };
 
 const distributeLayers: ToolHandler<z.infer<typeof distributeSchema>> = ({ type }) => {
-  useStore.getState().distributeLayers(type);
+  const nodes = getSelectedNodes();
+  if (nodes.length < 2) return;
+  const state = useStore.getState();
+  const distType = type === 'horizontal' ? 'h-spacing' : 'v-spacing';
+  const changes = distributeLayersUtil(nodes as any, distType as any);
+  changes.forEach(c => state.updateNode(c.id, c.changes as any));
 };
 
 const layoutLayersTool: ToolHandler<z.infer<typeof layoutSchema>> = ({ type }) => {
-  useStore.getState().layoutLayers(type);
+  const nodes = getSelectedNodes();
+  if (nodes.length < 2) return;
+  const state = useStore.getState();
+  // Simple grid layout
+  if (type === 'grid') {
+    const cols = Math.ceil(Math.sqrt(nodes.length));
+    const gap = 16;
+    nodes.forEach((node, i) => {
+      if (!node) return;
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      state.updateNode(node.id, {
+        x: col * (node.width + gap),
+        y: row * (node.height + gap),
+      });
+    });
+  }
 };
 
 const applyBrandColorsTool: ToolHandler<z.infer<typeof brandColorsSchema>> = ({ colors }) => {
-  useStore.getState().applyBrandColors(colors);
+  if (colors.length === 0) return;
+  const nodes = getSelectedNodes();
+  const state = useStore.getState();
+  nodes.forEach((node, i) => {
+    if (!node) return;
+    state.updateNode(node.id, { fill: colors[i % colors.length] });
+  });
 };
 
 const groupSelected: ToolHandler<Record<string, never>> = () => {
-  useStore.getState().groupSelected();
+  // Group not implemented in simplified store — no-op
 };
 
 const ungroupSelected: ToolHandler<Record<string, never>> = () => {
-  useStore.getState().ungroupSelected();
+  // Ungroup not implemented in simplified store — no-op
 };
 
 const flipSelected: ToolHandler<z.infer<typeof flipSchema>> = ({ axis }) => {
