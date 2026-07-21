@@ -3,6 +3,7 @@
  * Tracks Web Vitals and custom performance metrics
  */
 
+import { track } from '@vercel/analytics/react';
 import { log } from './log';
 
 interface PerformanceMetric {
@@ -103,11 +104,8 @@ function getRating(duration: number): 'good' | 'needs-improvement' | 'poor' {
  * Send metric to analytics service
  */
 function sendToAnalytics(metric: PerformanceMetric) {
-  // TODO: Integrate with your analytics service
-  // Example: Plausible, Mixpanel, Google Analytics, etc.
-
   try {
-    // For now, just store in sessionStorage for debugging
+    // Store in sessionStorage for debugging
     const metrics = JSON.parse(sessionStorage.getItem('perf_metrics') || '[]');
     metrics.push(metric);
 
@@ -117,6 +115,13 @@ function sendToAnalytics(metric: PerformanceMetric) {
     }
 
     sessionStorage.setItem('perf_metrics', JSON.stringify(metrics));
+
+    // Send to Vercel Analytics
+    track(metric.name, {
+      value: metric.value,
+      rating: metric.rating,
+      timestamp: metric.timestamp,
+    });
   } catch (error) {
     // Silently fail - don't break the app for analytics
     log.error('Failed to store performance metric:', error);
