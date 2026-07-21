@@ -39,3 +39,8 @@
 
 **Learning:** Array manipulation with `.sort` methods mapped from immutable copies (e.g. `[...layers].sort()`) will retain exactly the array length that was passed to it. Edge cases checking `if (sorted.length < 2)` following a prior early exit check of `if (layers.length < 3)` are unreachable dead-code and cannot be tested via standard Javascript execution logic without deliberately breaking Vitest array prototypes.
 **Action:** Avoid attempting to structure tests designed solely to trigger logically unreachable edge cases embedded within array mutation logic. Trust early-exit validations and document untestable dead-code segments rather than attempting to hack the runtime prototype context.
+
+## 2026-07-21 - Mocking global window for mobile utilities
+
+**Learning:** When writing tests for mobile optimization utilities (like `isIOS`, `isAndroid`, `isMobileDevice`) running in Vitest's jsdom environment, direct assignment to `window.innerWidth` or navigator properties using `Object.defineProperty` on `global.navigator` allows effectively simulating different browsers and device behaviors without running into getter-only errors on standard global definitions.
+**Action:** When creating tests or verifying routines evaluating device behaviors, securely mock the environment globally using `Object.defineProperty` for navigator and setting simple properties to simulated values. Always ensure original values are backed up in `beforeEach` and correctly restored in `afterEach` by resetting globals to avoid cross-test contamination in headless environments.
