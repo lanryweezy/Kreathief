@@ -5,9 +5,12 @@ export const config = {
   runtime: 'edge',
 };
 
+// Simple API key for client-side error reporting
+const ERROR_LOG_KEY = process.env.ERROR_LOG_KEY;
+
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
-const MAX_REQUESTS_PER_WINDOW = 20;
+const MAX_REQUESTS_PER_WINDOW = 10;
 const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 
 let lastCleanup = Date.now();
@@ -36,7 +39,7 @@ export default async function handler(req: Request) {
       headers: {
         'Access-Control-Allow-Origin': origin,
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, X-API-Key',
       },
     });
   }
@@ -44,10 +47,16 @@ export default async function handler(req: Request) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': origin,
-      },
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin },
+    });
+  }
+
+  // API key validation for client-side error reporting
+  const apiKey = req.headers.get('X-API-Key');
+  if (ERROR_LOG_KEY && apiKey !== ERROR_LOG_KEY) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin },
     });
   }
 

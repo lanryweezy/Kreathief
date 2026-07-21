@@ -107,7 +107,10 @@ export const VersionDiffModal: React.FC = () => {
               value={leftId}
               onChange={(e) => setLeftId(e.target.value as any)}
             >
-              <option value="live">Current (Live)</option>{' '}
+              <option value="live">Current (Live)</option>
+              {snapshots?.map((s) => (
+                <option key={s.id} value={s.id}>{s.name || `Snapshot ${new Date(s.timestamp).toLocaleString()}`}</option>
+              ))}
             </select>
           </div>
           {leftAb ? (

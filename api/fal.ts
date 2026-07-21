@@ -145,6 +145,15 @@ export default async function handler(req: Request) {
   }
 
   try {
+    // Validate body — only allow safe fields to prevent SSRF via webhook_url
+    const safeBody: any = {};
+    if (body && typeof body === 'object') {
+      const allowedFields = ['prompt', 'image_url', 'image', 'num_images', 'guidance_scale', 'num_inference_steps', 'width', 'height', 'seed', 'style'];
+      for (const key of Object.keys(body)) {
+        if (allowedFields.includes(key)) safeBody[key] = body[key];
+      }
+    }
+
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 60_000);
     const response = await fetch(endpoint, {
@@ -153,7 +162,7 @@ export default async function handler(req: Request) {
         Authorization: `Key ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(safeBody),
       signal: controller.signal,
     });
     clearTimeout(timeout);

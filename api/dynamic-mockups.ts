@@ -102,13 +102,22 @@ export default async function handler(req: Request) {
         });
       }
 
+      // Validate body — only allow safe fields
+      const safePayload: any = {};
+      if (payload && typeof payload === 'object') {
+        const allowedFields = ['image_url', 'template_id', 'width', 'height', 'format', 'quality', 'effects'];
+        for (const key of Object.keys(payload)) {
+          if (allowedFields.includes(key)) safePayload[key] = payload[key];
+        }
+      }
+
       const response = await fetch(`${BASE_URL}/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${apiKey}`,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(safePayload),
       });
 
       if (!response.ok) {

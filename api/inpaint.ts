@@ -1,48 +1,92 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { log } from '../../utils/log';
+import { log } from '../utils/log';
+import { requireAuth } from './_auth';
+import { noStoreHeaders } from '../utils/cacheHeaders';
 
-/**
- * AI Inpainting endpoint for 3D rotation auto-fill.
- * Takes an image + mask + prompt, returns the filled image.
- *
- * Uses Gemini's image editing capabilities for inpainting.
- */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+export const config = { runtime: 'edge' };
+
+export default async function handler(req: Request) {
+  const origin = process.env.VITE_FRONTEND_URL;
+  if (!origin) {
+    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
   }
 
-  const { image, mask, prompt } = req.body;
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    });
+  }
 
-  if (!image || !mask) {
-    return res.status(400).json({ error: 'Image and mask are required' });
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin },
+    });
   }
 
   try {
-    // Use Gemini for inpainting via the existing API proxy
-    const geminiResponse = await fetch(`${process.env.VITE_FRONTEND_URL || 'http://localhost:5173'}/api/gemini`, {
+    await requireAuth(req);
+  } catch (response) {
+    return response as Response;
+  }
+
+  let body: any;
+  try {
+    body = await req.json();
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin },
+    });
+  }
+
+  const { image, mask, prompt } = body;
+  if (!image || !mask) {
+    return new Response(JSON.stringify({ error: 'Image and mask are required' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin },
+    });
+  }
+
+  try {
+    // Forward to Gemini API with auth
+    const geminiRes = await fetch(`${origin}/api/gemini`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': req.headers.get('Authorization') || '',
+      },
       body: JSON.stringify({
         action: 'editImage',
-        image: image,
-        prompt:
-          prompt ||
-          'Fill in the transparent areas to match the surrounding image context. Make it look natural and continuous.',
-        mask: mask,
+        image,
+        prompt: prompt || 'Fill in the transparent areas to match the surrounding image context.',
+        mask,
       }),
     });
 
-    if (!geminiResponse.ok) {
-      const errorText = await geminiResponse.text();
-      log.error('[Inpaint API] Gemini request failed', new Error(errorText), { status: geminiResponse.status });
-      return res.status(502).json({ error: 'AI service unavailable' });
+    if (!geminiRes.ok) {
+      const errorText = await geminiRes.text();
+      log.error('[Inpaint] Gemini failed', new Error(errorText), { status: geminiRes.status });
+      return new Response(JSON.stringify({ error: 'AI service unavailable' }), {
+        status: 502,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin },
+      });
     }
 
-    const result = await geminiResponse.json();
-    return res.status(200).json(result);
+    const result = await geminiRes.json();
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin, ...noStoreHeaders() },
+    });
   } catch (error: any) {
-    log.error('[Inpaint API] Error', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    log.error('[Inpaint] Error', error);
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin },
+    });
   }
 }
