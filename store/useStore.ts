@@ -184,7 +184,7 @@ export const useKreathiefStore = create<KreathiefStore>((set, get) => ({
 
   toasts: [],
   addToast: (type, message, duration) => {
-    const id = `toast_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const id = `toast_${crypto.randomUUID()}`;
     set((state) => ({
       toasts: [...state.toasts, { id, type, message, duration }].slice(-5),
     }));
