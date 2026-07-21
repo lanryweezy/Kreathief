@@ -39,3 +39,8 @@
 
 **Learning:** Array manipulation with `.sort` methods mapped from immutable copies (e.g. `[...layers].sort()`) will retain exactly the array length that was passed to it. Edge cases checking `if (sorted.length < 2)` following a prior early exit check of `if (layers.length < 3)` are unreachable dead-code and cannot be tested via standard Javascript execution logic without deliberately breaking Vitest array prototypes.
 **Action:** Avoid attempting to structure tests designed solely to trigger logically unreachable edge cases embedded within array mutation logic. Trust early-exit validations and document untestable dead-code segments rather than attempting to hack the runtime prototype context.
+
+## 2026-07-21 - Mocking browser properties in Vitest headless environments
+
+**Learning:** Testing logic dependent on `window` and `navigator` properties directly via globals can be brittle in jsdom environments under Vitest. Simple assignment fails because properties like `window.innerWidth` or `navigator.userAgent` are read-only properties with getters.
+**Action:** When mocking browser or navigator properties, utilize `vi.stubGlobal('property', value)` or `Object.defineProperty` on `globalThis` if needed. Store original values via `beforeEach` and restore them within `afterEach` by resetting globals explicitly or via `vi.restoreAllMocks()` to prevent state leakage between tests.
