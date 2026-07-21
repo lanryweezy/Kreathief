@@ -15,7 +15,8 @@ export type AnalyticsEvent =
   | 'auth_signup'
   | 'auth_signin'
   | 'auth_signout'
-  | 'analyze_design';
+  | 'analyze_design'
+  | 'perf_metric';
 
 export interface AnalyticsProvider {
   id: string;

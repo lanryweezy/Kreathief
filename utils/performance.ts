@@ -4,6 +4,7 @@
  */
 
 import { log } from './log';
+import { analyticsService } from '../services/analyticsService';
 
 interface PerformanceMetric {
   name: string;
@@ -103,11 +104,10 @@ function getRating(duration: number): 'good' | 'needs-improvement' | 'poor' {
  * Send metric to analytics service
  */
 function sendToAnalytics(metric: PerformanceMetric) {
-  // TODO: Integrate with your analytics service
-  // Example: Plausible, Mixpanel, Google Analytics, etc.
-
   try {
-    // For now, just store in sessionStorage for debugging
+    analyticsService.track('perf_metric', metric);
+
+    // Also store in sessionStorage for debugging
     const metrics = JSON.parse(sessionStorage.getItem('perf_metrics') || '[]');
     metrics.push(metric);
 
@@ -119,7 +119,7 @@ function sendToAnalytics(metric: PerformanceMetric) {
     sessionStorage.setItem('perf_metrics', JSON.stringify(metrics));
   } catch (error) {
     // Silently fail - don't break the app for analytics
-    log.error('Failed to store performance metric:', error);
+    log.error('Failed to send performance metric:', error);
   }
 }
 
