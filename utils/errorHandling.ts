@@ -3,6 +3,7 @@
  * Centralized error handling with proper logging and user feedback
  */
 
+import * as Sentry from '@sentry/react';
 import { log } from './log';
 
 type ErrorContext = {
@@ -65,15 +66,16 @@ export const logError = (error: unknown, context: ErrorContext = {}): void => {
 
   // In production, send to error tracking service
   if (import.meta.env.PROD) {
-    // TODO: Integrate with Sentry, LogRocket, or similar
-    // Sentry.captureException(appError, { extra: context });
-
-    // For now, log to a service endpoint
-    try {
-      navigator.sendBeacon('/api/error-log', JSON.stringify(errorInfo));
-    } catch (e) {
-      // Fallback failed, error is lost
-      log.error('[Error Logging Failed]', e);
+    if (import.meta.env.VITE_SENTRY_DSN) {
+      Sentry.captureException(appError, { extra: context });
+    } else {
+      // Fallback to basic logging endpoint if Sentry is not configured
+      try {
+        navigator.sendBeacon('/api/error-log', JSON.stringify(errorInfo));
+      } catch (e) {
+        // Fallback failed, error is lost
+        log.error('[Error Logging Failed]', e);
+      }
     }
   }
 };
