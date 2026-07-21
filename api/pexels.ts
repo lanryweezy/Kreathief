@@ -1,5 +1,6 @@
 import { log } from '../utils/log';
 import { cacheHeaders } from '../utils/cacheHeaders';
+import { requireAuth } from './_auth';
 export const config = { runtime: 'edge' };
 
 async function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs = 30_000): Promise<Response> {
@@ -74,9 +75,15 @@ export default async function handler(req: Request) {
       headers: {
         'Access-Control-Allow-Origin': origin,
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
     });
+
+  try {
+    await requireAuth(req);
+  } catch (response) {
+    return response as Response;
+  }
 
   const ip = req.headers.get('x-forwarded-for') || 'unknown';
   const blocked = checkRate(ip, origin);

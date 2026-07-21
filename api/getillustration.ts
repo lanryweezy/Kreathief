@@ -1,5 +1,6 @@
 import { log } from '../utils/log';
 import { cacheHeaders } from '../utils/cacheHeaders';
+import { requireAuth } from './_auth';
 export const config = {
   runtime: 'edge',
 };
@@ -34,6 +35,12 @@ export default async function handler(req: Request) {
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
     });
+  }
+
+  try {
+    await requireAuth(req);
+  } catch (response) {
+    return response as Response;
   }
 
   const clientIp = req.headers.get('x-forwarded-for') || 'unknown';

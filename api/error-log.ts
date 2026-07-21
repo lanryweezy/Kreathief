@@ -76,7 +76,16 @@ export default async function handler(req: Request) {
   let payload: any = {};
   try {
     const bodyText = await req.text();
+    if (bodyText.length > 10000) {
+      return new Response(JSON.stringify({ error: 'Body too large' }), {
+        status: 413,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin },
+      });
+    }
     payload = JSON.parse(bodyText);
+    // Sanitize: only allow known fields
+    const allowed = { message: String(payload.message || '').slice(0, 500), filename: String(payload.filename || '').slice(0, 200), lineno: Number(payload.lineno) || 0 };
+    payload = allowed;
   } catch (err) {
     return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
       status: 400,

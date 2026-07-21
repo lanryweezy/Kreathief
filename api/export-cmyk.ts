@@ -3,6 +3,7 @@ import { PDFDocument } from 'pdf-lib';
 import { log } from '../utils/log';
 import { z } from 'zod';
 import { noStoreHeaders } from '../utils/cacheHeaders';
+import { requireAuth } from './_auth';
 import dns from 'dns';
 
 export const config = { runtime: 'nodejs' };
