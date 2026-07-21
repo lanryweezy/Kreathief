@@ -111,7 +111,7 @@ export const Canvas: React.FC = () => {
       const detail = (e as CustomEvent).detail;
       if (!detail) return;
       const { addNode, addToast } = useKreathiefStore.getState();
-      const id = `node_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+      const id = `node_${crypto.randomUUID()}`;
       const node = {
         id,
         type: detail.type === 'ellipse' ? ('ellipse' as const) : ('rect' as const),
