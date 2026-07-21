@@ -150,12 +150,20 @@ export class GeometryOracle {
       return { x: 0, y: 0, width: 0, height: 0 };
     }
 
-    const bounds = layers.map((l) => this.getTransformationBounds(l));
+    // ⚡ Bolt Optimization: Calculate bounds in a single pass rather than multiple map/Math.min/max passes.
+    // This reduces O(N) allocations and loop overhead by iterating through bounds only once.
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
 
-    const minX = Math.min(...bounds.map((b) => b.x));
-    const minY = Math.min(...bounds.map((b) => b.y));
-    const maxX = Math.max(...bounds.map((b) => b.x + b.width));
-    const maxY = Math.max(...bounds.map((b) => b.y + b.height));
+    for (let i = 0; i < layers.length; i++) {
+      const b = this.getTransformationBounds(layers[i]);
+      if (b.x < minX) minX = b.x;
+      if (b.y < minY) minY = b.y;
+      if (b.x + b.width > maxX) maxX = b.x + b.width;
+      if (b.y + b.height > maxY) maxY = b.y + b.height;
+    }
 
     return {
       x: minX,
