@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { Wand2, Clock, Grid, Box, Layers, Palette, Sparkles, PenTool, Camera, Clapperboard } from 'lucide-react';
 import { useKreathiefStore } from '../store/useStore';
 
@@ -23,7 +24,9 @@ const AI_STYLE_PRESETS = [
 
 export const AIPanel: React.FC = () => {
   const [prompt, setPrompt] = useState('');
-  const { addToast } = useKreathiefStore();
+  const { addToast } = useKreathiefStore(
+    useShallow((state) => ({ addToast: state.addToast }))
+  );
   const [history, setHistory] = useState<string[]>(() => {
     try {
       return JSON.parse(localStorage.getItem('kreathief_ai_history') || '[]');

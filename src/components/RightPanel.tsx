@@ -1,4 +1,5 @@
 import React, { Suspense, useState, useMemo, useRef, useEffect, lazy } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import {
   X,
   Layers,
@@ -80,7 +81,16 @@ const panelTabs: { id: string; label: string; icon: React.ReactNode }[] = [
 ];
 
 export const RightPanel: React.FC = () => {
-  const { rightPanelTab, setRightPanelTab, selectedIds, nodes, updateNode, expertMode } = useKreathiefStore();
+  const { rightPanelTab, setRightPanelTab, selectedIds, nodes, updateNode, expertMode } = useKreathiefStore(
+    useShallow((state) => ({
+      rightPanelTab: state.rightPanelTab,
+      setRightPanelTab: state.setRightPanelTab,
+      selectedIds: state.selectedIds,
+      nodes: state.nodes,
+      updateNode: state.updateNode,
+      expertMode: state.expertMode,
+    }))
+  );
   const [panelWidth, setPanelWidth] = useState(288);
   const [isResizing, setIsResizing] = useState(false);
   const isMobile = useIsMobile();
@@ -176,7 +186,9 @@ export const RightPanel: React.FC = () => {
 // ── Properties Panel ───────────────────────────────────────────
 
 const PropertiesPanel: React.FC<{ node: DesignNode | null }> = ({ node }) => {
-  const { updateNode, expertMode } = useKreathiefStore();
+  const { updateNode, expertMode } = useKreathiefStore(
+    useShallow((state) => ({ updateNode: state.updateNode, expertMode: state.expertMode }))
+  );
   const [openSections, setOpenSections] = useState<Set<string>>(
     new Set(PROPERTIES_SECTIONS.filter((s) => s.defaultOpen).map((s) => s.id))
   );
@@ -244,7 +256,9 @@ const PropertiesPanel: React.FC<{ node: DesignNode | null }> = ({ node }) => {
 // ── Transform Fields ───────────────────────────────────────────
 
 const TransformFields: React.FC<{ node: DesignNode }> = ({ node }) => {
-  const { updateNode } = useKreathiefStore();
+  const { updateNode } = useKreathiefStore(
+    useShallow((state) => ({ updateNode: state.updateNode }))
+  );
   const [linked, setLinked] = useState(false);
 
   const updateWithLink = (key: 'width' | 'height', val: number) => {
@@ -294,7 +308,13 @@ const TransformFields: React.FC<{ node: DesignNode }> = ({ node }) => {
 // ── Appearance Fields ──────────────────────────────────────────
 
 const AppearanceFields: React.FC<{ node: DesignNode }> = ({ node }) => {
-  const { updateNode, recentColors, addRecentColor } = useKreathiefStore();
+  const { updateNode, recentColors, addRecentColor } = useKreathiefStore(
+    useShallow((state) => ({
+      updateNode: state.updateNode,
+      recentColors: state.recentColors,
+      addRecentColor: state.addRecentColor,
+    }))
+  );
   const fillColor = typeof node.fill === 'string' ? node.fill : surface[3];
   const isGradient = !!(node.fill && typeof node.fill === 'object' && 'type' in node.fill);
   const [showGradient, setShowGradient] = useState(false);
@@ -464,7 +484,9 @@ const AppearanceFields: React.FC<{ node: DesignNode }> = ({ node }) => {
 // ── Text Fields ────────────────────────────────────────────────
 
 const TextFields: React.FC<{ node: DesignNode }> = ({ node }) => {
-  const { updateNode } = useKreathiefStore();
+  const { updateNode } = useKreathiefStore(
+    useShallow((state) => ({ updateNode: state.updateNode }))
+  );
 
   const fonts = [
     'system-ui',
@@ -557,7 +579,9 @@ const TextFields: React.FC<{ node: DesignNode }> = ({ node }) => {
 // ── Effects Fields ─────────────────────────────────────────────
 
 const EffectsFields: React.FC<{ node: DesignNode }> = ({ node }) => {
-  const { updateNode, expertMode } = useKreathiefStore();
+  const { updateNode, expertMode } = useKreathiefStore(
+    useShallow((state) => ({ updateNode: state.updateNode, expertMode: state.expertMode }))
+  );
 
   if (!expertMode) return <p className="text-micro text-content-muted">Enable expert mode to edit effects</p>;
 
@@ -631,7 +655,14 @@ const EffectsFields: React.FC<{ node: DesignNode }> = ({ node }) => {
 // ── Layers Panel ───────────────────────────────────────────────
 
 const LayersPanel: React.FC = () => {
-  const { nodes, selectedIds, selectNode, updateNode } = useKreathiefStore();
+  const { nodes, selectedIds, selectNode, updateNode } = useKreathiefStore(
+    useShallow((state) => ({
+      nodes: state.nodes,
+      selectedIds: state.selectedIds,
+      selectNode: state.selectNode,
+      updateNode: state.updateNode,
+    }))
+  );
   const [search, setSearch] = useState('');
   const layers = useMemo(() => {
     const arr = Array.from(nodes.values()).sort((a, b) => (b as any).zIndex - (a as any).zIndex);

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { Copy, Trash2, Lock, Unlock, Eye, EyeOff, ArrowUp, ArrowDown, Layers, Copy as CopyIcon } from 'lucide-react';
 import { useKreathiefStore } from '../store/useStore';
 
@@ -76,7 +77,15 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, items, onClose }
 };
 
 export const CanvasContextMenu: React.FC<{ x: number; y: number; onClose: () => void }> = ({ x, y, onClose }) => {
-  const { selectedIds, nodes, removeNode, updateNode, addToast } = useKreathiefStore();
+  const { selectedIds, nodes, removeNode, updateNode, addToast } = useKreathiefStore(
+    useShallow((state) => ({
+      selectedIds: state.selectedIds,
+      nodes: state.nodes,
+      removeNode: state.removeNode,
+      updateNode: state.updateNode,
+      addToast: state.addToast,
+    }))
+  );
   const selectedCount = selectedIds.size;
 
   const items: MenuItem[] = [];

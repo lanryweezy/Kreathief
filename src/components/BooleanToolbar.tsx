@@ -1,4 +1,5 @@
 import React from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useKreathiefStore } from '../store/useStore';
 import { content } from '../lib/tokens';
 
@@ -40,7 +41,14 @@ const BOOLEAN_OPS = [
 ];
 
 export const BooleanToolbar: React.FC = () => {
-  const { selectedIds, nodes, updateNode, addToast } = useKreathiefStore();
+  const { selectedIds, nodes, updateNode, addToast } = useKreathiefStore(
+    useShallow((state) => ({
+      selectedIds: state.selectedIds,
+      nodes: state.nodes,
+      updateNode: state.updateNode,
+      addToast: state.addToast,
+    }))
+  );
 
   if (selectedIds.size < 2) return null;
 

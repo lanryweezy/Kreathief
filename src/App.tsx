@@ -1,3 +1,4 @@
+import { useShallow } from 'zustand/react/shallow';
 import React, { Suspense, useEffect, useState, lazy } from 'react';
 import { Canvas } from './components/Canvas';
 import { Toolbar } from './components/Toolbar';
@@ -45,7 +46,25 @@ const App: React.FC = () => {
     autoSave,
     lastSaved,
     activeTool,
-  } = useKreathiefStore();
+  } = useKreathiefStore(
+    useShallow((state) => ({
+      darkMode: state.darkMode,
+      setTool: state.setTool,
+      undo: state.undo,
+      redo: state.redo,
+      showProperties: state.showProperties,
+      toggleExpertMode: state.toggleExpertMode,
+      initMemory: state.initMemory,
+      memoryReady: state.memoryReady,
+      selectNode: state.selectNode,
+      zoom: state.zoom,
+      selectedIds: state.selectedIds,
+      nodes: state.nodes,
+      autoSave: state.autoSave,
+      lastSaved: state.lastSaved,
+      activeTool: state.activeTool,
+    }))
+  );
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
