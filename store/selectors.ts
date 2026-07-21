@@ -13,6 +13,9 @@ export const selectedNodeSelector = createSelector(
   }
 );
 
+// Alias for backward compatibility — used by Toolbar.tsx, Editor.tsx, tools.ts
+export const selectedLayerSelector = selectedNodeSelector;
+
 export const selectedNodesSelector = createSelector(
   [getNodes, getSelectedIds],
   (nodes, selectedIds) => {
