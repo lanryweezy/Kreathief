@@ -413,8 +413,11 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   // Listen for rotation resets
   useEffect(() => {
     const handleReset = (e: any) => {
-      const { id } = e.detail;
-      onUpdateLayers?.({ [id]: { rotation: 0 } });
+      const { ids } = e.detail;
+      if (!ids || !Array.isArray(ids)) return;
+      const updates: Record<string, any> = {};
+      ids.forEach((id: string) => { updates[id] = { rotation: 0 }; });
+      onUpdateLayers?.(updates);
     };
     window.addEventListener('canvas-reset-rotation', handleReset);
     return () => window.removeEventListener('canvas-reset-rotation', handleReset);

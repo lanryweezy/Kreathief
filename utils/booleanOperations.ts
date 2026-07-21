@@ -1,6 +1,7 @@
 import paper from 'paper/dist/paper-core';
 import { VectorPath, VectorPoint } from '../types';
 import { VectorUtils } from './vectorUtils';
+import { log } from './log';
 
 let paperInitialized = false;
 
