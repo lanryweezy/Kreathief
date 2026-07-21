@@ -42,6 +42,7 @@ export const MobileTransformController: React.FC = () => {
               min="0"
               max="1"
               step="0.01"
+              aria-label="Opacity"
               value={selectedLayer.opacity}
               onChange={(e) => updateLayer(selectedLayer.id, { opacity: parseFloat(e.target.value) })}
               className="w-full accent-purple-500 h-1.5 bg-white/5 rounded-full appearance-none"
@@ -59,6 +60,7 @@ export const MobileTransformController: React.FC = () => {
                 min="8"
                 max="200"
                 step="1"
+                aria-label="Font Size"
                 value={(selectedLayer as any).fontSize}
                 onChange={(e) => updateLayer(selectedLayer.id, { fontSize: parseInt(e.target.value) })}
                 className="w-full accent-blue-500 h-1.5 bg-white/5 rounded-full appearance-none"
