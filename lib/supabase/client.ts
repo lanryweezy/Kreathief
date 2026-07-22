@@ -9,8 +9,22 @@ if (!supabaseConfig.url || !supabaseConfig.anonKey) {
   );
 }
 
+// Validate URL is a valid HTTP/HTTPS URL
+const isValidUrl = (url: string) => {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
+const supabaseUrl = isValidUrl(supabaseConfig.url)
+  ? supabaseConfig.url
+  : 'https://placeholder.supabase.co';
+
 export const supabase = createClient<Database>(
-  supabaseConfig.url || 'https://placeholder.supabase.co',
+  supabaseUrl,
   supabaseConfig.anonKey || 'placeholder-key',
   {
     db: {

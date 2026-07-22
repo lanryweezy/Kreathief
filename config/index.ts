@@ -11,7 +11,7 @@ const getEnv = (key: string, defaultValue?: string): string => {
   const value = typeof raw === 'string' ? raw.trim() : raw;
 
   // For E2E tests, we allow missing env vars if QA bypass is enabled
-  const isQABypass = import.meta.env.VITE_QA_BYPASS === 'true';
+  const isQABypass = import.meta.env.VITE_USE_QA_BYPASS === 'true';
   if (value === undefined && !isQABypass) {
     throw new Error(`Missing required environment variable: ${key}`);
   }
