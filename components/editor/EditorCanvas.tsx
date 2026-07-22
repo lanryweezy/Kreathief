@@ -78,11 +78,8 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = React.memo(
 
     const handleZoomToSelection = () => {
       const state = useStore.getState();
-      let layer: any = null;
-      for (const ab of state.artboards || []) {
-        layer = ab.layers?.find((l: any) => l.id === selectedLayerIds[0]);
-        if (layer) break;
-      }
+      // ⚡ Bolt Optimization: Replaced O(N*M) nested array search (artboards -> layers) with O(1) Map lookup
+      const layer = state.nodes.get(selectedLayerIds[0]);
       if (!layer) return;
 
       const vw = window.innerWidth * 0.85;
@@ -120,12 +117,8 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = React.memo(
       selectedLayerIds.length === 1 &&
       (() => {
         const state = useStore.getState();
-        let layer: any = null;
-        for (const ab of state.artboards || []) {
-          layer = ab.layers?.find((l: any) => l.id === selectedLayerIds[0]);
-          if (layer) break;
-        }
-        return layer;
+        // ⚡ Bolt Optimization: Replaced O(N*M) nested array search (artboards -> layers) with O(1) Map lookup
+        return state.nodes.get(selectedLayerIds[0]);
       })();
 
     return (

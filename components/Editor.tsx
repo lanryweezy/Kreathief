@@ -859,13 +859,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                 {selectedLayerIds.length === 1 &&
                   (() => {
                     const state = useStore.getState();
-                    let layer: any = null;
-                    for (const ab of state.artboards || []) {
-                      layer = ab.layers?.find((l: any) => l.id === selectedLayerIds[0]);
-                      if (layer) {
-                        break;
-                      }
-                    }
+                    // ⚡ Bolt Optimization: Replaced O(N*M) nested array search (artboards -> layers) with O(1) Map lookup
+                    const layer = state.nodes.get(selectedLayerIds[0]);
                     if (!layer) {
                       return null;
                     }

@@ -77,3 +77,6 @@
 
 **Learning:** In a codebase heavily relying on Zustand's useStore pattern, extracting multiple values from the store without using an explicit object selector wrapped in `useShallow` results in unnecessary component re-renders. This is particularly noticeable in complex React components with frequent state updates like a `<Canvas>` or `<MiniMap>` which can perform costly redraws on every unassociated state change (e.g. `hoveredId` changing, causing `<Canvas>` and `<MiniMap>` to unnecessarily re-render).
 **Action:** When extracting multiple state values from a Zustand store, always use an explicit object selector and wrap it with `useShallow` to preserve referential equality and avoid wasteful renders.
+## 2026-07-22 - Optimize O(N*M) Array Search on Render Path
+**Learning:** Nested loops checking `artboards` then `layers` using `Array.find` to locate a single item by ID are highly inefficient when rendered frequently, running at O(N*M). Since the application store maintains a global O(1) Map of `nodes` indexed by ID, this map should be queried directly.
+**Action:** Use global index maps (like `nodes.get(id)`) directly rather than reconstructing hierarchical searches (artboards -> layers) when the ID is globally unique, improving complexity from O(N*M) to O(1).
