@@ -85,3 +85,7 @@
 
 **Learning:** When retrieving multiple entities from a large array by their IDs (e.g., matching a list of `selectedLayerIds` against an `artboard.layers` array), using `.map(id => layers.find(l => l.id === id))` creates an O(N\*M) nested loop. This significantly degrades performance, especially during operations involving many selected items (like grouping, bulk moving, or bulk deleting) as the component re-renders.
 **Action:** Replace nested array searches with an O(N) Set-based filter (e.g., `const selectedIdsSet = new Set(selectedLayerIds); layers.filter(l => selectedIdsSet.has(l.id))`) to improve render performance and reduce CPU overhead when interacting with multiple items simultaneously.
+## 2026-07-27 - Supabase Batched Deletions
+
+**Learning:** When performing operations on multiple rows in Supabase based on an array of IDs, looping over the IDs and executing sequential queries (e.g., `for (const id of ids) await supabase...delete().eq('id', id)`) introduces severe N+1 network latency and excessive DB connections.
+**Action:** Always batch database modifications by mapping the objects to an array of identifiers and executing a single query using the `.in()` operator (e.g., `await supabase...delete().in('id', ids)`), dramatically reducing request overhead.
