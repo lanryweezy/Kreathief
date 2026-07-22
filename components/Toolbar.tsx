@@ -90,7 +90,11 @@ export const Toolbar = React.memo(
       useShallow((state) => {
         const artboard = state.artboards.find((a) => a.id === state.activeArtboardId);
         if (!artboard || !state.selectedLayerIds) return [];
-        return state.selectedLayerIds.map((id) => artboard.layers.find((l) => l.id === id)).filter(Boolean);
+
+        // ⚡ Bolt Optimization: Replaced O(N*M) array search (mapping over selectedLayerIds and finding in layers)
+        // with O(N) Set-based filter approach. This significantly reduces CPU overhead when many layers are selected.
+        const selectedIdsSet = new Set(state.selectedLayerIds);
+        return artboard.layers.filter((l) => selectedIdsSet.has(l.id));
       })
     );
     const selectedLayersRef = React.useRef(selectedLayers);

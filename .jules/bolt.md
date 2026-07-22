@@ -81,3 +81,7 @@
 ## 2025-02-15 - Optimize Array Iterations in Bounds Calculation
 **Learning:** Multiple array `.map()` passes and spread operations into `Math.min/max()` create unnecessary O(N) allocations and redundant loops, drastically reducing performance when calculating bounding boxes for many items.
 **Action:** Replace chained `.map()` and spread calls with a single standard `for` loop to compute multiple min/max bounds in one pass, reducing memory allocations and speeding up execution time (by ~51% in group bounds calculations).
+## 2026-07-25 - Optimizing Array Intersection for Selected Layers
+
+**Learning:** When retrieving multiple entities from a large array by their IDs (e.g., matching a list of `selectedLayerIds` against an `artboard.layers` array), using `.map(id => layers.find(l => l.id === id))` creates an O(N\*M) nested loop. This significantly degrades performance, especially during operations involving many selected items (like grouping, bulk moving, or bulk deleting) as the component re-renders.
+**Action:** Replace nested array searches with an O(N) Set-based filter (e.g., `const selectedIdsSet = new Set(selectedLayerIds); layers.filter(l => selectedIdsSet.has(l.id))`) to improve render performance and reduce CPU overhead when interacting with multiple items simultaneously.
