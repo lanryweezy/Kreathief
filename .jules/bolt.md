@@ -82,3 +82,7 @@
 
 **Learning:** When retrieving multiple entities from a large array by their IDs (e.g., matching a list of `selectedLayerIds` against an `artboard.layers` array), using `.map(id => layers.find(l => l.id === id))` creates an O(N\*M) nested loop. This significantly degrades performance, especially during operations involving many selected items (like grouping, bulk moving, or bulk deleting) as the component re-renders.
 **Action:** Replace nested array searches with an O(N) Set-based filter (e.g., `const selectedIdsSet = new Set(selectedLayerIds); layers.filter(l => selectedIdsSet.has(l.id))`) to improve render performance and reduce CPU overhead when interacting with multiple items simultaneously.
+
+## 2026-07-26 - Max Call Stack Limits during array mapping and spreading
+**Learning:** Found multiple usages of spreading mapped arrays (e.g. `Math.min(...layers.map(l => l.x))`) inside rendering and bounds calculations components like `SmartSnap` and `geometryOracle`. This triggers O(N*M) performance bottlenecks and can explicitly cause "Maximum call stack size exceeded" exceptions on large designs due to how Javascript handles argument spread sizes.
+**Action:** When calculating min/max values or bounding boxes over layers or nodes, always use a single `for` loop to compute the bounds simultaneously, preventing both unnecessary memory allocations and hard engine crashes.

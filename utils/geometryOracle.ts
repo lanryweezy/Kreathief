@@ -128,10 +128,14 @@ export class GeometryOracle {
       };
     });
 
-    const minX = Math.min(...corners.map((c) => c.x));
-    const minY = Math.min(...corners.map((c) => c.y));
-    const maxX = Math.max(...corners.map((c) => c.x));
-    const maxY = Math.max(...corners.map((c) => c.y));
+    // ⚡ Bolt Optimization: Calculate bounds in single loop to prevent Max Call Stack errors
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const c of corners) {
+      if (c.x < minX) minX = c.x;
+      if (c.y < minY) minY = c.y;
+      if (c.x > maxX) maxX = c.x;
+      if (c.y > maxY) maxY = c.y;
+    }
 
     return {
       x: minX,
@@ -150,12 +154,15 @@ export class GeometryOracle {
       return { x: 0, y: 0, width: 0, height: 0 };
     }
 
-    const bounds = layers.map((l) => this.getTransformationBounds(l));
-
-    const minX = Math.min(...bounds.map((b) => b.x));
-    const minY = Math.min(...bounds.map((b) => b.y));
-    const maxX = Math.max(...bounds.map((b) => b.x + b.width));
-    const maxY = Math.max(...bounds.map((b) => b.y + b.height));
+    // ⚡ Bolt Optimization: Calculate bounds in single loop avoiding map spread on huge datasets
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const l of layers) {
+      const b = this.getTransformationBounds(l);
+      if (b.x < minX) minX = b.x;
+      if (b.y < minY) minY = b.y;
+      if (b.x + b.width > maxX) maxX = b.x + b.width;
+      if (b.y + b.height > maxY) maxY = b.y + b.height;
+    }
 
     return {
       x: minX,

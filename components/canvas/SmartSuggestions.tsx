@@ -37,23 +37,28 @@ export const SmartSuggestions: React.FC<SmartSuggestionsProps> = ({
     const selectedLayers = layers.filter((l) => selectedIds.includes(l.id));
     if (selectedLayers.length === 0) return;
 
-    const xs = selectedLayers.map((l) => l.x);
-    const ys = selectedLayers.map((l) => l.y);
-    const xws = selectedLayers.map((l) => l.x + (l.width || 0));
-    const yhs = selectedLayers.map((l) => l.y + (l.height || 0));
-    if (
-      !xs.every(Number.isFinite) ||
-      !ys.every(Number.isFinite) ||
-      !xws.every(Number.isFinite) ||
-      !yhs.every(Number.isFinite)
-    )
-      return;
+    // ⚡ Bolt Optimization: Compute bounds in a single loop to avoid redundant
+    // object allocations and avoid 'Maximum call stack size exceeded' on massive arrays.
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    for (const l of selectedLayers) {
+      if (!Number.isFinite(l.x) || !Number.isFinite(l.y) || !Number.isFinite(l.width || 0) || !Number.isFinite(l.height || 0)) {
+        return;
+      }
+      if (l.x < minX) minX = l.x;
+      if (l.y < minY) minY = l.y;
+      if (l.x + (l.width || 0) > maxX) maxX = l.x + (l.width || 0);
+      if (l.y + (l.height || 0) > maxY) maxY = l.y + (l.height || 0);
+    }
 
     const bounds = {
-      x: Math.min(...xs),
-      y: Math.min(...ys),
-      width: Math.max(...xws) - Math.min(...xs),
-      height: Math.max(...yhs) - Math.min(...ys),
+      x: minX,
+      y: minY,
+      width: maxX - minX,
+      height: maxY - minY,
     };
 
     ref.current.style.left = `${(bounds.x + bounds.width / 2) * zoom}px`;

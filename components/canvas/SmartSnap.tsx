@@ -32,24 +32,30 @@ export const SmartSnap: React.FC<SmartSnapProps> = ({ layers, selectedIds, zoom 
   const threshold = 5 / zoom;
 
   if (selectedLayers.length >= 1 && otherLayers.length >= 1) {
-    const xs = selectedLayers.map((l) => l.x);
-    const ys = selectedLayers.map((l) => l.y);
-    const xws = selectedLayers.map((l) => l.x + (l.width || 0));
-    const yhs = selectedLayers.map((l) => l.y + (l.height || 0));
-    if (
-      !xs.every(Number.isFinite) ||
-      !ys.every(Number.isFinite) ||
-      !xws.every(Number.isFinite) ||
-      !yhs.every(Number.isFinite)
-    )
-      return null;
+    // ⚡ Bolt Optimization: Use a single loop to compute bounds to prevent memory allocation and
+    // avoid 'Maximum call stack size exceeded' on very large selectedLayers arrays.
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    for (const l of selectedLayers) {
+      if (!Number.isFinite(l.x) || !Number.isFinite(l.y) || !Number.isFinite(l.width || 0) || !Number.isFinite(l.height || 0)) {
+        return null;
+      }
+      if (l.x < minX) minX = l.x;
+      if (l.y < minY) minY = l.y;
+      if (l.x + (l.width || 0) > maxX) maxX = l.x + (l.width || 0);
+      if (l.y + (l.height || 0) > maxY) maxY = l.y + (l.height || 0);
+    }
+
     const bounds = {
-      left: Math.min(...xs),
-      right: Math.max(...xws),
-      top: Math.min(...ys),
-      bottom: Math.max(...yhs),
-      centerX: (Math.min(...xs) + Math.max(...xws)) / 2,
-      centerY: (Math.min(...ys) + Math.max(...yhs)) / 2,
+      left: minX,
+      right: maxX,
+      top: minY,
+      bottom: maxY,
+      centerX: (minX + maxX) / 2,
+      centerY: (minY + maxY) / 2,
     };
 
     otherLayers.forEach((layer) => {

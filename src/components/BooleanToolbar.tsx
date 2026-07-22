@@ -58,10 +58,21 @@ export const BooleanToolbar: React.FC = () => {
     // Simplified boolean: combine into a group with booleanOp property
     // For a full implementation, this would use polygon clipping algorithms
     const combinedId = `bool_${Date.now()}`;
-    const minX = Math.min(...selectedNodes.map((n) => n!.x));
-    const minY = Math.min(...selectedNodes.map((n) => n!.y));
-    const maxX = Math.max(...selectedNodes.map((n) => n!.x + n!.width));
-    const maxY = Math.max(...selectedNodes.map((n) => n!.y + n!.height));
+
+    // ⚡ Bolt Optimization: Use a single loop for bounds to avoid allocating multiple
+    // mapped arrays and prevent Max Call Stack errors with many selected elements.
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    for (const n of selectedNodes) {
+      if (!n) continue;
+      if (n.x < minX) minX = n.x;
+      if (n.y < minY) minY = n.y;
+      if (n.x + n.width > maxX) maxX = n.x + n.width;
+      if (n.y + n.height > maxY) maxY = n.y + n.height;
+    }
 
     const { addNode, removeNode } = useKreathiefStore.getState();
 

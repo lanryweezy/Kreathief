@@ -276,8 +276,10 @@ export const useEditorLogic = (initialProject?: Project) => {
       return;
     }
     saveToHistory();
-    const selectedIndices = selectedPaths.map((p) => layers.findIndex((l: any) => l.id === p.id));
-    const lowestIndex = Math.min(...selectedIndices);
+
+    // ⚡ Bolt Optimization: Use O(N) findIndex instead of O(N*M) nested search and Math.min(...array)
+    // which avoids both 'Maximum call stack size exceeded' and redundant iterations.
+    const lowestIndex = layers.findIndex((l: any) => selectedLayerIds.includes(l.id) && l.type === 'path');
     const baseLayer = selectedPaths[0]!;
     const globalPaths = selectedPaths.map((layer) => {
       const path = VectorUtils.parsePath(layer.pathData || '');
@@ -392,8 +394,10 @@ export const useEditorLogic = (initialProject?: Project) => {
       return;
     }
     saveToHistory();
-    const selectedIndices = selectedPaths.map((p) => layers.findIndex((l: any) => l.id === p.id));
-    const lowestIndex = Math.min(...selectedIndices);
+
+    // ⚡ Bolt Optimization: Use O(N) findIndex instead of O(N*M) nested search and Math.min(...array)
+    // which avoids both 'Maximum call stack size exceeded' and redundant iterations.
+    const lowestIndex = layers.findIndex((l: any) => selectedLayerIds.includes(l.id) && l.type === 'path');
     const baseLayer = selectedPaths[0]!;
 
     // Parse the paths in global space
