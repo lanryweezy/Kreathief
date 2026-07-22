@@ -9,13 +9,15 @@ export const PresentationModal: React.FC = () => {
   const activeId = useStore((s) => s.activeArtboardId);
   const setActiveArtboardId = useStore((s) => s.setActiveArtboardId);
 
+  const safeArtboards = artboards || [];
+
   const startIndex = useMemo(
     () =>
       Math.max(
         0,
-        (artboards || []).findIndex((a: any) => a.id === activeId)
+        safeArtboards.findIndex((a: any) => a.id === activeId)
       ),
-    [artboards, activeId]
+    [safeArtboards, activeId]
   );
   const [index, setIndex] = useState(startIndex);
 
@@ -23,7 +25,7 @@ export const PresentationModal: React.FC = () => {
     setIndex(startIndex);
   }, [startIndex]);
 
-  const ab = artboards[index] || artboards[0];
+  const ab = safeArtboards[index] || safeArtboards[0];
   const scale = useMemo(() => {
     if (!ab) {
       return 1;
@@ -46,7 +48,7 @@ export const PresentationModal: React.FC = () => {
         onClose();
       }
       if (e.key === 'ArrowRight') {
-        setIndex((i) => Math.min(artboards.length - 1, i + 1));
+        setIndex((i) => Math.min(safeArtboards.length - 1, i + 1));
       }
       if (e.key === 'ArrowLeft') {
         setIndex((i) => Math.max(0, i - 1));
@@ -54,7 +56,7 @@ export const PresentationModal: React.FC = () => {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [show, onClose, artboards.length]);
+  }, [show, onClose, safeArtboards.length]);
 
   if (!show || !ab) {
     return null;
@@ -64,7 +66,7 @@ export const PresentationModal: React.FC = () => {
     <div className="fixed inset-0 z-[2000] bg-black/95 text-white flex flex-col" onClick={onClose}>
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
         <div className="text-sm">
-          {index + 1} / {artboards.length}
+          {index + 1} / {safeArtboards.length}
         </div>
         <div className="font-bold">
           {ab.name} — {ab.width} × {ab.height}
@@ -91,7 +93,7 @@ export const PresentationModal: React.FC = () => {
             e.stopPropagation();
             setIndex((i) => {
               const prev = Math.max(0, i - 1);
-              setActiveArtboardId(artboards[prev]?.id);
+              setActiveArtboardId(safeArtboards[prev]?.id);
               return prev;
             });
           }}
@@ -106,8 +108,8 @@ export const PresentationModal: React.FC = () => {
           onClick={(e) => {
             e.stopPropagation();
             setIndex((i) => {
-              const next = Math.min(artboards.length - 1, i + 1);
-              setActiveArtboardId(artboards[next]?.id);
+              const next = Math.min(safeArtboards.length - 1, i + 1);
+              setActiveArtboardId(safeArtboards[next]?.id);
               return next;
             });
           }}
