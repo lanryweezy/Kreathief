@@ -222,3 +222,8 @@
 **Vulnerability:** The `api/getillustration.ts` edge function used an overly permissive CORS fallback (`process.env.VITE_FRONTEND_URL || '*'`). If the environment variable was missing or misconfigured, it fell back to allowing any domain to make cross-origin requests to the application's backend proxy.
 **Learning:** Using a wildcard `*` as a fallback for the `Access-Control-Allow-Origin` header in authenticated or sensitive proxy endpoints exposes the backend to Cross-Origin Resource Sharing vulnerabilities in the event of environment misconfiguration, potentially allowing malicious sites to exploit the proxy or leak data.
 **Prevention:** Never use a wildcard `*` fallback for `Access-Control-Allow-Origin`. Always strictly check if the required origin environment variable is set. If it is missing, fail securely by returning a `500 Server misconfigured` error rather than lowering security requirements.
+
+## 2026-07-22 - Fix Insecure Pseudo-Random Number Generation for Toast IDs
+**Vulnerability:** The `store/useStore.ts` store used `Math.random()` combined with `Date.now()` to generate unique IDs for toast notifications. This approach is not cryptographically secure and could lead to ID collisions, which can cause predictable IDs or state corruption.
+**Learning:** Insecure pseudo-random number generators like `Math.random()` should not be used for generating unique identifiers where collisions can lead to unpredictable application state.
+**Prevention:** Always use `crypto.randomUUID()` (which provides 122 bits of entropy) for generating secure, universally unique identifiers.
