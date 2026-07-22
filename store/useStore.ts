@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { DesignNode, ToolType, HistoryCommand } from '../types/design';
 import { surface, content, semantic } from '../lib/tokens';
 import { UserPreferences, DesignPattern, BrandGuideline, DesignAction, SkillLevel, DesignStyle } from '../types/memory';
+import { User } from '../types';
 import { CreativeSuggestion } from '../types/creativeDirector';
 import type { BrandViolation } from '../services/brandMemory';
 import { ToastMessage } from '../components/Toast';
@@ -66,6 +67,10 @@ interface KreathiefStore {
   // CreativeDirector state
   creativeSuggestions: CreativeSuggestion[];
   creativeDirectorRunning: boolean;
+
+  // User state
+  user: User | null;
+  setUser: (user: User | null) => void;
 
   // Toast state
   toasts: ToastMessage[];
@@ -132,6 +137,15 @@ interface KreathiefStore {
   deleteWorkspace: (name: string) => void;
   autoSave: () => void;
   lastSaved: number | null;
+
+  // Presentation state
+  showPresentation: boolean;
+  setShowPresentation: (show: boolean) => void;
+
+  // Artboards state
+  artboards: any[];
+  activeArtboardId: string | undefined;
+  setActiveArtboardId: (id: string | undefined) => void;
 }
 
 export const useKreathiefStore = create<KreathiefStore>((set, get) => ({
@@ -149,6 +163,11 @@ export const useKreathiefStore = create<KreathiefStore>((set, get) => ({
   showLayers: true,
   showProperties: true,
   showAI: false,
+  showPresentation: false,
+  setShowPresentation: (show) => set({ showPresentation: show }),
+  artboards: [],
+  activeArtboardId: undefined,
+  setActiveArtboardId: (id) => set({ activeArtboardId: id }),
   snapToGrid: false,
   rightPanelTab: 'properties',
 
@@ -181,6 +200,9 @@ export const useKreathiefStore = create<KreathiefStore>((set, get) => ({
   creativeDirectorRunning: false,
 
   lastSaved: null,
+
+  user: null,
+  setUser: (user) => set({ user }),
 
   toasts: [],
   addToast: (type, message, duration) => {

@@ -62,7 +62,7 @@ export const OnboardingTour: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[201] w-[380px] bg-surface-dark-3 border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[401] w-[380px] bg-surface-dark-3 border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
           >
             <div className="p-6">
               <div className="flex items-center justify-between mb-1">
