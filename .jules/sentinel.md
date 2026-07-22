@@ -222,3 +222,9 @@
 **Vulnerability:** The `api/getillustration.ts` edge function used an overly permissive CORS fallback (`process.env.VITE_FRONTEND_URL || '*'`). If the environment variable was missing or misconfigured, it fell back to allowing any domain to make cross-origin requests to the application's backend proxy.
 **Learning:** Using a wildcard `*` as a fallback for the `Access-Control-Allow-Origin` header in authenticated or sensitive proxy endpoints exposes the backend to Cross-Origin Resource Sharing vulnerabilities in the event of environment misconfiguration, potentially allowing malicious sites to exploit the proxy or leak data.
 **Prevention:** Never use a wildcard `*` fallback for `Access-Control-Allow-Origin`. Always strictly check if the required origin environment variable is set. If it is missing, fail securely by returning a `500 Server misconfigured` error rather than lowering security requirements.
+
+## 2026-07-23 - Prevented Open CORS Fallback in Icon Proxies
+
+**Vulnerability:** The proxy endpoints `api/lucideIcons.ts`, `api/materialIcons.ts`, and `api/phosphorIcons.ts` used a fallback of `|| '*'` for `Access-Control-Allow-Origin`. If `VITE_FRONTEND_URL` was misconfigured or missing, the APIs would accept cross-origin requests from any domain, leading to open proxies and potential resource abuse.
+**Learning:** Hardcoded wildcard fallbacks (`'*'`) for CORS origins in backend services are dangerous because they quietly fail open during configuration errors, inadvertently exposing sensitive proxy logic.
+**Prevention:** Never use a wildcard `*` fallback for `Access-Control-Allow-Origin`. Instead, explicitly check if the required origin configuration (e.g., `process.env.VITE_FRONTEND_URL`) is present. If it is missing, intentionally fail the request securely by returning a `500 Server misconfigured` error response to ensure a fail-closed posture.
