@@ -42,14 +42,7 @@ export const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetErrorB
         </p>
 
         <div className="bg-surface-dark-3 rounded-lg p-4 border border-gray-800 mb-8 text-left overflow-hidden">
-          <p className="font-mono text-red-400 text-xs break-all">
-            {error.message || 'Unknown Error'}
-            {error.stack && (
-              <span className="block mt-2 opacity-50 whitespace-pre-wrap max-h-[100px] overflow-y-auto custom-scrollbar">
-                {error.stack.split('\n').slice(0, 3).join('\n')}...
-              </span>
-            )}
-          </p>
+          <p className="font-mono text-red-400 text-xs break-all">{error.message || 'Unknown Error'}</p>
         </div>
 
         <div className="flex gap-4 justify-center">

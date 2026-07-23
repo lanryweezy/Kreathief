@@ -213,6 +213,7 @@
 **Prevention:** Always use `crypto.randomUUID()` (which provides 122 bits of entropy) for generating secure, universally unique identifiers that act as access tokens or unauthenticated reference keys.
 
 ## 2026-07-22 - Fix Insecure Pseudo-Random Number Generation for IDs
+
 **Vulnerability:** The `src/components/Canvas.tsx` component used `Math.random()` combined with `Date.now()` to generate unique IDs for canvas nodes. This approach is not cryptographically secure and could lead to ID collisions, which can cause state corruption or React reconciliation failures.
 **Learning:** Insecure pseudo-random number generators like `Math.random()` should not be used for generating unique identifiers where collisions can lead to unpredictable application state, especially during rapid node creations.
 **Prevention:** Always use `crypto.randomUUID()` (which provides 122 bits of entropy) for generating secure, universally unique identifiers that act as access tokens or unauthenticated reference keys.
@@ -224,6 +225,13 @@
 **Prevention:** Never use a wildcard `*` fallback for `Access-Control-Allow-Origin`. Always strictly check if the required origin environment variable is set. If it is missing, fail securely by returning a `500 Server misconfigured` error rather than lowering security requirements.
 
 ## 2026-07-22 - Secure CORS and Error Handling in Icon API Routes
+
 **Vulnerability:** Icon API endpoints (`api/lucideIcons.ts`, `api/materialIcons.ts`, `api/phosphorIcons.ts`) fell back to a wildcard `*` origin if `VITE_FRONTEND_URL` was missing. Additionally, non-Response errors thrown during `requireAuth` were unsafely cast and returned as HTTP Responses, potentially leading to server crashes or information leakage.
 **Learning:** Relying on permissive CORS wildcards as fallbacks defeats cross-origin protections in misconfigured environments. Blindly casting caught errors as Responses in edge functions can expose internal errors or crash the runtime.
 **Prevention:** Always restrict CORS to explicit origins and fail securely (e.g., return a 500 status) if required origin environment variables are missing. Safely check `if (error instanceof Response)` in authentication catch blocks, returning generic 500 errors for all other exception types.
+
+## 2026-07-24 - Remove Error Stack Traces from UI
+
+**Vulnerability:** The `components/ErrorFallback.tsx` component was rendering `error.stack` directly to the user interface when an unhandled component error occurred.
+**Learning:** Displaying raw error stack traces to end users is a medium-severity security vulnerability (Information Exposure). Stack traces leak sensitive application internals, file paths, dependency structures, and potentially sensitive variables. This information can be leveraged by attackers to better understand the system architecture and discover further vulnerabilities.
+**Prevention:** Never render raw error stack traces or raw system error messages directly in the user interface. Errors should be securely logged internally (e.g., to Sentry, console, or secure API logging endpoints) and users should be presented with a generic, user-friendly error message.
