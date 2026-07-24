@@ -373,6 +373,7 @@ const AppearanceFields: React.FC<{ node: DesignNode }> = ({ node }) => {
               value={gradientFill.angle || 0}
               onChange={(e) => updateNode(node.id, { fill: { ...gradientFill, angle: parseInt(e.target.value) } })}
               className="flex-1 h-1"
+              aria-label="Gradient angle"
             />
             <span className="text-micro text-content-muted w-6 text-right">{gradientFill.angle || 0}°</span>
           </div>
@@ -388,6 +389,7 @@ const AppearanceFields: React.FC<{ node: DesignNode }> = ({ node }) => {
                     updateNode(node.id, { fill: { ...gradientFill, stops } });
                   }}
                   className="w-5 h-5 rounded-sm border border-border-default cursor-pointer"
+                  aria-label="Gradient color stop"
                 />
                 <input
                   type="range"
@@ -401,6 +403,7 @@ const AppearanceFields: React.FC<{ node: DesignNode }> = ({ node }) => {
                     updateNode(node.id, { fill: { ...gradientFill, stops } });
                   }}
                   className="flex-1 h-1"
+                  aria-label="Gradient color stop offset"
                 />
                 <span className="text-micro text-content-muted w-8 text-right">{Math.round(stop.offset * 100)}%</span>
               </div>
