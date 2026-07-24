@@ -227,3 +227,9 @@
 **Vulnerability:** Icon API endpoints (`api/lucideIcons.ts`, `api/materialIcons.ts`, `api/phosphorIcons.ts`) fell back to a wildcard `*` origin if `VITE_FRONTEND_URL` was missing. Additionally, non-Response errors thrown during `requireAuth` were unsafely cast and returned as HTTP Responses, potentially leading to server crashes or information leakage.
 **Learning:** Relying on permissive CORS wildcards as fallbacks defeats cross-origin protections in misconfigured environments. Blindly casting caught errors as Responses in edge functions can expose internal errors or crash the runtime.
 **Prevention:** Always restrict CORS to explicit origins and fail securely (e.g., return a 500 status) if required origin environment variables are missing. Safely check `if (error instanceof Response)` in authentication catch blocks, returning generic 500 errors for all other exception types.
+
+## 2026-07-24 - Missing Authentication on Streamline API Proxy
+
+**Vulnerability:** The `api/streamline.ts` edge proxy endpoint was missing an authentication check (`requireAuth`), leaving the endpoint unauthenticated.
+**Learning:** Removing or omitting authentication checks from backend proxy endpoints exposes backend secret API keys (e.g., `STREAMLINE_API_KEY`) to unauthenticated public access. This turns the server into an open proxy for expensive third-party APIs, leading to quota exhaustion and financial loss.
+**Prevention:** Never omit authentication layers on proxy endpoints that utilize secure backend secrets. Always ensure that `requireAuth` (or equivalent middleware) protects all endpoints interacting with external API keys, and securely handle exceptions from it.

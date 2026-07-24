@@ -1,5 +1,7 @@
 import { log } from '../utils/log';
 import { cacheHeaders, noStoreHeaders } from '../utils/cacheHeaders';
+import { requireAuth } from './_auth';
+
 export const config = {
   runtime: 'edge',
 };
@@ -38,6 +40,13 @@ export default async function handler(req: Request) {
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
     });
+  }
+
+  try {
+    await requireAuth(req);
+  } catch (error) {
+    if (error instanceof Response) return error;
+    return new Response(JSON.stringify({ error: 'Internal server error during authentication' }), { status: 500 });
   }
 
   const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
