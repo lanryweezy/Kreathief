@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Copy, Trash2, Lock, Unlock, Eye, EyeOff, ArrowUp, ArrowDown, Layers, Copy as CopyIcon } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 import { useKreathiefStore } from '../store/useStore';
 
 interface MenuItem {
@@ -76,7 +77,16 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, items, onClose }
 };
 
 export const CanvasContextMenu: React.FC<{ x: number; y: number; onClose: () => void }> = ({ x, y, onClose }) => {
-  const { selectedIds, nodes, removeNode, updateNode, addToast } = useKreathiefStore();
+  // ⚡ Bolt Optimization: Use useShallow to prevent unnecessary re-renders when unrelated store state changes.
+  const { selectedIds, nodes, removeNode, updateNode, addToast } = useKreathiefStore(
+    useShallow((state) => ({
+      selectedIds: state.selectedIds,
+      nodes: state.nodes,
+      removeNode: state.removeNode,
+      updateNode: state.updateNode,
+      addToast: state.addToast,
+    }))
+  );
   const selectedCount = selectedIds.size;
 
   const items: MenuItem[] = [];

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Wand2, Clock, Grid, Box, Layers, Palette, Sparkles, PenTool, Camera, Clapperboard } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 import { useKreathiefStore } from '../store/useStore';
 
 const AI_STYLE_PRESETS = [
@@ -23,7 +24,12 @@ const AI_STYLE_PRESETS = [
 
 export const AIPanel: React.FC = () => {
   const [prompt, setPrompt] = useState('');
-  const { addToast } = useKreathiefStore();
+  // ⚡ Bolt Optimization: Use useShallow to prevent unnecessary re-renders when unrelated store state changes.
+  const { addToast } = useKreathiefStore(
+    useShallow((state) => ({
+      addToast: state.addToast,
+    }))
+  );
   const [history, setHistory] = useState<string[]>(() => {
     try {
       return JSON.parse(localStorage.getItem('kreathief_ai_history') || '[]');
