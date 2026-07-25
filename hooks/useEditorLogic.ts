@@ -276,8 +276,15 @@ export const useEditorLogic = (initialProject?: Project) => {
       return;
     }
     saveToHistory();
-    const selectedIndices = selectedPaths.map((p) => layers.findIndex((l: any) => l.id === p.id));
-    const lowestIndex = Math.min(...selectedIndices);
+    // ⚡ Bolt Optimization: Replaced O(N*M) findIndex map and spread operation with single O(N) loop
+    let lowestIndex = -1;
+    const pathIds = new Set(selectedPaths.map(p => p.id));
+    for (let i = 0; i < layers.length; i++) {
+      if (pathIds.has(layers[i]!.id)) {
+        lowestIndex = i;
+        break; // Stop at the first match since we only need the lowest index
+      }
+    }
     const baseLayer = selectedPaths[0]!;
     const globalPaths = selectedPaths.map((layer) => {
       const path = VectorUtils.parsePath(layer.pathData || '');
@@ -392,8 +399,15 @@ export const useEditorLogic = (initialProject?: Project) => {
       return;
     }
     saveToHistory();
-    const selectedIndices = selectedPaths.map((p) => layers.findIndex((l: any) => l.id === p.id));
-    const lowestIndex = Math.min(...selectedIndices);
+    // ⚡ Bolt Optimization: Replaced O(N*M) findIndex map and spread operation with single O(N) loop
+    let lowestIndex = -1;
+    const pathIds = new Set(selectedPaths.map(p => p.id));
+    for (let i = 0; i < layers.length; i++) {
+      if (pathIds.has(layers[i]!.id)) {
+        lowestIndex = i;
+        break; // Stop at the first match since we only need the lowest index
+      }
+    }
     const baseLayer = selectedPaths[0]!;
 
     // Parse the paths in global space

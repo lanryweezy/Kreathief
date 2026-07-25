@@ -89,3 +89,13 @@
 
 **Learning:** When performing operations on multiple rows in Supabase based on an array of IDs, looping over the IDs and executing sequential queries (e.g., `for (const id of ids) await supabase...delete().eq('id', id)`) introduces severe N+1 network latency and excessive DB connections.
 **Action:** Always batch database modifications by mapping the objects to an array of identifiers and executing a single query using the `.in()` operator (e.g., `await supabase...delete().in('id', ids)`), dramatically reducing request overhead.
+## 2026-07-28 - Optimizing O(N*M) lookups with Maps/Sets and Loops
+
+**Learning:** When attempting to optimize O(N*M) nested array lookups (like `.map` combined with `.find` or `.findIndex`), doing so incorrectly can introduce de-optimizations or behavioral regressions. Specifically:
+1) Creating a `Map` or `Set` inside a `useMemo` that rebuilds every time the lookup list changes (e.g., `recentNames`) introduces unnecessary allocation overhead.
+2) Replacing `.findIndex` (which short-circuits) with a `for` loop that doesn't `break` forces a full scan, degrading performance.
+3) Changing fallback logic (e.g., defaulting to `layers.length` instead of `-1` when finding indices) can break downstream logic like `splice`.
+
+**Action:**
+1) When replacing array search methods like `.findIndex` with `for` loops, always include a `break` statement once a match is found to preserve early-exit short-circuiting behavior.
+2) When using a `Map` or `Set` to optimize React `useMemo` lookups, initialize the `Map`/`Set` in its *own* `useMemo` that only depends on the static or slow-changing source array (e.g. `[shapePresets]`), rather than rebuilding it on every small UI change.

@@ -363,10 +363,16 @@ export const ElementsPanel = () => {
     return filtered;
   }, [selectedCategory, searchQuery, shapePresets]);
 
+  const presetMap = useMemo(() => {
+    // ⚡ Bolt Optimization: Build map once per shapePresets reference to avoid rebuilding on every recentNames change
+    return new Map(shapePresets.map((preset) => [preset.name, preset]));
+  }, [shapePresets]);
+
   const recentShapes = useMemo(() => {
     if (searchQuery.trim() || selectedCategory !== 'all') return [];
-    return recentNames.map((name) => shapePresets.find((s) => s.name === name)).filter(Boolean) as ShapePreset[];
-  }, [recentNames, shapePresets, searchQuery, selectedCategory]);
+    // ⚡ Bolt Optimization: Replaced O(N*M) nested array search with O(N) Map lookup
+    return recentNames.map((name) => presetMap.get(name)).filter(Boolean) as ShapePreset[];
+  }, [recentNames, presetMap, searchQuery, selectedCategory]);
 
   const categories = [
     { id: 'all' as ShapeCategory, label: 'All', icon: Icons.Grid },
