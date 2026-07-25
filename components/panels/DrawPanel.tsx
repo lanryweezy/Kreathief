@@ -406,6 +406,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
               <span className="text-[10px] text-gray-500 bg-gray-800 px-1.5 rounded">{brushSize}px</span>
             </div>
             <input
+              aria-label="Brush Size"
               type="range"
               min="1"
               max="500"
@@ -423,6 +424,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
               </span>
             </div>
             <input
+              aria-label="Brush Opacity"
               type="range"
               min="0.1"
               max="1"
@@ -449,6 +451,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
               <span className="text-[10px] text-gray-500">{brushSmoothing}%</span>
             </div>
             <input
+              aria-label="Brush Smoothing Stabilizer"
               type="range"
               min="0"
               max="100"
@@ -467,6 +470,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
               <span className="text-[10px] text-gray-500">{brushJitter}%</span>
             </div>
             <input
+              aria-label="Brush Jitter"
               type="range"
               min="0"
               max="100"

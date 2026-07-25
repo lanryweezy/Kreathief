@@ -162,6 +162,7 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
               <span className="text-white">{noiseLevel}%</span>
             </div>
             <input
+              aria-label="Noise Level Intensity"
               type="range"
               min="0"
               max="100"
@@ -178,6 +179,7 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
               <span className="text-white">{grainScale}%</span>
             </div>
             <input
+              aria-label="Grain Scale"
               type="range"
               min="10"
               max="100"
@@ -225,6 +227,7 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
           <span className="text-[10px] font-mono text-purple-400">{Math.round(intensity * 100)}%</span>
         </div>
         <input
+          aria-label="Material Opacity"
           type="range"
           min="0.05"
           max="1"
