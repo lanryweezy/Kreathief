@@ -227,3 +227,8 @@
 **Vulnerability:** Icon API endpoints (`api/lucideIcons.ts`, `api/materialIcons.ts`, `api/phosphorIcons.ts`) fell back to a wildcard `*` origin if `VITE_FRONTEND_URL` was missing. Additionally, non-Response errors thrown during `requireAuth` were unsafely cast and returned as HTTP Responses, potentially leading to server crashes or information leakage.
 **Learning:** Relying on permissive CORS wildcards as fallbacks defeats cross-origin protections in misconfigured environments. Blindly casting caught errors as Responses in edge functions can expose internal errors or crash the runtime.
 **Prevention:** Always restrict CORS to explicit origins and fail securely (e.g., return a 500 status) if required origin environment variables are missing. Safely check `if (error instanceof Response)` in authentication catch blocks, returning generic 500 errors for all other exception types.
+
+## 2026-07-24 - CORS Preflight Authentication Misconfiguration
+**Vulnerability:** Edge API routes were executing `requireAuth()` before handling CORS `OPTIONS` preflight requests. Since browsers strip Authorization headers from preflight requests, this caused cross-origin requests to fail with 401 Unauthorized, while also incorrectly attempting to authenticate an unauthenticated HTTP method.
+**Learning:** In serverless/edge functions handling their own routing, authentication middlewares must strictly be placed *after* the CORS preflight handler to prevent breakage and avoid authenticating `OPTIONS` requests.
+**Prevention:** Always verify the ordering of `OPTIONS` handlers versus authentication checks in edge API routes, and ensure error blocks safely cast and handle caught exceptions to prevent information leakage.
