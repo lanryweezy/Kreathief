@@ -120,90 +120,90 @@ export const easing = {
 export const canvas = {
   // Background
   background: {
-    dark: surface[2],    // #0D0D0D
-    light: surface[9],   // #FFFFFF
+    dark: surface[2], // #0D0D0D
+    light: surface[9], // #FFFFFF
   },
 
   // Grid
   grid: {
-    line: border.subtle,  // #161616
+    line: border.subtle, // #161616
     lineMinor: border.subtle,
     lineMajor: border.default,
   },
 
   // Rulers
   ruler: {
-    background: surface[1],  // #080808
-    text: content.tertiary,  // #737373
-    tick: border.default,    // #242424
+    background: surface[1], // #080808
+    text: content.tertiary, // #737373
+    tick: border.default, // #242424
   },
 
   // Selection
   selection: {
-    outline: content.primary,    // #FFFFFF — selection border
-    handle: content.primary,     // #FFFFFF — resize handles
-    handleFill: surface[9],      // #FFFFFF — handle fill
-    handleStroke: border.focus,  // #FFFFFF — handle border
+    outline: content.primary, // #FFFFFF — selection border
+    handle: content.primary, // #FFFFFF — resize handles
+    handleFill: surface[9], // #FFFFFF — handle fill
+    handleStroke: border.focus, // #FFFFFF — handle border
   },
 
   // Guides (alignment snapping)
   guides: {
-    horizontal: content.primary,  // #FFFFFF — horizontal guides
-    vertical: content.primary,    // #FFFFFF — vertical guides
-    flash: content.primary,       // #FFFFFF — snap flash
+    horizontal: content.primary, // #FFFFFF — horizontal guides
+    vertical: content.primary, // #FFFFFF — vertical guides
+    flash: content.primary, // #FFFFFF — snap flash
   },
 
   // Pen tool
   pen: {
-    stroke: content.primary,      // #FFFFFF — path stroke
-    point: content.primary,       // #FFFFFF — anchor points
-    pointFirst: surface[3],       // #111111 — first point (distinct)
-    handle: content.tertiary,     // #737373 — bezier handles
-    handleLine: content.muted,    // #525252 — handle lines
+    stroke: content.primary, // #FFFFFF — path stroke
+    point: content.primary, // #FFFFFF — anchor points
+    pointFirst: surface[3], // #111111 — first point (distinct)
+    handle: content.tertiary, // #737373 — bezier handles
+    handleLine: content.muted, // #525252 — handle lines
     closeIndicator: content.primary, // #FFFFFF — close path indicator
   },
 
   // Labels
   label: {
-    text: content.muted,          // #525252 — dimension labels
-    background: surface[3],       // #111111 — label background
+    text: content.muted, // #525252 — dimension labels
+    background: surface[3], // #111111 — label background
   },
 
   // Marquee selection
   marquee: {
-    fill: content.muted,          // #525252 — selection rectangle fill
-    stroke: content.primary,      // #FFFFFF — selection rectangle border
+    fill: content.muted, // #525252 — selection rectangle fill
+    stroke: content.primary, // #FFFFFF — selection rectangle border
   },
 
   // Distance measurement
   distance: {
-    line: content.muted,          // #525252 — measurement line
-    label: content.primary,       // #FFFFFF — measurement text
-    background: surface[3],       // #111111 — label background
+    line: content.muted, // #525252 — measurement line
+    label: content.primary, // #FFFFFF — measurement text
+    background: surface[3], // #111111 — label background
   },
 
   // Shape creation preview
   preview: {
-    fill: content.muted,          // #525252 — creation preview fill
-    stroke: content.primary,      // #FFFFFF — creation preview border
-    label: content.tertiary,      // #737373 — size label
+    fill: content.muted, // #525252 — creation preview fill
+    stroke: content.primary, // #FFFFFF — creation preview border
+    label: content.tertiary, // #737373 — size label
   },
 
   // Image placeholder
   image: {
-    background: surface[3],       // #111111 — placeholder background
-    text: content.muted,          // #525252 — placeholder text
+    background: surface[3], // #111111 — placeholder background
+    text: content.muted, // #525252 — placeholder text
   },
 
   // Frame
   frame: {
-    background: surface[9],       // #FFFFFF — frame background
-    label: content.muted,         // #525252 — frame name
+    background: surface[9], // #FFFFFF — frame background
+    label: content.muted, // #525252 — frame name
   },
 
   // Export background
   export: {
-    background: surface[9],       // #FFFFFF — export background
+    background: surface[9], // #FFFFFF — export background
   },
 } as const;
 

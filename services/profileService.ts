@@ -11,7 +11,7 @@ export interface UserProfile extends Profile {
 export const profileService = {
   async getProfile(userId: string): Promise<Profile | null> {
     try {
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+      const { data, error } = await (supabase as any).from('profiles').select('*').eq('id', userId).single();
 
       if (error) throw error;
       return data;
@@ -43,7 +43,7 @@ export const profileService = {
     updates: { name?: string; bio?: string; website?: string; location?: string; avatar_url?: string }
   ): Promise<boolean> {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('profiles')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', userId);

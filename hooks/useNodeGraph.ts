@@ -297,14 +297,20 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
         try {
           const result = await def.execute(inputs, node.settings);
           outputs[nodeId] = result;
-          // Clear progress metrics once fully loaded
+          // Stream live output and progress metrics per completed node
           set((state) => ({
+            nodeOutputs: { ...state.nodeOutputs, [nodeId]: result },
             nodeProgress: { ...state.nodeProgress, [nodeId]: 100 },
             nodeProgressStep: { ...state.nodeProgressStep, [nodeId]: 'Completed' },
           }));
         } catch (err) {
           log.error(`[NodeGraph] Node ${node.type} (${nodeId}) failed:`, err);
-          outputs[nodeId] = { error: String(err) };
+          const errOutput = { error: String(err) };
+          outputs[nodeId] = errOutput;
+          set((state) => ({
+            nodeOutputs: { ...state.nodeOutputs, [nodeId]: errOutput },
+            nodeProgressStep: { ...state.nodeProgressStep, [nodeId]: 'Failed' },
+          }));
         }
       }
 

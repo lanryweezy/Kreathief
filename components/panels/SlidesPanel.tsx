@@ -109,10 +109,10 @@ export const SlidesPanel: React.FC = () => {
   const deleteArtboard = useStore((state) => state.deleteArtboard);
   const duplicateArtboard = useStore((state: any) => state.duplicateArtboard);
   const updateArtboard = useStore((state) => state.updateArtboard);
-  const view = useStore((s) => s.presentationView) || 'grid';
-  const setView = useStore((s) => s.setPresentationView);
-  const showPresenter = useStore((s) => s.presentationShowPresenter) || false;
-  const setShowPresenter = useStore((s) => s.setPresentationShowPresenter);
+  const view = useStore((s) => (s as any).presentationView) || 'grid';
+  const setView = useStore((s) => (s as any).setPresentationView);
+  const showPresenter = useStore((s) => (s as any).presentationShowPresenter) || false;
+  const setShowPresenter = useStore((s) => (s as any).setPresentationShowPresenter);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [expandedNotes, setExpandedNotes] = useState<string | null>(null);
@@ -209,7 +209,7 @@ export const SlidesPanel: React.FC = () => {
   );
 
   return (
-    <PanelErrorBoundary componentName="SlidesPanel">
+    <PanelErrorBoundary>
       <div className="flex flex-col h-full bg-surface-dark-2 text-white">
         {/* ─── Header ─── */}
         <div className="p-3 border-b border-surface-dark-0 shrink-0">

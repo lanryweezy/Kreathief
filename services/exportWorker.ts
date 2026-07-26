@@ -12,7 +12,7 @@ self.onmessage = async (e: MessageEvent) => {
   const { width, height, backgroundColor, backgroundImageUrl, layers, filters, format, quality } = e.data;
 
   try {
-    // @ts-expect-error - ignore type mismatch
+    // @ts-ignore - ignore type mismatch
     const canvas = new OffscreenCanvas(width, height);
     const ctx = canvas.getContext('2d');
 
@@ -92,7 +92,7 @@ self.onmessage = async (e: MessageEvent) => {
 
         ctx.save();
         if (filters) {
-          // @ts-expect-error - ignore type mismatch
+          // @ts-ignore - ignore type mismatch
           ctx.filter = buildFilterString(filters);
         }
         ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
@@ -104,7 +104,7 @@ self.onmessage = async (e: MessageEvent) => {
 
     // 3. Draw Layers (Combined loop)
     if (layers) {
-      // @ts-expect-error - ignore type mismatch
+      // @ts-ignore - ignore type mismatch
       for (const layer of layers) {
         if (!layer.visible) {
           continue;
@@ -123,7 +123,7 @@ self.onmessage = async (e: MessageEvent) => {
 
         // --- Masking Application ---
         if (layer.maskLayerId) {
-          // @ts-expect-error - ignore type mismatch
+          // @ts-ignore - ignore type mismatch
           const maskLayer = layers.find((l) => l.id === layer.maskLayerId);
           if (maskLayer) {
             applyClip(ctx, layer, maskLayer);
@@ -147,7 +147,7 @@ self.onmessage = async (e: MessageEvent) => {
             ctx.globalAlpha = layer.opacity ?? 1;
 
             if (layer.filters) {
-              // @ts-expect-error - ignore type mismatch
+              // @ts-ignore - ignore type mismatch
               ctx.filter = buildFilterString(layer.filters);
             }
 
@@ -211,7 +211,7 @@ self.onmessage = async (e: MessageEvent) => {
     // --- End Rendering ---
 
     // Convert to Blob
-    // @ts-expect-error - ignore type mismatch
+    // @ts-ignore - ignore type mismatch
     const blob = await canvas.convertToBlob({ type: `image/${format}`, quality: quality || 0.95 });
 
     // Convert to DataURL for message

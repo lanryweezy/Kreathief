@@ -150,7 +150,7 @@ export const useCanvasInteractions = ({
         const store = useStore.getState();
         const mask = store.hoveredMaskBoundary;
         if (mask && layer.type === 'image') {
-          store.setIsSmartMaskMode(false);
+          store.setIsSmartMaskMode?.(false);
           store.updateLayer(layer.id, { maskPath: mask.path, maskType: 'lasso' });
           store.addToast?.('Smart mask applied!', 'success');
         }

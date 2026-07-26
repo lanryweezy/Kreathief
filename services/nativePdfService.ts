@@ -6,7 +6,7 @@
  * Falls back to raster embedding for individual layers with complex effects.
  */
 import { jsPDF } from 'jspdf';
-import { Layer, TextLayer, ShapeLayer, ImageLayer, TableLayer, Artboard } from '../types';
+import { Layer, ShapeLayer, TextLayer, ImageLayer, GroupLayer, AdjustmentLayer, Artboard } from '../types';
 import { getLayerClipPath } from '../utils/layerRendering';
 import { downloadBlob, exportDesignToImage } from './exportService';
 import { logSecurityEvent } from '../utils/securityLogger';
@@ -95,7 +95,8 @@ function hasComplexEffects(layer: Layer): boolean {
     if (tl.textPath) return true;
     if (tl.neonGlow?.enabled) return true;
   }
-  if (layer.type === 'shape' || layer.type === 'rectangle' || layer.type === 'circle' || layer.type === 'path') {
+  const type = layer.type as any;
+  if (type === 'rectangle' || type === 'circle' || type === 'path' || type === 'triangle' || type === 'star' || type === 'polygon') {
     const sl = layer as ShapeLayer;
     if (sl.gradient?.enabled) return true;
     if (sl.imageFill) return true;
@@ -108,7 +109,13 @@ function hasComplexEffects(layer: Layer): boolean {
  * Rasterize a single layer into a data URL using the existing canvas strategy.
  */
 async function rasterizeLayer(layer: Layer, width: number, height: number): Promise<string> {
-  return exportDesignToImage(width, height, 'transparent', null, [layer], undefined, 'png', 1);
+  const blob = await exportDesignToImage([layer as any], { width, height, format: 'png', background: false });
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
 
 /**
@@ -389,7 +396,7 @@ async function drawImageLayer(pdf: jsPDF, layer: ImageLayer, isPro = false): Pro
 /**
  * Draw a table layer to jsPDF.
  */
-function drawTableLayer(pdf: jsPDF, layer: TableLayer): void {
+function drawTableLayer(pdf: jsPDF, layer: any): void {
   const x = pxToPt(layer.x);
   const y = pxToPt(layer.y);
   const w = pxToPt(layer.width);
@@ -412,7 +419,7 @@ function drawTableLayer(pdf: jsPDF, layer: TableLayer): void {
   const textColor = parseColor(layer.textColor || '#ffffff');
   pdf.setTextColor(textColor.r, textColor.g, textColor.b);
 
-  cols.forEach((col, i) => {
+  cols.forEach((col: string, i: number) => {
     pdf.text(col, x + colWidth * i + 4, y + rowHeight * 0.65, {
       maxWidth: colWidth - 8,
     });
@@ -422,7 +429,7 @@ function drawTableLayer(pdf: jsPDF, layer: TableLayer): void {
   const cellColor = parseColor(layer.cellColor || '#ffffff');
   const rowTextColor = parseColor(layer.textColor || '#000000');
 
-  rows.forEach((row, rowIdx) => {
+  rows.forEach((row: string[], rowIdx: number) => {
     const ry = y + rowHeight * (rowIdx + 1);
     pdf.setFillColor(cellColor.r, cellColor.g, cellColor.b);
     pdf.rect(x, ry, w, rowHeight, 'F');
@@ -433,7 +440,7 @@ function drawTableLayer(pdf: jsPDF, layer: TableLayer): void {
     pdf.rect(x, ry, w, rowHeight, 'S');
 
     pdf.setTextColor(rowTextColor.r, rowTextColor.g, rowTextColor.b);
-    row.forEach((cell, colIdx) => {
+    row.forEach((cell: string, colIdx: number) => {
       pdf.text(cell || '', x + colWidth * colIdx + 4, ry + rowHeight * 0.65, {
         maxWidth: colWidth - 8,
       });
@@ -506,7 +513,7 @@ export async function exportArtboardToNativePdf(
   }
 
   // Render layers
-  const visibleLayers = (artboard.layers || []).filter((l) => l.visible !== false);
+  const visibleLayers = (artboard.layers || []).filter((l: any) => l.visible !== false);
 
   for (const layer of visibleLayers) {
     if (layer.type === 'adjustment' || layer.type === 'group') continue;
@@ -573,7 +580,7 @@ async function drawLayerToPdf(pdf: jsPDF, layer: Layer, isPro = false): Promise<
   }
 
   // Native rendering by layer type
-  switch (layer.type) {
+  switch ((layer.type as any)) {
     case 'text':
       drawTextLayer(pdf, layer as TextLayer);
       break;
@@ -581,7 +588,7 @@ async function drawLayerToPdf(pdf: jsPDF, layer: Layer, isPro = false): Promise<
       await drawImageLayer(pdf, layer as ImageLayer, isPro);
       break;
     case 'table':
-      drawTableLayer(pdf, layer as TableLayer);
+      drawTableLayer(pdf, layer as any);
       break;
     default:
       drawShapeLayer(pdf, layer as ShapeLayer);
@@ -649,7 +656,7 @@ export async function exportToNativePdf(
     }
 
     // Render layers
-    const visibleLayers = (artboard.layers || []).filter((l) => l.visible !== false);
+    const visibleLayers = (artboard.layers || []).filter((l: any) => l.visible !== false);
 
     for (const layer of visibleLayers) {
       if (layer.type === 'adjustment' || layer.type === 'group') continue;

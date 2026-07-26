@@ -12,9 +12,11 @@ interface AIGenerateResult {
   layers?: any[];
 }
 
-export const EditorAIPanel: React.FC<{
+export const EditorAIPanel = ({
+  onAddLayer,
+}: {
   onAddLayer?: (layer: any) => void;
-}> = () => {
+}) => {
   const [showNodeGraph, setShowNodeGraph] = useState(false);
   const [showAIGenerate, setShowAIGenerate] = useState(false);
   const addLayer = useStore((state) => state.addLayer);
@@ -55,7 +57,7 @@ export const EditorAIPanel: React.FC<{
         });
       }
       if (result.text) {
-        addLayer({
+        addLayer(({
           id: `ai-text-${Date.now()}`,
           type: 'text',
           name: 'AI Text',
@@ -77,7 +79,7 @@ export const EditorAIPanel: React.FC<{
           letterSpacing: 0,
           lineHeight: 1.5,
           blendMode: 'normal',
-        });
+        } as any));
       }
       setShowAIGenerate(false);
     },
@@ -104,7 +106,7 @@ export const EditorAIPanel: React.FC<{
     AIGenerateComponent: showAIGenerate ? (
       <Suspense fallback={null}>
         <AIGenerateModal
-          isOpen={showAIGenerate}
+          {...({ isOpen: showAIGenerate } as any)}
           onClose={() => setShowAIGenerate(false)}
           onGenerate={handleAIGenerate}
         />

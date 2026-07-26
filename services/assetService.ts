@@ -51,20 +51,20 @@ export const assetService = {
 
   async downloadAsset(id: string): Promise<boolean> {
     try {
-      const { error } = await supabase.rpc('increment_asset_downloads', { asset_id: id });
+      const { error } = await (supabase.rpc as any)('increment_asset_downloads', { asset_id: id });
 
       if (error) {
-        const { error: updateError } = await supabase
+        const { error: updateError } = await (supabase as any)
           .from('assets')
-          .update({ downloads: supabase.rpc ? undefined : 0 })
+          .update({ downloads: 0 })
           .eq('id', id);
 
-        const { data: asset } = await supabase.from('assets').select('downloads').eq('id', id).single();
+        const { data: asset } = await (supabase as any).from('assets').select('downloads').eq('id', id).single();
 
         if (asset) {
-          const { error: retryError } = await supabase
+          const { error: retryError } = await (supabase as any)
             .from('assets')
-            .update({ downloads: (asset.downloads || 0) + 1 })
+            .update({ downloads: ((asset as any).downloads || 0) + 1 })
             .eq('id', id);
 
           if (retryError) throw retryError;

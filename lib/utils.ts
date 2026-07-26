@@ -21,7 +21,7 @@ export function hexToRgba(hex: string, alpha: number): string {
  */
 export function resolveFillColor(
   fill: string | { type: string; stops: any[] } | null | undefined,
-  fallback: string = surface[3],
+  fallback: string = surface[3]
 ): string {
   return typeof fill === 'string' ? fill : fallback;
 }

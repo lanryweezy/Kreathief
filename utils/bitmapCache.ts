@@ -36,7 +36,7 @@ export class BitmapCache {
 
       const canvas = new OffscreenCanvas(w, h);
       if (!canvas || typeof canvas.getContext !== 'function') {
-        log.warn('[BitmapCache] OffscreenCanvas found but getContext is missing');
+        console.warn('[BitmapCache] OffscreenCanvas found but getContext is missing');
         return null;
       }
 

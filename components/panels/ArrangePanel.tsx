@@ -142,7 +142,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
                 className="w-full bg-surface-dark-2 border border-gray-800 rounded px-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none"
               />
               <button
-                onClick={() => setIsAspectRatioLocked(!isAspectRatioLocked)}
+                onClick={() => setIsAspectRatioLocked?.(!isAspectRatioLocked)}
                 className={`absolute -bottom-4 right-0 z-10 p-1 rounded transition-colors ${isAspectRatioLocked ? 'text-brand-600' : 'text-gray-600 hover:text-gray-400'}`}
                 title="Lock Aspect Ratio"
               >

@@ -52,7 +52,7 @@ export class AuthService {
             log.error('[AuthService] Failed to fetch profile', err);
             onAuthChange(null);
           });
-      } else {
+      } else if (event === 'SIGNED_OUT') {
         onAuthChange(null);
       }
     });
@@ -314,7 +314,10 @@ export class AuthService {
     const useQABypass = import.meta.env.DEV && import.meta.env.VITE_QA_BYPASS === 'true';
 
     if (useQABypass) {
-      log.debug('[AuthService] QA bypass active - skipping Supabase auth listener');
+      log.debug('[AuthService] QA bypass active - syncing QA session');
+      this.getSession().then((user) => {
+        if (user) callback(user);
+      });
       return () => {}; // Return empty unsubscribe function
     }
 

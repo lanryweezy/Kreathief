@@ -64,8 +64,8 @@ export const CornerHandles: React.FC<CornerHandlesProps> = ({
         clientX = e.touches[0].clientX;
         clientY = e.touches[0].clientY;
       } else {
-        clientX = e.clientX;
-        clientY = e.clientY;
+        clientX = (e as MouseEvent).clientX;
+        clientY = (e as MouseEvent).clientY;
       }
 
       const x = clientX - rect.left;

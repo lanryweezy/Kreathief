@@ -95,14 +95,41 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
   }, [graph.nodes, nodeOutputs]);
 
   const handleRunGraph = useCallback(async () => {
-    await executeGraph();
-    const result = findFinalOutput();
-    if (result && !result.error) {
-      setLastResult(result);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+    try {
+      await executeGraph();
+      // Need to fetch fresh state since React state hasn't updated in this closure yet
+      const state = useNodeGraph.getState();
+      
+      // Check for errors in ANY node
+      const hasErrors = Object.values(state.nodeOutputs).some(output => output?.error);
+      if (hasErrors) {
+        // We will need to import useStore at the top of the file to use addToast, handled in another replacement chunk
+        import('../../store/useStore').then(({ useStore }) => {
+          useStore.getState().addToast('Graph execution failed. Check nodes for errors.', 'error');
+        });
+        return;
+      }
+      
+      const exportNodes = state.graph.nodes.filter((n: any) => n.type === 'export-canvas' || n.type.includes('export'));
+      let result = null;
+      if (exportNodes.length > 0) {
+        result = state.nodeOutputs[exportNodes[exportNodes.length - 1].id];
+      } else {
+        const allOutputs = Object.values(state.nodeOutputs);
+        if (allOutputs.length > 0) result = allOutputs[allOutputs.length - 1];
+      }
+
+      if (result && !result.error) {
+        setLastResult(result);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+      }
+    } catch (err: any) {
+      import('../../store/useStore').then(({ useStore }) => {
+        useStore.getState().addToast(err.message || 'Failed to execute graph', 'error');
+      });
     }
-  }, [executeGraph, findFinalOutput]);
+  }, [executeGraph]);
 
   const handleSendToCanvas = useCallback(() => {
     if (lastResult) {
@@ -172,6 +199,9 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
     },
     [handlers.onCanvasMouseDown]
   );
+  const inspectedNode = inspectingNodeId ? graph.nodes.find(n => n.id === inspectingNodeId) : null;
+  const inspectedOutputs = inspectingNodeId ? nodeOutputs[inspectingNodeId] : null;
+  const inspectedImage = inspectedOutputs?.image?.src || inspectedOutputs?.image || inspectedOutputs?.imageUrl;
 
   return (
     <div className="fixed inset-0 z-[200] bg-surface-dark-0 flex flex-col">

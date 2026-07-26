@@ -6,7 +6,6 @@ import { ArtisticFilters } from '../ArtisticFilters';
 import { buildFilterString } from '../../utils/layers';
 import { SmartSuggestions } from './SmartSuggestions';
 import { SmartSnap } from './SmartSnap';
-import { useStore } from '../../store/useStore';
 import { SmartSuggestion } from '../../hooks/useSmartInteraction';
 import { ErrorBoundary } from '../ErrorBoundary';
 

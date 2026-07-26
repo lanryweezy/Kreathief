@@ -45,6 +45,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+          Relationships: any[];
       };
       assets: {
         Row: {
@@ -89,6 +90,7 @@ export interface Database {
           status?: string;
           created_at?: string;
         };
+          Relationships: any[];
       };
       projects: {
         Row: {
@@ -142,6 +144,7 @@ export interface Database {
           is_template?: boolean;
           tags?: string[];
         };
+          Relationships: any[];
       };
       project_versions: {
         Row: {
@@ -171,6 +174,7 @@ export interface Database {
           version_name?: string | null;
           created_at?: string;
         };
+          Relationships: any[];
       };
       project_snapshots: {
         Row: {
@@ -200,6 +204,7 @@ export interface Database {
           thumbnail_url?: string | null;
           created_at?: string;
         };
+          Relationships: any[];
       };
       comments: {
         Row: {
@@ -244,6 +249,7 @@ export interface Database {
           parent_id?: string | null;
           resolved?: boolean;
         };
+          Relationships: any[];
       };
       brand_kits: {
         Row: {
@@ -276,6 +282,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+          Relationships: any[];
       };
       templates: {
         Row: {
@@ -317,6 +324,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+          Relationships: any[];
       };
       share_links: {
         Row: {
@@ -349,6 +357,7 @@ export interface Database {
           view_count?: number;
           created_at?: string;
         };
+          Relationships: any[];
       };
       community_templates: {
         Row: {
@@ -402,6 +411,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+          Relationships: any[];
       };
     };
     Views: {
@@ -411,6 +421,9 @@ export interface Database {
       [_ in never]: never;
     };
     Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
       [_ in never]: never;
     };
   };

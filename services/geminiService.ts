@@ -37,6 +37,34 @@ export const callBackendGeminiAPI = async (payload: any) => {
       } catch (e: any) {
         clearTimeout(timeoutId);
 
+        // Fallback for local development using the client-side API key if backend is missing/failing
+        const localApiKey = import.meta.env.VITE_GEMINI_API_KEY;
+        if (localApiKey && (e.name === 'NetworkError' || e.message.includes('fetch') || e.message.includes('500'))) {
+          log.warn('[GeminiService] Backend API failed, falling back to local client-side generation using VITE_GEMINI_API_KEY');
+          try {
+            const { GoogleGenerativeAI } = await import('@google/generative-ai');
+            const ai = new GoogleGenerativeAI(localApiKey);
+            const modelConfig: any = { model: payload.modelName || 'gemini-2.0-flash' };
+            if (payload.generationConfig) modelConfig.generationConfig = payload.generationConfig;
+            if (payload.systemInstruction) modelConfig.systemInstruction = payload.systemInstruction;
+            
+            const model = ai.getGenerativeModel(modelConfig);
+            let response;
+            if (Array.isArray(payload.contents)) {
+              response = await model.generateContent({ contents: payload.contents });
+            } else {
+              response = await model.generateContent(payload.contents);
+            }
+            return {
+              text: response.response.text(),
+              candidates: response.response.candidates,
+            };
+          } catch (fallbackError) {
+            log.error('[GeminiService] Local fallback generation failed', fallbackError);
+            throw fallbackError;
+          }
+        }
+
         if (e.name === 'AbortError') {
           const timeoutError = new Error('Gemini API request timed out after 30 seconds');
           timeoutError.name = 'TimeoutError';

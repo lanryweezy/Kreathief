@@ -188,7 +188,7 @@ export const TransformPanel: React.FC = () => {
           />
         </div>
         <button
-          onClick={() => setAspectLocked(!aspectLocked)}
+          onClick={() => (setAspectLocked as any)?.(!aspectLocked)}
           className={`self-end mb-1 p-1.5 rounded transition-colors ${aspectLocked ? 'bg-brand-600 text-white' : 'bg-surface-dark-4 text-gray-500 hover:text-white'}`}
           title={aspectLocked ? 'Unlock aspect ratio' : 'Lock aspect ratio'}
         >

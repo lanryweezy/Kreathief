@@ -8,7 +8,7 @@ interface HelpModalProps {
 }
 
 const HELP_ITEMS = [
-  { icon: Icons.Book, title: 'Documentation', desc: 'Learn how to use Kreathief', url: 'https://docs.kreathief.com' },
+  { icon: Icons.Help, title: 'Documentation', desc: 'Learn how to use Kreathief', url: 'https://docs.kreathief.com' },
   { icon: Icons.Globe, title: 'Website', desc: 'Visit kreathief.com', url: 'https://kreathief.com' },
   {
     icon: Icons.MessageSquare,

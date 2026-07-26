@@ -32,6 +32,7 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, onSki
 
   useEffect(() => {
     const updateRect = () => {
+      if (!currentStep) return;
       const el = document.querySelector(currentStep.target);
       if (el) {
         setTargetRect(el.getBoundingClientRect());
@@ -68,7 +69,7 @@ export const GuidedTour: React.FC<GuidedTourProps> = ({ steps, onComplete, onSki
   };
 
   // If target not found, show a minimal tooltip that can be closed
-  if (!targetRect) {
+  if (!targetRect || !currentStep) {
     return (
       <div className="fixed inset-0 z-[999] pointer-events-none">
         <div className="fixed top-4 right-4 bg-surface-dark-3 border border-gray-700 rounded-xl shadow-2xl p-4 pointer-events-auto z-[1000]">

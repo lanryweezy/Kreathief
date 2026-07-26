@@ -19,11 +19,20 @@ type AnyCtx = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 // Object Pool (ported from Timeframe)
 class ObjectPool<T> {
   private pool: T[] = [];
-  constructor(private factory: () => T, private reset: (obj: T) => void, size: number = 100) {
+  constructor(
+    private factory: () => T,
+    private reset: (obj: T) => void,
+    size: number = 100
+  ) {
     for (let i = 0; i < size; i++) this.pool.push(factory());
   }
-  acquire(): T { return this.pool.length > 0 ? this.pool.pop()! : this.factory(); }
-  release(obj: T) { this.reset(obj); this.pool.push(obj); }
+  acquire(): T {
+    return this.pool.length > 0 ? this.pool.pop()! : this.factory();
+  }
+  release(obj: T) {
+    this.reset(obj);
+    this.pool.push(obj);
+  }
 }
 
 // LRU Cache for paths (ported from Timeframe)
@@ -32,20 +41,31 @@ class LRUCache<K, V> {
   constructor(private maxSize: number) {}
   get(key: K): V | undefined {
     const val = this.map.get(key);
-    if (val !== undefined) { this.map.delete(key); this.map.set(key, val); }
+    if (val !== undefined) {
+      this.map.delete(key);
+      this.map.set(key, val);
+    }
     return val;
   }
   set(key: K, value: V) {
     if (this.map.has(key)) this.map.delete(key);
-    else if (this.map.size >= this.maxSize) { const first = this.map.keys().next().value; this.map.delete(first!); }
+    else if (this.map.size >= this.maxSize) {
+      const first = this.map.keys().next().value;
+      this.map.delete(first!);
+    }
     this.map.set(key, value);
   }
-  clear() { this.map.clear(); }
+  clear() {
+    this.map.clear();
+  }
 }
 
 export interface CanvasViewport {
-  x: number; y: number; zoom: number;
-  width: number; height: number;
+  x: number;
+  y: number;
+  zoom: number;
+  width: number;
+  height: number;
 }
 
 export interface RenderOptions {
@@ -112,7 +132,12 @@ export class KreathiefCanvas {
   private createPreview: { x: number; y: number; w: number; h: number } | null = null;
 
   // Pen tool
-  private penPoints: { x: number; y: number; handleIn?: { x: number; y: number }; handleOut?: { x: number; y: number } }[] = [];
+  private penPoints: {
+    x: number;
+    y: number;
+    handleIn?: { x: number; y: number };
+    handleOut?: { x: number; y: number };
+  }[] = [];
   private isDrawingPen = false;
   private penDraggingHandle: { pointIdx: number; handle: 'in' | 'out' } | null = null;
 
@@ -343,7 +368,7 @@ export class KreathiefCanvas {
           const cy = newY + node.height / 2;
           let didSnap = false;
 
-          this.nodes.forEach(other => {
+          this.nodes.forEach((other) => {
             if (other.id === node.id || !other.visible) return;
             const ocx = other.x + other.width / 2;
             const ocy = other.y + other.height / 2;
@@ -416,9 +441,15 @@ export class KreathiefCanvas {
 
         // Update dimensions based on which handle
         if (this.resizeHandle.includes('e')) newW = Math.max(10, this.dragNodeStartW + dx);
-        if (this.resizeHandle.includes('w')) { newW = Math.max(10, this.dragNodeStartW - dx); newX = this.dragNodeStartX + dx; }
+        if (this.resizeHandle.includes('w')) {
+          newW = Math.max(10, this.dragNodeStartW - dx);
+          newX = this.dragNodeStartX + dx;
+        }
         if (this.resizeHandle.includes('s')) newH = Math.max(10, this.dragNodeStartH + dy);
-        if (this.resizeHandle.includes('n')) { newH = Math.max(10, this.dragNodeStartH - dy); newY = this.dragNodeStartY + dy; }
+        if (this.resizeHandle.includes('n')) {
+          newH = Math.max(10, this.dragNodeStartH - dy);
+          newY = this.dragNodeStartY + dy;
+        }
 
         // Constrain to square if shift held
         if (this.shiftHeld) {
@@ -495,10 +526,9 @@ export class KreathiefCanvas {
       const maxY = Math.max(this.marqueeStartY, this.marqueeEndY);
       if (maxX - minX > 2 || maxY - minY > 2) {
         const ids: string[] = [];
-        this.nodes.forEach(node => {
+        this.nodes.forEach((node) => {
           if (!node.visible || node.locked) return;
-          if (node.x + node.width > minX && node.x < maxX &&
-              node.y + node.height > minY && node.y < maxY) {
+          if (node.x + node.width > minX && node.x < maxX && node.y + node.height > minY && node.y < maxY) {
             ids.push(node.id);
           }
         });
@@ -586,10 +616,9 @@ export class KreathiefCanvas {
     let topNode: DesignNode | null = null;
     let topZ = -Infinity;
 
-    this.nodes.forEach(node => {
+    this.nodes.forEach((node) => {
       if (!node.visible || node.locked) return;
-      if (worldX >= node.x && worldX <= node.x + node.width &&
-          worldY >= node.y && worldY <= node.y + node.height) {
+      if (worldX >= node.x && worldX <= node.x + node.width && worldY >= node.y && worldY <= node.y + node.height) {
         if (node.rotation === 0) {
           if (!topNode || (node as any).zIndex > topZ) {
             topNode = node;
@@ -598,13 +627,12 @@ export class KreathiefCanvas {
           // Rotated hit test
           const cx = node.x + node.width / 2;
           const cy = node.y + node.height / 2;
-          const angle = -node.rotation * Math.PI / 180;
+          const angle = (-(node.rotation || 0) * Math.PI) / 180;
           const dx = worldX - cx;
           const dy = worldY - cy;
           const rx = dx * Math.cos(angle) - dy * Math.sin(angle) + cx;
           const ry = dx * Math.sin(angle) + dy * Math.cos(angle) + cy;
-          if (rx >= node.x && rx <= node.x + node.width &&
-              ry >= node.y && ry <= node.y + node.height) {
+          if (rx >= node.x && rx <= node.x + node.width && ry >= node.y && ry <= node.y + node.height) {
             topNode = node;
           }
         }
@@ -614,10 +642,17 @@ export class KreathiefCanvas {
     return topNode;
   }
 
-  private hitTestHandle(worldX: number, worldY: number, node: DesignNode): 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | null {
+  private hitTestHandle(
+    worldX: number,
+    worldY: number,
+    node: DesignNode
+  ): 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' | null {
     const handleSize = 8 / this.viewport.zoom;
     const tolerance = handleSize / 2 + 2 / this.viewport.zoom;
-    const x = node.x, y = node.y, w = node.width, h = node.height;
+    const x = node.x,
+      y = node.y,
+      w = node.width,
+      h = node.height;
 
     const handles: { pos: [number, number]; id: 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w' }[] = [
       { pos: [x, y], id: 'nw' },
@@ -642,8 +677,14 @@ export class KreathiefCanvas {
 
   private getResizeCursor(handle: string): string {
     const cursors: Record<string, string> = {
-      nw: 'nwse-resize', ne: 'nesw-resize', se: 'nwse-resize', sw: 'nesw-resize',
-      n: 'ns-resize', s: 'ns-resize', e: 'ew-resize', w: 'ew-resize',
+      nw: 'nwse-resize',
+      ne: 'nesw-resize',
+      se: 'nwse-resize',
+      sw: 'nesw-resize',
+      n: 'ns-resize',
+      s: 'ns-resize',
+      e: 'ew-resize',
+      w: 'ew-resize',
     };
     return cursors[handle] || 'default';
   }
@@ -676,8 +717,12 @@ export class KreathiefCanvas {
     }
   }
 
-  getNode(id: string): DesignNode | undefined { return this.nodes.get(id); }
-  getAllNodes(): DesignNode[] { return Array.from(this.nodes.values()); }
+  getNode(id: string): DesignNode | undefined {
+    return this.nodes.get(id);
+  }
+  getAllNodes(): DesignNode[] {
+    return Array.from(this.nodes.values());
+  }
 
   setViewport(viewport: Partial<CanvasViewport>) {
     Object.assign(this.viewport, viewport);
@@ -685,7 +730,9 @@ export class KreathiefCanvas {
     this.markDirty();
   }
 
-  getViewport(): CanvasViewport { return { ...this.viewport }; }
+  getViewport(): CanvasViewport {
+    return { ...this.viewport };
+  }
 
   focusNode(id: string, padding: number = 80) {
     const node = this.nodes.get(id);
@@ -702,8 +749,11 @@ export class KreathiefCanvas {
 
   fitAll(padding: number = 50) {
     if (this.nodes.size === 0) return;
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    this.nodes.forEach(n => {
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
+    this.nodes.forEach((n) => {
       if (!n.visible) return;
       minX = Math.min(minX, n.x);
       minY = Math.min(minY, n.y);
@@ -724,7 +774,9 @@ export class KreathiefCanvas {
 
   // === Rendering ===
 
-  private markDirty() { this.isDirty = true; }
+  private markDirty() {
+    this.isDirty = true;
+  }
 
   render(options: RenderOptions) {
     if (!this.isDirty) return;
@@ -755,7 +807,7 @@ export class KreathiefCanvas {
 
     // Viewport culling
     const visibleNodes: DesignNode[] = [];
-    this.nodes.forEach(node => {
+    this.nodes.forEach((node) => {
       if (!node.visible) return;
       if (this.isNodeVisible(node, w, h)) {
         visibleNodes.push(node);
@@ -763,7 +815,7 @@ export class KreathiefCanvas {
     });
 
     // Render nodes
-    visibleNodes.forEach(node => {
+    visibleNodes.forEach((node) => {
       this.renderNode(ctx, node, options);
     });
 
@@ -937,7 +989,7 @@ export class KreathiefCanvas {
 
     // Draw distance labels between selected elements
     if (options.selectedIds.size >= 2 && options.selectedIds.size <= 5) {
-      const selectedNodes = visibleNodes.filter(n => options.selectedIds.has(n.id));
+      const selectedNodes = visibleNodes.filter((n) => options.selectedIds.has(n.id));
       if (selectedNodes.length >= 2) {
         ctx.font = `${10 / this.viewport.zoom}px monospace`;
         ctx.textAlign = 'center';
@@ -969,7 +1021,7 @@ export class KreathiefCanvas {
 
           // Draw label background
           const text = `${dist}px`;
-          const textW = text.length * 6 / this.viewport.zoom + 4 / this.viewport.zoom;
+          const textW = (text.length * 6) / this.viewport.zoom + 4 / this.viewport.zoom;
           const textH = 14 / this.viewport.zoom;
           ctx.fillStyle = 'rgba(30, 41, 59, 0.9)';
           ctx.fillRect(midX - textW / 2, midY - textH / 2, textW, textH);
@@ -1000,10 +1052,12 @@ export class KreathiefCanvas {
     ctx.lineWidth = 0.5;
     ctx.beginPath();
     for (let x = offsetX; x < w; x += gridSize) {
-      ctx.moveTo(x, 0); ctx.lineTo(x, h);
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
     }
     for (let y = offsetY; y < h; y += gridSize) {
-      ctx.moveTo(0, y); ctx.lineTo(w, y);
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
     }
     ctx.stroke();
 
@@ -1027,10 +1081,12 @@ export class KreathiefCanvas {
       ctx.lineWidth = 0.3;
       ctx.beginPath();
       for (let x = pixelOffsetX; x < w; x += pixelSize) {
-        ctx.moveTo(x, 0); ctx.lineTo(x, h);
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
       }
       for (let y = pixelOffsetY; y < h; y += pixelSize) {
-        ctx.moveTo(0, y); ctx.lineTo(w, y);
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
       }
       ctx.stroke();
     }
@@ -1092,8 +1148,7 @@ export class KreathiefCanvas {
     const vy = this.viewport.y;
     const vw = viewW / this.viewport.zoom;
     const vh = viewH / this.viewport.zoom;
-    return node.x + node.width > vx && node.x < vx + vw &&
-           node.y + node.height > vy && node.y < vy + vh;
+    return node.x + node.width > vx && node.x < vx + vw && node.y + node.height > vy && node.y < vy + vh;
   }
 
   private renderNode(ctx: AnyCtx, node: DesignNode, options: RenderOptions) {
@@ -1104,29 +1159,29 @@ export class KreathiefCanvas {
     const cy = node.y + node.height / 2;
     if (node.rotation) {
       ctx.translate(cx, cy);
-      ctx.rotate(node.rotation * Math.PI / 180);
+      ctx.rotate((node.rotation || 0) * (Math.PI / 180));
       ctx.translate(-cx, -cy);
     }
 
-    ctx.globalAlpha = node.opacity;
+    ctx.globalAlpha = node.opacity ?? 1;
 
     // Apply effects before rendering shape
     if (node.effects && node.effects.length > 0) {
       for (const effect of node.effects) {
         if (!effect.enabled) continue;
-        if (effect.type === 'shadow') {
-          const p = effect.params;
+        if ((effect.type as any) === 'shadow') {
+          const p = (effect as any).params;
           const r = p.blur ?? 8;
           ctx.shadowOffsetX = p.x ?? 0;
           ctx.shadowOffsetY = p.y ?? 4;
           ctx.shadowBlur = r;
           ctx.shadowColor = hexToRgba(p.color ?? content.inverse, p.opacity ?? 0.25);
         }
-        if (effect.type === 'blur') {
-          ctx.filter = `blur(${effect.params.radius ?? 4}px)`;
+        if ((effect.type as any) === 'blur') {
+          ctx.filter = `blur(${((effect as any).params).radius ?? 4}px)`;
         }
-        if (effect.type === 'glow') {
-          const p = effect.params;
+        if ((effect.type as any) === 'glow') {
+          const p = (effect as any).params;
           ctx.shadowOffsetX = 0;
           ctx.shadowOffsetY = 0;
           ctx.shadowBlur = p.blur ?? 12;
@@ -1137,13 +1192,27 @@ export class KreathiefCanvas {
 
     // Render based on type
     switch (node.type) {
-      case 'rect': this.renderRect(ctx, node); break;
-      case 'ellipse': this.renderEllipse(ctx, node); break;
-      case 'text': this.renderText(ctx, node); break;
-      case 'image': this.renderImage(ctx, node); break;
-      case 'frame': this.renderFrame(ctx, node); break;
-      case 'group': this.renderGroup(ctx, node); break;
-      case 'path': this.renderPath(ctx, node); break;
+      case 'rect':
+        this.renderRect(ctx, node);
+        break;
+      case 'ellipse':
+        this.renderEllipse(ctx, node);
+        break;
+      case 'text':
+        this.renderText(ctx, node);
+        break;
+      case 'image':
+        this.renderImage(ctx, node);
+        break;
+      case 'frame':
+        this.renderFrame(ctx, node);
+        break;
+      case 'group':
+        this.renderGroup(ctx, node);
+        break;
+      case 'path':
+        this.renderPath(ctx, node);
+        break;
     }
 
     // Reset effects state
@@ -1180,7 +1249,7 @@ export class KreathiefCanvas {
         { pos: [node.x, node.y + node.height / 2], id: 'w' },
       ];
 
-      allHandles.forEach(handle => {
+      allHandles.forEach((handle) => {
         const isActive = isHoveredHandle && this.resizeHandle === handle.id;
         const isCorner = handle.id.length === 2;
         const size = isCorner ? handleSize : handleSize * 0.7;
@@ -1225,8 +1294,8 @@ export class KreathiefCanvas {
       ctx.fillStyle = surface[3];
     }
 
-    if (node.cornerRadius > 0) {
-      this.roundRect(ctx, node.x, node.y, node.width, node.height, node.cornerRadius);
+    if ((node.cornerRadius || 0) > 0) {
+      this.roundRect(ctx, node.x, node.y, node.width, node.height, node.cornerRadius || 0);
       ctx.fill();
     } else {
       ctx.fillRect(node.x, node.y, node.width, node.height);
@@ -1234,9 +1303,9 @@ export class KreathiefCanvas {
 
     if (node.stroke) {
       ctx.strokeStyle = node.stroke;
-      ctx.lineWidth = node.strokeWidth;
-      if (node.cornerRadius > 0) {
-        this.roundRect(ctx, node.x, node.y, node.width, node.height, node.cornerRadius);
+      ctx.lineWidth = node.strokeWidth || 0;
+      if ((node.cornerRadius || 0) > 0) {
+        this.roundRect(ctx, node.x, node.y, node.width, node.height, node.cornerRadius || 0);
         ctx.stroke();
       } else {
         ctx.strokeRect(node.x, node.y, node.width, node.height);
@@ -1256,15 +1325,11 @@ export class KreathiefCanvas {
       ctx.fillStyle = surface[3];
     }
     ctx.beginPath();
-    ctx.ellipse(
-      node.x + node.width / 2, node.y + node.height / 2,
-      node.width / 2, node.height / 2,
-      0, 0, Math.PI * 2
-    );
+    ctx.ellipse(node.x + node.width / 2, node.y + node.height / 2, node.width / 2, node.height / 2, 0, 0, Math.PI * 2);
     ctx.fill();
     if (node.stroke) {
       ctx.strokeStyle = node.stroke;
-      ctx.lineWidth = node.strokeWidth;
+      ctx.lineWidth = node.strokeWidth || 0;
       ctx.stroke();
     }
   }
@@ -1275,7 +1340,7 @@ export class KreathiefCanvas {
     const lineHeight = (node as any).lineHeight || 1.2;
     const letterSpacing = (node as any).letterSpacing || 0;
     ctx.font = `${node.fontWeight || 400} ${fontSize}px ${node.fontFamily || 'system-ui'}`;
-    ctx.textAlign = node.textAlign || 'left';
+    ctx.textAlign = (node.textAlign || 'left') as any;
     ctx.textBaseline = 'top';
 
     if (letterSpacing) {
@@ -1305,24 +1370,43 @@ export class KreathiefCanvas {
         ctx.rect(node.x, node.y, node.width, node.height);
         ctx.clip();
         const fit = node.imageFit || 'cover';
-        let sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
-        let dx = node.x, dy = node.y, dw = node.width, dh = node.height;
+        let sx = 0,
+          sy = 0,
+          sw = img.naturalWidth,
+          sh = img.naturalHeight;
+        let dx = node.x,
+          dy = node.y,
+          dw = node.width,
+          dh = node.height;
         if (fit === 'cover') {
           const imgRatio = sw / sh;
           const nodeRatio = dw / dh;
-          if (imgRatio > nodeRatio) { sw = sh * nodeRatio; sx = (img.naturalWidth - sw) / 2; }
-          else { sh = sw / nodeRatio; sy = (img.naturalHeight - sh) / 2; }
+          if (imgRatio > nodeRatio) {
+            sw = sh * nodeRatio;
+            sx = (img.naturalWidth - sw) / 2;
+          } else {
+            sh = sw / nodeRatio;
+            sy = (img.naturalHeight - sh) / 2;
+          }
         } else if (fit === 'contain') {
           const imgRatio = sw / sh;
           const nodeRatio = dw / dh;
-          if (imgRatio > nodeRatio) { dh = dw / imgRatio; dy = node.y + (node.height - dh) / 2; }
-          else { dw = dh * imgRatio; dx = node.x + (node.width - dw) / 2; }
+          if (imgRatio > nodeRatio) {
+            dh = dw / imgRatio;
+            dy = node.y + (node.height - dh) / 2;
+          } else {
+            dw = dh * imgRatio;
+            dx = node.x + (node.width - dw) / 2;
+          }
         }
         ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
         ctx.restore();
       };
       if (img.complete) draw();
-      else { img.onload = draw; this.markDirty(); }
+      else {
+        img.onload = draw;
+        this.markDirty();
+      }
     } else {
       // No image URL — show placeholder
       ctx.fillStyle = surface[3];
@@ -1348,7 +1432,7 @@ export class KreathiefCanvas {
     ctx.font = '11px system-ui';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'bottom';
-    ctx.fillText(node.name, node.x + 4, node.y - 4);
+    ctx.fillText(node.name || '', node.x + 4, node.y - 4);
   }
 
   private renderGroup(ctx: AnyCtx, node: DesignNode) {
@@ -1376,7 +1460,7 @@ export class KreathiefCanvas {
     ctx.fill(path);
     if (node.stroke) {
       ctx.strokeStyle = node.stroke;
-      ctx.lineWidth = node.strokeWidth;
+      ctx.lineWidth = node.strokeWidth || 0;
       ctx.stroke(path);
     }
   }
@@ -1384,20 +1468,24 @@ export class KreathiefCanvas {
   private createGradient(ctx: AnyCtx, fill: GradientFill, node: DesignNode): CanvasGradient {
     let grad: CanvasGradient;
     if (fill.type === 'linear') {
-      const angle = (fill.angle || 0) * Math.PI / 180;
+      const angle = ((fill.angle || 0) * Math.PI) / 180;
       grad = ctx.createLinearGradient(
-        node.x + Math.cos(angle) * node.width / 2,
-        node.y + Math.sin(angle) * node.height / 2,
-        node.x + node.width / 2 - Math.cos(angle) * node.width / 2,
-        node.y + node.height / 2 - Math.sin(angle) * node.height / 2
+        node.x + (Math.cos(angle) * node.width) / 2,
+        node.y + (Math.sin(angle) * node.height) / 2,
+        node.x + node.width / 2 - (Math.cos(angle) * node.width) / 2,
+        node.y + node.height / 2 - (Math.sin(angle) * node.height) / 2
       );
     } else {
       grad = ctx.createRadialGradient(
-        node.x + node.width / 2, node.y + node.height / 2, 0,
-        node.x + node.width / 2, node.y + node.height / 2, node.width / 2
+        node.x + node.width / 2,
+        node.y + node.height / 2,
+        0,
+        node.x + node.width / 2,
+        node.y + node.height / 2,
+        node.width / 2
       );
     }
-    fill.stops.forEach(stop => grad.addColorStop(stop.offset, stop.color));
+    fill.stops.forEach((stop) => grad.addColorStop(stop.offset, stop.color));
     return grad;
   }
 
@@ -1427,7 +1515,9 @@ export class KreathiefCanvas {
     this.animFrameId = requestAnimationFrame(loop);
   }
 
-  stop() { cancelAnimationFrame(this.animFrameId); }
+  stop() {
+    cancelAnimationFrame(this.animFrameId);
+  }
 
   resize(w: number, h: number) {
     this.canvas.width = w;
@@ -1474,14 +1564,18 @@ export class KreathiefCanvas {
     this.markDirty();
   }
 
-  finishPen(): { x: number; y: number; points: { x: number; y: number; handleIn?: { x: number; y: number }; handleOut?: { x: number; y: number } }[] } | null {
+  finishPen(): {
+    x: number;
+    y: number;
+    points: { x: number; y: number; handleIn?: { x: number; y: number }; handleOut?: { x: number; y: number } }[];
+  } | null {
     if (this.penPoints.length < 2) {
       this.cancelPen();
       return null;
     }
     const result = {
-      x: Math.min(...this.penPoints.map(p => p.x)),
-      y: Math.min(...this.penPoints.map(p => p.y)),
+      x: Math.min(...this.penPoints.map((p) => p.x)),
+      y: Math.min(...this.penPoints.map((p) => p.y)),
       points: [...this.penPoints],
     };
     this.isDrawingPen = false;
@@ -1526,10 +1620,16 @@ export class KreathiefCanvas {
     return null;
   }
 
-  getPenPoints() { return this.penPoints; }
-  getIsDrawingPen() { return this.isDrawingPen; }
+  getPenPoints() {
+    return this.penPoints;
+  }
+  getIsDrawingPen() {
+    return this.isDrawingPen;
+  }
 
-  getFps() { return this.fps; }
+  getFps() {
+    return this.fps;
+  }
 
   setSnapToGrid(enabled: boolean, gridSize: number = 8) {
     this.snapToGrid = enabled;

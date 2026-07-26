@@ -81,15 +81,16 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   };
 
   const handleApplyCommunity = (tmpl: CommunityTemplate) => {
+    const newProject: any = { id: `tmpl-${Date.now()}`, name: (tmpl as any).title || (tmpl as any).name || 'Template', updatedAt: Date.now(), state: tmpl.state };
     if (!showReplaceWarning) {
-      initializeProject(tmpl.state);
+      initializeProject(newProject);
       return;
     }
     setConfirmModal({
       isOpen: true,
       title: 'Apply Template?',
       message: 'Apply community template? This will replace your current project.',
-      onConfirm: () => initializeProject(tmpl.state),
+      onConfirm: () => initializeProject(newProject),
     });
   };
 

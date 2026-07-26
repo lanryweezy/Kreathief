@@ -36,14 +36,14 @@ export const AssetFavorites: React.FC = () => {
         setLoading(false);
         return;
       }
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from('user_favorites')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       if (data) {
-        setFavorites(data as FavoriteAsset[]);
-        saveLocal(data as FavoriteAsset[]);
+        setFavorites(data as any as FavoriteAsset[]);
+        saveLocal(data as any as FavoriteAsset[]);
       }
     } catch (e) {
       log.error('[AssetFavorites] Load failed', e);
@@ -65,7 +65,7 @@ export const AssetFavorites: React.FC = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (user) await supabase.from('user_favorites').delete().eq('user_id', user.id).eq('asset_id', fav.asset_id);
+      if (user) await (supabase as any).from('user_favorites').delete().eq('user_id', user.id).eq('asset_id', fav.asset_id);
     } catch (e) {
       log.error('[AssetFavorites] Remove failed', e);
     }

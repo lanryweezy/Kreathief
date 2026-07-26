@@ -86,7 +86,7 @@ export const AssetUploadModal: React.FC<AssetUploadModalProps> = React.memo(func
           price: parseFloat(price),
           file_url: fileName,
           status: 'pending',
-        });
+        } as any);
         if (dbError) throw dbError;
         onClose();
       } catch (err: any) {

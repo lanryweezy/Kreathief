@@ -60,7 +60,7 @@ export const templateMarketplace = {
     try {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error('Not authenticated');
-      const { data: row, error } = await supabase
+      const { data: row, error } = await (supabase as any)
         .from('marketplace_templates')
         .insert({
           title: data.title,
@@ -91,7 +91,7 @@ export const templateMarketplace = {
   ): Promise<PaginatedResult<MarketplaceTemplate>> {
     try {
       const from = (page - 1) * PAGE_SIZE;
-      let q = supabase.from('marketplace_templates').select('*', { count: 'exact' }).eq('status', 'approved');
+      let q = (supabase as any).from('marketplace_templates').select('*', { count: 'exact' }).eq('status', 'approved');
       if (category && category !== 'All') q = q.eq('category', category);
       const col = sortBy === 'recent' ? 'created_at' : sortBy === 'likes' ? 'likes' : 'downloads';
       const { data, error, count } = await q.order(col, { ascending: false }).range(from, from + PAGE_SIZE - 1);
@@ -105,7 +105,7 @@ export const templateMarketplace = {
 
   async getTemplateById(id: string): Promise<MarketplaceTemplate | null> {
     try {
-      const { data, error } = await supabase.from('marketplace_templates').select('*').eq('id', id).single();
+      const { data, error } = await (supabase as any).from('marketplace_templates').select('*').eq('id', id).single();
       if (error) throw error;
       return map(data);
     } catch (e) {
@@ -116,7 +116,7 @@ export const templateMarketplace = {
 
   async likeTemplate(id: string): Promise<void> {
     try {
-      await supabase.rpc('increment_marketplace_template_likes', { template_id: id });
+      await (supabase.rpc as any)('increment_marketplace_template_likes', { template_id: id });
     } catch (e) {
       log.error('[TemplateMarketplace] Like failed', e);
     }
@@ -124,7 +124,7 @@ export const templateMarketplace = {
 
   async getPopularTemplates(limit = 8): Promise<MarketplaceTemplate[]> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('marketplace_templates')
         .select('*')
         .eq('status', 'approved')
@@ -140,7 +140,7 @@ export const templateMarketplace = {
 
   async getRecentTemplates(limit = 8): Promise<MarketplaceTemplate[]> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('marketplace_templates')
         .select('*')
         .eq('status', 'approved')
@@ -157,7 +157,7 @@ export const templateMarketplace = {
   async searchTemplates(query: string, limit = 20): Promise<MarketplaceTemplate[]> {
     try {
       const safeQuery = query.replace(/[",]/g, '');
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('marketplace_templates')
         .select('*')
         .eq('status', 'approved')
@@ -174,7 +174,7 @@ export const templateMarketplace = {
 
   async getTemplatesByUser(userId: string): Promise<MarketplaceTemplate[]> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('marketplace_templates')
         .select('*')
         .eq('author_id', userId)

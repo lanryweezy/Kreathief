@@ -132,14 +132,12 @@ export const useFileHandler = () => {
     const uploadedImage = uploads.length > 0 ? uploads[uploads.length - 1] || null : null;
     const backgroundImageUrl = activeImage?.url || uploadedImage || null;
 
-    return await exportService.exportDesignToImage(
-      canvasSize.width,
-      canvasSize.height,
-      canvasBackgroundColor,
-      backgroundImageUrl,
-      layers,
-      canvasFilters
-    );
+    const blob = await exportService.exportDesignToImage(layers as any, { width: canvasSize.width, height: canvasSize.height });
+    return new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
   };
 
   const handleExportBlob = async (): Promise<Blob | null> => {
@@ -156,14 +154,7 @@ export const useFileHandler = () => {
     const uploadedImage = uploads.length > 0 ? uploads[uploads.length - 1] || null : null;
     const backgroundImageUrl = activeImage?.url || uploadedImage || null;
 
-    return await exportService.exportDesignToBlob(
-      canvasSize.width,
-      canvasSize.height,
-      canvasBackgroundColor,
-      backgroundImageUrl,
-      layers,
-      canvasFilters
-    );
+    return await exportService.exportDesignToImage(layers as any, { width: canvasSize.width, height: canvasSize.height });
   };
 
   const handleConfirmExport = async (options: ExportOptions) => {
@@ -201,7 +192,7 @@ export const useFileHandler = () => {
         // High-end Print Export (Vector)
 
         // Prepress Validation
-        const warnings = validatePrepress(scaledLayers, printOptions.targetDPI || 300);
+        const warnings = validatePrepress(scaledLayers, (printOptions as any).targetDPI || 300);
         if (warnings.length > 0) {
           const warnMsg = warnings.map((w) => w.message).join(' | ');
           if (addToast) addToast(`Prepress Warning: ${warnMsg}`, 'warning');
@@ -215,21 +206,13 @@ export const useFileHandler = () => {
       } else if (format === 'pdf') {
         // Legacy/Fallback PDF (Vector)
         await exportService.exportToPrintPDF(exportWidth, exportHeight, scaledLayers, fileName, {
-          colorProfile: 'sRGB',
+          colorProfile: 'srgb',
           bleed: 0,
           cropMarks: false,
         });
       } else {
-        const downloadUrl = await exportService.exportDesignToImage(
-          exportWidth,
-          exportHeight,
-          bgColor,
-          activeImage?.url || uploadedImage || null,
-          scaledLayers,
-          canvasFilters,
-          format,
-          quality
-        );
+        const blob = await exportService.exportDesignToImage(scaledLayers, { width: exportWidth, height: exportHeight, format, quality });
+        const downloadUrl = URL.createObjectURL(blob);
 
         const link = document.createElement('a');
         link.href = downloadUrl;

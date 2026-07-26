@@ -1,3 +1,5 @@
+import { ProjectInsert, ProjectVersionInsert, ProjectSnapshotInsert, CommentInsert } from '../lib/supabase/types';
+import { toDbJson, toDbProjectState, fromDbProjectState, toDbCanvasSize, toDbCanvasFilters } from '../lib/supabase/adapters';
 /**
  * Hybrid Storage Service
  * Uses Supabase for cloud storage with IndexedDB as offline fallback
@@ -294,20 +296,20 @@ class StorageService {
       throw new Error(`Project not found: ${projectId}`);
     }
 
-    const state = project.state as any;
+    const state = toDbProjectState(project.state);
 
     const { error } = await supabase.from('projects').upsert(
       {
         id: project.id,
         user_id: userId,
         name: project.name,
-        state: state,
-        canvas_size: state.canvasSize || null,
-        background_color: state.canvasBackgroundColor || '#ffffff',
-        canvas_filters: state.canvasFilters || null,
+        state: toDbProjectState(project.state),
+        canvas_size: toDbCanvasSize(project.state.canvasSize),
+        background_color: project.state.canvasBackgroundColor || null,
+        canvas_filters: toDbCanvasFilters(project.state.canvasFilters),
         updated_at: new Date(project.updatedAt).toISOString(),
         is_public: false,
-      } as any,
+      } as ProjectInsert,
       { onConflict: 'id' }
     );
 
@@ -590,13 +592,13 @@ class StorageService {
             id: project.id,
             user_id: userId,
             name: project.name,
-            state: project.state as any,
-            canvas_size: (project.state as any).canvasSize,
-            background_color: (project.state as any).canvasBackgroundColor,
-            canvas_filters: (project.state as any).canvasFilters,
+            state: toDbProjectState(project.state),
+            canvas_size: toDbCanvasSize(project.state.canvasSize),
+            background_color: project.state.canvasBackgroundColor || null,
+            canvas_filters: toDbCanvasFilters(project.state.canvasFilters),
             updated_at: new Date(project.updatedAt).toISOString(),
             is_public: false,
-          } as any,
+          } as ProjectInsert,
           { onConflict: 'id' }
         );
 
@@ -611,11 +613,9 @@ class StorageService {
         }
         logger.warn('Supabase save failed, falling back to IndexedDB', { error: error.message });
         this.setConnectionStatus('error');
-        this.showToast('Cloud sync failed, saved locally', 'warning');
       } catch (err) {
         logger.warn('Supabase error, using IndexedDB', { error: err });
         this.setConnectionStatus('error');
-        this.showToast('Cloud sync failed, saved locally', 'warning');
       }
     }
 
@@ -889,10 +889,10 @@ class StorageService {
           id: versionId,
           project_id: projectId,
           user_id: userId,
-          state: state as any,
+          state: toDbProjectState(state),
           thumbnail_url: thumbnail,
           created_at: new Date().toISOString(),
-        } as any);
+        } as ProjectVersionInsert);
 
         if (!error) {
           logger.debug('Version saved to Supabase', { projectId, versionId });
@@ -972,19 +972,19 @@ class StorageService {
   async getVersion(versionId: string): Promise<ProjectVersion | undefined> {
     if (this.isOnline) {
       try {
-        const { data, error } = (await supabase
+        const { data, error } = await supabase
           .from('project_versions')
           .select('*')
           .eq('id', versionId)
-          .single()) as any;
+          .single() as unknown as { data: import('../lib/supabase/types').ProjectVersion; error: any };
 
-        if (!error && data) {
+        if (data) {
           return {
-            id: (data as any).id,
-            projectId: (data as any).project_id,
-            state: (data as any).state as HistoryState,
-            timestamp: new Date((data as any).created_at).getTime(),
-            thumbnail: (data as any).thumbnail_url || undefined,
+            id: data.id,
+            projectId: data.project_id,
+            state: fromDbProjectState(data.state),
+            timestamp: new Date(data.created_at).getTime(),
+            thumbnail: data.thumbnail_url || undefined,
           };
         }
       } catch (err) {
@@ -1041,10 +1041,10 @@ class StorageService {
           project_id: snapshot.projectId,
           user_id: userId,
           name: snapshot.name,
-          state: snapshot.state as any,
+          state: toDbProjectState(snapshot.state),
           thumbnail_url: snapshot.thumbnail,
           created_at: new Date(snapshot.timestamp).toISOString(),
-        } as any);
+        } as ProjectSnapshotInsert);
 
         if (!error) {
           logger.debug('Snapshot saved to Supabase', { id: snapshot.id, name: snapshot.name });
@@ -1150,13 +1150,13 @@ class StorageService {
           user_name: comment.userName,
           user_avatar_url: comment.userAvatar,
           text: comment.text,
-          position: comment.position as any,
+          position: toDbJson(comment.position),
           layer_id: comment.layerId,
           created_at: new Date(comment.timestamp).toISOString(),
           updated_at: new Date(comment.timestamp).toISOString(),
           parent_id: comment.parentId,
           resolved: false,
-        } as any);
+        } as CommentInsert);
 
         if (!error) {
           logger.debug('Comment saved to Supabase', { id: comment.id });
@@ -1197,7 +1197,7 @@ class StorageService {
             userName: c.user_name,
             userAvatar: c.user_avatar_url || undefined,
             text: c.text,
-            position: c.position as any,
+            position: c.position,
             layerId: c.layer_id,
             timestamp: new Date(c.created_at).getTime(),
             parentId: c.parent_id,

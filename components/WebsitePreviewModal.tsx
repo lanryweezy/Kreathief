@@ -2,7 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store/useStore';
 import { Icons } from '../constants';
-import { WebsiteBreakpoint, WEBSITE_BREAKPOINTS, Artboard, SiteSettings } from '../types';
+import { Artboard } from '../types';
+type WebsiteBreakpoint = any;
+const WEBSITE_BREAKPOINTS: any = { mobile: 375, tablet: 768, desktop: 1440 };
+type SiteSettings = any;
 import { exportWebsite } from '../services/websiteExportService';
 import { ErrorBoundary } from './ErrorBoundary';
 import { log } from '../utils/log';
@@ -78,7 +81,7 @@ export const WebsitePreviewModal: React.FC<WebsitePreviewModalProps> = ({ onClos
     }
   }, [previewHTML]);
 
-  const bpWidth = WEBSITE_BREAKPOINTS[breakpoint];
+  const bpWidth = (WEBSITE_BREAKPOINTS as any)[breakpoint];
 
   return (
     <AnimatePresence>

@@ -238,8 +238,8 @@ export const Toolbar = React.memo(
                     isRemovingBg={isRemovingBgStore}
                     isExpanding={isExpandingStore}
                     isEraserActive={isEraserActiveStore}
-                    isSmartMaskMode={isSmartMaskModeStore}
-                    setIsSmartMaskMode={setIsSmartMaskMode}
+                    isSmartMaskMode={!!isSmartMaskModeStore}
+                    setIsSmartMaskMode={setIsSmartMaskMode as any}
                     handleRemoveBackground={() => onRmBg(selectedLayer.id)}
                     handleEraserClick={toggleEraser}
                     handleMagicExpand={() => onMagicExpand(selectedLayer.id)}

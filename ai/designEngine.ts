@@ -3,9 +3,9 @@ import type { Artboard, Layer, TextLayer, ShapeLayer } from '../types';
 export interface DesignAnalysis {
   score: number;
   suggestions: string[];
-  layout: { alignment: number; spacing: number; balance: number };
-  typography: { consistency: number; hierarchy: number };
-  color: { palette: string[]; contrast: number; harmony: number };
+  layout: { score: number; alignment: number; spacing: number; balance: number };
+  typography: { score: number; consistency: number; hierarchy: number };
+  color: { score: number; palette: string[]; contrast: number; harmony: number };
 }
 
 export interface LayoutVariant {
@@ -127,20 +127,28 @@ export function analyzeDesign(artboards: Artboard[], layers: Layer[]): DesignAna
   if (colors.length > 5) suggestions.push('Limit palette to 5 colors');
   if (spacing < 50) suggestions.push('Increase spacing between elements');
   if (alignment < 80) suggestions.push('Align text elements');
-  const score = Math.round((alignment + spacing + balance + contrast) / 4);
+  
+  const layoutScore = Math.round((alignment + spacing + balance) / 3);
+  const typeScore = Math.round((fonts.length <= 3 ? 100 : 50) + (hasHierarchy ? 100 : 40)) / 2;
+  const colorScore = Math.round((contrast + (colors.length <= 5 ? 90 : 50)) / 2);
+  const score = Math.round((layoutScore + typeScore + colorScore) / 3);
+  
   return {
     score,
     suggestions,
     layout: {
+      score: layoutScore,
       alignment,
       spacing: Math.round(spacing),
       balance: Math.round(balance),
     },
     typography: {
+      score: typeScore,
       consistency: fonts.length <= 3 ? 100 : 50,
       hierarchy: hasHierarchy ? 100 : 40,
     },
     color: {
+      score: colorScore,
       palette: colors,
       contrast: Math.round(contrast),
       harmony: colors.length <= 5 ? 90 : 50,

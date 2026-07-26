@@ -200,9 +200,9 @@ self.onmessage = async (e: MessageEvent) => {
 </x:xmpmeta>
 <?xpacket end="w"?>`.trim();
 
-    // @ts-expect-error - jspdf types don't include addMetadata but the method exists in the build
+    // @ts-ignore - jspdf types don't include addMetadata but the method exists in the build
     if (pdf.addMetadata) {
-      // @ts-expect-error - jspdf types don't include addMetadata but the method exists in the build
+      // @ts-ignore - jspdf types don't include addMetadata but the method exists in the build
       pdf.addMetadata(xmp, 'application/rdf+xml');
     }
 

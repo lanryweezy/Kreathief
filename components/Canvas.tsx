@@ -68,6 +68,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     selectedLayerIds,
     showGrid,
     showRulers,
+    showGoldenRatio,
     isDrawing,
     setPenMode,
     brushType,

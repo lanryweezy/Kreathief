@@ -17,13 +17,13 @@ export interface Asset {
   creator_id: string;
   title: string;
   description: string | null;
-  category: string;
+  category: string | null;
   tags: string[];
   file_url: string;
   thumbnail_url: string | null;
   price: number;
   downloads: number;
-  status: 'pending' | 'approved' | 'rejected';
+  status: string;
   created_at: string;
 }
 
@@ -46,7 +46,7 @@ export const creatorService = {
       } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data: creator, error } = await supabase
+      const { data: creator, error } = await (supabase as any)
         .from('creators')
         .insert({
           user_id: user.id,
@@ -82,11 +82,11 @@ export const creatorService = {
       } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data: creator } = await supabase.from('creators').select('id').eq('user_id', user.id).single();
+      const { data: creator } = await (supabase as any).from('creators').select('id').eq('user_id', user.id).single();
 
       if (!creator) throw new Error('Not a creator');
 
-      const { data: asset, error } = await supabase
+      const { data: asset, error } = await (supabase as any)
         .from('assets')
         .insert({
           creator_id: creator.id,
@@ -150,7 +150,7 @@ export const creatorService = {
 
   async approveAsset(assetId: string): Promise<boolean> {
     try {
-      const { error } = await supabase.from('assets').update({ status: 'approved' }).eq('id', assetId);
+      const { error } = await (supabase as any).from('assets').update({ status: 'approved' }).eq('id', assetId);
 
       if (error) throw error;
       return true;
@@ -162,7 +162,7 @@ export const creatorService = {
 
   async rejectAsset(assetId: string, reason: string): Promise<boolean> {
     try {
-      const { error } = await supabase.from('assets').update({ status: 'rejected' }).eq('id', assetId);
+      const { error } = await (supabase as any).from('assets').update({ status: 'rejected' }).eq('id', assetId);
 
       if (error) throw error;
       return true;

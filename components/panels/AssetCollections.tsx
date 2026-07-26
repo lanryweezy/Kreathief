@@ -33,25 +33,31 @@ export const AssetCollections: React.FC = () => {
       data: { user },
     } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
     if (user) {
-      const { data } = await supabase
-        .from('user_collections')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .catch(() => ({ data: null }));
-      setCols((data as Col[]) || []);
+      try {
+        const { data } = await (supabase as any)
+          .from('user_collections')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+        setCols((data as Col[]) || []);
+      } catch (e) {
+        setCols([]);
+      }
     }
     setLoading(false);
   }, []);
 
   const loadItems = useCallback(async (cid: string) => {
-    const { data } = await supabase
-      .from('collection_items')
-      .select('*')
-      .eq('collection_id', cid)
-      .order('position')
-      .catch(() => ({ data: null }));
-    setItems((data as ColItem[]) || []);
+    try {
+      const { data } = await (supabase as any)
+        .from('collection_items')
+        .select('*')
+        .eq('collection_id', cid)
+        .order('position');
+      setItems((data as any as ColItem[]) || []);
+    } catch (e) {
+      setItems([]);
+    }
   }, []);
   useEffect(() => {
     loadCols();
@@ -65,12 +71,11 @@ export const AssetCollections: React.FC = () => {
       data: { user },
     } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
     if (!user) return;
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from('user_collections')
       .insert({ user_id: user.id, name: newName.trim() })
       .select()
-      .single()
-      .catch(() => ({ data: null }));
+      .single();
     if (data) {
       setCols((p) => [data as Col, ...p]);
       setNewName('');
@@ -78,13 +83,13 @@ export const AssetCollections: React.FC = () => {
   };
   const rename = async (id: string) => {
     if (!editName.trim()) return;
-    await supabase.from('user_collections').update({ name: editName.trim() }).eq('id', id);
+    await (supabase as any).from('user_collections').update({ name: editName.trim() }).eq('id', id);
     setCols((p) => p.map((c) => (c.id === id ? { ...c, name: editName.trim() } : c)));
     setEditId(null);
   };
   const deleteCol = async () => {
     if (!del) return;
-    await supabase.from('user_collections').delete().eq('id', del.id);
+    await (supabase as any).from('user_collections').delete().eq('id', del.id);
     setCols((p) => p.filter((c) => c.id !== del.id));
     if (selId === del.id) setSelId(null);
     setDel(null);

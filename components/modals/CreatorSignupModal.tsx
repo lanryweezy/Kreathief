@@ -50,8 +50,8 @@ export const CreatorSignupModal: React.FC<CreatorSignupModalProps> = React.memo(
         } = await db.auth.getUser();
         if (!user) throw new Error('Not authenticated');
 
-        const { error: updateError } = await db
-          .from('profiles')
+        const { error: updateError } = await (db
+          .from('profiles') as any)
           .update({
             name: name.trim(),
             website: portfolioUrl.trim() || null,

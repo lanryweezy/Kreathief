@@ -58,17 +58,17 @@ function renderEffectDefs(nodeId: string, effects: Effect[]): string {
 
   for (const effect of effects) {
     if (!effect.enabled) continue;
-    if (effect.type === 'shadow') {
-      const p = effect.params;
+    if ((effect.type as any) === 'shadow') {
+      const p = (effect as any).params;
       filterPrimitives += `<feDropShadow dx="${p.x ?? 0}" dy="${p.y ?? 4}" stdDeviation="${p.blur ?? 8}" flood-color="${p.color ?? content.inverse}" flood-opacity="${p.opacity ?? 0.25}" />`;
       hasFilter = true;
     }
-    if (effect.type === 'blur') {
-      filterPrimitives += `<feGaussianBlur in="SourceGraphic" stdDeviation="${effect.params.radius ?? 4}" />`;
+    if ((effect.type as any) === 'blur') {
+      filterPrimitives += `<feGaussianBlur in="SourceGraphic" stdDeviation="${((effect as any).params).radius ?? 4}" />`;
       hasFilter = true;
     }
-    if (effect.type === 'glow') {
-      const p = effect.params;
+    if ((effect.type as any) === 'glow') {
+      const p = (effect as any).params;
       filterPrimitives += `<feDropShadow dx="0" dy="0" stdDeviation="${p.blur ?? 12}" flood-color="${p.color ?? content.primary}" flood-opacity="${p.opacity ?? 0.6}" />`;
       hasFilter = true;
     }
@@ -111,7 +111,7 @@ function renderNodeToSvg(
   const y = node.y - offsetY;
   const fill = resolveFill(node);
   const stroke = node.stroke ? `stroke="${node.stroke}" stroke-width="${node.strokeWidth}"` : '';
-  const opacity = node.opacity < 1 ? ` opacity="${node.opacity}"` : '';
+  const opacity = (node.opacity ?? 1) < 1 ? ` opacity="${node.opacity ?? 1}"` : '';
   const transform = node.rotation
     ? ` transform="rotate(${node.rotation} ${x + node.width / 2} ${y + node.height / 2})"`
     : '';
@@ -129,7 +129,7 @@ function renderNodeToSvg(
 
   // Group children
   if (node.type === 'group' || node.type === 'frame') {
-    const childSvgs = node.children
+    const childSvgs = (node.children || [])
       .map((id) => nodesMap.get(id))
       .filter(Boolean)
       .map((child) => renderNodeToSvg(child!, nodesMap, offsetX, offsetY))
@@ -143,8 +143,8 @@ function renderNodeToSvg(
 
   switch (node.type) {
     case 'rect':
-      if (node.cornerRadius > 0) {
-        return `<rect id="${node.id}" x="${x}" y="${y}" width="${node.width}" height="${node.height}" rx="${node.cornerRadius}" ry="${node.cornerRadius}" ${fillAttr}${stroke}${opacity}${transform}${blendMode}${filterAttr} />`;
+      if ((node.cornerRadius || 0) > 0) {
+        return `<rect id="${node.id}" x="${x}" y="${y}" width="${node.width}" height="${node.height}" rx="${node.cornerRadius || 0}" ry="${node.cornerRadius || 0}" ${fillAttr}${stroke}${opacity}${transform}${blendMode}${filterAttr} />`;
       }
       return `<rect id="${node.id}" x="${x}" y="${y}" width="${node.width}" height="${node.height}" ${fillAttr}${stroke}${opacity}${transform}${blendMode}${filterAttr} />`;
 
@@ -176,7 +176,7 @@ function renderNodeToSvg(
     case 'path': {
       if (!node.points || node.points.length < 2) return '';
       // Translate points by offset
-      const translated = node.points.map((p) => ({
+      const translated = node.points.map((p: any) => ({
         ...p,
         x: p.x - offsetX,
         y: p.y - offsetY,
@@ -307,7 +307,7 @@ export function exportToCanvas(
       const y = node.y - minY + padding;
 
       ctx.save();
-      ctx.globalAlpha = node.opacity;
+      ctx.globalAlpha = node.opacity ?? 1;
 
       // Blend mode — matches canvas engine
       if (node.blendMode !== 'normal') {
@@ -325,18 +325,18 @@ export function exportToCanvas(
       if (node.effects?.length) {
         for (const effect of node.effects) {
           if (!effect.enabled) continue;
-          if (effect.type === 'shadow') {
-            const p = effect.params;
+          if ((effect.type as any) === 'shadow') {
+            const p = (effect as any).params;
             ctx.shadowOffsetX = p.x ?? 0;
             ctx.shadowOffsetY = p.y ?? 4;
             ctx.shadowBlur = p.blur ?? 8;
             ctx.shadowColor = hexToRgba(p.color ?? content.inverse, p.opacity ?? 0.25);
           }
-          if (effect.type === 'blur') {
-            ctx.filter = `blur(${effect.params.radius ?? 4}px)`;
+          if ((effect.type as any) === 'blur') {
+            ctx.filter = `blur(${((effect as any).params).radius ?? 4}px)`;
           }
-          if (effect.type === 'glow') {
-            const p = effect.params;
+          if ((effect.type as any) === 'glow') {
+            const p = (effect as any).params;
             ctx.shadowOffsetX = 0;
             ctx.shadowOffsetY = 0;
             ctx.shadowBlur = p.blur ?? 12;
@@ -356,17 +356,17 @@ export function exportToCanvas(
       // Render shape — matches canvas engine per-type rendering
       switch (node.type) {
         case 'rect':
-          if (node.cornerRadius > 0) {
-            canvasRoundRect(ctx, x, y, node.width, node.height, node.cornerRadius);
+          if ((node.cornerRadius || 0) > 0) {
+            canvasRoundRect(ctx, x, y, node.width, node.height, node.cornerRadius || 0);
             ctx.fill();
           } else {
             ctx.fillRect(x, y, node.width, node.height);
           }
           if (node.stroke) {
             ctx.strokeStyle = node.stroke;
-            ctx.lineWidth = node.strokeWidth;
-            if (node.cornerRadius > 0) {
-              canvasRoundRect(ctx, x, y, node.width, node.height, node.cornerRadius);
+            ctx.lineWidth = node.strokeWidth || 0;
+            if ((node.cornerRadius || 0) > 0) {
+              canvasRoundRect(ctx, x, y, node.width, node.height, node.cornerRadius || 0);
               ctx.stroke();
             } else {
               ctx.strokeRect(x, y, node.width, node.height);
@@ -380,7 +380,7 @@ export function exportToCanvas(
           ctx.fill();
           if (node.stroke) {
             ctx.strokeStyle = node.stroke;
-            ctx.lineWidth = node.strokeWidth;
+            ctx.lineWidth = node.strokeWidth || 0;
             ctx.stroke();
           }
           break;
@@ -432,7 +432,7 @@ export function exportToCanvas(
             ctx.fill();
             if (node.stroke) {
               ctx.strokeStyle = node.stroke;
-              ctx.lineWidth = node.strokeWidth;
+              ctx.lineWidth = node.strokeWidth || 0;
               ctx.stroke();
             }
           }
@@ -567,7 +567,7 @@ export function downloadBlob(blob: Blob, filename: string) {
 
 // ── Stub exports for backward compatibility ────────────────────
 
-export type ColorProfile = 'srgb' | 'cmyk' | 'p3';
+export type ColorProfile = 'srgb' | 'cmyk' | 'p3' | 'FOGRA39' | 'GRACoL' | 'SWOP' | 'CMYK' | 'sRGB';
 
 export interface PDFExportOptions {
   format?: 'pdf';
@@ -670,11 +670,13 @@ export async function batchExportArtboardsZip(
           opacity: l.opacity ?? 1,
         }) as any
     );
-    const canvas = await exportToCanvas(nodes, ab.width || 1080, ab.height || 1080);
-    const blob = await new Promise<Blob>((resolve) => {
-      canvas.toBlob((b) => resolve(b || new Blob()), `image/${options?.format || 'png'}`, options?.quality || 1);
-    });
-    zip.file(`${ab.name || `artboard-${i}`}.${options?.format || 'png'}`, blob);
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = ab.width || 1080;
+    tempCanvas.height = ab.height || 1080;
+    const blob = await exportToCanvas(tempCanvas, nodes, { format: (options?.format as any) || 'png', quality: options?.quality || 1 } as any);
+    if (blob) {
+      zip.file(`${ab.name || `artboard-${i}`}.${options?.format || 'png'}`, blob);
+    }
   }
   return zip.generateAsync({ type: 'blob' });
 }

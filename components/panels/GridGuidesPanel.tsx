@@ -13,14 +13,14 @@ export const GridGuidesPanel: React.FC = () => {
   const setSnapToObjects = useStore((state) => state.setSnapToObjects);
   const addToast = useStore((state) => state.addToast);
 
-  const gridSize = useStore((state) => state.gridSize) || 20;
-  const setGridSize = useStore((state) => state.setGridSize);
-  const gridColor = useStore((state) => state.gridColor) || '#7c3aed';
-  const setGridColor = useStore((state) => state.setGridColor);
-  const guides = useStore((state) => state.guides) || [];
-  const addGuide = useStore((state) => state.addGuide);
-  const removeGuide = useStore((state) => state.removeGuide);
-  const clearGuides = useStore((state) => state.clearGuides);
+  const gridSize = useStore((state) => (state as any).gridSize) || 20;
+  const setGridSize = useStore((state) => (state as any).setGridSize);
+  const gridColor = useStore((state) => (state as any).gridColor) || '#7c3aed';
+  const setGridColor = useStore((state) => (state as any).setGridColor);
+  const guides = useStore((state) => (state as any).guides) || [];
+  const addGuide = useStore((state) => (state as any).addGuide);
+  const removeGuide = useStore((state) => (state as any).removeGuide);
+  const clearGuides = useStore((state) => (state as any).clearGuides);
 
   const handleAddGuide = useCallback(
     (type: 'horizontal' | 'vertical') => {
@@ -159,7 +159,7 @@ export const GridGuidesPanel: React.FC = () => {
 
         {guides.length > 0 && (
           <div className="max-h-32 overflow-y-auto space-y-1 custom-scrollbar">
-            {guides.map((guide, index) => (
+            {guides.map((guide: any, index: number) => (
               <div
                 key={index}
                 className="text-[10px] text-gray-500 bg-surface-dark-4 rounded px-2 py-1.5 flex items-center justify-between"

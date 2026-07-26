@@ -35,6 +35,11 @@ export abstract class WorkerServiceBase {
 
       this.worker.onerror = (e) => {
         log.error(`${this.serviceName} Error:`, e);
+        // Reject all pending callbacks so UI promises don't hang indefinitely
+        for (const [id, callback] of this.callbacks.entries()) {
+          callback.reject(new Error(`${this.serviceName} crashed: ${e.message || 'Worker error'}`));
+        }
+        this.callbacks.clear();
         this.worker = null;
       };
     } catch (err) {

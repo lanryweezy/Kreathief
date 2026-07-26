@@ -435,8 +435,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
           layers: ab.layers,
           backgroundColor: ab.backgroundColor || '#ffffff',
         })),
-        exportableFormat,
-        quality
+        { format: exportableFormat, quality }
       );
 
       analyticsService.trackExport(format, quality, { batchExport: true, artboardCount: selected.length });

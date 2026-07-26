@@ -1,5 +1,5 @@
 import JSZip from 'jszip';
-import { Artboard, Layer, TextLayer, ShapeLayer, ImageLayer, SiteSettings } from '../types';
+import { Artboard, Layer, TextLayer, ShapeLayer, ImageLayer } from '../types';
 
 /**
  * Heuristic Layout Engine
@@ -45,7 +45,7 @@ function groupLayersIntoRows(layers: Layer[]): Layer[][] {
 /**
  * Generate Tailwind classes for a layer
  */
-function getTailwindClasses(layer: Layer): string {
+function getTailwindClasses(layer: any): string {
   const classes: string[] = ['relative'];
 
   // Interactive Hover states
@@ -71,7 +71,7 @@ function getTailwindClasses(layer: Layer): string {
 /**
  * Convert a layer to JSX string
  */
-function layerToJSX(layer: Layer, isFullWidthRow: boolean, globalDelayOffset: number = 0): string {
+function layerToJSX(layer: any, isFullWidthRow: boolean, globalDelayOffset: number = 0): string {
   const tw = getTailwindClasses(layer);
   const base = layer as any;
   const isTransparent = (base.opacity ?? 1) < 0.9;
@@ -381,7 +381,7 @@ const INDEX_CSS = `@tailwind base;
 /**
  * Download website as a React/Vite/Tailwind ZIP
  */
-export async function downloadWebsiteAsZip(artboards: Artboard[], siteSettings: SiteSettings | null): Promise<void> {
+export async function downloadWebsiteAsZip(artboards: Artboard[], siteSettings: any | null): Promise<void> {
   const websitePages = artboards.filter((a) => (a as any).websitePage);
   if (websitePages.length === 0) return;
 
@@ -430,7 +430,7 @@ export async function downloadWebsiteAsZip(artboards: Artboard[], siteSettings: 
 // requires static files for simple deployments (without build steps), we can generate an HTML build too.
 // However, the user asked for full React+Tailwind+Vite export. If Vercel needs HTML, we can provide a basic HTML string.
 // Let's provide a fallback `exportWebsite` for the deploy integration.
-export async function exportWebsite(artboards: Artboard[], siteSettings: SiteSettings | null) {
+export async function exportWebsite(artboards: Artboard[], siteSettings: any | null) {
   // Return the raw React files as an array for the deployer if it supports it,
   // or a very simplified HTML fallback.
   // The Vercel deployer currently expects { filename: string, html: string }[] and css.

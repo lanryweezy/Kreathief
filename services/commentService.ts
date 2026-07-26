@@ -8,7 +8,7 @@ export interface DBComment {
   user_name: string;
   user_avatar_url: string | null;
   text: string;
-  position: { x: number; y: number } | null;
+  position: any;
   layer_id: string | null;
   parent_id: string | null;
   resolved: boolean;
@@ -120,7 +120,7 @@ export const commentService = {
       if (fetchError) throw fetchError;
 
       const { error } = await (supabase.from('comments') as any)
-        .update({ resolved: !data.resolved, updated_at: new Date().toISOString() })
+        .update({ resolved: !(data as any).resolved, updated_at: new Date().toISOString() } as any)
         .eq('id', commentId);
 
       if (error) throw error;

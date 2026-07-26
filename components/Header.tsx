@@ -78,7 +78,8 @@ export const Header: React.FC<HeaderProps> = ({
     }
     if (lastSaved) {
       const now = Date.now();
-      const diff = now - lastSaved.getTime();
+      const lastTime = typeof lastSaved === 'number' ? lastSaved : (lastSaved as Date).getTime ? (lastSaved as Date).getTime() : Number(lastSaved);
+      const diff = now - lastTime;
       const minutes = Math.floor(diff / 60000);
       if (minutes < 1) {
         return 'Saved just now';

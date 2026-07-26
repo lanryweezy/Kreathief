@@ -148,7 +148,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     handleAIGenerate,
     NodeGraphComponent,
     AIGenerateComponent,
-  } = EditorAIPanel({ onAddLayer: (layer) => useStore.getState().addLayer(layer) });
+  } = EditorAIPanel({ onAddLayer: (layer) => useStore.getState().addLayer(layer) }) as any;
 
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -668,7 +668,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           onDownload={() => setShowExport(true)}
           onBack={handleBack}
           isNavigating={isNavigating}
-          onNew={() => useStore.getState().initializeProject()}
+          onNew={() => useStore.getState().createProject('New Project')}
           onOpenCommunity={() => setShowCommunityModal(true)}
           user={user}
           zoom={zoom}
@@ -1061,7 +1061,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       </ErrorBoundary>
 
       <ShortcutOverlay isOpen={showShortcuts} onClose={() => useStore.getState().setShowShortcuts(false)} />
-      {showFeedbackModal && <FeedbackModal onClose={() => useStore.getState().setShowFeedbackModal(false)} />}
+      {showFeedbackModal && <FeedbackModal />}
 
       {/* Mount the PresentationModal so it can react to global store changes */}
       <PresentationModal />

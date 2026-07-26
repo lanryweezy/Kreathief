@@ -68,15 +68,13 @@ function effectsFromPSD(layer: Layer): DesignNode['effects'] {
     for (const ds of shadows) {
       if (ds?.enabled) {
         effects.push({
-          type: 'shadow',
+          type: 'drop-shadow',
           enabled: true,
-          params: {
-            x: ds.distance?.value || 4,
-            y: ds.distance?.value || 4,
-            blur: ds.size?.value || 4,
-            color: colorToRGBA(ds.color) || 'rgba(0,0,0,0.3)',
-          },
-        });
+          x: ds.distance?.value || 4,
+          y: ds.distance?.value || 4,
+          blur: ds.size?.value || 4,
+          color: colorToRGBA(ds.color) || 'rgba(0,0,0,0.3)',
+        } as any);
       }
     }
   }
@@ -86,16 +84,14 @@ function effectsFromPSD(layer: Layer): DesignNode['effects'] {
     for (const is of shadows) {
       if (is?.enabled) {
         effects.push({
-          type: 'shadow',
+          type: 'inner-shadow',
           enabled: true,
-          params: {
-            x: is.distance?.value || 4,
-            y: is.distance?.value || 4,
-            blur: is.size?.value || 4,
-            inner: true,
-            color: colorToRGBA(is.color) || 'rgba(0,0,0,0.3)',
-          },
-        });
+          x: is.distance?.value || 4,
+          y: is.distance?.value || 4,
+          blur: is.size?.value || 4,
+          inner: true,
+          color: colorToRGBA(is.color) || 'rgba(0,0,0,0.3)',
+        } as any);
       }
     }
   }
@@ -103,13 +99,11 @@ function effectsFromPSD(layer: Layer): DesignNode['effects'] {
   if (layerEffects.outerGlow?.enabled) {
     const g = layerEffects.outerGlow;
     effects.push({
-      type: 'glow',
+      type: 'drop-shadow',
       enabled: true,
-      params: {
-        blur: g.size?.value || 4,
-        color: colorToRGBA(g.color) || 'rgba(255,255,255,0.5)',
-      },
-    });
+      blur: g.size?.value || 4,
+      color: colorToRGBA(g.color) || 'rgba(255,255,255,0.5)',
+    } as any);
   }
 
   return effects;
@@ -222,8 +216,8 @@ function processPSDNode(
     visible: isVisible,
     locked: false,
     blendMode: parseBlendMode(psdNode.blendMode as string),
-    fill: null,
-    stroke: null,
+    fill: undefined,
+    stroke: undefined,
     strokeWidth: 0,
     cornerRadius: 0,
     effects: effectsFromPSD(psdNode),
@@ -251,7 +245,7 @@ function processPSDNode(
     for (const child of psdNode.children!) {
       const childId = processPSDNode(child, nodeId, nodes, canvas, options, isVisible);
       if (childId) {
-        node.children.push(childId);
+        node.children!.push(childId);
       }
     }
   }
@@ -321,8 +315,8 @@ export async function parsePSDFile(file: File, options: Partial<PSDCompressionOp
     visible: true,
     locked: false,
     blendMode: 'normal',
-    fill: null,
-    stroke: null,
+    fill: undefined,
+    stroke: undefined,
     strokeWidth: 0,
     cornerRadius: 0,
     effects: [],

@@ -4,7 +4,16 @@
  */
 
 import React from 'react';
-import { Layer, TextLayer, ShapeLayer, ImageLayer, AdjustmentLayer, AnimationSettings, ResizeHandle, CanvasFilters } from '../../types';
+import {
+  Layer,
+  TextLayer,
+  ShapeLayer,
+  ImageLayer,
+  AdjustmentLayer,
+  AnimationSettings,
+  ResizeHandle,
+  CanvasFilters,
+} from '../../types';
 import { getLayerClipPath, getAnimationStyle } from '../../utils/layerRendering';
 import { buildVariableStrokeOutline, profileWidthFn } from '../../utils/variableStroke';
 import { buildFilterString, getLayerStyle } from '../../utils/layers';
@@ -491,15 +500,13 @@ export const ShapeLayerItem = React.memo(
                       {shapeLayer.strokeProfile && shapeLayer.strokeProfile !== 'uniform' && (
                         <>
                           <linearGradient id={`taper-mask-${shapeLayer.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                            {shapeLayer.strokeProfile === 'taper-start' ||
-                            shapeLayer.strokeProfile === 'taper-both' ? (
+                            {shapeLayer.strokeProfile === 'taper-start' || shapeLayer.strokeProfile === 'taper-both' ? (
                               <stop offset="0%" stopColor="#000" stopOpacity="0" />
                             ) : (
                               <stop offset="0%" stopColor="#000" stopOpacity="1" />
                             )}
                             <stop offset="50%" stopColor="#000" stopOpacity="1" />
-                            {shapeLayer.strokeProfile === 'taper-end' ||
-                            shapeLayer.strokeProfile === 'taper-both' ? (
+                            {shapeLayer.strokeProfile === 'taper-end' || shapeLayer.strokeProfile === 'taper-both' ? (
                               <stop offset="100%" stopColor="#000" stopOpacity="0" />
                             ) : (
                               <stop offset="100%" stopColor="#000" stopOpacity="1" />

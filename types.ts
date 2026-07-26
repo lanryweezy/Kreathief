@@ -563,9 +563,9 @@ export interface Toast {
 
 export interface DesignCritique {
   suggestions: DesignSuggestion[];
-  score: number;
+  score?: number;
   overallScore: number;
-  summary: string;
+  summary?: string;
   strengths: string[];
   areas_for_improvement: string[];
   timestamp?: number;

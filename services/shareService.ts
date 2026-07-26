@@ -17,7 +17,7 @@ class ShareService {
         .single();
 
       if (existing) {
-        return this.formatShareUrl(existing.id);
+        return this.formatShareUrl((existing as any).id);
       }
 
       const shareId = this.generateId();
@@ -45,7 +45,7 @@ class ShareService {
         insertData.expires_at = expires.toISOString();
       }
 
-      const { error } = await (supabase.from('share_links') as any).insert(insertData);
+      const { error } = await ((supabase as any).from('share_links') as any).insert(insertData);
       if (error) throw error;
 
       log.info('Share link created', { projectId, shareId });
@@ -67,16 +67,16 @@ class ShareService {
       if (error || !data) return null;
 
       // Check expiry
-      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+      if ((data as any).expires_at && new Date((data as any).expires_at) < new Date()) {
         return null;
       }
 
       // Increment view count
-      await (supabase.from('share_links') as any)
+      await ((supabase as any).from('share_links') as any)
         .update({ view_count: (data as any).view_count ? (data as any).view_count + 1 : 1 })
         .eq('id', shareId);
 
-      return { projectId: data.project_id, userId: data.user_id };
+      return { projectId: (data as any).project_id, userId: (data as any).user_id };
     } catch (error) {
       log.error('Failed to resolve share link', { error, shareId });
       return null;
@@ -85,7 +85,7 @@ class ShareService {
 
   async deleteShareLink(shareId: string): Promise<boolean> {
     try {
-      const { error } = await supabase.from('share_links').delete().eq('id', shareId);
+      const { error } = await (supabase as any).from('share_links').delete().eq('id', shareId);
       if (error) throw error;
       return true;
     } catch (error) {
@@ -112,10 +112,10 @@ class ShareService {
 
   async verifyPassword(shareId: string, password: string): Promise<boolean> {
     try {
-      const { data, error } = await supabase.from('share_links').select('password_hash').eq('id', shareId).single();
+      const { data, error } = await (supabase as any).from('share_links').select('password_hash').eq('id', shareId).single();
 
       if (error || !data) return false; // DB error = deny access
-      if (!data.password_hash) return true; // No password set
+      if (!(data as any).password_hash) return true; // No password set
 
       const encoder = new TextEncoder();
       const hashData = encoder.encode(password + shareId);
@@ -124,7 +124,7 @@ class ShareService {
         .map((b) => b.toString(16).padStart(2, '0'))
         .join('');
 
-      return hash === data.password_hash;
+      return hash === (data as any).password_hash;
     } catch (error) {
       return false;
     }

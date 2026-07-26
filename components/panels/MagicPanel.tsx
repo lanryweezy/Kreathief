@@ -456,15 +456,15 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
             <div className="grid grid-cols-3 gap-2 text-center">
               <div className="bg-white/5 rounded-lg p-2">
                 <div className="text-[9px] text-gray-500 uppercase">Layout</div>
-                <div className="text-xs font-bold text-white">{designAnalysis.layout.alignment}</div>
+                <div className="text-xs font-bold text-white">{designAnalysis.layout.score}</div>
               </div>
               <div className="bg-white/5 rounded-lg p-2">
                 <div className="text-[9px] text-gray-500 uppercase">Type</div>
-                <div className="text-xs font-bold text-white">{designAnalysis.typography.consistency}</div>
+                <div className="text-xs font-bold text-white">{designAnalysis.typography.score}</div>
               </div>
               <div className="bg-white/5 rounded-lg p-2">
                 <div className="text-[9px] text-gray-500 uppercase">Color</div>
-                <div className="text-xs font-bold text-white">{designAnalysis.color.contrast}</div>
+                <div className="text-xs font-bold text-white">{designAnalysis.color.score}</div>
               </div>
             </div>
             {designAnalysis.suggestions.length > 0 && (

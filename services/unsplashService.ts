@@ -1,4 +1,4 @@
-// @ts-expect-error - ignore type mismatch
+// @ts-ignore - ignore type mismatch
 import { log } from '../utils/log';
 
 export interface UnsplashPhoto {

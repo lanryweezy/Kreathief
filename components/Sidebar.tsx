@@ -40,11 +40,18 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
     const [showAllTools, setShowAllTools] = useState(false);
 
     const primaryTools = useMemo(() => {
-      // Persistent core tools
-      const persistent = [NavTab.LAYERS, NavTab.BRAND];
-      const combined = Array.from(new Set([...contextualTabs, ...persistent]));
-      return ALL_TABS.filter((t) => combined.includes(t.id));
-    }, [contextualTabs]);
+      // Fixed core tools to preserve muscle memory
+      const persistent = [
+        NavTab.ASSISTANT,
+        NavTab.MAGIC,
+        NavTab.TEMPLATES,
+        NavTab.MEDIA,
+        NavTab.TEXT,
+        NavTab.LAYERS,
+        NavTab.BRAND
+      ];
+      return ALL_TABS.filter((t) => persistent.includes(t.id));
+    }, []);
 
     const secondaryTools = useMemo(() => {
       const primaryIds = primaryTools.map((t) => t.id);
