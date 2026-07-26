@@ -32,24 +32,33 @@ export const SmartSnap: React.FC<SmartSnapProps> = ({ layers, selectedIds, zoom 
   const threshold = 5 / zoom;
 
   if (selectedLayers.length >= 1 && otherLayers.length >= 1) {
-    const xs = selectedLayers.map((l) => l.x);
-    const ys = selectedLayers.map((l) => l.y);
-    const xws = selectedLayers.map((l) => l.x + (l.width || 0));
-    const yhs = selectedLayers.map((l) => l.y + (l.height || 0));
-    if (
-      !xs.every(Number.isFinite) ||
-      !ys.every(Number.isFinite) ||
-      !xws.every(Number.isFinite) ||
-      !yhs.every(Number.isFinite)
-    )
-      return null;
+    // ⚡ Bolt Optimization: Use a single for-loop for bounds calculation to avoid redundant O(N) array allocations
+    // and prevent Maximum call stack size exceeded errors from Math.min/max with spread operators on large arrays
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let isValid = true;
+    for (let i = 0; i < selectedLayers.length; i++) {
+      const l = selectedLayers[i];
+      const xw = l.x + (l.width || 0);
+      const yh = l.y + (l.height || 0);
+      if (!Number.isFinite(l.x) || !Number.isFinite(l.y) || !Number.isFinite(xw) || !Number.isFinite(yh)) {
+        isValid = false;
+        break;
+      }
+      if (l.x < minX) minX = l.x;
+      if (l.y < minY) minY = l.y;
+      if (xw > maxX) maxX = xw;
+      if (yh > maxY) maxY = yh;
+    }
+
+    if (!isValid) return null;
+
     const bounds = {
-      left: Math.min(...xs),
-      right: Math.max(...xws),
-      top: Math.min(...ys),
-      bottom: Math.max(...yhs),
-      centerX: (Math.min(...xs) + Math.max(...xws)) / 2,
-      centerY: (Math.min(...ys) + Math.max(...yhs)) / 2,
+      left: minX,
+      right: maxX,
+      top: minY,
+      bottom: maxY,
+      centerX: (minX + maxX) / 2,
+      centerY: (minY + maxY) / 2,
     };
 
     otherLayers.forEach((layer) => {
