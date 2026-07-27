@@ -32,9 +32,11 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-6 text-center h-full w-full max-w-2xl mx-auto overflow-hidden">
-      {/* Dynamic Background Glow */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-600/5 blur-[120px] rounded-full animate-pulse" />
+      {/* Mesh Gradient Background - 2026 depth pattern */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-600/5 blur-[120px] rounded-full motion-safe:animate-pulse" />
+        <div className="absolute top-1/4 left-1/4 w-[300px] h-[300px] bg-cyan-500/3 blur-[80px] rounded-full" />
+        <div className="absolute bottom-1/4 right-1/4 w-[200px] h-[200px] bg-purple-600/3 blur-[60px] rounded-full" />
       </div>
 
       {/* Floating Icon Stage */}
@@ -98,7 +100,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                 transition={{ delay: 0.3 + idx * 0.1, type: 'spring' }}
                 onClick={card.onClick}
                 aria-label={`${card.title}. ${card.description}${card.shortcut ? `. Shortcut: ${card.shortcut}` : ''}`}
-                className="group relative p-5 bg-[#0a0a0c]/40 border border-white/5 rounded-[24px] hover:border-brand-600/40 hover:bg-brand-600/5 transition-all overflow-hidden"
+                className="group relative p-5 bg-surface-warm/40 border border-white/5 rounded-[24px] hover:border-brand-600/40 hover:bg-brand-600/5 transition-all overflow-hidden spring-press"
               >
                 <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-100 group-hover:rotate-12 transition-all">
                   <div className="text-3xl grayscale group-hover:grayscale-0">{card.emoji}</div>
