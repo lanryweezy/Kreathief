@@ -346,6 +346,18 @@ h4,
     animation: text-gradient 6s linear infinite;
   }
 
+/* ===== Skeleton Loading Animation ===== */
+/* Hardware-accelerated shimmer for skeleton screens.
+ * Disabled automatically via motion-safe: Tailwind variant. */
+@keyframes skeleton-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
   .bg-dot-pattern {
     background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
     background-size: 24px 24px;

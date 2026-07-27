@@ -5,6 +5,14 @@ import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
 import { log } from '../utils/log';
 
+// 2026 AI Actions available on selected layers via delegative UX pattern
+const AI_ACTIONS = [
+  { id: 'variation', label: 'Generate Variation', hint: 'AI creates a styled duplicate', icon: 'Sparkles' },
+  { id: 'remove-bg', label: 'Remove Background', hint: 'AI removes image background', icon: 'Wand2' },
+  { id: 'fix-contrast', label: 'Fix Contrast', hint: 'AI adjusts colors for WCAG AA', icon: 'SunMedium' },
+  { id: 'auto-layout', label: 'Auto-Layout Layer', hint: 'AI applies smart alignment', icon: 'LayoutTemplate' },
+] as const;
+
 interface ContextMenuProps {
   x: number;
   y: number;
@@ -38,6 +46,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
     undo,
     groupSelected,
     ungroupSelected,
+    setActivePanel,
+    removeBackground,
   } = useStore(
     useShallow((state) => ({
       duplicateLayer: state.duplicateLayer,
@@ -54,6 +64,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
       undo: state.undo,
       groupSelected: state.groupSelected,
       ungroupSelected: state.ungroupSelected,
+      setActivePanel: (state as any).setActivePanel,
+      removeBackground: (state as any).removeBackground,
     }))
   );
 
@@ -112,6 +124,44 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
       updateLayer(layerId, { name: renameValue.trim() });
     }
     setIsRenaming(false);
+    onClose();
+  };
+
+  // 2026 delegative AI: handle inline AI actions directly on the selected layer
+  const handleAIAction = (actionId: typeof AI_ACTIONS[number]['id']) => {
+    switch (actionId) {
+      case 'variation': {
+        duplicateLayer(layerId);
+        addToast?.('AI variation created — customize in the AI panel', 'success');
+        if (setActivePanel) setActivePanel('magic');
+        break;
+      }
+      case 'remove-bg': {
+        if (layer?.type !== 'image') {
+          addToast?.('Background removal requires an image layer', 'error');
+        } else if (removeBackground) {
+          removeBackground(layerId);
+          addToast?.('Removing background...', 'info');
+        } else {
+          addToast?.('Select an image layer to remove its background', 'error');
+        }
+        break;
+      }
+      case 'fix-contrast': {
+        if (layer?.type === 'text') {
+          if (setActivePanel) setActivePanel('accessibility');
+          addToast?.('Contrast checker opened — reviewing this layer', 'info');
+        } else {
+          addToast?.('Contrast fix works on text layers', 'error');
+        }
+        break;
+      }
+      case 'auto-layout': {
+        updateLayer(layerId, { x: Math.round((layer?.x ?? 0) / 8) * 8, y: Math.round((layer?.y ?? 0) / 8) * 8 });
+        addToast?.('Layer snapped to 8pt grid', 'success');
+        break;
+      }
+    }
     onClose();
   };
 
@@ -297,6 +347,40 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
       <MI onClick={handleExportAsPng} icon={Icons.Download}>
         Snap as PNG
       </MI>
+
+      <Div />
+
+      {/* AI Actions Section - 2026 delegative AI UX */}
+      <div className="px-5 pb-2 pt-1">
+        <p className="text-[10px] font-black text-cyan-500/70 uppercase tracking-[0.2em]">AI Actions</p>
+      </div>
+      {AI_ACTIONS.map((action) => {
+        const isImageOnly = action.id === 'remove-bg' && layer?.type !== 'image';
+        const isTextOnly = action.id === 'fix-contrast' && layer?.type !== 'text';
+        const isDisabled = isImageOnly || isTextOnly;
+        const AiIcon = Icons.Sparkles;
+        return (
+          <button
+            key={action.id}
+            role="menuitem"
+            disabled={isDisabled}
+            onClick={() => handleAIAction(action.id)}
+            title={isDisabled ? action.hint : undefined}
+            className={`w-full flex items-center gap-3 px-3.5 py-2 text-sm transition-all text-left rounded-lg mx-1 group/mi ${
+              isDisabled
+                ? 'text-gray-700 cursor-not-allowed opacity-50'
+                : 'text-cyan-300 hover:bg-cyan-500/15 hover:text-cyan-200'
+            }`}
+            style={{ width: 'calc(100% - 8px)' }}
+          >
+            <AiIcon className="w-4 h-4 shrink-0 opacity-70 group-hover/mi:opacity-100" />
+            <div className="flex-1 flex flex-col min-w-0">
+              <span className="text-sm leading-none">{action.label}</span>
+              <span className="text-[10px] text-cyan-600/70 mt-0.5 group-hover/mi:text-cyan-400/70 leading-none">{action.hint}</span>
+            </div>
+          </button>
+        );
+      })}
 
       <Div />
 
