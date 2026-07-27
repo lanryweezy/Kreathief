@@ -81,8 +81,9 @@ export default async function handler(req: Request) {
 
   try {
     await requireAuth(req);
-  } catch (response) {
-    return response as Response;
+  } catch (error) {
+    if (error instanceof Response) return error;
+    return new Response(JSON.stringify({ error: 'Internal server error during authentication' }), { status: 500 });
   }
 
   const ip = req.headers.get('x-forwarded-for') || 'unknown';

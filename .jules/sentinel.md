@@ -232,3 +232,9 @@
 **Vulnerability:** The `api/streamline.ts` edge route was missing the `requireAuth` check, allowing unauthorized access to the paid Streamline API using the application's server API key.
 **Learning:** Edge functions acting as proxies to third-party APIs can be easily overlooked when enforcing global authentication checks. Missing `requireAuth` enables abuse of paid resources, leading to financial impact.
 **Prevention:** Always ensure that all edge API routes serving as proxies to third-party services include the `await requireAuth(req)` check in a `try/catch` block, immediately after the CORS `OPTIONS` preflight handler.
+
+## 2026-07-27 - Prevent Crashes from Thrown Non-Response Errors in Remaining APIs
+
+**Vulnerability:** Similar to the 2026-07-19 finding, multiple other API proxy endpoints (like `api/dynamic-mockups.ts`, `api/fal.ts`, `api/freepik.ts`, `api/gemini.ts`, `api/getillustration.ts`, `api/iconscout.ts`, `api/inpaint.ts`, `api/openrouter.ts`, `api/pexels.ts`, `api/pixabay.ts`, `api/unsplash.ts`, `api/vecteezy.ts`) were blindly casting caught exceptions from `requireAuth` to a `Response` object (`return response as Response;`).
+**Learning:** Blindly casting caught errors as Responses in edge functions can expose internal errors or crash the runtime when `requireAuth` throws non-Response standard Errors.
+**Prevention:** Always check `if (error instanceof Response)` in the catch block of authentication middlewares, returning a generic 500 error for all other exception types.
