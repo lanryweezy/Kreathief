@@ -13,7 +13,6 @@ import { SidePanel } from './SidePanel';
 import { MobileNavBar } from './MobileNavBar';
 import { BottomSheet } from './BottomSheet';
 import { Canvas } from './Canvas';
-import { EditorAIPanel } from '../hooks/useEditorAI';
 import { User, Project, AnimationSettings } from '../types';
 import { useEditorLogic } from '../hooks/useEditorLogic';
 import { useFileHandler } from '../hooks/useFileHandler';
@@ -43,7 +42,6 @@ import { MobileOnboarding } from './MobileOnboarding';
 import { MobileContextMenu } from './MobileContextMenu';
 import { MobileTransformController } from './MobileTransformController';
 import { useCollaboration } from '../hooks/useCollaboration';
-import { CreativeIntentMode } from './CreativeIntentMode';
 import { CursorOverlay } from './collaboration/CursorOverlay';
 import { PresenceBar } from './collaboration/PresenceBar';
 
@@ -139,17 +137,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     handleBooleanHover,
     handleLayerDoubleClick,
   } = useEditorLogic(initialProject);
-
-  const {
-    showNodeGraph,
-    setShowNodeGraph,
-    showAIGenerate,
-    setShowAIGenerate,
-    handleAIGenerate,
-    NodeGraphComponent,
-    AIGenerateComponent,
-  } = EditorAIPanel({ onAddLayer: (layer) => useStore.getState().addLayer(layer) }) as any;
-
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
@@ -365,7 +352,14 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         },
         description: 'Draw Tool',
       },
-      { key: 'm', action: () => useStore.getState().setActiveTab(NavTab.MAGIC), description: 'Magic/AI Panel' },
+      {
+        key: 'v',
+        action: () => {
+          useStore.getState().setPenMode(false);
+          useStore.getState().setActiveTab(NavTab.LAYERS);
+        },
+        description: 'Selection / Move Tool',
+      },
       { key: 'l', action: () => useStore.getState().setActiveTab(NavTab.LAYERS), description: 'Layers Panel' },
       { key: 'b', action: () => useStore.getState().setActiveTab(NavTab.BRAND), description: 'Brand Kit' },
 
@@ -659,10 +653,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
   return (
     <div id="editor-root" className="flex flex-col h-screen bg-surface-dark-2 overflow-hidden text-[#e5e7eb] font-sans">
-      {!initialProject && !selectedIntent && (
-        <CreativeIntentMode onSelect={() => {}} onSkip={() => useStore.getState().setIntent('skip', 1080, 1080)} />
-      )}
-
       {!hideHeaderOnMobile && (
         <Header
           onDownload={() => setShowExport(true)}
@@ -737,22 +727,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             className="h-11 bg-surface-dark-1/90 border-b border-white/5 flex items-center z-30 w-full shrink-0 px-4 gap-4 backdrop-blur-md"
           >
             <div className="flex items-center gap-4 w-full h-full">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setShowAIGenerate(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-brand-600 to-purple-600 text-white rounded-lg hover:from-brand-500 hover:to-purple-500 transition-all shadow-lg shadow-brand-600/20"
-                >
-                  <Icons.Sparkles className="w-3.5 h-3.5" />
-                  AI Generate
-                </button>
-                <button
-                  onClick={() => setShowNodeGraph(!showNodeGraph)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${showNodeGraph ? 'bg-brand-600 text-white' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
-                >
-                  <Icons.Magic className="w-3.5 h-3.5" />
-                  {showNodeGraph ? 'Close' : 'Pipeline Mode'}
-                </button>
-              </div>
               <Toolbar
                 documentColors={documentColors}
                 onBooleanOperation={handleBooleanOperation}
@@ -1070,9 +1044,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         {showCommunityModal && <CommunityModal onClose={() => setShowCommunityModal(false)} />}
         <CommandPalette />
       </React.Suspense>
-
-      {NodeGraphComponent}
-      {AIGenerateComponent}
     </div>
   );
 };

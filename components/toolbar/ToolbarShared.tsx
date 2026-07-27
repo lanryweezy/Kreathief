@@ -111,17 +111,29 @@ export const IconButton = React.memo(
         >
           {loading ? <Icons.RotateCw className="w-3.5 h-3.5 animate-spin text-purple-400" /> : children}
 
-          {title && showTooltip && (
+          {title && (
             <div
-              className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2.5 py-1.5 bg-gray-900 text-white text-[10px] rounded-md border border-gray-800 shadow-2xl z-[100] animate-scale-in flex flex-col items-center gap-1 min-w-max"
+              className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#12121c] text-white rounded-xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.8)] z-[200] opacity-0 group-hover/btn:opacity-100 transition-opacity duration-150 flex flex-col items-center gap-0.5 min-w-[130px] max-w-[200px] text-center pointer-events-none"
               aria-hidden="true"
             >
-              <span className="font-bold tracking-wide">{loading ? 'Processing...' : title}</span>
-              {shortcut && !loading && (
-                <span className="text-[8px] text-gray-500 font-mono tracking-widest px-1.5 py-0.5 bg-black/40 rounded border border-white/5 lowercase">
-                  {shortcut}
-                </span>
-              )}
+              {(() => {
+                const parts = title.split('—');
+                const mainName = parts[0]?.trim() || title;
+                const desc = parts[1]?.trim();
+                return (
+                  <>
+                    <span className="font-bold text-[11px] text-white leading-tight">
+                      {loading ? 'Processing...' : mainName}
+                    </span>
+                    {desc && <span className="text-[9.5px] text-gray-400 font-medium leading-normal">{desc}</span>}
+                    {shortcut && !loading && (
+                      <span className="mt-0.5 text-[8px] text-brand-400 font-mono tracking-widest px-1.5 py-0.5 bg-brand-500/10 rounded border border-brand-500/20 lowercase">
+                        {shortcut}
+                      </span>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           )}
         </button>

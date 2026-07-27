@@ -785,6 +785,14 @@ export const Blend = (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement('circle', { cx: '15', cy: '15', r: '7' })
   );
 
+export const MousePointer = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('path', { d: 'M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z' }),
+    React.createElement('path', { d: 'M13 13l6 6' })
+  );
+
 export const Sticker = (props: React.SVGProps<SVGSVGElement>) =>
   React.createElement(
     'svg',

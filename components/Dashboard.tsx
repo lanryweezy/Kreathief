@@ -16,6 +16,8 @@ import * as geminiService from '../services/geminiService';
 import { log } from '../utils/log';
 import { getErrorDetails } from '../utils/errorMessages';
 import { fuzzyMatch } from '../utils/search';
+import { NodeGraph } from './nodes/NodeGraph';
+import { CreativeIntentMode } from './CreativeIntentMode';
 
 interface DashboardProps {
   user: User;
@@ -70,6 +72,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showModelPicker, setShowModelPicker] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
+  const [showNodeGraph, setShowNodeGraph] = useState(false);
   const aiInputRef = useRef<HTMLTextAreaElement>(null);
   const modelPickerRef = useRef<HTMLDivElement>(null);
 
@@ -366,6 +370,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         </div>
 
         <div className="flex items-center gap-6">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowWizard(true)}
+              className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold text-white transition-all flex items-center gap-2"
+            >
+              <Icons.Wand className="w-3.5 h-3.5" />
+              Wizard
+            </button>
+            <button
+              onClick={() => setShowNodeGraph(true)}
+              className="px-4 py-2 bg-brand-500/20 text-brand-400 hover:bg-brand-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
+            >
+              <Icons.GitMerge className="w-3.5 h-3.5" />
+              Pipelines
+            </button>
+          </div>
           <div className="relative hidden md:block group">
             <Icons.Search
               className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted group-focus-within:text-brand-500 transition-colors"
@@ -631,42 +651,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               </div>
             </div>
 
-            {/* Quick Start */}
+            {/* Advanced Workflows */}
             <div className="mb-10">
               <div className="flex items-center justify-between mb-5">
-                <span className="text-xs font-black text-muted uppercase tracking-[0.2em]">Quick Start</span>
+                <span className="text-xs font-black text-muted uppercase tracking-[0.2em]">Advanced Workflows</span>
               </div>
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-                {FORMAT_OPTIONS.map((format, idx) => {
-                  const QuickIcon = [
-                    Icons.Camera,
-                    Icons.Smartphone,
-                    Icons.Play,
-                    Icons.FileText,
-                    Icons.Brush,
-                    Icons.Monitor,
-                  ][idx];
-
-                  return (
-                    <button
-                      key={format.label}
-                      onClick={() => {
-                        setSelectedFormat(idx);
-                        setAiPrompt('');
-                        aiInputRef.current?.focus();
-                      }}
-                      className="group aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all duration-200 border border-white/5 hover:border-brand-500/40 hover:bg-brand-500/5 hover:scale-[1.03] active:scale-[0.98] cursor-pointer"
-                      style={{
-                        background: `linear-gradient(135deg, ${['#1a1a2e,#16213e', '#16213e,#0f3460', '#0f3460,#1a1a2e', '#533483,#1a1a2e', '#1a1a2e,#e94560', '#e94560,#533483'][idx]})`,
-                      }}
-                    >
-                      <QuickIcon className="w-8 h-8 text-white/80 group-hover:text-white group-hover:scale-110 transition-all" />
-                      <span className="text-[11px] font-black uppercase tracking-wider text-muted group-hover:text-white transition-colors">
-                        {format.label}
-                      </span>
-                    </button>
-                  );
-                })}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button
+                  onClick={() => setShowWizard(true)}
+                  className="group bg-surface-dark-1 border border-white/5 rounded-xl p-6 text-left hover:border-brand-500/40 hover:bg-brand-500/5 transition-all shadow-lg hover:shadow-xl cursor-pointer"
+                >
+                  <Icons.Wand className="w-6 h-6 text-brand-400 mb-3 group-hover:scale-110 transition-transform" />
+                  <div className="font-bold text-white mb-1">Start with Wizard</div>
+                  <div className="text-xs text-muted">
+                    Answer a few questions and let AI set up the perfect canvas for you.
+                  </div>
+                </button>
+                <button
+                  onClick={() => setShowNodeGraph(true)}
+                  className="group bg-surface-dark-1 border border-white/5 rounded-xl p-6 text-left hover:border-brand-500/40 hover:bg-brand-500/5 transition-all shadow-lg hover:shadow-xl cursor-pointer"
+                >
+                  <Icons.GitMerge className="w-6 h-6 text-purple-400 mb-3 group-hover:scale-110 transition-transform" />
+                  <div className="font-bold text-white mb-1">Advanced Pipeline</div>
+                  <div className="text-xs text-muted">
+                    Use the visual node builder to construct complex AI generation pipelines.
+                  </div>
+                </button>
               </div>
             </div>
 
@@ -803,6 +813,30 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
           </div>
         </div>
       </main>
+
+      {showWizard && (
+        <div className="fixed inset-0 z-[100] bg-surface-dark-2">
+          <CreativeIntentMode
+            onSelect={() => setShowWizard(false)}
+            onSkip={() => {
+              useStore.getState().setIntent('skip', 1080, 1080);
+              setShowWizard(false);
+            }}
+          />
+        </div>
+      )}
+
+      {showNodeGraph && (
+        <div className="fixed inset-0 z-[100] bg-surface-dark-2">
+          <NodeGraph
+            onClose={() => setShowNodeGraph(false)}
+            onExportToCanvas={(result) => {
+              // NodeGraph export logic could be hooked up here
+              setShowNodeGraph(false);
+            }}
+          />
+        </div>
+      )}
 
       <ConfirmModal
         isOpen={deleteConfirm.isOpen}

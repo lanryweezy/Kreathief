@@ -235,19 +235,19 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
             placeholder={
               isRefining
                 ? "How should we improve these layers? (e.g. 'Make it minimalist', 'Align better')"
-                : 'e.g. Generate a dark-themed fintech poster with bold typography...'
+                : 'e.g. Score my design, write a catchy headline, or optimize layout...'
             }
             className="w-full bg-transparent border-none text-xs text-white placeholder:text-gray-600 focus:outline-none resize-none h-20 custom-scrollbar font-bold leading-relaxed"
           />
           <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
             <div className="flex gap-2">
-              {['Minimal', 'Cyberpunk', 'Corporate'].map((tag) => (
+              {['Score Design', 'Write Copy', 'Optimize Layout'].map((action) => (
                 <button
-                  key={tag}
-                  onClick={() => setInput((prev) => `${prev} ${tag} style`)}
-                  className="px-2 py-1 bg-white/5 hover:bg-white/10 rounded text-[9px] font-bold text-gray-500 hover:text-gray-300 uppercase transition-colors"
+                  key={action}
+                  onClick={() => setInput(action)}
+                  className="px-2 py-1 bg-white/5 hover:bg-brand-500/20 rounded text-[9px] font-bold text-gray-400 hover:text-brand-400 uppercase transition-colors"
                 >
-                  {tag}
+                  {action}
                 </button>
               ))}
             </div>

@@ -19,7 +19,9 @@ export const SelectionHandles = React.memo(({ layer, multi, onResize, onRotate, 
   const updateLayer = useStore((s) => s.updateLayer);
   const r = { transform: `rotate(${-(layer.rotation || 0)}deg)` };
   const key = (e: React.KeyboardEvent, h: Handle) => {
-    if (!onKeyboardResize) return;
+    if (!onKeyboardResize) {
+      return;
+    }
     const d: Record<string, [number, number]> = {
       ArrowUp: [0, -1],
       ArrowDown: [0, 1],
@@ -27,7 +29,9 @@ export const SelectionHandles = React.memo(({ layer, multi, onResize, onRotate, 
       ArrowRight: [1, 0],
     };
     const v = d[e.key];
-    if (!v) return;
+    if (!v) {
+      return;
+    }
     e.preventDefault();
     onKeyboardResize(layer, h, v[0], v[1], e.shiftKey);
   };
@@ -36,7 +40,10 @@ export const SelectionHandles = React.memo(({ layer, multi, onResize, onRotate, 
       key={handle}
       tabIndex={0}
       onKeyDown={(e) => key(e, handle)}
-      onPointerDown={(e) => onResize(e, layer, handle)}
+      onPointerDown={(e) => {
+        e.stopPropagation();
+        onResize(e, layer, handle);
+      }}
       style={r}
       className={`${HS} ${cls}`}
     />
@@ -69,7 +76,10 @@ export const SelectionHandles = React.memo(({ layer, multi, onResize, onRotate, 
           >
             <div className="w-px h-4 bg-brand-600" />
             <div
-              onPointerDown={(e) => onRotate(e, layer)}
+              onPointerDown={(e) => {
+                e.stopPropagation();
+                onRotate(e, layer);
+              }}
               onDoubleClick={(e) => {
                 e.stopPropagation();
                 updateLayer(layer.id, { rotation: 0 });

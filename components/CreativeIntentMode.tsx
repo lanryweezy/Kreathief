@@ -97,16 +97,29 @@ interface CreativeIntentModeProps {
 export const CreativeIntentMode: React.FC<CreativeIntentModeProps> = ({ onSelect, onSkip }) => {
   // ⚡ Bolt Optimization: Use useShallow with specific selectors to prevent the component from
   // unnecessarily re-rendering on unrelated global state updates and reduce React hook overhead (2 hooks down to 1).
-  const { setIntent, setCanvasSize } = useStore(
+  const { setIntent, setCanvasSize, setActiveTab } = useStore(
     useShallow((s) => ({
       setIntent: s.setIntent,
       setCanvasSize: s.setCanvasSize,
+      setActiveTab: s.setActiveTab,
     }))
   );
 
   const handleSelect = (intent: IntentCard) => {
     setIntent(intent.id, intent.width, intent.height);
     setCanvasSize({ width: intent.width, height: intent.height, name: intent.title });
+
+    // Open specialized panels if applicable
+    if (intent.id === 'presentation') {
+      setActiveTab('SLIDES' as any);
+    } else if (intent.id === 'website') {
+      setActiveTab('WEBSITE' as any);
+    } else if (intent.id === 'social') {
+      setActiveTab('CAROUSEL' as any);
+    } else if (intent.id === 'flyer') {
+      setActiveTab('DOCUMENT' as any);
+    }
+
     onSelect();
   };
 

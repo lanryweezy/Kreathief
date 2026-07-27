@@ -21,9 +21,15 @@ import { SelectionHandles } from './SelectionHandles';
 import { BrushStrokeRenderer } from '../../services/brushEngine';
 
 const safeStr = (v: any, fallback = ''): string => {
-  if (v === null || v === undefined) return fallback;
-  if (typeof v === 'string') return v;
-  if (typeof v === 'number') return String(v);
+  if (v === null || v === undefined) {
+    return fallback;
+  }
+  if (typeof v === 'string') {
+    return v;
+  }
+  if (typeof v === 'number') {
+    return String(v);
+  }
   return fallback;
 };
 
@@ -75,12 +81,20 @@ const layerPropsAreEqual = (prevProps: LayerItemProps, nextProps: LayerItemProps
 
   // Fast shallow comparison for nested objects (filters, stroke, shadow)
   const shallowEqual = (o1: any, o2: any) => {
-    if (o1 === o2) return true;
-    if (!o1 || !o2 || typeof o1 !== 'object' || typeof o2 !== 'object') return o1 === o2;
+    if (o1 === o2) {
+      return true;
+    }
+    if (!o1 || !o2 || typeof o1 !== 'object' || typeof o2 !== 'object') {
+      return o1 === o2;
+    }
     const keys1 = Object.keys(o1);
-    if (keys1.length !== Object.keys(o2).length) return false;
+    if (keys1.length !== Object.keys(o2).length) {
+      return false;
+    }
     for (const key of keys1) {
-      if (o1[key] !== o2[key]) return false;
+      if (o1[key] !== o2[key]) {
+        return false;
+      }
     }
     return true;
   };
@@ -152,9 +166,13 @@ export const ImageLayerItem = React.memo(
 
       // Exit reposition mode on Escape key
       React.useEffect(() => {
-        if (!repositioning) return;
+        if (!repositioning) {
+          return;
+        }
         const handleEsc = (e: KeyboardEvent) => {
-          if (e.key === 'Escape') setRepositioning(false);
+          if (e.key === 'Escape') {
+            setRepositioning(false);
+          }
         };
         window.addEventListener('keydown', handleEsc);
         return () => window.removeEventListener('keydown', handleEsc);
@@ -172,7 +190,9 @@ export const ImageLayerItem = React.memo(
 
       const handleImageRepositionMove = React.useCallback(
         (e: React.PointerEvent) => {
-          if (!repositioning) return;
+          if (!repositioning) {
+            return;
+          }
           const dx = (e.clientX - repositionStart.current.x) / (zoom || 1);
           const dy = (e.clientY - repositionStart.current.y) / (zoom || 1);
           const newCropX = Math.max(0, Math.min(naturalWidth - crop.width, repositionStart.current.cropX + dx));
@@ -188,7 +208,9 @@ export const ImageLayerItem = React.memo(
 
       const handleImageRepositionEnd = React.useCallback(
         (e: React.PointerEvent) => {
-          if (!repositioning) return;
+          if (!repositioning) {
+            return;
+          }
           setRepositioning(false);
           const dx = (e.clientX - repositionStart.current.x) / (zoom || 1);
           const dy = (e.clientY - repositionStart.current.y) / (zoom || 1);
@@ -354,8 +376,12 @@ export const ShapeLayerItem = React.memo(
 
       const innerStyle = React.useMemo(() => {
         const getRadius = () => {
-          if (shapeLayer.type === 'circle') return '50%';
-          if (shapeLayer.type === 'path') return undefined;
+          if (shapeLayer.type === 'circle') {
+            return '50%';
+          }
+          if (shapeLayer.type === 'path') {
+            return undefined;
+          }
           if ((shapeLayer as ShapeLayer).cornerRadiusPerCorner) {
             const r = (shapeLayer as ShapeLayer).cornerRadiusPerCorner!;
             return `${r.tl}px ${r.tr}px ${r.br}px ${r.bl}px`;
@@ -364,7 +390,9 @@ export const ShapeLayerItem = React.memo(
         };
 
         const buildShadow = () => {
-          if (!shapeLayer.shadow || typeof shapeLayer.shadow !== 'object') return 'none';
+          if (!shapeLayer.shadow || typeof shapeLayer.shadow !== 'object') {
+            return 'none';
+          }
           const s = shapeLayer.shadow;
           const opacity = s.opacity ?? 1;
           const color = safeStr(s.color, '#000000');
@@ -532,7 +560,9 @@ export const ShapeLayerItem = React.memo(
                       fill={
                         shapeLayer.gradient && shapeLayer.gradient.enabled
                           ? `url(#gradient-${shapeLayer.id})`
-                          : shapeLayer.color || '#7d2ae8'
+                          : shapeLayer.color === 'transparent' || shapeLayer.color === 'none'
+                            ? 'none'
+                            : shapeLayer.color || '#7d2ae8'
                       }
                       filter={
                         (shapeLayer.pathEffects?.zigzag?.amplitude ?? 0) > 0
@@ -544,7 +574,16 @@ export const ShapeLayerItem = React.memo(
                     />
                     {(() => {
                       const stroke = shapeLayer.stroke;
-                      const w = stroke?.width || 0;
+                      let w = stroke?.width || 0;
+                      // Fallback: If it's a vector path with transparent/no fill, ensure minimum 2px stroke visibility
+                      if (
+                        w <= 0 &&
+                        (shapeLayer.type === 'path' ||
+                          shapeLayer.color === 'transparent' ||
+                          shapeLayer.color === 'none')
+                      ) {
+                        w = 2;
+                      }
                       if (w <= 0) {
                         return null;
                       }

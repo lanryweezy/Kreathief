@@ -8,13 +8,8 @@ import { Icons } from '../constants';
 
 import TemplatesPanel from './panels/TemplatesPanel';
 import BrandPanel from './panels/BrandPanel';
-import VectorizerPanel from './panels/VectorizerPanel';
 import { ElementsPanel } from './panels/ElementsPanel';
 
-// Lazy load other panels
-const MagicPanel = React.lazy(() => import('./panels/MagicPanel'));
-const TexturesPanel = React.lazy(() => import('./panels/TexturesPanel'));
-const AssistantPanel = React.lazy(() => import('./panels/AssistantPanel'));
 const LayersPanel = React.lazy(() => import('./panels/LayersPanel'));
 const DrawPanel = React.lazy(() => import('./panels/DrawPanel'));
 const MediaPanel = React.lazy(() => import('./panels/MediaPanel'));
@@ -22,12 +17,15 @@ const TextPanel = React.lazy(() => import('./panels/TextPanel'));
 const UploadsPanel = React.lazy(() => import('./panels/UploadsPanel'));
 const AssetsPanel = React.lazy(() => import('./panels/AssetsPanel'));
 const ComponentsPanel = React.lazy(() => import('./panels/ComponentsPanel'));
-const CommentsPanel = React.lazy(() => import('./panels/CommentsPanel'));
 const MotionPanel = React.lazy(() => import('./panels/MotionPanel').then((m) => ({ default: m.MotionPanel })));
 const AccessibilityPanel = React.lazy(() =>
   import('./panels/AccessibilityPanel').then((m) => ({ default: m.AccessibilityPanel }))
 );
 const MockupPanel = React.lazy(() => import('./panels/MockupPanel').then((m) => ({ default: m.MockupPanel })));
+const WebsitePanel = React.lazy(() => import('./panels/WebsitePanel'));
+const SlidesPanel = React.lazy(() => import('./panels/SlidesPanel'));
+const CarouselPanel = React.lazy(() => import('./panels/CarouselPanel').then((m) => ({ default: m.CarouselPanel })));
+const DocumentPanel = React.lazy(() => import('./panels/DocumentPanel').then((m) => ({ default: m.DocumentPanel })));
 import { ListSkeleton, GridSkeleton, CardSkeleton } from './Skeleton';
 
 const PanelLoading = ({ tab }: { tab: NavTab }) => {
@@ -130,8 +128,6 @@ export const SidePanel = React.memo(
               className="min-h-full flex flex-col"
             >
               <React.Suspense fallback={<PanelLoading tab={activeTab} />}>
-                {activeTab === NavTab.MAGIC && <MagicPanel onGenerate={onGenerate} uploadedImage={uploadedImage} />}
-
                 {activeTab === NavTab.LAYERS && <LayersPanel />}
 
                 {activeTab === NavTab.TEXT && <TextPanel />}
@@ -185,26 +181,6 @@ export const SidePanel = React.memo(
 
                 {activeTab === NavTab.BRAND && <BrandPanel />}
 
-                {activeTab === NavTab.TEXTURES && (
-                  <TexturesPanel
-                    onRemoveTexture={() => {
-                      if (selectedTextLayer) {
-                        updateLayer(selectedTextLayer.id, {
-                          decorations: { ...selectedTextLayer.decorations, textures: [] },
-                        } as Partial<TextLayer>);
-                      }
-                    }}
-                    currentTexture={selectedTextLayer?.decorations?.textures?.[0]}
-                  />
-                )}
-
-                {activeTab === NavTab.ASSISTANT && (
-                  <AssistantPanel
-                    getCanvasSnapshot={getCanvasSnapshot || (async () => '')}
-                    onStartDesign={onStartDesign}
-                  />
-                )}
-
                 {activeTab === NavTab.DRAW && (
                   <DrawPanel
                     brushColor={brushColor}
@@ -233,13 +209,17 @@ export const SidePanel = React.memo(
                   <MockupPanel onExportForMockup={getCanvasSnapshot || (async () => '')} />
                 )}
 
-                {activeTab === NavTab.COMMENTS && <CommentsPanel />}
-
-                {activeTab === NavTab.VECTORIZER && <VectorizerPanel />}
-
                 {activeTab === NavTab.MOTION && <MotionPanel onPreviewMotion={onPreviewMotion} />}
 
                 {activeTab === NavTab.ACCESSIBILITY && <AccessibilityPanel />}
+
+                {activeTab === NavTab.WEBSITE && <WebsitePanel />}
+
+                {activeTab === NavTab.SLIDES && <SlidesPanel />}
+
+                {activeTab === NavTab.CAROUSEL && <CarouselPanel />}
+
+                {activeTab === NavTab.DOCUMENT && <DocumentPanel />}
               </React.Suspense>
             </motion.div>
           </AnimatePresence>
