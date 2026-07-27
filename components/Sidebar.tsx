@@ -12,8 +12,6 @@ interface SidebarProps {
 }
 
 const ALL_TABS = [
-  { id: NavTab.ASSISTANT,    icon: Icons.Bot,          label: 'AI Assistants' },
-  { id: NavTab.MAGIC,        icon: Icons.Magic,        label: 'AI Magic'      },
   { id: NavTab.VECTORIZER,   icon: Icons.Union,        label: 'Image Trace'   },
   { id: NavTab.DRAW,         icon: Icons.Brush,        label: 'Draw'          },
   { id: NavTab.TEMPLATES,    icon: Icons.Templates,    label: 'Templates'     },
