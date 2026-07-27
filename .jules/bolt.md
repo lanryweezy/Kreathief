@@ -92,3 +92,7 @@
 ## 2026-07-26 - Optimize Array Iterations in Bounds Calculation
 **Learning:** Multiple array `.map()` passes and spread operations into `Math.min/max()` create unnecessary O(N) allocations and redundant loops, drastically reducing performance when calculating bounding boxes for many items.
 **Action:** Replace chained `.map()` and spread calls with a single standard `for` loop to compute multiple min/max bounds in one pass, reducing memory allocations and speeding up execution time (by ~51% in group bounds calculations).
+
+## 2026-07-28 - Optimize Array Iterations in Bounds Calculation for layer alignments
+**Learning:** Multiple array `.map()` passes and `.reduce()` operations into `Math.min/max()` create unnecessary O(N) allocations and redundant loops, drastically reducing performance when calculating alignment bounds for multiple items. In addition, using the spread operator on large mapped arrays `Math.min(...arr)` risks "Maximum call stack size exceeded" errors.
+**Action:** Replace chained `.map()` and spread calls with a single standard `for` loop to compute multiple min/max bounds and averages in one pass, reducing memory allocations, speeding up execution time, and avoiding call stack overflow errors.
