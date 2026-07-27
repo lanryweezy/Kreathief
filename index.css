@@ -4,20 +4,66 @@
 
 /* ===== Base Styles ===== */
 :root {
+  /* Brand */
   --ultra-indigo: #8b5cf6;
   --cosmic-cyan: #22d3ee;
   --cyber-pink: #e8909c;
+
+  /* Surfaces (dark theme default) */
   --deep-space: #0d0d12;
   --matte-black: #111118;
+  --surface-warm: #16161e;
+  --surface-elevated: #1e1e28;
+
+  /* Glass */
   --glass-white: rgba(255, 255, 255, 0.04);
   --glass-border: rgba(255, 255, 255, 0.06);
-  /* 2026 semantic tokens */
+
+  /* Semantic tokens */
   --color-success: #34d399;
   --color-warning: #fbbf24;
   --color-error: #f87171;
   --color-info: #60a5fa;
-  --surface-warm: #16161e;
-  --surface-elevated: #1e1e28;
+
+  /* Spring easing tokens (2026) */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-expo: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Motion durations */
+  --duration-instant: 100ms;
+  --duration-fast: 150ms;
+  --duration-standard: 200ms;
+  --duration-slow: 300ms;
+  --duration-expressive: 500ms;
+
+  /* Color scheme */
+  color-scheme: dark;
+}
+
+/* Light theme groundwork — class-scoped for future toggle */
+.theme-light {
+  --deep-space: #f5f5f7;
+  --matte-black: #ffffff;
+  --surface-warm: #f0f0f5;
+  --surface-elevated: #e8e8f0;
+  --glass-white: rgba(0, 0, 0, 0.04);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  color-scheme: light;
+}
+
+/* System preference light mode foundation */
+@media (prefers-color-scheme: light) {
+  :root:not(.theme-dark) {
+    --deep-space: #f5f5f7;
+    --matte-black: #ffffff;
+    --surface-warm: #f0f0f5;
+    --surface-elevated: #e8e8f0;
+    --glass-white: rgba(0, 0, 0, 0.04);
+    --glass-border: rgba(0, 0, 0, 0.08);
+    color-scheme: light;
+  }
 }
 
 body {
@@ -227,15 +273,26 @@ h4,
       0 0 0 1px rgba(255, 255, 255, 0.03);
   }
 
-  /* 2026: Micro-interaction — hover lift */
+  /* 2026: Micro-interaction — spring hover lift */
   .hover-lift {
     transition:
-      transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-      box-shadow 0.2s ease;
+      transform var(--duration-standard) var(--ease-spring),
+      box-shadow var(--duration-standard) var(--ease-out-expo);
   }
   .hover-lift:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Spring interaction classes */
+  .spring-enter {
+    transition:
+      opacity var(--duration-standard) var(--ease-out-expo),
+      transform var(--duration-standard) var(--ease-out-expo);
+  }
+  .spring-press:active {
+    transform: scale(0.97);
+    transition: transform var(--duration-instant) var(--ease-standard);
   }
 
   /* 2026: Semantic status colors */
@@ -343,6 +400,84 @@ h4,
     to {
       stroke-dashoffset: -16;
     }
+  }
+}
+
+/* ===== Accessibility: Motion Preferences ===== */
+/*
+ * WCAG 2.2 / EU Accessibility Act 2025 compliance.
+ * All non-essential animations are disabled for users who
+ * request reduced motion via OS settings.
+ * Only state-indicating transitions (opacity, color) are preserved.
+ */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable all decorative keyframe animations */
+  .animate-float,
+  .animate-float-slow {
+    animation: none;
+  }
+
+  .pulse-glow {
+    animation: none;
+    opacity: 0.6;
+    filter: blur(100px);
+  }
+
+  .animate-marquee {
+    animation: none;
+  }
+
+  .animate-shimmer {
+    animation: none;
+  }
+
+  .animate-text-gradient {
+    animation: none;
+    background-position: 0% 50%;
+  }
+
+  /* Fade-in/scale-in: collapse to instant reveal instead of animate */
+  .animate-fade-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .animate-scale-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Disable neon border spin */
+  .animated-border-wrapper::before {
+    animation: none;
+  }
+
+  /* Mobile slide-up: instant for reduced motion users */
+  .mobile-slide-up {
+    animation: none;
+    transform: none;
+    opacity: 1;
+  }
+
+  .mobile-fade-in {
+    animation: none;
+    opacity: 1;
+  }
+
+  /* Preserve essential state transitions but shorten dramatically */
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  /* Exception: keep focus ring transitions for keyboard users */
+  :focus-visible {
+    transition: outline-offset var(--duration-instant) var(--ease-standard) !important;
   }
 }
 

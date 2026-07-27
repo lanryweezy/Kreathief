@@ -107,10 +107,31 @@ export const motion = {
 } as const;
 
 export const easing = {
+  // Standard material-style easing
   standard: 'cubic-bezier(.2,.8,.2,1)',
+  // Expo out — snappy panel reveals, dropdowns, tooltips
   out: 'cubic-bezier(.16,1,.3,1)',
+  // Expo in — elements leaving screen
   in: 'cubic-bezier(.7,0,.84,0)',
+  // Spring overshoot — buttons, hover lifts, icon pops (2026 standard)
+  spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
   linear: 'linear',
+} as const;
+
+/**
+ * CSS custom property references for use in inline styles.
+ * These mirror the values defined in index.css :root.
+ * Always prefer CSS variables in stylesheets, use these only in JS.
+ */
+export const cssVars = {
+  easeSpring: 'var(--ease-spring)',
+  easeOutExpo: 'var(--ease-out-expo)',
+  easeInExpo: 'var(--ease-in-expo)',
+  easeStandard: 'var(--ease-standard)',
+  durationInstant: 'var(--duration-instant)',
+  durationFast: 'var(--duration-fast)',
+  durationStandard: 'var(--duration-standard)',
+  durationSlow: 'var(--duration-slow)',
 } as const;
 
 // ── Canvas-Specific Tokens ─────────────────────────────────────
@@ -251,6 +272,7 @@ export const tokens = {
   shadows,
   motion,
   easing,
+  cssVars,
   canvas,
   typography,
   zIndex,

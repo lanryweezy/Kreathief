@@ -18,6 +18,8 @@ interface LayerItemProps {
   isGrouped?: boolean;
   onDrop: (draggedId: string, targetId: string, position: 'above' | 'below') => void;
   style?: React.CSSProperties;
+  tabIndex?: number;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
 }
 
 const areLayerPropsEqual = (prev: LayerItemProps, next: LayerItemProps) => {
@@ -50,6 +52,8 @@ const LayerItem = React.memo(
     isGrouped = false,
     onDrop,
     style,
+    tabIndex = -1,
+    onKeyDown,
   }: LayerItemProps) => {
     const itemRef = useRef<HTMLDivElement>(null);
     const [showSettings, setShowSettings] = useState(false);
@@ -69,7 +73,7 @@ const LayerItem = React.memo(
       }
       if (layer.type === 'text') {
         return (
-          <div className="w-full h-full flex items-center justify-center bg-[#0e1318] p-0.5 overflow-hidden">
+          <div className="w-full h-full flex items-center justify-center bg-surface-dark-2 p-0.5 overflow-hidden">
             <span className="text-[10px] font-bold" style={{ color: (layer as TextLayer).color }}>
               T
             </span>
@@ -82,6 +86,11 @@ const LayerItem = React.memo(
     return (
       <div className="flex flex-col" ref={itemRef} style={style}>
         <div
+          role="treeitem"
+          aria-selected={isSelected}
+          aria-label={`Layer: ${String(layer.name || getLayerNameFallback(layer))}${isSelected ? ', selected' : ''}${layer.locked ? ', locked' : ''}`}
+          tabIndex={tabIndex}
+          onKeyDown={onKeyDown}
           draggable={!layer.locked}
           onDragStart={(e) => {
             e.dataTransfer.setData('layerId', layer.id);
@@ -250,6 +259,51 @@ export const LayersPanel = () => {
   const [activeTab, setActiveTab] = useState<'layers' | 'arrange'>('layers');
   const containerRef = useRef<HTMLDivElement>(null);
   const [listHeight, setListHeight] = useState(0);
+  const [focusedLayerIndex, setFocusedLayerIndex] = useState<number>(-1);
+
+  // Reversed list mirrors what the UI renders (top = last in array)
+  const reversedLayers = useMemo(() => [...layers].reverse(), [layers]);
+
+  const handleLayerKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, displayIndex: number) => {
+    switch (e.key) {
+      case 'ArrowDown': {
+        e.preventDefault();
+        const next = Math.min(displayIndex + 1, reversedLayers.length - 1);
+        setFocusedLayerIndex(next);
+        const el = containerRef.current?.querySelectorAll<HTMLDivElement>('[role="treeitem"]')[next];
+        el?.focus();
+        break;
+      }
+      case 'ArrowUp': {
+        e.preventDefault();
+        const prev = Math.max(displayIndex - 1, 0);
+        setFocusedLayerIndex(prev);
+        const el = containerRef.current?.querySelectorAll<HTMLDivElement>('[role="treeitem"]')[prev];
+        el?.focus();
+        break;
+      }
+      case 'Enter':
+      case ' ': {
+        e.preventDefault();
+        const layer = reversedLayers[displayIndex];
+        if (layer) selectLayer(layer.id);
+        break;
+      }
+      case 'Delete':
+      case 'Backspace': {
+        e.preventDefault();
+        const layer = reversedLayers[displayIndex];
+        if (layer && !layer.locked) deleteLayer(layer.id);
+        break;
+      }
+      case 'Escape': {
+        e.preventDefault();
+        setFocusedLayerIndex(-1);
+        (e.currentTarget as HTMLDivElement).blur();
+        break;
+      }
+    }
+  };
 
   useEffect(() => {
     const updateHeight = () => {
@@ -300,8 +354,12 @@ export const LayersPanel = () => {
         style={{ maxHeight: listHeight || '100%' }}
       >
         {activeTab === 'layers' ? (
-          <div className="flex flex-col">
-            {layers.length === 0 ? (
+          <div
+            className="flex flex-col"
+            role="tree"
+            aria-label="Layers"
+          >
+            {reversedLayers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
                 <div className="w-14 h-14 rounded-full bg-surface-dark-3 flex items-center justify-center mb-3">
                   <Icons.Layers className="w-7 h-7 text-gray-600" />
@@ -312,8 +370,7 @@ export const LayersPanel = () => {
                 </p>
               </div>
             ) : (
-              [...layers]
-                .reverse()
+              reversedLayers
                 .map((layer, index) => (
                   <LayerItem
                     key={layer.id}
@@ -327,6 +384,8 @@ export const LayersPanel = () => {
                     onDrop={(id, target, pos) =>
                       reorderLayer(id, layers.findIndex((l) => l.id === target) + (pos === 'above' ? 1 : 0))
                     }
+                    tabIndex={focusedLayerIndex === index || (focusedLayerIndex === -1 && index === 0) ? 0 : -1}
+                    onKeyDown={(e) => handleLayerKeyDown(e, index)}
                   />
                 ))
             )}
