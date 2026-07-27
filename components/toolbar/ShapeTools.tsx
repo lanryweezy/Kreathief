@@ -98,6 +98,7 @@ const ShadowControls = ({
                 min={s.min ?? 0}
                 max={s.max}
                 value={(layer.shadow as any)[s.key]}
+                aria-label="Shadow Offset"
                 onChange={(e) => onUpdate({ shadow: { ...layer.shadow!, [s.key]: parseInt(e.target.value) } })}
                 className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
               />
@@ -384,6 +385,7 @@ export const ShapeTools = React.memo(
                         min={f.min}
                         max={f.max}
                         value={(layer as any).filters?.[f.key] ?? (f.key === 'blur' ? 0 : 100)}
+                        aria-label="Filter Amount"
                         onChange={(e) => updateFilter(f.key, parseInt(e.target.value))}
                         className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
                       />

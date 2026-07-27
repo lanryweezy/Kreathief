@@ -114,6 +114,7 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
                 </div>
                 <input
                   type="range"
+                  aria-label="Duration"
                   min="0.1"
                   max="5"
                   step="0.1"
@@ -130,6 +131,7 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
                 </div>
                 <input
                   type="range"
+                  aria-label="Delay"
                   min="0"
                   max="5"
                   step="0.1"

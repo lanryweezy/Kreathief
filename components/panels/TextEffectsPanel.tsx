@@ -199,6 +199,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
           </div>
           <input
             type="range"
+            aria-label="Emboss Depth"
             min="1"
             max="20"
             value={depth || 3}
@@ -247,6 +248,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
           </div>
           <input
             type="range"
+            aria-label="Curve Intensity"
             min="-100"
             max="100"
             value={curve}
@@ -265,6 +267,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
           </div>
           <input
             type="range"
+            aria-label="Effect Depth"
             min="0"
             max="20"
             value={depth}
@@ -285,6 +288,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
             </div>
             <input
               type="range"
+              aria-label="Rotate X"
               min="-90"
               max="90"
               value={warpRotateX}
@@ -299,6 +303,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
             </div>
             <input
               type="range"
+              aria-label="Rotate Y"
               min="-90"
               max="90"
               value={warpRotateY}
@@ -313,6 +318,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
             </div>
             <input
               type="range"
+              aria-label="Perspective"
               min="100"
               max="2000"
               value={warpPerspective}
@@ -367,6 +373,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
               </div>
               <input
                 type="range"
+                aria-label="X Offset"
                 min="-20"
                 max="20"
                 value={shadowX}
@@ -384,6 +391,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
               </div>
               <input
                 type="range"
+                aria-label="Y Offset"
                 min="-20"
                 max="20"
                 value={shadowY}
@@ -401,6 +409,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
               </div>
               <input
                 type="range"
+                aria-label="Blur"
                 min="0"
                 max="50"
                 value={shadowBlur}
@@ -459,6 +468,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
               </div>
               <input
                 type="range"
+                aria-label="Stroke Width"
                 min="0"
                 max="10"
                 step="0.5"
@@ -519,6 +529,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
               </div>
               <input
                 type="range"
+                aria-label="Glow Intensity"
                 min="0"
                 max="100"
                 value={neonIntensity}
@@ -537,6 +548,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
               </div>
               <input
                 type="range"
+                aria-label="Aura Spread"
                 min="0"
                 max="50"
                 value={neonSpread}

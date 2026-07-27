@@ -163,6 +163,7 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
             </div>
             <input
               type="range"
+              aria-label="Intensity"
               min="0"
               max="100"
               step="1"
@@ -179,6 +180,7 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
             </div>
             <input
               type="range"
+              aria-label="Scale"
               min="10"
               max="100"
               step="5"
@@ -226,6 +228,7 @@ export const TexturesPanel: React.FC<TexturesPanelProps> = ({ onRemoveTexture, c
         </div>
         <input
           type="range"
+          aria-label="Material Opacity"
           min="0.05"
           max="1"
           step="0.05"

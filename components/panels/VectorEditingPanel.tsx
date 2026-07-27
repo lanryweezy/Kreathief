@@ -371,6 +371,7 @@ const PathEffectsPanel: React.FC<PathEffectsPanelProps> = ({
           </div>
           <input
             type="range"
+            aria-label="Tolerance"
             min="0.5"
             max="10"
             step="0.5"
@@ -395,6 +396,7 @@ const PathEffectsPanel: React.FC<PathEffectsPanelProps> = ({
           </div>
           <input
             type="range"
+            aria-label="Distance"
             min="-50"
             max="50"
             step="1"
@@ -419,6 +421,7 @@ const PathEffectsPanel: React.FC<PathEffectsPanelProps> = ({
           </div>
           <input
             type="range"
+            aria-label="Radius"
             min="0"
             max="100"
             step="1"
@@ -509,6 +512,7 @@ const PathTransformPanel: React.FC = () => {
           </div>
           <input
             type="range"
+            aria-label="Angle"
             min="0"
             max="360"
             step="1"
@@ -540,6 +544,7 @@ const PathTransformPanel: React.FC = () => {
             </div>
             <input
               type="range"
+              aria-label="Width"
               min="10"
               max="200"
               step="5"
@@ -555,6 +560,7 @@ const PathTransformPanel: React.FC = () => {
             </div>
             <input
               type="range"
+              aria-label="Height"
               min="10"
               max="200"
               step="5"

@@ -144,6 +144,7 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
                 min="0"
                 max="360"
                 value={angle}
+                aria-label="Angle"
                 onChange={(e) => {
                   const newAngle = parseInt(e.target.value);
                   setAngle(newAngle);
@@ -181,6 +182,7 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
                     min="0"
                     max="100"
                     value={stop.position}
+                    aria-label="Stop Position"
                     onChange={(e) => handlePositionChange(index, parseInt(e.target.value))}
                     className="flex-1 accent-brand-600"
                   />

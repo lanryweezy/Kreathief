@@ -138,6 +138,7 @@ export const QuickTextEffects = React.memo(({ layer, onUpdateLayer }: QuickTextE
             </div>
             <input
               type="range"
+              aria-label="Curve"
               min="-100"
               max="100"
               value={layer.curve || 0}

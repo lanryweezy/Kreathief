@@ -819,6 +819,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                   </div>
                   <input
                     id="export-bleed"
+                    aria-label="Bleed"
                     type="range"
                     min="0"
                     max="36"
@@ -883,6 +884,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                 </div>
                 <input
                   id="export-quality"
+                  aria-label="Quality"
                   data-testid="export-quality-slider"
                   type="range"
                   min="1"

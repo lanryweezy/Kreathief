@@ -122,6 +122,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
               </div>
               <input
                 type="range"
+                aria-label="Opacity"
                 min="0"
                 max="100"
                 value={((dropShadow as AdvancedShadow).opacity || 1) * 100}
@@ -141,6 +142,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
               </div>
               <input
                 type="range"
+                aria-label="Blur"
                 min="0"
                 max="100"
                 value={dropShadow.blur}
@@ -161,6 +163,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
                 </div>
                 <input
                   type="range"
+                  aria-label="X Offset"
                   min="-100"
                   max="100"
                   value={dropShadow.offsetX}
@@ -179,6 +182,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
                 </div>
                 <input
                   type="range"
+                  aria-label="Y Offset"
                   min="-100"
                   max="100"
                   value={dropShadow.offsetY}
@@ -239,6 +243,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
               </div>
               <input
                 type="range"
+                aria-label="Width"
                 min="0"
                 max="50"
                 value={stroke.width}
@@ -258,6 +263,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
               </div>
               <input
                 type="range"
+                aria-label="Opacity"
                 min="0"
                 max="100"
                 value={(stroke.opacity || 1) * 100}

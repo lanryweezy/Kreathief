@@ -607,6 +607,7 @@ ${displayResult.map((item) => `  <path d="${item.path}" fill="${item.color}" />`
               min="2"
               max="12"
               value={colors}
+              aria-label="Colors"
               onChange={(e) => setColors(parseInt(e.target.value))}
               className="w-full h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-brand-600"
             />
@@ -650,6 +651,7 @@ ${displayResult.map((item) => `  <path d="${item.path}" fill="${item.color}" />`
                   max="1"
                   step="0.05"
                   value={simplifyTolerance}
+                  aria-label="Simplify Tolerance"
                   onChange={(e) => setSimplifyTolerance(parseFloat(e.target.value))}
                   className="w-full h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
                 />
@@ -673,6 +675,7 @@ ${displayResult.map((item) => `  <path d="${item.path}" fill="${item.color}" />`
                   max="90"
                   step="5"
                   value={cornerThreshold}
+                  aria-label="Corner Threshold"
                   onChange={(e) => setCornerThreshold(parseInt(e.target.value))}
                   className="w-full h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-cyan-500"
                 />

@@ -397,6 +397,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                 </div>
                 <input
                   type="range"
+                  aria-label="Material Depth"
                   min="0.1"
                   max="1"
                   step="0.01"
@@ -416,6 +417,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                     <span className="text-[10px] text-gray-500 w-8">X°</span>
                     <input
                       type="range"
+                      aria-label="X°"
                       min="-45"
                       max="45"
                       step="1"
@@ -431,6 +433,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                     <span className="text-[10px] text-gray-500 w-8">Y°</span>
                     <input
                       type="range"
+                      aria-label="Y°"
                       min="-45"
                       max="45"
                       step="1"

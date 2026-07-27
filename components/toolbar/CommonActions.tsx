@@ -42,6 +42,7 @@ export const CommonActions = React.memo(
                 </div>
                 <input
                   type="range"
+                  aria-label="Opacity"
                   min="0"
                   max="1"
                   step="0.01"
