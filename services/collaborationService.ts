@@ -53,6 +53,7 @@ class CollaborationService {
   private onPresenceChange: ((users: PresenceState[]) => void) | null = null;
   private onCursorMove: ((userId: string, cursor: { x: number; y: number }) => void) | null = null;
   private onLayerChange: ((change: LayerChange) => void) | null = null;
+  private onSelectionChange: ((userId: string, selection: { x: number; y: number; width: number; height: number; layerId: string | null } | null) => void) | null = null;
   private onUserJoined: ((user: PresenceState) => void) | null = null;
   private onUserLeft: ((userId: string) => void) | null = null;
   private cursorThrottleTimer: ReturnType<typeof setTimeout> | null = null;
@@ -65,6 +66,7 @@ class CollaborationService {
       onPresenceChange?: (users: PresenceState[]) => void;
       onCursorMove?: (userId: string, cursor: { x: number; y: number }) => void;
       onLayerChange?: (change: LayerChange) => void;
+      onSelectionChange?: (userId: string, selection: { x: number; y: number; width: number; height: number; layerId: string | null } | null) => void;
       onUserJoined?: (user: PresenceState) => void;
       onUserLeft?: (userId: string) => void;
     }
@@ -137,6 +139,13 @@ class CollaborationService {
     channel.on('broadcast', { event: 'layer_change' }, ({ payload }: any) => {
       if (payload.userId !== user.id) {
         this.onLayerChange?.(payload as LayerChange);
+      }
+    });
+
+    // Listen for selection broadcasts
+    channel.on('broadcast', { event: 'selection_change' }, ({ payload }: any) => {
+      if (payload.userId !== user.id) {
+        this.onSelectionChange?.(payload.userId, payload.selection);
       }
     });
 
@@ -233,6 +242,22 @@ class CollaborationService {
       payload: {
         ...change,
         userId,
+        timestamp: Date.now(),
+      },
+    });
+  }
+
+  broadcastSelection(selection: { x: number; y: number; width: number; height: number; layerId: string | null } | null): void {
+    if (!this.channel) {
+      return;
+    }
+
+    this.channel.send({
+      type: 'broadcast',
+      event: 'selection_change',
+      payload: {
+        userId: this.userId,
+        selection,
         timestamp: Date.now(),
       },
     });

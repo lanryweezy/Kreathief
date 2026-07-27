@@ -632,9 +632,69 @@ export async function exportToLayeredPSD(
   layers: any[],
   filename?: string
 ): Promise<void> {
-  const svg = await exportToSVG(width, height, '#ffffff', layers);
-  const blob = new Blob([svg], { type: 'image/svg+xml' });
-  downloadBlob(blob, `${filename || 'export'}.svg`);
+  try {
+    const { writePsd } = await import('ag-psd');
+
+    const psdLayers: any[] = [];
+
+    for (let i = 0; i < layers.length; i++) {
+      const layer = layers[i];
+      const layerCanvas = document.createElement('canvas');
+      layerCanvas.width = Math.max(1, Math.round(layer.width || 100));
+      layerCanvas.height = Math.max(1, Math.round(layer.height || 100));
+      const ctx = layerCanvas.getContext('2d');
+
+      if (ctx) {
+        if (layer.type === 'text') {
+          ctx.fillStyle = layer.color || '#000000';
+          ctx.font = `${layer.fontSize || 24}px ${layer.fontFamily || 'sans-serif'}`;
+          ctx.textBaseline = 'top';
+          ctx.fillText(layer.text || '', 0, 0);
+        } else if (layer.type === 'shape') {
+          ctx.fillStyle = layer.fill || '#3b82f6';
+          ctx.fillRect(0, 0, layerCanvas.width, layerCanvas.height);
+        } else if (layer.type === 'image' && layer.src) {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          await new Promise<void>((resolve) => {
+            img.onload = () => {
+              ctx.drawImage(img, 0, 0, layerCanvas.width, layerCanvas.height);
+              resolve();
+            };
+            img.onerror = () => resolve();
+            img.src = layer.src;
+          });
+        }
+      }
+
+      psdLayers.push({
+        name: layer.name || `Layer ${i + 1}`,
+        left: Math.round(layer.x || 0),
+        top: Math.round(layer.y || 0),
+        right: Math.round((layer.x || 0) + (layer.width || 100)),
+        bottom: Math.round((layer.y || 0) + (layer.height || 100)),
+        opacity: layer.opacity ?? 1,
+        hidden: layer.visible === false,
+        blendMode: layer.blendMode || 'normal',
+        canvas: layerCanvas,
+        text: layer.type === 'text' ? { text: layer.text || '' } : undefined,
+      });
+    }
+
+    const psd = {
+      width: Math.round(width),
+      height: Math.round(height),
+      children: psdLayers,
+    };
+
+    const buffer = writePsd(psd);
+    const blob = new Blob([buffer], { type: 'image/vnd.adobe.photoshop' });
+    downloadBlob(blob, `${filename || 'design'}.psd`);
+  } catch (err) {
+    const svg = await exportToSVG(width, height, '#ffffff', layers);
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    downloadBlob(blob, `${filename || 'export'}.svg`);
+  }
 }
 
 export async function exportToPrintPDF(

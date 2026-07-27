@@ -11,9 +11,10 @@ type ToolHandler<P> = (params: P) => Promise<void> | void;
 // Helper to get selected nodes as array
 function getSelectedNodes() {
   const state = useStore.getState();
-  const nodes = state.nodes;
-  const ids = Array.from(state.selectedIds);
-  return ids.map(id => nodes.get(id)).filter(Boolean);
+  const ab = state.artboards.find((a) => a.id === state.activeArtboardId) || state.artboards[0];
+  const layers = ab?.layers || [];
+  const selectedIds = new Set(state.selectedLayerIds || []);
+  return layers.filter((l) => selectedIds.has(l.id));
 }
 
 // Schemas
@@ -64,7 +65,7 @@ const alignLayers: ToolHandler<z.infer<typeof alignSchema>> = ({ type }) => {
   const state = useStore.getState();
   const alignmentType = type === 'center' ? 'h-center' : type === 'middle' ? 'v-center' : type;
   const changes = alignLayersUtil(nodes as any, alignmentType as any, { width: 1080, height: 1080 });
-  changes.forEach(c => state.updateNode(c.id, c.changes as any));
+  changes.forEach(c => state.updateLayer(c.id, c.changes as any));
 };
 
 const distributeLayers: ToolHandler<z.infer<typeof distributeSchema>> = ({ type }) => {
@@ -73,7 +74,7 @@ const distributeLayers: ToolHandler<z.infer<typeof distributeSchema>> = ({ type 
   const state = useStore.getState();
   const distType = type === 'horizontal' ? 'h-spacing' : 'v-spacing';
   const changes = distributeLayersUtil(nodes as any, distType as any);
-  changes.forEach(c => state.updateNode(c.id, c.changes as any));
+  changes.forEach(c => state.updateLayer(c.id, c.changes as any));
 };
 
 const layoutLayersTool: ToolHandler<z.infer<typeof layoutSchema>> = ({ type }) => {
@@ -88,7 +89,7 @@ const layoutLayersTool: ToolHandler<z.infer<typeof layoutSchema>> = ({ type }) =
       if (!node) return;
       const col = i % cols;
       const row = Math.floor(i / cols);
-      state.updateNode(node.id, {
+      state.updateLayer(node.id, {
         x: col * (node.width + gap),
         y: row * (node.height + gap),
       });
@@ -102,7 +103,7 @@ const applyBrandColorsTool: ToolHandler<z.infer<typeof brandColorsSchema>> = ({ 
   const state = useStore.getState();
   nodes.forEach((node, i) => {
     if (!node) return;
-    state.updateNode(node.id, { fill: colors[i % colors.length] });
+    state.updateLayer(node.id, { fill: colors[i % colors.length] } as any);
   });
 };
 

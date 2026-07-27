@@ -5,17 +5,16 @@ import { useShallow } from 'zustand/react/shallow';
 const CURSOR_SIZE = 20;
 
 /**
- * Enhanced CursorOverlay — shows remote users' cursors with
- * pulse animation, avatar, name labels, and selection awareness.
+ * Enhanced CursorOverlay — shows remote users' cursors, selection bounds,
+ * pulse animations, avatars, name labels, and active editing state.
  */
 export const CursorOverlay: React.FC = () => {
-  // ⚡ Bolt Optimization: Use useShallow with specific selectors to prevent the component from
-  // unnecessarily re-rendering on unrelated global state updates and reduce React hook overhead (3 hooks down to 1).
-  const { cursors, onlineUsers, activeLayerByUser } = useStore(
+  const { cursors, onlineUsers, activeLayerByUser, remoteSelections } = useStore(
     useShallow((s) => ({
       cursors: s.cursors,
       onlineUsers: s.onlineUsers,
       activeLayerByUser: s.activeLayerByUser,
+      remoteSelections: s.remoteSelections,
     }))
   );
 
@@ -42,6 +41,35 @@ export const CursorOverlay: React.FC = () => {
 
   return (
     <div className="absolute inset-0 pointer-events-none z-raised">
+      {/* Remote Selection Bounds */}
+      {Object.entries(remoteSelections || {}).map(([userId, selection]) => {
+        const user = userMap[userId];
+        if (!user || !selection || selection.width <= 0 || selection.height <= 0) return null;
+
+        return (
+          <div
+            key={`selection-${userId}`}
+            className="absolute transition-all duration-75 ease-out rounded border-2 pointer-events-none"
+            style={{
+              left: selection.x,
+              top: selection.y,
+              width: selection.width,
+              height: selection.height,
+              borderColor: user.color,
+              backgroundColor: `${user.color}15`,
+            }}
+          >
+            <div
+              className="absolute -top-5 left-0 px-1.5 py-0.5 rounded-t text-[9px] font-bold text-white whitespace-nowrap shadow-sm"
+              style={{ backgroundColor: user.color }}
+            >
+              {user.name}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Remote Cursors */}
       {Object.entries(cursors).map(([userId, cursor]) => {
         const user = userMap[userId];
         if (!user || !cursor) {
@@ -85,26 +113,22 @@ export const CursorOverlay: React.FC = () => {
               />
             </div>
 
-            {/* Name label with better contrast */}
+            {/* Name label */}
             <div
-              className="absolute left-4 top-4 px-2 py-0.5 rounded-full text-[10px] font-bold text-white whitespace-nowrap shadow-lg backdrop-blur-sm"
+              className="absolute left-4 top-4 px-2 py-0.5 rounded-full text-[10px] font-bold text-white whitespace-nowrap shadow-lg backdrop-blur-sm flex items-center gap-1"
               style={{ backgroundColor: user.color, border: '1px solid rgba(255,255,255,0.3)' }}
             >
-              {user.avatar ? (
-                <div className="flex items-center gap-1">
-                  <img src={user.avatar} className="w-3 h-3 rounded-full" alt="" />
-                  {user.name}
-                </div>
-              ) : (
-                user.name
+              {user.avatar && (
+                <img src={user.avatar} className="w-3 h-3 rounded-full object-cover" alt="" />
               )}
+              {user.name}
             </div>
 
             {/* Active layer indicator */}
             {layerName && (
               <div
-                className="absolute left-4 top-7 px-1.5 py-0.5 rounded text-[8px] font-medium text-white/80 whitespace-nowrap"
-                style={{ backgroundColor: `${user.color}88` }}
+                className="absolute left-4 top-8 px-1.5 py-0.5 rounded text-[8px] font-medium text-white/80 whitespace-nowrap"
+                style={{ backgroundColor: `${user.color}aa` }}
               >
                 editing: {layerName}
               </div>

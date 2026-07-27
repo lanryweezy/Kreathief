@@ -23,8 +23,7 @@ for (let i = 0; i < numLayers; i++) {
     opacity: 1,
     visible: true,
     locked: false,
-    zIndex: i
-  });
+  } as any);
 }
 
 // Restore unoptimized method for baseline

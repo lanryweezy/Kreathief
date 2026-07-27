@@ -7,6 +7,10 @@ export function useCollaboration(projectId: string | null, user: User | null) {
   const setOnlineUsers = useStore((s) => s.setOnlineUsers);
   const updateCursor = useStore((s) => s.updateCursor);
   const removeCursor = useStore((s) => s.removeCursor);
+  const setRemoteSelection = useStore((s) => s.setRemoteSelection);
+  const updateLayer = useStore((s) => s.updateLayer);
+  const addLayer = useStore((s) => s.addLayer);
+  const deleteLayer = useStore((s) => s.deleteLayer);
   const clearCollaborationState = useStore((s) => s.clearCollaborationState);
   const addToast = useStore((s) => s.addToast);
   const onlineUsers = useStore((s) => s.onlineUsers);
@@ -14,7 +18,7 @@ export function useCollaboration(projectId: string | null, user: User | null) {
   const prevUserCountRef = useRef(0);
 
   useEffect(() => {
-    if (!projectId || !user || user.isGuest) return;
+    if (!projectId || !user) return;
     if (joinedRef.current) return;
     joinedRef.current = true;
 
@@ -22,7 +26,7 @@ export function useCollaboration(projectId: string | null, user: User | null) {
       projectId,
       {
         id: user.id,
-        name: user.name,
+        name: user.name || 'Guest Designer',
         avatar: user.avatar || null,
       },
       {
@@ -32,8 +36,21 @@ export function useCollaboration(projectId: string | null, user: User | null) {
         onCursorMove: (userId: string, cursor: { x: number; y: number }) => {
           updateCursor(userId, cursor);
         },
+        onSelectionChange: (userId: string, selection) => {
+          setRemoteSelection(userId, selection);
+        },
+        onLayerChange: (change: LayerChange) => {
+          if (change.type === 'update' && change.layerId && change.data) {
+            updateLayer(change.layerId, change.data);
+          } else if (change.type === 'create' && change.data) {
+            addLayer(change.data);
+          } else if (change.type === 'delete' && change.layerId) {
+            deleteLayer(change.layerId);
+          }
+        },
         onUserLeft: (userId: string) => {
           removeCursor(userId);
+          setRemoteSelection(userId, null);
         },
       }
     );
@@ -70,6 +87,13 @@ export function useCollaboration(projectId: string | null, user: User | null) {
     collaborationService.broadcastCursor(cursor);
   }, []);
 
+  const broadcastSelection = useCallback(
+    (selection: { x: number; y: number; width: number; height: number; layerId: string | null } | null) => {
+      collaborationService.broadcastSelection(selection);
+    },
+    []
+  );
+
   const broadcastLayerChange = useCallback((change: Omit<LayerChange, 'userId' | 'timestamp'>) => {
     collaborationService.broadcastLayerChange(change);
   }, []);
@@ -80,6 +104,7 @@ export function useCollaboration(projectId: string | null, user: User | null) {
 
   return {
     broadcastCursor,
+    broadcastSelection,
     broadcastLayerChange,
     updatePresence,
   };

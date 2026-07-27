@@ -1,19 +1,28 @@
 import { StateCreator } from 'zustand';
-import { PresenceState, LayerChange } from '../../services/collaborationService';
+import { PresenceState } from '../../services/collaborationService';
 import type { StoreState } from '../useStore';
 
+export interface RemoteSelection {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  layerId: string | null;
+}
 
 export interface CollaborationSlice {
   // Presence
   onlineUsers: PresenceState[];
   cursors: Record<string, { x: number; y: number }>;
   activeLayerByUser: Record<string, string | null>;
+  remoteSelections: Record<string, RemoteSelection | null>;
 
   // Actions
   setOnlineUsers: (users: PresenceState[]) => void;
   updateCursor: (userId: string, cursor: { x: number; y: number }) => void;
   removeCursor: (userId: string) => void;
   setActiveLayerByUser: (userId: string, layerId: string | null) => void;
+  setRemoteSelection: (userId: string, selection: RemoteSelection | null) => void;
   clearCollaborationState: () => void;
 }
 
@@ -21,6 +30,7 @@ export const createCollaborationSlice: StateCreator<StoreState, [], [], Collabor
   onlineUsers: [],
   cursors: {},
   activeLayerByUser: {},
+  remoteSelections: {},
 
   setOnlineUsers: (users) => {
     set({ onlineUsers: users });
@@ -34,8 +44,9 @@ export const createCollaborationSlice: StateCreator<StoreState, [], [], Collabor
 
   removeCursor: (userId) => {
     set((state: any) => {
-      const { [userId]: _, ...rest } = state.cursors;
-      return { cursors: rest };
+      const { [userId]: _, ...restCursors } = state.cursors;
+      const { [userId]: __, ...restSelections } = state.remoteSelections;
+      return { cursors: restCursors, remoteSelections: restSelections };
     });
   },
 
@@ -45,7 +56,13 @@ export const createCollaborationSlice: StateCreator<StoreState, [], [], Collabor
     }));
   },
 
+  setRemoteSelection: (userId, selection) => {
+    set((state: any) => ({
+      remoteSelections: { ...state.remoteSelections, [userId]: selection },
+    }));
+  },
+
   clearCollaborationState: () => {
-    set({ onlineUsers: [], cursors: {}, activeLayerByUser: {} });
+    set({ onlineUsers: [], cursors: {}, activeLayerByUser: {}, remoteSelections: {} });
   },
 });

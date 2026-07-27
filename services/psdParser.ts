@@ -365,3 +365,70 @@ export function estimateMemoryUsage(parsed: ParsedPSD): number {
   });
   return total;
 }
+
+/**
+ * Converts parsed PSD nodes into native Kreathief canvas Layer objects.
+ */
+export function psdToCanvasLayers(parsed: ParsedPSD): any[] {
+  const canvasLayers: any[] = [];
+
+  parsed.nodes.forEach((node) => {
+    if (node.id === parsed.rootId) return;
+
+    if (node.text !== undefined && node.text !== null) {
+      canvasLayers.push({
+        id: node.id,
+        type: 'text',
+        name: node.name,
+        x: node.x,
+        y: node.y,
+        width: Math.max(node.width, 100),
+        height: Math.max(node.height, 40),
+        text: node.text,
+        fontSize: node.fontSize || 24,
+        fontFamily: node.fontFamily || 'Inter',
+        color: node.fill || '#ffffff',
+        opacity: node.opacity,
+        blendMode: node.blendMode || 'normal',
+        visible: node.visible,
+        locked: node.locked,
+        rotation: node.rotation || 0,
+      });
+    } else if (node.imageUrl) {
+      canvasLayers.push({
+        id: node.id,
+        type: 'image',
+        name: node.name,
+        src: node.imageUrl,
+        x: node.x,
+        y: node.y,
+        width: Math.max(node.width, 50),
+        height: Math.max(node.height, 50),
+        opacity: node.opacity,
+        blendMode: node.blendMode || 'normal',
+        visible: node.visible,
+        locked: node.locked,
+        rotation: node.rotation || 0,
+      });
+    } else if (node.type === 'rect') {
+      canvasLayers.push({
+        id: node.id,
+        type: 'shape',
+        shapeType: 'rectangle',
+        name: node.name,
+        x: node.x,
+        y: node.y,
+        width: Math.max(node.width, 50),
+        height: Math.max(node.height, 50),
+        fill: node.fill || '#3b82f6',
+        opacity: node.opacity,
+        blendMode: node.blendMode || 'normal',
+        visible: node.visible,
+        locked: node.locked,
+        rotation: node.rotation || 0,
+      });
+    }
+  });
+
+  return canvasLayers;
+}
