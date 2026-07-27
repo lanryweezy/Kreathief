@@ -19,7 +19,6 @@ const ALL_TABS = [
   { id: NavTab.TEMPLATES,    icon: Icons.Templates,    label: 'Templates'     },
   { id: NavTab.MEDIA,        icon: Icons.Image,        label: 'Media'         },
   { id: NavTab.TEXT,         icon: Icons.Text,         label: 'Text'          },
-  { id: NavTab.COMPONENTS,   icon: Icons.LayoutGrid,   label: 'Components'    },
   { id: NavTab.BRAND,        icon: Icons.Brand,        label: 'Brand'         },
   { id: NavTab.TEXTURES,     icon: Icons.Texture,      label: 'Textures'      },
   { id: NavTab.MOCKUP,       icon: Icons.Mockup,       label: 'Mockups'       },
