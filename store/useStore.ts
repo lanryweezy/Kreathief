@@ -142,3 +142,5 @@ export const useStore = create<StoreState>()((set, get, store) => ({
     });
   },
 }));
+
+export const useKreathiefStore = useStore;

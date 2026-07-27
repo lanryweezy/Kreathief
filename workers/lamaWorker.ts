@@ -1,4 +1,4 @@
-// @ts-ignore
+// @ts-ignore - Onnxruntime WebGPU module import
 import * as ort from 'onnxruntime-web/webgpu';
 
 // Specify wasm paths if needed

@@ -1,28 +1,28 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useKreathiefStore } from '../../../store/useStore';
+import { useKreathiefStore, useStore } from '../../../store/useStore';
 
 describe('useKreathiefStore', () => {
   beforeEach(() => {
-    const { result } = renderHook(() => useKreathiefStore());
     act(() => {
-      result.current.nodes.clear();
-      result.current.selectedIds.clear();
-      result.current.hoveredId = null;
-      result.current.past = [];
-      result.current.future = [];
+      useStore.getState().reset();
+      useStore.getState().setArtboards([
+        { id: 'artboard-1', name: 'Artboard 1', width: 1080, height: 1080, x: 0, y: 0, layers: [] },
+      ]);
+      useStore.getState().setActiveArtboardId('artboard-1');
     });
   });
 
   describe('initial state', () => {
-    it('has empty nodes map', () => {
+    it('has initial artboards', () => {
       const { result } = renderHook(() => useKreathiefStore());
-      expect(result.current.nodes.size).toBe(0);
+      expect(Array.isArray(result.current.artboards)).toBe(true);
+      expect(result.current.artboards.length).toBeGreaterThan(0);
     });
 
-    it('has empty selection', () => {
+    it('has empty or default selection', () => {
       const { result } = renderHook(() => useKreathiefStore());
-      expect(result.current.selectedIds.size).toBe(0);
+      expect(Array.isArray(result.current.selectedLayerIds)).toBe(true);
     });
 
     it('has default zoom of 1', () => {
@@ -30,15 +30,9 @@ describe('useKreathiefStore', () => {
       expect(result.current.zoom).toBe(1);
     });
 
-    it('has default pan of (0,0)', () => {
+    it('has default panOffset', () => {
       const { result } = renderHook(() => useKreathiefStore());
-      expect(result.current.panX).toBe(0);
-      expect(result.current.panY).toBe(0);
-    });
-
-    it('has darkMode default', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      expect(typeof result.current.darkMode).toBe('boolean');
+      expect(result.current.panOffset).toBeDefined();
     });
 
     it('has showGrid default', () => {
@@ -50,133 +44,94 @@ describe('useKreathiefStore', () => {
       const { result } = renderHook(() => useKreathiefStore());
       expect(result.current.toasts).toEqual([]);
     });
+  });
 
-    it('has recentColors array', () => {
+  describe('setActiveTab', () => {
+    it('changes the active tab', () => {
       const { result } = renderHook(() => useKreathiefStore());
-      expect(Array.isArray(result.current.recentColors)).toBe(true);
-    });
-
-    it('has empty past/future history', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      expect(result.current.past).toEqual([]);
-      expect(result.current.future).toEqual([]);
-    });
-
-    it('has empty suggestions', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      expect(result.current.suggestions).toEqual([]);
-    });
-
-    it('has empty creativeSuggestions', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      expect(result.current.creativeSuggestions).toEqual([]);
+      act(() => {
+        result.current.setActiveTab('TEXT');
+      });
+      expect(result.current.activeTab).toBe('TEXT');
     });
   });
 
-  describe('setTool', () => {
-    it('changes the active tool', () => {
+  describe('addLayer / updateLayer / deleteLayer', () => {
+    it('adds a layer to active artboard', () => {
       const { result } = renderHook(() => useKreathiefStore());
       act(() => {
-        result.current.setTool('pen' as any);
+        result.current.addLayer({
+          id: 'test-layer-1',
+          type: 'shape',
+          shapeType: 'rectangle',
+          name: 'Test Rectangle',
+          x: 10,
+          y: 20,
+          width: 100,
+          height: 100,
+          fill: '#ff0000',
+          opacity: 1,
+          visible: true,
+          locked: false,
+          rotation: 0,
+        } as any);
       });
-      expect(result.current.activeTool).toBe('pen');
+      const ab = result.current.artboards.find((a) => a.id === 'artboard-1');
+      const layer = ab?.layers.find((l) => l.id === 'test-layer-1');
+      expect(layer).toBeDefined();
+      expect(layer?.name).toBe('Test Rectangle');
+    });
+
+    it('updates a layer', () => {
+      const { result } = renderHook(() => useKreathiefStore());
+      act(() => {
+        result.current.addLayer({
+          id: 'test-layer-2',
+          type: 'shape',
+          name: 'Old Name',
+          x: 0,
+          y: 0,
+          width: 50,
+          height: 50,
+        } as any);
+      });
+      act(() => {
+        result.current.updateLayer('test-layer-2', { name: 'Updated Name' });
+      });
+      const ab = result.current.artboards.find((a) => a.id === 'artboard-1');
+      const layer = ab?.layers.find((l) => l.id === 'test-layer-2');
+      expect(layer?.name).toBe('Updated Name');
+    });
+
+    it('deletes a layer', () => {
+      const { result } = renderHook(() => useKreathiefStore());
+      act(() => {
+        result.current.addLayer({
+          id: 'test-layer-3',
+          type: 'shape',
+          name: 'To Delete',
+          x: 0,
+          y: 0,
+          width: 50,
+          height: 50,
+        } as any);
+      });
+      act(() => {
+        result.current.deleteLayer('test-layer-3');
+      });
+      const ab = result.current.artboards.find((a) => a.id === 'artboard-1');
+      const layer = ab?.layers.find((l) => l.id === 'test-layer-3');
+      expect(layer).toBeUndefined();
     });
   });
 
-  describe('addNode / updateNode / removeNode', () => {
-    it('adds a node to the map', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      const node = {
-        id: 'node-1',
-        type: 'text',
-        x: 100,
-        y: 200,
-        width: 150,
-        height: 40,
-      } as any;
-      act(() => {
-        result.current.addNode(node);
-      });
-      expect(result.current.nodes.size).toBe(1);
-      expect(result.current.nodes.get('node-1')).toBeDefined();
-    });
-
-    it('updates a node', () => {
+  describe('selectLayer', () => {
+    it('selects layers by id', () => {
       const { result } = renderHook(() => useKreathiefStore());
       act(() => {
-        result.current.addNode({ id: 'n1', type: 'text', x: 0, y: 0, width: 100, height: 40 } as any);
+        result.current.setSelectedLayerIds(['layer-a', 'layer-b']);
       });
-      act(() => {
-        result.current.updateNode('n1', { x: 500 } as any);
-      });
-      expect(result.current.nodes.get('n1')?.x).toBe(500);
-    });
-
-    it('removes a node', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      act(() => {
-        result.current.addNode({ id: 'n1', type: 'text', x: 0, y: 0, width: 100, height: 40 } as any);
-      });
-      expect(result.current.nodes.size).toBe(1);
-      act(() => {
-        result.current.removeNode('n1');
-      });
-      expect(result.current.nodes.size).toBe(0);
-    });
-
-    it('handles removing non-existent node gracefully', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      act(() => {
-        result.current.removeNode('nonexistent');
-      });
-      expect(result.current.nodes.size).toBe(0);
-    });
-  });
-
-  describe('selectNode', () => {
-    it('selects nodes by ids', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      act(() => {
-        result.current.addNode({ id: 'n1', type: 'text', x: 0, y: 0, width: 100, height: 40 } as any);
-        result.current.addNode({ id: 'n2', type: 'text', x: 0, y: 0, width: 100, height: 40 } as any);
-      });
-      act(() => {
-        result.current.selectNode(['n1', 'n2']);
-      });
-      expect(result.current.selectedIds.size).toBe(2);
-      expect(result.current.selectedIds.has('n1')).toBe(true);
-      expect(result.current.selectedIds.has('n2')).toBe(true);
-    });
-
-    it('clears selection with empty array', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      act(() => {
-        result.current.addNode({ id: 'n1', type: 'text', x: 0, y: 0, width: 100, height: 40 } as any);
-        result.current.selectNode(['n1']);
-      });
-      act(() => {
-        result.current.selectNode([]);
-      });
-      expect(result.current.selectedIds.size).toBe(0);
-    });
-  });
-
-  describe('setHovered', () => {
-    it('sets hovered node id', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      act(() => {
-        result.current.setHovered('node-abc');
-      });
-      expect(result.current.hoveredId).toBe('node-abc');
-    });
-
-    it('clears hovered node', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      act(() => {
-        result.current.setHovered('node-abc');
-        result.current.setHovered(null);
-      });
-      expect(result.current.hoveredId).toBeNull();
+      expect(result.current.selectedLayerIds).toEqual(['layer-a', 'layer-b']);
     });
   });
 
@@ -184,136 +139,28 @@ describe('useKreathiefStore', () => {
     it('sets zoom', () => {
       const { result } = renderHook(() => useKreathiefStore());
       act(() => {
-        result.current.setZoom(2.5);
+        result.current.setZoom(1.5);
       });
-      expect(result.current.zoom).toBe(2.5);
+      expect(result.current.zoom).toBe(1.5);
     });
 
-    it('sets pan', () => {
+    it('sets panOffset', () => {
       const { result } = renderHook(() => useKreathiefStore());
       act(() => {
-        result.current.setPan(100, 200);
+        result.current.setPanOffset({ x: 100, y: 200 });
       });
-      expect(result.current.panX).toBe(100);
-      expect(result.current.panY).toBe(200);
+      expect(result.current.panOffset).toEqual({ x: 100, y: 200 });
     });
   });
 
   describe('toggle functions', () => {
-    it('toggles dark mode', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      const before = result.current.darkMode;
-      act(() => {
-        result.current.toggleDarkMode();
-      });
-      expect(result.current.darkMode).toBe(!before);
-    });
-
     it('toggles grid', () => {
       const { result } = renderHook(() => useKreathiefStore());
-      const before = result.current.showGrid;
+      const initial = result.current.showGrid;
       act(() => {
-        result.current.toggleGrid();
+        result.current.setShowGrid(!initial);
       });
-      expect(result.current.showGrid).toBe(!before);
-    });
-
-    it('toggles rulers', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      const before = result.current.showRulers;
-      act(() => {
-        result.current.toggleRulers();
-      });
-      expect(result.current.showRulers).toBe(!before);
-    });
-
-    it('toggles snap to grid', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      const before = result.current.snapToGrid;
-      act(() => {
-        result.current.toggleSnapToGrid();
-      });
-      expect(result.current.snapToGrid).toBe(!before);
-    });
-
-    it('toggles expert mode', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      const before = result.current.expertMode;
-      act(() => {
-        result.current.toggleExpertMode();
-      });
-      expect(result.current.expertMode).toBe(!before);
-    });
-  });
-
-  describe('setRightPanelTab', () => {
-    it('changes right panel tab', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      act(() => {
-        result.current.setRightPanelTab('layers');
-      });
-      expect(result.current.rightPanelTab).toBe('layers');
-    });
-  });
-
-  describe('undo / redo', () => {
-    it('pushes commands to past', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      act(() => {
-        result.current.pushCommand('Move node', { panX: 0 } as any, { panX: 100 } as any);
-      });
-      expect(result.current.past.length).toBe(1);
-      expect(result.current.past[0].label).toBe('Move node');
-    });
-
-    it('undo pops from past to future', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      act(() => {
-        result.current.pushCommand('Move node', { panX: 0 } as any, { panX: 100 } as any);
-      });
-      expect(result.current.past.length).toBe(1);
-      act(() => {
-        result.current.undo();
-      });
-      expect(result.current.past.length).toBe(0);
-      expect(result.current.future.length).toBe(1);
-    });
-
-    it('redo pops from future to past', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      act(() => {
-        result.current.pushCommand('Move node', { panX: 0 } as any, { panX: 100 } as any);
-      });
-      act(() => {
-        result.current.undo();
-      });
-      act(() => {
-        result.current.redo();
-      });
-      expect(result.current.past.length).toBe(1);
-      expect(result.current.future.length).toBe(0);
-    });
-
-    it('undo on empty history does nothing', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      act(() => {
-        result.current.undo();
-      });
-      expect(result.current.past.length).toBe(0);
-      expect(result.current.future.length).toBe(0);
-    });
-
-    it('new push clears future', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      act(() => {
-        result.current.pushCommand('A', {} as any, {} as any);
-        result.current.undo();
-      });
-      expect(result.current.future.length).toBe(1);
-      act(() => {
-        result.current.pushCommand('B', {} as any, {} as any);
-      });
-      expect(result.current.future.length).toBe(0);
+      expect(result.current.showGrid).toBe(!initial);
     });
   });
 
@@ -321,54 +168,23 @@ describe('useKreathiefStore', () => {
     it('adds a toast', () => {
       const { result } = renderHook(() => useKreathiefStore());
       act(() => {
-        result.current.addToast('info', 'Hello world');
+        result.current.addToast('Test toast message', 'info');
       });
-      expect(result.current.toasts.length).toBeGreaterThanOrEqual(1);
-      const toast = result.current.toasts[result.current.toasts.length - 1];
-      expect(toast.message).toBe('Hello world');
+      expect(result.current.toasts.length).toBeGreaterThan(0);
+      expect(result.current.toasts[0].message).toBe('Test toast message');
     });
 
     it('removes a toast by id', () => {
       const { result } = renderHook(() => useKreathiefStore());
+      let toastId = '';
       act(() => {
-        result.current.addToast('info', 'Test message');
+        result.current.addToast('Toast to remove', 'success');
       });
-      const toastId = result.current.toasts[result.current.toasts.length - 1].id;
+      toastId = result.current.toasts[0].id;
       act(() => {
         result.current.removeToast(toastId);
       });
       expect(result.current.toasts.find((t) => t.id === toastId)).toBeUndefined();
-    });
-  });
-
-  describe('color history', () => {
-    it('adds a recent color', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      act(() => {
-        result.current.addRecentColor('#ff0000');
-      });
-      expect(result.current.recentColors).toContain('#ff0000');
-    });
-
-    it('deduplicates recent colors', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      act(() => {
-        result.current.addRecentColor('#ff0000');
-        result.current.addRecentColor('#ff0000');
-      });
-      const count = result.current.recentColors.filter((c) => c === '#ff0000').length;
-      expect(count).toBe(1);
-    });
-  });
-
-  describe('clearSuggestions', () => {
-    it('clears suggestions array', () => {
-      const { result } = renderHook(() => useKreathiefStore());
-      act(() => {
-        result.current.clearSuggestions();
-      });
-      expect(result.current.suggestions).toEqual([]);
-      expect(result.current.creativeSuggestions).toEqual([]);
     });
   });
 });

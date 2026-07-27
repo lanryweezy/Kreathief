@@ -24,10 +24,11 @@ self.onmessage = async (e) => {
         await processImage(data.imageData, data.width, data.height);
         break;
 
-      case 'INFER_MASK':
+      case 'INFER_MASK': {
         const mask = await inferMask(data.x, data.y);
         self.postMessage({ type: 'MASK_RESULT', data: mask });
         break;
+      }
     }
   } catch (err: any) {
     self.postMessage({ type: 'ERROR', error: err.message || 'Worker error' });
