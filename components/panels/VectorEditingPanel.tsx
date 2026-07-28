@@ -4,12 +4,16 @@ import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
 import { Button } from '../Button';
 import { VectorPoint, PointType } from '../../types';
+import { PathOperationsService } from '../../services/pathOperationsService';
+import { VectorUtils } from '../../utils/vectorUtils';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 export const VectorEditingPanel: React.FC = () => {
   const selectedLayer = useStore((state) => {
     const selectedIds = state.selectedLayerIds || [];
-    if (selectedIds.length !== 1) return null;
+    if (selectedIds.length !== 1) {
+      return null;
+    }
 
     const artboard = state.artboards?.find((a: any) => a.id === state.activeArtboardId);
     return artboard?.layers.find((l: any) => l.id === selectedIds[0]);
@@ -44,44 +48,87 @@ export const VectorEditingPanel: React.FC = () => {
     );
   }
 
+  const getLayerVectorPath = () => {
+    if (!selectedLayer) {
+      return null;
+    }
+    const vp = (selectedLayer as any).vectorPath;
+    if (vp && vp.points && vp.points.length > 0) {
+      return vp;
+    }
+    const pd = (selectedLayer as any).pathData;
+    if (pd) {
+      return VectorUtils.parsePath(pd);
+    }
+    return null;
+  };
+
   const handleSimplify = () => {
-    if (!selectedLayer) return;
+    if (!selectedLayer) {
+      return;
+    }
+    const vp = getLayerVectorPath();
+    if (!vp) {
+      return;
+    }
 
     saveToHistory();
-    // This would call the simplification service
+    const simplified = PathOperationsService.simplifyPath(vp, simplifyTolerance);
     updateLayer(selectedLayer.id, {
-      needsSimplification: true,
-      simplifyTolerance,
-    });
+      vectorPath: simplified,
+      pathData: VectorUtils.serializePath(simplified),
+    } as any);
   };
 
   const handleOffset = () => {
-    if (!selectedLayer) return;
+    if (!selectedLayer) {
+      return;
+    }
+    const vp = getLayerVectorPath();
+    if (!vp) {
+      return;
+    }
 
     saveToHistory();
+    const offset = PathOperationsService.offsetPath(vp, offsetDistance);
     updateLayer(selectedLayer.id, {
-      needsOffset: true,
-      offsetDistance,
-    });
+      vectorPath: offset,
+      pathData: VectorUtils.serializePath(offset),
+    } as any);
   };
 
   const handleRoundCorners = () => {
-    if (!selectedLayer) return;
+    if (!selectedLayer) {
+      return;
+    }
+    const vp = getLayerVectorPath();
+    if (!vp) {
+      return;
+    }
 
     saveToHistory();
+    const rounded = PathOperationsService.applyCornerRounding(vp, cornerRadius);
     updateLayer(selectedLayer.id, {
-      needsCornerRounding: true,
-      cornerRadius,
-    });
+      vectorPath: rounded,
+      pathData: VectorUtils.serializePath(rounded),
+    } as any);
   };
 
   const handleConvertToPath = () => {
-    if (!selectedLayer) return;
+    if (!selectedLayer) {
+      return;
+    }
+    const vp = getLayerVectorPath();
+    if (!vp) {
+      return;
+    }
 
     saveToHistory();
     updateLayer(selectedLayer.id, {
-      convertToPath: true,
-    });
+      type: 'path',
+      vectorPath: vp,
+      pathData: VectorUtils.serializePath(vp),
+    } as any);
   };
 
   return (
@@ -148,7 +195,9 @@ const PathOperationsPanel: React.FC = () => {
     }))
   );
   const selectedLayer = useStore((state) => {
-    if (!selectedLayerIds || selectedLayerIds.length !== 1) return null;
+    if (!selectedLayerIds || selectedLayerIds.length !== 1) {
+      return null;
+    }
     const artboard = state.artboards?.find((a: any) => a.id === state.activeArtboardId);
     return artboard?.layers.find((l: any) => l.id === selectedLayerIds[0]);
   });
@@ -156,7 +205,9 @@ const PathOperationsPanel: React.FC = () => {
   const [selectedPointType, setSelectedPointType] = useState<PointType>('smooth');
 
   const handleClosePath = () => {
-    if (!selectedLayer) return;
+    if (!selectedLayer) {
+      return;
+    }
     saveToHistory();
     updateLayer(selectedLayer.id, {
       vectorPath: {
@@ -167,21 +218,26 @@ const PathOperationsPanel: React.FC = () => {
   };
 
   const handleReversePath = () => {
-    if (!selectedLayer) return;
+    if (!selectedLayer) {
+      return;
+    }
     saveToHistory();
-    const vectorPath = (selectedLayer as any).vectorPath;
+    const vectorPath =
+      (selectedLayer as any).vectorPath ||
+      ((selectedLayer as any).pathData ? VectorUtils.parsePath((selectedLayer as any).pathData) : null);
     if (vectorPath) {
+      const reversed = PathOperationsService.reversePath(vectorPath);
       updateLayer(selectedLayer.id, {
-        vectorPath: {
-          ...vectorPath,
-          points: [...vectorPath.points].reverse(),
-        },
-      });
+        vectorPath: reversed,
+        pathData: VectorUtils.serializePath(reversed),
+      } as any);
     }
   };
 
   const handleConvertPoints = (type: PointType) => {
-    if (!selectedLayer) return;
+    if (!selectedLayer) {
+      return;
+    }
     saveToHistory();
     const vectorPath = (selectedLayer as any).vectorPath;
     if (vectorPath) {
@@ -283,7 +339,7 @@ const BooleanOperationsPanel: React.FC = () => {
   const [hoveredOp, setHoveredOp] = useState<string | null>(null);
 
   const operations = [
-    { id: 'unite', label: 'Union', icon: Icons.Plus, desc: 'Combine shapes into one' },
+    { id: 'union', label: 'Union', icon: Icons.Plus, desc: 'Combine shapes into one' },
     { id: 'subtract', label: 'Subtract', icon: Icons.Minus, desc: 'Remove overlap from first shape' },
     { id: 'intersect', label: 'Intersect', icon: Icons.GitMerge, desc: 'Keep only overlapping area' },
     { id: 'exclude', label: 'Exclude', icon: Icons.Scissors, desc: 'Remove overlapping area' },
@@ -454,7 +510,9 @@ const PathTransformPanel: React.FC = () => {
     }))
   );
   const selectedLayer = useStore((state) => {
-    if (!selectedLayerIds || selectedLayerIds.length !== 1) return null;
+    if (!selectedLayerIds || selectedLayerIds.length !== 1) {
+      return null;
+    }
     const artboard = state.artboards?.find((a: any) => a.id === state.activeArtboardId);
     return artboard?.layers.find((l: any) => l.id === selectedLayerIds[0]);
   });
@@ -464,19 +522,25 @@ const PathTransformPanel: React.FC = () => {
   const [rotation, setRotation] = useState(0);
 
   const handleFlipHorizontal = () => {
-    if (!selectedLayer) return;
+    if (!selectedLayer) {
+      return;
+    }
     saveToHistory();
     updateLayer(selectedLayer.id, { flipX: !(selectedLayer as any).flipX });
   };
 
   const handleFlipVertical = () => {
-    if (!selectedLayer) return;
+    if (!selectedLayer) {
+      return;
+    }
     saveToHistory();
     updateLayer(selectedLayer.id, { flipY: !(selectedLayer as any).flipY });
   };
 
   const handleRotate90 = () => {
-    if (!selectedLayer) return;
+    if (!selectedLayer) {
+      return;
+    }
     saveToHistory();
     const currentRotation = selectedLayer.rotation || 0;
     updateLayer(selectedLayer.id, { rotation: currentRotation + 90 });

@@ -1,4 +1,5 @@
 import { log } from '../utils/log';
+import { getFallbackPhotos } from './fallbackPhotos';
 
 export interface PexelsPhoto {
   id: number;
@@ -9,17 +10,6 @@ export interface PexelsPhoto {
   photographerUrl: string;
 }
 
-const FALLBACK_PHOTOS: PexelsPhoto[] = [
-  {
-    id: 1,
-    url: 'https://images.pexels.com/photos/1323712/pexels-photo-1323712.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-    thumbnail: 'https://images.pexels.com/photos/1323712/pexels-photo-1323712.jpeg?auto=compress&cs=tinysrgb&w=300',
-    alt: 'Abstract Background',
-    photographer: 'Pexels',
-    photographerUrl: 'https://pexels.com',
-  },
-];
-
 export const searchPhotos = async (query: string, page: number = 1): Promise<PexelsPhoto[]> => {
   try {
     const url = new URL('/api/pexels', window.location.origin);
@@ -27,8 +17,13 @@ export const searchPhotos = async (query: string, page: number = 1): Promise<Pex
     url.searchParams.set('query', query);
     url.searchParams.set('page', page.toString());
     const response = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
-    if (!response.ok) return FALLBACK_PHOTOS;
+    if (!response.ok) {
+      return getFallbackPhotos(query, 'pexels');
+    }
     const data = await response.json();
+    if (!data.photos || !Array.isArray(data.photos)) {
+      return getFallbackPhotos(query, 'pexels');
+    }
     return (data.photos || []).map((photo: any) => ({
       id: photo.id,
       url: photo.src.large2x || photo.src.large || photo.src.original,
@@ -38,8 +33,8 @@ export const searchPhotos = async (query: string, page: number = 1): Promise<Pex
       photographerUrl: photo.photographer_url,
     }));
   } catch (error) {
-    log.error('[PexelsService] Search failed', error, { query });
-    return FALLBACK_PHOTOS;
+    log.warn('[PexelsService] Search failed or offline, using fallback library', error, { query });
+    return getFallbackPhotos(query, 'pexels');
   }
 };
 
@@ -49,8 +44,13 @@ export const getCurated = async (page: number = 1): Promise<PexelsPhoto[]> => {
     url.searchParams.set('action', 'curated');
     url.searchParams.set('page', page.toString());
     const response = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
-    if (!response.ok) return FALLBACK_PHOTOS;
+    if (!response.ok) {
+      return getFallbackPhotos('curated', 'pexels');
+    }
     const data = await response.json();
+    if (!data.photos || !Array.isArray(data.photos)) {
+      return getFallbackPhotos('curated', 'pexels');
+    }
     return (data.photos || []).map((photo: any) => ({
       id: photo.id,
       url: photo.src.large2x || photo.src.large || photo.src.original,
@@ -60,8 +60,8 @@ export const getCurated = async (page: number = 1): Promise<PexelsPhoto[]> => {
       photographerUrl: photo.photographer_url,
     }));
   } catch (error) {
-    log.error('[PexelsService] Curated failed', error);
-    return FALLBACK_PHOTOS;
+    log.warn('[PexelsService] Curated failed or offline, using fallback library', error);
+    return getFallbackPhotos('curated', 'pexels');
   }
 };
 
@@ -72,8 +72,13 @@ export const getCollectionPhotos = async (collectionId: string, page: number = 1
     url.searchParams.set('collectionId', collectionId);
     url.searchParams.set('page', page.toString());
     const response = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
-    if (!response.ok) return FALLBACK_PHOTOS;
+    if (!response.ok) {
+      return getFallbackPhotos('curated', 'pexels');
+    }
     const data = await response.json();
+    if (!data.photos || !Array.isArray(data.photos)) {
+      return getFallbackPhotos('curated', 'pexels');
+    }
     return (data.photos || []).map((photo: any) => ({
       id: photo.id,
       url: photo.src.large2x || photo.src.large || photo.src.original,
@@ -83,7 +88,7 @@ export const getCollectionPhotos = async (collectionId: string, page: number = 1
       photographerUrl: photo.photographer_url,
     }));
   } catch (error) {
-    log.error('[PexelsService] Collection photos failed', error, { collectionId });
-    return FALLBACK_PHOTOS;
+    log.warn('[PexelsService] Collection photos failed or offline, using fallback library', error, { collectionId });
+    return getFallbackPhotos('curated', 'pexels');
   }
 };

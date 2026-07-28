@@ -179,7 +179,9 @@ export const ElementsPanel = () => {
         const icons: RemoteIcon[] = [];
 
         results.forEach((result) => {
-          if (result.status !== 'fulfilled') return;
+          if (result.status !== 'fulfilled') {
+            return;
+          }
           const { type, data } = result.value;
           if (type === 'freepik' && data?.items?.length > 0) {
             data.items.forEach((icon: any) =>
@@ -187,7 +189,7 @@ export const ElementsPanel = () => {
             );
           } else if (type === 'streamline' && data?.icons?.length > 0) {
             data.icons.forEach((icon: any) => {
-              if (icon.thumbnailUrl)
+              if (icon.thumbnailUrl) {
                 icons.push({
                   id: `sl-${icon.id}`,
                   name: icon.name,
@@ -195,6 +197,7 @@ export const ElementsPanel = () => {
                   source: 'streamline',
                   hash: icon.hash,
                 });
+              }
             });
           } else if (type === 'material' && data?.length > 0) {
             data.forEach((icon: any) =>
@@ -212,7 +215,7 @@ export const ElementsPanel = () => {
             );
           } else if (type === 'phosphor' && data?.length > 0) {
             data.forEach((icon: any) => {
-              if (icon.thumbnailUrl)
+              if (icon.name || icon.svg) {
                 icons.push({
                   id: `ph-${icon.name}`,
                   name: icon.name,
@@ -220,6 +223,7 @@ export const ElementsPanel = () => {
                   source: 'phosphor',
                   svgData: icon.svg,
                 });
+              }
             });
           } else if (type === 'gi' && data) {
             const ills = data.illustrations || [];
@@ -309,7 +313,9 @@ export const ElementsPanel = () => {
       }
     } catch (err) {
       log.error('[ElementsPanel] Failed to add icon', err, { iconId: icon.id });
-      if (icon.thumbnailUrl) internalAddImageLayer(icon.thumbnailUrl);
+      if (icon.thumbnailUrl) {
+        internalAddImageLayer(icon.thumbnailUrl);
+      }
     } finally {
       setLoadingIconId(null);
     }
@@ -364,7 +370,9 @@ export const ElementsPanel = () => {
   }, [selectedCategory, searchQuery, shapePresets]);
 
   const recentShapes = useMemo(() => {
-    if (searchQuery.trim() || selectedCategory !== 'all') return [];
+    if (searchQuery.trim() || selectedCategory !== 'all') {
+      return [];
+    }
     return recentNames.map((name) => shapePresets.find((s) => s.name === name)).filter(Boolean) as ShapePreset[];
   }, [recentNames, shapePresets, searchQuery, selectedCategory]);
 

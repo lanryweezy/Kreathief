@@ -114,7 +114,7 @@ export const CommandPalette: React.FC = () => {
         id: 'nav_magic',
         label: 'Open AI Magic',
         icon: Icons.Magic,
-        action: () => setActiveTab(NavTab.MAGIC),
+        action: () => setActiveTab(NavTab.TEMPLATES),
         group: 'Panels',
       },
       {

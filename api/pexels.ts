@@ -12,7 +12,9 @@ async function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs =
     return r;
   } catch (e: any) {
     clearTimeout(t);
-    if (e.name === 'AbortError') throw new Error(`Pexels timeout ${timeoutMs}ms`);
+    if (e.name === 'AbortError') {
+      throw new Error(`Pexels timeout ${timeoutMs}ms`);
+    }
     throw e;
   }
 }
@@ -42,19 +44,29 @@ function checkRate(ip: string, origin: string): Response | null {
   const now = Date.now();
   if (now - lastCleanup > CLEANUP) {
     for (const [k, v] of rlMap.entries()) {
-      if (now > v.reset) rlMap.delete(k);
+      if (now > v.reset) {
+        rlMap.delete(k);
+      }
     }
     for (const [k, v] of cache.entries()) {
-      if (now > v.exp) cache.delete(k);
+      if (now > v.exp) {
+        cache.delete(k);
+      }
     }
     lastCleanup = now;
   }
   const rl = rlMap.get(ip);
   if (rl) {
-    if (now > rl.reset) rlMap.set(ip, { count: 1, reset: now + RL_WINDOW });
-    else if (rl.count >= RL_MAX) return errRes('Too many requests', origin, 429);
-    else rl.count++;
-  } else rlMap.set(ip, { count: 1, reset: now + RL_WINDOW });
+    if (now > rl.reset) {
+      rlMap.set(ip, { count: 1, reset: now + RL_WINDOW });
+    } else if (rl.count >= RL_MAX) {
+      return errRes('Too many requests', origin, 429);
+    } else {
+      rl.count++;
+    }
+  } else {
+    rlMap.set(ip, { count: 1, reset: now + RL_WINDOW });
+  }
   return null;
 }
 
@@ -67,9 +79,13 @@ function setCache(key: string, data: any) {
 }
 
 export default async function handler(req: Request) {
-  const origin = process.env.VITE_FRONTEND_URL;
-  if (!origin) return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
-  if (req.method === 'OPTIONS')
+  const origin =
+    process.env.VITE_FRONTEND_URL ||
+    req.headers?.get?.('origin') ||
+    req.headers?.origin ||
+    req.headers?.['origin'] ||
+    '*';
+  if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 200,
       headers: {
@@ -78,6 +94,7 @@ export default async function handler(req: Request) {
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
     });
+  }
 
   try {
     await requireAuth(req);
@@ -87,10 +104,14 @@ export default async function handler(req: Request) {
 
   const ip = req.headers.get('x-forwarded-for') || 'unknown';
   const blocked = checkRate(ip, origin);
-  if (blocked) return blocked;
+  if (blocked) {
+    return blocked;
+  }
 
   const apiKey = process.env.PEXELS_API_KEY;
-  if (!apiKey) return errRes('Pexels API key not configured', origin);
+  if (!apiKey) {
+    return errRes('Pexels API key not configured', origin);
+  }
 
   try {
     const url = new URL(req.url);
@@ -103,11 +124,15 @@ export default async function handler(req: Request) {
         page = url.searchParams.get('page') || '1';
       const ck = `s:${q}:${page}`;
       const cached = getCached(ck);
-      if (cached) return jsonRes(cached, origin);
+      if (cached) {
+        return jsonRes(cached, origin);
+      }
       const r = await fetchWithTimeout(`${BASE}/search?query=${encodeURIComponent(q)}&per_page=20&page=${page}`, {
         headers,
       });
-      if (!r.ok) throw new Error('Pexels search failed');
+      if (!r.ok) {
+        throw new Error('Pexels search failed');
+      }
       const d = await r.json();
       setCache(ck, d);
       return jsonRes(d, origin);
@@ -117,9 +142,13 @@ export default async function handler(req: Request) {
       const page = url.searchParams.get('page') || '1';
       const ck = `cur:${page}`;
       const cached = getCached(ck);
-      if (cached) return jsonRes(cached, origin);
+      if (cached) {
+        return jsonRes(cached, origin);
+      }
       const r = await fetchWithTimeout(`${BASE}/curated?per_page=20&page=${page}`, { headers });
-      if (!r.ok) throw new Error('Pexels curated failed');
+      if (!r.ok) {
+        throw new Error('Pexels curated failed');
+      }
       const d = await r.json();
       setCache(ck, d);
       return jsonRes(d, origin);
@@ -127,13 +156,19 @@ export default async function handler(req: Request) {
 
     if (action === 'collections') {
       const cid = url.searchParams.get('collectionId');
-      if (!cid) return errRes('collectionId is required', origin, 400);
+      if (!cid) {
+        return errRes('collectionId is required', origin, 400);
+      }
       const page = url.searchParams.get('page') || '1';
       const ck = `col:${cid}:${page}`;
       const cached = getCached(ck);
-      if (cached) return jsonRes(cached, origin);
+      if (cached) {
+        return jsonRes(cached, origin);
+      }
       const r = await fetchWithTimeout(`${BASE}/collections/${cid}/photos?per_page=20&page=${page}`, { headers });
-      if (!r.ok) throw new Error('Pexels collections failed');
+      if (!r.ok) {
+        throw new Error('Pexels collections failed');
+      }
       const d = await r.json();
       setCache(ck, d);
       return jsonRes(d, origin);

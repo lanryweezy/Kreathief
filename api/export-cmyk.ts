@@ -22,10 +22,12 @@ const ExportCmykSchema = z.object({
 });
 
 export default async function handler(req: any, res: any) {
-  const origin = process.env.VITE_FRONTEND_URL;
-  if (!origin) {
-    return res.status(500).json({ error: 'Server misconfigured' });
-  }
+  const origin =
+    process.env.VITE_FRONTEND_URL ||
+    req.headers?.get?.('origin') ||
+    req.headers?.origin ||
+    req.headers?.['origin'] ||
+    '*';
 
   const now = Date.now();
 
@@ -96,7 +98,9 @@ export default async function handler(req: any, res: any) {
       const lookup = await dns.promises.lookup(hostname, { all: true });
 
       const isPrivateIp = (ip: string) => {
-        if (!ip) return true;
+        if (!ip) {
+          return true;
+        }
         if (
           ip.startsWith('10.') ||
           ip.match(/^172\.(1[6-9]|2\d|3[0-1])\./) ||

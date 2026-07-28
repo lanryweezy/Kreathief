@@ -74,7 +74,10 @@ const ShadowControls = ({
               max="1"
               step="0.01"
               value={layer.shadow.opacity ?? 1}
-              onChange={(e) => onUpdate({ shadow: { ...layer.shadow!, opacity: parseFloat(e.target.value) } })}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                onUpdate({ shadow: { ...layer.shadow!, opacity: isNaN(val) ? 1 : Math.max(0, Math.min(1, val)) } });
+              }}
               className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
             />
           </div>
@@ -133,22 +136,30 @@ export const ShapeTools = React.memo(
     );
 
     const handleBooleanOp = (operation: 'union' | 'subtract' | 'intersect' | 'exclude') => {
-      if (selectedLayers.length < 2) return;
+      if (selectedLayers.length < 2) {
+        return;
+      }
 
       const baseLayer = selectedLayers[0] as ShapeLayer;
       const operandLayer = selectedLayers[1] as ShapeLayer;
 
-      if (!baseLayer || !operandLayer) return;
+      if (!baseLayer || !operandLayer) {
+        return;
+      }
 
       const basePathData = (baseLayer as any).pathData;
       const operandPathData = (operandLayer as any).pathData;
 
-      if (!basePathData || !operandPathData) return;
+      if (!basePathData || !operandPathData) {
+        return;
+      }
 
       const basePath = VectorUtils.parsePath(basePathData);
       const operandPath = VectorUtils.parsePath(operandPathData);
 
-      if (!basePath || !operandPath) return;
+      if (!basePath || !operandPath) {
+        return;
+      }
 
       saveToHistory();
 
@@ -202,7 +213,13 @@ export const ShapeTools = React.memo(
       <div className="flex items-center gap-2 flex-nowrap">
         <ColorPicker
           value={(layer as any).color}
-          onChange={(color) => handleUpdateLayer({ color, backgroundImage: undefined })}
+          onChange={(color, gradient) =>
+            handleUpdateLayer({
+              color: gradient ? 'none' : color,
+              gradient: gradient || { ...((layer as any).gradient || { type: 'linear', colors: [] }), enabled: false },
+              backgroundImage: undefined,
+            })
+          }
           documentColors={documentColors}
         />
         <MaskTools
@@ -221,10 +238,13 @@ export const ShapeTools = React.memo(
             min="0"
             max="1"
             step="0.01"
-            value={layer.opacity}
-            onChange={(e) => handleUpdateLayer({ opacity: parseFloat(e.target.value) })}
+            value={layer.opacity ?? 1}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              handleUpdateLayer({ opacity: isNaN(val) ? 1 : Math.max(0, Math.min(1, val)) });
+            }}
             className="w-16 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
-            title={`Opacity: ${Math.round(layer.opacity * 100)}%`}
+            title={`Opacity: ${Math.round((layer.opacity ?? 1) * 100)}%`}
           />
         </div>
 
@@ -250,7 +270,16 @@ export const ShapeTools = React.memo(
           <ColorPicker
             small
             value={(layer as any).color}
-            onChange={(color) => handleUpdateLayer({ color, backgroundImage: undefined })}
+            onChange={(color, gradient) =>
+              handleUpdateLayer({
+                color: gradient ? 'none' : color,
+                gradient: gradient || {
+                  ...((layer as any).gradient || { type: 'linear', colors: [] }),
+                  enabled: false,
+                },
+                backgroundImage: undefined,
+              })
+            }
             documentColors={documentColors}
           />
         </div>

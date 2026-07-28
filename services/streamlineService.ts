@@ -50,6 +50,129 @@ async function streamlineFetch(endpoint: string, params: Record<string, string> 
   }
 }
 
+const COMMON_STREAMLINE_ICONS: StreamlineIcon[] = [
+  {
+    id: 'sl-home',
+    name: 'Home',
+    slug: 'home',
+    hash: 'sl-home',
+    family: 'Core',
+    familySlug: 'core',
+    style: 'line',
+    tags: ['house', 'home', 'main'],
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/home.svg',
+    svgUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/home.svg',
+  },
+  {
+    id: 'sl-star',
+    name: 'Star',
+    slug: 'star',
+    hash: 'sl-star',
+    family: 'Core',
+    familySlug: 'core',
+    style: 'line',
+    tags: ['favorite', 'star', 'rating'],
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/star.svg',
+    svgUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/star.svg',
+  },
+  {
+    id: 'sl-heart',
+    name: 'Heart',
+    slug: 'heart',
+    hash: 'sl-heart',
+    family: 'Core',
+    familySlug: 'core',
+    style: 'line',
+    tags: ['love', 'heart', 'like'],
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/heart.svg',
+    svgUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/heart.svg',
+  },
+  {
+    id: 'sl-user',
+    name: 'User',
+    slug: 'user',
+    hash: 'sl-user',
+    family: 'Core',
+    familySlug: 'core',
+    style: 'line',
+    tags: ['person', 'user', 'profile'],
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user.svg',
+    svgUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user.svg',
+  },
+  {
+    id: 'sl-search',
+    name: 'Search',
+    slug: 'search',
+    hash: 'sl-search',
+    family: 'Core',
+    familySlug: 'core',
+    style: 'line',
+    tags: ['find', 'search', 'magnifying glass'],
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/search.svg',
+    svgUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/search.svg',
+  },
+  {
+    id: 'sl-settings',
+    name: 'Settings',
+    slug: 'settings',
+    hash: 'sl-settings',
+    family: 'Core',
+    familySlug: 'core',
+    style: 'line',
+    tags: ['gear', 'settings', 'cog'],
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/settings.svg',
+    svgUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/settings.svg',
+  },
+  {
+    id: 'sl-check',
+    name: 'Check',
+    slug: 'check',
+    hash: 'sl-check',
+    family: 'Core',
+    familySlug: 'core',
+    style: 'line',
+    tags: ['done', 'check', 'success'],
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/check.svg',
+    svgUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/check.svg',
+  },
+  {
+    id: 'sl-bell',
+    name: 'Bell',
+    slug: 'bell',
+    hash: 'sl-bell',
+    family: 'Core',
+    familySlug: 'core',
+    style: 'line',
+    tags: ['alarm', 'bell', 'notification'],
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/bell.svg',
+    svgUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/bell.svg',
+  },
+  {
+    id: 'sl-camera',
+    name: 'Camera',
+    slug: 'camera',
+    hash: 'sl-camera',
+    family: 'Core',
+    familySlug: 'core',
+    style: 'line',
+    tags: ['photo', 'camera', 'picture'],
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/camera.svg',
+    svgUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/camera.svg',
+  },
+  {
+    id: 'sl-mail',
+    name: 'Mail',
+    slug: 'mail',
+    hash: 'sl-mail',
+    family: 'Core',
+    familySlug: 'core',
+    style: 'line',
+    tags: ['email', 'mail', 'message'],
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/mail.svg',
+    svgUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/mail.svg',
+  },
+];
+
 /**
  * Global search across all Streamline families (icons, illustrations, emojis, etc.)
  */
@@ -60,8 +183,12 @@ export async function searchIcons(query: string, limit = 20, offset = 0): Promis
     offset: String(offset),
   });
 
-  if (!data || !data.data) {
-    return { icons: [], total: 0, hasMore: false };
+  if (!data || !data.data || data.data.length === 0) {
+    const q = query.trim().toLowerCase();
+    const matched = COMMON_STREAMLINE_ICONS.filter(
+      (i) => !q || i.name.toLowerCase().includes(q) || (i.tags || []).some((t) => t.includes(q))
+    );
+    return { icons: matched.slice(0, limit), total: matched.length, hasMore: false };
   }
 
   const icons: StreamlineIcon[] = (data.data || []).map((item: any) => ({

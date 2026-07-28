@@ -42,12 +42,9 @@ export const SmartTemplatesPanel: React.FC<SmartTemplatesPanelProps> = ({ onAppl
 
     setContext(newContext);
 
-    // Get AI-powered suggestions
-    setTimeout(() => {
-      const results = smartTemplateService.suggestTemplates(newContext);
-      setSuggestions(results);
-      setIsAnalyzing(false);
-    }, 800);
+    const results = smartTemplateService.suggestTemplates(newContext);
+    setSuggestions(results);
+    setIsAnalyzing(false);
   }, [activeBrandKit]);
 
   const handleApplySuggestion = (suggestion: SmartTemplateSuggestion) => {

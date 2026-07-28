@@ -17,10 +17,10 @@ export interface AccessibilityAuditResult {
   passedCount: number;
 }
 
-export const runAccessibilityAudit = (artboard: Artboard): AccessibilityAuditResult => {
+export const runAccessibilityAudit = (artboard: Artboard, canvasBg: string): AccessibilityAuditResult => {
   const issues: AccessibilityIssue[] = [];
   const layers = artboard.layers;
-  const bg = artboard.backgroundColor || '#ffffff';
+  const bg = artboard.backgroundColor || canvasBg || '#ffffff';
 
   let totalChecks = 0;
   let passedChecks = 0;

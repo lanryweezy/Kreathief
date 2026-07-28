@@ -21,19 +21,30 @@ interface UseLayerTransformationProps {
   layers: Layer[];
   zoom: number;
   onUpdateLayers: (updates: Record<string, Partial<Layer>>) => void;
+  panOffset: { x: number; y: number };
+  viewportRef: React.RefObject<HTMLDivElement>;
 }
 
-export const useLayerTransformation = ({ layers, zoom, onUpdateLayers }: UseLayerTransformationProps) => {
+export const useLayerTransformation = ({
+  layers,
+  zoom,
+  onUpdateLayers,
+  panOffset,
+  viewportRef,
+}: UseLayerTransformationProps) => {
   const [transformState, setTransformState] = useState<TransformationState | null>(null);
   const transformStateRef = useRef(transformState);
   const layersRef = useRef(layers);
   const zoomRef = useRef(zoom);
 
+  const panOffsetRef = useRef(panOffset);
+
   useEffect(() => {
     transformStateRef.current = transformState;
     layersRef.current = layers;
     zoomRef.current = zoom;
-  }, [transformState, layers, zoom]);
+    panOffsetRef.current = panOffset;
+  }, [transformState, layers, zoom, panOffset]);
 
   const handleResizeStart = useCallback((e: React.MouseEvent, layer: Layer, handle: ResizeHandle) => {
     e.stopPropagation();
@@ -60,8 +71,13 @@ export const useLayerTransformation = ({ layers, zoom, onUpdateLayers }: UseLaye
     const centerX = layer.x + width / 2;
     const centerY = layer.y + height / 2;
     // Calculate angle from center to initial mouse position (in canvas coords)
-    const mouseCanvasX = e.clientX / zoomRef.current;
-    const mouseCanvasY = e.clientY / zoomRef.current;
+    const rect = viewportRef.current?.getBoundingClientRect();
+    if (!rect) {
+      return;
+    }
+
+    const mouseCanvasX = (e.clientX - rect.left - panOffsetRef.current.x) / zoomRef.current;
+    const mouseCanvasY = (e.clientY - rect.top - panOffsetRef.current.y) / zoomRef.current;
     const initialAngle = Math.atan2(mouseCanvasY - centerY, mouseCanvasX - centerX);
     setTransformState({
       type: 'rotate',
@@ -170,8 +186,12 @@ export const useLayerTransformation = ({ layers, zoom, onUpdateLayers }: UseLaye
         const centerY = state.initialY + height / 2;
 
         // Current mouse position in canvas coordinates
-        const mouseCanvasX = e.clientX / zoomRef.current;
-        const mouseCanvasY = e.clientY / zoomRef.current;
+        const rect = viewportRef.current?.getBoundingClientRect();
+        if (!rect) {
+          return;
+        }
+        const mouseCanvasX = (e.clientX - rect.left - panOffsetRef.current.x) / zoomRef.current;
+        const mouseCanvasY = (e.clientY - rect.top - panOffsetRef.current.y) / zoomRef.current;
 
         // Calculate angle from center to current mouse position
         const currentAngle = Math.atan2(mouseCanvasY - centerY, mouseCanvasX - centerX);

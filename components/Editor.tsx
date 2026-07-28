@@ -175,7 +175,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   };
 
   const handleStartDesign = (prompt: string) => {
-    useStore.getState().setActiveTab(NavTab.MAGIC);
+    useStore.getState().setActiveTab(NavTab.TEMPLATES);
     useStore.getState().setPrompt(prompt);
   };
 
@@ -683,8 +683,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
               isAutoCollapsed={activeTab === NavTab.MOCKUP}
               onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
               onExpand={() => {
-                if (activeTab === NavTab.MOCKUP) {
-                  useStore.getState().setActiveTab(NavTab.MAGIC);
+                if (useStore.getState().activeTab === NavTab.MOCKUP) {
+                  useStore.getState().setActiveTab(NavTab.TEMPLATES);
                 }
                 setIsSidebarCollapsed(false);
               }}
@@ -901,7 +901,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                   <MockupPanel
                     onExportForMockup={handleExportDataUrl}
                     variant="full"
-                    onClose={() => useStore.getState().setActiveTab(NavTab.MAGIC)}
+                    onClose={() => useStore.getState().setActiveTab(NavTab.TEMPLATES)}
                   />
                 </div>
               </div>

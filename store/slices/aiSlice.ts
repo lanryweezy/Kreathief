@@ -1,7 +1,6 @@
 import { log } from '../../utils/log';
 import type { StoreState } from '../useStore';
 
-
 import { StateCreator } from 'zustand';
 import { AspectRatio, GenerationQuality, ShapeLayer, ImageLayer, Layer, TextLayer } from '../../types';
 import { vectorizerService, VectorizeOptions } from '../../services/vectorizerService';
@@ -10,6 +9,9 @@ import { removeBackground } from '../../utils/imageProcessor';
 import * as geminiService from '../../services/geminiService';
 import { v4 as uuidv4 } from 'uuid';
 import { DEFAULT_CORNER_RADIUS } from '../../constants';
+import { PathOperationsService } from '../../services/pathOperationsService';
+import { VectorUtils } from '../../utils/vectorUtils';
+import { getErrorDetails } from '../../utils/errorMessages';
 
 export interface AISlice {
   prompt: string;
@@ -187,6 +189,9 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     } catch (e) {
       log.error('Vectorization failed', e, { layerId: id, options });
       updateLayer(id, { isProcessing: false });
+      const { addToast } = get();
+      const details = getErrorDetails(e);
+      addToast?.(`Vectorization failed: ${details.message}`, 'error');
     } finally {
       set({ isGenerating: false });
     }
@@ -288,7 +293,14 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
       return;
     }
 
-    set({ isGenerating: true });
+    if (layer.isProcessing || get().isRemovingBg) {
+      log.info('Cancelling background removal / toggling off');
+      set({ isGenerating: false, isRemovingBg: false });
+      updateLayer(id, { isProcessing: false });
+      return;
+    }
+
+    set({ isGenerating: true, isRemovingBg: true });
     updateLayer(id, { isProcessing: true });
     try {
       const result = await removeBackground(layer.src);
@@ -296,9 +308,9 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
       updateLayer(id, { src: result, isProcessing: false });
     } catch (e) {
       log.error('BG Removal failed', e, { layerId: id });
-      updateLayer(id, { isProcessing: false });
     } finally {
-      set({ isGenerating: false });
+      set({ isGenerating: false, isRemovingBg: false });
+      updateLayer(id, { isProcessing: false });
     }
   },
 
@@ -503,27 +515,53 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
   },
 
   handleBooleanOperation: (operation) => {
-    const { artboards, activeArtboardId, selectedLayerIds, updateLayer, saveToHistory } = get();
+    const { artboards, activeArtboardId, selectedLayerIds, updateLayer, deleteLayer, saveToHistory, addToast } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     if (!artboard || selectedLayerIds.length < 2) {
+      addToast?.('Select at least two path layers.', 'warning');
       return;
     }
     saveToHistory();
-    const layers = selectedLayerIds.map((id: string) => artboard.layers.find((l: any) => l.id === id)).filter(Boolean);
+    const layers = selectedLayerIds
+      .map((id: string) => artboard.layers.find((l: any) => l.id === id))
+      .filter(Boolean) as ShapeLayer[];
     if (layers.length < 2) {
       return;
     }
     const [base, ...operands] = layers;
+    let resultPath = (base as any).vectorPath || VectorUtils.parsePath(base!.pathData || '');
+
+    for (const operand of operands) {
+      const operandPath = (operand as any).vectorPath || VectorUtils.parsePath(operand!.pathData || '');
+      switch (operation) {
+        case 'union':
+          resultPath = PathOperationsService.union(resultPath, operandPath);
+          break;
+        case 'subtract':
+          resultPath = PathOperationsService.subtract(resultPath, operandPath);
+          break;
+        case 'intersect':
+          resultPath = PathOperationsService.intersect(resultPath, operandPath);
+          break;
+        case 'exclude':
+          resultPath = PathOperationsService.exclude(resultPath, operandPath);
+          break;
+      }
+    }
+
     updateLayer(base!.id, {
-      pathData: (base as any).pathData || '',
-      vectorPath: (base as any).vectorPath,
+      pathData: VectorUtils.serializePath(resultPath),
+      vectorPath: resultPath,
     } as any);
+
+    operands.forEach((l) => deleteLayer(l!.id));
   },
 
   handleJoinPaths: () => {
-    const { artboards, activeArtboardId, selectedLayerIds, updateLayer, deleteLayer, saveToHistory } = get();
+    const { artboards, activeArtboardId, selectedLayerIds, updateLayer, deleteLayer, saveToHistory, addToast } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     if (!artboard || selectedLayerIds.length < 2) {
+      addToast?.('Select at least two path layers.', 'warning');
       return;
     }
     saveToHistory();
@@ -532,8 +570,25 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
       return;
     }
     const [base, ...rest] = layers;
-    const combinedPath = [base, ...rest].map((l: any) => l.pathData || '').join(' ');
-    updateLayer(base!.id, { pathData: combinedPath } as any);
+    const combinedPathData = [base, ...rest].map((l: any) => l.pathData || '').join(' ');
+
+    let combinedPoints: any[] = [];
+    [base, ...rest].forEach((l: any) => {
+      const vp = l.vectorPath || VectorUtils.parsePath(l.pathData || '');
+      if (vp && vp.points) {
+        combinedPoints = combinedPoints.concat(vp.points);
+      }
+    });
+
+    const newVectorPath = {
+      points: combinedPoints,
+      isClosed: false,
+    };
+
+    updateLayer(base!.id, {
+      pathData: combinedPathData,
+      vectorPath: newVectorPath,
+    } as any);
     rest.forEach((l: any) => deleteLayer(l.id));
   },
 });

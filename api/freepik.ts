@@ -15,7 +15,9 @@ async function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs =
     return res;
   } catch (err: any) {
     clearTimeout(timeout);
-    if (err.name === 'AbortError') throw new Error(`Freepik API timeout after ${timeoutMs}ms`);
+    if (err.name === 'AbortError') {
+      throw new Error(`Freepik API timeout after ${timeoutMs}ms`);
+    }
     throw err;
   }
 }
@@ -28,10 +30,7 @@ const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 let lastCleanup = Date.now();
 
 export default async function handler(req: Request) {
-  const origin = process.env.VITE_FRONTEND_URL;
-  if (!origin) {
-    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
-  }
+  const origin = process.env.VITE_FRONTEND_URL || req.headers.get('origin') || '*';
 
   try {
     await requireAuth(req);

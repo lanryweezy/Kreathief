@@ -295,96 +295,26 @@ export const TextPanel: React.FC = () => {
         </div>
       )}
 
-      {/* Text Panel Tabs - Row 1 */}
-      <div className="flex gap-1 mb-2 bg-surface-dark-1 rounded-lg p-1" role="tablist">
-        <button
-          role="tab"
-          aria-selected={activeTextTab === 'add'}
-          onClick={() => setActiveTextTab('add')}
-          className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-            activeTextTab === 'add'
-              ? 'bg-brand-600 text-white shadow-lg'
-              : 'text-gray-400 hover:text-white hover:bg-gray-700'
-          }`}
-        >
-          Add
-        </button>
-        <button
-          role="tab"
-          aria-selected={activeTextTab === 'styles'}
-          onClick={() => setActiveTextTab('styles')}
-          className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-            activeTextTab === 'styles'
-              ? 'bg-brand-600 text-white shadow-lg'
-              : 'text-gray-400 hover:text-white hover:bg-gray-700'
-          }`}
-        >
-          Styles
-        </button>
-        <button
-          role="tab"
-          aria-selected={activeTextTab === 'gradient'}
-          onClick={() => setActiveTextTab('gradient')}
-          className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-            activeTextTab === 'gradient'
-              ? 'bg-brand-600 text-white shadow-lg'
-              : 'text-gray-400 hover:text-white hover:bg-gray-700'
-          }`}
-        >
-          Gradient
-        </button>
-        <button
-          role="tab"
-          aria-selected={activeTextTab === 'effects'}
-          onClick={() => setActiveTextTab('effects')}
-          className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-            activeTextTab === 'effects'
-              ? 'bg-brand-600 text-white shadow-lg'
-              : 'text-gray-400 hover:text-white hover:bg-gray-700'
-          }`}
-        >
-          Effects
-        </button>
-      </div>
-
-      {/* Text Panel Tabs - Row 2 */}
-      <div className="flex gap-1 mb-4 bg-surface-dark-1 rounded-lg p-1" role="tablist">
-        <button
-          role="tab"
-          aria-selected={activeTextTab === 'path'}
-          onClick={() => setActiveTextTab('path')}
-          className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-            activeTextTab === 'path'
-              ? 'bg-brand-600 text-white shadow-lg'
-              : 'text-gray-400 hover:text-white hover:bg-gray-700'
-          }`}
-        >
-          Path
-        </button>
-        <button
-          role="tab"
-          aria-selected={activeTextTab === 'find'}
-          onClick={() => setActiveTextTab('find')}
-          className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-            activeTextTab === 'find'
-              ? 'bg-brand-600 text-white shadow-lg'
-              : 'text-gray-400 hover:text-white hover:bg-gray-700'
-          }`}
-        >
-          Find
-        </button>
-        <button
-          role="tab"
-          aria-selected={activeTextTab === 'spacing'}
-          onClick={() => setActiveTextTab('spacing')}
-          className={`flex-1 px-3 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-            activeTextTab === 'spacing'
-              ? 'bg-brand-600 text-white shadow-lg'
-              : 'text-gray-400 hover:text-white hover:bg-gray-700'
-          }`}
-        >
-          Spacing
-        </button>
+      {/* Text Panel Tabs */}
+      <div
+        className="flex flex-wrap gap-1 mb-5 bg-surface-dark-2 p-1.5 rounded-xl border border-white/5"
+        role="tablist"
+      >
+        {(['add', 'styles', 'gradient', 'effects', 'path', 'find', 'spacing'] as const).map((tab) => (
+          <button
+            key={tab}
+            role="tab"
+            aria-selected={activeTextTab === tab}
+            onClick={() => setActiveTextTab(tab)}
+            className={`flex-1 min-w-[70px] px-2.5 py-1.5 rounded-lg text-[11px] font-bold capitalize transition-all duration-150 ${
+              activeTextTab === tab
+                ? 'bg-brand-600 text-white shadow-[0_2px_10px_rgba(139,92,246,0.3)] border border-brand-500/30'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
       {/* Add Text Tab */}
@@ -779,9 +709,10 @@ export const TextPanel: React.FC = () => {
           onApply={(options) => {
             handleAddText({
               text: options.text,
-              fontSize: 32,
+              fontSize: 36,
               fontWeight: 'bold',
-              // Text on path would be handled by canvas rendering
+              warpStyle: (options.path === 'arc' || options.path === 'circle' ? 'arc' : 'wave') as any,
+              curve: options.curvature || 50,
             });
             addToast(`Added curved text: "${options.text}"`, 'success');
           }}

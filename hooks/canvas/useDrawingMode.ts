@@ -5,7 +5,9 @@ import { StrokeSmoother } from '../../utils/variableStroke';
 
 // Ramer-Douglas-Peucker path simplification
 function rdpSimplify(points: { x: number; y: number }[], epsilon: number): { x: number; y: number }[] {
-  if (points.length <= 2) return points;
+  if (points.length <= 2) {
+    return points;
+  }
 
   let maxDist = 0;
   let maxIdx = 0;
@@ -37,7 +39,9 @@ function perpendicularDistance(
   const dx = lineEnd.x - lineStart.x;
   const dy = lineEnd.y - lineStart.y;
   const lineLenSq = dx * dx + dy * dy;
-  if (lineLenSq === 0) return Math.hypot(point.x - lineStart.x, point.y - lineStart.y);
+  if (lineLenSq === 0) {
+    return Math.hypot(point.x - lineStart.x, point.y - lineStart.y);
+  }
   let t = ((point.x - lineStart.x) * dx + (point.y - lineStart.y) * dy) / lineLenSq;
   t = Math.max(0, Math.min(1, t));
   const projX = lineStart.x + t * dx;
@@ -63,7 +67,9 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
 
   // Eyedropper: track Alt key state while drawing
   useEffect(() => {
-    if (!isDrawing) return;
+    if (!isDrawing) {
+      return;
+    }
     const handleAltDown = (e: KeyboardEvent) => {
       if (e.key === 'Alt') {
         e.preventDefault();
@@ -141,24 +147,18 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
         return;
       }
 
-      // Eyedropper: Alt+click samples color from the composited canvas beneath
+      // Eyedropper: Alt+click uses native browser EyeDropper API to pick color from any screen element
       if (altHeldRef.current) {
-        const rect = canvas.getBoundingClientRect();
-        const x = (e.clientX - rect.left) / zoomRef.current;
-        const y = (e.clientY - rect.top) / zoomRef.current;
-        // Find the main artboard canvas (not the drawing overlay) for accurate color sampling
-        const artboardCanvas = canvas.parentElement?.querySelector(
-          'canvas:not([data-drawing-overlay])'
-        ) as HTMLCanvasElement | null;
-        const targetCanvas = artboardCanvas || canvas;
-
-        // Final sanity check before calling getContext
-        if (targetCanvas && typeof targetCanvas.getContext === 'function') {
-          const ctx = targetCanvas.getContext('2d', { willReadFrequently: true });
-          if (ctx) {
-            const pixel = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
-            const hex = '#' + [pixel[0], pixel[1], pixel[2]].map((c) => c.toString(16).padStart(2, '0')).join('');
-            useStore.getState().setBrushColor(hex);
+        if (typeof window !== 'undefined' && 'EyeDropper' in (window as any)) {
+          try {
+            const eyeDropper = new (window as any).EyeDropper();
+            eyeDropper.open().then((result: any) => {
+              if (result?.sRGBHex) {
+                useStore.getState().setBrushColor(result.sRGBHex);
+              }
+            });
+          } catch {
+            // User cancelled or EyeDropper failed
           }
         }
         return;
@@ -308,6 +308,13 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
             ctx.arc(x, y, pressureWidth * (0.5 + Math.random()), 0, Math.PI * 2);
             ctx.fill();
             return;
+          case 'texture':
+            ctx.lineWidth = pressureWidth * 2.0;
+            ctx.globalAlpha = brushOpacity * 0.85;
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = brushColor;
+            ctx.setLineDash([1, 2]);
+            break;
           default:
             break;
         }

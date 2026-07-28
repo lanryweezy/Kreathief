@@ -16,10 +16,7 @@ const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 let lastCleanup = Date.now();
 
 export default async function handler(req: Request) {
-  const origin = process.env.VITE_FRONTEND_URL;
-  if (!origin) {
-    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
-  }
+  const origin = process.env.VITE_FRONTEND_URL || req.headers.get('origin') || '*';
 
   const now = Date.now();
 
@@ -93,7 +90,11 @@ export default async function handler(req: Request) {
     }
     payload = JSON.parse(bodyText);
     // Sanitize: only allow known fields
-    const allowed = { message: String(payload.message || '').slice(0, 500), filename: String(payload.filename || '').slice(0, 200), lineno: Number(payload.lineno) || 0 };
+    const allowed = {
+      message: String(payload.message || '').slice(0, 500),
+      filename: String(payload.filename || '').slice(0, 200),
+      lineno: Number(payload.lineno) || 0,
+    };
     payload = allowed;
   } catch (err) {
     return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {

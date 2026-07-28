@@ -243,6 +243,7 @@ export class AuthService {
     try {
       // Clear QA bypass if exists
       localStorage.removeItem('kreathief_qa_session');
+      localStorage.removeItem('kreathief_guest_session');
 
       // Sign out from Supabase
       await supabase.auth.signOut();
@@ -269,6 +270,13 @@ export class AuthService {
       if (savedUser) {
         log.debug('[AuthService] Found QA bypass session');
         return JSON.parse(savedUser);
+      }
+
+      // Check for Guest session
+      const guestSession = localStorage.getItem('kreathief_guest_session');
+      if (guestSession) {
+        log.debug('[AuthService] Found Guest session');
+        return JSON.parse(guestSession);
       }
 
       // Check Supabase session
@@ -316,7 +324,9 @@ export class AuthService {
     if (useQABypass) {
       log.debug('[AuthService] QA bypass active - syncing QA session');
       this.getSession().then((user) => {
-        if (user) callback(user);
+        if (user) {
+          callback(user);
+        }
       });
       return () => {}; // Return empty unsubscribe function
     }

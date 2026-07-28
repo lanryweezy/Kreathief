@@ -72,6 +72,56 @@ async function freepikFetch(endpoint: string, options: RequestInit = {}) {
   }
 }
 
+export async function searchVectors(
+  query: string,
+  page: number = 1,
+  type: string = 'vector'
+): Promise<FreepikSearchResult> {
+  const data = await freepikFetch(`/resources?term=${encodeURIComponent(query)}&page=${page}&type=${type}`);
+
+  if (!data?.data || data.data.length === 0) {
+    const q = query.trim().toLowerCase();
+    const matched = COMMON_FREEPIK_ICONS.filter(
+      (i) => !q || i.name.toLowerCase().includes(q) || i.tags?.some((t) => t.includes(q))
+    );
+    return { items: matched, total: matched.length, currentPage: page, lastPage: 1, hasMore: false };
+  }
+
+  const items: FreepikAsset[] = data.data.map((item: any) => {
+    let thumbnailUrl = '';
+    if (item.image?.source?.url) {
+      thumbnailUrl = item.image.source.url;
+    } else if (item.thumbnails) {
+      if (Array.isArray(item.thumbnails)) {
+        thumbnailUrl = item.thumbnails[0]?.url || item.thumbnails[0] || '';
+      } else if (typeof item.thumbnails === 'object') {
+        thumbnailUrl =
+          item.thumbnails.medium || item.thumbnails.small || item.thumbnails.large || item.thumbnails.url || '';
+      } else if (typeof item.thumbnails === 'string') {
+        thumbnailUrl = item.thumbnails;
+      }
+    }
+
+    return {
+      id: item.id,
+      name: item.title || item.name || `Asset ${item.id}`,
+      thumbnailUrl,
+      author: item.author?.name || item.author || 'Freepik',
+      tags: Array.isArray(item.tags) ? item.tags.map((t: any) => (typeof t === 'string' ? t : t.name || '')) : [],
+    };
+  });
+
+  const pagination = data.meta?.pagination || {};
+
+  return {
+    items,
+    total: pagination.total || items.length,
+    currentPage: page,
+    lastPage: pagination.last_page || pagination.total_pages || 1,
+    hasMore: page < (pagination.last_page || pagination.total_pages || 1),
+  };
+}
+
 export async function searchResources(
   query: string,
   type: 'photos' | 'vectors' | 'psd' = 'photos',
@@ -118,11 +168,98 @@ export async function searchResources(
   };
 }
 
+const COMMON_FREEPIK_ICONS: FreepikAsset[] = [
+  {
+    id: 101,
+    name: 'Home Icon',
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/home.svg',
+    author: 'Freepik',
+    tags: ['home', 'house', 'main'],
+    family: 'Essential',
+  },
+  {
+    id: 102,
+    name: 'Star Icon',
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/star.svg',
+    author: 'Freepik',
+    tags: ['star', 'favorite', 'rating'],
+    family: 'Essential',
+  },
+  {
+    id: 103,
+    name: 'Heart Icon',
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/heart.svg',
+    author: 'Freepik',
+    tags: ['heart', 'love', 'like'],
+    family: 'Essential',
+  },
+  {
+    id: 104,
+    name: 'User Icon',
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/user.svg',
+    author: 'Freepik',
+    tags: ['user', 'person', 'profile'],
+    family: 'Essential',
+  },
+  {
+    id: 105,
+    name: 'Search Icon',
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/search.svg',
+    author: 'Freepik',
+    tags: ['search', 'find', 'query'],
+    family: 'Essential',
+  },
+  {
+    id: 106,
+    name: 'Settings Icon',
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/settings.svg',
+    author: 'Freepik',
+    tags: ['settings', 'gear', 'options'],
+    family: 'Essential',
+  },
+  {
+    id: 107,
+    name: 'Check Icon',
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/check.svg',
+    author: 'Freepik',
+    tags: ['check', 'done', 'success'],
+    family: 'Essential',
+  },
+  {
+    id: 108,
+    name: 'Bell Icon',
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/bell.svg',
+    author: 'Freepik',
+    tags: ['bell', 'alarm', 'notification'],
+    family: 'Essential',
+  },
+  {
+    id: 109,
+    name: 'Camera Icon',
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/camera.svg',
+    author: 'Freepik',
+    tags: ['camera', 'photo', 'image'],
+    family: 'Essential',
+  },
+  {
+    id: 110,
+    name: 'Mail Icon',
+    thumbnailUrl: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/mail.svg',
+    author: 'Freepik',
+    tags: ['mail', 'email', 'letter'],
+    family: 'Essential',
+  },
+];
+
 export async function searchIcons(query: string, page: number = 1): Promise<FreepikSearchResult> {
   const data = await freepikFetch(`/icons?term=${encodeURIComponent(query)}&page=${page}`);
 
-  if (!data?.data) {
-    return { items: [], total: 0, currentPage: page, lastPage: 1, hasMore: false };
+  if (!data?.data || data.data.length === 0) {
+    const q = query.trim().toLowerCase();
+    const matched = COMMON_FREEPIK_ICONS.filter(
+      (i) => !q || i.name.toLowerCase().includes(q) || i.tags?.some((t) => t.includes(q))
+    );
+    return { items: matched, total: matched.length, currentPage: page, lastPage: 1, hasMore: false };
   }
 
   const items: FreepikAsset[] = data.data.map((item: any) => {

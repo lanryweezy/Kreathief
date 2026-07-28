@@ -2,7 +2,8 @@ import { log } from './log';
 
 export abstract class WorkerServiceBase {
   protected worker: Worker | null = null;
-  protected callbacks: Map<string, { resolve: (val: any) => void; reject: (err: any) => void }> = new Map();
+  protected callbacks: Map<string, { resolve: (val: any) => void; reject: (err: any) => void; timer?: any }> =
+    new Map();
   protected serviceName: string;
 
   constructor(serviceName: string) {
@@ -24,6 +25,9 @@ export abstract class WorkerServiceBase {
         const callback = this.callbacks.get(id);
 
         if (callback) {
+          if (callback.timer) {
+            clearTimeout(callback.timer);
+          }
           if (type === 'SUCCESS') {
             callback.resolve(payload);
           } else {
@@ -37,6 +41,9 @@ export abstract class WorkerServiceBase {
         log.error(`${this.serviceName} Error:`, e);
         // Reject all pending callbacks so UI promises don't hang indefinitely
         for (const [id, callback] of this.callbacks.entries()) {
+          if (callback.timer) {
+            clearTimeout(callback.timer);
+          }
           callback.reject(new Error(`${this.serviceName} crashed: ${e.message || 'Worker error'}`));
         }
         this.callbacks.clear();
@@ -47,7 +54,12 @@ export abstract class WorkerServiceBase {
     }
   }
 
-  protected postMessage(type: string, payload: any, transfer?: Transferable[]): Promise<any> {
+  protected postMessage(
+    type: string,
+    payload: any,
+    transfer?: Transferable[],
+    timeoutMs: number = 20000
+  ): Promise<any> {
     return new Promise((resolve, reject) => {
       this.initializeWorker();
 
@@ -60,7 +72,20 @@ export abstract class WorkerServiceBase {
         return;
       }
       const id = crypto.randomUUID();
-      this.callbacks.set(id, { resolve, reject });
+
+      let timer: any = null;
+      if (timeoutMs > 0 && typeof setTimeout !== 'undefined') {
+        timer = setTimeout(() => {
+          if (this.callbacks.has(id)) {
+            this.callbacks.delete(id);
+            log.warn(`${this.serviceName} task '${type}' timed out after ${timeoutMs}ms, terminating worker`);
+            this.terminate();
+            reject(new Error(`${this.serviceName} task '${type}' timed out after ${timeoutMs}ms`));
+          }
+        }, timeoutMs);
+      }
+
+      this.callbacks.set(id, { resolve, reject, timer });
 
       if (transfer) {
         this.worker.postMessage({ type, payload, id }, transfer);
@@ -71,6 +96,13 @@ export abstract class WorkerServiceBase {
   }
 
   public terminate() {
+    for (const [id, callback] of this.callbacks.entries()) {
+      if (callback.timer) {
+        clearTimeout(callback.timer);
+      }
+      callback.reject(new Error(`${this.serviceName} terminated`));
+    }
+    this.callbacks.clear();
     this.worker?.terminate();
     this.worker = null;
   }

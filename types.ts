@@ -550,6 +550,33 @@ export interface User {
   plan: UserPlan;
   avatar?: string;
   isGuest?: boolean;
+  bio?: string;
+  role?: string;
+  website?: string;
+  location?: string;
+  socials?: {
+    twitter?: string;
+    github?: string;
+    dribbble?: string;
+    linkedin?: string;
+  };
+  stats?: {
+    projectsCount?: number;
+    templatesCount?: number;
+    likesCount?: number;
+    viewsCount?: number;
+    hoursDesigned?: number;
+  };
+  preferences?: {
+    theme?: 'dark' | 'light' | 'cyberpunk' | 'monochrome';
+    autoSaveInterval?: number;
+    defaultFormat?: string;
+  };
+  apiKeys?: {
+    soundcloud?: string;
+    openai?: string;
+    gemini?: string;
+  };
 }
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';

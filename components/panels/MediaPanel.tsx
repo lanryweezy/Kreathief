@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
-import { ElementsPanel } from './ElementsPanel';
 import { AssetsPanel } from './AssetsPanel';
 import { UploadsPanel } from './UploadsPanel';
 
-type Tab = 'elements' | 'unsplash' | 'pixabay' | 'pexels' | 'uploads';
+type Tab = 'unsplash' | 'pixabay' | 'pexels' | 'uploads';
 
 export const MediaPanel: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<Tab>('elements');
+  const [activeTab, setActiveTab] = useState<Tab>('unsplash');
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'elements', label: 'Elements' },
     { id: 'unsplash', label: 'Unsplash' },
     { id: 'pixabay', label: 'Pixabay' },
     { id: 'pexels', label: 'Pexels' },
@@ -35,9 +33,6 @@ export const MediaPanel: React.FC = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden relative">
-        <div className={activeTab === 'elements' ? 'block h-full' : 'hidden'}>
-          <ElementsPanel />
-        </div>
         <div className={activeTab === 'unsplash' ? 'block h-full' : 'hidden'}>
           <AssetsPanel provider="unsplash" />
         </div>

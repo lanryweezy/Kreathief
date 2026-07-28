@@ -531,10 +531,21 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     return () => window.removeEventListener('resize', updateContainerSize);
   }, []);
 
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      stopLive();
+    };
+  }, []);
+
   const captureDesign = async () => {
     try {
       const url = await onExportForMockup();
-      setPreviewImage(url);
+      if (isMountedRef.current && url) {
+        setPreviewImage(url);
+      }
       return url;
     } catch (e) {
       log.error('[MockupPanel] Failed to capture design for mockup', e);
@@ -634,12 +645,16 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       if (!previewImage) {
         return;
       }
-      setIsGenerating(true);
+      if (active && isMountedRef.current) {
+        setIsGenerating(true);
+      }
       const url = await generateComposite();
-      if (active && url) {
+      if (active && isMountedRef.current && url) {
         setGeneratedPreview(url);
       }
-      setIsGenerating(false);
+      if (active && isMountedRef.current) {
+        setIsGenerating(false);
+      }
     };
     const timer = setTimeout(update, 100);
     return () => {
@@ -684,7 +699,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       const details = getErrorDetails(e);
       addToast(`Pro render failed: ${details.message}. ${details.suggestion}`, 'error');
     } finally {
-      setIsProGenerating(false);
+      if (isMountedRef.current) {
+        setIsProGenerating(false);
+      }
     }
   };
 

@@ -13,10 +13,12 @@ const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 let lastCleanup = Date.now();
 
 export default async function handler(req: Request) {
-  const origin = process.env.VITE_FRONTEND_URL;
-  if (!origin) {
-    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
-  }
+  const origin =
+    process.env.VITE_FRONTEND_URL ||
+    req.headers?.get?.('origin') ||
+    req.headers?.origin ||
+    req.headers?.['origin'] ||
+    '*';
 
   const now = Date.now();
 
@@ -96,7 +98,9 @@ export default async function handler(req: Request) {
       const res = await fetch(`${BASE_URL}/search?q=${encodeURIComponent(query)}&limit=${encodeURIComponent(limit)}`, {
         headers,
       });
-      if (!res.ok) throw new Error('GetIllustration search failed');
+      if (!res.ok) {
+        throw new Error('GetIllustration search failed');
+      }
       const data = await res.json();
       return new Response(JSON.stringify(data), {
         status: 200,
@@ -110,7 +114,9 @@ export default async function handler(req: Request) {
         `${BASE_URL}/icon-packs?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}${free}`,
         { headers }
       );
-      if (!res.ok) throw new Error('GetIllustration icon-packs failed');
+      if (!res.ok) {
+        throw new Error('GetIllustration icon-packs failed');
+      }
       const data = await res.json();
       return new Response(JSON.stringify(data), {
         status: 200,
@@ -124,7 +130,9 @@ export default async function handler(req: Request) {
         `${BASE_URL}/packs?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}${free}`,
         { headers }
       );
-      if (!res.ok) throw new Error('GetIllustration packs failed');
+      if (!res.ok) {
+        throw new Error('GetIllustration packs failed');
+      }
       const data = await res.json();
       return new Response(JSON.stringify(data), {
         status: 200,
@@ -132,18 +140,21 @@ export default async function handler(req: Request) {
       });
     } else if (action === 'pack-illustrations') {
       const packId = url.searchParams.get('packId');
-      if (!packId)
+      if (!packId) {
         return new Response(JSON.stringify({ error: 'packId required' }), {
           status: 400,
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin },
         });
+      }
       const page = url.searchParams.get('page') || '1';
       const limit = url.searchParams.get('limit') || '20';
       const res = await fetch(
         `${BASE_URL}/packs/${encodeURIComponent(packId)}/illustrations?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}`,
         { headers }
       );
-      if (!res.ok) throw new Error('GetIllustration pack illustrations failed');
+      if (!res.ok) {
+        throw new Error('GetIllustration pack illustrations failed');
+      }
       const data = await res.json();
       return new Response(JSON.stringify(data), {
         status: 200,
@@ -151,18 +162,21 @@ export default async function handler(req: Request) {
       });
     } else if (action === 'pack-icons') {
       const packId = url.searchParams.get('packId');
-      if (!packId)
+      if (!packId) {
         return new Response(JSON.stringify({ error: 'packId required' }), {
           status: 400,
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin },
         });
+      }
       const page = url.searchParams.get('page') || '1';
       const limit = url.searchParams.get('limit') || '20';
       const res = await fetch(
         `${BASE_URL}/icon-packs/${encodeURIComponent(packId)}/icons?page=${encodeURIComponent(page)}&limit=${encodeURIComponent(limit)}`,
         { headers }
       );
-      if (!res.ok) throw new Error('GetIllustration pack icons failed');
+      if (!res.ok) {
+        throw new Error('GetIllustration pack icons failed');
+      }
       const data = await res.json();
       return new Response(JSON.stringify(data), {
         status: 200,
@@ -176,7 +190,9 @@ export default async function handler(req: Request) {
         reqUrl += `&pack=${encodeURIComponent(pack)}`;
       }
       const res = await fetch(reqUrl, { headers });
-      if (!res.ok) throw new Error('GetIllustration random icons failed');
+      if (!res.ok) {
+        throw new Error('GetIllustration random icons failed');
+      }
       const data = await res.json();
       return new Response(JSON.stringify(data), {
         status: 200,

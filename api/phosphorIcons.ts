@@ -7,11 +7,7 @@ const iconCache = new Map<string, { data: any[]; expiry: number }>();
 const CACHE_TTL = 24 * 60 * 60 * 1000;
 
 export default async function handler(req: Request) {
-  const origin = process.env.VITE_FRONTEND_URL;
-
-  if (!origin) {
-    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
-  }
+  const origin = process.env.VITE_FRONTEND_URL || req.headers.get('origin') || '*';
 
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -27,18 +23,21 @@ export default async function handler(req: Request) {
   try {
     await requireAuth(req);
   } catch (error) {
-    if (error instanceof Response) return error;
+    if (error instanceof Response) {
+      return error;
+    }
     return new Response(JSON.stringify({ error: 'Internal server error during authentication' }), { status: 500 });
   }
 
   try {
     const url = new URL(req.url);
     const query = url.searchParams.get('q') || '';
-    if (!query)
+    if (!query) {
       return new Response(JSON.stringify({ icons: [] }), {
         status: 200,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin, ...cacheHeaders(86400) },
       });
+    }
 
     const cacheKey = query.toLowerCase();
     const cached = iconCache.get(cacheKey);
@@ -52,7 +51,9 @@ export default async function handler(req: Request) {
     const apiRes = await fetch(`https://api.phosphoricons.com/v1/icons/search?q=${encodeURIComponent(query)}`, {
       headers: { Accept: 'application/json', 'User-Agent': 'Mozilla/5.0' },
     });
-    if (!apiRes.ok) throw new Error(`Phosphor API returned ${apiRes.status}`);
+    if (!apiRes.ok) {
+      throw new Error(`Phosphor API returned ${apiRes.status}`);
+    }
     const data = await apiRes.json();
     const icons = (data.icons || []).map((icon: any) => ({
       name: icon.name || icon.id,

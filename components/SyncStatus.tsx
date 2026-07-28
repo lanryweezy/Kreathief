@@ -26,10 +26,10 @@ export const SyncStatus: React.FC = () => {
         };
       case 'error':
         return {
-          icon: <Icons.Help className="w-3.5 h-3.5" />, // Fallback for AlertCircle
-          text: 'Sync Error',
-          color: 'text-red-400',
-          bg: 'bg-red-400/10',
+          icon: <Icons.Help className="w-3.5 h-3.5" />,
+          text: 'Saved Locally',
+          color: 'text-amber-400',
+          bg: 'bg-amber-400/10',
         };
       case 'synced':
       default:

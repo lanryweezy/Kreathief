@@ -5,17 +5,17 @@ const STATUS_CONFIG: Record<ConnectionStatusType, { dot: string; text: string; d
   connected: {
     dot: 'bg-emerald-500 shadow-emerald-500/50',
     text: 'Cloud sync active',
-    detailText: 'Connected to Supabase',
+    detailText: 'Connected to Cloud Storage',
   },
   offline: {
     dot: 'bg-amber-400 shadow-amber-400/50',
-    text: 'Offline mode',
-    detailText: 'Working offline, changes saved locally',
+    text: 'Saved locally (Offline)',
+    detailText: 'No internet — changes saved locally to browser storage',
   },
   error: {
-    dot: 'bg-red-500 shadow-red-500/50',
-    text: 'Sync failed',
-    detailText: 'Cloud sync encountered an error',
+    dot: 'bg-amber-500 shadow-amber-500/50',
+    text: 'Saved locally (Cloud pending)',
+    detailText: 'Cloud sync pending — changes saved safely to local storage',
   },
 };
 
@@ -36,7 +36,9 @@ export const ConnectionStatus: React.FC = () => {
   }, []);
 
   React.useEffect(() => {
-    if (!showDetails) return;
+    if (!showDetails) {
+      return;
+    }
     const interval = setInterval(() => {
       setLastSync(storageService.getLastSyncTime());
       setPendingCount(storageService.getPendingChangesCount());
@@ -45,7 +47,9 @@ export const ConnectionStatus: React.FC = () => {
   }, [showDetails]);
 
   React.useEffect(() => {
-    if (!showDetails) return;
+    if (!showDetails) {
+      return;
+    }
     const handleClick = (e: MouseEvent) => {
       if (detailsRef.current && !detailsRef.current.contains(e.target as Node)) {
         setShowDetails(false);
@@ -55,15 +59,29 @@ export const ConnectionStatus: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showDetails]);
 
-  const config = STATUS_CONFIG[status];
+  let displayStatus = status;
+  if (!navigator.onLine) {
+    displayStatus = 'offline';
+  } else if (status === 'error' && pendingCount === 0) {
+    // If it's an error but nothing is pending, it means we fallback to IndexedDB and it's safe.
+    displayStatus = 'connected';
+  }
+
+  const config = STATUS_CONFIG[displayStatus];
 
   const formatTime = (timestamp: number | null) => {
-    if (!timestamp) return 'Never';
+    if (!timestamp) {
+      return 'Never';
+    }
     const diff = Date.now() - timestamp;
     const seconds = Math.floor(diff / 1000);
-    if (seconds < 60) return `${seconds}s ago`;
+    if (seconds < 60) {
+      return `${seconds}s ago`;
+    }
     const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes}m ago`;
+    if (minutes < 60) {
+      return `${minutes}m ago`;
+    }
     return `${Math.floor(minutes / 60)}h ago`;
   };
 

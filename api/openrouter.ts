@@ -11,10 +11,12 @@ const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 20;
 
 export default async function handler(req: Request) {
-  const origin = process.env.VITE_FRONTEND_URL;
-  if (!origin) {
-    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
-  }
+  const origin =
+    process.env.VITE_FRONTEND_URL ||
+    req.headers?.get?.('origin') ||
+    req.headers?.origin ||
+    req.headers?.['origin'] ||
+    '*';
 
   try {
     await requireAuth(req);

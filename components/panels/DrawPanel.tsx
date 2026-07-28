@@ -59,11 +59,13 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
   const setSelectedCustomBrushId = useStore((state) => state.setSelectedCustomBrushId);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Use store for smoothing and jitter
+  // Use store for smoothing, jitter, and autoSelectAfterDraw
   const brushSmoothing = useStore((state) => state.brushSmoothing);
   const setBrushSmoothing = useStore((state) => state.setBrushSmoothing);
   const brushJitter = useStore((state) => state.brushJitter);
   const setBrushJitter = useStore((state) => state.setBrushJitter);
+  const autoSelectAfterDraw = useStore((state) => state.autoSelectAfterDraw);
+  const setAutoSelectAfterDraw = useStore((state) => state.setAutoSelectAfterDraw);
 
   const colors = [
     '#000000',
@@ -485,8 +487,8 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
               <label className="text-[10px] font-bold text-gray-400">Auto Select Tool on Finish</label>
               <input
                 type="checkbox"
-                checked={useStore.getState().autoSelectAfterDraw}
-                onChange={(e) => useStore.getState().setAutoSelectAfterDraw(e.target.checked)}
+                checked={autoSelectAfterDraw}
+                onChange={(e) => setAutoSelectAfterDraw(e.target.checked)}
                 className="w-3 h-3 accent-brand-600 bg-gray-800 rounded border-gray-700 focus:ring-brand-600"
               />
             </div>

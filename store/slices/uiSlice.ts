@@ -26,6 +26,7 @@ export interface UISlice {
   history: GeneratedImage[];
   showShareModal: boolean;
   showFeedbackModal: boolean;
+  showProfileModal: boolean;
   comments: DesignComment[];
   isCropMode: boolean;
   croppingLayerId: string | null;
@@ -74,6 +75,7 @@ export interface UISlice {
   setShowShortcuts: (show: boolean) => void;
   setShowShareModal: (show: boolean) => void;
   setShowFeedbackModal: (show: boolean) => void;
+  setShowProfileModal: (show: boolean) => void;
   setShowPresentation: (show: boolean) => void;
   setShowVersionDiff: (show: boolean, snapshotId?: string | null) => void;
   setPreviewFontFamily: (font: string | null) => void;
@@ -83,7 +85,12 @@ export interface UISlice {
   addTag: (tag: string) => void;
   removeTag: (tag: string) => void;
   setIsPublished: (isPublished: boolean) => void;
-  addToast: (message: string, type?: ToastType, action?: { label: string; onClick: () => void }, details?: string) => void;
+  addToast: (
+    message: string,
+    type?: ToastType,
+    action?: { label: string; onClick: () => void },
+    details?: string
+  ) => void;
   removeToast: (id: string) => void;
   onCrop: (id: string) => Promise<void>;
   setIsCropMode: (active: boolean) => void;
@@ -105,7 +112,7 @@ export interface UISlice {
 }
 
 export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, get) => ({
-  activeTab: NavTab.MAGIC,
+  activeTab: NavTab.TEMPLATES,
   mode: AppMode.GENERATE,
   isProcessing: false,
   isExporting: false,
@@ -125,6 +132,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   history: [],
   showShareModal: false,
   showFeedbackModal: false,
+  showProfileModal: false,
   comments: [],
   snapshots: [],
   tags: [],
@@ -168,7 +176,9 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
     const { compressImage } = await import('../../utils/imageOptimizer');
     const compressed = await Promise.all(
       files.map(async (file) => {
-        if (!file.type.startsWith('image/')) return URL.createObjectURL(file);
+        if (!file.type.startsWith('image/')) {
+          return URL.createObjectURL(file);
+        }
         const blob = await compressImage(file, 1920, 0.8);
         return URL.createObjectURL(blob);
       })
@@ -178,7 +188,9 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   deleteUpload: (index) =>
     set((state: any) => {
       const url = state.uploads[index];
-      if (url?.startsWith('blob:')) { URL.revokeObjectURL(url); }
+      if (url?.startsWith('blob:')) {
+        URL.revokeObjectURL(url);
+      }
       return { uploads: state.uploads.filter((_: any, i: number) => i !== index) };
     }),
   setIsShapeBuilderActive: (isShapeBuilderActive) => set({ isShapeBuilderActive }),
@@ -191,6 +203,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   setShowShortcuts: (show) => set({ showShortcuts: show }),
   setShowShareModal: (show) => set({ showShareModal: show }),
   setShowFeedbackModal: (show) => set({ showFeedbackModal: show }),
+  setShowProfileModal: (show) => set({ showProfileModal: show }),
   setShowPresentation: (show) => set({ showPresentation: show }),
   setShowVersionDiff: (show: boolean, snapshotId: string | null = null) =>
     set({ showVersionDiff: show, versionDiffSnapshotId: snapshotId }),
@@ -225,12 +238,20 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
     let layer: any = null;
     for (const ab of state.artboards) {
       const found = ab.layers.find((l: any) => l.id === id);
-      if (found) { layer = found; break; }
+      if (found) {
+        layer = found;
+        break;
+      }
     }
-    if (!layer || layer.type !== 'image') return;
+    if (!layer || layer.type !== 'image') {
+      return;
+    }
     const img = new Image();
     img.src = layer.src;
-    await new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; });
+    await new Promise((resolve) => {
+      img.onload = resolve;
+      img.onerror = resolve;
+    });
     const naturalWidth = img.width || (layer as ImageLayer).width;
     const naturalHeight = img.height || (layer as ImageLayer).height;
     if (!(layer as ImageLayer).naturalWidth) {
@@ -250,13 +271,20 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
 
   applyCrop: async () => {
     const { croppingLayerId, cropArea, artboards, saveToHistory } = get();
-    if (!croppingLayerId) return;
+    if (!croppingLayerId) {
+      return;
+    }
     let layer: any = null;
     for (const ab of artboards) {
       const found = ab.layers.find((l: any) => l.id === croppingLayerId);
-      if (found) { layer = found; break; }
+      if (found) {
+        layer = found;
+        break;
+      }
     }
-    if (!layer || layer.type !== 'image') return;
+    if (!layer || layer.type !== 'image') {
+      return;
+    }
     saveToHistory?.();
     const naturalWidth = layer.naturalWidth || layer.width;
     const previousCropWidth = layer.crop?.width || naturalWidth;
@@ -265,7 +293,9 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
       artboards: state.artboards.map((a: any) => ({
         ...a,
         layers: a.layers.map((l: any) => {
-          if (l.id !== croppingLayerId || l.type !== 'image') return l;
+          if (l.id !== croppingLayerId || l.type !== 'image') {
+            return l;
+          }
           const il = l as ImageLayer;
           const oldCropX = il.crop?.x || 0;
           const oldCropY = il.crop?.y || 0;
@@ -290,19 +320,36 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   setLassoPoints: (lassoPoints) => set({ lassoPoints }),
   applyLasso: async () => {
     const { croppingLayerId, lassoPoints, artboards, saveToHistory } = get();
-    if (!croppingLayerId || lassoPoints.length < 3) { set({ isLassoMode: false, lassoPoints: [] }); return; }
+    if (!croppingLayerId || lassoPoints.length < 3) {
+      set({ isLassoMode: false, lassoPoints: [] });
+      return;
+    }
     let layer: any = null;
     for (const ab of artboards) {
       const found = ab.layers.find((l: any) => l.id === croppingLayerId);
-      if (found) { layer = found; break; }
+      if (found) {
+        layer = found;
+        break;
+      }
     }
-    if (!layer || layer.type !== 'image') { set({ isLassoMode: false, lassoPoints: [], croppingLayerId: null }); return; }
+    if (!layer || layer.type !== 'image') {
+      set({ isLassoMode: false, lassoPoints: [], croppingLayerId: null });
+      return;
+    }
     saveToHistory?.();
-    const pathData = `M ${lassoPoints[0].x} ${lassoPoints[0].y} ` + lassoPoints.slice(1).map((p: { x: number; y: number }) => `L ${p.x} ${p.y}`).join(' ') + ' Z';
+    const pathData =
+      `M ${lassoPoints[0].x} ${lassoPoints[0].y} ` +
+      lassoPoints
+        .slice(1)
+        .map((p: { x: number; y: number }) => `L ${p.x} ${p.y}`)
+        .join(' ') +
+      ' Z';
     set((state: any) => ({
       artboards: state.artboards.map((a: any) => ({
         ...a,
-        layers: a.layers.map((l: any) => l.id === croppingLayerId ? { ...l, maskPath: pathData, maskType: 'lasso' } : l),
+        layers: a.layers.map((l: any) =>
+          l.id === croppingLayerId ? { ...l, maskPath: pathData, maskType: 'lasso' } : l
+        ),
       })),
       isLassoMode: false,
       lassoPoints: [],
@@ -316,7 +363,9 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
 
   fetchComments: async () => {
     const { projectId } = get();
-    if (!projectId) return;
+    if (!projectId) {
+      return;
+    }
     const comments = await storageService.getComments(projectId);
     set({ comments });
     import('../../services/commentService').then(({ commentService }) => {
@@ -325,7 +374,9 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
           set((state: any) => {
             const localIds = new Set(state.comments.map((c: any) => c.id));
             const newFromDb = dbComments.filter((c) => !localIds.has(c.id));
-            if (newFromDb.length > 0) { return { comments: [...state.comments, ...newFromDb] }; }
+            if (newFromDb.length > 0) {
+              return { comments: [...state.comments, ...newFromDb] };
+            }
             return {};
           });
         }
@@ -335,7 +386,9 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
 
   addComment: async (text, user) => {
     const { projectId } = get();
-    if (!projectId) return;
+    if (!projectId) {
+      return;
+    }
     const newComment: DesignComment = {
       id: uuidv4(),
       projectId,

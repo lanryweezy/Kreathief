@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavTab, AnimationSettings } from '../../types';
+import { useStore } from '../../store/useStore';
 import { Sidebar } from '../Sidebar';
 import { SidePanel } from '../SidePanel';
 import { ErrorBoundary } from '../ErrorBoundary';
@@ -43,8 +44,8 @@ export const EditorSidebar: React.FC<EditorSidebarProps> = React.memo(
             isAutoCollapsed={activeTab === NavTab.MOCKUP}
             onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             onExpand={() => {
-              if (activeTab === NavTab.MOCKUP) {
-                setActiveTab(NavTab.MAGIC);
+              if (useStore.getState().activeTab === NavTab.MOCKUP) {
+                setActiveTab(NavTab.TEMPLATES);
               }
               setIsSidebarCollapsed(false);
             }}

@@ -48,7 +48,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = React.memo(
     const handleFitToScreen = () => {
       const state = useStore.getState();
       const abs = state.artboards || [];
-      if (abs.length === 0) return;
+      if (abs.length === 0) {
+        return;
+      }
 
       let minX = Infinity,
         minY = Infinity,
@@ -81,9 +83,13 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = React.memo(
       let layer: any = null;
       for (const ab of state.artboards || []) {
         layer = ab.layers?.find((l: any) => l.id === selectedLayerIds[0]);
-        if (layer) break;
+        if (layer) {
+          break;
+        }
       }
-      if (!layer) return;
+      if (!layer) {
+        return;
+      }
 
       const vw = window.innerWidth * 0.85;
       const vh = window.innerHeight * 0.85;
@@ -123,7 +129,9 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = React.memo(
         let layer: any = null;
         for (const ab of state.artboards || []) {
           layer = ab.layers?.find((l: any) => l.id === selectedLayerIds[0]);
-          if (layer) break;
+          if (layer) {
+            break;
+          }
         }
         return layer;
       })();
@@ -219,7 +227,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = React.memo(
               <MockupPanel
                 onExportForMockup={onExportForMockup}
                 variant="full"
-                onClose={() => useStore.getState().setActiveTab(NavTab.MAGIC)}
+                onClose={() => useStore.getState().setActiveTab(NavTab.TEMPLATES)}
               />
             </div>
           </div>

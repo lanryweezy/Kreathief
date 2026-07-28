@@ -50,11 +50,12 @@ export const useStore = create<StoreState>()((set, get, store) => ({
     get().stopAutoSave?.();
     set({
       // UI Slice
-      activeTab: 'MAGIC' as NavTab,
+      activeTab: 'TEMPLATES' as NavTab,
       showGrid: false,
       showRulers: false,
       isCommandPaletteOpen: false,
       showFeedbackModal: false,
+      showProfileModal: false,
       showShortcuts: false,
       showShareModal: false,
       zoom: 1,

@@ -4,7 +4,9 @@ import { Layer, CanvasFilters } from '../../types';
  * Builds a CSS filter string from a CanvasFilters or LayerFilters object
  */
 export const buildFilterString = (filters: CanvasFilters | undefined | null): string => {
-  if (!filters) return 'none';
+  if (!filters) {
+    return 'none';
+  }
   const parts: string[] = [];
 
   if (filters.brightness !== 100) {
@@ -46,7 +48,7 @@ export const getLayerStyle = (layer: Layer, zoom: number = 1): React.CSSProperti
     width: 'width' in layer ? layer.width * zoom : undefined,
     height: 'height' in layer ? layer.height * zoom : undefined,
     transform: `rotate(${layer.rotation}deg)`,
-    opacity: layer.opacity,
+    opacity: typeof layer.opacity === 'number' && !isNaN(layer.opacity) ? Math.max(0, Math.min(1, layer.opacity)) : 1,
     // Filters are deliberately excluded here because they often need to be applied to inner elements
     // rather than the container (which might hold selection handles that shouldn't be blurred)
     mixBlendMode: layer.blendMode as React.CSSProperties['mixBlendMode'],

@@ -1,6 +1,6 @@
 import { TextEffectsPanel } from './panels/TextEffectsPanel';
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { NavTab, TextLayer, AnimationSettings } from '../types';
 import { useStore } from '../store/useStore';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -118,111 +118,106 @@ export const SidePanel = React.memo(
           data-testid="side-panel"
           className="w-full md:w-[320px] bg-transparent md:bg-surface-dark-2/95 md:backdrop-blur-xl border-r border-white/5 flex flex-col z-dropdown shrink-0 shadow-2xl relative overflow-y-auto overflow-x-hidden custom-scrollbar"
         >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              transition={{ duration: 0.2, ease: 'easeInOut' }}
-              className="min-h-full flex flex-col"
-            >
-              <React.Suspense fallback={<PanelLoading tab={activeTab} />}>
-                {activeTab === NavTab.LAYERS && <LayersPanel />}
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, x: -6 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="min-h-full flex flex-col"
+          >
+            <React.Suspense fallback={<PanelLoading tab={activeTab} />}>
+              {activeTab === NavTab.LAYERS && <LayersPanel />}
 
-                {activeTab === NavTab.TEXT && <TextPanel />}
+              {activeTab === NavTab.TEXT && <TextPanel />}
 
-                {activeTab === NavTab.MEDIA && <MediaPanel />}
-                {activeTab === NavTab.ELEMENTS && <ElementsPanel />}
+              {activeTab === NavTab.MEDIA && <MediaPanel />}
+              {activeTab === NavTab.ELEMENTS && <ElementsPanel />}
 
-                {activeTab === NavTab.UPLOADS && <UploadsPanel />}
+              {activeTab === NavTab.UPLOADS && <UploadsPanel />}
 
-                {activeTab === NavTab.PHOTOS && <AssetsPanel />}
+              {activeTab === NavTab.PHOTOS && <AssetsPanel />}
 
-                {activeTab === NavTab.TEXT_EFFECTS && selectedTextLayer && (
-                  <TextEffectsPanel
-                    effects={{
-                      styleType: selectedTextLayer.styleType,
-                      warpStyle: selectedTextLayer.warpStyle,
-                      curve: selectedTextLayer.curve,
-                      depth: selectedTextLayer.depth,
-                      neonGlow: selectedTextLayer.neonGlow,
-                      textShadow: selectedTextLayer.textShadow,
-                      textStroke: selectedTextLayer.textStroke,
-                      warpParams: (selectedTextLayer as any).warpParams,
-                    }}
-                    onChange={(newEffects) => {
-                      updateLayer(selectedTextLayer.id, newEffects as Partial<TextLayer>);
-                    }}
-                  />
-                )}
+              {activeTab === NavTab.TEXT_EFFECTS && selectedTextLayer && (
+                <TextEffectsPanel
+                  effects={{
+                    styleType: selectedTextLayer.styleType,
+                    warpStyle: selectedTextLayer.warpStyle,
+                    curve: selectedTextLayer.curve,
+                    depth: selectedTextLayer.depth,
+                    neonGlow: selectedTextLayer.neonGlow,
+                    textShadow: selectedTextLayer.textShadow,
+                    textStroke: selectedTextLayer.textStroke,
+                    warpParams: (selectedTextLayer as any).warpParams,
+                  }}
+                  onChange={(newEffects) => {
+                    updateLayer(selectedTextLayer.id, newEffects as Partial<TextLayer>);
+                  }}
+                />
+              )}
 
-                {activeTab === NavTab.TEXT_EFFECTS && !selectedTextLayer && (
-                  <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                    <Icons.Zap className="w-12 h-12 text-gray-600 mb-4" />
-                    <h3 className="text-lg font-bold text-white mb-2">Text Effects</h3>
-                    <p className="text-sm text-gray-400">
-                      Select a text layer to unlock amazing text effects like transformations, shadows, 3D depth, and
-                      textures.
-                    </p>
-                  </div>
-                )}
+              {activeTab === NavTab.TEXT_EFFECTS && !selectedTextLayer && (
+                <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                  <Icons.Zap className="w-12 h-12 text-gray-600 mb-4" />
+                  <h3 className="text-lg font-bold text-white mb-2">Text Effects</h3>
+                  <p className="text-sm text-gray-400">
+                    Select a text layer to unlock amazing text effects like transformations, shadows, 3D depth, and
+                    textures.
+                  </p>
+                </div>
+              )}
 
-                {activeTab === NavTab.TEMPLATES && (
-                  <TemplatesPanel
-                    onApplyTemplate={handleApplyTemplate}
-                    setPrompt={setPrompt}
-                    setAspectRatio={setAspectRatio}
-                    onSetMode={setMode}
-                    onApplyLayout={onApplyLayout}
-                    onApplyTheme={onApplyTheme}
-                  />
-                )}
+              {activeTab === NavTab.TEMPLATES && (
+                <TemplatesPanel
+                  onApplyTemplate={handleApplyTemplate}
+                  setPrompt={setPrompt}
+                  setAspectRatio={setAspectRatio}
+                  onSetMode={setMode}
+                  onApplyLayout={onApplyLayout}
+                  onApplyTheme={onApplyTheme}
+                />
+              )}
 
-                {activeTab === NavTab.BRAND && <BrandPanel />}
+              {activeTab === NavTab.BRAND && <BrandPanel />}
 
-                {activeTab === NavTab.DRAW && (
-                  <DrawPanel
-                    brushColor={brushColor}
-                    setBrushColor={setBrushColor}
-                    brushSize={brushSize}
-                    setBrushSize={setBrushSize}
-                    isDrawing={isPenMode}
-                    setIsDrawing={setPenMode}
-                    brushOpacity={brushOpacity}
-                    setBrushOpacity={setBrushOpacity}
-                    brushType={brushType}
-                    setBrushType={setBrushType}
-                    brushSmoothing={brushSmoothing}
-                    setBrushSmoothing={setBrushSmoothing}
-                    brushJitter={brushJitter}
-                    onFinishDrawing={() => {
-                      if (useStore.getState().autoSelectAfterDraw) {
-                        setPenMode(false);
-                        useStore.getState().setActiveTab(NavTab.LAYERS);
-                      }
-                    }}
-                  />
-                )}
+              {activeTab === NavTab.DRAW && (
+                <DrawPanel
+                  brushColor={brushColor}
+                  setBrushColor={setBrushColor}
+                  brushSize={brushSize}
+                  setBrushSize={setBrushSize}
+                  isDrawing={isPenMode}
+                  setIsDrawing={setPenMode}
+                  brushOpacity={brushOpacity}
+                  setBrushOpacity={setBrushOpacity}
+                  brushType={brushType}
+                  setBrushType={setBrushType}
+                  brushSmoothing={brushSmoothing}
+                  setBrushSmoothing={setBrushSmoothing}
+                  brushJitter={brushJitter}
+                  onFinishDrawing={() => {
+                    if (useStore.getState().autoSelectAfterDraw) {
+                      setPenMode(false);
+                      useStore.getState().setActiveTab(NavTab.LAYERS);
+                    }
+                  }}
+                />
+              )}
 
-                {activeTab === NavTab.MOCKUP && (
-                  <MockupPanel onExportForMockup={getCanvasSnapshot || (async () => '')} />
-                )}
+              {activeTab === NavTab.MOCKUP && <MockupPanel onExportForMockup={getCanvasSnapshot || (async () => '')} />}
 
-                {activeTab === NavTab.MOTION && <MotionPanel onPreviewMotion={onPreviewMotion} />}
+              {activeTab === NavTab.MOTION && <MotionPanel onPreviewMotion={onPreviewMotion} />}
 
-                {activeTab === NavTab.ACCESSIBILITY && <AccessibilityPanel />}
+              {activeTab === NavTab.ACCESSIBILITY && <AccessibilityPanel />}
 
-                {activeTab === NavTab.WEBSITE && <WebsitePanel />}
+              {activeTab === NavTab.WEBSITE && <WebsitePanel />}
 
-                {activeTab === NavTab.SLIDES && <SlidesPanel />}
+              {activeTab === NavTab.SLIDES && <SlidesPanel />}
 
-                {activeTab === NavTab.CAROUSEL && <CarouselPanel />}
+              {activeTab === NavTab.CAROUSEL && <CarouselPanel />}
 
-                {activeTab === NavTab.DOCUMENT && <DocumentPanel />}
-              </React.Suspense>
-            </motion.div>
-          </AnimatePresence>
+              {activeTab === NavTab.DOCUMENT && <DocumentPanel />}
+            </React.Suspense>
+          </motion.div>
         </motion.div>
       </ErrorBoundary>
     );

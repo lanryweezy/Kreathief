@@ -7,12 +7,13 @@ import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 export const AccessibilityPanel: React.FC = () => {
   // Use useShallow to prevent unnecessary re-renders when other store values change
-  const { artboards, activeArtboardId, selectLayer, updateLayer } = useStore(
+  const { artboards, activeArtboardId, selectLayer, updateLayer, canvasBackgroundColor } = useStore(
     useShallow((state) => ({
       artboards: state.artboards,
       activeArtboardId: state.activeArtboardId,
       selectLayer: state.selectLayer,
       updateLayer: state.updateLayer,
+      canvasBackgroundColor: state.canvasBackgroundColor,
     }))
   );
 
@@ -25,8 +26,8 @@ export const AccessibilityPanel: React.FC = () => {
     if (!activeArtboard) {
       return null;
     }
-    return runAccessibilityAudit(activeArtboard);
-  }, [activeArtboard]);
+    return runAccessibilityAudit(activeArtboard, canvasBackgroundColor);
+  }, [activeArtboard, canvasBackgroundColor]);
 
   if (!auditResult) {
     return null;

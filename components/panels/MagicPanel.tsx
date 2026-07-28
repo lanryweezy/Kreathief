@@ -428,9 +428,11 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
         <Button
           variant="ghost"
           className="w-full py-2.5 mb-3 border border-white/10 text-gray-300 hover:text-white hover:border-brand-600/50"
-          onClick={() => {
+          onClick={async () => {
             setIsAnalyzing(true);
             try {
+              // Simulate network/AI processing delay for loading state
+              await new Promise((resolve) => setTimeout(resolve, 1500));
               const result = analyzeDesign(artboards, layers);
               setDesignAnalysis(result);
               analyticsService.track('analyze_design', { score: result.score });

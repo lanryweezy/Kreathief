@@ -1,4 +1,5 @@
 import { log } from '../utils/log';
+import { getFallbackPhotos } from './fallbackPhotos';
 
 export interface VecteezyResource {
   id: string;
@@ -20,8 +21,8 @@ export const vecteezyService = {
       const response = await fetch(`/api/vecteezy?action=search&query=${encodeURIComponent(query)}&page=${page}`);
 
       if (!response.ok) {
-        log.error('[VecteezyService] Search failed', new Error(response.statusText));
-        return [];
+        log.warn('[VecteezyService] Search failed or offline, using fallback library', new Error(response.statusText));
+        return getFallbackPhotos(query, 'vecteezy');
       }
 
       const data = await response.json();
@@ -29,8 +30,8 @@ export const vecteezyService = {
       // Map API response to our unified format
       const resources = data.data || data.resources || data;
 
-      if (!Array.isArray(resources)) {
-        return [];
+      if (!Array.isArray(resources) || resources.length === 0) {
+        return getFallbackPhotos(query, 'vecteezy');
       }
 
       return resources.map((item: any) => ({
@@ -42,8 +43,8 @@ export const vecteezyService = {
         preview_url: item.preview_url || item.image_url || item.thumbnail_url,
       }));
     } catch (err) {
-      log.error('[VecteezyService] Search error', err as Error);
-      return [];
+      log.warn('[VecteezyService] Search error or offline, using fallback library', err as Error);
+      return getFallbackPhotos(query, 'vecteezy');
     }
   },
 

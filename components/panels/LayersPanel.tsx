@@ -58,6 +58,12 @@ const LayerItem = React.memo(
     const itemRef = useRef<HTMLDivElement>(null);
     const [showSettings, setShowSettings] = useState(false);
     const [dragOver, setDragOver] = useState<'top' | 'bottom' | null>(null);
+    const [isRenaming, setIsRenaming] = useState(false);
+    const [renameText, setRenameText] = useState(layer.name || '');
+
+    useEffect(() => {
+      setRenameText(layer.name || '');
+    }, [layer.name]);
 
     const isGroup = layer.isGroup === true;
     const isExpanded = layer.isExpanded !== false;
@@ -132,12 +138,47 @@ const LayerItem = React.memo(
             )}
           </div>
 
-          <div className="flex-1 min-w-0">
+          <div
+            className="flex-1 min-w-0"
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              setIsRenaming(true);
+            }}
+          >
             <div className="flex items-center gap-2">
               {layer.maskLayerId && <Icons.ArrowRight className="w-2.5 h-2.5 text-brand-600 rotate-90" />}
-              <span className={`text-xs truncate ${isSelected ? 'text-white font-bold' : 'text-gray-400'}`}>
-                {String(layer.name || getLayerNameFallback(layer))}
-              </span>
+              {isRenaming ? (
+                <input
+                  type="text"
+                  value={renameText}
+                  onChange={(e) => setRenameText(e.target.value)}
+                  onBlur={() => {
+                    setIsRenaming(false);
+                    if (renameText.trim()) {
+                      onUpdate({ name: renameText.trim() });
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setIsRenaming(false);
+                      if (renameText.trim()) {
+                        onUpdate({ name: renameText.trim() });
+                      }
+                    }
+                    if (e.key === 'Escape') {
+                      setIsRenaming(false);
+                      setRenameText(layer.name || '');
+                    }
+                  }}
+                  autoFocus
+                  className="w-full bg-black/60 border border-brand-500 rounded px-1.5 py-0.5 text-xs text-white focus:outline-none"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              ) : (
+                <span className={`text-xs truncate ${isSelected ? 'text-white font-bold' : 'text-gray-400'}`}>
+                  {String(layer.name || getLayerNameFallback(layer))}
+                </span>
+              )}
             </div>
           </div>
 
@@ -167,6 +208,22 @@ const LayerItem = React.memo(
 
         {showSettings && (
           <div className="bg-white/5 backdrop-blur-xl p-4 border-b border-white/10 space-y-4 text-[11px] animate-in slide-in-from-top-1 duration-200">
+            <div className="space-y-1.5">
+              <label
+                htmlFor={`rename-${layer.id}`}
+                className="text-gray-500 uppercase font-black tracking-widest text-[9px]"
+              >
+                Layer Name
+              </label>
+              <input
+                id={`rename-${layer.id}`}
+                type="text"
+                value={layer.name || ''}
+                placeholder={getLayerNameFallback(layer)}
+                onChange={(e) => onUpdate({ name: e.target.value })}
+                className="w-full bg-black/40 border border-white/10 rounded px-2.5 py-1 text-xs text-white focus:border-brand-500 focus:outline-none"
+              />
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label
@@ -286,14 +343,18 @@ export const LayersPanel = () => {
       case ' ': {
         e.preventDefault();
         const layer = reversedLayers[displayIndex];
-        if (layer) selectLayer(layer.id);
+        if (layer) {
+          selectLayer(layer.id);
+        }
         break;
       }
       case 'Delete':
       case 'Backspace': {
         e.preventDefault();
         const layer = reversedLayers[displayIndex];
-        if (layer && !layer.locked) deleteLayer(layer.id);
+        if (layer && !layer.locked) {
+          deleteLayer(layer.id);
+        }
         break;
       }
       case 'Escape': {
@@ -325,7 +386,7 @@ export const LayersPanel = () => {
   return (
     <div className="flex flex-col h-full bg-transparent">
       {/* Tabs */}
-      <div className="flex px-4 pt-4 border-b border-white/5 gap-4">
+      <div className="flex px-4 pt-4 border-b border-white/5 gap-4 relative">
         <button
           onClick={() => setActiveTab('layers')}
           className={`pb-3 text-xs font-bold transition-all border-b-2 ${
@@ -346,6 +407,19 @@ export const LayersPanel = () => {
         >
           ARRANGE
         </button>
+        {layers.length > 0 && (
+          <button
+            onClick={() => {
+              if (window.confirm('Clear all layers? This action cannot be undone easily.')) {
+                layers.forEach((l) => deleteLayer(l.id));
+              }
+            }}
+            title="Clear Canvas"
+            className="absolute right-4 top-4 p-1 text-gray-500 hover:text-red-400 hover:bg-white/5 rounded transition-all"
+          >
+            <Icons.Trash className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       <div
@@ -354,11 +428,7 @@ export const LayersPanel = () => {
         style={{ maxHeight: listHeight || '100%' }}
       >
         {activeTab === 'layers' ? (
-          <div
-            className="flex flex-col"
-            role="tree"
-            aria-label="Layers"
-          >
+          <div className="flex flex-col" role="tree" aria-label="Layers">
             {reversedLayers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
                 <div className="w-14 h-14 rounded-full bg-surface-dark-3 flex items-center justify-center mb-3">
@@ -370,24 +440,23 @@ export const LayersPanel = () => {
                 </p>
               </div>
             ) : (
-              reversedLayers
-                .map((layer, index) => (
-                  <LayerItem
-                    key={layer.id}
-                    layer={layer}
-                    index={index}
-                    isSelected={selectedLayerIds.includes(layer.id)}
-                    onSelect={() => selectLayer(layer.id)}
-                    onSelectMultiple={() => multiSelectLayer(layer.id, true)}
-                    onUpdate={(c) => updateLayer(layer.id, c)}
-                    onDelete={() => deleteLayer(layer.id)}
-                    onDrop={(id, target, pos) =>
-                      reorderLayer(id, layers.findIndex((l) => l.id === target) + (pos === 'above' ? 1 : 0))
-                    }
-                    tabIndex={focusedLayerIndex === index || (focusedLayerIndex === -1 && index === 0) ? 0 : -1}
-                    onKeyDown={(e) => handleLayerKeyDown(e, index)}
-                  />
-                ))
+              reversedLayers.map((layer, index) => (
+                <LayerItem
+                  key={layer.id}
+                  layer={layer}
+                  index={index}
+                  isSelected={selectedLayerIds.includes(layer.id)}
+                  onSelect={() => selectLayer(layer.id)}
+                  onSelectMultiple={() => multiSelectLayer(layer.id, true)}
+                  onUpdate={(c) => updateLayer(layer.id, c)}
+                  onDelete={() => deleteLayer(layer.id)}
+                  onDrop={(id, target, pos) =>
+                    reorderLayer(id, layers.findIndex((l) => l.id === target) + (pos === 'above' ? 1 : 0))
+                  }
+                  tabIndex={focusedLayerIndex === index || (focusedLayerIndex === -1 && index === 0) ? 0 : -1}
+                  onKeyDown={(e) => handleLayerKeyDown(e, index)}
+                />
+              ))
             )}
             {selectedLayerIds.length === 1 && layers.length > 1 && (
               <div className="flex items-center justify-center gap-2 px-4 py-3 border-t border-white/[0.03]">

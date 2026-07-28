@@ -14,10 +14,12 @@ const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 let lastCleanup = Date.now();
 
 export default async function handler(req: Request) {
-  const origin = process.env.VITE_FRONTEND_URL;
-  if (!origin) {
-    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
-  }
+  const origin =
+    process.env.VITE_FRONTEND_URL ||
+    req.headers?.get?.('origin') ||
+    req.headers?.origin ||
+    req.headers?.['origin'] ||
+    '*';
 
   const now = Date.now();
 
@@ -112,12 +114,24 @@ export default async function handler(req: Request) {
       if (generationConfig && typeof generationConfig === 'object') {
         // Only allow safe generation config fields
         const safeConfig: any = {};
-        if (generationConfig.temperature !== undefined) safeConfig.temperature = Math.min(2, Math.max(0, generationConfig.temperature));
-        if (generationConfig.maxOutputTokens !== undefined) safeConfig.maxOutputTokens = Math.min(8192, Math.max(1, generationConfig.maxOutputTokens));
-        if (generationConfig.topP !== undefined) safeConfig.topP = Math.min(1, Math.max(0, generationConfig.topP));
-        if (generationConfig.topK !== undefined) safeConfig.topK = Math.min(40, Math.max(1, generationConfig.topK));
-        if (generationConfig.responseMimeType) safeConfig.responseMimeType = generationConfig.responseMimeType;
-        if (generationConfig.responseSchema) safeConfig.responseSchema = generationConfig.responseSchema;
+        if (generationConfig.temperature !== undefined) {
+          safeConfig.temperature = Math.min(2, Math.max(0, generationConfig.temperature));
+        }
+        if (generationConfig.maxOutputTokens !== undefined) {
+          safeConfig.maxOutputTokens = Math.min(8192, Math.max(1, generationConfig.maxOutputTokens));
+        }
+        if (generationConfig.topP !== undefined) {
+          safeConfig.topP = Math.min(1, Math.max(0, generationConfig.topP));
+        }
+        if (generationConfig.topK !== undefined) {
+          safeConfig.topK = Math.min(40, Math.max(1, generationConfig.topK));
+        }
+        if (generationConfig.responseMimeType) {
+          safeConfig.responseMimeType = generationConfig.responseMimeType;
+        }
+        if (generationConfig.responseSchema) {
+          safeConfig.responseSchema = generationConfig.responseSchema;
+        }
         modelConfig.generationConfig = safeConfig;
       }
       // systemInstruction is not passed through — users cannot override safety settings

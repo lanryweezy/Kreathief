@@ -1,5 +1,11 @@
 import { ProjectInsert, ProjectVersionInsert, ProjectSnapshotInsert, CommentInsert } from '../lib/supabase/types';
-import { toDbJson, toDbProjectState, fromDbProjectState, toDbCanvasSize, toDbCanvasFilters } from '../lib/supabase/adapters';
+import {
+  toDbJson,
+  toDbProjectState,
+  fromDbProjectState,
+  toDbCanvasSize,
+  toDbCanvasFilters,
+} from '../lib/supabase/adapters';
 /**
  * Hybrid Storage Service
  * Uses Supabase for cloud storage with IndexedDB as offline fallback
@@ -781,16 +787,26 @@ class StorageService {
   }
 
   private sanitizeLayer(layer: any): any {
-    if (!layer || typeof layer !== 'object') return layer;
+    if (!layer || typeof layer !== 'object') {
+      return layer;
+    }
     const safe = { ...layer };
     const str = (v: any, def = ''): string => {
-      if (v === null || v === undefined) return def;
-      if (typeof v === 'string') return v;
-      if (typeof v === 'object') return def;
+      if (v === null || v === undefined) {
+        return def;
+      }
+      if (typeof v === 'string') {
+        return v;
+      }
+      if (typeof v === 'object') {
+        return def;
+      }
       return String(v);
     };
     const num = (v: any, def = 0): number => {
-      if (typeof v === 'number') return v;
+      if (typeof v === 'number') {
+        return v;
+      }
       if (typeof v === 'string') {
         const n = Number(v);
         return isNaN(n) ? def : n;
@@ -808,29 +824,70 @@ class StorageService {
     safe.opacity = typeof safe.opacity === 'number' ? safe.opacity : num(safe.opacity, 1);
     safe.locked = !!safe.locked;
     safe.visible = safe.visible !== false;
-    if (typeof safe.text === 'object') safe.text = str(safe.text);
-    if (typeof safe.fontFamily === 'object') safe.fontFamily = str(safe.fontFamily);
-    if (typeof safe.fill === 'object' && typeof safe.fill !== 'string') safe.fill = str(safe.fill);
-    if (typeof safe.color === 'object') safe.color = str(safe.color, '#7d2ae8');
-    if (typeof safe.blendMode === 'object') safe.blendMode = str(safe.blendMode);
-    if (typeof safe.maskLayerId === 'object') safe.maskLayerId = str(safe.maskLayerId);
-    if (typeof safe.groupId === 'object') safe.groupId = str(safe.groupId);
-    if (typeof safe.masterId === 'object') safe.masterId = str(safe.masterId);
-    if (typeof safe.componentId === 'object') safe.componentId = str(safe.componentId);
-    if (typeof safe.src === 'object') safe.src = str(safe.src);
-    if (typeof safe.pathData === 'object') safe.pathData = str(safe.pathData);
-    if (typeof safe.filter === 'object') safe.filter = str(safe.filter);
-    if (typeof safe.fontSize === 'object') safe.fontSize = num(safe.fontSize, 16);
-    if (typeof safe.fontWeight === 'object') safe.fontWeight = str(safe.fontWeight, 'normal');
-    if (typeof safe.fontStyle === 'object') safe.fontStyle = str(safe.fontStyle, 'normal');
-    if (typeof safe.textAlign === 'object') safe.textAlign = str(safe.textAlign, 'left');
-    if (typeof safe.textDecoration === 'object') safe.textDecoration = str(safe.textDecoration);
-    if (typeof safe.textTransform === 'object') safe.textTransform = str(safe.textTransform);
-    if (typeof safe.letterSpacing === 'object') safe.letterSpacing = num(safe.letterSpacing);
-    if (typeof safe.cornerRadius === 'object' && typeof safe.cornerRadius !== 'number')
+    if (typeof safe.text === 'object') {
+      safe.text = str(safe.text);
+    }
+    if (typeof safe.fontFamily === 'object') {
+      safe.fontFamily = str(safe.fontFamily);
+    }
+    if (typeof safe.fill === 'object' && typeof safe.fill !== 'string') {
+      safe.fill = str(safe.fill);
+    }
+    if (typeof safe.color === 'object') {
+      safe.color = str(safe.color, '#7d2ae8');
+    }
+    if (typeof safe.blendMode === 'object') {
+      safe.blendMode = str(safe.blendMode);
+    }
+    if (typeof safe.maskLayerId === 'object') {
+      safe.maskLayerId = str(safe.maskLayerId);
+    }
+    if (typeof safe.groupId === 'object') {
+      safe.groupId = str(safe.groupId);
+    }
+    if (typeof safe.masterId === 'object') {
+      safe.masterId = str(safe.masterId);
+    }
+    if (typeof safe.componentId === 'object') {
+      safe.componentId = str(safe.componentId);
+    }
+    if (typeof safe.src === 'object') {
+      safe.src = str(safe.src);
+    }
+    if (typeof safe.pathData === 'object') {
+      safe.pathData = str(safe.pathData);
+    }
+    if (typeof safe.filter === 'object') {
+      safe.filter = str(safe.filter);
+    }
+    if (typeof safe.fontSize === 'object') {
+      safe.fontSize = num(safe.fontSize, 16);
+    }
+    if (typeof safe.fontWeight === 'object') {
+      safe.fontWeight = str(safe.fontWeight, 'normal');
+    }
+    if (typeof safe.fontStyle === 'object') {
+      safe.fontStyle = str(safe.fontStyle, 'normal');
+    }
+    if (typeof safe.textAlign === 'object') {
+      safe.textAlign = str(safe.textAlign, 'left');
+    }
+    if (typeof safe.textDecoration === 'object') {
+      safe.textDecoration = str(safe.textDecoration);
+    }
+    if (typeof safe.textTransform === 'object') {
+      safe.textTransform = str(safe.textTransform);
+    }
+    if (typeof safe.letterSpacing === 'object') {
+      safe.letterSpacing = num(safe.letterSpacing);
+    }
+    if (typeof safe.cornerRadius === 'object' && typeof safe.cornerRadius !== 'number') {
       safe.cornerRadius = num(safe.cornerRadius, 8);
+    }
     if (typeof safe.gradient === 'object' && safe.gradient !== null) {
-      if (typeof safe.gradient.type === 'object') safe.gradient.type = str(safe.gradient.type, 'linear');
+      if (typeof safe.gradient.type === 'object') {
+        safe.gradient.type = str(safe.gradient.type, 'linear');
+      }
     }
     return safe;
   }
@@ -972,11 +1029,11 @@ class StorageService {
   async getVersion(versionId: string): Promise<ProjectVersion | undefined> {
     if (this.isOnline) {
       try {
-        const { data, error } = await supabase
+        const { data, error } = (await supabase
           .from('project_versions')
           .select('*')
           .eq('id', versionId)
-          .single() as unknown as { data: import('../lib/supabase/types').ProjectVersion; error: any };
+          .single()) as unknown as { data: import('../lib/supabase/types').ProjectVersion; error: any };
 
         if (data) {
           return {
@@ -1264,7 +1321,11 @@ class StorageService {
         future: future || [],
         timestamp: Date.now(),
       });
-      request.onsuccess = () => resolve();
+      request.onsuccess = () => {
+        this.lastSyncTime = Date.now();
+        this.statusListeners.forEach((cb) => cb(this.connectionStatus));
+        resolve();
+      };
       request.onerror = () => reject(request.error);
     });
   }

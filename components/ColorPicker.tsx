@@ -19,7 +19,7 @@ import { haptics } from '../utils/haptics';
 
 interface ColorPickerProps {
   value: string;
-  onChange: (color: string) => void;
+  onChange: (color: string, gradient?: any) => void;
   documentColors?: string[];
   label?: string;
   small?: boolean;
@@ -122,7 +122,9 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
 
     const handleHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       let val = e.target.value.replace(/[^0-9A-Fa-f]/g, '').slice(0, 6);
-      if (val.length > 0) val = '#' + val;
+      if (val.length > 0) {
+        val = '#' + val;
+      }
       setHexInput(val);
       if (/^#[0-9A-F]{6}$/i.test(val) || /^#[0-9A-F]{3}$/i.test(val)) {
         onChange(val);
@@ -166,6 +168,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
       <div className="relative group">
         {label && <span className="text-[10px] uppercase font-bold text-gray-500 mb-1 block">{label}</span>}
         <button
+          type="button"
           ref={popoverRef}
           data-testid="color-picker"
           aria-label={label ? `Choose ${label} color` : 'Choose color'}
@@ -193,6 +196,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
             {/* Tabs */}
             <div className="flex gap-1 mb-3 bg-surface-dark-1 rounded-lg p-1">
               <button
+                type="button"
                 onClick={() => setActiveTab('picker')}
                 className={`flex-1 px-2 py-1.5 rounded-md text-[10px] font-bold transition-all ${
                   activeTab === 'picker'
@@ -203,6 +207,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                 Picker
               </button>
               <button
+                type="button"
                 onClick={() => setActiveTab('harmony')}
                 className={`flex-1 px-2 py-1.5 rounded-md text-[10px] font-bold transition-all ${
                   activeTab === 'harmony'
@@ -213,6 +218,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                 Harmony
               </button>
               <button
+                type="button"
                 onClick={() => setActiveTab('palette')}
                 className={`flex-1 px-2 py-1.5 rounded-md text-[10px] font-bold transition-all ${
                   activeTab === 'palette'
@@ -223,6 +229,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                 Palette
               </button>
               <button
+                type="button"
                 onClick={() => setActiveTab('gradient')}
                 className={`flex-1 px-2 py-1.5 rounded-md text-[10px] font-bold transition-all ${
                   activeTab === 'gradient'
@@ -233,6 +240,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                 Gradient
               </button>
               <button
+                type="button"
                 onClick={() => setActiveTab('contrast')}
                 className={`flex-1 px-2 py-1.5 rounded-md text-[10px] font-bold transition-all ${
                   activeTab === 'contrast'
@@ -249,6 +257,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                 {/* Eyedropper Button */}
                 <div className="mb-3">
                   <button
+                    type="button"
                     aria-label="Pick color from screen"
                     onClick={handleNativeEyeDropper}
                     className="w-full px-3 py-2 bg-surface-dark-3 hover:bg-gray-700 rounded-lg text-[10px] font-bold text-gray-300 transition-colors flex items-center justify-center gap-2 border border-white/5 hover:border-white/10"
@@ -261,6 +270,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                 {/* No Fill & Hex Input */}
                 <div className="flex items-center gap-2 mb-4">
                   <button
+                    type="button"
                     onClick={() => {
                       onChange('transparent');
                       setHexInput('transparent');
@@ -273,6 +283,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                   </button>
                   <div className="relative flex-[1.5]">
                     <button
+                      type="button"
                       aria-label="Copy hex code"
                       onClick={copyToClipboard}
                       className={`absolute left-2 top-1/2 -translate-y-1/2 text-xs transition-colors ${isCopied ? 'text-green-400' : 'text-gray-500 hover:text-brand-600'}`}
@@ -327,6 +338,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                     <div className="flex flex-col gap-2 mb-4">
                       <div className="flex items-center justify-between">
                         <button
+                          type="button"
                           aria-label="Toggle CMYK mode"
                           onClick={() => setCmykMode(!cmykMode)}
                           className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded transition-colors ${
@@ -362,6 +374,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                             This color may look dull when printed.
                           </span>
                           <button
+                            type="button"
                             onClick={() => {
                               const safe = getClosestCMYKSafeColor(value);
                               onChange(safe);
@@ -522,6 +535,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                     <h5 className="text-[10px] font-bold text-gray-500 uppercase mb-2 flex justify-between items-center">
                       Recent Colors
                       <button
+                        type="button"
                         onClick={() => {
                           setRecentColors([]);
                           localStorage.removeItem('kreathief_recent_colors');
@@ -534,6 +548,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                     <div className="flex flex-wrap gap-1.5">
                       {recentColors.map((color, idx) => (
                         <button
+                          type="button"
                           key={idx}
                           onClick={() => {
                             onChange(color);
@@ -555,6 +570,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                     <div className="flex flex-wrap gap-1.5">
                       {uniqueDocColors.map((color, idx) => (
                         <button
+                          type="button"
                           key={idx}
                           onClick={() => {
                             onChange(color);
@@ -576,6 +592,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                   <div className="grid grid-cols-8 gap-1.5">
                     {DEFAULT_PALETTE.map((color) => (
                       <button
+                        type="button"
                         key={color}
                         onClick={() => {
                           onChange(color);
@@ -617,7 +634,13 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
               <GradientEditor
                 onChange={(gradient) => {
                   const css = `linear-gradient(${gradient.angle ?? 90}deg, ${gradient.stops.map((s: any) => `${s.color} ${s.position}%`).join(', ')})`;
-                  onChange(css);
+                  const gradientObj = {
+                    enabled: true,
+                    type: gradient.type,
+                    angle: gradient.angle,
+                    colors: gradient.stops.map((s: any) => ({ color: s.color, position: s.position / 100 })),
+                  };
+                  onChange(css, gradientObj);
                   addToast(`Gradient applied (${gradient.stops.length} stops)`, 'success');
                 }}
               />
@@ -658,11 +681,15 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
               setShowEyedropper(false);
             }}
             onKeyDown={(e) => {
-              if (e.key === 'Escape') setShowEyedropper(false);
+              if (e.key === 'Escape') {
+                setShowEyedropper(false);
+              }
             }}
             tabIndex={-1}
             ref={(el) => {
-              if (el) el.focus();
+              if (el) {
+                el.focus();
+              }
             }}
           >
             {/* Instructions */}

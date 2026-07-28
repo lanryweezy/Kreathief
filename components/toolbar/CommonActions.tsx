@@ -38,14 +38,16 @@ export const CommonActions = React.memo(
               <div className="space-y-2">
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Opacity</span>
-                  <span className="text-[10px] text-white font-mono">{Math.round(selectedLayer.opacity * 100)}%</span>
+                  <span className="text-[10px] text-white font-mono">
+                    {Math.round((selectedLayer.opacity ?? 1) * 100)}%
+                  </span>
                 </div>
                 <input
                   type="range"
                   min="0"
                   max="1"
                   step="0.01"
-                  value={selectedLayer.opacity}
+                  value={selectedLayer.opacity ?? 1}
                   onChange={(e) => handleUpdateLayer({ opacity: parseFloat(e.target.value) })}
                   className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500"
                 />

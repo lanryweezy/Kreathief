@@ -75,57 +75,53 @@ const layerPropsAreEqual = (prevProps: LayerItemProps, nextProps: LayerItemProps
   if (prevProps.isInteracting !== nextProps.isInteracting) {
     return false;
   }
+  if (prevProps.previewAnimation !== nextProps.previewAnimation) {
+    return false;
+  }
+  if (prevProps.editingPathId !== nextProps.editingPathId) {
+    return false;
+  }
 
   const p = prevProps.layer;
   const n = nextProps.layer;
 
-  // Fast shallow comparison for nested objects (filters, stroke, shadow)
-  const shallowEqual = (o1: any, o2: any) => {
+  if (p === n) {
+    return true;
+  }
+
+  // Comprehensive deep equality check for nested objects (gradient, pathEffects, filters, stroke, animation, etc.)
+  const deepEqual = (o1: any, o2: any, depth = 0): boolean => {
     if (o1 === o2) {
       return true;
     }
-    if (!o1 || !o2 || typeof o1 !== 'object' || typeof o2 !== 'object') {
+    if (!o1 || !o2 || typeof o1 !== 'object' || typeof o2 !== 'object' || depth > 5) {
       return o1 === o2;
     }
+    if (Array.isArray(o1) && Array.isArray(o2)) {
+      if (o1.length !== o2.length) {
+        return false;
+      }
+      for (let i = 0; i < o1.length; i++) {
+        if (!deepEqual(o1[i], o2[i], depth + 1)) {
+          return false;
+        }
+      }
+      return true;
+    }
     const keys1 = Object.keys(o1);
-    if (keys1.length !== Object.keys(o2).length) {
+    const keys2 = Object.keys(o2);
+    if (keys1.length !== keys2.length) {
       return false;
     }
     for (const key of keys1) {
-      if (o1[key] !== o2[key]) {
+      if (!deepEqual(o1[key], o2[key], depth + 1)) {
         return false;
       }
     }
     return true;
   };
 
-  // Comprehensive comparison
-  return (
-    p.id === n.id &&
-    p.x === n.x &&
-    p.y === n.y &&
-    p.width === n.width &&
-    p.height === n.height &&
-    p.rotation === n.rotation &&
-    p.opacity === n.opacity &&
-    p.visible === n.visible &&
-    p.locked === n.locked &&
-    p.blendMode === n.blendMode &&
-    p.groupId === n.groupId &&
-    shallowEqual(p.filters, n.filters) &&
-    shallowEqual(p.stroke, n.stroke) &&
-    shallowEqual(p.shadow, n.shadow) &&
-    (p as TextLayer).text === (n as TextLayer).text &&
-    (p as TextLayer).fontFamily === (n as TextLayer).fontFamily &&
-    (p as TextLayer).fontSize === (n as TextLayer).fontSize &&
-    (p as ShapeLayer).pathData === (n as ShapeLayer).pathData &&
-    (p as ImageLayer).src === (n as ImageLayer).src &&
-    (p as ShapeLayer | ImageLayer).cornerRadius === (n as ShapeLayer | ImageLayer).cornerRadius &&
-    (p as TextLayer | ShapeLayer).color === (n as TextLayer | ShapeLayer).color &&
-    (p as ImageLayer).maskPath === (n as ImageLayer).maskPath &&
-    (p as ImageLayer).maskType === (n as ImageLayer).maskType &&
-    p.maskLayerId === n.maskLayerId
-  );
+  return deepEqual(p, n);
 };
 
 /**
@@ -349,6 +345,50 @@ export const ImageLayerItem = React.memo(
 
 ImageLayerItem.displayName = 'ImageLayerItem';
 
+const parseCssGradient = (colorStr: string | undefined) => {
+  if (!colorStr || typeof colorStr !== 'string') {
+    return null;
+  }
+  const isLinear = colorStr.startsWith('linear-gradient(');
+  const isRadial = colorStr.startsWith('radial-gradient(');
+  if (!isLinear && !isRadial) {
+    return null;
+  }
+
+  try {
+    const content = colorStr.slice(colorStr.indexOf('(') + 1, colorStr.lastIndexOf(')'));
+    const parts = content.split(/,(?![^(]*\))/).map((s) => s.trim());
+    let angle = 90;
+    let colorParts = parts;
+
+    if (isLinear && parts[0].includes('deg')) {
+      angle = parseFloat(parts[0].replace('deg', '').trim()) || 90;
+      colorParts = parts.slice(1);
+    } else if (isRadial && (parts[0].includes('circle') || parts[0].includes('ellipse') || parts[0].includes('at '))) {
+      colorParts = parts.slice(1);
+    }
+
+    const colors = colorParts.map((part, idx) => {
+      const tokens = part.trim().split(/\s+/);
+      const color = tokens[0] || '#000000';
+      let position = idx / Math.max(1, colorParts.length - 1);
+      if (tokens[1] && tokens[1].endsWith('%')) {
+        position = parseFloat(tokens[1].replace('%', '')) / 100;
+      }
+      return { color, position: isNaN(position) ? idx / Math.max(1, colorParts.length - 1) : position };
+    });
+
+    return {
+      enabled: true,
+      type: isRadial ? ('radial' as const) : ('linear' as const),
+      angle,
+      colors,
+    };
+  } catch {
+    return null;
+  }
+};
+
 /**
  * Shape Layer Item
  */
@@ -359,6 +399,8 @@ export const ShapeLayerItem = React.memo(
       ref
     ) => {
       const shapeLayer = layer as ShapeLayer;
+      const activeGrad =
+        shapeLayer.gradient && shapeLayer.gradient.enabled ? shapeLayer.gradient : parseCssGradient(shapeLayer.color);
       const clipPath = getLayerClipPath(shapeLayer);
       const animStyle = getAnimationStyle(isSelected && previewAnimation ? previewAnimation : shapeLayer.animation);
 
@@ -469,14 +511,14 @@ export const ShapeLayerItem = React.memo(
                     height="100%"
                     viewBox={shapeLayer.viewBox || `0 0 ${shapeLayer.width} ${shapeLayer.height}`}
                     style={{ overflow: 'visible' }}
-                    preserveAspectRatio="xMidYMid meet"
+                    preserveAspectRatio="none"
                   >
                     <defs>
-                      {shapeLayer.gradient &&
-                        shapeLayer.gradient.enabled &&
-                        (shapeLayer.gradient.type === 'radial' ? (
+                      {activeGrad &&
+                        activeGrad.enabled &&
+                        (activeGrad.type === 'radial' ? (
                           <radialGradient id={`gradient-${shapeLayer.id}`} cx="50%" cy="50%" r="50%">
-                            {shapeLayer.gradient.colors.map((c: any, idx: number) => (
+                            {activeGrad.colors.map((c: any, idx: number) => (
                               <stop key={idx} offset={`${c.position * 100}%`} stopColor={c.color} />
                             ))}
                           </radialGradient>
@@ -487,11 +529,9 @@ export const ShapeLayerItem = React.memo(
                             y1="0%"
                             x2="100%"
                             y2="0%"
-                            gradientTransform={
-                              shapeLayer.gradient.angle ? `rotate(${shapeLayer.gradient.angle}, 0.5, 0.5)` : undefined
-                            }
+                            gradientTransform={activeGrad.angle ? `rotate(${activeGrad.angle}, 0.5, 0.5)` : undefined}
                           >
-                            {shapeLayer.gradient.colors.map((c: any, idx: number) => (
+                            {activeGrad.colors.map((c: any, idx: number) => (
                               <stop key={idx} offset={`${c.position * 100}%`} stopColor={c.color} />
                             ))}
                           </linearGradient>
@@ -558,7 +598,7 @@ export const ShapeLayerItem = React.memo(
                     <path
                       d={shapeLayer.pathData}
                       fill={
-                        shapeLayer.gradient && shapeLayer.gradient.enabled
+                        activeGrad && activeGrad.enabled
                           ? `url(#gradient-${shapeLayer.id})`
                           : shapeLayer.color === 'transparent' || shapeLayer.color === 'none'
                             ? 'none'
@@ -596,7 +636,7 @@ export const ShapeLayerItem = React.memo(
                             <path
                               d={shapeLayer.pathData}
                               fill={
-                                shapeLayer.gradient && shapeLayer.gradient.enabled
+                                activeGrad && activeGrad.enabled
                                   ? `url(#gradient-${shapeLayer.id})`
                                   : shapeLayer.color || '#7d2ae8'
                               }
@@ -682,6 +722,19 @@ export const TextLayerItem = React.memo(
     ) => {
       const textLayer = layer as TextLayer;
       const animStyle = getAnimationStyle(isSelected && previewAnimation ? previewAnimation : textLayer.animation);
+      const grad: any = textLayer.gradient;
+      const isGradientColor =
+        textLayer.color?.startsWith('linear-gradient') ||
+        textLayer.color?.startsWith('radial-gradient') ||
+        (grad && grad.enabled);
+      const gradientStr =
+        textLayer.color?.startsWith('linear-gradient') || textLayer.color?.startsWith('radial-gradient')
+          ? textLayer.color
+          : grad && grad.colors
+            ? `${grad.type === 'radial' ? 'radial-gradient' : 'linear-gradient'}(${grad.angle || 90}deg, ${grad.colors.map((c: any) => `${c.color} ${c.position * 100}%`).join(', ')})`
+            : grad && grad.startColor && grad.endColor
+              ? `linear-gradient(${grad.angle || 90}deg, ${grad.startColor} 0%, ${grad.endColor} 100%)`
+              : '';
 
       return (
         <div
@@ -730,7 +783,10 @@ export const TextLayerItem = React.memo(
               fontSize: `${typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 16}px`,
               fontWeight: textLayer.fontWeight,
               fontStyle: textLayer.fontStyle,
-              color: safeStr(textLayer.color, '#000000'),
+              color: isGradientColor ? 'transparent' : safeStr(textLayer.color, '#000000'),
+              backgroundImage: isGradientColor ? gradientStr : undefined,
+              WebkitBackgroundClip: isGradientColor ? 'text' : undefined,
+              WebkitTextFillColor: isGradientColor ? 'transparent' : undefined,
               textAlign: textLayer.textAlign,
               letterSpacing:
                 textLayer.letterSpacing !== null && textLayer.letterSpacing !== undefined
@@ -759,17 +815,72 @@ export const TextLayerItem = React.memo(
                 : textLayer.styleType === 'hollow'
                   ? { WebkitTextStroke: '1px #7d2ae8' }
                   : {}),
-              ...(textLayer.warpStyle === 'bulge' ||
-              textLayer.warpStyle === 'squeeze' ||
-              textLayer.warpStyle === 'perspective'
-                ? {
-                    transform: `perspective(${textLayer.warpParams?.perspective || 800}px) rotateX(${textLayer.warpParams?.rotateX || 0}deg) rotateY(${textLayer.warpParams?.rotateY || 0}deg)`,
-                  }
+              ...(textLayer.warpStyle && textLayer.warpStyle !== 'none'
+                ? textLayer.warpStyle === 'flag' || (isEditing && textLayer.warpStyle === 'wave')
+                  ? {
+                      transform: `perspective(600px) rotateY(${(textLayer.curve || 45) * 0.45}deg) skewY(${(textLayer.curve || 45) * 0.3}deg)`,
+                    }
+                  : textLayer.warpStyle === 'rise' || textLayer.warpStyle === 'fish'
+                    ? {
+                        transform: `perspective(600px) rotateX(${(textLayer.curve || 45) * 0.55}deg) scaleX(${1 + (textLayer.curve || 45) * 0.005})`,
+                      }
+                    : isEditing && textLayer.warpStyle === 'arc'
+                      ? {
+                          transform: `perspective(600px) rotateX(${-(textLayer.curve || 45) * 0.5}deg) translateY(${-(textLayer.curve || 45) * 0.25}px)`,
+                        }
+                      : textLayer.warpStyle === 'bulge' ||
+                          textLayer.warpStyle === 'squeeze' ||
+                          textLayer.warpStyle === 'perspective'
+                        ? {
+                            transform: `perspective(${textLayer.warpParams?.perspective || 800}px) rotateX(${textLayer.warpParams?.rotateX || (textLayer.curve || 0) * 0.4}deg) rotateY(${textLayer.warpParams?.rotateY || (textLayer.curve || 0) * 0.4}deg)`,
+                          }
+                        : {}
                 : {}),
               ...(maskPath ? { clipPath: maskPath } : {}),
             }}
           >
-            {safeStr(textLayer.text, '')}
+            {!isEditing && (textLayer.warpStyle === 'arc' || textLayer.warpStyle === 'wave') ? (
+              <svg
+                width="100%"
+                height="100%"
+                viewBox={`0 0 ${textLayer.width || 300} ${Math.max(120, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 2.5)}`}
+                className="overflow-visible pointer-events-none"
+              >
+                <defs>
+                  <path
+                    id={`path-${textLayer.id}`}
+                    d={
+                      textLayer.warpStyle === 'arc'
+                        ? `M 10 ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25)} Q ${(textLayer.width || 300) / 2} ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25) - (textLayer.curve || 45) * 1.8} ${(textLayer.width || 300) - 10} ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25)}`
+                        : `M 10 ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25)} Q ${(textLayer.width || 300) / 4} ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25) - (textLayer.curve || 45) * 1.2} ${(textLayer.width || 300) / 2} ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25)} T ${(textLayer.width || 300) - 10} ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25)}`
+                    }
+                    fill="none"
+                  />
+                </defs>
+                <text
+                  fill={safeStr(textLayer.color, '#000000')}
+                  fontSize={typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40}
+                  fontFamily={safeStr(textLayer.fontFamily, 'sans-serif')}
+                  fontWeight={textLayer.fontWeight}
+                  fontStyle={textLayer.fontStyle}
+                  textAnchor="middle"
+                  letterSpacing={`${textLayer.letterSpacing || 0}px`}
+                  style={{
+                    ...(textLayer.textShadow && typeof textLayer.textShadow === 'object'
+                      ? {
+                          textShadow: `${textLayer.textShadow.offsetX}px ${textLayer.textShadow.offsetY}px ${textLayer.textShadow.blur}px ${safeStr(textLayer.textShadow.color, '#000000')}`,
+                        }
+                      : {}),
+                  }}
+                >
+                  <textPath href={`#path-${textLayer.id}`} startOffset="50%">
+                    {safeStr(textLayer.text, '')}
+                  </textPath>
+                </text>
+              </svg>
+            ) : (
+              safeStr(textLayer.text, '')
+            )}
           </div>
           {isSelected && !isEditing && <SelectionHandles layer={textLayer} onResize={onResize} onRotate={onRotate} />}
         </div>

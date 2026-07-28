@@ -13,6 +13,14 @@ export interface BrushConfig {
 }
 
 export const BrushRegistry: Record<string, BrushConfig> = {
+  basic: {
+    strokeWidthMultiplier: 1.0,
+    opacity: 1.0,
+    lineCap: 'round',
+    lineJoin: 'round',
+    strokeProfile: 'uniform',
+    blendMode: 'normal',
+  },
   pencil: {
     strokeWidthMultiplier: 1.0,
     opacity: 0.7,
@@ -61,6 +69,24 @@ export const BrushRegistry: Record<string, BrushConfig> = {
     opacity: 1.0,
     lineCap: 'square',
     lineJoin: 'miter',
+    strokeProfile: 'uniform',
+    blendMode: 'normal',
+  },
+  texture: {
+    strokeWidthMultiplier: 2.0,
+    opacity: 0.85,
+    lineCap: 'round',
+    lineJoin: 'round',
+    filterId: 'brush-oil',
+    strokeProfile: 'uniform',
+    blendMode: 'overlay',
+  },
+  splatter: {
+    strokeWidthMultiplier: 1.2,
+    opacity: 0.9,
+    lineCap: 'round',
+    lineJoin: 'round',
+    dashArray: '2,14',
     strokeProfile: 'uniform',
     blendMode: 'normal',
   },

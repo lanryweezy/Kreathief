@@ -14,6 +14,7 @@ interface SidebarProps {
 const PRIMARY_TABS = [
   { id: NavTab.TEMPLATES, icon: Icons.Templates, label: 'Templates' },
   { id: NavTab.TEXT, icon: Icons.Text, label: 'Text' },
+  { id: NavTab.ELEMENTS, icon: Icons.Shapes, label: 'Elements' },
   { id: NavTab.MEDIA, icon: Icons.Image, label: 'Media' },
   { id: NavTab.DRAW, icon: Icons.Brush, label: 'Draw' },
   { id: NavTab.BRAND, icon: Icons.Brand, label: 'Brand' },
@@ -101,22 +102,6 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
 
         {/* Bottom utilities */}
         <div className="pb-4 border-t border-white/5 w-full flex flex-col items-center gap-1 px-1.5 pt-2">
-          <button
-            onClick={onToggleCollapse}
-            aria-label={isCollapsed ? 'Expand Panel' : 'Collapse Panel'}
-            title={isCollapsed ? 'Expand Panel' : 'Collapse Panel'}
-            className={`
-              w-full flex items-center justify-center h-7 rounded-lg transition-all duration-150
-              ${
-                isCollapsed
-                  ? 'text-brand-400 bg-brand-600/10 border border-brand-600/20'
-                  : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
-              }
-            `}
-          >
-            {isCollapsed ? <Icons.ArrowRight className="w-3.5 h-3.5" /> : <Icons.ArrowLeft className="w-3.5 h-3.5" />}
-          </button>
-
           <button
             onClick={() => useStore.getState().setShowFeedbackModal(true)}
             aria-label="Send Feedback"

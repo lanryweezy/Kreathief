@@ -17,6 +17,7 @@ import { BlogList } from './components/blog/BlogList';
 import { BlogPostView } from './components/blog/BlogPostView';
 import { SEO } from './components/SEO';
 import { FeedbackModal } from './components/modals/FeedbackModal';
+import { ProfileModal } from './components/modals/ProfileModal';
 import { PresentationModal } from './components/modals/PresentationModal';
 import { VersionDiffModal } from './components/modals/VersionDiffModal';
 import {
@@ -107,6 +108,21 @@ const App: React.FC = () => {
         const seenOnboarding = localStorage.getItem('kreathief_onboarding_seen');
         if (!seenOnboarding) {
           setShowWelcome(true);
+        }
+
+        // Restore unsaved session mirror if landing on /editor
+        if (window.location.pathname === '/editor') {
+          const mirror = await storageService.getSessionMirror();
+          if (mirror && mirror.state) {
+            const restoredProject: any = {
+              id: mirror.projectId || 'default',
+              name: 'Restored Session',
+              updatedAt: Date.now(),
+              state: mirror.state,
+            };
+            setCurrentProject(restoredProject);
+            log.info('Restored project from session mirror');
+          }
         }
       } catch (error) {
         log.error('App initialization failed', error);
@@ -216,10 +232,12 @@ const App: React.FC = () => {
       isGuest: true,
     };
     setUser(guestUser);
+    localStorage.setItem('kreathief_guest_session', JSON.stringify(guestUser));
     navigate('/editor');
   };
 
   const handleLogout = async () => {
+    localStorage.removeItem('kreathief_guest_session');
     await authService.signOut();
     setUser(null);
     navigate('/auth');
@@ -247,7 +265,9 @@ const App: React.FC = () => {
   };
 
   const handleInstallApp = async () => {
-    if (!deferredInstallPrompt) return;
+    if (!deferredInstallPrompt) {
+      return;
+    }
     deferredInstallPrompt.prompt();
     const { outcome } = await deferredInstallPrompt.userChoice;
     if (outcome === 'accepted') {
@@ -426,6 +446,7 @@ const App: React.FC = () => {
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       <OnboardingTour />
       <FeedbackModal />
+      <ProfileModal />
       <PresentationModal />
       <VersionDiffModal />
     </ErrorBoundary>

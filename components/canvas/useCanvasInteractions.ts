@@ -105,6 +105,8 @@ export const useCanvasInteractions = ({
       layers,
       zoom,
       onUpdateLayers,
+      panOffset,
+      viewportRef,
     });
 
   // 5. Drawing Hook

@@ -14,10 +14,7 @@ const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 let lastCleanup = Date.now();
 
 export default async function handler(req: Request) {
-  const origin = process.env.VITE_FRONTEND_URL;
-  if (!origin) {
-    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
-  }
+  const origin = process.env.VITE_FRONTEND_URL || req.headers.get('origin') || '*';
 
   const now = Date.now();
 
@@ -107,7 +104,9 @@ export default async function handler(req: Request) {
       if (payload && typeof payload === 'object') {
         const allowedFields = ['image_url', 'template_id', 'width', 'height', 'format', 'quality', 'effects'];
         for (const key of Object.keys(payload)) {
-          if (allowedFields.includes(key)) safePayload[key] = payload[key];
+          if (allowedFields.includes(key)) {
+            safePayload[key] = payload[key];
+          }
         }
       }
 

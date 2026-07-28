@@ -1,7 +1,6 @@
 import { log } from '../../utils/log';
 import type { StoreState } from '../useStore';
 
-
 import { StateCreator } from 'zustand';
 import {
   AgentVariant,
@@ -9,6 +8,7 @@ import {
   creativeAgentRefine,
   criticAgentReview,
   performanceAgentScore,
+  analyzeDesign,
 } from '../../services/aiService';
 import { Layer } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
@@ -56,6 +56,27 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
 
       const canvasSize = get().canvasSize || { width: 1080, height: 1080 };
       const userPlan = get().user?.plan || 'free';
+
+      if (intent.toLowerCase() === 'score design') {
+        get().addThinkingEvent('Critic Agent', 'Analyzing design aesthetics and compliance...');
+        const activeArtboard = get().artboards.find((a: any) => a.id === get().activeArtboardId);
+        if (!activeArtboard) {
+          throw new Error('No active artboard found');
+        }
+
+        set({ agentStatus: 'critic' });
+        // Use analyzeDesign instead of getDesignCritique
+        const critique = await analyzeDesign(
+          activeArtboard,
+          (get() as any).designContext || {},
+          (get() as any).brandKits?.find((b: any) => b.id === (get() as any).activeBrandKitId)
+        );
+        get().addThinkingEvent('Critic Agent', `Score: ${critique.overallScore}/100. ${critique.summary || ''}`);
+        critique.suggestions.forEach((s) => get().addThinkingEvent('Critic Agent', s.message));
+
+        set({ agentStatus: 'done' });
+        return;
+      }
 
       // Stage 1: Creative Generation (always runs)
       const draftedVariants = await creativeAgentDraft(intent, canvasSize);
@@ -152,11 +173,15 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
 
     const activeArtboardIndex = state.artboards.findIndex((a: any) => a.id === state.activeArtboardId);
     if (activeArtboardIndex === -1) {
-      if (state.endBatch) state.endBatch();
+      if (state.endBatch) {
+        state.endBatch();
+      }
       return;
     }
 
-    const newArtboards = state.artboards.map((a: any, i: number) => i === activeArtboardIndex ? { ...a, layers: [...a.layers] } : a);
+    const newArtboards = state.artboards.map((a: any, i: number) =>
+      i === activeArtboardIndex ? { ...a, layers: [...a.layers] } : a
+    );
     const artboard = newArtboards[activeArtboardIndex];
 
     // If it was a refinement, we only replace layers that match IDs in the variant

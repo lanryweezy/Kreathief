@@ -38,7 +38,7 @@ export const useContextualPanels = () => {
 
     // 3. Image Context
     if (selectedLayer?.type === 'image') {
-      return [NavTab.MAGIC, NavTab.MOCKUP, NavTab.VECTORIZER, NavTab.MEDIA];
+      return [NavTab.TEMPLATES, NavTab.MOCKUP, NavTab.VECTORIZER, NavTab.MEDIA];
     }
 
     // 4. Shape Context
@@ -51,7 +51,7 @@ export const useContextualPanels = () => {
     }
 
     // 5. Default / Empty Context
-    return [NavTab.ASSISTANT, NavTab.MAGIC, NavTab.TEMPLATES];
+    return [NavTab.ASSISTANT, NavTab.TEMPLATES, NavTab.LAYERS];
   }, [selectedLayer, isPenMode]);
 
   return contextualTabs;

@@ -20,22 +20,34 @@ export const log = {
   /**
    * Debug level logging - only shown in development
    */
-  debug: (message: string, context?: Record<string, unknown>) => {
-    logger.debug(message, context);
+  debug: (message: string, errorOrContext?: unknown, context?: Record<string, unknown>) => {
+    if (context !== undefined || errorOrContext instanceof Error) {
+      logger.debug(message, { error: errorOrContext, ...context });
+    } else {
+      logger.debug(message, errorOrContext as Record<string, unknown> | undefined);
+    }
   },
 
   /**
    * Info level logging - general informational messages
    */
-  info: (message: string, context?: Record<string, unknown>) => {
-    logger.info(message, context);
+  info: (message: string, errorOrContext?: unknown, context?: Record<string, unknown>) => {
+    if (context !== undefined || errorOrContext instanceof Error) {
+      logger.info(message, { error: errorOrContext, ...context });
+    } else {
+      logger.info(message, errorOrContext as Record<string, unknown> | undefined);
+    }
   },
 
   /**
    * Warning level logging - something unexpected happened
    */
-  warn: (message: string, context?: Record<string, unknown>) => {
-    logger.warn(message, context);
+  warn: (message: string, errorOrContext?: unknown, context?: Record<string, unknown>) => {
+    if (context !== undefined || errorOrContext instanceof Error) {
+      logger.warn(message, { error: errorOrContext, ...context });
+    } else {
+      logger.warn(message, errorOrContext as Record<string, unknown> | undefined);
+    }
   },
 
   /**

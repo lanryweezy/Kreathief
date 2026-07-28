@@ -65,130 +65,146 @@ export const TextTools = React.memo(
 
     return (
       <div className="flex items-center gap-3 flex-nowrap">
-        <div className="relative">
-          <button
-            ref={fontButtonRef}
-            onClick={() => setShowFontPicker(!showFontPicker)}
-            className="w-40 bg-black/20 border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-white text-left flex justify-between items-center hover:border-brand-600/50 hover:bg-black/30 transition-all group"
-            title="Font Family"
-          >
-            <span className="truncate mr-2 font-medium">{layer.fontFamily}</span>
-            <Icons.ChevronDown className="w-3.5 h-3.5 text-gray-500 group-hover:text-brand-600 transition-colors" />
-          </button>
-          <Dropdown
-            anchorRef={fontButtonRef}
-            isOpen={showFontPicker}
-            onClose={() => setShowFontPicker(false)}
-            align="left"
-          >
-            <div className="bg-surface-dark-3 border border-gray-700 rounded-xl shadow-2xl p-1 animate-fadeIn min-w-[280px] max-h-[70vh] overflow-y-auto custom-scrollbar">
-              <FontPicker
-                currentFont={layer.fontFamily}
-                onSelectFont={(font: string) => {
-                  loadFont(font);
-                  onUpdateTextLayer(layer.id, { fontFamily: font });
-                  setOriginalFont(null);
-                  setShowFontPicker(false);
-                }}
-                onHoverFont={handleHoverFont}
-                onClose={() => {
-                  if (originalFont) {
-                    onUpdateTextLayer(layer.id, { fontFamily: originalFont });
-                  }
-                  setOriginalFont(null);
-                  setShowFontPicker(false);
-                }}
-                search={fontSearch}
-                setSearch={setFontSearch}
-              />
-            </div>
-          </Dropdown>
+        {/* Font & Color Segment */}
+        <div className="flex items-center gap-2 bg-white/[0.03] p-1 rounded-xl border border-white/5">
+          <div className="relative">
+            <button
+              ref={fontButtonRef}
+              onClick={() => setShowFontPicker(!showFontPicker)}
+              className="w-36 bg-black/20 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white text-left flex justify-between items-center hover:border-brand-600/50 hover:bg-black/30 transition-all group"
+              title="Font Family"
+            >
+              <span className="truncate mr-2 font-medium">{layer.fontFamily}</span>
+              <Icons.ChevronDown className="w-3.5 h-3.5 text-gray-500 group-hover:text-brand-600 transition-colors" />
+            </button>
+            <Dropdown
+              anchorRef={fontButtonRef}
+              isOpen={showFontPicker}
+              onClose={() => setShowFontPicker(false)}
+              align="left"
+            >
+              <div className="bg-surface-dark-3 border border-gray-700 rounded-xl shadow-2xl p-1 animate-fadeIn min-w-[280px] max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <FontPicker
+                  currentFont={layer.fontFamily}
+                  onSelectFont={(font: string) => {
+                    loadFont(font);
+                    onUpdateTextLayer(layer.id, { fontFamily: font });
+                    setOriginalFont(null);
+                    setShowFontPicker(false);
+                  }}
+                  onHoverFont={handleHoverFont}
+                  onClose={() => {
+                    if (originalFont) {
+                      onUpdateTextLayer(layer.id, { fontFamily: originalFont });
+                    }
+                    setOriginalFont(null);
+                    setShowFontPicker(false);
+                  }}
+                  search={fontSearch}
+                  setSearch={setFontSearch}
+                />
+              </div>
+            </Dropdown>
+          </div>
+
+          <CompactInput
+            value={layer.fontSize}
+            onChange={(e: any) => onUpdateTextLayer(layer.id, { fontSize: parseInt(e.target.value) })}
+            min={8}
+            max={500}
+            width="w-10"
+          />
+          <ColorPicker
+            value={layer.color}
+            onChange={(color, gradient) =>
+              onUpdateTextLayer(layer.id, {
+                color: gradient ? color : color,
+                gradient: gradient || {
+                  ...((layer as any).gradient || { type: 'linear', colors: [] }),
+                  enabled: false,
+                },
+              })
+            }
+            documentColors={documentColors}
+          />
         </div>
 
-        <CompactInput
-          value={layer.fontSize}
-          onChange={(e: any) => onUpdateTextLayer(layer.id, { fontSize: parseInt(e.target.value) })}
-          min={8}
-          max={500}
-          width="w-10"
-        />
-        <ColorPicker
-          value={layer.color}
-          onChange={(color) => onUpdateTextLayer(layer.id, { color, gradient: undefined })}
-          documentColors={documentColors}
-        />
-        <Divider />
+        {/* Style & Alignment Segment */}
+        <div className="flex items-center gap-0.5 bg-white/[0.03] p-1 rounded-xl border border-white/5">
+          <IconButton
+            onClick={() => onUpdateTextLayer(layer.id, { fontWeight: layer.fontWeight === 'bold' ? 'normal' : 'bold' })}
+            active={layer.fontWeight === 'bold'}
+            title="Bold"
+          >
+            <Icons.Bold className="w-3.5 h-3.5" />
+          </IconButton>
+          <IconButton
+            onClick={() =>
+              onUpdateTextLayer(layer.id, { fontStyle: layer.fontStyle === 'italic' ? 'normal' : 'italic' })
+            }
+            active={layer.fontStyle === 'italic'}
+            title="Italic"
+          >
+            <Icons.Italic className="w-3.5 h-3.5" />
+          </IconButton>
+          <div className="w-[1px] h-4 bg-white/10 mx-1" />
+          <IconButton
+            onClick={() => onUpdateTextLayer(layer.id, { textAlign: 'left' })}
+            active={layer.textAlign === 'left'}
+            title="Align Left"
+          >
+            <Icons.AlignLeft className="w-3.5 h-3.5" />
+          </IconButton>
+          <IconButton
+            onClick={() => onUpdateTextLayer(layer.id, { textAlign: 'center' })}
+            active={layer.textAlign === 'center'}
+            title="Align Center"
+          >
+            <Icons.AlignCenter className="w-3.5 h-3.5" />
+          </IconButton>
+          <IconButton
+            onClick={() => onUpdateTextLayer(layer.id, { textAlign: 'right' })}
+            active={layer.textAlign === 'right'}
+            title="Align Right"
+          >
+            <Icons.AlignRight className="w-3.5 h-3.5" />
+          </IconButton>
+        </div>
 
-        <IconButton
-          onClick={() => onUpdateTextLayer(layer.id, { fontWeight: layer.fontWeight === 'bold' ? 'normal' : 'bold' })}
-          active={layer.fontWeight === 'bold'}
-          title="Bold"
-        >
-          <Icons.Bold className="w-3.5 h-3.5" />
-        </IconButton>
-        <IconButton
-          onClick={() => onUpdateTextLayer(layer.id, { fontStyle: layer.fontStyle === 'italic' ? 'normal' : 'italic' })}
-          active={layer.fontStyle === 'italic'}
-          title="Italic"
-        >
-          <Icons.Italic className="w-3.5 h-3.5" />
-        </IconButton>
-
-        <CompactInput
-          label="AV"
-          value={layer.letterSpacing || 0}
-          onChange={(e: any) => onUpdateTextLayer(layer.id, { letterSpacing: parseFloat(e.target.value) })}
-          step={1}
-          width="w-8"
-          title="Tracking"
-        />
-        <CompactInput
-          label="Kr"
-          value={layer.kerning || 0}
-          onChange={(e: any) => onUpdateTextLayer(layer.id, { kerning: parseFloat(e.target.value) })}
-          step={1}
-          width="w-8"
-          title="Kerning"
-        />
-        <IconButton
-          onClick={() => onUpdateTextLayer(layer.id, { ligatures: !layer.ligatures })}
-          active={layer.ligatures}
-          title="Standard Ligatures"
-        >
-          <Icons.Scissors className="w-3.5 h-3.5" />
-        </IconButton>
-
-        <CompactInput
-          label="LH"
-          value={layer.lineHeight || 1.2}
-          onChange={(e: any) => onUpdateTextLayer(layer.id, { lineHeight: parseFloat(e.target.value) })}
-          step={0.1}
-          width="w-8"
-          title="Line Height"
-        />
-        <Divider />
-
-        <IconButton
-          onClick={() => onUpdateTextLayer(layer.id, { textAlign: 'left' })}
-          active={layer.textAlign === 'left'}
-          title="Align Left"
-        >
-          <Icons.AlignLeft className="w-3.5 h-3.5" />
-        </IconButton>
-        <IconButton
-          onClick={() => onUpdateTextLayer(layer.id, { textAlign: 'center' })}
-          active={layer.textAlign === 'center'}
-          title="Align Center"
-        >
-          <Icons.AlignCenter className="w-3.5 h-3.5" />
-        </IconButton>
-        <IconButton
-          onClick={() => onUpdateTextLayer(layer.id, { textAlign: 'right' })}
-          active={layer.textAlign === 'right'}
-          title="Align Right"
-        >
-          <Icons.AlignRight className="w-3.5 h-3.5" />
-        </IconButton>
+        {/* Spacing & Typography Segment */}
+        <div className="flex items-center gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/5">
+          <CompactInput
+            label="AV"
+            value={layer.letterSpacing || 0}
+            onChange={(e: any) => onUpdateTextLayer(layer.id, { letterSpacing: parseFloat(e.target.value) })}
+            step={1}
+            width="w-8"
+            title="Tracking"
+          />
+          <CompactInput
+            label="Kr"
+            value={layer.kerning || 0}
+            onChange={(e: any) => onUpdateTextLayer(layer.id, { kerning: parseFloat(e.target.value) })}
+            step={1}
+            width="w-8"
+            title="Kerning"
+          />
+          <IconButton
+            onClick={() => onUpdateTextLayer(layer.id, { ligatures: !layer.ligatures })}
+            active={layer.ligatures}
+            title="Standard Ligatures"
+          >
+            <Icons.Scissors className="w-3.5 h-3.5" />
+          </IconButton>
+          <CompactInput
+            label="LH"
+            value={layer.lineHeight || 1.2}
+            onChange={(e: any) => onUpdateTextLayer(layer.id, { lineHeight: parseFloat(e.target.value) })}
+            step={0.1}
+            width="w-8"
+            title="Line Height"
+          />
+        </div>
 
         <div className="relative">
           <IconButton

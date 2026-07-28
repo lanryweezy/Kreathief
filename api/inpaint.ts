@@ -5,10 +5,12 @@ import { noStoreHeaders } from '../utils/cacheHeaders';
 export const config = { runtime: 'edge' };
 
 export default async function handler(req: Request) {
-  const origin = process.env.VITE_FRONTEND_URL;
-  if (!origin) {
-    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
-  }
+  const origin =
+    process.env.VITE_FRONTEND_URL ||
+    req.headers?.get?.('origin') ||
+    req.headers?.origin ||
+    req.headers?.['origin'] ||
+    '*';
 
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -58,7 +60,7 @@ export default async function handler(req: Request) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': req.headers.get('Authorization') || '',
+        Authorization: req.headers.get('Authorization') || '',
       },
       body: JSON.stringify({
         action: 'editImage',

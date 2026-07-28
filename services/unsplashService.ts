@@ -1,5 +1,5 @@
-// @ts-ignore - ignore type mismatch
 import { log } from '../utils/log';
+import { getFallbackPhotos } from './fallbackPhotos';
 
 export interface UnsplashPhoto {
   id: string;
@@ -11,23 +11,6 @@ export interface UnsplashPhoto {
     link: string;
   };
 }
-
-const FALLBACK_PHOTOS: UnsplashPhoto[] = [
-  {
-    id: '1',
-    url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=1080&auto=format&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=200&auto=format&fit=crop',
-    alt: 'Abstract Gradient',
-    user: { name: 'Unsplash', link: 'https://unsplash.com' },
-  },
-  {
-    id: '2',
-    url: 'https://images.unsplash.com/photo-1493612276216-ee3925520721?q=80&w=1080&auto=format&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1493612276216-ee3925520721?q=80&w=200&auto=format&fit=crop',
-    alt: 'Minimalist Workspace',
-    user: { name: 'Unsplash', link: 'https://unsplash.com' },
-  },
-];
 
 export const searchPhotos = async (query: string, page: number = 1): Promise<UnsplashPhoto[]> => {
   try {
@@ -42,15 +25,18 @@ export const searchPhotos = async (query: string, page: number = 1): Promise<Uns
     });
 
     if (!response.ok) {
-      log.error('[UnsplashService] API request failed', new Error(`Status: ${response.status}`), {
+      log.warn('[UnsplashService] API request failed or offline, using fallback library', {
         query,
         page,
         status: response.status,
       });
-      return FALLBACK_PHOTOS;
+      return getFallbackPhotos(query, 'unsplash');
     }
 
     const data = await response.json();
+    if (!data.results || !Array.isArray(data.results)) {
+      return getFallbackPhotos(query, 'unsplash');
+    }
     return data.results.map((photo: any) => ({
       id: photo.id,
       url: photo.urls.regular,
@@ -62,7 +48,7 @@ export const searchPhotos = async (query: string, page: number = 1): Promise<Uns
       },
     }));
   } catch (error) {
-    log.error('[UnsplashService] Search failed', error, { query, page });
-    return FALLBACK_PHOTOS;
+    log.warn('[UnsplashService] Search failed, using fallback library', error, { query, page });
+    return getFallbackPhotos(query, 'unsplash');
   }
 };

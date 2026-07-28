@@ -422,26 +422,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               <div className="text-[9px] text-brand-400 uppercase font-black tracking-widest">{user.plan} Plan</div>
             </div>
             <button
-              onClick={() => {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = 'image/*';
-                input.onchange = (e: any) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (evt) => {
-                      const avatarUrl = evt.target?.result as string;
-                      useStore.getState().setUser({
-                        ...user,
-                        avatar: avatarUrl,
-                      });
-                    };
-                    reader.readAsDataURL(file);
-                  }
-                };
-                input.click();
-              }}
+              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               onFocus={() => setProfileDropdownOpen(true)}
               onKeyDown={(e) => {
                 if (e.key === 'ArrowDown') {
@@ -453,8 +434,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 }
               }}
               className="w-10 h-10 rounded-full border-2 border-white/10 group-hover:border-brand-500 focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500/50 transition-colors overflow-hidden p-0.5 cursor-pointer relative"
-              title="Click to update profile image"
-              aria-label="Update profile image"
+              title="Click to open account hub & menu"
+              aria-label="Open account menu"
             >
               <img src={user.avatar} className="w-full h-full rounded-full object-cover" alt="Profile" />
             </button>
@@ -475,6 +456,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 visibility: profileDropdownOpen ? 'visible' : 'hidden',
               }}
             >
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setProfileDropdownOpen(false);
+                  useStore.getState().setShowProfileModal(true);
+                }}
+                className="w-full text-left px-4 py-3 text-xs font-bold text-white hover:bg-white/[0.06] rounded-xl flex items-center gap-3 transition-colors focus-visible:outline-none focus-visible:bg-white/[0.06]"
+                role="menuitem"
+              >
+                <Icons.User className="w-4 h-4 text-brand-400" /> Account Hub & Bio
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setProfileDropdownOpen(false);
+                  useStore.getState().setShowProfileModal(true);
+                }}
+                className="w-full text-left px-4 py-3 text-xs font-bold text-white hover:bg-white/[0.06] rounded-xl flex items-center gap-3 transition-colors focus-visible:outline-none focus-visible:bg-white/[0.06]"
+                role="menuitem"
+              >
+                <Icons.Sliders className="w-4 h-4 text-purple-400" /> Studio Settings
+              </button>
+              <div className="my-1 border-t border-white/10" />
               <button
                 onClick={(e) => {
                   e.stopPropagation();
