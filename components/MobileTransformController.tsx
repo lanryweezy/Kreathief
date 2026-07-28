@@ -107,12 +107,14 @@ export const MobileTransformController: React.FC = () => {
             </div>
             <div className="flex flex-col gap-1 ml-2">
               <button
+                aria-label="Nudge by 10 pixels"
                 onClick={() => handleNudge(0, -10)}
                 className="px-2 py-1 text-[8px] font-black bg-white/5 rounded text-gray-400 uppercase"
               >
                 x10
               </button>
               <button
+                aria-label="Nudge by 1 pixel"
                 onClick={() => handleNudge(0, 1)}
                 className="px-2 py-1 text-[8px] font-black bg-white/5 rounded text-gray-400 uppercase"
               >
@@ -140,6 +142,7 @@ export const MobileTransformController: React.FC = () => {
               </button>
             </div>
             <button
+              aria-label="Delete Layer"
               onClick={() => useStore.getState().deleteSelected()}
               className="w-full py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all"
             >

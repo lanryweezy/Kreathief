@@ -631,12 +631,14 @@ export const BrandPanel = () => {
               </div>
               <div className="flex gap-2">
                 <button
+                  aria-label="Cancel delete"
                   onClick={() => setConfirmDeleteKitId(null)}
                   className="flex-1 py-2.5 text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
                 >
                   Cancel
                 </button>
                 <button
+                  aria-label="Confirm delete"
                   onClick={() => {
                     onDeleteBrandKit(confirmDeleteKitId);
                     setConfirmDeleteKitId(null);
