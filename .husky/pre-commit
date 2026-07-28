@@ -1,6 +1,3 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 # Type-check before commit to prevent broken code from being committed
 npx tsc --noEmit --pretty false
 if [ $? -ne 0 ]; then
