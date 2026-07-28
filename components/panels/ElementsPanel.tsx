@@ -7,6 +7,7 @@ import * as materialIconService from '../../services/materialIconService';
 import * as lucideIconService from '../../services/lucideIconService';
 import * as phosphorIconService from '../../services/phosphorIconService';
 import * as giService from '../../services/getillustrationService';
+import * as stickerService from '../../services/stickerService';
 import DOMPurify from 'dompurify';
 import { SHAPE_LIBRARY } from '../../constants/shapeLibrary';
 import { ElementSkeleton } from '../Skeleton';
@@ -33,7 +34,7 @@ const saveRecentShape = (name: string) => {
 };
 
 type ShapeCategory = 'all' | 'basic' | 'geometric' | 'decorative' | 'ui' | 'arrows' | 'stars';
-type ActiveSource = 'shapes' | 'icons' | 'illustrations' | 'material' | 'lucide' | 'phosphor';
+type ActiveSource = 'shapes' | 'stickers' | 'icons' | 'illustrations' | 'material' | 'lucide' | 'phosphor';
 
 interface ShapePreset {
   name: string;
@@ -47,9 +48,12 @@ interface RemoteIcon {
   id: string;
   name: string;
   thumbnailUrl: string;
-  source: 'freepik' | 'streamline' | 'material' | 'lucide' | 'phosphor' | 'gi';
+  source: 'freepik' | 'streamline' | 'material' | 'lucide' | 'phosphor' | 'gi' | 'tenor' | 'curated';
   svgData?: string;
   hash?: string;
+  width?: number;
+  height?: number;
+  url?: string;
 }
 
 export const ElementsPanel = () => {
@@ -106,16 +110,29 @@ export const ElementsPanel = () => {
     }
   };
 
-  const internalAddImageLayer = (src: string) => {
+  const internalAddImageLayer = (src: string, name = 'Image Layer', w = 300, h = 300) => {
+    let finalW = w;
+    let finalH = h;
+    if (w && h && w !== h) {
+      const maxDim = 300;
+      const ratio = w / h;
+      if (ratio > 1) {
+        finalW = maxDim;
+        finalH = Math.round(maxDim / ratio);
+      } else {
+        finalH = maxDim;
+        finalW = Math.round(maxDim * ratio);
+      }
+    }
     const newLayer: ImageLayer = {
       id: generateLayerId('image'),
       type: 'image',
-      name: 'Image Layer',
+      name,
       src,
-      x: canvasSize.width / 2 - 150,
-      y: canvasSize.height / 2 - 150,
-      width: 300,
-      height: 300,
+      x: canvasSize.width / 2 - finalW / 2,
+      y: canvasSize.height / 2 - finalH / 2,
+      width: finalW,
+      height: finalH,
       rotation: 0,
       opacity: 1,
       locked: false,
@@ -143,8 +160,26 @@ export const ElementsPanel = () => {
   const searchRemoteIcons = useCallback(
     async (query: string) => {
       if (!query.trim() || query.trim().length < 2) {
-        setRemoteIcons([]);
-        setHasSearched(false);
+        if (activeSource === 'stickers') {
+          setIsSearching(true);
+          const res = await stickerService.getTrendingStickers();
+          setRemoteIcons(
+            res.map((st) => ({
+              id: st.id,
+              name: st.name,
+              thumbnailUrl: st.thumbnail,
+              source: st.source,
+              width: st.width,
+              height: st.height,
+              url: st.url,
+            }))
+          );
+          setIsSearching(false);
+          setHasSearched(true);
+        } else {
+          setRemoteIcons([]);
+          setHasSearched(false);
+        }
         return;
       }
 
@@ -156,7 +191,9 @@ export const ElementsPanel = () => {
       try {
         const searchPromises: Promise<any>[] = [];
 
-        if (source === 'icons' || source === 'shapes' || source === 'illustrations') {
+        if (source === 'stickers') {
+          searchPromises.push(stickerService.searchStickers(query).then((r) => ({ type: 'stickers', data: r })));
+        } else if (source === 'icons' || source === 'shapes' || source === 'illustrations') {
           searchPromises.push(
             freepikService.searchIcons(query, 12).then((r) => ({ type: 'freepik', data: r })),
             streamlineService.searchIcons(query, 12).then((r) => ({ type: 'streamline', data: r }))
@@ -183,7 +220,19 @@ export const ElementsPanel = () => {
             return;
           }
           const { type, data } = result.value;
-          if (type === 'freepik' && data?.items?.length > 0) {
+          if (type === 'stickers' && data?.length > 0) {
+            data.forEach((st: stickerService.StickerAsset) =>
+              icons.push({
+                id: st.id,
+                name: st.name,
+                thumbnailUrl: st.thumbnail,
+                source: st.source,
+                width: st.width,
+                height: st.height,
+                url: st.url,
+              })
+            );
+          } else if (type === 'freepik' && data?.items?.length > 0) {
             data.items.forEach((icon: any) =>
               icons.push({ id: `fp-${icon.id}`, name: icon.name, thumbnailUrl: icon.thumbnailUrl, source: 'freepik' })
             );
@@ -308,6 +357,8 @@ export const ElementsPanel = () => {
         }
       } else if (icon.source === 'gi') {
         internalAddImageLayer(icon.thumbnailUrl);
+      } else if (icon.source === 'tenor' || icon.source === 'curated') {
+        internalAddImageLayer(icon.url || icon.thumbnailUrl, icon.name, icon.width, icon.height);
       } else {
         internalAddImageLayer(icon.thumbnailUrl);
       }
@@ -388,6 +439,7 @@ export const ElementsPanel = () => {
 
   const sources = [
     { id: 'shapes' as ActiveSource, label: 'Shapes', icon: Icons.Shapes },
+    { id: 'stickers' as ActiveSource, label: 'Stickers', icon: Icons.Sticker },
     { id: 'icons' as ActiveSource, label: 'Icons', icon: Icons.Star },
     { id: 'illustrations' as ActiveSource, label: 'Illustrations', icon: Icons.Image },
     { id: 'material' as ActiveSource, label: 'Material', icon: Icons.Layers },
@@ -396,15 +448,17 @@ export const ElementsPanel = () => {
   ];
 
   const quickSearchTerms =
-    activeSource === 'icons'
-      ? ['arrow', 'star', 'heart', 'user', 'home', 'search', 'settings', 'check']
-      : activeSource === 'material'
-        ? ['home', 'search', 'settings', 'person', 'delete', 'add', 'close', 'menu']
-        : activeSource === 'lucide'
-          ? ['arrow', 'star', 'heart', 'user', 'home', 'search', 'settings', 'check']
-          : activeSource === 'phosphor'
+    activeSource === 'stickers'
+      ? ['wow', 'lit', 'fire', 'sale', 'new', 'badge', 'stamp', 'love', 'cute']
+      : activeSource === 'icons'
+        ? ['arrow', 'star', 'heart', 'user', 'home', 'search', 'settings', 'check']
+        : activeSource === 'material'
+          ? ['home', 'search', 'settings', 'person', 'delete', 'add', 'close', 'menu']
+          : activeSource === 'lucide'
             ? ['arrow', 'star', 'heart', 'user', 'home', 'search', 'settings', 'check']
-            : ['business', 'technology', 'nature', 'food', 'sport', 'music', 'travel', 'health'];
+            : activeSource === 'phosphor'
+              ? ['arrow', 'star', 'heart', 'user', 'home', 'search', 'settings', 'check']
+              : ['business', 'technology', 'nature', 'food', 'sport', 'music', 'travel', 'health'];
 
   const handleDragStart = useCallback((e: React.DragEvent, item: ShapePreset) => {
     setDragData(item);
@@ -480,7 +534,7 @@ export const ElementsPanel = () => {
       }}
     >
       {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-surface-dark-3 rounded-xl border border-gray-800">
+      <div className="flex flex-wrap gap-1 p-1 bg-surface-dark-3 rounded-xl border border-gray-800">
         {sources.map((src) => (
           <button
             key={src.id}
@@ -488,11 +542,28 @@ export const ElementsPanel = () => {
               setActiveSource(src.id);
               setRemoteIcons([]);
               setHasSearched(false);
-              if (searchQuery.trim().length >= 2) {
+              if (src.id === 'stickers') {
+                setIsSearching(true);
+                stickerService.getTrendingStickers().then((res) => {
+                  setRemoteIcons(
+                    res.map((st) => ({
+                      id: st.id,
+                      name: st.name,
+                      thumbnailUrl: st.thumbnail,
+                      source: st.source,
+                      width: st.width,
+                      height: st.height,
+                      url: st.url,
+                    }))
+                  );
+                  setIsSearching(false);
+                  setHasSearched(true);
+                });
+              } else if (searchQuery.trim().length >= 2) {
                 setTimeout(() => searchRemoteIcons(searchQuery), 0);
               }
             }}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-bold ${activeSource === src.id ? 'bg-brand-600 text-white' : 'text-gray-500'}`}
+            className={`flex-grow flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${activeSource === src.id ? 'bg-brand-600 text-white' : 'text-gray-400 hover:text-white hover:bg-surface-dark-4'}`}
           >
             <src.icon className="w-3.5 h-3.5" /> {src.label}
           </button>

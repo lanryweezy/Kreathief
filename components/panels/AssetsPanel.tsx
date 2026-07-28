@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Icons } from '../../constants';
 import * as unsplashService from '../../services/unsplashService';
 import * as pixabayService from '../../services/pixabayService';
@@ -53,10 +53,23 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
   const [hasSearched, setHasSearched] = useState(false);
   const [activeSource, setActiveSource] = useState<string>(provider || 'all');
   const [iconScoutType, setIconScoutType] = useState<IconScoutAssetType>('3d');
+  const searchTimeoutRef = useRef<any>(null);
 
   useEffect(() => {
-    if (provider) setActiveSource(provider);
+    if (provider) {
+      setActiveSource(provider);
+    }
   }, [provider]);
+
+  const handleQueryChange = (val: string) => {
+    setQuery(val);
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      handleSearch(val);
+    }, 500);
+  };
 
   useEffect(() => {
     handleSearch('abstract');
@@ -189,14 +202,18 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
       if (activeSource === 'all' && combined.length > 0) {
         const groups: Record<string, PhotoItem[]> = {};
         combined.forEach((p) => {
-          if (!groups[p.source]) groups[p.source] = [];
+          if (!groups[p.source]) {
+            groups[p.source] = [];
+          }
           groups[p.source].push(p);
         });
         const maxLen = Math.max(...Object.values(groups).map((g) => g.length));
         const interleaved: PhotoItem[] = [];
         for (let i = 0; i < maxLen; i++) {
           for (const source of Object.keys(groups)) {
-            if (i < groups[source].length) interleaved.push(groups[source][i]);
+            if (i < groups[source].length) {
+              interleaved.push(groups[source][i]);
+            }
           }
         }
         setPhotos(interleaved);
@@ -259,7 +276,9 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
               key={src.id}
               onClick={() => {
                 setActiveSource(src.id);
-                if (hasSearched) handleSearch(query || 'nature');
+                if (hasSearched) {
+                  handleSearch(query || 'nature');
+                }
               }}
               className={`flex-shrink-0 py-1.5 px-2 rounded-md text-[10px] font-bold transition-all ${
                 activeSource === src.id ? 'bg-accent text-white' : 'text-gray-500 hover:text-gray-300'
@@ -278,7 +297,9 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
               key={type.id}
               onClick={() => {
                 setIconScoutType(type.id);
-                if (hasSearched) handleSearch(query || 'trending');
+                if (hasSearched) {
+                  handleSearch(query || 'trending');
+                }
               }}
               className={`flex-1 py-1.5 rounded-md text-[9px] font-medium transition-all ${
                 iconScoutType === type.id
@@ -298,10 +319,15 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
           placeholder="Search millions of photos..."
           className="w-full bg-surface-dark-3 border border-gray-700 rounded-lg py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-accent transition-colors"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => handleQueryChange(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch(query)}
         />
-        <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+        <button
+          onClick={() => handleSearch(query)}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+        >
+          <Icons.Search className="w-4 h-4" />
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar">
