@@ -18,22 +18,47 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
     if (selectedLayerIds.length < 2) return;
     get().saveToHistory?.();
 
+    // ⚡ Bolt Optimization: Use a Set for O(1) membership lookups instead of O(N*M) Array.includes.
+    const selectedIdsSet = new Set(selectedLayerIds);
+
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => {
-        const selected = a.layers.filter((l) => selectedLayerIds.includes(l.id));
+        const selected = a.layers.filter((l) => selectedIdsSet.has(l.id));
         if (selected.length < 2) return a;
+
+        // ⚡ Bolt Optimization: Calculate all alignment bounds in a single pass to avoid
+        // multiple .map() allocations and Math.min/max spread stack overflows on large datasets.
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+        let sumCenterX = 0;
+        let sumCenterY = 0;
+
+        for (let i = 0; i < selected.length; i++) {
+          const l = selected[i];
+          const w = (l as any).width || 0;
+          const h = (l as any).height || 0;
+          if (l.x < minX) minX = l.x;
+          if (l.y < minY) minY = l.y;
+          if (l.x + w > maxX) maxX = l.x + w;
+          if (l.y + h > maxY) maxY = l.y + h;
+          sumCenterX += l.x + w / 2;
+          sumCenterY += l.y + h / 2;
+        }
+
         let value = 0;
-        if (type === 'left') value = Math.min(...selected.map((l) => l.x));
-        if (type === 'right') value = Math.max(...selected.map((l) => l.x + (l as any).width));
-        if (type === 'top') value = Math.min(...selected.map((l) => l.y));
-        if (type === 'bottom') value = Math.max(...selected.map((l) => l.y + ((l as any).height || 0)));
-        if (type === 'center') value = selected.reduce((acc, l) => acc + l.x + (l as any).width / 2, 0) / selected.length;
-        if (type === 'middle') value = selected.reduce((acc, l) => acc + l.y + ((l as any).height || 0) / 2, 0) / selected.length;
+        if (type === 'left') value = minX;
+        if (type === 'right') value = maxX;
+        if (type === 'top') value = minY;
+        if (type === 'bottom') value = maxY;
+        if (type === 'center') value = sumCenterX / selected.length;
+        if (type === 'middle') value = sumCenterY / selected.length;
 
         return {
           ...a,
           layers: a.layers.map((l) => {
-            if (!selectedLayerIds.includes(l.id)) return l;
+            if (!selectedIdsSet.has(l.id)) return l;
             if (type === 'left') return { ...l, x: value };
             if (type === 'right') return { ...l, x: value - (l as any).width };
             if (type === 'top') return { ...l, y: value };
@@ -52,9 +77,12 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
     if (selectedLayerIds.length < 3) return;
     get().saveToHistory?.();
 
+    // ⚡ Bolt Optimization: O(1) membership checks to prevent N+1 queries.
+    const selectedIdsSet = new Set(selectedLayerIds);
+
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => {
-        const selected = [...a.layers.filter((l) => selectedLayerIds.includes(l.id))];
+        const selected = [...a.layers.filter((l) => selectedIdsSet.has(l.id))];
         if (selected.length < 3) return a;
 
         if (type === 'horizontal') {
@@ -62,15 +90,22 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
           const totalWidth = sorted.reduce((acc, l) => acc + (l as any).width, 0);
           const span = sorted[sorted.length - 1]!.x + (sorted[sorted.length - 1] as any).width - sorted[0]!.x;
           const spacing = (span - totalWidth) / (sorted.length - 1);
+
+          // ⚡ Bolt Optimization: Pre-calculate new positions in an O(N) loop and store in an
+          // O(1) Map. This eliminates the O(N^2) inner findIndex loop and fixes layout bugs.
+          const newPositions = new Map<string, number>();
           let currentX = sorted[0]!.x;
+          for (let i = 0; i < sorted.length; i++) {
+            newPositions.set(sorted[i].id, currentX);
+            currentX += (sorted[i] as any).width + spacing;
+          }
+
           return {
             ...a,
             layers: a.layers.map((l) => {
-              const idx = sorted.findIndex((s) => s.id === l.id);
-              if (idx === -1) return l;
-              const res = { ...l, x: currentX };
-              currentX += (l as any).width + spacing;
-              return res;
+              const newX = newPositions.get(l.id);
+              if (newX === undefined) return l;
+              return { ...l, x: newX };
             }),
           };
         } else {
@@ -78,15 +113,21 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
           const totalHeight = sorted.reduce((acc, l) => acc + ((l as any).height || 0), 0);
           const span = sorted[sorted.length - 1]!.y + ((sorted[sorted.length - 1] as any).height || 0) - sorted[0]!.y;
           const spacing = (span - totalHeight) / (sorted.length - 1);
+
+          // ⚡ Bolt Optimization: Pre-calculate O(1) mapping to eliminate O(N^2) loop bottleneck.
+          const newPositions = new Map<string, number>();
           let currentY = sorted[0]!.y;
+          for (let i = 0; i < sorted.length; i++) {
+            newPositions.set(sorted[i].id, currentY);
+            currentY += ((sorted[i] as any).height || 0) + spacing;
+          }
+
           return {
             ...a,
             layers: a.layers.map((l) => {
-              const idx = sorted.findIndex((s) => s.id === l.id);
-              if (idx === -1) return l;
-              const res = { ...l, y: currentY };
-              currentY += ((l as any).height || 0) + spacing;
-              return res;
+              const newY = newPositions.get(l.id);
+              if (newY === undefined) return l;
+              return { ...l, y: newY };
             }),
           };
         }
@@ -128,7 +169,10 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
     if (visibleLayers.length === 0 && !type.startsWith('golden')) return;
 
     const newPositions = new Map<string, { x: number; y: number; width?: number; height?: number }>();
-    const selectedLayers = artboard.layers.filter((l: Layer) => state.selectedLayerIds.includes(l.id) && !l.locked && l.visible);
+
+    // ⚡ Bolt Optimization: Use a Set for O(1) membership lookups during large layer filtering.
+    const selectedIdsSet = new Set(state.selectedLayerIds);
+    const selectedLayers = artboard.layers.filter((l: Layer) => selectedIdsSet.has(l.id) && !l.locked && l.visible);
     const layersToLayout = selectedLayers.length > 0 ? selectedLayers : visibleLayers;
 
     if (type === 'golden_v') {

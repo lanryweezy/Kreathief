@@ -92,3 +92,6 @@
 ## 2026-07-26 - Optimize Array Iterations in Bounds Calculation
 **Learning:** Multiple array `.map()` passes and spread operations into `Math.min/max()` create unnecessary O(N) allocations and redundant loops, drastically reducing performance when calculating bounding boxes for many items.
 **Action:** Replace chained `.map()` and spread calls with a single standard `for` loop to compute multiple min/max bounds in one pass, reducing memory allocations and speeding up execution time (by ~51% in group bounds calculations).
+## 2026-07-28 - Array map to Set lookup and single pass loop in reducer
+**Learning:** In heavily used Zustand reducers (like `layoutSlice`), filtering items using `Array.includes` creates an O(N*M) bottleneck. Similarly, chained `.map` followed by `Math.min(...arr)` creates unnecessary intermediate arrays and risks "Maximum call stack size exceeded" errors for large selections.
+**Action:** Always replace `Array.includes` array lookups with O(1) `Set` membership checks. Furthermore, condense multiple array iterations (like mappings and spreading into `Math.min`) into a single O(N) `for` loop to significantly reduce overhead and prevent stack overflows.
