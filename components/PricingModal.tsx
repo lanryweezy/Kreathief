@@ -52,7 +52,9 @@ export const PricingModal: React.FC<PricingModalProps> = ({ onClose, onUpgrade }
               </li>
             ))}
           </ul>
-          <button className="w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold transition-colors">
+          <button
+            className="w-full py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-bold transition-colors"
+          >
             Current Plan
           </button>
         </div>
