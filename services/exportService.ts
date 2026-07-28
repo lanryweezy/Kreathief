@@ -57,14 +57,16 @@ function renderEffectDefs(nodeId: string, effects: Effect[]): string {
   let hasFilter = false;
 
   for (const effect of effects) {
-    if (!effect.enabled) continue;
+    if (!effect.enabled) {
+      continue;
+    }
     if ((effect.type as any) === 'shadow') {
       const p = (effect as any).params;
       filterPrimitives += `<feDropShadow dx="${p.x ?? 0}" dy="${p.y ?? 4}" stdDeviation="${p.blur ?? 8}" flood-color="${p.color ?? content.inverse}" flood-opacity="${p.opacity ?? 0.25}" />`;
       hasFilter = true;
     }
     if ((effect.type as any) === 'blur') {
-      filterPrimitives += `<feGaussianBlur in="SourceGraphic" stdDeviation="${((effect as any).params).radius ?? 4}" />`;
+      filterPrimitives += `<feGaussianBlur in="SourceGraphic" stdDeviation="${(effect as any).params.radius ?? 4}" />`;
       hasFilter = true;
     }
     if ((effect.type as any) === 'glow') {
@@ -81,7 +83,9 @@ function renderEffectDefs(nodeId: string, effects: Effect[]): string {
 // Same bezier logic as canvasEngine.renderPath (line 1314)
 
 function pointsToSvgPath(points: VectorPoint[]): string {
-  if (points.length < 2) return '';
+  if (points.length < 2) {
+    return '';
+  }
   let d = `M${points[0].x} ${points[0].y}`;
   for (let i = 1; i < points.length; i++) {
     const p = points[i];
@@ -174,7 +178,9 @@ function renderNodeToSvg(
       return `<line id="${node.id}" x1="${x}" y1="${y}" x2="${x + node.width}" y2="${y + node.height}" stroke="${fill}" stroke-width="${node.strokeWidth || 1}"${opacity}${transform}${blendMode}${filterAttr} />`;
 
     case 'path': {
-      if (!node.points || node.points.length < 2) return '';
+      if (!node.points || node.points.length < 2) {
+        return '';
+      }
       // Translate points by offset
       const translated = node.points.map((p: any) => ({
         ...p,
@@ -208,8 +214,43 @@ function renderNodeToSvg(
 
 // ── Main SVG export ─────────────────────────────────────────────────
 
+/**
+ * Auto-clean exported SVG markup by removing empty groups (<g></g>) and
+ * editor-specific metadata for cleaner developer handoff.
+ */
+export function cleanSvgMarkup(svg: string): string {
+  if (!svg || typeof svg !== 'string') {
+    return svg;
+  }
+  let cleaned = svg;
+
+  // 1. Remove editor-specific data attributes (e.g., data-editor-id, data-kreathief, etc.)
+  cleaned = cleaned.replace(/\s+data-[a-zA-Z0-9_-]+="[^"]*"/g, '');
+
+  // 2. Iteratively remove empty <g> groups (e.g. <g id="..."></g> or nested empty groups)
+  let prev = '';
+  while (prev !== cleaned) {
+    prev = cleaned;
+    cleaned = cleaned.replace(/<g[^>]*>\s*<\/g>/gi, '');
+  }
+
+  // 3. Remove empty <defs> tags
+  cleaned = cleaned.replace(/<defs[^>]*>\s*<\/defs>/gi, '');
+
+  // 4. Clean up whitespace and consecutive blank lines
+  cleaned = cleaned
+    .split('\n')
+    .map((line) => line.trimRight())
+    .filter((line, idx, arr) => line !== '' || (idx > 0 && arr[idx - 1] !== ''))
+    .join('\n');
+
+  return cleaned.trim();
+}
+
 export function exportToSvg(nodes: DesignNode[], background = true): string {
-  if (nodes.length === 0) return '<svg xmlns="http://www.w3.org/2000/svg"></svg>';
+  if (nodes.length === 0) {
+    return '<svg xmlns="http://www.w3.org/2000/svg"></svg>';
+  }
 
   const nodesMap = new Map(nodes.map((n) => [n.id, n]));
 
@@ -235,7 +276,9 @@ export function exportToSvg(nodes: DesignNode[], background = true): string {
     }
     if (node.effects?.length) {
       const filterDef = renderEffectDefs(node.id, node.effects);
-      if (filterDef) defs.push(filterDef);
+      if (filterDef) {
+        defs.push(filterDef);
+      }
     }
   });
 
@@ -248,10 +291,11 @@ export function exportToSvg(nodes: DesignNode[], background = true): string {
 
   const defsBlock = defs.length > 0 ? `<defs>\n    ${defs.join('\n    ')}\n  </defs>\n` : '';
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+  const rawSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
   ${defsBlock}${bg}
   ${inner}
 </svg>`;
+  return cleanSvgMarkup(rawSvg);
 }
 
 // ── Canvas (raster) export ──────────────────────────────────────────
@@ -324,7 +368,9 @@ export function exportToCanvas(
       // Effects — same params as canvasEngine (line 1112)
       if (node.effects?.length) {
         for (const effect of node.effects) {
-          if (!effect.enabled) continue;
+          if (!effect.enabled) {
+            continue;
+          }
           if ((effect.type as any) === 'shadow') {
             const p = (effect as any).params;
             ctx.shadowOffsetX = p.x ?? 0;
@@ -333,7 +379,7 @@ export function exportToCanvas(
             ctx.shadowColor = hexToRgba(p.color ?? content.inverse, p.opacity ?? 0.25);
           }
           if ((effect.type as any) === 'blur') {
-            ctx.filter = `blur(${((effect as any).params).radius ?? 4}px)`;
+            ctx.filter = `blur(${(effect as any).params.radius ?? 4}px)`;
           }
           if ((effect.type as any) === 'glow') {
             const p = (effect as any).params;
@@ -608,7 +654,9 @@ export async function exportDesignToBlob(
 
 export async function exportToSVG(width: number, height: number, background: string, layers: any[]): Promise<string> {
   if (!Array.isArray(layers) || layers.length === 0) {
-    return `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><rect width="${width}" height="${height}" fill="${background}"/></svg>`;
+    return cleanSvgMarkup(
+      `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><rect width="${width}" height="${height}" fill="${background}"/></svg>`
+    );
   }
   const nodes: DesignNode[] = layers.map(
     (l: any) =>
@@ -623,7 +671,7 @@ export async function exportToSVG(width: number, height: number, background: str
         opacity: l.opacity ?? 1,
       }) as any
   );
-  return exportToSvg(nodes, !!background);
+  return cleanSvgMarkup(exportToSvg(nodes, !!background));
 }
 
 export async function exportToLayeredPSD(
@@ -733,7 +781,10 @@ export async function batchExportArtboardsZip(
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = ab.width || 1080;
     tempCanvas.height = ab.height || 1080;
-    const blob = await exportToCanvas(tempCanvas, nodes, { format: (options?.format as any) || 'png', quality: options?.quality || 1 } as any);
+    const blob = await exportToCanvas(tempCanvas, nodes, {
+      format: (options?.format as any) || 'png',
+      quality: options?.quality || 1,
+    } as any);
     if (blob) {
       zip.file(`${ab.name || `artboard-${i}`}.${options?.format || 'png'}`, blob);
     }

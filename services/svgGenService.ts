@@ -1,4 +1,5 @@
 import { log } from '../utils/log';
+import { cleanSvgMarkup } from './exportService';
 
 /**
  * Feature 8: SVG AI Generation — generate editable SVG icons/illustrations from text prompts.
@@ -56,7 +57,7 @@ function cleanSVG(svg: string, targetWidth: number, targetHeight: number): strin
   // Remove any non-SVG content before/after
   const svgMatch = svg.match(/<svg[\s\S]*?<\/svg>/i);
   if (!svgMatch) {
-    return svg;
+    return cleanSvgMarkup(svg);
   }
 
   let cleaned = svgMatch[0];
@@ -77,7 +78,7 @@ function cleanSVG(svg: string, targetWidth: number, targetHeight: number): strin
   // Remove any event handlers
   cleaned = cleaned.replace(/\s*on\w+="[^"]*"/gi, '');
 
-  return cleaned;
+  return cleanSvgMarkup(cleaned);
 }
 
 /**

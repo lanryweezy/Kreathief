@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { exportDesignToImage, exportToSVG, downloadBlob } from './exportService';
+import { exportDesignToImage, exportToSVG, downloadBlob, cleanSvgMarkup } from './exportService';
 
 describe('exportDesignToImage', () => {
   beforeEach(() => {
@@ -50,6 +50,22 @@ describe('exportToSVG', () => {
     ] as any[];
     const svg = await exportToSVG(100, 100, '#ffffff', layers);
     expect(svg).toContain('<svg');
+  });
+
+  it('should clean SVG markup by removing empty groups and editor data attributes', () => {
+    const rawSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" data-editor-id="test-123" data-kreathief="true">
+  <defs></defs>
+  <g id="empty-group">
+  </g>
+  <rect x="0" y="0" width="100" height="100" fill="white" data-layer-id="layer-1" />
+</svg>`;
+    const cleaned = cleanSvgMarkup(rawSvg);
+    expect(cleaned).not.toContain('data-editor-id');
+    expect(cleaned).not.toContain('data-kreathief');
+    expect(cleaned).not.toContain('data-layer-id');
+    expect(cleaned).not.toContain('<defs></defs>');
+    expect(cleaned).not.toContain('<g id="empty-group">');
+    expect(cleaned).toContain('<rect x="0" y="0" width="100" height="100" fill="white" />');
   });
 });
 

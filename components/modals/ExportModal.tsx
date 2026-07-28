@@ -5,7 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
 import { getErrorDetails } from '../../utils/errorMessages';
-import { ColorProfile, batchExportArtboardsZip } from '../../services/exportService';
+import { ColorProfile, batchExportArtboardsZip, cleanSvgMarkup } from '../../services/exportService';
 import { isWithinCMYKGamut, getClosestCMYKSafeColor } from '../../utils/colorUtils';
 import { Button } from '../Button';
 import { Input } from '../Input';
@@ -140,9 +140,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     }
 
     return activeArtboard.layers.filter((l) => {
-      if (l.type !== 'image') return false;
+      if (l.type !== 'image') {
+        return false;
+      }
       const imgLayer = l as any;
-      if (!imgLayer.naturalWidth) return false;
+      if (!imgLayer.naturalWidth) {
+        return false;
+      }
       // Calculate effective DPI. Base unit is 1pt = 1/72 inch.
       // Physical width in inches = rendered width / 72.
       // Effective DPI = naturalWidth / physical width = naturalWidth / (width / 72).
@@ -150,6 +154,59 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       return effectiveDPI < 300;
     });
   }, [format, isPrintMode, artboards, activeArtboardId]);
+
+  // Dynamic File Size Estimator (recalculates in real-time as quality/scale changes)
+  const estimatedFileSize = React.useMemo(() => {
+    const preset = EXPORT_PRESETS.find((p) => p.id === activePreset && p.id !== 'current');
+    const dpiScale = dpi / 72;
+    const scale = exportScale * dpiScale;
+    const w = preset ? Math.round(preset.width * scale) : Math.round(currentSize.width * scale);
+    const h = preset ? Math.round(preset.height * scale) : Math.round(currentSize.height * scale);
+    const pixels = Math.max(100, w * h);
+
+    const activeArtboard = artboards.find((a) => a.id === activeArtboardId);
+    const layerCount = activeArtboard?.layers?.length || 10;
+
+    let bytes = 0;
+    if (format === 'png') {
+      bytes = pixels * (transparentBg ? 0.7 : 0.55);
+    } else if (format === 'jpeg') {
+      bytes = pixels * (0.08 + quality * 0.35);
+    } else if (format === 'webp') {
+      bytes = pixels * (0.06 + quality * 0.25);
+    } else if (format === 'svg') {
+      bytes = Math.max(1200, layerCount * 450);
+    } else if (format === 'pdf') {
+      bytes = Math.max(8000, layerCount * 850 + (isPrintMode ? 250000 : 0));
+    } else if (format === 'psd') {
+      bytes = pixels * Math.max(1, layerCount) * 2.8;
+    }
+
+    if (batchMode && selectedArtboardIds.length > 0) {
+      bytes *= selectedArtboardIds.length;
+    }
+
+    if (bytes < 1024) {
+      return `${Math.round(bytes)} B`;
+    }
+    if (bytes < 1024 * 1024) {
+      return `${Math.round(bytes / 1024)} KB`;
+    }
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }, [
+    activePreset,
+    dpi,
+    exportScale,
+    currentSize,
+    format,
+    quality,
+    transparentBg,
+    artboards,
+    activeArtboardId,
+    isPrintMode,
+    batchMode,
+    selectedArtboardIds,
+  ]);
 
   const handleSnapAllToSafe = useCallback(() => {
     const activeArtboard = artboards.find((a) => a.id === activeArtboardId);
@@ -464,17 +521,49 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
   };
 
   const handleCopyToClipboard = async () => {
+    if (isCopying || isExporting) {
+      return;
+    }
     setIsCopying(true);
     try {
-      // Try using the provided blob getter first
       if (onGetPngBlob) {
-        const blob = await onGetPngBlob();
-        if (blob) {
-          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-          addToast('Copied to clipboard!', 'success');
-          analyticsService.track('export_design', { method: 'clipboard', format: 'png' });
-          setIsCopying(false);
-          return;
+        // Worker-Thread / Non-Blocking Clipboard Copy: Offload blob generation
+        // using ClipboardItem promise support so copying large canvases stays responsive!
+        const blobPromise = new Promise<Blob>((resolve, reject) => {
+          setTimeout(async () => {
+            try {
+              const blob = await onGetPngBlob();
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error('Failed to generate PNG blob'));
+              }
+            } catch (err) {
+              reject(err);
+            }
+          }, 10); // Yield main thread so UI stays responsive
+        });
+
+        if (typeof ClipboardItem !== 'undefined') {
+          try {
+            await navigator.clipboard.write([
+              new ClipboardItem({
+                'image/png': blobPromise,
+              }),
+            ]);
+            addToast('Copied to clipboard!', 'success');
+            analyticsService.track('export_design', { method: 'clipboard', format: 'png' });
+            setIsCopying(false);
+            return;
+          } catch (clipErr) {
+            // Fallback if Promise inside ClipboardItem is unsupported by older browser engine
+            const blob = await blobPromise;
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+            addToast('Copied to clipboard!', 'success');
+            analyticsService.track('export_design', { method: 'clipboard', format: 'png' });
+            setIsCopying(false);
+            return;
+          }
         }
       }
       // Fallback: export as PNG then copy
@@ -515,8 +604,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       } else {
         svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${shape.width} ${shape.height}" width="${shape.width}" height="${shape.height}"><rect x="0" y="0" width="${shape.width}" height="${shape.height}" fill="${shape.color || '#7d2ae8'}" rx="${shape.cornerRadius || 0}"/></svg>`;
       }
-      await navigator.clipboard.writeText(svgContent);
-      addToast('SVG copied to clipboard!', 'success');
+      await navigator.clipboard.writeText(cleanSvgMarkup(svgContent));
+      addToast('Cleaned SVG copied to clipboard!', 'success');
       analyticsService.track('export_design', { method: 'clipboard', format: 'svg' });
     } catch (e) {
       log.error('[ExportModal] SVG clipboard copy failed', e);
@@ -1103,8 +1192,19 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
               </button>
             </div>
 
+            {/* Dynamic File Size Estimator Badge */}
+            <div className="flex items-center justify-between px-3.5 py-2.5 bg-surface-dark-4/70 border border-gray-700/60 rounded-xl mt-4 text-xs shadow-inner">
+              <span className="text-gray-300 font-semibold flex items-center gap-2">
+                <Icons.Layers className="w-4 h-4 text-brand-400 animate-pulse" />
+                Est. File Size:
+              </span>
+              <span className="font-extrabold text-brand-300 bg-brand-900/50 border border-brand-500/40 px-2.5 py-0.5 rounded-lg shadow-sm tracking-wide">
+                ~{estimatedFileSize}
+              </span>
+            </div>
+
             {/* Action Buttons */}
-            <div className="flex gap-3 mt-4">
+            <div className="flex gap-3 mt-3">
               {/* Copy to Clipboard */}
               <button
                 data-testid="copy-png-btn"
