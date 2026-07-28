@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AssetsPanel } from './AssetsPanel';
 import { UploadsPanel } from './UploadsPanel';
+import { PanelHeader } from './PanelHeader';
 
 type Tab = 'unsplash' | 'pixabay' | 'pexels' | 'uploads';
 
@@ -16,21 +17,7 @@ export const MediaPanel: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full bg-transparent overflow-hidden">
-      <div className="flex px-4 pt-4 border-b border-white/5 gap-4 shrink-0 overflow-x-auto">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`pb-3 text-[10px] font-bold uppercase transition-all border-b-2 whitespace-nowrap ${
-              activeTab === tab.id
-                ? 'border-brand-600 text-white'
-                : 'border-transparent text-gray-500 hover:text-gray-300'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <PanelHeader tabs={tabs} activeTabId={activeTab} onTabChange={(id) => setActiveTab(id)} />
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden relative">
         <div className={activeTab === 'unsplash' ? 'block h-full' : 'hidden'}>

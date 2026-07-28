@@ -1,6 +1,7 @@
 import React from 'react';
 import { AnimationSettings } from '../../types';
 import { Icons } from '../../constants';
+import { PanelHeader } from './PanelHeader';
 // import { CompactInput } from '../Toolbar'; // Assuming CompactInput is exported or I'll implement a simple one
 
 const ANIMATION_TYPES = [
@@ -73,14 +74,9 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#13161a]">
-      <div className="p-4 border-b border-[#1f1f1f]">
-        <h3 className="font-bold text-white flex items-center gap-2">
-          <Icons.Play className="w-4 h-4 text-brand-600" /> Motion
-        </h3>
-      </div>
-
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
+    <div className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
+      <PanelHeader title="Motion" icon={<Icons.Play className="w-5 h-5" />} />
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6 flex flex-col">
         {/* Animation Types Grid */}
         <div className="grid grid-cols-3 gap-2">
           {ANIMATION_TYPES.map((t) => (

@@ -7,6 +7,7 @@ import { communityService, CommunityTemplate } from '../../services/communitySer
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { ConfirmModal } from '../modals/ConfirmModal';
 import { Input } from '../Input';
+import { PanelHeader } from './PanelHeader';
 
 interface TemplatesPanelProps {
   setPrompt: (s: string) => void;
@@ -81,7 +82,12 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   };
 
   const handleApplyCommunity = (tmpl: CommunityTemplate) => {
-    const newProject: any = { id: `tmpl-${Date.now()}`, name: (tmpl as any).title || (tmpl as any).name || 'Template', updatedAt: Date.now(), state: tmpl.state };
+    const newProject: any = {
+      id: `tmpl-${Date.now()}`,
+      name: (tmpl as any).title || (tmpl as any).name || 'Template',
+      updatedAt: Date.now(),
+      state: tmpl.state,
+    };
     if (!showReplaceWarning) {
       initializeProject(newProject);
       return;
@@ -159,308 +165,311 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   }, [category, showFavoritesOnly, favoriteTemplates, searchQuery]);
 
   return (
-    <div data-testid="templates-panel" className="flex flex-col h-full bg-surface-dark-2">
-      {/* Header with Categories */}
-      <div className="p-4 border-b border-gray-700 bg-surface-dark-2 sticky top-0 z-10">
-        {category === 'All' ? (
-          <div className="mb-2">
-            <h3 className="text-white font-bold mb-3">Browse Categories</h3>
-            <div data-testid="template-panel-category-filters" className="grid grid-cols-2 gap-2">
-              {DESIGN_CATEGORIES.filter((c) => c.id !== 'All').map((c) => (
-                <button
-                  key={c.id}
-                  data-testid={`template-panel-category-btn-${c.id.toLowerCase()}`}
-                  onClick={() => setCategory(c.id)}
-                  className={`relative h-16 rounded-lg overflow-hidden flex items-center justify-center group`}
-                >
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-br ${c.color} opacity-80 group-hover:opacity-100 transition-opacity`}
-                  ></div>
-                  <div className="relative z-10 flex flex-col items-center">
-                    <c.icon className="w-5 h-5 text-white mb-1 drop-shadow-md" />
-                    <span className="text-[10px] font-bold text-white uppercase tracking-wide drop-shadow-md">
-                      {c.label}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 mb-2">
+    <div data-testid="templates-panel" className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
+      <PanelHeader
+        title={category === 'All' ? 'Templates' : activeCategoryLabel}
+        icon={<Icons.Layout className="w-5 h-5" />}
+        action={
+          category !== 'All' ? (
             <button
               data-testid="template-panel-back-btn"
               onClick={() => setCategory('All')}
-              className="p-1 hover:bg-gray-800 rounded-full text-gray-400 hover:text-white"
+              className="flex items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-white px-2 py-1 rounded bg-white/5 transition-colors"
             >
-              <Icons.ArrowLeft className="w-4 h-4" />
+              <Icons.ArrowLeft className="w-3 h-3" /> All
             </button>
-            <span data-testid="template-panel-category-title" className="text-sm font-bold text-white">
-              {activeCategoryLabel}
-            </span>
-          </div>
-        )}
-
-        <div className="relative mt-2">
-          <Icons.Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400 z-10" />
-          <Input
-            data-testid="template-panel-search-input"
-            type="text"
-            placeholder="Search templates..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 pr-9 text-sm"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-2.5 text-gray-500 hover:text-white z-10"
-            >
-              <Icons.X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 mt-3">
-          <button
-            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border w-full justify-center ${
-              showFavoritesOnly
-                ? 'bg-red-500/10 border-red-500/50 text-red-400'
-                : 'bg-surface-dark-3 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'
-            }`}
-          >
-            <Icons.Heart className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-current' : ''}`} />
-            Favorites Only
-          </button>
-        </div>
-
-        {/* Community Tabs */}
-        <div className="flex gap-1 mt-4 p-0.5 bg-black/20 rounded-lg border border-white/5">
-          <button
-            onClick={() => setActiveTab('starter')}
-            className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-              activeTab === 'starter' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
-            }`}
-          >
-            Starter
-          </button>
-          <button
-            onClick={() => setActiveTab('community')}
-            className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-              activeTab === 'community' ? 'bg-orange-500 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
-            }`}
-          >
-            Community ✦
-          </button>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-6">
-        {activeTab === 'starter' ? (
-          <>
-            {/* Themes Section */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-xs font-bold text-gray-400 uppercase">Color Themes</h4>
-              </div>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                {THEMES.map((theme, i) => (
+          ) : null
+        }
+      />
+      <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
+        {/* Header with Categories & Search */}
+        <div className="p-4 border-b border-gray-700 bg-surface-dark-2 sticky top-0 z-10">
+          {category === 'All' && (
+            <div className="mb-2">
+              <div data-testid="template-panel-category-filters" className="grid grid-cols-2 gap-2">
+                {DESIGN_CATEGORIES.filter((c) => c.id !== 'All').map((c) => (
                   <button
-                    key={i}
-                    onClick={() => onApplyTheme && onApplyTheme(theme.colors)}
-                    className="flex-shrink-0 group flex flex-col gap-1 w-12"
-                    title={theme.name}
+                    key={c.id}
+                    data-testid={`template-panel-category-btn-${c.id.toLowerCase()}`}
+                    onClick={() => setCategory(c.id)}
+                    className={`relative h-16 rounded-lg overflow-hidden flex items-center justify-center group`}
                   >
-                    <div className="h-12 w-12 rounded-full overflow-hidden border border-gray-700 group-hover:border-white transition-colors relative flex flex-wrap">
-                      {theme.colors.map((c, ci) => (
-                        <div key={ci} style={{ backgroundColor: c }} className="w-1/2 h-1/2"></div>
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-br ${c.color} opacity-80 group-hover:opacity-100 transition-opacity`}
+                    ></div>
+                    <div className="relative z-10 flex flex-col items-center">
+                      <c.icon className="w-5 h-5 text-white mb-1 drop-shadow-md" />
+                      <span className="text-[10px] font-bold text-white uppercase tracking-wide drop-shadow-md">
+                        {c.label}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="relative mt-2">
+            <Icons.Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400 z-10" />
+            <Input
+              data-testid="template-panel-search-input"
+              type="text"
+              placeholder="Search templates..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 pr-9 text-sm"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-2.5 text-gray-500 hover:text-white z-10"
+              >
+                <Icons.X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 mt-3">
+            <button
+              onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border w-full justify-center ${
+                showFavoritesOnly
+                  ? 'bg-red-500/10 border-red-500/50 text-red-400'
+                  : 'bg-surface-dark-3 border-gray-700 text-gray-400 hover:text-white hover:border-gray-500'
+              }`}
+            >
+              <Icons.Heart className={`w-3.5 h-3.5 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+              Favorites Only
+            </button>
+          </div>
+
+          {/* Community Tabs */}
+          <div className="flex gap-1 mt-4 p-0.5 bg-black/20 rounded-lg border border-white/5">
+            <button
+              onClick={() => setActiveTab('starter')}
+              className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+                activeTab === 'starter' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              Starter
+            </button>
+            <button
+              onClick={() => setActiveTab('community')}
+              className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+                activeTab === 'community' ? 'bg-orange-500 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              Community ✦
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-6">
+          {activeTab === 'starter' ? (
+            <>
+              {/* Themes Section */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-xs font-bold text-gray-400 uppercase">Color Themes</h4>
+                </div>
+                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+                  {THEMES.map((theme, i) => (
+                    <button
+                      key={i}
+                      onClick={() => onApplyTheme && onApplyTheme(theme.colors)}
+                      className="flex-shrink-0 group flex flex-col gap-1 w-12"
+                      title={theme.name}
+                    >
+                      <div className="h-12 w-12 rounded-full overflow-hidden border border-gray-700 group-hover:border-white transition-colors relative flex flex-wrap">
+                        {theme.colors.map((c, ci) => (
+                          <div key={ci} style={{ backgroundColor: c }} className="w-1/2 h-1/2"></div>
+                        ))}
+                      </div>
+                      <span className="text-[9px] text-gray-500 text-center truncate group-hover:text-gray-300">
+                        {theme.name}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Layouts Section */}
+              <div>
+                <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Quick Layouts</h4>
+                <div className="grid grid-cols-4 gap-2">
+                  {grids.map((g, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        if (g.layout) {
+                          onApplyLayout && (onApplyLayout as any)(g.layout);
+                        } else {
+                          onApplyLayout && onApplyLayout(g.shapes as any);
+                        }
+                      }}
+                      className="aspect-square bg-surface-dark-3 border border-gray-700 rounded hover:border-accent flex flex-col items-center justify-center text-gray-500 hover:text-white transition-all hover:bg-surface-dark-4 gap-1"
+                      title={g.name}
+                    >
+                      <g.icon className="w-5 h-5" />
+                      <span className="text-[8px] font-medium hidden sm:block truncate w-full text-center px-1">
+                        {g.name.split(' ')[0]}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Starter Templates */}
+              <div data-testid="template-panel-grid">
+                {starterTemplates.length > 0 ? (
+                  <>
+                    <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Professional Templates</h4>
+                    <div className="grid grid-cols-1 gap-4">
+                      {starterTemplates.map((tmpl) => (
+                        <button
+                          key={tmpl.id}
+                          data-testid={`template-panel-btn-${tmpl.id}`}
+                          onClick={() => {
+                            if (!onApplyTemplate) {
+                              return;
+                            }
+                            if (
+                              !showReplaceWarning ||
+                              (typeof window !== 'undefined' && (window as any).VITE_QA_BYPASS)
+                            ) {
+                              onApplyTemplate(tmpl.id, showReplaceWarning);
+                            } else {
+                              setConfirmModal({
+                                isOpen: true,
+                                title: 'Apply Template?',
+                                message: 'Apply template? This will replace your current design.',
+                                onConfirm: () => onApplyTemplate(tmpl.id, showReplaceWarning),
+                              });
+                            }
+                          }}
+                          className="cursor-pointer group relative aspect-video rounded-xl overflow-hidden bg-surface-dark-3 border border-gray-700 hover:border-brand-600 transition-all shadow-lg text-left"
+                        >
+                          <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                            <Icons.Layout className="w-12 h-12" />
+                          </div>
+                          <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
+                          <div className="absolute bottom-0 left-0 right-0 p-3 bg-black/60 backdrop-blur-sm flex items-center justify-between">
+                            <span className="font-semibold text-xs text-white truncate">{tmpl.name}</span>
+                            <span className="text-[9px] text-gray-400">
+                              {tmpl.size.width}×{tmpl.size.height}
+                            </span>
+                          </div>
+                        </button>
                       ))}
                     </div>
-                    <span className="text-[9px] text-gray-500 text-center truncate group-hover:text-gray-300">
-                      {theme.name}
-                    </span>
-                  </button>
-                ))}
+                  </>
+                ) : (
+                  <div className="text-center py-8 border-2 border-dashed border-gray-800 rounded-2xl">
+                    <Icons.Search className="w-8 h-8 text-gray-700 mx-auto mb-2" />
+                    <p className="text-gray-500 text-xs font-bold">No templates match your search</p>
+                  </div>
+                )}
               </div>
-            </div>
+            </>
+          ) : (
+            /* Community View */
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center justify-between">
+                Community Creations
+                {isLoadingCommunity && <Icons.Loader className="w-3 h-3 animate-spin text-orange-500" />}
+              </h4>
 
-            {/* Layouts Section */}
-            <div>
-              <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Quick Layouts</h4>
-              <div className="grid grid-cols-4 gap-2">
-                {grids.map((g, i) => (
-                  <button
-                    key={i}
-                    onClick={() => {
-                      if (g.layout) {
-                        onApplyLayout && (onApplyLayout as any)(g.layout);
-                      } else {
-                        onApplyLayout && onApplyLayout(g.shapes as any);
-                      }
-                    }}
-                    className="aspect-square bg-surface-dark-3 border border-gray-700 rounded hover:border-accent flex flex-col items-center justify-center text-gray-500 hover:text-white transition-all hover:bg-surface-dark-4 gap-1"
-                    title={g.name}
-                  >
-                    <g.icon className="w-5 h-5" />
-                    <span className="text-[8px] font-medium hidden sm:block truncate w-full text-center px-1">
-                      {g.name.split(' ')[0]}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Starter Templates */}
-            <div data-testid="template-panel-grid">
-              {starterTemplates.length > 0 ? (
-                <>
-                  <h4 className="text-xs font-bold text-gray-400 uppercase mb-3">Professional Templates</h4>
-                  <div className="grid grid-cols-1 gap-4">
-                    {starterTemplates.map((tmpl) => (
-                      <button
-                        key={tmpl.id}
-                        data-testid={`template-panel-btn-${tmpl.id}`}
-                        onClick={() => {
-                          if (!onApplyTemplate) {
-                            return;
-                          }
-                          if (
-                            !showReplaceWarning ||
-                            (typeof window !== 'undefined' && (window as any).VITE_QA_BYPASS)
-                          ) {
-                            onApplyTemplate(tmpl.id, showReplaceWarning);
-                          } else {
-                            setConfirmModal({
-                              isOpen: true,
-                              title: 'Apply Template?',
-                              message: 'Apply template? This will replace your current design.',
-                              onConfirm: () => onApplyTemplate(tmpl.id, showReplaceWarning),
-                            });
-                          }
-                        }}
-                        className="cursor-pointer group relative aspect-video rounded-xl overflow-hidden bg-surface-dark-3 border border-gray-700 hover:border-brand-600 transition-all shadow-lg text-left"
-                      >
+              <div className="grid grid-cols-1 gap-4">
+                {isLoadingCommunity &&
+                  [1, 2, 3].map((i) => (
+                    <div
+                      key={`skel-${i}`}
+                      className="animate-pulse bg-surface-dark-3 border border-gray-800 rounded-xl overflow-hidden"
+                    >
+                      <div className="aspect-video bg-white/5" />
+                      <div className="p-3 space-y-2">
+                        <div className="h-4 bg-white/5 rounded w-2/3" />
+                        <div className="h-3 bg-white/5 rounded w-1/3" />
+                        <div className="flex justify-between border-t border-white/5 pt-2 mt-2">
+                          <div className="h-3 bg-white/5 rounded w-1/4" />
+                          <div className="h-3 bg-white/5 rounded w-1/6" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                {!isLoadingCommunity &&
+                  communityTemplates.map((tmpl) => (
+                    <div
+                      key={tmpl.id}
+                      onClick={() => handleApplyCommunity(tmpl)}
+                      className="bg-surface-dark-3 border border-gray-800 rounded-xl overflow-hidden group cursor-pointer hover:border-orange-500 transition-all shadow-lg"
+                    >
+                      <div className="aspect-video bg-black/40 relative">
                         <div className="absolute inset-0 flex items-center justify-center opacity-10">
                           <Icons.Layout className="w-12 h-12" />
                         </div>
-                        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
-                        <div className="absolute bottom-0 left-0 right-0 p-3 bg-black/60 backdrop-blur-sm flex items-center justify-between">
-                          <span className="font-semibold text-xs text-white truncate">{tmpl.name}</span>
-                          <span className="text-[9px] text-gray-400">
-                            {tmpl.size.width}×{tmpl.size.height}
+                        <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-1 rounded-full border border-white/5">
+                          <Icons.Heart className="w-3 h-3 text-orange-500 fill-orange-500" />
+                          <span className="text-[10px] text-white font-black">{tmpl.likes}</span>
+                        </div>
+                      </div>
+                      <div className="p-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="text-sm font-bold text-white truncate">{tmpl.name}</h4>
+                          <span className="text-[9px] font-black text-orange-500 uppercase tracking-wider">
+                            {tmpl.category}
                           </span>
                         </div>
-                      </button>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8 border-2 border-dashed border-gray-800 rounded-2xl">
-                  <Icons.Search className="w-8 h-8 text-gray-700 mx-auto mb-2" />
-                  <p className="text-gray-500 text-xs font-bold">No templates match your search</p>
-                </div>
-              )}
-            </div>
-          </>
-        ) : (
-          /* Community View */
-          <div className="space-y-4">
-            <h4 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center justify-between">
-              Community Creations
-              {isLoadingCommunity && <Icons.Loader className="w-3 h-3 animate-spin text-orange-500" />}
-            </h4>
+                        <div className="flex items-center justify-between border-t border-white/5 pt-2 mt-2">
+                          <span className="text-[9px] text-gray-400">
+                            by <span className="text-orange-400">{tmpl.userName}</span>
+                          </span>
+                          <span className="text-[9px] text-muted-light font-mono">
+                            {new Date(tmpl.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
 
-            <div className="grid grid-cols-1 gap-4">
-              {isLoadingCommunity &&
-                [1, 2, 3].map((i) => (
-                  <div
-                    key={`skel-${i}`}
-                    className="animate-pulse bg-surface-dark-3 border border-gray-800 rounded-xl overflow-hidden"
-                  >
-                    <div className="aspect-video bg-white/5" />
-                    <div className="p-3 space-y-2">
-                      <div className="h-4 bg-white/5 rounded w-2/3" />
-                      <div className="h-3 bg-white/5 rounded w-1/3" />
-                      <div className="flex justify-between border-t border-white/5 pt-2 mt-2">
-                        <div className="h-3 bg-white/5 rounded w-1/4" />
-                        <div className="h-3 bg-white/5 rounded w-1/6" />
-                      </div>
-                    </div>
+                {communityTemplates.length === 0 && !isLoadingCommunity && (
+                  <div className="text-center py-12 px-4 border-2 border-dashed border-gray-800 rounded-2xl">
+                    <Icons.Users className="w-10 h-10 text-gray-700 mx-auto mb-3" />
+                    <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">No designs found</p>
                   </div>
-                ))}
-              {!isLoadingCommunity &&
-                communityTemplates.map((tmpl) => (
-                  <div
-                    key={tmpl.id}
-                    onClick={() => handleApplyCommunity(tmpl)}
-                    className="bg-surface-dark-3 border border-gray-800 rounded-xl overflow-hidden group cursor-pointer hover:border-orange-500 transition-all shadow-lg"
-                  >
-                    <div className="aspect-video bg-black/40 relative">
-                      <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                        <Icons.Layout className="w-12 h-12" />
-                      </div>
-                      <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-1 rounded-full border border-white/5">
-                        <Icons.Heart className="w-3 h-3 text-orange-500 fill-orange-500" />
-                        <span className="text-[10px] text-white font-black">{tmpl.likes}</span>
-                      </div>
-                    </div>
-                    <div className="p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="text-sm font-bold text-white truncate">{tmpl.name}</h4>
-                        <span className="text-[9px] font-black text-orange-500 uppercase tracking-wider">
-                          {tmpl.category}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between border-t border-white/5 pt-2 mt-2">
-                        <span className="text-[9px] text-gray-400">
-                          by <span className="text-orange-400">{tmpl.userName}</span>
-                        </span>
-                        <span className="text-[9px] text-muted-light font-mono">
-                          {new Date(tmpl.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-              {communityTemplates.length === 0 && !isLoadingCommunity && (
-                <div className="text-center py-12 px-4 border-2 border-dashed border-gray-800 rounded-2xl">
-                  <Icons.Users className="w-10 h-10 text-gray-700 mx-auto mb-3" />
-                  <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">No designs found</p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
+          )}
+
+          <div className="flex items-center gap-2 p-2 bg-black/20 rounded border border-white/5">
+            <input
+              id="warn-replace"
+              type="checkbox"
+              checked={showReplaceWarning}
+              onChange={(e) => setShowReplaceWarning(e.target.checked)}
+              className="accent-brand-600"
+            />
+            <label htmlFor="warn-replace" className="text-[10px] text-gray-500 cursor-pointer select-none">
+              Confirm before replacing design
+            </label>
           </div>
-        )}
-
-        <div className="flex items-center gap-2 p-2 bg-black/20 rounded border border-white/5">
-          <input
-            id="warn-replace"
-            type="checkbox"
-            checked={showReplaceWarning}
-            onChange={(e) => setShowReplaceWarning(e.target.checked)}
-            className="accent-brand-600"
-          />
-          <label htmlFor="warn-replace" className="text-[10px] text-gray-500 cursor-pointer select-none">
-            Confirm before replacing design
-          </label>
         </div>
-      </div>
 
-      <ConfirmModal
-        isOpen={confirmModal.isOpen}
-        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
-        onConfirm={() => {
-          confirmModal.onConfirm();
-          setConfirmModal((prev) => ({ ...prev, isOpen: false }));
-        }}
-        title={confirmModal.title}
-        message={confirmModal.message}
-        confirmLabel="Apply"
-        cancelLabel="Cancel"
-        variant="warning"
-      />
+        <ConfirmModal
+          isOpen={confirmModal.isOpen}
+          onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+          onConfirm={() => {
+            confirmModal.onConfirm();
+            setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+          }}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          confirmLabel="Apply"
+          cancelLabel="Cancel"
+          variant="warning"
+        />
+      </div>
     </div>
   );
 };

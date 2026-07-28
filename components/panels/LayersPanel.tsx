@@ -5,6 +5,7 @@ import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { ArrangePanel } from './ArrangePanel';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
+import { PanelHeader } from './PanelHeader';
 
 // LayerItem Component Props
 interface LayerItemProps {
@@ -386,41 +387,29 @@ export const LayersPanel = () => {
   return (
     <div className="flex flex-col h-full bg-transparent">
       {/* Tabs */}
-      <div className="flex px-4 pt-4 border-b border-white/5 gap-4 relative">
-        <button
-          onClick={() => setActiveTab('layers')}
-          className={`pb-3 text-xs font-bold transition-all border-b-2 ${
-            activeTab === 'layers'
-              ? 'border-brand-600 text-white'
-              : 'border-transparent text-gray-500 hover:text-gray-300'
-          }`}
-        >
-          LAYERS ({layers.length})
-        </button>
-        <button
-          onClick={() => setActiveTab('arrange')}
-          className={`pb-3 text-xs font-bold transition-all border-b-2 ${
-            activeTab === 'arrange'
-              ? 'border-brand-600 text-white'
-              : 'border-transparent text-gray-500 hover:text-gray-300'
-          }`}
-        >
-          ARRANGE
-        </button>
-        {layers.length > 0 && (
-          <button
-            onClick={() => {
-              if (window.confirm('Clear all layers? This action cannot be undone easily.')) {
-                layers.forEach((l) => deleteLayer(l.id));
-              }
-            }}
-            title="Clear Canvas"
-            className="absolute right-4 top-4 p-1 text-gray-500 hover:text-red-400 hover:bg-white/5 rounded transition-all"
-          >
-            <Icons.Trash className="w-4 h-4" />
-          </button>
-        )}
-      </div>
+      <PanelHeader
+        tabs={[
+          { id: 'layers', label: 'Layers', count: layers.length },
+          { id: 'arrange', label: 'Arrange' },
+        ]}
+        activeTabId={activeTab}
+        onTabChange={(id) => setActiveTab(id)}
+        action={
+          layers.length > 0 ? (
+            <button
+              onClick={() => {
+                if (window.confirm('Clear all layers? This action cannot be undone easily.')) {
+                  layers.forEach((l) => deleteLayer(l.id));
+                }
+              }}
+              title="Clear Canvas"
+              className="p-1 text-gray-500 hover:text-red-400 hover:bg-white/5 rounded transition-all"
+            >
+              <Icons.Trash className="w-4 h-4" />
+            </button>
+          ) : null
+        }
+      />
 
       <div
         ref={containerRef}

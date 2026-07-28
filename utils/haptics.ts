@@ -60,7 +60,21 @@ export const haptics = {
    */
   selection: () => {
     if ('vibrate' in navigator) {
-      navigator.vibrate(15);
+      try {
+        navigator.vibrate(15);
+      } catch (e) {}
+    }
+  },
+
+  /**
+   * Snap pattern - micro tap when aligning to guides
+   * Use for: snapping to center guides, edges, grid
+   */
+  snap: () => {
+    if ('vibrate' in navigator) {
+      try {
+        navigator.vibrate(5);
+      } catch (e) {}
     }
   },
 

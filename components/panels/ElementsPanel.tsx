@@ -11,6 +11,7 @@ import * as stickerService from '../../services/stickerService';
 import DOMPurify from 'dompurify';
 import { SHAPE_LIBRARY } from '../../constants/shapeLibrary';
 import { ElementSkeleton } from '../Skeleton';
+import { PanelHeader } from './PanelHeader';
 
 import { useStore } from '../../store/useStore';
 import { generateLayerId } from '../../utils/layers/layerUtils';
@@ -516,148 +517,147 @@ export const ElementsPanel = () => {
   );
 
   return (
-    <div
-      data-testid="elements-panel"
-      className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-5"
-      onDragOver={(e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'copy';
-      }}
-      onDrop={(e) => {
-        const raw = e.dataTransfer.getData('application/x-shape-preset');
-        if (raw && dragData) {
-          const rect = e.currentTarget.getBoundingClientRect();
-          const preset = dragData;
-          internalAddShape(preset.type, { ...preset.props, name: preset.name }, preset.name);
-          setDragData(null);
-        }
-      }}
-    >
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-1 p-1 bg-surface-dark-3 rounded-xl border border-gray-800">
-        {sources.map((src) => (
-          <button
-            key={src.id}
-            onClick={() => {
-              setActiveSource(src.id);
-              setRemoteIcons([]);
-              setHasSearched(false);
-              if (src.id === 'stickers') {
-                setIsSearching(true);
-                stickerService.getTrendingStickers().then((res) => {
-                  setRemoteIcons(
-                    res.map((st) => ({
-                      id: st.id,
-                      name: st.name,
-                      thumbnailUrl: st.thumbnail,
-                      source: st.source,
-                      width: st.width,
-                      height: st.height,
-                      url: st.url,
-                    }))
-                  );
-                  setIsSearching(false);
-                  setHasSearched(true);
-                });
-              } else if (searchQuery.trim().length >= 2) {
-                setTimeout(() => searchRemoteIcons(searchQuery), 0);
-              }
-            }}
-            className={`flex-grow flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${activeSource === src.id ? 'bg-brand-600 text-white' : 'text-gray-400 hover:text-white hover:bg-surface-dark-4'}`}
-          >
-            <src.icon className="w-3.5 h-3.5" /> {src.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Search */}
-      <div className="relative">
-        <input
-          type="text"
-          placeholder={`Search ${activeSource}...`}
-          className="w-full bg-surface-dark-3 border border-gray-700 rounded-xl py-2 pl-10 text-xs text-white focus:border-brand-600"
-          value={searchQuery}
-          onChange={(e) => handleRemoteSearch(e.target.value)}
-        />
-        <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-      </div>
-
-      {activeSource === 'shapes' ? (
-        <>
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`px-3 py-1.5 rounded-full text-[10px] font-bold border ${selectedCategory === cat.id ? 'bg-brand-600 border-brand-600 text-white' : 'bg-surface-dark-3 border-gray-700 text-gray-400'}`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-          {recentShapes.length > 0 && (
-            <div>
-              <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Recently Used</h4>
-              <div className="grid grid-cols-3 gap-3">
-                {recentShapes.map((item, idx) => renderShapeItem(item, idx))}
-              </div>
-            </div>
-          )}
-          <div className="grid grid-cols-3 gap-3">{filteredShapes.map((item, idx) => renderShapeItem(item, idx))}</div>
-        </>
-      ) : (
-        <div className="space-y-4">
-          {_isSearching ? (
-            <div className="grid grid-cols-3 gap-3">
-              {[...Array(6)].map((_, i) => (
-                <ElementSkeleton key={i} />
-              ))}
-            </div>
-          ) : hasSearched ? (
-            <div className="grid grid-cols-3 gap-3">
-              {remoteIcons.map((icon) => (
-                <button
-                  key={icon.id}
-                  onClick={() => handleAddRemoteIcon(icon)}
-                  className="aspect-square bg-surface-dark-3 border border-gray-800 rounded-xl hover:border-brand-600 flex items-center justify-center p-2 group"
-                >
-                  {icon.svgData ? (
-                    <div
-                      className="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
-                      dangerouslySetInnerHTML={{
-                        __html: DOMPurify.sanitize(icon.svgData, { USE_PROFILES: { svg: true } }),
-                      }}
-                    />
-                  ) : icon.thumbnailUrl ? (
-                    <img
-                      src={icon.thumbnailUrl}
-                      alt={icon.name}
-                      className="w-full h-full object-contain group-hover:scale-110 transition-transform"
-                    />
-                  ) : (
-                    <span className="text-[8px] text-gray-500 text-center truncate">{icon.name}</span>
-                  )}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-1.5">
-              {quickSearchTerms.map((term) => (
-                <button
-                  key={term}
-                  onClick={() => {
-                    setSearchQuery(term);
-                    searchRemoteIcons(term);
-                  }}
-                  className="text-[10px] px-3 py-1 bg-surface-dark-3 text-gray-400 rounded-full border border-gray-700"
-                >
-                  {term}
-                </button>
-              ))}
-            </div>
-          )}
+    <div data-testid="elements-panel" className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
+      <PanelHeader
+        tabs={sources.map((src) => ({
+          id: src.id,
+          label: src.label,
+          icon: <src.icon className="w-3.5 h-3.5" />,
+        }))}
+        activeTabId={activeSource}
+        onTabChange={(id) => {
+          setActiveSource(id as ActiveSource);
+          setRemoteIcons([]);
+          setHasSearched(false);
+          if (id === 'stickers') {
+            setIsSearching(true);
+            stickerService.getTrendingStickers().then((res) => {
+              setRemoteIcons(
+                res.map((st) => ({
+                  id: st.id,
+                  name: st.name,
+                  thumbnailUrl: st.thumbnail,
+                  source: st.source,
+                  width: st.width,
+                  height: st.height,
+                  url: st.url,
+                }))
+              );
+              setIsSearching(false);
+              setHasSearched(true);
+            });
+          } else if (searchQuery.trim().length >= 2) {
+            setTimeout(() => searchRemoteIcons(searchQuery), 0);
+          }
+        }}
+      />
+      <div
+        className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-5 flex flex-col"
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'copy';
+        }}
+        onDrop={(e) => {
+          const raw = e.dataTransfer.getData('application/x-shape-preset');
+          if (raw && dragData) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const preset = dragData;
+            internalAddShape(preset.type, { ...preset.props, name: preset.name }, preset.name);
+            setDragData(null);
+          }
+        }}
+      >
+        {/* Search */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder={`Search ${activeSource}...`}
+            className="w-full bg-surface-dark-3 border border-gray-700 rounded-xl py-2 pl-10 text-xs text-white focus:border-brand-600"
+            value={searchQuery}
+            onChange={(e) => handleRemoteSearch(e.target.value)}
+          />
+          <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
         </div>
-      )}
+
+        {activeSource === 'shapes' ? (
+          <>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-3 py-1.5 rounded-full text-[10px] font-bold border ${selectedCategory === cat.id ? 'bg-brand-600 border-brand-600 text-white' : 'bg-surface-dark-3 border-gray-700 text-gray-400'}`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+            {recentShapes.length > 0 && (
+              <div>
+                <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Recently Used</h4>
+                <div className="grid grid-cols-3 gap-3">
+                  {recentShapes.map((item, idx) => renderShapeItem(item, idx))}
+                </div>
+              </div>
+            )}
+            <div className="grid grid-cols-3 gap-3">
+              {filteredShapes.map((item, idx) => renderShapeItem(item, idx))}
+            </div>
+          </>
+        ) : (
+          <div className="space-y-4">
+            {_isSearching ? (
+              <div className="grid grid-cols-3 gap-3">
+                {[...Array(6)].map((_, i) => (
+                  <ElementSkeleton key={i} />
+                ))}
+              </div>
+            ) : hasSearched ? (
+              <div className="grid grid-cols-3 gap-3">
+                {remoteIcons.map((icon) => (
+                  <button
+                    key={icon.id}
+                    onClick={() => handleAddRemoteIcon(icon)}
+                    className="aspect-square bg-surface-dark-3 border border-gray-800 rounded-xl hover:border-brand-600 flex items-center justify-center p-2 group"
+                  >
+                    {icon.svgData ? (
+                      <div
+                        className="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
+                        dangerouslySetInnerHTML={{
+                          __html: DOMPurify.sanitize(icon.svgData, { USE_PROFILES: { svg: true } }),
+                        }}
+                      />
+                    ) : icon.thumbnailUrl ? (
+                      <img
+                        src={icon.thumbnailUrl}
+                        alt={icon.name}
+                        className="w-full h-full object-contain group-hover:scale-110 transition-transform"
+                      />
+                    ) : (
+                      <span className="text-[8px] text-gray-500 text-center truncate">{icon.name}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-1.5">
+                {quickSearchTerms.map((term) => (
+                  <button
+                    key={term}
+                    onClick={() => {
+                      setSearchQuery(term);
+                      searchRemoteIcons(term);
+                    }}
+                    className="text-[10px] px-3 py-1 bg-surface-dark-3 text-gray-400 rounded-full border border-gray-700"
+                  >
+                    {term}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

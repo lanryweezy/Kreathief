@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { Icons } from '../../constants';
 import { MOCKUP_CATEGORIES, MockupPlacement, getMockupById } from '../../services/enhancedMockupsLibrary';
 import { VecteezyResource } from '../../services/vecteezyService';
+import { PanelHeader } from './PanelHeader';
 
 export interface MockupLibraryProps {
   variant: 'default' | 'full';
@@ -80,18 +81,21 @@ export const MockupLibrary: React.FC<MockupLibraryProps> = ({
   if (variant === 'full') {
     return (
       <div className="w-[320px] flex flex-col border-r border-gray-800 bg-surface-dark-2 shrink-0">
-        <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-          <h2 className="text-sm font-black uppercase tracking-widest text-brand-600">Smart Mockups</h2>
-          {onClose && (
-            <button
-              onClick={onClose}
-              aria-label="Close panel"
-              className="p-1 hover:bg-white/5 rounded-md text-gray-500 hover:text-white transition-all"
-            >
-              <Icons.X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
+        <PanelHeader
+          title="Smart Mockups"
+          icon={<Icons.Magic className="w-5 h-5" />}
+          action={
+            onClose ? (
+              <button
+                onClick={onClose}
+                aria-label="Close panel"
+                className="p-1 hover:bg-white/5 rounded-md text-gray-500 hover:text-white transition-all"
+              >
+                <Icons.X className="w-4 h-4" />
+              </button>
+            ) : null
+          }
+        />
 
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
           <div className="p-3 bg-blue-900/10 border border-blue-500/20 rounded-lg">
@@ -361,19 +365,14 @@ export const MockupLibrary: React.FC<MockupLibraryProps> = ({
 
   return (
     <>
-      <div className="flex overflow-x-auto custom-scrollbar border-b border-gray-800 bg-surface-dark-2">
-        {MOCKUP_CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`px-4 py-3 text-xs font-medium whitespace-nowrap transition-colors ${
-              activeCategory === cat ? 'text-brand-600 border-b-2 border-brand-600' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
+      <PanelHeader
+        tabs={MOCKUP_CATEGORIES.map((cat) => ({
+          id: cat,
+          label: cat,
+        }))}
+        activeTabId={activeCategory}
+        onTabChange={(id) => setActiveCategory(id)}
+      />
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
         <div className="p-3 bg-blue-900/10 border border-blue-500/20 rounded-lg flex items-start gap-3">

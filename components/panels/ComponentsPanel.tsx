@@ -3,6 +3,7 @@ import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
 import { Layer, Artboard } from '../../types';
 import { EmptyState } from '../EmptyState';
+import { PanelHeader } from './PanelHeader';
 
 export const ComponentsPanel: React.FC = () => {
   const artboards = useStore((state) => state.artboards);
@@ -36,19 +37,18 @@ export const ComponentsPanel: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#13161a]">
-      <div className="p-4 border-b border-gray-700 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h3 className="font-bold text-white text-sm tracking-wide flex items-center gap-2 uppercase">
-            <Icons.LayoutGrid className="w-4 h-4 text-brand-600" />
-            Asset Library
-          </h3>
+    <div className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
+      <PanelHeader
+        title="Asset Library"
+        icon={<Icons.LayoutGrid className="w-5 h-5 text-brand-600" />}
+        action={
           <span className="text-[10px] text-gray-500 font-mono bg-gray-800 px-1.5 py-0.5 rounded">
             {masterComponents.length} Components
           </span>
-        </div>
-
-        {canCreateComponent && (
+        }
+      />
+      {canCreateComponent && (
+        <div className="p-4 border-b border-white/5 shrink-0">
           <button
             onClick={handleCreateComponent}
             className="w-full bg-brand-600 hover:bg-[#6b23c5] text-white text-xs font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-600/20"
@@ -56,8 +56,8 @@ export const ComponentsPanel: React.FC = () => {
             <Icons.Plus className="w-4 h-4" />
             Create Component from Selection
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
         {masterComponents.length === 0 ? (

@@ -8,8 +8,9 @@ import { SECTION_BLOCKS, SECTION_CATEGORIES, SectionCategory, SectionBlock } fro
 import { deployToVercel } from '../../services/vercelService';
 import { exportWebsite, downloadWebsiteAsZip } from '../../services/websiteExportService';
 import { log } from '../../utils/log';
+import { PanelHeader } from './PanelHeader';
 
-const generateWebsiteDesign = (null as unknown) as any;
+const generateWebsiteDesign = null as unknown as any;
 
 type ActiveTab = 'pages' | 'sections' | 'settings' | 'seo';
 
@@ -70,13 +71,17 @@ export const WebsitePanel: React.FC = () => {
   }, [addWebsitePage]);
 
   const handleDeletePage = (id: string) => {
-    if (websitePages.length <= 1) return;
+    if (websitePages.length <= 1) {
+      return;
+    }
     deleteArtboard(id);
   };
 
   const handleUpdatePageMeta = (id: string, field: string, value: any) => {
     const artboard = artboards.find((a: Artboard) => a.id === id);
-    if (!artboard) return;
+    if (!artboard) {
+      return;
+    }
     const current = (artboard as any).websitePage || {};
     updateArtboard(id, { websitePage: { ...current, [field]: value } } as any);
   };
@@ -85,7 +90,9 @@ export const WebsitePanel: React.FC = () => {
     (block: SectionBlock) => {
       const state = useStore.getState();
       const artboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
-      if (!artboard) return;
+      if (!artboard) {
+        return;
+      }
 
       const { addShapeLayer, addTextLayer } = state as any;
 
@@ -172,7 +179,9 @@ export const WebsitePanel: React.FC = () => {
   );
 
   const handleGenerateWebsite = async () => {
-    if (!aiPromptText.trim() || isGeneratingAI) return;
+    if (!aiPromptText.trim() || isGeneratingAI) {
+      return;
+    }
 
     setIsGeneratingAI(true);
     try {
@@ -197,7 +206,9 @@ export const WebsitePanel: React.FC = () => {
         const newState = useStore.getState();
         const newArtboard = newState.artboards[newState.artboards.length - 1];
 
-        if (!newArtboard) continue;
+        if (!newArtboard) {
+          continue;
+        }
 
         // Set Metadata
         updateArtboard(newArtboard.id, {
@@ -357,30 +368,23 @@ export const WebsitePanel: React.FC = () => {
 
   return (
     <PanelErrorBoundary>
-      <div className="flex flex-col h-full bg-surface-dark-2 text-white">
-        {/* Header */}
-        <div className="p-4 border-b border-surface-dark-0">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-sm font-bold tracking-wide uppercase flex items-center gap-2">
-                <Icons.Globe className="w-4 h-4 text-brand-400" />
-                Website Builder
-              </h2>
-              <p className="text-xs text-gray-400 mt-0.5">{siteSettings?.name || 'Untitled Site'}</p>
-            </div>
+      <div className="flex flex-col h-full bg-surface-dark-2 text-white overflow-hidden">
+        <PanelHeader
+          title="Website Builder"
+          icon={<Icons.Globe className="w-5 h-5 text-brand-400" />}
+          action={
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowDeployModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold rounded-lg transition-all shadow-glow-brand"
+                className="flex items-center gap-1.5 px-2.5 py-1 bg-brand-600 hover:bg-brand-500 text-white text-[10px] font-semibold rounded-lg transition-all shadow-glow-brand"
                 title="Publish Website"
               >
                 <AnyIcons.Rocket className="w-3.5 h-3.5" />
                 Publish
               </button>
-              {/* Website mode toggle */}
               <button
                 onClick={() => setWebsiteMode(!websiteMode)}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-semibold transition-all ${
                   websiteMode
                     ? 'bg-surface-dark-1 border border-brand-500/30 text-white'
                     : 'bg-white/5 text-gray-400 hover:bg-white/10'
@@ -391,33 +395,18 @@ export const WebsitePanel: React.FC = () => {
                 {websiteMode ? 'Active' : 'Enable'}
               </button>
             </div>
-          </div>
-
-          {/* Tab switcher */}
-          <div className="flex rounded-lg bg-surface-dark-0 p-0.5">
-            {(
-              [
-                { key: 'pages', label: 'Pages', icon: AnyIcons.FileText },
-                { key: 'sections', label: 'Sections', icon: AnyIcons.LayoutGrid },
-                { key: 'settings', label: 'Settings', icon: AnyIcons.Settings },
-              ] as const
-            ).map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as ActiveTab)}
-                className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${
-                  activeTab === tab.key ? 'bg-surface-dark-2 text-white shadow' : 'text-gray-500 hover:text-gray-300'
-                }`}
-              >
-                <tab.icon className="w-3 h-3" />
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
+          }
+          tabs={[
+            { id: 'pages', label: 'Pages', icon: AnyIcons.FileText },
+            { id: 'sections', label: 'Sections', icon: AnyIcons.LayoutGrid },
+            { id: 'settings', label: 'Settings', icon: AnyIcons.Settings },
+          ]}
+          activeTabId={activeTab}
+          onTabChange={(id) => setActiveTab(id as any)}
+        />
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
           {/* ===== PAGES TAB ===== */}
           {activeTab === 'pages' && (
             <div className="p-3 space-y-2">
@@ -664,7 +653,9 @@ export const WebsitePanel: React.FC = () => {
                       {block.category === 'Hero' && <AnyIcons.Monitor className="w-5 h-5 text-brand-400" />}
                       {block.category === 'Navigation' && <AnyIcons.LayoutGrid className="w-5 h-5 text-blue-400" />}
                       {block.category === 'Features' && <AnyIcons.Zap className="w-5 h-5 text-yellow-400" />}
-                      {block.category === 'Testimonials' && <AnyIcons.MessageSquare className="w-5 h-5 text-green-400" />}
+                      {block.category === 'Testimonials' && (
+                        <AnyIcons.MessageSquare className="w-5 h-5 text-green-400" />
+                      )}
                       {block.category === 'Pricing' && <AnyIcons.DollarSign className="w-5 h-5 text-emerald-400" />}
                       {block.category === 'Team' && <AnyIcons.Users className="w-5 h-5 text-purple-400" />}
                       {block.category === 'Gallery' && <AnyIcons.Image className="w-5 h-5 text-pink-400" />}

@@ -4,7 +4,8 @@ import { Icons } from '../../constants';
 const AnyIcons = Icons as any;
 import { Artboard } from '../../types';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
-const generateCarouselDesign = (null as unknown) as any;
+import { PanelHeader } from './PanelHeader';
+const generateCarouselDesign = null as unknown as any;
 import JSZip from 'jszip';
 import { log } from '../../utils/log';
 
@@ -19,9 +20,13 @@ const SlideThumbnail: React.FC<{ artboard: Artboard; isActive: boolean; format: 
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+      return;
+    }
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      return;
+    }
 
     const W = canvas.width;
     const H = canvas.height;
@@ -34,7 +39,9 @@ const SlideThumbnail: React.FC<{ artboard: Artboard; isActive: boolean; format: 
 
     // Render each layer
     artboard.layers.forEach((layer: any) => {
-      if (layer.visible === false) return;
+      if (layer.visible === false) {
+        return;
+      }
       ctx.globalAlpha = layer.opacity ?? 1;
 
       const lx = (layer.x || 0) * scaleX;
@@ -144,7 +151,9 @@ export const CarouselPanel: React.FC = () => {
 
   // ── AI Generation Logic ──
   const handleGenerateCarousel = async () => {
-    if (!aiPromptText.trim()) return;
+    if (!aiPromptText.trim()) {
+      return;
+    }
     setIsGeneratingAI(true);
     try {
       const generated = await generateCarouselDesign(aiPromptText, slideCount);
@@ -300,7 +309,9 @@ export const CarouselPanel: React.FC = () => {
   };
 
   const handleExportSliced = async () => {
-    if (!activeArtboard || !isContinuousMode) return;
+    if (!activeArtboard || !isContinuousMode) {
+      return;
+    }
 
     // We render the continuous canvas onto a hidden canvas, then slice it.
     const W = 1080;
@@ -329,26 +340,21 @@ export const CarouselPanel: React.FC = () => {
 
   return (
     <PanelErrorBoundary>
-      <div className="flex flex-col h-full bg-surface-dark-2">
-        {/* Header */}
-        <div className="flex-none p-4 border-b border-surface-dark-1">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-sm font-bold tracking-wide uppercase flex items-center gap-2">
-                <AnyIcons.Images className="w-4 h-4 text-brand-400" />
-                Carousel Builder
-              </h2>
-              <p className="text-xs text-gray-400 mt-0.5">Social Media Posts</p>
-            </div>
+      <div className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
+        <PanelHeader
+          title="Carousel Builder"
+          icon={<AnyIcons.Images className="w-5 h-5 text-brand-400" />}
+          action={
             <button
               onClick={() => setShowAIModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold rounded-lg transition-all shadow-glow-brand"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-brand-600 hover:bg-brand-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all shadow-glow-brand"
             >
               <AnyIcons.Sparkles className="w-3.5 h-3.5" />
               Auto-Build
             </button>
-          </div>
-
+          }
+        />
+        <div className="flex-none p-4 border-b border-surface-dark-1">
           <div className="flex items-center gap-2 bg-surface-dark-1 p-1 rounded-lg">
             <button
               onClick={() => setCarouselFormat('square')}
@@ -451,7 +457,11 @@ export const CarouselPanel: React.FC = () => {
               {/* Add New Slide Button */}
               <div
                 onClick={() =>
-                  addArtboard({ name: `Slide ${carouselSlides.length + 1}`, width: 1080, height: carouselFormat === 'portrait' ? 1350 : 1080 } as any)
+                  addArtboard({
+                    name: `Slide ${carouselSlides.length + 1}`,
+                    width: 1080,
+                    height: carouselFormat === 'portrait' ? 1350 : 1080,
+                  } as any)
                 }
                 className="aspect-[4/5] rounded-lg border-2 border-dashed border-surface-dark-0 hover:border-brand-500 hover:bg-brand-500/5 flex flex-col items-center justify-center cursor-pointer transition-all text-gray-500 hover:text-brand-400"
               >

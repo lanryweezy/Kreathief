@@ -4,6 +4,7 @@ import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { runAccessibilityAudit } from '../../services/accessibilityService';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
+import { PanelHeader } from './PanelHeader';
 
 export const AccessibilityPanel: React.FC = () => {
   // Use useShallow to prevent unnecessary re-renders when other store values change
@@ -44,26 +45,25 @@ export const AccessibilityPanel: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#13161a] p-4 overflow-hidden">
-      <div className="flex items-center justify-between mb-6 shrink-0">
-        <h3 className="font-bold text-white flex items-center gap-2">
-          <Icons.Help className="w-5 h-5 text-yellow-400" />
-          WCAG Audit
-        </h3>
-        <div
-          className={`px-3 py-1 rounded-full text-[10px] font-black border ${
-            score >= 90
-              ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/20'
-              : score >= 70
-                ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20'
-                : 'bg-red-500/20 text-red-500 border-red-500/20'
-          }`}
-        >
-          {score}% COMPLIANT
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto no-scrollbar space-y-4 pb-10">
+    <div className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
+      <PanelHeader
+        title="WCAG Audit"
+        icon={<Icons.Help className="w-5 h-5 text-yellow-400" />}
+        action={
+          <div
+            className={`px-3 py-1 rounded-full text-[10px] font-black border ${
+              score >= 90
+                ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/20'
+                : score >= 70
+                  ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/20'
+                  : 'bg-red-500/20 text-red-500 border-red-500/20'
+            }`}
+          >
+            SCORE: {score}/100
+          </div>
+        }
+      />
+      <div className="flex-1 overflow-y-auto no-scrollbar space-y-4 pb-10 p-4">
         {issues.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4 border border-emerald-500/20">

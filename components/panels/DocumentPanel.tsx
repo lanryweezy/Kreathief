@@ -3,7 +3,8 @@ import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
 import { Artboard, Layer, ShapeType } from '../../types';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
-const generateDocumentDesign = (null as unknown) as any;
+import { PanelHeader } from './PanelHeader';
+const generateDocumentDesign = null as unknown as any;
 import { jsPDF } from 'jspdf';
 import { log } from '../../utils/log';
 
@@ -17,9 +18,13 @@ const DocumentThumbnail: React.FC<{ artboard: Artboard; isActive: boolean }> = (
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+      return;
+    }
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      return;
+    }
 
     const W = canvas.width;
     const H = canvas.height;
@@ -32,7 +37,9 @@ const DocumentThumbnail: React.FC<{ artboard: Artboard; isActive: boolean }> = (
 
     // Render layers
     artboard.layers.forEach((layer: any) => {
-      if (layer.visible === false) return;
+      if (layer.visible === false) {
+        return;
+      }
       ctx.globalAlpha = layer.opacity ?? 1;
 
       const lx = (layer.x || 0) * scaleX;
@@ -93,7 +100,9 @@ export const DocumentPanel: React.FC = () => {
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
   const handleGenerateDocument = async () => {
-    if (!aiPromptText.trim()) return;
+    if (!aiPromptText.trim()) {
+      return;
+    }
     setIsGeneratingAI(true);
     try {
       const generated = await generateDocumentDesign(aiPromptText, docType);
@@ -124,7 +133,9 @@ export const DocumentPanel: React.FC = () => {
 
         // Iterate through generated sections
         generated.sections.forEach((section: any, idx: number) => {
-          if (currentY > H - 100) return; // Basic overflow prevention
+          if (currentY > H - 100) {
+            return;
+          } // Basic overflow prevention
 
           if (section.title) {
             state.addTextLayer({
@@ -205,7 +216,9 @@ export const DocumentPanel: React.FC = () => {
             currentY += 60 + rows.length * 30;
           } else {
             section.items.forEach((item: any) => {
-              if (currentY > H - 50) return;
+              if (currentY > H - 50) {
+                return;
+              }
 
               if (item.label) {
                 state.addTextLayer({
@@ -266,7 +279,9 @@ export const DocumentPanel: React.FC = () => {
   };
 
   const handleExportPDF = () => {
-    if (documentPages.length === 0) return;
+    if (documentPages.length === 0) {
+      return;
+    }
 
     // Scale from internal pixels (e.g. 794x1123 for A4) to mm
     // A4 is 210x297mm.
@@ -282,7 +297,9 @@ export const DocumentPanel: React.FC = () => {
     });
 
     documentPages.forEach((page: Artboard, index: number) => {
-      if (index > 0) pdf.addPage();
+      if (index > 0) {
+        pdf.addPage();
+      }
 
       // bg
       pdf.setFillColor(page.backgroundColor || '#ffffff');
@@ -346,25 +363,21 @@ export const DocumentPanel: React.FC = () => {
 
   return (
     <PanelErrorBoundary>
-      <div className="flex flex-col h-full bg-surface-dark-2">
-        <div className="flex-none p-4 border-b border-surface-dark-1">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-sm font-bold tracking-wide uppercase flex items-center gap-2">
-                <Icons.FileText className="w-4 h-4 text-brand-400" />
-                Document Builder
-              </h2>
-              <p className="text-xs text-gray-400 mt-0.5">Print-ready PDF generator</p>
-            </div>
+      <div className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
+        <PanelHeader
+          title="Document Builder"
+          icon={<Icons.FileText className="w-5 h-5 text-brand-400" />}
+          action={
             <button
               onClick={() => setShowAIModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold rounded-lg transition-all shadow-glow-brand"
+              className="flex items-center gap-1 px-2.5 py-1.5 bg-brand-600 hover:bg-brand-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all shadow-glow-brand"
             >
               <Icons.Sparkles className="w-3.5 h-3.5" />
               Auto-Build
             </button>
-          </div>
-
+          }
+        />
+        <div className="flex-none p-4 border-b border-surface-dark-1">
           <div className="flex items-center gap-2 bg-surface-dark-1 p-1 rounded-lg">
             <button
               onClick={() => setDocumentFormat('a4')}

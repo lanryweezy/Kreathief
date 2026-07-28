@@ -3,6 +3,7 @@ import { Layer, Artboard } from '../../types';
 import { SnapLine } from '../../utils/snappingOracle';
 import { calculateSnaps as wasmCalculateSnaps, initEngine } from '../../utils/geometry-wasm';
 import { SNAP_THRESHOLD } from '../../components/canvas/CanvasConstants';
+import { haptics } from '../../utils/haptics';
 
 interface UseLayerDraggingProps {
   layers: Layer[];
@@ -45,6 +46,7 @@ export const useLayerDragging = ({
   const dragUpdateBuffer = useRef<Record<string, Partial<Layer>>>({});
   const bulkDragPreviewRef = useRef<Record<string, Partial<Layer>>>({});
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const wasSnappedToCenterRef = useRef(false);
 
   useEffect(() => {
     initEngine();
@@ -59,7 +61,10 @@ export const useLayerDragging = ({
 
   const startDragging = useCallback(
     (e: React.MouseEvent | React.TouchEvent, layer: Layer) => {
-      if ('touches' in e && e.touches.length === 0) return;
+      if ('touches' in e && e.touches.length === 0) {
+        return;
+      }
+      wasSnappedToCenterRef.current = false;
       const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
       const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
       const isShift = 'shiftKey' in e ? e.shiftKey : false;
@@ -213,6 +218,16 @@ export const useLayerDragging = ({
         );
 
         setSnapLines(snap.lines);
+
+        const isSnappedToCenter = snap.lines.some(
+          (line) =>
+            (line.type === 'vertical' && Math.abs(line.value - currentActiveArtboard.width / 2) < 0.5) ||
+            (line.type === 'horizontal' && Math.abs(line.value - currentActiveArtboard.height / 2) < 0.5)
+        );
+        if (isSnappedToCenter && !wasSnappedToCenterRef.current) {
+          haptics.snap();
+        }
+        wasSnappedToCenterRef.current = isSnappedToCenter;
 
         const pivotId = movingLayers[0]?.id;
         const finalDx =

@@ -3,6 +3,7 @@ import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
 import { Artboard } from '../../types';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
+import { PanelHeader } from './PanelHeader';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -34,9 +35,13 @@ const SlideThumbnail: React.FC<{ artboard: Artboard; isActive: boolean }> = ({ a
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+      return;
+    }
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      return;
+    }
 
     const W = canvas.width;
     const H = canvas.height;
@@ -49,7 +54,9 @@ const SlideThumbnail: React.FC<{ artboard: Artboard; isActive: boolean }> = ({ a
 
     // Render each layer as a simplified shape
     artboard.layers.forEach((layer: any) => {
-      if (layer.visible === false) return;
+      if (layer.visible === false) {
+        return;
+      }
       ctx.globalAlpha = layer.opacity ?? 1;
 
       const lx = (layer.x || 0) * scaleX;
@@ -129,7 +136,9 @@ export const SlidesPanel: React.FC = () => {
     setEditName(name);
   };
   const saveRename = (id: string) => {
-    if (editName.trim()) updateArtboard(id, { name: editName.trim() });
+    if (editName.trim()) {
+      updateArtboard(id, { name: editName.trim() });
+    }
     setEditingId(null);
   };
 
@@ -137,7 +146,9 @@ export const SlidesPanel: React.FC = () => {
   const getSlide = (a: Artboard) => (a as any).storyNode || {};
   const updateSlide = (id: string, patch: object) => {
     const artboard = artboards.find((a: Artboard) => a.id === id);
-    if (!artboard) return;
+    if (!artboard) {
+      return;
+    }
     const current = getSlide(artboard);
     updateArtboard(id, { storyNode: { ...current, id: artboard.id, connections: [], ...patch } });
   };
@@ -203,28 +214,21 @@ export const SlidesPanel: React.FC = () => {
   const goTo = useCallback(
     (idx: number) => {
       const t = artboards[idx];
-      if (t) setActiveArtboardId(t.id);
+      if (t) {
+        setActiveArtboardId(t.id);
+      }
     },
     [artboards, setActiveArtboardId]
   );
 
   return (
     <PanelErrorBoundary>
-      <div className="flex flex-col h-full bg-surface-dark-2 text-white">
-        {/* ─── Header ─── */}
-        <div className="p-3 border-b border-surface-dark-0 shrink-0">
-          <div className="flex items-center justify-between mb-2.5">
-            <div>
-              <h2 className="text-[11px] font-black tracking-widest uppercase flex items-center gap-1.5 text-white">
-                <Icons.Monitor className="w-3.5 h-3.5 text-brand-400" />
-                Presentation
-              </h2>
-              <p className="text-[9px] text-gray-500 mt-0.5 font-medium">
-                {artboards.length} slide{artboards.length !== 1 ? 's' : ''} · {activeIndex + 1} active
-              </p>
-            </div>
+      <div className="flex flex-col h-full bg-surface-dark-2 text-white overflow-hidden">
+        <PanelHeader
+          title="Presentation"
+          icon={<Icons.Monitor className="w-5 h-5 text-brand-400" />}
+          action={
             <div className="flex items-center gap-1">
-              {/* View toggle */}
               <button
                 onClick={() => setView(view === 'grid' ? 'list' : 'grid')}
                 className="p-1.5 rounded-lg bg-surface-dark-0 hover:bg-surface-dark-1 text-gray-400 hover:text-white transition-colors"
@@ -236,18 +240,18 @@ export const SlidesPanel: React.FC = () => {
                   <Icons.Layers className="w-3.5 h-3.5" />
                 )}
               </button>
-              {/* Present button */}
               <button
                 onClick={() => setShowPresenter(true)}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-brand-600 hover:bg-brand-700 text-xs font-bold rounded-lg transition-colors shadow-lg shadow-brand-900/20"
+                className="flex items-center gap-1 px-2 py-1 bg-brand-600 hover:bg-brand-700 text-[10px] font-bold rounded-lg transition-colors shadow-lg shadow-brand-900/20"
                 title="Start Presentation (fullscreen)"
               >
                 <Icons.Play className="w-3 h-3" />
                 Present
               </button>
             </div>
-          </div>
-
+          }
+        />
+        <div className="p-3 border-b border-surface-dark-0 shrink-0">
           {/* Quick nav strip */}
           <div className="flex gap-1.5 items-center">
             <button
@@ -703,21 +707,29 @@ const PresenterView: React.FC<PresenterViewProps> = ({
   useEffect(() => {
     timerRef.current = setInterval(() => setElapsed((t) => t + 1), 1000);
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
     };
   }, []);
 
   // Auto-advance
   useEffect(() => {
-    if (autoRef.current) clearTimeout(autoRef.current);
+    if (autoRef.current) {
+      clearTimeout(autoRef.current);
+    }
     const dur = meta.duration;
     if (dur && dur > 0) {
       autoRef.current = setTimeout(() => {
-        if (current < artboards.length - 1) setCurrent((c) => c + 1);
+        if (current < artboards.length - 1) {
+          setCurrent((c) => c + 1);
+        }
       }, dur * 1000);
     }
     return () => {
-      if (autoRef.current) clearTimeout(autoRef.current);
+      if (autoRef.current) {
+        clearTimeout(autoRef.current);
+      }
     };
   }, [current, meta.duration]);
 
@@ -787,10 +799,14 @@ const PresenterView: React.FC<PresenterViewProps> = ({
 
   // Render slide thumbnail on local control canvas (no animations needed here)
   useEffect(() => {
-    if (!slide || !canvasRef.current) return;
+    if (!slide || !canvasRef.current) {
+      return;
+    }
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      return;
+    }
 
     const W = canvas.width;
     const H = canvas.height;
@@ -801,7 +817,9 @@ const PresenterView: React.FC<PresenterViewProps> = ({
     ctx.fillRect(0, 0, W, H);
 
     slide.layers.forEach((layer: any) => {
-      if (layer.visible === false) return;
+      if (layer.visible === false) {
+        return;
+      }
       ctx.globalAlpha = layer.opacity ?? 1;
       const lx = (layer.x || 0) * scaleX;
       const ly = (layer.y || 0) * scaleY;

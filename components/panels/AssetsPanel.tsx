@@ -8,6 +8,7 @@ import { vecteezyService } from '../../services/vecteezyService';
 import { iconScoutService, IconScoutAssetType } from '../../services/iconScoutService';
 import { useStore } from '../../store/useStore';
 import { generateLayerId } from '../../utils/layers/layerUtils';
+import { PanelHeader } from './PanelHeader';
 import { log } from '../../utils/log';
 
 interface PhotoItem {
@@ -263,128 +264,126 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#13161a] p-4 overflow-hidden">
-      <h3 className="font-bold text-white mb-4 flex items-center gap-2">
-        <Icons.Image className="w-5 h-5 text-accent" />
-        {provider ? `${provider.charAt(0).toUpperCase() + provider.slice(1)} Photos` : 'Pro Photos'}
-      </h3>
-
-      {!provider && (
-        <div className="flex gap-1 mb-3 p-0.5 bg-[#1a1a1a] rounded-lg overflow-x-auto">
-          {sources.map((src) => (
-            <button
-              key={src.id}
-              onClick={() => {
-                setActiveSource(src.id);
-                if (hasSearched) {
-                  handleSearch(query || 'nature');
-                }
-              }}
-              className={`flex-shrink-0 py-1.5 px-2 rounded-md text-[10px] font-bold transition-all ${
-                activeSource === src.id ? 'bg-accent text-white' : 'text-gray-500 hover:text-gray-300'
-              }`}
-            >
-              {src.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {(activeSource === 'iconscout' || activeSource === 'all') && (
-        <div className="flex gap-1 mb-4 p-0.5 bg-[#1a1a1a] rounded-lg">
-          {iconScoutTypes.map((type) => (
-            <button
-              key={type.id}
-              onClick={() => {
-                setIconScoutType(type.id);
-                if (hasSearched) {
-                  handleSearch(query || 'trending');
-                }
-              }}
-              className={`flex-1 py-1.5 rounded-md text-[9px] font-medium transition-all ${
-                iconScoutType === type.id
-                  ? 'bg-accent/20 text-accent border border-accent'
-                  : 'text-gray-500 hover:text-gray-300'
-              }`}
-            >
-              {type.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div className="relative mb-4">
-        <input
-          type="text"
-          placeholder="Search millions of photos..."
-          className="w-full bg-surface-dark-3 border border-gray-700 rounded-lg py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-accent transition-colors"
-          value={query}
-          onChange={(e) => handleQueryChange(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch(query)}
-        />
-        <button
-          onClick={() => handleSearch(query)}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
-        >
-          <Icons.Search className="w-4 h-4" />
-        </button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-40 gap-3">
-            <div className="animate-spin w-8 h-8 border-4 border-accent border-t-transparent rounded-full"></div>
-            <p className="text-xs text-gray-500">Searching photos...</p>
-          </div>
-        ) : photos.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4 pb-12 content-start">
-            {photos.map((photo) => (
-              <div
-                key={photo.id}
-                className="aspect-square rounded-lg overflow-hidden relative group cursor-pointer bg-surface-dark-3 border border-gray-700 hover:border-accent transition-all"
-                onClick={() => onAddImageLayer(photo.url)}
+    <div className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
+      {!provider && <PanelHeader title="Pro Photos" icon={<Icons.Image className="w-5 h-5 text-accent" />} />}
+      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col">
+        {!provider && (
+          <div className="flex gap-1 mb-3 p-0.5 bg-[#1a1a1a] rounded-lg overflow-x-auto">
+            {sources.map((src) => (
+              <button
+                key={src.id}
+                onClick={() => {
+                  setActiveSource(src.id);
+                  if (hasSearched) {
+                    handleSearch(query || 'nature');
+                  }
+                }}
+                className={`flex-shrink-0 py-1.5 px-2 rounded-md text-[10px] font-bold transition-all ${
+                  activeSource === src.id ? 'bg-accent text-white' : 'text-gray-500 hover:text-gray-300'
+                }`}
               >
-                <img
-                  src={photo.thumbnail}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  alt={photo.alt}
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
-                  <div className="flex items-center justify-between w-full">
-                    <div className="text-[9px] text-white truncate max-w-[70%]">
-                      by{' '}
-                      {photo.authorLink ? (
-                        <a
-                          href={photo.authorLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="underline hover:text-accent"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {photo.author}
-                        </a>
-                      ) : (
-                        <span>{photo.author}</span>
-                      )}
-                    </div>
-                    <span
-                      className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${sourceColors[photo.source] || 'bg-gray-500/30 text-gray-300'}`}
-                    >
-                      {sourceLabels[photo.source] || photo.source.slice(0, 2).toUpperCase()}
-                    </span>
-                  </div>
-                </div>
-              </div>
+                {src.label}
+              </button>
             ))}
           </div>
-        ) : (
-          hasSearched && (
-            <div className="text-center text-gray-500 mt-10">
-              <p className="text-sm">No photos found for &quot;{query}&quot;</p>
-            </div>
-          )
         )}
+
+        {(activeSource === 'iconscout' || activeSource === 'all') && (
+          <div className="flex gap-1 mb-4 p-0.5 bg-[#1a1a1a] rounded-lg">
+            {iconScoutTypes.map((type) => (
+              <button
+                key={type.id}
+                onClick={() => {
+                  setIconScoutType(type.id);
+                  if (hasSearched) {
+                    handleSearch(query || 'trending');
+                  }
+                }}
+                className={`flex-1 py-1.5 rounded-md text-[9px] font-medium transition-all ${
+                  iconScoutType === type.id
+                    ? 'bg-accent/20 text-accent border border-accent'
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                {type.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="relative mb-4">
+          <input
+            type="text"
+            placeholder="Search millions of photos..."
+            className="w-full bg-surface-dark-3 border border-gray-700 rounded-lg py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-accent transition-colors"
+            value={query}
+            onChange={(e) => handleQueryChange(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch(query)}
+          />
+          <button
+            onClick={() => handleSearch(query)}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+          >
+            <Icons.Search className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center h-40 gap-3">
+              <div className="animate-spin w-8 h-8 border-4 border-accent border-t-transparent rounded-full"></div>
+              <p className="text-xs text-gray-500">Searching photos...</p>
+            </div>
+          ) : photos.length > 0 ? (
+            <div className="grid grid-cols-2 gap-4 pb-12 content-start">
+              {photos.map((photo) => (
+                <div
+                  key={photo.id}
+                  className="aspect-square rounded-lg overflow-hidden relative group cursor-pointer bg-surface-dark-3 border border-gray-700 hover:border-accent transition-all"
+                  onClick={() => onAddImageLayer(photo.url)}
+                >
+                  <img
+                    src={photo.thumbnail}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    alt={photo.alt}
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+                    <div className="flex items-center justify-between w-full">
+                      <div className="text-[9px] text-white truncate max-w-[70%]">
+                        by{' '}
+                        {photo.authorLink ? (
+                          <a
+                            href={photo.authorLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline hover:text-accent"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {photo.author}
+                          </a>
+                        ) : (
+                          <span>{photo.author}</span>
+                        )}
+                      </div>
+                      <span
+                        className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${sourceColors[photo.source] || 'bg-gray-500/30 text-gray-300'}`}
+                      >
+                        {sourceLabels[photo.source] || photo.source.slice(0, 2).toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            hasSearched && (
+              <div className="text-center text-gray-500 mt-10">
+                <p className="text-sm">No photos found for &quot;{query}&quot;</p>
+              </div>
+            )
+          )}
+        </div>
       </div>
     </div>
   );
