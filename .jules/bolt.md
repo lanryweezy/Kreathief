@@ -92,3 +92,7 @@
 ## 2026-07-26 - Optimize Array Iterations in Bounds Calculation
 **Learning:** Multiple array `.map()` passes and spread operations into `Math.min/max()` create unnecessary O(N) allocations and redundant loops, drastically reducing performance when calculating bounding boxes for many items.
 **Action:** Replace chained `.map()` and spread calls with a single standard `for` loop to compute multiple min/max bounds in one pass, reducing memory allocations and speeding up execution time (by ~51% in group bounds calculations).
+
+## 2026-07-29 - Optimize array lookups and map operations in layoutSlice
+**Learning:** Using `.findIndex` inside a `.map` creates an O(N^2) operation, causing severe performance issues with large arrays. Additionally, using `Math.min(...array.map())` causes unnecessary memory allocations and can lead to maximum call stack exceeded errors.
+**Action:** Use a pre-computed `Map` to turn O(N^2) lookups into O(N). Replace chained `.map` and spread operations with a single `for` loop.

@@ -18,22 +18,46 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
     if (selectedLayerIds.length < 2) return;
     get().saveToHistory?.();
 
+    const selectedSet = new Set(selectedLayerIds);
+
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => {
-        const selected = a.layers.filter((l) => selectedLayerIds.includes(l.id));
+        const selected = a.layers.filter((l) => selectedSet.has(l.id));
         if (selected.length < 2) return a;
+
         let value = 0;
-        if (type === 'left') value = Math.min(...selected.map((l) => l.x));
-        if (type === 'right') value = Math.max(...selected.map((l) => l.x + (l as any).width));
-        if (type === 'top') value = Math.min(...selected.map((l) => l.y));
-        if (type === 'bottom') value = Math.max(...selected.map((l) => l.y + ((l as any).height || 0)));
-        if (type === 'center') value = selected.reduce((acc, l) => acc + l.x + (l as any).width / 2, 0) / selected.length;
-        if (type === 'middle') value = selected.reduce((acc, l) => acc + l.y + ((l as any).height || 0) / 2, 0) / selected.length;
+        if (type === 'left' || type === 'right' || type === 'top' || type === 'bottom') {
+          let minX = Infinity;
+          let maxX = -Infinity;
+          let minY = Infinity;
+          let maxY = -Infinity;
+          for (const l of selected) {
+            const w = (l as any).width || 0;
+            const h = (l as any).height || 0;
+            if (l.x < minX) minX = l.x;
+            if (l.x + w > maxX) maxX = l.x + w;
+            if (l.y < minY) minY = l.y;
+            if (l.y + h > maxY) maxY = l.y + h;
+          }
+          if (type === 'left') value = minX;
+          if (type === 'right') value = maxX;
+          if (type === 'top') value = minY;
+          if (type === 'bottom') value = maxY;
+        } else if (type === 'center' || type === 'middle') {
+          let sumX = 0;
+          let sumY = 0;
+          for (const l of selected) {
+            sumX += l.x + ((l as any).width || 0) / 2;
+            sumY += l.y + ((l as any).height || 0) / 2;
+          }
+          if (type === 'center') value = sumX / selected.length;
+          if (type === 'middle') value = sumY / selected.length;
+        }
 
         return {
           ...a,
           layers: a.layers.map((l) => {
-            if (!selectedLayerIds.includes(l.id)) return l;
+            if (!selectedSet.has(l.id)) return l;
             if (type === 'left') return { ...l, x: value };
             if (type === 'right') return { ...l, x: value - (l as any).width };
             if (type === 'top') return { ...l, y: value };
@@ -52,9 +76,11 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
     if (selectedLayerIds.length < 3) return;
     get().saveToHistory?.();
 
+    const selectedSet = new Set(selectedLayerIds);
+
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => {
-        const selected = [...a.layers.filter((l) => selectedLayerIds.includes(l.id))];
+        const selected = [...a.layers.filter((l) => selectedSet.has(l.id))];
         if (selected.length < 3) return a;
 
         if (type === 'horizontal') {
@@ -62,15 +88,20 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
           const totalWidth = sorted.reduce((acc, l) => acc + (l as any).width, 0);
           const span = sorted[sorted.length - 1]!.x + (sorted[sorted.length - 1] as any).width - sorted[0]!.x;
           const spacing = (span - totalWidth) / (sorted.length - 1);
+
+          const newPositions = new Map<string, number>();
           let currentX = sorted[0]!.x;
+          for (const s of sorted) {
+            newPositions.set(s.id, currentX);
+            currentX += (s as any).width + spacing;
+          }
+
           return {
             ...a,
             layers: a.layers.map((l) => {
-              const idx = sorted.findIndex((s) => s.id === l.id);
-              if (idx === -1) return l;
-              const res = { ...l, x: currentX };
-              currentX += (l as any).width + spacing;
-              return res;
+              const newX = newPositions.get(l.id);
+              if (newX === undefined) return l;
+              return { ...l, x: newX };
             }),
           };
         } else {
@@ -78,15 +109,20 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
           const totalHeight = sorted.reduce((acc, l) => acc + ((l as any).height || 0), 0);
           const span = sorted[sorted.length - 1]!.y + ((sorted[sorted.length - 1] as any).height || 0) - sorted[0]!.y;
           const spacing = (span - totalHeight) / (sorted.length - 1);
+
+          const newPositions = new Map<string, number>();
           let currentY = sorted[0]!.y;
+          for (const s of sorted) {
+            newPositions.set(s.id, currentY);
+            currentY += ((s as any).height || 0) + spacing;
+          }
+
           return {
             ...a,
             layers: a.layers.map((l) => {
-              const idx = sorted.findIndex((s) => s.id === l.id);
-              if (idx === -1) return l;
-              const res = { ...l, y: currentY };
-              currentY += ((l as any).height || 0) + spacing;
-              return res;
+              const newY = newPositions.get(l.id);
+              if (newY === undefined) return l;
+              return { ...l, y: newY };
             }),
           };
         }
@@ -128,7 +164,8 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
     if (visibleLayers.length === 0 && !type.startsWith('golden')) return;
 
     const newPositions = new Map<string, { x: number; y: number; width?: number; height?: number }>();
-    const selectedLayers = artboard.layers.filter((l: Layer) => state.selectedLayerIds.includes(l.id) && !l.locked && l.visible);
+    const selectedSet = new Set(state.selectedLayerIds);
+    const selectedLayers = artboard.layers.filter((l: Layer) => selectedSet.has(l.id) && !l.locked && l.visible);
     const layersToLayout = selectedLayers.length > 0 ? selectedLayers : visibleLayers;
 
     if (type === 'golden_v') {
