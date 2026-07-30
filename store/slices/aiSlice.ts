@@ -522,9 +522,8 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
       return;
     }
     saveToHistory();
-    const layers = selectedLayerIds
-      .map((id: string) => artboard.layers.find((l: any) => l.id === id))
-      .filter(Boolean) as ShapeLayer[];
+    const layerMap = new Map(artboard.layers.map((l: any) => [l.id, l]));
+    const layers = selectedLayerIds.map((id: string) => layerMap.get(id)).filter(Boolean) as ShapeLayer[];
     if (layers.length < 2) {
       return;
     }
@@ -565,7 +564,8 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
       return;
     }
     saveToHistory();
-    const layers = selectedLayerIds.map((id: string) => artboard.layers.find((l: any) => l.id === id)).filter(Boolean);
+    const layerMap = new Map(artboard.layers.map((l: any) => [l.id, l]));
+    const layers = selectedLayerIds.map((id: string) => layerMap.get(id)).filter(Boolean);
     if (layers.length < 2) {
       return;
     }
