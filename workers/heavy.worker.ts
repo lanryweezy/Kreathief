@@ -1,6 +1,11 @@
 import ImageTracer from 'imagetracerjs';
 import { removeBackground as imglyRemoveBackground } from '@imgly/background-removal';
 
+function getPixel(data: Uint8ClampedArray, x: number, y: number, width: number) {
+  const idx = (y * width + x) * 4;
+  return { r: data[idx], g: data[idx + 1], b: data[idx + 2], a: data[idx + 3] };
+}
+
 /**
  * Heavy Worker
  * Handles compute-intensive tasks for Kreathief.
@@ -12,7 +17,46 @@ self.onmessage = async (e: MessageEvent) => {
   try {
     switch (type) {
       case 'REMOVE_BACKGROUND': {
-        const resultBlob = await imglyRemoveBackground(payload.imageUrl);
+        let resultBlob: Blob;
+        try {
+          resultBlob = await imglyRemoveBackground(payload.imageUrl);
+        } catch (onnxErr) {
+          // ONNX/WebGPU/WASM failed — fall back to canvas-based edge detection
+          const img = await createImageBitmap(await (await fetch(payload.imageUrl)).blob());
+          const canvas = new OffscreenCanvas(img.width, img.height);
+          const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+          ctx.drawImage(img, 0, 0);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          const corners = [
+            getPixel(data, 0, 0, canvas.width),
+            getPixel(data, canvas.width - 1, 0, canvas.width),
+            getPixel(data, 0, canvas.height - 1, canvas.width),
+            getPixel(data, canvas.width - 1, canvas.height - 1, canvas.width),
+          ];
+          const bgColor = {
+            r: Math.round(corners.reduce((s, c) => s + c.r, 0) / 4),
+            g: Math.round(corners.reduce((s, c) => s + c.g, 0) / 4),
+            b: Math.round(corners.reduce((s, c) => s + c.b, 0) / 4),
+          };
+          const visited = new Uint8Array(canvas.width * canvas.height);
+          const threshold = 45;
+          const queue: [number, number][] = [[0, 0], [canvas.width - 1, 0], [0, canvas.height - 1], [canvas.width - 1, canvas.height - 1]];
+          while (queue.length > 0) {
+            const [x, y] = queue.pop()!;
+            if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) continue;
+            const idx = y * canvas.width + x;
+            if (visited[idx]) continue;
+            const pixel = getPixel(data, x, y, canvas.width);
+            const dist = Math.sqrt((pixel.r - bgColor.r) ** 2 + (pixel.g - bgColor.g) ** 2 + (pixel.b - bgColor.b) ** 2);
+            if (dist > threshold) continue;
+            visited[idx] = 1;
+            data[idx * 4 + 3] = 0;
+            queue.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+          }
+          ctx.putImageData(imageData, 0, 0);
+          resultBlob = await canvas.convertToBlob({ type: 'image/png' });
+        }
         const reader = new FileReader();
         const base64: string = await new Promise((resolve, reject) => {
           reader.onloadend = () => resolve(reader.result as string);
