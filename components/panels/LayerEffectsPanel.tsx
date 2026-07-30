@@ -121,6 +121,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
                 <span>{Math.round(((dropShadow as AdvancedShadow).opacity || 1) * 100)}%</span>
               </div>
               <input
+                aria-label="Drop Shadow Opacity"
                 type="range"
                 min="0"
                 max="100"
@@ -140,6 +141,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
                 <span>{dropShadow.blur}px</span>
               </div>
               <input
+                aria-label="Drop Shadow Blur"
                 type="range"
                 min="0"
                 max="100"
@@ -160,6 +162,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
                   <span>{dropShadow.offsetX}px</span>
                 </div>
                 <input
+                  aria-label="Drop Shadow X Offset"
                   type="range"
                   min="-100"
                   max="100"
@@ -178,6 +181,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
                   <span>{dropShadow.offsetY}px</span>
                 </div>
                 <input
+                  aria-label="Drop Shadow Y Offset"
                   type="range"
                   min="-100"
                   max="100"
@@ -238,6 +242,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
                 <span>{stroke.width}px</span>
               </div>
               <input
+                aria-label="Stroke Width"
                 type="range"
                 min="0"
                 max="50"
@@ -257,6 +262,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
                 <span>{Math.round((stroke.opacity || 1) * 100)}%</span>
               </div>
               <input
+                aria-label="Stroke Opacity"
                 type="range"
                 min="0"
                 max="100"
