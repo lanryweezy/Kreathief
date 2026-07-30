@@ -53,6 +53,21 @@ export default async function handler(req: any, res: any) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
+  const authReq = {
+    headers: {
+      get: (name: string) => req.headers[name.toLowerCase()]
+    }
+  } as unknown as Request;
+
+  try {
+    await requireAuth(authReq);
+  } catch (error: any) {
+    if (error instanceof Response) {
+      return res.status(error.status || 401).json({ error: 'Authentication required' });
+    }
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+
   const clientIp = req.headers['x-forwarded-for'] || 'unknown';
   const rateLimitState = rateLimitMap.get(clientIp);
 
