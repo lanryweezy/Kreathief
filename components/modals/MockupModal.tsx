@@ -400,6 +400,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                   min="0.1"
                   max="1"
                   step="0.01"
+                  aria-label="Material Depth"
                   value={surfaceDepth}
                   onChange={(e) => setSurfaceDepth(parseFloat(e.target.value))}
                   className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
@@ -419,6 +420,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                       min="-45"
                       max="45"
                       step="1"
+                      aria-label="Perspective Warp X"
                       value={perspectiveWarp.rotateX}
                       onChange={(e) => setPerspectiveWarp({ ...perspectiveWarp, rotateX: parseInt(e.target.value) })}
                       className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"
@@ -434,6 +436,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                       min="-45"
                       max="45"
                       step="1"
+                      aria-label="Perspective Warp Y"
                       value={perspectiveWarp.rotateY}
                       onChange={(e) => setPerspectiveWarp({ ...perspectiveWarp, rotateY: parseInt(e.target.value) })}
                       className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-purple-500"

@@ -150,6 +150,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                     type="range"
                     min="-30"
                     max="30"
+                    aria-label="Curve Intensity"
                     value={curve}
                     onChange={(e) => setCurve(Number(e.target.value))}
                     className="w-full h-1.5 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-brand-600"
@@ -172,6 +173,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   type="range"
                   min="0"
                   max="100"
+                  aria-label="Position X"
                   value={placement.left}
                   onChange={(e) => updatePlacement('left', Number(e.target.value))}
                   className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-white"
@@ -180,6 +182,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   type="range"
                   min="0"
                   max="100"
+                  aria-label="Position Y"
                   value={placement.top}
                   onChange={(e) => updatePlacement('top', Number(e.target.value))}
                   className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-white"
@@ -196,6 +199,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   type="range"
                   min="10"
                   max="150"
+                  aria-label="Scale"
                   value={placement.width}
                   onChange={(e) => updatePlacement('width', Number(e.target.value))}
                   className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-white"
@@ -204,6 +208,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   type="range"
                   min="-180"
                   max="180"
+                  aria-label="Rotate"
                   value={placement.rotate}
                   onChange={(e) => updatePlacement('rotate', Number(e.target.value))}
                   className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-white"
@@ -221,6 +226,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                     type="range"
                     min="-45"
                     max="45"
+                    aria-label="Perspective Skew X"
                     value={placement.skewX || 0}
                     onChange={(e) => updatePlacement('skewX', Number(e.target.value))}
                     className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-accent"
@@ -229,6 +235,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                     type="range"
                     min="-45"
                     max="45"
+                    aria-label="Perspective Skew Y"
                     value={placement.skewY || 0}
                     onChange={(e) => updatePlacement('skewY', Number(e.target.value))}
                     className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-accent"
@@ -252,6 +259,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   min="0"
                   max="2"
                   step="0.1"
+                  aria-label="Shadow Intensity"
                   value={shadowIntensity}
                   onChange={(e) => setShadowIntensity(Number(e.target.value))}
                   className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-brand-600"
@@ -274,6 +282,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   min="0"
                   max="1"
                   step="0.05"
+                  aria-label="Reflection Gloss"
                   value={reflectionIntensity}
                   onChange={(e) => setReflectionIntensity(Number(e.target.value))}
                   className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-brand-600"
@@ -296,6 +305,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   min="50"
                   max="150"
                   step="1"
+                  aria-label="Brightness"
                   value={lightingBrightness}
                   onChange={(e) => setLightingBrightness(Number(e.target.value))}
                   className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-brand-600"
