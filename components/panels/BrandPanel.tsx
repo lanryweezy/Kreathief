@@ -22,6 +22,8 @@ export const BrandPanel = () => {
   const onApplyBrandColors = useStore((state) => state.applyBrandColors);
   const onApplyBrandFonts = useStore((state) => state.applyBrandFonts);
   const addLayer = useStore((state) => state.addLayer);
+  const updateLayer = useStore((state) => state.updateLayer);
+  const selectedLayerIds = useStore((state) => state.selectedLayerIds);
   const canvasSize = useStore((state) => state.canvasSize);
   const addToast = useStore((state) => state.addToast);
 
@@ -426,11 +428,20 @@ export const BrandPanel = () => {
                 {/* Colors */}
                 <div data-testid="brand-colors-display" className="flex items-center gap-1.5 mb-3 flex-wrap">
                   {kit.colors.map((c, i) => (
-                    <div
+                    <button
                       key={i}
-                      className="w-5 h-5 rounded-full border border-white/10 shadow-sm"
+                      onClick={() => {
+                        if (selectedLayerIds.length > 0) {
+                          selectedLayerIds.forEach((id) => updateLayer(id, { color: c } as any));
+                          addToast(`Applied color ${c} to selected layer(s)`, 'success');
+                        } else {
+                          navigator.clipboard.writeText(c);
+                          addToast(`Copied ${c} to clipboard`, 'info');
+                        }
+                      }}
+                      className="w-5 h-5 rounded-full border border-white/10 shadow-sm cursor-pointer hover:scale-125 transition-transform"
                       style={{ backgroundColor: c }}
-                      title={c}
+                      title={`Click to apply ${c} (or copy hex)`}
                     />
                   ))}
                   <button

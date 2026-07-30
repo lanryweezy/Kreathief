@@ -4,8 +4,8 @@ import { storageService } from '../../services/storageService';
 import { v4 as uuidv4 } from 'uuid';
 import { createNebulaDemoDesign } from './project/demoDesign';
 import { log } from '../../utils/log';
+import { config } from '../../config';
 import type { StoreState } from '../useStore';
-
 
 export interface ProjectSlice {
   projects: Project[];
@@ -47,17 +47,30 @@ export interface ProjectSlice {
 let autoSaveTimer: NodeJS.Timeout | null = null;
 
 function sanitizeLayer(layer: any): any {
-  if (!layer || typeof layer !== 'object') return layer;
+  if (!layer || typeof layer !== 'object') {
+    return layer;
+  }
   const safe = { ...layer };
   const str = (v: any, def = ''): string => {
-    if (v === null || v === undefined) return def;
-    if (typeof v === 'string') return v;
-    if (typeof v === 'object') return def;
+    if (v === null || v === undefined) {
+      return def;
+    }
+    if (typeof v === 'string') {
+      return v;
+    }
+    if (typeof v === 'object') {
+      return def;
+    }
     return String(v);
   };
   const num = (v: any, def = 0): number => {
-    if (typeof v === 'number') return v;
-    if (typeof v === 'string') { const n = Number(v); return isNaN(n) ? def : n; }
+    if (typeof v === 'number') {
+      return v;
+    }
+    if (typeof v === 'string') {
+      const n = Number(v);
+      return isNaN(n) ? def : n;
+    }
     return def;
   };
   safe.id = str(safe.id, `layer_${Date.now()}`);
@@ -71,33 +84,75 @@ function sanitizeLayer(layer: any): any {
   safe.opacity = typeof safe.opacity === 'number' ? safe.opacity : num(safe.opacity, 1);
   safe.locked = !!safe.locked;
   safe.visible = safe.visible !== false;
-  if (typeof safe.text === 'object') safe.text = str(safe.text);
-  if (typeof safe.fontFamily === 'object') safe.fontFamily = str(safe.fontFamily);
-  if (typeof safe.fill === 'object' && typeof safe.fill !== 'string') safe.fill = str(safe.fill);
+  if (typeof safe.text === 'object') {
+    safe.text = str(safe.text);
+  }
+  if (typeof safe.fontFamily === 'object') {
+    safe.fontFamily = str(safe.fontFamily);
+  }
+  if (typeof safe.fill === 'object' && typeof safe.fill !== 'string') {
+    safe.fill = str(safe.fill);
+  }
   if (typeof safe.stroke === 'object' && typeof safe.stroke?.color !== 'string') {
     safe.stroke = { ...safe.stroke, color: str(safe.stroke?.color, '#000000') };
   }
-  if (typeof safe.blendMode === 'object') safe.blendMode = str(safe.blendMode);
-  if (typeof safe.maskLayerId === 'object') safe.maskLayerId = str(safe.maskLayerId);
-  if (typeof safe.groupId === 'object') safe.groupId = str(safe.groupId);
-  if (typeof safe.masterId === 'object') safe.masterId = str(safe.masterId);
-  if (typeof safe.componentId === 'object') safe.componentId = str(safe.componentId);
-  if (typeof safe.src === 'object') safe.src = str(safe.src);
-  if (typeof safe.pathData === 'object') safe.pathData = str(safe.pathData);
-  if (typeof safe.filter === 'object') safe.filter = str(safe.filter);
-  if (typeof safe.color === 'object') safe.color = str(safe.color, '#000000');
+  if (typeof safe.blendMode === 'object') {
+    safe.blendMode = str(safe.blendMode);
+  }
+  if (typeof safe.maskLayerId === 'object') {
+    safe.maskLayerId = str(safe.maskLayerId);
+  }
+  if (typeof safe.groupId === 'object') {
+    safe.groupId = str(safe.groupId);
+  }
+  if (typeof safe.masterId === 'object') {
+    safe.masterId = str(safe.masterId);
+  }
+  if (typeof safe.componentId === 'object') {
+    safe.componentId = str(safe.componentId);
+  }
+  if (typeof safe.src === 'object') {
+    safe.src = str(safe.src);
+  }
+  if (typeof safe.pathData === 'object') {
+    safe.pathData = str(safe.pathData);
+  }
+  if (typeof safe.filter === 'object') {
+    safe.filter = str(safe.filter);
+  }
+  if (typeof safe.color === 'object') {
+    safe.color = str(safe.color, '#000000');
+  }
   if (typeof safe.shadow === 'object' && safe.shadow !== null) {
     safe.shadow = { ...safe.shadow, color: str(safe.shadow?.color, '#000000') };
   }
-  if (typeof safe.cornerRadius === 'object') safe.cornerRadius = num(safe.cornerRadius);
-  if (typeof safe.fontSize === 'object') safe.fontSize = num(safe.fontSize, 16);
-  if (typeof safe.fontWeight === 'object') safe.fontWeight = str(safe.fontWeight, 'normal');
-  if (typeof safe.fontStyle === 'object') safe.fontStyle = str(safe.fontStyle, 'normal');
-  if (typeof safe.textAlign === 'object') safe.textAlign = str(safe.textAlign, 'left');
-  if (typeof safe.textDecoration === 'object') safe.textDecoration = str(safe.textDecoration);
-  if (typeof safe.textTransform === 'object') safe.textTransform = str(safe.textTransform);
-  if (typeof safe.letterSpacing === 'object') safe.letterSpacing = num(safe.letterSpacing);
-  if (typeof safe.strokeWidth === 'object') safe.strokeWidth = num(safe.strokeWidth, 1);
+  if (typeof safe.cornerRadius === 'object') {
+    safe.cornerRadius = num(safe.cornerRadius);
+  }
+  if (typeof safe.fontSize === 'object') {
+    safe.fontSize = num(safe.fontSize, 16);
+  }
+  if (typeof safe.fontWeight === 'object') {
+    safe.fontWeight = str(safe.fontWeight, 'normal');
+  }
+  if (typeof safe.fontStyle === 'object') {
+    safe.fontStyle = str(safe.fontStyle, 'normal');
+  }
+  if (typeof safe.textAlign === 'object') {
+    safe.textAlign = str(safe.textAlign, 'left');
+  }
+  if (typeof safe.textDecoration === 'object') {
+    safe.textDecoration = str(safe.textDecoration);
+  }
+  if (typeof safe.textTransform === 'object') {
+    safe.textTransform = str(safe.textTransform);
+  }
+  if (typeof safe.letterSpacing === 'object') {
+    safe.letterSpacing = num(safe.letterSpacing);
+  }
+  if (typeof safe.strokeWidth === 'object') {
+    safe.strokeWidth = num(safe.strokeWidth, 1);
+  }
   return safe;
 }
 
@@ -165,7 +220,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
       if (state.projectId && state.hasUnsavedChanges && !state.isSaving && state.autoSaveEnabled) {
         state.saveProject();
       }
-    }, 30000); // Auto-save every 30 seconds
+    }, config.performance.autoSaveInterval);
   },
 
   stopAutoSave: () => {

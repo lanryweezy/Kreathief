@@ -1,8 +1,10 @@
 import React, { useRef } from 'react';
 import { Icons } from '../../constants';
 import { MOCKUP_CATEGORIES, MockupPlacement, getMockupById } from '../../services/enhancedMockupsLibrary';
-import { VecteezyResource } from '../../services/vecteezyService';
+
 import { PanelHeader } from './PanelHeader';
+import { SearchInput } from '../SearchInput';
+import { AssetThumbnail } from '../AssetThumbnail';
 
 export interface MockupLibraryProps {
   variant: 'default' | 'full';
@@ -30,7 +32,7 @@ export interface MockupLibraryProps {
   suggestMockups: () => void;
   customMockup: string | null;
   handleUploadMockup: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  vecteezyResults: VecteezyResource[];
+  vecteezyResults: { id: string; preview_url: string; thumbnail_url?: string; title?: string }[];
   isSearchingVecteezy: boolean;
   APP_STORE_PRESETS: Record<string, string[]>;
   generatePreset: (name: string) => void;
@@ -160,15 +162,14 @@ export const MockupLibrary: React.FC<MockupLibraryProps> = ({
             </div>
           </div>
 
-          <div className="relative">
-            <input
-              type="text"
+          <div className="mb-2">
+            <SearchInput
               placeholder="Search mockups..."
-              className="w-full bg-surface-dark-3 border border-gray-700 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:border-brand-600 focus:outline-none"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(val) => setSearchQuery(val)}
+              onClear={() => setSearchQuery('')}
+              className="py-2 text-xs"
             />
-            <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
           </div>
 
           <div className="flex items-center justify-between text-[10px] text-gray-400">
@@ -283,7 +284,7 @@ export const MockupLibrary: React.FC<MockupLibraryProps> = ({
                   activeMockupId === 'custom' ? 'border-brand-600' : 'border-transparent hover:border-gray-600'
                 }`}
               >
-                <img src={customMockup} alt="Custom mockup" className="w-full h-full object-cover" />
+                <AssetThumbnail src={customMockup} alt="Custom mockup" className="w-full h-full object-cover" />
                 <div className="absolute inset-x-0 bottom-0 bg-brand-600/90 p-1.5 backdrop-blur-sm">
                   <span className="text-[8px] font-bold text-white block truncate">Your Upload</span>
                 </div>
@@ -327,13 +328,36 @@ export const MockupLibrary: React.FC<MockupLibraryProps> = ({
                     activeMockupId === m.id ? 'border-brand-600' : 'border-transparent hover:border-gray-600'
                   }`}
                 >
-                  <img src={m.bg} alt={m.name} className="w-full h-full object-cover" />
+                  <AssetThumbnail src={m.bg} alt={m.name} className="w-full h-full object-cover" />
                   <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1.5 backdrop-blur-sm">
                     <span className="text-[8px] font-bold text-white block truncate">{m.name}</span>
                   </div>
                 </button>
               </div>
             ))}
+
+            {filteredMockups.length === 0 && !customMockup && (
+              <div className="col-span-2 text-center py-8 text-gray-500 text-xs">
+                <Icons.Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                {showFavoritesOnly ? (
+                  <>
+                    <p>No favorite mockups yet. Hover a mockup and tap the heart to save it.</p>
+                    <button onClick={() => setShowFavoritesOnly(false)} className="mt-2 text-brand-600 hover:underline">
+                      Show all mockups
+                    </button>
+                  </>
+                ) : searchQuery ? (
+                  <>
+                    <p>No mockups found for &quot;{searchQuery}&quot;</p>
+                    <button onClick={() => setSearchQuery('')} className="mt-2 text-brand-600 hover:underline">
+                      Clear search
+                    </button>
+                  </>
+                ) : (
+                  <p>No mockups available in this category. Try another category or upload your own above.</p>
+                )}
+              </div>
+            )}
 
             {vecteezyResults.length > 0 && (
               <div className="col-span-2 pt-2 border-t border-gray-800 mt-2">
@@ -350,7 +374,7 @@ export const MockupLibrary: React.FC<MockupLibraryProps> = ({
                     activeMockupId === v.id ? 'border-blue-400' : 'border-transparent hover:border-blue-500/50'
                   }`}
                 >
-                  <img src={v.preview_url} alt={v.title} className="w-full h-full object-cover" />
+                  <AssetThumbnail src={v.preview_url} alt={v.title} className="w-full h-full object-cover" />
                   <div className="absolute inset-x-0 bottom-0 bg-black/80 p-1.5 backdrop-blur-sm">
                     <span className="text-[8px] font-bold text-white block truncate">{v.title}</span>
                   </div>
@@ -388,23 +412,14 @@ export const MockupLibrary: React.FC<MockupLibraryProps> = ({
           </div>
         </div>
 
-        <div className="relative">
-          <input
-            type="text"
+        <div className="mb-4">
+          <SearchInput
             placeholder="Search mockups (e.g., t-shirt, phone, coffee)..."
-            className="w-full bg-surface-dark-3 border border-gray-700 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white focus:border-brand-600 focus:outline-none"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(val) => setSearchQuery(val)}
+            onClear={() => setSearchQuery('')}
+            className="py-2.5 text-xs"
           />
-          <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
-            >
-              <Icons.X className="w-3.5 h-3.5" />
-            </button>
-          )}
         </div>
 
         <div className="flex items-center justify-between text-[10px] text-gray-400">
@@ -449,7 +464,7 @@ export const MockupLibrary: React.FC<MockupLibraryProps> = ({
                     : 'border-gray-800 hover:border-gray-600'
                 }`}
               >
-                <img src={m.bg} alt={m.name} className="w-full h-full object-cover" />
+                <AssetThumbnail src={m.bg} alt={m.name} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex items-end p-2">
                   <span className="text-[10px] font-bold text-white shadow-sm">{m.name}</span>
                 </div>

@@ -1,8 +1,6 @@
 import { log } from '../utils/log';
 import { callBackendGeminiAPI } from './geminiService';
 import * as unsplashService from './unsplashService';
-import * as pixabayService from './pixabayService';
-import * as pexelsService from './pexelsService';
 import { safeParseJSON } from '../utils/errorHandling';
 import { SchemaType } from '@google/generative-ai';
 
@@ -96,17 +94,9 @@ export async function getRecommendedAssets(designContext: DesignContext, limit =
 
   for (const query of queries.slice(0, 4)) {
     try {
-      const [usResults, pbResults, pxResults] = await Promise.all([
-        unsplashService.searchPhotos(query).catch(() => []),
-        pixabayService.searchPhotos(query).catch(() => []),
-        pexelsService.searchPhotos(query).catch(() => []),
-      ]);
+      const usResults = await unsplashService.searchPhotos(query).catch(() => []);
 
-      [
-        ...normalizePhotos(usResults, 'unsplash'),
-        ...normalizePhotos(pbResults, 'pixabay'),
-        ...normalizePhotos(pxResults, 'pexels'),
-      ].forEach((asset) => {
+      normalizePhotos(usResults, 'unsplash').forEach((asset) => {
         if (!seen.has(asset.url) && allResults.length < limit) {
           seen.add(asset.url);
           allResults.push({ ...asset, reason: `Matches "${query}"` });

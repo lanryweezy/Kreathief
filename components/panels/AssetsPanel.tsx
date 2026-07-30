@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Icons } from '../../constants';
 import * as unsplashService from '../../services/unsplashService';
-import * as pixabayService from '../../services/pixabayService';
-import * as pexelsService from '../../services/pexelsService';
 import * as freepikService from '../../services/freepikService';
-import { vecteezyService } from '../../services/vecteezyService';
-import { iconScoutService, IconScoutAssetType } from '../../services/iconScoutService';
 import { useStore } from '../../store/useStore';
 import { generateLayerId } from '../../utils/layers/layerUtils';
 import { PanelHeader } from './PanelHeader';
+import { SearchInput } from '../SearchInput';
+import { AssetThumbnail } from '../AssetThumbnail';
 import { log } from '../../utils/log';
 
 interface PhotoItem {
@@ -23,7 +21,7 @@ interface PhotoItem {
 }
 
 interface AssetsPanelProps {
-  provider?: 'unsplash' | 'pixabay' | 'pexels';
+  provider?: 'unsplash';
 }
 
 export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
@@ -52,9 +50,9 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [activeSource, setActiveSource] = useState<string>(provider || 'all');
-  const [iconScoutType, setIconScoutType] = useState<IconScoutAssetType>('3d');
+  const [activeSource, setActiveSource] = useState<string>(provider || 'unsplash');
   const searchTimeoutRef = useRef<any>(null);
+  const tabCacheRef = useRef<Record<string, { photos: PhotoItem[]; query: string }>>({});
 
   useEffect(() => {
     if (provider) {
@@ -77,56 +75,19 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
   }, [activeSource]);
 
   const handleSearch = async (searchQuery: string) => {
+    const q = searchQuery || 'trending';
+    const cached = tabCacheRef.current[activeSource];
+    if (cached && cached.query === q && cached.photos.length > 0) {
+      setPhotos(cached.photos);
+      return;
+    }
     setIsLoading(true);
     setHasSearched(true);
     try {
       const combined: PhotoItem[] = [];
       const q = searchQuery || 'trending';
 
-      if (activeSource === 'all' || activeSource === 'pixabay') {
-        try {
-          const results =
-            provider === 'pixabay' && !searchQuery
-              ? await pixabayService.getTrending()
-              : await pixabayService.searchPhotos(q);
-          results.forEach((p) => {
-            combined.push({
-              id: `pb-${p.id}`,
-              url: p.url,
-              thumbnail: p.thumbnail,
-              alt: p.alt,
-              author: p.user,
-              source: 'pixabay',
-            });
-          });
-        } catch (e) {
-          log.error('[AssetsPanel] Pixabay search failed', e);
-        }
-      }
-
-      if (activeSource === 'all' || activeSource === 'pexels') {
-        try {
-          const results =
-            provider === 'pexels' && !searchQuery
-              ? await pexelsService.getCurated()
-              : await pexelsService.searchPhotos(q);
-          results.forEach((p) => {
-            combined.push({
-              id: `px-${p.id}`,
-              url: p.url,
-              thumbnail: p.thumbnail,
-              alt: p.alt,
-              author: p.photographer,
-              authorLink: p.photographerUrl,
-              source: 'pexels',
-            });
-          });
-        } catch (e) {
-          log.error('[AssetsPanel] Pexels search failed', e);
-        }
-      }
-
-      if (activeSource === 'all' || activeSource === 'unsplash') {
+      if (activeSource === 'unsplash') {
         try {
           const results = await unsplashService.searchPhotos(q);
           results.forEach((p) => {
@@ -142,61 +103,6 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
           });
         } catch (e) {
           log.error('[AssetsPanel] Unsplash search failed', e);
-        }
-      }
-
-      if (activeSource === 'all' || activeSource === 'iconscout') {
-        try {
-          const results = await iconScoutService.search(q, iconScoutType);
-          results.forEach((asset) => {
-            combined.push({
-              id: `is-${asset.uuid}`,
-              url: asset.previewUrl,
-              thumbnail: asset.previewUrl,
-              alt: asset.name,
-              author: asset.author,
-              source: 'iconscout',
-              type: asset.type === 'lottie' ? 'lottie' : 'image',
-            });
-          });
-        } catch (e) {
-          log.error('[AssetsPanel] IconScout search failed', e);
-        }
-      }
-
-      if (activeSource === 'all' || activeSource === 'freepik') {
-        try {
-          const results = await freepikService.searchResources(q);
-          results.items.forEach((r) => {
-            combined.push({
-              id: `fp-${r.id}`,
-              url: r.thumbnailUrl,
-              thumbnail: r.thumbnailUrl,
-              alt: (r as any).name || '',
-              author: r.author,
-              source: 'freepik',
-            });
-          });
-        } catch (e) {
-          log.error('[AssetsPanel] Freepik search failed', e);
-        }
-      }
-
-      if (activeSource === 'all' || activeSource === 'vecteezy') {
-        try {
-          const results = await vecteezyService.searchResources(q);
-          results.forEach((r) => {
-            combined.push({
-              id: `vz-${r.id}`,
-              url: r.preview_url,
-              thumbnail: r.thumbnail_url || r.preview_url,
-              alt: (r as any).title,
-              author: 'Vecteezy',
-              source: 'vecteezy',
-            });
-          });
-        } catch (e) {
-          log.error('[AssetsPanel] Vecteezy search failed', e);
         }
       }
 
@@ -217,9 +123,9 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
             }
           }
         }
-        setPhotos(interleaved);
-      } else {
-        setPhotos(combined);
+        const finalPhotos = activeSource === 'all' ? interleaved : combined;
+        setPhotos(finalPhotos);
+        tabCacheRef.current[activeSource] = { photos: finalPhotos.slice(0, 20), query: q };
       }
     } catch (e) {
       log.error('[AssetsPanel] Search error', e);
@@ -227,23 +133,6 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
       setIsLoading(false);
     }
   };
-
-  const sources = [
-    { id: 'all', label: 'All' },
-    { id: 'unsplash', label: 'Unsplash' },
-    { id: 'pixabay', label: 'Pixabay' },
-    { id: 'pexels', label: 'Pexels' },
-    { id: 'iconscout', label: 'IconScout' },
-    { id: 'freepik', label: 'Freepik' },
-    { id: 'vecteezy', label: 'Vecteezy' },
-  ];
-
-  const iconScoutTypes: { id: IconScoutAssetType; label: string }[] = [
-    { id: '3d', label: '3D' },
-    { id: 'icon', label: 'Icons' },
-    { id: 'illustration', label: 'Illustrations' },
-    { id: 'lottie', label: 'Lottie' },
-  ];
 
   const sourceColors: Record<string, string> = {
     iconscout: 'bg-blue-500/30 text-blue-300',
@@ -267,65 +156,15 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
     <div className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
       {!provider && <PanelHeader title="Pro Photos" icon={<Icons.Image className="w-5 h-5 text-accent" />} />}
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col">
-        {!provider && (
-          <div className="flex gap-1 mb-3 p-0.5 bg-[#1a1a1a] rounded-lg overflow-x-auto">
-            {sources.map((src) => (
-              <button
-                key={src.id}
-                onClick={() => {
-                  setActiveSource(src.id);
-                  if (hasSearched) {
-                    handleSearch(query || 'nature');
-                  }
-                }}
-                className={`flex-shrink-0 py-1.5 px-2 rounded-md text-[10px] font-bold transition-all ${
-                  activeSource === src.id ? 'bg-accent text-white' : 'text-gray-500 hover:text-gray-300'
-                }`}
-              >
-                {src.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {(activeSource === 'iconscout' || activeSource === 'all') && (
-          <div className="flex gap-1 mb-4 p-0.5 bg-[#1a1a1a] rounded-lg">
-            {iconScoutTypes.map((type) => (
-              <button
-                key={type.id}
-                onClick={() => {
-                  setIconScoutType(type.id);
-                  if (hasSearched) {
-                    handleSearch(query || 'trending');
-                  }
-                }}
-                className={`flex-1 py-1.5 rounded-md text-[9px] font-medium transition-all ${
-                  iconScoutType === type.id
-                    ? 'bg-accent/20 text-accent border border-accent'
-                    : 'text-gray-500 hover:text-gray-300'
-                }`}
-              >
-                {type.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className="relative mb-4">
-          <input
-            type="text"
+        <div className="mb-4">
+          <SearchInput
             placeholder="Search millions of photos..."
-            className="w-full bg-surface-dark-3 border border-gray-700 rounded-lg py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-accent transition-colors"
             value={query}
-            onChange={(e) => handleQueryChange(e.target.value)}
+            onChange={(val) => handleQueryChange(val)}
+            onClear={() => handleQueryChange('')}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch(query)}
+            className="py-2.5 text-sm"
           />
-          <button
-            onClick={() => handleSearch(query)}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
-          >
-            <Icons.Search className="w-4 h-4" />
-          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar">
@@ -342,11 +181,10 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
                   className="aspect-square rounded-lg overflow-hidden relative group cursor-pointer bg-surface-dark-3 border border-gray-700 hover:border-accent transition-all"
                   onClick={() => onAddImageLayer(photo.url)}
                 >
-                  <img
+                  <AssetThumbnail
                     src={photo.thumbnail}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     alt={photo.alt}
-                    loading="lazy"
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
                     <div className="flex items-center justify-between w-full">

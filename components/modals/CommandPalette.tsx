@@ -7,7 +7,8 @@ import { Icons } from '../../constants';
 import { NavTab } from '../../types';
 import { getAllCommands, searchCommands, Command as RegistryCommand } from '../../commands/registry';
 
-import { iconScoutService, IconScoutAsset } from '../../services/iconScoutService';
+import * as freepikService from '../../services/freepikService';
+import { iconScoutService } from '../../services/iconScoutService';
 import { communityService, CommunityTemplate } from '../../services/communityService';
 import { Button } from '../Button';
 
@@ -50,7 +51,7 @@ export const CommandPalette: React.FC = () => {
 
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [assetResults, setAssetResults] = useState<IconScoutAsset[]>([]);
+  const [assetResults, setAssetResults] = useState<any[]>([]);
   const [communityResults, setCommunityResults] = useState<CommunityTemplate[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -70,7 +71,7 @@ export const CommandPalette: React.FC = () => {
       setIsSearching(true);
       try {
         const [assets, templates] = await Promise.all([
-          iconScoutService.search(query, 'icon').catch(() => []),
+          freepikService.searchIcons(query, 5).catch(() => []),
           communityService.fetchTemplates('All', query).catch(() => []),
         ]);
         setAssetResults(Array.isArray(assets) ? assets.slice(0, 5) : []);

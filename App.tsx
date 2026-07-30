@@ -156,6 +156,7 @@ const App: React.FC = () => {
                 name: 'Guest',
                 email: 'guest@kreathief.app',
                 plan: 'free',
+                isGuest: true,
               });
             }
             navigate('/editor');

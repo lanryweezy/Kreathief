@@ -13,6 +13,7 @@ import { TextGradientEditor } from './TextGradientEditor';
 import { TextEffectsPanel } from './TextEffectsPanel';
 import { TextOnPath } from './TextOnPath';
 import { FindReplaceText } from './FindReplaceText';
+import { SearchInput } from '../SearchInput';
 import { TextSpacingControls } from './TextSpacingControls';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { Input } from '../Input';
@@ -402,7 +403,7 @@ export const TextPanel: React.FC = () => {
                       fontWeight: 'bold',
                       color: '#fff',
                       fontFamily: 'Montserrat',
-                      shadow: { color: '#00ffff', blur: 20, offsetX: 0, offsetY: 0 },
+                      textShadow: { color: '#00ffff', blur: 20, offsetX: 0, offsetY: 0 },
                     })
                   }
                   className="h-16 bg-[#1a1a1a] rounded-xl border border-gray-800 hover:border-cyan-500 group relative overflow-hidden flex items-center justify-center"
@@ -419,7 +420,7 @@ export const TextPanel: React.FC = () => {
                       fontWeight: 'bold',
                       color: '#ff0099',
                       fontFamily: 'Righteous',
-                      shadow: { color: '#00ffff', blur: 0, offsetX: 3, offsetY: 3 },
+                      textShadow: { color: '#00ffff', blur: 0, offsetX: 3, offsetY: 3 },
                     })
                   }
                   className="h-16 bg-[#1a1a1a] rounded-xl border border-gray-800 hover:border-pink-500 group relative overflow-hidden flex items-center justify-center"
@@ -437,7 +438,7 @@ export const TextPanel: React.FC = () => {
                       fontWeight: '900',
                       color: '#ffd700',
                       fontFamily: 'Anton',
-                      shadow: { color: '#b8860b', blur: 0, offsetX: 1, offsetY: 1 },
+                      textShadow: { color: '#b8860b', blur: 0, offsetX: 1, offsetY: 1 },
                     })
                   }
                   className="h-16 bg-[#1a1a1a] rounded-xl border border-gray-800 hover:border-yellow-500 group relative overflow-hidden flex items-center justify-center"
@@ -456,7 +457,7 @@ export const TextPanel: React.FC = () => {
                       color: 'transparent',
                       styleType: 'hollow',
                       fontFamily: 'Inter',
-                      stroke: { color: '#ffffff', width: 1 },
+                      textStroke: { color: '#ffffff', width: 1 },
                     })
                   }
                   className="h-16 bg-[#1a1a1a] rounded-xl border border-gray-800 hover:border-white group flex items-center justify-center"
@@ -472,7 +473,7 @@ export const TextPanel: React.FC = () => {
                       fontWeight: 'bold',
                       color: '#fff',
                       fontFamily: 'Rubik Glitch',
-                      shadow: { color: '#f00', blur: 2, offsetX: -2, offsetY: 0 },
+                      textShadow: { color: '#f00', blur: 2, offsetX: -2, offsetY: 0 },
                     })
                   }
                   className="h-16 bg-[#1a1a1a] rounded-xl border border-gray-800 hover:border-red-500 group flex items-center justify-center"
@@ -488,7 +489,7 @@ export const TextPanel: React.FC = () => {
                       fontWeight: 'bold',
                       color: '#ff00ff',
                       fontFamily: 'Monoton',
-                      shadow: { color: '#ff00ff', blur: 15, offsetX: 0, offsetY: 0 },
+                      textShadow: { color: '#ff00ff', blur: 15, offsetX: 0, offsetY: 0 },
                     })
                   }
                   className="h-16 bg-[#1a1a1a] rounded-xl border border-gray-800 hover:border-fuchsia-500 group flex items-center justify-center"
@@ -549,12 +550,12 @@ export const TextPanel: React.FC = () => {
 
               {/* Font Search */}
               <div className="mb-4">
-                <input
-                  type="text"
+                <SearchInput
                   placeholder="Search fonts..."
                   value={fontSearch}
-                  onChange={(e) => setFontSearch(e.target.value)}
-                  className="w-full bg-surface-dark-0/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:border-brand-600 outline-none"
+                  onChange={(val) => setFontSearch(val)}
+                  onClear={() => setFontSearch('')}
+                  className="py-2 text-xs bg-surface-dark-0/40 border-white/10"
                 />
               </div>
 

@@ -500,7 +500,13 @@ export function Node({
                 {['brightness', 'contrast', 'saturation'].map((adj) => (
                   <div key={adj} className="space-y-0.5">
                     <div className="flex justify-between text-[8px] text-white/40">
-                      <span className="capitalize">{adj}</span>
+                      <span
+                        className="capitalize cursor-pointer hover:text-white transition-colors"
+                        title="Double-click to reset to 100%"
+                        onDoubleClick={() => onSettingsChange?.(adj, 100)}
+                      >
+                        {adj}
+                      </span>
                       <span className="font-mono">{node.settings[adj] ?? 100}%</span>
                     </div>
                     <input

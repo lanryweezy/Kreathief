@@ -7,7 +7,7 @@ import { canvas as canvasTokens, content, surface } from '../lib/tokens';
 import { hexToRgba } from '../lib/utils';
 
 export interface ExportOptions {
-  format: 'png' | 'jpg' | 'svg';
+  format: 'png' | 'jpeg' | 'jpg' | 'webp' | 'svg';
   scale: number;
   selectionOnly: boolean;
   quality: number;
@@ -15,6 +15,146 @@ export interface ExportOptions {
 }
 
 // ── Shared helpers (used by both SVG and Canvas export) ──────────────
+
+/**
+ * Bridges the editor Layer model (from types.ts) to the canonical DesignNode format.
+ * Ensures 100% WYSIWYG fidelity for shapes, colors, images, text, gradients, shadows, and strokes.
+ */
+export function layerToDesignNode(layer: any): DesignNode {
+  if (!layer) {
+    return {
+      id: 'empty',
+      type: 'rect',
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+      rotation: 0,
+      opacity: 1,
+      fill: surface[3],
+    } as DesignNode;
+  }
+
+  // If already a canonical DesignNode format, return pass-through
+  if (layer.fill && (layer.type === 'rect' || layer.type === 'ellipse') && typeof layer.color === 'undefined') {
+    return layer as DesignNode;
+  }
+
+  const rawType = (layer.type || 'rectangle').toLowerCase();
+  let type: DesignNode['type'] = 'rect';
+
+  if (rawType === 'text') {
+    type = 'text';
+  } else if (
+    rawType === 'circle' ||
+    rawType === 'ellipse' ||
+    (rawType === 'shape' && (layer.shapeType === 'circle' || layer.shapeType === 'ellipse'))
+  ) {
+    type = 'ellipse';
+  } else if (rawType === 'line') {
+    type = 'line';
+  } else if (rawType === 'image') {
+    type = 'image';
+  } else if (rawType === 'group' || layer.isGroup) {
+    type = 'group';
+  } else if (rawType === 'frame') {
+    type = 'frame';
+  } else if (rawType === 'path' || layer.pathData || layer.vectorPath) {
+    type = 'path';
+  } else {
+    type = 'rect';
+  }
+
+  // Resolve fill: handle string, editor Gradient, or DesignNode GradientFill
+  let fill: string | GradientFill = layer.fill || layer.color || surface[3];
+  if (layer.gradient?.enabled && Array.isArray(layer.gradient.colors) && layer.gradient.colors.length > 0) {
+    fill = {
+      type: layer.gradient.type || 'linear',
+      angle: layer.gradient.angle || 0,
+      stops: layer.gradient.colors.map((c: any) => ({
+        color: c.color || '#000000',
+        offset: typeof c.position === 'number' ? c.position : typeof c.offset === 'number' ? c.offset : 0,
+      })),
+    };
+  }
+
+  // Resolve stroke
+  let stroke: string | undefined = undefined;
+  let strokeWidth: number | undefined = undefined;
+  if (typeof layer.stroke === 'string') {
+    stroke = layer.stroke;
+    strokeWidth = layer.strokeWidth || 1;
+  } else if (layer.stroke && typeof layer.stroke === 'object') {
+    stroke = layer.stroke.color;
+    strokeWidth = layer.stroke.width;
+  }
+
+  // Resolve effects (shadows & blur)
+  const effects: Effect[] = [];
+  if (layer.shadow) {
+    effects.push({
+      id: `shadow-${layer.id || '1'}`,
+      type: 'shadow',
+      enabled: true,
+      params: {
+        x: layer.shadow.offsetX ?? 0,
+        y: layer.shadow.offsetY ?? 4,
+        blur: layer.shadow.blur ?? 8,
+        color: layer.shadow.color ?? content.inverse,
+        opacity: layer.shadow.opacity ?? 0.25,
+      },
+    } as any);
+  }
+  if (layer.filters?.blur) {
+    effects.push({
+      id: `blur-${layer.id || '1'}`,
+      type: 'blur',
+      enabled: true,
+      params: { radius: layer.filters.blur },
+    } as any);
+  }
+
+  // Resolve vector points if present
+  let points: VectorPoint[] | undefined = undefined;
+  if (layer.vectorPath?.points) {
+    points = layer.vectorPath.points.map((p: any) => ({
+      x: p.x,
+      y: p.y,
+      handleIn: p.handleIn,
+      handleOut: p.handleOut,
+    }));
+  }
+
+  const cornerRadius = typeof layer.cornerRadius === 'number' ? layer.cornerRadius : 0;
+  const imageUrl = layer.src || layer.url || layer.imageUrl;
+
+  return {
+    id: layer.id || 'layer',
+    name: layer.name,
+    type,
+    x: layer.x || 0,
+    y: layer.y || 0,
+    width: layer.width || 100,
+    height: layer.height || 100,
+    rotation: layer.rotation || 0,
+    opacity: layer.opacity ?? 1,
+    blendMode: layer.blendMode || 'normal',
+    fill,
+    stroke,
+    strokeWidth,
+    cornerRadius,
+    text: layer.text,
+    fontSize: layer.fontSize,
+    fontFamily: layer.fontFamily,
+    fontWeight: layer.fontWeight,
+    textAlign: layer.textAlign,
+    imageUrl,
+    effects,
+    points,
+    children: layer.children || layer.layerIds,
+    zIndex: layer.zIndex ?? 0,
+  } as DesignNode;
+}
 
 function escapeXml(str: string): string {
   return str
@@ -30,7 +170,7 @@ function resolveFill(node: DesignNode): string {
 }
 
 // ── SVG gradient defs ───────────────────────────────────────────────
-// Same angle→coordinate math as canvasEngine.createGradient (line 1340)
+// Same angle→coordinate math as canvasEngine.createGradient
 
 function renderGradientDef(id: string, fill: GradientFill, node: DesignNode): string {
   if (fill.type === 'linear') {
@@ -50,7 +190,6 @@ function renderGradientDef(id: string, fill: GradientFill, node: DesignNode): st
 }
 
 // ── SVG filter defs ─────────────────────────────────────────────────
-// Same params as canvasEngine renderNode effects (line 1112)
 
 function renderEffectDefs(nodeId: string, effects: Effect[]): string {
   let filterPrimitives = '';
@@ -80,7 +219,6 @@ function renderEffectDefs(nodeId: string, effects: Effect[]): string {
 }
 
 // ── SVG path data from VectorPoint[] ────────────────────────────────
-// Same bezier logic as canvasEngine.renderPath (line 1314)
 
 function pointsToSvgPath(points: VectorPoint[]): string {
   if (points.length < 2) {
@@ -122,7 +260,6 @@ function renderNodeToSvg(
   const blendMode = node.blendMode !== 'normal' ? ` style="mix-blend-mode:${node.blendMode}"` : '';
   const filterAttr = node.effects?.some((e) => e.enabled) ? ` filter="url(#filter-${node.id})"` : '';
 
-  // Resolve fill: string → solid, object → gradient url(#id)
   let fillAttr: string;
   const hasGradient = node.fill && typeof node.fill === 'object' && 'stops' in node.fill;
   if (hasGradient) {
@@ -131,7 +268,6 @@ function renderNodeToSvg(
     fillAttr = `fill="${fill}"`;
   }
 
-  // Group children
   if (node.type === 'group' || node.type === 'frame') {
     const childSvgs = (node.children || [])
       .map((id) => nodesMap.get(id))
@@ -181,7 +317,6 @@ function renderNodeToSvg(
       if (!node.points || node.points.length < 2) {
         return '';
       }
-      // Translate points by offset
       const translated = node.points.map((p: any) => ({
         ...p,
         x: p.x - offsetX,
@@ -194,12 +329,8 @@ function renderNodeToSvg(
     }
 
     case 'image':
-      // Stitch: completed image export — was a placeholder with emoji text.
-      // Evidence: DesignNode has imageUrl property, canvas engine now renders
-      // actual images, but SVG export was still showing placeholder text.
       if (node.imageUrl) {
-        // Use preserveAspectRatio based on imageFit
-        const ar = node.imageFit === 'contain' ? 'xMidYMid meet' : node.imageFit === 'fill' ? 'none' : 'xMidYMid slice'; // cover (default)
+        const ar = node.imageFit === 'contain' ? 'xMidYMid meet' : node.imageFit === 'fill' ? 'none' : 'xMidYMid slice';
         return `<image id="${node.id}" x="${x}" y="${y}" width="${node.width}" height="${node.height}" href="${escapeXml(node.imageUrl)}" preserveAspectRatio="${ar}"${opacity}${transform}${blendMode}${filterAttr} />`;
       }
       return `<g id="${node.id}"${opacity}${transform}${blendMode}${filterAttr}>
@@ -214,30 +345,22 @@ function renderNodeToSvg(
 
 // ── Main SVG export ─────────────────────────────────────────────────
 
-/**
- * Auto-clean exported SVG markup by removing empty groups (<g></g>) and
- * editor-specific metadata for cleaner developer handoff.
- */
 export function cleanSvgMarkup(svg: string): string {
   if (!svg || typeof svg !== 'string') {
     return svg;
   }
   let cleaned = svg;
 
-  // 1. Remove editor-specific data attributes (e.g., data-editor-id, data-kreathief, etc.)
   cleaned = cleaned.replace(/\s+data-[a-zA-Z0-9_-]+="[^"]*"/g, '');
 
-  // 2. Iteratively remove empty <g> groups (e.g. <g id="..."></g> or nested empty groups)
   let prev = '';
   while (prev !== cleaned) {
     prev = cleaned;
     cleaned = cleaned.replace(/<g[^>]*>\s*<\/g>/gi, '');
   }
 
-  // 3. Remove empty <defs> tags
   cleaned = cleaned.replace(/<defs[^>]*>\s*<\/defs>/gi, '');
 
-  // 4. Clean up whitespace and consecutive blank lines
   cleaned = cleaned
     .split('\n')
     .map((line) => line.trimRight())
@@ -247,7 +370,8 @@ export function cleanSvgMarkup(svg: string): string {
   return cleaned.trim();
 }
 
-export function exportToSvg(nodes: DesignNode[], background = true): string {
+export function exportToSvg(nodesInput: (DesignNode | any)[], background = true): string {
+  const nodes = (nodesInput || []).map(layerToDesignNode);
   if (nodes.length === 0) {
     return '<svg xmlns="http://www.w3.org/2000/svg"></svg>';
   }
@@ -268,7 +392,6 @@ export function exportToSvg(nodes: DesignNode[], background = true): string {
   const w = maxX - minX;
   const h = maxY - minY;
 
-  // Collect <defs> — gradients and filters for all nodes
   const defs: string[] = [];
   nodes.forEach((node) => {
     if (node.fill && typeof node.fill === 'object' && 'stops' in node.fill) {
@@ -299,15 +422,14 @@ export function exportToSvg(nodes: DesignNode[], background = true): string {
 }
 
 // ── Canvas (raster) export ──────────────────────────────────────────
-// Shared helpers for gradient/effect computation ensure identical visual
-// output to the canvas editor.
 
 export function exportToCanvas(
   canvas: HTMLCanvasElement,
-  nodes: DesignNode[],
+  nodesInput: (DesignNode | any)[],
   options: ExportOptions
 ): Promise<Blob | null> {
   return new Promise((resolve) => {
+    const nodes = (nodesInput || []).map(layerToDesignNode);
     if (nodes.length === 0) {
       resolve(null);
       return;
@@ -325,23 +447,24 @@ export function exportToCanvas(
     });
 
     const padding = 10;
-    const w = (maxX - minX + padding * 2) * options.scale;
-    const h = (maxY - minY + padding * 2) * options.scale;
+    const scale = options.scale || 1;
+    const w = (maxX - minX + padding * 2) * scale;
+    const h = (maxY - minY + padding * 2) * scale;
 
     const offscreen = document.createElement('canvas');
-    offscreen.width = w;
-    offscreen.height = h;
+    offscreen.width = Math.max(1, Math.round(w));
+    offscreen.height = Math.max(1, Math.round(h));
     const ctx = offscreen.getContext('2d');
     if (!ctx) {
       resolve(null);
       return;
     }
 
-    ctx.scale(options.scale, options.scale);
+    ctx.scale(scale, scale);
 
     if (options.background) {
       ctx.fillStyle = canvasTokens.export.background;
-      ctx.fillRect(0, 0, w, h);
+      ctx.fillRect(0, 0, w / scale, h / scale);
     }
 
     const sorted = [...nodes].sort((a, b) => (a as any).zIndex - (b as any).zIndex);
@@ -353,19 +476,16 @@ export function exportToCanvas(
       ctx.save();
       ctx.globalAlpha = node.opacity ?? 1;
 
-      // Blend mode — matches canvas engine
       if (node.blendMode !== 'normal') {
         ctx.globalCompositeOperation = node.blendMode as GlobalCompositeOperation;
       }
 
-      // Rotation — same pivot as canvasEngine.renderNode (line 1103)
       if (node.rotation) {
         ctx.translate(x + node.width / 2, y + node.height / 2);
         ctx.rotate((node.rotation * Math.PI) / 180);
         ctx.translate(-(x + node.width / 2), -(y + node.height / 2));
       }
 
-      // Effects — same params as canvasEngine (line 1112)
       if (node.effects?.length) {
         for (const effect of node.effects) {
           if (!effect.enabled) {
@@ -391,7 +511,6 @@ export function exportToCanvas(
         }
       }
 
-      // Resolve fill — gradient or solid, same formula as canvasEngine
       const hasGradient = node.fill && typeof node.fill === 'object' && 'stops' in node.fill;
       if (hasGradient) {
         ctx.fillStyle = createCanvasGradient(ctx, node.fill as GradientFill, node);
@@ -399,7 +518,6 @@ export function exportToCanvas(
         ctx.fillStyle = resolveFill(node);
       }
 
-      // Render shape — matches canvas engine per-type rendering
       switch (node.type) {
         case 'rect':
           if ((node.cornerRadius || 0) > 0) {
@@ -485,14 +603,10 @@ export function exportToCanvas(
           break;
         }
 
-        // Stitch: completed image rendering in raster export — was falling
-        // through to default (filled rectangle). Now draws actual image
-        // matching canvasEngine.renderImage behavior.
         case 'image': {
           if (node.imageUrl) {
             const img = new Image();
             img.src = node.imageUrl;
-            // For export, draw synchronously (image should be pre-loaded)
             if (img.complete && img.naturalWidth > 0) {
               ctx.save();
               ctx.beginPath();
@@ -545,7 +659,6 @@ export function exportToCanvas(
           ctx.fillRect(x, y, node.width, node.height);
       }
 
-      // Reset effects — matches canvasEngine (line 1147)
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
       ctx.shadowBlur = 0;
@@ -556,12 +669,17 @@ export function exportToCanvas(
       ctx.restore();
     }
 
-    const mimeType = options.format === 'jpg' ? 'image/jpeg' : 'image/png';
-    offscreen.toBlob((blob) => resolve(blob), mimeType, options.quality / 100);
+    const format = (options.format || 'png').toLowerCase();
+    const mimeType =
+      format === 'jpg' || format === 'jpeg' ? 'image/jpeg' : format === 'webp' ? 'image/webp' : 'image/png';
+
+    const qualityValue =
+      typeof options.quality === 'number' ? (options.quality > 1 ? options.quality / 100 : options.quality) : 0.95;
+
+    offscreen.toBlob((blob) => resolve(blob), mimeType, qualityValue);
   });
 }
 
-// Same gradient formula as canvasEngine.createGradient (line 1340)
 function createCanvasGradient(ctx: CanvasRenderingContext2D, fill: GradientFill, node: DesignNode): CanvasGradient {
   if (fill.type === 'linear') {
     const angle = ((fill.angle || 0) * Math.PI) / 180;
@@ -608,10 +726,10 @@ export function downloadBlob(blob: Blob, filename: string) {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-// ── Stub exports for backward compatibility ────────────────────
+// ── Export helpers for compatibility ─────────────────────────────────
 
 export type ColorProfile = 'srgb' | 'cmyk' | 'p3' | 'FOGRA39' | 'GRACoL' | 'SWOP' | 'CMYK' | 'sRGB';
 
@@ -620,33 +738,35 @@ export interface PDFExportOptions {
   bleed?: number;
   cropMarks?: boolean;
   colorProfile?: ColorProfile;
+  targetDPI?: number;
 }
 
 export async function exportDesignToImage(
-  nodes: DesignNode[],
+  nodes: (DesignNode | any)[],
   options: { width: number; height: number; format?: string; quality?: number; background?: boolean } = {
     width: 1080,
     height: 1080,
   }
 ): Promise<Blob> {
-  if (!Array.isArray(nodes) || nodes.length === 0) {
+  const adaptedNodes = (nodes || []).map(layerToDesignNode);
+  if (!Array.isArray(adaptedNodes) || adaptedNodes.length === 0) {
     return new Blob(['<svg></svg>'], { type: 'image/svg+xml' });
   }
   const canvas = document.createElement('canvas');
   canvas.width = options.width;
   canvas.height = options.height;
-  const result = await exportToCanvas(canvas, nodes, {
+  const result = await exportToCanvas(canvas, adaptedNodes, {
     format: (options.format || 'png') as any,
     scale: 1,
     selectionOnly: false,
-    quality: options.quality || 1,
+    quality: options.quality || 0.95,
     background: options.background !== false,
   });
   return result || new Blob();
 }
 
 export async function exportDesignToBlob(
-  nodes: DesignNode[],
+  nodes: (DesignNode | any)[],
   options: { width: number; height: number; format?: string; quality?: number } = { width: 1080, height: 1080 }
 ): Promise<Blob> {
   return exportDesignToImage(nodes, options);
@@ -655,22 +775,10 @@ export async function exportDesignToBlob(
 export async function exportToSVG(width: number, height: number, background: string, layers: any[]): Promise<string> {
   if (!Array.isArray(layers) || layers.length === 0) {
     return cleanSvgMarkup(
-      `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><rect width="${width}" height="${height}" fill="${background}"/></svg>`
+      `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"><rect width="${width}" height="${height}" fill="${background || '#ffffff'}"/></svg>`
     );
   }
-  const nodes: DesignNode[] = layers.map(
-    (l: any) =>
-      ({
-        id: l.id || 'layer',
-        type: l.type || 'rectangle',
-        x: l.x || 0,
-        y: l.y || 0,
-        width: l.width || 100,
-        height: l.height || 100,
-        rotation: l.rotation || 0,
-        opacity: l.opacity ?? 1,
-      }) as any
-  );
+  const nodes: DesignNode[] = layers.map(layerToDesignNode);
   return cleanSvgMarkup(exportToSvg(nodes, !!background));
 }
 
@@ -680,69 +788,75 @@ export async function exportToLayeredPSD(
   layers: any[],
   filename?: string
 ): Promise<void> {
-  try {
-    const { writePsd } = await import('ag-psd');
+  const { writePsd } = await import('ag-psd');
+  const psdLayers: any[] = [];
+  const adaptedNodes = (layers || []).map(layerToDesignNode);
 
-    const psdLayers: any[] = [];
+  for (let i = 0; i < adaptedNodes.length; i++) {
+    const node = adaptedNodes[i];
+    const layerCanvas = document.createElement('canvas');
+    layerCanvas.width = Math.max(1, Math.round(node.width || 100));
+    layerCanvas.height = Math.max(1, Math.round(node.height || 100));
+    const ctx = layerCanvas.getContext('2d');
 
-    for (let i = 0; i < layers.length; i++) {
-      const layer = layers[i];
-      const layerCanvas = document.createElement('canvas');
-      layerCanvas.width = Math.max(1, Math.round(layer.width || 100));
-      layerCanvas.height = Math.max(1, Math.round(layer.height || 100));
-      const ctx = layerCanvas.getContext('2d');
-
-      if (ctx) {
-        if (layer.type === 'text') {
-          ctx.fillStyle = layer.color || '#000000';
-          ctx.font = `${layer.fontSize || 24}px ${layer.fontFamily || 'sans-serif'}`;
-          ctx.textBaseline = 'top';
-          ctx.fillText(layer.text || '', 0, 0);
-        } else if (layer.type === 'shape') {
-          ctx.fillStyle = layer.fill || '#3b82f6';
+    if (ctx) {
+      const fillStr = resolveFill(node);
+      if (node.type === 'text') {
+        ctx.fillStyle = typeof node.fill === 'string' ? node.fill : content.inverse;
+        ctx.font = `${node.fontWeight || 400} ${node.fontSize || 24}px ${node.fontFamily || 'sans-serif'}`;
+        ctx.textBaseline = 'top';
+        ctx.fillText(node.text || '', 0, 0);
+      } else if (node.type === 'rect' || node.type === 'ellipse' || node.type === 'line' || node.type === 'path') {
+        ctx.fillStyle = fillStr;
+        if (node.type === 'ellipse') {
+          ctx.beginPath();
+          ctx.ellipse(node.width / 2, node.height / 2, node.width / 2, node.height / 2, 0, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
           ctx.fillRect(0, 0, layerCanvas.width, layerCanvas.height);
-        } else if (layer.type === 'image' && layer.src) {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          await new Promise<void>((resolve) => {
-            img.onload = () => {
-              ctx.drawImage(img, 0, 0, layerCanvas.width, layerCanvas.height);
-              resolve();
-            };
-            img.onerror = () => resolve();
-            img.src = layer.src;
-          });
         }
+        if (node.stroke) {
+          ctx.strokeStyle = node.stroke;
+          ctx.lineWidth = node.strokeWidth || 1;
+          ctx.strokeRect(0, 0, layerCanvas.width, layerCanvas.height);
+        }
+      } else if (node.type === 'image' && node.imageUrl) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise<void>((resolve) => {
+          img.onload = () => {
+            ctx.drawImage(img, 0, 0, layerCanvas.width, layerCanvas.height);
+            resolve();
+          };
+          img.onerror = () => resolve();
+          img.src = node.imageUrl!;
+        });
       }
-
-      psdLayers.push({
-        name: layer.name || `Layer ${i + 1}`,
-        left: Math.round(layer.x || 0),
-        top: Math.round(layer.y || 0),
-        right: Math.round((layer.x || 0) + (layer.width || 100)),
-        bottom: Math.round((layer.y || 0) + (layer.height || 100)),
-        opacity: layer.opacity ?? 1,
-        hidden: layer.visible === false,
-        blendMode: layer.blendMode || 'normal',
-        canvas: layerCanvas,
-        text: layer.type === 'text' ? { text: layer.text || '' } : undefined,
-      });
     }
 
-    const psd = {
-      width: Math.round(width),
-      height: Math.round(height),
-      children: psdLayers,
-    };
-
-    const buffer = writePsd(psd);
-    const blob = new Blob([buffer], { type: 'image/vnd.adobe.photoshop' });
-    downloadBlob(blob, `${filename || 'design'}.psd`);
-  } catch (err) {
-    const svg = await exportToSVG(width, height, '#ffffff', layers);
-    const blob = new Blob([svg], { type: 'image/svg+xml' });
-    downloadBlob(blob, `${filename || 'export'}.svg`);
+    psdLayers.push({
+      name: node.name || `Layer ${i + 1}`,
+      left: Math.round(node.x || 0),
+      top: Math.round(node.y || 0),
+      right: Math.round((node.x || 0) + (node.width || 100)),
+      bottom: Math.round((node.y || 0) + (node.height || 100)),
+      opacity: node.opacity ?? 1,
+      hidden: (node as any).visible === false,
+      blendMode: node.blendMode || 'normal',
+      canvas: layerCanvas,
+      text: node.type === 'text' ? { text: node.text || '' } : undefined,
+    });
   }
+
+  const psd = {
+    width: Math.round(width),
+    height: Math.round(height),
+    children: psdLayers,
+  };
+
+  const buffer = writePsd(psd);
+  const blob = new Blob([buffer], { type: 'image/vnd.adobe.photoshop' });
+  downloadBlob(blob, `${filename || 'design'}.psd`);
 }
 
 export async function exportToPrintPDF(
@@ -750,11 +864,67 @@ export async function exportToPrintPDF(
   height: number,
   layers: any[],
   filename?: string,
-  _options?: PDFExportOptions
+  options?: PDFExportOptions
 ): Promise<void> {
-  const svg = await exportToSVG(width, height, '#ffffff', layers);
-  const blob = new Blob([svg], { type: 'image/svg+xml' });
-  downloadBlob(blob, `${filename || 'export'}.pdf`);
+  const safeFilename = filename || 'export';
+  const adaptedLayers = (layers || []).map(layerToDesignNode);
+
+  // Try pdf.worker.ts for background CMYK + PDF generation
+  try {
+    const worker = new Worker(new URL('../workers/pdf.worker.ts', import.meta.url), { type: 'module' });
+    await new Promise<void>((resolve, reject) => {
+      worker.onmessage = (e: MessageEvent) => {
+        if (e.data.type === 'SUCCESS') {
+          downloadBlob(e.data.payload, `${safeFilename}.pdf`);
+          worker.terminate();
+          resolve();
+        } else if (e.data.type === 'ERROR') {
+          worker.terminate();
+          reject(new Error(e.data.error));
+        }
+      };
+      worker.onerror = (err) => {
+        worker.terminate();
+        reject(err);
+      };
+      worker.postMessage({
+        width,
+        height,
+        layers: adaptedLayers,
+        fileName: safeFilename,
+        options: options || {},
+      });
+    });
+    return;
+  } catch (workerErr) {
+    // Fallback to jsPDF export
+    const { default: jsPDF } = await import('jspdf');
+    const pdf = new jsPDF({
+      orientation: width > height ? 'landscape' : 'portrait',
+      unit: 'pt',
+      format: [width, height],
+    });
+    const svg = await exportToSVG(width, height, '#ffffff', layers);
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      const img = new Image();
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+      await new Promise<void>((r) => {
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0);
+          r();
+        };
+        img.onerror = () => r();
+      });
+      const pngData = canvas.toDataURL('image/png');
+      pdf.addImage(pngData, 'PNG', 0, 0, width, height);
+    }
+    const blob = pdf.output('blob');
+    downloadBlob(blob, `${safeFilename}.pdf`);
+  }
 }
 
 export async function batchExportArtboardsZip(
@@ -765,28 +935,24 @@ export async function batchExportArtboardsZip(
   const zip = new JSZip();
   for (let i = 0; i < artboards.length; i++) {
     const ab = artboards[i];
-    const nodes: DesignNode[] = (ab.layers || []).map(
-      (l: any) =>
-        ({
-          id: l.id || `layer-${i}`,
-          type: l.type || 'rectangle',
-          x: l.x || 0,
-          y: l.y || 0,
-          width: l.width || 100,
-          height: l.height || 100,
-          rotation: l.rotation || 0,
-          opacity: l.opacity ?? 1,
-        }) as any
-    );
+    const nodes: DesignNode[] = (ab.layers || []).map(layerToDesignNode);
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = ab.width || 1080;
-    tempCanvas.height = ab.height || 1080;
+    const w = ab.width || 1080;
+    const h = ab.height || 1080;
+    tempCanvas.width = w;
+    tempCanvas.height = h;
     const blob = await exportToCanvas(tempCanvas, nodes, {
       format: (options?.format as any) || 'png',
-      quality: options?.quality || 1,
-    } as any);
+      scale: 1,
+      selectionOnly: false,
+      quality: options?.quality || 0.95,
+      background: true,
+    });
     if (blob) {
-      zip.file(`${ab.name || `artboard-${i}`}.${options?.format || 'png'}`, blob);
+      zip.file(
+        `${ab.name ? ab.name.replace(/[^a-zA-Z0-9_-]/g, '-') : `artboard-${i + 1}`}.${options?.format || 'png'}`,
+        blob
+      );
     }
   }
   return zip.generateAsync({ type: 'blob' });

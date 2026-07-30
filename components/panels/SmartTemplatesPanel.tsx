@@ -4,6 +4,7 @@ import { Icons } from '../../constants';
 import { smartTemplateService, SmartTemplateSuggestion, TemplateContext } from '../../services/smartTemplateService';
 import { AspectRatio } from '../../types';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
+import { SearchInput } from '../SearchInput';
 
 interface SmartTemplatesPanelProps {
   onApplyTemplate?: (templateId: string, variables: Record<string, string>) => void;
@@ -336,16 +337,13 @@ const SearchView: React.FC<{ onSelectTemplate: (s: SmartTemplateSuggestion) => v
   return (
     <div className="space-y-4">
       {/* Search Input */}
-      <div className="relative">
-        <Icons.Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search templates..."
-          value={searchQuery}
-          onChange={(e) => handleSearch(e.target.value)}
-          className="w-full bg-surface-dark-3 border border-gray-700 rounded-lg py-2 pl-9 pr-3 text-sm text-white focus:outline-none focus:border-accent"
-        />
-      </div>
+      <SearchInput
+        placeholder="Search templates..."
+        value={searchQuery}
+        onChange={(val) => handleSearch(val)}
+        onClear={() => handleSearch('')}
+        className="py-2 text-sm"
+      />
 
       {/* Quick Filters */}
       <div className="space-y-2">

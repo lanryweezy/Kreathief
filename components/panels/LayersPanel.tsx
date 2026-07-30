@@ -57,6 +57,9 @@ const LayerItem = React.memo(
     onKeyDown,
   }: LayerItemProps) => {
     const itemRef = useRef<HTMLDivElement>(null);
+    const setHoveredLayerId = useStore((s) => s.setHoveredLayerId);
+    const globalHoveredId = useStore((s) => s.hoveredLayerId);
+    const isHovered = globalHoveredId === layer.id;
     const [showSettings, setShowSettings] = useState(false);
     const [dragOver, setDragOver] = useState<'top' | 'bottom' | null>(null);
     const [isRenaming, setIsRenaming] = useState(false);
@@ -126,7 +129,15 @@ const LayerItem = React.memo(
               }
             }
           }}
-          className={`group relative flex items-center gap-3 px-4 py-3 border-b border-white/[0.03] cursor-pointer transition-all duration-200 ${isSelected ? 'bg-white/[0.05] border-l-4 border-l-brand-600 shadow-inner' : 'hover:bg-white/[0.03]'}`}
+          onMouseEnter={() => setHoveredLayerId?.(layer.id)}
+          onMouseLeave={() => setHoveredLayerId?.(null)}
+          className={`group relative flex items-center gap-3 px-4 py-3 border-b border-white/[0.03] cursor-pointer transition-all duration-200 ${
+            isSelected
+              ? 'bg-white/[0.08] border-l-4 border-l-brand-600 shadow-inner'
+              : isHovered
+                ? 'bg-brand-600/20 border-l-4 border-l-brand-400'
+                : 'hover:bg-white/[0.03]'
+          }`}
           style={{ paddingLeft: isGrouped && !layer.isGroup ? '42px' : '16px' }}
         >
           {/* Mask Indicator Logic */}

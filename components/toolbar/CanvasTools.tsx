@@ -82,12 +82,33 @@ export const CanvasTools = React.memo(({ documentColors }: CanvasToolsProps) => 
 
       <div className="flex items-center gap-4 px-1">
         {[
-          { icon: Icons.Sun, val: canvasFilters.brightness, key: 'brightness', max: 200, title: 'Brightness' },
-          { icon: Icons.Contrast, val: canvasFilters.contrast, key: 'contrast', max: 200, title: 'Contrast' },
-          { icon: Icons.Droplet, val: canvasFilters.saturation, key: 'saturation', max: 200, title: 'Saturation' },
+          {
+            icon: Icons.Sun,
+            val: canvasFilters.brightness,
+            key: 'brightness',
+            max: 200,
+            title: 'Brightness (Double-click to reset)',
+          },
+          {
+            icon: Icons.Contrast,
+            val: canvasFilters.contrast,
+            key: 'contrast',
+            max: 200,
+            title: 'Contrast (Double-click to reset)',
+          },
+          {
+            icon: Icons.Droplet,
+            val: canvasFilters.saturation,
+            key: 'saturation',
+            max: 200,
+            title: 'Saturation (Double-click to reset)',
+          },
         ].map((item: any) => (
           <div key={item.key} className="flex items-center gap-2 group" title={item.title}>
-            <item.icon className="w-3.5 h-3.5 text-gray-500 group-hover:text-white transition-colors" />
+            <item.icon
+              className="w-3.5 h-3.5 text-gray-500 group-hover:text-white transition-colors cursor-pointer"
+              onDoubleClick={() => setCanvasFilters({ ...canvasFilters, [item.key]: 100 })}
+            />
             <label className="sr-only" htmlFor={`filter-${item.key}`}>
               {item.title}
             </label>
@@ -98,7 +119,7 @@ export const CanvasTools = React.memo(({ documentColors }: CanvasToolsProps) => 
               min="0"
               max={item.max}
               aria-label={item.title}
-              value={(canvasFilters as any)[item.key] || 0}
+              value={(canvasFilters as any)[item.key] ?? 100}
               onChange={(e) => setCanvasFilters({ ...canvasFilters, [item.key]: parseInt(e.target.value) })}
               className="w-16 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600 hover:bg-white/20 transition-colors"
             />

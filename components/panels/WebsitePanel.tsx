@@ -9,6 +9,7 @@ import { deployToVercel } from '../../services/vercelService';
 import { exportWebsite, downloadWebsiteAsZip } from '../../services/websiteExportService';
 import { log } from '../../utils/log';
 import { PanelHeader } from './PanelHeader';
+import { SearchInput } from '../SearchInput';
 
 const generateWebsiteDesign = null as unknown as any;
 
@@ -610,16 +611,13 @@ export const WebsitePanel: React.FC = () => {
             <div className="flex flex-col h-full">
               {/* Search */}
               <div className="p-3 border-b border-surface-dark-0">
-                <div className="relative">
-                  <AnyIcons.Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
-                  <input
-                    type="text"
-                    value={sectionSearch}
-                    onChange={(e) => setSectionSearch(e.target.value)}
-                    placeholder="Search sections..."
-                    className="w-full bg-surface-dark-0 border border-surface-dark-1 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-brand-500 placeholder-gray-600"
-                  />
-                </div>
+                <SearchInput
+                  value={sectionSearch}
+                  onChange={(val) => setSectionSearch(val)}
+                  onClear={() => setSectionSearch('')}
+                  placeholder="Search sections..."
+                  className="py-1.5 text-xs bg-surface-dark-0 border-surface-dark-1"
+                />
               </div>
 
               {/* Category pills */}

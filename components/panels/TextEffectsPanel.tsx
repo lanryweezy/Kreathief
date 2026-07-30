@@ -65,9 +65,19 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
   const handleStyleTypeChange = useCallback(
     (type: 'normal' | 'hollow' | 'lift' | 'echo' | 'emboss' | 'deboss') => {
       setStyleType(type);
-      onChange({ ...effects, styleType: type });
+      // Seed a visible default depth so lift/echo/emboss don't start invisible at 0
+      let newDepth = depth;
+      if (!depth && (type === 'lift' || type === 'echo')) {
+        newDepth = 4;
+      } else if (!depth && (type === 'emboss' || type === 'deboss')) {
+        newDepth = 3;
+      }
+      if (newDepth !== depth) {
+        setDepth(newDepth);
+      }
+      onChange({ ...effects, styleType: type, depth: newDepth });
     },
-    [effects, onChange]
+    [effects, onChange, depth]
   );
 
   const handleWarpStyleChange = useCallback(
@@ -119,8 +129,8 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
           textShadow: { offsetX: shadowX, offsetY: shadowY, blur: shadowBlur, color: shadowColor },
         });
       } else {
-        const { textShadow, ...rest } = effects as any;
-        onChange(rest);
+        // Explicit undefined is required: updateLayer shallow-merges, so omitting the key would keep the old shadow
+        onChange({ ...effects, textShadow: undefined });
       }
     },
     [effects, shadowEnabled, shadowX, shadowY, shadowBlur, shadowColor]
@@ -135,8 +145,8 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
           textStroke: { width: strokeWidth, color: strokeColor },
         });
       } else {
-        const { textStroke, ...rest } = effects as any;
-        onChange(rest);
+        // Explicit undefined is required: updateLayer shallow-merges, so omitting the key would keep the old stroke
+        onChange({ ...effects, textStroke: undefined });
       }
     },
     [effects, strokeEnabled, strokeWidth, strokeColor]

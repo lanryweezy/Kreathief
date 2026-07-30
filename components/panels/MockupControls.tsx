@@ -260,7 +260,13 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
 
               <div className="space-y-2">
                 <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
-                  <span>Reflection Gloss</span>
+                  <span
+                    className="cursor-pointer hover:text-white transition-colors"
+                    title="Double-click to reset to 0.5"
+                    onDoubleClick={() => setReflectionIntensity(0.5)}
+                  >
+                    Reflection Gloss
+                  </span>
                   <span className="text-white">{Math.round(reflectionIntensity * 100)}%</span>
                 </div>
                 <input
@@ -276,7 +282,13 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
 
               <div className="space-y-2">
                 <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
-                  <span>Brightness</span>
+                  <span
+                    className="cursor-pointer hover:text-white transition-colors"
+                    title="Double-click to reset to 100%"
+                    onDoubleClick={() => setLightingBrightness(100)}
+                  >
+                    Brightness
+                  </span>
                   <span className="text-white">{lightingBrightness}%</span>
                 </div>
                 <input
@@ -292,7 +304,13 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
 
               <div className="space-y-2">
                 <div className="flex justify-between text-[9px] font-bold text-gray-500 uppercase">
-                  <span>Contrast</span>
+                  <span
+                    className="cursor-pointer hover:text-white transition-colors"
+                    title="Double-click to reset to 100%"
+                    onDoubleClick={() => setLightingContrast(100)}
+                  >
+                    Contrast
+                  </span>
                   <span className="text-white">{lightingContrast}%</span>
                 </div>
                 <input

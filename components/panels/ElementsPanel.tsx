@@ -1,17 +1,18 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Icons } from '../../constants';
 import { ShapeLayer, ImageLayer } from '../../types';
+import { iconScoutService, IconScoutAsset } from '../../services/iconScoutService';
 import * as freepikService from '../../services/freepikService';
-import * as streamlineService from '../../services/streamlineService';
 import * as materialIconService from '../../services/materialIconService';
 import * as lucideIconService from '../../services/lucideIconService';
 import * as phosphorIconService from '../../services/phosphorIconService';
-import * as giService from '../../services/getillustrationService';
 import * as stickerService from '../../services/stickerService';
 import DOMPurify from 'dompurify';
 import { SHAPE_LIBRARY } from '../../constants/shapeLibrary';
 import { ElementSkeleton } from '../Skeleton';
 import { PanelHeader } from './PanelHeader';
+import { SearchInput } from '../SearchInput';
+import { AssetThumbnail } from '../AssetThumbnail';
 
 import { useStore } from '../../store/useStore';
 import { generateLayerId } from '../../utils/layers/layerUtils';
@@ -35,7 +36,7 @@ const saveRecentShape = (name: string) => {
 };
 
 type ShapeCategory = 'all' | 'basic' | 'geometric' | 'decorative' | 'ui' | 'arrows' | 'stars';
-type ActiveSource = 'shapes' | 'stickers' | 'icons' | 'illustrations' | 'material' | 'lucide' | 'phosphor';
+type FilterCategory = 'all' | 'shapes' | '3d' | 'stickers' | 'illustrations' | 'icons';
 
 interface ShapePreset {
   name: string;
@@ -45,13 +46,13 @@ interface ShapePreset {
   keywords: string[];
 }
 
-interface RemoteIcon {
+interface RemoteAsset {
   id: string;
   name: string;
   thumbnailUrl: string;
-  source: 'freepik' | 'streamline' | 'material' | 'lucide' | 'phosphor' | 'gi' | 'tenor' | 'curated';
+  source: string;
+  assetType: 'shape' | '3d' | 'lottie' | 'svg' | 'gif' | 'icon';
   svgData?: string;
-  hash?: string;
   width?: number;
   height?: number;
   url?: string;
@@ -61,17 +62,86 @@ export const ElementsPanel = () => {
   const addLayer = useStore((state) => state.addLayer);
   const canvasSize = useStore((state) => state.canvasSize);
 
-  const [activeSource, setActiveSource] = useState<ActiveSource>('shapes');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState<FilterCategory>('all');
   const [selectedCategory, setSelectedCategory] = useState<ShapeCategory>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedCategory, setExpandedCategory] = useState<FilterCategory | null>(null);
 
-  const [remoteIcons, setRemoteIcons] = useState<RemoteIcon[]>([]);
-  const [_isSearching, setIsSearching] = useState(false);
+  // Curated horizontal carousels data
+  const [trending3D, setTrending3D] = useState<RemoteAsset[]>([]);
+  const [trendingStickers, setTrendingStickers] = useState<RemoteAsset[]>([]);
+  const [trendingIllustrations, setTrendingIllustrations] = useState<RemoteAsset[]>([]);
+
+  const [searchResults, setSearchResults] = useState<RemoteAsset[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const [_loadingIconId, setLoadingIconId] = useState<string | null>(null);
-  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const [recentNames, setRecentNames] = useState<string[]>(getRecentShapes);
-  const [dragData, setDragData] = useState<ShapePreset | null>(null);
+
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Load initial trending items for carousels
+  useEffect(() => {
+    let isMounted = true;
+    const fetchTrendingCarousels = async () => {
+      try {
+        const [scout3d, stickers, freepikRes] = await Promise.allSettled([
+          iconScoutService.search('3d', '3d', 1),
+          stickerService.getTrendingStickers(),
+          freepikService.searchIcons('illustration', 8),
+        ]);
+
+        if (!isMounted) {
+          return;
+        }
+
+        if (scout3d.status === 'fulfilled' && scout3d.value.length > 0) {
+          setTrending3D(
+            scout3d.value.map((item) => ({
+              id: `is3d-${item.uuid}`,
+              name: item.name,
+              thumbnailUrl: item.previewUrl,
+              source: 'iconscout',
+              assetType: '3d',
+            }))
+          );
+        }
+
+        if (stickers.status === 'fulfilled' && stickers.value.length > 0) {
+          setTrendingStickers(
+            stickers.value.map((st) => ({
+              id: st.id,
+              name: st.name,
+              thumbnailUrl: st.thumbnail,
+              source: st.source,
+              assetType: 'gif',
+              width: st.width,
+              height: st.height,
+              url: st.url,
+            }))
+          );
+        }
+
+        if (freepikRes.status === 'fulfilled' && freepikRes.value?.items?.length > 0) {
+          setTrendingIllustrations(
+            freepikRes.value.items.map((ic: any) => ({
+              id: `fp-${ic.id}`,
+              name: ic.name || 'Illustration',
+              thumbnailUrl: ic.thumbnailUrl || ic.image,
+              source: 'freepik',
+              assetType: 'svg',
+            }))
+          );
+        }
+      } catch (err) {
+        log.error('[ElementsPanel] Failed loading carousels', err);
+      }
+    };
+
+    fetchTrendingCarousels();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const internalAddShape = (type: any, style: Partial<ShapeLayer>, shapeName?: string) => {
     const newLayer: ShapeLayer = {
@@ -111,7 +181,7 @@ export const ElementsPanel = () => {
     }
   };
 
-  const internalAddImageLayer = (src: string, name = 'Image Layer', w = 300, h = 300) => {
+  const internalAddImageLayer = (src: string, name = 'Graphic Asset', w = 300, h = 300) => {
     let finalW = w;
     let finalH = h;
     if (w && h && w !== h) {
@@ -158,219 +228,140 @@ export const ElementsPanel = () => {
     addLayer(newLayer);
   };
 
-  const searchRemoteIcons = useCallback(
-    async (query: string) => {
-      if (!query.trim() || query.trim().length < 2) {
-        if (activeSource === 'stickers') {
-          setIsSearching(true);
-          const res = await stickerService.getTrendingStickers();
-          setRemoteIcons(
+  const executeSearch = useCallback(async (query: string, filterCategory: FilterCategory) => {
+    if (!query.trim() && filterCategory === 'all') {
+      setSearchResults([]);
+      setHasSearched(false);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    setHasSearched(true);
+
+    const q = query.trim() || 'trending';
+    const results: RemoteAsset[] = [];
+
+    try {
+      const promises: Promise<any>[] = [];
+
+      if (filterCategory === 'all' || filterCategory === '3d') {
+        promises.push(
+          iconScoutService.search(q, '3d').then((res) =>
+            res.map((item) => ({
+              id: `is3d-${item.uuid}`,
+              name: item.name,
+              thumbnailUrl: item.previewUrl,
+              source: 'iconscout',
+              assetType: '3d' as const,
+            }))
+          )
+        );
+      }
+
+      if (filterCategory === 'all' || filterCategory === 'stickers') {
+        promises.push(
+          stickerService.searchStickers(q).then((res) =>
             res.map((st) => ({
               id: st.id,
               name: st.name,
               thumbnailUrl: st.thumbnail,
               source: st.source,
+              assetType: 'gif' as const,
               width: st.width,
               height: st.height,
               url: st.url,
             }))
-          );
-          setIsSearching(false);
-          setHasSearched(true);
-        } else {
-          setRemoteIcons([]);
-          setHasSearched(false);
-        }
-        return;
+          ),
+          iconScoutService.search(q, 'lottie').then((res) =>
+            res.map((item) => ({
+              id: `islot-${item.uuid}`,
+              name: item.name,
+              thumbnailUrl: item.previewUrl,
+              source: 'iconscout',
+              assetType: 'lottie' as const,
+            }))
+          )
+        );
       }
 
-      setIsSearching(true);
-      setHasSearched(true);
-
-      const source = activeSource;
-
-      try {
-        const searchPromises: Promise<any>[] = [];
-
-        if (source === 'stickers') {
-          searchPromises.push(stickerService.searchStickers(query).then((r) => ({ type: 'stickers', data: r })));
-        } else if (source === 'icons' || source === 'shapes' || source === 'illustrations') {
-          searchPromises.push(
-            freepikService.searchIcons(query, 12).then((r) => ({ type: 'freepik', data: r })),
-            streamlineService.searchIcons(query, 12).then((r) => ({ type: 'streamline', data: r }))
-          );
-          if (source === 'illustrations' && giService.isConfigured()) {
-            searchPromises.push(giService.searchAll(query, 15).then((r) => ({ type: 'gi', data: r })));
-          }
-        }
-        if (source === 'material') {
-          searchPromises.push(materialIconService.searchIcons(query, 20).then((r) => ({ type: 'material', data: r })));
-        }
-        if (source === 'lucide') {
-          searchPromises.push(lucideIconService.searchIcons(query, 20).then((r) => ({ type: 'lucide', data: r })));
-        }
-        if (source === 'phosphor') {
-          searchPromises.push(phosphorIconService.searchIcons(query, 20).then((r) => ({ type: 'phosphor', data: r })));
-        }
-
-        const results = await Promise.allSettled(searchPromises);
-        const icons: RemoteIcon[] = [];
-
-        results.forEach((result) => {
-          if (result.status !== 'fulfilled') {
-            return;
-          }
-          const { type, data } = result.value;
-          if (type === 'stickers' && data?.length > 0) {
-            data.forEach((st: stickerService.StickerAsset) =>
-              icons.push({
-                id: st.id,
-                name: st.name,
-                thumbnailUrl: st.thumbnail,
-                source: st.source,
-                width: st.width,
-                height: st.height,
-                url: st.url,
-              })
-            );
-          } else if (type === 'freepik' && data?.items?.length > 0) {
-            data.items.forEach((icon: any) =>
-              icons.push({ id: `fp-${icon.id}`, name: icon.name, thumbnailUrl: icon.thumbnailUrl, source: 'freepik' })
-            );
-          } else if (type === 'streamline' && data?.icons?.length > 0) {
-            data.icons.forEach((icon: any) => {
-              if (icon.thumbnailUrl) {
-                icons.push({
-                  id: `sl-${icon.id}`,
-                  name: icon.name,
-                  thumbnailUrl: icon.thumbnailUrl,
-                  source: 'streamline',
-                  hash: icon.hash,
-                });
-              }
-            });
-          } else if (type === 'material' && data?.length > 0) {
-            data.forEach((icon: any) =>
-              icons.push({ id: `mi-${icon.name}`, name: icon.name, thumbnailUrl: icon.svgUrl, source: 'material' })
-            );
-          } else if (type === 'lucide' && data?.length > 0) {
-            data.forEach((icon: any) =>
-              icons.push({
-                id: `luc-${icon.name}`,
-                name: icon.name,
-                thumbnailUrl: '',
-                source: 'lucide',
-                svgData: icon.svg,
-              })
-            );
-          } else if (type === 'phosphor' && data?.length > 0) {
-            data.forEach((icon: any) => {
-              if (icon.name || icon.svg) {
-                icons.push({
-                  id: `ph-${icon.name}`,
-                  name: icon.name,
-                  thumbnailUrl: '',
-                  source: 'phosphor',
-                  svgData: icon.svg,
-                });
-              }
-            });
-          } else if (type === 'gi' && data) {
-            const ills = data.illustrations || [];
-            const gicons = data.icons || [];
-            ills.forEach((item: any) =>
-              icons.push({
-                id: `gi-${item.id}`,
-                name: item.pack?.name || 'Illustration',
-                thumbnailUrl: item.thumbnailUrl || item.imageUrl,
-                source: 'gi',
-              })
-            );
-            gicons.forEach((item: any) =>
-              icons.push({
-                id: `gi-${item.id}`,
-                name: item.name || item.iconPack?.name || 'Icon',
-                thumbnailUrl: item.thumbnailUrl || item.imageUrl,
-                source: 'gi',
-              })
-            );
-          }
-        });
-        setRemoteIcons(icons);
-      } catch (err) {
-        log.error('[ElementsPanel] Icon search failed', err);
-        setRemoteIcons([]);
-      } finally {
-        setIsSearching(false);
+      if (filterCategory === 'all' || filterCategory === 'illustrations') {
+        promises.push(
+          freepikService.searchIcons(q, 15).then((res) =>
+            (res?.items || []).map((ic: any) => ({
+              id: `fp-${ic.id}`,
+              name: ic.name || 'Illustration',
+              thumbnailUrl: ic.thumbnailUrl || ic.image,
+              source: 'freepik',
+              assetType: 'svg' as const,
+            }))
+          ),
+          iconScoutService.search(q, 'illustration').then((res) =>
+            res.map((item) => ({
+              id: `isill-${item.uuid}`,
+              name: item.name,
+              thumbnailUrl: item.previewUrl,
+              source: 'iconscout',
+              assetType: 'svg' as const,
+            }))
+          )
+        );
       }
-    },
-    [activeSource]
-  );
 
-  const handleRemoteSearch = useCallback(
-    (query: string) => {
-      setSearchQuery(query);
-      if (activeSource !== 'shapes') {
-        if (searchTimeoutRef.current) {
-          clearTimeout(searchTimeoutRef.current);
-        }
-        searchTimeoutRef.current = setTimeout(() => searchRemoteIcons(query), 400);
+      if (filterCategory === 'all' || filterCategory === 'icons') {
+        promises.push(
+          materialIconService.searchIcons(q, 10).then((res) =>
+            res.map((ic) => ({
+              id: `mi-${ic.name}`,
+              name: ic.name,
+              thumbnailUrl: ic.svgUrl,
+              source: 'material',
+              assetType: 'icon' as const,
+            }))
+          ),
+          lucideIconService.searchIcons(q, 10).then((res) =>
+            res.map((ic) => ({
+              id: `luc-${ic.name}`,
+              name: ic.name,
+              thumbnailUrl: '',
+              source: 'lucide',
+              svgData: ic.svg,
+              assetType: 'icon' as const,
+            }))
+          )
+        );
       }
-    },
-    [activeSource, searchRemoteIcons]
-  );
 
-  const handleAddRemoteIcon = async (icon: RemoteIcon) => {
-    setLoadingIconId(icon.id);
-    try {
-      if (icon.source === 'freepik') {
-        const numericId = parseInt(icon.id.replace('fp-', ''));
-        const blobUrl = await freepikService.downloadIconPNG(numericId);
-        internalAddImageLayer(blobUrl || icon.thumbnailUrl);
-      } else if (icon.source === 'streamline' && icon.hash) {
-        const svgData = await streamlineService.downloadIconSVG(icon.hash, { size: 256 });
-        if (svgData) {
-          const blob = new Blob([svgData], { type: 'image/svg+xml' });
-          internalAddImageLayer(URL.createObjectURL(blob));
-        } else {
-          internalAddImageLayer(icon.thumbnailUrl);
+      const settled = await Promise.allSettled(promises);
+      settled.forEach((res) => {
+        if (res.status === 'fulfilled' && Array.isArray(res.value)) {
+          results.push(...res.value);
         }
-      } else if (icon.source === 'material') {
-        const name = icon.id.replace('mi-', '');
-        const svgData = await materialIconService.downloadIconSVG(name);
-        if (svgData) {
-          const blob = new Blob([svgData], { type: 'image/svg+xml' });
-          internalAddImageLayer(URL.createObjectURL(blob));
-        } else {
-          internalAddImageLayer(icon.thumbnailUrl);
-        }
-      } else if (icon.source === 'lucide') {
-        const svgData = icon.svgData || (await lucideIconService.downloadIconSVG(icon.name));
-        if (svgData) {
-          const blob = new Blob([svgData], { type: 'image/svg+xml' });
-          internalAddImageLayer(URL.createObjectURL(blob));
-        }
-      } else if (icon.source === 'phosphor') {
-        const svgData = icon.svgData || (await phosphorIconService.downloadIconSVG(icon.name));
-        if (svgData) {
-          const blob = new Blob([svgData], { type: 'image/svg+xml' });
-          internalAddImageLayer(URL.createObjectURL(blob));
-        }
-      } else if (icon.source === 'gi') {
-        internalAddImageLayer(icon.thumbnailUrl);
-      } else if (icon.source === 'tenor' || icon.source === 'curated') {
-        internalAddImageLayer(icon.url || icon.thumbnailUrl, icon.name, icon.width, icon.height);
-      } else {
-        internalAddImageLayer(icon.thumbnailUrl);
-      }
-    } catch (err) {
-      log.error('[ElementsPanel] Failed to add icon', err, { iconId: icon.id });
-      if (icon.thumbnailUrl) {
-        internalAddImageLayer(icon.thumbnailUrl);
-      }
+      });
+
+      setSearchResults(results);
+    } catch (e) {
+      log.error('[ElementsPanel] Search error', e);
     } finally {
-      setLoadingIconId(null);
+      setIsSearching(false);
     }
+  }, []);
+
+  const handleQueryChange = (val: string) => {
+    setSearchQuery(val);
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      executeSearch(val, activeFilter);
+    }, 400);
+  };
+
+  const handleFilterClick = (filter: FilterCategory) => {
+    setActiveFilter(filter);
+    setExpandedCategory(filter === 'all' ? null : filter);
+    executeSearch(searchQuery, filter);
   };
 
   const shapePresets: ShapePreset[] = useMemo(
@@ -400,266 +391,386 @@ export const ElementsPanel = () => {
               ? { width: 100, height: 100, color: '#00c4cc' }
               : shape.type === 'circle'
                 ? { width: 100, height: 100, color: '#7d2ae8' }
-                : { width: 100, height: 100, color: '#ff00ff' }, // triangle
+                : { width: 100, height: 100, color: '#ff00ff' },
         category: shape.category as ShapeCategory,
         keywords: [shape.name.toLowerCase()],
       })),
     []
   );
 
-  const filteredShapes = useMemo(() => {
-    let filtered = shapePresets;
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter((shape) => shape.category === selectedCategory);
-    }
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (shape) => shape.name.toLowerCase().includes(query) || shape.keywords.some((keyword) => keyword.includes(query))
-      );
-    }
-    return filtered;
-  }, [selectedCategory, searchQuery, shapePresets]);
+  const filteredShapePresets = useMemo(() => {
+    return shapePresets.filter((item) => {
+      const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+      const matchesSearch =
+        !searchQuery.trim() ||
+        item.keywords.some((k) => k.includes(searchQuery.toLowerCase().trim())) ||
+        item.name.toLowerCase().includes(searchQuery.toLowerCase().trim());
+      return matchesCategory && matchesSearch;
+    });
+  }, [shapePresets, selectedCategory, searchQuery]);
 
-  const recentShapes = useMemo(() => {
-    if (searchQuery.trim() || selectedCategory !== 'all') {
-      return [];
-    }
-    return recentNames.map((name) => shapePresets.find((s) => s.name === name)).filter(Boolean) as ShapePreset[];
-  }, [recentNames, shapePresets, searchQuery, selectedCategory]);
-
-  const categories = [
-    { id: 'all' as ShapeCategory, label: 'All', icon: Icons.Grid },
-    { id: 'basic' as ShapeCategory, label: 'Basic', icon: Icons.Square },
-    { id: 'geometric' as ShapeCategory, label: 'Geometric', icon: Icons.Triangle },
-    { id: 'stars' as ShapeCategory, label: 'Stars', icon: Icons.Star },
-    { id: 'arrows' as ShapeCategory, label: 'Arrows', icon: Icons.ArrowRight },
-    { id: 'decorative' as ShapeCategory, label: 'Decorative', icon: Icons.Heart },
-    { id: 'ui' as ShapeCategory, label: 'UI', icon: Icons.Layout },
+  const filterPills: { id: FilterCategory; label: string; icon: any }[] = [
+    { id: 'all', label: 'All', icon: Icons.Grid },
+    { id: 'shapes', label: 'Shapes', icon: Icons.Shapes },
+    { id: '3d', label: '3D Assets', icon: Icons.Box },
+    { id: 'stickers', label: 'Stickers & Motion', icon: Icons.Sticker },
+    { id: 'illustrations', label: 'Graphics', icon: Icons.Image },
+    { id: 'icons', label: 'Icons', icon: Icons.Star },
   ];
 
-  const sources = [
-    { id: 'shapes' as ActiveSource, label: 'Shapes', icon: Icons.Shapes },
-    { id: 'stickers' as ActiveSource, label: 'Stickers', icon: Icons.Sticker },
-    { id: 'icons' as ActiveSource, label: 'Icons', icon: Icons.Star },
-    { id: 'illustrations' as ActiveSource, label: 'Illustrations', icon: Icons.Image },
-    { id: 'material' as ActiveSource, label: 'Material', icon: Icons.Layers },
-    { id: 'lucide' as ActiveSource, label: 'Lucide', icon: Icons.Zap },
-    { id: 'phosphor' as ActiveSource, label: 'Phosphor', icon: Icons.Sparkles },
-  ];
+  const handleAssetClick = (asset: RemoteAsset) => {
+    if (asset.svgData) {
+      const blob = new Blob([DOMPurify.sanitize(asset.svgData)], { type: 'image/svg+xml' });
+      internalAddImageLayer(URL.createObjectURL(blob), asset.name);
+    } else {
+      internalAddImageLayer(asset.url || asset.thumbnailUrl, asset.name, asset.width || 300, asset.height || 300);
+    }
+  };
 
-  const quickSearchTerms =
-    activeSource === 'stickers'
-      ? ['wow', 'lit', 'fire', 'sale', 'new', 'badge', 'stamp', 'love', 'cute']
-      : activeSource === 'icons'
-        ? ['arrow', 'star', 'heart', 'user', 'home', 'search', 'settings', 'check']
-        : activeSource === 'material'
-          ? ['home', 'search', 'settings', 'person', 'delete', 'add', 'close', 'menu']
-          : activeSource === 'lucide'
-            ? ['arrow', 'star', 'heart', 'user', 'home', 'search', 'settings', 'check']
-            : activeSource === 'phosphor'
-              ? ['arrow', 'star', 'heart', 'user', 'home', 'search', 'settings', 'check']
-              : ['business', 'technology', 'nature', 'food', 'sport', 'music', 'travel', 'health'];
-
-  const handleDragStart = useCallback((e: React.DragEvent, item: ShapePreset) => {
-    setDragData(item);
-    e.dataTransfer.setData('application/x-shape-preset', JSON.stringify(item));
-    e.dataTransfer.effectAllowed = 'copy';
-    const ghost = document.createElement('div');
-    ghost.style.width = '48px';
-    ghost.style.height = '48px';
-    ghost.style.opacity = '0.8';
-    ghost.style.position = 'absolute';
-    ghost.style.top = '-1000px';
-    document.body.appendChild(ghost);
-    e.dataTransfer.setDragImage(ghost, 24, 24);
-    setTimeout(() => document.body.removeChild(ghost), 0);
-  }, []);
-
-  const renderShapeItem = (item: ShapePreset, idx: number) => (
-    <button
-      key={idx}
-      data-testid={`shape-btn-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
-      id={`shape-btn-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
-      draggable
-      onDragStart={(e) => handleDragStart(e, item)}
-      onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
-      className="aspect-square bg-surface-dark-3 border border-gray-800 rounded-xl hover:border-brand-600 flex flex-col items-center justify-center gap-1 group"
-    >
-      <div className="w-12 h-12 flex items-center justify-center">
-        {item.type === 'path' ? (
-          <svg
-            viewBox={(item.props as any).viewBox || '0 0 100 100'}
-            width="100%"
-            height="100%"
-            className="w-full h-full drop-shadow-sm"
-          >
-            <path d={(item.props as any).pathData} fill={(item.props as any).color} />
-          </svg>
-        ) : (
-          <div
-            style={{
-              width: '36px',
-              height: item.type === 'rectangle' && (item.props as any).height < 10 ? '3px' : '36px',
-              backgroundColor: item.props.color === 'transparent' ? 'transparent' : item.props.color || '#fff',
-              border: item.props.stroke ? `1.5px solid ${item.props.stroke.color}` : 'none',
-              borderRadius: item.type === 'circle' ? '50%' : item.props.cornerRadius ? '4px' : '0',
-              transform: item.type === 'diamond' ? 'rotate(45deg)' : 'none',
-              clipPath: item.type === 'triangle' ? 'polygon(50% 0%, 0% 100%, 100% 100%)' : 'none',
-            }}
-          />
-        )}
-      </div>
-      <span className="text-[8px] text-gray-500 group-hover:text-gray-300 font-medium truncate w-full text-center px-1">
-        {item.name}
+  const renderBadge = (type: string) => {
+    const badgeColors: Record<string, string> = {
+      '3d': 'bg-purple-500/80 text-white',
+      lottie: 'bg-emerald-500/80 text-white',
+      gif: 'bg-amber-500/80 text-white',
+      svg: 'bg-blue-500/80 text-white',
+      icon: 'bg-gray-700/80 text-gray-200',
+    };
+    return (
+      <span
+        className={`absolute top-1.5 left-1.5 px-1.5 py-0.5 text-[8px] font-black uppercase rounded tracking-wider backdrop-blur-md z-10 ${
+          badgeColors[type] || 'bg-gray-800 text-white'
+        }`}
+      >
+        {type.toUpperCase()}
       </span>
-    </button>
-  );
+    );
+  };
 
   return (
-    <div data-testid="elements-panel" className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
-      <PanelHeader
-        tabs={sources.map((src) => ({
-          id: src.id,
-          label: src.label,
-          icon: <src.icon className="w-3.5 h-3.5" />,
-        }))}
-        activeTabId={activeSource}
-        onTabChange={(id) => {
-          setActiveSource(id as ActiveSource);
-          setRemoteIcons([]);
-          setHasSearched(false);
-          if (id === 'stickers') {
-            setIsSearching(true);
-            stickerService.getTrendingStickers().then((res) => {
-              setRemoteIcons(
-                res.map((st) => ({
-                  id: st.id,
-                  name: st.name,
-                  thumbnailUrl: st.thumbnail,
-                  source: st.source,
-                  width: st.width,
-                  height: st.height,
-                  url: st.url,
-                }))
-              );
-              setIsSearching(false);
-              setHasSearched(true);
-            });
-          } else if (searchQuery.trim().length >= 2) {
-            setTimeout(() => searchRemoteIcons(searchQuery), 0);
-          }
-        }}
-      />
-      <div
-        className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-5 flex flex-col"
-        onDragOver={(e) => {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'copy';
-        }}
-        onDrop={(e) => {
-          const raw = e.dataTransfer.getData('application/x-shape-preset');
-          if (raw && dragData) {
-            const rect = e.currentTarget.getBoundingClientRect();
-            const preset = dragData;
-            internalAddShape(preset.type, { ...preset.props, name: preset.name }, preset.name);
-            setDragData(null);
-          }
-        }}
-      >
-        {/* Search */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder={`Search ${activeSource}...`}
-            className="w-full bg-surface-dark-3 border border-gray-700 rounded-xl py-2 pl-10 text-xs text-white focus:border-brand-600"
-            value={searchQuery}
-            onChange={(e) => handleRemoteSearch(e.target.value)}
-          />
-          <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+    <div className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
+      <PanelHeader title="Elements" icon={<Icons.Shapes className="w-5 h-5 text-accent" />} />
+
+      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-4">
+        {/* Universal Search */}
+        <SearchInput
+          placeholder="Search shapes, 3D assets, stickers, graphics..."
+          value={searchQuery}
+          onChange={handleQueryChange}
+          onClear={() => handleQueryChange('')}
+          className="py-2.5 text-sm"
+        />
+
+        {/* Category Filter Pills (Canva Style) */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar no-scrollbar">
+          {filterPills.map((pill) => (
+            <button
+              key={pill.id}
+              onClick={() => handleFilterClick(pill.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all shrink-0 cursor-pointer ${
+                activeFilter === pill.id
+                  ? 'bg-accent text-white shadow-md shadow-accent/20'
+                  : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              <pill.icon className="w-3.5 h-3.5" />
+              {pill.label}
+            </button>
+          ))}
         </div>
 
-        {activeSource === 'shapes' ? (
-          <>
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-              {categories.map((cat) => (
+        {/* SEARCH / EXPANDED CATEGORY GRID VIEW */}
+        {hasSearched || searchQuery.trim() || expandedCategory ? (
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-gray-400">
+                {isSearching
+                  ? 'Searching...'
+                  : activeFilter === 'shapes'
+                    ? `All Shapes (${filteredShapePresets.length})`
+                    : `Results for "${searchQuery || expandedCategory}"`}
+              </span>
+              {expandedCategory && (
                 <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3 py-1.5 rounded-full text-[10px] font-bold border ${selectedCategory === cat.id ? 'bg-brand-600 border-brand-600 text-white' : 'bg-surface-dark-3 border-gray-700 text-gray-400'}`}
+                  onClick={() => {
+                    setExpandedCategory(null);
+                    setActiveFilter('all');
+                    setSearchQuery('');
+                    setHasSearched(false);
+                  }}
+                  className="text-[10px] font-bold text-accent hover:underline cursor-pointer"
                 >
-                  {cat.label}
+                  Back to All
                 </button>
-              ))}
+              )}
             </div>
-            {recentShapes.length > 0 && (
-              <div>
-                <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Recently Used</h4>
-                <div className="grid grid-cols-3 gap-3">
-                  {recentShapes.map((item, idx) => renderShapeItem(item, idx))}
-                </div>
+
+            {/* Shape Sub-category Pills if Shapes is active */}
+            {activeFilter === 'shapes' && (
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
+                {(['all', 'basic', 'geometric', 'stars', 'arrows', 'decorative', 'ui'] as ShapeCategory[]).map(
+                  (cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold capitalize transition-all shrink-0 cursor-pointer ${
+                        selectedCategory === cat
+                          ? 'bg-white/20 text-white border border-white/30'
+                          : 'bg-white/5 text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  )
+                )}
               </div>
             )}
-            <div className="grid grid-cols-3 gap-3">
-              {filteredShapes.map((item, idx) => renderShapeItem(item, idx))}
-            </div>
-          </>
-        ) : (
-          <div className="space-y-4">
-            {_isSearching ? (
-              <div className="grid grid-cols-3 gap-3">
-                {[...Array(6)].map((_, i) => (
+
+            {activeFilter === 'shapes' ? (
+              <div className="grid grid-cols-4 gap-2">
+                {filteredShapePresets.map((item, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
+                    className="group aspect-square bg-surface-dark-3 border border-gray-800 hover:border-accent rounded-xl flex flex-col items-center justify-center p-2 transition-all hover:scale-[1.05] cursor-pointer"
+                    title={item.name}
+                  >
+                    <div className="w-8 h-8 flex items-center justify-center">
+                      {item.type === 'path' ? (
+                        <svg
+                          viewBox={(item.props as any).viewBox || '0 0 100 100'}
+                          width="100%"
+                          height="100%"
+                          className="w-full h-full"
+                        >
+                          <path d={(item.props as any).pathData} fill={(item.props as any).color} />
+                        </svg>
+                      ) : (
+                        <div
+                          style={{
+                            width: '24px',
+                            height: '24px',
+                            backgroundColor: item.props.color || '#00c4cc',
+                            borderRadius: item.type === 'circle' ? '50%' : '3px',
+                          }}
+                        />
+                      )}
+                    </div>
+                    <span className="text-[9px] font-medium text-gray-400 group-hover:text-white truncate max-w-full mt-1">
+                      {item.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : isSearching ? (
+              <div className="grid grid-cols-3 gap-2">
+                {Array.from({ length: 9 }).map((_, i) => (
                   <ElementSkeleton key={i} />
                 ))}
               </div>
-            ) : hasSearched ? (
-              <div className="grid grid-cols-3 gap-3">
-                {remoteIcons.map((icon) => (
-                  <button
-                    key={icon.id}
-                    onClick={() => handleAddRemoteIcon(icon)}
-                    className="aspect-square bg-surface-dark-3 border border-gray-800 rounded-xl hover:border-brand-600 flex items-center justify-center p-2 group"
+            ) : searchResults.length > 0 ? (
+              <div className="grid grid-cols-3 gap-2.5">
+                {searchResults.map((asset) => (
+                  <div
+                    key={asset.id}
+                    onClick={() => handleAssetClick(asset)}
+                    className="group relative aspect-square bg-surface-dark-3 border border-gray-800 hover:border-accent rounded-xl overflow-hidden cursor-pointer flex items-center justify-center p-2 transition-all hover:scale-[1.03]"
                   >
-                    {icon.svgData ? (
+                    {renderBadge(asset.assetType)}
+                    {asset.svgData ? (
                       <div
-                        className="w-full h-full flex items-center justify-center [&>svg]:w-full [&>svg]:h-full"
-                        dangerouslySetInnerHTML={{
-                          __html: DOMPurify.sanitize(icon.svgData, { USE_PROFILES: { svg: true } }),
-                        }}
-                      />
-                    ) : icon.thumbnailUrl ? (
-                      <img
-                        src={icon.thumbnailUrl}
-                        alt={icon.name}
-                        className="w-full h-full object-contain group-hover:scale-110 transition-transform"
+                        className="w-full h-full flex items-center justify-center text-white"
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(asset.svgData) }}
                       />
                     ) : (
-                      <span className="text-[8px] text-gray-500 text-center truncate">{icon.name}</span>
+                      <AssetThumbnail
+                        src={asset.thumbnailUrl}
+                        alt={asset.name}
+                        className="w-full h-full object-contain"
+                      />
                     )}
-                  </button>
+                  </div>
                 ))}
               </div>
             ) : (
-              <div className="flex flex-wrap gap-1.5">
-                {quickSearchTerms.map((term) => (
+              <div className="text-center py-10 text-xs text-gray-500">No assets found matching your criteria.</div>
+            )}
+          </div>
+        ) : (
+          /* DEFAULT CANVAS-STYLE HORIZONTAL CAROUSELS */
+          <div className="flex flex-col gap-6">
+            {/* Lane 1: Shapes & Lines */}
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-gray-300 flex items-center gap-1.5">
+                  <Icons.Shapes className="w-3.5 h-3.5 text-accent" />
+                  Shapes & Primitives
+                </span>
+                <button
+                  onClick={() => handleFilterClick('shapes')}
+                  className="text-[10px] font-bold text-accent hover:underline cursor-pointer flex items-center gap-1"
+                >
+                  See all <Icons.ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
+                {shapePresets.slice(0, 10).map((item, idx) => (
                   <button
-                    key={term}
-                    onClick={() => {
-                      setSearchQuery(term);
-                      searchRemoteIcons(term);
-                    }}
-                    className="text-[10px] px-3 py-1 bg-surface-dark-3 text-gray-400 rounded-full border border-gray-700"
+                    key={idx}
+                    onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
+                    className="w-16 h-16 shrink-0 bg-surface-dark-3 border border-gray-800 hover:border-accent rounded-xl flex flex-col items-center justify-center gap-1 transition-all hover:scale-[1.05] cursor-pointer"
                   >
-                    {term}
+                    <div className="w-8 h-8 flex items-center justify-center">
+                      {item.type === 'path' ? (
+                        <svg
+                          viewBox={(item.props as any).viewBox || '0 0 100 100'}
+                          width="100%"
+                          height="100%"
+                          className="w-full h-full"
+                        >
+                          <path d={(item.props as any).pathData} fill={(item.props as any).color} />
+                        </svg>
+                      ) : (
+                        <div
+                          style={{
+                            width: '24px',
+                            height: '24px',
+                            backgroundColor: item.props.color || '#00c4cc',
+                            borderRadius: item.type === 'circle' ? '50%' : '3px',
+                          }}
+                        />
+                      )}
+                    </div>
                   </button>
                 ))}
               </div>
-            )}
+            </div>
+
+            {/* Lane 2: 3D Assets (IconScout 3D) */}
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-gray-300 flex items-center gap-1.5">
+                  <Icons.Box className="w-3.5 h-3.5 text-purple-400" />
+                  3D Assets & Objects
+                </span>
+                <button
+                  onClick={() => handleFilterClick('3d')}
+                  className="text-[10px] font-bold text-accent hover:underline cursor-pointer flex items-center gap-1"
+                >
+                  See all <Icons.ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+
+              {trending3D.length > 0 ? (
+                <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
+                  {trending3D.map((asset) => (
+                    <div
+                      key={asset.id}
+                      onClick={() => handleAssetClick(asset)}
+                      className="relative w-20 h-20 shrink-0 bg-surface-dark-3 border border-gray-800 hover:border-purple-500 rounded-xl overflow-hidden cursor-pointer flex items-center justify-center p-1.5 transition-all hover:scale-[1.05]"
+                    >
+                      {renderBadge('3d')}
+                      <AssetThumbnail
+                        src={asset.thumbnailUrl}
+                        alt={asset.name}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 gap-2">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <ElementSkeleton key={i} />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Lane 3: Motion & Stickers */}
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-gray-300 flex items-center gap-1.5">
+                  <Icons.Sticker className="w-3.5 h-3.5 text-amber-400" />
+                  Stickers & Motion
+                </span>
+                <button
+                  onClick={() => handleFilterClick('stickers')}
+                  className="text-[10px] font-bold text-accent hover:underline cursor-pointer flex items-center gap-1"
+                >
+                  See all <Icons.ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+
+              {trendingStickers.length > 0 ? (
+                <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
+                  {trendingStickers.map((asset) => (
+                    <div
+                      key={asset.id}
+                      onClick={() => handleAssetClick(asset)}
+                      className="relative w-20 h-20 shrink-0 bg-surface-dark-3 border border-gray-800 hover:border-amber-500 rounded-xl overflow-hidden cursor-pointer flex items-center justify-center p-1.5 transition-all hover:scale-[1.05]"
+                    >
+                      {renderBadge('gif')}
+                      <AssetThumbnail
+                        src={asset.thumbnailUrl}
+                        alt={asset.name}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 gap-2">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <ElementSkeleton key={i} />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Lane 4: Graphics & Illustrations */}
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-gray-300 flex items-center gap-1.5">
+                  <Icons.Image className="w-3.5 h-3.5 text-emerald-400" />
+                  Vector Graphics & Illustrations
+                </span>
+                <button
+                  onClick={() => handleFilterClick('illustrations')}
+                  className="text-[10px] font-bold text-accent hover:underline cursor-pointer flex items-center gap-1"
+                >
+                  See all <Icons.ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+
+              {trendingIllustrations.length > 0 ? (
+                <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
+                  {trendingIllustrations.map((asset) => (
+                    <div
+                      key={asset.id}
+                      onClick={() => handleAssetClick(asset)}
+                      className="relative w-20 h-20 shrink-0 bg-surface-dark-3 border border-gray-800 hover:border-emerald-500 rounded-xl overflow-hidden cursor-pointer flex items-center justify-center p-1.5 transition-all hover:scale-[1.05]"
+                    >
+                      {renderBadge('svg')}
+                      <AssetThumbnail
+                        src={asset.thumbnailUrl}
+                        alt={asset.name}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 gap-2">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <ElementSkeleton key={i} />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
     </div>
   );
 };
-
-export default ElementsPanel;

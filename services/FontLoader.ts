@@ -40,134 +40,144 @@ export async function loadFont(fontFamily: string): Promise<boolean> {
     return true;
   }
 
-  try {
-    const endTimer = logger.time(`Loading font: ${cleanFamily}`);
+  const endTimer = logger.time(`Loading font: ${cleanFamily}`);
 
-    // Try to load local font files with allSettled (accept partial loads)
-    // Pre-check if font files exist to avoid browser "Failed to decode" warnings
-    const localPromises = LOCAL_FONT_WEIGHTS.map((weight) => {
-      return new Promise<void>((resolve) => {
-        const fontUrl = `/fonts/${cleanFamily.replace(/ /g, '-')}-${weight}.woff2`;
-        // Quick check if font file exists before attempting load
-        fetch(fontUrl, { method: 'HEAD' })
-          .then((res) => {
-            if (!res.ok) {
-              resolve();
-              return;
-            } // File doesn't exist, skip silently
-            const fontFace = new FontFace(cleanFamily, `url(${fontUrl})`, {
-              weight: weight as any,
-              style: 'normal',
-            });
-            fontFace
-              .load()
-              .then((loaded) => {
-                (document.fonts as any).add(loaded);
-                resolve();
-              })
-              .catch(() => resolve());
-          })
-          .catch(() => resolve()); // Network error - skip silently
-      });
-    });
-
-    // Also try italic variants
-    const italicPromises = LOCAL_FONT_WEIGHTS.map((weight) => {
-      return new Promise<void>((resolve) => {
-        const fontFace = new FontFace(
-          cleanFamily,
-          `url(/fonts/${cleanFamily.replace(/ /g, '-')}-${weight}-italic.woff2)`,
-          {
+  // Try to load local font files with allSettled (accept partial loads)
+  // Pre-check if font files exist to avoid browser "Failed to decode" warnings
+  const localPromises = LOCAL_FONT_WEIGHTS.map((weight) => {
+    return new Promise<boolean>((resolve) => {
+      const fontUrl = `/fonts/${cleanFamily.replace(/ /g, '-')}-${weight}.woff2`;
+      // Quick check if font file exists before attempting load
+      fetch(fontUrl, { method: 'HEAD' })
+        .then((res) => {
+          if (!res.ok) {
+            resolve(false);
+            return;
+          } // File doesn't exist, skip silently
+          const fontFace = new FontFace(cleanFamily, `url(${fontUrl})`, {
             weight: weight as any,
-            style: 'italic',
-          }
-        );
+            style: 'normal',
+          });
+          fontFace
+            .load()
+            .then((loaded) => {
+              (document.fonts as any).add(loaded);
+              resolve(true);
+            })
+            .catch(() => resolve(false));
+        })
+        .catch(() => resolve(false)); // Network error - skip silently
+    });
+  });
 
-        fontFace
-          .load()
-          .then((loaded) => {
-            (document.fonts as any).add(loaded);
-            resolve();
-          })
-          .catch(() => resolve()); // Accept missing italic variants
-      });
+  // Also try italic variants
+  const italicPromises = LOCAL_FONT_WEIGHTS.map((weight) => {
+    return new Promise<boolean>((resolve) => {
+      const fontFace = new FontFace(
+        cleanFamily,
+        `url(/fonts/${cleanFamily.replace(/ /g, '-')}-${weight}-italic.woff2)`,
+        {
+          weight: weight as any,
+          style: 'italic',
+        }
+      );
+
+      fontFace
+        .load()
+        .then((loaded) => {
+          (document.fonts as any).add(loaded);
+          resolve(true);
+        })
+        .catch(() => resolve(false)); // Accept missing italic variants
+    });
+  });
+
+  // Wait for local attempts (with timeout) and count actual successes
+  let localLoaded = 0;
+  try {
+    const results = (await Promise.race([
+      Promise.allSettled([...localPromises, ...italicPromises]),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000)),
+    ])) as PromiseSettledResult<boolean>[];
+    localLoaded = results.filter((r) => r.status === 'fulfilled' && r.value === true).length;
+  } catch {
+    localLoaded = 0;
+  }
+
+  if (localLoaded > 0) {
+    loadedFonts.add(cleanFamily);
+    endTimer();
+    return true;
+  }
+
+  // No local font files exist — fall back to Google Fonts CDN
+  const ok = await loadFontFromCdn(cleanFamily);
+  endTimer();
+  return ok;
+}
+
+/**
+ * Load a font from the Google Fonts CDN
+ */
+async function loadFontFromCdn(cleanFamily: string): Promise<boolean> {
+  try {
+    const endTimer = logger.time(`Loading font from CDN: ${cleanFamily}`);
+
+    // Request variable font CSS when available
+    const encodedName = cleanFamily.replace(/ /g, '+');
+    let fontUrl = `https://fonts.googleapis.com/css2?family=${encodedName}:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap`;
+    let isVariable = false;
+
+    try {
+      const variableUrl = `https://fonts.googleapis.com/css2?family=${encodedName}:ital,wght@0,300..900;1,300..900&display=swap`;
+      const variableResponse = await fetch(variableUrl);
+      if (variableResponse.ok) {
+        fontUrl = variableUrl;
+        isVariable = true;
+      }
+    } catch {
+      // Fallback to static weights
+    }
+
+    // Create link element for Google Fonts
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = fontUrl;
+
+    // Wait for font to load
+    await new Promise<void>((resolve, reject) => {
+      link.onload = () => resolve();
+      link.onerror = () => reject(new Error(`Failed to load font: ${cleanFamily}`));
+      document.head.appendChild(link);
     });
 
-    // Wait for at least some weights to load, with timeout
-    const allLocal = [...localPromises, ...italicPromises];
-    await Promise.race([
-      Promise.allSettled(allLocal),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000)),
-    ]);
+    // Wait for font to be actually available
+    await document.fonts.ready;
+
+    // Parse and store available axes from the loaded CSS
+    if (isVariable) {
+      variableFontAxes.set(cleanFamily, ['wght', 'ital']);
+    } else {
+      // Detect loaded weight variants from document.fonts
+      const detectedWeights = new Set<string>();
+      document.fonts.forEach((face) => {
+        if (face.family === cleanFamily && face.status === 'loaded') {
+          detectedWeights.add(String(face.weight));
+        }
+      });
+      if (detectedWeights.size > 0) {
+        variableFontAxes.set(cleanFamily, Array.from(detectedWeights).sort());
+      }
+    }
 
     loadedFonts.add(cleanFamily);
     endTimer();
     return true;
-  } catch (localError) {
-    // Fallback to Google Fonts CDN if local fonts fail
-    logger.warn(`Local font load failed for ${cleanFamily}, falling back to CDN`, {
-      error: localError instanceof Error ? localError.message : String(localError),
+  } catch (cdnError) {
+    logger.warn(`Failed to load font from CDN: ${cleanFamily}`, {
+      error: cdnError instanceof Error ? cdnError.message : String(cdnError),
     });
-
-    try {
-      const endTimer = logger.time(`Loading font from CDN: ${cleanFamily}`);
-
-      // Request variable font CSS when available
-      const encodedName = cleanFamily.replace(/ /g, '+');
-      let fontUrl = `https://fonts.googleapis.com/css2?family=${encodedName}:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap`;
-      let isVariable = false;
-
-      try {
-        const variableUrl = `https://fonts.googleapis.com/css2?family=${encodedName}:ital,wght@0,300..900;1,300..900&display=swap`;
-        const variableResponse = await fetch(variableUrl);
-        if (variableResponse.ok) {
-          fontUrl = variableUrl;
-          isVariable = true;
-        }
-      } catch {
-        // Fallback to static weights
-      }
-
-      // Create link element for Google Fonts
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = fontUrl;
-
-      // Wait for font to load
-      await new Promise<void>((resolve, reject) => {
-        link.onload = () => resolve();
-        link.onerror = () => reject(new Error(`Failed to load font: ${cleanFamily}`));
-        document.head.appendChild(link);
-      });
-
-      // Wait for font to be actually available
-      await document.fonts.ready;
-
-      // Parse and store available axes from the loaded CSS
-      if (isVariable) {
-        variableFontAxes.set(cleanFamily, ['wght', 'ital']);
-      } else {
-        // Detect loaded weight variants from document.fonts
-        const detectedWeights = new Set<string>();
-        document.fonts.forEach((face) => {
-          if (face.family === cleanFamily && face.status === 'loaded') {
-            detectedWeights.add(String(face.weight));
-          }
-        });
-        if (detectedWeights.size > 0) {
-          variableFontAxes.set(cleanFamily, Array.from(detectedWeights).sort());
-        }
-      }
-
-      loadedFonts.add(cleanFamily);
-      endTimer();
-      return true;
-    } catch (cdnError) {
-      logger.warn(`Failed to load font from CDN: ${cleanFamily}`, {
-        error: cdnError instanceof Error ? cdnError.message : String(cdnError),
-      });
-      return false;
-    }
+    return false;
   }
 }
 

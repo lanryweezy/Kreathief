@@ -185,6 +185,44 @@ h4,
   animation: pulse-glow 6s ease-in-out infinite;
 }
 
+@keyframes neon-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  41% {
+    opacity: 1;
+  }
+  42% {
+    opacity: 0.72;
+  }
+  43% {
+    opacity: 1;
+  }
+  61% {
+    opacity: 1;
+  }
+  62% {
+    opacity: 0.55;
+  }
+  64% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  86% {
+    opacity: 0.85;
+  }
+  87% {
+    opacity: 1;
+  }
+}
+
+.animate-neon-flicker {
+  animation: neon-flicker 3s linear infinite;
+}
+
 @keyframes marquee {
   0% {
     transform: translateX(0);
@@ -807,4 +845,18 @@ h4,
   to {
     transform: perspective(400px) rotateY(360deg);
   }
+}
+
+/* Smooth Tile Fade-In (200ms CSS fade-in when asset thumbnails finish downloading) */
+@keyframes tileFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in-tile {
+  animation: tileFadeIn 200ms ease-out forwards;
 }

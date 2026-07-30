@@ -197,22 +197,29 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     defaults: { model: 'nano-banana-2', width: 1024, height: 1024 },
     execute: async (inputs, settings) => {
       try {
-        const response = await fetch('/api/gemini', {
+        const response = await fetch('/api/fal', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: settings.model,
-            prompt: inputs.prompt?.prompt || '',
-            images: inputs.image ? (Array.isArray(inputs.image) ? inputs.image : [inputs.image]) : [],
+            endpoint: 'fal-ai/flux/dev',
+            input: {
+              prompt: inputs.prompt?.prompt || '',
+              image_url: inputs.image
+                ? Array.isArray(inputs.image)
+                  ? inputs.image[0]?.src
+                  : inputs.image?.src
+                : undefined,
+              image_size: { width: settings.width, height: settings.height },
+            },
           }),
         });
         const data = await response.json();
-        return { image: { src: data.imageUrl || data.url, width: settings.width, height: settings.height } };
+        return { image: { src: data.images?.[0]?.url || data.url, width: settings.width, height: settings.height } };
       } catch (err) {
-        log.warn('[Gemini] API unavailable, using placeholder');
+        log.warn('[NodeDef] Fal image gen unavailable, using placeholder');
         return {
           image: {
-            src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/00c4cc?text=Gemini+Generated`,
+            src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/00c4cc?text=AI+Generated`,
             width: settings.width,
             height: settings.height,
           },
@@ -303,15 +310,20 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     defaults: { instruction: 'Generate a catchy headline', tone: 'professional' },
     execute: async (inputs, settings) => {
       try {
-        const response = await fetch('/api/gemini', {
+        const response = await fetch('/api/openrouter', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            prompt: `${settings.instruction}. Tone: ${settings.tone}. Context: ${inputs.prompt?.prompt || ''}`,
+            model: 'google/gemini-2.0-flash-001',
+            messages: [
+              { role: 'system', content: `Generate text content in a ${settings.tone} tone.` },
+              { role: 'user', content: `${settings.instruction}. Context: ${inputs.prompt?.prompt || ''}` },
+            ],
+            max_tokens: 512,
           }),
         });
         const data = await response.json();
-        return { text: data.text || data.response };
+        return { text: data.choices?.[0]?.message?.content || data.text };
       } catch (err) {
         log.warn('[AI Text] API unavailable, using placeholder');
         return { text: `${settings.instruction} — Generated text for: ${inputs.prompt?.prompt || 'your design'}` };
@@ -362,13 +374,23 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         const response = await fetch('/api/fal', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: 'fal-ai/esrgan', image_url: inputs.image?.src, scale: settings.scale }),
+          body: JSON.stringify({
+            endpoint: 'https://fal.run/fal-ai/esrgan',
+            body: { image_url: inputs.image?.src, scale: settings.scale },
+          }),
         });
         const data = await response.json();
+        const resultUrl =
+          data.image?.url ||
+          data.images?.[0]?.url ||
+          data.url ||
+          data.output?.url ||
+          data.output_url ||
+          inputs.image?.src;
         return {
           image: {
             ...inputs.image,
-            src: data.image?.url,
+            src: resultUrl,
             width: (inputs.image?.width || 512) * settings.scale,
             height: (inputs.image?.height || 512) * settings.scale,
           },

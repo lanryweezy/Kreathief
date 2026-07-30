@@ -6,8 +6,7 @@ import { ColorPicker } from '../ColorPicker';
 import { MaskTools } from './MaskTools';
 import { Dropdown } from '../Dropdown';
 import { Layer, ShapeLayer } from '../../types';
-import { pathOperationsService } from '../../services/pathOperationsService';
-import { VectorUtils } from '../../utils/vectorUtils';
+import { performBooleanOnLayers } from '../../utils/booleanOperations';
 import { useStore } from '../../store/useStore';
 
 interface ShapeToolsProps {
@@ -147,47 +146,23 @@ export const ShapeTools = React.memo(
         return;
       }
 
-      const basePathData = (baseLayer as any).pathData;
-      const operandPathData = (operandLayer as any).pathData;
-
-      if (!basePathData || !operandPathData) {
-        return;
-      }
-
-      const basePath = VectorUtils.parsePath(basePathData);
-      const operandPath = VectorUtils.parsePath(operandPathData);
-
-      if (!basePath || !operandPath) {
+      // Canonical boolean: global-coordinate translation + fresh bounds,
+      // shared with the toolbar and vector panel implementations.
+      const result = performBooleanOnLayers([baseLayer, operandLayer] as any, operation);
+      if (!result) {
         return;
       }
 
       saveToHistory();
 
-      let resultPath;
-      switch (operation) {
-        case 'union':
-          resultPath = pathOperationsService.union(basePath, operandPath);
-          break;
-        case 'subtract':
-          resultPath = pathOperationsService.subtract(basePath, operandPath);
-          break;
-        case 'intersect':
-          resultPath = pathOperationsService.intersect(basePath, operandPath);
-          break;
-        case 'exclude':
-          resultPath = pathOperationsService.exclude(basePath, operandPath);
-          break;
-      }
-
-      const newPathData = VectorUtils.serializePath(resultPath);
-      const bounds = VectorUtils.getBounds(resultPath);
-
       updateLayer(baseLayer.id, {
-        pathData: newPathData,
-        x: bounds.x,
-        y: bounds.y,
-        width: bounds.width,
-        height: bounds.height,
+        pathData: result.pathData,
+        vectorPath: result.vectorPath,
+        x: result.x,
+        y: result.y,
+        width: result.width,
+        height: result.height,
+        viewBox: result.viewBox,
       } as any);
 
       deleteLayer(operandLayer.id);
@@ -396,23 +371,32 @@ export const ShapeTools = React.memo(
                 </span>
                 <div className="space-y-3">
                   {[
-                    { label: 'Blur', key: 'blur', min: 0, max: 20 },
-                    { label: 'Brightness', key: 'brightness', min: 0, max: 200 },
-                    { label: 'Contrast', key: 'contrast', min: 0, max: 200 },
-                    { label: 'Saturation', key: 'saturation', min: 0, max: 200 },
+                    { label: 'Blur', key: 'blur', min: 0, max: 20, default: 0 },
+                    { label: 'Brightness', key: 'brightness', min: 0, max: 200, default: 100 },
+                    { label: 'Contrast', key: 'contrast', min: 0, max: 200, default: 100 },
+                    { label: 'Saturation', key: 'saturation', min: 0, max: 200, default: 100 },
+                    { label: 'Sepia', key: 'sepia', min: 0, max: 100, default: 0 },
+                    { label: 'Hue Rotate', key: 'hueRotate', min: -180, max: 180, default: 0 },
                   ].map((f) => (
                     <div key={f.key} className="space-y-1">
-                      <div className="flex justify-between">
-                        <span className="text-[9px] text-gray-500 font-bold uppercase">{f.label}</span>
+                      <div className="flex justify-between items-center">
+                        <span
+                          className="text-[9px] text-gray-500 font-bold uppercase cursor-pointer hover:text-white transition-colors"
+                          title="Double-click to reset to default"
+                          onDoubleClick={() => updateFilter(f.key, f.default)}
+                        >
+                          {f.label}
+                        </span>
                         <span className="text-[9px] text-white font-mono">
-                          {(layer as any).filters?.[f.key] ?? (f.key === 'blur' ? 0 : 100)}
+                          {(layer as any).filters?.[f.key] ?? f.default}
+                          {f.key === 'hueRotate' ? '°' : f.key === 'blur' ? 'px' : '%'}
                         </span>
                       </div>
                       <input
                         type="range"
                         min={f.min}
                         max={f.max}
-                        value={(layer as any).filters?.[f.key] ?? (f.key === 'blur' ? 0 : 100)}
+                        value={(layer as any).filters?.[f.key] ?? f.default}
                         onChange={(e) => updateFilter(f.key, parseInt(e.target.value))}
                         className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-accent"
                       />

@@ -16,7 +16,7 @@ import { Canvas } from './Canvas';
 import { User, Project, AnimationSettings } from '../types';
 import { useEditorLogic } from '../hooks/useEditorLogic';
 import { useFileHandler } from '../hooks/useFileHandler';
-import { shareService } from '../services/shareService';
+import { generateShareLink } from '../utils/shareUtils';
 import { storageService } from '../services/storageService';
 import { PresentationModal } from './modals/PresentationModal';
 import { ShareModal } from './modals/ShareModal';
@@ -1029,7 +1029,26 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           <ShareModal
             onClose={() => useStore.getState().setShowShareModal(false)}
             designTitle={projectTitle}
-            onGetShareLink={() => shareService.generateShareLink(projectId, user.id)}
+            onGetShareLink={() => {
+              // Self-contained ?share= link (gzip URL payload) — parsed by App.tsx.
+              // The Supabase /share/:id flow has no consuming route, so it dead-ends for recipients.
+              const s = useStore.getState();
+              return generateShareLink({
+                id: projectId || 'shared',
+                name: s.projectTitle,
+                updatedAt: Date.now(),
+                state: {
+                  artboards: s.artboards,
+                  activeArtboardId: s.activeArtboardId,
+                  canvasBackgroundColor: s.canvasBackgroundColor,
+                  canvasFilters: s.canvasFilters,
+                  canvasSize: s.canvasSize,
+                  brandKits: s.brandKits,
+                  showGrid: s.showGrid,
+                  showRulers: s.showRulers,
+                },
+              } as Project);
+            }}
           />
         )}
       </ErrorBoundary>

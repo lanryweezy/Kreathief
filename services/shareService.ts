@@ -46,7 +46,9 @@ class ShareService {
       }
 
       const { error } = await ((supabase as any).from('share_links') as any).insert(insertData);
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       log.info('Share link created', { projectId, shareId });
       return this.formatShareUrl(shareId);
@@ -60,11 +62,13 @@ class ShareService {
     try {
       const { data, error } = await supabase
         .from('share_links')
-        .select('project_id, user_id, expires_at')
+        .select('project_id, user_id, expires_at, view_count')
         .eq('id', shareId)
         .single();
 
-      if (error || !data) return null;
+      if (error || !data) {
+        return null;
+      }
 
       // Check expiry
       if ((data as any).expires_at && new Date((data as any).expires_at) < new Date()) {
@@ -86,7 +90,9 @@ class ShareService {
   async deleteShareLink(shareId: string): Promise<boolean> {
     try {
       const { error } = await (supabase as any).from('share_links').delete().eq('id', shareId);
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
       return true;
     } catch (error) {
       log.error('Failed to delete share link', { error, shareId });
@@ -102,7 +108,9 @@ class ShareService {
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
       return data || [];
     } catch (error) {
       log.error('Failed to fetch share links', { error, projectId });
@@ -112,10 +120,18 @@ class ShareService {
 
   async verifyPassword(shareId: string, password: string): Promise<boolean> {
     try {
-      const { data, error } = await (supabase as any).from('share_links').select('password_hash').eq('id', shareId).single();
+      const { data, error } = await (supabase as any)
+        .from('share_links')
+        .select('password_hash')
+        .eq('id', shareId)
+        .single();
 
-      if (error || !data) return false; // DB error = deny access
-      if (!(data as any).password_hash) return true; // No password set
+      if (error || !data) {
+        return false;
+      } // DB error = deny access
+      if (!(data as any).password_hash) {
+        return true;
+      } // No password set
 
       const encoder = new TextEncoder();
       const hashData = encoder.encode(password + shareId);

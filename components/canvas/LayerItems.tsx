@@ -17,6 +17,7 @@ import {
 import { getLayerClipPath, getAnimationStyle } from '../../utils/layerRendering';
 import { buildVariableStrokeOutline, profileWidthFn } from '../../utils/variableStroke';
 import { buildFilterString, getLayerStyle } from '../../utils/layers';
+import { hexToRgba } from '../../lib/utils';
 import { SelectionHandles } from './SelectionHandles';
 import { BrushStrokeRenderer } from '../../services/brushEngine';
 
@@ -31,6 +32,40 @@ const safeStr = (v: any, fallback = ''): string => {
     return String(v);
   }
   return fallback;
+};
+
+// Builds the CSS text-shadow for a text layer. Precedence: neon glow > explicit shadow > styleType effects.
+const getTextShadowStyle = (textLayer: TextLayer): React.CSSProperties => {
+  if (textLayer.neonGlow?.enabled) {
+    const alpha = Math.max(0.15, Math.min(1, (textLayer.neonGlow.intensity ?? 50) / 100));
+    const spread = Math.max(1, textLayer.neonGlow.spread ?? 30);
+    const color = safeStr(textLayer.neonGlow.color, '#7d2ae8');
+    return {
+      textShadow: `0 0 ${spread}px ${hexToRgba(color, alpha)}, 0 0 ${spread * 2}px ${hexToRgba(color, alpha * 0.8)}, 0 0 ${spread * 3}px ${hexToRgba(color, alpha * 0.6)}`,
+    };
+  }
+  if (textLayer.textShadow && typeof textLayer.textShadow === 'object') {
+    return {
+      textShadow: `${textLayer.textShadow.offsetX}px ${textLayer.textShadow.offsetY}px ${textLayer.textShadow.blur}px ${safeStr(textLayer.textShadow.color, '#000000')}`,
+    };
+  }
+  const depth = textLayer.depth || 4;
+  switch (textLayer.styleType) {
+    case 'emboss':
+      return { textShadow: '-1px -1px 1px rgba(255,255,255,0.8), 1px 1px 2px rgba(0,0,0,0.6)' };
+    case 'deboss':
+      return { textShadow: '1px 1px 1px rgba(255,255,255,0.8), -1px -1px 2px rgba(0,0,0,0.6)' };
+    case 'lift':
+      return { textShadow: `0 ${depth}px ${depth * 2}px rgba(0,0,0,0.45)` };
+    case 'echo': {
+      const echoColor = safeStr(textLayer.depthColor, '') || safeStr(textLayer.color, '#000000');
+      return {
+        textShadow: `${depth}px ${depth}px 0 ${hexToRgba(echoColor, 0.4)}, ${depth * 2}px ${depth * 2}px 0 ${hexToRgba(echoColor, 0.2)}`,
+      };
+    }
+    default:
+      return {};
+  }
 };
 
 interface LayerItemProps {
@@ -777,7 +812,7 @@ export const TextLayerItem = React.memo(
                 onFinishEditing?.();
               }
             }}
-            className={isEditing ? 'outline-none min-w-[30px] select-text' : ''}
+            className={`${isEditing ? 'outline-none min-w-[30px] select-text' : ''} ${textLayer.neonGlow?.enabled && textLayer.neonGlow?.flicker ? 'animate-neon-flicker' : ''}`.trim()}
             style={{
               fontFamily: safeStr(textLayer.fontFamily, 'sans-serif'),
               fontSize: `${typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 16}px`,
@@ -799,15 +834,7 @@ export const TextLayerItem = React.memo(
               textTransform: textLayer.textTransform,
               whiteSpace: 'pre-wrap',
               wordBreak: 'break-word',
-              ...(textLayer.textShadow && typeof textLayer.textShadow === 'object'
-                ? {
-                    textShadow: `${textLayer.textShadow.offsetX}px ${textLayer.textShadow.offsetY}px ${textLayer.textShadow.blur}px ${safeStr(textLayer.textShadow.color, '#000000')}`,
-                  }
-                : textLayer.styleType === 'emboss'
-                  ? { textShadow: '-1px -1px 1px rgba(255,255,255,0.8), 1px 1px 2px rgba(0,0,0,0.6)' }
-                  : textLayer.styleType === 'deboss'
-                    ? { textShadow: '1px 1px 1px rgba(255,255,255,0.8), -1px -1px 2px rgba(0,0,0,0.6)' }
-                    : {}),
+              ...getTextShadowStyle(textLayer),
               ...(textLayer.textStroke && typeof textLayer.textStroke === 'object'
                 ? {
                     WebkitTextStroke: `${textLayer.textStroke.width}px ${safeStr(textLayer.textStroke.color, '#7d2ae8')}`,
@@ -818,15 +845,15 @@ export const TextLayerItem = React.memo(
               ...(textLayer.warpStyle && textLayer.warpStyle !== 'none'
                 ? textLayer.warpStyle === 'flag' || (isEditing && textLayer.warpStyle === 'wave')
                   ? {
-                      transform: `perspective(600px) rotateY(${(textLayer.curve || 45) * 0.45}deg) skewY(${(textLayer.curve || 45) * 0.3}deg)`,
+                      transform: `perspective(600px) rotateY(${(textLayer.curve ?? 45) * 0.45}deg) skewY(${(textLayer.curve ?? 45) * 0.3}deg)`,
                     }
                   : textLayer.warpStyle === 'rise' || textLayer.warpStyle === 'fish'
                     ? {
-                        transform: `perspective(600px) rotateX(${(textLayer.curve || 45) * 0.55}deg) scaleX(${1 + (textLayer.curve || 45) * 0.005})`,
+                        transform: `perspective(600px) rotateX(${(textLayer.curve ?? 45) * 0.55}deg) scaleX(${1 + (textLayer.curve ?? 45) * 0.005})`,
                       }
                     : isEditing && textLayer.warpStyle === 'arc'
                       ? {
-                          transform: `perspective(600px) rotateX(${-(textLayer.curve || 45) * 0.5}deg) translateY(${-(textLayer.curve || 45) * 0.25}px)`,
+                          transform: `perspective(600px) rotateX(${-(textLayer.curve ?? 45) * 0.5}deg) translateY(${-(textLayer.curve ?? 45) * 0.25}px)`,
                         }
                       : textLayer.warpStyle === 'bulge' ||
                           textLayer.warpStyle === 'squeeze' ||
@@ -851,8 +878,8 @@ export const TextLayerItem = React.memo(
                     id={`path-${textLayer.id}`}
                     d={
                       textLayer.warpStyle === 'arc'
-                        ? `M 10 ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25)} Q ${(textLayer.width || 300) / 2} ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25) - (textLayer.curve || 45) * 1.8} ${(textLayer.width || 300) - 10} ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25)}`
-                        : `M 10 ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25)} Q ${(textLayer.width || 300) / 4} ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25) - (textLayer.curve || 45) * 1.2} ${(textLayer.width || 300) / 2} ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25)} T ${(textLayer.width || 300) - 10} ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25)}`
+                        ? `M 10 ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25)} Q ${(textLayer.width || 300) / 2} ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25) - (textLayer.curve ?? 45) * 1.8} ${(textLayer.width || 300) - 10} ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25)}`
+                        : `M 10 ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25)} Q ${(textLayer.width || 300) / 4} ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25) - (textLayer.curve ?? 45) * 1.2} ${(textLayer.width || 300) / 2} ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25)} T ${(textLayer.width || 300) - 10} ${Math.max(60, (typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 40) * 1.25)}`
                     }
                     fill="none"
                   />
@@ -866,11 +893,7 @@ export const TextLayerItem = React.memo(
                   textAnchor="middle"
                   letterSpacing={`${textLayer.letterSpacing || 0}px`}
                   style={{
-                    ...(textLayer.textShadow && typeof textLayer.textShadow === 'object'
-                      ? {
-                          textShadow: `${textLayer.textShadow.offsetX}px ${textLayer.textShadow.offsetY}px ${textLayer.textShadow.blur}px ${safeStr(textLayer.textShadow.color, '#000000')}`,
-                        }
-                      : {}),
+                    ...getTextShadowStyle(textLayer),
                   }}
                 >
                   <textPath href={`#path-${textLayer.id}`} startOffset="50%">

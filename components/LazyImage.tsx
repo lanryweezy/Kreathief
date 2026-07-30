@@ -111,7 +111,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
         ref={imgRef}
         src={isVisible ? src : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'}
         alt={alt}
-        className={`w-full h-full object-cover transition-opacity duration-500 ease-in-out ${
+        className={`w-full h-full object-cover transition-opacity duration-200 ease-out animate-fade-in-tile ${
           isLoaded ? 'opacity-100' : 'opacity-0'
         } ${hasError ? 'hidden' : ''}`}
         loading="lazy"
@@ -182,7 +182,7 @@ export const LazyBackgroundImage: React.FC<{
     >
       {!isLoaded && showSkeleton && <ImageSkeleton className="absolute inset-0 z-0" />}
       <div
-        className={`relative z-10 w-full h-full transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+        className={`relative z-10 w-full h-full transition-opacity duration-200 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
       >
         {children}
       </div>

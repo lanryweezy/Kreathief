@@ -21,6 +21,7 @@ import { useSceneGraph } from '../hooks/useSceneGraph';
 import { Icons } from '../constants';
 import { PathEditorOverlay } from './VectorEditor/PathEditorOverlay';
 import { VectorPath } from '../types';
+import { VectorUtils } from '../utils/vectorUtils';
 import { generateLayerId } from '../utils/layers/layerUtils';
 import { BrushFilters } from '../services/brushEngine';
 import { useSmartInteraction } from '../hooks/useSmartInteraction';
@@ -57,7 +58,11 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   // Local state for specialized modes
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; layerId: string } | null>(null);
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
-  const [hoveredLayerId, setHoveredLayerId] = useState<string | null>(null);
+  // Store state for bidirectional hover highlighting
+  const storeHoveredLayerId = useStore((s) => s.hoveredLayerId);
+  const setStoreHoveredLayerId = useStore((s) => s.setHoveredLayerId);
+  const hoveredLayerId = storeHoveredLayerId ?? null;
+  const setHoveredLayerId = (id: string | null) => setStoreHoveredLayerId?.(id);
 
   // Essential store state - split for granular re-renders
   const {
@@ -149,6 +154,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
             y: p.y - minY,
           }));
 
+          const committedPath = { points: shiftedPoints, isClosed: activeVectorPath.isClosed };
           const newLayer: ShapeLayer = {
             id: generateLayerId('path'),
             type: 'path',
@@ -164,8 +170,8 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
             color: brushColor,
             cornerRadius: 0,
             viewBox: `0 0 ${width} ${height}`,
-            vectorPath: { points: shiftedPoints, isClosed: activeVectorPath.isClosed },
-            pathData: '',
+            vectorPath: committedPath,
+            pathData: VectorUtils.serializePath(committedPath),
             filters: {
               brightness: 100,
               contrast: 100,
@@ -374,7 +380,9 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 
   // Close context menu on click outside
   useEffect(() => {
-    if (!contextMenu) return;
+    if (!contextMenu) {
+      return;
+    }
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (!target.closest('[data-context-menu]')) {
@@ -415,9 +423,13 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   useEffect(() => {
     const handleReset = (e: any) => {
       const { ids } = e.detail;
-      if (!ids || !Array.isArray(ids)) return;
+      if (!ids || !Array.isArray(ids)) {
+        return;
+      }
       const updates: Record<string, any> = {};
-      ids.forEach((id: string) => { updates[id] = { rotation: 0 }; });
+      ids.forEach((id: string) => {
+        updates[id] = { rotation: 0 };
+      });
       onUpdateLayers?.(updates);
     };
     window.addEventListener('canvas-reset-rotation', handleReset);

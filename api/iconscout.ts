@@ -1,13 +1,14 @@
 import { log } from '../utils/log';
-import { cacheHeaders, noStoreHeaders } from '../utils/cacheHeaders';
+import { cacheHeaders } from '../utils/cacheHeaders';
 import { requireAuth } from './_auth';
+
 export const config = {
   runtime: 'edge',
 };
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
-const MAX_REQUESTS_PER_WINDOW = 20;
+const MAX_REQUESTS_PER_WINDOW = 30;
 const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 
 let lastCleanup = Date.now();
@@ -22,7 +23,6 @@ export default async function handler(req: Request) {
 
   const now = Date.now();
 
-  // Periodic cleanup of expired rate limit entries to prevent memory leaks
   if (now - lastCleanup > CLEANUP_INTERVAL_MS) {
     for (const [ip, state] of rateLimitMap.entries()) {
       if (now > state.resetTime) {

@@ -5,31 +5,68 @@ import * as freepikService from './freepikService';
 import { log } from '../utils/log';
 import { safeParseJSON, retryWithBackoff } from '../utils/errorHandling';
 
-// Helper to call backend serverless endpoint
+// Helper to call backend serverless endpoint — routed through OpenRouter
 export const callBackendGeminiAPI = async (payload: any) => {
-  const endpoint = process.env.NODE_ENV === 'test' ? 'http://localhost:3000/api/gemini' : '/api/gemini';
+  const endpoint = process.env.NODE_ENV === 'test' ? 'http://localhost:3000/api/openrouter' : '/api/openrouter';
+
+  // Translate Gemini-style payload into OpenAI/OpenRouter messages array
+  const messages: { role: string; content: string }[] = [];
+
+  if (payload.systemInstruction) {
+    const sysText =
+      typeof payload.systemInstruction === 'string'
+        ? payload.systemInstruction
+        : (payload.systemInstruction?.parts?.map((p: any) => p.text).join('\n') ?? '');
+    messages.push({ role: 'system', content: sysText });
+  }
+
+  if (Array.isArray(payload.contents)) {
+    for (const c of payload.contents) {
+      const role = c.role === 'model' ? 'assistant' : 'user';
+      const text = Array.isArray(c.parts) ? c.parts.map((p: any) => p.text ?? '').join('') : String(c);
+      messages.push({ role, content: text });
+    }
+  } else if (payload.contents) {
+    messages.push({ role: 'user', content: String(payload.contents) });
+  }
+
+  // Map Gemini model names to OpenRouter equivalents
+  const modelMap: Record<string, string> = {
+    'gemini-2.0-flash': 'google/gemini-2.0-flash-001',
+    'gemini-2.0-flash-exp': 'google/gemini-2.0-flash-001',
+    'gemini-2.5-flash': 'google/gemini-2.5-flash-preview',
+    'gemini-2.5-pro': 'google/gemini-2.5-pro-preview',
+    'gemini-1.5-flash': 'google/gemini-2.0-flash-001',
+    'gemini-1.5-pro': 'google/gemini-2.5-pro-preview',
+  };
+  const rawModel = payload.modelName || 'gemini-2.0-flash';
+  const model = modelMap[rawModel] ?? 'google/gemini-2.0-flash-001';
+
+  const max_tokens = payload.generationConfig?.maxOutputTokens ?? 8192;
 
   return retryWithBackoff(
     async () => {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
       try {
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'generateContent', ...payload }),
+          body: JSON.stringify({ model, messages, max_tokens }),
           signal: controller.signal,
         });
 
         clearTimeout(timeoutId);
 
         if (response.ok) {
-          return await response.json();
+          const data = await response.json();
+          // Normalize OpenRouter response to match the shape callers expect
+          const text = data.choices?.[0]?.message?.content ?? data.text ?? '';
+          return { text, candidates: [{ content: { parts: [{ text }] } }] };
         }
 
-        const error = new Error(`Gemini API returned an error: ${response.status} ${response.statusText}`);
-        // Retry on 429 Too Many Requests and 5xx Server Errors
+        const error = new Error(`OpenRouter API returned an error: ${response.status} ${response.statusText}`);
         if (response.status === 429 || response.status >= 500) {
           error.name = 'NetworkError';
         }
@@ -37,39 +74,11 @@ export const callBackendGeminiAPI = async (payload: any) => {
       } catch (e: any) {
         clearTimeout(timeoutId);
 
-        // Fallback for local development using the client-side API key if backend is missing/failing
-        const localApiKey = import.meta.env.VITE_GEMINI_API_KEY;
-        if (localApiKey && (e.name === 'NetworkError' || e.message.includes('fetch') || e.message.includes('500'))) {
-          log.warn('[GeminiService] Backend API failed, falling back to local client-side generation using VITE_GEMINI_API_KEY');
-          try {
-            const { GoogleGenerativeAI } = await import('@google/generative-ai');
-            const ai = new GoogleGenerativeAI(localApiKey);
-            const modelConfig: any = { model: payload.modelName || 'gemini-2.0-flash' };
-            if (payload.generationConfig) modelConfig.generationConfig = payload.generationConfig;
-            if (payload.systemInstruction) modelConfig.systemInstruction = payload.systemInstruction;
-            
-            const model = ai.getGenerativeModel(modelConfig);
-            let response;
-            if (Array.isArray(payload.contents)) {
-              response = await model.generateContent({ contents: payload.contents });
-            } else {
-              response = await model.generateContent(payload.contents);
-            }
-            return {
-              text: response.response.text(),
-              candidates: response.response.candidates,
-            };
-          } catch (fallbackError) {
-            log.error('[GeminiService] Local fallback generation failed', fallbackError);
-            throw fallbackError;
-          }
-        }
-
         if (e.name === 'AbortError') {
-          const timeoutError = new Error('Gemini API request timed out after 30 seconds');
+          const timeoutError = new Error('AI API request timed out after 30 seconds');
           timeoutError.name = 'TimeoutError';
-          log.error('[GeminiService] Backend API call failed: Timeout', timeoutError, { endpoint });
-          throw timeoutError; // TimeoutError is handled by retryWithBackoff
+          log.error('[GeminiService] API call timed out', timeoutError, { endpoint });
+          throw timeoutError;
         }
 
         log.error('[GeminiService] Backend API call failed', e, { endpoint });
@@ -78,7 +87,7 @@ export const callBackendGeminiAPI = async (payload: any) => {
     },
     3,
     1000
-  ); // 3 retries, base delay 1000ms
+  );
 };
 
 /**

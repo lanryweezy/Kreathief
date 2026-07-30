@@ -134,6 +134,10 @@ export default async function handler(req: Request) {
     'https://fal.run/fal-ai/sdxl/inpainting',
     'https://fal.run/fal-ai/fast-sdxl',
     'https://fal.run/fal-ai/aura-sr',
+    'https://fal.run/fal-ai/esrgan',
+    'https://fal.run/fal-ai/clarity-upscaler',
+    'https://fal.run/fal-ai/ccsr',
+    'https://fal.run/fal-ai/creative-upscaler',
   ];
 
   if (!allowedEndpoints.includes(endpoint)) {
@@ -161,6 +165,12 @@ export default async function handler(req: Request) {
         'height',
         'seed',
         'style',
+        'scale',
+        'upscale_factor',
+        'factor',
+        'creativity',
+        'resemblance',
+        'detail',
       ];
       for (const key of Object.keys(body)) {
         if (allowedFields.includes(key)) {

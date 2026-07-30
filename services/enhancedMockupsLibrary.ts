@@ -90,7 +90,7 @@ export const ENHANCED_MOCKUPS: MockupDef[] = [
     id: 'minimal_tshirt',
     name: 'Minimal White T-Shirt',
     category: 'Apparel',
-    bg: '/New folder/man-wearing-minimal-white-t-shirt.jpg',
+    bg: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=600&q=80',
     defaultPlacement: defPlace(30, 32, 35),
     tags: ['minimal', 'white', 'clean'],
   },
@@ -98,7 +98,7 @@ export const ENHANCED_MOCKUPS: MockupDef[] = [
     id: 'grunge_apparel',
     name: 'Grunge Black Top',
     category: 'Apparel',
-    bg: '/New folder/teenage-girl-black-top-flannel-shirt-youth-apparel-grunge-fashion-shoot.jpg',
+    bg: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=600&q=80',
     defaultPlacement: defPlace(25, 30, 40),
     tags: ['grunge', 'dark', 'fashion'],
   },
@@ -585,15 +585,15 @@ export const ENHANCED_MOCKUPS: MockupDef[] = [
 
   // ==================== MORE PRINT (5 additional) ====================
   {
-    id: 'book_cover',
-    name: 'Book Cover',
+    id: 'book_cover_hardcover',
+    name: 'Hardcover Book Cover',
     category: 'Print',
     bg: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=600&q=80',
     defaultPlacement: defPlace(18, 32, 35, 0, 0, 0, 0.95, 'multiply'),
     tags: ['book', 'publication', 'cover'],
   },
   {
-    id: 'notebook_mockup',
+    id: 'spiral_notebook',
     name: 'Spiral Notebook',
     category: 'Print',
     bg: 'https://images.unsplash.com/photo-1531346600560-14489f21569d?auto=format&fit=crop&w=600&q=80',
@@ -635,8 +635,8 @@ export const ENHANCED_MOCKUPS: MockupDef[] = [
     tags: ['cosmetic', 'luxury', 'box'],
   },
   {
-    id: 'wine_bottle',
-    name: 'Wine Bottle',
+    id: 'wine_bottle_premium',
+    name: 'Premium Wine Bottle',
     category: 'Packaging',
     bg: 'https://images.unsplash.com/photo-1559563362-c667ba5f5480?auto=format&fit=crop&w=600&q=80',
     defaultPlacement: defPlace(20, 40, 20, 0, 0, 0, 0.85, 'multiply'),
@@ -669,7 +669,7 @@ export const ENHANCED_MOCKUPS: MockupDef[] = [
 
   // ==================== MORE OUTDOOR (3 additional) ====================
   {
-    id: 'billboard',
+    id: 'highway_billboard',
     name: 'Highway Billboard',
     category: 'Outdoor',
     bg: 'https://images.unsplash.com/photo-1563294029-b4e165c99a09?auto=format&fit=crop&w=600&q=80',
@@ -695,7 +695,7 @@ export const ENHANCED_MOCKUPS: MockupDef[] = [
 
   // ==================== MORE FOOD & BEVERAGE (3 additional) ====================
   {
-    id: 'smoothie_cup',
+    id: 'smoothie_cup_clear',
     name: 'Smoothie Cup',
     category: 'Food & Beverage',
     bg: 'https://images.unsplash.com/photo-1577805947697-b9294ac33c0d?auto=format&fit=crop&w=600&q=80',
@@ -703,16 +703,16 @@ export const ENHANCED_MOCKUPS: MockupDef[] = [
     tags: ['drink', 'healthy', 'cup'],
   },
   {
-    id: 'beer_bottle',
-    name: 'Beer Bottle',
+    id: 'amber_beer_bottle',
+    name: 'Amber Beer Bottle',
     category: 'Food & Beverage',
     bg: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&w=600&q=80',
     defaultPlacement: defPlace(28, 40, 20, 0, 0, 0, 0.85, 'multiply'),
     tags: ['beer', 'beverage', 'alcohol'],
   },
   {
-    id: 'takeout_box',
-    name: 'Takeout Container',
+    id: 'takeout_box_craft',
+    name: 'Craft Takeout Box',
     category: 'Food & Beverage',
     bg: 'https://images.unsplash.com/photo-1584269600464-3704b6c674a4?auto=format&fit=crop&w=600&q=80',
     defaultPlacement: defPlace(35, 35, 30, 0, 0, 0, 0.9, 'multiply'),

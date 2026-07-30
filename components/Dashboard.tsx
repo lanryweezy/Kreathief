@@ -5,6 +5,7 @@ import { Icons } from '../constants';
 import { STARTER_TEMPLATES, createProjectFromTemplate } from '../data/templates';
 import { ConfirmModal } from './modals/ConfirmModal';
 import { CreateProjectModal } from './modals/CreateProjectModal';
+import { PricingModal } from './PricingModal';
 import { useStore } from '../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import CommunityTemplates from './CommunityTemplates';
@@ -17,7 +18,6 @@ import { log } from '../utils/log';
 import { getErrorDetails } from '../utils/errorMessages';
 import { fuzzyMatch } from '../utils/search';
 import { NodeGraph } from './nodes/NodeGraph';
-import { CreativeIntentMode } from './CreativeIntentMode';
 
 interface DashboardProps {
   user: User;
@@ -63,7 +63,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   const [isLoading, setIsLoading] = useState(true);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
   const [templateCategory, setTemplateCategory] = useState('All');
+  const [templateSort, setTemplateSort] = useState<'newest' | 'popular' | 'name'>('newest');
+  const [templatePage, setTemplatePage] = useState(1);
+  // Per-user template usage counts — the real signal behind the "Popular" sort
+  const [templateUses, setTemplateUses] = useState<Record<string, number>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('kreathief_template_uses') || '{}');
+    } catch {
+      return {};
+    }
+  });
 
   // AI Prompt state
   const [aiPrompt, setAiPrompt] = useState('');
@@ -72,7 +83,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showModelPicker, setShowModelPicker] = useState(false);
-  const [showWizard, setShowWizard] = useState(false);
+
   const [showNodeGraph, setShowNodeGraph] = useState(false);
   const aiInputRef = useRef<HTMLTextAreaElement>(null);
   const modelPickerRef = useRef<HTMLDivElement>(null);
@@ -302,6 +313,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       return;
     }
 
+    // Track usage locally so the "Popular" sort reflects what this user actually reaches for
+    setTemplateUses((prev) => {
+      const next = { ...prev, [templateId]: (prev[templateId] || 0) + 1 };
+      try {
+        localStorage.setItem('kreathief_template_uses', JSON.stringify(next));
+      } catch {
+        // Storage blocked/full — usage counts are best-effort
+      }
+      return next;
+    });
+
     const newProject = createProjectFromTemplate(template);
     const remixedState = {
       artboards: newProject.state.artboards || [
@@ -332,17 +354,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     };
     const newProjectId = await createProject(newProject.name, newProject.state.canvasSize, remixedState);
 
-    // Wait for store to update, then open the new project
-    setTimeout(() => {
-      const allProjects = useStore.getState().projects;
-      const createdProject = allProjects.find((p) => p.id === newProjectId);
-      if (createdProject) {
-        loadProject(createdProject.id);
-        onOpenProject(createdProject);
-      } else {
-        onCreateProject();
-      }
-    }, 0);
+    // createProject adds the project to the store synchronously before resolving,
+    // so we can open it right away. Never fall back to onCreateProject() here —
+    // that clears currentProject and lands the user on a blank editor.
+    const createdProject = useStore.getState().projects.find((p) => p.id === newProjectId);
+    if (createdProject) {
+      loadProject(createdProject.id);
+      onOpenProject(createdProject);
+    } else {
+      onOpenProject({ ...newProject, id: newProjectId, state: remixedState, updatedAt: Date.now() } as Project);
+    }
   };
 
   const filteredProjects = projects.filter((p) => {
@@ -358,6 +379,33 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     return matchesSearch && matchesCategory;
   });
 
+  const TEMPLATES_PER_PAGE = 8;
+  const sortedTemplates = [...filteredTemplates].sort((a, b) => {
+    switch (templateSort) {
+      case 'name':
+        return a.name.localeCompare(b.name);
+      case 'popular': {
+        const diff = (templateUses[b.id] || 0) - (templateUses[a.id] || 0);
+        return diff !== 0 ? diff : STARTER_TEMPLATES.indexOf(a) - STARTER_TEMPLATES.indexOf(b);
+      }
+      case 'newest':
+      default:
+        // New templates are appended to the catalog, so reverse declaration order = newest first
+        return STARTER_TEMPLATES.indexOf(b) - STARTER_TEMPLATES.indexOf(a);
+    }
+  });
+  const templatePageCount = Math.max(1, Math.ceil(sortedTemplates.length / TEMPLATES_PER_PAGE));
+  const currentTemplatePage = Math.min(templatePage, templatePageCount);
+  const pagedTemplates = sortedTemplates.slice(
+    (currentTemplatePage - 1) * TEMPLATES_PER_PAGE,
+    currentTemplatePage * TEMPLATES_PER_PAGE
+  );
+
+  // Jump back to page 1 whenever the visible template set changes
+  useEffect(() => {
+    setTemplatePage(1);
+  }, [searchQuery, templateCategory, templateSort]);
+
   return (
     <div className="min-h-screen bg-surface-dark-0 text-white flex flex-col relative z-0">
       {/* Header */}
@@ -371,13 +419,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
 
         <div className="flex items-center gap-6">
           <div className="flex gap-2">
-            <button
-              onClick={() => setShowWizard(true)}
-              className="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold text-white transition-all flex items-center gap-2"
-            >
-              <Icons.Wand className="w-3.5 h-3.5" />
-              Wizard
-            </button>
             <button
               onClick={() => setShowNodeGraph(true)}
               className="px-4 py-2 bg-brand-500/20 text-brand-400 hover:bg-brand-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
@@ -419,7 +460,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
           >
             <div className="text-right hidden sm:block">
               <div className="text-xs font-black uppercase tracking-widest text-white">{user.name}</div>
-              <div className="text-[9px] text-brand-400 uppercase font-black tracking-widest">{user.plan} Plan</div>
+              <button
+                onClick={() => setShowPricingModal(true)}
+                className="text-[9px] text-brand-400 uppercase font-black tracking-widest hover:text-brand-300 hover:underline transition-colors"
+                title="View plans & upgrade"
+              >
+                {user.plan} Plan
+              </button>
             </div>
             <button
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
@@ -477,6 +524,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 role="menuitem"
               >
                 <Icons.Sliders className="w-4 h-4 text-purple-400" /> Studio Settings
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setProfileDropdownOpen(false);
+                  setShowPricingModal(true);
+                }}
+                className="w-full text-left px-4 py-3 text-xs font-bold text-white hover:bg-white/[0.06] rounded-xl flex items-center gap-3 transition-colors focus-visible:outline-none focus-visible:bg-white/[0.06]"
+                role="menuitem"
+              >
+                <Icons.Zap className="w-4 h-4 text-yellow-400" /> Upgrade to Pro
               </button>
               <div className="my-1 border-t border-white/10" />
               <button
@@ -662,16 +720,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button
-                  onClick={() => setShowWizard(true)}
-                  className="group bg-surface-dark-1 border border-white/5 rounded-xl p-6 text-left hover:border-brand-500/40 hover:bg-brand-500/5 transition-all shadow-lg hover:shadow-xl cursor-pointer"
-                >
-                  <Icons.Wand className="w-6 h-6 text-brand-400 mb-3 group-hover:scale-110 transition-transform" />
-                  <div className="font-bold text-white mb-1">Start with Wizard</div>
-                  <div className="text-xs text-muted">
-                    Answer a few questions and let AI set up the perfect canvas for you.
-                  </div>
-                </button>
-                <button
                   onClick={() => setShowNodeGraph(true)}
                   className="group bg-surface-dark-1 border border-white/5 rounded-xl p-6 text-left hover:border-brand-500/40 hover:bg-brand-500/5 transition-all shadow-lg hover:shadow-xl cursor-pointer"
                 >
@@ -738,7 +786,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
             <div className="mb-10">
               <div className="flex items-center justify-between mb-5">
                 <span className="text-xs font-black text-muted uppercase tracking-[0.2em]">Templates</span>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2">
                   {['All', 'Social', 'Business', 'Video', 'Personal'].map((cat) => (
                     <button
                       key={cat}
@@ -748,10 +796,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                       {cat}
                     </button>
                   ))}
+                  <select
+                    value={templateSort}
+                    onChange={(e) => setTemplateSort(e.target.value as 'newest' | 'popular' | 'name')}
+                    aria-label="Sort templates"
+                    className="ml-2 px-3 py-1.5 rounded-full text-xs font-bold bg-white/5 text-muted hover:text-white hover:bg-white/10 border border-white/10 focus:outline-none focus:border-brand-500 transition-all cursor-pointer [&>option]:bg-surface-dark-1 [&>option]:text-white"
+                  >
+                    <option value="newest">Newest</option>
+                    <option value="popular">Popular</option>
+                    <option value="name">Name</option>
+                  </select>
                 </div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filteredTemplates.slice(0, 8).map((tmpl) => (
+                {pagedTemplates.map((tmpl) => (
                   <button
                     key={tmpl.id}
                     onClick={() => handleStartFromTemplate(tmpl.id)}
@@ -785,6 +843,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   </button>
                 ))}
               </div>
+              {sortedTemplates.length === 0 && (
+                <div className="text-center py-8 text-muted text-xs">
+                  No templates match your search. Try a different keyword or category.
+                </div>
+              )}
+              {templatePageCount > 1 && (
+                <div className="flex items-center justify-center gap-3 mt-5">
+                  <button
+                    onClick={() => setTemplatePage(currentTemplatePage - 1)}
+                    disabled={currentTemplatePage === 1}
+                    className="px-3 py-1.5 rounded-full text-xs font-bold bg-white/5 text-muted hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  >
+                    Prev
+                  </button>
+                  <span className="text-xs font-bold text-muted">
+                    Page {currentTemplatePage} of {templatePageCount}
+                  </span>
+                  <button
+                    onClick={() => setTemplatePage(currentTemplatePage + 1)}
+                    disabled={currentTemplatePage === templatePageCount}
+                    className="px-3 py-1.5 rounded-full text-xs font-bold bg-white/5 text-muted hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Empty State */}
@@ -818,18 +902,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         </div>
       </main>
 
-      {showWizard && (
-        <div className="fixed inset-0 z-[100] bg-surface-dark-2">
-          <CreativeIntentMode
-            onSelect={() => setShowWizard(false)}
-            onSkip={() => {
-              useStore.getState().setIntent('skip', 1080, 1080);
-              setShowWizard(false);
-            }}
-          />
-        </div>
-      )}
-
       {showNodeGraph && (
         <div className="fixed inset-0 z-[100] bg-surface-dark-2">
           <NodeGraph
@@ -840,6 +912,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
             }}
           />
         </div>
+      )}
+
+      {showPricingModal && (
+        <PricingModal
+          onClose={() => setShowPricingModal(false)}
+          onUpgrade={() => {
+            // No payment backend yet — be honest instead of pretending to upgrade
+            addToast('Pro subscriptions are not live yet — everything is free during the beta!', 'info');
+            setShowPricingModal(false);
+          }}
+        />
       )}
 
       <ConfirmModal
@@ -858,17 +941,27 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         onCreate={async (size, initialState) => {
           const newProjectId = await createProject(size.name || 'Untitled Design', size, initialState);
           setCreateModalOpen(false);
-          // Wait a tick for store to update, then get the new project
-          setTimeout(() => {
-            const allProjects = useStore.getState().projects;
-            const newProject = allProjects.find((p) => p.id === newProjectId);
-            if (newProject) {
-              loadProject(newProject.id);
-              onOpenProject(newProject);
-            } else {
-              onCreateProject();
-            }
-          }, 0);
+          // createProject updates the store synchronously before resolving — open directly.
+          const s = useStore.getState();
+          const newProject = s.projects.find((p) => p.id === newProjectId);
+          if (newProject) {
+            loadProject(newProject.id);
+            onOpenProject(newProject);
+          } else {
+            // Store was already initialized by createProject; open from live state
+            onOpenProject({
+              id: newProjectId,
+              name: s.projectTitle,
+              updatedAt: Date.now(),
+              state: {
+                artboards: s.artboards,
+                activeArtboardId: s.activeArtboardId,
+                canvasBackgroundColor: s.canvasBackgroundColor,
+                canvasFilters: s.canvasFilters,
+                canvasSize: s.canvasSize,
+              },
+            } as Project);
+          }
         }}
       />
     </div>

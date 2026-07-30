@@ -55,31 +55,34 @@ export default async function handler(req: Request) {
   }
 
   try {
-    // Forward to Gemini API with auth
-    const geminiRes = await fetch(`${origin}/api/gemini`, {
+    // Forward inpainting to Fal.ai via our existing fal proxy
+    const falRes = await fetch(`${origin}/api/fal`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: req.headers.get('Authorization') || '',
       },
       body: JSON.stringify({
-        action: 'editImage',
-        image,
-        prompt: prompt || 'Fill in the transparent areas to match the surrounding image context.',
-        mask,
+        endpoint: 'fal-ai/fast-sdxl/inpainting',
+        input: {
+          image_url: image,
+          mask_url: mask,
+          prompt: prompt || 'Fill in the transparent areas to match the surrounding image context.',
+          num_inference_steps: 25,
+        },
       }),
     });
 
-    if (!geminiRes.ok) {
-      const errorText = await geminiRes.text();
-      log.error('[Inpaint] Gemini failed', new Error(errorText), { status: geminiRes.status });
+    if (!falRes.ok) {
+      const errorText = await falRes.text();
+      log.error('[Inpaint] Fal inpainting failed', new Error(errorText), { status: falRes.status });
       return new Response(JSON.stringify({ error: 'AI service unavailable' }), {
         status: 502,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin },
       });
     }
 
-    const result = await geminiRes.json();
+    const result = await falRes.json();
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin, ...noStoreHeaders() },

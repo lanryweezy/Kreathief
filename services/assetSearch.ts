@@ -1,7 +1,5 @@
 import { log } from '../utils/log';
 import * as unsplashService from './unsplashService';
-import * as pixabayService from './pixabayService';
-import * as pexelsService from './pexelsService';
 
 export interface NormalizedAsset {
   id: string;
@@ -51,7 +49,9 @@ function checkRateLimit(provider: string): boolean {
     rateLimits.set(provider, { count: 1, resetAt: now + RATE_WINDOW });
     return true;
   }
-  if (entry.count >= RATE_LIMIT) return false;
+  if (entry.count >= RATE_LIMIT) {
+    return false;
+  }
   entry.count++;
   return true;
 }
@@ -73,41 +73,12 @@ registerSearchProvider({
     ),
 });
 
-registerSearchProvider({
-  id: 'pixabay',
-  search: (query) =>
-    pixabayService.searchPhotos(query).then((results) =>
-      results.map((p) => ({
-        id: `pb-${p.id}`,
-        url: p.url,
-        thumbnail: p.thumbnail,
-        alt: p.alt,
-        author: p.user,
-        provider: 'pixabay',
-      }))
-    ),
-});
-
-registerSearchProvider({
-  id: 'pexels',
-  search: (query) =>
-    pexelsService.searchPhotos(query).then((results) =>
-      results.map((p) => ({
-        id: `px-${p.id}`,
-        url: p.url,
-        thumbnail: p.thumbnail,
-        alt: p.alt,
-        author: p.photographer,
-        authorUrl: p.photographerUrl,
-        provider: 'pexels',
-      }))
-    ),
-});
-
 export async function searchAllProviders(query: string): Promise<NormalizedAsset[]> {
   const cacheKey = `all:${query}`;
   const cached = cache.get(cacheKey);
-  if (cached && Date.now() - cached.ts < TTL) return cached.data;
+  if (cached && Date.now() - cached.ts < TTL) {
+    return cached.data;
+  }
 
   const promises: Promise<NormalizedAsset[]>[] = [];
 

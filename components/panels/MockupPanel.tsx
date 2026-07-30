@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Icons } from '../../constants';
-import { vecteezyService, VecteezyResource } from '../../services/vecteezyService';
+
 import { MockupModal } from '../modals/MockupModal';
 import { CornerHandles } from '../mockup/CornerHandles';
 import { getErrorDetails } from '../../utils/errorMessages';
@@ -70,6 +70,15 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   const [activeMockupId, setActiveMockupId] = useState<string>('tshirt_flat');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [generatedPreview, setGeneratedPreview] = useState<string | null>(null);
+  const previousBlobUrlRef = useRef<string | null>(null);
+
+  const updateGeneratedPreview = useCallback((url: string | null) => {
+    if (previousBlobUrlRef.current && previousBlobUrlRef.current.startsWith('blob:')) {
+      URL.revokeObjectURL(previousBlobUrlRef.current);
+    }
+    previousBlobUrlRef.current = url;
+    setGeneratedPreview(url);
+  }, []);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isLive, setIsLive] = useState(false);
   const [isProGenerating, setIsProGenerating] = useState(false);
@@ -101,30 +110,18 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   });
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
-  const [vecteezyResults, setVecteezyResults] = useState<VecteezyResource[]>([]);
-  const [isSearchingVecteezy, setIsSearchingVecteezy] = useState(false);
+  const [vecteezyResults, setVecteezyResults] = useState<
+    { id: string; preview_url: string; thumbnail_url?: string; title?: string }[]
+  >([]);
+  const [isSearchingVecteezy] = useState(false);
 
   const [suggestedMockups, setSuggestedMockups] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  useEffect(() => {
-    if (!searchQuery.trim() || !vecteezyService.isConfigured()) {
-      setVecteezyResults([]);
-      return;
-    }
-    const timer = setTimeout(async () => {
-      setIsSearchingVecteezy(true);
-      const results = await vecteezyService.searchResources(searchQuery + ' mockup blank');
-      setVecteezyResults(results);
-      setIsSearchingVecteezy(false);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
   const APP_STORE_PRESETS = {
-    'iOS Complete': ['iphone_16_pro', 'iphone_16_pro_max', 'ipad_pro', 'macbook'],
-    'Android Complete': ['pixel_9_pro', 'samsung_s24', 'android_tablet'],
-    'Social Media Pack': ['instagram_post', 'instagram_story', 'facebook_post', 'twitter_header'],
+    'iOS Complete': ['iphone', 'ipad', 'macbook'],
+    'Android Complete': ['android_phone', 'macbook'],
+    'Merchandise Pack': ['tshirt', 'hoodie', 'mug', 'tote_bag'],
     'Print Pack': ['business_card', 'flyer_table', 'magazine', 'poster_frame'],
   };
 
@@ -272,18 +269,19 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
 
-      const aspectRatio = canvas.width / canvas.height;
+      const designAspect = canvas.width / canvas.height;
 
       const suggestions = mockups
-        .filter((_m) => {
-          const mockupAspect = 1;
-          return Math.abs(aspectRatio - mockupAspect) < 0.5;
+        .filter((m) => {
+          const placementAspect =
+            m.defaultPlacement.width / ((m.defaultPlacement as any).height || m.defaultPlacement.width);
+          return Math.abs(designAspect - placementAspect) < 0.6;
         })
         .slice(0, 6)
         .map((m) => m.id);
 
       setSuggestedMockups(suggestions);
-      addToast(`Found ${suggestions.length} perfect mockups for your design!`, 'success');
+      addToast(`Found ${suggestions.length} matching mockups for your design aspect ratio!`, 'success');
     } catch (error) {
       log.error('[MockupPanel] Suggestion failed', error);
       const details = getErrorDetails(error);
@@ -310,6 +308,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     }
 
     setIsBatchGenerating(true);
+    let generatedCount = 0;
     setBatchProgress({ current: 0, total: selectedMockupIds.length, name: '' });
     addToast(`Generating ${selectedMockupIds.length} mockups...`, 'info');
 
@@ -392,9 +391,10 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
             vignette: 0,
           },
         });
+        generatedCount++;
       }
 
-      addToast(`Generated ${selectedMockupIds.length} mockups!`, 'success');
+      addToast(`Generated ${generatedCount} mockup${generatedCount === 1 ? '' : 's'}!`, 'success');
       setBatchMode(false);
       setSelectedMockupIds([]);
     } catch (error) {
@@ -492,7 +492,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       };
     }
     return mockups.find((m) => m.id === activeMockupId) || mockups[0];
-  }, [activeMockupId, mockups, customMockup, placement, vecteezyResults]);
+  }, [activeMockupId, mockups, customMockup, vecteezyResults]);
 
   useEffect(() => {
     if (currentMockup) {
@@ -650,7 +650,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       }
       const url = await generateComposite();
       if (active && isMountedRef.current && url) {
-        setGeneratedPreview(url);
+        updateGeneratedPreview(url);
       }
       if (active && isMountedRef.current) {
         setIsGenerating(false);
@@ -667,7 +667,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     if (generatedPreview) {
       const link = document.createElement('a');
       link.href = generatedPreview;
-      link.download = `${currentMockup.name.toLowerCase().replace(/\s/g, '-')}-mockup.jpg`;
+      link.download = `${(currentMockup?.name || 'mockup').toLowerCase().replace(/\s/g, '-')}-mockup.jpg`;
       link.click();
     }
   };
@@ -692,7 +692,10 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       });
 
       if (result) {
-        // Log removed for production
+        updateGeneratedPreview(result);
+        addToast('Pro mockup rendered successfully!', 'success');
+      } else {
+        addToast('Pro render service unconfigured. Using high-fidelity local compositor.', 'info');
       }
     } catch (e) {
       log.error('[MockupPanel] Pro mockup render failed', e);
@@ -840,14 +843,17 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
                     className="absolute inset-y-0 w-1 bg-brand-600 cursor-ew-resize shadow-[0_0_20px_rgba(125,42,232,0.5)]"
                     style={{ left: `${comparisonPosition}%` }}
                     onPointerDown={(e) => {
+                      const container = e.currentTarget.parentElement;
+                      if (!container) {
+                        return;
+                      }
+                      const rect = container.getBoundingClientRect();
                       e.currentTarget.setPointerCapture(e.pointerId);
+
                       const handleMove = (moveEvent: PointerEvent) => {
-                        const rect = (moveEvent.currentTarget as HTMLElement)?.parentElement?.getBoundingClientRect();
-                        if (rect) {
-                          const x = moveEvent.clientX - rect.left;
-                          const newPos = Math.max(0, Math.min(100, (x / rect.width) * 100));
-                          setComparisonPosition(newPos);
-                        }
+                        const x = moveEvent.clientX - rect.left;
+                        const newPos = Math.max(0, Math.min(100, (x / rect.width) * 100));
+                        setComparisonPosition(newPos);
                       };
                       const handleUp = () => {
                         document.removeEventListener('pointermove', handleMove);

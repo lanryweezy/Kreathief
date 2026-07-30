@@ -61,7 +61,6 @@ export const Toolbar = React.memo(
     const onRetouch = s.onRetouch;
     const onRemix = s.onRemix;
     const onMagicExpand = s.onMagicExpand;
-    const toggleEraser = s.toggleEraser;
     const setIsProcessing = s.setIsProcessing;
     const setActiveTab = s.setActiveTab;
     const setIsLassoMode = s.setIsLassoMode;
@@ -73,7 +72,6 @@ export const Toolbar = React.memo(
 
     const isRemovingBgStore = useStore((state) => state.isRemovingBg);
     const isExpandingStore = useStore((state) => state.isExpanding);
-    const isEraserActiveStore = useStore((state) => state.isEraserActive);
     const isSmartMaskModeStore = useStore((state) => state.isSmartMaskMode);
     const setIsSmartMaskMode = useStore((state) => state.setIsSmartMaskMode);
     const isLassoModeStore = useStore((state) => state.isLassoMode);
@@ -89,7 +87,9 @@ export const Toolbar = React.memo(
     const selectedLayers = useStore(
       useShallow((state) => {
         const artboard = state.artboards.find((a) => a.id === state.activeArtboardId);
-        if (!artboard || !state.selectedLayerIds) return [];
+        if (!artboard || !state.selectedLayerIds) {
+          return [];
+        }
 
         // ⚡ Bolt Optimization: Replaced O(N*M) array search (mapping over selectedLayerIds and finding in layers)
         // with O(N) Set-based filter approach. This significantly reduces CPU overhead when many layers are selected.
@@ -237,11 +237,9 @@ export const Toolbar = React.memo(
                     isPro={true}
                     isRemovingBg={isRemovingBgStore}
                     isExpanding={isExpandingStore}
-                    isEraserActive={isEraserActiveStore}
                     isSmartMaskMode={!!isSmartMaskModeStore}
                     setIsSmartMaskMode={setIsSmartMaskMode as any}
                     handleRemoveBackground={() => onRmBg(selectedLayer.id)}
-                    handleEraserClick={toggleEraser}
                     handleMagicExpand={() => onMagicExpand(selectedLayer.id)}
                     onRemix={onRemix}
                     handleUpdateLayer={handleUpdateLayer}

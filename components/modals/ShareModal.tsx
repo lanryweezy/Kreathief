@@ -65,22 +65,35 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
       return;
     }
     const inviteLink = shareLink || '';
-    if (inviteLink) {
+    if (!inviteLink) {
+      addToast('Generate a share link first', 'warning');
+      return;
+    }
+    const subject = `Check out my design "${designTitle}" on Kreathief`;
+    const body = `Hey!\n\nI made a design called "${designTitle}" on Kreathief and wanted to share it with you:\n\n${inviteLink}`;
+    const mailtoUrl = `mailto:${encodeURIComponent(inviteEmail.trim())}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    // mailto URLs have practical length limits (~2KB); compressed share links can exceed that.
+    if (mailtoUrl.length <= 2000) {
+      window.location.href = mailtoUrl;
+      setInviteSent(true);
+      setInviteEmail('');
+      addToast(`Opening your email app to invite ${inviteEmail.trim()}`, 'success');
+      setTimeout(() => setInviteSent(false), 3000);
+    } else {
+      // Link too long for mailto — fall back to copying the message
       const message = `Hey! Check out my design "${designTitle}" on Kreathief: ${inviteLink}`;
       navigator.clipboard
         .writeText(message)
         .then(() => {
           setInviteSent(true);
           setInviteEmail('');
-          addToast(`Invite link copied! Send it to ${inviteEmail || 'your colleague'}`, 'success');
+          addToast(`Link too long for email apps — invite message copied. Paste it to ${inviteEmail.trim()}`, 'info');
           setTimeout(() => setInviteSent(false), 3000);
         })
         .catch((e) => {
           const details = getErrorDetails(e);
           addToast(`Failed to copy invite link: ${details.message}. ${details.suggestion}`, 'error');
         });
-    } else {
-      addToast('Generate a share link first', 'warning');
     }
   };
 
@@ -186,7 +199,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
                   className={inviteSent ? '!bg-green-600 !text-white' : ''}
                 >
                   {inviteSent ? <Icons.Check className="w-4 h-4" /> : <Icons.Send className="w-4 h-4" />}
-                  {inviteSent ? 'Copied to Clipboard!' : 'Copy Invite Link'}
+                  {inviteSent ? 'Invite Ready!' : 'Send Invite'}
                 </Button>
               </div>
             </div>

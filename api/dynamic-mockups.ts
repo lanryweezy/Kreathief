@@ -99,14 +99,32 @@ export default async function handler(req: Request) {
         });
       }
 
-      // Validate body — only allow safe fields
+      // Validate body — map client parameters (mockupId, designUrl) and allow safe fields
       const safePayload: any = {};
       if (payload && typeof payload === 'object') {
-        const allowedFields = ['image_url', 'template_id', 'width', 'height', 'format', 'quality', 'effects'];
+        const allowedFields = [
+          'image_url',
+          'template_id',
+          'mockupId',
+          'designUrl',
+          'placement',
+          'width',
+          'height',
+          'format',
+          'quality',
+          'effects',
+        ];
         for (const key of Object.keys(payload)) {
           if (allowedFields.includes(key)) {
             safePayload[key] = payload[key];
           }
+        }
+        // Normalize payload fields for upstream Dynamic Mockups API
+        if (safePayload.mockupId && !safePayload.template_id) {
+          safePayload.template_id = safePayload.mockupId;
+        }
+        if (safePayload.designUrl && !safePayload.image_url) {
+          safePayload.image_url = safePayload.designUrl;
         }
       }
 

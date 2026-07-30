@@ -12,12 +12,10 @@ interface ImageToolsProps {
   layer: ImageLayer;
   isRemovingBg: boolean;
   isExpanding: boolean;
-  isEraserActive: boolean;
   isSmartMaskMode: boolean;
   setIsSmartMaskMode: (active: boolean) => void;
   isPro: boolean;
   handleRemoveBackground: () => void;
-  handleEraserClick: () => void;
   handleMagicExpand: () => void;
   onRemix?: (id: string) => void;
   handleUpdateLayer: (changes: any) => void;
@@ -45,12 +43,10 @@ export const ImageTools = React.memo(
     layer,
     isRemovingBg,
     isExpanding,
-    isEraserActive,
     isSmartMaskMode,
     setIsSmartMaskMode,
     isPro,
     handleRemoveBackground,
-    handleEraserClick,
     handleMagicExpand,
     onRemix,
     handleUpdateLayer,
@@ -315,14 +311,6 @@ export const ImageTools = React.memo(
             </div>
           </>
         )}
-        <IconButton onClick={handleEraserClick} active={isEraserActive} title="Magic Eraser" className="relative">
-          <Icons.Eraser className="w-4 h-4 text-red-400" />
-          {!isPro && (
-            <div className="absolute -top-1 -right-1 bg-amber-500 rounded-full p-0.5">
-              <Icons.Lock className="w-2 h-2 text-white" />
-            </div>
-          )}
-        </IconButton>
         <IconButton
           onClick={handleMagicExpand}
           loading={isExpanding}

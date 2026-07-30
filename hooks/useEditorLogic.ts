@@ -4,7 +4,7 @@ import { Project, AppMode, ShapeLayer, TextLayer, VectorPath, CanvasFilters } fr
 import * as geminiService from '../services/geminiService';
 import { storageService } from '../services/storageService';
 import { loadFonts } from '../services/FontLoader';
-import { BooleanOperations } from '../utils/booleanOperations';
+import { BooleanOperations, performBooleanOnLayers } from '../utils/booleanOperations';
 import { VectorUtils } from '../utils/vectorUtils';
 import { getAIErrorMessage } from '../utils/errorMessages';
 import { log } from '../utils/log';
@@ -104,16 +104,28 @@ export const useEditorLogic = (initialProject?: Project) => {
           const parsed = typeof savedState === 'string' ? JSON.parse(savedState) : savedState;
           if (parsed.layers?.length > 0) {
             const sanitized = parsed.layers.map((l: any) => {
-              if (!l || typeof l !== 'object') return l;
+              if (!l || typeof l !== 'object') {
+                return l;
+              }
               const safe = { ...l };
-              if (typeof safe.text === 'object') safe.text = String(safe.text ?? '');
-              if (typeof safe.fontFamily === 'object') safe.fontFamily = String(safe.fontFamily ?? '');
-              if (typeof safe.color === 'object') safe.color = String(safe.color ?? '#000000');
-              if (typeof safe.fill === 'object' && typeof safe.fill !== 'string') safe.fill = String(safe.fill ?? '');
+              if (typeof safe.text === 'object') {
+                safe.text = String(safe.text ?? '');
+              }
+              if (typeof safe.fontFamily === 'object') {
+                safe.fontFamily = String(safe.fontFamily ?? '');
+              }
+              if (typeof safe.color === 'object') {
+                safe.color = String(safe.color ?? '#000000');
+              }
+              if (typeof safe.fill === 'object' && typeof safe.fill !== 'string') {
+                safe.fill = String(safe.fill ?? '');
+              }
               if (typeof safe.stroke === 'object' && safe.stroke !== null && typeof safe.stroke?.color !== 'string') {
                 safe.stroke = { ...safe.stroke, color: String(safe.stroke?.color ?? '#000000') };
               }
-              if (typeof safe.src === 'object') safe.src = String(safe.src ?? '');
+              if (typeof safe.src === 'object') {
+                safe.src = String(safe.src ?? '');
+              }
               return safe;
             });
             setLayers(sanitized);
@@ -185,20 +197,31 @@ export const useEditorLogic = (initialProject?: Project) => {
   const documentColors = useMemo(() => {
     const colors = new Set<string>();
     const addColor = (c: any) => {
-      if (typeof c === 'string') colors.add(c);
-      else if (c !== null && c !== undefined) colors.add(String(c));
+      if (typeof c === 'string') {
+        colors.add(c);
+      } else if (c !== null && c !== undefined) {
+        colors.add(String(c));
+      }
     };
     addColor(canvasBackgroundColor);
     layers.forEach((l) => {
       if (l.type === 'text') {
         const tl = l as TextLayer;
-        if (tl.color) addColor(tl.color);
+        if (tl.color) {
+          addColor(tl.color);
+        }
       } else if (l.type !== 'image') {
         const sl = l as ShapeLayer;
-        if (sl.color) addColor(sl.color);
+        if (sl.color) {
+          addColor(sl.color);
+        }
       }
-      if (l.stroke?.color) addColor(l.stroke.color);
-      if (l.shadow?.color) addColor(l.shadow.color);
+      if (l.stroke?.color) {
+        addColor(l.stroke.color);
+      }
+      if (l.shadow?.color) {
+        addColor(l.shadow.color);
+      }
     });
     brandKits.forEach((kit) => kit.colors.forEach((c) => addColor(c)));
     return Array.from(colors);
@@ -275,45 +298,26 @@ export const useEditorLogic = (initialProject?: Project) => {
       addToast('Select at least two path layers.', 'warning');
       return;
     }
+    const result = performBooleanOnLayers(selectedPaths, operation);
+    if (!result) {
+      addToast('Boolean operation failed — selected layers have no valid paths.', 'error');
+      return;
+    }
     saveToHistory();
     const selectedIndices = selectedPaths.map((p) => layers.findIndex((l: any) => l.id === p.id));
     const lowestIndex = Math.min(...selectedIndices);
     const baseLayer = selectedPaths[0]!;
-    const globalPaths = selectedPaths.map((layer) => {
-      const path = VectorUtils.parsePath(layer.pathData || '');
-      return { ...path, points: path.points.map((p) => ({ ...p, x: p.x + layer.x, y: p.y + layer.y })) };
-    });
-    let resultPath = globalPaths[0]!;
-    for (let i = 1; i < globalPaths.length; i++) {
-      switch (operation) {
-        case 'union':
-          resultPath = BooleanOperations.union(resultPath, globalPaths[i]!);
-          break;
-        case 'subtract':
-          resultPath = BooleanOperations.subtract(resultPath, globalPaths[i]!);
-          break;
-        case 'intersect':
-          resultPath = BooleanOperations.intersect(resultPath, globalPaths[i]!);
-          break;
-        case 'exclude':
-          resultPath = BooleanOperations.exclude(resultPath, globalPaths[i]!);
-          break;
-      }
-    }
-    const bounds = VectorUtils.getBounds(resultPath);
-    const localPath = {
-      ...resultPath,
-      points: resultPath.points.map((p) => ({ ...p, x: p.x - bounds.x, y: p.y - bounds.y })),
-    };
     const newLayer: ShapeLayer = {
       ...baseLayer,
       id: generateLayerId('path'),
       type: 'path',
-      x: bounds.x,
-      y: bounds.y,
-      width: bounds.width,
-      height: bounds.height,
-      pathData: VectorUtils.serializePath(localPath),
+      x: result.x,
+      y: result.y,
+      width: result.width,
+      height: result.height,
+      pathData: result.pathData,
+      vectorPath: result.vectorPath,
+      viewBox: result.viewBox,
       name: 'Boolean Result',
     };
 

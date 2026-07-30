@@ -1,11 +1,7 @@
-import { log } from '../../utils/log';
-
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icons } from '../../constants';
 import { BrushType } from '../../types';
 import { useStore } from '../../store/useStore';
-import { AbrParser } from '../../utils/abrParser';
-import { v4 as uuidv4 } from 'uuid';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PanelHeader } from './PanelHeader';
@@ -54,11 +50,8 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
     localStorage.setItem('kreathief_draw_recent_colors', JSON.stringify(recentColors));
   }, [recentColors]);
   const [confirmDialog, setConfirmDialog] = useState<{ brushType: BrushType } | null>(null);
-  const customBrushes = useStore((state) => state.customBrushes) || [];
-  const addCustomBrushes = useStore((state) => state.addCustomBrushes);
   const selectedCustomBrushId = useStore((state) => state.selectedCustomBrushId);
   const setSelectedCustomBrushId = useStore((state) => state.setSelectedCustomBrushId);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Use store for smoothing, jitter, and autoSelectAfterDraw
   const brushSmoothing = useStore((state) => state.brushSmoothing);
@@ -87,31 +80,6 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
     setBrushColor(color);
     if (!recentColors.includes(color)) {
       setRecentColors((prev) => [color, ...prev].slice(0, 8));
-    }
-  };
-
-  const handleAbrImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    try {
-      const buffer = await file.arrayBuffer();
-      const parser = new AbrParser(buffer);
-      const brushes = parser.parse();
-
-      const newBrushes = brushes.map((b) => ({
-        ...b,
-        id: uuidv4(),
-        tipData: b.tipData || '',
-      }));
-
-      addCustomBrushes(newBrushes);
-      useStore.getState().addToast?.(`Imported ${newBrushes.length} brushes`, 'success');
-    } catch (err) {
-      log.error('Failed to read brush file', err);
-      useStore.getState().addToast?.('Failed to read brush file', 'error');
     }
   };
 
@@ -208,20 +176,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
-      <input type="file" ref={fileInputRef} accept=".abr" className="hidden" onChange={handleAbrImport} />
-      <PanelHeader
-        title="Creative Drawing"
-        icon={<Icons.Brush className="w-5 h-5" />}
-        action={
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="p-1.5 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 rounded-lg transition-all"
-            title="Import ABR Brushes"
-          >
-            <Icons.Plus className="w-4 h-4" />
-          </button>
-        }
-      />
+      <PanelHeader title="Creative Drawing" icon={<Icons.Brush className="w-5 h-5" />} />
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar pb-10 flex flex-col">
         <svg width="0" height="0" className="absolute pointer-events-none">
           <defs>
@@ -267,43 +222,6 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
             )}
           </div>
         </div>
-
-        {/* Custom Brushes */}
-        {customBrushes.length > 0 && (
-          <div className="mb-6">
-            <label className="text-xs font-bold text-gray-400 mb-3 block uppercase tracking-wider">
-              Imported Brushes
-            </label>
-            <div className="grid grid-cols-4 gap-2">
-              {customBrushes.map((brush) => (
-                <button
-                  key={brush.id}
-                  onClick={() => {
-                    setBrushType(BrushType.CUSTOM);
-                    setSelectedCustomBrushId(brush.id);
-                    setIsDrawing(true);
-                  }}
-                  className={`aspect-square rounded-lg border flex items-center justify-center p-1 transition-all ${
-                    selectedCustomBrushId === brush.id
-                      ? 'bg-orange-500/20 border-orange-500 ring-1 ring-orange-500'
-                      : 'bg-surface-dark-4 border-gray-700 text-gray-500 hover:border-gray-600'
-                  }`}
-                  title={brush.name}
-                >
-                  {brush.tipData ? (
-                    <img
-                      src={brush.tipData}
-                      className="w-full h-full object-contain invert grayscale brightness-200"
-                      alt=""
-                    />
-                  ) : (
-                    <Icons.Brush className="w-4 h-4" />
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Brush Types with Previews */}
         <div className="mb-6">

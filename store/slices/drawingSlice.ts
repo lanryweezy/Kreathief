@@ -30,7 +30,6 @@ export interface DrawingSlice {
   setTextureIntensity: (val: number) => void;
   addCustomBrushes: (brushes: CustomBrush[]) => void;
   setSelectedCustomBrushId: (id: string | null) => void;
-  toggleEraser: () => void;
 }
 
 export const createDrawingSlice: StateCreator<DrawingSlice, [], [], DrawingSlice> = (set) => ({
@@ -75,8 +74,4 @@ export const createDrawingSlice: StateCreator<DrawingSlice, [], [], DrawingSlice
   setTextureIntensity: (textureIntensity) => set({ textureIntensity }),
   addCustomBrushes: (brushes) => set((state) => ({ customBrushes: [...state.customBrushes, ...brushes] })),
   setSelectedCustomBrushId: (selectedCustomBrushId) => set({ selectedCustomBrushId }),
-  toggleEraser: () =>
-    set((state) => ({
-      brushType: state.brushType === BrushType.ERASER ? BrushType.BASIC : BrushType.ERASER,
-    })),
 });

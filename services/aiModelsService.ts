@@ -120,6 +120,6 @@ export const aiModelsService = {
       },
       'Upscaling failed'
     );
-    return data.image?.url;
+    return data.image?.url || data.images?.[0]?.url || data.url || data.output?.url || data.output_url;
   },
 };

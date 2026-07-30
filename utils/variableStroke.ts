@@ -9,6 +9,7 @@ export interface StrokePoint {
 
 export class StrokeSmoother {
   private points: StrokePoint[] = [];
+  private smoothedPointsHistory: StrokePoint[] = [];
   private smoothing: number;
   private lastOutput: StrokePoint | null = null;
 
@@ -27,6 +28,7 @@ export class StrokeSmoother {
     // Need at least 3 points for smoothing
     if (this.points.length < 3) {
       this.lastOutput = newPoint;
+      this.smoothedPointsHistory.push(newPoint);
       return newPoint;
     }
 
@@ -36,6 +38,7 @@ export class StrokeSmoother {
 
     if (!lastPoint || !secondLastPoint) {
       this.lastOutput = newPoint;
+      this.smoothedPointsHistory.push(newPoint);
       return newPoint;
     }
 
@@ -57,7 +60,68 @@ export class StrokeSmoother {
     const smoothedY = y * (1 - adjustedSmoothFactor) + lastPoint.y * adjustedSmoothFactor;
 
     this.lastOutput = { x: smoothedX, y: smoothedY, pressure };
+    this.smoothedPointsHistory.push(this.lastOutput);
     return this.lastOutput;
+  }
+
+  /**
+   * Add a point and return a high-density array of Catmull-Rom interpolated points
+   * to eliminate angular step gaps during fast hand strokes or trackpad drawing.
+   */
+  addPointWithCatmullRom(x: number, y: number, pressure?: number, maxStep: number = 2.0): StrokePoint[] {
+    const target = this.addPoint(x, y, pressure);
+    if (!target) {
+      return [];
+    }
+
+    const n = this.smoothedPointsHistory.length;
+    if (n < 2) {
+      return [target];
+    }
+
+    const p1 = this.smoothedPointsHistory[n - 2];
+    const p2 = target;
+
+    const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+    if (dist <= maxStep) {
+      return [p2];
+    }
+
+    // Determine p0 (before p1) and p3 (after p2) for Catmull-Rom spline evaluation
+    const p0 =
+      n >= 3 ? this.smoothedPointsHistory[n - 3] : { x: 2 * p1.x - p2.x, y: 2 * p1.y - p2.y, pressure: p1.pressure };
+    const p3 = { x: 2 * p2.x - p1.x, y: 2 * p2.y - p1.y, pressure: p2.pressure };
+
+    const steps = Math.ceil(dist / maxStep);
+    const interpolated: StrokePoint[] = [];
+
+    for (let s = 1; s <= steps; s++) {
+      const t = s / steps;
+      const t2 = t * t;
+      const t3 = t2 * t;
+
+      const ix =
+        0.5 *
+        (2 * p1.x +
+          (-p0.x + p2.x) * t +
+          (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 +
+          (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3);
+
+      const iy =
+        0.5 *
+        (2 * p1.y +
+          (-p0.y + p2.y) * t +
+          (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
+          (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3);
+
+      const pStart = p1.pressure ?? 0.5;
+      const pEnd = p2.pressure ?? 0.5;
+      const ip = pStart + (pEnd - pStart) * t;
+
+      interpolated.push({ x: ix, y: iy, pressure: ip });
+    }
+
+    return interpolated;
   }
 
   /**
@@ -65,6 +129,7 @@ export class StrokeSmoother {
    */
   reset() {
     this.points = [];
+    this.smoothedPointsHistory = [];
     this.lastOutput = null;
   }
 

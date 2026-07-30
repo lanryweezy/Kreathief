@@ -15,7 +15,8 @@ export interface IconScoutAsset {
 export const iconScoutService = {
   async search(query: string, type: IconScoutAssetType = 'icon', page: number = 1): Promise<IconScoutAsset[]> {
     try {
-      const url = new URL('/api/iconscout', window.location.origin);
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+      const url = new URL('/api/iconscout', origin);
       url.searchParams.append('action', 'search');
       url.searchParams.append('query', query);
       url.searchParams.append('product_type', type === '3d' ? '3d-asset' : type);
@@ -32,14 +33,14 @@ export const iconScoutService = {
       }
 
       const data = await response.json();
-      const items = data.items?.data || [];
+      const items = data.items?.data || data.data || [];
 
       return items.map((item: any) => ({
         id: item.id,
-        uuid: item.uuid,
-        name: item.name,
+        uuid: item.uuid || String(item.id),
+        name: item.name || 'IconScout Asset',
         type: type,
-        previewUrl: item.urls?.thumb || item.urls?.preview || '',
+        previewUrl: item.urls?.thumb || item.urls?.preview || item.urls?.png_512 || '',
         downloadUrl: item.urls?.download,
         author: item.user?.name || 'IconScout',
       }));
@@ -51,7 +52,8 @@ export const iconScoutService = {
 
   async getAssetDetails(uuid: string): Promise<any | null> {
     try {
-      const url = new URL('/api/iconscout', window.location.origin);
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+      const url = new URL('/api/iconscout', origin);
       url.searchParams.append('action', 'details');
       url.searchParams.append('uuid', uuid);
 

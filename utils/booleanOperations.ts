@@ -224,3 +224,81 @@ export class BooleanOperations {
     return inside;
   }
 }
+
+export interface BooleanLayerResult {
+  pathData: string;
+  vectorPath: VectorPath;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  viewBox: string;
+}
+
+/**
+ * Canonical boolean operation across path LAYERS.
+ * Translates each layer's local path into global canvas coordinates before
+ * combining, then rebases the result onto fresh bounds. All boolean call
+ * sites (toolbar, vector panel, shape popover) must go through this to get
+ * identical results.
+ */
+export function performBooleanOnLayers(
+  layers: Array<{ x: number; y: number; pathData?: string; vectorPath?: VectorPath }>,
+  operation: 'union' | 'subtract' | 'intersect' | 'exclude'
+): BooleanLayerResult | null {
+  if (layers.length < 2) {
+    return null;
+  }
+
+  const globalPaths: VectorPath[] = [];
+  for (const layer of layers) {
+    const path = layer.pathData ? VectorUtils.parsePath(layer.pathData) : layer.vectorPath;
+    if (!path || path.points.length === 0) {
+      return null;
+    }
+    globalPaths.push({
+      ...path,
+      points: path.points.map((p) => ({ ...p, x: p.x + layer.x, y: p.y + layer.y })),
+    });
+  }
+
+  let resultPath = globalPaths[0]!;
+  for (let i = 1; i < globalPaths.length; i++) {
+    switch (operation) {
+      case 'union':
+        resultPath = BooleanOperations.union(resultPath, globalPaths[i]!);
+        break;
+      case 'subtract':
+        resultPath = BooleanOperations.subtract(resultPath, globalPaths[i]!);
+        break;
+      case 'intersect':
+        resultPath = BooleanOperations.intersect(resultPath, globalPaths[i]!);
+        break;
+      case 'exclude':
+        resultPath = BooleanOperations.exclude(resultPath, globalPaths[i]!);
+        break;
+    }
+  }
+
+  if (resultPath.points.length === 0) {
+    return null;
+  }
+
+  const bounds = VectorUtils.getBounds(resultPath);
+  const localPath = {
+    ...resultPath,
+    points: resultPath.points.map((p) => ({ ...p, x: p.x - bounds.x, y: p.y - bounds.y })),
+  };
+  const width = Math.max(1, bounds.width);
+  const height = Math.max(1, bounds.height);
+
+  return {
+    pathData: VectorUtils.serializePath(localPath),
+    vectorPath: localPath,
+    x: bounds.x,
+    y: bounds.y,
+    width,
+    height,
+    viewBox: `0 0 ${width} ${height}`,
+  };
+}

@@ -9,7 +9,7 @@ import { removeBackground } from '../../utils/imageProcessor';
 import * as geminiService from '../../services/geminiService';
 import { v4 as uuidv4 } from 'uuid';
 import { DEFAULT_CORNER_RADIUS } from '../../constants';
-import { PathOperationsService } from '../../services/pathOperationsService';
+import { performBooleanOnLayers } from '../../utils/booleanOperations';
 import { VectorUtils } from '../../utils/vectorUtils';
 import { getErrorDetails } from '../../utils/errorMessages';
 
@@ -347,9 +347,28 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
     try {
-      const newSrc = await geminiService.upscaleImage(layer.src);
-      saveToHistory();
-      updateLayer(id, { src: newSrc, isProcessing: false });
+      let newSrc: string | undefined;
+
+      // Primary: High-End Fal.ai Super Resolution Upscaler
+      if (aiModelsService.isConfigured()) {
+        try {
+          newSrc = await aiModelsService.upscaleImage(layer.src);
+        } catch (e) {
+          log.warn('Fal upscaling failed, falling back to Gemini', { error: e });
+        }
+      }
+
+      // Fallback: Gemini
+      if (!newSrc) {
+        newSrc = await geminiService.upscaleImage(layer.src);
+      }
+
+      if (newSrc) {
+        saveToHistory();
+        updateLayer(id, { src: newSrc, isProcessing: false });
+      } else {
+        updateLayer(id, { isProcessing: false });
+      }
     } catch (error) {
       log.error('Upscale failed', error, { layerId: id });
       updateLayer(id, { isProcessing: false });
@@ -464,7 +483,10 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     }
   },
 
-  handleConvertToPath: (_id) => {},
+  handleConvertToPath: (_id) => {
+    // Intentional no-op retained for interface compatibility; real conversion
+    // lives in VectorEditingPanel. Remove once callers are migrated.
+  },
   handleUpdateCanvasSize: (size) => {
     get().saveToHistory();
     set({ canvasSize: size });
@@ -521,7 +543,6 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
       addToast?.('Select at least two path layers.', 'warning');
       return;
     }
-    saveToHistory();
     const layers = selectedLayerIds
       .map((id: string) => artboard.layers.find((l: any) => l.id === id))
       .filter(Boolean) as ShapeLayer[];
@@ -529,29 +550,21 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
       return;
     }
     const [base, ...operands] = layers;
-    let resultPath = (base as any).vectorPath || VectorUtils.parsePath(base!.pathData || '');
-
-    for (const operand of operands) {
-      const operandPath = (operand as any).vectorPath || VectorUtils.parsePath(operand!.pathData || '');
-      switch (operation) {
-        case 'union':
-          resultPath = PathOperationsService.union(resultPath, operandPath);
-          break;
-        case 'subtract':
-          resultPath = PathOperationsService.subtract(resultPath, operandPath);
-          break;
-        case 'intersect':
-          resultPath = PathOperationsService.intersect(resultPath, operandPath);
-          break;
-        case 'exclude':
-          resultPath = PathOperationsService.exclude(resultPath, operandPath);
-          break;
-      }
+    const result = performBooleanOnLayers(layers, operation);
+    if (!result) {
+      addToast?.('Boolean operation failed — selected layers have no valid paths.', 'error');
+      return;
     }
+    saveToHistory();
 
     updateLayer(base!.id, {
-      pathData: VectorUtils.serializePath(resultPath),
-      vectorPath: resultPath,
+      pathData: result.pathData,
+      vectorPath: result.vectorPath,
+      x: result.x,
+      y: result.y,
+      width: result.width,
+      height: result.height,
+      viewBox: result.viewBox,
     } as any);
 
     operands.forEach((l) => deleteLayer(l!.id));
@@ -564,30 +577,53 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
       addToast?.('Select at least two path layers.', 'warning');
       return;
     }
-    saveToHistory();
-    const layers = selectedLayerIds.map((id: string) => artboard.layers.find((l: any) => l.id === id)).filter(Boolean);
+    const layers = selectedLayerIds
+      .map((id: string) => artboard.layers.find((l: any) => l.id === id))
+      .filter(Boolean) as ShapeLayer[];
     if (layers.length < 2) {
       return;
     }
     const [base, ...rest] = layers;
-    const combinedPathData = [base, ...rest].map((l: any) => l.pathData || '').join(' ');
 
+    // Combine paths in GLOBAL coordinates (translate each by its layer offset),
+    // marking the start of every subsequent path as a subpath move.
     let combinedPoints: any[] = [];
-    [base, ...rest].forEach((l: any) => {
-      const vp = l.vectorPath || VectorUtils.parsePath(l.pathData || '');
-      if (vp && vp.points) {
-        combinedPoints = combinedPoints.concat(vp.points);
+    for (const l of layers) {
+      const vp = (l as any).vectorPath || VectorUtils.parsePath(l.pathData || '');
+      if (!vp || !vp.points || vp.points.length === 0) {
+        continue;
       }
-    });
+      const globalPoints = vp.points.map((p: any, i: number) => ({
+        ...p,
+        x: p.x + l.x,
+        y: p.y + l.y,
+        isMove: combinedPoints.length > 0 && i === 0 ? true : p.isMove,
+      }));
+      combinedPoints = combinedPoints.concat(globalPoints);
+    }
+    if (combinedPoints.length === 0) {
+      addToast?.('Join failed — selected layers have no valid paths.', 'error');
+      return;
+    }
+    saveToHistory();
 
-    const newVectorPath = {
-      points: combinedPoints,
-      isClosed: false,
+    const globalPath = { points: combinedPoints, isClosed: false };
+    const bounds = VectorUtils.getBounds(globalPath);
+    const width = Math.max(1, bounds.width);
+    const height = Math.max(1, bounds.height);
+    const localPath = {
+      ...globalPath,
+      points: combinedPoints.map((p) => ({ ...p, x: p.x - bounds.x, y: p.y - bounds.y })),
     };
 
     updateLayer(base!.id, {
-      pathData: combinedPathData,
-      vectorPath: newVectorPath,
+      pathData: VectorUtils.serializePath(localPath),
+      vectorPath: localPath,
+      x: bounds.x,
+      y: bounds.y,
+      width,
+      height,
+      viewBox: `0 0 ${width} ${height}`,
     } as any);
     rest.forEach((l: any) => deleteLayer(l.id));
   },

@@ -178,32 +178,13 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
         // Initialize the physical velocity stroke smoother using UI slider value
         const { brushSmoothing } = useStore.getState();
         smootherRef.current = new StrokeSmoother(brushSmoothing);
-        const smoothed = smootherRef.current.addPoint(x, y);
+        // Initialize pressure with e.pressure if available
+        const pressure = (e as any).pressure ?? 0.5;
+        const smoothed = smootherRef.current.addPoint(x, y, pressure);
         currentPathRef.current = [smoothed || { x, y }];
 
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          // Eraser mode: capture the artboard state for erasing
-          if (brushType === 'eraser') {
-            // Find the artboard container and its rendered content
-            const artboardContainer = canvas.parentElement;
-            if (artboardContainer) {
-              // Store the artboard snapshot for erasing operations
-              const artboardCanvas = artboardContainer.querySelector(
-                'canvas:not([data-drawing-overlay])'
-              ) as HTMLCanvasElement | null;
-              if (artboardCanvas) {
-                // Capture the current artboard state
-                const artboardCtx = artboardCanvas.getContext('2d');
-                if (artboardCtx) {
-                  const imageData = artboardCtx.getImageData(0, 0, artboardCanvas.width, artboardCanvas.height);
-                  // Store the snapshot on the drawing canvas for erasing
-                  (canvas as any).__artboardSnapshot = imageData;
-                }
-              }
-            }
-            ctx.globalCompositeOperation = 'destination-out';
-          }
           ctx.beginPath();
           ctx.moveTo(x, y);
         }
@@ -225,102 +206,94 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
       // Capture pressure from PointerEvent (0..1), default to 0.5 for MouseEvents
       const pressure = (e as any).pressure ?? 0.5;
 
-      const { brushColor, brushSize, brushOpacity, brushType } = useStore.getState();
+      const { brushColor, brushSize, brushOpacity, brushType, brushJitter } = useStore.getState();
       const ctx = canvas.getContext('2d');
 
       if (brushType === 'vector_pencil') {
         return; // Handled by PathEditorOverlay
       }
 
-      // Smooth out the coordinate stream using velocity-based weighted averaging
-      let drawX = x;
-      let drawY = y;
-      if (smootherRef.current) {
-        const smoothed = smootherRef.current.addPoint(x, y);
-        if (smoothed) {
-          drawX = smoothed.x;
-          drawY = smoothed.y;
-        }
-      }
-
-      // De-duplicate points if the distance is too close to avoid bloated vector paths
-      const lastPoint = currentPathRef.current[currentPathRef.current.length - 1];
-      if (lastPoint) {
-        const dist = Math.hypot(drawX - lastPoint.x, drawY - lastPoint.y);
-        if (dist < 1.5) {
-          return;
-        }
-      }
-
-      currentPathRef.current.push({ x: drawX, y: drawY });
+      // Smooth out the coordinate stream using Catmull-Rom curve interpolation
+      const smoothedPoints = smootherRef.current
+        ? smootherRef.current.addPointWithCatmullRom(x, y, pressure, 2.0)
+        : [{ x, y, pressure }];
 
       if (ctx) {
-        // Apply pressure sensitivity: width varies with stylus/tablet pressure
-        const pressureWidth = brushSize * (0.3 + pressure * 0.7); // 30% base + 70% pressure
+        // Jitter: random scatter proportional to slider (0-100%) and brush size
+        const jitterAmount = (brushJitter / 100) * brushSize;
+        for (const pt of smoothedPoints) {
+          const drawX = pt.x + (jitterAmount > 0 ? (Math.random() - 0.5) * jitterAmount : 0);
+          const drawY = pt.y + (jitterAmount > 0 ? (Math.random() - 0.5) * jitterAmount : 0);
+          const ptPressure = pt.pressure ?? pressure;
 
-        // Eraser mode: use destination-out composite to erase existing content
-        if (brushType === 'eraser') {
-          ctx.globalCompositeOperation = 'destination-out';
-          ctx.strokeStyle = 'rgba(0,0,0,1)';
-          ctx.lineWidth = brushSize * 2; // Eraser is 2x brush size for better UX
-          ctx.globalAlpha = 1;
-          ctx.lineCap = 'round';
-          ctx.lineJoin = 'round';
-        } else {
+          // De-duplicate points if the distance is too close to avoid bloated vector paths
+          const lastPoint = currentPathRef.current[currentPathRef.current.length - 1];
+          if (lastPoint) {
+            const dist = Math.hypot(drawX - lastPoint.x, drawY - lastPoint.y);
+            if (dist < 1.0) {
+              continue;
+            }
+          }
+
+          currentPathRef.current.push({ x: drawX, y: drawY });
+
+          // Apply pressure sensitivity: width varies with stylus/tablet pressure
+          const pressureWidth = brushSize * (0.3 + ptPressure * 0.7); // 30% base + 70% pressure
+
           ctx.globalCompositeOperation = 'source-over';
           ctx.strokeStyle = brushColor;
           ctx.lineWidth = pressureWidth;
           ctx.globalAlpha = brushOpacity;
-        }
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-        ctx.setLineDash([]);
-        ctx.shadowBlur = 0;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.setLineDash([]);
+          ctx.shadowBlur = 0;
 
-        switch (brushType) {
-          case 'calligraphy':
-            ctx.lineCap = 'butt';
-            ctx.lineWidth = pressureWidth * 1.5;
-            break;
-          case 'oil':
-            ctx.lineWidth = pressureWidth * 1.8;
-            ctx.shadowBlur = 4;
-            ctx.shadowColor = brushColor;
-            break;
-          case 'crayon':
-            ctx.lineWidth = pressureWidth;
-            ctx.setLineDash([2, 5]);
-            break;
-          case 'pencil':
-            ctx.lineWidth = 1;
-            ctx.globalAlpha = brushOpacity * 0.7 * (0.5 + pressure * 0.5);
-            break;
-          case 'watercolor':
-            ctx.lineWidth = pressureWidth * 2.5;
-            ctx.globalAlpha = brushOpacity * 0.4;
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = brushColor;
-            break;
-          case 'splatter':
-            ctx.lineWidth = 1;
-            ctx.fillStyle = brushColor;
-            ctx.beginPath();
-            ctx.arc(x, y, pressureWidth * (0.5 + Math.random()), 0, Math.PI * 2);
-            ctx.fill();
-            return;
-          case 'texture':
-            ctx.lineWidth = pressureWidth * 2.0;
-            ctx.globalAlpha = brushOpacity * 0.85;
-            ctx.shadowBlur = 6;
-            ctx.shadowColor = brushColor;
-            ctx.setLineDash([1, 2]);
-            break;
-          default:
-            break;
-        }
+          switch (brushType) {
+            case 'calligraphy':
+              ctx.lineCap = 'butt';
+              ctx.lineWidth = pressureWidth * 1.5;
+              break;
+            case 'oil':
+              ctx.lineWidth = pressureWidth * 1.8;
+              ctx.shadowBlur = 4;
+              ctx.shadowColor = brushColor;
+              break;
+            case 'crayon':
+              ctx.lineWidth = pressureWidth;
+              ctx.setLineDash([2, 5]);
+              break;
+            case 'pencil':
+              ctx.lineWidth = 1;
+              ctx.globalAlpha = brushOpacity * 0.7 * (0.5 + ptPressure * 0.5);
+              break;
+            case 'watercolor':
+              ctx.lineWidth = pressureWidth * 2.5;
+              ctx.globalAlpha = brushOpacity * 0.4;
+              ctx.shadowBlur = 10;
+              ctx.shadowColor = brushColor;
+              break;
+            case 'splatter':
+              ctx.lineWidth = 1;
+              ctx.fillStyle = brushColor;
+              ctx.beginPath();
+              ctx.arc(drawX, drawY, pressureWidth * (0.5 + Math.random()), 0, Math.PI * 2);
+              ctx.fill();
+              continue;
+            case 'texture':
+              ctx.lineWidth = pressureWidth * 2.0;
+              ctx.globalAlpha = brushOpacity * 0.85;
+              ctx.shadowBlur = 6;
+              ctx.shadowColor = brushColor;
+              ctx.setLineDash([1, 2]);
+              break;
+            default:
+              break;
+          }
 
-        ctx.lineTo(drawX, drawY);
-        ctx.stroke();
+          ctx.lineTo(drawX, drawY);
+          ctx.stroke();
+        }
       }
     },
     [redrawCanvas]
@@ -331,7 +304,7 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
       return;
     }
 
-    const { brushType, brushColor, brushSize, addLayer } = useStore.getState();
+    const { brushType, brushColor, brushSize, brushOpacity, addLayer } = useStore.getState();
 
     if (brushType === 'vector_pencil') {
       return; // Handled by PathEditorOverlay
@@ -339,8 +312,21 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
 
     isDrawingInternalRef.current = false;
 
-    if (currentPathRef.current.length < 2) {
+    // Eraser has no raster target (layers render as DOM/SVG) — never commit a stroke layer for it
+    if (brushType === 'eraser' || currentPathRef.current.length < 2) {
+      if (canvasRef.current) {
+        const ctx = canvasRef.current.getContext('2d');
+        if (ctx) {
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        }
+      }
       currentPathRef.current = [];
+      canvasRef.current = null;
+      if (smootherRef.current) {
+        smootherRef.current.reset();
+        smootherRef.current = null;
+      }
       return;
     }
 
@@ -377,14 +363,22 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
         return d;
       }
 
+      // Catmull-Rom Cubic Bézier smoothing for beautiful, ultra-smooth vector curves
       let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
-      for (let i = 1; i < points.length - 1; i++) {
-        const xc = (points[i].x + points[i + 1].x) / 2;
-        const yc = (points[i].y + points[i + 1].y) / 2;
-        d += ` Q ${points[i].x.toFixed(2)} ${points[i].y.toFixed(2)}, ${xc.toFixed(2)} ${yc.toFixed(2)}`;
+      for (let i = 0; i < points.length - 1; i++) {
+        const p0 =
+          i > 0 ? points[i - 1] : { x: 2 * points[i].x - points[i + 1].x, y: 2 * points[i].y - points[i + 1].y };
+        const p1 = points[i];
+        const p2 = points[i + 1];
+        const p3 = i + 2 < points.length ? points[i + 2] : { x: 2 * p2.x - p1.x, y: 2 * p2.y - p1.y };
+
+        const c1x = p1.x + (p2.x - p0.x) / 6;
+        const c1y = p1.y + (p2.y - p0.y) / 6;
+        const c2x = p2.x - (p3.x - p1.x) / 6;
+        const c2y = p2.y - (p3.y - p1.y) / 6;
+
+        d += ` C ${c1x.toFixed(2)} ${c1y.toFixed(2)}, ${c2x.toFixed(2)} ${c2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
       }
-      const last = points[points.length - 1];
-      d += ` L ${last.x.toFixed(2)} ${last.y.toFixed(2)}`;
       return d;
     };
 
@@ -407,7 +401,7 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
       height,
       viewBox: `0 0 ${width} ${height}`,
       rotation: 0,
-      opacity: 1,
+      opacity: brushOpacity,
       locked: false,
       visible: true,
       pathData,
@@ -416,51 +410,8 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
       stroke: { color: brushColor, width: brushSize },
     } as any);
 
-    // For eraser: apply the erasure to the artboard by creating an image layer
-    if (brushType === 'eraser' && canvasRef.current) {
-      const drawingCanvas = canvasRef.current;
-      const ctx = drawingCanvas.getContext('2d');
-      if (ctx) {
-        // Get the artboard snapshot that was captured on mouse down
-        const artboardSnapshot = (drawingCanvas as any).__artboardSnapshot as ImageData | undefined;
-        if (artboardSnapshot) {
-          // Create a temporary canvas to composite the erasure
-          const tempCanvas = document.createElement('canvas');
-          tempCanvas.width = drawingCanvas.width;
-          tempCanvas.height = drawingCanvas.height;
-          const tempCtx = tempCanvas.getContext('2d');
-          if (tempCtx) {
-            // Draw the artboard snapshot
-            tempCtx.putImageData(artboardSnapshot, 0, 0);
-            // Apply the eraser stroke using destination-out
-            tempCtx.globalCompositeOperation = 'destination-out';
-            tempCtx.drawImage(drawingCanvas, 0, 0);
-            // Convert to image and add as a layer
-            const dataUrl = tempCanvas.toDataURL('image/png');
-            const { addLayer } = useStore.getState();
-            addLayer({
-              id: generateLayerId('eraser'),
-              type: 'image',
-              name: 'Eraser Cutout',
-              x: 0,
-              y: 0,
-              width: drawingCanvas.width,
-              height: drawingCanvas.height,
-              rotation: 0,
-              opacity: 1,
-              locked: false,
-              visible: true,
-              src: dataUrl,
-            } as any);
-          }
-        }
-        // Reset and clear
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-        delete (drawingCanvas as any).__artboardSnapshot;
-      }
-    } else if (canvasRef.current) {
-      // Clear temporary canvas for non-eraser tools
+    // Clear the temporary drawing canvas
+    if (canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d');
       if (ctx) {
         ctx.globalCompositeOperation = 'source-over';

@@ -132,7 +132,10 @@ export const useFileHandler = () => {
     const uploadedImage = uploads.length > 0 ? uploads[uploads.length - 1] || null : null;
     const backgroundImageUrl = activeImage?.url || uploadedImage || null;
 
-    const blob = await exportService.exportDesignToImage(layers as any, { width: canvasSize.width, height: canvasSize.height });
+    const blob = await exportService.exportDesignToImage(layers as any, {
+      width: canvasSize.width,
+      height: canvasSize.height,
+    });
     return new Promise<string>((resolve) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
@@ -154,7 +157,10 @@ export const useFileHandler = () => {
     const uploadedImage = uploads.length > 0 ? uploads[uploads.length - 1] || null : null;
     const backgroundImageUrl = activeImage?.url || uploadedImage || null;
 
-    return await exportService.exportDesignToImage(layers as any, { width: canvasSize.width, height: canvasSize.height });
+    return await exportService.exportDesignToImage(layers as any, {
+      width: canvasSize.width,
+      height: canvasSize.height,
+    });
   };
 
   const handleConfirmExport = async (options: ExportOptions) => {
@@ -166,11 +172,14 @@ export const useFileHandler = () => {
       const exportWidth = size?.width || canvasSize.width;
       const exportHeight = size?.height || canvasSize.height;
       const fileName = customFilename ? customFilename : `design-${Date.now()}`;
-      const scaleX = exportWidth / canvasSize.width;
-      const scaleY = exportHeight / canvasSize.height;
-
       const activeArtboard = store.artboards.find((a: any) => a.id === store.activeArtboardId) || store.artboards[0];
       const targetLayers = overrideLayers || (activeArtboard ? activeArtboard.layers || [] : []);
+      const sourceWidth = activeArtboard?.width || canvasSize.width;
+      const sourceHeight = activeArtboard?.height || canvasSize.height;
+
+      const scaleX = exportWidth / sourceWidth;
+      const scaleY = exportHeight / sourceHeight;
+
       const scaledLayers = targetLayers.map((l) => ({
         ...l,
         x: l.x * scaleX,
@@ -195,7 +204,9 @@ export const useFileHandler = () => {
         const warnings = validatePrepress(scaledLayers, (printOptions as any).targetDPI || 300);
         if (warnings.length > 0) {
           const warnMsg = warnings.map((w) => w.message).join(' | ');
-          if (addToast) addToast(`Prepress Warning: ${warnMsg}`, 'warning');
+          if (addToast) {
+            addToast(`Prepress Warning: ${warnMsg}`, 'warning');
+          }
         }
 
         await exportService.exportToPrintPDF(exportWidth, exportHeight, scaledLayers, fileName, printOptions);
@@ -211,7 +222,12 @@ export const useFileHandler = () => {
           cropMarks: false,
         });
       } else {
-        const blob = await exportService.exportDesignToImage(scaledLayers, { width: exportWidth, height: exportHeight, format, quality });
+        const blob = await exportService.exportDesignToImage(scaledLayers, {
+          width: exportWidth,
+          height: exportHeight,
+          format,
+          quality,
+        });
         const downloadUrl = URL.createObjectURL(blob);
 
         const link = document.createElement('a');

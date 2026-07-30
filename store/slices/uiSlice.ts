@@ -50,6 +50,9 @@ export interface UISlice {
   isSmartMaskMode?: boolean;
   hoveredMaskBoundary?: any;
   aspectLocked?: boolean;
+  hoveredLayerId?: string | null;
+
+  setHoveredLayerId?: (id: string | null) => void;
 
   setIsSmartMaskMode?: (isSmartMaskMode: boolean) => void;
   setHoveredMaskBoundary?: (boundary: any) => void;
@@ -114,6 +117,8 @@ export interface UISlice {
 export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, get) => ({
   activeTab: NavTab.TEMPLATES,
   mode: AppMode.GENERATE,
+  hoveredLayerId: null,
+  setHoveredLayerId: (id) => set({ hoveredLayerId: id }),
   isProcessing: false,
   isExporting: false,
   isRemovingBg: false,
