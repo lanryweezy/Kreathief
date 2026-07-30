@@ -5,6 +5,8 @@ import { OnboardingTour } from './components/OnboardingTour';
 import { useStore } from './store/useStore';
 import { authService } from './services/authService';
 import { storageService } from './services/storageService';
+import { setFontToastCallback } from './services/FontLoader';
+import { isSupabaseConfigured } from './lib/supabase/client';
 import { User, Project } from './types';
 import { performanceService } from './services/performanceService';
 import { log } from './utils/log';
@@ -15,7 +17,6 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { LandingPage } from './components/LandingPage';
 import { BlogList } from './components/blog/BlogList';
 import { BlogPostView } from './components/blog/BlogPostView';
-import { SEO } from './components/SEO';
 import { FeedbackModal } from './components/modals/FeedbackModal';
 import { ProfileModal } from './components/modals/ProfileModal';
 import { PresentationModal } from './components/modals/PresentationModal';
@@ -98,6 +99,16 @@ const App: React.FC = () => {
         storageService.setToastCallback((message, type) => {
           useStore.getState().addToast(message, type);
         });
+
+        // Surface font-load failures to the user
+        setFontToastCallback((message, type) => {
+          useStore.getState().addToast(message, type);
+        });
+
+        // Warn developers when Supabase creds are missing (client falls back to a placeholder endpoint)
+        if (import.meta.env.DEV && !isSupabaseConfigured) {
+          useStore.getState().addToast('Supabase is not configured — cloud sync and auth are disabled.', 'warning');
+        }
 
         // Check Supabase auth session
         const savedUser = await authService.getSession();
@@ -182,32 +193,8 @@ const App: React.FC = () => {
     }
   }, [user, location.pathname, navigate]);
 
-  // Local-First: Background Persistence
-  // Mirror state to IndexedDB every 2 seconds if changes detected
-  useEffect(() => {
-    if (!user) {
-      return;
-    }
-    const state = useStore.getState();
-    if (!state.projectId) {
-      return;
-    }
-
-    const timeout = setTimeout(() => {
-      const mirrorState = {
-        artboards: state.artboards,
-        canvasBackgroundColor: state.canvasBackgroundColor,
-        canvasFilters: state.canvasFilters,
-        canvasSize: state.canvasSize,
-        brandKits: state.brandKits,
-        showGrid: state.showGrid,
-        showRulers: state.showRulers,
-      };
-      storageService.saveSessionMirror(state.projectId, mirrorState as any, state.past, state.future);
-    }, 2000);
-
-    return () => clearTimeout(timeout);
-  }, [location.pathname, user]);
+  // Note: session mirroring to IndexedDB is handled by historySlice.saveToHistory,
+  // which persists the full HistoryState plus undo/redo stacks on every edit (debounced).
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -368,7 +355,6 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary componentName="App Root" variant="full">
-      <SEO />
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
           <Route path="/" element={<LandingPage onGetStarted={handleGuestEntry} onTryGuest={handleGuestEntry} />} />

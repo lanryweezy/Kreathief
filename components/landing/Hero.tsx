@@ -111,7 +111,8 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             </button>
           </MagneticButton>
 
-          <motion.button
+          <motion.a
+            href="#features"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7 }}
@@ -119,7 +120,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           >
             <Icons.Play className="w-4 h-4 fill-current" />
             Watch demo
-          </motion.button>
+          </motion.a>
         </motion.div>
 
         {/* EXPLODED UI HERO VISUAL */}

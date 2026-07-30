@@ -51,7 +51,7 @@ export const TemplateGallery: React.FC<{ onGetStarted?: () => void }> = ({ onGet
               transition={{ delay: 0.1 }}
               className="text-xl text-gray-400 font-medium"
             >
-              Browse 100,000+ premium templates designed by world-class creators. Fully editable, absolutely stunning.
+              Browse premium templates designed by world-class creators. Fully editable, absolutely stunning.
             </motion.p>
           </div>
           <motion.button

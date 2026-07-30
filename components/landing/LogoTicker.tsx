@@ -53,8 +53,8 @@ export const LogoTicker: React.FC = () => {
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="text-white font-bold text-xl tracking-tight leading-none">+9,420</span>
-            <span className="text-neutral-500 text-xs font-bold uppercase tracking-widest">Active Users</span>
+            <span className="text-white font-bold text-xl tracking-tight leading-none">10,000+</span>
+            <span className="text-neutral-500 text-xs font-bold uppercase tracking-widest">Active Creators</span>
           </div>
         </div>
       </div>

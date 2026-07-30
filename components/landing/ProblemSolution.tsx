@@ -135,7 +135,7 @@ export const ProblemSolution: React.FC = () => {
                 'Switch to Figma for UI design',
                 'Use Midjourney for AI images',
                 'Export from 3 different tools',
-                'Pay for 4 subscriptions',
+                'Pay for 5 subscriptions',
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-3 text-sm text-gray-400">
                   <div className="w-1.5 h-1.5 rounded-full bg-red-500/50 shrink-0" />
@@ -144,8 +144,8 @@ export const ProblemSolution: React.FC = () => {
               ))}
             </div>
             <div className="mt-6 pt-6 border-t border-white/5">
-              <div className="text-2xl font-black text-red-400">$120/mo</div>
-              <div className="text-xs text-gray-500">4 subscriptions</div>
+              <div className="text-2xl font-black text-red-400">$84/mo</div>
+              <div className="text-xs text-gray-500">5 subscriptions</div>
             </div>
           </div>
 

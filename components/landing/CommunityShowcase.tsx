@@ -4,7 +4,11 @@ import { Icons } from '../../constants';
 import { communityService, CommunityTemplate } from '../../services/communityService';
 import { SuperLabel } from './LandingUtils';
 
-export const CommunityShowcase: React.FC = () => {
+interface CommunityShowcaseProps {
+  onGetStarted?: () => void;
+}
+
+export const CommunityShowcase: React.FC<CommunityShowcaseProps> = ({ onGetStarted }) => {
   const [templates, setTemplates] = useState<CommunityTemplate[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -67,7 +71,10 @@ export const CommunityShowcase: React.FC = () => {
 
               {/* Hover Action */}
               <div className="absolute inset-0 bg-orange-500/10 opacity-0 group-hover/card:opacity-100 transition-opacity flex items-center justify-center z-30 backdrop-blur-sm">
-                <button className="bg-white text-black px-6 py-2 rounded-full font-bold text-xs shadow-xl transform translate-y-4 group-hover/card:translate-y-0 transition-transform">
+                <button
+                  onClick={onGetStarted}
+                  className="bg-white text-black px-6 py-2 rounded-full font-bold text-xs shadow-xl transform translate-y-4 group-hover/card:translate-y-0 transition-transform"
+                >
                   Remix Design
                 </button>
               </div>
@@ -77,7 +84,10 @@ export const CommunityShowcase: React.FC = () => {
       </div>
 
       <div className="mt-20 flex justify-center">
-        <button className="px-8 py-3 rounded-full border border-white/10 text-white font-bold text-sm hover:bg-white/5 transition-all flex items-center gap-2 group">
+        <button
+          onClick={onGetStarted}
+          className="px-8 py-3 rounded-full border border-white/10 text-white font-bold text-sm hover:bg-white/5 transition-all flex items-center gap-2 group"
+        >
           Explore Community Gallery
           <Icons.ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
         </button>

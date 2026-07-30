@@ -132,7 +132,7 @@ export const SpeedProof: React.FC = () => {
             <div className="mt-6 pt-6 border-t border-white/10 relative z-10">
               <div className="flex items-center justify-center gap-2 text-green-400 font-black">
                 <Icons.TrendingUp className="w-5 h-5" />
-                <span>24x faster than traditional tools</span>
+                <span>10x faster than traditional tools</span>
               </div>
             </div>
           </motion.div>

@@ -15,6 +15,8 @@ import { FeatureComparison } from './landing/FeatureComparison';
 import { FAQSection } from './landing/FAQSection';
 
 import { BlogPreview, Footer } from './landing/BlogAndFooter';
+import { FinalCTA } from './landing/FinalCTA';
+import { CommunityShowcase } from './landing/CommunityShowcase';
 import { SEO } from './SEO';
 import { Icons } from '../constants';
 
@@ -79,9 +81,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
           </div>
 
           <div className="flex items-center gap-4">
-            <button className="hidden sm:block text-sm font-bold text-gray-400 hover:text-white transition-colors">
+            <a
+              href="/auth"
+              className="hidden sm:block text-sm font-bold text-gray-400 hover:text-white transition-colors"
+            >
               Sign In
-            </button>
+            </a>
             <button
               onClick={onTryGuest || onGetStarted}
               className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2.5 rounded-full text-sm font-bold hover:shadow-lg hover:shadow-purple-500/50 transition-all transform hover:scale-105 active:scale-95"
@@ -116,12 +121,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
                 {item}
               </a>
             ))}
-            <button
-              onClick={onGetStarted}
-              className="w-full py-4 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-white"
+            <a
+              href="/auth"
+              className="w-full py-4 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-white text-center block"
             >
               Log In
-            </button>
+            </a>
           </div>
         </motion.div>
       </nav>
@@ -130,12 +135,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
         <Hero onGetStarted={onTryGuest || onGetStarted} />
         <LogoTicker />
         <ProblemSolution />
+        <ReplacementNarrative onGetStarted={onTryGuest || onGetStarted} />
         <Features />
+        <SpeedProof />
         <ScrollShowcase />
         <Stats />
         <TemplateGallery onGetStarted={onTryGuest || onGetStarted} />
         <Testimonials />
+        <TrustEthics />
         <Pricing onPlanSelect={onGetStarted} />
+        <FeatureComparison />
+        <FAQSection />
+        <CommunityShowcase onGetStarted={onTryGuest || onGetStarted} />
+        <BlogPreview />
+        <FinalCTA onGetStarted={onTryGuest || onGetStarted} />
       </main>
 
       <Footer />

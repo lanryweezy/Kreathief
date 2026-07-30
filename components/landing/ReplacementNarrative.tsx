@@ -2,7 +2,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Icons } from '../../constants';
 
-export const ReplacementNarrative: React.FC = () => {
+interface ReplacementNarrativeProps {
+  onGetStarted?: () => void;
+}
+
+export const ReplacementNarrative: React.FC<ReplacementNarrativeProps> = ({ onGetStarted }) => {
   const oldTools = [
     { name: 'Figma', purpose: 'Vector design', cost: '$15/mo' },
     { name: 'Canva', purpose: 'Templates', cost: '$13/mo' },
@@ -148,7 +152,10 @@ export const ReplacementNarrative: React.FC = () => {
           viewport={{ once: true }}
           className="text-center"
         >
-          <button className="px-10 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-bold text-base hover:shadow-2xl hover:shadow-purple-500/50 transition-all transform hover:scale-105">
+          <button
+            onClick={onGetStarted}
+            className="px-10 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-bold text-base hover:shadow-2xl hover:shadow-purple-500/50 transition-all transform hover:scale-105"
+          >
             Replace your stack now
           </button>
         </motion.div>
