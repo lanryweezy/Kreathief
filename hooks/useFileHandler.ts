@@ -63,6 +63,13 @@ export const useFileHandler = () => {
         // Local-First: Cache assets in IndexedDB
         const cachedUrls = await Promise.all(validUrls.map((url) => storageService.cacheAsset(url)));
 
+        // Cascade placement based on existing layer count so consecutive uploads
+        // don't stack pixel-perfect on top of each other (idx resets per batch)
+        const storeState = useStore.getState();
+        const targetArtboard =
+          storeState.artboards.find((a) => a.id === storeState.activeArtboardId) || storeState.artboards[0];
+        const cascade = ((targetArtboard?.layers.length || 0) % 8) * 24;
+
         addLayers(
           cachedUrls.map(
             (url: string, idx: number) =>
@@ -71,8 +78,8 @@ export const useFileHandler = () => {
                 type: 'image',
                 name: `Image ${idx + 1}`,
                 src: url,
-                x: canvasSize.width / 2 - 100 + idx * 20,
-                y: canvasSize.height / 2 - 100 + idx * 20,
+                x: canvasSize.width / 2 - 100 + cascade + idx * 20,
+                y: canvasSize.height / 2 - 100 + cascade + idx * 20,
                 width: 200,
                 height: 200,
                 rotation: 0,

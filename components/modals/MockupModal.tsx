@@ -30,6 +30,14 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
   const [customBg, setCustomBg] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const scaleDragCleanupRef = useRef<(() => void) | null>(null);
+
+  // Remove any in-flight scale-drag window listeners if the modal unmounts mid-drag
+  useEffect(() => {
+    return () => {
+      scaleDragCleanupRef.current?.();
+    };
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -473,6 +481,8 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                       reader.onload = (ev) => setCustomBg(ev.target?.result as string);
                       reader.readAsDataURL(file);
                     }
+                    // Reset so selecting the same file again re-triggers onChange
+                    e.target.value = '';
                   }}
                 />
                 <div className="flex gap-2 px-2">
@@ -621,9 +631,11 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
                           const onUp = () => {
                             window.removeEventListener('pointermove', onMove);
                             window.removeEventListener('pointerup', onUp);
+                            scaleDragCleanupRef.current = null;
                           };
                           window.addEventListener('pointermove', onMove);
                           window.addEventListener('pointerup', onUp);
+                          scaleDragCleanupRef.current = onUp;
                         }}
                       >
                         <div className="w-2 h-2 bg-black rounded-sm" />

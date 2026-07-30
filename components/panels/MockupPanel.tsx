@@ -92,6 +92,16 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
   const [customMockup, setCustomMockup] = useState<string | null>(null);
+
+  // Revoke the custom mockup blob URL when it's replaced or on unmount
+  useEffect(() => {
+    return () => {
+      if (customMockup && customMockup.startsWith('blob:')) {
+        URL.revokeObjectURL(customMockup);
+      }
+    };
+  }, [customMockup]);
+
   const [showComparison, setShowComparison] = useState(false);
   const [comparisonPosition, setComparisonPosition] = useState(50);
 
@@ -651,6 +661,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       const url = await generateComposite();
       if (active && isMountedRef.current && url) {
         updateGeneratedPreview(url);
+      } else if (url) {
+        // Effect re-ran or unmounted while compositing — discard the orphaned blob URL
+        URL.revokeObjectURL(url);
       }
       if (active && isMountedRef.current) {
         setIsGenerating(false);

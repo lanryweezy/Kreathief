@@ -22,9 +22,6 @@ import { PresentationModal } from './modals/PresentationModal';
 import { ShareModal } from './modals/ShareModal';
 import { ExportModal } from './modals/ExportModal';
 import { MockupPanel } from './panels/MockupPanel';
-import { HistoryManager } from '../commands/history';
-import { MoveCommand } from '../commands/move';
-import { DeleteCommand } from '../commands/delete';
 
 const CommunityModal = React.lazy(() => import('./modals/CommunityModal'));
 const CommandPalette = React.lazy(() =>
@@ -95,7 +92,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const previewTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const [showMobileContextMenu, setShowMobileContextMenu] = useState(false);
   const [contextMenuLayerId, setContextMenuLayerId] = useState<string | null>(null);
-  const historyManagerRef = useRef(new HistoryManager(50));
+  // Undo/redo is handled solely by the store historySlice — the old parallel
+  // HistoryManager command stack desynced from it and caused double-undos.
   const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -186,7 +184,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         ctrl: true,
         action: () => {
           useStore.getState().undo();
-          historyManagerRef.current.undo();
           haptics.light();
         },
         description: 'Undo',
@@ -196,7 +193,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         ctrl: true,
         action: () => {
           useStore.getState().redo();
-          historyManagerRef.current.redo();
           haptics.light();
         },
         description: 'Redo',
@@ -207,7 +203,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         shift: true,
         action: () => {
           useStore.getState().redo();
-          historyManagerRef.current.redo();
           haptics.light();
         },
         description: 'Redo (Alt)',
@@ -247,11 +242,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         key: 'Delete',
         action: () => {
           if (selectedLayerIds.length > 0) {
-            const storeRef = useStore.getState();
-            selectedLayerIds.forEach((id: string) => {
-              historyManagerRef.current.push(new DeleteCommand({ getState: () => storeRef }, id));
-            });
-            storeRef.deleteSelected();
+            // deleteSelected records store history itself
+            useStore.getState().deleteSelected();
             haptics.heavy();
           }
         },
@@ -261,11 +253,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         key: 'Backspace',
         action: () => {
           if (selectedLayerIds.length > 0) {
-            const storeRef = useStore.getState();
-            selectedLayerIds.forEach((id: string) => {
-              historyManagerRef.current.push(new DeleteCommand({ getState: () => storeRef }, id));
-            });
-            storeRef.deleteSelected();
+            useStore.getState().deleteSelected();
             haptics.heavy();
           }
         },
@@ -368,7 +356,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         action: () => {
           if (selectedLayerId) {
             const storeRef = useStore.getState();
-            historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 0, -1));
+            storeRef.saveToHistory();
             storeRef.nudgeLayer(selectedLayerId, 0, -1);
           }
         },
@@ -379,7 +367,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         action: () => {
           if (selectedLayerId) {
             const storeRef = useStore.getState();
-            historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 0, 1));
+            storeRef.saveToHistory();
             storeRef.nudgeLayer(selectedLayerId, 0, 1);
           }
         },
@@ -390,7 +378,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         action: () => {
           if (selectedLayerId) {
             const storeRef = useStore.getState();
-            historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, -1, 0));
+            storeRef.saveToHistory();
             storeRef.nudgeLayer(selectedLayerId, -1, 0);
           }
         },
@@ -401,7 +389,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         action: () => {
           if (selectedLayerId) {
             const storeRef = useStore.getState();
-            historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 1, 0));
+            storeRef.saveToHistory();
             storeRef.nudgeLayer(selectedLayerId, 1, 0);
           }
         },
@@ -413,7 +401,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         action: () => {
           if (selectedLayerId) {
             const storeRef = useStore.getState();
-            historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 0, -10));
+            storeRef.saveToHistory();
             storeRef.nudgeLayer(selectedLayerId, 0, -10);
           }
         },
@@ -425,7 +413,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         action: () => {
           if (selectedLayerId) {
             const storeRef = useStore.getState();
-            historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 0, 10));
+            storeRef.saveToHistory();
             storeRef.nudgeLayer(selectedLayerId, 0, 10);
           }
         },
@@ -437,7 +425,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         action: () => {
           if (selectedLayerId) {
             const storeRef = useStore.getState();
-            historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, -10, 0));
+            storeRef.saveToHistory();
             storeRef.nudgeLayer(selectedLayerId, -10, 0);
           }
         },
@@ -449,7 +437,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         action: () => {
           if (selectedLayerId) {
             const storeRef = useStore.getState();
-            historyManagerRef.current.push(new MoveCommand({ getState: () => storeRef }, selectedLayerId, 10, 0));
+            storeRef.saveToHistory();
             storeRef.nudgeLayer(selectedLayerId, 10, 0);
           }
         },

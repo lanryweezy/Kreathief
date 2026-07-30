@@ -1,5 +1,6 @@
 import { log } from '../utils/log';
 import * as unsplashService from './unsplashService';
+import * as freepikService from './freepikService';
 
 export interface NormalizedAsset {
   id: string;
@@ -72,6 +73,27 @@ registerSearchProvider({
       }))
     ),
 });
+
+// Freepik photos — only when an API key is configured, so unconfigured
+// installs don't fire doomed requests on every search.
+if (freepikService.isConfigured()) {
+  registerSearchProvider({
+    id: 'freepik',
+    search: (query) =>
+      freepikService.searchResources(query, 'photos').then((result) =>
+        result.items
+          .filter((item) => item.thumbnailUrl)
+          .map((item) => ({
+            id: `fp-${item.id}`,
+            url: item.thumbnailUrl,
+            thumbnail: item.thumbnailUrl,
+            alt: item.name,
+            author: item.author,
+            provider: 'freepik',
+          }))
+      ),
+  });
+}
 
 export async function searchAllProviders(query: string): Promise<NormalizedAsset[]> {
   const cacheKey = `all:${query}`;

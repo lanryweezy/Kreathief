@@ -44,17 +44,25 @@ export const createCanvasSlice: StateCreator<StoreState, [], [], CanvasSlice> = 
   panOffset: { x: 0, y: 0 },
 
   setCanvasSize: (canvasSize) => {
+    // Record before mutating so canvas resize is undoable
+    get().saveToHistory?.();
     set({ canvasSize });
     const state = get();
     if (state.activeArtboardId && state.updateArtboard) {
       state.updateArtboard(state.activeArtboardId, { width: canvasSize.width, height: canvasSize.height });
     }
   },
-  setCanvasBackgroundColor: (canvasBackgroundColor) => set({ canvasBackgroundColor }),
-  setCanvasFilters: (input) =>
+  setCanvasBackgroundColor: (canvasBackgroundColor) => {
+    get().saveToHistory?.();
+    set({ canvasBackgroundColor });
+  },
+  setCanvasFilters: (input) => {
+    // saveToHistory is debounced, so slider drags collapse into one entry
+    get().saveToHistory?.();
     set((state: CanvasSlice) => ({
       canvasFilters: typeof input === 'function' ? input(state.canvasFilters) : input,
-    })),
+    }));
+  },
   setUnit: (unit) => set({ unit }),
   setPanOffset: (input) =>
     set((state: CanvasSlice) => ({

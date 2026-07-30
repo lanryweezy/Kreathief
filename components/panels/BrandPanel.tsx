@@ -148,6 +148,33 @@ export const BrandPanel = () => {
     downloadAnchorNode.remove();
   };
 
+  // Export brand kit as CSS custom properties so developers can consume the design tokens
+  const handleExportKitCss = (kit: BrandKit) => {
+    const slug = kit.name
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'brand';
+    const lines: string[] = [`/* Design tokens — ${kit.name} */`, ':root {'];
+    kit.colors.forEach((color, i) => {
+      lines.push(`  --${slug}-color-${i + 1}: ${color};`);
+    });
+    if (kit.fonts[0]) {
+      lines.push(`  --${slug}-font-heading: '${kit.fonts[0]}';`);
+    }
+    if (kit.fonts[1]) {
+      lines.push(`  --${slug}-font-body: '${kit.fonts[1]}';`);
+    }
+    lines.push('}');
+    const dataStr = 'data:text/css;charset=utf-8,' + encodeURIComponent(lines.join('\n') + '\n');
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute('href', dataStr);
+    downloadAnchorNode.setAttribute('download', `${kit.name.replace(/\s+/g, '_')}_tokens.css`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
   const handleImportKit = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {
@@ -187,7 +214,17 @@ export const BrandPanel = () => {
 
   return (
     <div data-testid="brand-panel" className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
-      <input type="file" accept=".json" ref={importInputRef} onChange={handleImportKit} className="hidden" />
+      <input
+              type="file"
+              accept=".json"
+              ref={importInputRef}
+              onChange={(e) => {
+                handleImportKit(e);
+                // Reset so selecting the same file again re-triggers onChange
+                e.target.value = '';
+              }}
+              className="hidden"
+            />
       <PanelHeader
         title="Brand Kits"
         icon={<Icons.Brand className="w-5 h-5" />}
@@ -260,7 +297,16 @@ export const BrandPanel = () => {
                 {newLogos.length < 10 && (
                   <label className="w-12 h-12 rounded border-2 border-dashed border-gray-700 hover:border-brand-600 transition-colors flex flex-col items-center justify-center cursor-pointer text-gray-500 hover:text-brand-600">
                     <Icons.Plus className="w-4 h-4" />
-                    <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                    <input
+                                          type="file"
+                                          accept="image/*"
+                                          onChange={(e) => {
+                                            handleLogoUpload(e);
+                                            // Reset so selecting the same file again re-triggers onChange
+                                            e.target.value = '';
+                                          }}
+                                          className="hidden"
+                                        />
                   </label>
                 )}
               </div>
@@ -412,6 +458,15 @@ export const BrandPanel = () => {
                       aria-label="Export Brand Kit"
                     >
                       <Icons.Download className="w-3 h-3" />
+                    </button>
+                    <button
+                      data-testid="export-brand-kit-css-btn"
+                      onClick={() => handleExportKitCss(kit)}
+                      className="text-gray-500 hover:text-white p-1"
+                      title="Export CSS Tokens"
+                      aria-label="Export Brand Kit as CSS Tokens"
+                    >
+                      <Icons.Code className="w-3 h-3" />
                     </button>
                     <button
                       data-testid="delete-brand-kit-btn"

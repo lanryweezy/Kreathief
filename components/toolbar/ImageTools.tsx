@@ -509,14 +509,24 @@ export const ImageTools = React.memo(
               <div className="flex gap-2 items-center">
                 <CompactInput
                   value={layer.width}
-                  onChange={(e: any) => handleUpdateLayer({ width: parseInt(e.target.value) })}
+                  onChange={(e: any) => {
+                    const w = parseInt(e.target.value, 10);
+                    if (Number.isFinite(w)) {
+                      handleUpdateLayer({ width: w });
+                    }
+                  }}
                   min={1}
                   width="w-full"
                   label="W"
                 />
                 <CompactInput
                   value={layer.height}
-                  onChange={(e: any) => handleUpdateLayer({ height: parseInt(e.target.value) })}
+                  onChange={(e: any) => {
+                    const h = parseInt(e.target.value, 10);
+                    if (Number.isFinite(h)) {
+                      handleUpdateLayer({ height: h });
+                    }
+                  }}
                   min={1}
                   width="w-full"
                   label="H"

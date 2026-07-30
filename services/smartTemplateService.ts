@@ -90,10 +90,64 @@ class SmartTemplateService {
   }
 
   /**
-   * Get template slots for dynamic content
+   * Get template slots for dynamic content.
+   * Falls back to deriving slots from the template's text layers, so every
+   * template supports variables — not just the four with hand-mapped slots.
    */
   getTemplateSlots(templateId: string): SmartTemplateSlot[] {
-    return this.templateSlots.get(templateId) || [];
+    const preset = this.templateSlots.get(templateId);
+    if (preset && preset.length > 0) {
+      return preset;
+    }
+    const derived = this.deriveSlotsFromTemplate(templateId);
+    if (derived.length > 0) {
+      this.templateSlots.set(templateId, derived); // cache for future lookups
+    }
+    return derived;
+  }
+
+  /**
+   * Heuristically derive content slots from a template's text layers:
+   * layer-name keywords classify the slot, largest font size marks the headline.
+   */
+  private deriveSlotsFromTemplate(templateId: string): SmartTemplateSlot[] {
+    const template = STARTER_TEMPLATES.find((t) => t.id === templateId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const layers: any[] = template?.state?.artboards?.flatMap((a: any) => a.layers || []) || [];
+    const textLayers = layers.filter((l) => l.type === 'text' && typeof l.text === 'string' && l.id);
+    if (textLayers.length === 0) {
+      return [];
+    }
+
+    const headlineId = [...textLayers].sort((a, b) => (b.fontSize || 0) - (a.fontSize || 0))[0]?.id;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const classify = (l: any): SmartTemplateSlot['contentType'] => {
+      const name = `${l.name || ''}`.toLowerCase();
+      if (/cta|button|ticket|shop|buy|link/.test(name)) return 'cta';
+      if (/tag|kicker|label|badge|category/.test(name)) return 'tag';
+      if (/sub|caption/.test(name)) return 'subtitle';
+      if (/stat|number|price/.test(name)) return 'stat';
+      if (l.id === headlineId || /title|headline|heading/.test(name)) return 'headline';
+      return 'body';
+    };
+
+    const usedVariables = new Set<string>();
+    return textLayers.map((l, i) => {
+      const contentType = classify(l);
+      let variable = contentType === 'headline' ? 'title' : contentType;
+      if (usedVariables.has(variable)) {
+        variable = `${variable}${i + 1}`;
+      }
+      usedVariables.add(variable);
+      return {
+        id: variable,
+        layerId: l.id,
+        layerName: l.name || `Text ${i + 1}`,
+        variable,
+        contentType,
+      };
+    });
   }
 
   /**

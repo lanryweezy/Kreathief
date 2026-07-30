@@ -268,7 +268,13 @@ class StorageService {
             }
           }, retryDelay);
         } else {
+          // Give up syncing, but tell the user — the project stays safe locally
           this.pendingChanges.delete(op.projectId);
+          log.error('[Storage] Dropping sync operation after max retries', err, {
+            projectId: op.projectId,
+            operation: op.operation,
+          });
+          this.showToast('Cloud sync failed repeatedly — your project is saved locally only', 'warning');
         }
       }
     }
@@ -483,7 +489,12 @@ class StorageService {
 
     try {
       const store = await this.getStore('assets', 'readwrite');
-      const id = btoa(url).substring(0, 32); // Simple hash for ID
+      // Unicode-safe deterministic ID (btoa throws on non-Latin1 URLs)
+      let hash = 0;
+      for (let i = 0; i < url.length; i++) {
+        hash = (hash * 31 + url.charCodeAt(i)) | 0;
+      }
+      const id = `asset-${(hash >>> 0).toString(36)}-${url.length}`;
 
       const cached = await new Promise<any>((resolve) => {
         const req = store.get(id);
@@ -492,9 +503,8 @@ class StorageService {
       });
 
       if (cached) {
-        const url = URL.createObjectURL(cached.blob);
-        setTimeout(() => URL.revokeObjectURL(url), 300000);
-        return url;
+        // No timed revoke: layers may reference this URL for the whole session
+        return URL.createObjectURL(cached.blob);
       }
 
       // Not cached, fetch and store
@@ -502,9 +512,7 @@ class StorageService {
       const blob = await response.blob();
       await this.addToStore(store, { id, url, blob, timestamp: Date.now() });
 
-      const objectUrl = URL.createObjectURL(blob);
-      setTimeout(() => URL.revokeObjectURL(objectUrl), 300000);
-      return objectUrl;
+      return URL.createObjectURL(blob);
     } catch (err) {
       log.warn('[Storage] Failed to cache asset', { url, error: err });
       return url;

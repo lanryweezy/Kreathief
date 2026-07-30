@@ -8,6 +8,7 @@ import { SmartSuggestions } from './SmartSuggestions';
 import { SmartSnap } from './SmartSnap';
 import { SmartSuggestion } from '../../hooks/useSmartInteraction';
 import { ErrorBoundary } from '../ErrorBoundary';
+import { CropOverlay } from './CropOverlay';
 
 const noop = () => {};
 
@@ -142,6 +143,13 @@ const ArtboardItem = React.memo(
     isInteracting,
   }: ArtboardItemProps) => {
     const hoveredMaskBoundary = useStore((state) => state.hoveredMaskBoundary);
+    const croppingLayer = useStore((state) => {
+      if (!state.isCropMode || !state.croppingLayerId) {
+        return null;
+      }
+      const found = artboard.layers.find((l) => l.id === state.croppingLayerId);
+      return found && found.type === 'image' ? found : null;
+    });
 
     const effectiveLayers = React.useMemo(() => {
       const layers = artboard.layers || [];
@@ -323,6 +331,9 @@ const ArtboardItem = React.memo(
             </>
           )}
         </div>
+
+        {/* Crop mode overlay (outside overflow-hidden so controls stay visible) */}
+        {croppingLayer && <CropOverlay layer={croppingLayer as any} zoom={zoom} />}
       </div>
     );
   }

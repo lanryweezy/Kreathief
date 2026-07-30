@@ -107,6 +107,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
     activeArtboardId,
     addImageLayer,
     lastGeneratedImageUrl,
+    handleFileUpload,
   } = useStore(
     useShallow((state) => ({
       mode: state.mode,
@@ -125,6 +126,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
       activeArtboardId: state.activeArtboardId,
       addImageLayer: state.addImageLayer,
       lastGeneratedImageUrl: state.lastGeneratedImageUrl,
+      handleFileUpload: state.handleFileUpload,
     }))
   );
 
@@ -407,7 +409,20 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
             </div>
           )}
 
-          <input type="file" ref={localFileInputRef} className="hidden" accept="image/*" />
+          <input
+                      type="file"
+                      ref={localFileInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleFileUpload([file]);
+                        }
+                        // Reset so selecting the same file again re-triggers onChange
+                        e.target.value = '';
+                      }}
+                    />
 
           <div className="flex items-center justify-between mb-4 bg-white/5 p-2 rounded-xl border border-white/5">
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">

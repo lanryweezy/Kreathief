@@ -286,10 +286,14 @@ export const ImageLayerItem = React.memo(
           height: naturalHeight * imgScale,
           transform: `translate(${-crop.x * imgScale}px, ${-crop.y * imgScale}px) scale(${scaleX}, ${scaleY})`,
           transformOrigin: 'top left',
-          filter:
-            imgLayer.filters && !optimizedSrc
-              ? `${imgLayer.filters.artisticFilter ? `url(#${imgLayer.filters.artisticFilter}) ` : ''}${buildFilterString(imgLayer.filters)}`
-              : 'none',
+          filter: imgLayer.filters
+            ? optimizedSrc
+              ? // Pixel filters are baked into optimizedSrc; keep only the SVG artistic filter
+                imgLayer.filters.artisticFilter
+                ? `url(#${imgLayer.filters.artisticFilter})`
+                : 'none'
+              : `${imgLayer.filters.artisticFilter ? `url(#${imgLayer.filters.artisticFilter}) ` : ''}${buildFilterString(imgLayer.filters)}`
+            : 'none',
         }),
         [naturalWidth, imgScale, crop.x, crop.y, scaleX, scaleY, filtersJson, optimizedSrc]
       );
@@ -347,19 +351,29 @@ export const ImageLayerItem = React.memo(
             />
             {imgLayer.inpaintNodes
               ?.filter((node) => node.enabled)
-              .map((node) => (
-                <img
-                  key={node.id}
-                  src={node.patchSrc}
-                  className="absolute top-0 left-0 pointer-events-none block w-full h-full"
-                  style={{
-                    opacity: node.opacity,
-                    transform: `scale(${scaleX}, ${scaleY})`,
-                    transformOrigin: 'center center',
-                  }}
-                  alt=""
-                />
-              ))}
+              .map((node) => {
+                // Patch covers the crop region it was captured with; legacy nodes
+                // (no capturedCrop) keep the old fill-the-frame behavior
+                const cap = node.capturedCrop || crop;
+                return (
+                  <img
+                    key={node.id}
+                    src={node.patchSrc}
+                    className="absolute pointer-events-none block"
+                    style={{
+                      left: (cap.x - crop.x) * imgScale,
+                      top: (cap.y - crop.y) * imgScale,
+                      width: cap.width * imgScale,
+                      height: cap.height * imgScale,
+                      maxWidth: 'none',
+                      opacity: node.opacity,
+                      transform: `scale(${scaleX}, ${scaleY})`,
+                      transformOrigin: 'center center',
+                    }}
+                    alt=""
+                  />
+                );
+              })}
             {imgLayer.isProcessing && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 backdrop-blur-[1px] rounded-lg animate-pulse pointer-events-none">
                 <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />

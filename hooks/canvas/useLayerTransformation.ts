@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Layer, ResizeHandle } from '../../types';
+import { Layer, ResizeHandle, Artboard } from '../../types';
 
 interface TransformationState {
   type: 'resize' | 'rotate';
@@ -23,6 +23,7 @@ interface UseLayerTransformationProps {
   onUpdateLayers: (updates: Record<string, Partial<Layer>>) => void;
   panOffset: { x: number; y: number };
   viewportRef: React.RefObject<HTMLDivElement>;
+  activeArtboard?: Artboard;
 }
 
 export const useLayerTransformation = ({
@@ -31,6 +32,7 @@ export const useLayerTransformation = ({
   onUpdateLayers,
   panOffset,
   viewportRef,
+  activeArtboard,
 }: UseLayerTransformationProps) => {
   const [transformState, setTransformState] = useState<TransformationState | null>(null);
   const transformStateRef = useRef(transformState);
@@ -38,13 +40,15 @@ export const useLayerTransformation = ({
   const zoomRef = useRef(zoom);
 
   const panOffsetRef = useRef(panOffset);
+  const activeArtboardRef = useRef(activeArtboard);
 
   useEffect(() => {
     transformStateRef.current = transformState;
     layersRef.current = layers;
     zoomRef.current = zoom;
     panOffsetRef.current = panOffset;
-  }, [transformState, layers, zoom, panOffset]);
+    activeArtboardRef.current = activeArtboard;
+  }, [transformState, layers, zoom, panOffset, activeArtboard]);
 
   const handleResizeStart = useCallback((e: React.MouseEvent, layer: Layer, handle: ResizeHandle) => {
     e.stopPropagation();
@@ -67,10 +71,12 @@ export const useLayerTransformation = ({
     e.stopPropagation();
     const width = (layer as any).width || 0;
     const height = (layer as any).height || 0;
-    // Calculate center of layer in screen coordinates
-    const centerX = layer.x + width / 2;
-    const centerY = layer.y + height / 2;
-    // Calculate angle from center to initial mouse position (in canvas coords)
+    // Layer coords are artboard-local; add the artboard offset to get world coords
+    const artboardX = activeArtboardRef.current?.x || 0;
+    const artboardY = activeArtboardRef.current?.y || 0;
+    const centerX = artboardX + layer.x + width / 2;
+    const centerY = artboardY + layer.y + height / 2;
+    // Calculate angle from center to initial mouse position (in world coords)
     const rect = viewportRef.current?.getBoundingClientRect();
     if (!rect) {
       return;
@@ -154,36 +160,49 @@ export const useLayerTransformation = ({
         partial.width = newWidth;
         partial.height = newHeight;
 
-        // Update X/Y for top/left handles with rotation awareness
+        // Keep the anchor edge/corner fixed. Rotation happens about the layer
+        // center, so the center must shift by half the size delta along the
+        // dragged local axes, rotated back into world space.
         const dw = newWidth - initialWidth;
         const dh = newHeight - initialHeight;
 
-        let moveX = 0;
-        let moveY = 0;
-
+        let shiftLocalX = 0;
+        let shiftLocalY = 0;
+        if (handle.includes('e')) {
+          shiftLocalX = dw / 2;
+        }
         if (handle.includes('w')) {
-          moveX = -dw;
+          shiftLocalX = -dw / 2;
+        }
+        if (handle.includes('s')) {
+          shiftLocalY = dh / 2;
         }
         if (handle.includes('n')) {
-          moveY = -dh;
+          shiftLocalY = -dh / 2;
         }
 
-        if (moveX !== 0 || moveY !== 0) {
-          const trad = (state.initialRotation * Math.PI) / 180;
-          partial.x = initialX + (moveX * Math.cos(trad) - moveY * Math.sin(trad));
-          partial.y = initialY + (moveX * Math.sin(trad) + moveY * Math.cos(trad));
-        }
+        const trad = (state.initialRotation * Math.PI) / 180;
+        const shiftWorldX = shiftLocalX * Math.cos(trad) - shiftLocalY * Math.sin(trad);
+        const shiftWorldY = shiftLocalX * Math.sin(trad) + shiftLocalY * Math.cos(trad);
+
+        const centerX = initialX + initialWidth / 2 + shiftWorldX;
+        const centerY = initialY + initialHeight / 2 + shiftWorldY;
+
+        partial.x = centerX - newWidth / 2;
+        partial.y = centerY - newHeight / 2;
       } else if (state.type === 'rotate') {
         const layer = layersRef.current.find((l) => l.id === state.layerId);
         if (!layer) {
           return;
         }
 
-        // Calculate center of layer in screen coordinates
+        // Center of the layer in world coordinates (layer coords are artboard-local)
         const width = state.initialWidth;
         const height = state.initialHeight;
-        const centerX = state.initialX + width / 2;
-        const centerY = state.initialY + height / 2;
+        const artboardX = activeArtboardRef.current?.x || 0;
+        const artboardY = activeArtboardRef.current?.y || 0;
+        const centerX = artboardX + state.initialX + width / 2;
+        const centerY = artboardY + state.initialY + height / 2;
 
         // Current mouse position in canvas coordinates
         const rect = viewportRef.current?.getBoundingClientRect();

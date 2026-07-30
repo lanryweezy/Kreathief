@@ -116,6 +116,7 @@ export function useMagicActions() {
               maskPath,
               opacity: 1,
               enabled: true,
+              capturedCrop: layer.crop ? { ...layer.crop } : undefined,
             };
 
             const currentNodes = layer.inpaintNodes || [];
@@ -237,6 +238,7 @@ export function useMagicActions() {
               maskPath,
               opacity: 1,
               enabled: true,
+              capturedCrop: layer.crop ? { ...layer.crop } : undefined,
             };
 
             const currentNodes = layer.inpaintNodes || [];

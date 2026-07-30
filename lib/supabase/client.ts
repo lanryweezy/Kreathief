@@ -23,6 +23,10 @@ const supabaseUrl = isValidUrl(supabaseConfig.url)
   ? supabaseConfig.url
   : 'https://placeholder.supabase.co';
 
+// True when real credentials are present — consumers can gate cloud features
+// instead of silently talking to the placeholder endpoint.
+export const isSupabaseConfigured = isValidUrl(supabaseConfig.url) && !!supabaseConfig.anonKey;
+
 export const supabase = createClient<Database>(
   supabaseUrl,
   supabaseConfig.anonKey || 'placeholder-key',

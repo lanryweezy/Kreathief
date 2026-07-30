@@ -107,6 +107,7 @@ export const useCanvasInteractions = ({
       onUpdateLayers,
       panOffset,
       viewportRef,
+      activeArtboard,
     });
 
   // 5. Drawing Hook

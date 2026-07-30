@@ -44,6 +44,9 @@ export const SelectionHandles = React.memo(({ layer, multi, onResize, onRotate, 
         e.stopPropagation();
         onResize(e, layer, handle);
       }}
+      // Stopping pointerdown does NOT stop the compatibility mousedown — block it
+      // explicitly so the parent layer's onMouseDown doesn't start a drag.
+      onMouseDown={(e) => e.stopPropagation()}
       style={r}
       className={`${HS} ${cls}`}
     />
@@ -80,6 +83,7 @@ export const SelectionHandles = React.memo(({ layer, multi, onResize, onRotate, 
                 e.stopPropagation();
                 onRotate(e, layer);
               }}
+              onMouseDown={(e) => e.stopPropagation()}
               onDoubleClick={(e) => {
                 e.stopPropagation();
                 updateLayer(layer.id, { rotation: 0 });

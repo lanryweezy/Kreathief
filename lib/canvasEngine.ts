@@ -13,6 +13,7 @@
 import { DesignNode, GradientFill } from '../types/design';
 import { hexToRgba } from './utils';
 import { canvas as canvasTokens, content, surface, border } from './tokens';
+import { resolveTextLines } from '../utils/textRendering';
 
 type AnyCtx = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
@@ -1339,7 +1340,7 @@ export class KreathiefCanvas {
     const fontSize = node.fontSize || 16;
     const lineHeight = (node as any).lineHeight || 1.2;
     const letterSpacing = (node as any).letterSpacing || 0;
-    ctx.font = `${node.fontWeight || 400} ${fontSize}px ${node.fontFamily || 'system-ui'}`;
+    ctx.font = `${(node as any).fontStyle || 'normal'} ${node.fontWeight || 400} ${fontSize}px ${node.fontFamily || 'system-ui'}`;
     ctx.textAlign = (node.textAlign || 'left') as any;
     ctx.textBaseline = 'top';
 
@@ -1347,12 +1348,38 @@ export class KreathiefCanvas {
       ctx.letterSpacing = `${letterSpacing}px`;
     }
 
-    const text = node.text || '';
-    const lines = text.split('\n');
+    // Shared resolver: applies textTransform and word-wraps to the layer
+    // width so the engine matches the editor and export output.
+    const lines = resolveTextLines(node as any, (t) => ctx.measureText(t).width);
     const yStep = fontSize * lineHeight;
+    // ctx.textAlign anchors at the given x, so shift it to the box center/right edge.
+    const tx =
+      node.textAlign === 'center' ? node.x + node.width / 2 : node.textAlign === 'right' ? node.x + node.width : node.x;
+
+    const tShadow = (node as any).textShadow;
+    if (tShadow) {
+      ctx.shadowOffsetX = tShadow.offsetX ?? 0;
+      ctx.shadowOffsetY = tShadow.offsetY ?? 0;
+      ctx.shadowBlur = tShadow.blur ?? 0;
+      ctx.shadowColor = tShadow.color ?? 'rgba(0,0,0,0.5)';
+    }
+    const tStroke = (node as any).textStroke;
 
     for (let i = 0; i < lines.length; i++) {
-      ctx.fillText(lines[i], node.x, node.y + i * yStep);
+      if (tStroke && tStroke.width > 0) {
+        ctx.strokeStyle = tStroke.color || '#000000';
+        ctx.lineWidth = tStroke.width;
+        ctx.lineJoin = 'round';
+        ctx.strokeText(lines[i], tx, node.y + i * yStep);
+      }
+      ctx.fillText(lines[i], tx, node.y + i * yStep);
+    }
+
+    if (tShadow) {
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
     }
   }
 

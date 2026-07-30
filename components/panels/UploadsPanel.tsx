@@ -21,13 +21,17 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
   const deleteUpload = useStore((state) => state.deleteUpload);
 
   const onAddImageLayer = (src: string) => {
+    // Cascade placement so repeated adds don't stack pixel-perfect on top of each other
+    const state = useStore.getState();
+    const artboard = state.artboards.find((a) => a.id === state.activeArtboardId) || state.artboards[0];
+    const cascade = ((artboard?.layers.length || 0) % 8) * 24;
     addLayer({
       id: generateLayerId('image'),
       type: 'image',
       name: 'Image Layer',
       src,
-      x: canvasSize.width / 2 - 150,
-      y: canvasSize.height / 2 - 150,
+      x: canvasSize.width / 2 - 150 + cascade,
+      y: canvasSize.height / 2 - 150 + cascade,
       width: 300,
       height: 300,
       rotation: 0,
@@ -149,7 +153,13 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
               className="hidden"
               accept="image/*"
               multiple
-              onChange={(e) => e.target.files && handleFileUploads(Array.from(e.target.files))}
+              onChange={(e) => {
+                if (e.target.files) {
+                  handleFileUploads(Array.from(e.target.files));
+                }
+                // Reset so selecting the same file again re-triggers onChange
+                e.target.value = '';
+              }}
             />
           </div>
 
@@ -173,7 +183,12 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
               ref={psdInputRef}
               className="hidden"
               accept=".psd"
-              onChange={(e) => e.target.files && handlePsdFiles(Array.from(e.target.files))}
+              onChange={(e) => {
+                if (e.target.files) {
+                  handlePsdFiles(Array.from(e.target.files));
+                }
+                e.target.value = '';
+              }}
             />
           </button>
         </div>

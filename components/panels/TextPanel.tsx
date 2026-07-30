@@ -577,7 +577,11 @@ export const TextPanel: React.FC = () => {
                     ref={fontInputRef}
                     className="hidden"
                     accept=".otf,.ttf,.woff,.woff2"
-                    onChange={handleFontUpload}
+                    onChange={(e) => {
+                      handleFontUpload(e);
+                      // Reset so selecting the same file again re-triggers onChange
+                      e.target.value = '';
+                    }}
                   />
                   <div className="flex flex-col gap-2">
                     {customFonts.map((font) => (

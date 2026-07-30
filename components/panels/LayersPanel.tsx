@@ -333,11 +333,19 @@ export const LayersPanel = () => {
   // Reversed list mirrors what the UI renders (top = last in array)
   const reversedLayers = useMemo(() => [...layers].reverse(), [layers]);
 
+  // Filter layers by name/type for quick lookup in complex designs
+  const [layerSearch, setLayerSearch] = useState('');
+  const filteredLayers = useMemo(() => {
+    const q = layerSearch.trim().toLowerCase();
+    if (!q) return reversedLayers;
+    return reversedLayers.filter((l) => (l.name || l.type).toLowerCase().includes(q));
+  }, [reversedLayers, layerSearch]);
+
   const handleLayerKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, displayIndex: number) => {
     switch (e.key) {
       case 'ArrowDown': {
         e.preventDefault();
-        const next = Math.min(displayIndex + 1, reversedLayers.length - 1);
+        const next = Math.min(displayIndex + 1, filteredLayers.length - 1);
         setFocusedLayerIndex(next);
         const el = containerRef.current?.querySelectorAll<HTMLDivElement>('[role="treeitem"]')[next];
         el?.focus();
@@ -354,7 +362,7 @@ export const LayersPanel = () => {
       case 'Enter':
       case ' ': {
         e.preventDefault();
-        const layer = reversedLayers[displayIndex];
+        const layer = filteredLayers[displayIndex];
         if (layer) {
           selectLayer(layer.id);
         }
@@ -363,7 +371,7 @@ export const LayersPanel = () => {
       case 'Delete':
       case 'Backspace': {
         e.preventDefault();
-        const layer = reversedLayers[displayIndex];
+        const layer = filteredLayers[displayIndex];
         if (layer && !layer.locked) {
           deleteLayer(layer.id);
         }
@@ -422,6 +430,32 @@ export const LayersPanel = () => {
         }
       />
 
+      {activeTab === 'layers' && layers.length > 0 && (
+        <div className="px-3 pt-2">
+          <div className="relative">
+            <Icons.Search className="w-3.5 h-3.5 text-gray-500 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={layerSearch}
+              onChange={(e) => setLayerSearch(e.target.value)}
+              placeholder="Search layers…"
+              aria-label="Search layers"
+              data-testid="layer-search-input"
+              className="w-full bg-surface-dark-3 border border-gray-700 rounded-lg pl-8 pr-7 py-1.5 text-[11px] text-gray-200 placeholder-gray-500 focus:outline-none focus:border-brand-500 transition-colors"
+            />
+            {layerSearch && (
+              <button
+                onClick={() => setLayerSearch('')}
+                aria-label="Clear layer search"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 text-xs leading-none"
+              >
+                &times;
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       <div
         ref={containerRef}
         className="flex-1 py-2 overflow-y-auto no-scrollbar"
@@ -439,8 +473,13 @@ export const LayersPanel = () => {
                   Add text, shapes, or images to start creating.
                 </p>
               </div>
+            ) : filteredLayers.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
+                <Icons.Search className="w-6 h-6 text-gray-600 mb-2" />
+                <p className="text-[10px] text-gray-500">No layers match “{layerSearch}”</p>
+              </div>
             ) : (
-              reversedLayers.map((layer, index) => (
+              filteredLayers.map((layer, index) => (
                 <LayerItem
                   key={layer.id}
                   layer={layer}

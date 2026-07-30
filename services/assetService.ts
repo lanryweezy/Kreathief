@@ -54,11 +54,8 @@ export const assetService = {
       const { error } = await (supabase.rpc as any)('increment_asset_downloads', { asset_id: id });
 
       if (error) {
-        const { error: updateError } = await (supabase as any)
-          .from('assets')
-          .update({ downloads: 0 })
-          .eq('id', id);
-
+        // RPC unavailable — fall back to read-then-increment. Never reset the
+        // counter first: the old zero-write destroyed the count on every retry.
         const { data: asset } = await (supabase as any).from('assets').select('downloads').eq('id', id).single();
 
         if (asset) {

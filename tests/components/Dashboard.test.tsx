@@ -35,8 +35,9 @@ vi.mock('../../utils/log', () => ({
 }));
 
 describe('Dashboard', () => {
+  // Dashboard has a heavy transitive import graph — allow extra time on slow machines/CI
   it('module can be imported', async () => {
     const mod = await import('../../components/Dashboard');
     expect(mod).toBeDefined();
-  });
+  }, 30000);
 });

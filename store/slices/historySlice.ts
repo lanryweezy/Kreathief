@@ -56,16 +56,17 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
       }
       lastSavedTimestamp = now;
 
-      set((state: any) => {
-        const currentState: HistoryState = {
-          artboards: state.artboards.map((a: Artboard) => ({ ...a, layers: a.layers.map((l: any) => ({ ...l })) })),
-          activeArtboardId: state.activeArtboardId,
-          canvasBackgroundColor: state.canvasBackgroundColor,
-          canvasFilters: state.canvasFilters ? { ...state.canvasFilters } : undefined,
-          canvasSize: state.canvasSize ? { ...state.canvasSize } : undefined,
-          selectedLayerIds: [...(state.selectedLayerIds || [])],
-        };
+      const stateNow = get() as any;
+      const currentState: HistoryState = {
+        artboards: stateNow.artboards.map((a: Artboard) => ({ ...a, layers: a.layers.map((l: any) => ({ ...l })) })),
+        activeArtboardId: stateNow.activeArtboardId,
+        canvasBackgroundColor: stateNow.canvasBackgroundColor,
+        canvasFilters: stateNow.canvasFilters ? { ...stateNow.canvasFilters } : undefined,
+        canvasSize: stateNow.canvasSize ? { ...stateNow.canvasSize } : undefined,
+        selectedLayerIds: [...(stateNow.selectedLayerIds || [])],
+      };
 
+      set((state: any) => {
         let entry: HistoryEntry;
         const lastSnapshot = state.__lastStateSnapshot;
         const shouldMakeSnapshot = !lastSnapshot || state.past.length % SNAPSHOT_INTERVAL === 0;
@@ -82,14 +83,17 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
 
         const newPast = state.past.length >= MAX_HISTORY ? [...state.past.slice(1), entry] : [...state.past, entry];
 
-        if (state.projectId) {
-          storageService
-            .saveSessionMirror(state.projectId, currentState)
-            .catch((err) => log.error('[Resilience] Session mirror failed', err, { projectId: state.projectId }));
-        }
-
         return { past: newPast, future: [], __lastStateSnapshot: nextSnapshot, hasUnsavedChanges: true };
       });
+
+      // Mirror to IndexedDB outside the set() updater (updaters must stay pure),
+      // including the updated undo/redo stacks so they survive reloads.
+      const { projectId, past, future } = get() as any;
+      if (projectId) {
+        storageService
+          .saveSessionMirror(projectId, currentState, past, future)
+          .catch((err) => log.error('[Resilience] Session mirror failed', err, { projectId }));
+      }
     };
   })(),
 

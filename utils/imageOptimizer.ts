@@ -42,7 +42,11 @@ export async function compressImage(file: File, maxWidth: number = 1920, quality
   const ctx = canvas.getContext('2d')!;
   ctx.drawImage(img, 0, 0, width, height);
 
-  const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+  // Only opaque source formats can be safely re-encoded as JPEG; anything that
+  // may carry alpha (png/webp/gif/avif/svg) goes to webp, which preserves
+  // transparency — browsers that can't encode webp fall back to PNG per spec.
+  const opaqueTypes = ['image/jpeg', 'image/jpg', 'image/bmp'];
+  const outputType = opaqueTypes.includes(file.type) ? 'image/jpeg' : 'image/webp';
   return canvasToBlob(canvas, outputType, quality);
 }
 

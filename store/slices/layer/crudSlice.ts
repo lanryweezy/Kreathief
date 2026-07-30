@@ -400,16 +400,34 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
       const MIN_SAFE_VAL = -10000;
       const sanitizedPartial = { ...partial };
       if (partial.x !== undefined) {
-        sanitizedPartial.x = Math.max(MIN_SAFE_VAL, Math.min(MAX_SAFE_VAL, partial.x));
+        sanitizedPartial.x = Number.isFinite(partial.x)
+          ? Math.max(MIN_SAFE_VAL, Math.min(MAX_SAFE_VAL, partial.x))
+          : undefined;
+        if (sanitizedPartial.x === undefined) {
+          delete sanitizedPartial.x;
+        }
       }
       if (partial.y !== undefined) {
-        sanitizedPartial.y = Math.max(MIN_SAFE_VAL, Math.min(MAX_SAFE_VAL, partial.y));
+        sanitizedPartial.y = Number.isFinite(partial.y)
+          ? Math.max(MIN_SAFE_VAL, Math.min(MAX_SAFE_VAL, partial.y))
+          : undefined;
+        if (sanitizedPartial.y === undefined) {
+          delete sanitizedPartial.y;
+        }
       }
       if ((partial as any).width !== undefined) {
-        (sanitizedPartial as any).width = Math.max(1, Math.min(MAX_SAFE_VAL, (partial as any).width));
+        if (Number.isFinite((partial as any).width)) {
+          (sanitizedPartial as any).width = Math.max(1, Math.min(MAX_SAFE_VAL, (partial as any).width));
+        } else {
+          delete (sanitizedPartial as any).width;
+        }
       }
       if ((partial as any).height !== undefined) {
-        (sanitizedPartial as any).height = Math.max(1, Math.min(MAX_SAFE_VAL, (partial as any).height));
+        if (Number.isFinite((partial as any).height)) {
+          (sanitizedPartial as any).height = Math.max(1, Math.min(MAX_SAFE_VAL, (partial as any).height));
+        } else {
+          delete (sanitizedPartial as any).height;
+        }
       }
       if (partial.opacity !== undefined) {
         sanitizedPartial.opacity =
@@ -487,10 +505,27 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
   deleteSelected: () => {
     get().saveToHistory?.();
     const { selectedLayerIds } = get();
+    const deletedIds = new Set(selectedLayerIds);
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => ({
         ...a,
-        layers: a.layers.filter((l: Layer) => !selectedLayerIds.includes(l.id)),
+        layers: a.layers
+          .filter((l: Layer) => !deletedIds.has(l.id))
+          .map((l: Layer) => {
+            // Same orphan cleanup as deleteLayer, for every deleted id
+            const cleaned = { ...l };
+            if (cleaned.maskLayerId && deletedIds.has(cleaned.maskLayerId)) {
+              cleaned.maskLayerId = undefined;
+            }
+            if (cleaned.groupId && deletedIds.has(cleaned.groupId)) {
+              cleaned.groupId = undefined;
+            }
+            if (cleaned.masterId && deletedIds.has(cleaned.masterId)) {
+              cleaned.masterId = undefined;
+              cleaned.overrides = [];
+            }
+            return cleaned;
+          }),
       })),
       selectedLayerIds: [],
     }));

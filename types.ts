@@ -381,6 +381,7 @@ export interface InpaintNode {
   maskPath: string; // The path that was patched
   opacity: number; // Defaults to 1.0
   enabled: boolean; // Defaults to true
+  capturedCrop?: { x: number; y: number; width: number; height: number }; // Layer crop at capture time, so patches track content across later crop changes
 }
 
 export interface ImageLayer extends LayerBase {

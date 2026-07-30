@@ -10,6 +10,16 @@ import { FONT_FAMILIES } from '../constants';
 // Cache of loaded fonts
 const loadedFonts = new Set<string>();
 const customFonts = new Set<string>();
+// Families that failed both local and CDN loads — avoids re-injecting dead <link> tags
+const failedFonts = new Set<string>();
+
+// Optional UI notifier so font failures surface to the user (registered in App init)
+type FontToastCallback = (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
+let toastCallback: FontToastCallback | null = null;
+
+export function setFontToastCallback(callback: FontToastCallback): void {
+  toastCallback = callback;
+}
 
 // Variable font axes registry: tracks available variation axes per family
 const variableFontAxes = new Map<string, string[]>();
@@ -33,6 +43,11 @@ export async function loadFont(fontFamily: string): Promise<boolean> {
   // Skip if already loaded
   if (loadedFonts.has(cleanFamily)) {
     return true;
+  }
+
+  // Skip families that already failed — no point retrying every render
+  if (failedFonts.has(cleanFamily)) {
+    return false;
   }
 
   // Skip if it's a system font
@@ -147,7 +162,11 @@ async function loadFontFromCdn(cleanFamily: string): Promise<boolean> {
     // Wait for font to load
     await new Promise<void>((resolve, reject) => {
       link.onload = () => resolve();
-      link.onerror = () => reject(new Error(`Failed to load font: ${cleanFamily}`));
+      link.onerror = () => {
+        // Remove the dead stylesheet so it isn't left in <head>
+        link.remove();
+        reject(new Error(`Failed to load font: ${cleanFamily}`));
+      };
       document.head.appendChild(link);
     });
 
@@ -177,6 +196,8 @@ async function loadFontFromCdn(cleanFamily: string): Promise<boolean> {
     logger.warn(`Failed to load font from CDN: ${cleanFamily}`, {
       error: cdnError instanceof Error ? cdnError.message : String(cdnError),
     });
+    failedFonts.add(cleanFamily);
+    toastCallback?.(`Could not load font "${cleanFamily}" — a fallback font will be used.`, 'warning');
     return false;
   }
 }

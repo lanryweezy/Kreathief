@@ -248,6 +248,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
     }
 
     set({ isSaving: true, syncStatus: 'syncing' });
+    const pastAtSaveStart = get().past;
     try {
       const existingProject = get().projects.find((p: Project) => p.id === projectId);
       const updatedProject: Project = {
@@ -272,7 +273,8 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
         isSaving: false,
         syncStatus: 'synced',
         lastSaved: new Date(),
-        hasUnsavedChanges: false,
+        // Only clear the dirty flag if no new edits landed while the save was in flight
+        hasUnsavedChanges: state.past !== pastAtSaveStart,
         projects: state.projects.map((p: Project) => (p.id === projectId ? updatedProject : p)),
       }));
     } catch (e) {
@@ -459,9 +461,14 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
     get().saveProject();
 
     // Persist to Supabase in background
-    import('../../services/commentService').then(({ commentService }) => {
-      commentService.addCanvasComment(projectId, user.id, user.name, user.avatar || null, x, y, content);
-    });
+    import('../../services/commentService')
+      .then(({ commentService }) =>
+        commentService.addCanvasComment(projectId, user.id, user.name, user.avatar || null, x, y, content)
+      )
+      .catch((err) => {
+        log.error('Comment sync failed', err, { projectId });
+        get().addToast?.('Comment could not be synced to cloud', 'error');
+      });
   },
 
   resolveCanvasComment: (id) => {
@@ -482,9 +489,12 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
     }));
     get().saveProject();
 
-    import('../../services/commentService').then(({ commentService }) => {
-      commentService.resolveCanvasComment(id);
-    });
+    import('../../services/commentService')
+      .then(({ commentService }) => commentService.resolveCanvasComment(id))
+      .catch((err) => {
+        log.error('Comment resolve sync failed', err, { projectId, commentId: id });
+        get().addToast?.('Comment could not be synced to cloud', 'error');
+      });
   },
 
   deleteCanvasComment: (id) => {
@@ -505,9 +515,12 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
     }));
     get().saveProject();
 
-    import('../../services/commentService').then(({ commentService }) => {
-      commentService.deleteCanvasComment(id);
-    });
+    import('../../services/commentService')
+      .then(({ commentService }) => commentService.deleteCanvasComment(id))
+      .catch((err) => {
+        log.error('Comment delete sync failed', err, { projectId, commentId: id });
+        get().addToast?.('Comment could not be synced to cloud', 'error');
+      });
   },
 
   updateCanvasComment: (id, content) => {

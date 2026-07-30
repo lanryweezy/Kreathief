@@ -250,6 +250,11 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
           ctx.shadowBlur = 0;
 
           switch (brushType) {
+            case 'eraser':
+              // Neutral trail so the eraser doesn't look like it paints color
+              ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+              ctx.lineWidth = brushSize;
+              break;
             case 'calligraphy':
               ctx.lineCap = 'butt';
               ctx.lineWidth = pressureWidth * 1.5;
@@ -312,8 +317,39 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
 
     isDrawingInternalRef.current = false;
 
-    // Eraser has no raster target (layers render as DOM/SVG) — never commit a stroke layer for it
+    // Eraser: layers render as DOM/SVG, so "erase" by removing the brush-stroke
+    // path layers the eraser trail passed over (vector stroke-eraser semantics).
     if (brushType === 'eraser' || currentPathRef.current.length < 2) {
+      if (brushType === 'eraser' && currentPathRef.current.length > 0) {
+        const erasePoints = currentPathRef.current;
+        const { artboards, activeArtboardId, deleteLayer } = useStore.getState() as any;
+        const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+        const tolerance = brushSize / 2 + 4;
+        const hitIds: string[] = [];
+        for (const l of artboard?.layers || []) {
+          if (l.type !== 'path' || !l.brushType || l.brushType === 'eraser' || !l.pathData || l.locked) {
+            continue;
+          }
+          const coords = (l.pathData.match(/-?\d+(?:\.\d+)?/g) || []).map(Number);
+          const strokeTol = tolerance + (l.stroke?.width || 0) / 2;
+          let isHit = false;
+          for (let i = 0; i + 1 < coords.length && !isHit; i += 2) {
+            const px = l.x + coords[i];
+            const py = l.y + coords[i + 1];
+            for (const ep of erasePoints) {
+              if (Math.hypot(px - ep.x, py - ep.y) <= strokeTol) {
+                isHit = true;
+                break;
+              }
+            }
+          }
+          if (isHit) {
+            hitIds.push(l.id);
+          }
+        }
+        // deleteLayer saves history itself; rapid calls coalesce via debounce
+        hitIds.forEach((id) => deleteLayer(id));
+      }
       if (canvasRef.current) {
         const ctx = canvasRef.current.getContext('2d');
         if (ctx) {
@@ -427,9 +463,10 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
   }, []);
 
   useEffect(() => {
-    // When drawing mode is turned off, finish any active vector_pencil paths
+    // When drawing mode is turned off, finish any active vector_pencil paths.
+    // Don't clear the internal flag first — handleDrawingMouseUp early-returns
+    // when it's already false, which would silently discard the stroke.
     if (!isDrawing && isDrawingInternalRef.current) {
-      isDrawingInternalRef.current = false;
       handleDrawingMouseUp(undefined, true);
     }
   }, [isDrawing, handleDrawingMouseUp]);

@@ -239,6 +239,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     } catch (error) {
       log.error('Remix failed', error, { layerId: id, prompt });
       updateLayer(id, { isProcessing: false });
+      get().addToast?.(`Remix failed: ${getErrorDetails(error).message}`, 'error');
     } finally {
       set({ isGenerating: false });
     }
@@ -255,23 +256,10 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
     try {
-      let newSrc: string | undefined;
-
-      // Primary: SDXL Outpainting (The industry standard for expansion)
-      if (aiModelsService.isConfigured()) {
-        try {
-          const prompt = 'Extend the background naturally, maintaining style and lighting.';
-          // SDXL Outpainting logic would go here, using generative fill service
-          newSrc = await aiModelsService.generativeFillSDXL(layer.src, '', prompt);
-        } catch (e) {
-          log.warn('SDXL Expand failed, falling back to Gemini', { error: e });
-        }
-      }
-
-      // Fallback: Gemini / Freepik
-      if (!newSrc) {
-        newSrc = await geminiService.expandImage(layer.src);
-      }
+      // Note: SDXL outpainting was never implemented (the old call passed an empty
+      // mask, which always failed). Go straight to the expand pipeline, which
+      // falls back to Freepik outpainting internally.
+      const newSrc = await geminiService.expandImage(layer.src);
 
       if (newSrc) {
         saveToHistory();
@@ -280,6 +268,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     } catch (error) {
       log.error('Magic Expand failed', error, { layerId: id });
       updateLayer(id, { isProcessing: false });
+      get().addToast?.(`Magic Expand failed: ${getErrorDetails(error).message}`, 'error');
     } finally {
       set({ isGenerating: false });
     }
@@ -308,6 +297,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
       updateLayer(id, { src: result, isProcessing: false });
     } catch (e) {
       log.error('BG Removal failed', e, { layerId: id });
+      get().addToast?.(`Background removal failed: ${getErrorDetails(e).message}`, 'error');
     } finally {
       set({ isGenerating: false, isRemovingBg: false });
       updateLayer(id, { isProcessing: false });
@@ -331,6 +321,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     } catch (error) {
       log.error('Enhance failed', error, { layerId: id });
       updateLayer(id, { isProcessing: false });
+      get().addToast?.(`Enhance failed: ${getErrorDetails(error).message}`, 'error');
     } finally {
       set({ isGenerating: false });
     }
@@ -372,6 +363,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     } catch (error) {
       log.error('Upscale failed', error, { layerId: id });
       updateLayer(id, { isProcessing: false });
+      get().addToast?.(`Upscale failed: ${getErrorDetails(error).message}`, 'error');
     } finally {
       set({ isGenerating: false });
     }
@@ -394,6 +386,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     } catch (error) {
       log.error('Retouch failed', error, { layerId: id });
       updateLayer(id, { isProcessing: false });
+      get().addToast?.(`Retouch failed: ${getErrorDetails(error).message}`, 'error');
     } finally {
       set({ isGenerating: false });
     }

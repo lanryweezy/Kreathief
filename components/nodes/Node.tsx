@@ -276,6 +276,8 @@ export function Node({
                           };
                           reader.readAsDataURL(file);
                         }
+                        // Reset so selecting the same file again re-triggers onChange
+                        e.target.value = '';
                       }}
                     />
                   </label>

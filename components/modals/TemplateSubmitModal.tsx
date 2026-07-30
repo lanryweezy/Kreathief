@@ -127,7 +127,17 @@ const TemplateSubmitModal: React.FC<TemplateSubmitModalProps> = ({ isOpen, onClo
           />
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-gray-400">Template File (JSON)</label>
-            <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileUpload} className="hidden" />
+            <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept=".json"
+                          onChange={(e) => {
+                            handleFileUpload(e);
+                            // Reset so selecting the same file again re-triggers onChange
+                            e.target.value = '';
+                          }}
+                          className="hidden"
+                        />
             <button
               onClick={() => fileInputRef.current?.click()}
               className="w-full p-4 border-2 border-dashed border-white/10 hover:border-brand-500/50 rounded-xl text-center transition-all group"

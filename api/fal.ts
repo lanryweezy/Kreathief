@@ -157,7 +157,9 @@ export default async function handler(req: Request) {
       const allowedFields = [
         'prompt',
         'image_url',
+        'mask_url',
         'image',
+        'image_size',
         'num_images',
         'guidance_scale',
         'num_inference_steps',

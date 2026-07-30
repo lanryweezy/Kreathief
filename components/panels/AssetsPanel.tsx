@@ -106,6 +106,7 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
         }
       }
 
+      let finalPhotos = combined;
       if (activeSource === 'all' && combined.length > 0) {
         const groups: Record<string, PhotoItem[]> = {};
         combined.forEach((p) => {
@@ -123,10 +124,12 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
             }
           }
         }
-        const finalPhotos = activeSource === 'all' ? interleaved : combined;
-        setPhotos(finalPhotos);
-        tabCacheRef.current[activeSource] = { photos: finalPhotos.slice(0, 20), query: q };
+        finalPhotos = interleaved;
       }
+      // Always publish results — previously only the 'all' source ever called
+      // setPhotos, so single-provider searches (e.g. Unsplash) never rendered.
+      setPhotos(finalPhotos);
+      tabCacheRef.current[activeSource] = { photos: finalPhotos.slice(0, 20), query: q };
     } catch (e) {
       log.error('[AssetsPanel] Search error', e);
     } finally {

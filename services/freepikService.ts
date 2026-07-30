@@ -1,10 +1,11 @@
 import { log } from '../utils/log';
 
-// Helper to create object URLs with automatic cleanup after 5 minutes
+// Helper to create object URLs for generated assets. These URLs get stored in
+// layer state indefinitely, so they must NOT be auto-revoked on a timer — a
+// 5-minute revoke broke every image placed on the canvas after that window.
+// The browser reclaims them when the document unloads.
 function createRevocableURL(blob: Blob): string {
-  const url = URL.createObjectURL(blob);
-  setTimeout(() => URL.revokeObjectURL(url), 300000);
-  return url;
+  return URL.createObjectURL(blob);
 }
 
 export interface FreepikAsset {
@@ -362,8 +363,8 @@ async function pollTask(taskId: string, basePath: string, maxAttempts = 30, inte
         try {
           const res = await fetch(imageUrl);
           const blob = await res.blob();
+          // Not auto-revoked: the URL lives in layer state (see createRevocableURL)
           const objectUrl = URL.createObjectURL(blob);
-          setTimeout(() => URL.revokeObjectURL(objectUrl), 300000);
           return objectUrl;
         } catch (err) {
           log.error('[FreepikService] Failed to convert image URL to blob', err, { imageUrl });

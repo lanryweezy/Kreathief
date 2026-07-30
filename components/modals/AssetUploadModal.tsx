@@ -125,7 +125,13 @@ export const AssetUploadModal: React.FC<AssetUploadModalProps> = React.memo(func
               ref={fileInputRef}
               type="file"
               accept="image/*,video/*"
-              onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+              onChange={(e) => {
+                if (e.target.files?.[0]) {
+                  handleFileSelect(e.target.files[0]);
+                }
+                // Reset so selecting the same file again re-triggers onChange
+                e.target.value = '';
+              }}
               className="hidden"
               aria-hidden="true"
             />

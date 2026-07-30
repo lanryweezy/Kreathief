@@ -1,7 +1,10 @@
 import { log } from '../utils/log';
+import { aiModelsService } from './aiModelsService';
 
 /**
  * Call AI inpainting API directly using base64 image and mask data.
+ * Routed through the /api/fal proxy (SDXL inpainting) — fal.ai accepts
+ * data URIs for image_url/mask_url.
  */
 export async function aiInpaintBase64(
   imageDataUrl: string,
@@ -9,26 +12,8 @@ export async function aiInpaintBase64(
   prompt: string
 ): Promise<string | null> {
   try {
-    const response = await fetch('/api/gemini', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'inpaint',
-        image: imageDataUrl,
-        mask: maskDataUrl,
-        prompt,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`AI inpaint failed: ${response.status}`);
-    }
-
-    const result = await response.json();
-    if (result.image || result.url) {
-      return result.image || result.url;
-    }
-    return null;
+    const resultUrl = await aiModelsService.generativeFillSDXL(imageDataUrl, maskDataUrl, prompt);
+    return resultUrl || null;
   } catch (err) {
     log.warn('[InpaintService] AI inpaint request failed', { error: err });
     return null;

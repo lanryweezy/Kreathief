@@ -274,7 +274,17 @@ export const MockupLibrary: React.FC<MockupLibraryProps> = ({
               Upload Your Own
             </span>
           </button>
-          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUploadMockup} className="hidden" />
+          <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        handleUploadMockup(e);
+                        // Reset so selecting the same file again re-triggers onChange
+                        e.target.value = '';
+                      }}
+                      className="hidden"
+                    />
 
           <div className="grid grid-cols-2 gap-2">
             {customMockup && (

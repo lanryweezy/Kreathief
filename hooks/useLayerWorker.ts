@@ -20,7 +20,7 @@ export const useProcessedImage = (layer: ImageLayer | null) => {
     }
     const f = layer.filters;
     // Fast hash of filter values to avoid JSON.stringify overhead
-    return `${f.brightness}-${f.contrast}-${f.saturation}-${f.sepia}-${f.grayscale}-${f.blur}-${f.vignette || 0}`;
+    return `${f.brightness}-${f.contrast}-${f.saturation}-${f.sepia}-${f.grayscale}-${f.blur}-${f.vignette || 0}-${f.hueRotate || 0}`;
   }, [layer?.filters]);
 
   useEffect(() => {
@@ -38,7 +38,8 @@ export const useProcessedImage = (layer: ImageLayer | null) => {
       f.sepia === 0 &&
       f.grayscale === 0 &&
       f.blur === 0 &&
-      (f.vignette || 0) === 0;
+      (f.vignette || 0) === 0 &&
+      (f.hueRotate || 0) === 0;
 
     if (isDefault) {
       setProcessedUrl(null);

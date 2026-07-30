@@ -71,9 +71,6 @@ self.onmessage = async (e: MessageEvent) => {
       creator: 'Kreathief Pro Engine',
     });
 
-    const cx = effectiveWidth / 2;
-    const cy = effectiveHeight / 2;
-
     const isCmyk =
       options.colorProfile === 'CMYK' || options.colorProfile === 'FOGRA39' || options.colorProfile === 'SWOP';
 
@@ -92,9 +89,10 @@ self.onmessage = async (e: MessageEvent) => {
 
     // Render layers
     for (const layer of layers) {
-      // Calculate absolute position based on center origin (assuming layers are center-origin mapped)
-      const x = cx + layer.x;
-      const y = cy + layer.y;
+      // Layers arrive as DesignNodes with top-left artboard coordinates;
+      // jsPDF also uses a top-left origin, so only the bleed offset applies.
+      const x = bleed + layer.x;
+      const y = bleed + layer.y;
 
       if (layer.type === 'shape') {
         const fill = layer.color || '#000000';
@@ -110,15 +108,15 @@ self.onmessage = async (e: MessageEvent) => {
         const style = layer.stroke && layer.stroke.width > 0 ? 'DF' : 'F';
 
         if (layer.shapeType === 'rectangle' || layer.shapeType === undefined) {
-          pdf.rect(x - layer.width / 2, y - layer.height / 2, layer.width, layer.height, style);
+          pdf.rect(x, y, layer.width, layer.height, style);
         } else if (layer.shapeType === 'circle') {
-          pdf.circle(x, y, layer.width / 2, style);
+          pdf.circle(x + layer.width / 2, y + layer.height / 2, layer.width / 2, style);
         } else if (layer.shapeType === 'path' && layer.pathData) {
           // Robust MVP vector
           if (!layer.stroke || layer.stroke.width === 0) {
             applyColor(pdf, fill, 'draw');
           }
-          pdf.rect(x - layer.width / 2, y - layer.height / 2, layer.width, layer.height, style);
+          pdf.rect(x, y, layer.width, layer.height, style);
         }
       } else if (layer.type === 'text') {
         const fill = layer.color || '#000000';
@@ -129,12 +127,16 @@ self.onmessage = async (e: MessageEvent) => {
 
         // Split text by resolving wrap
         const lines = resolveTextLines(layer);
-        let currentY = y - (layer.height || fontSize) / 2 + fontSize; // Approximate baseline
+        let currentY = y + fontSize; // Approximate baseline from the layer's top edge
 
         for (const line of lines) {
-          // Align center
           const textWidth = pdf.getStringUnitWidth(line) * fontSize;
-          const lineX = x - textWidth / 2;
+          let lineX = x;
+          if (layer.textAlign === 'center') {
+            lineX = x + (layer.width - textWidth) / 2;
+          } else if (layer.textAlign === 'right') {
+            lineX = x + layer.width - textWidth;
+          }
 
           pdf.text(line, lineX, currentY);
           currentY += fontSize * (layer.lineHeight || 1.2);
@@ -144,7 +146,7 @@ self.onmessage = async (e: MessageEvent) => {
           try {
             // Determine format
             const format = layer.src.includes('jpeg') || layer.src.includes('jpg') ? 'JPEG' : 'PNG';
-            pdf.addImage(layer.src, format, x - layer.width / 2, y - layer.height / 2, layer.width, layer.height);
+            pdf.addImage(layer.src, format, x, y, layer.width, layer.height);
           } catch (imgErr) {
             log.error('Failed to embed image layer', imgErr);
           }

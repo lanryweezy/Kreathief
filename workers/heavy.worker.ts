@@ -103,9 +103,10 @@ async function applyFiltersToImage(imageSrc: string, filters: any): Promise<stri
   }
 
   // Apply filters using Canvas context for speed where possible
-  const filterStr = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%) sepia(${filters.sepia}%) grayscale(${filters.grayscale}%) blur(${filters.blur}px)`;
+  const filterStr = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%) sepia(${filters.sepia}%) grayscale(${filters.grayscale}%) blur(${filters.blur}px) hue-rotate(${filters.hueRotate || 0}deg)`;
   ctx.filter = filterStr;
   ctx.drawImage(bitmap, 0, 0);
+  bitmap.close();
 
   // If vignette is requested, apply it manually via pixel manipulation or radial gradient
   if (filters.vignette > 0) {
@@ -158,6 +159,7 @@ async function algorithmicEnhance(imageSrc: string): Promise<string> {
   }
 
   ctx.drawImage(bitmap, 0, 0);
+  bitmap.close();
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
 
@@ -239,6 +241,7 @@ async function extractPalette(imageSrc: string, colorCount: number = 5): Promise
   }
 
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
   const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
   const colors: { r: number; g: number; b: number; count: number }[] = [];
 
@@ -297,6 +300,7 @@ async function traceImageToSVG(imageSrc: string, colors: number = 2): Promise<an
   }
 
   ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
   const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 
   const results: { path: string; color: string }[] = [];

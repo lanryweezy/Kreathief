@@ -78,8 +78,9 @@ export const Toolbar = React.memo(
     const refineBrushModeStore = useStore((state) => state.refineBrushMode);
     const refineBrushSizeStore = useStore((state) => state.refineBrushSize);
 
-    const doneLasso = () => setIsLassoMode(false);
-    const cancelLasso = () => setIsLassoMode(false);
+    // Store actions clear lassoPoints, croppingLayerId and refineBrushMode too
+    const doneLasso = s.doneLasso;
+    const cancelLasso = s.cancelLasso;
 
     const selectedLayer = useStore(selectedLayerSelector);
     const isMultiSelect = (selectedLayerIds || []).length > 1;

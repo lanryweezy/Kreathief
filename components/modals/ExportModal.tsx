@@ -5,7 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
 import { getErrorDetails } from '../../utils/errorMessages';
-import { ColorProfile, batchExportArtboardsZip, cleanSvgMarkup } from '../../services/exportService';
+import { ColorProfile, batchExportArtboardsZip, cleanSvgMarkup, downloadBlob, exportDesignToImage } from '../../services/exportService';
 import { isWithinCMYKGamut, getClosestCMYKSafeColor } from '../../utils/colorUtils';
 import { Button } from '../Button';
 import { Input } from '../Input';
@@ -97,6 +97,37 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
   const modalRef = useRef<HTMLDivElement>(null);
   const [transparentBg, setTransparentBg] = useState(false);
+
+  // Live thumbnail of the active artboard so users can see what they're exporting
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  // Cooperative cancellation for multi-artboard exports
+  const cancelExportRef = useRef(false);
+  const [canCancel, setCanCancel] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    let url: string | null = null;
+    const activeArtboard = artboards?.find((a) => a.id === activeArtboardId);
+    if (!activeArtboard || !activeArtboard.layers?.length) return;
+    const w = activeArtboard.width || currentSize.width;
+    const h = activeArtboard.height || currentSize.height;
+    // Skip preview for very large artboards to avoid blocking the modal
+    if (w > 4096 || h > 4096) return;
+    exportDesignToImage(activeArtboard.layers, { width: w, height: h, format: 'png', background: true })
+      .then((blob) => {
+        if (cancelled) return;
+        url = URL.createObjectURL(blob);
+        setPreviewUrl(url);
+      })
+      .catch(() => {
+        /* preview is best-effort */
+      });
+    return () => {
+      cancelled = true;
+      if (url) URL.revokeObjectURL(url);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -258,6 +289,16 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     [currentSize.width, currentSize.height]
   );
 
+  // Enforce browser canvas size limits (~16384px max per side) for every export path
+  const MAX_CANVAS_DIM = 16384;
+  const exceedsCanvasLimit = (w: number, h: number): boolean => {
+    if (w > MAX_CANVAS_DIM || h > MAX_CANVAS_DIM) {
+      addToast(`Canvas too large (${w}x${h}). Max is ${MAX_CANVAS_DIM}px. Reduce DPI or scale.`, 'error');
+      return true;
+    }
+    return false;
+  };
+
   const handleExportClick = async () => {
     setIsExporting(true);
     setExportStage('Preparing assets...');
@@ -271,12 +312,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         : { width: Math.round(currentSize.width * scale), height: Math.round(currentSize.height * scale) };
 
       // Enforce browser canvas size limits (~16384px max)
-      const MAX_CANVAS_DIM = 16384;
-      if (size.width > MAX_CANVAS_DIM || size.height > MAX_CANVAS_DIM) {
-        addToast(
-          `Canvas too large (${size.width}x${size.height}). Max is ${MAX_CANVAS_DIM}px. Reduce DPI or scale.`,
-          'error'
-        );
+      if (exceedsCanvasLimit(size.width, size.height)) {
         setIsExporting(false);
         setExportStage('');
         return;
@@ -326,11 +362,17 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     }
     setIsExporting(true);
     setExportProgress(0);
+    cancelExportRef.current = false;
+    setCanCancel(true);
     let successCount = 0;
     const failedArtboards: string[] = [];
 
     try {
       for (let i = 0; i < artboards.length; i++) {
+        if (cancelExportRef.current) {
+          addToast(`Export cancelled after ${successCount} artboard(s)`, 'info');
+          break;
+        }
         const ab = artboards[i];
         const label = ab.name || `Artboard ${i + 1}`;
         const safeFilename = sanitizeFilename(label);
@@ -341,16 +383,20 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         // Export from stored artboard data — no need to switch active artboard
 
         const dpiScale = dpi / 72;
+        const abWidth = Math.round((ab.width || currentSize.width) * dpiScale);
+        const abHeight = Math.round((ab.height || currentSize.height) * dpiScale);
+        if (abWidth > MAX_CANVAS_DIM || abHeight > MAX_CANVAS_DIM) {
+          log.warn(`[ExportModal] Skipping oversized artboard "${label}" (${abWidth}x${abHeight})`);
+          failedArtboards.push(`${label} (too large)`);
+          continue;
+        }
 
         try {
           if (format === 'pdf' && isPrintMode) {
             await onExport(
               format,
               quality,
-              {
-                width: Math.round((ab.width || currentSize.width) * dpiScale),
-                height: Math.round((ab.height || currentSize.height) * dpiScale),
-              },
+              { width: abWidth, height: abHeight },
               false,
               `${safeFilename}_print`,
               ab.layers
@@ -359,10 +405,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
             await onExport(
               format,
               quality,
-              {
-                width: Math.round((ab.width || currentSize.width) * dpiScale),
-                height: Math.round((ab.height || currentSize.height) * dpiScale),
-              },
+              { width: abWidth, height: abHeight },
               transparentBg && format === 'png',
               safeFilename,
               ab.layers
@@ -401,12 +444,17 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       setIsExporting(false);
       setExportStage('');
       setExportProgress(0);
+      setCanCancel(false);
+      cancelExportRef.current = false;
     }
   };
 
   const handleExportSelection = async () => {
     if (!selectedLayerIds || selectedLayerIds.length === 0) {
       addToast('Select one or more layers first', 'warning');
+      return;
+    }
+    if (exceedsCanvasLimit(currentSize.width, currentSize.height)) {
       return;
     }
     setIsExporting(true);
@@ -438,6 +486,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     if (!selectedLayerIds || selectedLayerIds.length !== 1) {
       addToast('Select exactly one layer to export as layer', 'warning');
       return;
+    }
+    {
+      const dpiScale = dpi / 72;
+      const scale = exportScale * dpiScale;
+      if (exceedsCanvasLimit(Math.round(currentSize.width * scale), Math.round(currentSize.height * scale))) {
+        return;
+      }
     }
     setIsExporting(true);
     const layerId = selectedLayerIds[0];
@@ -475,6 +530,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       addToast('Select at least one artboard to export', 'warning');
       return;
     }
+    const oversized = selected.find(
+      (ab) => (ab.width || currentSize.width) > MAX_CANVAS_DIM || (ab.height || currentSize.height) > MAX_CANVAS_DIM
+    );
+    if (oversized) {
+      addToast(`Artboard "${oversized.name || oversized.id}" exceeds the ${MAX_CANVAS_DIM}px canvas limit.`, 'error');
+      return;
+    }
 
     setIsExporting(true);
     setExportStage(`Exporting ${selected.length} artboard(s)...`);
@@ -483,7 +545,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       const exportableFormat = ['png', 'jpeg', 'webp', 'svg'].includes(format)
         ? (format as 'png' | 'jpeg' | 'webp' | 'svg')
         : 'png';
-      await batchExportArtboardsZip(
+      const zipBlob = await batchExportArtboardsZip(
         selected.map((ab) => ({
           id: ab.id,
           name: ab.name,
@@ -494,6 +556,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         })),
         { format: exportableFormat, quality }
       );
+      downloadBlob(zipBlob, `artboards-${Date.now()}.zip`);
 
       analyticsService.trackExport(format, quality, { batchExport: true, artboardCount: selected.length });
       addToast(`Exported ${selected.length} artboard(s) as ${exportableFormat.toUpperCase()}!`, 'success');
@@ -677,6 +740,20 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
           <p className="text-muted-light text-[11px] leading-relaxed mb-10 font-medium relative z-10">
             Download your creation in professional formats. Choose a preset or maintain your native canvas coordinates.
           </p>
+
+          {previewUrl && (
+            <div className="relative z-10 mb-6">
+              <h4 className="text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] mb-2">Preview</h4>
+              <div className="rounded-xl border border-white/10 bg-black/30 p-2 checkerboard-bg">
+                <img
+                  src={previewUrl}
+                  alt="Export preview of the active artboard"
+                  className="w-full max-h-40 object-contain rounded-lg"
+                  data-testid="export-preview-img"
+                />
+              </div>
+            </div>
+          )}
 
           <div className="mt-auto p-6 bg-white/5 border border-white/5 rounded-2xl relative z-10 backdrop-blur-md">
             <h4 className="text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] mb-2">
@@ -1235,10 +1312,15 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                       <span className="text-sm font-black uppercase tracking-widest text-accent">{exportStage}</span>
                     </div>
                     <div className="w-48 h-1 bg-gray-700 rounded-full mt-2 overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-accent to-brand-600 transition-all duration-300"
-                        style={{ width: `${exportProgress || 100}%` }}
-                      />
+                      {exportProgress > 0 ? (
+                        <div
+                          className="h-full bg-gradient-to-r from-accent to-brand-600 transition-all duration-300"
+                          style={{ width: `${exportProgress}%` }}
+                        />
+                      ) : (
+                        // No per-step progress available: show an indeterminate pulse instead of a fake full bar
+                        <div className="h-full w-full bg-gradient-to-r from-accent to-brand-600 animate-pulse opacity-60" />
+                      )}
                     </div>
                   </>
                 ) : (
@@ -1250,6 +1332,20 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                   </div>
                 )}
               </button>
+
+              {/* Cancel (multi-artboard exports only) — sibling of Download so it stays clickable */}
+              {isExporting && canCancel && (
+                <button
+                  data-testid="cancel-export-btn"
+                  onClick={() => {
+                    cancelExportRef.current = true;
+                    setExportStage('Cancelling…');
+                  }}
+                  className="px-4 py-3 rounded-xl font-bold border border-red-500/40 text-red-400 hover:bg-red-500/10 text-sm transition-all"
+                >
+                  Cancel
+                </button>
+              )}
             </div>
           </div>
         </div>

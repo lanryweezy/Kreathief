@@ -407,13 +407,19 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
       // Apply smart quotes on text edit finish
       newText = applySmartQuotes(newText);
       const currentLayer = allLayers.find((l: Layer) => l.id === editingTextId);
-      if (currentLayer && currentLayer.type === 'text' && currentLayer.text !== newText) {
-        useStore.getState().saveToHistory();
-        const updates: Partial<TextLayer> = {
-          text: newText,
-          name: newText.length > 20 ? newText.slice(0, 20) + '…' : newText,
-        };
-        onUpdateLayers?.({ [editingTextId]: updates });
+      if (currentLayer && currentLayer.type === 'text') {
+        if (!newText.trim()) {
+          // Empty text would leave an invisible, unselectable layer — remove it instead
+          useStore.getState().saveToHistory();
+          useStore.getState().deleteLayer(editingTextId);
+        } else if (currentLayer.text !== newText) {
+          useStore.getState().saveToHistory();
+          const updates: Partial<TextLayer> = {
+            text: newText,
+            name: newText.length > 20 ? newText.slice(0, 20) + '…' : newText,
+          };
+          onUpdateLayers?.({ [editingTextId]: updates });
+        }
       }
     }
     setEditingTextId(null);
@@ -478,6 +484,46 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   );
   const handleClosePenMode = useCallback(() => setPenMode(false), [setPenMode]);
 
+  // Drag & drop onto the canvas: OS files and Media Library thumbnails (text/plain URLs)
+  const handleCanvasDragOver = useCallback((e: React.DragEvent) => {
+    const types = e.dataTransfer.types;
+    if (types.includes('Files') || types.includes('text/plain')) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+    }
+  }, []);
+
+  const handleCanvasDrop = useCallback(
+    (e: React.DragEvent) => {
+      // Internal panel drags (layer reorder, components) are handled elsewhere
+      if (e.dataTransfer.getData('layerId') || e.dataTransfer.getData('componentId')) {
+        return;
+      }
+      e.preventDefault();
+
+      const files = Array.from(e.dataTransfer.files || []).filter((f) => f.type.startsWith('image/'));
+      if (files.length > 0) {
+        props.onFileUpload?.(files);
+        return;
+      }
+
+      const url = e.dataTransfer.getData('text/plain');
+      if (url && (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('http'))) {
+        const rect = viewportRef.current?.getBoundingClientRect();
+        if (!rect) {
+          return;
+        }
+        // Mouse → world → artboard-local coords, image centered on the drop point
+        const worldX = (e.clientX - rect.left - panOffset.x) / zoom;
+        const worldY = (e.clientY - rect.top - panOffset.y) / zoom;
+        const localX = worldX - (activeArtboard?.x || 0);
+        const localY = worldY - (activeArtboard?.y || 0);
+        useStore.getState().addImageLayer(url, 'Image', localX - 150, localY - 150, 300, 300);
+      }
+    },
+    [props.onFileUpload, panOffset, zoom, activeArtboard]
+  );
+
   const canvasContextValue = useMemo<CanvasContextValue>(
     () => ({
       zoom,
@@ -532,6 +578,8 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
                 : eraserCursor || (isDrawing ? 'crosshair' : 'default'),
           }}
           onMouseDown={isDrawing && brushType === 'vector_pencil' ? undefined : handleMouseDownCombined}
+          onDragOver={handleCanvasDragOver}
+          onDrop={handleCanvasDrop}
         >
           {/* Global Workspace Grid - Responds to Zoom */}
           {showGrid && (

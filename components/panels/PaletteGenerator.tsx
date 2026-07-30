@@ -88,7 +88,17 @@ export const PaletteGenerator: React.FC<PaletteGeneratorProps> = ({ onPaletteSel
         <Icons.Image className="w-4 h-4 text-gray-500" />
       </div>
 
-      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+      <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                handleImageUpload(e);
+                // Reset so selecting the same file again re-triggers onChange
+                e.target.value = '';
+              }}
+              className="hidden"
+            />
 
       <button
         onClick={() => fileInputRef.current?.click()}

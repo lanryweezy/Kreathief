@@ -30,13 +30,13 @@ class ShareService {
       };
 
       if (options?.password) {
-        // Simple hash for now - in production use bcrypt via edge function
-        const encoder = new TextEncoder();
-        const data = encoder.encode(options.password + shareId);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        insertData.password_hash = Array.from(new Uint8Array(hashBuffer))
+        // Salted PBKDF2 (100k iterations) stored as a self-describing `pbkdf2$salt$hash` string — no schema change needed
+        const saltBytes = crypto.getRandomValues(new Uint8Array(16));
+        const saltHex = Array.from(saltBytes)
           .map((b) => b.toString(16).padStart(2, '0'))
           .join('');
+        const hashHex = await this.hashPasswordPBKDF2(options.password, saltHex);
+        insertData.password_hash = `pbkdf2$${saltHex}$${hashHex}`;
       }
 
       if (options?.expiresInDays) {
@@ -133,6 +133,18 @@ class ShareService {
         return true;
       } // No password set
 
+      const stored: string = (data as any).password_hash;
+
+      if (stored.startsWith('pbkdf2$')) {
+        const [, saltHex, expectedHash] = stored.split('$');
+        if (!saltHex || !expectedHash) {
+          return false;
+        }
+        const hash = await this.hashPasswordPBKDF2(password, saltHex);
+        return hash === expectedHash;
+      }
+
+      // Legacy links: unsalted SHA-256(password + shareId)
       const encoder = new TextEncoder();
       const hashData = encoder.encode(password + shareId);
       const hashBuffer = await crypto.subtle.digest('SHA-256', hashData);
@@ -140,10 +152,26 @@ class ShareService {
         .map((b) => b.toString(16).padStart(2, '0'))
         .join('');
 
-      return hash === (data as any).password_hash;
+      return hash === stored;
     } catch (error) {
       return false;
     }
+  }
+
+  private async hashPasswordPBKDF2(password: string, saltHex: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const salt = new Uint8Array((saltHex.match(/.{2}/g) || []).map((b) => parseInt(b, 16)));
+    const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, [
+      'deriveBits',
+    ]);
+    const bits = await crypto.subtle.deriveBits(
+      { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+      keyMaterial,
+      256
+    );
+    return Array.from(new Uint8Array(bits))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
   }
 
   private generateId(): string {

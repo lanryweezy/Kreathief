@@ -19,6 +19,7 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'likes' | 'downloads' | 'newest'>('likes');
   const handleApplyTemplate = useStore((state) => state.handleApplyTemplate);
+  const addToast = useStore((state) => state.addToast);
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -49,6 +50,12 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
   }, [loadTemplates]);
 
   const onRemix = async (template: CommunityTemplate) => {
+    // Applying a template replaces the current design — confirm first
+    const hasWork = useStore.getState().artboards.some((a: any) => a.layers.length > 0);
+    if (hasWork && !window.confirm('Applying this template will replace your current design. Continue?')) {
+      return;
+    }
+
     // Record the download
     communityService.recordDownload(template.id);
 
@@ -59,6 +66,8 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
         state = JSON.parse(state);
       } catch (error) {
         log.error('[CommunityModal] Failed to parse template state', error, { templateId: template.id });
+        addToast('This template is corrupted and cannot be applied', 'error');
+        return;
       }
     }
 

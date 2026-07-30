@@ -156,6 +156,19 @@ export const useEditorLogic = (initialProject?: Project) => {
       debounce(() => {
         try {
           saveProject();
+          // Also mirror a lightweight snapshot to the recovery key so the
+          // Autosave Recovery effect above has real data to restore from.
+          const s = useStore.getState() as any;
+          const active = s.artboards.find((a: any) => a.id === s.activeArtboardId);
+          storageService
+            .setSetting('kreathief_autosave_v1', {
+              layers: active?.layers || [],
+              canvasBackgroundColor: s.canvasBackgroundColor,
+              canvasFilters: s.canvasFilters,
+              canvasSize: active ? { width: active.width, height: active.height } : undefined,
+              projectTitle: s.projectTitle,
+            })
+            .catch((err) => log.warn('[EditorLogic] Recovery snapshot failed', { error: err }));
         } catch (error) {
           log.error('[EditorLogic] Autosave failed', error);
         }
@@ -170,6 +183,26 @@ export const useEditorLogic = (initialProject?: Project) => {
     debouncedSave();
     return () => debouncedSave.cancel();
   }, [layers, canvasBackgroundColor, canvasFilters, canvasSize, projectTitle, debouncedSave]);
+
+  // Flush unsaved work when the tab closes — the 10s autosave debounce would
+  // otherwise silently drop the last edits.
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      const s = useStore.getState() as any;
+      if (!s.hasUnsavedChanges) {
+        return;
+      }
+      try {
+        s.saveProject();
+      } catch (error) {
+        log.error('[EditorLogic] Save-on-close failed', error);
+      }
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
 
   // Font Auto-Loader
   const lastFontsRef = useRef<string>('');
@@ -376,9 +409,13 @@ export const useEditorLogic = (initialProject?: Project) => {
       } else if (['rectangle', 'circle', 'path', 'star'].includes(layer.type)) {
         setEditingPathId(layer.id);
         setSelectedLayerIds([layer.id]);
+      } else if (layer.type === 'image' && layer.crop) {
+        // Persist crop reposition from ImageLayerItem's drag-to-move mode
+        saveToHistory();
+        useStore.getState().updateLayer(layer.id, { crop: layer.crop });
       }
     },
-    [setEditingPathId, setSelectedLayerIds]
+    [setEditingPathId, setSelectedLayerIds, saveToHistory]
   );
 
   const toggleShapeBuilder = useCallback(() => {

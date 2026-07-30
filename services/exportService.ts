@@ -5,6 +5,7 @@
 import { DesignNode, GradientFill, Effect, VectorPoint } from '../types/design';
 import { canvas as canvasTokens, content, surface } from '../lib/tokens';
 import { hexToRgba } from '../lib/utils';
+import { resolveTextLines } from '../utils/textRendering';
 
 export interface ExportOptions {
   format: 'png' | 'jpeg' | 'jpg' | 'webp' | 'svg';
@@ -147,7 +148,13 @@ export function layerToDesignNode(layer: any): DesignNode {
     fontSize: layer.fontSize,
     fontFamily: layer.fontFamily,
     fontWeight: layer.fontWeight,
+    fontStyle: layer.fontStyle,
     textAlign: layer.textAlign,
+    lineHeight: layer.lineHeight,
+    letterSpacing: layer.letterSpacing,
+    textTransform: layer.textTransform,
+    textShadow: layer.textShadow,
+    textStroke: layer.textStroke,
     imageUrl,
     effects,
     points,
@@ -172,21 +179,26 @@ function resolveFill(node: DesignNode): string {
 // ── SVG gradient defs ───────────────────────────────────────────────
 // Same angle→coordinate math as canvasEngine.createGradient
 
-function renderGradientDef(id: string, fill: GradientFill, node: DesignNode): string {
+function renderGradientDef(id: string, fill: GradientFill, node: DesignNode, offsetX = 0, offsetY = 0): string {
+  // Coordinates are absolute user-space values, so gradientUnits must be
+  // userSpaceOnUse (SVG defaults to objectBoundingBox, which expects 0–1
+  // fractions) and they must be shifted into the exported viewBox.
+  const nx = node.x - offsetX;
+  const ny = node.y - offsetY;
   if (fill.type === 'linear') {
     const angle = ((fill.angle || 0) * Math.PI) / 180;
-    const x1 = node.x + (Math.cos(angle) * node.width) / 2;
-    const y1 = node.y + (Math.sin(angle) * node.height) / 2;
-    const x2 = node.x + node.width / 2 - (Math.cos(angle) * node.width) / 2;
-    const y2 = node.y + node.height / 2 - (Math.sin(angle) * node.height) / 2;
+    const x1 = nx + (Math.cos(angle) * node.width) / 2;
+    const y1 = ny + (Math.sin(angle) * node.height) / 2;
+    const x2 = nx + node.width / 2 - (Math.cos(angle) * node.width) / 2;
+    const y2 = ny + node.height / 2 - (Math.sin(angle) * node.height) / 2;
     const stops = fill.stops.map((s) => `<stop offset="${s.offset}" stop-color="${s.color}" />`).join('');
-    return `<linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">${stops}</linearGradient>`;
+    return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">${stops}</linearGradient>`;
   }
-  const cx = node.x + node.width / 2;
-  const cy = node.y + node.height / 2;
+  const cx = nx + node.width / 2;
+  const cy = ny + node.height / 2;
   const r = node.width / 2;
   const stops = fill.stops.map((s) => `<stop offset="${s.offset}" stop-color="${s.color}" />`).join('');
-  return `<radialGradient id="${id}" cx="${cx}" cy="${cy}" r="${r}">${stops}</radialGradient>`;
+  return `<radialGradient id="${id}" gradientUnits="userSpaceOnUse" cx="${cx}" cy="${cy}" r="${r}">${stops}</radialGradient>`;
 }
 
 // ── SVG filter defs ─────────────────────────────────────────────────
@@ -299,15 +311,23 @@ function renderNodeToSvg(
       const textAnchor = node.textAlign === 'center' ? 'middle' : node.textAlign === 'right' ? 'end' : 'start';
       const tx = node.textAlign === 'center' ? x + node.width / 2 : node.textAlign === 'right' ? x + node.width : x;
       const ls = letterSpacing ? ` letter-spacing="${letterSpacing}"` : '';
-      const lines = (node.text || '').split('\n');
+      // Shared resolver: applies textTransform and word-wraps to layer width,
+      // matching the editor and raster export exactly.
+      const lines = resolveTextLines(node as any);
       const yStep = fontSize * lineHeight;
+      const tStroke = (node as any).textStroke;
+      const strokeAttr =
+        tStroke && tStroke.width > 0
+          ? ` stroke="${tStroke.color || '#000000'}" stroke-width="${tStroke.width}" paint-order="stroke"`
+          : '';
+      const fontStyleAttr = (node as any).fontStyle && (node as any).fontStyle !== 'normal' ? ` font-style="${(node as any).fontStyle}"` : '';
       if (lines.length === 1) {
-        return `<text id="${node.id}" x="${tx}" y="${y + fontSize}" fill="${textFill}" font-size="${fontSize}" font-family="${node.fontFamily || 'system-ui'}" font-weight="${node.fontWeight || 400}" text-anchor="${textAnchor}"${ls}${opacity}${transform}${blendMode}${filterAttr}>${escapeXml(lines[0])}</text>`;
+        return `<text id="${node.id}" x="${tx}" y="${y + fontSize}" fill="${textFill}" font-size="${fontSize}" font-family="${node.fontFamily || 'system-ui'}" font-weight="${node.fontWeight || 400}"${fontStyleAttr} text-anchor="${textAnchor}"${ls}${strokeAttr}${opacity}${transform}${blendMode}${filterAttr}>${escapeXml(lines[0])}</text>`;
       }
       const tspans = lines
         .map((line, i) => `<tspan x="${tx}" dy="${i === 0 ? 0 : yStep}">${escapeXml(line)}</tspan>`)
         .join('');
-      return `<text id="${node.id}" x="${tx}" y="${y + fontSize}" fill="${textFill}" font-size="${fontSize}" font-family="${node.fontFamily || 'system-ui'}" font-weight="${node.fontWeight || 400}" text-anchor="${textAnchor}"${ls}${opacity}${transform}${blendMode}${filterAttr}>${tspans}</text>`;
+      return `<text id="${node.id}" x="${tx}" y="${y + fontSize}" fill="${textFill}" font-size="${fontSize}" font-family="${node.fontFamily || 'system-ui'}" font-weight="${node.fontWeight || 400}"${fontStyleAttr} text-anchor="${textAnchor}"${ls}${strokeAttr}${opacity}${transform}${blendMode}${filterAttr}>${tspans}</text>`;
     }
 
     case 'line':
@@ -395,7 +415,7 @@ export function exportToSvg(nodesInput: (DesignNode | any)[], background = true)
   const defs: string[] = [];
   nodes.forEach((node) => {
     if (node.fill && typeof node.fill === 'object' && 'stops' in node.fill) {
-      defs.push(renderGradientDef(`grad-${node.id}`, node.fill, node));
+      defs.push(renderGradientDef(`grad-${node.id}`, node.fill, node, minX, minY));
     }
     if (node.effects?.length) {
       const filterDef = renderEffectDefs(node.id, node.effects);
@@ -423,13 +443,37 @@ export function exportToSvg(nodesInput: (DesignNode | any)[], background = true)
 
 // ── Canvas (raster) export ──────────────────────────────────────────
 
-export function exportToCanvas(
+export async function exportToCanvas(
   canvas: HTMLCanvasElement,
   nodesInput: (DesignNode | any)[],
   options: ExportOptions
 ): Promise<Blob | null> {
+  const allNodes = (nodesInput || []).map(layerToDesignNode);
+
+  // Preload every image up-front so drawImage never races the network —
+  // previously uncached images were silently replaced by placeholder fills.
+  const imageCache = new Map<string, HTMLImageElement>();
+  const imageUrls = Array.from(
+    new Set(allNodes.filter((n: any) => n.type === 'image' && n.imageUrl).map((n: any) => n.imageUrl as string))
+  );
+  await Promise.all(
+    imageUrls.map(
+      (url) =>
+        new Promise<void>((done) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            imageCache.set(url, img);
+            done();
+          };
+          img.onerror = () => done();
+          img.src = url;
+        })
+    )
+  );
+
   return new Promise((resolve) => {
-    const nodes = (nodesInput || []).map(layerToDesignNode);
+    const nodes = allNodes;
     if (nodes.length === 0) {
       resolve(null);
       return;
@@ -553,16 +597,33 @@ export function exportToCanvas(
           const fontSize = node.fontSize || 16;
           const lineHeight = (node as any).lineHeight || 1.2;
           const letterSpacing = (node as any).letterSpacing || 0;
-          ctx.font = `${node.fontWeight || 400} ${fontSize}px ${node.fontFamily || 'system-ui'}`;
+          ctx.font = `${(node as any).fontStyle || 'normal'} ${node.fontWeight || 400} ${fontSize}px ${node.fontFamily || 'system-ui'}`;
           ctx.textAlign = (node.textAlign as CanvasTextAlign) || 'left';
           ctx.textBaseline = 'top';
           if (letterSpacing) {
             ctx.letterSpacing = `${letterSpacing}px`;
           }
-          const lines = (node.text || '').split('\n');
+          // Shared resolver: textTransform + word wrap to layer width, matching the editor.
+          const lines = resolveTextLines(node as any, (t) => ctx.measureText(t).width);
           const yStep = fontSize * lineHeight;
+          // ctx.textAlign anchors at the given x, so shift it to the box center/right edge.
+          const tx = node.textAlign === 'center' ? x + node.width / 2 : node.textAlign === 'right' ? x + node.width : x;
+          const tShadow = (node as any).textShadow;
+          if (tShadow) {
+            ctx.shadowOffsetX = tShadow.offsetX ?? 0;
+            ctx.shadowOffsetY = tShadow.offsetY ?? 0;
+            ctx.shadowBlur = tShadow.blur ?? 0;
+            ctx.shadowColor = tShadow.color ?? 'rgba(0,0,0,0.5)';
+          }
+          const tStroke = (node as any).textStroke;
           for (let i = 0; i < lines.length; i++) {
-            ctx.fillText(lines[i], x, y + i * yStep);
+            if (tStroke && tStroke.width > 0) {
+              ctx.strokeStyle = tStroke.color || '#000000';
+              ctx.lineWidth = tStroke.width;
+              ctx.lineJoin = 'round';
+              ctx.strokeText(lines[i], tx, y + i * yStep);
+            }
+            ctx.fillText(lines[i], tx, y + i * yStep);
           }
           break;
         }
@@ -604,11 +665,9 @@ export function exportToCanvas(
         }
 
         case 'image': {
-          if (node.imageUrl) {
-            const img = new Image();
-            img.src = node.imageUrl;
-            if (img.complete && img.naturalWidth > 0) {
-              ctx.save();
+          const img = node.imageUrl ? imageCache.get(node.imageUrl) : undefined;
+          if (img && img.naturalWidth > 0) {
+            ctx.save();
               ctx.beginPath();
               ctx.rect(x, y, node.width, node.height);
               ctx.clip();
@@ -644,10 +703,6 @@ export function exportToCanvas(
               }
               ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
               ctx.restore();
-            } else {
-              ctx.fillStyle = surface[3];
-              ctx.fillRect(x, y, node.width, node.height);
-            }
           } else {
             ctx.fillStyle = surface[3];
             ctx.fillRect(x, y, node.width, node.height);
@@ -912,12 +967,13 @@ export async function exportToPrintPDF(
     if (ctx) {
       const img = new Image();
       img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-      await new Promise<void>((r) => {
+      await new Promise<void>((r, rej) => {
         img.onload = () => {
           ctx.drawImage(img, 0, 0);
           r();
         };
-        img.onerror = () => r();
+        // Reject instead of silently resolving — otherwise a blank page is exported.
+        img.onerror = () => rej(new Error('PDF export failed: could not rasterize the design'));
       });
       const pngData = canvas.toDataURL('image/png');
       pdf.addImage(pngData, 'PNG', 0, 0, width, height);
