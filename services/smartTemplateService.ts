@@ -124,11 +124,21 @@ class SmartTemplateService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const classify = (l: any): SmartTemplateSlot['contentType'] => {
       const name = `${l.name || ''}`.toLowerCase();
-      if (/cta|button|ticket|shop|buy|link/.test(name)) return 'cta';
-      if (/tag|kicker|label|badge|category/.test(name)) return 'tag';
-      if (/sub|caption/.test(name)) return 'subtitle';
-      if (/stat|number|price/.test(name)) return 'stat';
-      if (l.id === headlineId || /title|headline|heading/.test(name)) return 'headline';
+      if (/cta|button|ticket|shop|buy|link/.test(name)) {
+        return 'cta';
+      }
+      if (/tag|kicker|label|badge|category/.test(name)) {
+        return 'tag';
+      }
+      if (/sub|caption/.test(name)) {
+        return 'subtitle';
+      }
+      if (/stat|number|price/.test(name)) {
+        return 'stat';
+      }
+      if (l.id === headlineId || /title|headline|heading/.test(name)) {
+        return 'headline';
+      }
       return 'body';
     };
 
@@ -363,10 +373,18 @@ class SmartTemplateService {
   // Helper methods
   private getAspectRatioFromSize(size: CanvasSize): AspectRatio {
     const ratio = size.width / size.height;
-    if (ratio === 1) return AspectRatio.SQUARE;
-    if (ratio > 1.7) return AspectRatio.LANDSCAPE;
-    if (ratio < 0.7) return AspectRatio.PORTRAIT;
-    if (ratio > 1.3) return AspectRatio.WIDE;
+    if (ratio === 1) {
+      return AspectRatio.SQUARE;
+    }
+    if (ratio > 1.7) {
+      return AspectRatio.LANDSCAPE;
+    }
+    if (ratio < 0.7) {
+      return AspectRatio.PORTRAIT;
+    }
+    if (ratio > 1.3) {
+      return AspectRatio.WIDE;
+    }
     return AspectRatio.TALL;
   }
 
@@ -459,7 +477,9 @@ class SmartTemplateService {
    */
   applyVariables(templateId: string, variables: Record<string, string>): Partial<Project> {
     const template = STARTER_TEMPLATES.find((t) => t.id === templateId);
-    if (!template) return {};
+    if (!template) {
+      return {};
+    }
 
     const state = JSON.parse(JSON.stringify(template.state));
     const slots = this.getTemplateSlots(templateId);
@@ -537,7 +557,9 @@ class SmartTemplateService {
    */
   searchTemplates(query: string): StarterTemplate[] {
     const q = query.trim().toLowerCase();
-    if (!q) return STARTER_TEMPLATES;
+    if (!q) {
+      return STARTER_TEMPLATES;
+    }
 
     const keywords = q.split(/\s+/).filter((k) => k.length > 0);
 
@@ -546,7 +568,9 @@ class SmartTemplateService {
       const words = searchable.split(/[\s\W]+/);
 
       return keywords.every((keyword) => {
-        if (searchable.includes(keyword)) return true;
+        if (searchable.includes(keyword)) {
+          return true;
+        }
         // Allow 1 typo for words > 3 chars, 2 typos for words > 5 chars
         const maxDist = keyword.length > 5 ? 2 : keyword.length > 3 ? 1 : 0;
         return words.some(

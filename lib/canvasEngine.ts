@@ -25,7 +25,9 @@ class ObjectPool<T> {
     private reset: (obj: T) => void,
     size: number = 100
   ) {
-    for (let i = 0; i < size; i++) this.pool.push(factory());
+    for (let i = 0; i < size; i++) {
+      this.pool.push(factory());
+    }
   }
   acquire(): T {
     return this.pool.length > 0 ? this.pool.pop()! : this.factory();
@@ -49,8 +51,9 @@ class LRUCache<K, V> {
     return val;
   }
   set(key: K, value: V) {
-    if (this.map.has(key)) this.map.delete(key);
-    else if (this.map.size >= this.maxSize) {
+    if (this.map.has(key)) {
+      this.map.delete(key);
+    } else if (this.map.size >= this.maxSize) {
       const first = this.map.keys().next().value;
       this.map.delete(first!);
     }
@@ -188,7 +191,9 @@ export class KreathiefCanvas {
 
   private handleMouseDown = (e: MouseEvent) => {
     // Skip right-clicks — let context menu handle them
-    if (e.button === 2) return;
+    if (e.button === 2) {
+      return;
+    }
 
     const worldX = this.viewport.x + e.offsetX / this.viewport.zoom;
     const worldY = this.viewport.y + e.offsetY / this.viewport.zoom;
@@ -370,7 +375,9 @@ export class KreathiefCanvas {
           let didSnap = false;
 
           this.nodes.forEach((other) => {
-            if (other.id === node.id || !other.visible) return;
+            if (other.id === node.id || !other.visible) {
+              return;
+            }
             const ocx = other.x + other.width / 2;
             const ocy = other.y + other.height / 2;
 
@@ -417,7 +424,9 @@ export class KreathiefCanvas {
             newY = Math.round(newY / this.gridSize) * this.gridSize;
           }
 
-          if (didSnap) this.snapFlashTime = performance.now();
+          if (didSnap) {
+            this.snapFlashTime = performance.now();
+          }
 
           node.x = newX;
           node.y = newY;
@@ -441,12 +450,16 @@ export class KreathiefCanvas {
         let newH = this.dragNodeStartH;
 
         // Update dimensions based on which handle
-        if (this.resizeHandle.includes('e')) newW = Math.max(10, this.dragNodeStartW + dx);
+        if (this.resizeHandle.includes('e')) {
+          newW = Math.max(10, this.dragNodeStartW + dx);
+        }
         if (this.resizeHandle.includes('w')) {
           newW = Math.max(10, this.dragNodeStartW - dx);
           newX = this.dragNodeStartX + dx;
         }
-        if (this.resizeHandle.includes('s')) newH = Math.max(10, this.dragNodeStartH + dy);
+        if (this.resizeHandle.includes('s')) {
+          newH = Math.max(10, this.dragNodeStartH + dy);
+        }
         if (this.resizeHandle.includes('n')) {
           newH = Math.max(10, this.dragNodeStartH - dy);
           newY = this.dragNodeStartY + dy;
@@ -455,8 +468,11 @@ export class KreathiefCanvas {
         // Constrain to square if shift held
         if (this.shiftHeld) {
           const size = Math.max(newW, newH);
-          if (this.resizeHandle.includes('e') || this.resizeHandle.includes('w')) newH = size;
-          else newW = size;
+          if (this.resizeHandle.includes('e') || this.resizeHandle.includes('w')) {
+            newH = size;
+          } else {
+            newW = size;
+          }
         }
 
         node.x = newX;
@@ -528,7 +544,9 @@ export class KreathiefCanvas {
       if (maxX - minX > 2 || maxY - minY > 2) {
         const ids: string[] = [];
         this.nodes.forEach((node) => {
-          if (!node.visible || node.locked) return;
+          if (!node.visible || node.locked) {
+            return;
+          }
           if (node.x + node.width > minX && node.x < maxX && node.y + node.height > minY && node.y < maxY) {
             ids.push(node.id);
           }
@@ -556,7 +574,9 @@ export class KreathiefCanvas {
   };
 
   private startInertia() {
-    if (this.panInertiaId) cancelAnimationFrame(this.panInertiaId);
+    if (this.panInertiaId) {
+      cancelAnimationFrame(this.panInertiaId);
+    }
     const friction = 0.92;
     const minVelocity = 0.1;
 
@@ -593,9 +613,13 @@ export class KreathiefCanvas {
     this.viewport.y = worldY - my / newZoom;
 
     // Adaptive quality
-    if (newZoom < 0.2) this.quality = 'low';
-    else if (newZoom < 0.5) this.quality = 'medium';
-    else this.quality = 'high';
+    if (newZoom < 0.2) {
+      this.quality = 'low';
+    } else if (newZoom < 0.5) {
+      this.quality = 'medium';
+    } else {
+      this.quality = 'high';
+    }
 
     this.pathCache.clear();
     this.markDirty();
@@ -615,10 +639,12 @@ export class KreathiefCanvas {
 
   private hitTest(worldX: number, worldY: number): DesignNode | null {
     let topNode: DesignNode | null = null;
-    let topZ = -Infinity;
+    const topZ = -Infinity;
 
     this.nodes.forEach((node) => {
-      if (!node.visible || node.locked) return;
+      if (!node.visible || node.locked) {
+        return;
+      }
       if (worldX >= node.x && worldX <= node.x + node.width && worldY >= node.y && worldY <= node.y + node.height) {
         if (node.rotation === 0) {
           if (!topNode || (node as any).zIndex > topZ) {
@@ -737,7 +763,9 @@ export class KreathiefCanvas {
 
   focusNode(id: string, padding: number = 80) {
     const node = this.nodes.get(id);
-    if (!node) return;
+    if (!node) {
+      return;
+    }
     this.viewport.x = node.x - padding;
     this.viewport.y = node.y - padding;
     this.viewport.zoom = Math.min(
@@ -749,13 +777,17 @@ export class KreathiefCanvas {
   }
 
   fitAll(padding: number = 50) {
-    if (this.nodes.size === 0) return;
+    if (this.nodes.size === 0) {
+      return;
+    }
     let minX = Infinity,
       minY = Infinity,
       maxX = -Infinity,
       maxY = -Infinity;
     this.nodes.forEach((n) => {
-      if (!n.visible) return;
+      if (!n.visible) {
+        return;
+      }
       minX = Math.min(minX, n.x);
       minY = Math.min(minY, n.y);
       maxX = Math.max(maxX, n.x + n.width);
@@ -780,7 +812,9 @@ export class KreathiefCanvas {
   }
 
   render(options: RenderOptions) {
-    if (!this.isDirty) return;
+    if (!this.isDirty) {
+      return;
+    }
     this.isDirty = false;
 
     const ctx = this.offCtx || this.ctx;
@@ -809,7 +843,9 @@ export class KreathiefCanvas {
     // Viewport culling
     const visibleNodes: DesignNode[] = [];
     this.nodes.forEach((node) => {
-      if (!node.visible) return;
+      if (!node.visible) {
+        return;
+      }
       if (this.isNodeVisible(node, w, h)) {
         visibleNodes.push(node);
       }
@@ -1005,7 +1041,9 @@ export class KreathiefCanvas {
           const by = b.y + b.height / 2;
           const dist = Math.round(Math.sqrt((bx - ax) ** 2 + (by - ay) ** 2));
 
-          if (dist < 5 || dist > 500) continue;
+          if (dist < 5 || dist > 500) {
+            continue;
+          }
 
           const midX = (ax + bx) / 2;
           const midY = (ay + by) / 2;
@@ -1043,7 +1081,9 @@ export class KreathiefCanvas {
 
   private renderGrid(ctx: AnyCtx, w: number, h: number, dark: boolean) {
     const gridSize = 20 * this.viewport.zoom;
-    if (gridSize < 2) return;
+    if (gridSize < 2) {
+      return;
+    }
 
     const offsetX = (-this.viewport.x * this.viewport.zoom) % gridSize;
     const offsetY = (-this.viewport.y * this.viewport.zoom) % gridSize;
@@ -1169,7 +1209,9 @@ export class KreathiefCanvas {
     // Apply effects before rendering shape
     if (node.effects && node.effects.length > 0) {
       for (const effect of node.effects) {
-        if (!effect.enabled) continue;
+        if (!effect.enabled) {
+          continue;
+        }
         if ((effect.type as any) === 'shadow') {
           const p = (effect as any).params;
           const r = p.blur ?? 8;
@@ -1179,7 +1221,7 @@ export class KreathiefCanvas {
           ctx.shadowColor = hexToRgba(p.color ?? content.inverse, p.opacity ?? 0.25);
         }
         if ((effect.type as any) === 'blur') {
-          ctx.filter = `blur(${((effect as any).params).radius ?? 4}px)`;
+          ctx.filter = `blur(${(effect as any).params.radius ?? 4}px)`;
         }
         if ((effect.type as any) === 'glow') {
           const p = (effect as any).params;
@@ -1429,8 +1471,9 @@ export class KreathiefCanvas {
         ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
         ctx.restore();
       };
-      if (img.complete) draw();
-      else {
+      if (img.complete) {
+        draw();
+      } else {
         img.onload = draw;
         this.markDirty();
       }
@@ -1467,7 +1510,9 @@ export class KreathiefCanvas {
   }
 
   private renderPath(ctx: AnyCtx, node: DesignNode) {
-    if (!node.points || node.points.length < 2) return;
+    if (!node.points || node.points.length < 2) {
+      return;
+    }
     const cacheKey = `${node.id}_${node.points.length}`;
     let path = this.pathCache.get(cacheKey);
     if (!path) {
@@ -1567,10 +1612,18 @@ export class KreathiefCanvas {
   }
 
   on(event: 'select' | 'hover' | 'viewportChange' | 'doubleClick', handler: any) {
-    if (event === 'select') this.onNodeSelect = handler;
-    if (event === 'hover') this.onNodeHover = handler;
-    if (event === 'viewportChange') this.onViewportChange = handler;
-    if (event === 'doubleClick') this.onDoubleClick = handler;
+    if (event === 'select') {
+      this.onNodeSelect = handler;
+    }
+    if (event === 'hover') {
+      this.onNodeHover = handler;
+    }
+    if (event === 'viewportChange') {
+      this.onViewportChange = handler;
+    }
+    if (event === 'doubleClick') {
+      this.onDoubleClick = handler;
+    }
   }
 
   setSelectedIdsGetter(getter: () => string[]) {
@@ -1664,7 +1717,9 @@ export class KreathiefCanvas {
   }
 
   smoothZoom(targetZoom: number, centerX?: number, centerY?: number) {
-    if (this.zoomAnimId) cancelAnimationFrame(this.zoomAnimId);
+    if (this.zoomAnimId) {
+      cancelAnimationFrame(this.zoomAnimId);
+    }
     const cx = centerX ?? this.canvas.width / 2;
     const cy = centerY ?? this.canvas.height / 2;
     const startZoom = this.viewport.zoom;
@@ -1684,9 +1739,13 @@ export class KreathiefCanvas {
       this.viewport.x = worldX - cx / zoom;
       this.viewport.y = worldY - cy / zoom;
 
-      if (zoom < 0.2) this.quality = 'low';
-      else if (zoom < 0.5) this.quality = 'medium';
-      else this.quality = 'high';
+      if (zoom < 0.2) {
+        this.quality = 'low';
+      } else if (zoom < 0.5) {
+        this.quality = 'medium';
+      } else {
+        this.quality = 'high';
+      }
 
       this.pathCache.clear();
       this.markDirty();

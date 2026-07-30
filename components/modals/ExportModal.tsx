@@ -5,7 +5,13 @@ import { useShallow } from 'zustand/react/shallow';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
 import { getErrorDetails } from '../../utils/errorMessages';
-import { ColorProfile, batchExportArtboardsZip, cleanSvgMarkup, downloadBlob, exportDesignToImage } from '../../services/exportService';
+import {
+  ColorProfile,
+  batchExportArtboardsZip,
+  cleanSvgMarkup,
+  downloadBlob,
+  exportDesignToImage,
+} from '../../services/exportService';
 import { isWithinCMYKGamut, getClosestCMYKSafeColor } from '../../utils/colorUtils';
 import { Button } from '../Button';
 import { Input } from '../Input';
@@ -108,14 +114,20 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     let cancelled = false;
     let url: string | null = null;
     const activeArtboard = artboards?.find((a) => a.id === activeArtboardId);
-    if (!activeArtboard || !activeArtboard.layers?.length) return;
+    if (!activeArtboard || !activeArtboard.layers?.length) {
+      return;
+    }
     const w = activeArtboard.width || currentSize.width;
     const h = activeArtboard.height || currentSize.height;
     // Skip preview for very large artboards to avoid blocking the modal
-    if (w > 4096 || h > 4096) return;
+    if (w > 4096 || h > 4096) {
+      return;
+    }
     exportDesignToImage(activeArtboard.layers, { width: w, height: h, format: 'png', background: true })
       .then((blob) => {
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
         url = URL.createObjectURL(blob);
         setPreviewUrl(url);
       })
@@ -124,7 +136,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       });
     return () => {
       cancelled = true;
-      if (url) URL.revokeObjectURL(url);
+      if (url) {
+        URL.revokeObjectURL(url);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -25,7 +25,9 @@ export const assetService = {
       q = q.range(offset, offset + limit - 1).order('created_at', { ascending: false });
 
       const { data, error, count } = await q;
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       return {
         assets: data || [],
@@ -41,7 +43,9 @@ export const assetService = {
     try {
       const { data, error } = await supabase.from('assets').select('*').eq('id', id).single();
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
       return data;
     } catch (error) {
       log.error('[AssetService] getAssetById failed', error);
@@ -64,7 +68,9 @@ export const assetService = {
             .update({ downloads: ((asset as any).downloads || 0) + 1 })
             .eq('id', id);
 
-          if (retryError) throw retryError;
+          if (retryError) {
+            throw retryError;
+          }
         }
       }
       return true;
@@ -83,7 +89,9 @@ export const assetService = {
         .order('downloads', { ascending: false })
         .limit(limit);
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
       return data || [];
     } catch (error) {
       log.error('[AssetService] getPopularAssets failed', error);
@@ -100,7 +108,9 @@ export const assetService = {
         .order('created_at', { ascending: false })
         .limit(limit);
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
       return data || [];
     } catch (error) {
       log.error('[AssetService] getRecentAssets failed', error);
@@ -117,7 +127,9 @@ export const assetService = {
         .eq('category', category)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
       return data || [];
     } catch (error) {
       log.error('[AssetService] getAssetsByCategory failed', error);

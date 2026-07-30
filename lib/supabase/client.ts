@@ -19,28 +19,22 @@ const isValidUrl = (url: string) => {
   }
 };
 
-const supabaseUrl = isValidUrl(supabaseConfig.url)
-  ? supabaseConfig.url
-  : 'https://placeholder.supabase.co';
+const supabaseUrl = isValidUrl(supabaseConfig.url) ? supabaseConfig.url : 'https://placeholder.supabase.co';
 
 // True when real credentials are present — consumers can gate cloud features
 // instead of silently talking to the placeholder endpoint.
 export const isSupabaseConfigured = isValidUrl(supabaseConfig.url) && !!supabaseConfig.anonKey;
 
-export const supabase = createClient<Database>(
-  supabaseUrl,
-  supabaseConfig.anonKey || 'placeholder-key',
-  {
-    db: {
-      schema: 'public',
-    },
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-    },
-  }
-);
+export const supabase = createClient<Database>(supabaseUrl, supabaseConfig.anonKey || 'placeholder-key', {
+  db: {
+    schema: 'public',
+  },
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+});
 
 // Typed alias used by services for runtime dynamic queries
 export { supabase as db };

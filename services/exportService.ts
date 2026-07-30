@@ -320,7 +320,10 @@ function renderNodeToSvg(
         tStroke && tStroke.width > 0
           ? ` stroke="${tStroke.color || '#000000'}" stroke-width="${tStroke.width}" paint-order="stroke"`
           : '';
-      const fontStyleAttr = (node as any).fontStyle && (node as any).fontStyle !== 'normal' ? ` font-style="${(node as any).fontStyle}"` : '';
+      const fontStyleAttr =
+        (node as any).fontStyle && (node as any).fontStyle !== 'normal'
+          ? ` font-style="${(node as any).fontStyle}"`
+          : '';
       if (lines.length === 1) {
         return `<text id="${node.id}" x="${tx}" y="${y + fontSize}" fill="${textFill}" font-size="${fontSize}" font-family="${node.fontFamily || 'system-ui'}" font-weight="${node.fontWeight || 400}"${fontStyleAttr} text-anchor="${textAnchor}"${ls}${strokeAttr}${opacity}${transform}${blendMode}${filterAttr}>${escapeXml(lines[0])}</text>`;
       }
@@ -668,41 +671,41 @@ export async function exportToCanvas(
           const img = node.imageUrl ? imageCache.get(node.imageUrl) : undefined;
           if (img && img.naturalWidth > 0) {
             ctx.save();
-              ctx.beginPath();
-              ctx.rect(x, y, node.width, node.height);
-              ctx.clip();
-              const fit = node.imageFit || 'cover';
-              let sx = 0,
-                sy = 0,
-                sw = img.naturalWidth,
-                sh = img.naturalHeight;
-              let dx = x,
-                dy = y,
-                dw = node.width,
-                dh = node.height;
-              if (fit === 'cover') {
-                const imgRatio = sw / sh;
-                const nodeRatio = dw / dh;
-                if (imgRatio > nodeRatio) {
-                  sw = sh * nodeRatio;
-                  sx = (img.naturalWidth - sw) / 2;
-                } else {
-                  sh = sw / nodeRatio;
-                  sy = (img.naturalHeight - sh) / 2;
-                }
-              } else if (fit === 'contain') {
-                const imgRatio = sw / sh;
-                const nodeRatio = dw / dh;
-                if (imgRatio > nodeRatio) {
-                  dh = dw / imgRatio;
-                  dy = y + (node.height - dh) / 2;
-                } else {
-                  dw = dh * imgRatio;
-                  dx = x + (node.width - dw) / 2;
-                }
+            ctx.beginPath();
+            ctx.rect(x, y, node.width, node.height);
+            ctx.clip();
+            const fit = node.imageFit || 'cover';
+            let sx = 0,
+              sy = 0,
+              sw = img.naturalWidth,
+              sh = img.naturalHeight;
+            let dx = x,
+              dy = y,
+              dw = node.width,
+              dh = node.height;
+            if (fit === 'cover') {
+              const imgRatio = sw / sh;
+              const nodeRatio = dw / dh;
+              if (imgRatio > nodeRatio) {
+                sw = sh * nodeRatio;
+                sx = (img.naturalWidth - sw) / 2;
+              } else {
+                sh = sw / nodeRatio;
+                sy = (img.naturalHeight - sh) / 2;
               }
-              ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
-              ctx.restore();
+            } else if (fit === 'contain') {
+              const imgRatio = sw / sh;
+              const nodeRatio = dw / dh;
+              if (imgRatio > nodeRatio) {
+                dh = dw / imgRatio;
+                dy = y + (node.height - dh) / 2;
+              } else {
+                dw = dh * imgRatio;
+                dx = x + (node.width - dw) / 2;
+              }
+            }
+            ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+            ctx.restore();
           } else {
             ctx.fillStyle = surface[3];
             ctx.fillRect(x, y, node.width, node.height);

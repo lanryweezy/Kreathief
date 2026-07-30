@@ -337,7 +337,9 @@ export const LayersPanel = () => {
   const [layerSearch, setLayerSearch] = useState('');
   const filteredLayers = useMemo(() => {
     const q = layerSearch.trim().toLowerCase();
-    if (!q) return reversedLayers;
+    if (!q) {
+      return reversedLayers;
+    }
     return reversedLayers.filter((l) => (l.name || l.type).toLowerCase().includes(q));
   }, [reversedLayers, layerSearch]);
 

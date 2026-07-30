@@ -121,16 +121,8 @@ export const CropOverlay = React.memo(({ layer, zoom }: CropOverlayProps) => {
       <div className="absolute inset-0 bg-black/50 pointer-events-auto" onClick={cancelCrop} />
 
       {/* Full-image ghost backdrop */}
-      <div
-        className="absolute pointer-events-none"
-        style={{ left: boxX, top: boxY, width: boxW, height: boxH }}
-      >
-        <img
-          src={layer.src}
-          alt=""
-          draggable={false}
-          className="w-full h-full opacity-40 select-none"
-        />
+      <div className="absolute pointer-events-none" style={{ left: boxX, top: boxY, width: boxW, height: boxH }}>
+        <img src={layer.src} alt="" draggable={false} className="w-full h-full opacity-40 select-none" />
         {/* Bright region = current crop selection */}
         <div
           className="absolute overflow-hidden"

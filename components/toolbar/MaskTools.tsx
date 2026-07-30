@@ -94,15 +94,15 @@ export const MaskTools = React.memo(
         <div className="flex items-center gap-2">
           <label className="cursor-pointer" title={layer.type === 'text' ? 'Add image to text' : 'Add image to shape'}>
             <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            handleImageUpload(e);
-                            // Reset so selecting the same file again re-triggers onChange
-                            e.target.value = '';
-                          }}
-                        />
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                handleImageUpload(e);
+                // Reset so selecting the same file again re-triggers onChange
+                e.target.value = '';
+              }}
+            />
             <div
               className={`p-1.5 rounded-lg border border-dashed transition-all ${hasImageFill ? 'bg-brand-600 border-brand-600 text-white shadow-lg shadow-brand-600/30' : 'bg-black/20 border-white/20 text-gray-400 hover:border-brand-600/50 hover:text-white'}`}
             >

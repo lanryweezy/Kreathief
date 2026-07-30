@@ -18,7 +18,7 @@ function hexToCmyk(hex: string): [number, number, number, number] {
   let r = 0,
     g = 0,
     b = 0;
-  let h = hex.replace('#', '');
+  const h = hex.replace('#', '');
   if (h.length === 3) {
     r = parseInt(h[0] + h[0], 16);
     g = parseInt(h[1] + h[1], 16);
@@ -28,11 +28,13 @@ function hexToCmyk(hex: string): [number, number, number, number] {
     g = parseInt(h.substring(2, 4), 16);
     b = parseInt(h.substring(4, 6), 16);
   }
-  let c = 1 - r / 255;
-  let m = 1 - g / 255;
-  let y = 1 - b / 255;
-  let k = Math.min(c, m, y);
-  if (k === 1) return [0, 0, 0, 1];
+  const c = 1 - r / 255;
+  const m = 1 - g / 255;
+  const y = 1 - b / 255;
+  const k = Math.min(c, m, y);
+  if (k === 1) {
+    return [0, 0, 0, 1];
+  }
   return [(c - k) / (1 - k), (m - k) / (1 - k), (y - k) / (1 - k), k];
 }
 
@@ -77,13 +79,21 @@ self.onmessage = async (e: MessageEvent) => {
     const applyColor = (pdfInstance: any, hexColor: string, type: 'fill' | 'text' | 'draw') => {
       if (isCmyk) {
         const [c, m, y, k] = hexToCmyk(hexColor);
-        if (type === 'fill') pdfInstance.setFillColor(c, m, y, k);
-        else if (type === 'text') pdfInstance.setTextColor(c, m, y, k);
-        else if (type === 'draw') pdfInstance.setDrawColor(c, m, y, k);
+        if (type === 'fill') {
+          pdfInstance.setFillColor(c, m, y, k);
+        } else if (type === 'text') {
+          pdfInstance.setTextColor(c, m, y, k);
+        } else if (type === 'draw') {
+          pdfInstance.setDrawColor(c, m, y, k);
+        }
       } else {
-        if (type === 'fill') pdfInstance.setFillColor(hexColor);
-        else if (type === 'text') pdfInstance.setTextColor(hexColor);
-        else if (type === 'draw') pdfInstance.setDrawColor(hexColor);
+        if (type === 'fill') {
+          pdfInstance.setFillColor(hexColor);
+        } else if (type === 'text') {
+          pdfInstance.setTextColor(hexColor);
+        } else if (type === 'draw') {
+          pdfInstance.setDrawColor(hexColor);
+        }
       }
     };
 

@@ -52,7 +52,9 @@ export const AssetUploadModal: React.FC<AssetUploadModalProps> = React.memo(func
     (e: React.DragEvent) => {
       e.preventDefault();
       setIsDragOver(false);
-      if (e.dataTransfer.files[0]) handleFileSelect(e.dataTransfer.files[0]);
+      if (e.dataTransfer.files[0]) {
+        handleFileSelect(e.dataTransfer.files[0]);
+      }
     },
     [handleFileSelect]
   );
@@ -70,11 +72,15 @@ export const AssetUploadModal: React.FC<AssetUploadModalProps> = React.memo(func
         const {
           data: { user },
         } = await db.auth.getUser();
-        if (!user) throw new Error('Not authenticated');
+        if (!user) {
+          throw new Error('Not authenticated');
+        }
         const fileExt = file.name.split('.').pop();
         const fileName = `${user.id}/${Date.now()}.${fileExt}`;
         const { error: uploadError } = await db.storage.from('assets').upload(fileName, file);
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          throw uploadError;
+        }
         const { error: dbError } = await db.from('assets').insert({
           creator_id: user.id,
           title: title.trim(),
@@ -87,7 +93,9 @@ export const AssetUploadModal: React.FC<AssetUploadModalProps> = React.memo(func
           file_url: fileName,
           status: 'pending',
         } as any);
-        if (dbError) throw dbError;
+        if (dbError) {
+          throw dbError;
+        }
         onClose();
       } catch (err: any) {
         setError(err.message || 'Failed to upload asset');
