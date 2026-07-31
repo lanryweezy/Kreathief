@@ -143,10 +143,21 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
 
     const renderItem = () => {
       if (l.type === 'image') {
+        // NOTE: no block-level wrapper here — an in-flow wrapper div pushes each
+        // subsequent image layer below the artboard (clipped by overflow-hidden),
+        // so only one image would ever be visible at a time.
         return (
-          <div className="relative h-full w-full">
+          <>
             {isFiltering && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/10 backdrop-blur-[1px] rounded-lg animate-pulse pointer-events-none">
+              <div
+                className="absolute z-[101] flex items-center justify-center bg-black/10 backdrop-blur-[1px] rounded-lg animate-pulse pointer-events-none"
+                style={{
+                  left: l.x,
+                  top: l.y,
+                  width: (l as ImageLayer).width,
+                  height: (l as ImageLayer).height,
+                }}
+              >
                 <Icons.Magic className="w-5 h-5 text-white/40 animate-spin" />
               </div>
             )}
@@ -156,7 +167,7 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
               {...commonProps}
               optimizedSrc={processedUrl}
             />
-          </div>
+          </>
         );
       }
 
