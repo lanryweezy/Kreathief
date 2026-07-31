@@ -275,25 +275,22 @@ export const useCanvasInteractions = ({
     };
   }, [handleMouseMoveInternal, handleMouseUpInternal]);
 
-  // Mobile Pinch/Zoom — uses refs to avoid re-registering the listener on every zoom/pan change
+  // Mobile Pinch/Zoom — the listener is registered once, so it must read live
+  // zoom/pan values instead of closure captures (locals here went stale after
+  // the first zoom/pan change, making ctrl+wheel zoom jump back to mount state)
   useEffect(() => {
     const el = viewportRef.current;
     if (!el) {
       return;
     }
 
-    const zoomRef = { current: zoom };
-    const panRef = { current: panOffset };
-    zoomRef.current = zoom;
-    panRef.current = panOffset;
-
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
 
         const zoomFactor = 1.05;
-        const currentZoom = zoomRef.current;
-        const currentPan = panRef.current;
+        const currentZoom = (useStore.getState() as any).zoom || 1;
+        const currentPan = panOffsetRef.current;
         const newZoom = e.deltaY > 0 ? Math.max(0.1, currentZoom / zoomFactor) : Math.min(10, currentZoom * zoomFactor);
 
         if (newZoom !== currentZoom && viewportRef.current) {
@@ -307,6 +304,9 @@ export const useCanvasInteractions = ({
           const newPanX = mouseX - worldX * newZoom;
           const newPanY = mouseY - worldY * newZoom;
 
+          // Sync the ref immediately so rapid wheel events (before the next
+          // React render) chain from the freshest pan value
+          panOffsetRef.current = { x: newPanX, y: newPanY };
           onZoomChangeValue(newZoom);
           useStore.getState().setPanOffset({ x: newPanX, y: newPanY });
         }

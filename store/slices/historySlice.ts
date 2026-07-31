@@ -180,12 +180,12 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
         }
       } else {
         try {
+          // Patches are cumulative diffs against the preceding snapshot, so the
+          // entry's own patch alone reconstructs its state. Replaying the
+          // intermediate patches double-applied array ops (duplicated layers)
+          // and skipping lastEntry's patch made undo jump one extra step back.
           targetState = structuredClone(newPast[lastSnapshotIdx].state!);
-          for (let i = lastSnapshotIdx + 1; i < newPast.length; i++) {
-            if (newPast[i].type === 'patch') {
-              applyPatch(targetState, newPast[i].patch!);
-            }
-          }
+          applyPatch(targetState, lastEntry.patch!);
         } catch (error) {
           log.error('History patch application failed during undo', error, {
             action: 'undo',

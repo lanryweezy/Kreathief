@@ -288,7 +288,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
       return;
     }
     const newLayer = {
-      id: `adj_${Date.now()}`,
+      id: generateLayerId('adjustment'),
       type: 'adjustment' as const,
       name: 'Adjustment Layer',
       x: 0,
@@ -603,7 +603,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
     get().saveToHistory?.();
     const newLayer = {
       ...clipboardLayer,
-      id: `${clipboardLayer.type}_${Date.now()}`,
+      id: generateLayerId(clipboardLayer.type),
       x: clipboardLayer.x + 20,
       y: clipboardLayer.y + 20,
       name: (clipboardLayer.name || 'Layer') + ' Copy',

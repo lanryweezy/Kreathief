@@ -193,8 +193,13 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   deleteUpload: (index) =>
     set((state: any) => {
       const url = state.uploads[index];
+      // Only revoke the blob URL if no layer still uses it as its image source —
+      // revoking a live src instantly blanks that image on the canvas.
       if (url?.startsWith('blob:')) {
-        URL.revokeObjectURL(url);
+        const inUse = (state.artboards || []).some((a: any) => (a.layers || []).some((l: any) => l.src === url));
+        if (!inUse) {
+          URL.revokeObjectURL(url);
+        }
       }
       return { uploads: state.uploads.filter((_: any, i: number) => i !== index) };
     }),
