@@ -337,8 +337,14 @@ export const useEditorLogic = (initialProject?: Project) => {
       return;
     }
     saveToHistory();
-    const selectedIndices = selectedPaths.map((p) => layers.findIndex((l: any) => l.id === p.id));
-    const lowestIndex = Math.min(...selectedIndices);
+    const selectedIds = new Set(selectedPaths.map((p) => p.id));
+    let lowestIndex = -1;
+    for (let i = 0; i < layers.length; i++) {
+      if (selectedIds.has(layers[i]!.id)) {
+        lowestIndex = i;
+        break;
+      }
+    }
     const baseLayer = selectedPaths[0]!;
     const newLayer: ShapeLayer = {
       ...baseLayer,
@@ -433,8 +439,14 @@ export const useEditorLogic = (initialProject?: Project) => {
       return;
     }
     saveToHistory();
-    const selectedIndices = selectedPaths.map((p) => layers.findIndex((l: any) => l.id === p.id));
-    const lowestIndex = Math.min(...selectedIndices);
+    const selectedIds = new Set(selectedPaths.map((p) => p.id));
+    let lowestIndex = -1;
+    for (let i = 0; i < layers.length; i++) {
+      if (selectedIds.has(layers[i]!.id)) {
+        lowestIndex = i;
+        break;
+      }
+    }
     const baseLayer = selectedPaths[0]!;
 
     // Parse the paths in global space

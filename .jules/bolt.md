@@ -96,3 +96,6 @@
 ## 2026-07-29 - Optimize array lookups and map operations in layoutSlice
 **Learning:** Using `.findIndex` inside a `.map` creates an O(N^2) operation, causing severe performance issues with large arrays. Additionally, using `Math.min(...array.map())` causes unnecessary memory allocations and can lead to maximum call stack exceeded errors.
 **Action:** Use a pre-computed `Map` to turn O(N^2) lookups into O(N). Replace chained `.map` and spread operations with a single `for` loop.
+## 2024-05-25 - Optimize array lookups and map operations in editor logic
+**Learning:** Using `.map` with a nested `.findIndex` creates an O(N^2) operation, causing performance issues. Furthermore, using `Math.min(...array)` on the mapped array causes unnecessary memory allocations and risks exceeding the maximum call stack size on large selections.
+**Action:** Replace chained `.map` with nested `.findIndex` and `Math.min` spread operations with a single early-exiting `for` loop to compute the lowest index.
