@@ -2,7 +2,17 @@ import { log } from '../../utils/log';
 import type { StoreState } from '../useStore';
 
 import { StateCreator } from 'zustand';
-import { AspectRatio, GenerationQuality, ShapeLayer, ImageLayer, Layer, TextLayer } from '../../types';
+import {
+  AspectRatio,
+  GenerationQuality,
+  ShapeLayer,
+  ImageLayer,
+  Layer,
+  TextLayer,
+  StyleReference,
+  ReferenceAspect,
+  ReferenceAppliedMode,
+} from '../../types';
 import { vectorizerService, VectorizeOptions } from '../../services/vectorizerService';
 import { aiModelsService } from '../../services/aiModelsService';
 import { removeBackground } from '../../utils/imageProcessor';
@@ -12,6 +22,8 @@ import { DEFAULT_CORNER_RADIUS } from '../../constants';
 import { performBooleanOnLayers } from '../../utils/booleanOperations';
 import { VectorUtils } from '../../utils/vectorUtils';
 import { getErrorDetails } from '../../utils/errorMessages';
+import { generateImageWithModel, composeGenerationPrompt } from '../../services/imageGenService';
+import { DEFAULT_IMAGE_MODEL } from '../../config/imageModels';
 
 export interface AISlice {
   prompt: string;
@@ -19,10 +31,28 @@ export interface AISlice {
   quality: GenerationQuality;
   isGenerating: boolean;
   lastGeneratedImageUrl: string | null;
+  selectedImageModel: string;
+  useBrandInPrompts: boolean;
+  /** Reference image + which of its facets should steer generation. */
+  styleReference: StyleReference | null;
+  /** Campaign intent folded into every generation prompt. */
+  campaignGoal: string;
 
   setPrompt: (prompt: string) => void;
   setAspectRatio: (ratio: AspectRatio) => void;
   setQuality: (quality: GenerationQuality) => void;
+  setSelectedImageModel: (modelId: string) => void;
+  setUseBrandInPrompts: (enabled: boolean) => void;
+  setCampaignGoal: (goal: string) => void;
+  /** Stores the reference immediately, then fills in vision analysis asynchronously. */
+  setStyleReference: (image: string, name?: string) => Promise<void>;
+  toggleReferenceAspect: (aspect: ReferenceAspect) => void;
+  clearStyleReference: () => void;
+  /**
+   * Records how a pipeline actually consumed the reference. `referenceId` guards against a
+   * late report stamping a reference the user has since replaced.
+   */
+  setReferenceAppliedMode: (mode: ReferenceAppliedMode, referenceId?: string) => void;
 
   // Refactored Core AI Actions with redundancy
   generateImage: () => Promise<void>;
@@ -54,34 +84,110 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
   quality: 'standard',
   isGenerating: false,
   lastGeneratedImageUrl: null,
+  selectedImageModel: DEFAULT_IMAGE_MODEL,
+  useBrandInPrompts: false,
+  styleReference: null,
+  campaignGoal: '',
 
   setPrompt: (prompt) => set({ prompt }),
   setAspectRatio: (aspectRatio) => set({ aspectRatio }),
   setQuality: (quality) => set({ quality }),
+  setSelectedImageModel: (selectedImageModel) => set({ selectedImageModel }),
+  setUseBrandInPrompts: (useBrandInPrompts) => set({ useBrandInPrompts }),
+  setCampaignGoal: (campaignGoal) => set({ campaignGoal }),
+
+  clearStyleReference: () => set({ styleReference: null }),
+
+  setReferenceAppliedMode: (appliedMode, referenceId) => {
+    const current = get().styleReference;
+    // Drop a late report for a reference the user has already swapped out.
+    if (!current || (referenceId && current.id !== referenceId)) {
+      return;
+    }
+    set({ styleReference: { ...current, appliedMode } });
+  },
+
+  toggleReferenceAspect: (aspect: ReferenceAspect) => {
+    const current = get().styleReference;
+    if (!current) {
+      return;
+    }
+    set({
+      styleReference: {
+        ...current,
+        aspects: current.aspects.includes(aspect)
+          ? current.aspects.filter((a) => a !== aspect)
+          : [...current.aspects, aspect],
+      },
+    });
+  },
+
+  setStyleReference: async (image, name) => {
+    const reference: StyleReference = {
+      id: uuidv4(),
+      image,
+      name,
+      // Sensible default: borrow the look, not the subject or layout.
+      aspects: ['style', 'palette', 'mood'],
+      analysisStatus: 'analyzing',
+    };
+    set({ styleReference: reference });
+
+    try {
+      const extracted = await geminiService.analyzeReferenceImage(image);
+      // Guard against a newer reference having replaced this one mid-flight.
+      if (get().styleReference?.id !== reference.id) {
+        return;
+      }
+      set({ styleReference: { ...reference, extracted, analysisStatus: 'ready' } });
+    } catch (error) {
+      log.error('Reference image analysis failed', error);
+      if (get().styleReference?.id !== reference.id) {
+        return;
+      }
+      // Not fatal: a model with native conditioning still receives the raw image.
+      set({
+        styleReference: {
+          ...reference,
+          analysisStatus: 'failed',
+          analysisError: getErrorDetails(error).message,
+        },
+      });
+      get().addToast?.('Could not analyze the reference image — style hints will be limited.', 'warning');
+    }
+  },
 
   generateImage: async () => {
-    const { prompt, aspectRatio, quality, addImageLayer } = get();
+    const { prompt, aspectRatio, quality, addImageLayer, selectedImageModel, useBrandInPrompts, styleReference } =
+      get();
     if (!prompt) {
       return;
     }
 
     set({ isGenerating: true });
     try {
-      let imageUrl: string | undefined;
+      // Opt-in: steer the generation with the active brand kit's colors/fonts
+      const activeBrandKit = useBrandInPrompts
+        ? get().brandKits?.find((bk) => bk.id === get().activeBrandKitId)
+        : undefined;
 
-      // Primary: High-End Flux.1
-      if (aiModelsService.isConfigured()) {
-        try {
-          imageUrl = await aiModelsService.generateFluxImage(prompt, aspectRatio);
-        } catch (e) {
-          log.warn('Flux failed, falling back to Gemini', { error: e });
-        }
-      }
+      const fullPrompt = composeGenerationPrompt({
+        prompt,
+        brandKit: activeBrandKit,
+        styleReference,
+        campaignGoal: get().campaignGoal,
+      });
 
-      // Fallback: Gemini / Freepik
-      if (!imageUrl) {
-        imageUrl = await geminiService.generateImage(prompt, aspectRatio, quality);
-      }
+      // Unified path: user-selected model via Fal, native reference conditioning when the
+      // model supports it, descriptor + Freepik fallback otherwise.
+      const imageUrl = await generateImageWithModel(fullPrompt, {
+        modelId: selectedImageModel,
+        aspectRatio,
+        quality,
+        styleReference,
+        // Record how the reference was really used so the panel can say so plainly.
+        onReferenceApplied: (mode) => get().setReferenceAppliedMode(mode, styleReference?.id),
+      });
 
       if (imageUrl) {
         set({ lastGeneratedImageUrl: imageUrl });

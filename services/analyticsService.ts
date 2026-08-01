@@ -16,6 +16,9 @@ export type AnalyticsEvent =
   | 'auth_signin'
   | 'auth_signout'
   | 'analyze_design'
+  | 'agent_workflow'
+  | 'magic_resize'
+  | 'kiro_chat'
   | 'perf_metric';
 
 export interface AnalyticsProvider {

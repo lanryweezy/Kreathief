@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as geminiService from './geminiService';
+import * as freepikService from './freepikService';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Mock Gemini AI
@@ -50,23 +51,45 @@ describe('GeminiService', () => {
   });
 
   describe('generateImage', () => {
-    it('should route image requests through the OpenRouter proxy', async () => {
-      // The OpenRouter chat proxy only returns text, so generateImage either
-      // falls back to Freepik or throws — here we assert the routing.
+    // Fal is the single image backend (see imageGenService). This function is only the
+    // Freepik fallback leg — Gemini image output is unreachable through the OpenRouter
+    // bridge, which normalizes every response to text, so it must not be attempted.
+    it('does not route image generation through the OpenRouter proxy', async () => {
       await geminiService.generateImage('A beautiful sunset', '1:1').catch(() => undefined);
 
-      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining('/api/openrouter'), expect.any(Object));
+      const calledUrls = mockFetch.mock.calls.map(([url]) => String(url));
+      expect(calledUrls.some((url) => url.includes('/api/openrouter'))).toBe(false);
     });
 
-    it('should handle API errors gracefully', async () => {
-      mockFetch.mockResolvedValueOnce({
+    it('reaches Freepik when it is configured', async () => {
+      vi.spyOn(freepikService, 'isConfigured').mockReturnValue(true);
+
+      await geminiService.generateImage('A beautiful sunset', '1:1').catch(() => undefined);
+
+      const calledUrls = mockFetch.mock.calls.map(([url]) => String(url));
+      expect(calledUrls.some((url) => url.includes('/api/freepik'))).toBe(true);
+    });
+
+    it('fails with an actionable message when no fallback backend is configured', async () => {
+      vi.spyOn(freepikService, 'isConfigured').mockReturnValue(false);
+
+      await expect(geminiService.generateImage('Test prompt', '1:1')).rejects.toThrow(
+        /Image generation unavailable/
+      );
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('propagates a Freepik failure instead of returning a silent placeholder', async () => {
+      vi.spyOn(freepikService, 'isConfigured').mockReturnValue(true);
+      mockFetch.mockResolvedValue({
         ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        text: async () => 'upstream exploded',
         json: async () => ({ error: 'API error' }),
       });
 
-      await expect(geminiService.generateImage('Test prompt', '1:1')).rejects.toThrow(
-        'OpenRouter API returned an error'
-      );
+      await expect(geminiService.generateImage('Test prompt', '1:1')).rejects.toThrow();
     });
   });
 

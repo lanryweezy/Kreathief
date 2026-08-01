@@ -106,16 +106,16 @@ export const CommandPalette: React.FC = () => {
       // --- PANELS (Navigation) ---
       {
         id: 'nav_ai',
-        label: 'Open AI Assistant',
+        label: 'Open Design Agent (AI Assistant)',
         icon: Icons.Bot,
-        action: () => setActiveTab(NavTab.ASSISTANT),
+        action: () => useStore.getState().setShowAIOverlay(true, 'assistant'),
         group: 'Panels',
       },
       {
         id: 'nav_magic',
-        label: 'Open AI Magic',
+        label: 'Open AI Image Generator (AI Magic)',
         icon: Icons.Magic,
-        action: () => setActiveTab(NavTab.TEMPLATES),
+        action: () => useStore.getState().setShowAIOverlay(true, 'generate'),
         group: 'Panels',
       },
       {

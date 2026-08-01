@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { AppMode, AspectRatio } from '../../types';
+import { AppMode, AspectRatio, ReferenceAspect, REFERENCE_ASPECT_LABELS, StyleReference } from '../../types';
 import { Icons } from '../../constants';
 import { Button } from '../Button';
 import { Toggle } from '../Toggle';
@@ -14,6 +14,7 @@ import { analyzeDesign, DesignAnalysis } from '../../ai/designEngine';
 import { v4 as uuidv4 } from 'uuid';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { PanelHeader } from './PanelHeader';
+import { ModelPicker } from '../ModelPicker';
 
 interface MagicPanelProps {
   onGenerate: (negPrompt?: string) => void;
@@ -88,6 +89,39 @@ interface GenerationHistoryItem {
   timestamp: number;
 }
 
+/**
+ * Honest one-line status for a reference. Analysis state and how the last generation
+ * actually consumed the reference are separate axes, so both are consulted: a failed
+ * analysis still works natively, and a successful one can still be ignored by a
+ * text-only model. Never claims the reference was applied when it wasn't.
+ */
+const describeReferenceStatus = (ref: StyleReference): string => {
+  if (ref.analysisStatus === 'analyzing') {
+    return 'Analyzing reference…';
+  }
+  switch (ref.appliedMode) {
+    case 'native':
+      return 'Reference applied directly';
+    case 'descriptor':
+      return 'Reference style approximated';
+    case 'none':
+      return 'Reference had no effect on the last render';
+  }
+  if (ref.analysisStatus === 'failed') {
+    return 'Not analyzed — needs a reference-capable model';
+  }
+  if (ref.aspects.length === 0) {
+    return 'Pick at least one aspect to match';
+  }
+  return ref.extracted?.summary || 'Ready';
+};
+
+/** Muted by default; only a genuinely ineffective reference is worth colouring. */
+const referenceStatusTone = (ref: StyleReference): string =>
+  ref.appliedMode === 'none' || (ref.analysisStatus === 'failed' && !ref.appliedMode)
+    ? 'text-amber-500/80'
+    : 'text-gray-600';
+
 export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImage }) => {
   const localFileInputRef = useRef<HTMLInputElement>(null);
   const {
@@ -108,6 +142,18 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
     addImageLayer,
     lastGeneratedImageUrl,
     handleFileUpload,
+    selectedImageModel,
+    setSelectedImageModel,
+    useBrandInPrompts,
+    setUseBrandInPrompts,
+    brandKits,
+    activeBrandKitId,
+    styleReference,
+    setStyleReference,
+    toggleReferenceAspect,
+    clearStyleReference,
+    campaignGoal,
+    setCampaignGoal,
   } = useStore(
     useShallow((state) => ({
       mode: state.mode,
@@ -127,6 +173,18 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
       addImageLayer: state.addImageLayer,
       lastGeneratedImageUrl: state.lastGeneratedImageUrl,
       handleFileUpload: state.handleFileUpload,
+      selectedImageModel: state.selectedImageModel,
+      setSelectedImageModel: state.setSelectedImageModel,
+      useBrandInPrompts: state.useBrandInPrompts,
+      setUseBrandInPrompts: state.setUseBrandInPrompts,
+      brandKits: state.brandKits,
+      activeBrandKitId: state.activeBrandKitId,
+      styleReference: state.styleReference,
+      setStyleReference: state.setStyleReference,
+      toggleReferenceAspect: state.toggleReferenceAspect,
+      clearStyleReference: state.clearStyleReference,
+      campaignGoal: state.campaignGoal,
+      setCampaignGoal: state.setCampaignGoal,
     }))
   );
 
@@ -137,6 +195,8 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
   const [negativePrompt, setNegativePrompt] = useState('');
   const [showNegative, setShowNegative] = useState(false);
   const [antiAiSlop, setAntiAiSlop] = useState(true);
+  const referenceInputRef = useRef<HTMLInputElement>(null);
+  const [showAspects, setShowAspects] = useState(false);
   const [designAnalysis, setDesignAnalysis] = useState<DesignAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [genHistory, setGenHistory] = useState<GenerationHistoryItem[]>(() => {
@@ -171,6 +231,26 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
       return next;
     });
   }, [lastGeneratedImageUrl, prompt]);
+
+  // Reference upload: the store owns the vision analysis, so this only reads the file.
+  const handleReferenceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) {
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      addToast('Reference must be an image file.', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      void setStyleReference(String(reader.result), file.name);
+      setShowAspects(true);
+    };
+    reader.onerror = () => addToast('Could not read that image.', 'error');
+    reader.readAsDataURL(file);
+  };
 
   const handleEnhancePrompt = async () => {
     if (!prompt.trim()) {
@@ -335,6 +415,126 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
 
           {/* Settings Block */}
           <div className="space-y-4 select-none">
+            {/* Model Row — same catalog as the Dashboard bootstrapper */}
+            {mode === AppMode.GENERATE && (
+              <div className="space-y-2">
+                <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest block">Model</label>
+                <ModelPicker value={selectedImageModel} onChange={setSelectedImageModel} dropDirection="down" />
+              </div>
+            )}
+
+            {/* Brand Kit Row — opt-in prompt steering with brand colors/fonts */}
+            {mode === AppMode.GENERATE && activeBrandKitId && (
+              <div className="flex items-center justify-between bg-white/5 p-2 rounded-xl border border-white/5">
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate pr-2">
+                  Use Brand Kit
+                  <span className="block text-[9px] font-bold text-gray-600 normal-case tracking-normal truncate">
+                    {brandKits?.find((bk) => bk.id === activeBrandKitId)?.name || 'Active kit'}
+                  </span>
+                </span>
+                <Toggle
+                  checked={useBrandInPrompts}
+                  onChange={setUseBrandInPrompts}
+                  size="sm"
+                  ariaLabel="Use brand kit colors and fonts in AI prompts"
+                />
+              </div>
+            )}
+
+            {/* Style Reference — vision-extracted, per-aspect conditioning */}
+            {mode === AppMode.GENERATE && (
+              <div className="space-y-2">
+                <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest block">
+                  Reference Image
+                </label>
+                <input
+                  ref={referenceInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleReferenceUpload}
+                />
+
+                {!styleReference ? (
+                  <button
+                    onClick={() => referenceInputRef.current?.click()}
+                    className="w-full py-3 rounded-xl border border-dashed border-white/15 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:border-brand-600/60 hover:text-gray-300 transition-colors"
+                  >
+                    Upload a look to match
+                  </button>
+                ) : (
+                  <div className="bg-white/5 rounded-xl border border-white/5 p-2 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={styleReference.image}
+                        alt={styleReference.name || 'Style reference'}
+                        className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] font-black text-gray-300 truncate">
+                          {styleReference.name || 'Reference'}
+                        </p>
+                        <p className={`text-[9px] font-bold truncate ${referenceStatusTone(styleReference)}`}>
+                          {describeReferenceStatus(styleReference)}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setShowAspects((v) => !v)}
+                        className="text-[9px] font-black text-gray-500 uppercase tracking-widest hover:text-gray-300 px-1"
+                      >
+                        {styleReference.aspects.length}
+                      </button>
+                      <button
+                        onClick={clearStyleReference}
+                        aria-label="Remove reference image"
+                        className="text-gray-600 hover:text-red-400 transition-colors flex-shrink-0"
+                      >
+                        <Icons.Trash className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {showAspects && (
+                      <div className="flex flex-wrap gap-1 pt-1 border-t border-white/5">
+                        {(Object.keys(REFERENCE_ASPECT_LABELS) as ReferenceAspect[]).map((aspect) => {
+                          const active = styleReference.aspects.includes(aspect);
+                          return (
+                            <button
+                              key={aspect}
+                              onClick={() => toggleReferenceAspect(aspect)}
+                              aria-pressed={active}
+                              className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${
+                                active
+                                  ? 'bg-brand-600 text-white'
+                                  : 'bg-white/5 text-gray-500 hover:text-gray-300'
+                              }`}
+                            >
+                              {REFERENCE_ASPECT_LABELS[aspect]}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Campaign Goal — steers composition toward an outcome, not just a look */}
+            {mode === AppMode.GENERATE && (
+              <div className="space-y-2">
+                <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest block">
+                  Campaign Goal
+                </label>
+                <input
+                  type="text"
+                  value={campaignGoal}
+                  onChange={(e) => setCampaignGoal(e.target.value)}
+                  placeholder="e.g., drive signups for a spring sale"
+                  className="w-full bg-surface-dark-3 border border-white/5 rounded-xl px-3 py-2 text-xs text-gray-300 placeholder-muted-light focus:border-brand-600/50 outline-none"
+                />
+              </div>
+            )}
+
             {/* Quality Row */}
             <div className="space-y-2">
               <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest block">

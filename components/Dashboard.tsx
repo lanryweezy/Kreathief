@@ -9,11 +9,12 @@ import { PricingModal } from './PricingModal';
 import { useStore } from '../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import CommunityTemplates from './CommunityTemplates';
-import { IMAGE_GEN_MODELS, DEFAULT_IMAGE_MODEL, IMAGE_MODEL_CATEGORIES, ImageGenModel } from '../config/imageModels';
-import { aiModelsService } from '../services/aiModelsService';
+import { DEFAULT_IMAGE_MODEL, IMAGE_GEN_MODELS } from '../config/imageModels';
+import { generateImageWithModel, composeGenerationPrompt } from '../services/imageGenService';
+import { ModelPicker } from './ModelPicker';
+import { AspectRatio } from '../types';
 import { EmptyState } from './EmptyState';
 import { Button } from './Button';
-import * as geminiService from '../services/geminiService';
 import { log } from '../utils/log';
 import { getErrorDetails } from '../utils/errorMessages';
 import { fuzzyMatch } from '../utils/search';
@@ -80,13 +81,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   const [aiPrompt, setAiPrompt] = useState('');
   const [selectedFormat, setSelectedFormat] = useState(0);
   const [selectedImageModel, setSelectedImageModel] = useState(DEFAULT_IMAGE_MODEL);
+  // 'design' = agent builds editable layers; 'image' = single flat AI image
+  const [generationMode, setGenerationMode] = useState<'design' | 'image'>('design');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [showModelPicker, setShowModelPicker] = useState(false);
 
   const [showNodeGraph, setShowNodeGraph] = useState(false);
   const aiInputRef = useRef<HTMLTextAreaElement>(null);
-  const modelPickerRef = useRef<HTMLDivElement>(null);
 
   const FORMAT_OPTIONS: { label: string; size: CanvasSize }[] = [
     { label: 'Instagram Post', size: { width: 1080, height: 1080, name: 'Instagram Post' } },
@@ -106,6 +107,39 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     'Clean corporate',
   ];
 
+  // Design mode: create an empty project, open the editor, and hand the prompt
+  // to the 3-stage agent pipeline so the result is fully editable layers.
+  const handleDesignGenerate = useCallback(async () => {
+    if (!aiPrompt.trim() || isGenerating) {
+      return;
+    }
+    setIsGenerating(true);
+    const format = FORMAT_OPTIONS[selectedFormat];
+    try {
+      const title = aiPrompt.trim().length > 40 ? aiPrompt.trim().slice(0, 40) + '...' : aiPrompt.trim();
+      const projectId = await createProject(title, format.size);
+      const created = useStore.getState().projects.find((p) => p.id === projectId);
+      if (!created) {
+        throw new Error('Project creation failed');
+      }
+      loadProject(created.id);
+
+      // Kick off the agent and surface its progress in the AI overlay's Design Agent tab
+      const store = useStore.getState();
+      store.setShowAIOverlay(true, 'assistant');
+      store.runAgenticWorkflow(aiPrompt.trim());
+
+      addToast('Design Agent is building your layout...', 'info');
+      onOpenProject(created);
+    } catch (error) {
+      log.error('[DashboardAI] Design generation failed', error);
+      const details = getErrorDetails(error);
+      addToast(`Generation failed: ${details.message}. ${details.suggestion}`, 'error');
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [aiPrompt, selectedFormat, isGenerating, createProject, loadProject, addToast, onOpenProject]);
+
   const handleAIGenerate = useCallback(async () => {
     if (!aiPrompt.trim() || isGenerating) {
       return;
@@ -119,45 +153,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       const aspectRatio =
         format.size.width > format.size.height ? '16:9' : format.size.width === format.size.height ? '1:1' : '9:16';
 
-      let imageUrl: string;
-
-      if (model?.id === 'recraft-vector') {
-        // Vector generation via Recraft
-        const svgResult = await aiModelsService.generateVectorRecraft(aiPrompt.trim());
-        if (!svgResult) {
-          throw new Error('Vector generation failed');
-        }
-        // Convert SVG to data URL for layer
-        if (svgResult.startsWith('<svg')) {
-          imageUrl = `data:image/svg+xml;base64,${btoa(svgResult)}`;
-        } else {
-          imageUrl = svgResult;
-        }
-      } else if (model?.falEndpoint) {
-        // Image generation via Fal.ai (FLUX, SDXL, etc.)
-        const falEndpoint = model.falEndpoint;
-        const imageSize = aspectRatio === '1:1' ? 'square' : aspectRatio === '16:9' ? 'landscape_hd' : 'portrait_hd';
-
-        const data = await fetch('/api/fal', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            endpoint: falEndpoint,
-            body: {
-              prompt: `${aiPrompt.trim()}. Professional, high quality, suitable for ${format.label}. Clean composition.`,
-              image_size: imageSize,
-            },
-          }),
-        }).then((r) => r.json());
-
-        imageUrl = data.images?.[0]?.url || data.image?.url;
-        if (!imageUrl) {
-          throw new Error('No image returned from model');
-        }
-      } else {
-        // Fallback to Gemini
-        const enhancedPrompt = `${aiPrompt.trim()}. Style: professional, high quality, suitable for ${format.label}. Clean composition, good typography.`;
-        imageUrl = await geminiService.generateImage(enhancedPrompt, aspectRatio, 'standard');
+      // Unified generation path shared with the editor's Image Gen panel
+      const { useBrandInPrompts, brandKits, activeBrandKitId, styleReference, campaignGoal } = useStore.getState();
+      const fullPrompt = composeGenerationPrompt({
+        prompt: `${aiPrompt.trim()}. Professional, high quality, suitable for ${format.label}. Clean composition, good typography.`,
+        brandKit: useBrandInPrompts ? brandKits?.find((bk) => bk.id === activeBrandKitId) : undefined,
+        styleReference,
+        campaignGoal,
+        canvasSize: format.size,
+      });
+      const imageUrl = await generateImageWithModel(fullPrompt, {
+        modelId: selectedImageModel,
+        aspectRatio: aspectRatio as AspectRatio,
+        styleReference,
+        onReferenceApplied: (mode) =>
+          log.debug('[Dashboard] Reference conditioning mode', { mode, model: selectedImageModel }),
+      });
+      if (!imageUrl) {
+        throw new Error('No image returned from model');
       }
 
       const imageLayer = {
@@ -243,20 +256,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   useEffect(() => {
     loadAllProjects().then(() => setIsLoading(false));
   }, [loadAllProjects]);
-
-  // Close model picker on outside click
-  useEffect(() => {
-    if (!showModelPicker) {
-      return;
-    }
-    const handleClickOutside = (e: MouseEvent) => {
-      if (modelPickerRef.current && !modelPickerRef.current.contains(e.target as Node)) {
-        setShowModelPicker(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showModelPicker]);
 
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; projectId: string | null }>({
     isOpen: false,
@@ -579,7 +578,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
-                          handleAIGenerate();
+                          if (generationMode === 'design') {
+                            handleDesignGenerate();
+                          } else {
+                            handleAIGenerate();
+                          }
                         }
                       }}
                       onFocus={() => setShowSuggestions(true)}
@@ -602,69 +605,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                         ))}
                       </div>
                       <div className="flex items-center gap-2 ml-3 shrink-0">
-                        {/* Model Picker Dropdown */}
-                        <div className="relative" ref={modelPickerRef}>
+                        {/* Design = agent-built editable layers; Image = single flat AI image */}
+                        <div className="flex items-center bg-white/5 border border-white/10 rounded-lg p-0.5">
                           <button
-                            onClick={() => setShowModelPicker(!showModelPicker)}
-                            className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold text-muted hover:text-white hover:border-brand-500/50 transition-all flex items-center gap-1.5"
+                            onClick={() => setGenerationMode('design')}
+                            title="Agent builds a fully editable layered design"
+                            className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider transition-all ${generationMode === 'design' ? 'bg-brand-600 text-white shadow' : 'text-muted hover:text-white'}`}
                           >
-                            <span>{IMAGE_GEN_MODELS.find((m) => m.id === selectedImageModel)?.icon}</span>
-                            <span className="hidden sm:inline">
-                              {IMAGE_GEN_MODELS.find((m) => m.id === selectedImageModel)?.name}
-                            </span>
-                            <Icons.ChevronDown className="w-3 h-3" />
+                            <Icons.Layers className="w-3 h-3" />
+                            Design
                           </button>
-
-                          <AnimatePresence>
-                            {showModelPicker && (
-                              <motion.div
-                                initial={{ opacity: 0, y: -8, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                                className="absolute right-0 bottom-full mb-2 w-80 bg-surface-dark-1 border border-white/10 rounded-xl shadow-2xl z-50 p-2 max-h-96 overflow-y-auto"
-                              >
-                                {(['google', 'chinese', 'fast', 'quality', 'vector'] as const).map((cat) => (
-                                  <div key={cat} className="mb-2">
-                                    <div className="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-muted">
-                                      {IMAGE_MODEL_CATEGORIES[cat].label} — {IMAGE_MODEL_CATEGORIES[cat].description}
-                                    </div>
-                                    {IMAGE_GEN_MODELS.filter((m) => m.category === cat).map((model) => (
-                                      <button
-                                        key={model.id}
-                                        onClick={() => {
-                                          setSelectedImageModel(model.id);
-                                          setShowModelPicker(false);
-                                        }}
-                                        className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-medium transition-all flex items-center gap-3 ${
-                                          selectedImageModel === model.id
-                                            ? 'bg-brand-600 text-white'
-                                            : 'text-muted-light hover:bg-white/5 hover:text-white'
-                                        }`}
-                                      >
-                                        <span className="text-lg">{model.icon}</span>
-                                        <div className="flex-1 min-w-0">
-                                          <div className="font-bold truncate">{model.name}</div>
-                                          <div className="text-[9px] opacity-60">
-                                            {model.provider} ·{' '}
-                                            {model.outputType === 'svg' ? 'SVG Vector' : 'Raster Image'}
-                                          </div>
-                                        </div>
-                                        {selectedImageModel === model.id && (
-                                          <Icons.Check className="w-3.5 h-3.5 text-white shrink-0" />
-                                        )}
-                                      </button>
-                                    ))}
-                                  </div>
-                                ))}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
+                          <button
+                            onClick={() => setGenerationMode('image')}
+                            title="Generate a single AI image as the background"
+                            className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider transition-all ${generationMode === 'image' ? 'bg-brand-600 text-white shadow' : 'text-muted hover:text-white'}`}
+                          >
+                            <Icons.Image className="w-3 h-3" />
+                            Image
+                          </button>
                         </div>
+
+                        {/* Model Picker Dropdown — shared with the editor's Image Gen panel */}
+                        {generationMode === 'image' && (
+                          <ModelPicker value={selectedImageModel} onChange={setSelectedImageModel} dropDirection="up" />
+                        )}
 
                         <motion.button
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={handleAIGenerate}
+                          onClick={generationMode === 'design' ? handleDesignGenerate : handleAIGenerate}
                           disabled={!aiPrompt.trim() || isGenerating}
                           className="px-6 py-2.5 bg-gradient-to-r from-brand-600 to-accent rounded-xl text-white text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-brand-600/20 hover:shadow-xl hover:shadow-brand-600/30 transition-all"
                         >
