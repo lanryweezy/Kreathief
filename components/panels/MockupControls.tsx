@@ -406,6 +406,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   type="range"
                   min="0"
                   max="100"
+                  aria-label="Position X"
                   value={placement.left}
                   onChange={(e) => updatePlacement('left', Number(e.target.value))}
                   className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
@@ -414,6 +415,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   type="range"
                   min="0"
                   max="100"
+                  aria-label="Position Y"
                   value={placement.top}
                   onChange={(e) => updatePlacement('top', Number(e.target.value))}
                   className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
@@ -428,6 +430,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   type="range"
                   min="10"
                   max="150"
+                  aria-label="Scale"
                   value={placement.width}
                   onChange={(e) => updatePlacement('width', Number(e.target.value))}
                   className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
@@ -436,6 +439,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   type="range"
                   min="-180"
                   max="180"
+                  aria-label="Rotate"
                   value={placement.rotate}
                   onChange={(e) => updatePlacement('rotate', Number(e.target.value))}
                   className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
@@ -479,6 +483,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                     type="range"
                     min="-30"
                     max="30"
+                    aria-label="Cylindrical Curve"
                     value={curve}
                     onChange={(e) => setCurve(Number(e.target.value))}
                     className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
@@ -521,6 +526,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                 min="0"
                 max="1"
                 step="0.01"
+                aria-label="Design Opacity"
                 value={placement.opacity || 0.9}
                 onChange={(e) => updatePlacement('opacity', Number(e.target.value))}
                 className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-white"
