@@ -232,3 +232,8 @@
 **Vulnerability:** The `api/streamline.ts` edge route was missing the `requireAuth` check, allowing unauthorized access to the paid Streamline API using the application's server API key.
 **Learning:** Edge functions acting as proxies to third-party APIs can be easily overlooked when enforcing global authentication checks. Missing `requireAuth` enables abuse of paid resources, leading to financial impact.
 **Prevention:** Always ensure that all edge API routes serving as proxies to third-party services include the `await requireAuth(req)` check in a `try/catch` block, immediately after the CORS `OPTIONS` preflight handler.
+
+## 2024-03-20 - [Removed Stack Trace Leak in ErrorFallback UI]
+**Vulnerability:** The application was directly rendering `error.stack` inside `components/ErrorFallback.tsx` when catching unexpected React component errors.
+**Learning:** Displaying raw stack traces in the user interface (Information Exposure) can inadvertently leak sensitive system paths, file structures, library versions, or other implementation details. This gives attackers deep insight into the application's architecture which could be used to exploit other vulnerabilities.
+**Prevention:** Never render `error.stack` directly to users in error boundaries, fallback UIs, or API responses. Catch blocks and error components should log the detailed error (including stack traces) securely internally (e.g., via Sentry or a secure logging service) but present only a generic, safe error message to the user.
