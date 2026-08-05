@@ -49,6 +49,22 @@ export default async function handler(req: any, res: any) {
     return res.status(200).end();
   }
 
+  try {
+    await requireAuth({
+      headers: {
+        get: (name: string) => req.headers[name.toLowerCase()],
+      },
+    } as unknown as Request);
+  } catch (error) {
+    if (error instanceof Response) {
+      // In nodejs runtime, we can't just return a Response object from an Edge function.
+      // We need to translate it back to a res.status().json()
+      // But _auth.ts throws `new Response(JSON.stringify({ error: ... }), { status: ... })`
+      return res.status(error.status || 401).json({ error: 'Authentication required' });
+    }
+    return res.status(500).json({ error: 'Internal server error during authentication' });
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }

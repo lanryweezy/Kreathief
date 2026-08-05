@@ -232,3 +232,9 @@
 **Vulnerability:** The `api/streamline.ts` edge route was missing the `requireAuth` check, allowing unauthorized access to the paid Streamline API using the application's server API key.
 **Learning:** Edge functions acting as proxies to third-party APIs can be easily overlooked when enforcing global authentication checks. Missing `requireAuth` enables abuse of paid resources, leading to financial impact.
 **Prevention:** Always ensure that all edge API routes serving as proxies to third-party services include the `await requireAuth(req)` check in a `try/catch` block, immediately after the CORS `OPTIONS` preflight handler.
+
+## 2026-08-05 - Missing Authentication on Export CMYK Endpoint
+
+**Vulnerability:** The proxy endpoint `api/export-cmyk.ts` lacked an authentication check (`requireAuth`), making the endpoint publicly accessible to unauthenticated users. This could lead to abuse of the server's compute resources for PDF generation and CMYK conversion.
+**Learning:** Always check that newly added endpoints, or endpoints processing heavy workloads, correctly implement authentication checks before processing user data to prevent resource exhaustion or unauthorized use.
+**Prevention:** In edge functions or serverless API routes, ensure `await requireAuth(req)` is invoked right after handling the initial CORS OPTIONS request. When working with nodejs runtime where `req` isn't a Web Request, ensure the headers structure is mapped correctly for the `requireAuth` function.
