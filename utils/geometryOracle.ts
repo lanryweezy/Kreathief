@@ -128,17 +128,27 @@ export class GeometryOracle {
       };
     });
 
+    // ⚡ Bolt Optimization: Calculate bounds in a single pass rather than multiple map/Math.min/max passes.
+    // This reduces O(N) allocations and loop overhead by iterating through the corners only once.
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
 
     for (let i = 0; i < corners.length; i++) {
-      const c = corners[i];
-      if (c.x < minX) minX = c.x;
-      if (c.y < minY) minY = c.y;
-      if (c.x > maxX) maxX = c.x;
-      if (c.y > maxY) maxY = c.y;
+      const c = corners[i]!;
+      if (c.x < minX) {
+        minX = c.x;
+      }
+      if (c.y < minY) {
+        minY = c.y;
+      }
+      if (c.x > maxX) {
+        maxX = c.x;
+      }
+      if (c.y > maxY) {
+        maxY = c.y;
+      }
     }
 
     return {
@@ -167,10 +177,18 @@ export class GeometryOracle {
 
     for (let i = 0; i < layers.length; i++) {
       const b = this.getTransformationBounds(layers[i]);
-      if (b.x < minX) minX = b.x;
-      if (b.y < minY) minY = b.y;
-      if (b.x + b.width > maxX) maxX = b.x + b.width;
-      if (b.y + b.height > maxY) maxY = b.y + b.height;
+      if (b.x < minX) {
+        minX = b.x;
+      }
+      if (b.y < minY) {
+        minY = b.y;
+      }
+      if (b.x + b.width > maxX) {
+        maxX = b.x + b.width;
+      }
+      if (b.y + b.height > maxY) {
+        maxY = b.y + b.height;
+      }
     }
 
     return {

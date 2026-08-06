@@ -115,14 +115,14 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
           }
           groups[p.source].push(p);
         });
-
+        // ⚡ Bolt Optimization: Replace O(N) chained map + spread Math.max(...Object.values(groups).map((g) => g.length))
+        // with a single loop to avoid multiple intermediate array allocations and prevent call-stack overflows.
         let maxLen = 0;
         for (const g of Object.values(groups)) {
           if (g.length > maxLen) {
             maxLen = g.length;
           }
         }
-
         const interleaved: PhotoItem[] = [];
         for (let i = 0; i < maxLen; i++) {
           for (const source of Object.keys(groups)) {

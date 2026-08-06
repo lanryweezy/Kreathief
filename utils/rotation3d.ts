@@ -50,17 +50,27 @@ export function applyRotation3D(params: Rotation3DParams): Rotation3DResult {
 
   const projected = corners.map((c) => project3D(c, radX, radY, radZ, perspective));
 
+  // ⚡ Bolt Optimization: Replace O(N) chained map + spread Math.max(...projected.map(p => p.x))
+  // with a single loop to avoid multiple array allocations and spread operator overflows.
   let minX = Infinity;
-  let maxX = -Infinity;
   let minY = Infinity;
+  let maxX = -Infinity;
   let maxY = -Infinity;
 
   for (let i = 0; i < projected.length; i++) {
-    const p = projected[i];
-    if (p.x < minX) minX = p.x;
-    if (p.x > maxX) maxX = p.x;
-    if (p.y < minY) minY = p.y;
-    if (p.y > maxY) maxY = p.y;
+    const p = projected[i]!;
+    if (p.x < minX) {
+      minX = p.x;
+    }
+    if (p.y < minY) {
+      minY = p.y;
+    }
+    if (p.x > maxX) {
+      maxX = p.x;
+    }
+    if (p.y > maxY) {
+      maxY = p.y;
+    }
   }
 
   const outWidth = Math.ceil(maxX - minX) + 8;
