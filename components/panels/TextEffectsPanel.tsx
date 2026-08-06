@@ -217,6 +217,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
               <span className="text-[9px] font-black text-white font-mono">{depth}px</span>
             </div>
             <input
+              aria-label="Emboss Depth"
               type="range"
               min="1"
               max="20"
@@ -265,6 +266,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
               <span className="text-[9px] font-black text-white font-mono">{curve}%</span>
             </div>
             <input
+              aria-label="Curve Intensity"
               type="range"
               min="-100"
               max="100"
@@ -283,6 +285,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
               <span className="text-[9px] font-black text-white font-mono">{depth}px</span>
             </div>
             <input
+              aria-label="Effect Depth"
               type="range"
               min="0"
               max="20"
@@ -305,6 +308,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                 <span className="text-[9px] font-black text-white font-mono">{warpRotateX}deg</span>
               </div>
               <input
+                aria-label="Rotate X"
                 type="range"
                 min="-90"
                 max="90"
@@ -319,6 +323,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                 <span className="text-[9px] font-black text-white font-mono">{warpRotateY}deg</span>
               </div>
               <input
+                aria-label="Rotate Y"
                 type="range"
                 min="-90"
                 max="90"
@@ -333,6 +338,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                 <span className="text-[9px] font-black text-white font-mono">{warpPerspective}px</span>
               </div>
               <input
+                aria-label="Perspective"
                 type="range"
                 min="100"
                 max="2000"
@@ -371,6 +377,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                 <div className="flex items-center gap-3">
                   <span className="text-[9px] font-black text-white font-mono uppercase">{shadowColor}</span>
                   <input
+                    aria-label="Shadow Color"
                     type="color"
                     value={shadowColor}
                     onChange={(e) => {
@@ -387,6 +394,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                   <span className="text-[9px] font-black text-white font-mono">{shadowX}px</span>
                 </div>
                 <input
+                  aria-label="Shadow X Offset"
                   type="range"
                   min="-20"
                   max="20"
@@ -404,6 +412,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                   <span className="text-[9px] font-black text-white font-mono">{shadowY}px</span>
                 </div>
                 <input
+                  aria-label="Shadow Y Offset"
                   type="range"
                   min="-20"
                   max="20"
@@ -421,6 +430,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                   <span className="text-[9px] font-black text-white font-mono">{shadowBlur}px</span>
                 </div>
                 <input
+                  aria-label="Shadow Blur"
                   type="range"
                   min="0"
                   max="50"
@@ -463,6 +473,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                 <div className="flex items-center gap-3">
                   <span className="text-[9px] font-black text-white font-mono uppercase">{strokeColor}</span>
                   <input
+                    aria-label="Stroke Color"
                     type="color"
                     value={strokeColor}
                     onChange={(e) => {
@@ -479,6 +490,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                   <span className="text-[9px] font-black text-white font-mono">{strokeWidth}px</span>
                 </div>
                 <input
+                  aria-label="Stroke Width"
                   type="range"
                   min="0"
                   max="10"
@@ -522,6 +534,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                 <div className="flex items-center gap-3">
                   <span className="text-[9px] font-black text-white font-mono uppercase">{neonColor}</span>
                   <input
+                    aria-label="Glow Color"
                     type="color"
                     value={neonColor}
                     onChange={(e) => {
@@ -541,6 +554,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                   <span className="text-[9px] font-black text-white font-mono">{neonIntensity}%</span>
                 </div>
                 <input
+                  aria-label="Glow Intensity"
                   type="range"
                   min="0"
                   max="100"
@@ -559,6 +573,7 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                   <span className="text-[9px] font-black text-white font-mono">{neonSpread}px</span>
                 </div>
                 <input
+                  aria-label="Aura Spread"
                   type="range"
                   min="0"
                   max="50"
