@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { NavTab } from '../types';
 
 export interface DynamicTool {
@@ -9,10 +10,18 @@ export interface DynamicTool {
 }
 
 export const useContextualPanels = () => {
-  const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
-  const artboards = useStore((state) => state.artboards) || [];
-  const activeArtboardId = useStore((state) => state.activeArtboardId);
-  const isPenMode = useStore((state) => state.isPenMode);
+  // ⚡ Bolt Optimization: Consolidate 4 separate `useStore` subscriptions into a
+  // single useShallow call. This reduces overhead and prevents independent renders.
+  const { selectedLayerIds: rawSelectedLayerIds, artboards: rawArtboards, activeArtboardId, isPenMode } = useStore(
+    useShallow((state) => ({
+      selectedLayerIds: state.selectedLayerIds,
+      artboards: state.artboards,
+      activeArtboardId: state.activeArtboardId,
+      isPenMode: state.isPenMode,
+    }))
+  );
+  const selectedLayerIds = rawSelectedLayerIds || [];
+  const artboards = rawArtboards || [];
 
   const selectedLayer = useMemo(() => {
     if (selectedLayerIds.length === 0) {

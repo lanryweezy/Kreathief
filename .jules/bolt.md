@@ -96,3 +96,8 @@
 ## 2026-07-29 - Optimize array lookups and map operations in layoutSlice
 **Learning:** Using `.findIndex` inside a `.map` creates an O(N^2) operation, causing severe performance issues with large arrays. Additionally, using `Math.min(...array.map())` causes unnecessary memory allocations and can lead to maximum call stack exceeded errors.
 **Action:** Use a pre-computed `Map` to turn O(N^2) lookups into O(N). Replace chained `.map` and spread operations with a single `for` loop.
+
+## 2026-07-31 - Zustand multiple useStore calls in complex components
+
+**Learning:** When multiple top-level global state values are retrieved via separate independent `useStore((state) => state.prop)` calls in highly active container components like `<Editor>`, `<Header>`, and `useContextualPanels`, each call subscribes to the store independently. While Zustand handles this reasonably well, having 10-15 separate store subscriptions causes noticeable overhead and unnecessary fragmented re-evaluations during rapid state updates (e.g. mouse movements/collaboration).
+**Action:** When extracting many individual scalar properties from a Zustand store, consolidate them into a single `useStore` call passing an explicit object selector, and always wrap it with `useShallow` from `zustand/react/shallow`. This reduces the number of store subscriptions and groups re-render evaluation efficiently.
