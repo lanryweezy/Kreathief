@@ -103,6 +103,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <input
+                aria-label="Drop Shadow Color"
                 type="color"
                 value={dropShadow.color}
                 onChange={(e) => {
@@ -224,6 +225,7 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <input
+                aria-label="Stroke Color"
                 type="color"
                 value={stroke.color}
                 onChange={(e) => {
