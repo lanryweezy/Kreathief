@@ -100,8 +100,11 @@ export default async function handler(req: Request) {
 
   try {
     await requireAuth(req);
-  } catch (response) {
-    return response as Response;
+  } catch (error) {
+    if (error instanceof Response) {
+      return error;
+    }
+    return errRes('Internal server error during authentication', origin, 500);
   }
 
   const ip = req.headers.get('x-forwarded-for') || 'unknown';
@@ -110,7 +113,7 @@ export default async function handler(req: Request) {
     return blocked;
   }
 
-  const apiKey = process.env.TENOR_API_KEY || process.env.VITE_TENOR_API_KEY;
+  const apiKey = process.env.TENOR_API_KEY;
   if (!apiKey) {
     return errRes('Tenor API key not configured', origin, 503);
   }
