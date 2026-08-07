@@ -22,12 +22,10 @@ const ExportCmykSchema = z.object({
 });
 
 export default async function handler(req: any, res: any) {
-  const origin =
-    process.env.VITE_FRONTEND_URL ||
-    req.headers?.get?.('origin') ||
-    req.headers?.origin ||
-    req.headers?.['origin'] ||
-    '*';
+  const origin = process.env.VITE_FRONTEND_URL;
+  if (!origin) {
+    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
+  }
 
   const now = Date.now();
 
