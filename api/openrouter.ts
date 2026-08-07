@@ -11,17 +11,19 @@ const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 20;
 
 export default async function handler(req: Request) {
-  const origin =
-    process.env.VITE_FRONTEND_URL ||
-    req.headers?.get?.('origin') ||
-    req.headers?.origin ||
-    req.headers?.['origin'] ||
-    '*';
+  const origin = process.env.VITE_FRONTEND_URL;
+  if (!origin) {
+    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
+  }
 
   try {
     await requireAuth(req);
-  } catch (response) {
-    return response as Response;
+  } catch (error) {
+    if (error instanceof Response) return error;
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   if (req.method === 'OPTIONS') {

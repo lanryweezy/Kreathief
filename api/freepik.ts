@@ -65,7 +65,6 @@ export default async function handler(req: Request) {
     });
   }
 
-
   const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
   const rateLimitState = rateLimitMap.get(clientIp);
 

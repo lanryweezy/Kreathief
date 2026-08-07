@@ -7,7 +7,10 @@ const iconCache = new Map<string, { data: any[]; expiry: number }>();
 const CACHE_TTL = 24 * 60 * 60 * 1000;
 
 export default async function handler(req: Request) {
-  const origin = process.env.VITE_FRONTEND_URL || req.headers.get('origin') || '*';
+  const origin = process.env.VITE_FRONTEND_URL;
+  if (!origin) {
+    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
+  }
 
   if (req.method === 'OPTIONS') {
     return new Response(null, {

@@ -5,7 +5,10 @@ export const config = {
 };
 
 export default async function handler(req: Request) {
-  const origin = process.env.VITE_FRONTEND_URL || req.headers.get('origin') || '*';
+  const origin = process.env.VITE_FRONTEND_URL;
+  if (!origin) {
+    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
+  }
 
   if (req.method === 'OPTIONS') {
     return new Response(null, {
