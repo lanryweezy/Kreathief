@@ -145,6 +145,20 @@ describe('GeminiService', () => {
     });
   });
 
+  describe('cleanBase64', () => {
+    it('should throw an error if dataUrl is falsy', () => {
+      expect(() => geminiService.cleanBase64('')).toThrow('Invalid image data provided');
+      expect(() => geminiService.cleanBase64(null as any)).toThrow('Invalid image data provided');
+      expect(() => geminiService.cleanBase64(undefined as any)).toThrow('Invalid image data provided');
+    });
+
+    it('should clean and return base64 data without data URL prefix', () => {
+      const result = geminiService.cleanBase64('data:image/jpeg;base64, /9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxITEhUSExMWFhUXFRcWFxgYFRcYFxgXFxgXFxcXFxcYHSggGBolHRcXITEhJSkrLi4uFx8zODMtNygtLisBCgoKDg0OGxAQGy0lICUtLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLf/AABEIAOEA4QMBEQACEQEDEQH/');
+      expect(result.mimeType).toBe('image/jpeg');
+      expect(result.data).toBe('/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxITEhUSExMWFhUXFRcWFxgYFRcYFxgXFxgXFxcXFxcYHSggGBolHRcXITEhJSkrLi4uFx8zODMtNygtLisBCgoKDg0OGxAQGy0lICUtLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLf/AABEIAOEA4QMBEQACEQEDEQH/');
+    });
+  });
+
   describe('analyzeDesign', () => {
     it('should provide design analysis', async () => {
       const mockAnalysis = 'Analysis results';

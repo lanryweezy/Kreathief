@@ -121,7 +121,7 @@ export const callBackendGeminiAPI = async (payload: any) => {
  * Clean Base64 string by removing data URL prefix if present.
  * Aggressively strips whitespace to prevent RPC errors.
  */
-const cleanBase64 = (dataUrl: string): { data: string; mimeType: string } => {
+export const cleanBase64 = (dataUrl: string): { data: string; mimeType: string } => {
   if (!dataUrl) {
     throw new Error('Invalid image data provided');
   }
