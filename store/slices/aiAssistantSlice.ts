@@ -1,6 +1,7 @@
 import { StateCreator } from 'zustand';
 import { AIAssistantState, DesignCritique, DesignSuggestion, ChatMessage, DesignContext } from '../../types';
 import * as aiService from '../../services/aiService';
+import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
 import { v4 as uuidv4 } from 'uuid';
 import type { StoreState } from '../useStore';
@@ -144,6 +145,8 @@ export const createAIAssistantSlice: StateCreator<StoreState, [], [], AIAssistan
     if (!activeArtboard) {
       return;
     }
+
+    analyticsService.track('kiro_chat', { message_length: message.length });
 
     // Add user message
     const userMessage: ChatMessage = {

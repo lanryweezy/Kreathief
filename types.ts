@@ -534,6 +534,96 @@ export interface BrandKit {
   secondaryLogo?: string;
 }
 
+/**
+ * Which facets of a reference image should influence generation. A reference is rarely
+ * wanted wholesale — "this product, but that typography and that lighting" is the point.
+ */
+export type ReferenceAspect =
+  | 'style'
+  | 'composition'
+  | 'typography'
+  | 'layout'
+  | 'character'
+  | 'product'
+  | 'logo'
+  | 'palette'
+  | 'mood'
+  | 'lighting'
+  | 'illustrationStyle'
+  | 'cameraAngle';
+
+export const REFERENCE_ASPECT_LABELS: Record<ReferenceAspect, string> = {
+  style: 'Style',
+  composition: 'Composition',
+  typography: 'Typography',
+  layout: 'Layout',
+  character: 'Character',
+  product: 'Product',
+  logo: 'Logo',
+  palette: 'Color Palette',
+  mood: 'Mood',
+  lighting: 'Lighting',
+  illustrationStyle: 'Illustration Style',
+  cameraAngle: 'Camera Angle',
+};
+
+/** Vision-extracted description of a reference image, cached so it is analyzed once. */
+export interface ExtractedReferenceStyle {
+  summary: string;
+  palette: string[];
+  composition: string;
+  typography: string;
+  textures: string;
+  mood: string;
+  lighting: string;
+  illustrationStyle: string;
+  cameraAngle: string;
+}
+
+/**
+ * State of the vision extraction for a reference. `failed` does NOT mean the reference is
+ * unusable — a model with native conditioning still receives the raw image; only the
+ * text descriptor is missing.
+ */
+export type ReferenceAnalysisStatus = 'analyzing' | 'ready' | 'failed';
+
+/**
+ * How a generation actually consumed the reference, reported back after the call so the UI
+ * can be honest rather than assuming the upload took effect.
+ * - `native`     — the image itself was sent to the model
+ * - `descriptor` — only the extracted text description reached the model
+ * - `none`       — the reference contributed nothing (no descriptor and no native support)
+ */
+export type ReferenceAppliedMode = 'native' | 'descriptor' | 'none';
+
+export interface StyleReference {
+  id: string;
+  /** Full data URI of the reference image. */
+  image: string;
+  name?: string;
+  /** Only these facets are folded into the prompt. */
+  aspects: ReferenceAspect[];
+  extracted?: ExtractedReferenceStyle;
+  analysisStatus: ReferenceAnalysisStatus;
+  /** Set when vision analysis failed, so the UI can explain the degraded behavior. */
+  analysisError?: string;
+  /** Result of the most recent generation; undefined until one has run. */
+  appliedMode?: ReferenceAppliedMode;
+}
+
+/**
+ * Everything a generation call is conditioned on. Pipelines take this instead of a bare
+ * prompt string so new inputs never require touching each call site.
+ */
+export interface GenerationContext {
+  prompt: string;
+  brandKit?: BrandKit | null;
+  styleReference?: StyleReference | null;
+  campaignGoal?: string;
+  canvasSize?: { width: number; height: number };
+  outputType?: 'image' | 'svg';
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';

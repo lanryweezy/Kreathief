@@ -222,10 +222,17 @@ const builtins: Command[] = [
   },
   {
     id: 'magic-resize',
-    label: 'Magic Resize',
+    label: 'Magic Resize: All Formats',
     category: 'AI',
     icon: '📐',
-    action: () => (useStore.getState() as any).magicResize?.(1080, 1080),
+    action: () =>
+      (useStore.getState() as any).magicResizeAll?.([
+        { name: 'Instagram Post', width: 1080, height: 1080 },
+        { name: 'Story / Reel', width: 1080, height: 1920 },
+        { name: 'YouTube Thumbnail', width: 1280, height: 720 },
+        { name: 'Facebook Post', width: 1200, height: 630 },
+        { name: 'Presentation', width: 1920, height: 1080 },
+      ]),
   },
 ];
 

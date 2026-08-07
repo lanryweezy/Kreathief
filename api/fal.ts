@@ -112,26 +112,32 @@ export default async function handler(req: Request) {
   const allowedEndpoints = [
     // FLUX
     'https://fal.run/fal-ai/flux/dev',
+    'https://fal.run/fal-ai/flux/dev/image-to-image',
     'https://fal.run/fal-ai/flux/schnell',
     'https://fal.run/fal-ai/flux-pro',
     'https://fal.run/fal-ai/flux-2-pro',
     // Google Nano Banana
     'https://fal.run/fal-ai/nano-banana',
+    'https://fal.run/fal-ai/nano-banana/edit',
     'https://fal.run/fal-ai/nano-banana-2',
+    'https://fal.run/fal-ai/nano-banana-2/edit',
     'https://fal.run/fal-ai/nano-banana-pro',
+    'https://fal.run/fal-ai/nano-banana-pro/edit',
     // Chinese models
     'https://fal.run/fal-ai/bytedance/seedream/v5/lite/text-to-image',
     'https://fal.run/fal-ai/bytedance/seedream/v4.5/text-to-image',
+    'https://fal.run/fal-ai/bytedance/seedream/v4.5/edit',
     'https://fal.run/fal-ai/qwen-image',
+    'https://fal.run/fal-ai/qwen-image-edit',
     'https://fal.run/fal-ai/ideogram/v3',
     'https://fal.run/fal-ai/ideogram/v4',
     // OpenAI
-    'https://fal.run/fal-ai/openai/gpt-image-2',
+    'https://fal.run/fal-ai/gpt-image-2',
     // Recraft
     'https://fal.run/fal-ai/recraft-v3/vector',
     'https://fal.run/fal-ai/recraft/v4/pro/text-to-image',
     // SDXL + utilities
-    'https://fal.run/fal-ai/sdxl/inpainting',
+    'https://fal.run/fal-ai/fast-sdxl/inpainting',
     'https://fal.run/fal-ai/fast-sdxl',
     'https://fal.run/fal-ai/aura-sr',
     'https://fal.run/fal-ai/esrgan',
@@ -157,12 +163,22 @@ export default async function handler(req: Request) {
       const allowedFields = [
         'prompt',
         'image_url',
+        // Array form required by the /edit routes (nano-banana, seedream). Media input
+        // only — the allowlist exists to block webhook_url-style SSRF vectors, not images.
+        'image_urls',
         'mask_url',
         'image',
         'image_size',
+        // Sizing vocabulary of the Nano Banana family, which ignores image_size
+        // (see ImageGenModel.sizeField). Stripping these would silently discard the
+        // user's chosen aspect ratio.
+        'aspect_ratio',
+        'resolution',
         'num_images',
         'guidance_scale',
         'num_inference_steps',
+        // How far an image-to-image result may drift from the reference.
+        'strength',
         'width',
         'height',
         'seed',
@@ -195,8 +211,34 @@ export default async function handler(req: Request) {
     clearTimeout(timeout);
 
     if (!response.ok) {
-      const errText = await response.text().catch(() => 'Unknown error');
-      throw new Error(`Fal.ai API ${response.status}: ${errText.slice(0, 200)}`);
+      const errText = await response.text().catch(() => '');
+      // An upstream 4xx means our request shape was wrong for this model (typically the
+      // wrong image field name), not an outage. Collapsing it into a 500 hid the reason and
+      // made the client retry an error that can never succeed, so the status and Fal's
+      // validation message are forwarded. Fal echoes back request-schema details only —
+      // the API key is server-side and never appears in its response body.
+      const isClientError = response.status >= 400 && response.status < 500;
+      log.warn('Fal.ai rejected request', {
+        endpoint,
+        status: response.status,
+        fields: Object.keys(safeBody).sort(),
+        detail: errText.slice(0, 500),
+      });
+
+      return new Response(
+        JSON.stringify({
+          error: `Fal.ai API ${response.status}`,
+          detail: errText.slice(0, 500),
+        }),
+        {
+          status: isClientError ? response.status : 502,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': origin,
+            ...noStoreHeaders(),
+          },
+        }
+      );
     }
     const data = await response.json();
 
