@@ -96,6 +96,9 @@
 ## 2026-07-29 - Optimize array lookups and map operations in layoutSlice
 **Learning:** Using `.findIndex` inside a `.map` creates an O(N^2) operation, causing severe performance issues with large arrays. Additionally, using `Math.min(...array.map())` causes unnecessary memory allocations and can lead to maximum call stack exceeded errors.
 **Action:** Use a pre-computed `Map` to turn O(N^2) lookups into O(N). Replace chained `.map` and spread operations with a single `for` loop.
+## 2026-07-31 - Replace .findIndex() inside .map() loops and Math.min() calls
+**Learning:** Using `layers.findIndex()` inside `selectedPaths.map()` followed by `Math.min(...)` to find the lowest selected index results in an O(N*M) operation and can cause "Maximum call stack size exceeded" with very large selections.
+**Action:** Always pre-compute a `Set` of the selected items' IDs, then use a single `layers.findIndex()` check against the `Set` to achieve O(N) complexity.
 ## 2026-08-04 - Cautious Use of Map lookups for Array Intersections
 
 **Learning:** While replacing an O(N*M) nested array search (`layers.filter(l => selectedIds.includes(l.id))`) with an O(N) Map lookup (`const map = new Map(layers.map(l => [l.id, l])); selectedIds.map(id => map.get(id))`) is theoretically faster algorithmically, it introduces a massive de-optimization if the main array (N) is huge and the subset of selected IDs (M) is very small. In these cases, allocating the memory and iterating over the entire massive array to build the Map is significantly slower than just running the O(N*M) search.
