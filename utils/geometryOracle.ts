@@ -128,10 +128,18 @@ export class GeometryOracle {
       };
     });
 
-    const minX = Math.min(...corners.map((c) => c.x));
-    const minY = Math.min(...corners.map((c) => c.y));
-    const maxX = Math.max(...corners.map((c) => c.x));
-    const maxY = Math.max(...corners.map((c) => c.y));
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    for (let i = 0; i < corners.length; i++) {
+      const c = corners[i];
+      if (c.x < minX) minX = c.x;
+      if (c.y < minY) minY = c.y;
+      if (c.x > maxX) maxX = c.x;
+      if (c.y > maxY) maxY = c.y;
+    }
 
     return {
       x: minX,
