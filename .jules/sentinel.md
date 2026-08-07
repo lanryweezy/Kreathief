@@ -232,3 +232,26 @@
 **Vulnerability:** The `api/streamline.ts` edge route was missing the `requireAuth` check, allowing unauthorized access to the paid Streamline API using the application's server API key.
 **Learning:** Edge functions acting as proxies to third-party APIs can be easily overlooked when enforcing global authentication checks. Missing `requireAuth` enables abuse of paid resources, leading to financial impact.
 **Prevention:** Always ensure that all edge API routes serving as proxies to third-party services include the `await requireAuth(req)` check in a `try/catch` block, immediately after the CORS `OPTIONS` preflight handler.
+
+## 2026-08-01 - Prevent Crashes and API Key Exposure in Tenor Proxy Route
+
+**Vulnerability:**
+1. In `api/tenor.ts`, the `requireAuth` block unsafely caught all thrown errors and cast them to `Response`, which caused the edge function to crash or leak data if standard `Error` objects were thrown instead of HTTP responses.
+2. The proxy also used a fallback to `process.env.VITE_TENOR_API_KEY`. As a Vite frontend application, variables prefixed with `VITE_` are statically injected into the client bundle at build time, directly exposing this backend secret API key to users via the compiled frontend code if it were configured using the `VITE_` prefix.
+
+**Learning:**
+1. Blindly casting caught errors as `Response` in Edge APIs violates TypeScript safety and can lead to unhandled server crashes when utility functions throw native errors instead of returning error responses.
+2. Relying on `VITE_` prefixed environment variables for backend API keys creates a severe risk of secret exposure. A developer fulfilling the fallback could unintentionally leak the secret to the public bundle.
+
+**Prevention:**
+1. Always securely check if an error is an HTTP response (`if (error instanceof Response) return error;`) and return a generic 500 error structure otherwise.
+2. Never prefix backend secrets with `VITE_`. Strict usage of purely server-side environment variables (`TENOR_API_KEY`) is mandatory to prevent accidental client-side injection.
+## 2024-03-20 - [Removed Stack Trace Leak in ErrorFallback UI]
+**Vulnerability:** The application was directly rendering `error.stack` inside `components/ErrorFallback.tsx` when catching unexpected React component errors.
+**Learning:** Displaying raw stack traces in the user interface (Information Exposure) can inadvertently leak sensitive system paths, file structures, library versions, or other implementation details. This gives attackers deep insight into the application's architecture which could be used to exploit other vulnerabilities.
+**Prevention:** Never render `error.stack` directly to users in error boundaries, fallback UIs, or API responses. Catch blocks and error components should log the detailed error (including stack traces) securely internally (e.g., via Sentry or a secure logging service) but present only a generic, safe error message to the user.
+## 2026-08-05 - Missing Authentication on CMYK Export API Proxy
+
+**Vulnerability:** The `api/export-cmyk.ts` endpoint did not have the `requireAuth` check, leaving it entirely unauthenticated. It allowed arbitrary users to consume expensive image processing operations without an active session.
+**Learning:** Removing authentication checks from backend proxy endpoints exposes the backend's resources and functions to unauthenticated public access. This leads directly to quota exhaustion and Denial-of-Service vectors. Furthermore, when adding `requireAuth` to Node.js runtime API routes (`runtime: 'nodejs'`), `req.headers` is a plain object. The `requireAuth` logic expects a Web Request instance (with `req.headers.get`), so `.get` must be manually mocked.
+**Prevention:** Never remove or comment out authentication layers on proxy endpoints that perform heavy computations or consume external resources. Always ensure proper mocking of `.get` when adapting Node.js `req.headers` for Edge-compatible authentication helpers.

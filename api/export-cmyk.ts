@@ -49,6 +49,16 @@ export default async function handler(req: any, res: any) {
     return res.status(200).end();
   }
 
+  try {
+    const mockReq = { headers: { get: (name: string) => req.headers[name.toLowerCase()] } } as unknown as Request;
+    await requireAuth(mockReq);
+  } catch (error) {
+    if (error instanceof Response) {
+      return res.status(error.status).json({ error: 'Authentication required' });
+    }
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }

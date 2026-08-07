@@ -328,6 +328,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   min="50"
                   max="150"
                   step="1"
+                  aria-label="Contrast"
                   value={lightingContrast}
                   onChange={(e) => setLightingContrast(Number(e.target.value))}
                   className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-brand-600"
@@ -484,6 +485,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                     min="-30"
                     max="30"
                     aria-label="Cylindrical Curve"
+                    aria-label="Curve Intensity"
                     value={curve}
                     onChange={(e) => setCurve(Number(e.target.value))}
                     className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
