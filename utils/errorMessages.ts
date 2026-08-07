@@ -89,7 +89,7 @@ export function getErrorDetails(error: Error | unknown): ErrorDetails {
   }
 
   // Format errors
-  if (errorMessage.includes('format') || errorMessage.includes('unsupported') || errorMessage.includes('invalid')) {
+  if (errorMessage.includes('format') || errorMessage.includes('unsupported')) {
     return {
       code: ErrorCode.UNSUPPORTED_FORMAT,
       message: 'Unsupported file format',
