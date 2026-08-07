@@ -257,7 +257,6 @@ export function applyCurveToCorners(
   }
 
   const curveRad = (curve * Math.PI) / 180;
-  // const midX = width / 2;
 
   // Calculate curve offset
   const curveOffset = Math.sin(curveRad) * (width / 4);
