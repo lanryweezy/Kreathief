@@ -4,6 +4,7 @@ import { Icons } from '../constants';
 import { User, Project, AnimationSettings } from '../types';
 import { DropdownMenu } from './DropdownMenu';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { PublishModal } from './modals/PublishModal';
 import { PresenceBar } from './collaboration/PresenceBar';
 import { Button } from './Button';
@@ -63,20 +64,29 @@ export const Header: React.FC<HeaderProps> = ({
   const setShowShareModal = s.setShowShareModal;
   const setProjectTitle = s.setProjectTitle;
 
-  const past = useStore((state) => state.past);
-  const future = useStore((state) => state.future);
-  const isSaving = useStore((state) => state.isSaving);
-  const lastSaved = useStore((state) => state.lastSaved);
-  const hasUnsavedChanges = useStore((state) => state.hasUnsavedChanges);
-  const projectTitle = useStore((state) => state.projectTitle);
+  // ⚡ Bolt Optimization: Use useShallow with an explicit selector object to combine
+  // what used to be 8 separate `useStore` subscriptions into a single one. This groups
+  // state evaluation and prevents the Header from re-rendering heavily due to
+  // fragmented subscriptions.
+  const { past, future, isSaving, lastSaved, hasUnsavedChanges, projectTitle, showAIOverlay, aiTab } = useStore(
+    useShallow((state) => ({
+      past: state.past,
+      future: state.future,
+      isSaving: state.isSaving,
+      lastSaved: state.lastSaved,
+      hasUnsavedChanges: state.hasUnsavedChanges,
+      projectTitle: state.projectTitle,
+      // AI overlay state lives in the store so Command Palette / other surfaces can open it
+      showAIOverlay: state.showAIOverlay,
+      aiTab: state.aiOverlayTab,
+    }))
+  );
 
   const [showPublishModal, setShowPublishModal] = React.useState(false);
   const [isEditingTitle, setIsEditingTitle] = React.useState(false);
   const [showZoomMenu, setShowZoomMenu] = React.useState(false);
   const [showResizeMenu, setShowResizeMenu] = React.useState(false);
   // AI overlay state lives in the store so Command Palette / other surfaces can open it
-  const showAIOverlay = useStore((state) => state.showAIOverlay);
-  const aiTab = useStore((state) => state.aiOverlayTab);
   const setShowAIOverlay = s.setShowAIOverlay;
   const setAiTab = s.setAIOverlayTab;
   const overlayRef = React.useRef<HTMLDivElement>(null);
