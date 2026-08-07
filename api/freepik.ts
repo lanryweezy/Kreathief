@@ -30,12 +30,16 @@ const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 let lastCleanup = Date.now();
 
 export default async function handler(req: Request) {
-  const origin = process.env.VITE_FRONTEND_URL || req.headers.get('origin') || '*';
+  const origin = process.env.VITE_FRONTEND_URL;
+  if (!origin) {
+    return new Response(JSON.stringify({ error: 'Server misconfigured: VITE_FRONTEND_URL missing' }), { status: 500 });
+  }
 
   try {
     await requireAuth(req);
-  } catch (response) {
-    return response as Response;
+  } catch (error) {
+    if (error instanceof Response) return error;
+    return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500 });
   }
 
   const now = Date.now();
@@ -61,17 +65,6 @@ export default async function handler(req: Request) {
     });
   }
 
-  try {
-    await requireAuth(req);
-  } catch (error) {
-    if (error instanceof Response) {
-      return error;
-    }
-    return new Response(JSON.stringify({ error: 'Internal server error during authentication' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
 
   const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
   const rateLimitState = rateLimitMap.get(clientIp);
