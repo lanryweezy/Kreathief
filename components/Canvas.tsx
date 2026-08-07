@@ -516,12 +516,21 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
         // Mouse → world → artboard-local coords, image centered on the drop point
         const worldX = (e.clientX - rect.left - panOffset.x) / zoom;
         const worldY = (e.clientY - rect.top - panOffset.y) / zoom;
-        const localX = worldX - (activeArtboard?.x || 0);
-        const localY = worldY - (activeArtboard?.y || 0);
+        // Target the artboard under the cursor — parenting to a different
+        // artboard puts the image outside its bounds where it gets clipped away
+        const target =
+          artboards.find(
+            (a) => worldX >= a.x && worldX <= a.x + a.width && worldY >= a.y && worldY <= a.y + a.height
+          ) || activeArtboard;
+        if (target && target.id !== activeArtboardId) {
+          setActiveArtboardId(target.id);
+        }
+        const localX = worldX - (target?.x || 0);
+        const localY = worldY - (target?.y || 0);
         useStore.getState().addImageLayer(url, 'Image', localX - 150, localY - 150, 300, 300);
       }
     },
-    [props.onFileUpload, panOffset, zoom, activeArtboard]
+    [props.onFileUpload, panOffset, zoom, activeArtboard, artboards, activeArtboardId, setActiveArtboardId]
   );
 
   const canvasContextValue = useMemo<CanvasContextValue>(

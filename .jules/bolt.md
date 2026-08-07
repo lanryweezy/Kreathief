@@ -99,3 +99,12 @@
 ## 2026-07-31 - Replace .findIndex() inside .map() loops and Math.min() calls
 **Learning:** Using `layers.findIndex()` inside `selectedPaths.map()` followed by `Math.min(...)` to find the lowest selected index results in an O(N*M) operation and can cause "Maximum call stack size exceeded" with very large selections.
 **Action:** Always pre-compute a `Set` of the selected items' IDs, then use a single `layers.findIndex()` check against the `Set` to achieve O(N) complexity.
+## 2026-08-04 - Cautious Use of Map lookups for Array Intersections
+
+**Learning:** While replacing an O(N*M) nested array search (`layers.filter(l => selectedIds.includes(l.id))`) with an O(N) Map lookup (`const map = new Map(layers.map(l => [l.id, l])); selectedIds.map(id => map.get(id))`) is theoretically faster algorithmically, it introduces a massive de-optimization if the main array (N) is huge and the subset of selected IDs (M) is very small. In these cases, allocating the memory and iterating over the entire massive array to build the Map is significantly slower than just running the O(N*M) search.
+**Action:** Before optimizing O(N*M) lookups with Maps, consider the relative sizes of N and M. If M is guaranteed to be extremely small (e.g. user selected 2 items out of 10,000 layers), avoid creating an O(N) Map or Set. If N and M can both be large, only then proceed with the Map/Set optimization.
+
+## 2026-07-31 - Zustand multiple useStore calls in complex components
+
+**Learning:** When multiple top-level global state values are retrieved via separate independent `useStore((state) => state.prop)` calls in highly active container components like `<Editor>`, `<Header>`, and `useContextualPanels`, each call subscribes to the store independently. While Zustand handles this reasonably well, having 10-15 separate store subscriptions causes noticeable overhead and unnecessary fragmented re-evaluations during rapid state updates (e.g. mouse movements/collaboration).
+**Action:** When extracting many individual scalar properties from a Zustand store, consolidate them into a single `useStore` call passing an explicit object selector, and always wrap it with `useShallow` from `zustand/react/shallow`. This reduces the number of store subscriptions and groups re-render evaluation efficiently.

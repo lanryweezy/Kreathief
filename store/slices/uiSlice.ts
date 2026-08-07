@@ -44,6 +44,8 @@ export interface UISlice {
   tags: string[];
   isPublished: boolean;
   isCommandPaletteOpen: boolean;
+  showAIOverlay: boolean;
+  aiOverlayTab: 'generate' | 'assistant' | 'chat';
   showVersionDiff: boolean;
   versionDiffSnapshotId: string | null;
   user: any | null;
@@ -64,6 +66,8 @@ export interface UISlice {
   setIsProcessing: (isProcessing: boolean) => void;
   setIsExporting: (isExporting: boolean) => void;
   setCommandPaletteOpen: (isOpen: boolean) => void;
+  setShowAIOverlay: (show: boolean, tab?: 'generate' | 'assistant' | 'chat') => void;
+  setAIOverlayTab: (tab: 'generate' | 'assistant' | 'chat') => void;
   setHistory: (history: GeneratedImage[] | ((prev: GeneratedImage[]) => GeneratedImage[])) => void;
   clearHistory: () => void;
   handleFileUpload: (files: File[]) => void;
@@ -153,6 +157,8 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   refineBrushMode: 'none',
   refineBrushSize: 30,
   isCommandPaletteOpen: false,
+  showAIOverlay: false,
+  aiOverlayTab: 'generate' as const,
   showPresentation: false,
   showVersionDiff: false,
   versionDiffSnapshotId: null,
@@ -168,6 +174,8 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   setAspectLocked: (aspectLocked) => set({ aspectLocked }),
   setUser: (user) => set({ user }),
   setCommandPaletteOpen: (isCommandPaletteOpen) => set({ isCommandPaletteOpen }),
+  setShowAIOverlay: (show, tab) => set(tab ? { showAIOverlay: show, aiOverlayTab: tab } : { showAIOverlay: show }),
+  setAIOverlayTab: (aiOverlayTab) => set({ aiOverlayTab }),
   setActiveTab: (activeTab) => set({ activeTab }),
   setMode: (mode) => set({ mode }),
   setIsProcessing: (isProcessing) => set({ isProcessing }),
@@ -193,8 +201,13 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   deleteUpload: (index) =>
     set((state: any) => {
       const url = state.uploads[index];
+      // Only revoke the blob URL if no layer still uses it as its image source —
+      // revoking a live src instantly blanks that image on the canvas.
       if (url?.startsWith('blob:')) {
-        URL.revokeObjectURL(url);
+        const inUse = (state.artboards || []).some((a: any) => (a.layers || []).some((l: any) => l.src === url));
+        if (!inUse) {
+          URL.revokeObjectURL(url);
+        }
       }
       return { uploads: state.uploads.filter((_: any, i: number) => i !== index) };
     }),

@@ -1,7 +1,9 @@
 import { SchemaType } from '@google/generative-ai';
-import { MODEL_FAST, MODEL_PRO, FONT_FAMILIES } from '../constants';
-import { DesignTheme, GenerationQuality } from '../types';
+import { MODEL_FAST, FONT_FAMILIES } from '../constants';
+import { DesignTheme, ExtractedReferenceStyle, GenerationQuality } from '../types';
 import * as freepikService from './freepikService';
+import { aiModelsService } from './aiModelsService';
+import { DEFAULT_EDIT_MODEL, getImageModel } from '../config/imageModels';
 import { log } from '../utils/log';
 import { safeParseJSON, retryWithBackoff } from '../utils/errorHandling';
 
@@ -10,7 +12,7 @@ export const callBackendGeminiAPI = async (payload: any) => {
   const endpoint = process.env.NODE_ENV === 'test' ? 'http://localhost:3000/api/openrouter' : '/api/openrouter';
 
   // Translate Gemini-style payload into OpenAI/OpenRouter messages array
-  const messages: { role: string; content: string }[] = [];
+  const messages: { role: string; content: string | any[] }[] = [];
 
   if (payload.systemInstruction) {
     const sysText =
@@ -20,11 +22,36 @@ export const callBackendGeminiAPI = async (payload: any) => {
     messages.push({ role: 'system', content: sysText });
   }
 
+  // Gemini `parts` can mix text with inlineData (images). OpenRouter expects multimodal
+  // turns as a content array, so a turn is only collapsed to a plain string when it is
+  // text-only — otherwise the image would be dropped and the model would answer blind.
+  const partToContent = (p: any) => {
+    if (p?.inlineData?.data) {
+      const mimeType = p.inlineData.mimeType || 'image/png';
+      const data: string = p.inlineData.data;
+      return {
+        type: 'image_url',
+        image_url: { url: data.startsWith('data:') ? data : `data:${mimeType};base64,${data}` },
+      };
+    }
+    return { type: 'text', text: p?.text ?? '' };
+  };
+
   if (Array.isArray(payload.contents)) {
     for (const c of payload.contents) {
       const role = c.role === 'model' ? 'assistant' : 'user';
-      const text = Array.isArray(c.parts) ? c.parts.map((p: any) => p.text ?? '').join('') : String(c);
-      messages.push({ role, content: text });
+      if (!Array.isArray(c.parts)) {
+        messages.push({ role, content: String(c) });
+        continue;
+      }
+      if (c.parts.some((p: any) => p?.inlineData?.data)) {
+        messages.push({
+          role,
+          content: c.parts.map(partToContent).filter((part: any) => part.type !== 'text' || part.text),
+        });
+      } else {
+        messages.push({ role, content: c.parts.map((p: any) => p.text ?? '').join('') });
+      }
     }
   } else if (payload.contents) {
     messages.push({ role: 'user', content: String(payload.contents) });
@@ -119,106 +146,79 @@ const cleanBase64 = (dataUrl: string): { data: string; mimeType: string } => {
   };
 };
 
+/**
+ * Raster generation fallback leg.
+ *
+ * Gemini-hosted image generation is NOT reachable from the browser: the OpenRouter bridge
+ * normalizes every response to text parts, so extractImageFromResponse could never find
+ * inlineData and this function always threw. Fal is the single image backend
+ * (see imageGenService.generateImageWithModel); this remains only as its Freepik fallback.
+ */
 export const generateImage = async (
   prompt: string,
   aspectRatio: string,
   quality: GenerationQuality = 'standard'
 ): Promise<string> => {
+  if (!freepikService.isConfigured()) {
+    throw new Error('Image generation unavailable: the selected model failed and no Freepik fallback is configured.');
+  }
+
   try {
-    const modelName = quality === 'hd' ? MODEL_PRO : MODEL_FAST;
-    const config: any = {
-      imageConfig: {
-        aspectRatio: aspectRatio,
-      },
-    };
-
-    if (quality === 'hd') {
-      config.imageConfig.imageSize = '1K';
-    }
-
-    const data = await callBackendGeminiAPI({
-      modelName,
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: prompt }],
-        },
-      ],
-      generationConfig: config,
+    const result = await freepikService.generateImage(prompt, {
+      resolution: quality === 'hd' ? '2k' : '1k',
+      aspectRatio,
     });
-
-    return extractImageFromResponse(data);
-  } catch (error) {
-    log.error('[GeminiService] Image generation failed, attempting Freepik fallback', error);
-
-    // Freepik fallback
-    if (freepikService.isConfigured()) {
-      try {
-        const result = await freepikService.generateImage(prompt, {
-          resolution: quality === 'hd' ? '2k' : '1k',
-          aspectRatio,
-        });
-        if (result) {
-          return result;
-        }
-      } catch (fpError) {
-        log.error('Freepik fallback also failed', fpError, { prompt, aspectRatio, quality });
-      }
+    if (!result) {
+      throw new Error('Freepik returned no image');
     }
-
+    return result;
+  } catch (error) {
+    log.error('[GeminiService] Freepik fallback generation failed', error, { prompt, aspectRatio, quality });
     throw error;
   }
 };
 
+/**
+ * Prompt-driven image editing, routed to Fal's edit endpoints — the single editing backend.
+ * Every edit helper below (upscale/enhance/erase/retouch/expand/pattern) funnels through here.
+ */
 export const editImage = async (
   base64Image: string,
   prompt: string,
   quality: GenerationQuality = 'standard'
 ): Promise<string> => {
+  const model = getImageModel(quality === 'hd' ? 'nano-banana-pro' : DEFAULT_EDIT_MODEL);
+  if (!model?.editEndpoint) {
+    throw new Error('Image editing unavailable: no edit-capable model is configured.');
+  }
+
   try {
+    // Normalize to a full data URI whether the caller passed one or raw base64.
     const { data: b64Data, mimeType } = cleanBase64(base64Image);
-    const modelName = quality === 'hd' ? MODEL_PRO : MODEL_FAST;
-
-    const parts = [
-      {
-        text: prompt,
-      },
-      {
-        inlineData: {
-          mimeType,
-          data: b64Data,
-        },
-      },
-    ];
-
-    const data = await callBackendGeminiAPI({
-      modelName,
-      contents: [{ role: 'user', parts }],
-    });
-
-    return extractImageFromResponse(data);
+    const result = await aiModelsService.generateImageWithReference(
+      model.editEndpoint,
+      prompt,
+      `data:${mimeType};base64,${b64Data}`,
+      model.imageInputField ?? 'image_urls'
+    );
+    if (!result) {
+      throw new Error('Edit returned no image');
+    }
+    return result;
   } catch (error) {
-    log.error('Edit Error', error, { prompt });
+    log.error('Edit Error', error, { prompt, model: model.id });
     throw error;
   }
 };
 
 export const removeBackground = async (base64Image: string): Promise<string> => {
   try {
-    const { data: b64Data, mimeType } = cleanBase64(base64Image);
-    const prompt =
-      'Extract the main subject of this image and place it on a transparent background. Isolate the subject perfectly.';
-
-    const parts = [{ text: prompt }, { inlineData: { mimeType, data: b64Data } }];
-
-    const data = await callBackendGeminiAPI({
-      modelName: MODEL_FAST,
-      contents: [{ role: 'user', parts }],
-    });
-
-    return extractImageFromResponse(data);
+    return await editImage(
+      base64Image,
+      'Extract the main subject of this image and place it on a transparent background. Isolate the subject perfectly.'
+    );
   } catch (error) {
-    log.error('Gemini Remove BG Error — trying Freepik fallback', error);
+    log.error('Remove BG failed — trying Freepik fallback', error);
 
     // Freepik fallback for background removal
     if (freepikService.isConfigured()) {
@@ -708,39 +708,6 @@ export const generatePattern = async (prompt: string): Promise<string> => {
   }
 };
 
-// Helper to find the image part in the response
-const extractImageFromResponse = (response: any): string => {
-  if (!response.candidates || response.candidates.length === 0) {
-    if (response.text) {
-      throw new Error(`Model Refusal/Message: ${response.text}`);
-    }
-    throw new Error('No candidates returned from Gemini.');
-  }
-
-  const candidate = response.candidates[0];
-  if (!candidate.content || !candidate.content.parts) {
-    throw new Error('No valid payload format found.');
-  }
-  const parts = candidate.content.parts;
-  if (!parts) {
-    throw new Error('No valid payload format found.');
-  }
-  for (const part of parts) {
-    if (part.inlineData && part.inlineData.data) {
-      const mimeType = part.inlineData.mimeType || 'image/png';
-      return `data:${mimeType};base64,${part.inlineData.data}`;
-    }
-  }
-
-  for (const part of parts) {
-    if (part.text) {
-      throw new Error(`Model Refusal/Message: ${part.text}`);
-    }
-  }
-
-  throw new Error('No valid image data found in response.');
-};
-
 export const optimizeLayout = async (layers: any[], canvasWidth: number, canvasHeight: number): Promise<any[]> => {
   try {
     // Simplify layer data to reduce token usage
@@ -1086,6 +1053,62 @@ export const extractStyleFromImage = async (base64Image: string): Promise<Design
     return parsed;
   } catch (error) {
     log.error('Style extraction failed', error);
+    throw error;
+  }
+};
+
+/**
+ * Vision analysis of a reference image, broken into the facets a designer actually wants
+ * to borrow selectively. Cached on the StyleReference so a given image is analyzed once.
+ *
+ * Note: the OpenRouter bridge forwards only max_tokens from generationConfig, so
+ * responseSchema is not enforced server-side — JSON shape is requested in the prompt and
+ * defended by safeParseJSON plus per-field normalization below.
+ */
+export const analyzeReferenceImage = async (base64Image: string): Promise<ExtractedReferenceStyle> => {
+  try {
+    const { data: b64Data, mimeType } = cleanBase64(base64Image);
+    const prompt = `Analyze this reference image as a design director would, so its qualities can be reproduced in a NEW image.
+Respond with ONLY a JSON object (no markdown fence, no commentary) with exactly these keys:
+{
+  "summary": "one sentence capturing the overall visual identity",
+  "palette": ["#hex", "#hex", "#hex", "#hex"],
+  "composition": "framing, balance, focal point, negative space, grid",
+  "typography": "letterforms, weight, case, spacing — or 'none' if no text is present",
+  "textures": "surface qualities, grain, noise, material feel",
+  "mood": "emotional tone and energy",
+  "lighting": "light direction, quality, contrast, shadow behavior",
+  "illustrationStyle": "photographic, 3D render, flat vector, painterly, collage, etc.",
+  "cameraAngle": "eye level, top down, low angle, macro, wide — or 'n/a' for non-photographic"
+}
+Use concrete visual language, not vague adjectives. Palette must be real hex codes sampled from the image.`;
+
+    const data = await callBackendGeminiAPI({
+      modelName: MODEL_FAST,
+      contents: [{ role: 'user', parts: [{ text: prompt }, { inlineData: { data: b64Data, mimeType } }] }],
+    });
+
+    const parsed = safeParseJSON<Partial<ExtractedReferenceStyle> | null>(data.text || 'null', null);
+    if (!parsed) {
+      throw new Error('Failed to parse reference analysis JSON');
+    }
+
+    const text = (value: unknown): string => (typeof value === 'string' ? value.trim() : '');
+    return {
+      summary: text(parsed.summary),
+      palette: Array.isArray(parsed.palette)
+        ? parsed.palette.filter((c: unknown): c is string => typeof c === 'string')
+        : [],
+      composition: text(parsed.composition),
+      typography: text(parsed.typography),
+      textures: text(parsed.textures),
+      mood: text(parsed.mood),
+      lighting: text(parsed.lighting),
+      illustrationStyle: text(parsed.illustrationStyle),
+      cameraAngle: text(parsed.cameraAngle),
+    };
+  } catch (error) {
+    log.error('Reference image analysis failed', error);
     throw error;
   }
 };

@@ -116,6 +116,14 @@ const layerPropsAreEqual = (prevProps: LayerItemProps, nextProps: LayerItemProps
   if (prevProps.editingPathId !== nextProps.editingPathId) {
     return false;
   }
+  // Worker-processed image src arrives async with an unchanged layer ref, and
+  // text edit mode toggles without touching the layer — both must bust the memo.
+  if (prevProps.optimizedSrc !== nextProps.optimizedSrc) {
+    return false;
+  }
+  if (prevProps.isEditing !== nextProps.isEditing) {
+    return false;
+  }
 
   const p = prevProps.layer;
   const n = nextProps.layer;

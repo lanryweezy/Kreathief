@@ -1,5 +1,6 @@
 import { generateLayerId } from '../../../utils/layers/layerUtils';
 import { log } from '../../../utils/log';
+import { analyticsService } from '../../../services/analyticsService';
 
 import { StateCreator } from 'zustand';
 import type { StoreState } from '../../useStore';
@@ -9,6 +10,101 @@ import { Layer, TextLayer, ShapeLayer, Artboard, ImageLayer } from '../../../typ
 import { LayerSlice } from './baseSlice';
 import { DEFAULT_LAYER_FILTERS } from './utils';
 import { DEFAULT_CORNER_RADIUS } from '../../../constants';
+
+// Constraint-aware layer remap used by Magic Resize (single + all-formats)
+const resizeLayersForSize = (currentArtboard: Artboard, newWidth: number, newHeight: number): Layer[] => {
+  const oldWidth = currentArtboard.width;
+  const oldHeight = currentArtboard.height;
+
+  return currentArtboard.layers.map((l: Layer) => {
+    const cloned = structuredClone(l);
+    cloned.id = uuidv4();
+
+    const constraints = l.constraints || { horizontal: 'scale', vertical: 'scale' };
+    let lx = l.x;
+    let ly = l.y;
+    let lw = (l as any).width || 0;
+    let lh = (l as any).height || 0;
+
+    switch (constraints.horizontal) {
+      case 'start':
+        break;
+      case 'end': {
+        const rightDist = oldWidth - (lx + lw);
+        lx = newWidth - lw - rightDist;
+        break;
+      }
+      case 'center': {
+        const centerX = lx + lw / 2;
+        const relCenterX = centerX / oldWidth;
+        lx = relCenterX * newWidth - lw / 2;
+        break;
+      }
+      case 'both': {
+        const leftDistBoth = lx;
+        const rightDistBoth = oldWidth - (lx + lw);
+        lx = leftDistBoth;
+        lw = newWidth - leftDistBoth - rightDistBoth;
+        break;
+      }
+      case 'scale':
+      default: {
+        const relX = lx / oldWidth;
+        const relW = lw / oldWidth;
+        lx = relX * newWidth;
+        lw = relW * newWidth;
+        break;
+      }
+    }
+
+    switch (constraints.vertical) {
+      case 'start':
+        break;
+      case 'end': {
+        const bottomDist = oldHeight - (ly + lh);
+        ly = newHeight - lh - bottomDist;
+        break;
+      }
+      case 'center': {
+        const centerY = ly + lh / 2;
+        const relCenterY = centerY / oldHeight;
+        ly = relCenterY * newHeight - lh / 2;
+        break;
+      }
+      case 'both': {
+        const topDistBoth = ly;
+        const bottomDistBoth = oldHeight - (ly + lh);
+        ly = topDistBoth;
+        lh = newHeight - topDistBoth - bottomDistBoth;
+        break;
+      }
+      case 'scale':
+      default: {
+        const relY = ly / oldHeight;
+        const relH = lh / oldHeight;
+        ly = relY * newHeight;
+        lh = relH * newHeight;
+        break;
+      }
+    }
+
+    cloned.x = lx;
+    cloned.y = ly;
+    if ((cloned as any).width !== undefined) {
+      (cloned as any).width = Math.max(1, lw);
+    }
+    if ((cloned as any).height !== undefined) {
+      (cloned as any).height = Math.max(1, lh);
+    }
+
+    if (cloned.type === 'text') {
+      const textLayer = cloned as TextLayer;
+      const scale = Math.min(newWidth / oldWidth, newHeight / oldHeight);
+      textLayer.fontSize *= scale;
+    }
+    return cloned;
+  });
+};
 
 export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlice>> = (set, get) => ({
   addArtboard: (name = 'Artboard', width = 1080, height = 1080) => {
@@ -35,101 +131,11 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
       return;
     }
 
-    const oldWidth = currentArtboard.width;
-    const oldHeight = currentArtboard.height;
-
     const id = uuidv4();
     const lastArtboard = state.artboards[state.artboards.length - 1];
     const x = lastArtboard ? lastArtboard.x + lastArtboard.width + 100 : 0;
 
-    const newLayers = currentArtboard.layers.map((l: Layer) => {
-      const cloned = structuredClone(l);
-      cloned.id = uuidv4();
-
-      const constraints = l.constraints || { horizontal: 'scale', vertical: 'scale' };
-      let lx = l.x;
-      let ly = l.y;
-      let lw = (l as any).width || 0;
-      let lh = (l as any).height || 0;
-
-      switch (constraints.horizontal) {
-        case 'start':
-          break;
-        case 'end': {
-          const rightDist = oldWidth - (lx + lw);
-          lx = newWidth - lw - rightDist;
-          break;
-        }
-        case 'center': {
-          const centerX = lx + lw / 2;
-          const relCenterX = centerX / oldWidth;
-          lx = relCenterX * newWidth - lw / 2;
-          break;
-        }
-        case 'both': {
-          const leftDistBoth = lx;
-          const rightDistBoth = oldWidth - (lx + lw);
-          lx = leftDistBoth;
-          lw = newWidth - leftDistBoth - rightDistBoth;
-          break;
-        }
-        case 'scale':
-        default: {
-          const relX = lx / oldWidth;
-          const relW = lw / oldWidth;
-          lx = relX * newWidth;
-          lw = relW * newWidth;
-          break;
-        }
-      }
-
-      switch (constraints.vertical) {
-        case 'start':
-          break;
-        case 'end': {
-          const bottomDist = oldHeight - (ly + lh);
-          ly = newHeight - lh - bottomDist;
-          break;
-        }
-        case 'center': {
-          const centerY = ly + lh / 2;
-          const relCenterY = centerY / oldHeight;
-          ly = relCenterY * newHeight - lh / 2;
-          break;
-        }
-        case 'both': {
-          const topDistBoth = ly;
-          const bottomDistBoth = oldHeight - (ly + lh);
-          ly = topDistBoth;
-          lh = newHeight - topDistBoth - bottomDistBoth;
-          break;
-        }
-        case 'scale':
-        default: {
-          const relY = ly / oldHeight;
-          const relH = lh / oldHeight;
-          ly = relY * newHeight;
-          lh = relH * newHeight;
-          break;
-        }
-      }
-
-      cloned.x = lx;
-      cloned.y = ly;
-      if ((cloned as any).width !== undefined) {
-        (cloned as any).width = Math.max(1, lw);
-      }
-      if ((cloned as any).height !== undefined) {
-        (cloned as any).height = Math.max(1, lh);
-      }
-
-      if (cloned.type === 'text') {
-        const textLayer = cloned as TextLayer;
-        const scale = Math.min(newWidth / oldWidth, newHeight / oldHeight);
-        textLayer.fontSize *= scale;
-      }
-      return cloned;
-    });
+    const newLayers = resizeLayersForSize(currentArtboard, newWidth, newHeight);
 
     set((state: any) => ({
       artboards: [
@@ -146,6 +152,52 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
         },
       ],
       activeArtboardId: id,
+      selectedLayerIds: [],
+    }));
+  },
+
+  magicResizeAll: (formats: { width: number; height: number; name: string }[]) => {
+    const valid = formats.filter(
+      (f) => isFinite(f.width) && isFinite(f.height) && f.width >= 1 && f.height >= 1
+    );
+    if (valid.length === 0) {
+      return;
+    }
+    get().saveToHistory?.();
+    const state = get();
+    const currentArtboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
+    if (!currentArtboard) {
+      return;
+    }
+
+    // Skip formats matching the current artboard size — nothing to adapt
+    const targets = valid.filter((f) => f.width !== currentArtboard.width || f.height !== currentArtboard.height);
+    if (targets.length === 0) {
+      return;
+    }
+    analyticsService.track('magic_resize', { format_count: targets.length });
+
+    const lastArtboard = state.artboards[state.artboards.length - 1];
+    let nextX = lastArtboard ? lastArtboard.x + lastArtboard.width + 100 : 0;
+
+    const newArtboards: Artboard[] = targets.map((f) => {
+      const artboard: Artboard = {
+        id: uuidv4(),
+        name: f.name,
+        x: nextX,
+        y: 0,
+        width: f.width,
+        height: f.height,
+        layers: resizeLayersForSize(currentArtboard, f.width, f.height),
+        backgroundColor: currentArtboard.backgroundColor,
+      };
+      nextX += f.width + 100;
+      return artboard;
+    });
+
+    set((state: any) => ({
+      artboards: [...state.artboards, ...newArtboards],
+      activeArtboardId: newArtboards[0].id,
       selectedLayerIds: [],
     }));
   },
@@ -288,7 +340,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
       return;
     }
     const newLayer = {
-      id: `adj_${Date.now()}`,
+      id: generateLayerId('adjustment'),
       type: 'adjustment' as const,
       name: 'Adjustment Layer',
       x: 0,
@@ -603,7 +655,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
     get().saveToHistory?.();
     const newLayer = {
       ...clipboardLayer,
-      id: `${clipboardLayer.type}_${Date.now()}`,
+      id: generateLayerId(clipboardLayer.type),
       x: clipboardLayer.x + 20,
       y: clipboardLayer.y + 20,
       name: (clipboardLayer.name || 'Layer') + ' Copy',

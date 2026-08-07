@@ -12,6 +12,8 @@ import {
 } from '../../services/aiService';
 import { Layer } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
+import { composeGenerationPrompt } from '../../services/imageGenService';
+import { analyticsService } from '../../services/analyticsService';
 
 export type AgentStatus = 'idle' | 'creative' | 'critic' | 'performance' | 'done' | 'error';
 
@@ -51,6 +53,7 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
 
   runAgenticWorkflow: async (intent: string) => {
     try {
+      analyticsService.track('agent_workflow', { type: 'draft', intent_length: intent.length });
       set({ agentStatus: 'creative', agentIntent: intent, agentError: null, agentVariants: [], thinkingLog: [] });
       get().addThinkingEvent('Creative Agent', 'Synthesizing creative direction...');
 
@@ -79,7 +82,36 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
       }
 
       // Stage 1: Creative Generation (always runs)
-      const draftedVariants = await creativeAgentDraft(intent, canvasSize);
+      // Opt-in brand steering: same flag as the Image Gen panel
+      const brandKit = get().useBrandInPrompts
+        ? get().brandKits?.find((b: any) => b.id === get().activeBrandKitId)
+        : undefined;
+      const styleReference = get().styleReference;
+      if (brandKit) {
+        get().addThinkingEvent('Creative Agent', `Applying "${brandKit.name}" brand identity.`);
+      }
+      // The agent builds layers rather than pixels, so a reference can only reach it as
+      // text. If analysis failed there is nothing to pass, which is worth stating instead
+      // of letting the user assume their upload was honored.
+      if (styleReference) {
+        const usable = Boolean(styleReference.extracted) && styleReference.aspects.length > 0;
+        get().addThinkingEvent(
+          'Creative Agent',
+          usable
+            ? `Matching reference on: ${styleReference.aspects.join(', ')}.`
+            : 'Reference image could not be described — continuing without it.'
+        );
+        get().setReferenceAppliedMode(usable ? 'descriptor' : 'none', styleReference.id);
+      }
+
+      const composedIntent = composeGenerationPrompt({
+        prompt: intent,
+        brandKit,
+        styleReference,
+        campaignGoal: get().campaignGoal,
+        canvasSize,
+      });
+      const draftedVariants = await creativeAgentDraft(composedIntent, canvasSize);
       get().addThinkingEvent('Creative Agent', `Drafted ${draftedVariants.length} distinct layout directions.`);
       set({ agentVariants: draftedVariants });
 
@@ -113,6 +145,7 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
 
   runAgenticRefine: async (intent: string, layerIds: string[]) => {
     try {
+      analyticsService.track('agent_workflow', { type: 'refine', layer_count: layerIds.length });
       set({ agentStatus: 'creative', agentIntent: intent, agentError: null, agentVariants: [], thinkingLog: [] });
       get().addThinkingEvent('Creative Agent', 'Analyzing selection for refinement...');
 

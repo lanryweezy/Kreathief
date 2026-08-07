@@ -15,6 +15,7 @@ export interface LayerSlice {
   deleteArtboard: (id: string) => void;
   updateArtboard: (id: string, partial: Partial<Artboard>) => void;
   magicResize: (newWidth: number, newHeight: number, newName?: string) => void;
+  magicResizeAll: (formats: { width: number; height: number; name: string }[]) => void;
 
   setLayers: (layers: Layer[] | ((prev: Layer[]) => Layer[])) => void;
   addLayer: (layer: Layer) => void;
