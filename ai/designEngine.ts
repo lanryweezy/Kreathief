@@ -93,7 +93,18 @@ export function analyzeDesign(artboards: Artboard[], layers: Layer[]): DesignAna
   const colors = getColors(all),
     fonts = getFonts(all);
   const fontSizes = textLayers.map((t) => t.fontSize);
-  const hasHierarchy = fontSizes.length > 1 ? Math.max(...fontSizes) / Math.min(...fontSizes) > 1.5 : true;
+
+  let hasHierarchy = true;
+  if (fontSizes.length > 1) {
+    let minFontSize = fontSizes[0];
+    let maxFontSize = fontSizes[0];
+    for (let i = 1; i < fontSizes.length; i++) {
+      if (fontSizes[i] < minFontSize) minFontSize = fontSizes[i];
+      if (fontSizes[i] > maxFontSize) maxFontSize = fontSizes[i];
+    }
+    hasHierarchy = maxFontSize / minFontSize > 1.5;
+  }
+
   const alignment = textLayers.length > 0 ? (new Set(textLayers.map((t) => t.textAlign)).size === 1 ? 100 : 60) : 100;
   const avgSpacing =
     all.length > 1
