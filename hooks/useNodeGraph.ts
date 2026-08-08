@@ -240,13 +240,19 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
     try {
       const order = topologicalSort(graph.nodes, graph.wires);
       const outputs: Record<string, Record<string, any>> = {};
+      const nodePromises: Record<string, Promise<void>> = {};
 
-      for (const nodeId of order) {
+      const executeNode = async (nodeId: string) => {
         const node = graph.nodes.find((n) => n.id === nodeId);
-        if (!node) continue;
+        if (!node) return;
 
         const def = getNodeDefinition(node.type);
-        if (!def) continue;
+        if (!def) return;
+
+        // Wait for all incoming dependencies to finish first
+        const incomingWires = graph.wires.filter((w) => w.toNode === nodeId);
+        const dependencyPromises = incomingWires.map((w) => nodePromises[w.fromNode]).filter(Boolean);
+        await Promise.all(dependencyPromises);
 
         const inputs = collectInputs(nodeId, graph.wires, outputs);
 
@@ -312,7 +318,14 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
             nodeProgressStep: { ...state.nodeProgressStep, [nodeId]: 'Failed' },
           }));
         }
+      };
+
+      // Start all nodes immediately (they will wait for their dependencies internally)
+      for (const nodeId of order) {
+        nodePromises[nodeId] = executeNode(nodeId);
       }
+
+      await Promise.all(Object.values(nodePromises));
 
       set({ nodeOutputs: outputs, executionOrder: order });
     } finally {
