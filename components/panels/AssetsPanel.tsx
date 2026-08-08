@@ -115,7 +115,14 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
           }
           groups[p.source].push(p);
         });
-        const maxLen = Math.max(...Object.values(groups).map((g) => g.length));
+
+        let maxLen = 0;
+        for (const g of Object.values(groups)) {
+          if (g.length > maxLen) {
+            maxLen = g.length;
+          }
+        }
+
         const interleaved: PhotoItem[] = [];
         for (let i = 0; i < maxLen; i++) {
           for (const source of Object.keys(groups)) {
