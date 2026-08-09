@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { NavTab, TextLayer, AnimationSettings } from '../types';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Icons } from '../constants';
 
@@ -75,33 +76,60 @@ export const SidePanel = React.memo(
     onStartDesign,
     onPreviewMotion,
   }: SidePanelProps) => {
-    const artboards = useStore((state) => state.artboards);
-    const activeArtboardId = useStore((state) => state.activeArtboardId);
-    const activeTab = useStore((state) => state.activeTab);
-    const layers = React.useMemo(
-      () => (artboards || []).find((a) => a.id === activeArtboardId)?.layers || [],
-      [artboards, activeArtboardId]
+    const {
+      activeArtboardId,
+      activeTab,
+      _selectedLayerIds,
+      updateLayer,
+      setPenMode,
+      brushColor,
+      setBrushColor,
+      brushSize,
+      setBrushSize,
+      isPenMode,
+      brushOpacity,
+      setBrushOpacity,
+      brushType,
+      setBrushType,
+      brushSmoothing,
+      setBrushSmoothing,
+      brushJitter,
+      setBrushJitter,
+      setPrompt,
+      setAspectRatio,
+      setMode,
+      handleApplyTemplate,
+    } = useStore(
+      useShallow((state) => ({
+        activeArtboardId: state.activeArtboardId,
+        activeTab: state.activeTab,
+        _selectedLayerIds: state.selectedLayerIds,
+        updateLayer: state.updateLayer,
+        setPenMode: state.setPenMode,
+        brushColor: state.brushColor,
+        setBrushColor: state.setBrushColor,
+        brushSize: state.brushSize,
+        setBrushSize: state.setBrushSize,
+        isPenMode: state.isPenMode,
+        brushOpacity: state.brushOpacity,
+        setBrushOpacity: state.setBrushOpacity,
+        brushType: state.brushType,
+        setBrushType: state.setBrushType,
+        brushSmoothing: state.brushSmoothing,
+        setBrushSmoothing: state.setBrushSmoothing,
+        brushJitter: state.brushJitter,
+        setBrushJitter: state.setBrushJitter,
+        setPrompt: state.setPrompt,
+        setAspectRatio: state.setAspectRatio,
+        setMode: state.setMode,
+        handleApplyTemplate: state.handleApplyTemplate,
+      }))
     );
-    const selectedLayerIds = useStore((state) => state.selectedLayerIds);
-    const updateLayer = useStore((state) => state.updateLayer);
-    const setPenMode = useStore((state) => state.setPenMode);
-    const brushColor = useStore((state) => state.brushColor);
-    const setBrushColor = useStore((state) => state.setBrushColor);
-    const brushSize = useStore((state) => state.brushSize);
-    const setBrushSize = useStore((state) => state.setBrushSize);
-    const isPenMode = useStore((state) => state.isPenMode);
-    const brushOpacity = useStore((state) => state.brushOpacity);
-    const setBrushOpacity = useStore((state) => state.setBrushOpacity);
-    const brushType = useStore((state) => state.brushType);
-    const setBrushType = useStore((state) => state.setBrushType);
-    const brushSmoothing = useStore((state) => state.brushSmoothing);
-    const setBrushSmoothing = useStore((state) => state.setBrushSmoothing);
-    const brushJitter = useStore((state) => state.brushJitter);
-    const setBrushJitter = useStore((state) => state.setBrushJitter);
-    const setPrompt = useStore((state) => state.setPrompt);
-    const setAspectRatio = useStore((state) => state.setAspectRatio);
-    const setMode = useStore((state) => state.setMode);
-    const handleApplyTemplate = useStore((state) => state.handleApplyTemplate);
+
+    const selectedLayerIds = _selectedLayerIds || [];
+
+    const activeArtboard = useStore((state) => state.artboards.find((a: any) => a.id === activeArtboardId));
+    const layers = activeArtboard?.layers || [];
 
     const selectedLayerId =
       selectedLayerIds && selectedLayerIds.length > 0 ? selectedLayerIds[selectedLayerIds.length - 1] : null;
