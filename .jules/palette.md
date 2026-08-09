@@ -12,3 +12,7 @@
 
 **Learning:** Native `<input type="color">` and `<input type="range">` elements, when visually labeled using adjacent text tags (like `<span>` or `<label>` without `htmlFor`) instead of proper semantic `<label htmlFor="...">` associations, become opaque to screen readers which announce them generically (e.g. as "Color picker" or "Slider"). This is particularly common in compact UI panels like `TextEffectsPanel` and `LayerEffectsPanel`.
 **Action:** When working in dense property panels where a `<label htmlFor="id">` is impractical, always apply a context-specific `aria-label` (e.g., `aria-label="Shadow Color"` or `aria-label="Stroke Width"`) directly to the `<input>` element to ensure it is accurately announced by assistive technologies.
+
+## 2026-08-09 - Screen Reader Accessibility for Property Sliders
+**Learning:** Native `<input type="range">` elements inside complex property panels (like `MockupControls`) are often visually labeled with generic icons or loosely coupled textual siblings that do not get natively linked via `id`/`htmlFor`. This leaves screen readers to announce them ambiguously.
+**Action:** When working in dense property panels where a `<label htmlFor="id">` is impractical, always apply a context-specific `aria-label` (e.g., `aria-label="Curve Intensity"`, `aria-label="Scale"`, or `aria-label="Perspective Skew X"`) directly to the `<input>` element to ensure it is accurately announced by assistive technologies.

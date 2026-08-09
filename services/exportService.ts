@@ -6,6 +6,7 @@ import { DesignNode, GradientFill, Effect, VectorPoint } from '../types/design';
 import { canvas as canvasTokens, content, surface } from '../lib/tokens';
 import { hexToRgba } from '../lib/utils';
 import { resolveTextLines } from '../utils/textRendering';
+import { getShapeDefinition } from '../utils/layers/shapeRegistry';
 
 export interface ExportOptions {
   format: 'png' | 'jpeg' | 'jpg' | 'webp' | 'svg';
@@ -60,7 +61,12 @@ export function layerToDesignNode(layer: any): DesignNode {
     type = 'group';
   } else if (rawType === 'frame') {
     type = 'frame';
-  } else if (rawType === 'path' || layer.pathData || layer.vectorPath) {
+  } else if (
+    rawType === 'path' ||
+    layer.pathData ||
+    layer.vectorPath ||
+    (rawType === 'shape' && layer.shapeType !== 'rectangle')
+  ) {
     type = 'path';
   } else {
     type = 'rect';
@@ -158,6 +164,8 @@ export function layerToDesignNode(layer: any): DesignNode {
     imageUrl,
     effects,
     points,
+    pathData: layer.pathData,
+    shapeType: layer.shapeType,
     children: layer.children || layer.layerIds,
     zIndex: layer.zIndex ?? 0,
   } as DesignNode;
@@ -337,17 +345,43 @@ function renderNodeToSvg(
       return `<line id="${node.id}" x1="${x}" y1="${y}" x2="${x + node.width}" y2="${y + node.height}" stroke="${fill}" stroke-width="${node.strokeWidth || 1}"${opacity}${transform}${blendMode}${filterAttr} />`;
 
     case 'path': {
-      if (!node.points || node.points.length < 2) {
+      let d = '';
+      if (node.pathData) {
+        d = node.pathData;
+      } else if (node.shapeType) {
+        const clipPath = getShapeDefinition(node.shapeType);
+        if (clipPath && clipPath.startsWith('polygon(')) {
+          const inner = clipPath.slice(8, -1).trim();
+          const points = inner.split(',').map((p) => p.trim());
+          points.forEach((point, index) => {
+            const coords = point.split(/\s+/);
+            if (coords.length === 2) {
+              const px = coords[0].endsWith('%') ? (parseFloat(coords[0]) / 100) * node.width : parseFloat(coords[0]);
+              const py = coords[1].endsWith('%') ? (parseFloat(coords[1]) / 100) * node.height : parseFloat(coords[1]);
+              d += `${index === 0 ? 'M' : 'L'} ${px + x} ${py + y} `;
+            }
+          });
+          if (d) {
+            d += 'Z';
+          }
+        }
+      }
+
+      if (!d && (!node.points || node.points.length < 2)) {
         return '';
       }
-      const translated = node.points.map((p: any) => ({
-        ...p,
-        x: p.x - offsetX,
-        y: p.y - offsetY,
-        handleIn: p.handleIn ? { x: p.handleIn.x, y: p.handleIn.y } : undefined,
-        handleOut: p.handleOut ? { x: p.handleOut.x, y: p.handleOut.y } : undefined,
-      }));
-      const d = pointsToSvgPath(translated);
+
+      if (!d) {
+        const translated = node.points.map((p: any) => ({
+          ...p,
+          x: p.x - offsetX,
+          y: p.y - offsetY,
+          handleIn: p.handleIn ? { x: p.handleIn.x, y: p.handleIn.y } : undefined,
+          handleOut: p.handleOut ? { x: p.handleOut.x, y: p.handleOut.y } : undefined,
+        }));
+        d = pointsToSvgPath(translated);
+      }
+
       return `<path id="${node.id}" d="${d}" ${fillAttr}${stroke}${opacity}${transform}${blendMode}${filterAttr} />`;
     }
 
@@ -641,7 +675,41 @@ export async function exportToCanvas(
           break;
 
         case 'path': {
-          if (node.points && node.points.length >= 2) {
+          if (node.shapeType || node.pathData) {
+            let pathObj = new Path2D(node.pathData || '');
+            if (!node.pathData && node.shapeType) {
+              const clipPath = getShapeDefinition(node.shapeType);
+              if (clipPath && clipPath.startsWith('polygon(')) {
+                let d = '';
+                const inner = clipPath.slice(8, -1).trim();
+                const points = inner.split(',').map((p) => p.trim());
+                points.forEach((point, index) => {
+                  const coords = point.split(/\s+/);
+                  if (coords.length === 2) {
+                    const px = coords[0].endsWith('%')
+                      ? (parseFloat(coords[0]) / 100) * node.width
+                      : parseFloat(coords[0]);
+                    const py = coords[1].endsWith('%')
+                      ? (parseFloat(coords[1]) / 100) * node.height
+                      : parseFloat(coords[1]);
+                    d += `${index === 0 ? 'M' : 'L'} ${px + x} ${py + y} `;
+                  }
+                });
+                if (d) {
+                  d += 'Z';
+                }
+                pathObj = new Path2D(d);
+              }
+            }
+            if (pathObj) {
+              ctx.fill(pathObj);
+              if (node.stroke) {
+                ctx.strokeStyle = node.stroke;
+                ctx.lineWidth = node.strokeWidth || 0;
+                ctx.stroke(pathObj);
+              }
+            }
+          } else if (node.points && node.points.length >= 2) {
             ctx.beginPath();
             ctx.moveTo(node.points[0].x - minX + padding, node.points[0].y - minY + padding);
             for (let i = 1; i < node.points.length; i++) {

@@ -147,6 +147,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                     <span className="text-brand-600">{curve}&deg;</span>
                   </div>
                   <input
+                    aria-label="Curve Intensity"
                     type="range"
                     min="-30"
                     max="30"
@@ -170,6 +171,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
               </div>
               <div className="space-y-3">
                 <input
+                  aria-label="Position X"
                   type="range"
                   min="0"
                   max="100"
@@ -179,6 +181,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-white"
                 />
                 <input
+                  aria-label="Position Y"
                   type="range"
                   min="0"
                   max="100"
@@ -196,6 +199,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
               </span>
               <div className="space-y-4">
                 <input
+                  aria-label="Scale"
                   type="range"
                   min="10"
                   max="150"
@@ -205,6 +209,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-white"
                 />
                 <input
+                  aria-label="Rotate"
                   type="range"
                   min="-180"
                   max="180"
@@ -223,6 +228,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                 </span>
                 <div className="space-y-4">
                   <input
+                    aria-label="Perspective Skew X"
                     type="range"
                     min="-45"
                     max="45"
@@ -232,6 +238,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                     className="w-full h-1 bg-surface-dark-3 rounded-full appearance-none cursor-pointer accent-accent"
                   />
                   <input
+                    aria-label="Perspective Skew Y"
                     type="range"
                     min="-45"
                     max="45"
@@ -255,6 +262,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   <span className="text-white">{shadowIntensity}x</span>
                 </div>
                 <input
+                  aria-label="Shadow Intensity"
                   type="range"
                   min="0"
                   max="2"
@@ -278,6 +286,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   <span className="text-white">{Math.round(reflectionIntensity * 100)}%</span>
                 </div>
                 <input
+                  aria-label="Reflection Gloss"
                   type="range"
                   min="0"
                   max="1"
@@ -301,6 +310,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   <span className="text-white">{lightingBrightness}%</span>
                 </div>
                 <input
+                  aria-label="Brightness"
                   type="range"
                   min="50"
                   max="150"
@@ -324,6 +334,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   <span className="text-white">{lightingContrast}%</span>
                 </div>
                 <input
+                  aria-label="Contrast"
                   type="range"
                   min="50"
                   max="150"
@@ -404,6 +415,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <input
+                  aria-label="Position X"
                   type="range"
                   min="0"
                   max="100"
@@ -413,6 +425,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
                 />
                 <input
+                  aria-label="Position Y"
                   type="range"
                   min="0"
                   max="100"
@@ -428,6 +441,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
               <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Scale / Rotate</span>
               <div className="grid grid-cols-2 gap-2">
                 <input
+                  aria-label="Scale"
                   type="range"
                   min="10"
                   max="150"
@@ -437,6 +451,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                   className="h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
                 />
                 <input
+                  aria-label="Rotate"
                   type="range"
                   min="-180"
                   max="180"
@@ -481,6 +496,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                     <span className="text-[8px] text-white">{curve}&deg;</span>
                   </div>
                   <input
+                    aria-label="Curve Intensity"
                     type="range"
                     min="-30"
                     max="30"
@@ -523,6 +539,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
                 <span className="text-white font-mono">{Math.round((placement.opacity || 0.9) * 100)}%</span>
               </div>
               <input
+                aria-label="Design Opacity"
                 type="range"
                 min="0"
                 max="1"

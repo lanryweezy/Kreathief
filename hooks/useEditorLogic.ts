@@ -371,8 +371,8 @@ export const useEditorLogic = (initialProject?: Project) => {
     }
     saveToHistory();
     // Bolt: O(N) optimization to find the lowest index and prevent Math.min stack overflow
-    const selectedIdsSet = new Set(selectedPaths.map((p) => p.id));
-    const lowestIndex = layers.findIndex((l) => selectedIdsSet.has(l.id));
+    const pathsIdSet = new Set(selectedPaths.map((p) => p.id));
+    const lowestIndex = layers.findIndex((l) => pathsIdSet.has(l.id));
     const baseLayer = selectedPaths[0]!;
     const newLayer: ShapeLayer = {
       ...baseLayer,
@@ -389,7 +389,7 @@ export const useEditorLogic = (initialProject?: Project) => {
     };
 
     setLayers((prev) => {
-      const filtered = prev.filter((l) => !selectedIdsSet.has(l.id));
+      const filtered = prev.filter((l) => !pathsIdSet.has(l.id));
       const next = [...filtered];
       next.splice(lowestIndex, 0, newLayer);
       return next;
@@ -466,8 +466,8 @@ export const useEditorLogic = (initialProject?: Project) => {
     }
     saveToHistory();
     // Bolt: O(N) optimization to find the lowest index and prevent Math.min stack overflow
-    const selectedIdsSet = new Set(selectedPaths.map((p) => p.id));
-    const lowestIndex = layers.findIndex((l) => selectedIdsSet.has(l.id));
+    const pathsIdSet = new Set(selectedPaths.map((p) => p.id));
+    const lowestIndex = layers.findIndex((l) => pathsIdSet.has(l.id));
     const baseLayer = selectedPaths[0]!;
 
     // Parse the paths in global space
@@ -502,7 +502,7 @@ export const useEditorLogic = (initialProject?: Project) => {
     };
 
     setLayers((prev) => {
-      const filtered = prev.filter((l) => !selectedIdsSet.has(l.id));
+      const filtered = prev.filter((l) => !pathsIdSet.has(l.id));
       const next = [...filtered];
       next.splice(lowestIndex, 0, newLayer);
       return next;

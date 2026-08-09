@@ -255,3 +255,8 @@
 **Vulnerability:** The `api/export-cmyk.ts` endpoint did not have the `requireAuth` check, leaving it entirely unauthenticated. It allowed arbitrary users to consume expensive image processing operations without an active session.
 **Learning:** Removing authentication checks from backend proxy endpoints exposes the backend's resources and functions to unauthenticated public access. This leads directly to quota exhaustion and Denial-of-Service vectors. Furthermore, when adding `requireAuth` to Node.js runtime API routes (`runtime: 'nodejs'`), `req.headers` is a plain object. The `requireAuth` logic expects a Web Request instance (with `req.headers.get`), so `.get` must be manually mocked.
 **Prevention:** Never remove or comment out authentication layers on proxy endpoints that perform heavy computations or consume external resources. Always ensure proper mocking of `.get` when adapting Node.js `req.headers` for Edge-compatible authentication helpers.
+
+## 2026-08-09 - Remove XSS vulnerability with dangerouslySetInnerHTML for SVG
+**Vulnerability:** The application was using the `dangerouslySetInnerHTML` React attribute to render dynamically fetched SVG data (even when sanitized with DOMPurify) in `components/panels/ElementsPanel.tsx`.
+**Learning:** Using `dangerouslySetInnerHTML` is an anti-pattern and increases the risk of Cross-Site Scripting (XSS) via accidental string concatenation or bypasses in sanitization libraries. It should be avoided when safer alternatives exist.
+**Prevention:** To render dynamic SVG data securely, construct a Data URI using `encodeURIComponent` (e.g., `data:image/svg+xml;utf8,...`) and render it natively through an `<img>` tag's `src` attribute. This completely prevents arbitrary script execution within the DOM.

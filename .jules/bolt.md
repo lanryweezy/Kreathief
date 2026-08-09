@@ -112,3 +112,7 @@
 ## 2026-08-07 - Optimize Array Iterations in Bounds Calculation (Revisited)
 **Learning:** Found multiple instances where the codebase computes bounding boxes for a set of items (like corners or projected 3D points) by using `.map` to create intermediate arrays and then passing them into `Math.min/max` with the spread operator (e.g., `Math.min(...corners.map(c => c.x))`). This is extremely inefficient. It iterates over the data 4 separate times and creates 4 temporary arrays, plus it risks `Maximum call stack size exceeded` errors if the array is large.
 **Action:** Replace `Math.min(...arr.map(...))` chains with a single standard `for` loop that computes min/max values for `x` and `y` simultaneously. This completely eliminates intermediate allocations and reduces the computation to a single O(N) pass.
+## 2026-08-08 - Concurrent DAG Execution in NodeGraph
+
+**Learning:** The visual node workflow pipeline (`executeGraph` in `useNodeGraph.ts`) previously executed nodes sequentially using a `for` loop based on a topological sort. This meant independent nodes (e.g., two parallel image generation prompts) had to wait for each other, increasing overall execution time unnecessarily.
+**Action:** Replaced the sequential loop with a Promise-based execution model where all nodes are started immediately but await their specific dependencies internally. This allows independent branches of the graph to execute concurrently, significantly speeding up complex AI workflows.
