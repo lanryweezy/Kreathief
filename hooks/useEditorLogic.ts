@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Project, AppMode, ShapeLayer, TextLayer, VectorPath, CanvasFilters } from '../types';
 import * as geminiService from '../services/geminiService';
 import { storageService } from '../services/storageService';
@@ -27,49 +28,82 @@ const EMPTY_ARRAY: any[] = [];
 const DEFAULT_SIZE = { width: 1080, height: 1080 };
 
 export const useEditorLogic = (initialProject?: Project) => {
-  const layers = useStore((state) => {
-    const active = state.artboards.find((a: any) => a.id === state.activeArtboardId);
-    return active?.layers || EMPTY_ARRAY;
-  });
+  const {
+    _selectedLayerIds,
+    _canvasBackgroundColor,
+    activeArtboardId,
+    _canvasFilters,
+    projectTitle,
+    _brandKits,
+    mode,
+    prompt,
+    aspectRatio,
+    quality,
+    editingPathId,
+    setProjectId,
+    setProjectTitle,
+    initializeProject,
+    setLayers,
+    setCanvasBackgroundColor,
+    setCanvasFilters,
+    setCanvasSize,
+    saveProject,
+    setIsProcessing,
+    applyBrandColors,
+    addLayer,
+    addImageLayer,
+    deleteLayer,
+    addToast,
+    setEditingPathId,
+    saveToHistory,
+    onUpdatePath,
+    setSelectedLayerIds,
+  } = useStore(
+    useShallow((state) => ({
+      _selectedLayerIds: state.selectedLayerIds,
+      _canvasBackgroundColor: state.canvasBackgroundColor,
+      activeArtboardId: state.activeArtboardId,
+      _canvasFilters: state.canvasFilters,
+      projectTitle: state.projectTitle,
+      _brandKits: state.brandKits,
+      mode: state.mode,
+      prompt: state.prompt,
+      aspectRatio: state.aspectRatio,
+      quality: state.quality,
+      editingPathId: state.editingPathId,
+      setProjectId: state.setProjectId,
+      setProjectTitle: state.setProjectTitle,
+      initializeProject: state.initializeProject,
+      setLayers: state.setLayers,
+      setCanvasBackgroundColor: state.setCanvasBackgroundColor,
+      setCanvasFilters: state.setCanvasFilters,
+      setCanvasSize: state.setCanvasSize,
+      saveProject: state.saveProject,
+      setIsProcessing: state.setIsProcessing,
+      applyBrandColors: state.applyBrandColors,
+      addLayer: state.addLayer,
+      addImageLayer: state.addImageLayer,
+      deleteLayer: state.deleteLayer,
+      addToast: state.addToast,
+      setEditingPathId: state.setEditingPathId,
+      saveToHistory: state.saveToHistory,
+      onUpdatePath: state.onUpdatePath,
+      setSelectedLayerIds: state.setSelectedLayerIds,
+    }))
+  );
 
-  const selectedLayerIds = useStore((state) => state.selectedLayerIds) || EMPTY_ARRAY;
-  const canvasBackgroundColor = useStore((state) => state.canvasBackgroundColor) || '#ffffff';
+  const activeArtboard = useStore((state) => state.artboards.find((a: any) => a.id === activeArtboardId));
 
-  const activeArtboard = useStore((state) => state.artboards.find((a: any) => a.id === state.activeArtboardId));
+  const layers = activeArtboard?.layers || EMPTY_ARRAY;
+  const selectedLayerIds = _selectedLayerIds || EMPTY_ARRAY;
+  const canvasBackgroundColor = _canvasBackgroundColor || '#ffffff';
+  const canvasFilters = _canvasFilters || DEFAULT_FILTERS;
+  const brandKits = _brandKits || [];
 
   const canvasSize = useMemo(
     () => (activeArtboard ? { width: activeArtboard.width, height: activeArtboard.height } : DEFAULT_SIZE),
     [activeArtboard]
   );
-
-  const canvasFilters = useStore((state) => state.canvasFilters) || DEFAULT_FILTERS;
-  const projectTitle = useStore((state) => state.projectTitle);
-  const brandKits = useStore((state) => state.brandKits) || [];
-  const mode = useStore((state) => state.mode);
-  const prompt = useStore((state) => state.prompt);
-  const aspectRatio = useStore((state) => state.aspectRatio);
-  const quality = useStore((state) => state.quality);
-  const editingPathId = useStore((state) => state.editingPathId);
-
-  // Store Setters / Actions
-  const setProjectId = useStore((state) => state.setProjectId);
-  const setProjectTitle = useStore((state) => state.setProjectTitle);
-  const initializeProject = useStore((state) => state.initializeProject);
-  const setLayers = useStore((state) => state.setLayers);
-  const setCanvasBackgroundColor = useStore((state) => state.setCanvasBackgroundColor);
-  const setCanvasFilters = useStore((state) => state.setCanvasFilters);
-  const setCanvasSize = useStore((state) => state.setCanvasSize);
-  const saveProject = useStore((state) => state.saveProject);
-  const setIsProcessing = useStore((state) => state.setIsProcessing);
-  const applyBrandColors = useStore((state) => state.applyBrandColors);
-  const addLayer = useStore((state) => state.addLayer);
-  const addImageLayer = useStore((state) => state.addImageLayer);
-  const deleteLayer = useStore((state) => state.deleteLayer);
-  const addToast = useStore((state) => state.addToast);
-  const setEditingPathId = useStore((state) => state.setEditingPathId);
-  const saveToHistory = useStore((state) => state.saveToHistory);
-  const onUpdatePath = useStore((state) => state.onUpdatePath);
-  const setSelectedLayerIds = useStore((state) => state.setSelectedLayerIds);
 
   const [booleanPreview, setBooleanPreview] = useState<{ path: string; operation: string } | null>(null);
 
@@ -325,9 +359,7 @@ export const useEditorLogic = (initialProject?: Project) => {
 
   const handleBooleanOperation = (operation: 'union' | 'subtract' | 'intersect' | 'exclude') => {
     const selectedIdsSet = new Set(selectedLayerIds);
-    const selectedPaths = layers.filter(
-      (l: any) => selectedIdsSet.has(l.id) && l.type === 'path'
-    ) as ShapeLayer[];
+    const selectedPaths = layers.filter((l: any) => selectedIdsSet.has(l.id) && l.type === 'path') as ShapeLayer[];
     if (selectedPaths.length < 2) {
       addToast('Select at least two path layers.', 'warning');
       return;
@@ -339,8 +371,8 @@ export const useEditorLogic = (initialProject?: Project) => {
     }
     saveToHistory();
     // Bolt: O(N) optimization to find the lowest index and prevent Math.min stack overflow
-    const selectedIdsSet = new Set(selectedPaths.map(p => p.id));
-    const lowestIndex = layers.findIndex(l => selectedIdsSet.has(l.id));
+    const selectedIdsSet = new Set(selectedPaths.map((p) => p.id));
+    const lowestIndex = layers.findIndex((l) => selectedIdsSet.has(l.id));
     const baseLayer = selectedPaths[0]!;
     const newLayer: ShapeLayer = {
       ...baseLayer,
@@ -371,9 +403,7 @@ export const useEditorLogic = (initialProject?: Project) => {
       return;
     }
     const selectedIdsSet = new Set(selectedLayerIds);
-    const selectedPaths = layers.filter(
-      (l: any) => selectedIdsSet.has(l.id) && l.type === 'path'
-    ) as ShapeLayer[];
+    const selectedPaths = layers.filter((l: any) => selectedIdsSet.has(l.id) && l.type === 'path') as ShapeLayer[];
     if (selectedPaths.length < 2) {
       return;
     }
@@ -429,17 +459,15 @@ export const useEditorLogic = (initialProject?: Project) => {
 
   const handleJoinPaths = () => {
     const selectedIdsSet = new Set(selectedLayerIds);
-    const selectedPaths = layers.filter(
-      (l: any) => selectedIdsSet.has(l.id) && l.type === 'path'
-    ) as ShapeLayer[];
+    const selectedPaths = layers.filter((l: any) => selectedIdsSet.has(l.id) && l.type === 'path') as ShapeLayer[];
     if (selectedPaths.length < 2) {
       addToast('Select at least two path layers to join.', 'warning');
       return;
     }
     saveToHistory();
     // Bolt: O(N) optimization to find the lowest index and prevent Math.min stack overflow
-    const selectedIdsSet = new Set(selectedPaths.map(p => p.id));
-    const lowestIndex = layers.findIndex(l => selectedIdsSet.has(l.id));
+    const selectedIdsSet = new Set(selectedPaths.map((p) => p.id));
+    const lowestIndex = layers.findIndex((l) => selectedIdsSet.has(l.id));
     const baseLayer = selectedPaths[0]!;
 
     // Parse the paths in global space
