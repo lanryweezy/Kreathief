@@ -577,9 +577,10 @@ export const ElementsPanel = () => {
                   >
                     {renderBadge(asset.assetType)}
                     {asset.svgData ? (
-                      <div
-                        className="w-full h-full flex items-center justify-center text-white"
-                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(asset.svgData) }}
+                      <img
+                        src={`data:image/svg+xml;utf8,${encodeURIComponent(DOMPurify.sanitize(asset.svgData))}`}
+                        alt={asset.name}
+                        className="w-full h-full object-contain"
                       />
                     ) : (
                       <AssetThumbnail
