@@ -14,6 +14,7 @@ import { DesignNode, GradientFill } from '../types/design';
 import { hexToRgba } from './utils';
 import { canvas as canvasTokens, content, surface, border } from './tokens';
 import { resolveTextLines } from '../utils/textRendering';
+import { getShapeDefinition } from '../utils/layers/shapeRegistry';
 
 type AnyCtx = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
@@ -1510,24 +1511,55 @@ export class KreathiefCanvas {
   }
 
   private renderPath(ctx: AnyCtx, node: DesignNode) {
-    if (!node.points || node.points.length < 2) {
-      return;
-    }
-    const cacheKey = `${node.id}_${node.points.length}`;
+    const cacheKey = `${node.id}_${node.points?.length || 0}_${node.pathData || node.shapeType || ''}`;
     let path = this.pathCache.get(cacheKey);
+
     if (!path) {
-      path = new Path2D();
-      path.moveTo(node.points[0].x, node.points[0].y);
-      for (let i = 1; i < node.points.length; i++) {
-        const p = node.points[i];
-        if (p.handleIn && p.handleOut) {
-          path.bezierCurveTo(p.handleOut.x, p.handleOut.y, p.handleIn.x, p.handleIn.y, p.x, p.y);
-        } else {
-          path.lineTo(p.x, p.y);
+      if (node.pathData) {
+        path = new Path2D(node.pathData);
+      } else if (node.shapeType) {
+        const clipPath = getShapeDefinition(node.shapeType);
+        if (clipPath && clipPath.startsWith('polygon(')) {
+          let d = '';
+          const inner = clipPath.slice(8, -1).trim();
+          const points = inner.split(',').map((p) => p.trim());
+          points.forEach((point, index) => {
+            const coords = point.split(/\s+/);
+            if (coords.length === 2) {
+              const px = coords[0].endsWith('%') ? (parseFloat(coords[0]) / 100) * node.width : parseFloat(coords[0]);
+              const py = coords[1].endsWith('%') ? (parseFloat(coords[1]) / 100) * node.height : parseFloat(coords[1]);
+              d += `${index === 0 ? 'M' : 'L'} ${px + node.x} ${py + node.y} `;
+            }
+          });
+          if (d) {
+            d += 'Z';
+          }
+          path = new Path2D(d);
         }
       }
-      this.pathCache.set(cacheKey, path);
+
+      if (!path && node.points && node.points.length >= 2) {
+        path = new Path2D();
+        path.moveTo(node.points[0].x, node.points[0].y);
+        for (let i = 1; i < node.points.length; i++) {
+          const p = node.points[i];
+          if (p.handleIn && p.handleOut) {
+            path.bezierCurveTo(p.handleOut.x, p.handleOut.y, p.handleIn.x, p.handleIn.y, p.x, p.y);
+          } else {
+            path.lineTo(p.x, p.y);
+          }
+        }
+      }
+
+      if (path) {
+        this.pathCache.set(cacheKey, path);
+      }
     }
+
+    if (!path) {
+      return;
+    }
+
     ctx.fillStyle = node.fill && typeof node.fill === 'string' ? node.fill : surface[3];
     ctx.fill(path);
     if (node.stroke) {

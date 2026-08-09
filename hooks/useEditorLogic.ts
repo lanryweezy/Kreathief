@@ -325,9 +325,7 @@ export const useEditorLogic = (initialProject?: Project) => {
 
   const handleBooleanOperation = (operation: 'union' | 'subtract' | 'intersect' | 'exclude') => {
     const selectedIdsSet = new Set(selectedLayerIds);
-    const selectedPaths = layers.filter(
-      (l: any) => selectedIdsSet.has(l.id) && l.type === 'path'
-    ) as ShapeLayer[];
+    const selectedPaths = layers.filter((l: any) => selectedIdsSet.has(l.id) && l.type === 'path') as ShapeLayer[];
     if (selectedPaths.length < 2) {
       addToast('Select at least two path layers.', 'warning');
       return;
@@ -339,8 +337,8 @@ export const useEditorLogic = (initialProject?: Project) => {
     }
     saveToHistory();
     // Bolt: O(N) optimization to find the lowest index and prevent Math.min stack overflow
-    const selectedIdsSet = new Set(selectedPaths.map(p => p.id));
-    const lowestIndex = layers.findIndex(l => selectedIdsSet.has(l.id));
+    const pathsIdSet = new Set(selectedPaths.map((p) => p.id));
+    const lowestIndex = layers.findIndex((l) => pathsIdSet.has(l.id));
     const baseLayer = selectedPaths[0]!;
     const newLayer: ShapeLayer = {
       ...baseLayer,
@@ -357,7 +355,7 @@ export const useEditorLogic = (initialProject?: Project) => {
     };
 
     setLayers((prev) => {
-      const filtered = prev.filter((l) => !selectedIdsSet.has(l.id));
+      const filtered = prev.filter((l) => !pathsIdSet.has(l.id));
       const next = [...filtered];
       next.splice(lowestIndex, 0, newLayer);
       return next;
@@ -371,9 +369,7 @@ export const useEditorLogic = (initialProject?: Project) => {
       return;
     }
     const selectedIdsSet = new Set(selectedLayerIds);
-    const selectedPaths = layers.filter(
-      (l: any) => selectedIdsSet.has(l.id) && l.type === 'path'
-    ) as ShapeLayer[];
+    const selectedPaths = layers.filter((l: any) => selectedIdsSet.has(l.id) && l.type === 'path') as ShapeLayer[];
     if (selectedPaths.length < 2) {
       return;
     }
@@ -429,17 +425,15 @@ export const useEditorLogic = (initialProject?: Project) => {
 
   const handleJoinPaths = () => {
     const selectedIdsSet = new Set(selectedLayerIds);
-    const selectedPaths = layers.filter(
-      (l: any) => selectedIdsSet.has(l.id) && l.type === 'path'
-    ) as ShapeLayer[];
+    const selectedPaths = layers.filter((l: any) => selectedIdsSet.has(l.id) && l.type === 'path') as ShapeLayer[];
     if (selectedPaths.length < 2) {
       addToast('Select at least two path layers to join.', 'warning');
       return;
     }
     saveToHistory();
     // Bolt: O(N) optimization to find the lowest index and prevent Math.min stack overflow
-    const selectedIdsSet = new Set(selectedPaths.map(p => p.id));
-    const lowestIndex = layers.findIndex(l => selectedIdsSet.has(l.id));
+    const pathsIdSet = new Set(selectedPaths.map((p) => p.id));
+    const lowestIndex = layers.findIndex((l) => pathsIdSet.has(l.id));
     const baseLayer = selectedPaths[0]!;
 
     // Parse the paths in global space
@@ -474,7 +468,7 @@ export const useEditorLogic = (initialProject?: Project) => {
     };
 
     setLayers((prev) => {
-      const filtered = prev.filter((l) => !selectedIdsSet.has(l.id));
+      const filtered = prev.filter((l) => !pathsIdSet.has(l.id));
       const next = [...filtered];
       next.splice(lowestIndex, 0, newLayer);
       return next;
