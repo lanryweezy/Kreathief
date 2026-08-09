@@ -1,10 +1,12 @@
 {
+    "id": "/",
     "name": "Kreathief - AI Design Suite",
     "short_name": "Kreathief",
     "description": "Design at the speed of light. Professional vector tools meet generative AI in a high-performance browser canvas.",
     "lang": "en",
     "start_url": "/",
     "scope": "/",
+    "display_override": ["window-controls-overlay", "standalone"],
     "display": "standalone",
     "background_color": "#0e1318",
     "theme_color": "#7d2ae8",
@@ -43,6 +45,13 @@
             "type": "image/png",
             "form_factor": "wide",
             "label": "Kreathief AI Design Canvas"
+        },
+        {
+            "src": "/images/screenshot_magic_panel.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Kreathief AI creative tools"
         }
     ]
 }
