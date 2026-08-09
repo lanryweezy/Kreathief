@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Icons } from '../../constants';
-import { IconButton, Divider, CompactInput } from './ToolbarShared';
+import { IconButton, Divider, CompactInput, NumberInput } from './ToolbarShared';
 import { ColorPicker } from '../ColorPicker';
 import { FontPicker } from '../FontPicker';
 import { GlyphPalette } from '../GlyphPalette';
@@ -107,12 +107,12 @@ export const TextTools = React.memo(
             </Dropdown>
           </div>
 
-          <CompactInput
+          <NumberInput
             value={layer.fontSize}
-            onChange={(e: any) => onUpdateTextLayer(layer.id, { fontSize: parseInt(e.target.value) })}
+            onChange={(val: number) => onUpdateTextLayer(layer.id, { fontSize: val })}
             min={8}
             max={500}
-            width="w-10"
+            className="w-10"
           />
           <ColorPicker
             value={layer.color}
