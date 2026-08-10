@@ -260,3 +260,8 @@
 **Vulnerability:** The application was using the `dangerouslySetInnerHTML` React attribute to render dynamically fetched SVG data (even when sanitized with DOMPurify) in `components/panels/ElementsPanel.tsx`.
 **Learning:** Using `dangerouslySetInnerHTML` is an anti-pattern and increases the risk of Cross-Site Scripting (XSS) via accidental string concatenation or bypasses in sanitization libraries. It should be avoided when safer alternatives exist.
 **Prevention:** To render dynamic SVG data securely, construct a Data URI using `encodeURIComponent` (e.g., `data:image/svg+xml;utf8,...`) and render it natively through an `<img>` tag's `src` attribute. This completely prevents arbitrary script execution within the DOM.
+
+## 2026-08-10 - [Replace Math.random with crypto.randomUUID for Secure ID Generation]
+**Vulnerability:** Weak pseudo-random number generators (`Math.random()`) were used in `services/psdParser.ts` and `services/stickerService.ts` for generating unique IDs (PSD node tracking and Tenor sticker fallback IDs).
+**Learning:** `Math.random()` provides insufficient entropy and is predictable, which can lead to ID collisions or expose the internal state of the PRNG, especially when used repeatedly in rapid succession (like parsing a large PSD). SAST tools heavily flag the usage of `Math.random()` for any form of unique identification as it violates secure coding standards.
+**Prevention:** Always use the cryptographically secure `crypto.randomUUID()` (which provides 122 bits of true entropy) built into modern browsers and Node.js for generating universally unique identifiers to guarantee unguessability and zero-collision rates.

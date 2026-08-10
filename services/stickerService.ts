@@ -404,7 +404,7 @@ export const searchStickers = async (query: string, pos?: string): Promise<Stick
         const thumb =
           item.media_formats?.tinywebp || item.media_formats?.tinypng || item.media_formats?.tinygif || media;
         return {
-          id: item.id || `tenor_${Math.random().toString(36).substring(2)}`,
+          id: item.id || `tenor_${crypto.randomUUID()}`,
           name: item.content_description || query || 'Sticker',
           url: media.url || thumb.url || '',
           thumbnail: thumb.url || media.url || '',
@@ -451,7 +451,7 @@ export const getTrendingStickers = async (pos?: string): Promise<StickerAsset[]>
         const thumb =
           item.media_formats?.tinywebp || item.media_formats?.tinypng || item.media_formats?.tinygif || media;
         return {
-          id: item.id || `tenor_${Math.random().toString(36).substring(2)}`,
+          id: item.id || `tenor_${crypto.randomUUID()}`,
           name: item.content_description || 'Trending Sticker',
           url: media.url || thumb.url || '',
           thumbnail: thumb.url || media.url || '',

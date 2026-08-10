@@ -33,7 +33,7 @@ const DEFAULT_OPTIONS: PSDCompressionOptions = {
 };
 
 function generateId(): string {
-  return `psd_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+  return `psd_${Date.now()}_${crypto.randomUUID()}`;
 }
 
 function colorToRGBA(c: Color | undefined): string | null {
