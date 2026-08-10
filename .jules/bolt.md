@@ -116,3 +116,6 @@
 
 **Learning:** The visual node workflow pipeline (`executeGraph` in `useNodeGraph.ts`) previously executed nodes sequentially using a `for` loop based on a topological sort. This meant independent nodes (e.g., two parallel image generation prompts) had to wait for each other, increasing overall execution time unnecessarily.
 **Action:** Replaced the sequential loop with a Promise-based execution model where all nodes are started immediately but await their specific dependencies internally. This allows independent branches of the graph to execute concurrently, significantly speeding up complex AI workflows.
+## 2026-08-09 - Spread Operator in Pen Bounding Box
+**Learning:** Found an instance in `canvasEngine.ts` where the drawing engine computed bounds for `finishPen` by doing `Math.min(...this.penPoints.map((p) => p.x))`. For complex freehand vector paths containing thousands of points, this forces multiple intermediate O(N) array allocations and risks catastrophic `Maximum call stack size exceeded` errors due to spreading massive arrays into function arguments.
+**Action:** Replace `Math.min(...arr.map(...))` chains on potentially unbound sets with a single standard `for` loop that computes min/max values for `x` and `y` simultaneously without creating intermediate allocations or blowing the call stack.

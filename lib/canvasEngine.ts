@@ -1685,9 +1685,19 @@ export class KreathiefCanvas {
       this.cancelPen();
       return null;
     }
+
+    // Optimize bounding box calculation to avoid O(N) allocations and spread stack overflow
+    let minX = Infinity;
+    let minY = Infinity;
+    for (let i = 0; i < this.penPoints.length; i++) {
+      const p = this.penPoints[i];
+      if (p.x < minX) minX = p.x;
+      if (p.y < minY) minY = p.y;
+    }
+
     const result = {
-      x: Math.min(...this.penPoints.map((p) => p.x)),
-      y: Math.min(...this.penPoints.map((p) => p.y)),
+      x: minX,
+      y: minY,
       points: [...this.penPoints],
     };
     this.isDrawingPen = false;
