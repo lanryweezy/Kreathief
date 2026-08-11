@@ -1,26 +1,48 @@
 import React, { useCallback } from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 
 export const GridGuidesPanel: React.FC = () => {
-  const showGrid = useStore((state) => state.showGrid) || false;
-  const setShowGrid = useStore((state) => state.setShowGrid);
-  const showRulers = useStore((state) => state.showRulers) || false;
-  const setShowRulers = useStore((state) => state.setShowRulers);
-  const snapToGrid = useStore((state) => state.snapToGrid) || false;
-  const setSnapToGrid = useStore((state) => state.setSnapToGrid);
-  const snapToObjects = useStore((state) => state.snapToObjects) || false;
-  const setSnapToObjects = useStore((state) => state.setSnapToObjects);
-  const addToast = useStore((state) => state.addToast);
-
-  const gridSize = useStore((state) => (state as any).gridSize) || 20;
-  const setGridSize = useStore((state) => (state as any).setGridSize);
-  const gridColor = useStore((state) => (state as any).gridColor) || '#7c3aed';
-  const setGridColor = useStore((state) => (state as any).setGridColor);
-  const guides = useStore((state) => (state as any).guides) || [];
-  const addGuide = useStore((state) => (state as any).addGuide);
-  const removeGuide = useStore((state) => (state as any).removeGuide);
-  const clearGuides = useStore((state) => (state as any).clearGuides);
+  const {
+    showGrid = false,
+    setShowGrid,
+    showRulers = false,
+    setShowRulers,
+    snapToGrid = false,
+    setSnapToGrid,
+    snapToObjects = false,
+    setSnapToObjects,
+    addToast,
+    gridSize = 20,
+    setGridSize,
+    gridColor = '#7c3aed',
+    setGridColor,
+    guides = [],
+    addGuide,
+    removeGuide,
+    clearGuides,
+  } = useStore(
+    useShallow((state: any) => ({
+      showGrid: state.showGrid,
+      setShowGrid: state.setShowGrid,
+      showRulers: state.showRulers,
+      setShowRulers: state.setShowRulers,
+      snapToGrid: state.snapToGrid,
+      setSnapToGrid: state.setSnapToGrid,
+      snapToObjects: state.snapToObjects,
+      setSnapToObjects: state.setSnapToObjects,
+      addToast: state.addToast,
+      gridSize: state.gridSize,
+      setGridSize: state.setGridSize,
+      gridColor: state.gridColor,
+      setGridColor: state.setGridColor,
+      guides: state.guides,
+      addGuide: state.addGuide,
+      removeGuide: state.removeGuide,
+      clearGuides: state.clearGuides,
+    }))
+  );
 
   const handleAddGuide = useCallback(
     (type: 'horizontal' | 'vertical') => {

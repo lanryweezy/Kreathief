@@ -13,19 +13,38 @@ import { Button } from '../Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PanelHeader } from './PanelHeader';
 
+import { useShallow } from 'zustand/react/shallow';
+
 export const BrandPanel = () => {
-  const brandKits = useStore((state) => state.brandKits);
-  const activeBrandKitId = useStore((state) => state.activeBrandKitId);
-  const setActiveBrandKit = useStore((state) => state.setActiveBrandKit);
-  const onAddBrandKit = useStore((state) => state.addBrandKit);
-  const onDeleteBrandKit = useStore((state) => state.deleteBrandKit);
-  const onApplyBrandColors = useStore((state) => state.applyBrandColors);
-  const onApplyBrandFonts = useStore((state) => state.applyBrandFonts);
-  const addLayer = useStore((state) => state.addLayer);
-  const updateLayer = useStore((state) => state.updateLayer);
-  const selectedLayerIds = useStore((state) => state.selectedLayerIds);
-  const canvasSize = useStore((state) => state.canvasSize);
-  const addToast = useStore((state) => state.addToast);
+  const {
+    brandKits,
+    activeBrandKitId,
+    setActiveBrandKit,
+    addBrandKit: onAddBrandKit,
+    deleteBrandKit: onDeleteBrandKit,
+    applyBrandColors: onApplyBrandColors,
+    applyBrandFonts: onApplyBrandFonts,
+    addLayer,
+    updateLayer,
+    selectedLayerIds,
+    canvasSize,
+    addToast,
+  } = useStore(
+    useShallow((state) => ({
+      brandKits: state.brandKits,
+      activeBrandKitId: state.activeBrandKitId,
+      setActiveBrandKit: state.setActiveBrandKit,
+      addBrandKit: state.addBrandKit,
+      deleteBrandKit: state.deleteBrandKit,
+      applyBrandColors: state.applyBrandColors,
+      applyBrandFonts: state.applyBrandFonts,
+      addLayer: state.addLayer,
+      updateLayer: state.updateLayer,
+      selectedLayerIds: state.selectedLayerIds,
+      canvasSize: state.canvasSize,
+      addToast: state.addToast,
+    }))
+  );
 
   const onAddLogoToCanvas = (url: string) => {
     addLayer({
