@@ -102,7 +102,7 @@ export const ProfileModal: React.FC = () => {
   };
 
   const handleGenerateRandomAvatar = () => {
-    const randomSeed = Math.random().toString(36).substring(7);
+    const randomSeed = crypto.randomUUID();
     const newAvatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${randomSeed}`;
     setUser({ ...user, avatar: newAvatar });
     addToast('Generated new AI Bot avatar!', 'info');
