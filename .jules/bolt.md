@@ -119,3 +119,11 @@
 ## 2026-08-09 - Spread Operator in Pen Bounding Box
 **Learning:** Found an instance in `canvasEngine.ts` where the drawing engine computed bounds for `finishPen` by doing `Math.min(...this.penPoints.map((p) => p.x))`. For complex freehand vector paths containing thousands of points, this forces multiple intermediate O(N) array allocations and risks catastrophic `Maximum call stack size exceeded` errors due to spreading massive arrays into function arguments.
 **Action:** Replace `Math.min(...arr.map(...))` chains on potentially unbound sets with a single standard `for` loop that computes min/max values for `x` and `y` simultaneously without creating intermediate allocations or blowing the call stack.
+## 2026-08-12 - Optimize Array Intersection for Selected Layers in Grouping
+
+**Learning:** In operations dealing with large datasets (like grouping/ungrouping layers), chaining array operations (`.map`, `.filter`) with nested `.includes()` lookups creates an O(N*M) performance bottleneck, which causes unnecessary memory allocations and risks `Maximum call stack size exceeded` errors when spreading into `Math.min/Math.max`.
+**Action:** Replaced these inefficient chained operations with a single O(N) iteration () while utilizing a  for O(1) lookups to determine layer groupings, significantly optimizing rendering logic without modifying standard behavioral execution paths.
+## 2026-08-12 - Optimize Array Intersection for Selected Layers in Grouping
+
+**Learning:** In operations dealing with large datasets (like grouping/ungrouping layers), chaining array operations (`.map`, `.filter`) with nested `.includes()` lookups creates an O(N*M) performance bottleneck, which causes unnecessary memory allocations and risks `Maximum call stack size exceeded` errors when spreading into `Math.min/Math.max`.
+**Action:** Replaced these inefficient chained operations with a single O(N) iteration (`.forEach()`) while utilizing a `Set` for O(1) lookups to determine layer groupings, significantly optimizing rendering logic without modifying standard behavioral execution paths.
