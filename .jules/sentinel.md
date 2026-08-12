@@ -265,3 +265,8 @@
 **Vulnerability:** Weak pseudo-random number generators (`Math.random()`) were used in `services/psdParser.ts` and `services/stickerService.ts` for generating unique IDs (PSD node tracking and Tenor sticker fallback IDs).
 **Learning:** `Math.random()` provides insufficient entropy and is predictable, which can lead to ID collisions or expose the internal state of the PRNG, especially when used repeatedly in rapid succession (like parsing a large PSD). SAST tools heavily flag the usage of `Math.random()` for any form of unique identification as it violates secure coding standards.
 **Prevention:** Always use the cryptographically secure `crypto.randomUUID()` (which provides 122 bits of true entropy) built into modern browsers and Node.js for generating universally unique identifiers to guarantee unguessability and zero-collision rates.
+
+## 2026-08-16 - Replaced predictable avatar ID generation with crypto.randomUUID()
+**Vulnerability:** Weak PRNG `Math.random()` was used to generate random seed strings for avatar image generation in `components/modals/ProfileModal.tsx`.
+**Learning:** `Math.random()` is not cryptographically secure and can be easily predicted. This is a recurring issue in the codebase where it is used to generate identifiers or tokens. While the avatar seed is lower risk than session tokens, any usage of predictable randomness for identifiers should be remediated as a defensive measure.
+**Prevention:** Consistently utilize `crypto.randomUUID()` when a unique identifier is needed instead of rolling custom pseudo-random strings with `Math.random()`.
