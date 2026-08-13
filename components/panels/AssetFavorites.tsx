@@ -100,6 +100,7 @@ export const AssetFavorites: React.FC = () => {
                   loading="lazy"
                 />
                 <button
+                  aria-label="Remove from favorites"
                   onClick={() => remove(fav)}
                   className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
                 >
