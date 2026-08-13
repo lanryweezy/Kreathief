@@ -1094,6 +1094,35 @@ Use concrete visual language, not vague adjectives. Palette must be real hex cod
     const data = await callBackendGeminiAPI({
       modelName: MODEL_FAST,
       contents: [{ role: 'user', parts: [{ text: prompt }, { inlineData: { data: b64Data, mimeType } }] }],
+      // Astra: Strict JSON output schema guarantees correctly shaped ExtractedReferenceStyle object
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.OBJECT,
+          properties: {
+            summary: { type: SchemaType.STRING },
+            palette: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+            composition: { type: SchemaType.STRING },
+            typography: { type: SchemaType.STRING },
+            textures: { type: SchemaType.STRING },
+            mood: { type: SchemaType.STRING },
+            lighting: { type: SchemaType.STRING },
+            illustrationStyle: { type: SchemaType.STRING },
+            cameraAngle: { type: SchemaType.STRING },
+          },
+          required: [
+            'summary',
+            'palette',
+            'composition',
+            'typography',
+            'textures',
+            'mood',
+            'lighting',
+            'illustrationStyle',
+            'cameraAngle',
+          ],
+        },
+      },
     });
 
     const parsed = safeParseJSON<Partial<ExtractedReferenceStyle> | null>(data.text || 'null', null);
