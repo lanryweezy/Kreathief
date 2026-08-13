@@ -55,3 +55,7 @@
 
 **Learning:** Found unused duplicate component files with similar names across directories (`components/LandingPage.tsx` vs `components/pages/LandingPage.tsx`, and `components/canvas/CropOverlay.tsx` vs `components/overlays/CropOverlay.tsx`). The unused relics were safely deleted to reduce structural debt and confusion.
 **Action:** Before refactoring or changing components, always check for duplicate files across directories (like `components/` vs `components/pages/` or `components/overlays/`) to identify unused relics that can be safely removed.
+
+## 2026-06-25 - Removed unused error handling wrappers
+**Learning:** The codebase contained multiple generalized error handling wrappers in `utils/errorHandling.ts` (like `handleApiError`, `safeExecute`, `withErrorHandling`, `validateRequired`, `getErrorBoundaryFallback`, and `createError`) that were fully tested in `tests/unit/utils/errorHandling.test.ts` but had exactly zero usage in the actual application code. This is a common pattern of speculative abstraction where generalized error helpers are built but never actually consumed.
+**Action:** When finding utility files with broad, speculative functions (like generic error wrappers or validation helpers), aggressively check for call sites. If they are only referenced in their own unit tests, delete them entirely instead of trying to refactor them.

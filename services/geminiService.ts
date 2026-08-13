@@ -407,10 +407,20 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
   }
 };
 
+const ENHANCE_PROMPT_SYSTEM_V1 = `
+You are an expert prompt engineer for AI image generators.
+Rewrite the simple user description into a highly detailed, artistic, and effective image generation prompt.
+Include lighting, style, composition, and mood keywords. Keep it under 50 words.
+Return ONLY the enhanced prompt as a JSON string.
+`.trim();
+
 export const enhancePrompt = async (simplePrompt: string): Promise<string> => {
   try {
+    // 🤖 Astra: Sanitize and truncate user input to prevent prompt injection and payload bloat
+    const sanitizedPrompt = simplePrompt.trim().substring(0, 1000);
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
+      systemInstruction: ENHANCE_PROMPT_SYSTEM_V1,
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -423,9 +433,7 @@ export const enhancePrompt = async (simplePrompt: string): Promise<string> => {
           role: 'user',
           parts: [
             {
-              text: `You are an expert prompt engineer for AI image generators. Rewrite the following simple user description into a highly detailed, artistic, and effective image generation prompt. Include lighting, style, composition, and mood keywords. Keep it under 50 words. Return ONLY the enhanced prompt as a JSON string.
-      
-      User Description: "${simplePrompt}"`,
+              text: `User Description: "${sanitizedPrompt}"`,
             },
           ],
         },
