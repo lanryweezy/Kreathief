@@ -127,3 +127,7 @@
 
 **Learning:** In operations dealing with large datasets (like grouping/ungrouping layers), chaining array operations (`.map`, `.filter`) with nested `.includes()` lookups creates an O(N*M) performance bottleneck, which causes unnecessary memory allocations and risks `Maximum call stack size exceeded` errors when spreading into `Math.min/Math.max`.
 **Action:** Replaced these inefficient chained operations with a single O(N) iteration (`.forEach()`) while utilizing a `Set` for O(1) lookups to determine layer groupings, significantly optimizing rendering logic without modifying standard behavioral execution paths.
+
+## 2026-08-13 - Single pass array iterations for frequent renders
+**Learning:** Chained array methods like `.map(...).filter(...)` followed by spreading into a `new Map(...)` create multiple intermediate O(N) array allocations. In frequent render paths (like `useMemo` hooks in canvas renderers), this generates excessive garbage collection overhead and drops frames.
+**Action:** Replace chained array methods with a single standard `for` loop to map, filter, and unique values simultaneously into a target collection, eliminating intermediate object creation.

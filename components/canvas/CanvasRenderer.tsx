@@ -159,9 +159,15 @@ const ArtboardItem = React.memo(
         return layers;
       }
       // Map to effective layers (e.g. groups) and remove duplicates and nulls
-      const mapped = layers.map((l) => getEffectiveLayer(l)).filter(Boolean) as Layer[];
-      const unique = Array.from(new Map(mapped.map((l) => [l.id, l])).values());
-      return unique;
+      // Bolt: Use a single pass to map, filter, and unique to avoid O(N) intermediate allocations
+      const uniqueMap = new Map<string, Layer>();
+      for (const l of layers) {
+        const effective = getEffectiveLayer(l);
+        if (effective) {
+          uniqueMap.set(effective.id, effective as Layer);
+        }
+      }
+      return Array.from(uniqueMap.values());
     }, [artboard.layers, getEffectiveLayer]);
 
     const handleArtboardClick = React.useCallback(() => {
