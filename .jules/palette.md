@@ -22,3 +22,8 @@
 
 **Learning:** Native `<input type="range">` elements used for vector properties (like Simplify Tolerance, Offset Distance, Corner Radius, Rotation, and Scale) inside `VectorEditingPanel` lacked semantic `<label htmlFor>` links, causing them to be announced generically by screen readers.
 **Action:** Always include a context-specific `aria-label` attribute on slider inputs inside complex panels to ensure visually impaired users understand what property they are controlling.
+
+## 2024-05-25 - Screen Reader Accessibility for Icon-only Buttons in Asset Grids
+
+**Learning:** When rendering asset cards in dense grids (like favorites or templates), the secondary actions that appear on hover (such as a "Remove" button with only an 'X' icon) are inaccessible to screen readers without a text label or `aria-label`. Because they lack visible text to save space, screen readers will either announce nothing or something unhelpful, leaving visually impaired users unsure what the button does.
+**Action:** Always include a context-specific `aria-label` attribute (e.g., `aria-label="Remove from favorites"`) on icon-only buttons, especially in visually dense UI components like asset grids.
