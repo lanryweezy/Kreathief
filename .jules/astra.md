@@ -78,3 +78,7 @@
 
 **Learning:** `safeParseJSON` returns the provided fallback when parsing fails. Using `[]` or `{}` as the fallback value coupled with an empty string fallback parameter (e.g., `data.text || '{}'`) silently masks LLM empty outputs/failures, because the returned empty structure is truthy and bypasses `!parsed` checks, leading to default state corruption.
 **Action:** When extracting data from LLMs where an empty response should be treated as a failure, use `'null'` as the fallback string and `null` as the fallback value (e.g., `safeParseJSON<T | null>(data.text || 'null', null)`). This ensures `safeParseJSON` parses the literal `null`, which then correctly triggers subsequent `if (!parsed)` checks and fails loudly.
+
+## 2026-07-02 - [Native System Instructions and Input Sanitization]
+**Learning:** Concatenating system instructions and raw user input into a single prompt string (e.g., `text: \`You are an expert... User Description: "\${simplePrompt}"\``) makes the LLM vulnerable to prompt injection, payload bloat, and context confusion. It treats the instructions and the data at the same privilege level.
+**Action:** Always move the AI's persona, rules, and output format instructions to the native `systemInstruction` field of the API payload. Furthermore, sanitize and truncate raw user input (e.g., `simplePrompt.trim().substring(0, 1000)`) before embedding it into the `contents` array to limit payload size and reduce simple injection surface area.
