@@ -8,6 +8,7 @@ import { PanelHeader } from './PanelHeader';
 const generateCarouselDesign = null as unknown as any;
 import JSZip from 'jszip';
 import { log } from '../../utils/log';
+import { getAIErrorMessage } from '../../utils/errorMessages';
 
 // ─── Thumbnail renderer — canvas-based snapshot ───────────────────────────────
 
@@ -298,14 +299,18 @@ export const CarouselPanel: React.FC = () => {
       }, 100);
     } catch (error) {
       log.error('Generation failed', error);
-      alert('Failed to generate carousel. Check console for details.');
+      // 🌸 Bloom: Closed quality gap where carousel generation errors showed generic, blocking alerts
+      // Improvement: Replaced native alert with non-blocking toast UI using specific AI error formatters
+      useStore.getState().addToast(getAIErrorMessage(error), 'error');
     } finally {
       setIsGeneratingAI(false);
     }
   };
 
   const handleExportZIP = () => {
-    alert('Export to ZIP functionality will use the global export engine.');
+    // 🌸 Bloom: Closed quality gap where info alerts blocked the user
+    // Improvement: Replaced native alert with non-blocking info toast
+    useStore.getState().addToast('Export to ZIP functionality will use the global export engine.', 'info');
   };
 
   const handleExportSliced = async () => {
@@ -320,7 +325,9 @@ export const CarouselPanel: React.FC = () => {
 
     // In a real implementation we would render the actual canvas elements via html2canvas
     // or draw them manually like in DocumentThumbnail. Since we're demonstrating the concept:
-    alert(`Slicing continuous canvas into ${numSlides} images of ${W}x${H}...`);
+    // 🌸 Bloom: Closed quality gap where info alerts blocked the user
+    // Improvement: Replaced native alert with non-blocking info toast
+    useStore.getState().addToast(`Slicing continuous canvas into ${numSlides} images of ${W}x${H}...`, 'info');
 
     // Simulate ZIP download
     const zip = new JSZip();
