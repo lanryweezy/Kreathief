@@ -918,6 +918,28 @@ export async function exportToLayeredPSD(
   const psdLayers: any[] = [];
   const adaptedNodes = (layers || []).map(layerToDesignNode);
 
+  // Preload images concurrently to avoid sequential network delays
+  const imageCache = new Map<string, HTMLImageElement>();
+  const imageUrls = Array.from(
+    new Set(adaptedNodes.filter((n: any) => n.type === 'image' && n.imageUrl).map((n: any) => n.imageUrl as string))
+  );
+
+  await Promise.all(
+    imageUrls.map(
+      (url) =>
+        new Promise<void>((done) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            imageCache.set(url, img);
+            done();
+          };
+          img.onerror = () => done();
+          img.src = url;
+        })
+    )
+  );
+
   for (let i = 0; i < adaptedNodes.length; i++) {
     const node = adaptedNodes[i];
     const layerCanvas = document.createElement('canvas');
@@ -947,16 +969,10 @@ export async function exportToLayeredPSD(
           ctx.strokeRect(0, 0, layerCanvas.width, layerCanvas.height);
         }
       } else if (node.type === 'image' && node.imageUrl) {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        await new Promise<void>((resolve) => {
-          img.onload = () => {
-            ctx.drawImage(img, 0, 0, layerCanvas.width, layerCanvas.height);
-            resolve();
-          };
-          img.onerror = () => resolve();
-          img.src = node.imageUrl!;
-        });
+        const img = imageCache.get(node.imageUrl);
+        if (img) {
+          ctx.drawImage(img, 0, 0, layerCanvas.width, layerCanvas.height);
+        }
       }
     }
 
