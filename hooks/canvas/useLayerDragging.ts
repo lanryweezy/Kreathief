@@ -157,11 +157,17 @@ export const useLayerDragging = ({
 
       // Recursively find all children for grouped layers
       const findChildrenRecursive = (parentId: string, allLayers: Layer[]): string[] => {
-        const children = allLayers.filter((l) => l.groupId === parentId).map((l) => l.id);
+        // ⚡ Bolt: Replaced chained .filter().map() with a single loop to avoid intermediate array allocations
+        const children: string[] = [];
+        for (let i = 0; i < allLayers.length; i++) {
+          if (allLayers[i].groupId === parentId) {
+            children.push(allLayers[i].id);
+          }
+        }
         let allChildren = [...children];
-        children.forEach((childId) => {
-          allChildren = [...allChildren, ...findChildrenRecursive(childId, allLayers)];
-        });
+        for (let i = 0; i < children.length; i++) {
+          allChildren = [...allChildren, ...findChildrenRecursive(children[i], allLayers)];
+        }
         return allChildren;
       };
 

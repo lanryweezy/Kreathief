@@ -131,3 +131,7 @@
 ## 2026-08-13 - Single pass array iterations for frequent renders
 **Learning:** Chained array methods like `.map(...).filter(...)` followed by spreading into a `new Map(...)` create multiple intermediate O(N) array allocations. In frequent render paths (like `useMemo` hooks in canvas renderers), this generates excessive garbage collection overhead and drops frames.
 **Action:** Replace chained array methods with a single standard `for` loop to map, filter, and unique values simultaneously into a target collection, eliminating intermediate object creation.
+
+## 2026-08-14 - Optimize array iterations for performance in grouping interactions
+**Learning:** Found chained `.filter().map()` array operations used to find children elements recursively in `useLayerDragging.ts`. When this runs repeatedly (e.g., during mouse drag events at 60fps), these chained operations create many intermediate arrays that increase garbage collection overhead and cause frame drops.
+**Action:** Replace chained `.filter().map()` operations with a single `for` loop to filter and transform the data simultaneously, eliminating intermediate O(N) array allocations.
