@@ -7,6 +7,7 @@ import { PanelHeader } from './PanelHeader';
 const generateDocumentDesign = null as unknown as any;
 import { jsPDF } from 'jspdf';
 import { log } from '../../utils/log';
+import { getAIErrorMessage } from '../../utils/errorMessages';
 
 const PAGE_FORMATS = {
   a4: { name: 'A4', width: 794, height: 1123 },
@@ -271,7 +272,9 @@ export const DocumentPanel: React.FC = () => {
       }, 100);
     } catch (error) {
       log.error('Failed to generate document.', error);
-      alert('Failed to generate document. Check console.');
+      // 🌸 Bloom: Closed quality gap where document generation errors showed generic, blocking alerts
+      // Improvement: Replaced native alert with non-blocking toast UI using specific AI error formatters
+      useStore.getState().addToast(getAIErrorMessage(error), 'error');
     } finally {
       setIsGeneratingAI(false);
       setShowAIModal(false);

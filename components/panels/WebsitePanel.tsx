@@ -10,6 +10,7 @@ import { exportWebsite, downloadWebsiteAsZip } from '../../services/websiteExpor
 import { log } from '../../utils/log';
 import { PanelHeader } from './PanelHeader';
 import { SearchInput } from '../SearchInput';
+import { getAIErrorMessage, getErrorDetails } from '../../utils/errorMessages';
 
 const generateWebsiteDesign = null as unknown as any;
 
@@ -316,7 +317,9 @@ export const WebsitePanel: React.FC = () => {
       setAIPromptText('');
     } catch (e) {
       log.error('Failed to generate website with AI.', e);
-      alert('Failed to generate website with AI.');
+      // 🌸 Bloom: Closed quality gap where website generation errors showed generic, blocking alerts
+      // Improvement: Replaced native alert with non-blocking toast UI using specific AI error formatters
+      useStore.getState().addToast(getAIErrorMessage(e), 'error');
     } finally {
       setIsGeneratingAI(false);
     }
@@ -354,7 +357,9 @@ export const WebsitePanel: React.FC = () => {
       await downloadWebsiteAsZip(websitePages, siteSettings);
     } catch (error) {
       log.error('Failed to export zip:', error);
-      alert('Failed to generate ZIP file.');
+      // 🌸 Bloom: Closed quality gap where ZIP export errors showed generic, blocking alerts
+      // Improvement: Replaced native alert with non-blocking toast UI providing actionable details
+      useStore.getState().addToast(`Failed to generate ZIP file: ${getErrorDetails(error).message}`, 'error');
     }
   };
 
