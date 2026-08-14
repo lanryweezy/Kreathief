@@ -17,6 +17,8 @@ export interface HistoryEntry {
 export interface HistorySlice {
   past: HistoryEntry[];
   future: HistoryEntry[];
+  __batchDepth: number;
+  __hasPendingBatchChange: boolean;
   __lastStateSnapshot: HistoryState | null;
   __batchDepth: number;
   __hasPendingBatchChange: boolean;
