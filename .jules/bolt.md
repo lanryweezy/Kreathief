@@ -135,3 +135,7 @@
 ## 2026-08-14 - Optimize array iterations for performance in grouping interactions
 **Learning:** Found chained `.filter().map()` array operations used to find children elements recursively in `useLayerDragging.ts`. When this runs repeatedly (e.g., during mouse drag events at 60fps), these chained operations create many intermediate arrays that increase garbage collection overhead and cause frame drops.
 **Action:** Replace chained `.filter().map()` operations with a single `for` loop to filter and transform the data simultaneously, eliminating intermediate O(N) array allocations.
+
+## 2026-08-14 - Optimize sequential font registration with Promise.all
+**Learning:** Initializing multiple resources (e.g., custom fonts) sequentially using a `for` loop and `await` inside the loop causes unnecessary blocking. If the initializations are independent of each other, this creates a performance bottleneck during startup.
+**Action:** Replace sequential `for` loops with `await Promise.all()` mapped over the data array to execute asynchronous, independent setup tasks concurrently.
