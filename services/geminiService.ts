@@ -891,8 +891,12 @@ export const generateAIVector = async (
     const systemPrompt = `You are a professional vector artist. Generate a clean, high-quality vector graphic based on the prompt. Represent the graphic as multiple SVG path 'd' attributes with corresponding hex colors. ${styleGuide}
     Assume a viewBox of 0 0 100 100. Be precise and creative. Return as a JSON array of objects.`;
 
+    // 🤖 Astra: Sanitize and truncate user input to prevent prompt injection and payload bloat
+    const sanitizedPrompt = prompt.trim().substring(0, 1000);
+
     const data = await callBackendGeminiAPI({
       modelName: MODEL_FAST,
+      systemInstruction: systemPrompt,
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -907,7 +911,7 @@ export const generateAIVector = async (
           },
         },
       },
-      contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\nPrompt: ${prompt}` }] }],
+      contents: [{ role: 'user', parts: [{ text: `Prompt: ${sanitizedPrompt}` }] }],
     });
 
     const text = data.text;
