@@ -113,7 +113,6 @@ export const useStore = create<StoreState>()((set, get, store) => ({
       // History Slice
       past: [],
       future: [],
-      // @ts-expect-error TODO: fix type - internal slice property
       __batchDepth: 0,
       __hasPendingBatchChange: false,
       __lastStateSnapshot: null,

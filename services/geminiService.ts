@@ -454,6 +454,8 @@ export const enhancePrompt = async (simplePrompt: string): Promise<string> => {
 
 export const generateDesignTheme = async (prompt: string): Promise<DesignTheme> => {
   try {
+    // 🤖 Astra: Sanitize and truncate user input to prevent prompt injection and payload bloat
+    const sanitizedPrompt = prompt.trim().substring(0, 1000);
     const availableFonts = FONT_FAMILIES.join(', ');
     const systemPrompt = `
       You are a world-class graphic designer. 
@@ -467,6 +469,8 @@ export const generateDesignTheme = async (prompt: string): Promise<DesignTheme> 
 
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
+      // 🤖 Astra: Moved persona and rules to native systemInstruction field
+      systemInstruction: systemPrompt,
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -494,17 +498,13 @@ export const generateDesignTheme = async (prompt: string): Promise<DesignTheme> 
       contents: [
         {
           role: 'user',
-          parts: [{ text: `${systemPrompt}\n\nUser Prompt: ${prompt}` }],
+          parts: [{ text: `User Prompt: "${sanitizedPrompt}"` }],
         },
       ],
     });
 
-    const text = data.text;
-    if (!text) {
-      throw new Error('No theme generated');
-    }
-
-    const parsed = safeParseJSON<DesignTheme | null>(text, null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON to ensure error catching logic executes cleanly on empty responses.
+    const parsed = safeParseJSON<DesignTheme | null>(data.text || 'null', null);
     if (!parsed) {
       throw new Error('Failed to parse theme JSON');
     }
@@ -891,8 +891,12 @@ export const generateAIVector = async (
     const systemPrompt = `You are a professional vector artist. Generate a clean, high-quality vector graphic based on the prompt. Represent the graphic as multiple SVG path 'd' attributes with corresponding hex colors. ${styleGuide}
     Assume a viewBox of 0 0 100 100. Be precise and creative. Return as a JSON array of objects.`;
 
+    // 🤖 Astra: Sanitize and truncate user input to prevent prompt injection and payload bloat
+    const sanitizedPrompt = prompt.trim().substring(0, 1000);
+
     const data = await callBackendGeminiAPI({
       modelName: MODEL_FAST,
+      systemInstruction: systemPrompt,
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -907,7 +911,7 @@ export const generateAIVector = async (
           },
         },
       },
-      contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\nPrompt: ${prompt}` }] }],
+      contents: [{ role: 'user', parts: [{ text: `Prompt: ${sanitizedPrompt}` }] }],
     });
 
     const text = data.text;

@@ -2,7 +2,6 @@ import React from 'react';
 import { AnimationSettings } from '../../types';
 import { Icons } from '../../constants';
 import { PanelHeader } from './PanelHeader';
-// import { CompactInput } from '../Toolbar'; // Assuming CompactInput is exported or I'll implement a simple one
 
 const ANIMATION_TYPES = [
   { type: 'none', label: 'None', icon: Icons.Slash || Icons.X },

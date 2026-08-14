@@ -140,3 +140,6 @@
 
 **Learning:** The `exportToLayeredPSD` function previously contained a loop that synchronously awaited each image to load (`await new Promise((resolve) => { img.onload = resolve; })`). This caused the export process to take O(n) time based on network latency for images, significantly slowing down the generation of PSD files containing multiple external resources.
 **Action:** Extract unique image URLs from the layer nodes and preload all of them concurrently via `Promise.all` into a `Map` before beginning the sequential canvas rendering loop. This replaces O(n) sequential network wait time with O(1) concurrent wait time, resulting in massive speedups (e.g. ~48x improvement for 50 images).
+## 2026-08-14 - Optimize sequential font registration with Promise.all
+**Learning:** Initializing multiple resources (e.g., custom fonts) sequentially using a `for` loop and `await` inside the loop causes unnecessary blocking. If the initializations are independent of each other, this creates a performance bottleneck during startup.
+**Action:** Replace sequential `for` loops with `await Promise.all()` mapped over the data array to execute asynchronous, independent setup tasks concurrently.

@@ -27,3 +27,8 @@
 
 **Learning:** When rendering asset cards in dense grids (like favorites or templates), the secondary actions that appear on hover (such as a "Remove" button with only an 'X' icon) are inaccessible to screen readers without a text label or `aria-label`. Because they lack visible text to save space, screen readers will either announce nothing or something unhelpful, leaving visually impaired users unsure what the button does.
 **Action:** Always include a context-specific `aria-label` attribute (e.g., `aria-label="Remove from favorites"`) on icon-only buttons, especially in visually dense UI components like asset grids.
+
+## 2024-05-27 - Screen Reader Accessibility for Search Clear Buttons
+
+**Learning:** When using standard icon-only buttons (`<button><Icons.X/></button>`) within input fields to clear the search query, screen readers will read nothing useful (e.g., they might announce the icon component name or just "button").
+**Action:** Always include a context-specific `aria-label` attribute (e.g., `aria-label="Clear search"`) on icon-only buttons intended to clear text inputs, ensuring visually impaired users know how to reset their search state.

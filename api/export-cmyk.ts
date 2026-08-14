@@ -166,6 +166,8 @@ export default async function handler(req: any, res: any) {
         headers: {
           Host: originalHostname,
         },
+        // Prevent fetch from silently following redirects, which could bypass IP validation (SSRF)
+        redirect: 'error',
       });
     } finally {
       clearTimeout(fetchTimeout);
