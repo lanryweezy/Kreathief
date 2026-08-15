@@ -575,6 +575,9 @@ export const generateLayout = async (prompt: string): Promise<any> => {
       Keep it simple but effective.
     `;
 
+    // 🤖 Astra: Sanitize and truncate user input to prevent prompt injection and payload bloat
+    const sanitizedPrompt = prompt.trim().substring(0, 1000);
+
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
       generationConfig: {
@@ -617,7 +620,7 @@ export const generateLayout = async (prompt: string): Promise<any> => {
       contents: [
         {
           role: 'user',
-          parts: [{ text: `${systemPrompt}\n\nUser Prompt: ${prompt}` }],
+          parts: [{ text: `${systemPrompt}\n\nUser Prompt: ${sanitizedPrompt}` }],
         },
       ],
     });
