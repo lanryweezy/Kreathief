@@ -52,3 +52,8 @@
 
 **Learning:** Node-based UIs in high-end design tools require more than just functional connectivity; they need visual "weight" (glassmorphism, gradients) and animated feedback (flow indicators) to feel integrated with a premium WebGL-driven application. Emojis, while convenient, break the "Pro" immersion.
 **Action:** Always prefer SVG icon libraries (like the project's internal Icons) over emojis for core feature interfaces, and use CSS animations for "active" states in graph-based workflows.
+
+## 2026-08-15 - Applying fuzzy matching to search features
+
+**Learning:** Replaced exact substring matching with fuzzy matching to improve search resilience against typos. However, directly writing the logic instead of using the pre-existing `utils/search.ts` utility leads to duplicated logic or hallucinated imports. Need to verify that imports are actual before using them.
+**Action:** Use existing `fuzzyMatch` from `utils/search.ts` when implementing typo-tolerant search across the app.
