@@ -93,3 +93,6 @@
 ## 2026-08-14 - Native System Instructions and Input Sanitization
 **Learning:** When calling AI API endpoints (e.g., `callBackendGeminiAPI`), moving inline system prompts to the `systemInstruction` field and truncating raw user input improves security and output consistency.
 **Action:** Use `systemInstruction: systemPrompt` and sanitize user input with `prompt.trim().substring(0, 1000)`.
+## 2026-08-14 - Native System Instructions and Input Sanitization
+**Learning:** When calling AI API endpoints (e.g., `callBackendGeminiAPI`), truncating raw user input improves security and output consistency by mitigating payload bloat and prompt injection risks.
+**Action:** Sanitize user input before it is embedded in the payload with `prompt.trim().substring(0, 1000)`.
