@@ -32,3 +32,8 @@
 
 **Learning:** When using standard icon-only buttons (`<button><Icons.X/></button>`) within input fields to clear the search query, screen readers will read nothing useful (e.g., they might announce the icon component name or just "button").
 **Action:** Always include a context-specific `aria-label` attribute (e.g., `aria-label="Clear search"`) on icon-only buttons intended to clear text inputs, ensuring visually impaired users know how to reset their search state.
+
+## 2024-05-28 - Screen Reader Accessibility for Dynamic Arrays of Inputs
+
+**Learning:** When generating multiple `<input type="color">` and `<input type="range">` elements dynamically inside an array map (like color stops in `GradientEditor`), they often lack semantic `<label htmlFor>` links due to the dynamic nature of the list, rendering them inaccessible to screen readers.
+**Action:** Always include a context-specific, dynamically numbered `aria-label` attribute (e.g., `aria-label={"Color Stop " + (index + 1) + " Color"}`) directly on the mapped input elements to ensure visually impaired users can differentiate between items in the list.
