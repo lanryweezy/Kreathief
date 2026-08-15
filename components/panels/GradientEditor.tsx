@@ -119,6 +119,7 @@ export const GradientEditor = React.memo(({ gradient, onChange }: GradientEditor
         <div>
           <label className="text-[10px] text-gray-500 block mb-2">Angle: {angle}°</label>
           <input
+            aria-label="Gradient Angle"
             type="range"
             min="0"
             max="360"
@@ -156,12 +157,14 @@ export const GradientEditor = React.memo(({ gradient, onChange }: GradientEditor
               onClick={() => setSelectedStop(index)}
             >
               <input
+                aria-label={`Color Stop ${index + 1} Color`}
                 type="color"
                 value={stop.color}
                 onChange={(e) => handleStopColorChange(index, e.target.value)}
                 className="w-8 h-8 rounded border border-gray-600 cursor-pointer"
               />
               <input
+                aria-label={`Color Stop ${index + 1} Position`}
                 type="range"
                 min="0"
                 max="100"
