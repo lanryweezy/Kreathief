@@ -153,6 +153,22 @@ const autoNameSelected: ToolHandler<z.infer<typeof autoNameSchema>> = async () =
 };
 
 const altTextForImages: ToolHandler<z.infer<typeof altTextSchema>> = async () => {
+  // Stitch: Original intent was wired to a success toast but the actual API call
+  // and store update were missing. Matching the pattern from `autoNameSelected`.
+  const state = useStore.getState() as any;
+  const artboard = (state.artboards || []).find((a: any) => a.id === state.activeArtboardId) || state.artboards?.[0];
+  if (!artboard) {
+    return;
+  }
+  const ids: string[] = state.selectedLayerIds || [];
+  for (const id of ids) {
+    const l = (artboard.layers || []).find((x: any) => x.id === id);
+    if (!l || l.type !== 'image') {
+      continue;
+    }
+    const altText = await gemini.generateAltText(l.src);
+    state.updateLayer(id, { altText });
+  }
   (useStore.getState() as any).addToast?.('Generated alt text for images', 'success');
 };
 
