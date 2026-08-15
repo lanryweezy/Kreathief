@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Icons, FONT_CATEGORIES } from '../constants';
 import { loadFont } from '../services/FontLoader';
+import { fuzzyMatch } from '../utils/search';
 
 interface FontPickerProps {
   currentFont: string;
@@ -84,7 +85,9 @@ export const FontPicker: React.FC<FontPickerProps> = ({
   const filteredCategories = useMemo(() => {
     const result: { [key: string]: string[] } = {};
     Object.entries(FONT_CATEGORIES).forEach(([category, fonts]) => {
-      const matches = fonts.filter((f) => f.toLowerCase().includes(search.toLowerCase()));
+      // 🌸 Bloom: Replaced exact substring matching (f.toLowerCase().includes(search.toLowerCase()))
+      // with fuzzy matching (fuzzyMatch(search, f)) to make font search more tolerant of typos.
+      const matches = fonts.filter((f) => fuzzyMatch(search, f));
       if (matches.length > 0) {
         result[category] = matches;
       }
