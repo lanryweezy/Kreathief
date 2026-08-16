@@ -96,3 +96,6 @@
 ## 2026-08-14 - Native System Instructions and Input Sanitization
 **Learning:** When calling AI API endpoints (e.g., `callBackendGeminiAPI`), truncating raw user input improves security and output consistency by mitigating payload bloat and prompt injection risks.
 **Action:** Sanitize user input before it is embedded in the payload with `prompt.trim().substring(0, 1000)`.
+## 2026-08-16 - Sanitize user input in AI prompt handling
+**Learning:** When calling AI API endpoints (e.g., `callBackendGeminiAPI`), truncating raw user input improves security and output consistency by mitigating payload bloat and prompt injection risks.
+**Action:** Always sanitize and truncate raw user input (e.g., `input.trim().substring(0, 1000)`) before embedding it into AI prompts.
