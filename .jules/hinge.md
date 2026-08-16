@@ -7,3 +7,7 @@
 
 **Learning:** The `searchAllProviders` method in `services/assetSearch.ts` used hard-coded `if` statements and manual unrolling of responses to search across multiple providers (Unsplash, Pixabay, Pexels). This design required editing the core search loop and extending the `NormalizedAsset.provider` union type for every new integration, making it difficult to maintain and scale.
 **Action:** Introduced an `AssetSearchProvider` registry. The `NormalizedAsset.provider` field was relaxed to `string`, and providers now self-register using `registerSearchProvider`. The main loop dynamically iterates over registered providers, delegating search and parsing logic to the implementations, thus decoupling core logic from specific integrations.
+
+## 2024-08-16 - AIActionHandler Registry
+**Learning:** The `executeAction` hook inside `useAIDesignAssistant` relied on a hard-coded switch statement to handle different AI action types (`modify`, `delete`, `create`, `arrange`). This would require touching the core hook every time a new AI capability was added.
+**Action:** Introduced an `AIActionHandler` interface and a `aiActionHandlers` registry map. AI actions now self-register using `registerAIActionHandler`, decoupling the core execution logic from the specific action implementations.

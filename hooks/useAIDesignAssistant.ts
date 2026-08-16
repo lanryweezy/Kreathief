@@ -302,6 +302,107 @@ async function parseDesignIntent(text: string, context: string, layers: Layer[])
   return actions;
 }
 
+
+/**
+ * Extensibility Point: AI Action Handler Registry
+ * Evidence of pressure: The `executeAction` function relied on a hard-coded switch statement
+ * with 4 cases (modify, delete, create, arrange).
+ * Contract: Implementors must provide an `execute` method that accepts the action, store,
+ * artboard, and selected IDs. It should perform the action and return a description.
+ * The registry enables adding new AI capabilities without modifying the core AI assistant hook.
+ */
+export interface AIActionHandler {
+  execute(action: AIAction, store: any, ab: any, selectedIds: string[]): Promise<string> | string;
+}
+
+export const aiActionHandlers = new Map<string, AIActionHandler>();
+
+export function registerAIActionHandler(type: string, handler: AIActionHandler) {
+  aiActionHandlers.set(type, handler);
+}
+
+registerAIActionHandler('modify', {
+  execute(action, store, ab, selectedIds) {
+    if (action.changes && selectedIds.length > 0) {
+      const updates: Record<string, any> = {};
+      for (const id of selectedIds) {
+        const layer = ab.layers.find((l: any) => l.id === id);
+        if (!layer) continue;
+        const changes: any = {};
+        for (const [key, val] of Object.entries(action.changes)) {
+          if (typeof val === 'string' && val.startsWith('+')) {
+            changes[key] = (layer as any)[key] + parseInt(val.substring(1));
+          } else if (typeof val === 'string' && val.startsWith('-')) {
+            changes[key] = (layer as any)[key] + parseInt(val);
+          } else if (typeof val === 'string' && val.endsWith('%')) {
+            const pct = parseInt(val) / 100;
+            changes.width = Math.round(((layer as any).width || 100) * pct);
+            changes.height = Math.round(((layer as any).height || 100) * pct);
+          } else {
+            changes[key] = val;
+          }
+        }
+        updates[id] = changes;
+      }
+      store.updateLayers(updates);
+    }
+    return action.description;
+  }
+});
+
+registerAIActionHandler('delete', {
+  execute(action, store, ab, selectedIds) {
+    for (const id of selectedIds) {
+      store.deleteLayer(id);
+    }
+    return action.description;
+  }
+});
+
+registerAIActionHandler('create', {
+  execute(action, store, ab, selectedIds) {
+    if (action.changes?.type === 'text') {
+      store.addTextLayer({
+        text: action.changes.text,
+        fontSize: action.changes.fontSize || 32,
+        color: action.changes.color || '#ffffff',
+        fontFamily: action.changes.fontFamily || 'Inter',
+      } as any);
+    } else if (action.changes?.type === 'circle' || action.changes?.type === 'rectangle') {
+      store.addShapeLayer(action.changes.type, {
+        width: action.changes.width || 100,
+        height: action.changes.height || 100,
+        color: action.changes.color || '#7d2ae8',
+      });
+    } else if (selectedIds.length > 0) {
+      // Duplicate
+      for (const id of selectedIds) {
+        store.duplicateLayer(id);
+      }
+    }
+    return action.description;
+  }
+});
+
+registerAIActionHandler('arrange', {
+  execute(action, store, ab, selectedIds) {
+    if (action.changes?.alignment === 'center' && selectedIds.length > 0) {
+      const updates: Record<string, any> = {};
+      for (const id of selectedIds) {
+        const layer = ab.layers.find((l: any) => l.id === id);
+        if (layer) {
+          updates[id] = {
+            x: (ab.width - ((layer as any).width || 100)) / 2,
+            y: (ab.height - ((layer as any).height || 100)) / 2,
+          };
+        }
+      }
+      store.updateLayers(updates);
+    }
+    return action.description;
+  }
+});
+
 async function executeAction(action: AIAction): Promise<string> {
   const store = useStore.getState();
   const selectedIds = store.selectedLayerIds;
@@ -310,82 +411,11 @@ async function executeAction(action: AIAction): Promise<string> {
     return 'No artboard found';
   }
 
-  switch (action.type) {
-    case 'modify': {
-      if (action.changes && selectedIds.length > 0) {
-        const updates: Record<string, any> = {};
-        for (const id of selectedIds) {
-          const layer = ab.layers.find((l: any) => l.id === id);
-          if (!layer) {
-            continue;
-          }
-          const changes: any = {};
-          for (const [key, val] of Object.entries(action.changes)) {
-            if (typeof val === 'string' && val.startsWith('+')) {
-              changes[key] = (layer as any)[key] + parseInt(val.substring(1));
-            } else if (typeof val === 'string' && val.startsWith('-')) {
-              changes[key] = (layer as any)[key] + parseInt(val);
-            } else if (typeof val === 'string' && val.endsWith('%')) {
-              const pct = parseInt(val) / 100;
-              changes.width = Math.round(((layer as any).width || 100) * pct);
-              changes.height = Math.round(((layer as any).height || 100) * pct);
-            } else {
-              changes[key] = val;
-            }
-          }
-          updates[id] = changes;
-        }
-        store.updateLayers(updates);
-      }
-      return action.description;
-    }
-    case 'delete': {
-      for (const id of selectedIds) {
-        store.deleteLayer(id);
-      }
-      return action.description;
-    }
-    case 'create': {
-      if (action.changes?.type === 'text') {
-        store.addTextLayer({
-          text: action.changes.text,
-          fontSize: action.changes.fontSize || 32,
-          color: action.changes.color || '#ffffff',
-          fontFamily: action.changes.fontFamily || 'Inter',
-        } as any);
-      } else if (action.changes?.type === 'circle' || action.changes?.type === 'rectangle') {
-        store.addShapeLayer(action.changes.type, {
-          width: action.changes.width || 100,
-          height: action.changes.height || 100,
-          color: action.changes.color || '#7d2ae8',
-        });
-      } else if (selectedIds.length > 0) {
-        // Duplicate
-        for (const id of selectedIds) {
-          store.duplicateLayer(id);
-        }
-      }
-      return action.description;
-    }
-    case 'arrange': {
-      if (action.changes?.alignment === 'center' && selectedIds.length > 0) {
-        const updates: Record<string, any> = {};
-        for (const id of selectedIds) {
-          const layer = ab.layers.find((l: any) => l.id === id);
-          if (layer) {
-            updates[id] = {
-              x: (ab.width - ((layer as any).width || 100)) / 2,
-              y: (ab.height - ((layer as any).height || 100)) / 2,
-            };
-          }
-        }
-        store.updateLayers(updates);
-      }
-      return action.description;
-    }
-    default:
-      return action.description;
+  const handler = aiActionHandlers.get(action.type);
+  if (handler) {
+    return handler.execute(action, store, ab, selectedIds);
   }
+  return action.description;
 }
 
 function normalizeColor(input: string): string {
