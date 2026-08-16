@@ -45,7 +45,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
               <h3 className="text-base font-bold text-white">Help & Support</h3>
-              <button onClick={onClose} className="text-white/40 hover:text-white transition-colors">
+              <button onClick={onClose} aria-label="Close help modal" className="text-white/40 hover:text-white transition-colors">
                 <Icons.X className="w-5 h-5" />
               </button>
             </div>

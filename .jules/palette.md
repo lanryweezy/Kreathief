@@ -37,3 +37,8 @@
 
 **Learning:** When generating multiple `<input type="color">` and `<input type="range">` elements dynamically inside an array map (like color stops in `GradientEditor`), they often lack semantic `<label htmlFor>` links due to the dynamic nature of the list, rendering them inaccessible to screen readers.
 **Action:** Always include a context-specific, dynamically numbered `aria-label` attribute (e.g., `aria-label={"Color Stop " + (index + 1) + " Color"}`) directly on the mapped input elements to ensure visually impaired users can differentiate between items in the list.
+
+## 2024-05-29 - Screen Reader Accessibility for Modal Close Buttons
+
+**Learning:** When using standard modal components that employ a generic "Close" or "X" icon for dismissal without visible text (e.g., `<button><Icons.X/></button>`), screen readers often announce them ambiguously. In complex interfaces with multiple modals or side panels, a generic "Close" label might not provide sufficient context for visually impaired users.
+**Action:** Always include a specific `aria-label` attribute on modal close buttons that describes exactly what is being closed (e.g., `aria-label="Close appearance modal"` or `aria-label="Close version history"`), ensuring users understand which dialog they are dismissing.

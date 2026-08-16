@@ -184,6 +184,7 @@ export const ProfileModal: React.FC = () => {
             </button>
             <button
               onClick={() => setShowProfileModal(false)}
+              aria-label="Close hub"
               className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-[11px] font-semibold transition-colors"
             >
               <Icons.X className="w-3.5 h-3.5" />
@@ -209,6 +210,7 @@ export const ProfileModal: React.FC = () => {
               </div>
               <button
                 onClick={() => setShowProfileModal(false)}
+                aria-label="Close profile modal"
                 className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.1] text-white/60 hover:text-white transition-colors"
               >
                 <Icons.X className="w-5 h-5" />

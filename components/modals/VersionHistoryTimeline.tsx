@@ -86,7 +86,7 @@ export const VersionHistoryTimeline: React.FC<{ onClose: () => void }> = ({ onCl
             <Icons.Clock className="w-5 h-5 text-brand-600" />
             <h2 className="text-sm font-bold text-white">Version History</h2>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close version history">
             <Icons.X className="w-4 h-4" />
           </Button>
         </div>
