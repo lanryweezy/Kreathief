@@ -1,4 +1,5 @@
 import { useStore } from '../store/useStore';
+import { fuzzyMatch } from '../utils/search';
 
 export interface Command {
   id: string;
@@ -17,8 +18,10 @@ export function registerCommand(cmd: Command): void {
 }
 
 export function searchCommands(query: string): Command[] {
-  const q = query.toLowerCase();
-  return commands.filter((c) => c.label.toLowerCase().includes(q) || c.category.toLowerCase().includes(q));
+  // 🌸 Bloom: Improved command search to be typo-tolerant.
+  // Gap: Exact substring matching (.includes) failed on minor user typos.
+  // Improvement: Used fuzzyMatch to allow minor errors while keeping the exact same interface.
+  return commands.filter((c) => fuzzyMatch(query, c.label) || fuzzyMatch(query, c.category));
 }
 
 export function getRecentCommands(): Command[] {

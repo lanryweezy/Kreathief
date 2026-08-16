@@ -57,3 +57,6 @@
 
 **Learning:** Replaced exact substring matching with fuzzy matching to improve search resilience against typos. However, directly writing the logic instead of using the pre-existing `utils/search.ts` utility leads to duplicated logic or hallucinated imports. Need to verify that imports are actual before using them.
 **Action:** Use existing `fuzzyMatch` from `utils/search.ts` when implementing typo-tolerant search across the app.
+## 2026-08-16 - Typo-tolerant Command Palette Search
+**Learning:** The Command Palette (`CommandPalette.tsx`) relied on the `searchCommands` utility in `commands/registry.ts`, which used exact substring matching (`.includes()`). This caused the search to fail completely on minor user typos (e.g. typing "fiel" instead of "file" or "geneate" instead of "generate"), degrading the user experience.
+**Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility in `searchCommands`. This closes the quality gap by adding typo tolerance without altering the external interface of the search function.
