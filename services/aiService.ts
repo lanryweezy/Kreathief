@@ -170,6 +170,9 @@ export async function handleConversation(
   conversationHistory: ChatMessage[]
 ): Promise<ChatMessage> {
   try {
+    // 🤖 Astra: Sanitize and truncate user input to prevent prompt injection and payload bloat
+    const sanitizedMessage = message.trim().substring(0, 1000);
+
     const designData = prepareDesignData(artboard, context);
     const recentHistory = conversationHistory.slice(-6);
 
@@ -190,7 +193,7 @@ Always be constructive and helpful.`,
           role: 'user',
           parts: [
             {
-              text: `${conversationContext}Current design state:\n${JSON.stringify(designData, null, 2)}\n\nUser message: ${message}`,
+              text: `${conversationContext}Current design state:\n${JSON.stringify(designData, null, 2)}\n\nUser message: ${sanitizedMessage}`,
             },
           ],
         },
