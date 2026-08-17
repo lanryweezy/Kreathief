@@ -33,8 +33,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         JSON.stringify({
           message: error.message,
           name: error.name,
-          stack: error.stack?.slice(0, 1000),
-          componentStack: errorInfo.componentStack?.slice(0, 1000),
           time: new Date().toISOString(),
         })
       );
