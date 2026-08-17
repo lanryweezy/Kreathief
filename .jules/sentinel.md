@@ -270,3 +270,7 @@
 **Vulnerability:** Weak PRNG `Math.random()` was used to generate random seed strings for avatar image generation in `components/modals/ProfileModal.tsx`.
 **Learning:** `Math.random()` is not cryptographically secure and can be easily predicted. This is a recurring issue in the codebase where it is used to generate identifiers or tokens. While the avatar seed is lower risk than session tokens, any usage of predictable randomness for identifiers should be remediated as a defensive measure.
 **Prevention:** Consistently utilize `crypto.randomUUID()` when a unique identifier is needed instead of rolling custom pseudo-random strings with `Math.random()`.
+## 2024-03-21 - Remove Stack Trace Leak in ErrorBoundary LocalStorage
+**Vulnerability:** The `ErrorBoundary` component was serializing both `error.stack` and `errorInfo.componentStack` into `localStorage` during an application crash.
+**Learning:** Storing stack traces in client-side storage mechanisms like `localStorage` exposes internal application structure details to the client environment, where they could potentially be accessed by malicious browser extensions or XSS attacks. While local storage is limited to the origin, it still violates the principle of not exposing stack traces to the client.
+**Prevention:** Never serialize and store raw stack traces (`error.stack` or `componentStack`) in client-side storage like `localStorage` or `sessionStorage`. Store only generic error information locally, and send detailed stack traces securely to a remote logging service.
