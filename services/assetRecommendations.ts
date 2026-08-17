@@ -23,9 +23,21 @@ interface DesignContext {
 
 async function analyzeDesignContext(ctx: DesignContext): Promise<string[]> {
   try {
-    const prompt = `You are a design asset recommendation engine. Given this design context, suggest 5-8 search queries that would find relevant stock photos, icons, and illustrations. Return ONLY a JSON array of strings.\n\nContext: ${JSON.stringify(ctx)}`;
+    // 🤖 Astra: Sanitize user input to prevent prompt injection and payload bloat
+    const sanitizedCtx = {
+      ...ctx,
+      description: ctx.description?.substring(0, 500),
+      style: ctx.style?.substring(0, 100),
+      tags: ctx.tags?.map((t) => t.substring(0, 50)),
+      colors: ctx.colors?.map((c) => c.substring(0, 20)),
+    };
+
+    // 🤖 Astra: Move system prompt out of the user content block to ensure separation of instructions
+    const systemPrompt = `You are a design asset recommendation engine. Given this design context, suggest 5-8 search queries that would find relevant stock photos, icons, and illustrations. Return ONLY a JSON array of strings.`;
+
     const response = await callBackendGeminiAPI({
       modelName: 'gemini-2.0-flash',
+      systemInstruction: systemPrompt,
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -36,7 +48,7 @@ async function analyzeDesignContext(ctx: DesignContext): Promise<string[]> {
           },
         },
       },
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      contents: [{ role: 'user', parts: [{ text: `Context: ${JSON.stringify(sanitizedCtx)}` }] }],
     });
     const text = response?.text || response?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (text) {
