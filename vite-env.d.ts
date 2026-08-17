@@ -5,6 +5,9 @@ declare module 'mathjs' {
 }
 
 interface ImportMetaEnv {
+  readonly VITE_SUPABASE_URL?: string;
+  readonly VITE_SUPABASE_ANON_KEY?: string;
+  readonly VITE_USE_QA_BYPASS?: string;
   readonly VITE_UNSPLASH_ACCESS_KEY: string;
   readonly UNSPLASH_SECRET_KEY: string;
   readonly VITE_STREAMLINE_API_KEY: string;
