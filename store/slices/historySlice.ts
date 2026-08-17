@@ -20,8 +20,6 @@ export interface HistorySlice {
   __batchDepth: number;
   __hasPendingBatchChange: boolean;
   __lastStateSnapshot: HistoryState | null;
-  __batchDepth: number;
-  __hasPendingBatchChange: boolean;
 
   undo: () => void;
   redo: () => void;
@@ -64,7 +62,7 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
         artboards: stateNow.artboards.map((a: Artboard) => ({ ...a, layers: a.layers.map((l: any) => ({ ...l })) })),
         activeArtboardId: stateNow.activeArtboardId,
         canvasBackgroundColor: stateNow.canvasBackgroundColor,
-        canvasFilters: stateNow.canvasFilters ? { ...stateNow.canvasFilters } : undefined as any,
+        canvasFilters: stateNow.canvasFilters ? { ...stateNow.canvasFilters } : (undefined as any),
         canvasSize: stateNow.canvasSize ? { ...stateNow.canvasSize } : undefined,
         selectedLayerIds: [...(stateNow.selectedLayerIds || [])],
       };
@@ -116,7 +114,7 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
           artboards: state.artboards.map((a: Artboard) => ({ ...a, layers: a.layers.map((l: any) => ({ ...l })) })),
           activeArtboardId: state.activeArtboardId,
           canvasBackgroundColor: state.canvasBackgroundColor,
-          canvasFilters: state.canvasFilters ? { ...state.canvasFilters } : undefined as any,
+          canvasFilters: state.canvasFilters ? { ...state.canvasFilters } : (undefined as any),
           canvasSize: state.canvasSize ? { ...state.canvasSize } : undefined,
           selectedLayerIds: [...(state.selectedLayerIds || [])],
         };

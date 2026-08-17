@@ -41,7 +41,7 @@ export default defineConfig(({ mode }) => {
       format: 'es',
     },
     build: {
-      sourcemap: true,
+      sourcemap: mode !== 'production',
       rollupOptions: {
         output: {
           manualChunks: {
@@ -73,6 +73,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      allowedHosts: ['.vercel.app', '.vercel.sh', '.vercel.run', 'localhost'],
       proxy: {
         '/api': {
           target: 'http://localhost:3000',
