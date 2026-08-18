@@ -17,6 +17,7 @@ import { AssetThumbnail } from '../AssetThumbnail';
 import { useStore } from '../../store/useStore';
 import { generateLayerId } from '../../utils/layers/layerUtils';
 import { log } from '../../utils/log';
+import { fuzzyMatch } from '../../utils/search';
 
 const RECENT_SHAPES_KEY = 'kreathief_recent_shapes';
 const MAX_RECENT = 10;
@@ -401,10 +402,11 @@ export const ElementsPanel = () => {
   const filteredShapePresets = useMemo(() => {
     return shapePresets.filter((item) => {
       const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+      // 🌸 Bloom: Replaced strict substring matching with fuzzyMatch for typo tolerance
       const matchesSearch =
         !searchQuery.trim() ||
-        item.keywords.some((k) => k.includes(searchQuery.toLowerCase().trim())) ||
-        item.name.toLowerCase().includes(searchQuery.toLowerCase().trim());
+        item.keywords.some((k) => fuzzyMatch(searchQuery, k)) ||
+        fuzzyMatch(searchQuery, item.name);
       return matchesCategory && matchesSearch;
     });
   }, [shapePresets, selectedCategory, searchQuery]);
