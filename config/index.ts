@@ -36,8 +36,11 @@ export const config = {
 
   // Supabase Configuration
   supabase: {
-    url: getEnv('VITE_SUPABASE_URL'),
-    anonKey: getEnv('VITE_SUPABASE_ANON_KEY'),
+    // Supabase is optional for offline/preview rendering. The client uses a
+    // safe placeholder when these variables are unavailable and cloud features
+    // remain gated by `isSupabaseConfigured`.
+    url: getOptionalEnv('VITE_SUPABASE_URL'),
+    anonKey: getOptionalEnv('VITE_SUPABASE_ANON_KEY'),
     schema: 'public',
     useQABypass: getOptionalEnv('VITE_USE_QA_BYPASS', 'false') === 'true',
   },

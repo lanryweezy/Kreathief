@@ -200,7 +200,6 @@ export function measure(name: string, startMark: string, endMark: string) {
 export function initWebVitals() {
   if (import.meta.env.PROD) {
     // Dynamically import web-vitals to avoid bundling in development
-    // @ts-expect-error - web-vitals is optional
     import('web-vitals')
       .then(({ onCLS, onFID, onFCP, onLCP, onTTFB }: any) => {
         onCLS((metric: any) => {
