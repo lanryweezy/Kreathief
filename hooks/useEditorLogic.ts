@@ -5,9 +5,9 @@ import { Project, AppMode, ShapeLayer, TextLayer, VectorPath, CanvasFilters } fr
 import * as geminiService from '../services/geminiService';
 import { storageService } from '../services/storageService';
 import { loadFonts } from '../services/FontLoader';
-import { BooleanOperations, performBooleanOnLayers } from '../utils/booleanOperations';
-import { VectorUtils } from '../utils/vectorUtils';
 import { getAIErrorMessage } from '../utils/errorMessages';
+import { VectorUtils } from '../utils/vectorUtils';
+import { performBooleanOnLayers, BooleanOperations, getBooleanOperation } from '../utils/booleanOperations';
 import { log } from '../utils/log';
 import { debounce } from '../utils/debounce';
 import { generateLayerId } from '../utils/layers/layerUtils';
@@ -397,7 +397,7 @@ export const useEditorLogic = (initialProject?: Project) => {
     setSelectedLayerIds([newLayer.id]);
   };
 
-  const handleBooleanHover = (operation: 'union' | 'subtract' | 'intersect' | 'exclude' | null) => {
+  const handleBooleanHover = (operation: string | null) => {
     if (!operation) {
       setBooleanPreview(null);
       return;
@@ -414,19 +414,12 @@ export const useEditorLogic = (initialProject?: Project) => {
     let resultPath = globalPaths[0]!;
     for (let i = 1; i < globalPaths.length; i++) {
       try {
-        switch (operation) {
-          case 'union':
-            resultPath = BooleanOperations.union(resultPath, globalPaths[i]!);
-            break;
-          case 'subtract':
-            resultPath = BooleanOperations.subtract(resultPath, globalPaths[i]!);
-            break;
-          case 'intersect':
-            resultPath = BooleanOperations.intersect(resultPath, globalPaths[i]!);
-            break;
-          case 'exclude':
-            resultPath = BooleanOperations.exclude(resultPath, globalPaths[i]!);
-            break;
+        const opFn = getBooleanOperation(operation);
+        if (opFn) {
+          resultPath = opFn(resultPath, globalPaths[i]!);
+        } else {
+          log.warn('[EditorLogic] Unknown boolean operation', { operation });
+          return;
         }
       } catch (e) {
         log.warn('[EditorLogic] Boolean operation failed', { error: e, operation });

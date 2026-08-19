@@ -235,6 +235,19 @@ export interface BooleanLayerResult {
   viewBox: string;
 }
 
+export type BooleanOperationType = string;
+export type BooleanOperationFn = (path1: VectorPath, path2: VectorPath) => VectorPath;
+
+const booleanOperationStrategies = new Map<BooleanOperationType, BooleanOperationFn>();
+
+export function registerBooleanOperation(type: BooleanOperationType, fn: BooleanOperationFn) {
+  booleanOperationStrategies.set(type, fn);
+}
+
+export function getBooleanOperation(type: BooleanOperationType): BooleanOperationFn | undefined {
+  return booleanOperationStrategies.get(type);
+}
+
 /**
  * Canonical boolean operation across path LAYERS.
  * Translates each layer's local path into global canvas coordinates before
@@ -244,7 +257,7 @@ export interface BooleanLayerResult {
  */
 export function performBooleanOnLayers(
   layers: Array<{ x: number; y: number; pathData?: string; vectorPath?: VectorPath }>,
-  operation: 'union' | 'subtract' | 'intersect' | 'exclude'
+  operation: BooleanOperationType
 ): BooleanLayerResult | null {
   if (layers.length < 2) {
     return null;
@@ -264,19 +277,12 @@ export function performBooleanOnLayers(
 
   let resultPath = globalPaths[0]!;
   for (let i = 1; i < globalPaths.length; i++) {
-    switch (operation) {
-      case 'union':
-        resultPath = BooleanOperations.union(resultPath, globalPaths[i]!);
-        break;
-      case 'subtract':
-        resultPath = BooleanOperations.subtract(resultPath, globalPaths[i]!);
-        break;
-      case 'intersect':
-        resultPath = BooleanOperations.intersect(resultPath, globalPaths[i]!);
-        break;
-      case 'exclude':
-        resultPath = BooleanOperations.exclude(resultPath, globalPaths[i]!);
-        break;
+    const opFn = getBooleanOperation(operation);
+    if (opFn) {
+      resultPath = opFn(resultPath, globalPaths[i]!);
+    } else {
+      // Unknown operation, do nothing
+      return null;
     }
   }
 
@@ -302,3 +308,9 @@ export function performBooleanOnLayers(
     viewBox: `0 0 ${width} ${height}`,
   };
 }
+
+// Register core implementations
+registerBooleanOperation('union', BooleanOperations.union);
+registerBooleanOperation('subtract', BooleanOperations.subtract);
+registerBooleanOperation('intersect', BooleanOperations.intersect);
+registerBooleanOperation('exclude', BooleanOperations.exclude);
