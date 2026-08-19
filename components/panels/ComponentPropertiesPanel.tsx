@@ -45,7 +45,20 @@ export const ComponentPropertiesPanel: React.FC = () => {
 
   // Get selected layer
   const selectedId = selectedLayerIds?.[0];
-  const selectedLayer = artboards.flatMap((a: Artboard) => a.layers).find((l) => l.id === selectedId);
+  // ⚡ Bolt Optimization: Use an imperative loop instead of `artboards.flatMap(a => a.layers).find(...)`
+  // to find the selectedLayer. This avoids allocating a massive intermediate array of all layers
+  // and allows for early termination.
+  let selectedLayer: Layer | undefined;
+  for (let i = 0; i < artboards.length; i++) {
+    const layers = artboards[i].layers;
+    for (let j = 0; j < layers.length; j++) {
+      if (layers[j].id === selectedId) {
+        selectedLayer = layers[j];
+        break;
+      }
+    }
+    if (selectedLayer) break;
+  }
 
   if (!selectedLayer) {
     return <div className="p-4 text-center text-gray-500 text-xs">Select a layer to view component properties</div>;
@@ -274,9 +287,18 @@ const SwapComponentPicker: React.FC<{
   );
 
   // Find all master components
-  const allComponents = artboards.flatMap((a: Artboard) =>
-    a.layers.filter((l) => l.componentId && l.componentId !== currentMasterId)
-  );
+  // ⚡ Bolt Optimization: Replace `artboards.flatMap(a => a.layers.filter(...))` with an imperative loop.
+  // This avoids intermediate array allocations and minimizes O(N) array overhead during React renders.
+  const allComponents: Layer[] = [];
+  for (let i = 0; i < artboards.length; i++) {
+    const layers = artboards[i].layers;
+    for (let j = 0; j < layers.length; j++) {
+      const l = layers[j];
+      if (l.componentId && l.componentId !== currentMasterId) {
+        allComponents.push(l);
+      }
+    }
+  }
 
   return (
     <div className="space-y-2 p-3 bg-surface-dark-0/50 rounded-xl border border-white/10">
