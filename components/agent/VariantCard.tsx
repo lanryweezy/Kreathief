@@ -52,7 +52,9 @@ export const VariantCard: React.FC<VariantCardProps> = ({ variant, onApply }) =>
           <button
             onClick={() => setShowLogic(!showLogic)}
             className={`p-1.5 rounded-lg border transition-all ${showLogic ? 'bg-purple-500 text-white border-purple-400' : 'bg-white/5 text-gray-500 border-white/5 hover:text-white hover:bg-white/10'}`}
-            title="View Logic Trace"
+            title={showLogic ? 'Hide Logic Trace' : 'View Logic Trace'}
+            aria-label={showLogic ? 'Hide Logic Trace' : 'View Logic Trace'}
+            aria-expanded={showLogic}
           >
             <AgentIcons.Search className="w-3 h-3" />
           </button>

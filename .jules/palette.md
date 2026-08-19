@@ -42,3 +42,8 @@
 
 **Learning:** When using standard modal components that employ a generic "Close" or "X" icon for dismissal without visible text (e.g., `<button><Icons.X/></button>`), screen readers often announce them ambiguously. In complex interfaces with multiple modals or side panels, a generic "Close" label might not provide sufficient context for visually impaired users.
 **Action:** Always include a specific `aria-label` attribute on modal close buttons that describes exactly what is being closed (e.g., `aria-label="Close appearance modal"` or `aria-label="Close version history"`), ensuring users understand which dialog they are dismissing.
+
+## 2026-08-17 - Screen Reader Accessibility for Icon-Only State Toggles
+
+**Learning:** When using icon-only buttons as state toggles (like expanding a "Logic Trace" details panel), providing a static `title` is not sufficient for accessibility. Screen readers require explicit `aria-expanded` attributes to convey the current state, and dynamic `aria-label` or `title` text to clearly indicate the button's action (e.g., "View Logic Trace" vs. "Hide Logic Trace").
+**Action:** Always include `aria-expanded` and context-aware, dynamic `aria-label` and `title` attributes on icon-only toggle buttons to ensure the component is fully accessible and stateful for screen readers.
