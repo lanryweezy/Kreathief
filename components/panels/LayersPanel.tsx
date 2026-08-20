@@ -426,6 +426,7 @@ export const LayersPanel = () => {
                 }
               }}
               title="Clear Canvas"
+              aria-label="Clear Canvas"
               className="p-1 text-gray-500 hover:text-red-400 hover:bg-white/5 rounded transition-all"
             >
               <Icons.Trash className="w-4 h-4" />
