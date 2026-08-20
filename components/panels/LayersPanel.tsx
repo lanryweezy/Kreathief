@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { TextLayer, ShapeLayer, ImageLayer, Layer, Artboard } from '../../types';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
+import { fuzzyMatch } from '../../utils/search';
 import { useShallow } from 'zustand/react/shallow';
 import { ArrangePanel } from './ArrangePanel';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
@@ -336,11 +337,12 @@ export const LayersPanel = () => {
   // Filter layers by name/type for quick lookup in complex designs
   const [layerSearch, setLayerSearch] = useState('');
   const filteredLayers = useMemo(() => {
-    const q = layerSearch.trim().toLowerCase();
+    const q = layerSearch.trim();
     if (!q) {
       return reversedLayers;
     }
-    return reversedLayers.filter((l) => (l.name || l.type).toLowerCase().includes(q));
+    // 🌸 Bloom: Replaced exact substring matching with fuzzyMatch for typo tolerance
+    return reversedLayers.filter((l) => fuzzyMatch(q, l.name || l.type));
   }, [reversedLayers, layerSearch]);
 
   const handleLayerKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, displayIndex: number) => {
