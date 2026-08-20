@@ -60,3 +60,6 @@
 ## 2026-08-16 - Typo-tolerant Command Palette Search
 **Learning:** The Command Palette (`CommandPalette.tsx`) relied on the `searchCommands` utility in `commands/registry.ts`, which used exact substring matching (`.includes()`). This caused the search to fail completely on minor user typos (e.g. typing "fiel" instead of "file" or "geneate" instead of "generate"), degrading the user experience.
 **Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility in `searchCommands`. This closes the quality gap by adding typo tolerance without altering the external interface of the search function.
+## 2026-08-20 - Typo-tolerant Layers Panel Search
+**Learning:** The layer search functionality in the Layers Panel (`LayersPanel.tsx`) relied on strict substring matching (`.includes()`). This caused searches to fail on minor typos when users were trying to find specific layers among potentially hundreds (e.g. "hader" instead of "header"), degrading the workflow quality.
+**Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility from `utils/search.ts` to gracefully handle typos and significantly improve the search resilience without changing any component props or state structures.
