@@ -38,7 +38,16 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
       })),
     }));
     const state = get();
-    const layer = state.artboards.flatMap((a: Artboard) => a.layers).find((l: Layer) => l.id === id);
+    // ⚡ Bolt Optimization: Use nested for loops instead of artboards.flatMap().find()
+    // This allows for early termination when searching and avoids the memory overhead of intermediate O(N) array constructions.
+    let layer: Layer | undefined;
+    for (const artboard of state.artboards) {
+      const found = artboard.layers.find((l: Layer) => l.id === id);
+      if (found) {
+        layer = found;
+        break;
+      }
+    }
     if (layer) {
       const defs = new Map((state as any).componentDefinitions || new Map());
       defs.set(componentId, {
@@ -128,7 +137,16 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
   resetOverrides: (id) => {
     get().saveToHistory?.();
     const state = get();
-    const layer = state.artboards.flatMap((a: Artboard) => a.layers).find((l: Layer) => l.id === id);
+    // ⚡ Bolt Optimization: Use nested for loops instead of artboards.flatMap().find()
+    // This allows for early termination when searching and avoids the memory overhead of intermediate O(N) array constructions.
+    let layer: Layer | undefined;
+    for (const artboard of state.artboards) {
+      const found = artboard.layers.find((l: Layer) => l.id === id);
+      if (found) {
+        layer = found;
+        break;
+      }
+    }
     if (!layer?.masterId) return;
     let master: Layer | null = null;
     state.artboards.forEach((a: Artboard) => { const found = a.layers.find((l: Layer) => l.componentId === layer.masterId); if (found) master = found; });
@@ -177,7 +195,17 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
 
   getComponentInstances: (componentId: string) => {
     const state = get();
-    return state.artboards.flatMap((a: Artboard) => a.layers.filter((l) => l.masterId === componentId));
+    // ⚡ Bolt Optimization: Use an imperative loop instead of artboards.flatMap(a => a.layers.filter(...))
+    // This avoids intermediate array allocations and minimizes O(N) array overhead.
+    const instances: Layer[] = [];
+    for (const artboard of state.artboards) {
+      for (const layer of artboard.layers) {
+        if (layer.masterId === componentId) {
+          instances.push(layer);
+        }
+      }
+    }
+    return instances;
   },
 
   getComponentDefinition: (componentId: string) => {
