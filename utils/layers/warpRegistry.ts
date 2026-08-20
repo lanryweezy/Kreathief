@@ -29,20 +29,19 @@ class WarpRegistry {
 export const warpRegistry = new WarpRegistry();
 
 // Register standard warp effects
+const applyArchTransform = (ctx: CanvasRenderingContext2D, progress: number, intensity: number) => {
+  const archOffset = Math.sin(progress * Math.PI) * intensity * 50;
+  ctx.translate(0, archOffset);
+};
+
 warpRegistry.register({
   type: 'arch',
-  applyTransform: (ctx, progress, intensity) => {
-    const archOffset = Math.sin(progress * Math.PI) * intensity * 50;
-    ctx.translate(0, archOffset);
-  },
+  applyTransform: applyArchTransform,
 });
 
 warpRegistry.register({
   type: 'arc',
-  applyTransform: (ctx, progress, intensity) => {
-    const archOffset = Math.sin(progress * Math.PI) * intensity * 50;
-    ctx.translate(0, archOffset);
-  },
+  applyTransform: applyArchTransform,
 });
 
 warpRegistry.register({

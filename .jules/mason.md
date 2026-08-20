@@ -69,3 +69,8 @@
 
 **Learning:** Found an entire utility file (`utils/designAnalysis.ts`) full of logic for computing WCAG contrast, layout complexity, typography coherence, and extracting color palettes that was fully dead code. The application relies on `ai/designEngine.ts` and `utils/colorUtils.ts` instead for these features. This is a common form of structural debt where domain logic gets duplicated in multiple utility silos during iteration and left behind.
 **Action:** Always verify if a domain utility file is actually imported anywhere in the application or just serving as dead weight. Even files filled with complex algorithms should be safely deleted if they are totally unused relics.
+
+## 2026-08-20 - Consolidate duplicate warp effects in warpRegistry
+
+**Learning:** The warp registry had completely duplicate code for `arch` and `arc` effect implementations.
+**Action:** Extract identically repeated plugin configurations or handler functions to a shared constant or function reference, reducing structural noise and keeping a single source of truth for the logic.
