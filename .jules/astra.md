@@ -102,3 +102,6 @@
 ## 2026-08-17 - Native System Instructions and Input Sanitization
 **Learning:** Concatenating system instructions and raw user input into a single prompt string makes the LLM vulnerable to prompt injection, payload bloat, and context confusion.
 **Action:** Always move the AI's persona, rules, and output format instructions to the native `systemInstruction` field of the API payload. Furthermore, sanitize and truncate raw user input (e.g., `prompt.trim().substring(0, 1000)`) before embedding it into the `contents` array to limit payload size and reduce simple injection surface area.
+## 2026-08-20 - Native System Instructions and Input Sanitization for Text Generation Options
+**Learning:** When generating simple strings like text options using `generateTextOptions` with `callBackendGeminiAPI`, concatenating system instructions and raw user input into a single prompt string makes the LLM vulnerable to prompt injection, payload bloat, and context confusion.
+**Action:** Always move the AI's persona, rules, and output format instructions to the native `systemInstruction` field of the API payload. Furthermore, sanitize and truncate raw user input (e.g., `topic.trim().substring(0, 1000)`) before embedding it into the `contents` array to limit payload size and reduce simple injection surface area.
