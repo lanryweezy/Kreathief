@@ -63,3 +63,6 @@
 ## 2026-08-20 - Typo-tolerant Layers Panel Search
 **Learning:** The layer search functionality in the Layers Panel (`LayersPanel.tsx`) relied on strict substring matching (`.includes()`). This caused searches to fail on minor typos when users were trying to find specific layers among potentially hundreds (e.g. "hader" instead of "header"), degrading the workflow quality.
 **Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility from `utils/search.ts` to gracefully handle typos and significantly improve the search resilience without changing any component props or state structures.
+## $(date +%Y-%m-%d) - Component fragility with string methods on unstructured props
+**Learning:** Destructuring with a default value (e.g. `alt = ''`) only protects against `undefined`, leaving the component vulnerable to fatal crashes (`Cannot read properties of null`) if passed `null` or unexpected types from loosely typed data or APIs.
+**Action:** Always defensively check `typeof prop === 'string'` before calling string methods like `charAt` or `toUpperCase` on props that can be bypassed by nulls.
