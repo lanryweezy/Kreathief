@@ -562,22 +562,22 @@ export const analyzeDesign = async (base64Image: string, query: string): Promise
   }
 };
 
+const GENERATE_LAYOUT_SYSTEM_V1 = `
+  You are a layout generator engine. Based on the description, return a JSON object containing a list of text layers and shape layers.
+
+  Canvas size is roughly 1080x1080.
+
+  Return JSON in this format:
+  {
+     "textLayers": [{ "text": "Heading", "x": 100, "y": 100, "fontSize": 40, "color": "#000", "width": 300, "textAlign": "center" }],
+     "shapeLayers": [{ "type": "rectangle", "x": 0, "y": 0, "width": 100, "height": 100, "color": "#f00" }]
+  }
+
+  Keep it simple but effective.
+`.trim();
+
 export const generateLayout = async (prompt: string): Promise<any> => {
   try {
-    const systemPrompt = `
-      You are a layout generator engine. Based on the description, return a JSON object containing a list of text layers and shape layers.
-      
-      Canvas size is roughly 1080x1080.
-      
-      Return JSON in this format:
-      {
-         "textLayers": [{ "text": "Heading", "x": 100, "y": 100, "fontSize": 40, "color": "#000", "width": 300, "textAlign": "center" }],
-         "shapeLayers": [{ "type": "rectangle", "x": 0, "y": 0, "width": 100, "height": 100, "color": "#f00" }]
-      }
-      
-      Keep it simple but effective.
-    `;
-
     // 🤖 Astra: Sanitize and truncate user input to prevent prompt injection and payload bloat
     const sanitizedPrompt = prompt.trim().substring(0, 1000);
 
@@ -623,7 +623,7 @@ export const generateLayout = async (prompt: string): Promise<any> => {
       contents: [
         {
           role: 'user',
-          parts: [{ text: `${systemPrompt}\n\nUser Prompt: ${sanitizedPrompt}` }],
+          parts: [{ text: `${GENERATE_LAYOUT_SYSTEM_V1}\n\nUser Prompt: ${sanitizedPrompt}` }],
         },
       ],
     });
