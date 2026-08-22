@@ -38,7 +38,6 @@ import { MobileToolbar } from './MobileToolbar';
 import { MobileOnboarding } from './MobileOnboarding';
 import { MobileContextMenu } from './MobileContextMenu';
 import { MobileTransformController } from './MobileTransformController';
-import { useShallow } from 'zustand/react/shallow';
 import { useCollaboration } from '../hooks/useCollaboration';
 import { CursorOverlay } from './collaboration/CursorOverlay';
 import { PresenceBar } from './collaboration/PresenceBar';
@@ -50,39 +49,23 @@ interface EditorProps {
 }
 
 export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) => {
-  // ⚡ Bolt Optimization: Use useShallow with an explicit selector object to combine
-  // what used to be 12 separate `useStore` subscriptions into a single one. This groups
-  // state evaluation and dramatically improves rendering performance by reducing
-  // independent listener invocations across rapid state changes.
-  const {
-    selectedLayerIds: rawSelectedLayerIds,
-    canvasSize: rawCanvasSize,
-    activeTab,
-    zoom: rawZoom,
-    showShortcuts,
-    showRulers,
-    showGrid,
-    selectedIntent,
-    projectId,
-    projectTitle,
-    showShareModal,
-    showFeedbackModal,
-  } = useStore(
-    useShallow((state) => ({
-      selectedLayerIds: state.selectedLayerIds,
-      canvasSize: state.canvasSize,
-      activeTab: state.activeTab,
-      zoom: state.zoom,
-      showShortcuts: state.showShortcuts,
-      showRulers: state.showRulers,
-      showGrid: state.showGrid,
-      selectedIntent: state.selectedIntent,
-      projectId: state.projectId,
-      projectTitle: state.projectTitle,
-      showShareModal: state.showShareModal,
-      showFeedbackModal: state.showFeedbackModal,
-    }))
-  );
+  // ⚡ Bolt Optimization: Use multiple individual useStore hooks instead of grouping
+  // them into a single object selector wrapped in useShallow. Zustand recommends
+  // individual selectors for optimal performance, as strict equality checks (===)
+  // are faster than shallow diffing.
+  const rawSelectedLayerIds = useStore((state) => state.selectedLayerIds);
+  const rawCanvasSize = useStore((state) => state.canvasSize);
+  const activeTab = useStore((state) => state.activeTab);
+  const rawZoom = useStore((state) => state.zoom);
+  const showShortcuts = useStore((state) => state.showShortcuts);
+  const showRulers = useStore((state) => state.showRulers);
+  const showGrid = useStore((state) => state.showGrid);
+  const selectedIntent = useStore((state) => state.selectedIntent);
+  const projectId = useStore((state) => state.projectId);
+  const projectTitle = useStore((state) => state.projectTitle);
+  const showShareModal = useStore((state) => state.showShareModal);
+  const showFeedbackModal = useStore((state) => state.showFeedbackModal);
+
   const selectedLayerIds = rawSelectedLayerIds || [];
   const canvasSize = rawCanvasSize || { width: 1080, height: 1080, name: 'Square' };
   const zoom = rawZoom || 1;
