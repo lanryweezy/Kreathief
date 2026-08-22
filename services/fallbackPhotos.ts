@@ -293,9 +293,71 @@ export const CURATED_PHOTOS: BasePhoto[] = [
   },
 ];
 
-export function getFallbackPhotos(query: string, provider: 'unsplash' | 'pixabay' | 'pexels' | 'vecteezy'): any[] {
-  const q = (query || '').trim().toLowerCase();
-  const isDefault = !q || q === 'trending' || q === 'curated' || q === 'all';
+export interface FallbackPhotoAdapter {
+  adapt(results: BasePhoto[]): any[];
+}
+
+export const fallbackPhotoAdapters = new Map<string, FallbackPhotoAdapter>();
+
+fallbackPhotoAdapters.set("unsplash", {
+  adapt(results) {
+    return results.map((p, idx) => ({
+      id: `us-fb-${p.id}-${idx}`,
+      url: p.url,
+      thumbnail: p.thumbnail,
+      alt: p.alt,
+      user: {
+        name: p.author,
+        link: p.authorUrl,
+      },
+    }));
+  },
+});
+
+fallbackPhotoAdapters.set("pixabay", {
+  adapt(results) {
+    return results.map((p, idx) => ({
+      id: 1000 + idx,
+      url: p.url,
+      thumbnail: p.thumbnail,
+      alt: p.alt,
+      user: p.author,
+    }));
+  },
+});
+
+fallbackPhotoAdapters.set("pexels", {
+  adapt(results) {
+    return results.map((p, idx) => ({
+      id: 2000 + idx,
+      url: p.url,
+      thumbnail: p.thumbnail,
+      alt: p.alt,
+      photographer: p.author,
+      photographerUrl: p.authorUrl,
+    }));
+  },
+});
+
+fallbackPhotoAdapters.set("vecteezy", {
+  adapt(results) {
+    return results.map((p, idx) => ({
+      id: `vz-fb-${p.id}-${idx}`,
+      type: "photo",
+      title: p.alt,
+      thumbnail_url: p.thumbnail,
+      preview_url: p.url,
+    }));
+  },
+});
+
+export function registerFallbackPhotoAdapter(provider: string, adapter: FallbackPhotoAdapter) {
+  fallbackPhotoAdapters.set(provider, adapter);
+}
+
+export function getFallbackPhotos(query: string, provider: string): any[] {
+  const q = (query || "").trim().toLowerCase();
+  const isDefault = !q || q === "trending" || q === "curated" || q === "all";
 
   const filtered = CURATED_PHOTOS.filter((photo) => {
     if (isDefault) {
@@ -308,48 +370,10 @@ export function getFallbackPhotos(query: string, provider: 'unsplash' | 'pixabay
 
   const results = filtered.length > 0 ? filtered : CURATED_PHOTOS;
 
-  switch (provider) {
-    case 'unsplash':
-      return results.map((p, idx) => ({
-        id: `us-fb-${p.id}-${idx}`,
-        url: p.url,
-        thumbnail: p.thumbnail,
-        alt: p.alt,
-        user: {
-          name: p.author,
-          link: p.authorUrl,
-        },
-      }));
-
-    case 'pixabay':
-      return results.map((p, idx) => ({
-        id: 1000 + idx,
-        url: p.url,
-        thumbnail: p.thumbnail,
-        alt: p.alt,
-        user: p.author,
-      }));
-
-    case 'pexels':
-      return results.map((p, idx) => ({
-        id: 2000 + idx,
-        url: p.url,
-        thumbnail: p.thumbnail,
-        alt: p.alt,
-        photographer: p.author,
-        photographerUrl: p.authorUrl,
-      }));
-
-    case 'vecteezy':
-      return results.map((p, idx) => ({
-        id: `vz-fb-${p.id}-${idx}`,
-        type: 'photo',
-        title: p.alt,
-        thumbnail_url: p.thumbnail,
-        preview_url: p.url,
-      }));
-
-    default:
-      return results;
+  const adapter = fallbackPhotoAdapters.get(provider);
+  if (adapter) {
+    return adapter.adapt(results);
   }
+
+  return results;
 }
