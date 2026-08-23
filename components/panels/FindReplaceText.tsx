@@ -23,9 +23,20 @@ export const FindReplaceText: React.FC = () => {
 
   // Get all text layers
   const allTextLayers = useMemo(() => {
-    return artboards.flatMap((artboard) =>
-      artboard.layers.filter((layer): layer is TextLayer => layer.type === 'text' && layer.visible)
-    );
+    // ⚡ Bolt Optimization: Replace `artboards.flatMap().filter()` with an imperative loop
+    // to prevent intermediate array allocations and reduce GC pressure.
+    const textLayers: TextLayer[] = [];
+    for (let i = 0; i < artboards.length; i++) {
+      const artboard = artboards[i];
+      if (!artboard.layers) continue;
+      for (let j = 0; j < artboard.layers.length; j++) {
+        const layer = artboard.layers[j];
+        if (layer.type === 'text' && layer.visible) {
+          textLayers.push(layer as TextLayer);
+        }
+      }
+    }
+    return textLayers;
   }, [artboards]);
 
   // Find all matches
