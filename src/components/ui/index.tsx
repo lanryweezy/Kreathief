@@ -155,7 +155,7 @@ export const Avatar: React.FC<AvatarProps> = ({ src, alt = '', size = 'md', fall
     <div
       className={`${sizes[size]} rounded-full bg-neutral-800 text-neutral-400 flex items-center justify-center font-medium ${className}`}
     >
-      {fallback || alt.charAt(0).toUpperCase()}
+      {fallback || (typeof alt === 'string' ? alt.charAt(0).toUpperCase() : '')}
     </div>
   );
 };

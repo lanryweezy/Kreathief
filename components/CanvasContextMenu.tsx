@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { log } from '../utils/log';
 
 interface CanvasContextMenuProps {
@@ -16,17 +17,33 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({ x, y, onCl
   const [visible, setVisible] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const addArtboard = useStore((s) => s.addArtboard);
-  const showGrid = useStore((s) => s.showGrid);
-  const setShowGrid = useStore((s) => s.setShowGrid);
-  const showRulers = useStore((s) => s.showRulers);
-  const setShowRulers = useStore((s) => s.setShowRulers);
-  const clipboardLayer = useStore((s) => s.clipboardLayer);
-  const pasteLayer = useStore((s) => s.pasteLayer);
-  const undo = useStore((s) => s.undo);
-  const redo = useStore((s) => s.redo);
-  const past = useStore((s) => s.past);
-  const future = useStore((s) => s.future);
+  const {
+    addArtboard,
+    showGrid,
+    setShowGrid,
+    showRulers,
+    setShowRulers,
+    clipboardLayer,
+    pasteLayer,
+    undo,
+    redo,
+    past,
+    future,
+  } = useStore(
+    useShallow((s) => ({
+      addArtboard: s.addArtboard,
+      showGrid: s.showGrid,
+      setShowGrid: s.setShowGrid,
+      showRulers: s.showRulers,
+      setShowRulers: s.setShowRulers,
+      clipboardLayer: s.clipboardLayer,
+      pasteLayer: s.pasteLayer,
+      undo: s.undo,
+      redo: s.redo,
+      past: s.past,
+      future: s.future,
+    }))
+  );
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Icons } from '../../constants';
 import { BrushType } from '../../types';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PanelHeader } from './PanelHeader';
@@ -50,16 +51,26 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
     localStorage.setItem('kreathief_draw_recent_colors', JSON.stringify(recentColors));
   }, [recentColors]);
   const [confirmDialog, setConfirmDialog] = useState<{ brushType: BrushType } | null>(null);
-  const selectedCustomBrushId = useStore((state) => state.selectedCustomBrushId);
-  const setSelectedCustomBrushId = useStore((state) => state.setSelectedCustomBrushId);
 
-  // Use store for smoothing, jitter, and autoSelectAfterDraw
-  const brushSmoothing = useStore((state) => state.brushSmoothing);
-  const setBrushSmoothing = useStore((state) => state.setBrushSmoothing);
-  const brushJitter = useStore((state) => state.brushJitter);
-  const setBrushJitter = useStore((state) => state.setBrushJitter);
-  const autoSelectAfterDraw = useStore((state) => state.autoSelectAfterDraw);
-  const setAutoSelectAfterDraw = useStore((state) => state.setAutoSelectAfterDraw);
+  const {
+    selectedCustomBrushId,
+    setSelectedCustomBrushId,
+    brushSmoothing,
+    setBrushSmoothing,
+    brushJitter,
+    setBrushJitter,
+    autoSelectAfterDraw,
+    setAutoSelectAfterDraw,
+  } = useStore(useShallow((state) => ({
+    selectedCustomBrushId: state.selectedCustomBrushId,
+    setSelectedCustomBrushId: state.setSelectedCustomBrushId,
+    brushSmoothing: state.brushSmoothing,
+    setBrushSmoothing: state.setBrushSmoothing,
+    brushJitter: state.brushJitter,
+    setBrushJitter: state.setBrushJitter,
+    autoSelectAfterDraw: state.autoSelectAfterDraw,
+    setAutoSelectAfterDraw: state.setAutoSelectAfterDraw,
+  })));
 
   const colors = [
     '#000000',
