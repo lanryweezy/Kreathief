@@ -1,4 +1,5 @@
 import { log } from '../utils/log';
+import { computeAutoLayout } from '../utils/autoLayout';
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Icons } from '../constants';
@@ -13,7 +14,7 @@ import { SidePanel } from './SidePanel';
 import { MobileNavBar } from './MobileNavBar';
 import { BottomSheet } from './BottomSheet';
 import { Canvas } from './Canvas';
-import { User, Project, AnimationSettings } from '../types';
+import { User, Project, AnimationSettings, Layer, Artboard } from '../types';
 import { useEditorLogic } from '../hooks/useEditorLogic';
 import { useFileHandler } from '../hooks/useFileHandler';
 import { generateShareLink } from '../utils/shareUtils';
@@ -49,10 +50,6 @@ interface EditorProps {
 }
 
 export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) => {
-  // ⚡ Bolt Optimization: Use multiple individual useStore hooks instead of grouping
-  // them into a single object selector wrapped in useShallow. Zustand recommends
-  // individual selectors for optimal performance, as strict equality checks (===)
-  // are faster than shallow diffing.
   const rawSelectedLayerIds = useStore((state) => state.selectedLayerIds);
   const rawCanvasSize = useStore((state) => state.canvasSize);
   const activeTab = useStore((state) => state.activeTab);
@@ -65,7 +62,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const projectTitle = useStore((state) => state.projectTitle);
   const showShareModal = useStore((state) => state.showShareModal);
   const showFeedbackModal = useStore((state) => state.showFeedbackModal);
-
+  const rawArtboards = useStore((state) => state.artboards);
+  const artboards = rawArtboards || [];
   const selectedLayerIds = rawSelectedLayerIds || [];
   const canvasSize = rawCanvasSize || { width: 1080, height: 1080, name: 'Square' };
   const zoom = rawZoom || 1;
@@ -111,6 +109,46 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   }, []);
 
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+
+  // AutoLayout Reactivity Engine
+  useEffect(() => {
+    const allUpdates: Record<string, any> = {};
+    let didFindUpdates = false;
+
+    for (const artboard of artboards) {
+      const groupsWithLayout = artboard.layers.filter((l: Layer) => l.type === 'group' && (l as any).autoLayout);
+      if (groupsWithLayout.length === 0) {
+        continue;
+      }
+
+      for (const group of groupsWithLayout) {
+        const children = artboard.layers.filter((l: Layer) => l.groupId === group.id);
+        const updates = computeAutoLayout(group, children, artboard.layers);
+
+        for (const [id, partial] of Object.entries(updates)) {
+          const target = artboard.layers.find((l: Layer) => l.id === id);
+          if (target) {
+            let changed = false;
+            for (const key of Object.keys(partial)) {
+              if ((target as any)[key] !== (partial as any)[key]) {
+                changed = true;
+                break;
+              }
+            }
+            if (changed) {
+              allUpdates[id] = partial;
+              didFindUpdates = true;
+            }
+          }
+        }
+      }
+    }
+
+    if (didFindUpdates) {
+      // updateLayers is stable, safe to call
+      useStore.getState().updateLayers(allUpdates);
+    }
+  }, [artboards]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -647,24 +685,34 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
   return (
     <div id="editor-root" className="flex flex-col h-screen bg-surface-dark-2 overflow-hidden text-[#e5e7eb] font-sans">
-      {!hideHeaderOnMobile && (
-        <Header
-          onDownload={() => setShowExport(true)}
-          onBack={handleBack}
-          isNavigating={isNavigating}
-          onNew={() => useStore.getState().createProject('New Project')}
-          onOpenCommunity={() => setShowCommunityModal(true)}
-          user={user}
-          zoom={zoom}
-          onZoomChange={(z) => useStore.getState().setZoom(z)}
-          showGrid={showGrid}
-          onToggleGrid={(v) => useStore.getState().setShowGrid(v)}
-          showRulers={showRulers}
-          onToggleRulers={(v) => useStore.getState().setShowRulers(v)}
-          onAddArtboard={() => useStore.getState().addArtboard()}
-          onDeleteArtboard={() => useStore.getState().deleteArtboard(useStore.getState().activeArtboardId)}
-        />
-      )}
+      <AnimatePresence>
+        {!hideHeaderOnMobile && (
+          <motion.div
+            initial={{ y: -60, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -60, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="z-50 shrink-0"
+          >
+            <Header
+              onDownload={() => setShowExport(true)}
+              onBack={handleBack}
+              isNavigating={isNavigating}
+              onNew={() => useStore.getState().createProject('New Project')}
+              onOpenCommunity={() => setShowCommunityModal(true)}
+              user={user}
+              zoom={zoom}
+              onZoomChange={(z) => useStore.getState().setZoom(z)}
+              showGrid={showGrid}
+              onToggleGrid={(v) => useStore.getState().setShowGrid(v)}
+              showRulers={showRulers}
+              onToggleRulers={(v) => useStore.getState().setShowRulers(v)}
+              onAddArtboard={() => useStore.getState().addArtboard()}
+              onDeleteArtboard={() => useStore.getState().deleteArtboard(useStore.getState().activeArtboardId)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className={`flex flex-1 overflow-hidden relative ${hideHeaderOnMobile ? 'pb-0' : 'pb-16 md:pb-0'}`}>
         <div
@@ -756,15 +804,16 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                   <Icons.Minus className="w-3.5 h-3.5" />
                 </button>
                 <input
+                  key={zoom}
                   type="text"
-                  value={Math.round(zoom * 100) + '%'}
-                  onChange={() => {}}
+                  defaultValue={Math.round(zoom * 100) + '%'}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       const val = parseInt((e.target as HTMLInputElement).value.replace('%', ''));
                       if (!isNaN(val)) {
                         useStore.getState().setZoom(Math.max(0.1, Math.min(10, val / 100)));
                       }
+                      e.currentTarget.blur();
                     }
                   }}
                   onBlur={(e) => {
@@ -773,7 +822,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                       useStore.getState().setZoom(Math.max(0.1, Math.min(10, val / 100)));
                     }
                   }}
-                  className="px-1 w-[42px] text-center text-[10px] font-black text-gray-300 font-mono bg-transparent border border-white/10 rounded outline-none focus:border-brand/50"
+                  className="px-1 w-[42px] text-center text-[10px] font-black text-gray-300 font-mono bg-transparent border border-transparent rounded outline-none focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500 hover:border-white/10 transition-colors"
                   title="Zoom Level"
                 />
                 <button

@@ -65,9 +65,12 @@ export const ImageTools = React.memo(
     refineBrushSize,
     setRefineBrushSize,
     doneLasso,
+    _onVectorize,
     cancelLasso,
   }: ImageToolsProps) => {
     const filtersButtonRef = useRef<HTMLButtonElement>(null);
+    const adjustmentsButtonRef = useRef<HTMLButtonElement>(null);
+    const [showAdjustments, setShowAdjustments] = React.useState(false);
     const resizeButtonRef = useRef<HTMLButtonElement>(null);
     const mockupButtonRef = useRef<HTMLButtonElement>(null);
     const [showMockupQuickSelect, setShowMockupQuickSelect] = React.useState(false);
@@ -125,6 +128,17 @@ export const ImageTools = React.memo(
             className="px-3"
           >
             <Icons.Brush className={`w-4 h-4 ${isLassoMode ? 'text-white' : 'text-indigo-400'}`} />
+          </IconButton>
+          <Divider />
+          <IconButton
+            onClick={() => _onVectorize && _onVectorize(layer.id)}
+            title="Vectorize Image (AI)"
+            className="px-3 bg-indigo-500/20 hover:bg-indigo-500/40"
+          >
+            <div className="flex items-center gap-1.5">
+              <Icons.Zap className="w-4 h-4 text-indigo-400" />
+              <span className="text-[10px] font-bold text-indigo-200 uppercase tracking-wider">Vectorize</span>
+            </div>
           </IconButton>
         </div>
 
@@ -472,19 +486,59 @@ export const ImageTools = React.memo(
               </div>
             </Dropdown>
           </div>
-          <div className="flex items-center gap-2 px-3 h-8 bg-black/20 rounded-lg border border-white/10">
-            <Icons.Blend className="w-3.5 h-3.5 text-gray-500" />
-            <input
-              type="range"
-              min="0"
-              max="20"
-              value={layer.filters?.blur || 0}
-              aria-label="Blur amount"
-              onChange={(e) => {
-                handleUpdateLayer({ filters: { ...layer.filters, blur: parseInt(e.target.value) } });
-              }}
-              className="w-16 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600"
-            />
+
+          <div className="relative">
+            <button
+              ref={adjustmentsButtonRef}
+              onClick={() => setShowAdjustments(!showAdjustments)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${showAdjustments ? 'bg-brand-600 border-brand-600 text-white shadow-lg shadow-brand-600/30' : 'bg-black/20 border-white/10 text-gray-300 hover:border-white/20 hover:bg-black/30'}`}
+            >
+              <Icons.Sliders className="w-3.5 h-3.5" /> Adjust
+            </button>
+            <Dropdown
+              anchorRef={adjustmentsButtonRef}
+              isOpen={showAdjustments}
+              onClose={() => setShowAdjustments(false)}
+              align="left"
+            >
+              <div className="w-64 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-4 animate-fadeIn backdrop-blur-xl flex flex-col gap-4">
+                {[
+                  { label: 'Exposure', prop: 'brightness', min: 0, max: 200 },
+                  { label: 'Contrast', prop: 'contrast', min: 0, max: 200 },
+                  { label: 'Saturation', prop: 'saturation', min: 0, max: 200 },
+                  { label: 'Temperature (Tint)', prop: 'hueRotate', min: -180, max: 180 },
+                  { label: 'Warmth (Sepia)', prop: 'sepia', min: 0, max: 100 },
+                  { label: 'Grayscale', prop: 'grayscale', min: 0, max: 100 },
+                  { label: 'Vignette', prop: 'vignette', min: 0, max: 100 },
+                  { label: 'Blur', prop: 'blur', min: 0, max: 20 },
+                ].map((adj) => (
+                  <div key={adj.prop} className="flex flex-col gap-1.5">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                        {adj.label}
+                      </label>
+                      <span className="text-[10px] font-mono text-gray-500">
+                        {(layer.filters as any)?.[adj.prop] ??
+                          (adj.prop === 'brightness' || adj.prop === 'contrast' || adj.prop === 'saturation' ? 100 : 0)}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={adj.min}
+                      max={adj.max}
+                      value={
+                        (layer.filters as any)?.[adj.prop] ??
+                        (adj.prop === 'brightness' || adj.prop === 'contrast' || adj.prop === 'saturation' ? 100 : 0)
+                      }
+                      onChange={(e) => {
+                        handleUpdateLayer({ filters: { ...layer.filters, [adj.prop]: parseInt(e.target.value) } });
+                      }}
+                      className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600"
+                    />
+                  </div>
+                ))}
+              </div>
+            </Dropdown>
           </div>
         </div>
         <Divider />

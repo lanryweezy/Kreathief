@@ -116,13 +116,29 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
 
     const groupChildrenMap = React.useMemo(() => {
       const map = new Map<string, Layer[]>();
-      if (!layers) return map;
+      if (!layers) {
+        return map;
+      }
       for (const l of layers) {
         if (l.groupId && l.visible !== false) {
           const arr = map.get(l.groupId);
-          if (arr) arr.push(l);
-          else map.set(l.groupId, [l]);
+          if (arr) {
+            arr.push(l);
+          } else {
+            map.set(l.groupId, [l]);
+          }
         }
+      }
+      return map;
+    }, [layers]);
+
+    const layerMap = React.useMemo(() => {
+      const map = new Map<string, Layer>();
+      if (!layers) {
+        return map;
+      }
+      for (const l of layers) {
+        map.set(l.id, l);
       }
       return map;
     }, [layers]);
@@ -186,6 +202,7 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
               <CanvasLayerItemWrapper
                 layer={l}
                 allLayers={layers}
+                layerMap={layerMap}
                 maskLayerOverride={maskLayer}
                 selectedLayerId={selectedLayerId}
                 selectedLayerIds={selectedLayerIds}
@@ -213,6 +230,7 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
                   key={child.id}
                   layer={child}
                   allLayers={layers}
+                  layerMap={layerMap}
                   maskLayerOverride={layerMasks.get(child.id)}
                   selectedLayerId={selectedLayerId}
                   selectedLayerIds={selectedLayerIds}

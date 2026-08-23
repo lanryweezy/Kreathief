@@ -334,16 +334,44 @@ export const LayersPanel = () => {
   // Reversed list mirrors what the UI renders (top = last in array)
   const reversedLayers = useMemo(() => [...layers].reverse(), [layers]);
 
-  // Filter layers by name/type for quick lookup in complex designs
   const [layerSearch, setLayerSearch] = useState('');
+  const [showOverlapping, setShowOverlapping] = useState(false);
+
+  // Compute bounding box intersection for "Overlapping" filter mode
   const filteredLayers = useMemo(() => {
     const q = layerSearch.trim();
-    if (!q) {
-      return reversedLayers;
+    let result = reversedLayers;
+    if (q) {
+      // 🌸 Bloom: Replaced exact substring matching with fuzzyMatch for typo tolerance
+      result = result.filter((l) => fuzzyMatch(q, l.name || l.type));
     }
-    // 🌸 Bloom: Replaced exact substring matching with fuzzyMatch for typo tolerance
-    return reversedLayers.filter((l) => fuzzyMatch(q, l.name || l.type));
-  }, [reversedLayers, layerSearch]);
+    if (!showOverlapping || selectedLayerIds.length === 0) {
+      return result;
+    }
+
+    // Find the selected layer's bounding box
+    const selectedLayer = layers.find((l) => l.id === selectedLayerIds[0]);
+    if (!selectedLayer) {
+      return result;
+    }
+
+    const selLeft = selectedLayer.x;
+    const selTop = selectedLayer.y;
+    const selRight = selectedLayer.x + (selectedLayer.width || 0);
+    const selBottom = selectedLayer.y + (selectedLayer.height || 0);
+
+    return result.filter((l) => {
+      if (l.id === selectedLayer.id) {
+        return true;
+      } // always show the selected layer itself
+      const lLeft = l.x;
+      const lTop = l.y;
+      const lRight = l.x + (l.width || 0);
+      const lBottom = l.y + (l.height || 0);
+      // AABB intersection test
+      return lLeft < selRight && lRight > selLeft && lTop < selBottom && lBottom > selTop;
+    });
+  }, [reversedLayers, layerSearch, showOverlapping, selectedLayerIds, layers]);
 
   const handleLayerKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, displayIndex: number) => {
     switch (e.key) {
@@ -419,18 +447,32 @@ export const LayersPanel = () => {
         onTabChange={(id) => setActiveTab(id)}
         action={
           layers.length > 0 ? (
-            <button
-              onClick={() => {
-                if (window.confirm('Clear all layers? This action cannot be undone easily.')) {
-                  layers.forEach((l) => deleteLayer(l.id));
-                }
-              }}
-              title="Clear Canvas"
-              aria-label="Clear Canvas"
-              className="p-1 text-gray-500 hover:text-red-400 hover:bg-white/5 rounded transition-all"
-            >
-              <Icons.Trash className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => useStore.getState().autoRenameLayers?.()}
+                title="AI Rename Layers"
+                aria-label="AI Rename Layers"
+                className="p-1 text-gray-500 hover:text-brand-400 hover:bg-brand-500/10 rounded transition-all group relative"
+              >
+                <Icons.Wand className="w-4 h-4" />
+                <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+                </span>
+              </button>
+              <button
+                onClick={() => {
+                  if (window.confirm('Clear all layers? This action cannot be undone easily.')) {
+                    layers.forEach((l) => deleteLayer(l.id));
+                  }
+                }}
+                title="Clear Canvas"
+                aria-label="Clear Canvas"
+                className="p-1 text-gray-500 hover:text-red-400 hover:bg-white/5 rounded transition-all"
+              >
+                <Icons.Trash className="w-4 h-4" />
+              </button>
+            </div>
           ) : null
         }
       />
@@ -457,6 +499,22 @@ export const LayersPanel = () => {
                 &times;
               </button>
             )}
+          </div>
+          {/* All / Overlapping filter toggle */}
+          <div className="flex gap-1 mt-2">
+            <button
+              onClick={() => setShowOverlapping(false)}
+              className={`flex-1 py-1 rounded-md text-[10px] font-bold transition-all ${!showOverlapping ? 'bg-brand-600 text-white' : 'bg-surface-dark-3 text-gray-500 hover:text-gray-300'}`}
+            >
+              All ({layers.length})
+            </button>
+            <button
+              onClick={() => setShowOverlapping(true)}
+              title="Show only layers that overlap with the selected layer"
+              className={`flex-1 py-1 rounded-md text-[10px] font-bold transition-all ${showOverlapping ? 'bg-brand-600 text-white' : 'bg-surface-dark-3 text-gray-500 hover:text-gray-300'}`}
+            >
+              Overlapping{showOverlapping && selectedLayerIds.length > 0 ? ` (${filteredLayers.length})` : ''}
+            </button>
           </div>
         </div>
       )}

@@ -13,6 +13,10 @@ export const AutoLayoutTools = React.memo(({ selectedLayer, handleUpdateLayer }:
   const [showDropdown, setShowDropdown] = React.useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
+  if (selectedLayer.type !== 'group') {
+    return null;
+  }
+
   const isAutoLayout = !!selectedLayer.autoLayout;
 
   const toggleAutoLayout = () => {
@@ -26,7 +30,6 @@ export const AutoLayoutTools = React.memo(({ selectedLayer, handleUpdateLayer }:
           spacing: 10,
           alignment: 'center',
         },
-        groupId: selectedLayer.groupId || `group_${Date.now()}`,
       });
     }
   };

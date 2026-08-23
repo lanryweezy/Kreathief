@@ -503,8 +503,10 @@ class StorageService {
       });
 
       if (cached) {
-        // No timed revoke: layers may reference this URL for the whole session
-        return URL.createObjectURL(cached.blob);
+        // Timed revoke after 5 minutes to avoid memory leaks
+        const cachedUrl = URL.createObjectURL(cached.blob);
+        setTimeout(() => URL.revokeObjectURL(cachedUrl), 300000);
+        return cachedUrl;
       }
 
       // Not cached, fetch and store
@@ -512,7 +514,9 @@ class StorageService {
       const blob = await response.blob();
       await this.addToStore(store, { id, url, blob, timestamp: Date.now() });
 
-      return URL.createObjectURL(blob);
+      const newUrl = URL.createObjectURL(blob);
+      setTimeout(() => URL.revokeObjectURL(newUrl), 300000);
+      return newUrl;
     } catch (err) {
       log.warn('[Storage] Failed to cache asset', { url, error: err });
       return url;

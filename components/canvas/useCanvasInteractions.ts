@@ -111,12 +111,9 @@ export const useCanvasInteractions = ({
     });
 
   // 5. Drawing Hook
-  const {
-    handleDrawingMouseDown,
-    handleDrawingMouseMove,
-    handleDrawingMouseUp,
-    isDrawingInternalRef: _isDrawingInternalRef,
-  } = useDrawingMode({ zoom, isDrawing });
+  const { handleDrawingMouseDown, handleDrawingMouseMove, handleDrawingMouseUp, isDrawingInternalRef } = useDrawingMode(
+    { zoom, isDrawing, panOffset }
+  );
 
   // 6. Smart Mask Mode
   const isSmartMaskMode = useStore((state) => state.isSmartMaskMode);
@@ -251,27 +248,16 @@ export const useCanvasInteractions = ({
 
   // Global Event Listeners
   useEffect(() => {
-    const onMouseMove = (e: MouseEvent) => handleMouseMoveInternal(e);
-    const onMouseUp = () => handleMouseUpInternal();
-    const onTouchMove = (e: TouchEvent) => {
-      if (e.touches.length > 0) {
-        const touch = e.touches[0];
-        handleMouseMoveInternal({ clientX: touch.clientX, clientY: touch.clientY, target: e.target } as any);
-      }
-    };
-    const onTouchEnd = () => handleMouseUpInternal();
+    const onPointerMove = (e: PointerEvent) => handleMouseMoveInternal(e as any);
+    const onPointerUp = () => handleMouseUpInternal();
 
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', onMouseUp);
-    window.addEventListener('touchmove', onTouchMove, { passive: true });
-    window.addEventListener('touchend', onTouchEnd);
-    window.addEventListener('touchcancel', onTouchEnd);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
     return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onMouseUp);
-      window.removeEventListener('touchmove', onTouchMove);
-      window.removeEventListener('touchend', onTouchEnd);
-      window.removeEventListener('touchcancel', onTouchEnd);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
     };
   }, [handleMouseMoveInternal, handleMouseUpInternal]);
 

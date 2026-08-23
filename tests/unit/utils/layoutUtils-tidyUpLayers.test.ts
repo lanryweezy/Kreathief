@@ -19,8 +19,7 @@ const createLayer = (id: string, x: number, y: number, width: number, height: nu
   } as ShapeLayer;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createLayerWithoutHeight = (id: string, x: number, y: number, width: number): any => {
+const createLayerWithoutHeight = (id: string, x: number, y: number, width: number): Layer => {
   return {
     id,
     type: 'rectangle',

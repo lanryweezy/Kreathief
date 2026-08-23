@@ -307,6 +307,83 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
         )}
       </div>
 
+      {/* Sticker Outline */}
+      <div className="border border-gray-700 rounded-lg p-3">
+        <div className="flex items-center justify-between mb-3">
+          <label className="text-[10px] text-gray-400 font-bold">Sticker Outline</label>
+          {!(selectedLayer as any).stickerEffect?.enabled ? (
+            <button
+              onClick={() => {
+                updateLayer(selectedLayer.id, {
+                  stickerEffect: {
+                    enabled: true,
+                    width: 5,
+                    color: '#ffffff',
+                    shadowBlur: 4,
+                    shadowColor: 'rgba(0,0,0,0.3)',
+                  },
+                });
+                addToast('Sticker effect added', 'success');
+              }}
+              className="text-[10px] text-brand-600 hover:text-brand-500 flex items-center gap-1"
+            >
+              <Icons.Plus className="w-3 h-3" /> Add
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                updateLayer(selectedLayer.id, {
+                  stickerEffect: { ...(selectedLayer as any).stickerEffect, enabled: false },
+                });
+                addToast('Sticker effect removed', 'info');
+              }}
+              className="text-[10px] text-red-400 hover:text-red-300 flex items-center gap-1"
+            >
+              <Icons.Trash className="w-3 h-3" /> Remove
+            </button>
+          )}
+        </div>
+
+        {(selectedLayer as any).stickerEffect?.enabled && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <input
+                aria-label="Sticker Color"
+                type="color"
+                value={(selectedLayer as any).stickerEffect.color}
+                onChange={(e) => {
+                  updateLayer(selectedLayer.id, {
+                    stickerEffect: { ...(selectedLayer as any).stickerEffect, color: e.target.value },
+                  });
+                }}
+                className="w-6 h-6 rounded border border-gray-600"
+              />
+              <span className="text-[10px] text-gray-400">Outline Color</span>
+            </div>
+
+            <div>
+              <div className="flex justify-between text-[9px] text-gray-500 mb-1">
+                <span>Outline Width</span>
+                <span>{(selectedLayer as any).stickerEffect.width}px</span>
+              </div>
+              <input
+                aria-label="Sticker Width"
+                type="range"
+                min="1"
+                max="20"
+                value={(selectedLayer as any).stickerEffect.width}
+                onChange={(e) => {
+                  updateLayer(selectedLayer.id, {
+                    stickerEffect: { ...(selectedLayer as any).stickerEffect, width: parseInt(e.target.value) },
+                  });
+                }}
+                className="w-full accent-brand-600"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Coming Soon Effects */}
       <div className="border border-gray-700 rounded-lg p-3 opacity-50">
         <div className="flex items-center justify-between mb-2">

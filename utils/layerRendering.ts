@@ -15,6 +15,19 @@ export const getAnimationStyle = (anim?: AnimationSettings): React.CSSProperties
     return {};
   }
 
+  if (anim.type === 'path' && anim.pathData) {
+    return {
+      offsetPath: `path('${anim.pathData}')`,
+      offsetRotate: anim.autoRotate !== false ? 'auto' : '0deg',
+      animationName: 'motion-path-follow',
+      animationDuration: `${anim.duration || 3}s`,
+      animationDelay: `${anim.delay || 0}s`,
+      animationTimingFunction: anim.easing || 'ease-in-out',
+      animationIterationCount: anim.iterationCount === 'infinite' ? 'infinite' : anim.iterationCount,
+      animationFillMode: 'both',
+    };
+  }
+
   return {
     animationName: anim.type,
     animationDuration: `${anim.duration}s`,

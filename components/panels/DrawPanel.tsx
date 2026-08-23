@@ -61,16 +61,26 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
     setBrushJitter,
     autoSelectAfterDraw,
     setAutoSelectAfterDraw,
-  } = useStore(useShallow((state) => ({
-    selectedCustomBrushId: state.selectedCustomBrushId,
-    setSelectedCustomBrushId: state.setSelectedCustomBrushId,
-    brushSmoothing: state.brushSmoothing,
-    setBrushSmoothing: state.setBrushSmoothing,
-    brushJitter: state.brushJitter,
-    setBrushJitter: state.setBrushJitter,
-    autoSelectAfterDraw: state.autoSelectAfterDraw,
-    setAutoSelectAfterDraw: state.setAutoSelectAfterDraw,
-  })));
+    symmetryMode,
+    setSymmetryMode,
+    symmetryCount,
+    setSymmetryCount,
+  } = useStore(
+    useShallow((state) => ({
+      selectedCustomBrushId: state.selectedCustomBrushId,
+      setSelectedCustomBrushId: state.setSelectedCustomBrushId,
+      brushSmoothing: state.brushSmoothing,
+      setBrushSmoothing: state.setBrushSmoothing,
+      brushJitter: state.brushJitter,
+      setBrushJitter: state.setBrushJitter,
+      autoSelectAfterDraw: state.autoSelectAfterDraw,
+      setAutoSelectAfterDraw: state.setAutoSelectAfterDraw,
+      symmetryMode: state.symmetryMode,
+      setSymmetryMode: state.setSymmetryMode,
+      symmetryCount: state.symmetryCount,
+      setSymmetryCount: state.setSymmetryCount,
+    }))
+  );
 
   const colors = [
     '#000000',
@@ -172,6 +182,16 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
       [BrushType.TEXTURE]: (
         <rect x="0" y="0" width={w} height={h} fill={brushColor} fillOpacity={opacity * 0.2} filter="url(#oilFilter)" />
       ),
+      [BrushType.NEON]: (
+        <path
+          d="M5 25 Q 50 5 95 25"
+          stroke={brushColor}
+          strokeWidth={sw}
+          fill="none"
+          opacity={opacity}
+          filter="url(#brush-neon-0)"
+        />
+      ),
     };
 
     return (
@@ -249,6 +269,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
               { id: BrushType.WATERCOLOR, name: 'Watercolor', color: 'text-cyan-400' },
               { id: BrushType.SPLATTER, name: 'Splatter', color: 'text-pink-400' },
               { id: BrushType.TEXTURE, name: 'Texture', color: 'text-emerald-400' },
+              { id: BrushType.NEON, name: 'Neon Glow', color: 'text-fuchsia-400' },
             ].map((type) => (
               <button
                 key={type.id}
@@ -294,6 +315,48 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
         </div>
 
         <div className="space-y-6">
+          {/* Symmetry Tool */}
+          <div>
+            <label className="text-xs font-bold text-gray-400 mb-2 block uppercase tracking-wider flex items-center gap-1.5">
+              <Icons.Layout className="w-3 h-3 text-brand-400" /> Symmetry Tool
+            </label>
+            <div className="flex bg-surface-dark-4 rounded-lg p-1 border border-gray-700 mb-3">
+              {[
+                { id: 'none', label: 'Off' },
+                { id: 'horizontal', label: 'Horiz' },
+                { id: 'vertical', label: 'Vert' },
+                { id: 'radial', label: 'Radial' },
+              ].map((mode) => {
+                const isActive = symmetryMode === mode.id;
+                return (
+                  <button
+                    key={mode.id}
+                    onClick={() => setSymmetryMode?.(mode.id as any)}
+                    className={`flex-1 text-[11px] font-bold py-1.5 rounded-md transition-all ${
+                      isActive ? 'bg-brand-600 text-white shadow-sm' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    {mode.label}
+                  </button>
+                );
+              })}
+            </div>
+            {symmetryMode === 'radial' && (
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] text-gray-400 w-12">Segments</span>
+                <input
+                  type="range"
+                  min="2"
+                  max="32"
+                  value={symmetryCount || 8}
+                  onChange={(e) => setSymmetryCount?.(parseInt(e.target.value))}
+                  className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600 hover:bg-white/20 transition-colors"
+                />
+                <span className="text-[10px] text-gray-400 font-mono w-6 text-right">{symmetryCount || 8}</span>
+              </div>
+            )}
+          </div>
+
           {/* Colors */}
           <div>
             <label className="text-xs font-bold text-gray-400 mb-2 block uppercase tracking-wider">Color</label>

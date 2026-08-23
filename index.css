@@ -860,3 +860,12 @@ h4,
 .animate-fade-in-tile {
   animation: tileFadeIn 200ms ease-out forwards;
 }
+
+@keyframes motion-path-follow {
+  0% {
+    offset-distance: 0%;
+  }
+  100% {
+    offset-distance: 100%;
+  }
+}

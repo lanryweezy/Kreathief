@@ -54,3 +54,4 @@ coverage/
 package-lock.json
 rust-engine/pkg/
 rust-engine/target/
+.env*

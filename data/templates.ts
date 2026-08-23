@@ -1,4 +1,23 @@
-import { CanvasSize, Project } from '../types';
+import { CanvasSize, Artboard, Layer, Project } from '../types';
+
+export interface TemplateState {
+  artboards?: (Artboard | any)[];
+  layers?: any[];
+  activeArtboardId?: string;
+  canvasBackgroundColor?: string;
+  canvasFilters?: {
+    brightness: number;
+    contrast: number;
+    saturation: number;
+    grayscale: number;
+    blur: number;
+    sepia: number;
+    hueRotate: number;
+    vignette: number;
+    opacity: number;
+  };
+  [key: string]: unknown;
+}
 
 export interface StarterTemplate {
   id: string;
@@ -6,18 +25,15 @@ export interface StarterTemplate {
   category: 'Social' | 'Video' | 'Business' | 'Personal' | 'African Market';
   description: string;
   size: CanvasSize;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  state: any;
+  state: TemplateState;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const baseState = (size: CanvasSize): any => ({
+const baseState = (size: CanvasSize): TemplateState => ({
   artboards: [
     {
       id: 'default-artboard',
       name: 'Artboard',
       layers: [],
-      canvasSize: size,
       x: 0,
       y: 0,
       width: size.width,
@@ -5462,6 +5478,6 @@ export const createProjectFromTemplate = (template: StarterTemplate): Project =>
     id: `tmpl_${template.id}_${timestamp}`,
     name: template.name,
     updatedAt: timestamp,
-    state: template.state,
+    state: template.state as unknown as Project['state'],
   };
 };

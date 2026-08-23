@@ -12,15 +12,18 @@ import {
   downloadBlob,
   exportDesignToImage,
 } from '../../services/exportService';
+import { exportArtboardToVideo, exportSlideshowToVideo } from '../../services/videoExportService';
 import { isWithinCMYKGamut, getClosestCMYKSafeColor } from '../../utils/colorUtils';
 import { Button } from '../Button';
 import { Input } from '../Input';
 import { Toggle } from '../Toggle';
 
+export type ExportFormatType = 'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd' | 'mp4' | 'webm';
+
 interface ExportModalProps {
   onClose: () => void;
   onExport: (
-    format: 'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd',
+    format: any,
     quality: number,
     size?: { width: number; height: number },
     transparentBg?: boolean,
@@ -53,23 +56,25 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
       user: state.user,
     }))
   );
-  const [format, setFormatState] = useState<'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd'>(() => {
+  const [format, setFormatState] = useState<ExportFormatType>(() => {
     try {
       const saved = localStorage.getItem('kreathief_export_format');
-      if (saved && ['png', 'jpeg', 'webp', 'svg', 'pdf', 'psd'].includes(saved)) {
-        return saved as 'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd';
+      if (saved && ['png', 'jpeg', 'webp', 'svg', 'pdf', 'psd', 'mp4', 'webm'].includes(saved)) {
+        return saved as ExportFormatType;
       }
     } catch {}
     return 'png';
   });
 
-  const setFormat = (f: 'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd') => {
+  const setFormat = (f: ExportFormatType) => {
     setFormatState(f);
     try {
       localStorage.setItem('kreathief_export_format', f);
     } catch {}
   };
   const [quality, setQuality] = useState(0.95);
+  const [videoDuration, setVideoDuration] = useState(5); // seconds
+  const [videoFps, setVideoFps] = useState<30 | 60>(30);
   const [activePreset, setActivePreset] = useState<string>('current');
   const [isExporting, setIsExporting] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
@@ -140,8 +145,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         URL.revokeObjectURL(url);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [artboards, activeArtboardId, currentSize.width, currentSize.height]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -336,6 +340,26 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
       // 🌸 Bloom: Handle empty filename edge case by providing a safe fallback instead of failing
       const safeCustomFilename = filename.trim() || 'design';
+
+      if (format === 'mp4' || format === 'webm') {
+        const activeArtboard = artboards.find((a) => a.id === activeArtboardId) || artboards[0];
+        if (!activeArtboard) {
+          throw new Error('No active artboard to export');
+        }
+        const videoBlob = await exportArtboardToVideo(activeArtboard, {
+          durationSeconds: videoDuration,
+          fps: videoFps,
+          scale: exportScale,
+          onProgress: (progress, stage) => {
+            setExportProgress(Math.round(progress * 100));
+            setExportStage(stage);
+          },
+        });
+        downloadBlob(videoBlob, `${safeCustomFilename}.${format}`);
+        addToast(`Video animation exported as ${format.toUpperCase()}!`, 'success');
+        setTimeout(() => onClose(), 300);
+        return;
+      }
 
       // Handle print mode PDF export separately
       if (format === 'pdf' && isPrintMode) {
@@ -788,19 +812,79 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
             {/* Format Selection */}
             <div>
               <label className="text-xs font-bold text-muted-light uppercase tracking-wider mb-3 block">Format</label>
-              <div className="grid grid-cols-3 gap-2">
-                {(['png', 'jpeg', 'webp', 'svg', 'pdf', 'psd'] as const).map((f) => (
+              <div className="grid grid-cols-4 gap-2">
+                {(['png', 'jpeg', 'webp', 'svg', 'pdf', 'psd', 'mp4', 'webm'] as const).map((f) => (
                   <button
                     key={f}
                     data-testid={`export-${f}-btn`}
                     onClick={() => setFormat(f)}
-                    className={`py-2 rounded-xl text-xs font-bold transition-all border ${format === f ? 'bg-brand-600 border-brand-600 text-white' : 'bg-surface-dark-4 border-gray-700 text-gray-400 hover:border-gray-500'}`}
+                    className={`py-2 rounded-xl text-xs font-bold transition-all border ${
+                      format === f
+                        ? 'bg-brand-600 border-brand-600 text-white shadow-md shadow-brand-500/20'
+                        : 'bg-surface-dark-4 border-gray-700 text-gray-400 hover:border-gray-500'
+                    }`}
                   >
                     {f.toUpperCase()}
                   </button>
                 ))}
               </div>
             </div>
+
+            {/* Video Animation Controls (MP4 / WEBM) */}
+            {(format === 'mp4' || format === 'webm') && (
+              <div className="p-4 bg-surface-dark-2 border border-brand-500/40 rounded-xl space-y-4 animate-fadeIn">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Icons.Play className="w-4 h-4 text-brand-400" />
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Video Animation Settings</h4>
+                  </div>
+                  <span className="text-[10px] font-mono text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded-full">
+                    {format.toUpperCase()}
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-gray-400">Duration</span>
+                    <span className="text-white font-mono">{videoDuration} seconds</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="15"
+                    step="1"
+                    value={videoDuration}
+                    onChange={(e) => setVideoDuration(parseInt(e.target.value, 10))}
+                    className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600"
+                  />
+                  <div className="flex justify-between text-[9px] text-gray-500 font-mono">
+                    <span>1s (Short Loop)</span>
+                    <span>5s (Social Reel)</span>
+                    <span>15s (Story)</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] text-gray-400 block">Frame Rate</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {([30, 60] as const).map((fpsVal) => (
+                      <button
+                        key={fpsVal}
+                        type="button"
+                        onClick={() => setVideoFps(fpsVal)}
+                        className={`py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                          videoFps === fpsVal
+                            ? 'bg-brand-600 border-brand-600 text-white'
+                            : 'bg-surface-dark-4 border-gray-700 text-gray-400 hover:border-gray-500'
+                        }`}
+                      >
+                        {fpsVal} FPS {fpsVal === 60 ? '(Smooth)' : '(Standard)'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Batch Export Mode (only when 2+ artboards) */}
             {artboards && artboards.length >= 2 && (
@@ -1136,8 +1220,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
               <label className="text-xs font-bold text-muted-light uppercase tracking-wider mb-3 block">
                 Export Scale
               </label>
-              <div className="grid grid-cols-3 gap-2">
-                {[1, 2, 3].map((scale) => (
+              <div className="grid grid-cols-4 gap-2">
+                {[1, 2, 3, 4].map((scale) => (
                   <button
                     key={scale}
                     onClick={() => setExportScale(scale)}

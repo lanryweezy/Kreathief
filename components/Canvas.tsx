@@ -586,7 +586,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
                 ? 'grab'
                 : eraserCursor || (isDrawing ? 'crosshair' : 'default'),
           }}
-          onMouseDown={isDrawing && brushType === 'vector_pencil' ? undefined : handleMouseDownCombined}
+          onPointerDown={isDrawing && brushType === 'vector_pencil' ? undefined : (handleMouseDownCombined as any)}
           onDragOver={handleCanvasDragOver}
           onDrop={handleCanvasDrop}
         >

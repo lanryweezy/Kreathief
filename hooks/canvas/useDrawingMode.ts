@@ -2,6 +2,7 @@ import { useRef, useCallback, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import { generateLayerId } from '../../utils/layers/layerUtils';
 import { StrokeSmoother } from '../../utils/variableStroke';
+import { recognizeShape } from '../../utils/shapeRecognition';
 
 // Ramer-Douglas-Peucker path simplification
 function rdpSimplify(points: { x: number; y: number }[], epsilon: number): { x: number; y: number }[] {
@@ -52,18 +53,21 @@ function perpendicularDistance(
 interface UseDrawingModeProps {
   zoom: number;
   isDrawing: boolean;
+  panOffset: { x: number; y: number };
 }
 
-export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
+export const useDrawingMode = ({ zoom, isDrawing, panOffset }: UseDrawingModeProps) => {
   const isDrawingInternalRef = useRef(false);
   const currentPathRef = useRef<{ x: number; y: number }[]>([]);
   const zoomRef = useRef(zoom);
+  const panOffsetRef = useRef(panOffset);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const altHeldRef = useRef(false);
 
   useEffect(() => {
     zoomRef.current = zoom;
-  }, [zoom]);
+    panOffsetRef.current = panOffset;
+  }, [zoom, panOffset]);
 
   // Eyedropper: track Alt key state while drawing
   useEffect(() => {
@@ -97,11 +101,14 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
       return;
     }
 
+    ctx.resetTransform();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (currentPathRef.current.length === 0) {
       return;
     }
+
+    ctx.setTransform(zoomRef.current, 0, 0, zoomRef.current, panOffsetRef.current.x, panOffsetRef.current.y);
 
     ctx.strokeStyle = brushColor;
     ctx.lineWidth = brushSize * 0.75;
@@ -111,26 +118,59 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
     ctx.shadowBlur = 0;
     ctx.setLineDash([]);
 
-    ctx.beginPath();
-    ctx.moveTo(currentPathRef.current[0].x, currentPathRef.current[0].y);
-    for (let i = 1; i < currentPathRef.current.length; i++) {
-      ctx.lineTo(currentPathRef.current[i].x, currentPathRef.current[i].y);
-    }
-    if (previewX !== undefined && previewY !== undefined) {
-      ctx.lineTo(previewX, previewY);
-    }
-    ctx.stroke();
+    const { symmetryMode, symmetryCount, activeArtboardId, artboards } = useStore.getState();
+    const activeArtboard = artboards.find((a) => a.id === activeArtboardId);
 
-    // Draw anchor points for vector pencil
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = brushColor;
-    ctx.lineWidth = 1.5;
-    currentPathRef.current.forEach((p) => {
+    // Find symmetry center (artboard center, or canvas center)
+    const centerX = activeArtboard
+      ? activeArtboard.x + activeArtboard.width / 2
+      : canvas.width / (2 * zoomRef.current) - panOffsetRef.current.x / zoomRef.current;
+    const centerY = activeArtboard
+      ? activeArtboard.y + activeArtboard.height / 2
+      : canvas.height / (2 * zoomRef.current) - panOffsetRef.current.y / zoomRef.current;
+
+    const iterations = symmetryMode === 'radial' ? symmetryCount : symmetryMode !== 'none' ? 2 : 1;
+
+    for (let s = 0; s < iterations; s++) {
+      ctx.save();
+
+      if (symmetryMode === 'radial') {
+        ctx.translate(centerX, centerY);
+        ctx.rotate((((s * 360) / symmetryCount) * Math.PI) / 180);
+        ctx.translate(-centerX, -centerY);
+      } else if (symmetryMode === 'horizontal' && s === 1) {
+        ctx.translate(centerX * 2, 0);
+        ctx.scale(-1, 1);
+      } else if (symmetryMode === 'vertical' && s === 1) {
+        ctx.translate(0, centerY * 2);
+        ctx.scale(1, -1);
+      }
+
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.moveTo(currentPathRef.current[0].x, currentPathRef.current[0].y);
+      for (let i = 1; i < currentPathRef.current.length; i++) {
+        ctx.lineTo(currentPathRef.current[i].x, currentPathRef.current[i].y);
+      }
+      if (previewX !== undefined && previewY !== undefined) {
+        ctx.lineTo(previewX, previewY);
+      }
       ctx.stroke();
-    });
+
+      ctx.restore();
+    }
+
+    // Draw anchor points for vector pencil (only on main stroke for clarity)
+    if (brushType === 'vector_pencil') {
+      ctx.fillStyle = '#ffffff';
+      ctx.strokeStyle = brushColor;
+      ctx.lineWidth = 1.5;
+      currentPathRef.current.forEach((p) => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      });
+    }
   }, []);
 
   const smootherRef = useRef<StrokeSmoother | null>(null);
@@ -166,8 +206,10 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
 
       const { brushType } = useStore.getState();
       const rect = canvas.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / zoomRef.current;
-      const y = (e.clientY - rect.top) / zoomRef.current;
+      const viewportX = e.clientX - rect.left;
+      const viewportY = e.clientY - rect.top;
+      const x = (viewportX - panOffsetRef.current.x) / zoomRef.current;
+      const y = (viewportY - panOffsetRef.current.y) / zoomRef.current;
 
       if (brushType === 'vector_pencil') {
         return; // Handled by PathEditorOverlay
@@ -185,6 +227,7 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
 
         const ctx = canvas.getContext('2d');
         if (ctx) {
+          ctx.setTransform(zoomRef.current, 0, 0, zoomRef.current, panOffsetRef.current.x, panOffsetRef.current.y);
           ctx.beginPath();
           ctx.moveTo(x, y);
         }
@@ -200,14 +243,19 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
       }
       const canvas = canvasRef.current;
       const rect = canvas.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / zoomRef.current;
-      const y = (e.clientY - rect.top) / zoomRef.current;
+      const viewportX = e.clientX - rect.left;
+      const viewportY = e.clientY - rect.top;
+      const x = (viewportX - panOffsetRef.current.x) / zoomRef.current;
+      const y = (viewportY - panOffsetRef.current.y) / zoomRef.current;
 
       // Capture pressure from PointerEvent (0..1), default to 0.5 for MouseEvents
       const pressure = (e as any).pressure ?? 0.5;
 
       const { brushColor, brushSize, brushOpacity, brushType, brushJitter } = useStore.getState();
       const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.setTransform(zoomRef.current, 0, 0, zoomRef.current, panOffsetRef.current.x, panOffsetRef.current.y);
+      }
 
       if (brushType === 'vector_pencil') {
         return; // Handled by PathEditorOverlay
@@ -366,17 +414,61 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
       return;
     }
 
-    // Convert path to VectorPath and calculate bounds
+    const { symmetryMode, symmetryCount, activeArtboardId, artboards, zoom } = useStore.getState();
+    const activeArtboard = artboards.find((a) => a.id === activeArtboardId);
+
+    // Find symmetry center (artboard center, or canvas center)
+    const centerX = activeArtboard
+      ? activeArtboard.x + activeArtboard.width / 2
+      : canvasRef.current
+        ? canvasRef.current.width / (2 * zoom) - panOffsetRef.current.x / zoom
+        : 0;
+    const centerY = activeArtboard
+      ? activeArtboard.y + activeArtboard.height / 2
+      : canvasRef.current
+        ? canvasRef.current.height / (2 * zoom) - panOffsetRef.current.y / zoom
+        : 0;
+
+    const iterations = symmetryMode === 'radial' ? symmetryCount : symmetryMode !== 'none' ? 2 : 1;
+
+    // Array of arrays (each is a path segment)
+    const allPaths: { x: number; y: number }[][] = [currentPathRef.current];
+
+    if (iterations > 1) {
+      for (let s = 1; s < iterations; s++) {
+        const mirroredPath = currentPathRef.current.map((p) => {
+          if (symmetryMode === 'radial') {
+            const angle = (((s * 360) / symmetryCount) * Math.PI) / 180;
+            const dx = p.x - centerX;
+            const dy = p.y - centerY;
+            return {
+              x: centerX + dx * Math.cos(angle) - dy * Math.sin(angle),
+              y: centerY + dx * Math.sin(angle) + dy * Math.cos(angle),
+            };
+          } else if (symmetryMode === 'horizontal') {
+            return { x: centerX * 2 - p.x, y: p.y };
+          } else if (symmetryMode === 'vertical') {
+            return { x: p.x, y: centerY * 2 - p.y };
+          }
+          return p;
+        });
+        allPaths.push(mirroredPath);
+      }
+    }
+
+    // Convert paths to VectorPath and calculate combined bounds
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
 
-    currentPathRef.current.forEach((p) => {
-      minX = Math.min(minX, p.x);
-      minY = Math.min(minY, p.y);
-      maxX = Math.max(maxX, p.x);
-      maxY = Math.max(maxY, p.y);
+    allPaths.forEach((path) => {
+      path.forEach((p) => {
+        minX = Math.min(minX, p.x);
+        minY = Math.min(minY, p.y);
+        maxX = Math.max(maxX, p.x);
+        maxY = Math.max(maxY, p.y);
+      });
     });
 
     const width = Math.max(1, maxX - minX);
@@ -418,19 +510,44 @@ export const useDrawingMode = ({ zoom, isDrawing }: UseDrawingModeProps) => {
       return d;
     };
 
-    const relativePath = currentPathRef.current.map((p) => ({
-      x: p.x - minX,
-      y: p.y - minY,
-    }));
+    let pathData = '';
+    let layerName = `${brushType} Stroke`;
 
-    // Apply RDP simplification to reduce point count while preserving shape
-    const simplified = rdpSimplify(relativePath, 1.5);
-    const pathData = simplifyAndSmoothPath(simplified);
+    allPaths.forEach((pathSegment, index) => {
+      const relativePath = pathSegment.map((p) => ({
+        x: p.x - minX,
+        y: p.y - minY,
+      }));
+
+      // Apply RDP simplification to reduce point count while preserving shape
+      const simplified = rdpSimplify(relativePath, 1.5);
+
+      if (index === 0) {
+        // Shape Recognition: attempt to snap freehand strokes to perfect geometric shapes (only evaluate main stroke)
+        const shapeResult = recognizeShape(relativePath, Math.max(width, height) * 0.15);
+        if (shapeResult.type !== 'none' && shapeResult.confidence >= 0.65) {
+          pathData += shapeResult.pathData + ' ';
+          const shapeNames: Record<string, string> = {
+            circle: 'Circle',
+            rectangle: 'Rectangle',
+            triangle: 'Triangle',
+            line: 'Line',
+          };
+          layerName = shapeNames[shapeResult.type] || `${brushType} Stroke`;
+          return; // Skip drawing smoothing if shape recognized
+        }
+      }
+
+      // Use the original smoothed freehand path
+      pathData += simplifyAndSmoothPath(simplified) + ' ';
+    });
+
+    pathData = pathData.trim();
 
     addLayer({
       id: generateLayerId('draw'),
       type: 'path',
-      name: `${brushType} Stroke`,
+      name: layerName,
       x: minX,
       y: minY,
       width,

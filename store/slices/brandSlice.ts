@@ -2,7 +2,6 @@ import { StateCreator } from 'zustand';
 import { BrandKit, Layer, Artboard } from '../../types';
 import type { StoreState } from '../useStore';
 
-
 // Get perceived brightness of a hex color (0-255)
 function getBrightness(hex: string): number {
   const h = hex.replace('#', '');
@@ -112,8 +111,10 @@ export const createBrandSlice: StateCreator<StoreState, [], [], BrandSlice> = (s
     }
     get().saveToHistory?.();
 
-    const background = colors[0];
-    const colorPool = colors.slice(1).length > 0 ? colors.slice(1) : colors;
+    // 1-Click Brand Shuffle: Randomize background color
+    const shuffledColors = [...colors].sort(() => Math.random() - 0.5);
+    const background = shuffledColors[0];
+    const colorPool = shuffledColors.slice(1).length > 0 ? shuffledColors.slice(1) : shuffledColors;
 
     // Smart contrast: determine if background is light or dark
     const bgBrightness = getBrightness(background);
@@ -130,6 +131,11 @@ export const createBrandSlice: StateCreator<StoreState, [], [], BrandSlice> = (s
         ...artboard,
         backgroundColor: background,
         layers: artboard.layers.map((l: Layer, layerIdx: number) => {
+          // Do not override locked layers!
+          if (l.locked || l.lockStyle) {
+            return l;
+          }
+
           if (l.type === 'text') {
             // Text gets contrasting color (readable on background)
             const textColor = isLightBg
@@ -142,12 +148,14 @@ export const createBrandSlice: StateCreator<StoreState, [], [], BrandSlice> = (s
             };
           }
           if (['rectangle', 'circle', 'triangle', 'path', 'star'].includes(l.type)) {
-            // Shapes get rotating brand colors (deterministic by layer index)
-            const colorIdx = layerIdx % colorPool.length;
+            // 1-Click Brand Shuffle: Assign random color from pool
+            const colorIdx = Math.floor(Math.random() * colorPool.length);
             return {
               ...l,
               color: colorPool[colorIdx],
-              colorToken: kitId ? { kitId, type: 'color', path: `colors.${colorIdx + 1}` } : undefined,
+              colorToken: kitId
+                ? { kitId, type: 'color', path: `colors.${colors.indexOf(colorPool[colorIdx])}` }
+                : undefined,
             };
           }
           return l;
@@ -162,6 +170,10 @@ export const createBrandSlice: StateCreator<StoreState, [], [], BrandSlice> = (s
       artboards: state.artboards.map((artboard: any) => ({
         ...artboard,
         layers: artboard.layers.map((l: any) => {
+          if (l.locked || l.lockStyle) {
+            return l;
+          }
+
           if (l.type === 'text') {
             const isHeading = l.fontWeight === '700' || l.fontSize > 32;
             return {

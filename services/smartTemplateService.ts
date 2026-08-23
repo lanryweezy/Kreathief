@@ -1,4 +1,4 @@
-import { CanvasSize, BrandKit, AspectRatio, Project } from '../types';
+import { CanvasSize, BrandKit, AspectRatio, Project, Layer, Artboard, TextLayer } from '../types';
 import { STARTER_TEMPLATES, StarterTemplate } from '../data/templates';
 import { getLevenshteinDistance } from '../utils/search';
 
@@ -112,17 +112,18 @@ class SmartTemplateService {
    */
   private deriveSlotsFromTemplate(templateId: string): SmartTemplateSlot[] {
     const template = STARTER_TEMPLATES.find((t) => t.id === templateId);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const layers: any[] = template?.state?.artboards?.flatMap((a: any) => a.layers || []) || [];
-    const textLayers = layers.filter((l) => l.type === 'text' && typeof l.text === 'string' && l.id);
+    const layers: Layer[] =
+      (template?.state?.artboards as Artboard[] | undefined)?.flatMap((a: Artboard) => a.layers || []) || [];
+    const textLayers = layers.filter(
+      (l): l is TextLayer => l.type === 'text' && typeof (l as any).text === 'string' && !!l.id
+    );
     if (textLayers.length === 0) {
       return [];
     }
 
     const headlineId = [...textLayers].sort((a, b) => (b.fontSize || 0) - (a.fontSize || 0))[0]?.id;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const classify = (l: any): SmartTemplateSlot['contentType'] => {
+    const classify = (l: Layer): SmartTemplateSlot['contentType'] => {
       const name = `${l.name || ''}`.toLowerCase();
       if (/cta|button|ticket|shop|buy|link/.test(name)) {
         return 'cta';

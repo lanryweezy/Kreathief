@@ -78,6 +78,13 @@ export const CanvasTools = React.memo(({ documentColors }: CanvasToolsProps) => 
         }}
         documentColors={documentColors}
       />
+      <IconButton
+        onClick={() => useStore.getState().shufflePalette?.()}
+        title="1-Click Palette Shuffler — Randomize document colors harmoniously"
+        className="ml-1 !bg-brand-500/20 hover:!bg-brand-500/40 text-brand-400"
+      >
+        <Icons.Shuffle className="w-4 h-4" />
+      </IconButton>
       <Divider />
 
       <div className="flex items-center gap-4 px-1">

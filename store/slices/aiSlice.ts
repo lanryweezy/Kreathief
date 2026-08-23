@@ -66,6 +66,9 @@ export interface AISlice {
   suggestFontPairing: (textLayerId: string) => Promise<void>;
   generateAutoLayouts: () => Promise<void>;
   applyStyleFromImage: (base64Image: string) => Promise<void>;
+  extractPhotoColors: (layerId: string) => Promise<void>;
+  generateTextTexture: (layerId: string) => Promise<void>;
+  autoRenameLayers: () => Promise<void>;
 
   handleConvertToPath: (id: string) => void;
   handleUpdateCanvasSize: (size: any) => void;
@@ -582,6 +585,144 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     }
   },
 
+  extractPhotoColors: async (layerId: string) => {
+    const { artboards, activeArtboardId, addBrandKit, setActiveBrandKit, addToast } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    const layer = artboard?.layers.find((l: any) => l.id === layerId);
+    if (!layer || layer.type !== 'image') {
+      return;
+    }
+
+    try {
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.src = layer.src;
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        return;
+      }
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      // Simple fast color extraction by sampling a grid
+      const cols = 5;
+      const rows = 5;
+      const cellW = canvas.width / cols;
+      const cellH = canvas.height / rows;
+      const colors = new Set<string>();
+
+      for (let x = 0; x < cols; x++) {
+        for (let y = 0; y < rows; y++) {
+          const p = ctx.getImageData(x * cellW + cellW / 2, y * cellH + cellH / 2, 1, 1).data;
+          // Skip highly transparent pixels
+          if (p[3] < 128) {
+            continue;
+          }
+          const hex = '#' + [p[0], p[1], p[2]].map((x) => x.toString(16).padStart(2, '0')).join('');
+          colors.add(hex);
+        }
+      }
+
+      // Grab up to 5 colors
+      const extractedColors = Array.from(colors).slice(0, 5);
+      if (extractedColors.length > 0) {
+        const kitId = `extracted_${Date.now()}`;
+        addBrandKit({
+          id: kitId,
+          name: `Palette from ${layer.name || 'Image'}`,
+          colors: extractedColors,
+          fonts: ['Inter'],
+          logos: [],
+        });
+        setActiveBrandKit(kitId);
+        addToast?.(`Extracted ${extractedColors.length} colors to a new Brand Kit!`, 'success');
+      }
+    } catch (error) {
+      log.error('Extract photo colors failed', error);
+      addToast?.('Failed to extract colors from this image.', 'error');
+    }
+  },
+
+  generateTextTexture: async (layerId: string) => {
+    const { updateLayer, addToast } = get();
+    set({ isGenerating: true });
+    try {
+      // In a real app we'd prompt the user, but for now let's apply a 3D Liquid Chrome texture
+      // We will ask Gemini to generate an abstract liquid chrome texture pattern
+      const prompt =
+        'Seamless abstract 3D liquid chrome iridescent metallic texture pattern, shiny reflections, high quality, 4k';
+      const resultUrl = await geminiService.generateImage(prompt, '1:1', 'hd');
+      if (resultUrl) {
+        updateLayer(layerId, { textTextureUrl: resultUrl });
+        addToast?.('AI Text Texture applied successfully!', 'success');
+      }
+    } catch (error) {
+      log.error('Failed to generate text texture', error);
+      addToast?.('Failed to generate texture.', 'error');
+    } finally {
+      set({ isGenerating: false });
+    }
+  },
+
+  autoRenameLayers: async () => {
+    const { artboards, activeArtboardId, updateLayer, addToast } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    if (!artboard || artboard.layers.length === 0) {
+      return;
+    }
+
+    set({ isGenerating: true });
+    addToast?.('AI is renaming your layers intelligently...', 'info');
+
+    try {
+      const layerSummaries = artboard.layers.map((l: Layer) => {
+        let content = '';
+        if (l.type === 'text') {
+          content = (l as TextLayer).text?.substring(0, 50) || '';
+        }
+        if (l.type === 'image') {
+          content = l.src ? (l.src.length > 50 ? 'base64_image' : l.src) : '';
+        }
+        if (!['text', 'image', 'group', 'adjustment'].includes(l.type)) {
+          content = l.type;
+        }
+        return { id: l.id, type: l.type, currentName: l.name, content };
+      });
+
+      const prompt = `You are an expert UI designer. Rename these layers to be extremely logical, concise, and semantic (like Figma). 
+Output ONLY a raw JSON object where keys are layer IDs and values are the new string names. No markdown.
+Layers: ${JSON.stringify(layerSummaries)}`;
+
+      // Use the helper on geminiService
+      const text = await geminiService.generateText(prompt);
+
+      const cleanedText = text
+        .replace(/```json/g, '')
+        .replace(/```/g, '')
+        .trim();
+      const newNames = JSON.parse(cleanedText);
+      let count = 0;
+      Object.entries(newNames).forEach(([id, name]) => {
+        updateLayer(id, { name: name as string });
+        count++;
+      });
+
+      addToast?.(`Successfully renamed ${count} layers!`, 'success');
+    } catch (error) {
+      log.error('Failed to auto-rename layers', error);
+      addToast?.('Failed to auto-rename layers.', 'error');
+    } finally {
+      set({ isGenerating: false });
+    }
+  },
+
   handleConvertToPath: (_id) => {
     // Intentional no-op retained for interface compatibility; real conversion
     // lives in VectorEditingPanel. Remove once callers are migrated.
@@ -645,9 +786,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
 
     // ⚡ Bolt: Use a Map for O(N) lookup instead of nested O(N*M) .find() calls
     const layerMap = new Map(artboard.layers.map((l: any) => [l.id, l]));
-    const layers = selectedLayerIds
-      .map((id: string) => layerMap.get(id))
-      .filter(Boolean) as ShapeLayer[];
+    const layers = selectedLayerIds.map((id: string) => layerMap.get(id)).filter(Boolean) as ShapeLayer[];
 
     if (layers.length < 2) {
       return;
@@ -683,9 +822,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
 
     // ⚡ Bolt: Use a Map for O(N) lookup instead of nested O(N*M) .find() calls
     const layerMap = new Map(artboard.layers.map((l: any) => [l.id, l]));
-    const layers = selectedLayerIds
-      .map((id: string) => layerMap.get(id))
-      .filter(Boolean) as ShapeLayer[];
+    const layers = selectedLayerIds.map((id: string) => layerMap.get(id)).filter(Boolean) as ShapeLayer[];
 
     if (layers.length < 2) {
       return;

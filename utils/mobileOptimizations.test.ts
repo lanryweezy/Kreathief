@@ -1,10 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import {
-  isMobileDevice,
-  isIOS,
-  isAndroid,
-  getDevicePixelRatio,
-} from './mobileOptimizations';
+import { isMobileDevice, isIOS, isAndroid, getDevicePixelRatio } from './mobileOptimizations';
 
 describe('mobileOptimizations', () => {
   let originalWindow: typeof window | undefined;
@@ -21,14 +16,14 @@ describe('mobileOptimizations', () => {
     if (originalWindow !== undefined) {
       global.window = originalWindow;
     } else {
-      // @ts-ignore
+      // @ts-expect-error - testing undefined environment
       delete global.window;
     }
 
     if (originalNavigator !== undefined) {
       global.navigator = originalNavigator;
     } else {
-      // @ts-ignore
+      // @ts-expect-error - testing undefined environment
       delete global.navigator;
     }
 
@@ -37,7 +32,7 @@ describe('mobileOptimizations', () => {
 
   describe('isMobileDevice', () => {
     it('returns false when window is undefined', () => {
-      // @ts-ignore
+      // @ts-expect-error - testing undefined environment
       delete global.window;
       expect(isMobileDevice()).toBe(false);
     });
@@ -55,10 +50,10 @@ describe('mobileOptimizations', () => {
         'Mozilla/5.0 (Linux; Android 10)',
         'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X)',
         'Mozilla/5.0 (iPad; CPU OS 13_3 like Mac OS X)',
-        'Opera Mini/7.1.32052/29.3417; U; en'
+        'Opera Mini/7.1.32052/29.3417; U; en',
       ];
 
-      mobileAgents.forEach(agent => {
+      mobileAgents.forEach((agent) => {
         global.navigator = { userAgent: agent } as any;
         expect(isMobileDevice()).toBe(true);
       });
@@ -73,7 +68,7 @@ describe('mobileOptimizations', () => {
 
   describe('isIOS', () => {
     it('returns false when window is undefined', () => {
-      // @ts-ignore
+      // @ts-expect-error - testing undefined environment
       delete global.window;
       expect(isIOS()).toBe(false);
     });
@@ -84,10 +79,10 @@ describe('mobileOptimizations', () => {
       const iosAgents = [
         'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X)',
         'Mozilla/5.0 (iPad; CPU OS 13_3 like Mac OS X)',
-        'Mozilla/5.0 (iPod touch; CPU iPhone OS 12_0 like Mac OS X)'
+        'Mozilla/5.0 (iPod touch; CPU iPhone OS 12_0 like Mac OS X)',
       ];
 
-      iosAgents.forEach(agent => {
+      iosAgents.forEach((agent) => {
         global.navigator = {} as any;
         Object.defineProperty(global.navigator, 'userAgent', { value: agent, configurable: true });
         expect(isIOS()).toBe(true);
@@ -97,14 +92,17 @@ describe('mobileOptimizations', () => {
     it('returns false for non-iOS user agents', () => {
       global.window = {} as any;
       global.navigator = {} as any;
-      Object.defineProperty(global.navigator, 'userAgent', { value: 'Mozilla/5.0 (Linux; Android 10)', configurable: true });
+      Object.defineProperty(global.navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (Linux; Android 10)',
+        configurable: true,
+      });
       expect(isIOS()).toBe(false);
     });
   });
 
   describe('isAndroid', () => {
     it('returns false when window is undefined', () => {
-      // @ts-ignore
+      // @ts-expect-error - testing undefined environment
       delete global.window;
       expect(isAndroid()).toBe(false);
     });
@@ -112,21 +110,27 @@ describe('mobileOptimizations', () => {
     it('returns true for Android user agents', () => {
       global.window = {} as any;
       global.navigator = {} as any;
-      Object.defineProperty(global.navigator, 'userAgent', { value: 'Mozilla/5.0 (Linux; Android 10)', configurable: true });
+      Object.defineProperty(global.navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (Linux; Android 10)',
+        configurable: true,
+      });
       expect(isAndroid()).toBe(true);
     });
 
     it('returns false for non-Android user agents', () => {
       global.window = {} as any;
       global.navigator = {} as any;
-      Object.defineProperty(global.navigator, 'userAgent', { value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X)', configurable: true });
+      Object.defineProperty(global.navigator, 'userAgent', {
+        value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X)',
+        configurable: true,
+      });
       expect(isAndroid()).toBe(false);
     });
   });
 
   describe('getDevicePixelRatio', () => {
     it('returns 1 when window is undefined', () => {
-      // @ts-ignore
+      // @ts-expect-error - testing undefined environment
       delete global.window;
       expect(getDevicePixelRatio()).toBe(1);
     });

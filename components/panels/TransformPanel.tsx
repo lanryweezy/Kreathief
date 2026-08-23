@@ -8,6 +8,7 @@ export const TransformPanel: React.FC = () => {
   const artboards = useStore((state) => state.artboards) || [];
   const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
   const updateLayers = useStore((state) => state.updateLayers);
+  const updateLayer = useStore((state) => state.updateLayer);
   const addToast = useStore((state) => state.addToast);
   const groupSelected = useStore((state) => state.groupSelected);
   const ungroupSelected = useStore((state) => state.ungroupSelected);
@@ -18,6 +19,15 @@ export const TransformPanel: React.FC = () => {
   const selectedLayers = useMemo(
     () => allLayers.filter((l) => selectedLayerIds.includes(l.id)),
     [allLayers, selectedLayerIds]
+  );
+
+  const handlePropChange = useCallback(
+    (prop: string, value: any) => {
+      if (selectedLayers.length === 1) {
+        updateLayer(selectedLayers[0].id, { [prop]: value });
+      }
+    },
+    [selectedLayers, updateLayer]
   );
 
   const getMixedValue = useCallback(
@@ -343,6 +353,57 @@ export const TransformPanel: React.FC = () => {
           >
             Flip Vertical
           </button>
+        </div>
+      </div>
+
+      {/* Appearance */}
+      <div className="pt-3 border-t border-gray-700">
+        <label className="text-[10px] text-gray-500 block mb-2 font-bold uppercase tracking-wider">Appearance</label>
+
+        {/* Opacity */}
+        <div className="flex items-center gap-3 mb-3">
+          <span className="text-[10px] text-gray-400 w-12">Opacity</span>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={selectedLayers.length === 1 ? (selectedLayers[0].opacity ?? 1) : 1}
+            onChange={(e) => handlePropChange('opacity', parseFloat(e.target.value))}
+            disabled={selectedLayers.length !== 1}
+            className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600 hover:bg-white/20 transition-colors"
+          />
+          <span className="text-[10px] text-gray-400 font-mono w-8 text-right">
+            {selectedLayers.length === 1 ? Math.round((selectedLayers[0].opacity ?? 1) * 100) : 100}%
+          </span>
+        </div>
+
+        {/* Blend Mode */}
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] text-gray-400 w-12">Blend</span>
+          <select
+            value={selectedLayers.length === 1 ? selectedLayers[0].blendMode || 'normal' : 'normal'}
+            onChange={(e) => handlePropChange('blendMode', e.target.value)}
+            disabled={selectedLayers.length !== 1}
+            className="flex-1 bg-surface-dark-4 border border-gray-700 rounded-md py-1 px-2 text-xs text-gray-300 focus:outline-none focus:border-brand-500"
+          >
+            <option value="normal">Normal</option>
+            <option value="multiply">Multiply</option>
+            <option value="screen">Screen</option>
+            <option value="overlay">Overlay</option>
+            <option value="darken">Darken</option>
+            <option value="lighten">Lighten</option>
+            <option value="color-dodge">Color Dodge</option>
+            <option value="color-burn">Color Burn</option>
+            <option value="hard-light">Hard Light</option>
+            <option value="soft-light">Soft Light</option>
+            <option value="difference">Difference</option>
+            <option value="exclusion">Exclusion</option>
+            <option value="hue">Hue</option>
+            <option value="saturation">Saturation</option>
+            <option value="color">Color</option>
+            <option value="luminosity">Luminosity</option>
+          </select>
         </div>
       </div>
 

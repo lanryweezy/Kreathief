@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as geminiService from '../../../services/geminiService';
 import { Layer, TextLayer, ShapeLayer, Artboard, ImageLayer } from '../../../types';
 import { LayerSlice } from './baseSlice';
-import { DEFAULT_LAYER_FILTERS } from './utils';
+import { DEFAULT_LAYER_FILTERS, findLayerById } from './utils';
 import { DEFAULT_CORNER_RADIUS } from '../../../constants';
 
 // Constraint-aware layer remap used by Magic Resize (single + all-formats)
@@ -157,9 +157,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
   },
 
   magicResizeAll: (formats: { width: number; height: number; name: string }[]) => {
-    const valid = formats.filter(
-      (f) => isFinite(f.width) && isFinite(f.height) && f.width >= 1 && f.height >= 1
-    );
+    const valid = formats.filter((f) => isFinite(f.width) && isFinite(f.height) && f.width >= 1 && f.height >= 1);
     if (valid.length === 0) {
       return;
     }
@@ -488,43 +486,67 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
             : 1;
       }
 
-      let masterComponentId = '';
-      for (const a of state.artboards) {
-        const l = a.layers.find((ly: Layer) => ly.id === id);
-        if (l?.componentId) {
-          masterComponentId = l.componentId;
-          break;
-        }
+      const foundInfo = findLayerById(state.artboards, id);
+      if (!foundInfo) {
+        return state;
       }
 
+      const masterComponentId = foundInfo.layer.componentId || '';
+
       return {
-        artboards: state.artboards.map((a: Artboard) => ({
-          ...a,
-          layers: a.layers.map((l: Layer) => {
-            if (l.id === id) {
-              if (
-                l.locked &&
-                sanitizedPartial.locked !== false &&
-                !('locked' in sanitizedPartial && Object.keys(sanitizedPartial).length === 1)
-              ) {
-                return l;
-              }
-              const overrides = l.masterId ? [...(l.overrides || []), ...Object.keys(sanitizedPartial)] : l.overrides;
-              return { ...l, ...sanitizedPartial, overrides, dirty: true };
-            }
-            if (masterComponentId && l.masterId === masterComponentId) {
-              const overrides = l.overrides || [];
-              const syncPartial = { ...sanitizedPartial };
-              Object.keys(syncPartial).forEach((key) => {
-                if (overrides.includes(key)) {
-                  delete (syncPartial as any)[key];
+        artboards: state.artboards.map((a: Artboard) => {
+          if (!masterComponentId && a.id !== foundInfo.artboard.id) {
+            return a;
+          }
+          return {
+            ...a,
+            layers: a.layers.map((l: Layer) => {
+              if (l.id === id) {
+                // Handle master lock
+                if (
+                  l.locked &&
+                  sanitizedPartial.locked !== false &&
+                  !('locked' in sanitizedPartial && Object.keys(sanitizedPartial).length === 1)
+                ) {
+                  return l;
                 }
-              });
-              return { ...l, ...syncPartial };
-            }
-            return l;
-          }),
-        })),
+
+                // Handle granular locks
+                if (l.lockPosition) {
+                  delete sanitizedPartial.x;
+                  delete sanitizedPartial.y;
+                  delete (sanitizedPartial as any).width;
+                  delete (sanitizedPartial as any).height;
+                  delete sanitizedPartial.rotation;
+                }
+                if (l.lockStyle) {
+                  delete (sanitizedPartial as any).color;
+                  delete (sanitizedPartial as any).fontFamily;
+                  delete sanitizedPartial.opacity;
+                  delete sanitizedPartial.blendMode;
+                  delete sanitizedPartial.shadow;
+                }
+                if (l.lockText) {
+                  delete (sanitizedPartial as any).text;
+                }
+
+                const overrides = l.masterId ? [...(l.overrides || []), ...Object.keys(sanitizedPartial)] : l.overrides;
+                return { ...l, ...sanitizedPartial, overrides, dirty: true };
+              }
+              if (masterComponentId && l.masterId === masterComponentId) {
+                const overrides = l.overrides || [];
+                const syncPartial = { ...sanitizedPartial };
+                Object.keys(syncPartial).forEach((key) => {
+                  if (overrides.includes(key)) {
+                    delete (syncPartial as any)[key];
+                  }
+                });
+                return { ...l, ...syncPartial, dirty: true };
+              }
+              return l;
+            }),
+          };
+        }),
       };
     }),
 

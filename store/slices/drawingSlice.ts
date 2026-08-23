@@ -16,10 +16,14 @@ export interface DrawingSlice {
   brushSmoothing: number;
   brushJitter: number;
   textureIntensity: number;
+  symmetryMode: 'none' | 'horizontal' | 'vertical' | 'radial';
+  symmetryCount: number;
   customBrushes: CustomBrush[];
   autoSelectAfterDraw: boolean;
   selectedCustomBrushId: string | null;
   setAutoSelectAfterDraw: (autoSelectAfterDraw: boolean) => void;
+  setSymmetryMode: (mode: 'none' | 'horizontal' | 'vertical' | 'radial') => void;
+  setSymmetryCount: (count: number) => void;
   setPenMode: (isDrawing: boolean) => void;
   setBrushColor: (color: string) => void;
   setBrushSize: (size: number) => void;
@@ -41,12 +45,16 @@ export const createDrawingSlice: StateCreator<DrawingSlice, [], [], DrawingSlice
   brushSmoothing: 50,
   brushJitter: 0,
   textureIntensity: 0.5,
+  symmetryMode: 'none',
+  symmetryCount: 8,
   customBrushes: [],
   selectedCustomBrushId: null,
 
   autoSelectAfterDraw: true,
 
   setAutoSelectAfterDraw: (autoSelectAfterDraw: boolean) => set({ autoSelectAfterDraw }),
+  setSymmetryMode: (symmetryMode) => set({ symmetryMode }),
+  setSymmetryCount: (symmetryCount) => set({ symmetryCount: Math.max(2, Math.min(32, symmetryCount)) }),
   setPenMode: (isPenMode) => set({ isPenMode }),
   setBrushColor: (brushColor) => set({ brushColor }),
 

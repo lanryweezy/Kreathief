@@ -4,6 +4,7 @@ import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { log } from '../utils/log';
+import { exportToReactCode } from '../utils/codeExport';
 
 interface CanvasContextMenuProps {
   x: number;
@@ -50,7 +51,9 @@ export const CanvasContextMenu: React.FC<CanvasContextMenuProps> = ({ x, y, onCl
   }, []);
 
   useEffect(() => {
-    if (visible) menuItemsRef.current[0]?.focus();
+    if (visible) {
+      menuItemsRef.current[0]?.focus();
+    }
   }, [visible]);
 
   useEffect(() => {

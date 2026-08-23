@@ -19,6 +19,7 @@ import { log } from '../utils/log';
 import { getErrorDetails } from '../utils/errorMessages';
 import { fuzzyMatch } from '../utils/search';
 import { NodeGraph } from './nodes/NodeGraph';
+import { importPdfAsArtboards } from '../utils/pdfImport';
 
 interface DashboardProps {
   user: User;
@@ -281,6 +282,50 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     setCreateModalOpen(true);
   };
 
+  const pdfInputRef = useRef<HTMLInputElement>(null);
+  const handlePdfImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      return;
+    }
+    try {
+      addToast('Importing PDF...', 'info');
+      const artboards = await importPdfAsArtboards(file);
+      const title = file.name.replace('.pdf', '');
+      const initialState = {
+        artboards,
+        activeArtboardId: artboards[0].id,
+        canvasBackgroundColor: '#ffffff',
+        canvasFilters: {
+          brightness: 100,
+          contrast: 100,
+          saturation: 100,
+          sepia: 0,
+          grayscale: 0,
+          blur: 0,
+          opacity: 1,
+          vignette: 0,
+          hueRotate: 0,
+        },
+        canvasSize: { width: artboards[0].width, height: artboards[0].height, name: 'PDF Document' },
+      };
+
+      const projectId = await createProject(title, initialState.canvasSize, initialState);
+      const created = useStore.getState().projects.find((p) => p.id === projectId);
+      if (created) {
+        loadProject(created.id);
+        addToast('PDF Imported successfully!', 'success');
+        onOpenProject(created);
+      }
+    } catch (err) {
+      addToast('Failed to import PDF', 'error');
+    } finally {
+      if (pdfInputRef.current) {
+        pdfInputRef.current.value = '';
+      }
+    }
+  };
+
   const handleDuplicate = async (e: React.MouseEvent, project: Project) => {
     e.stopPropagation();
     setDuplicatingId(project.id);
@@ -419,6 +464,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         <div className="flex items-center gap-6">
           <div className="flex gap-2">
             <button
+              onClick={() => pdfInputRef.current?.click()}
+              className="px-4 py-2 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
+            >
+              <Icons.Uploads className="w-3.5 h-3.5" />
+              Import PDF
+            </button>
+            <input
+              type="file"
+              ref={pdfInputRef}
+              className="hidden"
+              accept=".pdf"
+              onChange={(e) => {
+                handlePdfImport(e);
+                e.target.value = '';
+              }}
+            />
+            <button
               onClick={() => setShowNodeGraph(true)}
               className="px-4 py-2 bg-brand-500/20 text-brand-400 hover:bg-brand-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
             >
@@ -486,69 +548,72 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               <img src={user.avatar} className="w-full h-full rounded-full object-cover" alt="Profile" />
             </button>
 
-            <div
-              className="absolute right-0 top-full mt-4 w-56 bg-surface-dark-1 border border-white/10 rounded-xl shadow-2xl z-50 p-2 transition-all transform origin-top-right focus-within:opacity-100"
-              role="menu"
-              aria-label="Profile menu"
-              tabIndex={-1}
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') {
-                  setProfileDropdownOpen(false);
-                }
-              }}
-              style={{
-                opacity: profileDropdownOpen ? 1 : 0,
-                pointerEvents: profileDropdownOpen ? 'auto' : 'none',
-                visibility: profileDropdownOpen ? 'visible' : 'hidden',
-              }}
-            >
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setProfileDropdownOpen(false);
-                  useStore.getState().setShowProfileModal(true);
-                }}
-                className="w-full text-left px-4 py-3 text-xs font-bold text-white hover:bg-white/[0.06] rounded-xl flex items-center gap-3 transition-colors focus-visible:outline-none focus-visible:bg-white/[0.06]"
-                role="menuitem"
-              >
-                <Icons.User className="w-4 h-4 text-brand-400" /> Account Hub & Bio
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setProfileDropdownOpen(false);
-                  useStore.getState().setShowProfileModal(true);
-                }}
-                className="w-full text-left px-4 py-3 text-xs font-bold text-white hover:bg-white/[0.06] rounded-xl flex items-center gap-3 transition-colors focus-visible:outline-none focus-visible:bg-white/[0.06]"
-                role="menuitem"
-              >
-                <Icons.Sliders className="w-4 h-4 text-purple-400" /> Studio Settings
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setProfileDropdownOpen(false);
-                  setShowPricingModal(true);
-                }}
-                className="w-full text-left px-4 py-3 text-xs font-bold text-white hover:bg-white/[0.06] rounded-xl flex items-center gap-3 transition-colors focus-visible:outline-none focus-visible:bg-white/[0.06]"
-                role="menuitem"
-              >
-                <Icons.Zap className="w-4 h-4 text-yellow-400" /> Upgrade to Pro
-              </button>
-              <div className="my-1 border-t border-white/10" />
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setProfileDropdownOpen(false);
-                  onLogout();
-                }}
-                onKeyDown={(e) => e.key === 'Enter' && setProfileDropdownOpen(false)}
-                className="w-full text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-400 hover:bg-red-500/10 rounded-xl flex items-center gap-3 transition-colors focus-visible:outline-none focus-visible:bg-red-500/10"
-                role="menuitem"
-              >
-                <Icons.MicOff className="w-4 h-4" /> Sign Out
-              </button>
-            </div>
+            <AnimatePresence>
+              {profileDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                  transition={{ duration: 0.15, ease: 'easeOut' }}
+                  className="absolute right-0 top-full mt-4 w-56 bg-surface-dark-1 border border-white/10 rounded-xl shadow-2xl z-50 p-2 transform origin-top-right"
+                  role="menu"
+                  aria-label="Profile menu"
+                  tabIndex={-1}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setProfileDropdownOpen(false);
+                    }
+                  }}
+                >
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setProfileDropdownOpen(false);
+                      useStore.getState().setShowProfileModal(true);
+                    }}
+                    className="w-full text-left px-4 py-3 text-xs font-bold text-white hover:bg-white/[0.06] rounded-xl flex items-center gap-3 transition-colors focus-visible:outline-none focus-visible:bg-white/[0.06]"
+                    role="menuitem"
+                  >
+                    <Icons.User className="w-4 h-4 text-brand-400" /> Account Hub & Bio
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setProfileDropdownOpen(false);
+                      useStore.getState().setShowProfileModal(true);
+                    }}
+                    className="w-full text-left px-4 py-3 text-xs font-bold text-white hover:bg-white/[0.06] rounded-xl flex items-center gap-3 transition-colors focus-visible:outline-none focus-visible:bg-white/[0.06]"
+                    role="menuitem"
+                  >
+                    <Icons.Sliders className="w-4 h-4 text-purple-400" /> Studio Settings
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setProfileDropdownOpen(false);
+                      setShowPricingModal(true);
+                    }}
+                    className="w-full text-left px-4 py-3 text-xs font-bold text-white hover:bg-white/[0.06] rounded-xl flex items-center gap-3 transition-colors focus-visible:outline-none focus-visible:bg-white/[0.06]"
+                    role="menuitem"
+                  >
+                    <Icons.Zap className="w-4 h-4 text-yellow-400" /> Upgrade to Pro
+                  </button>
+                  <div className="my-1 border-t border-white/10" />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setProfileDropdownOpen(false);
+                      onLogout();
+                    }}
+                    onKeyDown={(e) => e.key === 'Enter' && setProfileDropdownOpen(false)}
+                    className="w-full text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-400 hover:bg-red-500/10 rounded-xl flex items-center gap-3 transition-colors focus-visible:outline-none focus-visible:bg-red-500/10"
+                    role="menuitem"
+                  >
+                    <Icons.MicOff className="w-4 h-4" /> Sign Out
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </header>
@@ -702,11 +767,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
             </div>
 
             {/* Recent Projects */}
-            {projects.length > 0 && (
-              <div className="mb-10">
-                <div className="flex items-center justify-between mb-5">
-                  <span className="text-xs font-black text-muted uppercase tracking-[0.2em]">Recent</span>
-                </div>
+            <div className="mb-10">
+              <div className="flex items-center justify-between mb-5">
+                <span className="text-xs font-black text-muted uppercase tracking-[0.2em]">Recent</span>
+              </div>
+              {projects.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {projects.slice(0, 3).map((project) => (
                     <motion.div
@@ -718,7 +783,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                         loadProject(project.id);
                         onOpenProject(project);
                       }}
-                      className="group bg-surface-dark-1 border border-white/5 rounded-xl overflow-hidden cursor-pointer hover:border-white/15 transition-all shadow-lg hover:shadow-xl"
+                      className="group bg-surface-dark-1 border border-white/5 rounded-xl overflow-hidden cursor-pointer hover:border-white/15 transition-all shadow-lg hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
                       <div className="aspect-[16/10] bg-surface-dark-2 relative overflow-hidden">
                         <div className="absolute top-3 right-3 z-10">
@@ -739,17 +804,77 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                           />
                         </div>
                       </div>
-                      <div className="p-4">
-                        <div className="font-bold text-sm text-white truncate mb-1 group-hover:text-accent transition-colors">
-                          {project.name}
+                      <div className="p-4 flex items-start justify-between">
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-sm text-white truncate mb-1 group-hover:text-accent transition-colors">
+                            {editingProjectId === project.id ? (
+                              <input
+                                autoFocus
+                                value={newName}
+                                onChange={(e) => setNewName(e.target.value)}
+                                onBlur={() => handleRename(project.id)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    handleRename(project.id);
+                                  }
+                                  if (e.key === 'Escape') {
+                                    setEditingProjectId(null);
+                                  }
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="bg-black/50 border border-brand-500 rounded px-2 py-0.5 text-white w-full h-6 text-sm"
+                              />
+                            ) : (
+                              project.name
+                            )}
+                          </div>
+                          <div className="text-xs text-muted">{new Date(project.updatedAt).toLocaleDateString()}</div>
                         </div>
-                        <div className="text-xs text-muted">{new Date(project.updatedAt).toLocaleDateString()}</div>
+                        <div className="relative group/menu ml-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Toggle might be handled by focus/hover, no-op here
+                            }}
+                            className="p-1 rounded bg-transparent hover:bg-white/10 text-gray-400 hover:text-white"
+                          >
+                            <Icons.MoreHorizontal className="w-4 h-4" />
+                          </button>
+                          <div className="absolute bottom-full right-0 mb-1 w-32 bg-surface-dark-2 border border-white/10 rounded-lg shadow-xl opacity-0 invisible group-focus-within/menu:opacity-100 group-focus-within/menu:visible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-20 overflow-hidden">
+                            <button
+                              onClick={(e) => startRenaming(e, project)}
+                              className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-white/5 hover:text-white"
+                            >
+                              Rename
+                            </button>
+                            <button
+                              onClick={(e) => handleDuplicate(e, project)}
+                              className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-white/5 hover:text-white"
+                            >
+                              Duplicate
+                            </button>
+                            <div className="h-px bg-white/10 w-full" />
+                            <button
+                              onClick={(e) => handleDelete(e, project.id)}
+                              className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-400/10 hover:text-red-300"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </motion.div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : !isLoading ? (
+                <EmptyState
+                  icon={Icons.FolderPlus}
+                  title="No projects yet"
+                  description="Start creating amazing designs with AI-powered tools. Your projects will appear here."
+                  action={{ label: 'Create Your First Project', onClick: handleCreateClick }}
+                />
+              ) : null}
+            </div>
 
             {/* Templates */}
             <div className="mb-10">
@@ -840,15 +965,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               )}
             </div>
 
-            {/* Empty State */}
-            {projects.length === 0 && !isLoading && (
-              <EmptyState
-                icon={Icons.FolderPlus}
-                title="No projects yet"
-                description="Start creating amazing designs with AI-powered tools. Your projects will appear here."
-                action={{ label: 'Create Your First Project', onClick: handleCreateClick }}
-              />
-            )}
+            {/* Removed empty state from bottom, now correctly placed in Recent Projects block */}
 
             {/* Loading State */}
             {isLoading && (

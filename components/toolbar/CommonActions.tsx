@@ -16,7 +16,9 @@ interface CommonActionsProps {
 export const CommonActions = React.memo(
   ({ selectedLayer, handleUpdateLayer, onMoveLayer, onDuplicateLayer, onDeleteLayer }: CommonActionsProps) => {
     const [showEffects, setShowEffects] = React.useState(false);
+    const [showLockDropdown, setShowLockDropdown] = React.useState(false);
     const appearanceButtonRef = useRef<HTMLButtonElement>(null);
+    const lockButtonRef = useRef<HTMLButtonElement>(null);
 
     return (
       <div className="flex items-center gap-2">
@@ -115,14 +117,75 @@ export const CommonActions = React.memo(
           <Icons.Trash className="w-3.5 h-3.5" />
         </IconButton>
 
-        <IconButton
-          onClick={() => handleUpdateLayer({ locked: !selectedLayer.locked })}
-          active={selectedLayer.locked}
-          title={selectedLayer.locked ? 'Unlock' : 'Lock'}
-          className={selectedLayer.locked ? 'text-red-400' : ''}
-        >
-          {selectedLayer.locked ? <Icons.Lock className="w-3.5 h-3.5" /> : <Icons.Unlock className="w-3.5 h-3.5" />}
-        </IconButton>
+        <div className="relative">
+          <IconButton
+            ref={lockButtonRef}
+            onClick={() => setShowLockDropdown(!showLockDropdown)}
+            active={
+              selectedLayer.locked || selectedLayer.lockPosition || selectedLayer.lockStyle || selectedLayer.lockText
+            }
+            title="Locking & Permissions"
+            className={
+              selectedLayer.locked || selectedLayer.lockPosition || selectedLayer.lockStyle || selectedLayer.lockText
+                ? 'text-red-400'
+                : ''
+            }
+          >
+            {selectedLayer.locked || selectedLayer.lockPosition || selectedLayer.lockStyle || selectedLayer.lockText ? (
+              <Icons.Lock className="w-3.5 h-3.5" />
+            ) : (
+              <Icons.Unlock className="w-3.5 h-3.5" />
+            )}
+          </IconButton>
+
+          <Dropdown
+            anchorRef={lockButtonRef}
+            isOpen={showLockDropdown}
+            onClose={() => setShowLockDropdown(false)}
+            align="right"
+          >
+            <div className="w-56 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-3 flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 pb-1 block">
+                Enterprise Locks
+              </span>
+              <button
+                onClick={() => handleUpdateLayer({ locked: !selectedLayer.locked })}
+                className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedLayer.locked ? 'bg-red-500/20 text-red-400' : 'hover:bg-white/5 text-gray-300 hover:text-white'}`}
+              >
+                <Icons.Lock className="w-3.5 h-3.5 shrink-0" />
+                <div className="flex-1 text-left">Master Lock (Read-only)</div>
+              </button>
+
+              <div className="h-px bg-white/10 my-1 mx-2" />
+
+              <button
+                onClick={() => handleUpdateLayer({ lockPosition: !selectedLayer.lockPosition })}
+                className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedLayer.lockPosition ? 'bg-orange-500/20 text-orange-400' : 'hover:bg-white/5 text-gray-300 hover:text-white'}`}
+              >
+                <Icons.Layout className="w-3.5 h-3.5 shrink-0" />
+                <div className="flex-1 text-left">Lock Position / Scale</div>
+              </button>
+
+              <button
+                onClick={() => handleUpdateLayer({ lockStyle: !selectedLayer.lockStyle })}
+                className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedLayer.lockStyle ? 'bg-blue-500/20 text-blue-400' : 'hover:bg-white/5 text-gray-300 hover:text-white'}`}
+              >
+                <Icons.Blend className="w-3.5 h-3.5 shrink-0" />
+                <div className="flex-1 text-left">Lock Style (Colors/Fonts)</div>
+              </button>
+
+              {selectedLayer.type === 'text' && (
+                <button
+                  onClick={() => handleUpdateLayer({ lockText: !selectedLayer.lockText })}
+                  className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedLayer.lockText ? 'bg-green-500/20 text-green-400' : 'hover:bg-white/5 text-gray-300 hover:text-white'}`}
+                >
+                  <Icons.Text className="w-3.5 h-3.5 shrink-0" />
+                  <div className="flex-1 text-left">Lock Text Content</div>
+                </button>
+              )}
+            </div>
+          </Dropdown>
+        </div>
       </div>
     );
   }

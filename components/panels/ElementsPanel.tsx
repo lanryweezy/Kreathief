@@ -5,6 +5,8 @@ import { iconScoutService, IconScoutAsset } from '../../services/iconScoutServic
 import * as freepikService from '../../services/freepikService';
 import * as materialIconService from '../../services/materialIconService';
 import * as lucideIconService from '../../services/lucideIconService';
+import * as iconifyService from '../../services/iconifyService';
+import { AssetCacheService } from '../../services/AssetCacheService';
 import * as phosphorIconService from '../../services/phosphorIconService';
 import * as stickerService from '../../services/stickerService';
 import DOMPurify from 'dompurify';
@@ -311,6 +313,16 @@ export const ElementsPanel = () => {
 
       if (filterCategory === 'all' || filterCategory === 'icons') {
         promises.push(
+          iconifyService.searchIcons(q, 15).then((res) =>
+            res.map((ic) => ({
+              id: ic.id,
+              name: ic.name,
+              thumbnailUrl: '',
+              source: 'iconify',
+              svgData: ic.svgData,
+              assetType: 'icon' as const,
+            }))
+          ),
           materialIconService.searchIcons(q, 10).then((res) =>
             res.map((ic) => ({
               id: `mi-${ic.name}`,
@@ -339,6 +351,14 @@ export const ElementsPanel = () => {
           results.push(...res.value);
         }
       });
+
+      // AI Fallback for empty results
+      if (results.length === 0 && q !== 'trending') {
+        const aiAsset = await AssetCacheService.generateMissingAsset(q, activeFilter === '3d' ? '3d' : 'illustration');
+        if (aiAsset) {
+          results.push(aiAsset);
+        }
+      }
 
       setSearchResults(results);
     } catch (e) {
@@ -422,8 +442,8 @@ export const ElementsPanel = () => {
 
   const handleAssetClick = (asset: RemoteAsset) => {
     if (asset.svgData) {
-      const blob = new Blob([DOMPurify.sanitize(asset.svgData)], { type: 'image/svg+xml' });
-      internalAddImageLayer(URL.createObjectURL(blob), asset.name);
+      const b64 = btoa(unescape(encodeURIComponent(DOMPurify.sanitize(asset.svgData))));
+      internalAddImageLayer(`data:image/svg+xml;base64,${b64}`, asset.name);
     } else {
       internalAddImageLayer(asset.url || asset.thumbnailUrl, asset.name, asset.width || 300, asset.height || 300);
     }

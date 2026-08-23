@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../constants';
 import { Dropdown } from './Dropdown';
 import { ColorHarmonyGenerator } from './panels/ColorHarmonyGenerator';
@@ -16,6 +17,8 @@ import {
   getClosestCMYKSafeColor,
 } from '../utils/colorUtils';
 import { haptics } from '../utils/haptics';
+import { extractDominantColors } from '../utils/colorExtractor';
+import { ImageLayer } from '../types';
 
 interface ColorPickerProps {
   value: string;
@@ -69,11 +72,56 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
     const [cmykMode, setCmykMode] = useState(false);
     const [cmykValues, setCmykValues] = useState({ c: 0, m: 0, y: 0, k: 0 });
     const [isCopied, setIsCopied] = useState(false);
+    const [photoColors, setPhotoColors] = useState<string[]>([]);
     const addToast = useStore((state) => state.addToast);
     const popoverRef = useRef<HTMLButtonElement>(null);
     const dropdownContainerRef = useRef<HTMLDivElement>(null);
 
+    // Get image layers from active artboard for photo color extraction
+    const imageLayers = useStore(
+      useShallow((state) => {
+        const artboard = state.artboards.find((a: any) => a.id === state.activeArtboardId);
+        if (!artboard) {
+          return [];
+        }
+        return artboard.layers.filter((l: any) => l.type === 'image' && l.visible && l.src) as ImageLayer[];
+      })
+    );
+
     const hasEyeDropper = typeof window !== 'undefined' && 'EyeDropper' in window;
+
+    // Extract dominant colors from image layers when picker opens
+    useEffect(() => {
+      if (!isOpen || imageLayers.length === 0) {
+        if (imageLayers.length === 0) {
+          setPhotoColors((prev) => (prev.length === 0 ? prev : []));
+        }
+        return;
+      }
+      let cancelled = false;
+      const extractColors = async () => {
+        const allColors: string[] = [];
+        // Extract from up to 3 most recent image layers to keep it fast
+        const layersToProcess = imageLayers.slice(-3);
+        for (const layer of layersToProcess) {
+          try {
+            const colors = await extractDominantColors(layer.src, 5);
+            allColors.push(...colors);
+          } catch {
+            // Silently skip failed extractions (CORS, invalid src)
+          }
+        }
+        if (!cancelled) {
+          // Deduplicate and take up to 10 unique colors
+          const unique = [...new Set(allColors)].slice(0, 10);
+          setPhotoColors(unique);
+        }
+      };
+      extractColors();
+      return () => {
+        cancelled = true;
+      };
+    }, [isOpen, imageLayers.length]);
 
     // CMYK Readout and gamut warning
     const cmyk = useMemo(() => {
@@ -580,6 +628,32 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                           className="w-5 h-5 rounded-full border border-white/10 hover:scale-110 transition-transform shadow-sm"
                           style={{ backgroundColor: color }}
                           title={color}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Photo Colors — extracted from image layers */}
+                {photoColors.length > 0 && (
+                  <div className="mb-4">
+                    <h5 className="text-[10px] font-bold text-gray-500 uppercase mb-2 flex items-center gap-1.5">
+                      <Icons.Image className="w-3 h-3 text-brand-400" />
+                      Photo Colors
+                    </h5>
+                    <div className="flex flex-wrap gap-1.5">
+                      {photoColors.map((color, idx) => (
+                        <button
+                          type="button"
+                          key={`photo-${idx}`}
+                          onClick={() => {
+                            onChange(color);
+                            setHexInput(color);
+                            addToRecent(color);
+                          }}
+                          className="w-5 h-5 rounded-full border border-white/10 hover:scale-125 transition-transform shadow-sm ring-1 ring-brand-600/30"
+                          style={{ backgroundColor: color }}
+                          title={`Photo: ${color}`}
                         />
                       ))}
                     </div>

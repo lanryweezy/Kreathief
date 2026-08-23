@@ -43,6 +43,7 @@ class LayerErrorBoundary extends React.Component<
 interface CanvasLayerItemWrapperProps {
   layer: Layer;
   allLayers: Layer[];
+  layerMap?: Map<string, Layer>;
   maskLayerOverride?: Layer; // Support for sibling-based masking (Advanced)
   selectedLayerId: string | null;
   selectedLayerIds: string[];
@@ -72,6 +73,7 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
 
     const {
       allLayers,
+      layerMap,
       maskLayerOverride,
       selectedLayerId,
       selectedLayerIds,
@@ -94,18 +96,25 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
       previewAnimation,
     } = props;
 
-    // Advanced Masking: Build Map once, use O(1) lookup instead of O(n) find
-    const layerMap = useMemo(() => {
-      if (!allLayers) return null;
+    // Advanced Masking: Use O(1) lookup from precomputed layerMap
+    const resolvedLayerMap = useMemo(() => {
+      if (layerMap) {
+        return layerMap;
+      }
+      if (!allLayers) {
+        return null;
+      }
       const map = new Map<string, Layer>();
       for (const ml of allLayers) {
         map.set(ml.id, ml);
       }
       return map;
-    }, [allLayers]);
+    }, [layerMap, allLayers]);
 
     const effectiveMaskLayer =
-      maskLayerOverride || (l.maskLayerId && layerMap ? layerMap.get(l.maskLayerId) || null : null) || null;
+      maskLayerOverride ||
+      (l.maskLayerId && resolvedLayerMap ? resolvedLayerMap.get(l.maskLayerId) || null : null) ||
+      null;
 
     const { maskPath } = useLayerMask(effectiveMaskLayer);
     const { processedUrl, isProcessing: isFiltering } = useProcessedImage(

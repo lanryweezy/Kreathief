@@ -17,7 +17,9 @@ export function computeAutoLayout(
   allLayers: Layer[]
 ): Record<string, { x: number; y: number }> {
   const layout = parentLayer.autoLayout;
-  if (!layout || !children.length) return {};
+  if (!layout || !children.length) {
+    return {};
+  }
 
   const updates: Record<string, { x: number; y: number }> = {};
   const pad = typeof layout.padding === 'number' ? layout.padding : 0;
@@ -95,13 +97,13 @@ export function computeAutoLayout(
   const totalContentSize = cursor - spacing;
   if (isRow) {
     (updates as any)[parentLayer.id] = {
-      x: parentLayer.x,
-      y: parentLayer.y,
+      width: totalContentSize + pad,
+      height: maxCrossSize + pad * 2,
     };
   } else {
     (updates as any)[parentLayer.id] = {
-      x: parentLayer.x,
-      y: parentLayer.y,
+      width: maxCrossSize + pad * 2,
+      height: totalContentSize + pad,
     };
   }
 

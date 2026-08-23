@@ -229,8 +229,10 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
         )}
 
         {/* Warp Effects */}
-        <div className="space-y-3">
-          <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block">Transformation</label>
+        <div className="space-y-3 bg-indigo-500/5 p-3 rounded-xl border border-indigo-500/20">
+          <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest block flex items-center gap-2">
+            Mesh Warp / Transformation
+          </label>
           <div className="grid grid-cols-3 gap-2">
             {[
               { id: 'none', label: 'None' },

@@ -49,6 +49,7 @@ export enum BrushType {
   TEXTURE = 'texture',
   ERASER = 'eraser',
   CUSTOM = 'custom',
+  NEON = 'neon',
 }
 
 export interface CustomBrush {
@@ -126,7 +127,7 @@ export interface Stroke {
 }
 
 export interface AnimationSettings {
-  type: 'none' | 'fade' | 'slide' | 'zoom' | 'rotate' | 'bounce' | 'pulse' | 'shake' | 'flip' | 'float';
+  type: 'none' | 'fade' | 'slide' | 'zoom' | 'rotate' | 'bounce' | 'pulse' | 'shake' | 'flip' | 'float' | 'path';
   direction?: 'up' | 'down' | 'left' | 'right' | 'in' | 'out';
   duration: number; // seconds
   delay: number; // seconds
@@ -134,6 +135,12 @@ export interface AnimationSettings {
   iterationCount: number | 'infinite';
   intensity?: number;
   angle?: number;
+  pathData?: string;
+  motionPathId?: string;
+  autoRotate?: boolean;
+  smartAnimate?: boolean;
+  smartAnimateDuration?: number;
+  smartAnimateEasing?: 'ease' | 'ease-in-out' | 'ease-out' | 'spring' | 'bounce' | 'linear';
 }
 
 export interface LayerFilters {
@@ -191,6 +198,10 @@ export interface LayerBase {
   rotation: number;
   opacity: number;
   locked: boolean;
+  lockPosition?: boolean;
+  lockStyle?: boolean;
+  lockText?: boolean;
+  restrictToDam?: boolean;
   visible: boolean;
   maskLayerId?: string;
   isMasking?: boolean; // True if this layer masks the one(s) above it
@@ -231,6 +242,26 @@ export interface LayerBase {
     horizontal: 'start' | 'end' | 'center' | 'scale' | 'both';
     vertical: 'start' | 'end' | 'center' | 'scale' | 'both';
   };
+  // Special FX
+  stickerEffect?: {
+    enabled: boolean;
+    width: number;
+    color: string;
+    shadowBlur: number;
+    shadowColor: string;
+  };
+  // Interactive Micro-Interactions (Figma-style)
+  interactions?: LayerInteraction[];
+}
+
+export interface LayerInteraction {
+  trigger: 'hover' | 'click' | 'whilePressed';
+  action: 'navigate' | 'animate' | 'swapVariant' | 'openUrl';
+  targetArtboardId?: string;
+  animationType?: AnimationSettings['type'];
+  url?: string;
+  scale?: number;
+  opacity?: number;
 }
 
 export interface TextLayer extends LayerBase {
@@ -280,6 +311,7 @@ export interface TextLayer extends LayerBase {
     blur: number;
     color: string;
   };
+  textTextureUrl?: string;
   // Text stroke
   textStroke?: {
     width: number;

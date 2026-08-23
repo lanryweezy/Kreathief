@@ -19,7 +19,33 @@ import { buildVariableStrokeOutline, profileWidthFn } from '../../utils/variable
 import { buildFilterString, getLayerStyle } from '../../utils/layers';
 import { hexToRgba } from '../../lib/utils';
 import { SelectionHandles } from './SelectionHandles';
+
 import { BrushStrokeRenderer } from '../../services/brushEngine';
+
+export const StickerFilter = ({ layerId, effect }: { layerId: string; effect: any }) => {
+  if (!effect || !effect.enabled) {
+    return null;
+  }
+  return (
+    <svg
+      width="0"
+      height="0"
+      className="absolute pointer-events-none"
+      style={{ position: 'absolute', width: 0, height: 0 }}
+    >
+      <filter id={`sticker-${layerId}`} x="-20%" y="-20%" width="140%" height="140%">
+        <feMorphology in="SourceAlpha" operator="dilate" radius={effect.width} result="dilated" />
+        <feFlood floodColor={effect.color} result="flood" />
+        <feComposite in="flood" in2="dilated" operator="in" result="outline" />
+        <feDropShadow dx="0" dy="0" stdDeviation={effect.shadowBlur} floodColor={effect.shadowColor} result="shadow" />
+        <feMerge>
+          <feMergeNode in="shadow" />
+          <feMergeNode in="SourceGraphic" />
+        </feMerge>
+      </filter>
+    </svg>
+  );
+};
 
 const safeStr = (v: any, fallback = ''): string => {
   if (v === null || v === undefined) {
@@ -342,10 +368,14 @@ export const ImageLayerItem = React.memo(
           {isHovered && !isSelected && !imgLayer.locked && (
             <div className="absolute -inset-0.5 border border-cyan-400/50 rounded-sm pointer-events-none z-40"></div>
           )}
+          <StickerFilter layerId={imgLayer.id} effect={(imgLayer as any).stickerEffect} />
 
           <div
             className="w-full h-full overflow-hidden relative"
-            style={maskWrapperStyle}
+            style={{
+              ...maskWrapperStyle,
+              filter: (imgLayer as any).stickerEffect?.enabled ? `url(#sticker-${imgLayer.id})` : 'none',
+            }}
             onPointerDown={repositioning ? handleImageRepositionStart : undefined}
             onPointerMove={repositioning ? handleImageRepositionMove : undefined}
             onPointerUp={repositioning ? handleImageRepositionEnd : undefined}
@@ -524,6 +554,8 @@ export const ShapeLayerItem = React.memo(
         };
       }, [animStyle, shapeLayer, clipPath, maskPath]);
 
+      const hasStickerEffect = (shapeLayer as any).stickerEffect?.enabled;
+
       return (
         <div
           ref={ref}
@@ -536,10 +568,14 @@ export const ShapeLayerItem = React.memo(
           className="absolute cursor-move group shape-layer-item shape-layer"
           style={containerStyle}
         >
+          <StickerFilter layerId={shapeLayer.id} effect={(shapeLayer as any).stickerEffect} />
           {isHovered && !isSelected && !shapeLayer.locked && (
             <div className="absolute -inset-0.5 border border-cyan-400/50 rounded-sm pointer-events-none z-40"></div>
           )}
-          <div className="w-full h-full relative" style={innerStyle}>
+          <div
+            className="w-full h-full relative"
+            style={{ ...innerStyle, filter: hasStickerEffect ? `url(#sticker-${shapeLayer.id})` : innerStyle.filter }}
+          >
             {shapeLayer.pathData &&
               (() => {
                 const brushType = shapeLayer.brushType;
@@ -823,6 +859,7 @@ export const TextLayerItem = React.memo(
           {isHovered && !isSelected && !textLayer.locked && (
             <div className="absolute -inset-0.5 border border-cyan-400/50 rounded-sm pointer-events-none z-40"></div>
           )}
+          <StickerFilter layerId={textLayer.id} effect={(textLayer as any).stickerEffect} />
           <div
             ref={isEditing ? textEditRef : undefined}
             contentEditable={isEditing}
@@ -840,10 +877,19 @@ export const TextLayerItem = React.memo(
               fontSize: `${typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 16}px`,
               fontWeight: textLayer.fontWeight,
               fontStyle: textLayer.fontStyle,
-              color: isGradientColor ? 'transparent' : safeStr(textLayer.color, '#000000'),
-              backgroundImage: isGradientColor ? gradientStr : undefined,
-              WebkitBackgroundClip: isGradientColor ? 'text' : undefined,
-              WebkitTextFillColor: isGradientColor ? 'transparent' : undefined,
+              color:
+                isGradientColor || (textLayer as any).textTextureUrl
+                  ? 'transparent'
+                  : safeStr(textLayer.color, '#000000'),
+              backgroundImage: (textLayer as any).textTextureUrl
+                ? `url(${(textLayer as any).textTextureUrl})`
+                : isGradientColor
+                  ? gradientStr
+                  : undefined,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              WebkitBackgroundClip: isGradientColor || (textLayer as any).textTextureUrl ? 'text' : undefined,
+              WebkitTextFillColor: isGradientColor || (textLayer as any).textTextureUrl ? 'transparent' : undefined,
               textAlign: textLayer.textAlign,
               letterSpacing:
                 textLayer.letterSpacing !== null && textLayer.letterSpacing !== undefined
@@ -886,6 +932,7 @@ export const TextLayerItem = React.memo(
                         : {}
                 : {}),
               ...(maskPath ? { clipPath: maskPath } : {}),
+              filter: (textLayer as any).stickerEffect?.enabled ? `url(#sticker-${textLayer.id})` : 'none',
             }}
           >
             {!isEditing && (textLayer.warpStyle === 'arc' || textLayer.warpStyle === 'wave') ? (

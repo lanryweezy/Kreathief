@@ -12,6 +12,7 @@ interface TransformationState {
   initialWidth: number;
   initialHeight: number;
   initialRotation: number;
+  initialFontSize?: number;
   aspectRatio: number;
   // For rotation: angle from layer center to initial mouse position
   initialAngle?: number;
@@ -63,6 +64,7 @@ export const useLayerTransformation = ({
       initialWidth: (layer as any).width || 0,
       initialHeight: (layer as any).height || 0,
       initialRotation: layer.rotation || 0,
+      initialFontSize: layer.type === 'text' ? (layer as any).fontSize || 40 : undefined,
       aspectRatio: ((layer as any).width || 1) / ((layer as any).height || 1),
     });
   }, []);
@@ -159,6 +161,12 @@ export const useLayerTransformation = ({
 
         partial.width = newWidth;
         partial.height = newHeight;
+
+        // Dynamic bounding-box scaling for text layers (like Canva)
+        if (layer?.type === 'text' && handle.length === 2 && state.initialFontSize) {
+          const scaleFactor = Math.min(newWidth / initialWidth, newHeight / initialHeight);
+          partial.fontSize = state.initialFontSize * scaleFactor;
+        }
 
         // Keep the anchor edge/corner fixed. Rotation happens about the layer
         // center, so the center must shift by half the size delta along the

@@ -1,5 +1,5 @@
-// @ts-ignore - Onnxruntime WebGPU module import
-import * as ort from 'onnxruntime-web/webgpu';
+// @ts-ignore - Onnxruntime Web module import
+import * as ort from 'onnxruntime-web';
 
 // Specify wasm paths if needed
 ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/';
@@ -11,14 +11,16 @@ let isReady = false;
 const MODEL_URL = 'https://huggingface.co/Carve/LaMa-ONNX/resolve/main/lama_fp32.onnx';
 
 async function initSession() {
-  if (isReady && session) return;
+  if (isReady && session) {
+    return;
+  }
 
   try {
     postMessage({ type: 'STATUS', status: 'Downloading LaMa Inpainting model (200MB)... This only happens once.' });
 
-    // Create session with webgpu backend, fallback to wasm
+    // Create session with wasm backend (webgpu requires same-origin .mjs in workers)
     session = await ort.InferenceSession.create(MODEL_URL, {
-      executionProviders: ['webgpu', 'wasm'],
+      executionProviders: ['wasm'],
     });
 
     isReady = true;
@@ -115,11 +117,17 @@ self.onmessage = async (e: MessageEvent) => {
       const inputs: Record<string, ort.Tensor> = {};
 
       // Attempt to automatically map inputs
-      if (inputNames.includes('image')) inputs['image'] = imageTensor;
-      else if (inputNames[0]) inputs[inputNames[0]] = imageTensor;
+      if (inputNames.includes('image')) {
+        inputs['image'] = imageTensor;
+      } else if (inputNames[0]) {
+        inputs[inputNames[0]] = imageTensor;
+      }
 
-      if (inputNames.includes('mask')) inputs['mask'] = maskTensor;
-      else if (inputNames[1]) inputs[inputNames[1]] = maskTensor;
+      if (inputNames.includes('mask')) {
+        inputs['mask'] = maskTensor;
+      } else if (inputNames[1]) {
+        inputs[inputNames[1]] = maskTensor;
+      }
 
       const results = await session.run(inputs);
 

@@ -1,5 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   content: [
     "./index.html",
     "./*.{js,ts,jsx,tsx}",
@@ -50,9 +53,9 @@ export default {
           'dark-5': '#2e2e3a',
         },
         muted: {
-          DEFAULT: '#6b7280',
-          light: '#9ca3af',
-          dark: '#4b5563',
+          DEFAULT: '#9ca3af',
+          light: '#d1d5db',
+          dark: '#6b7280',
         },
         success: { DEFAULT: '#34d399', light: '#6ee7b7', dark: '#059669' },
         warning: { DEFAULT: '#fbbf24', light: '#fcd34d', dark: '#d97706' },

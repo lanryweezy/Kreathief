@@ -205,7 +205,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                   <div>
                     <label
                       htmlFor="auth-name"
-                      className="block text-[10px] font-black text-gray-500 uppercase mb-2 ml-1 tracking-[0.2em]"
+                      className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1 tracking-[0.2em]"
                     >
                       Full Name
                     </label>
@@ -215,7 +215,10 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                         id="auth-name"
                         type="text"
                         value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        onChange={(e) => {
+                          setName(e.target.value);
+                          setError(null);
+                        }}
                         className="pl-12"
                         placeholder="John Doe"
                         required
@@ -227,7 +230,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 <div>
                   <label
                     htmlFor="auth-email"
-                    className="block text-[10px] font-black text-gray-500 uppercase mb-2 ml-1 tracking-[0.2em]"
+                    className="block text-[10px] font-black text-gray-400 uppercase mb-2 ml-1 tracking-[0.2em]"
                   >
                     Email Address
                   </label>
@@ -239,7 +242,10 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                       id="auth-email"
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setError(null);
+                      }}
                       className="pl-12"
                       placeholder="you@example.com"
                       required
@@ -252,7 +258,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                     <div className="flex justify-between items-center mb-2 ml-1">
                       <label
                         htmlFor="auth-password"
-                        className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]"
+                        className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]"
                       >
                         Password
                       </label>
@@ -272,7 +278,10 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                         id="auth-password"
                         type="password"
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          setError(null);
+                        }}
                         className="pl-12"
                         placeholder="••••••••"
                         required

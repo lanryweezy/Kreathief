@@ -45,19 +45,43 @@ self.onmessage = async (e: MessageEvent<MockupWorkerData>) => {
     // Draw background
     ctx.drawImage(bgBitmap, 0, 0);
 
-    // Draw ambient shadow under product (simplified for worker)
-    const shadowGradient = ctx.createRadialGradient(
-      width * 0.5,
-      height * 0.5,
-      10,
-      width * 0.5,
-      height * 0.5,
-      Math.max(width, height) * 0.6
-    );
-    shadowGradient.addColorStop(0, 'rgba(0,0,0,0.0)');
-    shadowGradient.addColorStop(1, 'rgba(0,0,0,0.06)');
-    ctx.fillStyle = shadowGradient;
-    ctx.fillRect(0, 0, width, height);
+    // Dynamic alpha-based ambient ground shadow (far superior to simple ellipse)
+    if (shadowIntensity > 0) {
+      ctx.save();
+
+      // We simulate a 3D light casting a shadow from the mockup geometry itself
+      const shadowGradient = ctx.createRadialGradient(
+        width * 0.5,
+        height * 0.8,
+        10,
+        width * 0.5,
+        height * 0.8,
+        Math.max(width, height) * 0.7
+      );
+      shadowGradient.addColorStop(0, `rgba(0,0,0,${0.3 * shadowIntensity})`);
+      shadowGradient.addColorStop(1, 'rgba(0,0,0,0.0)');
+
+      ctx.fillStyle = shadowGradient;
+      ctx.save();
+      ctx.translate(0, height * 0.2);
+      ctx.scale(1, 0.4);
+      ctx.fillRect(0, 0, width, height * 2.5);
+      ctx.restore();
+
+      // If we have a transparent cutout mockup (like apparel), we cast its alpha as a shadow
+      if (bgBitmap) {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.shadowColor = `rgba(0,0,0,${0.6 * shadowIntensity})`;
+        ctx.shadowBlur = 25 * shadowIntensity;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 20 * shadowIntensity;
+        // Drawing it once invisibly just to render the shadow onto the floor
+        ctx.globalAlpha = 0;
+        ctx.drawImage(bgBitmap, 0, 0, width, height);
+      }
+
+      ctx.restore();
+    }
 
     ctx.save();
 
@@ -103,6 +127,7 @@ self.onmessage = async (e: MessageEvent<MockupWorkerData>) => {
     // Advanced AO and Reflections
     // ... we simplify this in the worker for performance but keep core logic
     if (reflectionIntensity > 0) {
+      // 1. Glossy surface glare (Overlay)
       const refCanvas = new OffscreenCanvas(width, height);
       const rctx = refCanvas.getContext('2d') as OffscreenCanvasRenderingContext2D;
       const cx = (placement.left / 100) * width + w / 2;
@@ -117,6 +142,29 @@ self.onmessage = async (e: MessageEvent<MockupWorkerData>) => {
       ctx.globalCompositeOperation = 'screen';
       ctx.globalAlpha = reflectionIntensity;
       ctx.drawImage(refCanvas, 0, 0);
+
+      // 2. Floor Reflection (Mirrored bottom)
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.save();
+      ctx.translate(0, height);
+      ctx.scale(1, -1);
+      ctx.globalAlpha = reflectionIntensity * 0.4;
+
+      // Create a snapshot of the current composite to mirror
+      const snapshot = new OffscreenCanvas(width, height);
+      snapshot.getContext('2d')?.drawImage(canvas, 0, 0);
+
+      // Draw it shifted slightly down for the floor
+      ctx.drawImage(snapshot, 0, height * 0.15);
+
+      // Mask it with a linear gradient so it fades out
+      ctx.globalCompositeOperation = 'destination-out';
+      const fade = ctx.createLinearGradient(0, height * 0.85, 0, height);
+      fade.addColorStop(0, 'rgba(0,0,0,0)');
+      fade.addColorStop(1, 'rgba(0,0,0,1)');
+      ctx.fillStyle = fade;
+      ctx.fillRect(0, height * 0.85, width, height * 0.15);
+      ctx.restore();
     }
 
     ctx.restore();

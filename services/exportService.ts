@@ -18,6 +18,104 @@ export interface ExportOptions {
 
 // ── Shared helpers (used by both SVG and Canvas export) ──────────────
 
+function resolveNodeType(rawType: string, layer: any): DesignNode['type'] {
+  if (rawType === 'text') {
+    return 'text';
+  }
+  if (
+    rawType === 'circle' ||
+    rawType === 'ellipse' ||
+    (rawType === 'shape' && (layer.shapeType === 'circle' || layer.shapeType === 'ellipse'))
+  ) {
+    return 'ellipse';
+  }
+  if (rawType === 'line') {
+    return 'line';
+  }
+  if (rawType === 'image') {
+    return 'image';
+  }
+  if (rawType === 'group' || layer.isGroup) {
+    return 'group';
+  }
+  if (rawType === 'frame') {
+    return 'frame';
+  }
+  if (
+    rawType === 'path' ||
+    layer.pathData ||
+    layer.vectorPath ||
+    (rawType === 'shape' && layer.shapeType !== 'rectangle')
+  ) {
+    return 'path';
+  }
+  return 'rect';
+}
+
+function resolveNodeFill(layer: any): string | GradientFill {
+  let fill: string | GradientFill = layer.fill || layer.color || surface[3];
+  if (layer.gradient?.enabled && Array.isArray(layer.gradient.colors) && layer.gradient.colors.length > 0) {
+    fill = {
+      type: layer.gradient.type || 'linear',
+      angle: layer.gradient.angle || 0,
+      stops: layer.gradient.colors.map((c: any) => ({
+        color: c.color || '#000000',
+        offset: typeof c.position === 'number' ? c.position : typeof c.offset === 'number' ? c.offset : 0,
+      })),
+    };
+  }
+  return fill;
+}
+
+function resolveNodeStroke(layer: any): { stroke?: string; strokeWidth?: number } {
+  if (typeof layer.stroke === 'string') {
+    return { stroke: layer.stroke, strokeWidth: layer.strokeWidth || 1 };
+  }
+  if (layer.stroke && typeof layer.stroke === 'object') {
+    return { stroke: layer.stroke.color, strokeWidth: layer.stroke.width };
+  }
+  return {};
+}
+
+function resolveNodeEffects(layer: any): Effect[] {
+  const effects: Effect[] = [];
+  if (layer.shadow) {
+    effects.push({
+      id: `shadow-${layer.id || '1'}`,
+      type: 'shadow',
+      enabled: true,
+      params: {
+        x: layer.shadow.offsetX ?? 0,
+        y: layer.shadow.offsetY ?? 4,
+        blur: layer.shadow.blur ?? 8,
+        color: layer.shadow.color ?? content.inverse,
+        opacity: layer.shadow.opacity ?? 0.25,
+      },
+    } as any);
+  }
+  if (layer.filters?.blur) {
+    effects.push({
+      id: `blur-${layer.id || '1'}`,
+      type: 'blur',
+      enabled: true,
+      params: { radius: layer.filters.blur },
+    } as any);
+  }
+  return effects;
+}
+
+function resolveVectorPoints(layer: any): VectorPoint[] | undefined {
+  if (!layer.vectorPath?.points) {
+    return undefined;
+  }
+  return layer.vectorPath.points.map((p: any) => ({
+    x: p.x,
+    y: p.y,
+    handleIn: p.handleIn,
+    handleOut: p.handleOut,
+  }));
+}
+
 /**
  * Bridges the editor Layer model (from types.ts) to the canonical DesignNode format.
  * Ensures 100% WYSIWYG fidelity for shapes, colors, images, text, gradients, shadows, and strokes.
@@ -43,95 +141,11 @@ export function layerToDesignNode(layer: any): DesignNode {
   }
 
   const rawType = (layer.type || 'rectangle').toLowerCase();
-  let type: DesignNode['type'] = 'rect';
-
-  if (rawType === 'text') {
-    type = 'text';
-  } else if (
-    rawType === 'circle' ||
-    rawType === 'ellipse' ||
-    (rawType === 'shape' && (layer.shapeType === 'circle' || layer.shapeType === 'ellipse'))
-  ) {
-    type = 'ellipse';
-  } else if (rawType === 'line') {
-    type = 'line';
-  } else if (rawType === 'image') {
-    type = 'image';
-  } else if (rawType === 'group' || layer.isGroup) {
-    type = 'group';
-  } else if (rawType === 'frame') {
-    type = 'frame';
-  } else if (
-    rawType === 'path' ||
-    layer.pathData ||
-    layer.vectorPath ||
-    (rawType === 'shape' && layer.shapeType !== 'rectangle')
-  ) {
-    type = 'path';
-  } else {
-    type = 'rect';
-  }
-
-  // Resolve fill: handle string, editor Gradient, or DesignNode GradientFill
-  let fill: string | GradientFill = layer.fill || layer.color || surface[3];
-  if (layer.gradient?.enabled && Array.isArray(layer.gradient.colors) && layer.gradient.colors.length > 0) {
-    fill = {
-      type: layer.gradient.type || 'linear',
-      angle: layer.gradient.angle || 0,
-      stops: layer.gradient.colors.map((c: any) => ({
-        color: c.color || '#000000',
-        offset: typeof c.position === 'number' ? c.position : typeof c.offset === 'number' ? c.offset : 0,
-      })),
-    };
-  }
-
-  // Resolve stroke
-  let stroke: string | undefined = undefined;
-  let strokeWidth: number | undefined = undefined;
-  if (typeof layer.stroke === 'string') {
-    stroke = layer.stroke;
-    strokeWidth = layer.strokeWidth || 1;
-  } else if (layer.stroke && typeof layer.stroke === 'object') {
-    stroke = layer.stroke.color;
-    strokeWidth = layer.stroke.width;
-  }
-
-  // Resolve effects (shadows & blur)
-  const effects: Effect[] = [];
-  if (layer.shadow) {
-    effects.push({
-      id: `shadow-${layer.id || '1'}`,
-      type: 'shadow',
-      enabled: true,
-      params: {
-        x: layer.shadow.offsetX ?? 0,
-        y: layer.shadow.offsetY ?? 4,
-        blur: layer.shadow.blur ?? 8,
-        color: layer.shadow.color ?? content.inverse,
-        opacity: layer.shadow.opacity ?? 0.25,
-      },
-    } as any);
-  }
-  if (layer.filters?.blur) {
-    effects.push({
-      id: `blur-${layer.id || '1'}`,
-      type: 'blur',
-      enabled: true,
-      params: { radius: layer.filters.blur },
-    } as any);
-  }
-
-  // Resolve vector points if present
-  let points: VectorPoint[] | undefined = undefined;
-  if (layer.vectorPath?.points) {
-    points = layer.vectorPath.points.map((p: any) => ({
-      x: p.x,
-      y: p.y,
-      handleIn: p.handleIn,
-      handleOut: p.handleOut,
-    }));
-  }
-
+  const type = resolveNodeType(rawType, layer);
+  const fill = resolveNodeFill(layer);
+  const { stroke, strokeWidth } = resolveNodeStroke(layer);
+  const effects = resolveNodeEffects(layer);
+  const points = resolveVectorPoints(layer);
   const cornerRadius = typeof layer.cornerRadius === 'number' ? layer.cornerRadius : 0;
   const imageUrl = layer.src || layer.url || layer.imageUrl;
 
@@ -1076,27 +1090,30 @@ export async function batchExportArtboardsZip(
 ): Promise<Blob> {
   const JSZip = (await import('jszip')).default;
   const zip = new JSZip();
-  for (let i = 0; i < artboards.length; i++) {
-    const ab = artboards[i];
-    const nodes: DesignNode[] = (ab.layers || []).map(layerToDesignNode);
-    const tempCanvas = document.createElement('canvas');
-    const w = ab.width || 1080;
-    const h = ab.height || 1080;
-    tempCanvas.width = w;
-    tempCanvas.height = h;
-    const blob = await exportToCanvas(tempCanvas, nodes, {
-      format: (options?.format as any) || 'png',
-      scale: 1,
-      selectionOnly: false,
-      quality: options?.quality || 0.95,
-      background: true,
-    });
-    if (blob) {
-      zip.file(
-        `${ab.name ? ab.name.replace(/[^a-zA-Z0-9_-]/g, '-') : `artboard-${i + 1}`}.${options?.format || 'png'}`,
-        blob
-      );
-    }
-  }
+  const format = options?.format || 'png';
+  const quality = options?.quality || 0.95;
+
+  await Promise.all(
+    artboards.map(async (ab, i) => {
+      const nodes: DesignNode[] = (ab.layers || []).map(layerToDesignNode);
+      const tempCanvas = document.createElement('canvas');
+      const w = ab.width || 1080;
+      const h = ab.height || 1080;
+      tempCanvas.width = w;
+      tempCanvas.height = h;
+      const blob = await exportToCanvas(tempCanvas, nodes, {
+        format: format as any,
+        scale: 1,
+        selectionOnly: false,
+        quality,
+        background: true,
+      });
+      if (blob) {
+        const filename = `${ab.name ? ab.name.replace(/[^a-zA-Z0-9_-]/g, '-') : `artboard-${i + 1}`}.${format}`;
+        zip.file(filename, blob);
+      }
+    })
+  );
+
   return zip.generateAsync({ type: 'blob' });
 }

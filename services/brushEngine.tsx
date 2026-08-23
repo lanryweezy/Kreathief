@@ -90,6 +90,15 @@ export const BrushRegistry: Record<string, BrushConfig> = {
     strokeProfile: 'uniform',
     blendMode: 'normal',
   },
+  neon: {
+    strokeWidthMultiplier: 1.0,
+    opacity: 1.0,
+    lineCap: 'round',
+    lineJoin: 'round',
+    filterId: 'brush-neon',
+    strokeProfile: 'uniform',
+    blendMode: 'screen',
+  },
 };
 
 export const getBrushConfig = (brushType: string): BrushConfig => {
@@ -133,6 +142,18 @@ export const BrushFilters: React.FC = React.memo(() => {
           <filter key={`oil-${idx}`} id={`brush-oil-${idx}`}>
             <feTurbulence type="fractalNoise" baseFrequency="0.1" numOctaves="3" seed={idx * 149 + 37} result="noise" />
             <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" />
+          </filter>
+        ))}
+        {/* Pre-seeded neon glow filters (0 to 9) */}
+        {Array.from({ length: 10 }).map((_, idx) => (
+          <filter key={`neon-${idx}`} id={`brush-neon-${idx}`} x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur1" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur2" />
+            <feMerge>
+              <feMergeNode in="blur2" />
+              <feMergeNode in="blur1" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
           </filter>
         ))}
         {/* Pre-seeded watercolor wet-edge filters (0 to 9) */}

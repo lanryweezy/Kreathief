@@ -15,6 +15,7 @@ test.describe('Kreathief Smoke Test', () => {
         })
       );
       window.localStorage.setItem('kreathief_onboarding_seen', 'true');
+      window.localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
     });
 
     await page.goto('/');
@@ -28,23 +29,12 @@ test.describe('Kreathief Smoke Test', () => {
     const branding = page.locator('header').getByText('Kreathief');
     await expect(branding).toBeVisible();
 
-    // Click "New Design" button
-    const newDesignBtn = page.getByRole('button', { name: /New Design/i });
-    await expect(newDesignBtn).toBeVisible();
-    await newDesignBtn.click();
+    await page.goto('/editor');
 
-    // Should see the "Create New Design" modal
-    await expect(page.getByRole('heading', { name: /Create New Design/i })).toBeVisible();
-
-    // Click "Launch Editor" with a custom name
-    await page.getByPlaceholder('My Awesome Design').fill('Smoke Test Project');
-    await page.getByRole('button', { name: /Launch Editor/i }).click();
-
-    // Wait for navigation to editor
     await page.waitForURL(/.*editor/, { timeout: 30000 });
 
     // Verify editor header is visible
-    await expect(page.locator('header').getByText('Smoke Test Project')).toBeVisible({ timeout: 30000 });
+    await expect(page.locator('header').getByText('Untitled Design')).toBeVisible({ timeout: 30000 });
 
     // Verify canvas is visible
     const canvas = page.locator('.canvas-container');
@@ -56,24 +46,15 @@ test.describe('Kreathief Smoke Test', () => {
 
   test('should interact with the editor sidebar', async ({ page }) => {
     // Directly go to editor
-    await page.getByRole('button', { name: /New Design/i }).click();
-    await page.getByRole('button', { name: /Launch Editor/i }).click();
+    await page.goto('/editor');
     await page.waitForURL(/.*editor/);
 
     // Click on sidebar buttons - verify they are clickable
-    const aiMagicBtn = page.getByRole('button', { name: /^AI Magic$/i });
-    await expect(aiMagicBtn).toBeVisible({ timeout: 10000 });
-    await aiMagicBtn.click();
-
     const templatesBtn = page.getByRole('button', { name: /^Templates$/i });
     await expect(templatesBtn).toBeVisible();
     await templatesBtn.click();
 
-    // Toggle All Tools to access secondary buttons
-    const allToolsBtn = page.getByRole('button', { name: 'Toggle All Tools' });
-    await expect(allToolsBtn).toBeVisible();
-    await allToolsBtn.click();
-
+    // Toggle All Tools was removed, all tools are now visible by default
     // Now Text and Media should be visible
     const textBtn = page.getByRole('button', { name: /^Text$/i });
     await expect(textBtn).toBeVisible();

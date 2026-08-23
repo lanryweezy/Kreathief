@@ -29,6 +29,22 @@ export const Slash = (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement('line', { x1: '4.93', y1: '4.93', x2: '19.07', y2: '19.07' })
   );
 
+export const Pause = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('rect', { x: '6', y: '4', width: '4', height: '16' }),
+    React.createElement('rect', { x: '14', y: '4', width: '4', height: '16' })
+  );
+
+export const Compass = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('circle', { cx: '12', cy: '12', r: '10' }),
+    React.createElement('polygon', { points: '16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76' })
+  );
+
 export const Cloud = (props: React.SVGProps<SVGSVGElement>) =>
   React.createElement(
     'svg',
@@ -1672,3 +1688,8 @@ export const Share2 = (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement('line', { x1: '8.59', y1: '13.51', x2: '15.42', y2: '17.49' }),
     React.createElement('line', { x1: '15.41', y1: '6.51', x2: '8.59', y2: '10.49' })
   );
+
+export const BringToFront = (props: React.SVGProps<SVGSVGElement>) => <svg {...props}></svg>;
+export const SendToBack = (props: React.SVGProps<SVGSVGElement>) => <svg {...props}></svg>;
+export const MoreHorizontal = (props: React.SVGProps<SVGSVGElement>) => <svg {...props}></svg>;
+export const Shuffle = (props: React.SVGProps<SVGSVGElement>) => <svg {...props}></svg>;

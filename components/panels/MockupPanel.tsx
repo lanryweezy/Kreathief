@@ -140,9 +140,14 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   const handleUploadMockup = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      setCustomMockup(url);
-      addToast('Custom mockup uploaded! Adjust placement to fit.', 'success');
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        if (ev.target?.result) {
+          setCustomMockup(ev.target.result as string);
+          addToast('Custom mockup uploaded! Adjust placement to fit.', 'success');
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -590,30 +595,29 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       return null;
     }
 
-    // eslint-disable-next-line no-async-promise-executor
-    return new Promise(async (resolve, reject) => {
-      try {
-        const worker = new Worker(new URL('../../workers/mockup.worker.ts', import.meta.url), { type: 'module' });
+    try {
+      const worker = new Worker(new URL('../../workers/mockup.worker.ts', import.meta.url), { type: 'module' });
 
-        const bgImg = await new Promise<HTMLImageElement>((res, rej) => {
+      const [bgImg, designImg] = await Promise.all([
+        new Promise<HTMLImageElement>((res, rej) => {
           const img = new Image();
           img.crossOrigin = 'anonymous';
           img.onload = () => res(img);
           img.onerror = rej;
           img.src = currentMockup.bg;
-        });
-
-        const designImg = await new Promise<HTMLImageElement>((res, rej) => {
+        }),
+        new Promise<HTMLImageElement>((res, rej) => {
           const img = new Image();
           img.crossOrigin = 'anonymous';
           img.onload = () => res(img);
           img.onerror = rej;
           img.src = previewImage;
-        });
+        }),
+      ]);
 
-        const bgBitmap = await createImageBitmap(bgImg);
-        const designBitmap = await createImageBitmap(designImg);
+      const [bgBitmap, designBitmap] = await Promise.all([createImageBitmap(bgImg), createImageBitmap(designImg)]);
 
+      return new Promise<string | null>((resolve, reject) => {
         worker.onmessage = (e) => {
           if (e.data.type === 'SUCCESS') {
             const url = URL.createObjectURL(e.data.payload);
@@ -642,11 +646,11 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
           },
           [bgBitmap, designBitmap]
         );
-      } catch (err) {
-        log.error('Mockup Worker setup failed', err);
-        resolve(null);
-      }
-    });
+      });
+    } catch (err) {
+      log.error('Mockup Worker setup failed', err);
+      return null;
+    }
   };
 
   useEffect(() => {

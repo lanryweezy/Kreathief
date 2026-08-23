@@ -47,6 +47,7 @@ export interface LayerSlice {
   pasteLayer: (style?: Partial<Layer>) => void;
   applyTexture: (textureUrl: string, intensity?: number) => void;
   removeTexture: () => void;
+  shufflePalette: () => void;
   setEditingPathId: (id: string | null) => void;
   onUpdatePath: (id: string, updates: Partial<ShapeLayer>) => void;
   applyMask: (targetId: string, maskId: string | null) => void;
@@ -56,6 +57,7 @@ export interface LayerSlice {
   detachInstance: (id: string) => void;
   resetOverrides: (id: string) => void;
   syncComponentInstances: (masterId: string) => void;
+  syncTextStyleAcrossProject: (sourceLayerId: string) => void;
   markOverride: (instanceId: string, propertyName: string) => void;
   updateInstanceLayer: (id: string, partial: Partial<Layer>) => void;
   swapInstance: (instanceId: string, newMasterId: string) => void;

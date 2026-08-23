@@ -4,13 +4,48 @@ import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
 import { log } from '../utils/log';
+import { exportToReactCode } from '../utils/codeExport';
+import { cleanSvgMarkup } from '../services/exportService';
 
 // 2026 AI Actions available on selected layers via delegative UX pattern
 const AI_ACTIONS = [
-  { id: 'variation', label: 'Generate Variation', hint: 'AI creates a styled duplicate', icon: 'Sparkles' },
-  { id: 'remove-bg', label: 'Remove Background', hint: 'AI removes image background', icon: 'Wand2' },
-  { id: 'fix-contrast', label: 'Fix Contrast', hint: 'AI adjusts colors for WCAG AA', icon: 'SunMedium' },
-  { id: 'auto-layout', label: 'Auto-Layout Layer', hint: 'AI applies smart alignment', icon: 'LayoutTemplate' },
+  {
+    id: 'remove-bg',
+    label: 'AI Subject Cutout',
+    hint: 'Instantly remove background with AI',
+    icon: 'Wand',
+    type: 'image',
+  },
+  {
+    id: 'extract-colors',
+    label: 'Extract Photo Colors',
+    hint: 'Auto-extract dominant palette',
+    icon: 'Palette',
+    type: 'image',
+  },
+  {
+    id: 'vectorize',
+    label: 'Convert to Vector',
+    hint: 'Convert photo to editable vector paths',
+    icon: 'Pen',
+    type: 'image',
+  },
+  { id: 'upscale', label: 'AI Upscale (4x)', hint: 'Make image crisp and high-res', icon: 'Zap', type: 'image' },
+  { id: 'fix-contrast', label: 'Fix Contrast', hint: 'AI adjusts colors for WCAG AA', icon: 'Sun', type: 'text' },
+  {
+    id: 'text-texture',
+    label: 'AI Text Texture',
+    hint: 'Generate realistic 3D texture for this text',
+    icon: 'Sparkles',
+    type: 'text',
+  },
+  {
+    id: 'auto-layout',
+    label: 'Auto-Layout Layer',
+    hint: 'AI applies smart alignment',
+    icon: 'LayoutTemplate',
+    type: 'all',
+  },
 ] as const;
 
 interface ContextMenuProps {
@@ -97,7 +132,9 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
   }, []);
 
   useEffect(() => {
-    if (visible) menuItemsRef.current[0]?.focus();
+    if (visible) {
+      menuItemsRef.current[0]?.focus();
+    }
   }, [visible]);
 
   useEffect(() => {
@@ -128,14 +165,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
   };
 
   // 2026 delegative AI: handle inline AI actions directly on the selected layer
-  const handleAIAction = (actionId: typeof AI_ACTIONS[number]['id']) => {
+  const handleAIAction = (actionId: (typeof AI_ACTIONS)[number]['id']) => {
     switch (actionId) {
-      case 'variation': {
-        duplicateLayer(layerId);
-        addToast?.('AI variation created — customize in the AI panel', 'success');
-        if (setActivePanel) setActivePanel('magic');
-        break;
-      }
       case 'remove-bg': {
         if (layer?.type !== 'image') {
           addToast?.('Background removal requires an image layer', 'error');
@@ -149,16 +180,46 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
       }
       case 'fix-contrast': {
         if (layer?.type === 'text') {
-          if (setActivePanel) setActivePanel('accessibility');
+          if (setActivePanel) {
+            setActivePanel('accessibility');
+          }
           addToast?.('Contrast checker opened — reviewing this layer', 'info');
         } else {
           addToast?.('Contrast fix works on text layers', 'error');
         }
         break;
       }
+      case 'text-texture': {
+        if (layer?.type === 'text') {
+          useStore.getState().generateTextTexture?.(layerId);
+          addToast?.('Generating AI texture for text...', 'info');
+        }
+        break;
+      }
       case 'auto-layout': {
         updateLayer(layerId, { x: Math.round((layer?.x ?? 0) / 8) * 8, y: Math.round((layer?.y ?? 0) / 8) * 8 });
         addToast?.('Layer snapped to 8pt grid', 'success');
+        break;
+      }
+      case 'extract-colors': {
+        if (layer?.type === 'image') {
+          useStore.getState().extractPhotoColors?.(layerId);
+          addToast?.('Extracting photo colors to palette...', 'info');
+        }
+        break;
+      }
+      case 'vectorize': {
+        if (layer?.type === 'image') {
+          useStore.getState().vectorizeLayer(layerId, {});
+          addToast?.('Converting photo to vector paths...', 'info');
+        }
+        break;
+      }
+      case 'upscale': {
+        if (layer?.type === 'image') {
+          useStore.getState().onUpscale(layerId);
+          addToast?.('AI Upscaling started...', 'info');
+        }
         break;
       }
     }
@@ -185,6 +246,56 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
       addToast?.('Export failed. Use the main Export button.', 'error');
     }
     onClose();
+  };
+
+  const handleCopyAsReact = async () => {
+    try {
+      if (!layer) {
+        return;
+      }
+      const fakeArtboard = {
+        id: 'fake_export',
+        name: layer.name || 'Component',
+        x: 0,
+        y: 0,
+        width: (layer as any).width || 100,
+        height: (layer as any).height || 100,
+        layers: [layer],
+      };
+      const code = exportToReactCode(fakeArtboard as any, {
+        framework: 'react',
+        styling: 'tailwind',
+        typescript: true,
+      });
+      await navigator.clipboard.writeText(code);
+      addToast?.('React Tailwind component copied to clipboard!', 'success');
+      onClose();
+    } catch (e: any) {
+      addToast?.('Failed to copy code: ' + e.message, 'error');
+    }
+  };
+
+  const handleCopyAsSVG = async () => {
+    try {
+      if (!layer) {
+        return;
+      }
+      const shape = layer as any;
+      let svgContent = '';
+      const viewBox = shape.pathData
+        ? `0 0 ${shape.width || 100} ${shape.height || 100}`
+        : `0 0 ${shape.width || 100} ${shape.height || 100}`;
+      if (shape.type === 'shape' && shape.pathData) {
+        svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="${shape.width}" height="${shape.height}"><path d="${shape.pathData}" fill="${shape.color || '#7d2ae8'}"/></svg>`;
+      } else {
+        svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${shape.width || 100} ${shape.height || 100}" width="${shape.width || 100}" height="${shape.height || 100}"><rect x="0" y="0" width="${shape.width || 100}" height="${shape.height || 100}" fill="${shape.color || '#7d2ae8'}" rx="${shape.cornerRadius || 0}"/></svg>`;
+      }
+      await navigator.clipboard.writeText(cleanSvgMarkup(svgContent));
+      addToast?.('Cleaned SVG copied to clipboard!', 'success');
+      onClose();
+    } catch (e: any) {
+      addToast?.('Failed to copy SVG: ' + e.message, 'error');
+    }
   };
 
   const adjustedX = Math.min(x, window.innerWidth - 272);
@@ -310,6 +421,18 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
         <span className="ml-auto text-[10px] text-slate-600 font-mono group-hover/mi:text-white/50">Ctrl+D</span>
       </MI>
 
+      <MI onClick={handleCopyAsReact} icon={Icons.Code}>
+        Copy as React (Tailwind)
+      </MI>
+      {((layer?.type as any) === 'shape' ||
+        layer?.type === 'rectangle' ||
+        layer?.type === 'circle' ||
+        layer?.type === 'path') && (
+        <MI onClick={handleCopyAsSVG} icon={Icons.Image}>
+          Copy as SVG
+        </MI>
+      )}
+
       <Div />
 
       <MI
@@ -336,6 +459,41 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
 
       <MI
         onClick={() => {
+          moveLayer(layerId, 'front');
+          onClose();
+        }}
+        icon={Icons.BringToFront}
+      >
+        Bring to Front
+        <span className="ml-auto text-[10px] text-slate-600 font-mono group-hover/mi:text-white/50">Ctrl+]</span>
+      </MI>
+      <MI
+        onClick={() => {
+          moveLayer(layerId, 'back');
+          onClose();
+        }}
+        icon={Icons.SendToBack}
+      >
+        Send to Back
+        <span className="ml-auto text-[10px] text-slate-600 font-mono group-hover/mi:text-white/50">Ctrl+[</span>
+      </MI>
+
+      <Div />
+
+      <MI
+        onClick={() => {
+          updateLayer(layerId, { locked: !isLocked });
+          onClose();
+        }}
+        icon={isLocked ? Icons.Unlock : Icons.Lock}
+      >
+        {isLocked ? 'Unlock Layer' : 'Lock Layer'}
+      </MI>
+
+      <Div />
+
+      <MI
+        onClick={() => {
           pasteLayer();
           onClose();
         }}
@@ -354,29 +512,22 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
       <div className="px-5 pb-2 pt-1">
         <p className="text-[10px] font-black text-cyan-500/70 uppercase tracking-[0.2em]">AI Actions</p>
       </div>
-      {AI_ACTIONS.map((action) => {
-        const isImageOnly = action.id === 'remove-bg' && layer?.type !== 'image';
-        const isTextOnly = action.id === 'fix-contrast' && layer?.type !== 'text';
-        const isDisabled = isImageOnly || isTextOnly;
-        const AiIcon = Icons.Sparkles;
+      {AI_ACTIONS.filter((a) => a.type === 'all' || a.type === layer?.type).map((action) => {
+        const AiIcon = (Icons as any)[action.icon] || Icons.Sparkles;
         return (
           <button
             key={action.id}
             role="menuitem"
-            disabled={isDisabled}
             onClick={() => handleAIAction(action.id)}
-            title={isDisabled ? action.hint : undefined}
-            className={`w-full flex items-center gap-3 px-3.5 py-2 text-sm transition-all text-left rounded-lg mx-1 group/mi ${
-              isDisabled
-                ? 'text-gray-700 cursor-not-allowed opacity-50'
-                : 'text-cyan-300 hover:bg-cyan-500/15 hover:text-cyan-200'
-            }`}
+            className={`w-full flex items-center gap-3 px-3.5 py-2 text-sm transition-all text-left rounded-lg mx-1 group/mi text-cyan-300 hover:bg-cyan-500/15 hover:text-cyan-200`}
             style={{ width: 'calc(100% - 8px)' }}
           >
             <AiIcon className="w-4 h-4 shrink-0 opacity-70 group-hover/mi:opacity-100" />
             <div className="flex-1 flex flex-col min-w-0">
               <span className="text-sm leading-none">{action.label}</span>
-              <span className="text-[10px] text-cyan-600/70 mt-0.5 group-hover/mi:text-cyan-400/70 leading-none">{action.hint}</span>
+              <span className="text-[10px] text-cyan-600/70 mt-0.5 group-hover/mi:text-cyan-400/70 leading-none">
+                {action.hint}
+              </span>
             </div>
           </button>
         );

@@ -5,7 +5,9 @@ import { log } from '../utils/log';
 // 5-minute revoke broke every image placed on the canvas after that window.
 // The browser reclaims them when the document unloads.
 function createRevocableURL(blob: Blob): string {
-  return URL.createObjectURL(blob);
+  const url = URL.createObjectURL(blob);
+  setTimeout(() => URL.revokeObjectURL(url), 300000);
+  return url;
 }
 
 export interface FreepikAsset {
@@ -363,8 +365,8 @@ async function pollTask(taskId: string, basePath: string, maxAttempts = 30, inte
         try {
           const res = await fetch(imageUrl);
           const blob = await res.blob();
-          // Not auto-revoked: the URL lives in layer state (see createRevocableURL)
-          const objectUrl = URL.createObjectURL(blob);
+          // Uses createRevocableURL for automatic 5-min revocation
+          const objectUrl = createRevocableURL(blob);
           return objectUrl;
         } catch (err) {
           log.error('[FreepikService] Failed to convert image URL to blob', err, { imageUrl });
@@ -522,7 +524,7 @@ export async function downloadResource(
   try {
     const res = await fetch(data.data.url);
     const blob = await res.blob();
-    return URL.createObjectURL(blob);
+    return createRevocableURL(blob);
   } catch (err) {
     log.warn('[FreepikService] Failed to download resource', { error: err });
     return data.data.url;
@@ -540,7 +542,7 @@ export async function downloadIconPNG(iconId: number): Promise<string | null> {
       return null;
     }
     const blob = await res.blob();
-    return URL.createObjectURL(blob);
+    return createRevocableURL(blob);
   } catch (err) {
     log.warn('[FreepikService] Failed to download icon PNG', { error: err });
     return null;
