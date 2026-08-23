@@ -63,6 +63,9 @@
 ## 2026-08-20 - Typo-tolerant Layers Panel Search
 **Learning:** The layer search functionality in the Layers Panel (`LayersPanel.tsx`) relied on strict substring matching (`.includes()`). This caused searches to fail on minor typos when users were trying to find specific layers among potentially hundreds (e.g. "hader" instead of "header"), degrading the workflow quality.
 **Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility from `utils/search.ts` to gracefully handle typos and significantly improve the search resilience without changing any component props or state structures.
+## $(date +%Y-%m-%d) - Component fragility with string methods on unstructured props
+**Learning:** Destructuring with a default value (e.g. `alt = ''`) only protects against `undefined`, leaving the component vulnerable to fatal crashes (`Cannot read properties of null`) if passed `null` or unexpected types from loosely typed data or APIs.
+**Action:** Always defensively check `typeof prop === 'string'` before calling string methods like `charAt` or `toUpperCase` on props that can be bypassed by nulls.
 ## 2024-05-18 - Replacing exact substring matching with fuzzy matching in Community Feed search
 **Learning:** The community feed search (`CommunityTemplates.tsx`) relied on strict exact substring matching (`.includes()`) for title, author, and tags. This brittle implementation meant that minor user typos or variations returned zero results, severely degrading the experience of finding templates.
 **Action:** Replaced exact `.includes()` matching with the existing `fuzzyMatch` utility from `utils/search.ts`. This closes the quality gap by adding robust typo tolerance across titles, authors, and tags without altering the component’s interface or adding new features.
