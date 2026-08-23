@@ -41,9 +41,22 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
     }))
   );
 
-  const allLayers = artboards.flatMap((a) => a.layers);
   const selectedLayerId = selectedLayerIds[selectedLayerIds.length - 1] || null;
-  const selectedLayer = allLayers.find((l) => l.id === selectedLayerId) || null;
+  // ⚡ Bolt Optimization: Use an imperative loop instead of `artboards.flatMap(a => a.layers).find(...)`
+  // to avoid O(N) array allocation and allow for early termination when finding the selected layer.
+  let selectedLayer = null;
+  if (selectedLayerId) {
+    for (let i = 0; i < artboards.length; i++) {
+      const layers = artboards[i].layers;
+      for (let j = 0; j < layers.length; j++) {
+        if (layers[j].id === selectedLayerId) {
+          selectedLayer = layers[j];
+          break;
+        }
+      }
+      if (selectedLayer) break;
+    }
+  }
   const onUpdateLayer = updateLayer;
   if (!selectedLayer) {
     return (
