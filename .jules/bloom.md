@@ -69,3 +69,6 @@
 ## 2024-05-18 - Replacing exact substring matching with fuzzy matching in Community Feed search
 **Learning:** The community feed search (`CommunityTemplates.tsx`) relied on strict exact substring matching (`.includes()`) for title, author, and tags. This brittle implementation meant that minor user typos or variations returned zero results, severely degrading the experience of finding templates.
 **Action:** Replaced exact `.includes()` matching with the existing `fuzzyMatch` utility from `utils/search.ts`. This closes the quality gap by adding robust typo tolerance across titles, authors, and tags without altering the component’s interface or adding new features.
+## 2024-05-18 - Replacing exact substring matching with fuzzy matching in Text Panel font search
+**Learning:** The text panel font search (`TextPanel.tsx`) relied on strict exact substring matching (`.includes()`) for font names. This brittle implementation meant that minor user typos returned zero results, degrading the experience of finding fonts.
+**Action:** Replaced exact `.includes()` matching with the existing `fuzzyMatch` utility from `utils/search.ts`. This closes the quality gap by adding robust typo tolerance without altering the component’s interface or adding new features.
