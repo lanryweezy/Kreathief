@@ -74,3 +74,7 @@
 
 **Learning:** The warp registry had completely duplicate code for `arch` and `arc` effect implementations.
 **Action:** Extract identically repeated plugin configurations or handler functions to a shared constant or function reference, reducing structural noise and keeping a single source of truth for the logic.
+## 2026-08-22 - Consolidate fragmented Zustand subscriptions in components
+
+**Learning:** When a component calls `useStore(selector)` multiple times consecutively for different atomic state properties, it forces Zustand to create multiple separate `useSyncExternalStore` subscriptions. This causes the component to evaluate multiple listeners on every state change, which increases CPU overhead and degrades rendering performance.
+**Action:** When refactoring components that make many atomic `useStore` calls, consolidate them into a single object-returning selector wrapped in `useShallow` from `zustand/react/shallow` to preserve granular re-rendering while minimizing subscription overhead.

@@ -15,3 +15,7 @@
 ## 2026-08-18 - Boolean Operation Strategy Registry
 **Learning:** The boolean operations (union, subtract, intersect, exclude) were implemented using hard-coded switch statements in multiple places (`utils/booleanOperations.ts` and `hooks/useEditorLogic.ts`). This duplicate switch statement meant any new boolean operation would require modifying the core logic and React hook.
 **Action:** Extracted this into a `booleanOperationStrategies` map registry, allowing future vector math logic to register new boolean operations without touching the core processing pipelines.
+
+## 2024-08-22 - Fallback Photo Provider Registry
+**Learning:** The `getFallbackPhotos` function in `services/fallbackPhotos.ts` used a hard-coded switch statement to parse data for 4 different providers (`unsplash`, `pixabay`, `pexels`, `vecteezy`). Adding a new fallback provider would require modifying this central function.
+**Action:** Introduced a `FallbackPhotoAdapter` registry pattern (`fallbackPhotoAdapters`). The `provider` argument type was relaxed to `string`, and providers now self-register using `registerFallbackPhotoAdapter`. This allows new fallback providers to be added without touching the core `getFallbackPhotos` logic.

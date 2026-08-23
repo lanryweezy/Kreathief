@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../constants';
 import { Project } from '../types';
+import { fuzzyMatch } from '../utils/search';
 
 interface CommunityTemplatesProps {
   onOpenProject: (project: Project) => void;
@@ -335,9 +336,9 @@ const CommunityTemplates: React.FC<CommunityTemplatesProps> = ({ onOpenProject }
   const filteredTemplates = templates
     .filter((t) => {
       const matchesSearch =
-        t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+        fuzzyMatch(searchQuery, t.title) ||
+        fuzzyMatch(searchQuery, t.author) ||
+        t.tags.some((tag: string) => fuzzyMatch(searchQuery, tag));
       const matchesCategory = selectedCategory === 'All' || t.category === selectedCategory;
       return matchesSearch && matchesCategory;
     })

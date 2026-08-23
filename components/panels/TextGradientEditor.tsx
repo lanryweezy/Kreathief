@@ -141,6 +141,7 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
               <label className="text-[10px] text-gray-500 block mb-2">Angle: {angle}°</label>
               <input
                 type="range"
+                aria-label="Gradient Angle"
                 min="0"
                 max="360"
                 value={angle}
@@ -172,12 +173,14 @@ export const TextGradientEditor: React.FC<TextGradientEditorProps> = ({ gradient
                 <div key={index} className="flex items-center gap-2 p-2 rounded border border-gray-700">
                   <input
                     type="color"
+                    aria-label={`Color Stop ${index + 1} Color`}
                     value={stop.color}
                     onChange={(e) => handleColorChange(index, e.target.value)}
                     className="w-6 h-6 rounded border border-gray-600 cursor-pointer"
                   />
                   <input
                     type="range"
+                    aria-label={`Color Stop ${index + 1} Position`}
                     min="0"
                     max="100"
                     value={stop.position}
