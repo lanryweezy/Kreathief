@@ -7,6 +7,7 @@ import { loadFont, registerCustomFont } from '../../services/FontLoader';
 import { useStore } from '../../store/useStore';
 import { log } from '../../utils/log';
 import { getAIErrorMessage } from '../../utils/errorMessages';
+import { fuzzyMatch } from '../../utils/search';
 import { TextStylesPanel, TextStyle } from './TextStylesPanel';
 import { PanelHeader } from './PanelHeader';
 import { TextGradientEditor } from './TextGradientEditor';
@@ -220,7 +221,8 @@ export const TextPanel: React.FC = () => {
     }
     let fonts = activeCategory === 'All' ? ALL_FONTS : (FONT_CATEGORIES as any)[activeCategory] || [];
     if (fontSearch) {
-      fonts = fonts.filter((f: string) => f.toLowerCase().includes(fontSearch.toLowerCase()));
+      // 🌸 Bloom: Replaced exact substring matching with fuzzyMatch for typo tolerance
+      fonts = fonts.filter((f: string) => fuzzyMatch(fontSearch, f));
     }
     return fonts;
   }, [activeCategory, fontSearch, customFonts]);
