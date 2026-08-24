@@ -89,7 +89,6 @@ export const TextPanel: React.FC = () => {
   const addCustomFont = useStore((state) => state.addCustomFont);
   const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
   const artboards = useStore((state) => state.artboards) || [];
-  const layers = useMemo(() => artboards.flatMap((a) => a.layers || []), [artboards]);
   const addToast = useStore((state) => state.addToast);
 
   const [fontSearch, setFontSearch] = useState('');
@@ -111,7 +110,23 @@ export const TextPanel: React.FC = () => {
 
   const selectedLayerId =
     selectedLayerIds && selectedLayerIds.length > 0 ? selectedLayerIds[selectedLayerIds.length - 1] : null;
-  const selectedLayer = layers.find((l: any) => l?.id === selectedLayerId) || null;
+
+  // ⚡ Bolt Optimization: Use an imperative loop within useMemo instead of `artboards.flatMap(a => a.layers).find(...)`
+  // This avoids allocating a massive intermediate array on every update to `artboards` while still caching the result.
+  const selectedLayer = useMemo(() => {
+    if (!selectedLayerId) return null;
+    for (let i = 0; i < artboards.length; i++) {
+      const artboardLayers = artboards[i].layers;
+      if (!artboardLayers) continue;
+      for (let j = 0; j < artboardLayers.length; j++) {
+        if (artboardLayers[j].id === selectedLayerId) {
+          return artboardLayers[j];
+        }
+      }
+    }
+    return null;
+  }, [artboards, selectedLayerId]);
+
   const selectedTextLayer = selectedLayer?.type === 'text' ? (selectedLayer as TextLayer) : null;
 
   // Load recent fonts from localStorage on mount
@@ -752,11 +767,7 @@ export const TextPanel: React.FC = () => {
         {/* Spacing Tab */}
         {activeTextTab === 'spacing' && (
           <TextSpacingControls
-            selectedLayer={
-              selectedLayerIds.length > 0
-                ? (layers.find((l) => l.id === selectedLayerIds[selectedLayerIds.length - 1]) as TextLayer)
-                : undefined
-            }
+            selectedLayer={selectedTextLayer || undefined}
           />
         )}
       </div>
