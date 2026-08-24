@@ -185,3 +185,7 @@
 
 **Learning:** Using `.map` with a nested `.findIndex` creates an O(N^2) operation, causing performance issues. Furthermore, using `Math.min(...array)` on the mapped array causes unnecessary memory allocations and risks exceeding the maximum call stack size on large selections.
 **Action:** Replace chained `.map` with nested `.findIndex` and `Math.min` spread operations with a single early-exiting `for` loop or `Set` lookup to compute the lowest index.
+
+## 2026-08-24 - Optimize Layer Lookup in TextPanel (Re-evaluated)
+**Learning:** Replacing an O(N) chained `flatMap().find()` operation with an imperative loop is only effective if we correctly respect its original execution context. Removing the wrapping `useMemo` block forces the nested loop to execute on every single render cycle, degrading CPU performance during unrelated state updates.
+**Action:** When extracting computationally expensive loops (like traversing all artboard layers) out of inefficient chained array methods, ensure the new imperative loop is wrapped in a `useMemo` block with correct dependencies (e.g., `[artboards, selectedLayerId]`) to preserve both memory and CPU efficiency.
