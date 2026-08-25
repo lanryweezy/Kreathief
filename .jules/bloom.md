@@ -72,3 +72,6 @@
 ## 2024-05-18 - Replacing exact substring matching with fuzzy matching in Text Panel font search
 **Learning:** The text panel font search (`TextPanel.tsx`) relied on strict exact substring matching (`.includes()`) for font names. This brittle implementation meant that minor user typos returned zero results, degrading the experience of finding fonts.
 **Action:** Replaced exact `.includes()` matching with the existing `fuzzyMatch` utility from `utils/search.ts`. This closes the quality gap by adding robust typo tolerance without altering the component’s interface or adding new features.
+## 2024-05-18 - Replacing exact substring matching with fuzzy matching in Command Palette local search
+**Learning:** The Command Palette (`CommandPalette.tsx`) relied on strict exact substring matching (`.includes()`) for its local commands search (e.g. `c.label.toLowerCase().includes(q)`). This brittle implementation meant that minor user typos returned zero results, frustrating users who expect command palettes to be forgiving.
+**Action:** Replaced exact `.includes()` matching with the existing `fuzzyMatch` utility from `utils/search.ts`. This closes the quality gap by adding robust typo tolerance for local command searches without altering the component’s interface or adding new features.
