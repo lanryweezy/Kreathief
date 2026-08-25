@@ -32,3 +32,8 @@
 
 **Learning:** Adding an `aria-label` that is exactly the same as the button text is redundant. Screen readers will read the button text automatically.
 **Action:** Only add `aria-label` to buttons when the text content is not descriptive enough, such as icon-only buttons or buttons with vague text.
+
+## 2026-08-25 - Screen Reader Accessibility for Dual-Input Color Pickers
+
+**Learning:** When color pickers combine a native `<input type="color">` and a hex `<input type="text">` side-by-side (e.g., in `ContrastChecker`), they often lack semantic `<label>` associations or explicit `aria-label` attributes. Without them, screen readers announce both simply as generic inputs, providing no context on whether the user is interacting with the color swatch or the hex value for the foreground or background.
+**Action:** Always include context-specific `aria-label` attributes on both the visual color picker (e.g., `aria-label="Background color picker"`) and its accompanying hex text input (e.g., `aria-label="Background color hex value"`) when grouped together without explicit `<label htmlFor>` bindings.
