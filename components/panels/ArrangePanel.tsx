@@ -37,8 +37,25 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
     }))
   );
 
-  const allLayers = artboards.flatMap((a) => a.layers);
-  const selectedLayers = allLayers.filter((l) => selectedLayerIds.includes(l.id));
+  // ⚡ Bolt Optimization: Replace `artboards.flatMap().filter()` with an imperative loop inside useMemo to avoid O(N) array allocations
+  const selectedLayers = React.useMemo(() => {
+    if (!artboards || !selectedLayerIds || selectedLayerIds.length === 0) return [];
+    const layers = [];
+    for (let i = 0; i < artboards.length; i++) {
+      const a = artboards[i];
+      if (!a.layers) continue;
+      for (let j = 0; j < a.layers.length; j++) {
+        const l = a.layers[j];
+        if (selectedLayerIds.includes(l.id)) {
+          layers.push(l);
+          if (layers.length === selectedLayerIds.length) {
+            return layers;
+          }
+        }
+      }
+    }
+    return layers;
+  }, [artboards, selectedLayerIds]);
   const onUpdateLayers = updateLayers;
   const isAspectRatioLocked = useStore((state) => state.aspectLocked) || false;
   const setIsAspectRatioLocked = useStore((state) => state.setAspectLocked);
