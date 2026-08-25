@@ -75,12 +75,14 @@ export const ContrastChecker: React.FC<ContrastCheckerProps> = ({
           <div className="flex items-center gap-1.5 min-w-0">
             <input
               type="color"
+              aria-label="Background color picker"
               value={backgroundColor}
               onChange={(e) => onBackgroundChange?.(e.target.value)}
               className="w-10 h-10 rounded border border-gray-600 cursor-pointer flex-shrink-0"
             />
             <input
               type="text"
+              aria-label="Background color hex value"
               value={backgroundColor}
               onChange={(e) => onBackgroundChange?.(e.target.value)}
               className="flex-1 min-w-0 w-full bg-surface-dark-4 border border-gray-600 rounded px-1.5 py-1 text-[10px] text-white font-mono uppercase"
@@ -93,12 +95,14 @@ export const ContrastChecker: React.FC<ContrastCheckerProps> = ({
           <div className="flex items-center gap-1.5 min-w-0">
             <input
               type="color"
+              aria-label="Foreground color picker"
               value={foregroundColor}
               onChange={(e) => setForegroundColor(e.target.value)}
               className="w-10 h-10 rounded border border-gray-600 cursor-pointer flex-shrink-0"
             />
             <input
               type="text"
+              aria-label="Foreground color hex value"
               value={foregroundColor}
               onChange={(e) => setForegroundColor(e.target.value)}
               className="flex-1 min-w-0 w-full bg-surface-dark-4 border border-gray-600 rounded px-1.5 py-1 text-[10px] text-white font-mono uppercase"
