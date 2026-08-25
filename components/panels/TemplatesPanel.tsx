@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { AppMode, AspectRatio, ShapeLayer } from '../../types';
 import { useStore } from '../../store/useStore';
+import { fuzzyMatch } from '../../utils/search';
 import { Icons } from '../../constants';
 import { STARTER_TEMPLATES } from '../../data/templates';
 import { communityService, CommunityTemplate } from '../../services/communityService';
@@ -153,12 +154,12 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
       filtered = filtered.filter((t) => favoriteTemplates.includes(t.id));
     }
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+      // 🌸 Bloom: Replaced exact substring matching with fuzzyMatch for typo tolerance
       filtered = filtered.filter(
         (t) =>
-          t.name.toLowerCase().includes(q) ||
-          t.category.toLowerCase().includes(q) ||
-          (t as any).description?.toLowerCase().includes(q)
+          fuzzyMatch(searchQuery, t.name) ||
+          fuzzyMatch(searchQuery, t.category) ||
+          fuzzyMatch(searchQuery, (t as any).description || '')
       );
     }
     return filtered;
