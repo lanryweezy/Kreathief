@@ -356,12 +356,14 @@ interface TabsProps {
 }
 
 export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onTabChange }) => (
-  <div className="flex border-b border-border-default">
+  <div className="flex border-b border-border-default" role="tablist">
     {tabs.map((tab) => (
       <button
         key={tab.id}
+        role="tab"
+        aria-selected={activeTab === tab.id}
         onClick={() => onTabChange(tab.id)}
-        className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-label font-medium transition-colors duration-fast ${
+        className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-label font-medium transition-colors duration-fast focus-visible:outline-2 focus-visible:outline-border-focus focus-visible:outline-offset-[-2px] ${
           activeTab === tab.id
             ? 'text-content-primary border-b-2 border-content-primary'
             : 'text-content-muted hover:text-content-secondary'
