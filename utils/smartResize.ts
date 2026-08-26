@@ -1,4 +1,4 @@
-import { Layer, Artboard } from '../types';
+import { Layer, Artboard, TextLayer } from '../types';
 
 interface ResizeTarget {
   name: string;
@@ -45,10 +45,9 @@ export function smartResize(
   layers: Layer[],
   target: ResizeTarget
 ): { width: number; height: number; layers: Layer[] } {
-  const srcAspect = artboard.width / artboard.height;
-  const tgtAspect = target.width / target.height;
 
   // Calculate scale to fit
+  // Mason: Replaced unsafe type casts with correct interface properties and removed unused variables
   const scaleX = target.width / artboard.width;
   const scaleY = target.height / artboard.height;
   const scale = Math.min(scaleX, scaleY);
@@ -61,9 +60,9 @@ export function smartResize(
   const resizedLayers = layers.map((layer) => {
     const newX = layer.x * scale + offsetX;
     const newY = layer.y * scale + offsetY;
-    const newWidth = ((layer as any).width || 100) * scale;
-    const newHeight = ((layer as any).height || 100) * scale;
-    const newFontSize = layer.type === 'text' ? ((layer as any).fontSize || 16) * scale : undefined;
+    const newWidth = (layer.width || 100) * scale;
+    const newHeight = (layer.height || 100) * scale;
+    const newFontSize = layer.type === 'text' ? ((layer as TextLayer).fontSize || 16) * scale : undefined;
 
     return {
       ...layer,
@@ -97,16 +96,17 @@ export function aiSmartResize(
   let weightedY = 0;
 
   for (const layer of layers) {
-    const area = ((layer as any).width || 100) * ((layer as any).height || 100);
+    const area = (layer.width || 100) * (layer.height || 100);
     totalArea += area;
-    weightedX += (layer.x + ((layer as any).width || 100) / 2) * area;
-    weightedY += (layer.y + ((layer as any).height || 100) / 2) * area;
+    weightedX += (layer.x + (layer.width || 100) / 2) * area;
+    weightedY += (layer.y + (layer.height || 100) / 2) * area;
   }
 
   const centerX = totalArea > 0 ? weightedX / totalArea : artboard.width / 2;
   const centerY = totalArea > 0 ? weightedY / totalArea : artboard.height / 2;
 
   // Scale to fit while keeping center of mass centered
+  // Mason: Replaced unsafe type casts with correct interface properties and removed unused variables
   const scaleX = target.width / artboard.width;
   const scaleY = target.height / artboard.height;
   const scale = Math.min(scaleX, scaleY);
@@ -123,9 +123,9 @@ export function aiSmartResize(
         ...layer,
         x: layer.x * scale + offsetX,
         y: layer.y * scale + offsetY,
-        width: ((layer as any).width || 100) * scale,
-        height: ((layer as any).height || 100) * scale,
-        ...(layer.type === 'text' ? { fontSize: Math.round(((layer as any).fontSize || 16) * scale) } : {}),
+        width: (layer.width || 100) * scale,
+        height: (layer.height || 100) * scale,
+        ...(layer.type === 'text' ? { fontSize: Math.round(((layer as TextLayer).fontSize || 16) * scale) } : {}),
       }) as Layer
   );
 

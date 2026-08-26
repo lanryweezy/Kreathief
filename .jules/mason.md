@@ -1,5 +1,7 @@
-## 2026-06-09 - Unused specific error formatters removed\n**Learning:** The codebase previously contained context-specific error messaging wrappers (like `getExportErrorMessage` and `getSaveErrorMessage`) that wrapped `getErrorDetails` with custom strings. However, these were never actually consumed by the UI components (which either used `getAIErrorMessage` or raw `getErrorDetails`), meaning they were dead code.\n**Action:** Prioritize checking if highly specific utility functions (especially those that look like boilerplate wrappers) are actually imported before trying to refactor or consolidate them; often they can just be deleted.
+## 2026-08-25 - Removed Unsafe Type Casts in smartResize
 
+**Learning:** `smartResize.ts` heavily relied on unsafe `(layer as any).width` and `(layer as any).height` type casting, which masked potential TypeScript errors and bypassed standard `Layer` interface definitions. In addition, the file contained unused variables (`srcAspect`, `tgtAspect`) which triggered ESLint warnings.
+**Action:** When finding unsafe type escapes like `as any` in utilities, replace them by utilizing the correct properties mapped to the `Layer` and `TextLayer` interfaces. Removing unused variables ensures a cleaner build and prevents linting failures.
 ## 2026-06-09 - Unused `formatErrorMessage` removed
 
 **Learning:** Found another unused error formatting function (`formatErrorMessage`) in `utils/errorMessages.ts` which just formatted `getErrorDetails` output into a string. The codebase seems to have a pattern of creating specific wrappers for `getErrorDetails` without ever consuming them.
