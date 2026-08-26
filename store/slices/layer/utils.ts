@@ -78,7 +78,7 @@ export function applyAutoLayout(layers: Layer[]): Layer[] {
           const allChildren = nextLayers.filter((l) => l.groupId === container.groupId && l.id !== container.id);
           if (container.autoLayout!.direction === 'row') {
             const maxH = allChildren.reduce(
-              (mx, c) => Math.max(mx, (c as any).height || (c.type === 'text' ? (c as TextLayer).fontSize * 1.2 : 0)),
+              (mx, c) => Math.max(mx, c.height || (c.type === 'text' ? (c as TextLayer).fontSize * 1.2 : 0)),
               0
             );
             const pad =
@@ -86,7 +86,7 @@ export function applyAutoLayout(layers: Layer[]): Layer[] {
                 ? container.autoLayout!.padding
                 : (container.autoLayout!.padding.top || 0) + (container.autoLayout!.padding.bottom || 0);
             const totalWidth =
-              allChildren.reduce((acc, c) => acc + ((c as any).width || 0), 0) +
+              allChildren.reduce((acc, c) => acc + (c.width || 0), 0) +
               (container.autoLayout!.spacing || 0) * Math.max(0, allChildren.length - 1) +
               pad;
             nextLayers[idx] = {
@@ -95,13 +95,13 @@ export function applyAutoLayout(layers: Layer[]): Layer[] {
               height: maxH + pad,
             } as any;
           } else {
-            const maxW = allChildren.reduce((mx, c) => Math.max(mx, (c as any).width || 0), 0);
+            const maxW = allChildren.reduce((mx, c) => Math.max(mx, c.width || 0), 0);
             const pad =
               typeof container.autoLayout!.padding === 'number'
                 ? container.autoLayout!.padding
                 : (container.autoLayout!.padding.left || 0) + (container.autoLayout!.padding.right || 0);
             const totalHeight =
-              allChildren.reduce((acc, c) => acc + ((c as any).height || 0), 0) +
+              allChildren.reduce((acc, c) => acc + (c.height || 0), 0) +
               (container.autoLayout!.spacing || 0) * Math.max(0, allChildren.length - 1) +
               pad;
             nextLayers[idx] = {
