@@ -15,7 +15,9 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
 
   alignLayers: (type) => {
     const { selectedLayerIds } = get();
-    if (selectedLayerIds.length < 2) return;
+    if (selectedLayerIds.length < 2) {
+      return;
+    }
     get().saveToHistory?.();
 
     const selectedSet = new Set(selectedLayerIds);
@@ -23,7 +25,9 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => {
         const selected = a.layers.filter((l) => selectedSet.has(l.id));
-        if (selected.length < 2) return a;
+        if (selected.length < 2) {
+          return a;
+        }
 
         let value = 0;
         if (type === 'left' || type === 'right' || type === 'top' || type === 'bottom') {
@@ -32,38 +36,72 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
           let minY = Infinity;
           let maxY = -Infinity;
           for (const l of selected) {
-            const w = (l as any).width || 0;
-            const h = (l as any).height || 0;
-            if (l.x < minX) minX = l.x;
-            if (l.x + w > maxX) maxX = l.x + w;
-            if (l.y < minY) minY = l.y;
-            if (l.y + h > maxY) maxY = l.y + h;
+            const w = l.width || 0;
+            const h = l.height || 0;
+            if (l.x < minX) {
+              minX = l.x;
+            }
+            if (l.x + w > maxX) {
+              maxX = l.x + w;
+            }
+            if (l.y < minY) {
+              minY = l.y;
+            }
+            if (l.y + h > maxY) {
+              maxY = l.y + h;
+            }
           }
-          if (type === 'left') value = minX;
-          if (type === 'right') value = maxX;
-          if (type === 'top') value = minY;
-          if (type === 'bottom') value = maxY;
+          if (type === 'left') {
+            value = minX;
+          }
+          if (type === 'right') {
+            value = maxX;
+          }
+          if (type === 'top') {
+            value = minY;
+          }
+          if (type === 'bottom') {
+            value = maxY;
+          }
         } else if (type === 'center' || type === 'middle') {
           let sumX = 0;
           let sumY = 0;
           for (const l of selected) {
-            sumX += l.x + ((l as any).width || 0) / 2;
-            sumY += l.y + ((l as any).height || 0) / 2;
+            sumX += l.x + (l.width || 0) / 2;
+            sumY += l.y + (l.height || 0) / 2;
           }
-          if (type === 'center') value = sumX / selected.length;
-          if (type === 'middle') value = sumY / selected.length;
+          if (type === 'center') {
+            value = sumX / selected.length;
+          }
+          if (type === 'middle') {
+            value = sumY / selected.length;
+          }
         }
 
         return {
           ...a,
           layers: a.layers.map((l) => {
-            if (!selectedSet.has(l.id)) return l;
-            if (type === 'left') return { ...l, x: value };
-            if (type === 'right') return { ...l, x: value - (l as any).width };
-            if (type === 'top') return { ...l, y: value };
-            if (type === 'bottom') return { ...l, y: value - ((l as any).height || 0) };
-            if (type === 'center') return { ...l, x: value - (l as any).width / 2 };
-            if (type === 'middle') return { ...l, y: value - ((l as any).height || 0) / 2 };
+            if (!selectedSet.has(l.id)) {
+              return l;
+            }
+            if (type === 'left') {
+              return { ...l, x: value };
+            }
+            if (type === 'right') {
+              return { ...l, x: value - l.width };
+            }
+            if (type === 'top') {
+              return { ...l, y: value };
+            }
+            if (type === 'bottom') {
+              return { ...l, y: value - (l.height || 0) };
+            }
+            if (type === 'center') {
+              return { ...l, x: value - l.width / 2 };
+            }
+            if (type === 'middle') {
+              return { ...l, y: value - (l.height || 0) / 2 };
+            }
             return l;
           }),
         };
@@ -73,7 +111,9 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
 
   distributeLayers: (type) => {
     const { selectedLayerIds } = get();
-    if (selectedLayerIds.length < 3) return;
+    if (selectedLayerIds.length < 3) {
+      return;
+    }
     get().saveToHistory?.();
 
     const selectedSet = new Set(selectedLayerIds);
@@ -81,47 +121,53 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) => {
         const selected = [...a.layers.filter((l) => selectedSet.has(l.id))];
-        if (selected.length < 3) return a;
+        if (selected.length < 3) {
+          return a;
+        }
 
         if (type === 'horizontal') {
           const sorted = selected.sort((a, b) => a.x - b.x);
-          const totalWidth = sorted.reduce((acc, l) => acc + (l as any).width, 0);
-          const span = sorted[sorted.length - 1]!.x + (sorted[sorted.length - 1] as any).width - sorted[0]!.x;
+          const totalWidth = sorted.reduce((acc, l) => acc + l.width, 0);
+          const span = sorted[sorted.length - 1]!.x + sorted[sorted.length - 1]!.width - sorted[0]!.x;
           const spacing = (span - totalWidth) / (sorted.length - 1);
 
           const newPositions = new Map<string, number>();
           let currentX = sorted[0]!.x;
           for (const s of sorted) {
             newPositions.set(s.id, currentX);
-            currentX += (s as any).width + spacing;
+            currentX += s.width + spacing;
           }
 
           return {
             ...a,
             layers: a.layers.map((l) => {
               const newX = newPositions.get(l.id);
-              if (newX === undefined) return l;
+              if (newX === undefined) {
+                return l;
+              }
               return { ...l, x: newX };
             }),
           };
         } else {
           const sorted = selected.sort((a, b) => a.y - b.y);
-          const totalHeight = sorted.reduce((acc, l) => acc + ((l as any).height || 0), 0);
-          const span = sorted[sorted.length - 1]!.y + ((sorted[sorted.length - 1] as any).height || 0) - sorted[0]!.y;
+          const totalHeight = sorted.reduce((acc, l) => acc + (l.height || 0), 0);
+          const span = sorted[sorted.length - 1]!.y + (sorted[sorted.length - 1]!.height || 0) - sorted[0]!.y;
           const spacing = (span - totalHeight) / (sorted.length - 1);
 
           const newPositions = new Map<string, number>();
           let currentY = sorted[0]!.y;
           for (const s of sorted) {
             newPositions.set(s.id, currentY);
-            currentY += ((s as any).height || 0) + spacing;
+            currentY += (s.height || 0) + spacing;
           }
 
           return {
             ...a,
             layers: a.layers.map((l) => {
               const newY = newPositions.get(l.id);
-              if (newY === undefined) return l;
+              if (newY === undefined) {
+                return l;
+              }
               return { ...l, y: newY };
             }),
           };
@@ -134,7 +180,9 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
     get().saveToHistory?.();
     const state = get();
     const artboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
-    if (!artboard) return;
+    if (!artboard) {
+      return;
+    }
 
     const CANVAS_W = state.canvasSize?.width || artboard.width || 512;
     const CANVAS_H = state.canvasSize?.height || artboard.height || 512;
@@ -146,22 +194,32 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
       const scaleX = CANVAS_W / templateBaseW;
       const scaleY = CANVAS_H / templateBaseH;
       const newLayers = typeOrShapes.map((shape) => ({
-        id: uuidv4(), type: 'rectangle', ...shape,
-        x: (shape.x || 0) * scaleX, y: (shape.y || 0) * scaleY,
-        width: (shape.width || 100) * scaleX, height: (shape.height || 100) * scaleY,
-        rotation: shape.rotation || 0, opacity: shape.opacity ?? 1,
-        visible: shape.visible ?? true, locked: shape.locked ?? false,
+        id: uuidv4(),
+        type: 'rectangle',
+        ...shape,
+        x: (shape.x || 0) * scaleX,
+        y: (shape.y || 0) * scaleY,
+        width: (shape.width || 100) * scaleX,
+        height: (shape.height || 100) * scaleY,
+        rotation: shape.rotation || 0,
+        opacity: shape.opacity ?? 1,
+        visible: shape.visible ?? true,
+        locked: shape.locked ?? false,
         color: shape.color || '#333333',
       })) as Layer[];
       set((state: any) => ({
-        artboards: state.artboards.map((a: Artboard) => a.id === state.activeArtboardId ? { ...a, layers: [...a.layers, ...newLayers] } : a),
+        artboards: state.artboards.map((a: Artboard) =>
+          a.id === state.activeArtboardId ? { ...a, layers: [...a.layers, ...newLayers] } : a
+        ),
       }));
       return;
     }
 
     const type = typeOrShapes;
     const visibleLayers = artboard.layers.filter((l: Layer) => !l.locked && l.visible);
-    if (visibleLayers.length === 0 && !type.startsWith('golden')) return;
+    if (visibleLayers.length === 0 && !type.startsWith('golden')) {
+      return;
+    }
 
     const newPositions = new Map<string, { x: number; y: number; width?: number; height?: number }>();
     const selectedSet = new Set(state.selectedLayerIds);
@@ -189,7 +247,9 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
     if (newPositions.size > 0) {
       set((state: any) => ({
         artboards: state.artboards.map((a: Artboard) => {
-          if (a.id !== state.activeArtboardId) return a;
+          if (a.id !== state.activeArtboardId) {
+            return a;
+          }
           return {
             ...a,
             layers: a.layers.map((l) => {

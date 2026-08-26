@@ -23,8 +23,8 @@ const resizeLayersForSize = (currentArtboard: Artboard, newWidth: number, newHei
     const constraints = l.constraints || { horizontal: 'scale', vertical: 'scale' };
     let lx = l.x;
     let ly = l.y;
-    let lw = (l as any).width || 0;
-    let lh = (l as any).height || 0;
+    let lw = l.width || 0;
+    let lh = l.height || 0;
 
     switch (constraints.horizontal) {
       case 'start':
@@ -90,11 +90,11 @@ const resizeLayersForSize = (currentArtboard: Artboard, newWidth: number, newHei
 
     cloned.x = lx;
     cloned.y = ly;
-    if ((cloned as any).width !== undefined) {
-      (cloned as any).width = Math.max(1, lw);
+    if (cloned.width !== undefined) {
+      cloned.width = Math.max(1, lw);
     }
-    if ((cloned as any).height !== undefined) {
-      (cloned as any).height = Math.max(1, lh);
+    if (cloned.height !== undefined) {
+      cloned.height = Math.max(1, lh);
     }
 
     if (cloned.type === 'text') {
@@ -465,18 +465,18 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
           delete sanitizedPartial.y;
         }
       }
-      if ((partial as any).width !== undefined) {
-        if (Number.isFinite((partial as any).width)) {
-          (sanitizedPartial as any).width = Math.max(1, Math.min(MAX_SAFE_VAL, (partial as any).width));
+      if (partial.width !== undefined) {
+        if (Number.isFinite(partial.width)) {
+          sanitizedPartial.width = Math.max(1, Math.min(MAX_SAFE_VAL, partial.width));
         } else {
-          delete (sanitizedPartial as any).width;
+          delete sanitizedPartial.width;
         }
       }
-      if ((partial as any).height !== undefined) {
-        if (Number.isFinite((partial as any).height)) {
-          (sanitizedPartial as any).height = Math.max(1, Math.min(MAX_SAFE_VAL, (partial as any).height));
+      if (partial.height !== undefined) {
+        if (Number.isFinite(partial.height)) {
+          sanitizedPartial.height = Math.max(1, Math.min(MAX_SAFE_VAL, partial.height));
         } else {
-          delete (sanitizedPartial as any).height;
+          delete sanitizedPartial.height;
         }
       }
       if (partial.opacity !== undefined) {
@@ -515,19 +515,19 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
                 if (l.lockPosition) {
                   delete sanitizedPartial.x;
                   delete sanitizedPartial.y;
-                  delete (sanitizedPartial as any).width;
-                  delete (sanitizedPartial as any).height;
+                  delete sanitizedPartial.width;
+                  delete sanitizedPartial.height;
                   delete sanitizedPartial.rotation;
                 }
                 if (l.lockStyle) {
-                  delete (sanitizedPartial as any).color;
-                  delete (sanitizedPartial as any).fontFamily;
+                  delete (sanitizedPartial as Partial<TextLayer>).color;
+                  delete (sanitizedPartial as Partial<TextLayer>).fontFamily;
                   delete sanitizedPartial.opacity;
                   delete sanitizedPartial.blendMode;
                   delete sanitizedPartial.shadow;
                 }
                 if (l.lockText) {
-                  delete (sanitizedPartial as any).text;
+                  delete (sanitizedPartial as Partial<TextLayer>).text;
                 }
 
                 const overrides = l.masterId ? [...(l.overrides || []), ...Object.keys(sanitizedPartial)] : l.overrides;
@@ -538,7 +538,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
                 const syncPartial = { ...sanitizedPartial };
                 Object.keys(syncPartial).forEach((key) => {
                   if (overrides.includes(key)) {
-                    delete (syncPartial as any)[key];
+                    delete syncPartial[key as keyof Partial<Layer>];
                   }
                 });
                 return { ...l, ...syncPartial, dirty: true };
@@ -703,7 +703,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
     if (!layer) {
       return;
     }
-    const description = `Type: ${layer.type}, Pos: ${layer.x},${layer.y}, Size: ${(layer as any).width}x${(layer as any).height}`;
+    const description = `Type: ${layer.type}, Pos: ${layer.x},${layer.y}, Size: ${layer.width}x${layer.height}`;
     try {
       const newName = await geminiService.generateLayerName(description);
       updateLayer(id, { name: newName });
