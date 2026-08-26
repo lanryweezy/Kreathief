@@ -15,11 +15,24 @@ export const TransformPanel: React.FC = () => {
   const aspectLocked = useStore((state) => state.aspectLocked) || false;
   const setAspectLocked = useStore((state) => state.setAspectLocked);
 
-  const allLayers = useMemo(() => artboards.flatMap((a) => a.layers), [artboards]);
-  const selectedLayers = useMemo(
-    () => allLayers.filter((l) => selectedLayerIds.includes(l.id)),
-    [allLayers, selectedLayerIds]
-  );
+  // ⚡ Bolt Optimization: Replace `artboards.flatMap().filter()` with an imperative loop inside useMemo to avoid O(N) array allocations
+  const selectedLayers = useMemo(() => {
+    const result: Layer[] = [];
+    if (selectedLayerIds.length === 0) return result;
+
+    for (const artboard of artboards) {
+      if (!artboard.layers) continue;
+      for (const layer of artboard.layers) {
+        if (selectedLayerIds.includes(layer.id)) {
+          result.push(layer);
+          if (result.length === selectedLayerIds.length) {
+            return result;
+          }
+        }
+      }
+    }
+    return result;
+  }, [artboards, selectedLayerIds]);
 
   const handlePropChange = useCallback(
     (prop: string, value: any) => {

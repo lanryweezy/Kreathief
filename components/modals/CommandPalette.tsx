@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
+import { fuzzyMatch } from '../../utils/search';
 import { NavTab } from '../../types';
 import { getAllCommands, searchCommands, Command as RegistryCommand } from '../../commands/registry';
 
@@ -387,9 +388,9 @@ export const CommandPalette: React.FC = () => {
     if (!query) {
       return commandList;
     }
-    const q = query.toLowerCase();
+    // 🌸 Bloom: Replaced exact substring matching with fuzzyMatch for typo tolerance
     const localMatches = commandList.filter(
-      (c) => c.label.toLowerCase().includes(q) || c.group?.toLowerCase().includes(q)
+      (c) => fuzzyMatch(query, c.label) || (c.group && fuzzyMatch(query, c.group))
     );
     const registryMatches: Cmd[] = searchCommands(query).map((rc) => ({
       id: rc.id,

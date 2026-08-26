@@ -319,7 +319,7 @@ Ensure perfect visual composition and contrast.`,
       },
       temperature: 0.85,
     },
-    contents: [{ role: 'user', parts: [{ text: `Creative Intent: "${intent}"` }] }],
+    contents: [{ role: 'user', parts: [{ text: `Creative Intent: "${intent.trim().substring(0, 1000)}"` }] }],
   });
 
   try {
@@ -411,7 +411,7 @@ Rules: Only return modified TARGET layers. Align visually with CONTEXT layers. Y
         role: 'user',
         parts: [
           {
-            text: `User Intent: "${intent}"\n\nTARGET LAYERS: ${JSON.stringify(targetLayers)}\n\nCONTEXT LAYERS: ${JSON.stringify(contextLayers)}`,
+            text: `User Intent: "${intent.trim().substring(0, 1000)}"\n\nTARGET LAYERS: ${JSON.stringify(targetLayers)}\n\nCONTEXT LAYERS: ${JSON.stringify(contextLayers)}`,
           },
         ],
       },
