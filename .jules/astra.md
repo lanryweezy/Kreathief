@@ -102,3 +102,7 @@
 ## 2026-08-17 - Native System Instructions and Input Sanitization
 **Learning:** Concatenating system instructions and raw user input into a single prompt string makes the LLM vulnerable to prompt injection, payload bloat, and context confusion.
 **Action:** Always move the AI's persona, rules, and output format instructions to the native `systemInstruction` field of the API payload. Furthermore, sanitize and truncate raw user input (e.g., `prompt.trim().substring(0, 1000)`) before embedding it into the `contents` array to limit payload size and reduce simple injection surface area.
+
+## 2026-08-26 - Sanitize user input in AI prompt handling (Creative Agents)
+**Learning:** Raw user input (`intent`) interpolated directly into AI prompt payloads (e.g., in `creativeAgentDraft` and `creativeAgentRefine` via `services/aiService.ts`) introduces a risk of prompt injection and context window exhaustion. Even if the prompt uses `systemInstruction`, placing unbounded raw strings in the `contents` block exposes the LLM to unintended instructions.
+**Action:** Always sanitize and truncate raw user input (e.g., `intent.trim().substring(0, 1000)`) where it is interpolated directly into the `contents` block of an AI API call to limit payload bloat and mitigate prompt injection.
