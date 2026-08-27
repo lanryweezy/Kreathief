@@ -696,25 +696,23 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
         return { id: l.id, type: l.type, currentName: l.name, content };
       });
 
-      const prompt = `You are an expert UI designer. Rename these layers to be extremely logical, concise, and semantic (like Figma). 
-Output ONLY a raw JSON object where keys are layer IDs and values are the new string names. No markdown.
-Layers: ${JSON.stringify(layerSummaries)}`;
+      // 🤖 Astra: Replaced manual prompt generation, regex stripping, and JSON.parse with a dedicated
+      // geminiService helper that uses strict response schemas and safeParseJSON to prevent silent crashes on malformed output.
+      const newNames = await geminiService.generateLayerNames(layerSummaries);
 
-      // Use the helper on geminiService
-      const text = await geminiService.generateText(prompt);
-
-      const cleanedText = text
-        .replace(/```json/g, '')
-        .replace(/```/g, '')
-        .trim();
-      const newNames = JSON.parse(cleanedText);
       let count = 0;
       Object.entries(newNames).forEach(([id, name]) => {
-        updateLayer(id, { name: name as string });
-        count++;
+        if (typeof name === 'string') {
+          updateLayer(id, { name });
+          count++;
+        }
       });
 
-      addToast?.(`Successfully renamed ${count} layers!`, 'success');
+      if (count > 0) {
+        addToast?.(`Successfully renamed ${count} layers!`, 'success');
+      } else {
+        addToast?.('No layers were renamed.', 'info');
+      }
     } catch (error) {
       log.error('Failed to auto-rename layers', error);
       addToast?.('Failed to auto-rename layers.', 'error');
