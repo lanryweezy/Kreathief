@@ -29,13 +29,7 @@ import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { generateBeatSyncedDelays, analyzeAudioBeatSync } from '../../utils/motion/beatSync';
 import { extractPathFromLayer } from '../../utils/motion/motionPath';
-
-const PAGE_ANIMATIONS = [
-  { id: 'sleek', label: 'Sleek', icon: Icons.ArrowRight, desc: 'Smooth horizontal slides with staggered delays' },
-  { id: 'party', label: 'Party', icon: Icons.Activity, desc: 'Bouncy, energetic pop-ins' },
-  { id: 'corporate', label: 'Corporate', icon: Icons.Eye, desc: 'Professional, subtle fade-ins' },
-  { id: 'playful', label: 'Playful', icon: Icons.RefreshCw, desc: 'Rotating and scaling in' },
-];
+import { pageAnimationStrategies } from '../../utils/motion/pageAnimationStrategies';
 
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 
@@ -70,7 +64,7 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
           break;
         }
       }
-      if (selectedLayer) break;
+      if (selectedLayer) {break;}
     }
   }
   const onUpdateLayer = updateLayer;
@@ -141,41 +135,11 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
         };
         const staggerDelay = idx * 0.15;
 
-        switch (type) {
-          case 'sleek':
-            animSettings = {
-              type: 'slide',
-              direction: 'right',
-              duration: 0.8,
-              delay: staggerDelay,
-              easing: 'ease-out',
-              iterationCount: 1,
-            };
-            break;
-          case 'party':
-            animSettings = { type: 'bounce', duration: 0.6, delay: staggerDelay, easing: 'bounce', iterationCount: 1 };
-            break;
-          case 'corporate':
-            animSettings = {
-              type: 'fade',
-              duration: 1.2,
-              delay: staggerDelay,
-              easing: 'ease-in-out',
-              iterationCount: 1,
-            };
-            break;
-          case 'playful':
-            animSettings = {
-              type: 'rotate',
-              duration: 0.9,
-              delay: staggerDelay,
-              easing: 'ease-out',
-              iterationCount: 1,
-            };
-            break;
-          case 'none':
-          default:
-            animSettings = { type: 'none', duration: 0, delay: 0, easing: 'linear', iterationCount: 1 };
+        const strategy = pageAnimationStrategies.get(type);
+        if (strategy) {
+          animSettings = strategy.getSettings(staggerDelay);
+        } else {
+          animSettings = { type: 'none', duration: 0, delay: 0, easing: 'linear', iterationCount: 1 };
         }
 
         onUpdateLayer(layer.id, { animation: animSettings });
@@ -195,7 +159,7 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
           </div>
 
           <div className="space-y-2.5">
-            {PAGE_ANIMATIONS.map((pa) => (
+            {Array.from(pageAnimationStrategies.values()).map((pa) => (
               <button
                 key={pa.id}
                 onClick={() => applyPageAnimation(pa.id)}
