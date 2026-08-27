@@ -205,11 +205,38 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   const layers = useMemo(() => activeArtboard?.layers || [], [activeArtboard]);
   const allLayersRef = useRef<Layer[]>([]);
   const allLayers = useMemo(() => {
-    const newLayers = artboards.flatMap((a) => a.layers || []);
-    // Compare by ID list to avoid unnecessary re-renders
-    const prevIds = allLayersRef.current.map((l) => l.id).join(',');
-    const newIds = newLayers.map((l) => l.id).join(',');
-    if (prevIds === newIds) {
+    // ⚡ Bolt Optimization: Replaced artboards.flatMap and .map().join(',')
+    // with an imperative loop to prevent O(N) array/string allocations on every render
+    const newLayers: Layer[] = [];
+    let isDifferent = false;
+    let prevIndex = 0;
+
+    for (let i = 0; i < artboards.length; i++) {
+      const layers = artboards[i].layers;
+      if (!layers) continue;
+      for (let j = 0; j < layers.length; j++) {
+        const layer = layers[j];
+        newLayers.push(layer);
+
+        // If we haven't already found a difference, check this layer
+        if (!isDifferent) {
+          if (
+            prevIndex >= allLayersRef.current.length ||
+            allLayersRef.current[prevIndex].id !== layer.id
+          ) {
+            isDifferent = true;
+          }
+        }
+        prevIndex++;
+      }
+    }
+
+    // Check if the old array was longer
+    if (!isDifferent && prevIndex !== allLayersRef.current.length) {
+      isDifferent = true;
+    }
+
+    if (!isDifferent) {
       return allLayersRef.current;
     }
     allLayersRef.current = newLayers;
