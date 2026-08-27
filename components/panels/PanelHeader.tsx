@@ -47,14 +47,16 @@ export const PanelHeader: React.FC<PanelHeaderProps> = ({
         )}
 
         {tabs && tabs.length > 0 && (
-          <div className="flex items-center gap-4 h-full">
+          <div className="flex items-center gap-4 h-full" role="tablist">
             {tabs.map((tab) => {
               const isActive = activeTabId === tab.id;
               return (
                 <button
                   key={tab.id}
+                  role="tab"
+                  aria-selected={isActive}
                   onClick={() => onTabChange?.(tab.id)}
-                  className={`h-full flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-all border-b-2 whitespace-nowrap px-1 ${
+                  className={`h-full flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-all border-b-2 whitespace-nowrap px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-[-2px] ${
                     isActive ? 'border-brand-600 text-white' : 'border-transparent text-gray-500 hover:text-gray-300'
                   }`}
                 >
