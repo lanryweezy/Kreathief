@@ -40,3 +40,8 @@
 ## 2024-05-17 - Tab Component Accessibility
 **Learning:** Found that custom Tab components in this app lacked semantic ARIA roles and keyboard focus styles, leading to poor accessibility for screen reader and keyboard users.
 **Action:** Always ensure `role="tablist"` on the tab container, `role="tab"` and `aria-selected` on the tab items, and apply `focus-visible` styles with a negative outline offset to prevent layout shifts.
+
+## 2026-08-28 - Screen Reader Accessibility for Image Upload Buttons
+
+**Learning:** When using an icon-only button (e.g., `<Icons.Camera>`) superimposed over an avatar image to trigger file uploads (as seen in `ProfileModal`), screen readers often announce nothing or an unhelpful generic term like "button" because the visual "Upload Photo" tooltip (`title` attribute) is sometimes ignored by screen readers depending on the platform/browser combination.
+**Action:** Always include an explicit `aria-label` attribute (e.g., `aria-label="Upload Photo"`) on icon-only buttons used for file uploads or avatar changes, ensuring visually impaired users know the button's primary function regardless of visual tooltips.
