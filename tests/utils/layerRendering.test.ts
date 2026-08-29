@@ -17,7 +17,9 @@ describe('layerRendering', () => {
     });
 
     it('returns empty object when animation type is "none"', () => {
-      expect(getAnimationStyle({ type: 'none', duration: 1, delay: 0, easing: 'linear', iterationCount: 1 })).toEqual({});
+      expect(getAnimationStyle({ type: 'none', duration: 1, delay: 0, easing: 'linear', iterationCount: 1 })).toEqual(
+        {}
+      );
     });
 
     it('returns animation styles correctly for valid settings', () => {

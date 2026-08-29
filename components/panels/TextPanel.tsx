@@ -765,11 +765,7 @@ export const TextPanel: React.FC = () => {
         {activeTextTab === 'find' && <FindReplaceText />}
 
         {/* Spacing Tab */}
-        {activeTextTab === 'spacing' && (
-          <TextSpacingControls
-            selectedLayer={selectedTextLayer || undefined}
-          />
-        )}
+        {activeTextTab === 'spacing' && <TextSpacingControls selectedLayer={selectedTextLayer || undefined} />}
       </div>
     </div>
   );

@@ -12,7 +12,12 @@ export interface DynamicTool {
 export const useContextualPanels = () => {
   // ⚡ Bolt Optimization: Consolidate 4 separate `useStore` subscriptions into a
   // single useShallow call. This reduces overhead and prevents independent renders.
-  const { selectedLayerIds: rawSelectedLayerIds, artboards: rawArtboards, activeArtboardId, isPenMode } = useStore(
+  const {
+    selectedLayerIds: rawSelectedLayerIds,
+    artboards: rawArtboards,
+    activeArtboardId,
+    isPenMode,
+  } = useStore(
     useShallow((state) => ({
       selectedLayerIds: state.selectedLayerIds,
       artboards: state.artboards,

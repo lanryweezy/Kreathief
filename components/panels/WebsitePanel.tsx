@@ -368,9 +368,7 @@ export const WebsitePanel: React.FC = () => {
     const matchesCategory = activeCategory === 'All' || b.category === activeCategory;
     // 🌸 Bloom: Replaced exact substring matching with fuzzyMatch for typo tolerance
     const matchesSearch =
-      !sectionSearch ||
-      fuzzyMatch(sectionSearch, b.name) ||
-      b.tags.some((t) => fuzzyMatch(sectionSearch, t));
+      !sectionSearch || fuzzyMatch(sectionSearch, b.name) || b.tags.some((t) => fuzzyMatch(sectionSearch, t));
     return matchesCategory && matchesSearch;
   });
 

@@ -9,7 +9,6 @@ import { createStyleSlice } from './layer/styleSlice';
 import { createComponentSlice } from './layer/componentSlice';
 import type { StoreState } from '../useStore';
 
-
 export type { LayerSlice };
 
 export const createLayerSlice: StateCreator<StoreState, [], [], LayerSlice> = (set, get, store) => ({

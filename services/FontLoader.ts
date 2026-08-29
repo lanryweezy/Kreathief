@@ -241,9 +241,7 @@ export async function initCustomFonts(): Promise<void> {
   try {
     const saved = await storageService.getSetting<{ name: string; data: string }[]>('kreathief_custom_fonts', []);
     logger.info(`Initializing ${saved.length} custom fonts from storage`);
-    await Promise.all(
-      saved.map((font) => registerCustomFont(font.name, font.data, false))
-    );
+    await Promise.all(saved.map((font) => registerCustomFont(font.name, font.data, false)));
   } catch (error) {
     logger.error('Failed to initialize custom fonts', { error });
   }

@@ -220,10 +220,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 
         // If we haven't already found a difference, check this layer
         if (!isDifferent) {
-          if (
-            prevIndex >= allLayersRef.current.length ||
-            allLayersRef.current[prevIndex].id !== layer.id
-          ) {
+          if (prevIndex >= allLayersRef.current.length || allLayersRef.current[prevIndex].id !== layer.id) {
             isDifferent = true;
           }
         }

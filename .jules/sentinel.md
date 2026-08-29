@@ -213,6 +213,7 @@
 **Prevention:** Always use `crypto.randomUUID()` (which provides 122 bits of entropy) for generating secure, universally unique identifiers that act as access tokens or unauthenticated reference keys.
 
 ## 2026-07-22 - Fix Insecure Pseudo-Random Number Generation for IDs
+
 **Vulnerability:** The `src/components/Canvas.tsx` component used `Math.random()` combined with `Date.now()` to generate unique IDs for canvas nodes. This approach is not cryptographically secure and could lead to ID collisions, which can cause state corruption or React reconciliation failures.
 **Learning:** Insecure pseudo-random number generators like `Math.random()` should not be used for generating unique identifiers where collisions can lead to unpredictable application state, especially during rapid node creations.
 **Prevention:** Always use `crypto.randomUUID()` (which provides 122 bits of entropy) for generating secure, universally unique identifiers that act as access tokens or unauthenticated reference keys.
@@ -224,11 +225,13 @@
 **Prevention:** Never use a wildcard `*` fallback for `Access-Control-Allow-Origin`. Always strictly check if the required origin environment variable is set. If it is missing, fail securely by returning a `500 Server misconfigured` error rather than lowering security requirements.
 
 ## 2026-07-22 - Secure CORS and Error Handling in Icon API Routes
+
 **Vulnerability:** Icon API endpoints (`api/lucideIcons.ts`, `api/materialIcons.ts`, `api/phosphorIcons.ts`) fell back to a wildcard `*` origin if `VITE_FRONTEND_URL` was missing. Additionally, non-Response errors thrown during `requireAuth` were unsafely cast and returned as HTTP Responses, potentially leading to server crashes or information leakage.
 **Learning:** Relying on permissive CORS wildcards as fallbacks defeats cross-origin protections in misconfigured environments. Blindly casting caught errors as Responses in edge functions can expose internal errors or crash the runtime.
 **Prevention:** Always restrict CORS to explicit origins and fail securely (e.g., return a 500 status) if required origin environment variables are missing. Safely check `if (error instanceof Response)` in authentication catch blocks, returning generic 500 errors for all other exception types.
 
 ## 2026-07-26 - Missing Authentication Check in Streamline API Edge Route
+
 **Vulnerability:** The `api/streamline.ts` edge route was missing the `requireAuth` check, allowing unauthorized access to the paid Streamline API using the application's server API key.
 **Learning:** Edge functions acting as proxies to third-party APIs can be easily overlooked when enforcing global authentication checks. Missing `requireAuth` enables abuse of paid resources, leading to financial impact.
 **Prevention:** Always ensure that all edge API routes serving as proxies to third-party services include the `await requireAuth(req)` check in a `try/catch` block, immediately after the CORS `OPTIONS` preflight handler.
@@ -236,20 +239,26 @@
 ## 2026-08-01 - Prevent Crashes and API Key Exposure in Tenor Proxy Route
 
 **Vulnerability:**
+
 1. In `api/tenor.ts`, the `requireAuth` block unsafely caught all thrown errors and cast them to `Response`, which caused the edge function to crash or leak data if standard `Error` objects were thrown instead of HTTP responses.
 2. The proxy also used a fallback to `process.env.VITE_TENOR_API_KEY`. As a Vite frontend application, variables prefixed with `VITE_` are statically injected into the client bundle at build time, directly exposing this backend secret API key to users via the compiled frontend code if it were configured using the `VITE_` prefix.
 
 **Learning:**
+
 1. Blindly casting caught errors as `Response` in Edge APIs violates TypeScript safety and can lead to unhandled server crashes when utility functions throw native errors instead of returning error responses.
 2. Relying on `VITE_` prefixed environment variables for backend API keys creates a severe risk of secret exposure. A developer fulfilling the fallback could unintentionally leak the secret to the public bundle.
 
 **Prevention:**
+
 1. Always securely check if an error is an HTTP response (`if (error instanceof Response) return error;`) and return a generic 500 error structure otherwise.
 2. Never prefix backend secrets with `VITE_`. Strict usage of purely server-side environment variables (`TENOR_API_KEY`) is mandatory to prevent accidental client-side injection.
+
 ## 2024-03-20 - [Removed Stack Trace Leak in ErrorFallback UI]
+
 **Vulnerability:** The application was directly rendering `error.stack` inside `components/ErrorFallback.tsx` when catching unexpected React component errors.
 **Learning:** Displaying raw stack traces in the user interface (Information Exposure) can inadvertently leak sensitive system paths, file structures, library versions, or other implementation details. This gives attackers deep insight into the application's architecture which could be used to exploit other vulnerabilities.
 **Prevention:** Never render `error.stack` directly to users in error boundaries, fallback UIs, or API responses. Catch blocks and error components should log the detailed error (including stack traces) securely internally (e.g., via Sentry or a secure logging service) but present only a generic, safe error message to the user.
+
 ## 2026-08-05 - Missing Authentication on CMYK Export API Proxy
 
 **Vulnerability:** The `api/export-cmyk.ts` endpoint did not have the `requireAuth` check, leaving it entirely unauthenticated. It allowed arbitrary users to consume expensive image processing operations without an active session.
@@ -257,20 +266,25 @@
 **Prevention:** Never remove or comment out authentication layers on proxy endpoints that perform heavy computations or consume external resources. Always ensure proper mocking of `.get` when adapting Node.js `req.headers` for Edge-compatible authentication helpers.
 
 ## 2026-08-09 - Remove XSS vulnerability with dangerouslySetInnerHTML for SVG
+
 **Vulnerability:** The application was using the `dangerouslySetInnerHTML` React attribute to render dynamically fetched SVG data (even when sanitized with DOMPurify) in `components/panels/ElementsPanel.tsx`.
 **Learning:** Using `dangerouslySetInnerHTML` is an anti-pattern and increases the risk of Cross-Site Scripting (XSS) via accidental string concatenation or bypasses in sanitization libraries. It should be avoided when safer alternatives exist.
 **Prevention:** To render dynamic SVG data securely, construct a Data URI using `encodeURIComponent` (e.g., `data:image/svg+xml;utf8,...`) and render it natively through an `<img>` tag's `src` attribute. This completely prevents arbitrary script execution within the DOM.
 
 ## 2026-08-10 - [Replace Math.random with crypto.randomUUID for Secure ID Generation]
+
 **Vulnerability:** Weak pseudo-random number generators (`Math.random()`) were used in `services/psdParser.ts` and `services/stickerService.ts` for generating unique IDs (PSD node tracking and Tenor sticker fallback IDs).
 **Learning:** `Math.random()` provides insufficient entropy and is predictable, which can lead to ID collisions or expose the internal state of the PRNG, especially when used repeatedly in rapid succession (like parsing a large PSD). SAST tools heavily flag the usage of `Math.random()` for any form of unique identification as it violates secure coding standards.
 **Prevention:** Always use the cryptographically secure `crypto.randomUUID()` (which provides 122 bits of true entropy) built into modern browsers and Node.js for generating universally unique identifiers to guarantee unguessability and zero-collision rates.
 
 ## 2026-08-16 - Replaced predictable avatar ID generation with crypto.randomUUID()
+
 **Vulnerability:** Weak PRNG `Math.random()` was used to generate random seed strings for avatar image generation in `components/modals/ProfileModal.tsx`.
 **Learning:** `Math.random()` is not cryptographically secure and can be easily predicted. This is a recurring issue in the codebase where it is used to generate identifiers or tokens. While the avatar seed is lower risk than session tokens, any usage of predictable randomness for identifiers should be remediated as a defensive measure.
 **Prevention:** Consistently utilize `crypto.randomUUID()` when a unique identifier is needed instead of rolling custom pseudo-random strings with `Math.random()`.
+
 ## 2024-03-21 - Remove Stack Trace Leak in ErrorBoundary LocalStorage
+
 **Vulnerability:** The `ErrorBoundary` component was serializing both `error.stack` and `errorInfo.componentStack` into `localStorage` during an application crash.
 **Learning:** Storing stack traces in client-side storage mechanisms like `localStorage` exposes internal application structure details to the client environment, where they could potentially be accessed by malicious browser extensions or XSS attacks. While local storage is limited to the origin, it still violates the principle of not exposing stack traces to the client.
 **Prevention:** Never serialize and store raw stack traces (`error.stack` or `componentStack`) in client-side storage like `localStorage` or `sessionStorage`. Store only generic error information locally, and send detailed stack traces securely to a remote logging service.

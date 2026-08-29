@@ -77,7 +77,7 @@ describe('AbrParser', () => {
       expect.objectContaining({
         name: expect.any(String),
         size: expect.any(Number),
-        spacing: expect.any(Number)
+        spacing: expect.any(Number),
       })
     );
   });

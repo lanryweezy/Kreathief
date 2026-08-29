@@ -69,7 +69,9 @@ export const ModelPicker: React.FC<ModelPickerProps> = ({ value, onChange, dropD
                       setOpen(false);
                     }}
                     className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-medium transition-all flex items-center gap-3 ${
-                      value === model.id ? 'bg-brand-600 text-white' : 'text-muted-light hover:bg-white/5 hover:text-white'
+                      value === model.id
+                        ? 'bg-brand-600 text-white'
+                        : 'text-muted-light hover:bg-white/5 hover:text-white'
                     }`}
                   >
                     <span className="text-lg">{model.icon}</span>

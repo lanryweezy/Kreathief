@@ -3,7 +3,7 @@ import type { Project, HistoryState, CanvasSize, CanvasFilters } from '../../typ
 
 /**
  * Safely converts frontend state objects into Supabase-compatible JSON formats.
- * This abstracts away `as unknown as Json` and provides a single source of truth 
+ * This abstracts away `as unknown as Json` and provides a single source of truth
  * for serialization.
  */
 

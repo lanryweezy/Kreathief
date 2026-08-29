@@ -1,8 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import {
-  isRetryableError,
-  safeParseJSON,
-} from '../../../utils/errorHandling';
+import { isRetryableError, safeParseJSON } from '../../../utils/errorHandling';
 
 describe('errorHandling utilities', () => {
   beforeEach(() => {

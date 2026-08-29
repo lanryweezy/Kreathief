@@ -14,17 +14,10 @@ import { IMAGE_GEN_MODELS, getImageModel, supportsReferenceImage, buildSizePaylo
 import { aiModelsService } from './aiModelsService';
 import { analyticsService } from './analyticsService';
 import * as geminiService from './geminiService';
-import {
-  AspectRatio,
-  GenerationQuality,
-  GenerationContext,
-  ReferenceAppliedMode,
-  StyleReference,
-} from '../types';
+import { AspectRatio, GenerationQuality, GenerationContext, ReferenceAppliedMode, StyleReference } from '../types';
 import { log } from '../utils/log';
 
-const svgToDataUrl = (svg: string): string =>
-  `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
+const svgToDataUrl = (svg: string): string => `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
 
 // Turns a brand kit into a prompt suffix so generations stay on-brand (opt-in).
 // Internal: callers compose through composeGenerationPrompt so no site can forget a context field.

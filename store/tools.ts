@@ -65,7 +65,7 @@ const alignLayers: ToolHandler<z.infer<typeof alignSchema>> = ({ type }) => {
   const state = useStore.getState();
   const alignmentType = type === 'center' ? 'h-center' : type === 'middle' ? 'v-center' : type;
   const changes = alignLayersUtil(nodes as any, alignmentType as any, { width: 1080, height: 1080 });
-  changes.forEach(c => state.updateLayer(c.id, c.changes as any));
+  changes.forEach((c) => state.updateLayer(c.id, c.changes as any));
 };
 
 const distributeLayers: ToolHandler<z.infer<typeof distributeSchema>> = ({ type }) => {
@@ -74,7 +74,7 @@ const distributeLayers: ToolHandler<z.infer<typeof distributeSchema>> = ({ type 
   const state = useStore.getState();
   const distType = type === 'horizontal' ? 'h-spacing' : 'v-spacing';
   const changes = distributeLayersUtil(nodes as any, distType as any);
-  changes.forEach(c => state.updateLayer(c.id, c.changes as any));
+  changes.forEach((c) => state.updateLayer(c.id, c.changes as any));
 };
 
 const layoutLayersTool: ToolHandler<z.infer<typeof layoutSchema>> = ({ type }) => {

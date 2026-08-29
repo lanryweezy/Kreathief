@@ -37,6 +37,8 @@
 
 **Learning:** When color pickers combine a native `<input type="color">` and a hex `<input type="text">` side-by-side (e.g., in `ContrastChecker`), they often lack semantic `<label>` associations or explicit `aria-label` attributes. Without them, screen readers announce both simply as generic inputs, providing no context on whether the user is interacting with the color swatch or the hex value for the foreground or background.
 **Action:** Always include context-specific `aria-label` attributes on both the visual color picker (e.g., `aria-label="Background color picker"`) and its accompanying hex text input (e.g., `aria-label="Background color hex value"`) when grouped together without explicit `<label htmlFor>` bindings.
+
 ## 2024-05-17 - Tab Component Accessibility
+
 **Learning:** Found that custom Tab components in this app lacked semantic ARIA roles and keyboard focus styles, leading to poor accessibility for screen reader and keyboard users.
 **Action:** Always ensure `role="tablist"` on the tab container, `role="tab"` and `aria-selected` on the tab items, and apply `focus-visible` styles with a negative outline offset to prevent layout shifts.

@@ -16,7 +16,7 @@ import {
   lazyLoadImage,
   shouldReduceMotion,
   getOptimalAnimationDuration,
-  getSafeAreaInsets
+  getSafeAreaInsets,
 } from '../../utils/mobileOptimizations';
 
 describe('mobileOptimizations', () => {
@@ -130,7 +130,7 @@ describe('mobileOptimizations', () => {
       const mockSetTimeout = vi.fn().mockReturnValue(456);
       vi.stubGlobal('window', {
         requestAnimationFrame: undefined,
-        setTimeout: mockSetTimeout
+        setTimeout: mockSetTimeout,
       });
       vi.stubGlobal('setTimeout', mockSetTimeout);
       const callback = vi.fn();
@@ -156,7 +156,7 @@ describe('mobileOptimizations', () => {
       const mockClearTimeout = vi.fn();
       vi.stubGlobal('window', {
         cancelAnimationFrame: undefined,
-        clearTimeout: mockClearTimeout
+        clearTimeout: mockClearTimeout,
       });
       vi.stubGlobal('clearTimeout', mockClearTimeout);
 
@@ -256,8 +256,8 @@ describe('mobileOptimizations', () => {
     });
 
     it('returns matches value from matchMedia', () => {
-      const matchMediaMock = vi.fn().mockImplementation(query => ({
-        matches: query === '(prefers-reduced-motion: reduce)'
+      const matchMediaMock = vi.fn().mockImplementation((query) => ({
+        matches: query === '(prefers-reduced-motion: reduce)',
       }));
       vi.stubGlobal('window', { matchMedia: matchMediaMock });
 
@@ -307,7 +307,7 @@ describe('mobileOptimizations', () => {
             'env(safe-area-inset-left)': '0px',
           };
           return values[prop];
-        })
+        }),
       });
       vi.stubGlobal('getComputedStyle', getComputedStyleMock);
 
@@ -316,7 +316,7 @@ describe('mobileOptimizations', () => {
 
     it('defaults to 0 if env variables are empty', () => {
       const getComputedStyleMock = vi.fn().mockReturnValue({
-        getPropertyValue: vi.fn().mockReturnValue('')
+        getPropertyValue: vi.fn().mockReturnValue(''),
       });
       vi.stubGlobal('getComputedStyle', getComputedStyleMock);
 
@@ -370,7 +370,7 @@ describe('mobileOptimizations', () => {
     it('appends optimization parameters for mobile devices', () => {
       vi.stubGlobal('window', {
         innerWidth: 320,
-        location: { origin: 'https://example.com' }
+        location: { origin: 'https://example.com' },
       });
       vi.stubGlobal('navigator', { userAgent: 'iPhone' });
 
@@ -392,10 +392,13 @@ describe('mobileOptimizations', () => {
         observe: vi.fn(),
         unobserve: vi.fn(),
       };
-      vi.stubGlobal('IntersectionObserver', vi.fn().mockImplementation((callback) => {
-        mockObserver.callback = callback;
-        return mockObserver;
-      }));
+      vi.stubGlobal(
+        'IntersectionObserver',
+        vi.fn().mockImplementation((callback) => {
+          mockObserver.callback = callback;
+          return mockObserver;
+        })
+      );
     });
 
     it('uses IntersectionObserver when available', () => {

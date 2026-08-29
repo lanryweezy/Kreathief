@@ -41,14 +41,21 @@ self.onmessage = async (e: MessageEvent) => {
           };
           const visited = new Uint8Array(canvas.width * canvas.height);
           const threshold = 45;
-          const queue: [number, number][] = [[0, 0], [canvas.width - 1, 0], [0, canvas.height - 1], [canvas.width - 1, canvas.height - 1]];
+          const queue: [number, number][] = [
+            [0, 0],
+            [canvas.width - 1, 0],
+            [0, canvas.height - 1],
+            [canvas.width - 1, canvas.height - 1],
+          ];
           while (queue.length > 0) {
             const [x, y] = queue.pop()!;
             if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) continue;
             const idx = y * canvas.width + x;
             if (visited[idx]) continue;
             const pixel = getPixel(data, x, y, canvas.width);
-            const dist = Math.sqrt((pixel.r - bgColor.r) ** 2 + (pixel.g - bgColor.g) ** 2 + (pixel.b - bgColor.b) ** 2);
+            const dist = Math.sqrt(
+              (pixel.r - bgColor.r) ** 2 + (pixel.g - bgColor.g) ** 2 + (pixel.b - bgColor.b) ** 2
+            );
             if (dist > threshold) continue;
             visited[idx] = 1;
             data[idx * 4 + 3] = 0;

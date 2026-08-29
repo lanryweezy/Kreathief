@@ -379,7 +379,8 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
 
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
-      systemInstruction: 'You are a creative copywriter. Generate 5 creative, short, and catchy phrases about the user\'s topic. Useful for posters or social media. Return them as a simple JSON string array.',
+      systemInstruction:
+        "You are a creative copywriter. Generate 5 creative, short, and catchy phrases about the user's topic. Useful for posters or social media. Return them as a simple JSON string array.",
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {

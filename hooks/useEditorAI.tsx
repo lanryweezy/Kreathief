@@ -12,11 +12,7 @@ interface AIGenerateResult {
   layers?: any[];
 }
 
-export const EditorAIPanel = ({
-  onAddLayer,
-}: {
-  onAddLayer?: (layer: any) => void;
-}) => {
+export const EditorAIPanel = ({ onAddLayer }: { onAddLayer?: (layer: any) => void }) => {
   const [showNodeGraph, setShowNodeGraph] = useState(false);
   const [showAIGenerate, setShowAIGenerate] = useState(false);
   const addLayer = useStore((state) => state.addLayer);
@@ -57,7 +53,7 @@ export const EditorAIPanel = ({
         });
       }
       if (result.text) {
-        addLayer(({
+        addLayer({
           id: `ai-text-${Date.now()}`,
           type: 'text',
           name: 'AI Text',
@@ -79,7 +75,7 @@ export const EditorAIPanel = ({
           letterSpacing: 0,
           lineHeight: 1.5,
           blendMode: 'normal',
-        } as any));
+        } as any);
       }
       setShowAIGenerate(false);
     },

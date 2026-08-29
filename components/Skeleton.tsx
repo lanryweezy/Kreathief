@@ -76,7 +76,12 @@ export const GridSkeleton = ({ items = 6 }: { items?: number }) => (
 
 // Card skeleton — single project/design card
 export const CardSkeleton = () => (
-  <div className="bg-surface-dark-3 border border-white/5 rounded-2xl p-4 space-y-4 mx-4 my-2" role="status" aria-label="Loading..." aria-busy="true">
+  <div
+    className="bg-surface-dark-3 border border-white/5 rounded-2xl p-4 space-y-4 mx-4 my-2"
+    role="status"
+    aria-label="Loading..."
+    aria-busy="true"
+  >
     <Skeleton className="w-full aspect-video rounded-xl" />
     <div className="space-y-2">
       <Skeleton className="w-3/4 h-4 rounded" />
@@ -104,7 +109,12 @@ export const PanelSkeleton = ({ rows = 4 }: { rows?: number }) => (
 
 // Dashboard project grid skeleton
 export const DashboardSkeleton = ({ items = 8 }: { items?: number }) => (
-  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-6" role="status" aria-label="Loading projects..." aria-busy="true">
+  <div
+    className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 p-6"
+    role="status"
+    aria-label="Loading projects..."
+    aria-busy="true"
+  >
     {Array.from({ length: items }).map((_, i) => (
       <div key={i} className="rounded-2xl border border-white/5 bg-surface-dark-3 overflow-hidden">
         <Skeleton className="w-full aspect-video" />

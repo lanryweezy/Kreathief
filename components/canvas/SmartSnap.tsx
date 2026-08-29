@@ -34,7 +34,10 @@ export const SmartSnap: React.FC<SmartSnapProps> = ({ layers, selectedIds, zoom 
   if (selectedLayers.length >= 1 && otherLayers.length >= 1) {
     // ⚡ Bolt Optimization: Use a single for-loop for bounds calculation to avoid redundant O(N) array allocations
     // and prevent Maximum call stack size exceeded errors from Math.min/max with spread operators on large arrays
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
     let isValid = true;
     for (let i = 0; i < selectedLayers.length; i++) {
       const l = selectedLayers[i];

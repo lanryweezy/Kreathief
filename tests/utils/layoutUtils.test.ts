@@ -220,27 +220,36 @@ describe('layoutUtils', () => {
     });
 
     it('resolves center horizontal and vertical', () => {
-      const result = resolveConstraints({
-        width: 100,
-        height: 100,
-        constraints: { horizontal: 'center', vertical: 'center' }
-      }, canvasSize);
+      const result = resolveConstraints(
+        {
+          width: 100,
+          height: 100,
+          constraints: { horizontal: 'center', vertical: 'center' },
+        },
+        canvasSize
+      );
       expect(result).toEqual({ x: 450, y: 350 });
     });
 
     it('resolves start and end', () => {
-      const result = resolveConstraints({
-        width: 100,
-        height: 100,
-        constraints: { horizontal: 'end', vertical: 'start' }
-      }, canvasSize);
+      const result = resolveConstraints(
+        {
+          width: 100,
+          height: 100,
+          constraints: { horizontal: 'end', vertical: 'start' },
+        },
+        canvasSize
+      );
       expect(result).toEqual({ x: 880, y: 20 }); // canvas.width - width - 20, 20
     });
 
     it('resolves scale constraints to canvas size', () => {
-      const result = resolveConstraints({
-        constraints: { horizontal: 'scale', vertical: 'scale' }
-      }, canvasSize);
+      const result = resolveConstraints(
+        {
+          constraints: { horizontal: 'scale', vertical: 'scale' },
+        },
+        canvasSize
+      );
       expect(result).toEqual({ x: 0, y: 0, width: 1000, height: 800 });
     });
   });

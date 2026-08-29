@@ -96,7 +96,14 @@ function hasComplexEffects(layer: Layer): boolean {
     if (tl.neonGlow?.enabled) return true;
   }
   const type = layer.type as any;
-  if (type === 'rectangle' || type === 'circle' || type === 'path' || type === 'triangle' || type === 'star' || type === 'polygon') {
+  if (
+    type === 'rectangle' ||
+    type === 'circle' ||
+    type === 'path' ||
+    type === 'triangle' ||
+    type === 'star' ||
+    type === 'polygon'
+  ) {
     const sl = layer as ShapeLayer;
     if (sl.gradient?.enabled) return true;
     if (sl.imageFill) return true;
@@ -580,7 +587,7 @@ async function drawLayerToPdf(pdf: jsPDF, layer: Layer, isPro = false): Promise<
   }
 
   // Native rendering by layer type
-  switch ((layer.type as any)) {
+  switch (layer.type as any) {
     case 'text':
       drawTextLayer(pdf, layer as TextLayer);
       break;

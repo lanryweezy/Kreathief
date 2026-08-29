@@ -30,7 +30,7 @@ afterEach(() => {
 });
 
 describe('permanent request errors', () => {
-  it('does not retry a 422 and surfaces Fal\'s validation detail', async () => {
+  it("does not retry a 422 and surfaces Fal's validation detail", async () => {
     // What /api/fal now forwards: the upstream status plus the schema complaint.
     fetchMock.mockResolvedValue(
       jsonResponse(422, {
@@ -119,10 +119,7 @@ describe('transient errors', () => {
       .mockResolvedValueOnce(jsonResponse(429, { error: 'Too many requests' }))
       .mockResolvedValueOnce(jsonResponse(200, { images: [{ url: 'https://img/ok.png' }] }));
 
-    const pending = aiModelsService.generateImageFromEndpoint(
-      'https://fal.run/fal-ai/flux/schnell',
-      'p'
-    );
+    const pending = aiModelsService.generateImageFromEndpoint('https://fal.run/fal-ai/flux/schnell', 'p');
     await vi.runAllTimersAsync();
 
     await expect(pending).resolves.toBe('https://img/ok.png');
@@ -144,9 +141,7 @@ describe('payload redaction', () => {
       'image_urls'
     );
 
-    const emitted = [...debug.mock.calls, ...logSpy.mock.calls]
-      .map((args) => JSON.stringify(args))
-      .join('\n');
+    const emitted = [...debug.mock.calls, ...logSpy.mock.calls].map((args) => JSON.stringify(args)).join('\n');
     expect(emitted).not.toContain('Z'.repeat(100));
 
     debug.mockRestore();

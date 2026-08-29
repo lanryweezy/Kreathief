@@ -138,12 +138,12 @@ export function analyzeDesign(artboards: Artboard[], layers: Layer[]): DesignAna
   if (colors.length > 5) suggestions.push('Limit palette to 5 colors');
   if (spacing < 50) suggestions.push('Increase spacing between elements');
   if (alignment < 80) suggestions.push('Align text elements');
-  
+
   const layoutScore = Math.round((alignment + spacing + balance) / 3);
   const typeScore = Math.round((fonts.length <= 3 ? 100 : 50) + (hasHierarchy ? 100 : 40)) / 2;
   const colorScore = Math.round((contrast + (colors.length <= 5 ? 90 : 50)) / 2);
   const score = Math.round((layoutScore + typeScore + colorScore) / 3);
-  
+
   return {
     score,
     suggestions,

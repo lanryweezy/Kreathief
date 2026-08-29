@@ -1,4 +1,5 @@
 import React, { forwardRef } from 'react';
+import { evaluate } from 'mathjs';
 
 /* ═══════════════════════════════════════════════════════════════
    KREATHEIF DESIGN SYSTEM — Components
@@ -555,7 +556,14 @@ export const NumberInput: React.FC<NumberInputProps> = ({
 
   const commit = () => {
     setEditing(false);
-    const p = parseFloat(draft);
+    // Bloom: Added math evaluation so users can type expressions like "100/2"
+    let p = NaN;
+    try {
+      const res = evaluate(draft);
+      if (typeof res === 'number') p = res;
+    } catch (e) {
+      p = parseFloat(draft);
+    }
     if (!isNaN(p)) onChange(Math.min(max, Math.max(min, p)));
   };
 
@@ -563,7 +571,7 @@ export const NumberInput: React.FC<NumberInputProps> = ({
     return (
       <input
         ref={ref}
-        type="number"
+        type="text"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}

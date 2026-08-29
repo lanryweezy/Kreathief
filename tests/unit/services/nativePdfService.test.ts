@@ -20,7 +20,7 @@ vi.mock('jspdf', () => {
         GState: vi.fn(),
         setGState: vi.fn(),
       };
-    })
+    }),
   };
 });
 
@@ -44,7 +44,7 @@ describe('nativePdfService', () => {
       fontWeight: '700', // This triggers fontStyle = 'bold'
       fontStyle: 'normal',
       fontFamily: 'Arial',
-      textAlign: 'left'
+      textAlign: 'left',
     };
 
     const artboard: Artboard = {
@@ -54,7 +54,7 @@ describe('nativePdfService', () => {
       y: 0,
       width: 800,
       height: 600,
-      layers: [textLayer]
+      layers: [textLayer],
     };
 
     // Make setFont throw an error when called with bold

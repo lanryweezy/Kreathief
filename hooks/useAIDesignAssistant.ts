@@ -302,7 +302,6 @@ async function parseDesignIntent(text: string, context: string, layers: Layer[])
   return actions;
 }
 
-
 /**
  * Extensibility Point: AI Action Handler Registry
  * Evidence of pressure: The `executeAction` function relied on a hard-coded switch statement
@@ -347,7 +346,7 @@ registerAIActionHandler('modify', {
       store.updateLayers(updates);
     }
     return action.description;
-  }
+  },
 });
 
 registerAIActionHandler('delete', {
@@ -356,7 +355,7 @@ registerAIActionHandler('delete', {
       store.deleteLayer(id);
     }
     return action.description;
-  }
+  },
 });
 
 registerAIActionHandler('create', {
@@ -381,7 +380,7 @@ registerAIActionHandler('create', {
       }
     }
     return action.description;
-  }
+  },
 });
 
 registerAIActionHandler('arrange', {
@@ -400,7 +399,7 @@ registerAIActionHandler('arrange', {
       store.updateLayers(updates);
     }
     return action.description;
-  }
+  },
 });
 
 async function executeAction(action: AIAction): Promise<string> {

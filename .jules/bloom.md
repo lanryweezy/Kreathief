@@ -57,24 +57,43 @@
 
 **Learning:** Replaced exact substring matching with fuzzy matching to improve search resilience against typos. However, directly writing the logic instead of using the pre-existing `utils/search.ts` utility leads to duplicated logic or hallucinated imports. Need to verify that imports are actual before using them.
 **Action:** Use existing `fuzzyMatch` from `utils/search.ts` when implementing typo-tolerant search across the app.
+
 ## 2026-08-16 - Typo-tolerant Command Palette Search
+
 **Learning:** The Command Palette (`CommandPalette.tsx`) relied on the `searchCommands` utility in `commands/registry.ts`, which used exact substring matching (`.includes()`). This caused the search to fail completely on minor user typos (e.g. typing "fiel" instead of "file" or "geneate" instead of "generate"), degrading the user experience.
 **Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility in `searchCommands`. This closes the quality gap by adding typo tolerance without altering the external interface of the search function.
+
 ## 2026-08-20 - Typo-tolerant Layers Panel Search
+
 **Learning:** The layer search functionality in the Layers Panel (`LayersPanel.tsx`) relied on strict substring matching (`.includes()`). This caused searches to fail on minor typos when users were trying to find specific layers among potentially hundreds (e.g. "hader" instead of "header"), degrading the workflow quality.
 **Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility from `utils/search.ts` to gracefully handle typos and significantly improve the search resilience without changing any component props or state structures.
+
 ## $(date +%Y-%m-%d) - Component fragility with string methods on unstructured props
+
 **Learning:** Destructuring with a default value (e.g. `alt = ''`) only protects against `undefined`, leaving the component vulnerable to fatal crashes (`Cannot read properties of null`) if passed `null` or unexpected types from loosely typed data or APIs.
 **Action:** Always defensively check `typeof prop === 'string'` before calling string methods like `charAt` or `toUpperCase` on props that can be bypassed by nulls.
+
 ## 2024-05-18 - Replacing exact substring matching with fuzzy matching in Community Feed search
+
 **Learning:** The community feed search (`CommunityTemplates.tsx`) relied on strict exact substring matching (`.includes()`) for title, author, and tags. This brittle implementation meant that minor user typos or variations returned zero results, severely degrading the experience of finding templates.
 **Action:** Replaced exact `.includes()` matching with the existing `fuzzyMatch` utility from `utils/search.ts`. This closes the quality gap by adding robust typo tolerance across titles, authors, and tags without altering the component’s interface or adding new features.
+
 ## 2024-05-18 - Replacing exact substring matching with fuzzy matching in Text Panel font search
+
 **Learning:** The text panel font search (`TextPanel.tsx`) relied on strict exact substring matching (`.includes()`) for font names. This brittle implementation meant that minor user typos returned zero results, degrading the experience of finding fonts.
 **Action:** Replaced exact `.includes()` matching with the existing `fuzzyMatch` utility from `utils/search.ts`. This closes the quality gap by adding robust typo tolerance without altering the component’s interface or adding new features.
+
 ## 2024-05-18 - Replacing exact substring matching with fuzzy matching in Command Palette local search
+
 **Learning:** The Command Palette (`CommandPalette.tsx`) relied on strict exact substring matching (`.includes()`) for its local commands search (e.g. `c.label.toLowerCase().includes(q)`). This brittle implementation meant that minor user typos returned zero results, frustrating users who expect command palettes to be forgiving.
 **Action:** Replaced exact `.includes()` matching with the existing `fuzzyMatch` utility from `utils/search.ts`. This closes the quality gap by adding robust typo tolerance for local command searches without altering the component’s interface or adding new features.
+
 ## 2026-08-26 - Rely on Type-Checking Over Automated Code Review For Imports
+
 **Learning:** The automated code review incorrectly flagged the import of `fuzzyMatch` from `../../utils/search` as a "hallucinated import", despite it being successfully verified by `pnpm run type-check`.
 **Action:** When a known utility function like `fuzzyMatch` is imported and verified by the TypeScript compiler (`tsc --noEmit`), disregard automated code review flags about missing imports and proceed with the submission.
+
+## 2026-08-29 - Math evaluation in number inputs
+
+**Learning:** In a design tool where users frequently calculate dimensions (e.g. dividing a width by 2 or adding a margin), forcing them to do math externally and paste the result creates a frustrating workflow. Number inputs should accept basic math expressions.
+**Action:** Modified the NumberInput component to use `mathjs` to parse math expressions directly (e.g. typing "100/2" evaluates to 50), significantly improving the utility of properties panels without changing the component's interface.

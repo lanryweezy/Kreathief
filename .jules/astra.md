@@ -83,26 +83,38 @@
 
 **Learning:** When using `callBackendGeminiAPI` to extract structured analysis data (like `ExtractedReferenceStyle`), merely defining a prompt block requesting specific JSON keys without providing a matching `generationConfig.responseSchema` allows the model to ignore the requested format, potentially generating Markdown fences, extra conversational text, or completely missing keys, which subsequently breaks `safeParseJSON` downstream.
 **Action:** Always provide a fully populated `responseSchema` (using `SchemaType.OBJECT`) alongside `responseMimeType: 'application/json'` that exactly matches the expected interface for all complex generation calls (e.g., `analyzeReferenceImage`). This enforces a strict API output contract before parsing happens.
+
 ## 2026-07-02 - [Native System Instructions and Input Sanitization]
+
 **Learning:** Concatenating system instructions and raw user input into a single prompt string (e.g., `text: \`You are an expert... User Description: "\${simplePrompt}"\``) makes the LLM vulnerable to prompt injection, payload bloat, and context confusion. It treats the instructions and the data at the same privilege level.
-**Action:** Always move the AI's persona, rules, and output format instructions to the native `systemInstruction` field of the API payload. Furthermore, sanitize and truncate raw user input (e.g., `simplePrompt.trim().substring(0, 1000)`) before embedding it into the `contents` array to limit payload size and reduce simple injection surface area.
+**Action:** Always move the AI's persona, rules, and output format instructions to the native `systemInstruction`field of the API payload. Furthermore, sanitize and truncate raw user input (e.g.,`simplePrompt.trim().substring(0, 1000)`) before embedding it into the `contents` array to limit payload size and reduce simple injection surface area.
+
 ## 2026-08-14 - Native System Instructions and Input Sanitization
+
 **Learning:** Concatenating system instructions and raw user input into a single prompt string makes the LLM vulnerable to prompt injection, payload bloat, and context confusion.
 **Action:** Always move the AI's persona, rules, and output format instructions to the native `systemInstruction` field of the API payload. Furthermore, sanitize and truncate raw user input (e.g., `prompt.trim().substring(0, 1000)`) before embedding it into the `contents` array to limit payload size and reduce simple injection surface area.
 
 ## 2026-08-14 - Native System Instructions and Input Sanitization
+
 **Learning:** When calling AI API endpoints (e.g., `callBackendGeminiAPI`), moving inline system prompts to the `systemInstruction` field and truncating raw user input improves security and output consistency.
 **Action:** Use `systemInstruction: systemPrompt` and sanitize user input with `prompt.trim().substring(0, 1000)`.
+
 ## 2026-08-14 - Native System Instructions and Input Sanitization
+
 **Learning:** When calling AI API endpoints (e.g., `callBackendGeminiAPI`), truncating raw user input improves security and output consistency by mitigating payload bloat and prompt injection risks.
 **Action:** Sanitize user input before it is embedded in the payload with `prompt.trim().substring(0, 1000)`.
+
 ## 2026-08-16 - Sanitize user input in AI prompt handling
+
 **Learning:** When calling AI API endpoints (e.g., `callBackendGeminiAPI`), truncating raw user input improves security and output consistency by mitigating payload bloat and prompt injection risks.
 **Action:** Always sanitize and truncate raw user input (e.g., `input.trim().substring(0, 1000)`) before embedding it into AI prompts.
+
 ## 2026-08-17 - Native System Instructions and Input Sanitization
+
 **Learning:** Concatenating system instructions and raw user input into a single prompt string makes the LLM vulnerable to prompt injection, payload bloat, and context confusion.
 **Action:** Always move the AI's persona, rules, and output format instructions to the native `systemInstruction` field of the API payload. Furthermore, sanitize and truncate raw user input (e.g., `prompt.trim().substring(0, 1000)`) before embedding it into the `contents` array to limit payload size and reduce simple injection surface area.
 
 ## 2026-08-26 - Sanitize user input in AI prompt handling (Creative Agents)
+
 **Learning:** Raw user input (`intent`) interpolated directly into AI prompt payloads (e.g., in `creativeAgentDraft` and `creativeAgentRefine` via `services/aiService.ts`) introduces a risk of prompt injection and context window exhaustion. Even if the prompt uses `systemInstruction`, placing unbounded raw strings in the `contents` block exposes the LLM to unintended instructions.
 **Action:** Always sanitize and truncate raw user input (e.g., `intent.trim().substring(0, 1000)`) where it is interpolated directly into the `contents` block of an AI API call to limit payload bloat and mitigate prompt injection.

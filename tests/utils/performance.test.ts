@@ -42,7 +42,7 @@ describe('performance utils', () => {
     it('returns parsed metrics when sessionStorage has valid JSON data', () => {
       const mockMetrics = [
         { name: 'test-metric-1', value: 150, rating: 'needs-improvement', timestamp: 1000 },
-        { name: 'test-metric-2', value: 50, rating: 'good', timestamp: 2000 }
+        { name: 'test-metric-2', value: 50, rating: 'good', timestamp: 2000 },
       ];
       vi.mocked(sessionStorage.getItem).mockReturnValue(JSON.stringify(mockMetrics));
 

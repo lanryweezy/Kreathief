@@ -6,9 +6,9 @@ describe('useKreathiefStore', () => {
   beforeEach(() => {
     act(() => {
       useStore.getState().reset();
-      useStore.getState().setArtboards([
-        { id: 'artboard-1', name: 'Artboard 1', width: 1080, height: 1080, x: 0, y: 0, layers: [] },
-      ]);
+      useStore
+        .getState()
+        .setArtboards([{ id: 'artboard-1', name: 'Artboard 1', width: 1080, height: 1080, x: 0, y: 0, layers: [] }]);
       useStore.getState().setActiveArtboardId('artboard-1');
     });
   });

@@ -99,9 +99,9 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
       await executeGraph();
       // Need to fetch fresh state since React state hasn't updated in this closure yet
       const state = useNodeGraph.getState();
-      
+
       // Check for errors in ANY node
-      const hasErrors = Object.values(state.nodeOutputs).some(output => output?.error);
+      const hasErrors = Object.values(state.nodeOutputs).some((output) => output?.error);
       if (hasErrors) {
         // We will need to import useStore at the top of the file to use addToast, handled in another replacement chunk
         import('../../store/useStore').then(({ useStore }) => {
@@ -109,7 +109,7 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
         });
         return;
       }
-      
+
       const exportNodes = state.graph.nodes.filter((n: any) => n.type === 'export-canvas' || n.type.includes('export'));
       let result = null;
       if (exportNodes.length > 0) {
@@ -199,7 +199,7 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
     },
     [handlers.onCanvasMouseDown]
   );
-  const inspectedNode = inspectingNodeId ? graph.nodes.find(n => n.id === inspectingNodeId) : null;
+  const inspectedNode = inspectingNodeId ? graph.nodes.find((n) => n.id === inspectingNodeId) : null;
   const inspectedOutputs = inspectingNodeId ? nodeOutputs[inspectingNodeId] : null;
   const inspectedImage = inspectedOutputs?.image?.src || inspectedOutputs?.image || inspectedOutputs?.imageUrl;
 

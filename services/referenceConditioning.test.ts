@@ -9,19 +9,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import {
-  AspectRatio,
-  ExtractedReferenceStyle,
-  ReferenceAppliedMode,
-  ReferenceAspect,
-  StyleReference,
-} from '../types';
+import { AspectRatio, ExtractedReferenceStyle, ReferenceAppliedMode, ReferenceAspect, StyleReference } from '../types';
 import { IMAGE_GEN_MODELS, supportsReferenceImage, buildSizePayload } from '../config/imageModels';
-import {
-  buildStyleReferenceSuffix,
-  composeGenerationPrompt,
-  generateImageWithModel,
-} from './imageGenService';
+import { buildStyleReferenceSuffix, composeGenerationPrompt, generateImageWithModel } from './imageGenService';
 import { aiModelsService } from './aiModelsService';
 import { analyticsService } from './analyticsService';
 import * as geminiService from './geminiService';
@@ -142,9 +132,7 @@ describe('Test 5 — the selected aspect controls what is borrowed', () => {
 
   it('produces nothing when analysis failed or no aspect is selected', () => {
     expect(buildStyleReferenceSuffix(makeRef({ aspects: [] }))).toBe('');
-    expect(
-      buildStyleReferenceSuffix(makeRef({ extracted: undefined, analysisStatus: 'failed' }))
-    ).toBe('');
+    expect(buildStyleReferenceSuffix(makeRef({ extracted: undefined, analysisStatus: 'failed' }))).toBe('');
     expect(buildStyleReferenceSuffix(null)).toBe('');
   });
 });
@@ -367,9 +355,7 @@ describe('Test 7 pre-flight — proxy allowlist covers every reachable endpoint'
   // A missing allowlist entry surfaces as HTTP 403 from our own proxy, which looks nothing
   // like a schema problem. Catching it here keeps the live edit tests interpretable.
   const proxySource = readFileSync(resolve(__dirname, '../api/fal.ts'), 'utf8');
-  const allowlisted = new Set(
-    Array.from(proxySource.matchAll(/'(https:\/\/fal\.run\/[^']+)'/g)).map((m) => m[1])
-  );
+  const allowlisted = new Set(Array.from(proxySource.matchAll(/'(https:\/\/fal\.run\/[^']+)'/g)).map((m) => m[1]));
 
   it.each(IMAGE_GEN_MODELS.map((m) => [m.id, m] as const))('%s endpoints are allowlisted', (_id, model) => {
     expect(allowlisted.has(model.falEndpoint), model.falEndpoint).toBe(true);
@@ -424,7 +410,7 @@ describe('sizing vocabulary is per-endpoint data, not a global assumption', () =
     });
   });
 
-  it('translates to Fal\'s named presets for image_size endpoints', () => {
+  it("translates to Fal's named presets for image_size endpoints", () => {
     const model = IMAGE_GEN_MODELS.find((m) => m.id === 'flux-schnell');
     expect(buildSizePayload(model, '1:1')).toEqual({ image_size: 'square' });
     expect(buildSizePayload(model, '16:9')).toEqual({ image_size: 'landscape_hd' });

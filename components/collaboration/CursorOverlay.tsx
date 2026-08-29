@@ -118,9 +118,7 @@ export const CursorOverlay: React.FC = () => {
               className="absolute left-4 top-4 px-2 py-0.5 rounded-full text-[10px] font-bold text-white whitespace-nowrap shadow-lg backdrop-blur-sm flex items-center gap-1"
               style={{ backgroundColor: user.color, border: '1px solid rgba(255,255,255,0.3)' }}
             >
-              {user.avatar && (
-                <img src={user.avatar} className="w-3 h-3 rounded-full object-cover" alt="" />
-              )}
+              {user.avatar && <img src={user.avatar} className="w-3 h-3 rounded-full object-cover" alt="" />}
               {user.name}
             </div>
 

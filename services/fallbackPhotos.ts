@@ -299,7 +299,7 @@ export interface FallbackPhotoAdapter {
 
 export const fallbackPhotoAdapters = new Map<string, FallbackPhotoAdapter>();
 
-fallbackPhotoAdapters.set("unsplash", {
+fallbackPhotoAdapters.set('unsplash', {
   adapt(results) {
     return results.map((p, idx) => ({
       id: `us-fb-${p.id}-${idx}`,
@@ -314,7 +314,7 @@ fallbackPhotoAdapters.set("unsplash", {
   },
 });
 
-fallbackPhotoAdapters.set("pixabay", {
+fallbackPhotoAdapters.set('pixabay', {
   adapt(results) {
     return results.map((p, idx) => ({
       id: 1000 + idx,
@@ -326,7 +326,7 @@ fallbackPhotoAdapters.set("pixabay", {
   },
 });
 
-fallbackPhotoAdapters.set("pexels", {
+fallbackPhotoAdapters.set('pexels', {
   adapt(results) {
     return results.map((p, idx) => ({
       id: 2000 + idx,
@@ -339,11 +339,11 @@ fallbackPhotoAdapters.set("pexels", {
   },
 });
 
-fallbackPhotoAdapters.set("vecteezy", {
+fallbackPhotoAdapters.set('vecteezy', {
   adapt(results) {
     return results.map((p, idx) => ({
       id: `vz-fb-${p.id}-${idx}`,
-      type: "photo",
+      type: 'photo',
       title: p.alt,
       thumbnail_url: p.thumbnail,
       preview_url: p.url,
@@ -356,8 +356,8 @@ export function registerFallbackPhotoAdapter(provider: string, adapter: Fallback
 }
 
 export function getFallbackPhotos(query: string, provider: string): any[] {
-  const q = (query || "").trim().toLowerCase();
-  const isDefault = !q || q === "trending" || q === "curated" || q === "all";
+  const q = (query || '').trim().toLowerCase();
+  const isDefault = !q || q === 'trending' || q === 'curated' || q === 'all';
 
   const filtered = CURATED_PHOTOS.filter((photo) => {
     if (isDefault) {

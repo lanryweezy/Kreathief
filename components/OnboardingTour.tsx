@@ -16,28 +16,32 @@ interface OnboardingStep {
 const steps: OnboardingStep[] = [
   {
     title: 'Start with a Template',
-    description: 'Pick any format from the Templates panel on the left. Every size from Instagram Stories to Presentation slides is ready to go.',
+    description:
+      'Pick any format from the Templates panel on the left. Every size from Instagram Stories to Presentation slides is ready to go.',
     Icon: Icons.Layers,
     accentColor: '#8b5cf6',
     tip: 'Press T to add text, S for shapes',
   },
   {
     title: 'AI Magic on Any Layer',
-    description: 'Right-click any layer to access AI Actions inline. Generate variations, remove backgrounds, or fix contrast without leaving the canvas.',
+    description:
+      'Right-click any layer to access AI Actions inline. Generate variations, remove backgrounds, or fix contrast without leaving the canvas.',
     Icon: Icons.Sparkles,
     accentColor: '#22d3ee',
     tip: 'Right-click a layer to open AI Actions',
   },
   {
     title: 'Real-Time Collaboration',
-    description: 'Share your project link and invite teammates. See live cursors and layer edits stream in as you co-design together.',
+    description:
+      'Share your project link and invite teammates. See live cursors and layer edits stream in as you co-design together.',
     Icon: Icons.Users,
     accentColor: '#34d399',
     tip: 'Click Share in the header to invite',
   },
   {
     title: 'Export Anywhere',
-    description: 'Export as PNG, SVG, PDF, or a true multi-layer Photoshop PSD. You can also drag PSD files onto the canvas to import them.',
+    description:
+      'Export as PNG, SVG, PDF, or a true multi-layer Photoshop PSD. You can also drag PSD files onto the canvas to import them.',
     Icon: Icons.Download,
     accentColor: '#f59e0b',
     tip: 'Press Ctrl+E to open Export',

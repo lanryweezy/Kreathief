@@ -105,7 +105,7 @@ describe('setReferenceAppliedMode guard', () => {
 });
 
 describe('generateImage reports against the reference it actually used', () => {
-  it('does not attribute A\'s conditioning mode to B', async () => {
+  it("does not attribute A's conditioning mode to B", async () => {
     const store = makeStore();
     vi.mocked(geminiService.analyzeReferenceImage).mockResolvedValue(EXTRACTED);
 
@@ -150,7 +150,7 @@ describe('generateImage reports against the reference it actually used', () => {
 });
 
 describe('analysis result is also id-guarded', () => {
-  it('does not let A\'s vision result overwrite B', async () => {
+  it("does not let A's vision result overwrite B", async () => {
     const store = makeStore();
     let releaseA: (v: ExtractedReferenceStyle) => void = () => {};
     vi.mocked(geminiService.analyzeReferenceImage)

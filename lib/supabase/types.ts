@@ -45,7 +45,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
-          Relationships: any[];
+        Relationships: any[];
       };
       assets: {
         Row: {
@@ -90,7 +90,7 @@ export interface Database {
           status?: string;
           created_at?: string;
         };
-          Relationships: any[];
+        Relationships: any[];
       };
       projects: {
         Row: {
@@ -144,7 +144,7 @@ export interface Database {
           is_template?: boolean;
           tags?: string[];
         };
-          Relationships: any[];
+        Relationships: any[];
       };
       project_versions: {
         Row: {
@@ -174,7 +174,7 @@ export interface Database {
           version_name?: string | null;
           created_at?: string;
         };
-          Relationships: any[];
+        Relationships: any[];
       };
       project_snapshots: {
         Row: {
@@ -204,7 +204,7 @@ export interface Database {
           thumbnail_url?: string | null;
           created_at?: string;
         };
-          Relationships: any[];
+        Relationships: any[];
       };
       comments: {
         Row: {
@@ -249,7 +249,7 @@ export interface Database {
           parent_id?: string | null;
           resolved?: boolean;
         };
-          Relationships: any[];
+        Relationships: any[];
       };
       brand_kits: {
         Row: {
@@ -282,7 +282,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
-          Relationships: any[];
+        Relationships: any[];
       };
       templates: {
         Row: {
@@ -324,7 +324,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
-          Relationships: any[];
+        Relationships: any[];
       };
       share_links: {
         Row: {
@@ -357,7 +357,7 @@ export interface Database {
           view_count?: number;
           created_at?: string;
         };
-          Relationships: any[];
+        Relationships: any[];
       };
       community_templates: {
         Row: {
@@ -411,7 +411,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
-          Relationships: any[];
+        Relationships: any[];
       };
     };
     Views: {

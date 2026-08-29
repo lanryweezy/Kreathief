@@ -503,9 +503,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                               onClick={() => toggleReferenceAspect(aspect)}
                               aria-pressed={active}
                               className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${
-                                active
-                                  ? 'bg-brand-600 text-white'
-                                  : 'bg-white/5 text-gray-500 hover:text-gray-300'
+                                active ? 'bg-brand-600 text-white' : 'bg-white/5 text-gray-500 hover:text-gray-300'
                               }`}
                             >
                               {REFERENCE_ASPECT_LABELS[aspect]}

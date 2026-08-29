@@ -65,7 +65,8 @@ export const AssetFavorites: React.FC = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (user) await (supabase as any).from('user_favorites').delete().eq('user_id', user.id).eq('asset_id', fav.asset_id);
+      if (user)
+        await (supabase as any).from('user_favorites').delete().eq('user_id', user.id).eq('asset_id', fav.asset_id);
     } catch (e) {
       log.error('[AssetFavorites] Remove failed', e);
     }

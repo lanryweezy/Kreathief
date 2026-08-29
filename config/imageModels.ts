@@ -342,9 +342,7 @@ export const buildSizePayload = (
   target: 'generate' | 'edit' = 'generate'
 ): Record<string, string> => {
   const field: ImageSizeField =
-    target === 'edit'
-      ? model?.editSizeField ?? model?.sizeField ?? 'image_size'
-      : model?.sizeField ?? 'image_size';
+    target === 'edit' ? (model?.editSizeField ?? model?.sizeField ?? 'image_size') : (model?.sizeField ?? 'image_size');
 
   if (field === 'none') {
     return {};

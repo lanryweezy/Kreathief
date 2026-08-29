@@ -6,7 +6,6 @@ import { log } from '../../utils/log';
 import { v4 as uuidv4 } from 'uuid';
 import type { StoreState } from '../useStore';
 
-
 export interface AIAssistantSlice extends AIAssistantState {
   // Actions
   toggleAssistant: () => void;
@@ -177,12 +176,7 @@ export const createAIAssistantSlice: StateCreator<StoreState, [], [], AIAssistan
         brandKit: state.brandKits?.find((bk: any) => bk.id === state.activeBrandKitId),
       };
 
-      const response = await aiService.handleConversation(
-        message,
-        activeArtboard,
-        context,
-        get().conversationHistory
-      );
+      const response = await aiService.handleConversation(message, activeArtboard, context, get().conversationHistory);
 
       get().addMessage(response);
     } catch (error) {

@@ -73,9 +73,7 @@ describe('GeminiService', () => {
     it('fails with an actionable message when no fallback backend is configured', async () => {
       vi.spyOn(freepikService, 'isConfigured').mockReturnValue(false);
 
-      await expect(geminiService.generateImage('Test prompt', '1:1')).rejects.toThrow(
-        /Image generation unavailable/
-      );
+      await expect(geminiService.generateImage('Test prompt', '1:1')).rejects.toThrow(/Image generation unavailable/);
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
@@ -153,9 +151,13 @@ describe('GeminiService', () => {
     });
 
     it('should clean and return base64 data without data URL prefix', () => {
-      const result = geminiService.cleanBase64('data:image/jpeg;base64, /9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxITEhUSExMWFhUXFRcWFxgYFRcYFxgXFxgXFxcXFxcYHSggGBolHRcXITEhJSkrLi4uFx8zODMtNygtLisBCgoKDg0OGxAQGy0lICUtLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLf/AABEIAOEA4QMBEQACEQEDEQH/');
+      const result = geminiService.cleanBase64(
+        'data:image/jpeg;base64, /9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxITEhUSExMWFhUXFRcWFxgYFRcYFxgXFxgXFxcXFxcYHSggGBolHRcXITEhJSkrLi4uFx8zODMtNygtLisBCgoKDg0OGxAQGy0lICUtLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLf/AABEIAOEA4QMBEQACEQEDEQH/'
+      );
       expect(result.mimeType).toBe('image/jpeg');
-      expect(result.data).toBe('/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxITEhUSExMWFhUXFRcWFxgYFRcYFxgXFxgXFxcXFxcYHSggGBolHRcXITEhJSkrLi4uFx8zODMtNygtLisBCgoKDg0OGxAQGy0lICUtLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLf/AABEIAOEA4QMBEQACEQEDEQH/');
+      expect(result.data).toBe(
+        '/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxITEhUSExMWFhUXFRcWFxgYFRcYFxgXFxgXFxcXFxcYHSggGBolHRcXITEhJSkrLi4uFx8zODMtNygtLisBCgoKDg0OGxAQGy0lICUtLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLSstLf/AABEIAOEA4QMBEQACEQEDEQH/'
+      );
     });
   });
 

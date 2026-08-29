@@ -45,7 +45,6 @@ export function smartResize(
   layers: Layer[],
   target: ResizeTarget
 ): { width: number; height: number; layers: Layer[] } {
-
   // Calculate scale to fit
   // Mason: Replaced unsafe type casts with correct interface properties and removed unused variables
   const scaleX = target.width / artboard.width;
