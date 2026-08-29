@@ -7,46 +7,126 @@ import { log } from '../utils/log';
 import { exportToReactCode } from '../utils/codeExport';
 import { cleanSvgMarkup } from '../services/exportService';
 
-// 2026 AI Actions available on selected layers via delegative UX pattern
-const AI_ACTIONS = [
-  {
-    id: 'remove-bg',
-    label: 'AI Subject Cutout',
-    hint: 'Instantly remove background with AI',
-    icon: 'Wand',
-    type: 'image',
+/**
+ * Extensibility Point: AI Action Strategy Registry
+ * Evidence of pressure: AI actions were defined in a hardcoded array and executed via a growing switch statement.
+ * Contract: Implementors must provide an `id`, UI metadata (`label`, `icon`, `hint`, `type`), and an `execute` method that performs the action.
+ * The registry enables registering new AI actions without modifying the core ContextMenu logic.
+ */
+export interface AiActionStrategy {
+  id: string;
+  label: string;
+  hint: string;
+  icon: string;
+  type: string;
+  execute(layerId: string, layer: any, store: any): void;
+}
+
+export const aiActionRegistry = new Map<string, AiActionStrategy>();
+
+aiActionRegistry.set('remove-bg', {
+  id: 'remove-bg',
+  label: 'AI Subject Cutout',
+  hint: 'Instantly remove background with AI',
+  icon: 'Wand',
+  type: 'image',
+  execute(layerId, layer, store) {
+    if (layer?.type !== 'image') {
+      store.addToast?.('Background removal requires an image layer', 'error');
+    } else if (store.removeBackground) {
+      store.removeBackground(layerId);
+      store.addToast?.('Removing background...', 'info');
+    } else {
+      store.addToast?.('Select an image layer to remove its background', 'error');
+    }
   },
-  {
-    id: 'extract-colors',
-    label: 'Extract Photo Colors',
-    hint: 'Auto-extract dominant palette',
-    icon: 'Palette',
-    type: 'image',
+});
+
+aiActionRegistry.set('extract-colors', {
+  id: 'extract-colors',
+  label: 'Extract Photo Colors',
+  hint: 'Auto-extract dominant palette',
+  icon: 'Palette',
+  type: 'image',
+  execute(layerId, layer, store) {
+    if (layer?.type === 'image') {
+      store.extractPhotoColors?.(layerId);
+      store.addToast?.('Extracting photo colors to palette...', 'info');
+    }
   },
-  {
-    id: 'vectorize',
-    label: 'Convert to Vector',
-    hint: 'Convert photo to editable vector paths',
-    icon: 'Pen',
-    type: 'image',
+});
+
+aiActionRegistry.set('vectorize', {
+  id: 'vectorize',
+  label: 'Convert to Vector',
+  hint: 'Convert photo to editable vector paths',
+  icon: 'Pen',
+  type: 'image',
+  execute(layerId, layer, store) {
+    if (layer?.type === 'image') {
+      store.vectorizeLayer(layerId, {});
+      store.addToast?.('Converting photo to vector paths...', 'info');
+    }
   },
-  { id: 'upscale', label: 'AI Upscale (4x)', hint: 'Make image crisp and high-res', icon: 'Zap', type: 'image' },
-  { id: 'fix-contrast', label: 'Fix Contrast', hint: 'AI adjusts colors for WCAG AA', icon: 'Sun', type: 'text' },
-  {
-    id: 'text-texture',
-    label: 'AI Text Texture',
-    hint: 'Generate realistic 3D texture for this text',
-    icon: 'Sparkles',
-    type: 'text',
+});
+
+aiActionRegistry.set('upscale', {
+  id: 'upscale',
+  label: 'AI Upscale (4x)',
+  hint: 'Make image crisp and high-res',
+  icon: 'Zap',
+  type: 'image',
+  execute(layerId, layer, store) {
+    if (layer?.type === 'image') {
+      store.onUpscale(layerId);
+      store.addToast?.('AI Upscaling started...', 'info');
+    }
   },
-  {
-    id: 'auto-layout',
-    label: 'Auto-Layout Layer',
-    hint: 'AI applies smart alignment',
-    icon: 'LayoutTemplate',
-    type: 'all',
+});
+
+aiActionRegistry.set('fix-contrast', {
+  id: 'fix-contrast',
+  label: 'Fix Contrast',
+  hint: 'AI adjusts colors for WCAG AA',
+  icon: 'Sun',
+  type: 'text',
+  execute(layerId, layer, store) {
+    if (layer?.type === 'text') {
+      if (store.setActivePanel) {
+        store.setActivePanel('accessibility');
+      }
+      store.addToast?.('Contrast checker opened — reviewing this layer', 'info');
+    } else {
+      store.addToast?.('Contrast fix works on text layers', 'error');
+    }
   },
-] as const;
+});
+
+aiActionRegistry.set('text-texture', {
+  id: 'text-texture',
+  label: 'AI Text Texture',
+  hint: 'Generate realistic 3D texture for this text',
+  icon: 'Sparkles',
+  type: 'text',
+  execute(layerId, layer, store) {
+    if (layer?.type === 'text') {
+      store.generateTextTexture?.(layerId);
+      store.addToast?.('Generating AI texture for text...', 'info');
+    }
+  },
+});
+
+aiActionRegistry.set('auto-layout', {
+  id: 'auto-layout',
+  label: 'Auto-Layout Layer',
+  hint: 'AI applies smart alignment',
+  icon: 'LayoutTemplate',
+  type: 'all',
+  execute(layerId, layer, store) {
+    store.updateLayer(layerId, { x: Math.round((layer?.x ?? 0) / 8) * 8, y: Math.round((layer?.y ?? 0) / 8) * 8 });
+    store.addToast?.('Layer snapped to 8pt grid', 'success');
+  },
+});
 
 interface ContextMenuProps {
   x: number;
@@ -165,63 +245,16 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
   };
 
   // 2026 delegative AI: handle inline AI actions directly on the selected layer
-  const handleAIAction = (actionId: (typeof AI_ACTIONS)[number]['id']) => {
-    switch (actionId) {
-      case 'remove-bg': {
-        if (layer?.type !== 'image') {
-          addToast?.('Background removal requires an image layer', 'error');
-        } else if (removeBackground) {
-          removeBackground(layerId);
-          addToast?.('Removing background...', 'info');
-        } else {
-          addToast?.('Select an image layer to remove its background', 'error');
-        }
-        break;
-      }
-      case 'fix-contrast': {
-        if (layer?.type === 'text') {
-          if (setActivePanel) {
-            setActivePanel('accessibility');
-          }
-          addToast?.('Contrast checker opened — reviewing this layer', 'info');
-        } else {
-          addToast?.('Contrast fix works on text layers', 'error');
-        }
-        break;
-      }
-      case 'text-texture': {
-        if (layer?.type === 'text') {
-          useStore.getState().generateTextTexture?.(layerId);
-          addToast?.('Generating AI texture for text...', 'info');
-        }
-        break;
-      }
-      case 'auto-layout': {
-        updateLayer(layerId, { x: Math.round((layer?.x ?? 0) / 8) * 8, y: Math.round((layer?.y ?? 0) / 8) * 8 });
-        addToast?.('Layer snapped to 8pt grid', 'success');
-        break;
-      }
-      case 'extract-colors': {
-        if (layer?.type === 'image') {
-          useStore.getState().extractPhotoColors?.(layerId);
-          addToast?.('Extracting photo colors to palette...', 'info');
-        }
-        break;
-      }
-      case 'vectorize': {
-        if (layer?.type === 'image') {
-          useStore.getState().vectorizeLayer(layerId, {});
-          addToast?.('Converting photo to vector paths...', 'info');
-        }
-        break;
-      }
-      case 'upscale': {
-        if (layer?.type === 'image') {
-          useStore.getState().onUpscale(layerId);
-          addToast?.('AI Upscaling started...', 'info');
-        }
-        break;
-      }
+  const handleAIAction = (actionId: string) => {
+    const action = aiActionRegistry.get(actionId);
+    if (action) {
+      action.execute(layerId, layer, {
+        addToast,
+        removeBackground,
+        setActivePanel,
+        updateLayer,
+        ...useStore.getState(),
+      });
     }
     onClose();
   };
@@ -512,7 +545,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
       <div className="px-5 pb-2 pt-1">
         <p className="text-[10px] font-black text-cyan-500/70 uppercase tracking-[0.2em]">AI Actions</p>
       </div>
-      {AI_ACTIONS.filter((a) => a.type === 'all' || a.type === layer?.type).map((action) => {
+      {Array.from(aiActionRegistry.values()).filter((a) => a.type === 'all' || a.type === layer?.type).map((action) => {
         const AiIcon = (Icons as any)[action.icon] || Icons.Sparkles;
         return (
           <button
