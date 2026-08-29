@@ -192,3 +192,7 @@
 ## 2024-05-18 - Optimize selectedLayers calculation in ArrangePanel
 **Learning:** Found an instance in `ArrangePanel.tsx` where it calculated `allLayers` and `selectedLayers` on every render by doing an O(N) array allocation (`artboards.flatMap((a) => a.layers)`) followed by another O(N) `filter` mapping. This results in heavy intermediate array allocations on every render cycle which increases garbage collection pressure, affecting UI performance and causing unnecessary rendering slowness.
 **Action:** Replace `artboards.flatMap().filter()` with an imperative loop wrapped in `React.useMemo`. Using an imperative block avoids intermediate array overhead, allows early termination of loops (when `layers.length === selectedLayerIds.length`), and `useMemo` guarantees that the logic will only be evaluated when `artboards` or `selectedLayerIds` explicitly change.
+
+## 2025-05-19 - Removed map-join array equality check in Canvas component
+**Learning:** Found an instance in `Canvas.tsx` where `.map(l => l.id).join(',')` was used within a `useMemo` block to compare old and new layer IDs on every render. Generating a massive string across all layers just to do an equality check creates huge memory pressure and GC overhead on frequent renders.
+**Action:** Replace `artboards.flatMap` and `.map().join()` combinations with simple, imperative `for` loops. First loop pushes layers into an array, and the second loop performs an index-by-index comparison with an early exit (`break`). This skips allocating the giant intermediate string entirely.

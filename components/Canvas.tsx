@@ -205,11 +205,30 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   const layers = useMemo(() => activeArtboard?.layers || [], [activeArtboard]);
   const allLayersRef = useRef<Layer[]>([]);
   const allLayers = useMemo(() => {
-    const newLayers = artboards.flatMap((a) => a.layers || []);
-    // Compare by ID list to avoid unnecessary re-renders
-    const prevIds = allLayersRef.current.map((l) => l.id).join(',');
-    const newIds = newLayers.map((l) => l.id).join(',');
-    if (prevIds === newIds) {
+    // ⚡ Bolt Optimization: Replaced flatMap and string join for equality check with imperative loops to prevent large array and string allocations, reducing GC overhead during frequent Canvas renders.
+    const newLayers: Layer[] = [];
+    for (let i = 0; i < artboards.length; i++) {
+      const artboardLayers = artboards[i].layers;
+      if (artboardLayers) {
+        for (let j = 0; j < artboardLayers.length; j++) {
+          newLayers.push(artboardLayers[j]);
+        }
+      }
+    }
+
+    let isSame = true;
+    if (allLayersRef.current.length !== newLayers.length) {
+      isSame = false;
+    } else {
+      for (let i = 0; i < newLayers.length; i++) {
+        if (allLayersRef.current[i].id !== newLayers[i].id) {
+          isSame = false;
+          break;
+        }
+      }
+    }
+
+    if (isSame) {
       return allLayersRef.current;
     }
     allLayersRef.current = newLayers;
