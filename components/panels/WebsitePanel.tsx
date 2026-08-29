@@ -11,6 +11,7 @@ import { log } from '../../utils/log';
 import { PanelHeader } from './PanelHeader';
 import { SearchInput } from '../SearchInput';
 import { getAIErrorMessage, getErrorDetails } from '../../utils/errorMessages';
+import { fuzzyMatch } from '../../utils/search';
 
 const generateWebsiteDesign = null as unknown as any;
 
@@ -365,10 +366,11 @@ export const WebsitePanel: React.FC = () => {
 
   const filteredSections = SECTION_BLOCKS.filter((b) => {
     const matchesCategory = activeCategory === 'All' || b.category === activeCategory;
+    // 🌸 Bloom: Replaced exact substring matching with fuzzyMatch for typo tolerance
     const matchesSearch =
       !sectionSearch ||
-      b.name.toLowerCase().includes(sectionSearch.toLowerCase()) ||
-      b.tags.some((t) => t.includes(sectionSearch.toLowerCase()));
+      fuzzyMatch(sectionSearch, b.name) ||
+      b.tags.some((t) => fuzzyMatch(sectionSearch, t));
     return matchesCategory && matchesSearch;
   });
 
