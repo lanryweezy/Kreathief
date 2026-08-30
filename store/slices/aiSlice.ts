@@ -734,7 +734,11 @@ Layers: ${JSON.stringify(layerSummaries)}`;
         count++;
       });
 
-      addToast?.(`Successfully renamed ${count} layers!`, 'success');
+      if (count > 0) {
+        addToast?.(`Successfully renamed ${count} layers!`, 'success');
+      } else {
+        addToast?.('No layers were renamed.', 'info');
+      }
     } catch (error) {
       log.error('Failed to auto-rename layers', error);
       addToast?.('Failed to auto-rename layers.', 'error');

@@ -119,6 +119,9 @@
 **Learning:** Raw user input (`intent`) interpolated directly into AI prompt payloads (e.g., in `creativeAgentDraft` and `creativeAgentRefine` via `services/aiService.ts`) introduces a risk of prompt injection and context window exhaustion. Even if the prompt uses `systemInstruction`, placing unbounded raw strings in the `contents` block exposes the LLM to unintended instructions.
 **Action:** Always sanitize and truncate raw user input (e.g., `intent.trim().substring(0, 1000)`) where it is interpolated directly into the `contents` block of an AI API call to limit payload bloat and mitigate prompt injection.
 
+## 2026-08-27 - Centralize AI Helpers with Strict Schema Validation
+**Learning:** Refactoring inline AI implementations (like `autoRenameLayers` using generic `generateText` plus regex replacements) into dedicated helper functions (like `generateLayerNames`) in the core `geminiService` centralizes output parsing logic, enabling strict `responseSchema` definitions, `responseMimeType: 'application/json'` enforcement, and `safeParseJSON` usage, thereby completely eliminating prompt-based parsing fragility.
+**Action:** When a feature needs structured AI output (like mapping layer IDs to names), do not construct prompts and manipulate strings inline within state controllers. Instead, build dedicated, typed helper functions in the AI service layer that leverage the `@google/generative-ai` `SchemaType` validation API natively.
 ## 2026-08-30 - Eliminate raw JSON.parse for layer renaming object mapping
 
 **Learning:** Using raw `JSON.parse` coupled with generic prompt string extraction (`generateText`) for LLM tasks that expect dictionary/object outputs (like layer ID mapping for renaming) causes silent crashes and unhandled exceptions if the model generates invalid JSON, markdown blocks, or conversational preamble.
