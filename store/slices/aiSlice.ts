@@ -15,6 +15,8 @@ import {
 } from '../../types';
 import { vectorizerService, VectorizeOptions } from '../../services/vectorizerService';
 import { aiModelsService } from '../../services/aiModelsService';
+import { safeParseJSON } from '../../utils/errorHandling';
+import { SchemaType } from '@google/generative-ai';
 import { removeBackground } from '../../utils/imageProcessor';
 import * as geminiService from '../../services/geminiService';
 import { v4 as uuidv4 } from 'uuid';
@@ -697,20 +699,38 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
       });
 
       const prompt = `You are an expert UI designer. Rename these layers to be extremely logical, concise, and semantic (like Figma). 
-Output ONLY a raw JSON object where keys are layer IDs and values are the new string names. No markdown.
 Layers: ${JSON.stringify(layerSummaries)}`;
 
-      // Use the helper on geminiService
-      const text = await geminiService.generateText(prompt);
+      const data = await geminiService.callBackendGeminiAPI({
+        modelName: 'gemini-2.5-flash',
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: SchemaType.ARRAY,
+            items: {
+              type: SchemaType.OBJECT,
+              properties: {
+                id: { type: SchemaType.STRING },
+                name: { type: SchemaType.STRING },
+              },
+              required: ['id', 'name'],
+            },
+          },
+        },
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      });
 
-      const cleanedText = text
-        .replace(/```json/g, '')
-        .replace(/```/g, '')
-        .trim();
-      const newNames = JSON.parse(cleanedText);
+      // 🤖 Astra: Passed 'null' fallback string to safeParseJSON and mapped structured array to dictionary
+      // to eliminate raw JSON.parse vulnerabilities and silent parsing failures.
+      const parsedResponse = safeParseJSON<Array<{ id: string; name: string }> | null>(data.text || 'null', null);
+
+      if (!parsedResponse) {
+        throw new Error('Failed to parse AI layer renaming response');
+      }
+
       let count = 0;
-      Object.entries(newNames).forEach(([id, name]) => {
-        updateLayer(id, { name: name as string });
+      parsedResponse.forEach(({ id, name }) => {
+        updateLayer(id, { name });
         count++;
       });
 
