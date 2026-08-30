@@ -106,3 +106,7 @@
 ## 2026-08-26 - Sanitize user input in AI prompt handling (Creative Agents)
 **Learning:** Raw user input (`intent`) interpolated directly into AI prompt payloads (e.g., in `creativeAgentDraft` and `creativeAgentRefine` via `services/aiService.ts`) introduces a risk of prompt injection and context window exhaustion. Even if the prompt uses `systemInstruction`, placing unbounded raw strings in the `contents` block exposes the LLM to unintended instructions.
 **Action:** Always sanitize and truncate raw user input (e.g., `intent.trim().substring(0, 1000)`) where it is interpolated directly into the `contents` block of an AI API call to limit payload bloat and mitigate prompt injection.
+
+## 2026-08-30 - Eliminate raw JSON.parse for layer renaming object mapping
+**Learning:** Using raw `JSON.parse` coupled with generic prompt string extraction (`generateText`) for LLM tasks that expect dictionary/object outputs (like layer ID mapping for renaming) causes silent crashes and unhandled exceptions if the model generates invalid JSON, markdown blocks, or conversational preamble.
+**Action:** When expecting dynamic key-value pairs (e.g., mapping IDs to names), always call the base API (`callBackendGeminiAPI`) using a structured output schema (`SchemaType.ARRAY` of objects) to enforce the contract, parse it using `safeParseJSON` with a `'null'` fallback string, and construct the dictionary explicitly in the application logic.
