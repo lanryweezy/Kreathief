@@ -61,7 +61,8 @@ export const WebsitePanel: React.FC = () => {
 
   // Deployment State
   const [showDeployModal, setShowDeployModal] = useState(false);
-  const [vercelToken, setVercelToken] = useState(() => localStorage.getItem('vercel_token') || '');
+  // Sentinel: Removed localStorage to prevent Vercel API Token exposure to client-side attacks like XSS
+  const [vercelToken, setVercelToken] = useState('');
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployUrl, setDeployUrl] = useState('');
   const [deployError, setDeployError] = useState('');
@@ -335,8 +336,6 @@ export const WebsitePanel: React.FC = () => {
     setIsDeploying(true);
     setDeployError('');
     try {
-      localStorage.setItem('vercel_token', vercelToken);
-
       const result = await exportWebsite(websitePages, siteSettings);
 
       const vercelFiles = [
