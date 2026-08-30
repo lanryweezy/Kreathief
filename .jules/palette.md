@@ -40,3 +40,8 @@
 ## 2024-05-17 - Tab Component Accessibility
 **Learning:** Found that custom Tab components in this app lacked semantic ARIA roles and keyboard focus styles, leading to poor accessibility for screen reader and keyboard users.
 **Action:** Always ensure `role="tablist"` on the tab container, `role="tab"` and `aria-selected` on the tab items, and apply `focus-visible` styles with a negative outline offset to prevent layout shifts.
+
+## 2026-08-29 - Screen Reader Accessibility for State Toggle Buttons
+
+**Learning:** When using an icon-only button to toggle a binary state (like locking/unlocking the aspect ratio in `TransformPanel.tsx`), it's important to provide not only an `aria-label` but also the correct state attribute. Using `aria-expanded` is semantically incorrect for simple toggles, as it implies the button expands/collapses a section.
+**Action:** Always use `aria-pressed={boolean}` for state toggle buttons, along with a descriptive `aria-label` when the button is icon-only.
