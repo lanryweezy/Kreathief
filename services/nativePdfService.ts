@@ -553,6 +553,32 @@ export async function exportArtboardToNativePdf(
 }
 
 /**
+ * Extensibility Point: NativePdfLayerRenderStrategy Registry
+ * Evidence of pressure: The `drawLayerToPdf` function relied on a hard-coded switch statement
+ * with multiple cases ('text', 'image', 'table', and default shape).
+ * Contract: Implementors must provide a `render` method that accepts the jsPDF instance,
+ * the layer, and the isPro flag. It must render the layer synchronously or asynchronously.
+ * The registry enables registering new layer generators without touching the core native PDF logic.
+ */
+export interface NativePdfLayerRenderStrategy {
+  render(pdf: jsPDF, layer: Layer, isPro: boolean): void | Promise<void>;
+}
+
+export const nativePdfLayerRenderStrategies = new Map<string, NativePdfLayerRenderStrategy>();
+
+nativePdfLayerRenderStrategies.set('text', {
+  render: (pdf, layer) => drawTextLayer(pdf, layer as TextLayer),
+});
+
+nativePdfLayerRenderStrategies.set('image', {
+  render: async (pdf, layer, isPro) => await drawImageLayer(pdf, layer as ImageLayer, isPro),
+});
+
+nativePdfLayerRenderStrategies.set('table', {
+  render: (pdf, layer) => drawTableLayer(pdf, layer as any),
+});
+
+/**
  * Draw a single layer to PDF, using native rendering or raster fallback.
  */
 async function drawLayerToPdf(pdf: jsPDF, layer: Layer, isPro = false): Promise<void> {
@@ -580,19 +606,11 @@ async function drawLayerToPdf(pdf: jsPDF, layer: Layer, isPro = false): Promise<
   }
 
   // Native rendering by layer type
-  switch ((layer.type as any)) {
-    case 'text':
-      drawTextLayer(pdf, layer as TextLayer);
-      break;
-    case 'image':
-      await drawImageLayer(pdf, layer as ImageLayer, isPro);
-      break;
-    case 'table':
-      drawTableLayer(pdf, layer as any);
-      break;
-    default:
-      drawShapeLayer(pdf, layer as ShapeLayer);
-      break;
+  const strategy = nativePdfLayerRenderStrategies.get(layer.type as string);
+  if (strategy) {
+    await strategy.render(pdf, layer, isPro);
+  } else {
+    drawShapeLayer(pdf, layer as ShapeLayer);
   }
 }
 
