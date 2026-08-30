@@ -321,6 +321,37 @@ export const generateLayerName = async (description: string): Promise<string> =>
 };
 
 /**
+ * Batch generate names for multiple layers using AI.
+ * Ensures strict JSON output and prevents parsing crashes.
+ */
+export const generateLayerNames = async (layerSummaries: any[]): Promise<Record<string, string>> => {
+  try {
+    const prompt = `You are an expert UI designer. Rename these layers to be extremely logical, concise, and semantic (like Figma).
+Output a JSON object where keys are layer IDs and values are the new string names.
+Layers: ${JSON.stringify(layerSummaries)}`;
+
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: { type: SchemaType.OBJECT },
+      },
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    });
+
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '{}' to prevent silent failures on empty LLM output and ensure error catching logic executes.
+    const parsed = safeParseJSON<Record<string, string> | null>(data.text || 'null', null);
+    if (!parsed) {
+      throw new Error('Failed to parse generateLayerNames output JSON');
+    }
+    return parsed;
+  } catch (error) {
+    log.error('generateLayerNames error:', error);
+    return {};
+  }
+};
+
+/**
  * Generate alt text for an image given its src (data URL or URL).
  */
 export const generateAltText = async (src: string): Promise<string> => {

@@ -274,3 +274,8 @@
 **Vulnerability:** The `ErrorBoundary` component was serializing both `error.stack` and `errorInfo.componentStack` into `localStorage` during an application crash.
 **Learning:** Storing stack traces in client-side storage mechanisms like `localStorage` exposes internal application structure details to the client environment, where they could potentially be accessed by malicious browser extensions or XSS attacks. While local storage is limited to the origin, it still violates the principle of not exposing stack traces to the client.
 **Prevention:** Never serialize and store raw stack traces (`error.stack` or `componentStack`) in client-side storage like `localStorage` or `sessionStorage`. Store only generic error information locally, and send detailed stack traces securely to a remote logging service.
+
+## 2026-08-30 - [Remove Vercel API Token Leak in LocalStorage]
+**Vulnerability:** The Vercel API Token used for website deployments was being stored in plain text within `localStorage` inside `components/panels/WebsitePanel.tsx`.
+**Learning:** `localStorage` is accessible to any JavaScript running on the page, meaning if the application is ever vulnerable to Cross-Site Scripting (XSS), attackers can silently exfiltrate sensitive tokens. A Personal Access Token (like Vercel API Token) grants significant permissions and should never be persisted insecurely on the client.
+**Prevention:** Never persist sensitive API keys or Personal Access Tokens in `localStorage`, `sessionStorage`, or cookies without `HttpOnly` flags. Such keys should only be held in memory (React state) during the current session or managed securely by a backend proxy.

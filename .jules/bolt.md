@@ -102,7 +102,6 @@
 
 **Learning:** Using `.findIndex` inside a `.map` creates an O(N^2) operation, causing severe performance issues with large arrays. Additionally, using `Math.min(...array.map())` causes unnecessary memory allocations and can lead to maximum call stack exceeded errors.
 **Action:** Use a pre-computed `Map` to turn O(N^2) lookups into O(N). Replace chained `.map` and spread operations with a single `for` loop.
-<<<<<<< HEAD
 
 ## 2026-07-31 - Replace .findIndex() inside .map() loops and Math.min() calls
 
@@ -196,3 +195,11 @@
 
 **Learning:** Using `new RegExp` or `.exec` inside a function that gets called extremely frequently (like `hexToRgba` during canvas rendering) is significantly slower than doing simple integer parsing and bitwise ops. Furthermore, if you refactor from regex to parsing, you must be careful because `parseInt` stops parsing at the first invalid character (so `#12345g` parses as `12345` / `74565`), which changes strict validation behavior.
 **Action:** Replace `RegExp` with `Number('0x' + string)` when converting hex colors to integers to maintain both performance and strictness (as `Number()` returns `NaN` for strings containing any invalid characters). Ensure such micro-optimizations respect the exact input validation of the original code.
+
+## 2026-08-25 - Avoid string joins for array equality in frequent renders
+
+**Learning:** When comparing arrays inside a `useMemo` block in frequently rendered components like `Canvas.tsx`, using `.map(item => item.id).join(',')` is extremely inefficient. It creates massive string allocations and intermediate arrays on every render cycle, increasing garbage collection overhead.
+**Action:** Replace `.map().join(',')` based array equality checks with imperative `for` loops that iterate over the arrays and compare elements (or their IDs) index by index, enabling early exits and zero string allocations.
+## 2026-08-30 - Prevent O(N) array allocation in AI design analysis
+**Learning:** Found an unoptimized `artboards.flatMap((a) => a.layers).concat(layers)` call in `getAllLayers` in `ai/designEngine.ts`. This was causing massive intermediate array allocations in performance critical paths.
+**Action:** Replaced it with an imperative nested loop to prevent intermediate array allocations and reduce garbage collection overhead, particularly inside frequently called utility functions.
