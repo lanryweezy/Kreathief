@@ -8,9 +8,15 @@ import { surface } from './tokens';
  * Used by canvas engine (shadow/glow) and export service (SVG filters).
  */
 export function hexToRgba(hex: string, alpha: number): string {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return hex;
-  return `rgba(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}, ${alpha})`;
+  // Bolt: Optimized from RegExp to Number('0x' + str) + bitwise ops. Avoids slow regex execution during frequent canvas renders.
+  const cleanHex = hex.charCodeAt(0) === 35 ? hex.slice(1) : hex; // 35 is '#'
+  if (cleanHex.length === 6) {
+    const val = Number("0x" + cleanHex);
+    if (!Number.isNaN(val)) {
+      return `rgba(${(val >> 16) & 255}, ${(val >> 8) & 255}, ${val & 255}, ${alpha})`;
+    }
+  }
+  return hex;
 }
 
 /**
@@ -20,6 +26,7 @@ export function hexToRgba(hex: string, alpha: number): string {
  * Used in 14 places across the codebase — was previously copy-pasted.
  */
 export function resolveFillColor(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fill: string | { type: string; stops: any[] } | null | undefined,
   fallback: string = surface[3]
 ): string {

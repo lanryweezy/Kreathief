@@ -102,7 +102,6 @@
 
 **Learning:** Using `.findIndex` inside a `.map` creates an O(N^2) operation, causing severe performance issues with large arrays. Additionally, using `Math.min(...array.map())` causes unnecessary memory allocations and can lead to maximum call stack exceeded errors.
 **Action:** Use a pre-computed `Map` to turn O(N^2) lookups into O(N). Replace chained `.map` and spread operations with a single `for` loop.
-<<<<<<< HEAD
 
 ## 2026-07-31 - Replace .findIndex() inside .map() loops and Math.min() calls
 
@@ -192,6 +191,10 @@
 ## 2024-05-18 - Optimize selectedLayers calculation in ArrangePanel
 **Learning:** Found an instance in `ArrangePanel.tsx` where it calculated `allLayers` and `selectedLayers` on every render by doing an O(N) array allocation (`artboards.flatMap((a) => a.layers)`) followed by another O(N) `filter` mapping. This results in heavy intermediate array allocations on every render cycle which increases garbage collection pressure, affecting UI performance and causing unnecessary rendering slowness.
 **Action:** Replace `artboards.flatMap().filter()` with an imperative loop wrapped in `React.useMemo`. Using an imperative block avoids intermediate array overhead, allows early termination of loops (when `layers.length === selectedLayerIds.length`), and `useMemo` guarantees that the logic will only be evaluated when `artboards` or `selectedLayerIds` explicitly change.
+## 2024-05-18 - Avoid Regex parsing for hot paths like hexToRgba
+
+**Learning:** Using `new RegExp` or `.exec` inside a function that gets called extremely frequently (like `hexToRgba` during canvas rendering) is significantly slower than doing simple integer parsing and bitwise ops. Furthermore, if you refactor from regex to parsing, you must be careful because `parseInt` stops parsing at the first invalid character (so `#12345g` parses as `12345` / `74565`), which changes strict validation behavior.
+**Action:** Replace `RegExp` with `Number('0x' + string)` when converting hex colors to integers to maintain both performance and strictness (as `Number()` returns `NaN` for strings containing any invalid characters). Ensure such micro-optimizations respect the exact input validation of the original code.
 
 ## 2026-08-25 - Avoid string joins for array equality in frequent renders
 
