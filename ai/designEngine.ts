@@ -73,8 +73,19 @@ function hexToHsl(hex: string): { h: number; s: number; l: number } {
   };
 }
 
+// ⚡ Bolt Optimization: Replace flatMap with imperative loop to prevent intermediate O(N) array allocations
 function getAllLayers(artboards: Artboard[], layers: Layer[]): Layer[] {
-  return artboards.flatMap((a) => a.layers).concat(layers);
+  const allLayers: Layer[] = [];
+  for (let i = 0; i < artboards.length; i++) {
+    const aLayers = artboards[i].layers;
+    for (let j = 0; j < aLayers.length; j++) {
+      allLayers.push(aLayers[j]);
+    }
+  }
+  for (let k = 0; k < layers.length; k++) {
+    allLayers.push(layers[k]);
+  }
+  return allLayers;
 }
 
 function getColors(layers: Layer[]): string[] {

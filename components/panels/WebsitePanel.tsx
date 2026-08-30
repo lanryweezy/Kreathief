@@ -11,6 +11,7 @@ import { log } from '../../utils/log';
 import { PanelHeader } from './PanelHeader';
 import { SearchInput } from '../SearchInput';
 import { getAIErrorMessage, getErrorDetails } from '../../utils/errorMessages';
+import { fuzzyMatch } from '../../utils/search';
 
 const generateWebsiteDesign = null as unknown as any;
 
@@ -60,7 +61,8 @@ export const WebsitePanel: React.FC = () => {
 
   // Deployment State
   const [showDeployModal, setShowDeployModal] = useState(false);
-  const [vercelToken, setVercelToken] = useState(() => localStorage.getItem('vercel_token') || '');
+  // Sentinel: Removed localStorage to prevent Vercel API Token exposure to client-side attacks like XSS
+  const [vercelToken, setVercelToken] = useState('');
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployUrl, setDeployUrl] = useState('');
   const [deployError, setDeployError] = useState('');
@@ -334,8 +336,6 @@ export const WebsitePanel: React.FC = () => {
     setIsDeploying(true);
     setDeployError('');
     try {
-      localStorage.setItem('vercel_token', vercelToken);
-
       const result = await exportWebsite(websitePages, siteSettings);
 
       const vercelFiles = [
@@ -365,10 +365,11 @@ export const WebsitePanel: React.FC = () => {
 
   const filteredSections = SECTION_BLOCKS.filter((b) => {
     const matchesCategory = activeCategory === 'All' || b.category === activeCategory;
+    // 🌸 Bloom: Replaced exact substring matching with fuzzyMatch for typo tolerance
     const matchesSearch =
       !sectionSearch ||
-      b.name.toLowerCase().includes(sectionSearch.toLowerCase()) ||
-      b.tags.some((t) => t.includes(sectionSearch.toLowerCase()));
+      fuzzyMatch(sectionSearch, b.name) ||
+      b.tags.some((t) => fuzzyMatch(sectionSearch, t));
     return matchesCategory && matchesSearch;
   });
 

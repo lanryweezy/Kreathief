@@ -1,3 +1,5 @@
+#!/bin/bash
+cat << 'INNER_EOF' > components/ContextMenu.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useShallow } from 'zustand/react/shallow';
@@ -630,3 +632,4 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
     document.body
   );
 };
+INNER_EOF

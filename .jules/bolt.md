@@ -192,3 +192,11 @@
 ## 2024-05-18 - Optimize selectedLayers calculation in ArrangePanel
 **Learning:** Found an instance in `ArrangePanel.tsx` where it calculated `allLayers` and `selectedLayers` on every render by doing an O(N) array allocation (`artboards.flatMap((a) => a.layers)`) followed by another O(N) `filter` mapping. This results in heavy intermediate array allocations on every render cycle which increases garbage collection pressure, affecting UI performance and causing unnecessary rendering slowness.
 **Action:** Replace `artboards.flatMap().filter()` with an imperative loop wrapped in `React.useMemo`. Using an imperative block avoids intermediate array overhead, allows early termination of loops (when `layers.length === selectedLayerIds.length`), and `useMemo` guarantees that the logic will only be evaluated when `artboards` or `selectedLayerIds` explicitly change.
+
+## 2026-08-25 - Avoid string joins for array equality in frequent renders
+
+**Learning:** When comparing arrays inside a `useMemo` block in frequently rendered components like `Canvas.tsx`, using `.map(item => item.id).join(',')` is extremely inefficient. It creates massive string allocations and intermediate arrays on every render cycle, increasing garbage collection overhead.
+**Action:** Replace `.map().join(',')` based array equality checks with imperative `for` loops that iterate over the arrays and compare elements (or their IDs) index by index, enabling early exits and zero string allocations.
+## 2026-08-30 - Prevent O(N) array allocation in AI design analysis
+**Learning:** Found an unoptimized `artboards.flatMap((a) => a.layers).concat(layers)` call in `getAllLayers` in `ai/designEngine.ts`. This was causing massive intermediate array allocations in performance critical paths.
+**Action:** Replaced it with an imperative nested loop to prevent intermediate array allocations and reduce garbage collection overhead, particularly inside frequently called utility functions.
