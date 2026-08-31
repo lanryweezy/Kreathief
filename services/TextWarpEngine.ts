@@ -1,6 +1,69 @@
 import opentype from 'opentype.js';
 
-export type WarpStyle = 'none' | 'arch' | 'flag' | 'rise' | 'wave' | 'bulge';
+// Widen WarpStyle to string so new implementations can self-register without triggering TypeScript errors
+export type WarpStyle = string;
+
+/**
+ * Extensibility Point: TextWarpStrategy Registry
+ * Evidence of pressure: The `warpPoint` function relied on a hard-coded switch statement
+ * with 5 cases ('arch', 'flag', 'rise', 'wave', 'bulge').
+ * Contract: Implementors must provide a `warp` method that accepts the raw coordinates (x,y),
+ * the normalized coordinates (nx,ny) from 0 to 1, and the total distortion magnitude.
+ * It must return the new {x, y} coordinates.
+ * The registry enables registering new text distortions without touching the core logic.
+ */
+export interface TextWarpStrategy {
+  warp(x: number, y: number, nx: number, ny: number, magnitude: number): { x: number; y: number };
+}
+
+export const textWarpStrategies = new Map<string, TextWarpStrategy>();
+
+textWarpStrategies.set('arch', {
+  warp(x, y, nx, ny, magnitude) {
+    const archOffset = 4 * nx * (1 - nx) * magnitude;
+    return { x, y: y - archOffset };
+  },
+});
+
+textWarpStrategies.set('flag', {
+  warp(x, y, nx, ny, magnitude) {
+    const flagOffset = Math.sin(nx * Math.PI * 2) * magnitude;
+    return { x, y: y + flagOffset };
+  },
+});
+
+textWarpStrategies.set('rise', {
+  warp(x, y, nx, ny, magnitude) {
+    const riseOffset = nx * magnitude;
+    return { x, y: y - riseOffset + magnitude / 2 };
+  },
+});
+
+textWarpStrategies.set('wave', {
+  warp(x, y, nx, ny, magnitude) {
+    const waveY = Math.sin(nx * Math.PI * 1.5) * magnitude;
+    return { x, y: y + waveY };
+  },
+});
+
+textWarpStrategies.set('bulge', {
+  warp(x, y, nx, ny, magnitude) {
+    const distX = Math.abs(nx - 0.5) * 2;
+    const distY = Math.abs(ny - 0.5) * 2;
+    const bulge = (1 - distX * distX) * (1 - distY * distY) * magnitude;
+
+    let newX = x;
+    let newY = y;
+
+    if (nx < 0.5) newX -= bulge * 0.5;
+    else newX += bulge * 0.5;
+
+    if (ny < 0.5) newY -= bulge * 0.5;
+    else newY += bulge * 0.5;
+
+    return { x: newX, y: newY };
+  },
+});
 
 /**
  * TextWarpEngine applies Bezier envelope distortion to opentype.js font paths
@@ -83,57 +146,9 @@ export class TextWarpEngine {
     // The amount of distortion in pixels
     const magnitude = height * amount;
 
-    switch (style) {
-      case 'arch': {
-        // Parabola distortion: y offset is highest at center
-        // equation: 4 * x * (1 - x) is a parabola that is 0 at x=0,1 and 1 at x=0.5
-        const archOffset = 4 * nx * (1 - nx) * magnitude;
-        newY = y - archOffset;
-        break;
-      }
-
-      case 'flag': {
-        // Sine wave across the width
-        const flagOffset = Math.sin(nx * Math.PI * 2) * magnitude;
-        newY = y + flagOffset;
-        break;
-      }
-
-      case 'rise': {
-        // Linear slope
-        const riseOffset = nx * magnitude;
-        newY = y - riseOffset + magnitude / 2; // Center the rise
-        break;
-      }
-
-      case 'wave': {
-        // Sine wave but also affects X
-        const waveY = Math.sin(nx * Math.PI * 1.5) * magnitude;
-        newY = y + waveY;
-        break;
-      }
-
-      case 'bulge': {
-        // Fish-eye like bulge in the center
-        const distX = Math.abs(nx - 0.5) * 2; // 0 at center, 1 at edges
-        const distY = Math.abs(ny - 0.5) * 2;
-        const bulge = (1 - distX * distX) * (1 - distY * distY) * magnitude;
-
-        // Push outwards from center
-        if (nx < 0.5) {
-          newX -= bulge * 0.5;
-        } else {
-          newX += bulge * 0.5;
-        }
-
-        if (ny < 0.5) {
-          newY -= bulge * 0.5;
-        } else {
-          newY += bulge * 0.5;
-        }
-
-        break;
-      }
+    const strategy = textWarpStrategies.get(style);
+    if (strategy) {
+      return strategy.warp(x, y, nx, ny, magnitude);
     }
 
     return { x: newX, y: newY };
