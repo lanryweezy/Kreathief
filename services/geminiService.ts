@@ -327,24 +327,40 @@ export const generateLayerName = async (description: string): Promise<string> =>
 export const generateLayerNames = async (layerSummaries: any[]): Promise<Record<string, string>> => {
   try {
     const prompt = `You are an expert UI designer. Rename these layers to be extremely logical, concise, and semantic (like Figma).
-Output a JSON object where keys are layer IDs and values are the new string names.
+Output a JSON array of objects, where each object has 'id' and 'name' properties.
 Layers: ${JSON.stringify(layerSummaries)}`;
 
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: 'application/json',
-        responseSchema: { type: SchemaType.OBJECT },
+        // 🤖 Astra: Use structured output schema with SchemaType.ARRAY instead of raw dictionary to prevent markdown wrapping and parsing failures
+        responseSchema: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              id: { type: SchemaType.STRING },
+              name: { type: SchemaType.STRING },
+            },
+            required: ['id', 'name'],
+          },
+        },
       },
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
     });
 
-    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '{}' to prevent silent failures on empty LLM output and ensure error catching logic executes.
-    const parsed = safeParseJSON<Record<string, string> | null>(data.text || 'null', null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '[]' to prevent silent failures on empty LLM output and ensure error catching logic executes.
+    const parsed = safeParseJSON<Array<{ id: string; name: string }> | null>(data.text || 'null', null);
     if (!parsed) {
       throw new Error('Failed to parse generateLayerNames output JSON');
     }
-    return parsed;
+
+    const result: Record<string, string> = {};
+    for (const item of parsed) {
+      result[item.id] = item.name;
+    }
+    return result;
   } catch (error) {
     log.error('generateLayerNames error:', error);
     return {};
