@@ -78,6 +78,7 @@ export const MobileColorPicker: React.FC<MobileColorPickerProps> = ({
           <label className="text-sm font-semibold text-gray-400 mb-2 block">Current Color</label>
           <input
             type="text"
+            aria-label="Current color hex value"
             value={value}
             onChange={(e) => onChange(e.target.value)}
             className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-mono text-sm focus:outline-none focus:border-purple-500 transition-colors"
@@ -90,6 +91,7 @@ export const MobileColorPicker: React.FC<MobileColorPickerProps> = ({
         <label className="text-sm font-semibold text-gray-400 mb-3 block">Custom Color</label>
         <input
           type="color"
+          aria-label="Custom color picker"
           value={value}
           onChange={(e) => handleColorSelect(e.target.value)}
           className="w-full h-16 rounded-2xl border-2 border-white/10 cursor-pointer"
