@@ -1,3 +1,4 @@
+import { fuzzyMatch } from '../utils/search';
 // Enhanced Mockup Library - 50+ Templates
 // Organized by category with advanced placement data
 
@@ -765,12 +766,12 @@ export function getMockupsByCategory(category: string): MockupDef[] {
 }
 
 export function searchMockups(query: string): MockupDef[] {
-  const lowerQuery = query.toLowerCase();
+  // 🌸 Bloom: Replaced exact substring matching with fuzzyMatch for typo tolerance
   return ENHANCED_MOCKUPS.filter(
     (m) =>
-      m.name.toLowerCase().includes(lowerQuery) ||
-      m.tags?.some((tag) => tag.toLowerCase().includes(lowerQuery)) ||
-      m.category.toLowerCase().includes(lowerQuery)
+      fuzzyMatch(query, m.name) ||
+      m.tags?.some((tag) => fuzzyMatch(query, tag)) ||
+      fuzzyMatch(query, m.category)
   );
 }
 
