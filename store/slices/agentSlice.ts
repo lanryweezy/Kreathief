@@ -17,7 +17,16 @@ import { v4 as uuidv4 } from 'uuid';
 import { composeGenerationPrompt } from '../../services/imageGenService';
 import { analyticsService } from '../../services/analyticsService';
 
-export type AgentStatus = 'idle' | 'strategy' | 'creative' | 'searching' | 'rendering' | 'critic' | 'performance' | 'done' | 'error';
+export type AgentStatus =
+  | 'idle'
+  | 'strategy'
+  | 'creative'
+  | 'searching'
+  | 'rendering'
+  | 'critic'
+  | 'performance'
+  | 'done'
+  | 'error';
 
 export interface ThinkingEvent {
   id: string;
@@ -118,7 +127,7 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
       // Phase 0: Research & Strategy (always runs — provides the creative brief for Phase 1)
       set({ agentStatus: 'strategy' });
       get().addThinkingEvent('Strategy Agent', 'Researching domain, audience, and visual language...');
-      let researchInterval = setInterval(() => {
+      const researchInterval = setInterval(() => {
         const thoughts = [
           'Decoding audience psychology...',
           'Identifying category clichés to avoid...',
@@ -136,12 +145,18 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
         typographyPairing: { heading: 'Space Grotesk', body: 'Inter' },
         colorPsychology: 'Neutral contemporary palette with a single strong accent color',
         spacingSystem: 'Balanced',
-        avoidanceRules: ['Generic stock imagery', 'Overused gradients', 'Clip art icons', 'Comic Sans or Impact'],
+        antiCliches: ['Generic stock imagery', 'Overused gradients', 'Clip art icons', 'Comic Sans or Impact'],
+        palettes: [],
+        trends: [],
+        layers: [],
       };
       try {
         strategy = await researchAgentStrategy(composedIntent, brandKit);
-        get().addThinkingEvent('Strategy Agent', `Brief locked: "${strategy.coreMetaphor}" — ${strategy.spacingSystem} spacing — fonts: ${strategy.typographyPairing.heading} / ${strategy.typographyPairing.body}`);
-        get().addThinkingEvent('Strategy Agent', `Banned clichés: ${strategy.avoidanceRules.slice(0, 3).join(', ')}...`);
+        get().addThinkingEvent(
+          'Strategy Agent',
+          `Brief locked: "${strategy.coreMetaphor}" — ${strategy.spacingSystem} spacing — fonts: ${strategy.typographyPairing.heading} / ${strategy.typographyPairing.body}`
+        );
+        get().addThinkingEvent('Strategy Agent', `Banned clichés: ${strategy.antiCliches.slice(0, 3).join(', ')}...`);
       } catch (strategyErr) {
         // Strategy agent failed (timeout / parse error) — fall back to default so Phase 1 still runs
         get().addThinkingEvent('Strategy Agent', 'Strategy brief synthesized from design principles (fast-path).');
@@ -149,19 +164,18 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
         clearInterval(researchInterval);
       }
 
-
       // Phase 1: Creative Drafting (executes the researched strategy)
       set({ agentStatus: 'creative' });
       get().addThinkingEvent('Creative Agent', 'Art directing layouts from the strategy brief...');
-      
-      let draftingInterval = setInterval(() => {
+
+      const draftingInterval = setInterval(() => {
         const thoughts = [
           'Applying modular typographic scale...',
           'Injecting spatial tension...',
           'Constructing layer hierarchy...',
           'Encoding Gestalt principles...',
           'Art directing image prompts...',
-          'Generating layout variants...'
+          'Generating layout variants...',
         ];
         const randomThought = thoughts[Math.floor(Math.random() * thoughts.length)];
         get().addThinkingEvent('Creative Agent', randomThought);
@@ -173,16 +187,16 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
       } finally {
         clearInterval(draftingInterval);
       }
-      
+
       set({ agentStatus: 'searching' });
       get().addThinkingEvent('Creative Agent', `Drafted ${draftedVariants.length} distinct layout directions.`);
       get().addThinkingEvent('Creative Agent', 'Searching and rendering image assets...');
-      
+
       // Simulate rendering/searching time if needed, or simply step through
-      await new Promise(r => setTimeout(r, 1500));
+      await new Promise((r) => setTimeout(r, 1500));
       set({ agentStatus: 'rendering' });
-      await new Promise(r => setTimeout(r, 1500));
-      
+      await new Promise((r) => setTimeout(r, 1500));
+
       set({ agentVariants: draftedVariants });
 
       // Free users: skip critic + performance for speed/cost
@@ -266,14 +280,18 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
     try {
       analyticsService.track('agent_workflow', { type: 'motion_director' });
       set({ agentStatus: 'rendering', agentError: null, thinkingLog: [] });
-      
+
       const activeArtboard = get().artboards.find((a: any) => a.id === get().activeArtboardId);
       if (!activeArtboard) {
         throw new Error('No active artboard found');
       }
 
       get().addThinkingEvent('Motion Director', 'Analyzing spatial layout and hierarchy...');
-      const animatedLayers = await motionDirectorAgent(intent, activeArtboard.layers, get().canvasSize || { width: 1080, height: 1080 });
+      const animatedLayers = await motionDirectorAgent(
+        intent,
+        activeArtboard.layers,
+        get().canvasSize || { width: 1080, height: 1080 }
+      );
       get().addThinkingEvent('Motion Director', 'Sequencing entry animations applied.');
 
       const newArtboards = get().artboards.map((a: any) => {
@@ -291,7 +309,6 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
       if (typeof (get() as any).pushHistoryState === 'function') {
         (get() as any).pushHistoryState();
       }
-
     } catch (err: any) {
       log.error('[AgentSlice] Motion Director failed:', err);
       set({ agentStatus: 'error', agentError: err.message || 'Failed to apply motion sequence' });
@@ -319,9 +336,10 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
     }
 
     // Determine if we are using the new multi-artboard schema or legacy layers schema
-    const artboardsToApply = variant.artboards && variant.artboards.length > 0 
-      ? variant.artboards 
-      : [{ name: 'Artboard', layers: variant.layers || [] }];
+    const artboardsToApply =
+      variant.artboards && variant.artboards.length > 0
+        ? variant.artboards
+        : [{ name: 'Artboard', layers: variant.layers || [] }];
 
     if (artboardsToApply.length === 1) {
       // Single artboard scenario - apply to current active artboard
@@ -350,9 +368,7 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
       // We will create entirely new artboards and append them
       const newArtboards = [...state.artboards];
       // Generate some offset to place them side by side
-      let currentX = newArtboards.length > 0 
-        ? Math.max(...newArtboards.map(a => a.x + a.width)) + 100 
-        : 0;
+      let currentX = newArtboards.length > 0 ? Math.max(...newArtboards.map((a) => a.x + a.width)) + 100 : 0;
 
       for (const sourceArtboard of artboardsToApply) {
         newArtboards.push({

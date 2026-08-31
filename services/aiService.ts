@@ -46,6 +46,9 @@ export interface AgentVariant {
   id: string;
   themeIdea: string;
   layers: Layer[];
+  artboards?: Artboard[];
+  width?: number;
+  height?: number;
   performanceScore?: number;
   performanceReasoning?: string;
   criticFeedback?: string[];
@@ -276,7 +279,8 @@ Be concise and specific.`,
 export async function creativeAgentDraft(
   intent: string,
   canvasSize: { width: number; height: number },
-  variantCount: number = 3
+  variantCount: number = 3,
+  strategy?: any
 ): Promise<AgentVariant[]> {
   const cacheKey = `draft:${intent}:${canvasSize.width}x${canvasSize.height}:${variantCount}`;
   const cached = getCached<AgentVariant[]>(cacheKey);
@@ -586,11 +590,11 @@ export async function performanceAgentScore(variants: AgentVariant[]): Promise<A
   }
 }
 
-export function generateProceduralDrafts(intent: string, canvasSize: {width: number, height: number}): any[] {
+export function generateProceduralDrafts(intent: string, canvasSize: { width: number; height: number }): any[] {
   const isTech = intent.toLowerCase().includes('tech') || intent.toLowerCase().includes('saas');
   const primaryText = isTech ? 'AI-POWERED PLATFORM' : 'ARTISAN ROAST ESPRESSO';
   const subText = isTech ? 'Next-Gen Analytics' : 'Freshly Brewed';
-  
+
   const createVariant = (index: number) => ({
     id: `draft-proc-${Date.now()}-${index}`,
     themeIdea: `Procedural Draft ${index + 1} for ${intent}`,
@@ -606,7 +610,7 @@ export function generateProceduralDrafts(intent: string, canvasSize: {width: num
         fill: isTech ? '#0f172a' : '#451a03',
         opacity: 1,
         locked: false,
-        name: 'Background Card'
+        name: 'Background Card',
       },
       {
         id: `shape1-${Date.now()}-${index}`,
@@ -618,7 +622,7 @@ export function generateProceduralDrafts(intent: string, canvasSize: {width: num
         fill: isTech ? '#3b82f6' : '#d97706',
         opacity: 1,
         locked: false,
-        name: 'Decorative Circle'
+        name: 'Decorative Circle',
       },
       {
         id: `shape2-${Date.now()}-${index}`,
@@ -630,13 +634,13 @@ export function generateProceduralDrafts(intent: string, canvasSize: {width: num
         fill: '#ffffff',
         opacity: 1,
         locked: false,
-        name: 'Accent Box'
+        name: 'Accent Box',
       },
       {
         id: `text1-${Date.now()}-${index}`,
         type: 'text',
         x: 50,
-        y: 100 + (index * 20),
+        y: 100 + index * 20,
         width: canvasSize.width - 100,
         height: 100,
         text: primaryText,
@@ -645,13 +649,13 @@ export function generateProceduralDrafts(intent: string, canvasSize: {width: num
         fontWeight: 'bold',
         fill: isTech ? '#38bdf8' : '#fcd34d',
         opacity: 1,
-        locked: false
+        locked: false,
       },
       {
         id: `text2-${Date.now()}-${index}`,
         type: 'text',
         x: 50,
-        y: 220 + (index * 20),
+        y: 220 + index * 20,
         width: canvasSize.width - 100,
         height: 50,
         text: subText,
@@ -660,11 +664,11 @@ export function generateProceduralDrafts(intent: string, canvasSize: {width: num
         fontWeight: 'normal',
         fill: '#ffffff',
         opacity: 1,
-        locked: false
-      }
+        locked: false,
+      },
     ],
     width: canvasSize.width,
-    height: canvasSize.height
+    height: canvasSize.height,
   });
 
   return [createVariant(0), createVariant(1), createVariant(2)];
@@ -682,8 +686,14 @@ export async function researchAgentStrategy(intent: string, brandKit: any): Prom
     palettes: [['#ffffff', '#000000']],
     trends: [],
     antiCliches: ['Generic stock imagery', 'Overused gradients', 'Clip art icons', 'Comic Sans or Impact'],
-    layers: []
+    layers: [],
   };
 }
 
-export async function motionDirectorAgent(intent: string, layers: any[], canvasSize: {width: number, height: number}): Promise<any[]> { return layers; }
+export async function motionDirectorAgent(
+  intent: string,
+  layers: any[],
+  canvasSize: { width: number; height: number }
+): Promise<any[]> {
+  return layers;
+}
