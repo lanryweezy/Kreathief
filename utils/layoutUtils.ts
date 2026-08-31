@@ -268,7 +268,7 @@ export const resolveConstraints = (
  * Translates simple AI constraints into structured LayerBase constraints.
  */
 export const resolveSemanticConstraints = (
-  simpleConstraints: string[]
+  simpleConstraints: string[] | string
 ): {
   horizontal: 'start' | 'end' | 'center' | 'scale' | 'both';
   vertical: 'start' | 'end' | 'center' | 'scale' | 'both';
@@ -278,23 +278,28 @@ export const resolveSemanticConstraints = (
     vertical: 'start' | 'end' | 'center' | 'scale' | 'both';
   } = { horizontal: 'start', vertical: 'start' };
 
-  if (simpleConstraints.includes('center-h')) {
+  const constraintsList = Array.isArray(simpleConstraints) 
+    ? simpleConstraints 
+    : typeof simpleConstraints === 'string' 
+      ? [simpleConstraints] 
+      : [];
+
+  if (constraintsList.includes('center-h')) {
     result.horizontal = 'center';
   }
-  if (simpleConstraints.includes('pin-right')) {
+  if (constraintsList.includes('pin-right')) {
     result.horizontal = 'end';
   }
-  if (simpleConstraints.includes('fill')) {
+  if (constraintsList.includes('fill')) {
     result.horizontal = 'scale';
   }
-
-  if (simpleConstraints.includes('center-v')) {
+  if (constraintsList.includes('center-v')) {
     result.vertical = 'center';
   }
-  if (simpleConstraints.includes('pin-bottom')) {
+  if (constraintsList.includes('pin-bottom')) {
     result.vertical = 'end';
   }
-  if (simpleConstraints.includes('fill')) {
+  if (constraintsList.includes('fill')) {
     result.vertical = 'scale';
   }
 

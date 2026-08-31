@@ -269,6 +269,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
         comments: existingProject?.comments || [],
       };
       await storageService.saveProject(updatedProject);
+      await storageService.saveSessionMirror(projectId, updatedProject.state, get().past, get().future, projectTitle);
       set((state: any) => ({
         isSaving: false,
         syncStatus: 'synced',

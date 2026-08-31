@@ -1,5 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { AppMode, AspectRatio, ReferenceAspect, REFERENCE_ASPECT_LABELS, StyleReference } from '../../types';
+import {
+  AppMode,
+  AspectRatio,
+  ReferenceAspect,
+  REFERENCE_ASPECT_LABELS,
+  StyleReference,
+  PromptArchetype,
+  ReferenceStrength,
+} from '../../types';
+import { CURATED_STYLE_PRESETS } from '../../config/stylePresets';
 import { Icons } from '../../constants';
 import { Button } from '../Button';
 import { Toggle } from '../Toggle';
@@ -20,6 +29,37 @@ interface MagicPanelProps {
   onGenerate: (negPrompt?: string) => void;
   uploadedImage: string | null;
 }
+
+const PROMPT_ARCHETYPES: { id: PromptArchetype; label: string; icon: string }[] = [
+  { id: 'cinematic', label: 'Cinematic', icon: 'Camera' },
+  { id: 'artistic', label: 'Concept Art', icon: 'Brush' },
+  { id: 'product', label: 'Product Shot', icon: 'Box' },
+  { id: 'render_3d', label: '3D Octane', icon: 'Sparkles' },
+  { id: 'vector_graphic', label: 'Vector Graphic', icon: 'Edit' },
+];
+
+const INSPIRATION_TAGS = [
+  'Volumetric Lighting',
+  'Dramatic Shadows',
+  'Minimalist Clean',
+  'Neon Rim Light',
+  'Octane 8k',
+  'Golden Hour',
+  'Macro Detail',
+  'Studio Backdrop',
+  'Duotone Gradient',
+  'Isometric 3D',
+];
+
+const NEGATIVE_PROMPT_CHIPS = [
+  'blurry',
+  'watermark',
+  'deformed hands',
+  'distorted text',
+  'oversaturated',
+  'jpeg artifacts',
+  'ugly anatomy',
+];
 
 // Style presets with inline SVG indicators representing the visual aesthetic
 const STYLE_PRESETS = [
@@ -129,6 +169,8 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
     setMode: onSetMode,
     prompt,
     setPrompt,
+    negativePrompt,
+    setNegativePrompt,
     aspectRatio,
     setAspectRatio,
     isProcessing,
@@ -152,6 +194,11 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
     setStyleReference,
     toggleReferenceAspect,
     clearStyleReference,
+    referenceStrength,
+    setReferenceStrength,
+    promptArchetype,
+    setPromptArchetype,
+    applyPresetStyleReference,
     campaignGoal,
     setCampaignGoal,
   } = useStore(
@@ -160,6 +207,8 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
       setMode: state.setMode,
       prompt: state.prompt,
       setPrompt: state.setPrompt,
+      negativePrompt: state.negativePrompt,
+      setNegativePrompt: state.setNegativePrompt,
       aspectRatio: state.aspectRatio,
       setAspectRatio: state.setAspectRatio,
       isProcessing: state.isProcessing,
@@ -183,6 +232,11 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
       setStyleReference: state.setStyleReference,
       toggleReferenceAspect: state.toggleReferenceAspect,
       clearStyleReference: state.clearStyleReference,
+      referenceStrength: state.referenceStrength,
+      setReferenceStrength: state.setReferenceStrength,
+      promptArchetype: state.promptArchetype,
+      setPromptArchetype: state.setPromptArchetype,
+      applyPresetStyleReference: state.applyPresetStyleReference,
       campaignGoal: state.campaignGoal,
       setCampaignGoal: state.setCampaignGoal,
     }))
@@ -192,8 +246,8 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
   const selectedLayerId = selectedLayerIds[selectedLayerIds.length - 1] || null;
 
   const [isEnhancing, setIsEnhancing] = useState(false);
-  const [negativePrompt, setNegativePrompt] = useState('');
   const [showNegative, setShowNegative] = useState(false);
+  const [showCuratedPresets, setShowCuratedPresets] = useState(false);
   const [antiAiSlop, setAntiAiSlop] = useState(true);
   const referenceInputRef = useRef<HTMLInputElement>(null);
   const [showAspects, setShowAspects] = useState(false);
@@ -258,9 +312,9 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
     }
     setIsEnhancing(true);
     try {
-      const enhanced = await geminiService.enhancePrompt(prompt);
+      const enhanced = await geminiService.enhancePrompt(prompt, promptArchetype);
       setPrompt(enhanced);
-      analyticsService.track('generate_image', { mode: 'enhance_prompt' });
+      analyticsService.track('generate_image', { mode: 'enhance_prompt', archetype: promptArchetype });
     } catch (e: any) {
       log.error('[MagicPanel] Prompt enhancement failed', e, { prompt: prompt.substring(0, 100) });
       addToast(
@@ -274,6 +328,23 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
     }
   };
 
+  const addInspirationTag = (tag: string) => {
+    if (!prompt.trim()) {
+      setPrompt(tag);
+    } else if (!prompt.includes(tag)) {
+      setPrompt(`${prompt.trim()}, ${tag}`);
+    }
+  };
+
+  const toggleNegativeChip = (chip: string) => {
+    const current = negativePrompt.split(',').map((s) => s.trim()).filter(Boolean);
+    if (current.includes(chip)) {
+      setNegativePrompt(current.filter((c) => c !== chip).join(', '));
+    } else {
+      setNegativePrompt(current.length > 0 ? `${current.join(', ')}, ${chip}` : chip);
+    }
+  };
+
   const selectedImageLayer = layers.find((l) => l.id === selectedLayerId && l.type === 'image');
 
   // -- Contextual Edit Mode --
@@ -282,11 +353,19 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
       <div className="flex flex-col h-full bg-surface-dark-1">
         <div className="p-6 border-b border-white/5 space-y-6">
           <div className="bg-purple-600/10 rounded-2xl p-4 border border-purple-500/30 shadow-2xl">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 rounded-xl bg-purple-600/20 flex items-center justify-center border border-purple-500/20">
-                <Icons.Magic className="w-4 h-4 text-brand-600" />
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-purple-600/20 flex items-center justify-center border border-purple-500/20">
+                  <Icons.Magic className="w-4 h-4 text-brand-600" />
+                </div>
+                <h4 className="text-xs font-black text-white uppercase tracking-widest">Generative Edit</h4>
               </div>
-              <h4 className="text-xs font-black text-white uppercase tracking-widest">Generative Edit</h4>
+              <button
+                onClick={() => useStore.getState().selectLayer('')}
+                className="text-[9px] font-bold text-gray-400 hover:text-white uppercase tracking-wider bg-white/5 px-2 py-1 rounded-lg border border-white/5"
+              >
+                Imagine Mode
+              </button>
             </div>
             <p className="text-[10px] text-gray-400 font-medium leading-relaxed">
               Transform <span className="text-white font-black">&quot;{selectedImageLayer.name || 'Image'}&quot;</span>{' '}
@@ -296,6 +375,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
 
           <div className="relative group">
             <textarea
+              data-testid="magic-prompt-input"
               className="w-full h-40 bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-white placeholder-muted-light focus:border-brand-600/50 focus:ring-1 focus:ring-brand-600/20 outline-none resize-none custom-scrollbar transition-all font-medium"
               placeholder="E.g., Turn the cat into a dog, Change the background to a beach..."
               value={prompt}
@@ -321,11 +401,16 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           <Button
             variant="primary"
             className="w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-purple-900/40"
-            onClick={() => {
-              onGenerate(negativePrompt);
+            onClick={async () => {
+              if (selectedImageLayer) {
+                await useStore.getState().onRemix(selectedImageLayer.id);
+              }
+              if (onGenerate) {
+                onGenerate(negativePrompt);
+              }
               analyticsService.trackGeneration(prompt, 'edit');
             }}
-            loading={isProcessing}
+            loading={isProcessing || isGenerating}
             disabled={!prompt.trim()}
           >
             <Icons.Wand className="w-4 h-4 mr-2" />
@@ -367,6 +452,31 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
       <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
         {/* Input Area */}
         <div className="p-4 border-b border-white/5 space-y-4 shrink-0">
+          {/* Prompt Archetype Selector */}
+          {mode === AppMode.GENERATE && (
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">
+                Prompt Mode
+              </label>
+              <div className="grid grid-cols-5 gap-1 bg-surface-dark-3 p-1 rounded-xl border border-white/5">
+                {PROMPT_ARCHETYPES.map((arch) => (
+                  <button
+                    key={arch.id}
+                    onClick={() => setPromptArchetype(arch.id)}
+                    className={`py-1.5 px-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all text-center truncate ${
+                      promptArchetype === arch.id
+                        ? 'bg-brand-600 text-white shadow-sm'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                    }`}
+                    title={arch.label}
+                  >
+                    {arch.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="relative mb-2">
             <textarea
               data-testid="magic-prompt-input"
@@ -392,6 +502,26 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
             </Button>
           </div>
 
+          {/* Inspiration Keyword Chips */}
+          {mode === AppMode.GENERATE && (
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[9px] font-bold text-gray-500 uppercase tracking-wider">
+                <span>Inspiration Tags</span>
+              </div>
+              <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto custom-scrollbar">
+                {INSPIRATION_TAGS.map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => addInspirationTag(tag)}
+                    className="px-2 py-0.5 rounded-md bg-white/5 hover:bg-brand-600/20 hover:border-brand-500/40 text-[9px] font-medium text-gray-300 border border-white/5 transition-colors"
+                  >
+                    + {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Negative Prompt Toggle */}
           <button
             onClick={() => setShowNegative(!showNegative)}
@@ -402,14 +532,31 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           </button>
 
           {showNegative && (
-            <div className="mb-3 animate-fade-in">
+            <div className="mb-3 space-y-2 animate-fade-in">
               <textarea
                 className="w-full h-16 bg-surface-dark-3 border border-red-900/40 rounded-xl p-3 text-xs text-gray-300 placeholder-muted-light focus:border-red-600/50 outline-none resize-none custom-scrollbar"
                 placeholder="What to exclude (e.g., blurry, ugly, watermark, text, bad anatomy)..."
                 value={negativePrompt}
                 onChange={(e) => setNegativePrompt(e.target.value)}
               />
-              <p className="text-[9px] text-muted-light mt-1">These elements will be excluded from the generation.</p>
+              <div className="flex flex-wrap gap-1">
+                {NEGATIVE_PROMPT_CHIPS.map((chip) => {
+                  const active = negativePrompt.toLowerCase().includes(chip.toLowerCase());
+                  return (
+                    <button
+                      key={chip}
+                      onClick={() => toggleNegativeChip(chip)}
+                      className={`px-2 py-0.5 rounded-md text-[9px] font-medium border transition-colors ${
+                        active
+                          ? 'bg-red-500/20 border-red-500/50 text-red-300'
+                          : 'bg-white/5 border-white/5 text-gray-400 hover:text-gray-200'
+                      }`}
+                    >
+                      {active ? '✓' : '+'} {chip}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -444,9 +591,48 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
             {/* Style Reference — vision-extracted, per-aspect conditioning */}
             {mode === AppMode.GENERATE && (
               <div className="space-y-2">
-                <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest block">
-                  Reference Image
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest block">
+                    Style Reference
+                  </label>
+                  <button
+                    onClick={() => setShowCuratedPresets(!showCuratedPresets)}
+                    className="text-[9px] font-bold text-brand-400 hover:text-brand-300 uppercase tracking-wider"
+                  >
+                    {showCuratedPresets ? 'Hide Presets' : 'Browse Presets'}
+                  </button>
+                </div>
+
+                {/* Curated Presets Grid */}
+                {showCuratedPresets && (
+                  <div className="grid grid-cols-2 gap-1.5 p-2 bg-surface-dark-3 rounded-xl border border-white/10 animate-fade-in">
+                    {CURATED_STYLE_PRESETS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        onClick={() => {
+                          applyPresetStyleReference(preset.id);
+                          setShowCuratedPresets(false);
+                        }}
+                        className="flex flex-col p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-brand-500/40 text-left transition-all group"
+                      >
+                        <div className={`h-8 w-full rounded-md bg-gradient-to-r ${preset.thumbnailGradient} mb-1.5 flex items-center justify-center`}>
+                          <span className="text-[8px] font-black uppercase text-white tracking-widest drop-shadow">
+                            {preset.category}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-bold text-gray-200 group-hover:text-white truncate">
+                          {preset.name}
+                        </span>
+                        <div className="flex gap-1 mt-1">
+                          {preset.palette.slice(0, 4).map((c, i) => (
+                            <span key={i} className="w-2.5 h-2.5 rounded-full border border-black/40" style={{ backgroundColor: c }} />
+                          ))}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 <input
                   ref={referenceInputRef}
                   type="file"
@@ -460,7 +646,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                     onClick={() => referenceInputRef.current?.click()}
                     className="w-full py-3 rounded-xl border border-dashed border-white/15 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:border-brand-600/60 hover:text-gray-300 transition-colors"
                   >
-                    Upload a look to match
+                    Upload Custom Image Reference
                   </button>
                 ) : (
                   <div className="bg-white/5 rounded-xl border border-white/5 p-2 space-y-2">
@@ -491,6 +677,41 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                       >
                         <Icons.Trash className="w-3.5 h-3.5" />
                       </button>
+                    </div>
+
+                    {/* Extracted Palette Swatches preview */}
+                    {styleReference.extracted?.palette && styleReference.extracted.palette.length > 0 && (
+                      <div className="flex items-center gap-1 pt-1 border-t border-white/5">
+                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-wider mr-1">Palette:</span>
+                        {styleReference.extracted.palette.slice(0, 6).map((col, idx) => (
+                          <span
+                            key={idx}
+                            className="w-3 h-3 rounded-full border border-black/50 shadow-sm"
+                            style={{ backgroundColor: col }}
+                            title={col}
+                          />
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Reference Strength Selector */}
+                    <div className="flex items-center justify-between pt-1 border-t border-white/5">
+                      <span className="text-[8px] font-black text-gray-500 uppercase tracking-wider">Influence:</span>
+                      <div className="flex gap-1 bg-surface-dark-3 p-0.5 rounded-lg border border-white/5">
+                        {(['subtle', 'balanced', 'strong'] as ReferenceStrength[]).map((st) => (
+                          <button
+                            key={st}
+                            onClick={() => setReferenceStrength(st)}
+                            className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider transition-colors ${
+                              (styleReference.strength || referenceStrength) === st
+                                ? 'bg-brand-600 text-white'
+                                : 'text-gray-400 hover:text-gray-200'
+                            }`}
+                          >
+                            {st}
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     {showAspects && (
@@ -691,15 +912,31 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
           <Button
             variant="primary"
             className="w-full py-3 shadow-lg shadow-purple-900/20"
-            onClick={() => {
+            onClick={async () => {
               const finalPrompt = antiAiSlop
                 ? `${prompt} (Anti-AI-Slop: avoid flat vectors, uncurated purple/blue gradients, generic 3D icons, or generic digital illustrations. Use premium editorial contrast, high-fidelity real-world textures, and high-contrast professional design tokens.)`
                 : prompt;
               useStore.getState().setPrompt(finalPrompt);
-              onGenerate(negativePrompt);
+              if (mode === AppMode.GENERATE) {
+                await useStore.getState().generateImage();
+              } else if (mode === AppMode.EDIT && selectedLayerId) {
+                await useStore.getState().onRemix(selectedLayerId);
+              } else if (mode === AppMode.THEME) {
+                try {
+                  const theme = await geminiService.generateDesignTheme(finalPrompt);
+                  if (theme) {
+                    (useStore.getState() as any).applyDesignTheme?.(theme);
+                  }
+                } catch (e) {
+                  log.error('Theme generation failed', e);
+                }
+              }
+              if (onGenerate) {
+                onGenerate(negativePrompt);
+              }
               analyticsService.trackGeneration(finalPrompt, mode);
             }}
-            loading={isProcessing}
+            loading={isProcessing || isGenerating}
             disabled={!prompt.trim() || (mode === AppMode.EDIT && !uploadedImage)}
           >
             <Icons.Magic className="w-4 h-4 mr-2" />

@@ -106,6 +106,17 @@ export const ImageTools = React.memo(
             )}
           </IconButton>
 
+          <IconButton
+            onClick={() => setActiveTab(NavTab.MAGIC_IMAGE)}
+            title="Magic Image AI (Generative Fill, Upscale)"
+            className="px-3 bg-purple-500/20 hover:bg-purple-500/40"
+          >
+            <div className="flex items-center gap-1.5">
+              <Icons.Sparkles className="w-4 h-4 text-purple-400" />
+              <span className="text-[10px] font-bold text-purple-200 uppercase tracking-wider">Magic AI</span>
+            </div>
+          </IconButton>
+
           <Divider />
 
           <IconButton
@@ -502,6 +513,9 @@ export const ImageTools = React.memo(
               align="left"
             >
               <div className="w-64 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-4 animate-fadeIn backdrop-blur-xl flex flex-col gap-4">
+                <div className="text-[9px] text-gray-500 text-center uppercase tracking-widest font-bold mb-1">
+                  Double-click sliders to reset
+                </div>
                 {[
                   { label: 'Exposure', prop: 'brightness', min: 0, max: 200 },
                   { label: 'Contrast', prop: 'contrast', min: 0, max: 200 },
@@ -511,32 +525,35 @@ export const ImageTools = React.memo(
                   { label: 'Grayscale', prop: 'grayscale', min: 0, max: 100 },
                   { label: 'Vignette', prop: 'vignette', min: 0, max: 100 },
                   { label: 'Blur', prop: 'blur', min: 0, max: 20 },
-                ].map((adj) => (
-                  <div key={adj.prop} className="flex flex-col gap-1.5">
-                    <div className="flex justify-between items-center">
-                      <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                        {adj.label}
-                      </label>
-                      <span className="text-[10px] font-mono text-gray-500">
-                        {(layer.filters as any)?.[adj.prop] ??
-                          (adj.prop === 'brightness' || adj.prop === 'contrast' || adj.prop === 'saturation' ? 100 : 0)}
-                      </span>
+                ].map((adj) => {
+                  const defaultValue = adj.prop === 'brightness' || adj.prop === 'contrast' || adj.prop === 'saturation' ? 100 : 0;
+                  return (
+                    <div key={adj.prop} className="flex flex-col gap-1.5">
+                      <div className="flex justify-between items-center">
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                          {adj.label}
+                        </label>
+                        <span className="text-[10px] font-mono text-brand-400 font-bold bg-brand-900/30 px-1.5 rounded">
+                          {(layer.filters as any)?.[adj.prop] ?? defaultValue}
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={adj.min}
+                        max={adj.max}
+                        value={(layer.filters as any)?.[adj.prop] ?? defaultValue}
+                        onDoubleClick={() => {
+                          handleUpdateLayer({ filters: { ...layer.filters, [adj.prop]: defaultValue } });
+                        }}
+                        onChange={(e) => {
+                          handleUpdateLayer({ filters: { ...layer.filters, [adj.prop]: parseInt(e.target.value) } });
+                        }}
+                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600 hover:accent-brand-500 transition-all"
+                        title="Double-click to reset"
+                      />
                     </div>
-                    <input
-                      type="range"
-                      min={adj.min}
-                      max={adj.max}
-                      value={
-                        (layer.filters as any)?.[adj.prop] ??
-                        (adj.prop === 'brightness' || adj.prop === 'contrast' || adj.prop === 'saturation' ? 100 : 0)
-                      }
-                      onChange={(e) => {
-                        handleUpdateLayer({ filters: { ...layer.filters, [adj.prop]: parseInt(e.target.value) } });
-                      }}
-                      className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600"
-                    />
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </Dropdown>
           </div>

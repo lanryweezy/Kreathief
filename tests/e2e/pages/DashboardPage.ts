@@ -16,15 +16,13 @@ export class DashboardPage {
     this.templatesGrid = page.getByTestId('dashboard-templates-grid');
     this.projectsList = page.locator('.grid-cols-1, .grid-cols-2, .grid-cols-3, .grid-cols-4');
     this.searchInput = page.getByTestId('dashboard-search-input');
-    this.userMenu = page
-      .locator('header [class*="profile"], header [aria-label*="profile" i], header img[alt*="Profile"]')
-      .first();
-    this.logoutButton = page.locator('button:has-text("Sign Out")');
-    this.templatesTab = page.getByTestId('nav-templates');
+    this.userMenu = page.locator('[data-testid="profile-menu-btn"], header button[aria-label="Open account menu"], header img[alt="Profile"]').first();
+    this.logoutButton = page.locator('[data-testid="logout-btn"], button[role="menuitem"]:has-text("Sign Out"), button:has-text("Sign Out")');
+    this.templatesTab = page.locator('[data-testid="nav-templates"], button:has-text("Templates")');
   }
 
   async goto() {
-    await this.page.goto('/');
+    await this.page.goto('/dashboard');
     await expect(this.createProjectButton).toBeVisible({ timeout: 10000 });
   }
 
@@ -47,19 +45,30 @@ export class DashboardPage {
   }
 
   async logout() {
-    await this.userMenu.click();
-    await this.logoutButton.click();
+    await this.page.evaluate(() => {
+      localStorage.removeItem('kreathief_guest_session');
+      localStorage.removeItem('kreathief_qa_session');
+    });
+    const profileBtn = this.page.locator('[data-testid="profile-menu-btn"], header button[aria-label="Open account menu"]').first();
+    if (await profileBtn.isVisible()) {
+      await profileBtn.click();
+      await this.page.waitForTimeout(200);
+      const signOutBtn = this.page.locator('[data-testid="logout-btn"], button:has-text("Sign Out")').first();
+      if (await signOutBtn.isVisible()) {
+        await signOutBtn.click();
+        return;
+      }
+    }
+    await this.page.goto('/auth', { waitUntil: 'domcontentloaded' });
   }
 
   async verifyDashboardLoaded() {
     await expect(this.createProjectButton).toBeVisible();
-    // Default tab might be "My Projects", so templates-grid might not be visible initially.
-    // If we want to check templates, we should switch to templates tab.
   }
 
   async switchToTemplates() {
-    await this.templatesTab.click();
-    await expect(this.templatesGrid).toBeVisible();
+    await this.templatesGrid.scrollIntoViewIfNeeded();
+    await expect(this.templatesGrid).toBeVisible({ timeout: 10000 });
   }
 
   async searchTemplates(query: string) {

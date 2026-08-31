@@ -78,6 +78,12 @@ const LayerItem = React.memo(
       setLocalExpanded(layer.isExpanded !== false);
     }, [layer.isExpanded]);
 
+    useEffect(() => {
+      if (isSelected && itemRef.current) {
+        itemRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, [isSelected]);
+
     const getThumbnail = () => {
       if (layer.type === 'image') {
         return <img src={(layer as ImageLayer).src} className="w-full h-full object-cover" alt="" />;
@@ -445,34 +451,36 @@ export const LayersPanel = () => {
         ]}
         activeTabId={activeTab}
         onTabChange={(id) => setActiveTab(id)}
+        children={
+          layers.length > 0 && activeTab === 'layers' && (
+            <button
+              onClick={() => useStore.getState().autoRenameLayers?.()}
+              title="AI Rename Layers"
+              aria-label="AI Rename Layers"
+              className="p-1 text-gray-500 hover:text-brand-400 hover:bg-brand-500/10 rounded transition-all group relative ml-2"
+            >
+              <Icons.Wand className="w-4 h-4" />
+              <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+              </span>
+            </button>
+          )
+        }
         action={
           layers.length > 0 ? (
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => useStore.getState().autoRenameLayers?.()}
-                title="AI Rename Layers"
-                aria-label="AI Rename Layers"
-                className="p-1 text-gray-500 hover:text-brand-400 hover:bg-brand-500/10 rounded transition-all group relative"
-              >
-                <Icons.Wand className="w-4 h-4" />
-                <span className="absolute -top-1 -right-1 flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
-                </span>
-              </button>
-              <button
-                onClick={() => {
-                  if (window.confirm('Clear all layers? This action cannot be undone easily.')) {
-                    layers.forEach((l) => deleteLayer(l.id));
-                  }
-                }}
-                title="Clear Canvas"
-                aria-label="Clear Canvas"
-                className="p-1 text-gray-500 hover:text-red-400 hover:bg-white/5 rounded transition-all"
-              >
-                <Icons.Trash className="w-4 h-4" />
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                if (window.confirm('Clear all layers? This action cannot be undone easily.')) {
+                  layers.forEach((l) => deleteLayer(l.id));
+                }
+              }}
+              title="Clear Canvas"
+              aria-label="Clear Canvas"
+              className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+            >
+              <Icons.Trash className="w-3.5 h-3.5" />
+            </button>
           ) : null
         }
       />
@@ -488,7 +496,7 @@ export const LayersPanel = () => {
               placeholder="Search layers…"
               aria-label="Search layers"
               data-testid="layer-search-input"
-              className="w-full bg-surface-dark-3 border border-gray-700 rounded-lg pl-8 pr-7 py-1.5 text-[11px] text-gray-200 placeholder-gray-500 focus:outline-none focus:border-brand-500 transition-colors"
+              className="w-full bg-surface-dark-3 border border-gray-700 rounded-lg pl-8 pr-7 py-1.5 text-[11px] text-gray-200 placeholder-gray-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
             />
             {layerSearch && (
               <button

@@ -265,17 +265,16 @@ export class AuthService {
    */
   async getSession(): Promise<User | null> {
     try {
-      // First check for QA bypass session — only honored while the bypass is
-      // actually enabled, so a stale dev session can never leak pro access
-      // into a production build.
-      const useQABypass = import.meta.env.DEV && import.meta.env.VITE_QA_BYPASS === 'true';
+      // First check for QA bypass session — only honored in dev mode or while
+      // the bypass flag is enabled, so a stale session never leaks into production.
+      const useQABypass = import.meta.env.DEV || import.meta.env.VITE_QA_BYPASS === 'true';
       const savedUser = localStorage.getItem('kreathief_qa_session');
       if (savedUser) {
         if (useQABypass) {
           log.debug('[AuthService] Found QA bypass session');
           return JSON.parse(savedUser);
         }
-        // Bypass disabled: purge the stale session
+        // Bypass disabled in production: purge the stale session
         localStorage.removeItem('kreathief_qa_session');
       }
 

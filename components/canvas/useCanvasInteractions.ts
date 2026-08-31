@@ -327,9 +327,17 @@ export const useCanvasInteractions = ({
         startPanning(e);
         return;
       }
-      handleMouseDownContainer(e);
+      
+      const target = e.target as HTMLElement;
+      // Allow selection/drawing on canvas background or artboard background
+      const isCanvasBg = target === viewportRef.current;
+      const isArtboardBg = target.classList.contains('design-artboard');
+      
+      if (isCanvasBg || isArtboardBg || isDrawingRef.current || isSpacePressed || e.button === 1) {
+        handleMouseDownContainer(e);
+      }
     },
-    [handleMouseDownContainer, startPanning]
+    [handleMouseDownContainer, startPanning, viewportRef, isSpacePressed]
   );
 
   return {

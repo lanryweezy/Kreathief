@@ -41,10 +41,15 @@ const callFalAPI = async (endpoint: string, body: any, errorMessage: string) => 
   // don't silently lock up the application state.
   log.debug('[Fal] Outbound request', describeFalPayload(endpoint, body));
 
+  const isTest = typeof process !== 'undefined' && process.env?.NODE_ENV === 'test';
+  const timeoutMs = isTest ? 200 : 30000;
+  const retries = 3;
+  const backoffMs = isTest ? 10 : 1000;
+
   return retryWithBackoff(
     async () => {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
       try {
         const response = await fetch('/api/fal', {
@@ -84,7 +89,7 @@ const callFalAPI = async (endpoint: string, body: any, errorMessage: string) => 
         clearTimeout(timeoutId);
 
         if (e.name === 'AbortError') {
-          const timeoutError = new Error(`${errorMessage}: Request timed out after 30 seconds`);
+          const timeoutError = new Error(`${errorMessage}: Request timed out`);
           timeoutError.name = 'TimeoutError';
           throw timeoutError;
         }
@@ -92,8 +97,8 @@ const callFalAPI = async (endpoint: string, body: any, errorMessage: string) => 
         throw e;
       }
     },
-    3,
-    1000
+    retries,
+    backoffMs
   );
 };
 

@@ -513,8 +513,8 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 
   // Drag & drop onto the canvas: OS files and Media Library thumbnails (text/plain URLs)
   const handleCanvasDragOver = useCallback((e: React.DragEvent) => {
-    const types = e.dataTransfer.types;
-    if (types.includes('Files') || types.includes('text/plain')) {
+    const types = Array.from(e.dataTransfer.types || []);
+    if (types.includes('Files') || types.includes('text/plain') || types.includes('text/uri-list')) {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'copy';
     }

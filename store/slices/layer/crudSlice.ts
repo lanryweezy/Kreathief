@@ -213,11 +213,12 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
 
   addLayer: (layer) => {
     get().saveToHistory?.();
+    const newLayer = layer.id ? layer : { ...layer, id: crypto.randomUUID() };
     set((state: any) => ({
       artboards: state.artboards.map((a: Artboard) =>
-        a.id === state.activeArtboardId ? { ...a, layers: [...a.layers, layer] } : a
+        a.id === state.activeArtboardId ? { ...a, layers: [...a.layers, newLayer] } : a
       ),
-      selectedLayerIds: [layer.id],
+      selectedLayerIds: [newLayer.id],
     }));
   },
 

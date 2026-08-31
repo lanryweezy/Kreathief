@@ -90,9 +90,10 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
       // Mirror to IndexedDB outside the set() updater (updaters must stay pure),
       // including the updated undo/redo stacks so they survive reloads.
       const { projectId, past, future } = get();
+      const currentName = (get() as any).projectTitle || (get() as any).currentProjectName || (get() as any).projectName;
       if (projectId) {
         storageService
-          .saveSessionMirror(projectId, currentState, past, future)
+          .saveSessionMirror(projectId, currentState, past, future, currentName)
           .catch((err) => log.error('[Resilience] Session mirror failed', err, { projectId }));
       }
     };

@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { Icons } from '../../constants';
 import { Dropdown } from '../Dropdown';
 import { TextLayer } from '../../types';
+import { ScrubbableNumberInput } from '../ScrubbableNumberInput';
 
 interface QuickTextEffectsProps {
   layer: TextLayer;
@@ -130,20 +131,43 @@ export const QuickTextEffects = React.memo(({ layer, onUpdateLayer }: QuickTextE
             </div>
           </div>
 
-          {/* Curve Slider */}
-          <div className="border-t border-white/10 pt-3 mt-3">
-            <div className="flex items-center justify-between mb-2">
+          {/* Sliders */}
+          <div className="border-t border-white/10 pt-3 mt-3 space-y-3">
+            <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold text-gray-400">Curve</span>
-              <span className="text-[10px] text-purple-400 font-mono">{layer.curve || 0}%</span>
+              <ScrubbableNumberInput
+                value={layer.curve || 0}
+                onChange={(val) => setCurve(val)}
+                min={-100}
+                max={100}
+                snapToZeroRange={5}
+              />
             </div>
-            <input
-              type="range"
-              min="-100"
-              max="100"
-              value={layer.curve || 0}
-              onChange={(e) => setCurve(parseInt(e.target.value))}
-              className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600"
-            />
+            
+            {hasTransform && layer.transformType !== 'circle' && (
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-gray-400">Transform Intensity</span>
+                <ScrubbableNumberInput
+                  value={layer.transformIntensity || 50}
+                  onChange={(val) => onUpdateLayer(layer.id, { transformIntensity: val })}
+                  min={-100}
+                  max={100}
+                  snapToZeroRange={5}
+                />
+              </div>
+            )}
+
+            {has3D && (
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-gray-400">3D Depth</span>
+                <ScrubbableNumberInput
+                  value={layer.depth || 5}
+                  onChange={(val) => onUpdateLayer(layer.id, { depth: val })}
+                  min={0}
+                  max={100}
+                />
+              </div>
+            )}
           </div>
 
           {/* More Effects Link */}

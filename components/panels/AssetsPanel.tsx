@@ -190,6 +190,11 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
                   key={photo.id}
                   className="aspect-square rounded-lg overflow-hidden relative group cursor-pointer bg-surface-dark-3 border border-gray-700 hover:border-accent transition-all"
                   onClick={() => onAddImageLayer(photo.url)}
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('text/plain', photo.url);
+                    e.dataTransfer.effectAllowed = 'copy';
+                  }}
                 >
                   <AssetThumbnail
                     src={photo.thumbnail}

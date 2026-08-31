@@ -146,7 +146,7 @@ export const createAIAssistantSlice: StateCreator<StoreState, [], [], AIAssistan
       return;
     }
 
-    analyticsService.track('kiro_chat', { message_length: message.length });
+    analyticsService.track('agent_chat', { message_length: message.length });
 
     // Add user message
     const userMessage: ChatMessage = {

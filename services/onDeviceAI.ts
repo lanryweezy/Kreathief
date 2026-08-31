@@ -189,30 +189,54 @@ function getPixel(data: Uint8ClampedArray, x: number, y: number, width: number) 
   return { r: data[i], g: data[i + 1], b: data[i + 2], a: data[i + 3] };
 }
 
-function smoothAlphaEdges(data: Uint8ClampedArray, width: number, height: number) {
-  const copy = new Uint8ClampedArray(data);
+function smoothAlphaEdges(data: Uint8ClampedArray, width: number, height: number, featherRadius: number = 2) {
+  const alphaCopy = new Uint8Array(width * height);
+  for (let i = 0; i < width * height; i++) {
+    alphaCopy[i] = data[i * 4 + 3];
+  }
+
+  // Detect edge boundary transitions
+  const isEdge = new Uint8Array(width * height);
   for (let y = 1; y < height - 1; y++) {
     for (let x = 1; x < width - 1; x++) {
-      const idx = (y * width + x) * 4;
-      if (copy[idx + 3] === 0) {
-        // Check neighbors
-        let hasVisibleNeighbor = false;
-        for (const [dx, dy] of [
-          [-1, 0],
-          [1, 0],
-          [0, -1],
-          [0, 1],
-        ]) {
-          const nIdx = ((y + dy) * width + (x + dx)) * 4;
-          if (copy[nIdx + 3] > 128) {
-            hasVisibleNeighbor = true;
-            break;
-          }
-        }
-        if (hasVisibleNeighbor) {
-          data[idx + 3] = 128; // Semi-transparent edge
+      const idx = y * width + x;
+      const current = alphaCopy[idx];
+      if (
+        (current > 0 &&
+          (alphaCopy[idx - 1] === 0 ||
+            alphaCopy[idx + 1] === 0 ||
+            alphaCopy[idx - width] === 0 ||
+            alphaCopy[idx + width] === 0)) ||
+        (current === 0 &&
+          (alphaCopy[idx - 1] > 0 ||
+            alphaCopy[idx + 1] > 0 ||
+            alphaCopy[idx - width] > 0 ||
+            alphaCopy[idx + width] > 0))
+      ) {
+        isEdge[idx] = 1;
+      }
+    }
+  }
+
+  // Distance-weighted alpha feathering for smooth anti-aliased transitions
+  for (let y = featherRadius; y < height - featherRadius; y++) {
+    for (let x = featherRadius; x < width - featherRadius; x++) {
+      const idx = y * width + x;
+      if (!isEdge[idx]) {
+        continue;
+      }
+
+      let sum = 0;
+      let count = 0;
+      for (let dy = -featherRadius; dy <= featherRadius; dy++) {
+        for (let dx = -featherRadius; dx <= featherRadius; dx++) {
+          const nIdx = (y + dy) * width + (x + dx);
+          const weight = 1 / (1 + Math.sqrt(dx * dx + dy * dy));
+          sum += alphaCopy[nIdx] * weight;
+          count += weight;
         }
       }
+      data[idx * 4 + 3] = Math.round(sum / count);
     }
   }
 }

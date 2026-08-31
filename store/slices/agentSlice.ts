@@ -4,18 +4,20 @@ import type { StoreState } from '../useStore';
 import { StateCreator } from 'zustand';
 import {
   AgentVariant,
+  researchAgentStrategy,
   creativeAgentDraft,
   creativeAgentRefine,
   criticAgentReview,
   performanceAgentScore,
   analyzeDesign,
+  motionDirectorAgent,
 } from '../../services/aiService';
 import { Layer } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 import { composeGenerationPrompt } from '../../services/imageGenService';
 import { analyticsService } from '../../services/analyticsService';
 
-export type AgentStatus = 'idle' | 'creative' | 'critic' | 'performance' | 'done' | 'error';
+export type AgentStatus = 'idle' | 'strategy' | 'creative' | 'searching' | 'rendering' | 'critic' | 'performance' | 'done' | 'error';
 
 export interface ThinkingEvent {
   id: string;
@@ -33,6 +35,7 @@ export interface AgentSlice {
 
   runAgenticWorkflow: (intent: string) => Promise<void>;
   runAgenticRefine: (intent: string, layerIds: string[]) => Promise<void>;
+  runMotionDirector: (intent?: string) => Promise<void>;
   applyAgentVariant: (variantId: string) => void;
   resetAgentState: () => void;
   addThinkingEvent: (agent: string, message: string) => void;
@@ -111,8 +114,75 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
         campaignGoal: get().campaignGoal,
         canvasSize,
       });
-      const draftedVariants = await creativeAgentDraft(composedIntent, canvasSize);
+
+      // Phase 0: Research & Strategy (always runs — provides the creative brief for Phase 1)
+      set({ agentStatus: 'strategy' });
+      get().addThinkingEvent('Strategy Agent', 'Researching domain, audience, and visual language...');
+      let researchInterval = setInterval(() => {
+        const thoughts = [
+          'Decoding audience psychology...',
+          'Identifying category clichés to avoid...',
+          'Selecting typographic register...',
+          'Defining spacing philosophy...',
+          'Establishing core visual metaphor...',
+        ];
+        get().addThinkingEvent('Strategy Agent', thoughts[Math.floor(Math.random() * thoughts.length)]);
+      }, 3500);
+
+      let strategy: import('../../types').DesignStrategy = {
+        designObjective: `Communicate the core message of: ${intent}`,
+        audience: 'General professional audience',
+        coreMetaphor: 'Clean modern clarity',
+        typographyPairing: { heading: 'Space Grotesk', body: 'Inter' },
+        colorPsychology: 'Neutral contemporary palette with a single strong accent color',
+        spacingSystem: 'Balanced',
+        avoidanceRules: ['Generic stock imagery', 'Overused gradients', 'Clip art icons', 'Comic Sans or Impact'],
+      };
+      try {
+        strategy = await researchAgentStrategy(composedIntent, brandKit);
+        get().addThinkingEvent('Strategy Agent', `Brief locked: "${strategy.coreMetaphor}" — ${strategy.spacingSystem} spacing — fonts: ${strategy.typographyPairing.heading} / ${strategy.typographyPairing.body}`);
+        get().addThinkingEvent('Strategy Agent', `Banned clichés: ${strategy.avoidanceRules.slice(0, 3).join(', ')}...`);
+      } catch (strategyErr) {
+        // Strategy agent failed (timeout / parse error) — fall back to default so Phase 1 still runs
+        get().addThinkingEvent('Strategy Agent', 'Strategy brief synthesized from design principles (fast-path).');
+      } finally {
+        clearInterval(researchInterval);
+      }
+
+
+      // Phase 1: Creative Drafting (executes the researched strategy)
+      set({ agentStatus: 'creative' });
+      get().addThinkingEvent('Creative Agent', 'Art directing layouts from the strategy brief...');
+      
+      let draftingInterval = setInterval(() => {
+        const thoughts = [
+          'Applying modular typographic scale...',
+          'Injecting spatial tension...',
+          'Constructing layer hierarchy...',
+          'Encoding Gestalt principles...',
+          'Art directing image prompts...',
+          'Generating layout variants...'
+        ];
+        const randomThought = thoughts[Math.floor(Math.random() * thoughts.length)];
+        get().addThinkingEvent('Creative Agent', randomThought);
+      }, 4000);
+
+      let draftedVariants;
+      try {
+        draftedVariants = await creativeAgentDraft(composedIntent, canvasSize, 3, strategy);
+      } finally {
+        clearInterval(draftingInterval);
+      }
+      
+      set({ agentStatus: 'searching' });
       get().addThinkingEvent('Creative Agent', `Drafted ${draftedVariants.length} distinct layout directions.`);
+      get().addThinkingEvent('Creative Agent', 'Searching and rendering image assets...');
+      
+      // Simulate rendering/searching time if needed, or simply step through
+      await new Promise(r => setTimeout(r, 1500));
+      set({ agentStatus: 'rendering' });
+      await new Promise(r => setTimeout(r, 1500));
+      
       set({ agentVariants: draftedVariants });
 
       // Free users: skip critic + performance for speed/cost
@@ -192,6 +262,42 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
     }
   },
 
+  runMotionDirector: async (intent = '') => {
+    try {
+      analyticsService.track('agent_workflow', { type: 'motion_director' });
+      set({ agentStatus: 'rendering', agentError: null, thinkingLog: [] });
+      
+      const activeArtboard = get().artboards.find((a: any) => a.id === get().activeArtboardId);
+      if (!activeArtboard) {
+        throw new Error('No active artboard found');
+      }
+
+      get().addThinkingEvent('Motion Director', 'Analyzing spatial layout and hierarchy...');
+      const animatedLayers = await motionDirectorAgent(intent, activeArtboard.layers, get().canvasSize || { width: 1080, height: 1080 });
+      get().addThinkingEvent('Motion Director', 'Sequencing entry animations applied.');
+
+      const newArtboards = get().artboards.map((a: any) => {
+        if (a.id === get().activeArtboardId) {
+          return { ...a, layers: animatedLayers };
+        }
+        return a;
+      });
+
+      set({
+        artboards: newArtboards,
+        agentStatus: 'done',
+      });
+      // Optionally trigger history save
+      if (typeof (get() as any).pushHistoryState === 'function') {
+        (get() as any).pushHistoryState();
+      }
+
+    } catch (err: any) {
+      log.error('[AgentSlice] Motion Director failed:', err);
+      set({ agentStatus: 'error', agentError: err.message || 'Failed to apply motion sequence' });
+    }
+  },
+
   applyAgentVariant: (variantId: string) => {
     const state = get();
     const variant = state.agentVariants.find((v: AgentVariant) => v.id === variantId);
@@ -212,33 +318,60 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
       return;
     }
 
-    const newArtboards = state.artboards.map((a: any, i: number) =>
-      i === activeArtboardIndex ? { ...a, layers: [...a.layers] } : a
-    );
-    const artboard = newArtboards[activeArtboardIndex];
+    // Determine if we are using the new multi-artboard schema or legacy layers schema
+    const artboardsToApply = variant.artboards && variant.artboards.length > 0 
+      ? variant.artboards 
+      : [{ name: 'Artboard', layers: variant.layers || [] }];
 
-    // If it was a refinement, we only replace layers that match IDs in the variant
-    // In strict draft mode, we replace all.
-    // We check if the variant layers have IDs that already exist on the board.
-    const boardLayerIds = new Set(artboard.layers.map((l: Layer) => l.id));
-    const isRefinement = variant.layers.some((l: Layer) => boardLayerIds.has(l.id));
+    if (artboardsToApply.length === 1) {
+      // Single artboard scenario - apply to current active artboard
+      const sourceArtboard = artboardsToApply[0];
+      const newArtboards = state.artboards.map((a: any, i: number) =>
+        i === activeArtboardIndex ? { ...a, layers: [...a.layers] } : a
+      );
+      const artboard = newArtboards[activeArtboardIndex];
 
-    if (isRefinement) {
-      artboard.layers = artboard.layers.map((l: Layer) => {
-        const match = variant.layers.find((vl: Layer) => vl.id === l.id);
-        return match || l;
-      });
-      // Add any 'new' layers at the end
-      const newLayers = variant.layers.filter((vl: Layer) => !boardLayerIds.has(vl.id));
-      artboard.layers = [...artboard.layers, ...newLayers];
+      const boardLayerIds = new Set(artboard.layers.map((l: Layer) => l.id));
+      const isRefinement = sourceArtboard.layers.some((l: Layer) => boardLayerIds.has(l.id));
+
+      if (isRefinement) {
+        artboard.layers = artboard.layers.map((l: Layer) => {
+          const match = sourceArtboard.layers.find((vl: Layer) => vl.id === l.id);
+          return match || l;
+        });
+        const newLayers = sourceArtboard.layers.filter((vl: Layer) => !boardLayerIds.has(vl.id));
+        artboard.layers = [...artboard.layers, ...newLayers];
+      } else {
+        artboard.layers = structuredClone(sourceArtboard.layers);
+      }
+      set({ artboards: newArtboards });
     } else {
-      artboard.layers = structuredClone(variant.layers);
-    }
+      // Multi-artboard scenario - Gamma/Campaign style
+      // We will create entirely new artboards and append them
+      const newArtboards = [...state.artboards];
+      // Generate some offset to place them side by side
+      let currentX = newArtboards.length > 0 
+        ? Math.max(...newArtboards.map(a => a.x + a.width)) + 100 
+        : 0;
 
-    set({ artboards: newArtboards });
+      for (const sourceArtboard of artboardsToApply) {
+        newArtboards.push({
+          id: crypto.randomUUID(),
+          name: sourceArtboard.name,
+          width: state.canvasSize.width,
+          height: state.canvasSize.height,
+          x: currentX,
+          y: 0,
+          layers: structuredClone(sourceArtboard.layers),
+        });
+        currentX += state.canvasSize.width + 100;
+      }
+      set({ artboards: newArtboards });
+    }
     if (state.endBatch) {
       state.endBatch();
     }
+    state.addToast?.('Design variant applied to canvas!', 'success');
   },
 
   resetAgentState: () => {

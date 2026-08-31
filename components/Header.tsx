@@ -12,7 +12,7 @@ import { ConnectionStatus } from './ConnectionStatus';
 
 const MagicPanel = React.lazy(() => import('./panels/MagicPanel'));
 const AssistantPanel = React.lazy(() => import('./panels/AssistantPanel'));
-const KiroChatPanel = React.lazy(() => import('./panels/KiroChatPanel'));
+
 
 interface HeaderProps {
   onDownload: () => void;
@@ -180,7 +180,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="h-14 bg-surface-dark-1 text-white flex items-center justify-between px-6 z-50 shrink-0 border-b border-white/5 shadow-2xl relative">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 relative z-30">
         <div className="flex items-center gap-2 mr-2">
           <div className="w-8 h-8 bg-[#0E1318] border border-white/10 rounded-lg flex items-center justify-center shadow-lg">
             <img src="/logo.svg" alt="Kreathief" className="w-5 h-5 object-contain" />
@@ -230,65 +230,87 @@ export const Header: React.FC<HeaderProps> = ({
           </Button>
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] text-gray-400 ml-2 select-none shrink-0 font-medium tracking-wide">
-          {isSaving ? (
-            <>
+      </div>
+
+      {/* Center Section: Project Title & Save Status */}
+      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+        <div className="pointer-events-auto flex items-center gap-2">
+          {/* Project Title */}
+          <div className="flex items-center max-w-[200px] md:max-w-[240px] shrink-0">
+            {isEditingTitle ? (
+              <input
+                data-testid="project-title-input"
+                type="text"
+                value={String(projectTitle || 'Untitled')}
+                onChange={(e) => setProjectTitle(e.target.value)}
+                onFocus={(e) => {
+                  e.target.select();
+                  titleSnapshotRef.current = String(projectTitle || '');
+                }}
+                onBlur={() => setIsEditingTitle(false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    setIsEditingTitle(false);
+                  }
+                  if (e.key === 'Escape') {
+                    setProjectTitle(String(titleSnapshotRef.current || 'Untitled'));
+                    setIsEditingTitle(false);
+                  }
+                }}
+                autoFocus
+                className="bg-surface-dark-3 border-b-2 border-brand-500 text-white text-sm font-bold px-2 py-0.5 outline-none w-40 rounded shadow-lg text-center"
+              />
+            ) : (
+              <button
+                data-testid="project-title-display"
+                onClick={() => setIsEditingTitle(true)}
+                className="text-sm font-medium text-white hover:text-brand-400 transition-colors px-2 py-0.5 rounded hover:bg-white/5 truncate max-w-[180px] text-center"
+                title="Click to rename"
+              >
+                {String(projectTitle || 'Untitled')}
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center justify-center w-5 h-5 ml-1 select-none shrink-0" title={getSaveStatus()}>
+            {isSaving ? (
               <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></div>
-              <span>Saving...</span>
-            </>
-          ) : hasUnsavedChanges ? (
-            <>
+            ) : hasUnsavedChanges ? (
               <div className="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
-              <span>Unsaved</span>
-            </>
-          ) : (
-            <>
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-              <span>{getSaveStatus()}</span>
-            </>
-          )}
+            ) : (
+              <Icons.Cloud className="w-3.5 h-3.5 text-gray-500" />
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 md:gap-4 relative z-10">
+      <div className="flex items-center gap-2 md:gap-4 relative z-30">
         {/* AI Button — unified entry point for all AI features */}
-        <button
+        <Button
           onClick={() => setShowAIOverlay(!showAIOverlay)}
           aria-label="Open AI tools"
           title="AI Tools (Image Gen + Design Agent)"
-          className={`
-            flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold
-            transition-all duration-150 border
-            ${
-              showAIOverlay
-                ? 'bg-brand-600/20 border-brand-600/50 text-brand-400 shadow-[0_0_16px_rgba(139,92,246,0.25)]'
-                : 'bg-brand-600/10 border-brand-600/20 text-brand-400 hover:bg-brand-600/20 hover:border-brand-600/40 hover:shadow-[0_0_12px_rgba(139,92,246,0.2)]'
-            }
-          `}
+          variant={showAIOverlay ? 'secondary' : 'ghost'}
+          size="sm"
+          className="flex items-center gap-1.5 font-bold"
         >
-          <Icons.Sparkles className="w-3.5 h-3.5" />
-          <span>AI</span>
-        </button>
+          <Icons.Sparkles className="w-3.5 h-3.5 text-brand-400" />
+          <span className="text-brand-400">Magic Studio</span>
+        </Button>
 
         {/* Magic Resize — adapt current design to other formats */}
         <div className="relative" ref={resizeMenuRef}>
-          <button
+          <Button
             onClick={() => setShowResizeMenu(!showResizeMenu)}
             aria-label="Magic Resize"
             title="Magic Resize — adapt design to other formats"
-            className={`
-              flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold
-              transition-all duration-150 border
-              ${
-                showResizeMenu
-                  ? 'bg-white/10 border-white/20 text-white'
-                  : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:text-white'
-              }
-            `}
+            variant={showResizeMenu ? 'secondary' : 'ghost'}
+            size="sm"
+            className="hidden md:flex gap-1.5 font-bold"
           >
             <Icons.Maximize className="w-3.5 h-3.5" />
-            <span className="hidden lg:inline">Resize</span>
-          </button>
+            <span>Resize</span>
+          </Button>
 
           {showResizeMenu && (
             <div className="absolute top-full right-0 mt-2 w-56 bg-surface-dark-3 border border-white/10 rounded-xl shadow-2xl overflow-hidden p-1.5 z-[200]">
@@ -429,43 +451,6 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       )}
 
-      {/* Centered Project Title */}
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-2 pointer-events-auto z-0 max-w-[35vw] md:max-w-[300px] overflow-hidden whitespace-nowrap">
-        {isEditingTitle ? (
-          <input
-            data-testid="project-title-input"
-            type="text"
-            value={String(projectTitle || 'Untitled')}
-            onChange={(e) => setProjectTitle(e.target.value)}
-            onFocus={(e) => {
-              e.target.select();
-              titleSnapshotRef.current = String(projectTitle || '');
-            }}
-            onBlur={() => setIsEditingTitle(false)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                setIsEditingTitle(false);
-              }
-              if (e.key === 'Escape') {
-                setProjectTitle(String(titleSnapshotRef.current || 'Untitled'));
-                setIsEditingTitle(false);
-              }
-            }}
-            autoFocus
-            className="bg-surface-dark-3 border-b-2 border-brand-500 text-white text-sm font-bold px-2 py-1 outline-none w-48 rounded-t shadow-lg text-center"
-          />
-        ) : (
-          <button
-            data-testid="project-title-display"
-            onClick={() => setIsEditingTitle(true)}
-            className="text-sm font-medium text-white hover:text-brand-400 transition-colors px-2 py-1 rounded hover:bg-white/5 text-center"
-            title="Click to rename"
-          >
-            {String(projectTitle || 'Untitled')}
-          </button>
-        )}
-      </div>
-
       {showPublishModal && <PublishModal onClose={() => setShowPublishModal(false)} />}
 
       {/* Floating AI Overlay — portaled above all editor chrome */}
@@ -495,16 +480,10 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={() => setAiTab('assistant')}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all ${aiTab === 'assistant' ? 'bg-brand-600/20 text-brand-400' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
               >
-                <Icons.Bot className="w-3.5 h-3.5" />
-                Design Agent
+                <Icons.Sparkles className="w-3.5 h-3.5" />
+                Magic Studio
               </button>
-              <button
-                onClick={() => setAiTab('chat')}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all ${aiTab === 'chat' ? 'bg-brand-600/20 text-brand-400' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
-              >
-                <Icons.Magic className="w-3.5 h-3.5" />
-                Kiro
-              </button>
+
               <button
                 onClick={() => setShowAIOverlay(false)}
                 aria-label="Close AI panel"
@@ -532,7 +511,7 @@ export const Header: React.FC<HeaderProps> = ({
                     onStartDesign={onStartDesign}
                   />
                 )}
-                {aiTab === 'chat' && <KiroChatPanel />}
+
               </React.Suspense>
             </div>
           </div>,

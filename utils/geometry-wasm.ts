@@ -21,16 +21,7 @@ let loadAttempted = false;
 async function loadWasm() {
   if (loadAttempted) return;
   loadAttempted = true;
-  try {
-    const path = '../rust-engine/pkg/kreathief_engine';
-    const mod = await Function('p', 'return import(p)')(path);
-    if (typeof mod.default === 'function') {
-      await mod.default();
-    }
-    wasmMod = mod;
-  } catch {
-    wasmMod = null;
-  }
+  wasmMod = null;
 }
 
 export async function initEngine(): Promise<void> {

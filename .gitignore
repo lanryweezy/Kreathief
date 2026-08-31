@@ -55,3 +55,8 @@ package-lock.json
 rust-engine/pkg/
 rust-engine/target/
 .env*
+page_dump.html
+targets.txt
+commit_message.txt
+patch.diff
+spoof.cjs

@@ -17,6 +17,7 @@ export enum NavTab {
   COMPONENTS = 'COMPONENTS',
   MOCKUP = 'MOCKUP',
   ASSISTANT = 'ASSISTANT',
+  VIDEO_AGENT = 'VIDEO_AGENT',
   STICKERS = 'STICKERS',
   AI_SUGGESTIONS = 'AI_SUGGESTIONS',
   SMART_CONTENT = 'SMART_CONTENT',
@@ -28,6 +29,8 @@ export enum NavTab {
   COMMENTS = 'COMMENTS',
   COMMUNITY = 'COMMUNITY',
   ELEMENTS = 'ELEMENTS',
+  MAGIC_IMAGE = 'MAGIC_IMAGE',
+  TEXT_AGENT = 'TEXT_AGENT',
   UPLOADS = 'UPLOADS',
   PHOTOS = 'PHOTOS',
   TEXT_EFFECTS = 'TEXT_EFFECTS',
@@ -582,7 +585,8 @@ export type ReferenceAspect =
   | 'mood'
   | 'lighting'
   | 'illustrationStyle'
-  | 'cameraAngle';
+  | 'cameraAngle'
+  | 'textures';
 
 export const REFERENCE_ASPECT_LABELS: Record<ReferenceAspect, string> = {
   style: 'Style',
@@ -597,6 +601,7 @@ export const REFERENCE_ASPECT_LABELS: Record<ReferenceAspect, string> = {
   lighting: 'Lighting',
   illustrationStyle: 'Illustration Style',
   cameraAngle: 'Camera Angle',
+  textures: 'Textures',
 };
 
 /** Vision-extracted description of a reference image, cached so it is analyzed once. */
@@ -627,6 +632,8 @@ export type ReferenceAnalysisStatus = 'analyzing' | 'ready' | 'failed';
  * - `none`       — the reference contributed nothing (no descriptor and no native support)
  */
 export type ReferenceAppliedMode = 'native' | 'descriptor' | 'none';
+export type ReferenceStrength = 'subtle' | 'balanced' | 'strong';
+export type PromptArchetype = 'cinematic' | 'artistic' | 'product' | 'render_3d' | 'vector_graphic';
 
 export interface StyleReference {
   id: string;
@@ -641,6 +648,8 @@ export interface StyleReference {
   analysisError?: string;
   /** Result of the most recent generation; undefined until one has run. */
   appliedMode?: ReferenceAppliedMode;
+  /** Influence weighting of the reference style */
+  strength?: ReferenceStrength;
 }
 
 /**
@@ -654,6 +663,9 @@ export interface GenerationContext {
   campaignGoal?: string;
   canvasSize?: { width: number; height: number };
   outputType?: 'image' | 'svg';
+  negativePrompt?: string;
+  referenceStrength?: ReferenceStrength;
+  archetype?: PromptArchetype;
 }
 
 export interface ChatMessage {
@@ -744,6 +756,28 @@ export interface DesignContext {
   canvasSize: { width: number; height: number; name?: string };
   purpose?: string;
   brandKit?: any;
+}
+
+export interface DesignStrategy {
+  designObjective: string;
+  audience: string;
+  coreMetaphor: string;
+  typographyPairing: { heading: string; body: string };
+  colorPsychology: string;
+  spacingSystem: string;
+  palettes: string[][];
+  trends: string[];
+  antiCliches: string[];
+  layers: Layer[];
+}
+
+export interface VariantSignature {
+  compositionGrammar: string;
+  heroPosition: string;
+  alignment: string;
+  typographyClass: string;
+  paletteFamily: string;
+  imageTreatment: string;
 }
 
 export interface AIAssistantState {

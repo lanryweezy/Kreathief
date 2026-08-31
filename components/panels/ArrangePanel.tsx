@@ -138,7 +138,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
                 type="number"
                 value={Math.round(firstLayer.x)}
                 onChange={(e) => handleInputChange('x', e.target.value)}
-                className="w-full bg-surface-dark-2 border border-gray-800 rounded px-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none"
+                className="w-full bg-black/20 border border-white/10 rounded px-2 py-1.5 text-xs text-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 hover:border-brand-500/50 hover:bg-black/30 transition-all outline-none"
               />
             </div>
             <div className="space-y-1.5">
@@ -147,7 +147,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
                 type="number"
                 value={Math.round(firstLayer.y)}
                 onChange={(e) => handleInputChange('y', e.target.value)}
-                className="w-full bg-surface-dark-2 border border-gray-800 rounded px-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none"
+                className="w-full bg-black/20 border border-white/10 rounded px-2 py-1.5 text-xs text-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 hover:border-brand-500/50 hover:bg-black/30 transition-all outline-none"
               />
             </div>
             <div className="space-y-1.5 relative">
@@ -156,7 +156,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
                 type="number"
                 value={Math.round(firstLayer.width)}
                 onChange={(e) => handleInputChange('width', e.target.value)}
-                className="w-full bg-surface-dark-2 border border-gray-800 rounded px-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none"
+                className="w-full bg-black/20 border border-white/10 rounded px-2 py-1.5 text-xs text-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 hover:border-brand-500/50 hover:bg-black/30 transition-all outline-none"
               />
               <button
                 onClick={() => setIsAspectRatioLocked?.(!isAspectRatioLocked)}
@@ -172,7 +172,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
                 type="number"
                 value={Math.round((firstLayer as any).height || firstLayer.width)}
                 onChange={(e) => handleInputChange('height' as any, e.target.value)}
-                className="w-full bg-surface-dark-2 border border-gray-800 rounded px-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none"
+                className="w-full bg-black/20 border border-white/10 rounded px-2 py-1.5 text-xs text-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 hover:border-brand-500/50 hover:bg-black/30 transition-all outline-none"
               />
             </div>
           </div>
@@ -272,12 +272,14 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
                 onClick={() => onMoveLayer(firstLayer.id, 'front')}
                 className="flex items-center justify-center gap-2 p-2 bg-surface-dark-3 border border-gray-800 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-all text-[10px] font-bold uppercase"
               >
+                <Icons.ArrowUp className="w-4 h-4" />
                 Bring to Front
               </button>
               <button
                 onClick={() => onMoveLayer(firstLayer.id, 'back')}
                 className="flex items-center justify-center gap-2 p-2 bg-surface-dark-3 border border-gray-800 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-all text-[10px] font-bold uppercase"
               >
+                <Icons.ArrowDown className="w-4 h-4" />
                 Send to Back
               </button>
             </div>

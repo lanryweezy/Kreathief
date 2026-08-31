@@ -65,7 +65,7 @@ const DEFAULT_PALETTE = [
 export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
   ({ value, onChange, documentColors = [], label, small }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [hexInput, setHexInput] = useState(value);
+    const [hexInput, setHexInput] = useState(value || '');
     const [recentColors, setRecentColors] = useState<string[]>([]);
     const [showEyedropper, setShowEyedropper] = useState(false);
     const [activeTab, setActiveTab] = useState<'picker' | 'harmony' | 'palette' | 'gradient' | 'contrast'>('picker');
@@ -165,7 +165,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
     };
 
     useEffect(() => {
-      setHexInput(value);
+      setHexInput(value || '');
     }, [value]);
 
     const handleHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -341,7 +341,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                     </button>
                     <input
                       type="text"
-                      value={hexInput === 'transparent' ? '' : hexInput.replace('#', '')}
+                      value={hexInput === 'transparent' ? '' : (hexInput || '').replace('#', '')}
                       aria-label="Hex color value"
                       onChange={handleHexChange}
                       onBlur={(e) => {

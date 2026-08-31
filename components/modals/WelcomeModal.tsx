@@ -11,20 +11,20 @@ interface WelcomeModalProps {
 export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onStartTour }) => {
   return (
     <ModalWrapper isOpen={isOpen} onClose={onClose} maxWidth="max-w-2xl">
-      <div className="flex flex-col relative">
-        <div className="p-10 pb-4 text-center">
-          <div className="w-24 h-24 bg-[#0E1318] border border-white/10 rounded-[32px] flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.3)] mx-auto mb-8 transform -rotate-6 animate-in zoom-in spin-in-6 duration-700">
-            <img src="/logo.svg" alt="Kreathief" className="w-16 h-16 object-contain" />
+      <div className="flex flex-col relative overflow-y-auto overflow-x-hidden custom-scrollbar">
+        <div className="p-6 md:p-8 md:pb-4 pb-2 text-center">
+          <div className="w-16 h-16 md:w-20 md:h-20 bg-[#0E1318] border border-white/10 rounded-[24px] md:rounded-[32px] flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.3)] mx-auto mb-4 md:mb-6 transform -rotate-6 animate-in zoom-in spin-in-6 duration-700">
+            <img src="/logo.svg" alt="Kreathief" className="w-10 h-10 md:w-12 md:h-12 object-contain" />
           </div>
-          <h2 className="text-4xl font-black text-white mb-3 tracking-tighter italic uppercase">
+          <h2 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tighter italic uppercase">
             Welcome to Kreathief
           </h2>
-          <p className="text-gray-400 text-lg max-w-md mx-auto font-medium leading-relaxed">
+          <p className="text-gray-400 text-sm md:text-base max-w-md mx-auto font-medium leading-relaxed">
             The world&apos;s most advanced AI-native creative engine. Design without limits.
           </p>
         </div>
 
-        <div className="p-10 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           {[
             {
               icon: Icons.Magic,
@@ -60,9 +60,9 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onS
               className="p-5 bg-white/5 border border-white/5 rounded-2xl hover:border-white/10 hover:bg-white/10 transition-all group"
             >
               <div
-                className={`w-12 h-12 ${feature.bg} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
+                className={`w-10 h-10 md:w-12 md:h-12 ${feature.bg} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}
               >
-                <feature.icon className={`w-6 h-6 ${feature.color}`} />
+                <feature.icon className={`w-5 h-5 md:w-6 md:h-6 ${feature.color}`} />
               </div>
               <h3 className="font-black text-white text-sm uppercase tracking-wider mb-1">{feature.title}</h3>
               <p className="text-xs text-gray-500 font-medium leading-relaxed">{feature.desc}</p>
@@ -70,10 +70,10 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onS
           ))}
         </div>
 
-        <div className="p-10 pt-0 flex flex-col gap-4">
+        <div className="p-6 md:p-8 pt-0 flex flex-col gap-3">
           <button
             onClick={onStartTour}
-            className="w-full py-5 bg-white text-black hover:bg-accent hover:text-white rounded-[20px] font-black uppercase tracking-widest shadow-xl transform hover:-translate-y-1 active:translate-y-0.5 transition-all flex items-center justify-center gap-3"
+            className="w-full py-4 bg-white text-black hover:bg-accent hover:text-white rounded-[20px] font-black uppercase tracking-widest shadow-xl transform hover:-translate-y-1 active:translate-y-0.5 transition-all flex items-center justify-center gap-3"
           >
             Start the Experience <Icons.ArrowRight className="w-5 h-5" />
           </button>

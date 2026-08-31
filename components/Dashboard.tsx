@@ -464,6 +464,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         <div className="flex items-center gap-6">
           <div className="flex gap-2">
             <button
+              id="create-btn"
+              data-testid="create-project-btn"
+              onClick={handleCreateClick}
+              className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-brand-600/20"
+            >
+              <Icons.Plus className="w-3.5 h-3.5" />
+              New Design
+            </button>
+            <button
               onClick={() => pdfInputRef.current?.click()}
               className="px-4 py-2 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
             >
@@ -530,6 +539,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               </button>
             </div>
             <button
+              data-testid="profile-menu-btn"
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
               onFocus={() => setProfileDropdownOpen(true)}
               onKeyDown={(e) => {
@@ -600,6 +610,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   </button>
                   <div className="my-1 border-t border-white/10" />
                   <button
+                    data-testid="logout-btn"
                     onClick={(e) => {
                       e.stopPropagation();
                       setProfileDropdownOpen(false);
@@ -755,7 +766,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button
                   onClick={() => setShowNodeGraph(true)}
-                  className="group bg-surface-dark-1 border border-white/5 rounded-xl p-6 text-left hover:border-brand-500/40 hover:bg-brand-500/5 transition-all shadow-lg hover:shadow-xl cursor-pointer"
+                  className="group bg-surface-dark-2 border border-white/5 rounded-xl p-6 text-left hover:border-brand-500/50 hover:bg-brand-500/10 transition-all shadow-lg hover:shadow-xl cursor-pointer"
                 >
                   <Icons.GitMerge className="w-6 h-6 text-purple-400 mb-3 group-hover:scale-110 transition-transform" />
                   <div className="font-bold text-white mb-1">Advanced Pipeline</div>
@@ -777,15 +788,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                     <motion.div
                       layout
                       key={project.id}
+                      data-testid={`project-card-${project.id}`}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => {
                         loadProject(project.id);
                         onOpenProject(project);
                       }}
-                      className="group bg-surface-dark-1 border border-white/5 rounded-xl overflow-hidden cursor-pointer hover:border-white/15 transition-all shadow-lg hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                      className="group bg-surface-dark-2 border border-white/5 rounded-xl overflow-hidden cursor-pointer hover:border-brand-500/50 hover:shadow-brand-500/10 transition-all shadow-lg hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                     >
-                      <div className="aspect-[16/10] bg-surface-dark-2 relative overflow-hidden">
+                      <div className="aspect-[16/10] bg-surface-dark-3 relative overflow-hidden">
                         <div className="absolute top-3 right-3 z-10">
                           <span className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider text-white">
                             {project.state.canvasSize?.width}×{project.state.canvasSize?.height}
@@ -902,12 +914,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div data-testid="dashboard-templates-grid" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {pagedTemplates.map((tmpl) => (
                   <button
                     key={tmpl.id}
                     onClick={() => handleStartFromTemplate(tmpl.id)}
-                    className="group bg-surface-dark-1 border border-white/5 rounded-xl overflow-hidden text-left hover:border-white/15 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                    className="group bg-surface-dark-2 border border-white/5 rounded-xl overflow-hidden text-left hover:border-brand-500/50 hover:shadow-brand-500/10 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <div className="aspect-[4/3] relative overflow-hidden">
                       <div className="absolute inset-0 flex items-center justify-center p-3 pointer-events-none">

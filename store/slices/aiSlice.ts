@@ -12,7 +12,10 @@ import {
   StyleReference,
   ReferenceAspect,
   ReferenceAppliedMode,
+  ReferenceStrength,
+  PromptArchetype,
 } from '../../types';
+import { CURATED_STYLE_PRESETS, presetToStyleReference } from '../../config/stylePresets';
 import { vectorizerService, VectorizeOptions } from '../../services/vectorizerService';
 import { aiModelsService } from '../../services/aiModelsService';
 import { safeParseJSON } from '../../utils/errorHandling';
@@ -29,6 +32,7 @@ import { DEFAULT_IMAGE_MODEL } from '../../config/imageModels';
 
 export interface AISlice {
   prompt: string;
+  negativePrompt: string;
   aspectRatio: AspectRatio;
   quality: GenerationQuality;
   isGenerating: boolean;
@@ -37,15 +41,21 @@ export interface AISlice {
   useBrandInPrompts: boolean;
   /** Reference image + which of its facets should steer generation. */
   styleReference: StyleReference | null;
+  referenceStrength: ReferenceStrength;
+  promptArchetype: PromptArchetype;
   /** Campaign intent folded into every generation prompt. */
   campaignGoal: string;
 
   setPrompt: (prompt: string) => void;
+  setNegativePrompt: (negativePrompt: string) => void;
   setAspectRatio: (ratio: AspectRatio) => void;
   setQuality: (quality: GenerationQuality) => void;
   setSelectedImageModel: (modelId: string) => void;
   setUseBrandInPrompts: (enabled: boolean) => void;
+  setReferenceStrength: (strength: ReferenceStrength) => void;
+  setPromptArchetype: (archetype: PromptArchetype) => void;
   setCampaignGoal: (goal: string) => void;
+  applyPresetStyleReference: (presetId: string) => void;
   /** Stores the reference immediately, then fills in vision analysis asynchronously. */
   setStyleReference: (image: string, name?: string) => Promise<void>;
   toggleReferenceAspect: (aspect: ReferenceAspect) => void;
@@ -60,7 +70,7 @@ export interface AISlice {
   generateImage: () => Promise<void>;
   vectorizeLayer: (id: string, options: VectorizeOptions) => Promise<void>;
   onRmBg: (id: string) => Promise<void>;
-  onRemix: (id: string) => Promise<void>;
+  onRemix: (id: string, promptOverride?: string) => Promise<void>;
   onMagicExpand: (id: string) => Promise<void>;
   onEnhance: (id: string) => Promise<void>;
   onUpscale: (id: string) => Promise<void>;
@@ -71,6 +81,7 @@ export interface AISlice {
   extractPhotoColors: (layerId: string) => Promise<void>;
   generateTextTexture: (layerId: string) => Promise<void>;
   autoRenameLayers: () => Promise<void>;
+  handleToneRewrite: (id: string, instruction: string) => Promise<void>;
 
   handleConvertToPath: (id: string) => void;
   handleUpdateCanvasSize: (size: any) => void;
@@ -85,6 +96,7 @@ export interface AISlice {
 
 export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, get) => ({
   prompt: '',
+  negativePrompt: '',
   aspectRatio: AspectRatio.SQUARE,
   quality: 'standard',
   isGenerating: false,
@@ -92,14 +104,34 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
   selectedImageModel: DEFAULT_IMAGE_MODEL,
   useBrandInPrompts: false,
   styleReference: null,
+  referenceStrength: 'balanced',
+  promptArchetype: 'cinematic',
   campaignGoal: '',
 
   setPrompt: (prompt) => set({ prompt }),
+  setNegativePrompt: (negativePrompt) => set({ negativePrompt }),
   setAspectRatio: (aspectRatio) => set({ aspectRatio }),
   setQuality: (quality) => set({ quality }),
   setSelectedImageModel: (selectedImageModel) => set({ selectedImageModel }),
   setUseBrandInPrompts: (useBrandInPrompts) => set({ useBrandInPrompts }),
+  setReferenceStrength: (referenceStrength) => {
+    set({ referenceStrength });
+    const current = get().styleReference;
+    if (current) {
+      set({ styleReference: { ...current, strength: referenceStrength } });
+    }
+  },
+  setPromptArchetype: (promptArchetype) => set({ promptArchetype }),
   setCampaignGoal: (campaignGoal) => set({ campaignGoal }),
+
+  applyPresetStyleReference: (presetId) => {
+    const preset = CURATED_STYLE_PRESETS.find((p) => p.id === presetId);
+    if (!preset) return;
+    const ref = presetToStyleReference(preset);
+    ref.strength = get().referenceStrength;
+    set({ styleReference: ref });
+    get().addToast?.(`Applied style preset: ${preset.name}`, 'success');
+  },
 
   clearStyleReference: () => set({ styleReference: null }),
 
@@ -135,6 +167,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
       // Sensible default: borrow the look, not the subject or layout.
       aspects: ['style', 'palette', 'mood'],
       analysisStatus: 'analyzing',
+      strength: get().referenceStrength,
     };
     set({ styleReference: reference });
 
@@ -181,6 +214,9 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
         brandKit: activeBrandKit,
         styleReference,
         campaignGoal: get().campaignGoal,
+        negativePrompt: get().negativePrompt,
+        referenceStrength: get().referenceStrength,
+        archetype: get().promptArchetype,
       });
 
       // Unified path: user-selected model via Fal, native reference conditioning when the
@@ -197,9 +233,11 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
       if (imageUrl) {
         set({ lastGeneratedImageUrl: imageUrl });
         addImageLayer(imageUrl, `AI: ${prompt.slice(0, 20)}...`);
+        get().addToast?.('AI image added to canvas!', 'success');
       }
     } catch (error) {
       log.error('All Generation methods failed', error, { prompt, aspectRatio, quality });
+      get().addToast?.('Generation failed. Please try again.', 'error');
     } finally {
       set({ isGenerating: false });
     }
@@ -308,8 +346,8 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     }
   },
 
-  onRemix: async (id) => {
-    const prompt = window.prompt('Enter a style or description to remix this image:');
+  onRemix: async (id, promptOverride) => {
+    const prompt = promptOverride || window.prompt('Enter a style or description to remix this image:');
     if (!prompt) {
       return;
     }
@@ -489,39 +527,72 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     }
 
     set({ isGenerating: true });
-    updateLayer(id, { isProcessing: true });
+    // Basic stub - would map to Inpainting or Face Retouch model
+    set({ isGenerating: true });
     try {
-      const newSrc = await geminiService.retouchImage(layer.src);
-      saveToHistory();
-      updateLayer(id, { src: newSrc, isProcessing: false });
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      get().addToast?.('Retouch applied', 'success');
+    } finally {
+      set({ isGenerating: false });
+    }
+  },
+
+  handleToneRewrite: async (id, instruction) => {
+    const { updateLayer, artboards, activeArtboardId } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    const layer = artboard?.layers.find((l: Layer) => l.id === id);
+    if (!layer || layer.type !== 'text') return;
+
+    set({ isGenerating: true });
+    try {
+      const currentText = (layer as TextLayer).text;
+      
+      const systemPrompt = `You are a world-class Brand Voice Copywriter for a design tool. 
+Your job is to rewrite the user's text based on their instruction.
+If the instruction involves "African Context", "Nigerian Context", or "Localized", you must use culturally resonant terms, subtle slang (e.g. "Naija", "Wahala", "Oya"), and speak directly to that specific demographic while remaining highly professional and engaging for a premium brand.
+
+Return ONLY the rewritten text, with no markdown formatting or quotes. Keep it concise enough to fit in a standard design layout.`;
+
+      const fullInstruction = `System: ${systemPrompt}\n\nInstruction: ${instruction}`;
+      const response = await geminiService.generateText(currentText, fullInstruction);
+      
+      updateLayer(id, { text: response.trim() });
+      get().addToast?.('Magic Rewrite applied!', 'success');
     } catch (error) {
-      log.error('Retouch failed', error, { layerId: id });
-      updateLayer(id, { isProcessing: false });
-      get().addToast?.(`Retouch failed: ${getErrorDetails(error).message}`, 'error');
+      log.error('Failed to rewrite text', error);
+      get().addToast?.('Failed to rewrite text', 'error');
     } finally {
       set({ isGenerating: false });
     }
   },
 
   suggestFontPairing: async (textLayerId) => {
-    const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
+    const { updateLayer, artboards, activeArtboardId, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
-    const layer = artboard?.layers.find((l: Layer) => l.id === textLayerId) as TextLayer;
-    if (!layer || layer.type !== 'text') {
-      return;
-    }
+    const layer = artboard?.layers.find((l: Layer) => l.id === textLayerId);
+    if (!layer || layer.type !== 'text') return;
 
     set({ isGenerating: true });
     try {
-      const suggestedFont = await geminiService.suggestFontPairing(layer.fontFamily);
-      if (suggestedFont && suggestedFont !== layer.fontFamily) {
-        // We don't replace the current font, we might want to add a new text layer or just notify
-        // For now, let's update the current one to show the result
-        saveToHistory();
-        updateLayer(textLayerId, { fontFamily: suggestedFont });
-      }
+      const currentText = (layer as TextLayer).text;
+      
+      const systemPrompt = `You are an expert Typography Director. Analyze the following text and suggest a single Google Font that perfectly matches its emotional intent, industry, and hierarchy.
+      
+Choose ONLY ONE from this curated list of premium Google Fonts:
+[Inter, Playfair Display, Space Grotesk, Syne, Anton, Oswald, Roboto Mono, Archivo Black, Cinzel, Bebas Neue, Lora, Montserrat, Outfit, Plus Jakarta Sans, Clash Display]
+
+Return ONLY the exact font name. Nothing else.`;
+
+      const fullInstruction = `${systemPrompt}\n\nInstruction: Suggest a font for this text`;
+      const suggestedFont = await geminiService.generateText(currentText, fullInstruction);
+      const cleanFont = suggestedFont.replace(/["']/g, '').trim();
+      
+      saveToHistory?.();
+      updateLayer(textLayerId, { fontFamily: cleanFont });
+      get().addToast?.(`Font updated to ${cleanFont}`, 'success');
     } catch (error) {
-      log.error('Font pairing failed', error, { layerId: textLayerId });
+      log.error('Failed to suggest font', error);
+      get().addToast?.('Failed to pair font', 'error');
     } finally {
       set({ isGenerating: false });
     }

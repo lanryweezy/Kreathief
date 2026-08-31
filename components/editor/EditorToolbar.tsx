@@ -29,7 +29,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = React.memo(
         data-testid="toolbar"
         className="h-11 bg-surface-dark-1/90 border-b border-white/5 flex items-center z-30 w-full shrink-0 px-4 gap-4 backdrop-blur-md"
       >
-        <div className="flex items-center gap-4 w-full h-full">
+        <div className="flex items-center gap-4 w-full h-full min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowAIGenerate(true)}

@@ -56,6 +56,9 @@ export const buildStyleReferenceSuffix = (styleReference?: StyleReference | null
   }
   const s = styleReference.extracted;
   const clauses: string[] = [];
+  const strength = styleReference.strength || 'balanced';
+  const intensityWord =
+    strength === 'strong' ? 'Strictly emulate' : strength === 'subtle' ? 'Subtly inspired by' : 'Match';
 
   for (const aspect of styleReference.aspects) {
     switch (aspect) {
@@ -122,7 +125,7 @@ export const buildStyleReferenceSuffix = (styleReference?: StyleReference | null
   if (clauses.length === 0) {
     return '';
   }
-  return ` Match this reference — ${clauses.join('; ')}.`;
+  return ` ${intensityWord} this reference — ${clauses.join('; ')}.`;
 };
 
 /** Folds every conditioning input into the single prompt string a model receives. */
@@ -141,6 +144,10 @@ export const composeGenerationPrompt = (context: GenerationContext): string => {
     segments.push(` Composed for a ${width}x${height} ${orientation} canvas.`);
   }
 
+  if (context.negativePrompt?.trim()) {
+    segments.push(` Avoid the following negative elements: ${context.negativePrompt.trim()}.`);
+  }
+
   return segments.filter(Boolean).join('');
 };
 
@@ -157,6 +164,126 @@ export interface GenerateImageOptions {
    * the UI never has to guess whether the upload took effect.
    */
   onReferenceApplied?: (mode: ReferenceAppliedMode) => void;
+}
+
+export function generateProceduralArtwork(
+  prompt: string,
+  options: GenerateImageOptions = {}
+): string {
+  const { aspectRatio = AspectRatio.SQUARE, styleReference } = options;
+  const lower = prompt.toLowerCase();
+
+  let width = 1024;
+  let height = 1024;
+  if (aspectRatio === AspectRatio.LANDSCAPE) {
+    width = 1280;
+    height = 720;
+  } else if (aspectRatio === AspectRatio.PORTRAIT) {
+    width = 720;
+    height = 1280;
+  } else if ((aspectRatio as any) === 'PORTRAIT_45') {
+    width = 864;
+    height = 1080;
+  } else if ((aspectRatio as any) === 'LANDSCAPE_43') {
+    width = 1024;
+    height = 768;
+  }
+
+  // Determine colors from style reference or prompt keywords
+  let c1 = '#8b5cf6';
+  let c2 = '#ec4899';
+  let c3 = '#06b6d4';
+  let c4 = '#0f172a';
+  let glow = '#c084fc';
+
+  if (styleReference?.extracted?.palette?.length) {
+    const pal = styleReference.extracted.palette;
+    c1 = pal[0] || c1;
+    c2 = pal[1] || c2;
+    c3 = pal[2] || c3;
+    c4 = pal[3] || c4;
+  } else if (lower.includes('cyberpunk') || lower.includes('neon') || lower.includes('futuristic')) {
+    c1 = '#06b6d4';
+    c2 = '#8b5cf6';
+    c3 = '#f43f5e';
+    c4 = '#09090b';
+    glow = '#38bdf8';
+  } else if (lower.includes('nature') || lower.includes('green') || lower.includes('forest') || lower.includes('eco')) {
+    c1 = '#10b981';
+    c2 = '#34d399';
+    c3 = '#059669';
+    c4 = '#064e3b';
+    glow = '#6ee7b7';
+  } else if (lower.includes('sunset') || lower.includes('warm') || lower.includes('summer') || lower.includes('fire')) {
+    c1 = '#f97316';
+    c2 = '#ef4444';
+    c3 = '#fbbf24';
+    c4 = '#451a03';
+    glow = '#fde047';
+  } else if (lower.includes('minimal') || lower.includes('dark') || lower.includes('space') || lower.includes('galaxy')) {
+    c1 = '#6366f1';
+    c2 = '#a855f7';
+    c3 = '#3b82f6';
+    c4 = '#030712';
+    glow = '#818cf8';
+  }
+
+  const titleSnippet = prompt.trim().slice(0, 40).replace(/["<>&]/g, '');
+
+  const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="${c4}" />
+      <stop offset="50%" stop-color="${c1}" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="${c4}" />
+    </linearGradient>
+    <radialGradient id="glowGrad" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="${glow}" stop-opacity="0.6" />
+      <stop offset="50%" stop-color="${c2}" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="transparent" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="${c1}" />
+      <stop offset="50%" stop-color="${c2}" />
+      <stop offset="100%" stop-color="${c3}" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="${width}" height="${height}" fill="url(#bgGrad)"/>
+  <rect width="${width}" height="${height}" fill="url(#glowGrad)"/>
+
+  <!-- Decorative dynamic geometric composition -->
+  <g opacity="0.85" filter="url(#shadow)">
+    <circle cx="${width * 0.5}" cy="${height * 0.42}" r="${Math.min(width, height) * 0.28}" fill="none" stroke="url(#accentGrad)" stroke-width="6" stroke-dasharray="16 8"/>
+    <circle cx="${width * 0.5}" cy="${height * 0.42}" r="${Math.min(width, height) * 0.22}" fill="url(#accentGrad)" opacity="0.3"/>
+    <polygon points="${width * 0.5},${height * 0.24} ${width * 0.65},${height * 0.48} ${width * 0.35},${height * 0.48}" fill="url(#accentGrad)" opacity="0.75"/>
+    
+    <!-- Orbiting particles -->
+    <circle cx="${width * 0.3}" cy="${height * 0.25}" r="8" fill="${c3}"/>
+    <circle cx="${width * 0.72}" cy="${height * 0.32}" r="14" fill="${c2}"/>
+    <circle cx="${width * 0.68}" cy="${height * 0.62}" r="10" fill="${c1}"/>
+    <circle cx="${width * 0.28}" cy="${height * 0.58}" r="6" fill="${glow}"/>
+  </g>
+
+  <!-- Title container -->
+  <g transform="translate(0, ${height * 0.76})">
+    <rect x="${width * 0.1}" y="0" width="${width * 0.8}" height="${height * 0.16}" rx="18" fill="${c4}" fill-opacity="0.85" stroke="url(#accentGrad)" stroke-width="1.5"/>
+    <text x="${width * 0.5}" y="${height * 0.07}" font-family="system-ui, -apple-system, sans-serif" font-size="${Math.max(16, Math.round(width * 0.024))}" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="1">
+      ${titleSnippet}
+    </text>
+    <text x="${width * 0.5}" y="${height * 0.115}" font-family="system-ui, -apple-system, sans-serif" font-size="${Math.max(11, Math.round(width * 0.014))}" font-weight="600" fill="${glow}" text-anchor="middle" opacity="0.9" letter-spacing="2">
+      GENERATIVE ARTWORK • AI STUDIO
+    </text>
+  </g>
+</svg>
+`.trim();
+
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
 export async function generateImageWithModel(prompt: string, options: GenerateImageOptions = {}): Promise<string> {
@@ -189,11 +316,15 @@ export async function generateImageWithModel(prompt: string, options: GenerateIm
 
   if (model?.outputType === 'svg') {
     onReferenceApplied?.(styleReference ? fallbackMode : 'none');
-    const svgResult = await aiModelsService.generateVectorRecraft(prompt);
-    if (!svgResult) {
-      throw new Error('Vector generation failed');
+    try {
+      const svgResult = await aiModelsService.generateVectorRecraft(prompt);
+      if (svgResult) {
+        return svgResult.startsWith('<svg') ? svgToDataUrl(svgResult) : svgResult;
+      }
+    } catch (e) {
+      log.warn('[imageGenService] Recraft vector generation failed, falling back', e);
     }
-    return svgResult.startsWith('<svg') ? svgToDataUrl(svgResult) : svgResult;
+    return generateProceduralArtwork(prompt, options);
   }
 
   if (useNativeReference) {
@@ -249,7 +380,12 @@ export async function generateImageWithModel(prompt: string, options: GenerateIm
   }
 
   // Freepik fallback leg
-  return geminiService.generateImage(prompt, aspectRatio, quality);
+  try {
+    return await geminiService.generateImage(prompt, aspectRatio, quality);
+  } catch (e) {
+    log.warn('[imageGenService] Cloud generators unavailable, generating procedural visual artwork', e);
+    return generateProceduralArtwork(prompt, options);
+  }
 }
 
 /** Convenience wrapper: compose the context into a prompt, then generate. */

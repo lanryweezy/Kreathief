@@ -314,7 +314,7 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'google/gemini-2.0-flash-001',
+            model: 'google/gemini-2.5-flash',
             messages: [
               { role: 'system', content: `Generate text content in a ${settings.tone} tone.` },
               { role: 'user', content: `${settings.instruction}. Context: ${inputs.prompt?.prompt || ''}` },

@@ -51,9 +51,12 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
             className={`
               w-full flex flex-col items-center justify-center gap-0.5 py-1.5 px-1
               transition-all duration-150 relative group rounded-lg
-              ${isActive ? 'text-white' : 'text-gray-500 hover:text-gray-200'}
+              ${isActive ? 'text-white bg-white/5' : 'text-gray-500 hover:text-gray-200 hover:bg-white/[0.02]'}
             `}
           >
+            {isActive && (
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-500 rounded-r-full shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
+            )}
             <div
               className={`
                 flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-150

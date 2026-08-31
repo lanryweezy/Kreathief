@@ -306,7 +306,7 @@ export const TextPanel: React.FC = () => {
             </div>
             <div className="mb-4">
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">Weight</label>
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1.5">
                 {['300', '400', '500', '600', '700', '900'].map((weight) => (
                   <button
                     key={weight}
@@ -314,7 +314,7 @@ export const TextPanel: React.FC = () => {
                       setSelectedFontWeight(weight);
                       updateLayer(selectedTextLayer.id, { fontWeight: weight });
                     }}
-                    className={`px-2 py-1 rounded text-[10px] font-bold transition-all ${
+                    className={`px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all ${
                       (selectedTextLayer.fontWeight || '400') === weight
                         ? 'bg-brand-600 text-white'
                         : 'bg-surface-dark-3 text-gray-400 hover:text-white hover:bg-surface-dark-4'
@@ -328,9 +328,8 @@ export const TextPanel: React.FC = () => {
           </>
         )}
 
-        {/* Text Panel Tabs */}
         <div
-          className="flex flex-wrap gap-1 mb-5 bg-surface-dark-2 p-1.5 rounded-xl border border-white/5"
+          className="flex flex-nowrap overflow-x-auto no-scrollbar gap-1 mb-5 bg-surface-dark-2 p-1.5 rounded-xl border border-white/5"
           role="tablist"
         >
           {(['add', 'styles', 'gradient', 'effects', 'path', 'find', 'spacing'] as const).map((tab) => (
@@ -357,23 +356,23 @@ export const TextPanel: React.FC = () => {
               <button
                 data-testid="add-heading-btn"
                 onClick={() => handleAddText({ text: 'Heading', fontSize: 62, fontWeight: '800' })}
-                className="w-full py-3 bg-surface-dark-4 hover:bg-surface-dark-5 border border-gray-700 hover:border-gray-500 rounded-xl text-left px-4 transition-colors"
+                className="w-full py-4 bg-surface-dark-4 hover:bg-surface-dark-5 border border-gray-700 hover:border-gray-500 rounded-xl text-left px-4 transition-colors"
               >
-                <span className="text-2xl font-extrabold text-white">Add a heading</span>
+                <span className="text-3xl font-extrabold text-white leading-none">Add a heading</span>
               </button>
               <button
                 data-testid="add-subheading-btn"
                 onClick={() => handleAddText({ text: 'Subheading', fontSize: 38, fontWeight: '600' })}
-                className="w-full py-2.5 bg-surface-dark-4 hover:bg-surface-dark-5 border border-gray-700 hover:border-gray-500 rounded-xl text-left px-4 transition-colors"
+                className="w-full py-3 bg-surface-dark-4 hover:bg-surface-dark-5 border border-gray-700 hover:border-gray-500 rounded-xl text-left px-4 transition-colors"
               >
-                <span className="text-lg font-semibold text-gray-200">Add a subheading</span>
+                <span className="text-xl font-bold text-gray-200 leading-none">Add a subheading</span>
               </button>
               <button
                 data-testid="add-body-text-btn"
                 onClick={() => handleAddText({ text: 'Body text', fontSize: 24, fontWeight: '400' })}
-                className="w-full py-2 bg-surface-dark-4 hover:bg-surface-dark-5 border border-gray-700 hover:border-gray-500 rounded-xl text-left px-4 transition-colors"
+                className="w-full py-2.5 bg-surface-dark-4 hover:bg-surface-dark-5 border border-gray-700 hover:border-gray-500 rounded-xl text-left px-4 transition-colors"
               >
-                <span className="text-sm text-gray-300">Add a little bit of body text</span>
+                <span className="text-sm font-medium text-gray-300 leading-none">Add a little bit of body text</span>
               </button>
             </div>
 

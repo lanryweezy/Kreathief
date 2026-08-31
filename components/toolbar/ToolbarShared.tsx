@@ -78,7 +78,7 @@ export const IconButton = React.memo(
       const timeoutRef = React.useRef<any>(null);
 
       const handleMouseEnter = () => {
-        timeoutRef.current = setTimeout(() => setShowTooltip(true), 250);
+        timeoutRef.current = setTimeout(() => setShowTooltip(true), 300);
       };
 
       const handleMouseLeave = () => {
@@ -106,8 +106,8 @@ export const IconButton = React.memo(
           aria-pressed={active}
           aria-busy={loading}
           className={`p-2 rounded-lg transition-all flex items-center justify-center relative group/btn ${
-            active ? 'bg-brand-600 text-white shadow-glow-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'
-          } ${disabled || loading ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
+            active ? 'bg-brand-600 text-white shadow-glow-brand scale-[0.98]' : 'text-gray-400 hover:bg-white/15 hover:text-white hover:shadow-md'
+          } ${disabled || loading ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer active:scale-[0.96]'} ${className}`}
         >
           {loading ? <Icons.RotateCw className="w-3.5 h-3.5 animate-spin text-purple-400" /> : children}
 
@@ -180,7 +180,7 @@ export const NumberInput = React.memo(({ value, onChange, title, icon: Icon, uni
 
   return (
     <div
-      className={`flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 rounded-lg hover:border-white/20 transition-colors group/input relative ${isScrubbing ? 'ring-1 ring-purple-500/50' : ''}`}
+      className={`flex items-center gap-1.5 px-2 py-1 bg-black/20 border border-white/10 rounded-lg hover:border-brand-500/50 hover:bg-black/30 transition-all focus-within:border-brand-500 focus-within:ring-1 focus-within:ring-brand-500/50 group/input relative ${isScrubbing ? 'ring-1 ring-brand-500/50 bg-black/40' : ''}`}
       title={title}
     >
       {isScrubbing && (
@@ -230,7 +230,7 @@ export const CompactInput = React.memo(
     const { onKeyDown, onBlur } = useMathInputHandlers({ value, onChange, step });
 
     return (
-      <div className="flex items-center gap-1.5 bg-black/20 border border-white/10 rounded-lg px-2 py-1 focus-within:border-brand-600/50 focus-within:bg-black/40 transition-all group">
+      <div className="flex items-center gap-1.5 bg-black/20 border border-white/10 rounded-lg px-2 py-1 hover:border-brand-500/50 hover:bg-black/30 focus-within:border-brand-500 focus-within:ring-1 focus-within:ring-brand-500/50 focus-within:bg-black/40 transition-all group">
         {label && (
           <label
             htmlFor={id}

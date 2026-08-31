@@ -24,6 +24,19 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
     applyAgentVariant,
     resetAgentState,
     selectedLayerIds,
+    
+    // AI Assistant (Chat/Critique) state
+    conversationHistory,
+    isAnalyzing,
+    currentCritique,
+    sendMessage,
+    analyzeCurrentDesign,
+    clearConversation,
+    applySuggestion,
+    dismissSuggestion,
+    artboards,
+    activeArtboardId,
+    runMotionDirector,
   } = useStore(
     useShallow((state) => ({
       agentStatus: state.agentStatus,
@@ -33,12 +46,26 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
       thinkingLog: state.thinkingLog,
       runAgenticWorkflow: state.runAgenticWorkflow,
       runAgenticRefine: state.runAgenticRefine,
+      runMotionDirector: state.runMotionDirector,
       applyAgentVariant: state.applyAgentVariant,
       resetAgentState: state.resetAgentState,
       selectedLayerIds: state.selectedLayerIds,
+      
+      conversationHistory: state.conversationHistory,
+      isAnalyzing: state.isAnalyzing,
+      currentCritique: state.currentCritique,
+      sendMessage: state.sendMessage,
+      analyzeCurrentDesign: state.analyzeCurrentDesign,
+      clearConversation: state.clearConversation,
+      applySuggestion: state.applySuggestion,
+      dismissSuggestion: state.dismissSuggestion,
+      artboards: state.artboards,
+      activeArtboardId: state.activeArtboardId,
     }))
   );
 
+  const activeArtboard = artboards.find((a: any) => a.id === activeArtboardId);
+  const hasLayers = activeArtboard && activeArtboard.layers.length > 0;
   const isRefining = selectedLayerIds && selectedLayerIds.length > 0;
 
   const [input, setInput] = useState(agentIntent || '');
@@ -66,24 +93,34 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
     } else {
       runAgenticWorkflow(input);
     }
+    setInput('');
+  };
+
+  const handleSendChat = () => {
+    const message = input.trim();
+    if (!message || isAnalyzing) return;
+    sendMessage(message);
+    setInput('');
   };
 
   const renderStatus = () => {
     const steps = [
-      { id: 'creative', label: 'Layout Generator', sub: 'Ideating Layouts', icon: AgentIcons.Sparkles },
-      { id: 'critic', label: 'Design Reviewer', sub: 'Optimizing Spacing', icon: AgentIcons.Search },
-      { id: 'performance', label: 'Performance Check', sub: 'Performance Scoring', icon: AgentIcons.Zap },
+      { id: 'strategy', label: 'Strategy Agent', sub: 'Researching Brief', icon: AgentIcons.Bot },
+      { id: 'creative', label: 'Ideation Engine', sub: 'Ideating Layouts', icon: AgentIcons.Sparkles },
+      { id: 'searching', label: 'Asset Fetching', sub: 'Sourcing Graphics', icon: AgentIcons.Search },
+      { id: 'rendering', label: 'Compositing', sub: 'Building Vectors', icon: AgentIcons.Image },
+      { id: 'critic', label: 'Design Critic', sub: 'Optimizing Contrast', icon: AgentIcons.Bot },
+      { id: 'performance', label: 'Performance', sub: 'Scoring Impact', icon: AgentIcons.Zap },
     ];
 
     return (
       <div className="space-y-6 py-4">
         <div className="space-y-4">
           {steps.map((step, i) => {
+            const stepOrder = steps.map(s => s.id);
+            const currentIndex = stepOrder.indexOf(agentStatus as any);
             const isActive = agentStatus === step.id;
-            const isDone =
-              (['critic', 'performance', 'done'].includes(agentStatus) && i === 0) ||
-              (['performance', 'done'].includes(agentStatus) && i === 1) ||
-              (agentStatus === 'done' && i === 2);
+            const isDone = agentStatus === 'done' || (currentIndex > -1 && currentIndex > i);
 
             return (
               <div key={step.id} className="relative group">
@@ -148,9 +185,9 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
       <div className="p-6 border-b border-white/5 bg-surface-dark-3/50 backdrop-blur-xl flex items-center justify-between">
         <h3 className="font-black text-white flex items-center gap-3 uppercase tracking-[0.2em] text-xs">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-600 to-brand-400 flex items-center justify-center shadow-lg shadow-purple-500/20">
-            <AgentIcons.Zap className="w-5 h-5 text-white" />
+            <AgentIcons.Sparkles className="w-5 h-5 text-white" />
           </div>
-          Agentic AI
+          Magic Studio
         </h3>
         {agentStatus !== 'idle' && (
           <button
@@ -164,29 +201,250 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
-        {agentStatus === 'idle' && (
-          <div className="space-y-6 pt-12 text-center">
-            <div className="w-20 h-20 bg-purple-500/10 rounded-3xl mx-auto flex items-center justify-center border border-purple-500/20">
-              {isRefining ? (
-                <AgentIcons.Zap className="w-10 h-10 text-purple-500 animate-pulse" />
-              ) : (
-                <AgentIcons.Sparkles className="w-10 h-10 text-purple-500 animate-pulse" />
-              )}
+        {/* Splash screen if nothing is active */}
+        {agentStatus === 'idle' && conversationHistory.length === 0 && !isAnalyzing && (
+          <div className="space-y-6 pt-6 text-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-brand-600 to-purple-800 rounded-2xl mx-auto flex items-center justify-center shadow-xl shadow-purple-900/40">
+              <AgentIcons.Sparkles className="w-8 h-8 text-white animate-pulse" />
             </div>
             <div>
-              <h2 className="text-xl font-black text-white uppercase tracking-tighter">
-                {isRefining ? 'Refinement Mode' : 'Multi-Agent System'}
+              <h2 className="text-sm font-black text-white uppercase tracking-wider">
+                Magic Studio
               </h2>
-              <p className="text-gray-400 text-xs mt-2 font-medium max-w-[200px] mx-auto leading-relaxed">
-                {isRefining
-                  ? `Optimizing ${selectedLayerIds.length} selected layer${selectedLayerIds.length > 1 ? 's' : ''} while respecting your existing design context.`
-                  : 'Describe your vision. My agents will design, critique, and optimize 3 unique variants for you.'}
+              <p className="text-gray-400 text-[11px] mt-1.5 font-medium max-w-[240px] mx-auto leading-relaxed">
+                Describe your vision. The AI will generate a complete, multi-slide campaign instantly.
               </p>
+            </div>
+
+            {/* Magic Tools Hub (Unified UI) */}
+            <div className="pt-4 text-left space-y-2">
+              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block px-1">
+                Magic Tools
+              </span>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={() => document.dispatchEvent(new CustomEvent('open-magic-image'))}
+                  className="bg-surface-dark-4 hover:bg-surface-dark-2 border border-white/5 p-3 rounded-xl flex flex-col items-center gap-2 transition-colors"
+                >
+                  <AgentIcons.Image className="w-5 h-5 text-blue-400" />
+                  <span className="text-[9px] font-bold text-gray-300 uppercase">Magic Image</span>
+                </button>
+                <button
+                  onClick={() => document.dispatchEvent(new CustomEvent('open-text-agent'))}
+                  className="bg-surface-dark-4 hover:bg-surface-dark-2 border border-white/5 p-3 rounded-xl flex flex-col items-center gap-2 transition-colors"
+                >
+                  <AgentIcons.Wand className="w-5 h-5 text-orange-400" />
+                  <span className="text-[9px] font-bold text-gray-300 uppercase">Brand Writer</span>
+                </button>
+                <button
+                  onClick={() => document.dispatchEvent(new CustomEvent('open-video-agent'))}
+                  className="bg-surface-dark-4 hover:bg-surface-dark-2 border border-white/5 p-3 rounded-xl flex flex-col items-center gap-2 transition-colors relative overflow-hidden group"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-brand-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <AgentIcons.Play className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-[9px] font-bold text-gray-300 uppercase">Magic Video</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Inspiration Pills */}
+            <div className="pt-2 text-left space-y-2">
+              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block px-1 mt-4">
+                Campaign Generators
+              </span>
+              <div className="grid grid-cols-1 gap-1.5">
+                {[
+                  {
+                    label: '✨ Tech Summit Launch Poster',
+                    prompt: 'Futuristic African AI Summit poster in Lagos, deep violet with electric cyan nodes, gigantic bold headline and 3 feature cards',
+                  },
+                  {
+                    label: '🎵 Afrobeats Concert Story',
+                    prompt: 'High-energy Afrobeats live concert Instagram story, bold typography, warm neon orange highlights, ticket CTA',
+                  },
+                  {
+                    label: '💎 Luxury Real Estate Listing',
+                    prompt: 'Minimalist editorial real estate flyer for luxury duplex in Abuja, price badge, clean feature list, schedule viewing CTA',
+                  },
+                  {
+                    label: '💼 SaaS Product Feature Banner',
+                    prompt: 'Clean modern Stripe-style feature announcement banner, 60/40 layout, dark mode, high-contrast register button',
+                  },
+                ].map((preset, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setInput(preset.prompt)}
+                    className="text-left px-3 py-2 bg-white/5 hover:bg-brand-500/15 border border-white/5 hover:border-brand-500/30 rounded-xl transition-all group"
+                  >
+                    <span className="text-[10px] font-bold text-gray-300 group-hover:text-brand-300 block">
+                      {preset.label}
+                    </span>
+                    <span className="text-[9px] text-gray-500 line-clamp-1 mt-0.5">
+                      {preset.prompt}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Global Style Transfer Pills */}
+            {hasLayers && !isRefining && (
+              <div className="pt-4 text-left space-y-2 border-t border-white/5 mt-4">
+                <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest block px-1">
+                  Visual Style Transfer
+                </span>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    { label: 'Brutalist', prompt: 'Redesign with a Brutalist aesthetic: raw edges, bold typography, high contrast, neo-grotesque fonts.' },
+                    { label: 'Swiss Minimalist', prompt: 'Redesign with a Swiss Minimalist aesthetic: strict grid, ample negative space, clean sans-serif typography, restrained palette.' },
+                    { label: 'Cyberpunk', prompt: 'Redesign with a Neon Cyberpunk style: dark mode, glowing neon accents, futuristic glitch effects, tech typography.' },
+                    { label: 'Editorial', prompt: 'Redesign with an Elegant Editorial style: refined serif fonts, muted warm tones, sophisticated magazine layout, classic hierarchy.' },
+                  ].map((style, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setInput(style.prompt);
+                        runAgenticRefine(style.prompt, activeArtboard.layers.map((l: any) => l.id));
+                      }}
+                      className="text-left px-2 py-1.5 bg-brand-500/10 hover:bg-brand-500/25 border border-brand-500/20 hover:border-brand-500/40 rounded-xl transition-all group flex flex-col justify-center"
+                    >
+                      <span className="text-[10px] font-bold text-gray-300 group-hover:text-white block text-center w-full">
+                        {style.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Motion Director AI Pills */}
+            {hasLayers && !isRefining && (
+              <div className="pt-4 text-left space-y-2 border-t border-white/5 mt-4">
+                <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest block px-1">
+                  Magic Animate ✨
+                </span>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    { label: 'Staggered Pop', prompt: 'Staggered pop and bounce animations for a playful entry.' },
+                    { label: 'Cinematic Reveal', prompt: 'Slow cinematic fade-ins and subtle zooms.' },
+                    { label: 'Aggressive Glitch', prompt: 'Fast, sharp slide-ins with chaotic delays.' },
+                    { label: 'Smooth Slide', prompt: 'Elegant directional slides from the bottom and sides.' },
+                  ].map((style, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setInput(style.prompt);
+                        runMotionDirector(style.prompt);
+                      }}
+                      className="text-left px-2 py-1.5 bg-amber-500/10 hover:bg-amber-500/25 border border-amber-500/20 hover:border-amber-500/40 rounded-xl transition-all group flex flex-col justify-center"
+                    >
+                      <span className="text-[10px] font-bold text-amber-300 group-hover:text-amber-200 block text-center w-full">
+                        {style.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Quick Surgical Refinement Chips (when layers are selected or canvas is active) */}
+        {isRefining && (
+          <div className="bg-brand-500/10 border border-brand-500/20 rounded-xl p-3 space-y-2">
+            <span className="text-[9px] font-black text-brand-400 uppercase tracking-widest block">
+              Quick Layer Adjustments
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                'Make headline 20% larger',
+                'Increase contrast & add scrim',
+                'Make colors more vibrant',
+                'Switch to clean dark mode',
+                'Add frosted glass card container',
+                'Make it look like a die-cut sticker',
+                'Add a glowing drop shadow',
+                'Add a solid outline stroke',
+              ].map((chip, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setInput(chip);
+                    runAgenticRefine(chip, selectedLayerIds);
+                  }}
+                  className="px-2 py-1 bg-white/5 hover:bg-brand-500/25 border border-white/10 rounded-lg text-[9px] font-bold text-gray-300 hover:text-white transition-colors"
+                >
+                  {chip}
+                </button>
+              ))}
             </div>
           </div>
         )}
 
-        {(agentStatus === 'creative' || agentStatus === 'critic' || agentStatus === 'performance') && (
+        {/* Chat History */}
+        {conversationHistory.length > 0 && (
+          <div className="space-y-4">
+            {conversationHistory.map((msg) => (
+              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div
+                  className={`max-w-[85%] px-4 py-3 rounded-2xl text-[11px] leading-relaxed whitespace-pre-wrap shadow-sm ${
+                    msg.role === 'user'
+                      ? 'bg-brand-600 text-white rounded-br-sm'
+                      : 'bg-white/5 border border-white/5 text-gray-300 rounded-bl-sm'
+                  }`}
+                >
+                  {msg.content}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {isAnalyzing && (
+          <div className="flex justify-start">
+            <div className="bg-white/5 border border-white/5 px-4 py-3 rounded-2xl rounded-bl-sm flex items-center gap-1.5 shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-bounce" />
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-bounce [animation-delay:120ms]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-bounce [animation-delay:240ms]" />
+            </div>
+          </div>
+        )}
+
+        {/* Critique Suggestions */}
+        {currentCritique && currentCritique.suggestions.length > 0 && (
+          <div className="space-y-2 mt-4">
+            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Design Suggestions</h4>
+            {currentCritique.suggestions.slice(0, 4).map((s: any) => (
+              <div
+                key={s.id}
+                className="flex items-start gap-3 bg-white/5 border border-white/5 rounded-xl p-3 shadow-sm"
+              >
+                <AgentIcons.Sparkles className="w-3.5 h-3.5 text-brand-400 mt-0.5 shrink-0" />
+                <p className="flex-1 text-[11px] text-gray-300 leading-relaxed">{s.message || s.description}</p>
+                <div className="flex items-center gap-2 shrink-0">
+                  {s.autoFix && (
+                    <button
+                      onClick={() => applySuggestion(s.id)}
+                      className="px-2 py-1 bg-brand-600/20 text-brand-400 rounded hover:bg-brand-600 hover:text-white text-[9px] font-black uppercase tracking-wider transition-all"
+                    >
+                      Fix
+                    </button>
+                  )}
+                  <button
+                    onClick={() => dismissSuggestion(s.id)}
+                    aria-label="Dismiss suggestion"
+                    className="p-1 rounded text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-colors"
+                  >
+                    <AgentIcons.X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Workflow Status */}
+        {(agentStatus === 'strategy' || agentStatus === 'creative' || agentStatus === 'searching' || agentStatus === 'rendering' || agentStatus === 'critic' || agentStatus === 'performance') && (
           <div className="space-y-2">
             <div className="flex items-center justify-between mb-4">
               <span className="text-[10px] font-black text-purple-400 uppercase">Orchestration in progress</span>
@@ -227,37 +485,50 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
 
       {/* Input Tray */}
       <div className="p-4 border-t border-white/5 bg-surface-dark-3/80 backdrop-blur-xl">
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-2.5 shadow-inner focus-within:border-purple-500/50 transition-all">
+        <div className="relative group p-1 bg-surface-dark-2 rounded-xl border border-white/10 shadow-2xl overflow-hidden focus-within:border-brand-500 transition-colors">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            disabled={agentStatus !== 'idle' && agentStatus !== 'done' && agentStatus !== 'error'}
-            placeholder={
-              isRefining
-                ? "How should we improve these layers? (e.g. 'Make it minimalist', 'Align better')"
-                : 'e.g. Score my design, write a catchy headline, or optimize layout...'
-            }
-            className="w-full bg-transparent border-none text-xs text-white placeholder:text-gray-600 focus:outline-none resize-none h-20 custom-scrollbar font-bold leading-relaxed"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleStartWorkflow();
+              }
+            }}
+            placeholder="Describe what you want to create (e.g. 'A 5-slide pitch deck for Nova Africa AI')..."
+            className="w-full h-24 bg-transparent resize-none p-3 text-xs text-white placeholder-gray-500 focus:outline-none custom-scrollbar"
+            disabled={agentStatus !== 'idle' && agentStatus !== 'done'}
           />
           <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
             <div className="flex gap-2">
-              {['Score Design', 'Write Copy', 'Optimize Layout'].map((action) => (
-                <button
-                  key={action}
-                  onClick={() => setInput(action)}
-                  className="px-2 py-1 bg-white/5 hover:bg-brand-500/20 rounded text-[9px] font-bold text-gray-400 hover:text-brand-400 uppercase transition-colors"
-                >
-                  {action}
-                </button>
-              ))}
+              <button
+                onClick={() => analyzeCurrentDesign()}
+                disabled={isAnalyzing}
+                className="px-2.5 py-1.5 flex items-center gap-1.5 bg-white/5 hover:bg-brand-500/20 rounded-lg text-[9px] font-black text-gray-400 hover:text-brand-400 uppercase tracking-widest transition-colors disabled:opacity-40"
+              >
+                <AgentIcons.Check className="w-3 h-3" />
+                Critique
+              </button>
             </div>
-            <button
-              onClick={handleStartWorkflow}
-              disabled={!input.trim() || (agentStatus !== 'idle' && agentStatus !== 'done' && agentStatus !== 'error')}
-              className="w-10 h-10 bg-gradient-to-br from-brand-600 to-brand-400 rounded-xl flex items-center justify-center text-white shadow-lg shadow-purple-500/30 disabled:opacity-30 disabled:grayscale hover:scale-105 transition-transform group"
-            >
-              <AgentIcons.ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleSendChat}
+                disabled={!input.trim() || isAnalyzing}
+                aria-label="Send Chat Message"
+                className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-[10px] font-bold text-white transition-colors disabled:opacity-30 disabled:grayscale flex items-center gap-1.5"
+              >
+                Chat
+              </button>
+              <button
+                onClick={handleStartWorkflow}
+                disabled={!input.trim() || (agentStatus !== 'idle' && agentStatus !== 'done' && agentStatus !== 'error')}
+                aria-label="Start AI Design Workflow"
+                className="px-3 py-1.5 bg-gradient-to-br from-brand-600 to-brand-400 rounded-lg flex items-center justify-center text-white shadow-lg shadow-purple-500/30 disabled:opacity-30 disabled:grayscale hover:scale-105 transition-transform group text-[10px] font-bold gap-1.5"
+              >
+                Generate
+                <AgentIcons.Sparkles className="w-3 h-3 group-hover:rotate-12 transition-transform" />
+              </button>
+            </div>
           </div>
         </div>
         <p className="text-[8px] text-center text-gray-600 mt-3 font-black uppercase tracking-widest">

@@ -78,13 +78,13 @@ export const TransformTools = React.memo(({ selectedLayer }: TransformToolsProps
           label="X"
           value={pxToUnit(selectedLayer.x, unit)}
           onChange={(e: any) => handleUnitChange('x', e.target.value)}
-          width="w-10 sm:w-14"
+          width="w-14 sm:w-16"
         />
         <CompactInput
           label="Y"
           value={pxToUnit(selectedLayer.y, unit)}
           onChange={(e: any) => handleUnitChange('y', e.target.value)}
-          width="w-10 sm:w-14"
+          width="w-14 sm:w-16"
         />
         <div className="relative flex items-center gap-2">
           <CompactInput
@@ -92,7 +92,7 @@ export const TransformTools = React.memo(({ selectedLayer }: TransformToolsProps
             value={pxToUnit(selectedLayer.width, unit)}
             onChange={(e: any) => handleUnitChange('width', e.target.value)}
             min={1}
-            width="w-10 sm:w-14"
+            width="w-14 sm:w-16"
           />
 
           <div className="flex flex-col items-center -mx-1 z-10">
@@ -121,7 +121,7 @@ export const TransformTools = React.memo(({ selectedLayer }: TransformToolsProps
               value={pxToUnit((selectedLayer as any).height || 0, unit)}
               onChange={(e: any) => handleUnitChange('height', e.target.value)}
               min={1}
-              width="w-10 sm:w-14"
+              width="w-14 sm:w-16"
             />
           )}
 

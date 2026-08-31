@@ -136,8 +136,8 @@ export const Toolbar = React.memo(
     };
 
     return (
-      <div className="flex items-center gap-4 w-full h-full">
-        <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-1">
+      <div className="flex items-center gap-4 w-full h-full min-w-0">
+        <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-1 flex-1 min-w-0">
           {isMultiSelect ? (
             <div className="flex items-center gap-4">
               <span className="text-[10px] font-black text-brand-600 uppercase tracking-widest">
@@ -210,7 +210,7 @@ export const Toolbar = React.memo(
                     onUpdateTextLayer={(id, changes) => updateLayer(id, changes)}
                     documentColors={documentColors}
                     onMagicWrite={(id) => {
-                      setShowRewriteTones(true);
+                      setActiveTab(NavTab.TEXT_AGENT);
                     }}
                     showFontPicker={showFontPicker}
                     setShowFontPicker={setShowFontPicker}

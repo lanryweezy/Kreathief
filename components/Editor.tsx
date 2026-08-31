@@ -709,6 +709,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
               onToggleRulers={(v) => useStore.getState().setShowRulers(v)}
               onAddArtboard={() => useStore.getState().addArtboard()}
               onDeleteArtboard={() => useStore.getState().deleteArtboard(useStore.getState().activeArtboardId)}
+              onGenerate={() => useStore.getState().generateImage()}
+              onStartDesign={(prompt) => useStore.getState().runAgenticWorkflow(prompt)}
             />
           </motion.div>
         )}
@@ -717,7 +719,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       <div className={`flex flex-1 overflow-hidden relative ${hideHeaderOnMobile ? 'pb-0' : 'pb-16 md:pb-0'}`}>
         <div
           id="sidebar-container"
-          className={`hidden md:flex flex-row h-full shrink-0 z-40 border-r border-gray-800 transition-all duration-300 ${isSidebarCollapsed || activeTab === NavTab.MOCKUP ? 'w-[72px]' : 'w-[392px]'}`}
+          className={`hidden md:flex flex-row h-full shrink-0 z-40 border-r border-white/5 shadow-[4px_0_24px_rgba(0,0,0,0.5)] transition-all duration-300 ${isSidebarCollapsed || activeTab === NavTab.MOCKUP ? 'w-[72px]' : 'w-[392px]'}`}
         >
           <ErrorBoundary componentName="Sidebar" variant="widget">
             <Sidebar
@@ -766,7 +768,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             data-testid="toolbar"
             role="toolbar"
             aria-label="Editor toolbar"
-            className="h-11 bg-surface-dark-1/90 border-b border-white/5 flex items-center z-30 w-full shrink-0 px-4 gap-4 backdrop-blur-md"
+            className="h-11 bg-surface-dark-1/95 border-b border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.3)] flex items-center z-30 w-full shrink-0 px-4 gap-4 backdrop-blur-xl relative"
           >
             <div className="flex items-center gap-4 w-full h-full">
               <Toolbar
@@ -795,10 +797,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             <CursorOverlay />
 
             <div className="absolute bottom-4 right-4 z-[90] flex items-center bg-surface-dark-3/90 backdrop-blur-md rounded-xl p-1 border border-white/10 shadow-2xl">
-              <div className="flex items-center px-1">
+              <div className="flex items-center px-1 gap-0.5">
                 <button
                   onClick={() => useStore.getState().setZoom(Math.max(0.1, zoom - 0.1))}
-                  className="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-colors"
+                  className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors flex items-center justify-center"
                   title="Zoom Out"
                 >
                   <Icons.Minus className="w-3.5 h-3.5" />
@@ -822,19 +824,19 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                       useStore.getState().setZoom(Math.max(0.1, Math.min(10, val / 100)));
                     }
                   }}
-                  className="px-1 w-[42px] text-center text-[10px] font-black text-gray-300 font-mono bg-transparent border border-transparent rounded outline-none focus:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500 hover:border-white/10 transition-colors"
+                  className="px-1 py-1 w-[46px] text-center text-[11px] font-bold text-gray-300 font-mono bg-transparent border border-transparent rounded outline-none focus:border-brand-500 focus-bg-white/5 focus-visible:ring-2 focus-visible:ring-brand-500 hover:bg-white/5 transition-colors"
                   title="Zoom Level"
                 />
                 <button
                   onClick={() => useStore.getState().setZoom(Math.min(10, zoom + 0.1))}
-                  className="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-colors"
+                  className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-colors flex items-center justify-center"
                   title="Zoom In"
                 >
                   <Icons.Plus className="w-3.5 h-3.5" />
                 </button>
               </div>
 
-              <div className="w-px h-4 bg-gray-800 mx-1" />
+              <div className="w-px h-5 bg-white/10 mx-1.5" />
 
               <div className="flex items-center gap-1 px-1">
                 <button
@@ -868,7 +870,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                       y: vh / 2 - centerY * newZoom + 20,
                     });
                   }}
-                  className="px-1.5 py-0.5 text-[10px] font-bold text-gray-400 hover:bg-white/10 hover:text-white rounded-md transition-colors"
+                  className="px-2.5 py-1.5 text-[10px] font-bold text-gray-400 hover:bg-white/10 hover:text-white rounded-lg transition-colors"
                   title="Fit to Screen"
                 >
                   Fit
@@ -903,7 +905,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                             y: vh / 2 - cy * newZoom + 20,
                           });
                         }}
-                        className="px-1.5 py-0.5 text-[10px] font-bold text-gray-400 hover:bg-white/10 hover:text-white rounded-md transition-colors"
+                        className="px-2.5 py-1.5 text-[10px] font-bold text-gray-400 hover:bg-white/10 hover:text-white rounded-lg transition-colors"
                         title="Zoom to Selection"
                       >
                         Sel
@@ -912,28 +914,28 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                   })()}
               </div>
 
-              <div className="w-px h-4 bg-gray-800 mx-1" />
+              <div className="w-px h-5 bg-white/10 mx-1.5" />
 
-              <div className="flex items-center gap-1 px-1">
+              <div className="flex items-center gap-1.5 px-1">
                 <button
                   onClick={() => {
                     const state = useStore.getState();
                     state.setShowGrid(!state.showGrid);
                   }}
-                  className={`p-1.5 rounded-md transition-all ${showGrid ? 'bg-brand/20 text-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                  className={`p-2 rounded-lg transition-all flex items-center justify-center ${showGrid ? 'bg-brand-600 text-white shadow-glow-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
                   title={showGrid ? 'Hide Grid' : 'Show Grid'}
                 >
-                  <Icons.Grid className="w-3.5 h-3.5" />
+                  <Icons.Grid className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => {
                     const state = useStore.getState();
                     state.setShowRulers(!state.showRulers);
                   }}
-                  className={`p-1.5 rounded-md transition-all ${showRulers ? 'bg-brand/20 text-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                  className={`p-2 rounded-lg transition-all flex items-center justify-center ${showRulers ? 'bg-brand-600 text-white shadow-glow-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
                   title="Toggle Rulers"
                 >
-                  <Icons.Layout className="w-3.5 h-3.5" />
+                  <Icons.Layout className="w-4 h-4" />
                 </button>
               </div>
             </div>

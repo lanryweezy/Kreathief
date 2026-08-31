@@ -1,5 +1,6 @@
 import { log } from '../utils/log';
 import { callBackendGeminiAPI } from './geminiService';
+import { MODEL_FAST } from '../constants';
 import * as unsplashService from './unsplashService';
 import { safeParseJSON } from '../utils/errorHandling';
 import { SchemaType } from '@google/generative-ai';
@@ -36,7 +37,7 @@ async function analyzeDesignContext(ctx: DesignContext): Promise<string[]> {
     const systemPrompt = `You are a design asset recommendation engine. Given this design context, suggest 5-8 search queries that would find relevant stock photos, icons, and illustrations. Return ONLY a JSON array of strings.`;
 
     const response = await callBackendGeminiAPI({
-      modelName: 'gemini-2.0-flash',
+      modelName: MODEL_FAST,
       systemInstruction: systemPrompt,
       generationConfig: {
         responseMimeType: 'application/json',

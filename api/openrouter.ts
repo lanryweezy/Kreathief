@@ -10,11 +10,21 @@ const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 20;
 
-export default async function handler(req: Request) {
-  const origin = process.env.VITE_FRONTEND_URL;
-  if (!origin) {
-    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
+// Periodic cleanup of expired rate limit entries to prevent memory leak
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of rateLimitMap) {
+    if (now > value.resetTime) rateLimitMap.delete(key);
   }
+}, RATE_LIMIT_WINDOW_MS);
+
+
+
+export default async function handler(req: Request) {
+  const origin =
+    process.env.VITE_FRONTEND_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : req.headers.get('origin') || '*');
+
 
   try {
     await requireAuth(req);
@@ -74,9 +84,8 @@ export default async function handler(req: Request) {
     }
 
     const ALLOWED_MODELS = [
-      'google/gemini-2.0-flash-001',
-      'google/gemini-2.5-flash-preview',
-      'google/gemini-2.5-pro-preview',
+      'google/gemini-2.5-flash',
+      'google/gemini-2.5-pro',
       'openai/gpt-4o',
       'openai/gpt-4o-mini',
       'openai/o3',
@@ -112,6 +121,7 @@ export default async function handler(req: Request) {
         model,
         messages,
         max_tokens,
+        ...(body.response_format && { response_format: body.response_format }),
       }),
     });
 

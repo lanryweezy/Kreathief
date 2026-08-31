@@ -1322,12 +1322,13 @@ class StorageService {
 
   // ===== Session Mirror (Crash Recovery) =====
 
-  async saveSessionMirror(projectId: string, state: HistoryState, past?: any[], future?: any[]): Promise<void> {
+  async saveSessionMirror(projectId: string, state: HistoryState, past?: any[], future?: any[], projectName?: string): Promise<void> {
     const store = await this.getStore('session_mirror', 'readwrite');
     return new Promise((resolve, reject) => {
       const request = store.put({
         key: 'last_active_session',
         projectId,
+        projectName,
         state,
         past: past || [],
         future: future || [],

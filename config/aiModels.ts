@@ -11,8 +11,8 @@ export interface AIModel {
 export const AI_MODELS: AIModel[] = [
   // Fast models — quick generation, lower cost
   {
-    id: 'google/gemini-2.0-flash-001',
-    name: 'Gemini 2.0 Flash',
+    id: 'google/gemini-2.5-flash',
+    name: 'Gemini 2.5 Flash',
     provider: 'Google',
     category: 'fast',
     maxTokens: 8192,
@@ -97,7 +97,7 @@ export const AI_MODELS: AIModel[] = [
   },
 ];
 
-export const DEFAULT_MODEL = 'google/gemini-2.0-flash-001';
+export const DEFAULT_MODEL = 'google/gemini-2.5-flash';
 
 export const MODEL_CATEGORIES = {
   fast: { label: 'Fast', description: 'Quick generation' },

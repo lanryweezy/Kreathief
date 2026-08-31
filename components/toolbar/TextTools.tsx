@@ -64,7 +64,7 @@ export const TextTools = React.memo(
     };
 
     return (
-      <div className="flex items-center gap-3 flex-nowrap">
+      <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
         {/* Font & Color Segment */}
         <div className="flex items-center gap-2 bg-white/[0.03] p-1 rounded-xl border border-white/5">
           <div className="relative">
@@ -115,6 +115,7 @@ export const TextTools = React.memo(
             className="w-10"
           />
           <ColorPicker
+            label="Text Color"
             value={layer.color}
             onChange={(color, gradient) =>
               onUpdateTextLayer(layer.id, {

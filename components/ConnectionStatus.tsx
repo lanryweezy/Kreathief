@@ -89,12 +89,12 @@ export const ConnectionStatus: React.FC = () => {
     <div className="relative" ref={detailsRef}>
       <button
         onClick={() => setShowDetails(!showDetails)}
-        className="flex items-center gap-1.5 px-2 py-1 rounded-full hover:bg-white/5 transition-colors cursor-pointer"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-black/50 backdrop-blur-md border border-white/5 hover:border-white/10 rounded-full hover:bg-black/70 transition-all cursor-pointer shadow-lg"
         title={config.detailText}
         aria-label={`Connection status: ${config.text}`}
       >
-        <div className={`w-2 h-2 rounded-full shadow-lg ${config.dot}`} />
-        <span className="text-[10px] font-medium text-gray-400 hidden sm:inline">{config.text}</span>
+        <div className={`w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)] ${config.dot}`} />
+        <span className="text-[10px] font-bold tracking-wide text-gray-400 hidden lg:inline opacity-60 hover:opacity-100 transition-opacity">{config.text}</span>
       </button>
 
       {showDetails && (

@@ -18,7 +18,7 @@ export type AnalyticsEvent =
   | 'analyze_design'
   | 'agent_workflow'
   | 'magic_resize'
-  | 'kiro_chat'
+  | 'agent_chat'
   | 'perf_metric';
 
 export interface AnalyticsProvider {

@@ -125,9 +125,21 @@ const App: React.FC = () => {
         if (window.location.pathname === '/editor') {
           const mirror = await storageService.getSessionMirror();
           if (mirror && mirror.state) {
+            let projectName = (mirror as any).projectName;
+            if (!projectName && mirror.projectId) {
+              try {
+                const projects = await storageService.getAllProjects();
+                const existing = projects.find((p: any) => p.id === mirror.projectId);
+                if (existing?.name) {
+                  projectName = existing.name;
+                }
+              } catch {
+                // Ignore storage lookup error
+              }
+            }
             const restoredProject: any = {
               id: mirror.projectId || 'default',
-              name: 'Restored Session',
+              name: projectName || 'Restored Session',
               updatedAt: Date.now(),
               state: mirror.state,
             };

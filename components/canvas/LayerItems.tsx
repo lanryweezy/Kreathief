@@ -871,7 +871,7 @@ export const TextLayerItem = React.memo(
                 onFinishEditing?.();
               }
             }}
-            className={`${isEditing ? 'outline-none min-w-[30px] select-text' : ''} ${textLayer.neonGlow?.enabled && textLayer.neonGlow?.flicker ? 'animate-neon-flicker' : ''}`.trim()}
+            className={`${isEditing ? 'min-w-[30px] select-text outline-dashed outline-2 outline-brand-500/60 outline-offset-4 bg-brand-500/[0.02] caret-brand-500' : 'outline-none'} ${textLayer.neonGlow?.enabled && textLayer.neonGlow?.flicker ? 'animate-neon-flicker' : ''}`.trim()}
             style={{
               fontFamily: safeStr(textLayer.fontFamily, 'sans-serif'),
               fontSize: `${typeof textLayer.fontSize === 'number' ? textLayer.fontSize : 16}px`,
