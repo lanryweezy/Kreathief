@@ -20,6 +20,7 @@ import { getErrorDetails } from '../utils/errorMessages';
 import { fuzzyMatch } from '../utils/search';
 import { NodeGraph } from './nodes/NodeGraph';
 import { importPdfAsArtboards } from '../utils/pdfImport';
+import { StaticLayerRenderer } from './StaticLayerRenderer';
 
 interface DashboardProps {
   user: User;
@@ -812,8 +813,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                               transformOrigin: 'center',
                               backgroundColor: project.state.canvasBackgroundColor || '#ffffff',
                             }}
-                            className="shadow-xl rounded border border-white/5 overflow-hidden"
-                          />
+                            className="shadow-xl rounded border border-white/5 overflow-hidden relative"
+                          >
+                            <StaticLayerRenderer
+                              layers={project.state.artboards?.[0]?.layers || (project.state as any).layers || []}
+                              scale={1}
+                            />
+                          </div>
                         </div>
                       </div>
                       <div className="p-4 flex items-start justify-between">
@@ -914,7 +920,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   </select>
                 </div>
               </div>
-              <div data-testid="dashboard-templates-grid" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div
+                data-testid="dashboard-templates-grid"
+                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+              >
                 {pagedTemplates.map((tmpl) => (
                   <button
                     key={tmpl.id}

@@ -17,6 +17,7 @@ import { isWithinCMYKGamut, getClosestCMYKSafeColor } from '../../utils/colorUti
 import { Button } from '../Button';
 import { Input } from '../Input';
 import { Toggle } from '../Toggle';
+import { StaticLayerRenderer } from '../StaticLayerRenderer';
 
 export type ExportFormatType = 'png' | 'jpeg' | 'webp' | 'svg' | 'pdf' | 'psd' | 'mp4' | 'webm';
 
@@ -110,42 +111,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
   const [transparentBg, setTransparentBg] = useState(false);
 
   // Live thumbnail of the active artboard so users can see what they're exporting
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  // We use StaticLayerRenderer directly for perfect WYSIWYG instead of exportService
+  const activeArtboard = artboards?.find((a) => a.id === activeArtboardId);
   // Cooperative cancellation for multi-artboard exports
   const cancelExportRef = useRef(false);
   const [canCancel, setCanCancel] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    let url: string | null = null;
-    const activeArtboard = artboards?.find((a) => a.id === activeArtboardId);
-    if (!activeArtboard || !activeArtboard.layers?.length) {
-      return;
-    }
-    const w = activeArtboard.width || currentSize.width;
-    const h = activeArtboard.height || currentSize.height;
-    // Skip preview for very large artboards to avoid blocking the modal
-    if (w > 4096 || h > 4096) {
-      return;
-    }
-    exportDesignToImage(activeArtboard.layers, { width: w, height: h, format: 'png', background: true })
-      .then((blob) => {
-        if (cancelled) {
-          return;
-        }
-        url = URL.createObjectURL(blob);
-        setPreviewUrl(url);
-      })
-      .catch(() => {
-        /* preview is best-effort */
-      });
-    return () => {
-      cancelled = true;
-      if (url) {
-        URL.revokeObjectURL(url);
-      }
-    };
-  }, [artboards, activeArtboardId, currentSize.width, currentSize.height]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -779,16 +749,22 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
             Download your creation in professional formats. Choose a preset or maintain your native canvas coordinates.
           </p>
 
-          {previewUrl && (
+          {activeArtboard && activeArtboard.layers?.length > 0 && (
             <div className="relative z-10 mb-6">
               <h4 className="text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] mb-2">Preview</h4>
-              <div className="rounded-xl border border-white/10 bg-black/30 p-2 checkerboard-bg">
-                <img
-                  src={previewUrl}
-                  alt="Export preview of the active artboard"
-                  className="w-full max-h-40 object-contain rounded-lg"
-                  data-testid="export-preview-img"
-                />
+              <div className="rounded-xl border border-white/10 bg-black/30 p-2 checkerboard-bg flex items-center justify-center">
+                <div
+                  style={{
+                    width: `${activeArtboard.width || currentSize.width || 1080}px`,
+                    height: `${activeArtboard.height || currentSize.height || 1080}px`,
+                    transform: `scale(${Math.min(200 / (activeArtboard.width || currentSize.width || 1080), 160 / (activeArtboard.height || currentSize.height || 1080))})`,
+                    transformOrigin: 'center',
+                    backgroundColor: activeArtboard.backgroundColor || '#ffffff',
+                  }}
+                  className="shadow-xl rounded border border-white/5 overflow-hidden relative"
+                >
+                  <StaticLayerRenderer layers={activeArtboard.layers} scale={1} />
+                </div>
               </div>
             </div>
           )}

@@ -2,6 +2,10 @@
 // Mirrors canvas engine rendering logic exactly — same gradient computation,
 // same path construction, same effect parameters. Both surfaces derive from
 // the same formulas so visual output is identical.
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import html2canvas from 'html2canvas';
+import { StaticLayerRenderer } from '../components/StaticLayerRenderer';
 import { DesignNode, GradientFill, Effect, VectorPoint } from '../types/design';
 import { canvas as canvasTokens, content, surface } from '../lib/tokens';
 import { hexToRgba } from '../lib/utils';
