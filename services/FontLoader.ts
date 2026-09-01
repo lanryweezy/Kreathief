@@ -75,7 +75,8 @@ async function loadFontFromCdn(cleanFamily: string): Promise<boolean> {
     const endTimer = logger.time(`Loading font from CDN: ${cleanFamily}`);
 
     const encodedName = cleanFamily.replace(/ /g, '+');
-    const fontUrl = `https://fonts.googleapis.com/css2?family=${encodedName}:wght@300;400;500;600;700;800;900&display=swap`;
+    // Request default weights only to prevent 400 Bad Request on fonts that don't support 300-900
+    const fontUrl = `https://fonts.googleapis.com/css2?family=${encodedName}&display=swap`;
     const isVariable = false;
 
     // Create link element for Google Fonts
