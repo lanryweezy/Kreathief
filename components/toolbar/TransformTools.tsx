@@ -103,6 +103,8 @@ export const TransformTools = React.memo(({ selectedLayer }: TransformToolsProps
               onClick={() => handleUpdateLayer({ lockProportions: !selectedLayer.lockProportions })}
               className={`p-0.5 rounded-full transition-all border ${selectedLayer.lockProportions ? 'bg-brand-600 border-brand-600 text-white' : 'bg-surface-dark-4 border-gray-700 text-gray-500 hover:text-gray-300'}`}
               title="Lock Aspect Ratio"
+              aria-label={selectedLayer.lockProportions ? 'Unlock Aspect Ratio' : 'Lock Aspect Ratio'}
+              aria-pressed={selectedLayer.lockProportions}
             >
               {selectedLayer.lockProportions ? (
                 <Icons.Lock className="w-2.5 h-2.5" />
