@@ -1,11 +1,11 @@
 // ─── AI Model Tiers ─────────────────────────────────────────────────────────
 // Each agent in the pipeline uses the model best suited to its cognitive task.
 // These map to OpenRouter model IDs via the modelMap in geminiService.ts.
-export const MODEL_FAST = 'gemini-2.5-flash';           // Utility tasks: alt text, layer naming, font pairing, SVG, prompt enhancement
-export const MODEL_PRO = 'gemini-2.5-pro';              // Vision analysis, style extraction, design analysis
-export const MODEL_CREATIVE = 'claude-sonnet-4';        // Creative Draft, Creative Refine, Conversation — strong design reasoning
-export const MODEL_CRITIC = 'gpt-4o';                   // QA Critic — precise, rule-following, structured audit
-export const MODEL_SCORER = 'gemini-2.5-flash';         // Performance Scorer — lightweight scoring task
+export const MODEL_FAST = 'gemini-2.5-flash'; // Utility tasks: alt text, layer naming, font pairing, SVG, prompt enhancement
+export const MODEL_PRO = 'gemini-2.5-pro'; // Vision analysis, style extraction, design analysis
+export const MODEL_CREATIVE = 'claude-sonnet-4'; // Creative Draft, Creative Refine, Conversation — strong design reasoning
+export const MODEL_CRITIC = 'gpt-4o'; // QA Critic — precise, rule-following, structured audit
+export const MODEL_SCORER = 'gemini-2.5-flash'; // Performance Scorer — lightweight scoring task
 // Default Configuration
 export const DEFAULT_CORNER_RADIUS = 8;
 
@@ -40,6 +40,7 @@ export const CANVAS_SIZE_PRESETS = [
 // Fonts — single source of truth
 export const FONT_CATEGORIES: Record<string, string[]> = {
   'Sans Serif': [
+    'Kreathief001',
     'Inter',
     'Roboto',
     'Open Sans',

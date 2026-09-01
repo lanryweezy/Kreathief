@@ -13,6 +13,9 @@ const customFonts = new Set<string>();
 // Families that failed both local and CDN loads — avoids re-injecting dead <link> tags
 const failedFonts = new Set<string>();
 
+// Fonts already loaded globally via fonts.css
+const LOCAL_FONTS = ['Inter', 'Space Grotesk', 'Outfit', 'Kreathief001'];
+
 // Optional UI notifier so font failures surface to the user (registered in App init)
 type FontToastCallback = (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
 let toastCallback: FontToastCallback | null = null;
@@ -40,8 +43,8 @@ export async function loadFont(fontFamily: string): Promise<boolean> {
   // Strip CSS fallback (e.g. "Inter, sans-serif" → "Inter")
   const cleanFamily = fontFamily.split(',')[0].trim().replace(/['"]/g, '');
 
-  // Skip if already loaded
-  if (loadedFonts.has(cleanFamily)) {
+  // Skip if already loaded or natively bundled
+  if (loadedFonts.has(cleanFamily) || LOCAL_FONTS.includes(cleanFamily)) {
     return true;
   }
 
@@ -72,8 +75,8 @@ async function loadFontFromCdn(cleanFamily: string): Promise<boolean> {
     const endTimer = logger.time(`Loading font from CDN: ${cleanFamily}`);
 
     const encodedName = cleanFamily.replace(/ /g, '+');
-    let fontUrl = `https://fonts.googleapis.com/css2?family=${encodedName}:wght@300;400;500;600;700;800;900&display=swap`;
-    let isVariable = false;
+    const fontUrl = `https://fonts.googleapis.com/css2?family=${encodedName}:wght@300;400;500;600;700;800;900&display=swap`;
+    const isVariable = false;
 
     // Create link element for Google Fonts
     const link = document.createElement('link');
@@ -162,9 +165,7 @@ export async function initCustomFonts(): Promise<void> {
   try {
     const saved = await storageService.getSetting<{ name: string; data: string }[]>('kreathief_custom_fonts', []);
     logger.info(`Initializing ${saved.length} custom fonts from storage`);
-    await Promise.all(
-      saved.map((font) => registerCustomFont(font.name, font.data, false))
-    );
+    await Promise.all(saved.map((font) => registerCustomFont(font.name, font.data, false)));
   } catch (error) {
     logger.error('Failed to initialize custom fonts', { error });
   }
@@ -182,7 +183,11 @@ function blobToBase64(blob: Blob): Promise<string> {
  * Get all available fonts including custom ones
  */
 export function getAllAvailableFonts(): string[] {
-  return [...AVAILABLE_FONTS, ...Array.from(customFonts)].sort();
+  const all = [...AVAILABLE_FONTS, ...Array.from(customFonts)];
+  if (!all.includes('Kreathief001')) {
+    all.push('Kreathief001');
+  }
+  return all.sort();
 }
 
 /**

@@ -171,7 +171,7 @@ export const PresentationModal: React.FC = () => {
               isTransitioning && smartAnimateEnabled ? 'animate-fadeIn' : ''
             }`}
           >
-            <StaticLayerRenderer layers={ab.layers} scale={scale} />
+            <StaticLayerRenderer layers={ab.layers} scale={scale} width={ab.width || 1080} height={ab.height || 1080} />
           </div>
         </div>
       </div>

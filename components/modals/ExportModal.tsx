@@ -761,9 +761,14 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                     transformOrigin: 'center',
                     backgroundColor: activeArtboard.backgroundColor || '#ffffff',
                   }}
-                  className="shadow-xl rounded border border-white/5 overflow-hidden relative"
+                  className="shadow-xl rounded border border-white/5 overflow-hidden relative shrink-0"
                 >
-                  <StaticLayerRenderer layers={activeArtboard.layers} scale={1} />
+                  <StaticLayerRenderer
+                    layers={activeArtboard.layers}
+                    scale={1}
+                    width={activeArtboard.width || currentSize.width || 1080}
+                    height={activeArtboard.height || currentSize.height || 1080}
+                  />
                 </div>
               </div>
             </div>

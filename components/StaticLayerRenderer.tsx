@@ -5,21 +5,28 @@ import { ImageLayerItem, ShapeLayerItem, TextLayerItem } from './canvas/LayerIte
 interface StaticLayerRendererProps {
   layers: Layer[];
   scale: number;
+  width?: number | string;
+  height?: number | string;
 }
 
 /**
  * A lightweight, non-interactive version of CanvasLayerRenderer.
  * Used for displaying agent-generated variants in smaller cards.
  */
-export const StaticLayerRenderer: React.FC<StaticLayerRendererProps> = ({ layers, scale }) => {
+export const StaticLayerRenderer: React.FC<StaticLayerRendererProps> = ({
+  layers,
+  scale,
+  width = '100%',
+  height = '100%',
+}) => {
   return (
     <div
       className="relative pointer-events-none overflow-hidden"
       style={{
         transform: `scale(${scale})`,
         transformOrigin: 'top left',
-        width: '1000px', // Fixed coordinate space
-        height: '1000px',
+        width,
+        height,
       }}
     >
       {layers.map((l) => {

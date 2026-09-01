@@ -15,12 +15,29 @@ export const VariantCard: React.FC<VariantCardProps> = ({ variant, onApply }) =>
   return (
     <div className="flex flex-col bg-surface-dark-3 border border-white/10 rounded-2xl overflow-hidden shadow-2xl transition-all hover:border-purple-500/50 group">
       {/* Mini Preview Container */}
-      <div 
+      <div
         className="relative bg-white w-full overflow-hidden cursor-zoom-in group/preview"
         style={{ aspectRatio: variant.width && variant.height ? `${variant.width}/${variant.height}` : '1 / 1' }}
       >
-        <div className="absolute inset-0">
-          <StaticLayerRenderer layers={variant.artboards && variant.artboards.length > 0 ? variant.artboards[0].layers : (variant.layers || [])} scale={0.25} />
+        <div className="absolute inset-0 flex items-center justify-center p-2">
+          <div
+            className="shrink-0 relative overflow-hidden"
+            style={{
+              width: variant.width || 1080,
+              height: variant.height || 1080,
+              transform: `scale(${Math.min(280 / (variant.width || 1080), 280 / (variant.height || 1080))})`,
+              transformOrigin: 'center',
+            }}
+          >
+            <StaticLayerRenderer
+              layers={
+                variant.artboards && variant.artboards.length > 0 ? variant.artboards[0].layers : variant.layers || []
+              }
+              scale={1}
+              width={variant.width || 1080}
+              height={variant.height || 1080}
+            />
+          </div>
         </div>
 
         {/* Hover Overlay */}
@@ -107,7 +124,9 @@ export const VariantCard: React.FC<VariantCardProps> = ({ variant, onApply }) =>
           className="w-full bg-brand-600 hover:bg-[#6b23c5] text-[10px] font-black uppercase py-2.5 shadow-lg shadow-purple-500/20 active:scale-95 transition-transform"
           onClick={() => onApply(variant.id)}
         >
-          {variant.artboards && variant.artboards.length > 1 ? `Apply Campaign (${variant.artboards.length} Boards)` : 'Apply This Variant'}
+          {variant.artboards && variant.artboards.length > 1
+            ? `Apply Campaign (${variant.artboards.length} Boards)`
+            : 'Apply This Variant'}
         </Button>
       </div>
     </div>

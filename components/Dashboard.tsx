@@ -759,33 +759,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               </div>
             </div>
 
-            {/* Advanced Workflows */}
-            <div className="mb-10">
-              <div className="flex items-center justify-between mb-5">
-                <span className="text-xs font-black text-muted uppercase tracking-[0.2em]">Advanced Workflows</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <button
-                  onClick={() => setShowNodeGraph(true)}
-                  className="group bg-surface-dark-2 border border-white/5 rounded-xl p-6 text-left hover:border-brand-500/50 hover:bg-brand-500/10 transition-all shadow-lg hover:shadow-xl cursor-pointer"
-                >
-                  <Icons.GitMerge className="w-6 h-6 text-purple-400 mb-3 group-hover:scale-110 transition-transform" />
-                  <div className="font-bold text-white mb-1">Advanced Pipeline</div>
-                  <div className="text-xs text-muted">
-                    Use the visual node builder to construct complex AI generation pipelines.
-                  </div>
-                </button>
-              </div>
-            </div>
-
             {/* Recent Projects */}
             <div className="mb-10">
               <div className="flex items-center justify-between mb-5">
                 <span className="text-xs font-black text-muted uppercase tracking-[0.2em]">Recent</span>
               </div>
               {projects.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {projects.slice(0, 3).map((project) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                  {projects.map((project) => (
                     <motion.div
                       layout
                       key={project.id}
@@ -813,11 +794,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                               transformOrigin: 'center',
                               backgroundColor: project.state.canvasBackgroundColor || '#ffffff',
                             }}
-                            className="shadow-xl rounded border border-white/5 overflow-hidden relative"
+                            className="shadow-xl rounded border border-white/5 overflow-hidden relative shrink-0"
                           >
                             <StaticLayerRenderer
                               layers={project.state.artboards?.[0]?.layers || (project.state as any).layers || []}
                               scale={1}
+                              width={project.state.canvasSize?.width || 1080}
+                              height={project.state.canvasSize?.height || 1080}
                             />
                           </div>
                         </div>

@@ -109,7 +109,9 @@ export const VersionDiffModal: React.FC = () => {
             >
               <option value="live">Current (Live)</option>
               {snapshots?.map((s) => (
-                <option key={s.id} value={s.id}>{s.name || `Snapshot ${new Date(s.timestamp).toLocaleString()}`}</option>
+                <option key={s.id} value={s.id}>
+                  {s.name || `Snapshot ${new Date(s.timestamp).toLocaleString()}`}
+                </option>
               ))}
             </select>
           </div>
@@ -118,6 +120,8 @@ export const VersionDiffModal: React.FC = () => {
               <StaticLayerRenderer
                 layers={leftAb.layers}
                 scale={Math.min(1, Math.min(window.innerWidth / 2 - 96, 640) / Math.max(1, leftAb.width))}
+                width={leftAb.width}
+                height={leftAb.height}
               />
             </div>
           ) : (
@@ -144,6 +148,8 @@ export const VersionDiffModal: React.FC = () => {
               <StaticLayerRenderer
                 layers={rightAb.layers}
                 scale={Math.min(1, Math.min(window.innerWidth / 2 - 96, 640) / Math.max(1, rightAb.width))}
+                width={rightAb.width}
+                height={rightAb.height}
               />
             </div>
           ) : (
