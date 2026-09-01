@@ -24,6 +24,9 @@ import { ShareModal } from './modals/ShareModal';
 import { ExportModal } from './modals/ExportModal';
 import { MockupPanel } from './panels/MockupPanel';
 
+const MagicPanel = React.lazy(() => import('./panels/MagicPanel'));
+const AssistantPanel = React.lazy(() => import('./panels/AssistantPanel'));
+
 const CommunityModal = React.lazy(() => import('./modals/CommunityModal'));
 const CommandPalette = React.lazy(() =>
   import('./modals/CommandPalette').then((module) => ({ default: module.CommandPalette }))
@@ -67,6 +70,11 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const selectedLayerIds = rawSelectedLayerIds || [];
   const canvasSize = rawCanvasSize || { width: 1080, height: 1080, name: 'Square' };
   const zoom = rawZoom || 1;
+
+  const showAIOverlay = useStore((state) => state.showAIOverlay);
+  const aiTab = useStore((state) => state.aiOverlayTab);
+  const setAiTab = useStore((state) => state.setAIOverlayTab);
+  const setShowAIOverlay = useStore((state) => state.setShowAIOverlay);
 
   const selectedLayer = useStore(selectedLayerSelector);
 
@@ -953,6 +961,60 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             )}
           </div>
         </div>
+
+        {/* Right Panel (AI Overlay / Agent) */}
+        {showAIOverlay && !isMobile && (
+          <div className="hidden xl:flex flex-col w-[320px] bg-surface-dark-2 border-l border-[#1f1f1f] shadow-[-4px_0_24px_rgba(0,0,0,0.5)] z-40 shrink-0">
+            {/* Tab header */}
+            <div className="flex items-center gap-1 p-3 border-b border-white/5 shrink-0">
+              <button
+                onClick={() => setAiTab('generate')}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all ${aiTab === 'generate' ? 'bg-brand-600/20 text-brand-400' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
+              >
+                <Icons.Sparkles className="w-3.5 h-3.5" />
+                Image Gen
+              </button>
+              <button
+                onClick={() => setAiTab('assistant')}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all ${aiTab === 'assistant' ? 'bg-brand-600/20 text-brand-400' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
+              >
+                <Icons.Sparkles className="w-3.5 h-3.5" />
+                Magic Studio
+              </button>
+
+              <button
+                onClick={() => setShowAIOverlay(false)}
+                aria-label="Close AI panel"
+                className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all ml-1 shrink-0"
+              >
+                <Icons.X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Panel content */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col relative">
+              <React.Suspense
+                fallback={
+                  <div className="flex items-center justify-center h-32">
+                    <div className="w-5 h-5 rounded-full border-2 border-brand-600 border-t-transparent animate-spin" />
+                  </div>
+                }
+              >
+                {aiTab === 'generate' && (
+                  <div className="px-4 pb-4">
+                    <MagicPanel onGenerate={handleGenerate || (() => {})} uploadedImage={uploadedImage ?? null} />
+                  </div>
+                )}
+                {aiTab === 'assistant' && (
+                  <AssistantPanel
+                    getCanvasSnapshot={handleExportDataUrl || (async () => '')}
+                    onStartDesign={handleStartDesign}
+                  />
+                )}
+              </React.Suspense>
+            </div>
+          </div>
+        )}
       </div>
 
       <MobileNavBar

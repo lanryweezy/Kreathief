@@ -13,7 +13,6 @@ import { ConnectionStatus } from './ConnectionStatus';
 const MagicPanel = React.lazy(() => import('./panels/MagicPanel'));
 const AssistantPanel = React.lazy(() => import('./panels/AssistantPanel'));
 
-
 interface HeaderProps {
   onDownload: () => void;
   onBack?: () => void;
@@ -89,7 +88,7 @@ export const Header: React.FC<HeaderProps> = ({
   // AI overlay state lives in the store so Command Palette / other surfaces can open it
   const setShowAIOverlay = s.setShowAIOverlay;
   const setAiTab = s.setAIOverlayTab;
-  const overlayRef = React.useRef<HTMLDivElement>(null);
+
   const zoomButtonRef = React.useRef<HTMLButtonElement>(null);
   const resizeMenuRef = React.useRef<HTMLDivElement>(null);
   const titleSnapshotRef = React.useRef<string>(String(projectTitle || ''));
@@ -117,29 +116,6 @@ export const Header: React.FC<HeaderProps> = ({
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showResizeMenu]);
-
-  // Close AI overlay on outside click or Escape
-  React.useEffect(() => {
-    if (!showAIOverlay) {
-      return;
-    }
-    const handleClick = (e: MouseEvent) => {
-      if (overlayRef.current && !overlayRef.current.contains(e.target as Node)) {
-        setShowAIOverlay(false);
-      }
-    };
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setShowAIOverlay(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    document.addEventListener('keydown', handleEsc);
-    return () => {
-      document.removeEventListener('mousedown', handleClick);
-      document.removeEventListener('keydown', handleEsc);
-    };
-  }, [showAIOverlay]);
 
   const onShare = () => setShowShareModal(true);
 
@@ -229,7 +205,6 @@ export const Header: React.FC<HeaderProps> = ({
             <Icons.Redo className="w-3.5 h-3.5" />
           </Button>
         </div>
-
       </div>
 
       {/* Center Section: Project Title & Save Status */}
@@ -452,71 +427,6 @@ export const Header: React.FC<HeaderProps> = ({
       )}
 
       {showPublishModal && <PublishModal onClose={() => setShowPublishModal(false)} />}
-
-      {/* Floating AI Overlay — portaled above all editor chrome */}
-      {showAIOverlay &&
-        createPortal(
-          <div
-            ref={overlayRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label="AI Tools"
-            className="fixed z-[500] top-[60px] right-4 w-[340px] max-h-[calc(100vh-80px)] flex flex-col bg-[#111118] border border-brand-600/20 rounded-2xl shadow-[0_24px_64px_rgba(0,0,0,0.6)] overflow-hidden"
-            style={{ animation: 'ai-overlay-in 0.18s cubic-bezier(0.34,1.56,0.64,1)' }}
-          >
-            {/* Accent glow top border */}
-            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-brand-600/60 to-transparent" />
-
-            {/* Tab header */}
-            <div className="flex items-center gap-1 p-3 border-b border-white/5 shrink-0">
-              <button
-                onClick={() => setAiTab('generate')}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all ${aiTab === 'generate' ? 'bg-brand-600/20 text-brand-400' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
-              >
-                <Icons.Sparkles className="w-3.5 h-3.5" />
-                Image Gen
-              </button>
-              <button
-                onClick={() => setAiTab('assistant')}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all ${aiTab === 'assistant' ? 'bg-brand-600/20 text-brand-400' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
-              >
-                <Icons.Sparkles className="w-3.5 h-3.5" />
-                Magic Studio
-              </button>
-
-              <button
-                onClick={() => setShowAIOverlay(false)}
-                aria-label="Close AI panel"
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all ml-1"
-              >
-                <Icons.X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            {/* Panel content */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
-              <React.Suspense
-                fallback={
-                  <div className="flex items-center justify-center h-32">
-                    <div className="w-5 h-5 rounded-full border-2 border-brand-600 border-t-transparent animate-spin" />
-                  </div>
-                }
-              >
-                {aiTab === 'generate' && (
-                  <MagicPanel onGenerate={onGenerate || (() => {})} uploadedImage={uploadedImage ?? null} />
-                )}
-                {aiTab === 'assistant' && (
-                  <AssistantPanel
-                    getCanvasSnapshot={getCanvasSnapshot || (async () => '')}
-                    onStartDesign={onStartDesign}
-                  />
-                )}
-
-              </React.Suspense>
-            </div>
-          </div>,
-          document.body
-        )}
     </header>
   );
 };

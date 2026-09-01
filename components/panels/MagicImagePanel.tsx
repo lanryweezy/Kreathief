@@ -25,7 +25,9 @@ export const MagicImagePanel = React.memo(({ selectedLayer }: MagicImagePanelPro
   const [isFilling, setIsFilling] = useState(false);
 
   const handleFill = useCallback(async () => {
-    if (!selectedLayer || !fillPrompt.trim() || isFilling) return;
+    if (!selectedLayer || !fillPrompt.trim() || isFilling) {
+      return;
+    }
     setIsFilling(true);
     await onRemix(selectedLayer.id, fillPrompt);
     setIsFilling(false);
@@ -110,7 +112,9 @@ export const MagicImagePanel = React.memo(({ selectedLayer }: MagicImagePanelPro
             disabled={disableTools}
             className="flex-1 bg-surface-dark-4 border border-gray-600 rounded-lg px-2 py-1.5 text-[10px] text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
             onKeyDown={(e) => {
-              if (e.key === 'Enter') handleFill();
+              if (e.key === 'Enter') {
+                handleFill();
+              }
             }}
           />
           <Button
@@ -127,3 +131,5 @@ export const MagicImagePanel = React.memo(({ selectedLayer }: MagicImagePanelPro
     </div>
   );
 });
+
+MagicImagePanel.displayName = 'MagicImagePanel';

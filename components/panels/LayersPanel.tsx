@@ -451,22 +451,6 @@ export const LayersPanel = () => {
         ]}
         activeTabId={activeTab}
         onTabChange={(id) => setActiveTab(id)}
-        children={
-          layers.length > 0 && activeTab === 'layers' && (
-            <button
-              onClick={() => useStore.getState().autoRenameLayers?.()}
-              title="AI Rename Layers"
-              aria-label="AI Rename Layers"
-              className="p-1 text-gray-500 hover:text-brand-400 hover:bg-brand-500/10 rounded transition-all group relative ml-2"
-            >
-              <Icons.Wand className="w-4 h-4" />
-              <span className="absolute -top-1 -right-1 flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
-              </span>
-            </button>
-          )
-        }
         action={
           layers.length > 0 ? (
             <button
@@ -483,7 +467,22 @@ export const LayersPanel = () => {
             </button>
           ) : null
         }
-      />
+      >
+        {layers.length > 0 && activeTab === 'layers' && (
+          <button
+            onClick={() => useStore.getState().autoRenameLayers?.()}
+            title="AI Rename Layers"
+            aria-label="AI Rename Layers"
+            className="p-1 text-gray-500 hover:text-brand-400 hover:bg-brand-500/10 rounded transition-all group relative ml-2"
+          >
+            <Icons.Wand className="w-4 h-4" />
+            <span className="absolute -top-1 -right-1 flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+            </span>
+          </button>
+        )}
+      </PanelHeader>
 
       {activeTab === 'layers' && layers.length > 0 && (
         <div className="px-3 pt-2">
