@@ -1,6 +1,7 @@
-⚡ Bolt: Replace separate Zustand subscriptions with useShallow
+🔩 Hinge: TextWarpEngine Strategy Registry
 
-💡 What: Refactored `components/panels/DrawPanel.tsx` to combine 8 independent `useStore` property accesses into a single object selector wrapped in `useShallow`.
-🎯 Why: Multiple independent `useStore` hooks trigger separate store subscriptions. Consolidating them with `useShallow` minimizes listener overhead and reduces re-evaluations during rapid state updates, conforming strictly to codebase architectural guidelines.
-📊 Impact: Reduces independent store listener evaluations from 8 to 1 for this panel, making rendering more efficient during intensive drawing interactions.
-🔬 Measurement: Can be verified by using React Profiler or tracing store listener counts during DrawPanel interactions.
+🔍 Pressure: The `warpPoint` function relied on a hard-coded switch statement with 5 cases ('arch', 'flag', 'rise', 'wave', 'bulge').
+💡 Extension point: Extracted the logic into a `TextWarpStrategy` interface and a `textWarpStrategies` registry Map.
+🔒 Additive: Existing callers of `warpPoint` require zero changes.
+📋 Contract: Implementors provide a `warp` method that takes (x, y, nx, ny, magnitude) and returns the modified {x, y} coordinates.
+✅ Verification: Migrated all 5 existing implementations to the registry. Unit tests pass successfully.
