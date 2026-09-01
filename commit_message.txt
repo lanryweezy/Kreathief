@@ -1,0 +1,7 @@
+🔩 Hinge: TextWarpEngine Strategy Registry
+
+🔍 Pressure: The `warpPoint` function relied on a hard-coded switch statement with 5 cases ('arch', 'flag', 'rise', 'wave', 'bulge').
+💡 Extension point: Extracted the logic into a `TextWarpStrategy` interface and a `textWarpStrategies` registry Map.
+🔒 Additive: Existing callers of `warpPoint` require zero changes.
+📋 Contract: Implementors provide a `warp` method that takes (x, y, nx, ny, magnitude) and returns the modified {x, y} coordinates.
+✅ Verification: Migrated all 5 existing implementations to the registry. Unit tests pass successfully.
