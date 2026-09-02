@@ -78,3 +78,7 @@
 ## 2026-08-26 - Rely on Type-Checking Over Automated Code Review For Imports
 **Learning:** The automated code review incorrectly flagged the import of `fuzzyMatch` from `../../utils/search` as a "hallucinated import", despite it being successfully verified by `pnpm run type-check`.
 **Action:** When a known utility function like `fuzzyMatch` is imported and verified by the TypeScript compiler (`tsc --noEmit`), disregard automated code review flags about missing imports and proceed with the submission.
+## 2026-09-02 - Specific error messaging for file importing
+
+**Learning:** Found an instance where PDF import operations in `Dashboard` were using a generic error message in `addToast` calls inside a `catch` block (e.g., `addToast('Failed to import PDF', 'error')`). While these operations are not directly AI-related, the `getErrorDetails` utility provides a consistent, robust way to extract actionable suggestions (like size limits, unsupported format, etc.) for any error type.
+**Action:** Replaced the generic error string in standard `addToast` catch block with a dynamic message constructed using `getErrorDetails(e)`. This ensures that standard operations also provide specific, actionable guidance to users when they fail, closing the quality gap in error reporting.
