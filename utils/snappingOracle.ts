@@ -21,7 +21,7 @@ interface SortedTarget {
 
 let cachedArtboardId: string | null = null;
 let cachedLayerCount = -1;
-let cachedLayerPositions: string | null = null;
+let cachedLayerPositions: { id: string; x: number; y: number }[] | null = null;
 let cachedSortedX: SortedTarget[] = [];
 let cachedSortedY: SortedTarget[] = [];
 
@@ -43,7 +43,9 @@ function buildTargets(
   ];
 
   for (const l of allLayers) {
-    if (movingIds.has(l.id) || l.locked || !l.visible || l.groupId) continue;
+    if (movingIds.has(l.id) || l.locked || !l.visible || l.groupId) {
+      continue;
+    }
     const w = (l as any).width || 0;
     const h = (l as any).height || 0;
 
@@ -67,8 +69,11 @@ function binarySearchLower(arr: SortedTarget[], target: number): number {
   let hi = arr.length;
   while (lo < hi) {
     const mid = (lo + hi) >> 1;
-    if (arr[mid].value < target) lo = mid + 1;
-    else hi = mid;
+    if (arr[mid].value < target) {
+      lo = mid + 1;
+    } else {
+      hi = mid;
+    }
   }
   return lo;
 }
@@ -97,7 +102,9 @@ function findBestSnap(
     }
   }
 
-  if (bestEdgeIdx === -1) return null;
+  if (bestEdgeIdx === -1) {
+    return null;
+  }
   return { bestEdge: bestEdgeIdx, bestTarget: sorted[bestTargetIdx], bestDiff };
 }
 
@@ -110,7 +117,9 @@ export class SnappingOracle {
     zoom: number = 1
   ): SnapResult {
     const result: SnapResult = { x: null, y: null, lines: [] };
-    if (movingLayers.length === 0) return result;
+    if (movingLayers.length === 0) {
+      return result;
+    }
 
     let minX = Infinity,
       minY = Infinity,
@@ -130,19 +139,37 @@ export class SnappingOracle {
 
     const movingIds = new Set(movingLayers.map((l) => l.id));
     const layerCount = allLayers.length;
-    const layerPositionHash = allLayers.map((l) => `${l.id}:${l.x}:${l.y}`).join(',');
 
+    let isCacheValid = false;
     if (
-      cachedArtboardId !== activeArtboard.id ||
-      cachedLayerCount !== layerCount ||
-      cachedLayerPositions !== layerPositionHash
+      cachedArtboardId === activeArtboard.id &&
+      cachedLayerCount === layerCount &&
+      cachedLayerPositions !== null &&
+      cachedLayerPositions.length === allLayers.length
     ) {
+      isCacheValid = true;
+      for (let i = 0; i < allLayers.length; i++) {
+        const cachedLayer = cachedLayerPositions[i];
+        const l = allLayers[i];
+        if (cachedLayer.id !== l.id || cachedLayer.x !== l.x || cachedLayer.y !== l.y) {
+          isCacheValid = false;
+          break;
+        }
+      }
+    }
+
+    if (!isCacheValid) {
       const targets = buildTargets(allLayers, movingIds, activeArtboard);
       cachedSortedX = targets.sortedX;
       cachedSortedY = targets.sortedY;
       cachedArtboardId = activeArtboard.id;
       cachedLayerCount = layerCount;
-      cachedLayerPositions = layerPositionHash;
+      // ⚡ Bolt Optimization: Replace map().join() with an imperative array loop check to avoid massive string allocations in hot render loop.
+      cachedLayerPositions = [];
+      for (let i = 0; i < allLayers.length; i++) {
+        const l = allLayers[i];
+        cachedLayerPositions.push({ id: l.id, x: l.x, y: l.y });
+      }
     }
 
     const adjustedThreshold = threshold / zoom;
