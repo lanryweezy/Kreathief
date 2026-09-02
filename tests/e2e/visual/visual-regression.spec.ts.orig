@@ -189,6 +189,7 @@ test.describe('Visual Regression Tests', () => {
   });
 
   test('should detect visual changes', async ({ page }) => {
+    await page.waitForTimeout(2000);
     // Take initial screenshot
     await expect(page).toHaveScreenshot('initial-state.png', {
       fullPage: true,
