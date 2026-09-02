@@ -551,7 +551,9 @@ export async function downloadIconPNG(iconId: number): Promise<string | null> {
 
 export function isConfigured(): boolean {
   try {
-    return typeof window !== 'undefined' && !!import.meta.env.VITE_FREEPIK_API_KEY;
+    // Sentinel: Removed client-side VITE_FREEPIK_API_KEY check to prevent backend secret exposure via bundler.
+    // The actual key is managed securely by the backend /api/freepik proxy using process.env.FREEPIK_API_KEY.
+    return typeof window !== 'undefined';
   } catch {
     return false;
   }

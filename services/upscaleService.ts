@@ -69,20 +69,13 @@ function blobToDataUrl(blob: Blob): Promise<string> {
  * Falls back gracefully on any error to avoid blocking PDF export.
  */
 async function upscaleViaReplicate(dataUrl: string, scale: 2 | 4 = 4): Promise<string | null> {
-  const apiKey = (import.meta as any).env?.VITE_REPLICATE_API_KEY;
-  if (!apiKey) {
-    log.warn('[UpscaleService] VITE_REPLICATE_API_KEY not set. Skipping cloud upscale.');
-    return null;
-  }
-
   try {
-    // Replicate expects a publicly accessible URL, not a data URL.
-    // We use a Supabase Storage pre-signed upload as a staging area.
-    // For self-hosted or data-URL only workflows, we base64-encode and send directly.
-    const startRes = await fetch('https://api.replicate.com/v1/predictions', {
+    // Sentinel: Removed client-side VITE_REPLICATE_API_KEY check to prevent backend secret exposure.
+    // Requests are now proxied through /api/replicate which manages the REPLICATE_API_KEY securely.
+
+    const startRes = await fetch('/api/replicate?action=create', {
       method: 'POST',
       headers: {
-        Authorization: `Token ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -96,7 +89,7 @@ async function upscaleViaReplicate(dataUrl: string, scale: 2 | 4 = 4): Promise<s
     });
 
     if (!startRes.ok) {
-      log.warn('[UpscaleService] Replicate API returned non-OK status', { responseText: await startRes.text() });
+      log.warn('[UpscaleService] Replicate proxy API returned non-OK status', { responseText: await startRes.text() });
       return null;
     }
 
@@ -107,9 +100,7 @@ async function upscaleViaReplicate(dataUrl: string, scale: 2 | 4 = 4): Promise<s
     const maxAttempts = 15;
     for (let i = 0; i < maxAttempts; i++) {
       await new Promise((r) => setTimeout(r, 2000));
-      const pollRes = await fetch(`https://api.replicate.com/v1/predictions/${predictionId}`, {
-        headers: { Authorization: `Token ${apiKey}` },
-      });
+      const pollRes = await fetch(`/api/replicate?action=poll&id=${predictionId}`);
 
       if (!pollRes.ok) continue;
 
