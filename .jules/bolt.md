@@ -203,3 +203,7 @@
 ## 2026-08-30 - Prevent O(N) array allocation in AI design analysis
 **Learning:** Found an unoptimized `artboards.flatMap((a) => a.layers).concat(layers)` call in `getAllLayers` in `ai/designEngine.ts`. This was causing massive intermediate array allocations in performance critical paths.
 **Action:** Replaced it with an imperative nested loop to prevent intermediate array allocations and reduce garbage collection overhead, particularly inside frequently called utility functions.
+
+## 2026-09-02 - Optimize Array Equality Check inside SnappingOracle cache
+**Learning:** Found an instance in `utils/snappingOracle.ts` where it used `.map((l) => \`\${l.id}:\${l.x}:\${l.y}\`).join(',')` to compute an equality check hash cache over layered targets during high-frequency render loops (e.g. dragging selection at 60fps). This causes large string allocations on every single check frame, stressing out the garbage collector and introducing stuttering.
+**Action:** Replace `layerPositionHash` mapping into strings for caching with imperative logic storing individual states in an array. Before updating the cache state, perform an imperative `for` loop to check if array lengths and elements index-by-index match exactly. This eliminates string concatenation and yields zero string allocations during early exits.

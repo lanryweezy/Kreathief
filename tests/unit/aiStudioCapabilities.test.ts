@@ -11,8 +11,8 @@ import { StyleReference, GenerationContext } from '../../types';
 
 describe('AI Studio Capabilities Unit Tests', () => {
   describe('Curated Style Reference Presets', () => {
-    it('should provide 6 high quality curated presets across multiple categories', () => {
-      expect(CURATED_STYLE_PRESETS.length).toBe(6);
+    it('should provide 16 high quality curated presets across multiple categories', () => {
+      expect(CURATED_STYLE_PRESETS.length).toBe(16);
       const presetIds = CURATED_STYLE_PRESETS.map((p) => p.id);
       expect(presetIds).toContain('cyberpunk-hologram');
       expect(presetIds).toContain('bauhaus-editorial');
