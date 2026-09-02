@@ -761,12 +761,14 @@ export const WebsitePanel: React.FC = () => {
                     <div className="flex items-center gap-2 mt-1">
                       <input
                         type="color"
+                        aria-label="Primary color picker"
                         value={siteSettings?.primaryColor || '#6366f1'}
                         onChange={(e) => updateSiteSettings({ primaryColor: e.target.value })}
                         className="w-9 h-9 rounded-lg border border-surface-dark-1 cursor-pointer bg-surface-dark-0"
                       />
                       <input
                         type="text"
+                        aria-label="Primary color hex value"
                         value={siteSettings?.primaryColor || '#6366f1'}
                         onChange={(e) => updateSiteSettings({ primaryColor: e.target.value })}
                         className="flex-1 bg-surface-dark-0 border border-surface-dark-1 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500 font-mono"
