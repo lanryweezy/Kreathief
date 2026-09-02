@@ -43,7 +43,9 @@ function buildTargets(
   ];
 
   for (const l of allLayers) {
-    if (movingIds.has(l.id) || l.locked || !l.visible || l.groupId) continue;
+    if (movingIds.has(l.id) || l.locked || !l.visible || l.groupId) {
+      continue;
+    }
     const w = (l as any).width || 0;
     const h = (l as any).height || 0;
 
@@ -67,8 +69,11 @@ function binarySearchLower(arr: SortedTarget[], target: number): number {
   let hi = arr.length;
   while (lo < hi) {
     const mid = (lo + hi) >> 1;
-    if (arr[mid].value < target) lo = mid + 1;
-    else hi = mid;
+    if (arr[mid].value < target) {
+      lo = mid + 1;
+    } else {
+      hi = mid;
+    }
   }
   return lo;
 }
@@ -97,7 +102,9 @@ function findBestSnap(
     }
   }
 
-  if (bestEdgeIdx === -1) return null;
+  if (bestEdgeIdx === -1) {
+    return null;
+  }
   return { bestEdge: bestEdgeIdx, bestTarget: sorted[bestTargetIdx], bestDiff };
 }
 
@@ -110,7 +117,9 @@ export class SnappingOracle {
     zoom: number = 1
   ): SnapResult {
     const result: SnapResult = { x: null, y: null, lines: [] };
-    if (movingLayers.length === 0) return result;
+    if (movingLayers.length === 0) {
+      return result;
+    }
 
     let minX = Infinity,
       minY = Infinity,

@@ -1,0 +1,14 @@
+--- tests/e2e/visual/visual-regression.spec.ts
++++ tests/e2e/visual/visual-regression.spec.ts
+@@ -23,9 +23,8 @@
+
+     // Navigate to editor
+-    await page.goto('/');
+-    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 15000 });
+-    const firstTemplateBtn = page.locator('#templates-grid button').first();
+-    if (await firstTemplateBtn.isVisible()) {
+-      await firstTemplateBtn.click({ force: true });
+-      await editor.waitForCanvasReady();
+-    }
++    await editor.goto();
+   });
