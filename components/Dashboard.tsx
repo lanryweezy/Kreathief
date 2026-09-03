@@ -880,7 +880,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
             {/* Templates */}
             <div className="mb-10">
               <div className="flex items-center justify-between mb-5">
-                <span data-testid="nav-templates" className="text-xs font-black text-muted uppercase tracking-[0.2em]">
+                <span data-testid="nav-templates" className="text-xs font-black text-muted uppercase tracking-[0.2em]" onClick={() => setSidebarTab('templates')}>
                   Templates
                 </span>
                 <div className="flex items-center gap-2">
