@@ -20,7 +20,7 @@ export class EditorPage {
     this.exportButton = page.getByRole('button', { name: 'Export' });
     this.layersPanel = page.getByTestId('layers-panel');
     this.sidebar = page.locator('#sidebar, [data-testid="sidebar"]').first();
-    this.toolbar = page.locator('.toolbar, [data-testid="toolbar"]').first();
+    this.toolbar = page.getByTestId('toolbar').first();
   }
 
   async goto() {
