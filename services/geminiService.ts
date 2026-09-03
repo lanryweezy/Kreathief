@@ -99,12 +99,12 @@ export const callBackendGeminiAPI = async (payload: any) => {
           const data = await response.json();
           // Normalize OpenRouter response to match the shape callers expect
           let text = data.choices?.[0]?.message?.content ?? data.text ?? '';
-          
+
           // Strip markdown codeblocks if the caller expects pure JSON
           if (isJSON && text.startsWith('```')) {
             text = text.replace(/^```[a-z]*\n/i, '').replace(/\n```$/i, '');
           }
-          
+
           return { text, candidates: [{ content: { parts: [{ text }] } }] };
         }
 
@@ -429,7 +429,8 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
 
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
-      systemInstruction: 'You are a creative copywriter. Generate 5 creative, short, and catchy phrases about the user\'s topic. Useful for posters or social media. Return them as a simple JSON string array.',
+      systemInstruction:
+        "You are a creative copywriter. Generate 5 creative, short, and catchy phrases about the user's topic. Useful for posters or social media. Return them as a simple JSON string array.",
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -438,8 +439,8 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
             variants: {
               type: SchemaType.ARRAY,
               items: { type: SchemaType.STRING },
-            }
-          }
+            },
+          },
         },
       },
       contents: [
@@ -486,10 +487,7 @@ const getArchetypeGuidance = (archetype?: string): string => {
   }
 };
 
-export const enhancePromptWithArchetype = async (
-  simplePrompt: string,
-  archetype?: string
-): Promise<string> => {
+export const enhancePromptWithArchetype = async (simplePrompt: string, archetype?: string): Promise<string> => {
   try {
     const sanitizedPrompt = simplePrompt.trim().substring(0, 1000);
     const archetypeGuidance = getArchetypeGuidance(archetype);
@@ -749,6 +747,8 @@ export const generateLayout = async (prompt: string): Promise<any> => {
 
 export const generateSVGShape = async (prompt: string): Promise<string> => {
   try {
+    // 🤖 Astra: Sanitize and truncate user input to prevent prompt injection and payload bloat
+    const sanitizedPrompt = prompt.trim().substring(0, 1000);
     const systemPrompt = `
       You are an SVG path generator. 
       Generate a valid SVG path 'd' attribute for the shape described.
@@ -760,6 +760,8 @@ export const generateSVGShape = async (prompt: string): Promise<string> => {
     // Astra: Strict JSON output schema prevents conversational preamble and markup
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
+      // 🤖 Astra: Moved persona and rules to native systemInstruction field
+      systemInstruction: systemPrompt,
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -770,7 +772,7 @@ export const generateSVGShape = async (prompt: string): Promise<string> => {
       contents: [
         {
           role: 'user',
-          parts: [{ text: `${systemPrompt}\n\nDescription: ${prompt}` }],
+          parts: [{ text: `Description: "${sanitizedPrompt}"` }],
         },
       ],
     });

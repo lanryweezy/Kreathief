@@ -880,7 +880,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
             {/* Templates */}
             <div className="mb-10">
               <div className="flex items-center justify-between mb-5">
-                <span className="text-xs font-black text-muted uppercase tracking-[0.2em]">Templates</span>
+                <span data-testid="nav-templates" className="text-xs font-black text-muted uppercase tracking-[0.2em]" onClick={() => setSidebarTab('templates')}>
+                  Templates
+                </span>
                 <div className="flex items-center gap-2">
                   {['All', 'Social', 'Business', 'Video', 'Personal'].map((cat) => (
                     <button
@@ -904,6 +906,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 </div>
               </div>
               <div
+                id="templates-grid"
                 data-testid="dashboard-templates-grid"
                 className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
               >
