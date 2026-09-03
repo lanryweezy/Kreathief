@@ -749,6 +749,8 @@ export const generateLayout = async (prompt: string): Promise<any> => {
 
 export const generateSVGShape = async (prompt: string): Promise<string> => {
   try {
+    // 🤖 Astra: Sanitize and truncate user input to prevent prompt injection and payload bloat
+    const sanitizedPrompt = prompt.trim().substring(0, 1000);
     const systemPrompt = `
       You are an SVG path generator. 
       Generate a valid SVG path 'd' attribute for the shape described.
@@ -760,6 +762,8 @@ export const generateSVGShape = async (prompt: string): Promise<string> => {
     // Astra: Strict JSON output schema prevents conversational preamble and markup
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
+      // 🤖 Astra: Moved persona and rules to native systemInstruction field
+      systemInstruction: systemPrompt,
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -770,7 +774,7 @@ export const generateSVGShape = async (prompt: string): Promise<string> => {
       contents: [
         {
           role: 'user',
-          parts: [{ text: `${systemPrompt}\n\nDescription: ${prompt}` }],
+          parts: [{ text: `Description: "${sanitizedPrompt}"` }],
         },
       ],
     });
