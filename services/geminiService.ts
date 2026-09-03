@@ -99,12 +99,12 @@ export const callBackendGeminiAPI = async (payload: any) => {
           const data = await response.json();
           // Normalize OpenRouter response to match the shape callers expect
           let text = data.choices?.[0]?.message?.content ?? data.text ?? '';
-          
+
           // Strip markdown codeblocks if the caller expects pure JSON
           if (isJSON && text.startsWith('```')) {
             text = text.replace(/^```[a-z]*\n/i, '').replace(/\n```$/i, '');
           }
-          
+
           return { text, candidates: [{ content: { parts: [{ text }] } }] };
         }
 
@@ -429,7 +429,8 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
 
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
-      systemInstruction: 'You are a creative copywriter. Generate 5 creative, short, and catchy phrases about the user\'s topic. Useful for posters or social media. Return them as a simple JSON string array.',
+      systemInstruction:
+        "You are a creative copywriter. Generate 5 creative, short, and catchy phrases about the user's topic. Useful for posters or social media. Return them as a simple JSON string array.",
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -438,8 +439,8 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
             variants: {
               type: SchemaType.ARRAY,
               items: { type: SchemaType.STRING },
-            }
-          }
+            },
+          },
         },
       },
       contents: [
@@ -486,10 +487,7 @@ const getArchetypeGuidance = (archetype?: string): string => {
   }
 };
 
-export const enhancePromptWithArchetype = async (
-  simplePrompt: string,
-  archetype?: string
-): Promise<string> => {
+export const enhancePromptWithArchetype = async (simplePrompt: string, archetype?: string): Promise<string> => {
   try {
     const sanitizedPrompt = simplePrompt.trim().substring(0, 1000);
     const archetypeGuidance = getArchetypeGuidance(archetype);
