@@ -21,7 +21,7 @@ interface SortedTarget {
 
 let cachedArtboardId: string | null = null;
 let cachedLayerCount = -1;
-let cachedLayerPositions: string | null = null;
+let cachedLayerPositions: { id: string; x: number; y: number }[] | null = null;
 let cachedSortedX: SortedTarget[] = [];
 let cachedSortedY: SortedTarget[] = [];
 
@@ -130,19 +130,33 @@ export class SnappingOracle {
 
     const movingIds = new Set(movingLayers.map((l) => l.id));
     const layerCount = allLayers.length;
-    const layerPositionHash = allLayers.map((l) => `${l.id}:${l.x}:${l.y}`).join(',');
+
+    // ⚡ Bolt Optimization: Prevent massive O(N) string allocation by using direct property comparison
+    let positionsChanged = false;
+    if (!cachedLayerPositions || cachedLayerPositions.length !== layerCount) {
+      positionsChanged = true;
+    } else {
+      for (let i = 0; i < layerCount; i++) {
+        const l = allLayers[i];
+        const c = cachedLayerPositions[i];
+        if (l.id !== c.id || l.x !== c.x || l.y !== c.y) {
+          positionsChanged = true;
+          break;
+        }
+      }
+    }
 
     if (
       cachedArtboardId !== activeArtboard.id ||
       cachedLayerCount !== layerCount ||
-      cachedLayerPositions !== layerPositionHash
+      positionsChanged
     ) {
       const targets = buildTargets(allLayers, movingIds, activeArtboard);
       cachedSortedX = targets.sortedX;
       cachedSortedY = targets.sortedY;
       cachedArtboardId = activeArtboard.id;
       cachedLayerCount = layerCount;
-      cachedLayerPositions = layerPositionHash;
+      cachedLayerPositions = allLayers.map((l) => ({ id: l.id, x: l.x, y: l.y }));
     }
 
     const adjustedThreshold = threshold / zoom;
