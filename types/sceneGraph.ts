@@ -265,7 +265,7 @@ export function deserializeSceneGraph(json: string): SceneGraph {
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
 function getLayerNodeType(layer: Layer): SceneNodeType {
-  if ((layer as any).isGroup) return 'group';
+  if (layer.isGroup || layer.type === 'group') return 'group';
   switch (layer.type) {
     case 'text':
       return 'text';
