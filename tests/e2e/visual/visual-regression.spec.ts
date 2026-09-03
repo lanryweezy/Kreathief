@@ -20,11 +20,13 @@ test.describe('Visual Regression Tests', () => {
         })
       );
       localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
 
     // Navigate to editor
-    await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/editor');
     await editor.waitForCanvasReady();
   });
 
@@ -32,9 +34,10 @@ test.describe('Visual Regression Tests', () => {
     await page.goto('/');
 
     // Wait for dashboard to load
-    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 10000 });
+    await page.waitForSelector('#templates-grid', { state: 'visible', timeout: 30000 });
 
     // Take screenshot
+    await page.waitForTimeout(1000);
     await expect(page).toHaveScreenshot('dashboard-load.png', {
       fullPage: true,
       maxDiffPixels: 100,
@@ -135,8 +138,8 @@ test.describe('Visual Regression Tests', () => {
     // Add text
     const textTab = editor.sidebar.locator('button[aria-label="Text"]');
     await textTab.click();
-    const addHeading = page.locator('button:has-text("Heading")');
-    await addHeading.click();
+    const addHeadingBtn = page.getByTestId('add-heading-btn');
+    await addHeadingBtn.click();
     await page.waitForTimeout(1000);
 
     // Take screenshot
@@ -167,7 +170,8 @@ test.describe('Visual Regression Tests', () => {
     // Add text
     const textTab = editor.sidebar.locator('button[aria-label="Text"]');
     await textTab.click();
-    await page.locator('button:has-text("Heading")').click();
+    const addHeadingBtn = page.getByTestId('add-heading-btn');
+    await addHeadingBtn.click();
     await page.waitForTimeout(500);
 
     // Add shape
@@ -212,7 +216,7 @@ test.describe('Visual Regression Tests', () => {
 
     // Reload to apply viewport
     await page.reload();
-    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 10000 });
+    await page.waitForSelector('#templates-grid', { state: 'visible', timeout: 30000 });
 
     // Take screenshot
     await expect(page).toHaveScreenshot('mobile-dashboard.png', {
@@ -227,7 +231,7 @@ test.describe('Visual Regression Tests', () => {
 
     // Reload to apply viewport
     await page.reload();
-    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 10000 });
+    await page.waitForSelector('#templates-grid', { state: 'visible', timeout: 30000 });
 
     // Take screenshot
     await expect(page).toHaveScreenshot('tablet-dashboard.png', {

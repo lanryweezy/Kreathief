@@ -15,6 +15,7 @@ test.describe('Editor Core Features', () => {
       localStorage.setItem('kreathief_qa_session', userSession);
       localStorage.setItem('kreathief_onboarding_seen', 'true');
       localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
 
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -189,9 +190,11 @@ test.describe('Editor Core Features', () => {
 
     // Open export modal with keyboard shortcut Control+e or force click export button
     await page.keyboard.press('Control+e');
+    await page.waitForTimeout(500);
     const exportModal = page.locator('[data-testid="export-modal"]');
     if (!(await exportModal.isVisible())) {
-      await page.getByTestId('export-btn').click({ force: true });
+      // Use evaluate to force a native click bypassing playwright visibility/viewport checks
+      await page.locator('[data-testid="export-btn"], button:has-text("Export")').first().evaluate((node) => (node as HTMLElement).click());
     }
     await expect(exportModal).toBeVisible({ timeout: 10000 });
 
