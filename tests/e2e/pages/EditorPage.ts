@@ -9,6 +9,7 @@ export class EditorPage {
   readonly exportButton: Locator;
   readonly layersPanel: Locator;
   readonly sidebar: Locator;
+  readonly toolbar: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -19,6 +20,7 @@ export class EditorPage {
     this.exportButton = page.getByRole('button', { name: 'Export' });
     this.layersPanel = page.getByTestId('layers-panel');
     this.sidebar = page.locator('#sidebar, [data-testid="sidebar"]').first();
+    this.toolbar = page.getByTestId('toolbar').first();
   }
 
   async goto() {

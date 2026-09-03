@@ -248,6 +248,7 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
                 value={bpm}
                 onChange={(e) => setBpm(parseInt(e.target.value, 10))}
                 className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600"
+                aria-label="Tempo (BPM)"
               />
             </div>
 
@@ -416,6 +417,7 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
                   value={anim.duration}
                   onChange={(e) => updateAnim({ duration: parseFloat(e.target.value) })}
                   className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600"
+                  aria-label="Animation Duration"
                 />
               </div>
 
@@ -432,6 +434,7 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
                   value={anim.delay}
                   onChange={(e) => updateAnim({ delay: parseFloat(e.target.value) })}
                   className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600"
+                  aria-label="Animation Delay"
                 />
               </div>
             </div>

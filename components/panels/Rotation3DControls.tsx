@@ -106,6 +106,7 @@ export const Rotation3DControls: React.FC<Rotation3DControlsProps> = ({ layerId,
               value={rotateX}
               onChange={(e) => handleRotateXChange(parseInt(e.target.value))}
               className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
+              aria-label="Tilt Forward/Back"
             />
           </div>
 
@@ -123,6 +124,7 @@ export const Rotation3DControls: React.FC<Rotation3DControlsProps> = ({ layerId,
               value={rotateY}
               onChange={(e) => handleRotateYChange(parseInt(e.target.value))}
               className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-brand-600"
+              aria-label="Rotate Left/Right"
             />
           </div>
 
