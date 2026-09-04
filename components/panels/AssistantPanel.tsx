@@ -187,7 +187,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-600 to-brand-400 flex items-center justify-center shadow-lg shadow-purple-500/20">
             <AgentIcons.Sparkles className="w-5 h-5 text-white" />
           </div>
-          Magic Studio
+          Agent
         </h3>
         {agentStatus !== 'idle' && (
           <button
@@ -209,7 +209,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
             </div>
             <div>
               <h2 className="text-sm font-black text-white uppercase tracking-wider">
-                Magic Studio
+                Agent
               </h2>
               <p className="text-gray-400 text-[11px] mt-1.5 font-medium max-w-[240px] mx-auto leading-relaxed">
                 Describe your vision. The AI will generate a complete, multi-slide campaign instantly.

@@ -21,6 +21,7 @@ import { fuzzyMatch } from '../utils/search';
 import { NodeGraph } from './nodes/NodeGraph';
 import { importPdfAsArtboards } from '../utils/pdfImport';
 import { StaticLayerRenderer } from './StaticLayerRenderer';
+import { TemplatePreview } from './TemplatePreview';
 
 interface DashboardProps {
   user: User;
@@ -463,41 +464,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         </div>
 
         <div className="flex items-center gap-6">
-          <div className="flex gap-2">
-            <button
-              id="create-btn"
-              data-testid="create-project-btn"
-              onClick={handleCreateClick}
-              className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-brand-600/20"
-            >
-              <Icons.Plus className="w-3.5 h-3.5" />
-              New Design
-            </button>
-            <button
-              onClick={() => pdfInputRef.current?.click()}
-              className="px-4 py-2 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
-            >
-              <Icons.Uploads className="w-3.5 h-3.5" />
-              Import PDF
-            </button>
-            <input
-              type="file"
-              ref={pdfInputRef}
-              className="hidden"
-              accept=".pdf"
-              onChange={(e) => {
-                handlePdfImport(e);
-                e.target.value = '';
-              }}
-            />
-            <button
-              onClick={() => setShowNodeGraph(true)}
-              className="px-4 py-2 bg-brand-500/20 text-brand-400 hover:bg-brand-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-2"
-            >
-              <Icons.GitMerge className="w-3.5 h-3.5" />
-              Pipelines
-            </button>
-          </div>
+          <input
+            type="file"
+            ref={pdfInputRef}
+            className="hidden"
+            accept=".pdf"
+            onChange={(e) => {
+              handlePdfImport(e);
+              e.target.value = '';
+            }}
+          />
           <div className="relative hidden md:block group">
             <Icons.Search
               className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted group-focus-within:text-brand-500 transition-colors"
@@ -597,6 +573,28 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                     role="menuitem"
                   >
                     <Icons.Sliders className="w-4 h-4 text-purple-400" /> Studio Settings
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setProfileDropdownOpen(false);
+                      setShowNodeGraph(true);
+                    }}
+                    className="w-full text-left px-4 py-3 text-xs font-bold text-white hover:bg-white/[0.06] rounded-xl flex items-center gap-3 transition-colors focus-visible:outline-none focus-visible:bg-white/[0.06]"
+                    role="menuitem"
+                  >
+                    <Icons.GitMerge className="w-4 h-4 text-emerald-400" /> AI Pipelines (Graph)
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setProfileDropdownOpen(false);
+                      pdfInputRef.current?.click();
+                    }}
+                    className="w-full text-left px-4 py-3 text-xs font-bold text-white hover:bg-white/[0.06] rounded-xl flex items-center gap-3 transition-colors focus-visible:outline-none focus-visible:bg-white/[0.06]"
+                    role="menuitem"
+                  >
+                    <Icons.Uploads className="w-4 h-4 text-indigo-400" /> Import PDF
                   </button>
                   <button
                     onClick={(e) => {
@@ -913,19 +911,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                     onClick={() => handleStartFromTemplate(tmpl.id)}
                     className="group bg-surface-dark-2 border border-white/5 rounded-xl overflow-hidden text-left hover:border-brand-500/50 hover:shadow-brand-500/10 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    <div className="aspect-[4/3] relative overflow-hidden">
-                      <div className="absolute inset-0 flex items-center justify-center p-3 pointer-events-none">
-                        <div
-                          style={{
-                            width: `${tmpl.size.width || 1080}px`,
-                            height: `${tmpl.size.height || 1080}px`,
-                            transform: `scale(${Math.min(220 / (tmpl.size.width || 1080), 165 / (tmpl.size.height || 1080))})`,
-                            transformOrigin: 'center',
-                            backgroundColor: tmpl.state?.canvasBackgroundColor || '#0f172a',
-                          }}
-                          className="shadow-xl rounded border border-white/5 overflow-hidden"
-                        />
-                      </div>
+                    <div className="aspect-[4/3] relative overflow-hidden bg-black/40">
+                      <TemplatePreview
+                        template={tmpl}
+                        containerWidth={260}
+                        containerHeight={195}
+                        className="p-2"
+                      />
                       <div className="absolute top-2 left-2 z-10">
                         <span className="bg-brand-600 px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-white">
                           {tmpl.category}

@@ -64,18 +64,18 @@ export const TextTools = React.memo(
     };
 
     return (
-      <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
+      <div className="flex items-center gap-1.5 flex-nowrap shrink-0">
         {/* Font & Color Segment */}
-        <div className="flex items-center gap-2 bg-white/[0.03] p-1 rounded-xl border border-white/5">
+        <div className="flex items-center gap-1 bg-white/[0.03] p-0.5 rounded-lg border border-white/5">
           <div className="relative">
             <button
               ref={fontButtonRef}
               onClick={() => setShowFontPicker(!showFontPicker)}
-              className="w-36 bg-black/20 border border-white/10 rounded-lg px-2.5 py-1 text-xs text-white text-left flex justify-between items-center hover:border-brand-600/50 hover:bg-black/30 transition-all group"
+              className="w-28 bg-black/20 border border-white/10 rounded px-2 py-1 text-xs text-white text-left flex justify-between items-center hover:border-brand-600/50 hover:bg-black/30 transition-all group"
               title="Font Family"
             >
-              <span className="truncate mr-2 font-medium">{layer.fontFamily}</span>
-              <Icons.ChevronDown className="w-3.5 h-3.5 text-gray-500 group-hover:text-brand-600 transition-colors" />
+              <span className="truncate mr-1.5 font-medium text-[11px]">{layer.fontFamily}</span>
+              <Icons.ChevronDown className="w-3 h-3 text-gray-500 group-hover:text-brand-600 transition-colors shrink-0" />
             </button>
             <Dropdown
               anchorRef={fontButtonRef}
@@ -107,13 +107,55 @@ export const TextTools = React.memo(
             </Dropdown>
           </div>
 
-          <NumberInput
-            value={layer.fontSize}
-            onChange={(val: number) => onUpdateTextLayer(layer.id, { fontSize: val })}
-            min={8}
-            max={500}
-            className="w-10"
-          />
+          {/* Font Size Stepper */}
+          <div className="flex items-center bg-black/20 border border-white/10 rounded overflow-hidden">
+            <button
+              onClick={() => {
+                const current = typeof layer.fontSize === 'number' && !isNaN(layer.fontSize) ? layer.fontSize : 16;
+                onUpdateTextLayer(layer.id, { fontSize: Math.max(6, Math.round(current - 1)) });
+              }}
+              className="px-1.5 py-1 text-gray-400 hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center text-xs font-bold shrink-0"
+              title="Decrease Font Size"
+            >
+              -
+            </button>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={typeof layer.fontSize === 'number' && !isNaN(layer.fontSize) ? Math.round(layer.fontSize) : 16}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/\D/g, '');
+                if (raw) {
+                  const val = parseInt(raw, 10);
+                  if (!isNaN(val) && val > 0) {
+                    onUpdateTextLayer(layer.id, { fontSize: Math.max(6, Math.min(500, val)) });
+                  }
+                }
+              }}
+              onKeyDown={(e) => {
+                const current = typeof layer.fontSize === 'number' && !isNaN(layer.fontSize) ? layer.fontSize : 16;
+                if (e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  onUpdateTextLayer(layer.id, { fontSize: Math.min(500, current + (e.shiftKey ? 10 : 1)) });
+                } else if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  onUpdateTextLayer(layer.id, { fontSize: Math.max(6, current - (e.shiftKey ? 10 : 1)) });
+                }
+              }}
+              className="w-8 text-center bg-transparent text-xs text-white font-mono outline-none border-x border-white/10 py-1"
+              title="Font Size"
+            />
+            <button
+              onClick={() => {
+                const current = typeof layer.fontSize === 'number' && !isNaN(layer.fontSize) ? layer.fontSize : 16;
+                onUpdateTextLayer(layer.id, { fontSize: Math.min(500, Math.round(current + 1)) });
+              }}
+              className="px-1.5 py-1 text-gray-400 hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center text-xs font-bold shrink-0"
+              title="Increase Font Size"
+            >
+              +
+            </button>
+          </div>
           <ColorPicker
             label="Text Color"
             value={layer.color}
@@ -127,11 +169,12 @@ export const TextTools = React.memo(
               })
             }
             documentColors={documentColors}
+            small
           />
         </div>
 
         {/* Style & Alignment Segment */}
-        <div className="flex items-center gap-0.5 bg-white/[0.03] p-1 rounded-xl border border-white/5">
+        <div className="flex items-center gap-0.5 bg-white/[0.03] p-0.5 rounded-lg border border-white/5">
           <IconButton
             onClick={() => onUpdateTextLayer(layer.id, { fontWeight: layer.fontWeight === 'bold' ? 'normal' : 'bold' })}
             active={layer.fontWeight === 'bold'}
@@ -148,7 +191,7 @@ export const TextTools = React.memo(
           >
             <Icons.Italic className="w-3.5 h-3.5" />
           </IconButton>
-          <div className="w-[1px] h-4 bg-white/10 mx-1" />
+          <div className="w-[1px] h-3 bg-white/10 mx-0.5" />
           <IconButton
             onClick={() => onUpdateTextLayer(layer.id, { textAlign: 'left' })}
             active={layer.textAlign === 'left'}
@@ -173,36 +216,27 @@ export const TextTools = React.memo(
         </div>
 
         {/* Spacing & Typography Segment */}
-        <div className="flex items-center gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/5">
+        <div className="flex items-center gap-1 bg-white/[0.03] p-0.5 rounded-lg border border-white/5">
           <CompactInput
             label="AV"
-            value={layer.letterSpacing || 0}
-            onChange={(e: any) => onUpdateTextLayer(layer.id, { letterSpacing: parseFloat(e.target.value) })}
+            value={typeof layer.letterSpacing === 'number' && !isNaN(layer.letterSpacing) ? layer.letterSpacing : 0}
+            onChange={(e: any) => {
+              const val = typeof e === 'number' ? e : parseFloat(e?.target?.value);
+              if (!isNaN(val)) onUpdateTextLayer(layer.id, { letterSpacing: val });
+            }}
             step={1}
-            width="w-8"
+            width="w-7"
             title="Tracking"
           />
           <CompactInput
-            label="Kr"
-            value={layer.kerning || 0}
-            onChange={(e: any) => onUpdateTextLayer(layer.id, { kerning: parseFloat(e.target.value) })}
-            step={1}
-            width="w-8"
-            title="Kerning"
-          />
-          <IconButton
-            onClick={() => onUpdateTextLayer(layer.id, { ligatures: !layer.ligatures })}
-            active={layer.ligatures}
-            title="Standard Ligatures"
-          >
-            <Icons.Scissors className="w-3.5 h-3.5" />
-          </IconButton>
-          <CompactInput
             label="LH"
-            value={layer.lineHeight || 1.2}
-            onChange={(e: any) => onUpdateTextLayer(layer.id, { lineHeight: parseFloat(e.target.value) })}
+            value={typeof layer.lineHeight === 'number' && !isNaN(layer.lineHeight) ? layer.lineHeight : 1.2}
+            onChange={(e: any) => {
+              const val = typeof e === 'number' ? e : parseFloat(e?.target?.value);
+              if (!isNaN(val) && val > 0) onUpdateTextLayer(layer.id, { lineHeight: Math.max(0.5, Math.min(5, val)) });
+            }}
             step={0.1}
-            width="w-8"
+            width="w-7"
             title="Line Height"
           />
         </div>

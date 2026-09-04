@@ -5,7 +5,6 @@ import { User, Project, AnimationSettings } from '../types';
 import { DropdownMenu } from './DropdownMenu';
 import { useStore } from '../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
-import { PublishModal } from './modals/PublishModal';
 import { PresenceBar } from './collaboration/PresenceBar';
 import { Button } from './Button';
 import { ConnectionStatus } from './ConnectionStatus';
@@ -81,41 +80,14 @@ export const Header: React.FC<HeaderProps> = ({
     }))
   );
 
-  const [showPublishModal, setShowPublishModal] = React.useState(false);
   const [isEditingTitle, setIsEditingTitle] = React.useState(false);
   const [showZoomMenu, setShowZoomMenu] = React.useState(false);
-  const [showResizeMenu, setShowResizeMenu] = React.useState(false);
   // AI overlay state lives in the store so Command Palette / other surfaces can open it
   const setShowAIOverlay = s.setShowAIOverlay;
   const setAiTab = s.setAIOverlayTab;
 
   const zoomButtonRef = React.useRef<HTMLButtonElement>(null);
-  const resizeMenuRef = React.useRef<HTMLDivElement>(null);
   const titleSnapshotRef = React.useRef<string>(String(projectTitle || ''));
-
-  // Magic Resize target formats — one click adapts the design to every channel
-  const RESIZE_FORMATS = [
-    { name: 'Instagram Post', width: 1080, height: 1080 },
-    { name: 'Story / Reel', width: 1080, height: 1920 },
-    { name: 'YouTube Thumbnail', width: 1280, height: 720 },
-    { name: 'Facebook Post', width: 1200, height: 630 },
-    { name: 'X / Twitter Post', width: 1600, height: 900 },
-    { name: 'Presentation', width: 1920, height: 1080 },
-  ];
-
-  // Close resize menu on outside click
-  React.useEffect(() => {
-    if (!showResizeMenu) {
-      return;
-    }
-    const handleClick = (e: MouseEvent) => {
-      if (resizeMenuRef.current && !resizeMenuRef.current.contains(e.target as Node)) {
-        setShowResizeMenu(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [showResizeMenu]);
 
   const onShare = () => setShowShareModal(true);
 
@@ -270,61 +242,7 @@ export const Header: React.FC<HeaderProps> = ({
           className="flex items-center gap-1.5 font-bold"
         >
           <Icons.Sparkles className="w-3.5 h-3.5 text-brand-400" />
-          <span className="text-brand-400">Magic Studio</span>
-        </Button>
-
-        {/* Magic Resize — adapt current design to other formats */}
-        <div className="relative" ref={resizeMenuRef}>
-          <Button
-            onClick={() => setShowResizeMenu(!showResizeMenu)}
-            aria-label="Magic Resize"
-            title="Magic Resize — adapt design to other formats"
-            variant={showResizeMenu ? 'secondary' : 'ghost'}
-            size="sm"
-            className="hidden md:flex gap-1.5 font-bold"
-          >
-            <Icons.Maximize className="w-3.5 h-3.5" />
-            <span>Resize</span>
-          </Button>
-
-          {showResizeMenu && (
-            <div className="absolute top-full right-0 mt-2 w-56 bg-surface-dark-3 border border-white/10 rounded-xl shadow-2xl overflow-hidden p-1.5 z-[200]">
-              <div className="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-gray-500">
-                Magic Resize
-              </div>
-              {RESIZE_FORMATS.map((f) => (
-                <button
-                  key={f.name}
-                  onClick={() => {
-                    useStore.getState().magicResizeAll([f]);
-                    setShowResizeMenu(false);
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                >
-                  <span>{f.name}</span>
-                  <span className="text-[10px] text-gray-500 font-medium">
-                    {f.width}×{f.height}
-                  </span>
-                </button>
-              ))}
-              <div className="h-px bg-white/5 my-1" />
-              <button
-                onClick={() => {
-                  useStore.getState().magicResizeAll(RESIZE_FORMATS);
-                  setShowResizeMenu(false);
-                }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-brand-400 hover:bg-brand-600/10 rounded-lg transition-colors"
-              >
-                <Icons.Grid className="w-3.5 h-3.5" />
-                Resize for all formats
-              </button>
-            </div>
-          )}
-        </div>
-
-        <Button variant="secondary" size="sm" onClick={onOpenCommunity} title="Community Templates">
-          <Icons.Globe className="w-3.5 h-3.5 text-brand-600" />
-          <span className="hidden lg:inline">Community</span>
+          <span className="text-brand-400">Agent</span>
         </Button>
 
         <div className="h-4 w-px bg-gray-800"></div>
@@ -338,16 +256,6 @@ export const Header: React.FC<HeaderProps> = ({
             aria-label="Show keyboard shortcuts"
           >
             <Icons.Help className="w-4 h-4" />
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowPublishModal(true)}
-            title="Publish to Community"
-            aria-label="Publish design"
-          >
-            <Icons.Globe className="w-4 h-4" />
           </Button>
 
           <Button
@@ -425,8 +333,6 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
       )}
-
-      {showPublishModal && <PublishModal onClose={() => setShowPublishModal(false)} />}
     </header>
   );
 };

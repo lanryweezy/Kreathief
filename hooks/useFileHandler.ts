@@ -91,6 +91,8 @@ const fallbackExportStrategy: ExportStrategy = {
       height: ctx.exportHeight,
       format: ctx.format,
       quality: ctx.quality,
+      background: ctx.bgColor !== 'transparent',
+      backgroundColor: ctx.bgColor,
     });
     const downloadUrl = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -228,6 +230,8 @@ export const useFileHandler = () => {
     const blob = await exportService.exportDesignToImage(layers as any, {
       width: canvasSize.width,
       height: canvasSize.height,
+      backgroundColor: canvasBackgroundColor,
+      background: true,
     });
     return new Promise<string>((resolve) => {
       const reader = new FileReader();
@@ -253,6 +257,8 @@ export const useFileHandler = () => {
     return await exportService.exportDesignToImage(layers as any, {
       width: canvasSize.width,
       height: canvasSize.height,
+      backgroundColor: canvasBackgroundColor,
+      background: true,
     });
   };
 

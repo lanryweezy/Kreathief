@@ -162,21 +162,38 @@ export const Toolbar = React.memo(
                 )}
 
               <div className="flex bg-black/40 rounded-xl border border-white/5 p-1 gap-1">
-                <IconButton onClick={() => onAlignLayers?.('left')} title="Align Left" aria-label="Align Left">
+                <IconButton onClick={() => onAlignLayers?.('left')} title="Align Left (Alt+1)" aria-label="Align Left">
                   <Icons.AlignLeft className="w-4 h-4" />
                 </IconButton>
-                <IconButton onClick={() => onAlignLayers?.('center')} title="Align Center" aria-label="Align Center">
+                <IconButton onClick={() => onAlignLayers?.('center')} title="Align Center H (Alt+2)" aria-label="Align Center H">
                   <Icons.AlignCenter className="w-4 h-4" />
                 </IconButton>
-                <IconButton onClick={() => onAlignLayers?.('right')} title="Align Right" aria-label="Align Right">
+                <IconButton onClick={() => onAlignLayers?.('right')} title="Align Right (Alt+3)" aria-label="Align Right">
                   <Icons.AlignRight className="w-4 h-4" />
+                </IconButton>
+                <Divider />
+                <IconButton onClick={() => onAlignLayers?.('top')} title="Align Top (Alt+4)" aria-label="Align Top">
+                  <Icons.ArrowUp className="w-4 h-4" />
+                </IconButton>
+                <IconButton onClick={() => onAlignLayers?.('middle')} title="Align Middle V (Alt+5)" aria-label="Align Middle V">
+                  <Icons.Move className="w-4 h-4" />
+                </IconButton>
+                <IconButton onClick={() => onAlignLayers?.('bottom')} title="Align Bottom (Alt+6)" aria-label="Align Bottom">
+                  <Icons.ArrowDown className="w-4 h-4" />
+                </IconButton>
+                <Divider />
+                <IconButton onClick={() => s.layoutLayers?.('row')} title="Distribute Horizontally (Row)" aria-label="Distribute Horizontally">
+                  <Icons.LayoutCol className="w-4 h-4" />
+                </IconButton>
+                <IconButton onClick={() => s.layoutLayers?.('col')} title="Distribute Vertically (Col)" aria-label="Distribute Vertically">
+                  <Icons.LayoutRow className="w-4 h-4" />
                 </IconButton>
               </div>
               <div className="flex items-center gap-1">
-                <IconButton onClick={onGroup} title="Group" shortcut="Ctrl+G" aria-label="Group">
+                <IconButton onClick={onGroup} title="Group (Ctrl+G)" shortcut="Ctrl+G" aria-label="Group">
                   <Icons.Group className="w-4 h-4" />
                 </IconButton>
-                <IconButton onClick={onUngroup} title="Ungroup" shortcut="Ctrl+Shift+G" aria-label="Ungroup">
+                <IconButton onClick={onUngroup} title="Ungroup (Ctrl+Shift+G)" shortcut="Ctrl+Shift+G" aria-label="Ungroup">
                   <Icons.Ungroup className="w-4 h-4" />
                 </IconButton>
               </div>

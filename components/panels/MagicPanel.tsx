@@ -13,6 +13,7 @@ import { Icons } from '../../constants';
 import { Button } from '../Button';
 import { Toggle } from '../Toggle';
 import * as geminiService from '../../services/geminiService';
+import { generateMultiLayerDesign } from '../../services/aiDesignDirector';
 
 import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -427,6 +428,8 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
     switch (mode) {
       case AppMode.GENERATE:
         return 'Generate Image';
+      case AppMode.MULTI_LAYER:
+        return 'Generate Multi-Layer Artboard';
       case AppMode.EDIT:
         return 'Generate Edits';
       case AppMode.THEME:
@@ -439,10 +442,11 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
   return (
     <div className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
       <PanelHeader
-        title="Magic Studio"
+        title="Agent"
         icon={<Icons.Magic className="w-5 h-5" />}
         tabs={[
           { id: AppMode.GENERATE, label: 'Imagine' },
+          { id: AppMode.MULTI_LAYER, label: 'Multi-Layer' },
           { id: AppMode.EDIT, label: 'Remix' },
           { id: AppMode.THEME, label: 'Theme' },
         ]}
@@ -919,6 +923,40 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
               useStore.getState().setPrompt(finalPrompt);
               if (mode === AppMode.GENERATE) {
                 await useStore.getState().generateImage();
+              } else if (mode === AppMode.MULTI_LAYER) {
+                try {
+                  useStore.setState({ isGenerating: true });
+                  const state = useStore.getState();
+                  const activeArtboard = state.artboards?.find((a: any) => a.id === state.activeArtboardId);
+                  const w = activeArtboard?.width || 1080;
+                  const h = activeArtboard?.height || 1080;
+                  const design = await generateMultiLayerDesign(finalPrompt, w, h);
+                  if (design && design.layers.length > 0) {
+                    useStore.getState().saveToHistory?.();
+                    useStore.setState((s: any) => ({
+                      artboards: s.artboards.map((a: any) =>
+                        a.id === s.activeArtboardId
+                          ? {
+                              ...a,
+                              name: design.title || a.name,
+                              backgroundColor: design.backgroundColor || a.backgroundColor,
+                              backgroundGradient: design.backgroundGradient || a.backgroundGradient,
+                              layers: [...a.layers, ...design.layers],
+                            }
+                          : a
+                      ),
+                      selectedLayerIds: design.layers.map((l) => l.id),
+                      isGenerating: false,
+                    }));
+                    addToast(`Multi-Layer Design Created: Generated ${design.layers.length} editable layers!`, 'success');
+                  } else {
+                    useStore.setState({ isGenerating: false });
+                  }
+                } catch (e) {
+                  log.error('Multi-layer generation failed', e);
+                  useStore.setState({ isGenerating: false });
+                  addToast('Could not generate multi-layer artboard.', 'error');
+                }
               } else if (mode === AppMode.EDIT && selectedLayerId) {
                 await useStore.getState().onRemix(selectedLayerId);
               } else if (mode === AppMode.THEME) {

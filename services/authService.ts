@@ -79,11 +79,50 @@ export class AuthService {
       return null;
     }
   }
+  private isQABypassActive(): boolean {
+    if (import.meta.env.VITE_QA_BYPASS === 'false' || import.meta.env.VITE_USE_QA_BYPASS === 'false') {
+      return false;
+    }
+    return (
+      (import.meta.env.DEV || import.meta.env.MODE === 'test') &&
+      (import.meta.env.VITE_QA_BYPASS === 'true' ||
+        import.meta.env.VITE_USE_QA_BYPASS === 'true' ||
+        (typeof window !== 'undefined' && Boolean((window as any).VITE_QA_BYPASS)))
+    );
+  }
+
+  /**
+   * Sign in as a Guest without credentials
+   */
+  async signInAsGuest(name = 'Guest Creator'): Promise<AuthResult> {
+    const guestUser: User = {
+      id: `guest_${Date.now()}`,
+      email: 'guest@kreathief.app',
+      name,
+      plan: 'free',
+      avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=guest',
+    };
+    localStorage.setItem('kreathief_guest_session', JSON.stringify(guestUser));
+    log.info('[AuthService] Signed in as guest', { userId: guestUser.id });
+    return { user: guestUser, error: null };
+  }
+
   /**
    * Sign up with email and password
    */
   async signUp(email: string, password: string, name: string): Promise<AuthResult> {
     try {
+      if (this.isQABypassActive()) {
+        const mockUser: User = {
+          id: `qa_${Date.now()}`,
+          email,
+          name: name || email.split('@')[0],
+          plan: 'free',
+        };
+        localStorage.setItem('kreathief_qa_session', JSON.stringify(mockUser));
+        return { user: mockUser, error: null };
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -147,9 +186,7 @@ export class AuthService {
   async signIn(email: string, password: string): Promise<AuthResult> {
     try {
       // Check if we should use QA bypass (development only)
-      const useQABypass = import.meta.env.DEV && import.meta.env.VITE_QA_BYPASS === 'true';
-
-      if (useQABypass) {
+      if (this.isQABypassActive()) {
         log.info('[AuthService] Using QA bypass for development', { email });
         const mockUser: User = {
           id: 'qa-user-id',
@@ -267,7 +304,7 @@ export class AuthService {
     try {
       // First check for QA bypass session — only honored in dev mode or while
       // the bypass flag is enabled, so a stale session never leaks into production.
-      const useQABypass = import.meta.env.DEV || import.meta.env.VITE_QA_BYPASS === 'true';
+      const useQABypass = this.isQABypassActive();
       const savedUser = localStorage.getItem('kreathief_qa_session');
       if (savedUser) {
         if (useQABypass) {
@@ -325,7 +362,7 @@ export class AuthService {
    */
   onAuthChange(callback: (user: User | null) => void): () => void {
     // Check if using QA bypass
-    const useQABypass = import.meta.env.DEV && import.meta.env.VITE_QA_BYPASS === 'true';
+    const useQABypass = this.isQABypassActive();
 
     if (useQABypass) {
       log.debug('[AuthService] QA bypass active - syncing QA session');

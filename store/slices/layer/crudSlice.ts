@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as geminiService from '../../../services/geminiService';
 import { Layer, TextLayer, ShapeLayer, Artboard, ImageLayer } from '../../../types';
 import { LayerSlice } from './baseSlice';
-import { DEFAULT_LAYER_FILTERS, findLayerById } from './utils';
+import { DEFAULT_LAYER_FILTERS, findLayerById, applyAutoLayout } from './utils';
 import { DEFAULT_CORNER_RADIUS } from '../../../constants';
 
 // Constraint-aware layer remap used by Magic Resize (single + all-formats)
@@ -499,53 +499,55 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
           if (!masterComponentId && a.id !== foundInfo.artboard.id) {
             return a;
           }
+          const updatedLayers = a.layers.map((l: Layer) => {
+            if (l.id === id) {
+              // Handle master lock
+              if (
+                l.locked &&
+                sanitizedPartial.locked !== false &&
+                !('locked' in sanitizedPartial && Object.keys(sanitizedPartial).length === 1)
+              ) {
+                return l;
+              }
+
+              // Handle granular locks
+              if (l.lockPosition) {
+                delete sanitizedPartial.x;
+                delete sanitizedPartial.y;
+                delete sanitizedPartial.width;
+                delete sanitizedPartial.height;
+                delete sanitizedPartial.rotation;
+              }
+              if (l.lockStyle) {
+                delete (sanitizedPartial as Partial<TextLayer>).color;
+                delete (sanitizedPartial as Partial<TextLayer>).fontFamily;
+                delete sanitizedPartial.opacity;
+                delete sanitizedPartial.blendMode;
+                delete sanitizedPartial.shadow;
+              }
+              if (l.lockText) {
+                delete (sanitizedPartial as Partial<TextLayer>).text;
+              }
+
+              const overrides = l.masterId ? [...(l.overrides || []), ...Object.keys(sanitizedPartial)] : l.overrides;
+              return { ...l, ...sanitizedPartial, overrides, dirty: true };
+            }
+            if (masterComponentId && l.masterId === masterComponentId) {
+              const overrides = l.overrides || [];
+              const syncPartial = { ...sanitizedPartial };
+              Object.keys(syncPartial).forEach((key) => {
+                if (overrides.includes(key)) {
+                  delete syncPartial[key as keyof Partial<Layer>];
+                }
+              });
+              return { ...l, ...syncPartial, dirty: true };
+            }
+            return l;
+          });
+          const processedLayers = applyAutoLayout(updatedLayers as Layer[]);
           return {
             ...a,
-            layers: a.layers.map((l: Layer) => {
-              if (l.id === id) {
-                // Handle master lock
-                if (
-                  l.locked &&
-                  sanitizedPartial.locked !== false &&
-                  !('locked' in sanitizedPartial && Object.keys(sanitizedPartial).length === 1)
-                ) {
-                  return l;
-                }
-
-                // Handle granular locks
-                if (l.lockPosition) {
-                  delete sanitizedPartial.x;
-                  delete sanitizedPartial.y;
-                  delete sanitizedPartial.width;
-                  delete sanitizedPartial.height;
-                  delete sanitizedPartial.rotation;
-                }
-                if (l.lockStyle) {
-                  delete (sanitizedPartial as Partial<TextLayer>).color;
-                  delete (sanitizedPartial as Partial<TextLayer>).fontFamily;
-                  delete sanitizedPartial.opacity;
-                  delete sanitizedPartial.blendMode;
-                  delete sanitizedPartial.shadow;
-                }
-                if (l.lockText) {
-                  delete (sanitizedPartial as Partial<TextLayer>).text;
-                }
-
-                const overrides = l.masterId ? [...(l.overrides || []), ...Object.keys(sanitizedPartial)] : l.overrides;
-                return { ...l, ...sanitizedPartial, overrides, dirty: true };
-              }
-              if (masterComponentId && l.masterId === masterComponentId) {
-                const overrides = l.overrides || [];
-                const syncPartial = { ...sanitizedPartial };
-                Object.keys(syncPartial).forEach((key) => {
-                  if (overrides.includes(key)) {
-                    delete syncPartial[key as keyof Partial<Layer>];
-                  }
-                });
-                return { ...l, ...syncPartial, dirty: true };
-              }
-              return l;
-            }),
+            layers: processedLayers,
           };
         }),
       };

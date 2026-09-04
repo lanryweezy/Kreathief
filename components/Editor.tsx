@@ -615,6 +615,26 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         action: () => useStore.getState().setShowShortcuts(!useStore.getState().showShortcuts),
         description: 'Shortcuts',
       },
+      {
+        key: 'g',
+        ctrl: true,
+        shift: false,
+        action: () => {
+          useStore.getState().groupSelected?.();
+          haptics.light();
+        },
+        description: 'Group Selected (Ctrl+G)',
+      },
+      {
+        key: 'g',
+        ctrl: true,
+        shift: true,
+        action: () => {
+          useStore.getState().ungroupSelected?.();
+          haptics.light();
+        },
+        description: 'Ungroup Selected (Ctrl+Shift+G)',
+      },
 
       {
         key: '1',
@@ -964,7 +984,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
         {/* Right Panel (AI Overlay / Agent) */}
         {showAIOverlay && !isMobile && (
-          <div className="hidden xl:flex flex-col w-[320px] bg-surface-dark-2 border-l border-[#1f1f1f] shadow-[-4px_0_24px_rgba(0,0,0,0.5)] z-40 shrink-0">
+          <div className="hidden xl:flex flex-col w-[320px] bg-surface-dark-2 border-l border-[#1f1f1f] shrink-0">
             {/* Tab header */}
             <div className="flex items-center gap-1 p-3 border-b border-white/5 shrink-0">
               <button
@@ -979,7 +999,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                 className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all ${aiTab === 'assistant' ? 'bg-brand-600/20 text-brand-400' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
               >
                 <Icons.Sparkles className="w-3.5 h-3.5" />
-                Magic Studio
+                Agent
               </button>
 
               <button

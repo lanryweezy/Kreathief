@@ -59,6 +59,20 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     }
   };
 
+  const handleGuestSignIn = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await authService.signInAsGuest();
+      if (result.user) {
+        onLogin(result.user);
+      }
+    } catch (err) {
+      setError('Failed to sign in as guest');
+      setLoading(false);
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError(null);
@@ -345,6 +359,16 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                     />
                   </svg>
                   Continue with Google
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleGuestSignIn}
+                  disabled={loading}
+                  className="w-full mt-3 bg-brand-600/10 hover:bg-brand-600/20 border border-brand-500/30 hover:border-brand-500/50 rounded-xl py-3 px-6 text-brand-300 hover:text-white text-xs font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2.5 disabled:opacity-50 group cursor-pointer"
+                >
+                  <Icons.User className="w-4 h-4 text-brand-400 group-hover:scale-110 transition-transform" />
+                  Continue as Guest (Instant Access)
                 </button>
               </>
             )}

@@ -173,6 +173,59 @@ export class SnappingOracle {
       });
     }
 
+    // Check for equal spacing interval snapping
+    if (!xSnap && movingLayers.length === 1) {
+      const otherLayersX = allLayers
+        .filter((l) => !movingIds.has(l.id) && l.visible && !l.locked)
+        .map((l) => ({ x: l.x, right: l.x + ((l as any).width || 0), y: l.y, height: (l as any).height || 0 }))
+        .sort((a, b) => a.x - b.x);
+
+      for (let i = 0; i < otherLayersX.length - 1; i++) {
+        const leftL = otherLayersX[i];
+        const rightL = otherLayersX[i + 1];
+        if (leftL.right < rightL.x) {
+          const gap = rightL.x - leftL.right;
+          const targetX = leftL.right + (gap - selectionWidth) / 2;
+          if (Math.abs(minX - targetX) <= adjustedThreshold) {
+            result.x = targetX;
+            result.lines.push({
+              type: 'vertical',
+              value: targetX,
+              origin: Math.min(minY, leftL.y, rightL.y),
+              extent: Math.max(maxY, leftL.y + leftL.height, rightL.y + rightL.height) - Math.min(minY, leftL.y, rightL.y),
+            });
+            break;
+          }
+        }
+      }
+    }
+
+    if (!ySnap && movingLayers.length === 1) {
+      const otherLayersY = allLayers
+        .filter((l) => !movingIds.has(l.id) && l.visible && !l.locked)
+        .map((l) => ({ y: l.y, bottom: l.y + ((l as any).height || 0), x: l.x, width: (l as any).width || 0 }))
+        .sort((a, b) => a.y - b.y);
+
+      for (let i = 0; i < otherLayersY.length - 1; i++) {
+        const topL = otherLayersY[i];
+        const bottomL = otherLayersY[i + 1];
+        if (topL.bottom < bottomL.y) {
+          const gap = bottomL.y - topL.bottom;
+          const targetY = topL.bottom + (gap - selectionHeight) / 2;
+          if (Math.abs(minY - targetY) <= adjustedThreshold) {
+            result.y = targetY;
+            result.lines.push({
+              type: 'horizontal',
+              value: targetY,
+              origin: Math.min(minX, topL.x, bottomL.x),
+              extent: Math.max(maxX, topL.x + topL.width, bottomL.x + bottomL.width) - Math.min(minX, topL.x, bottomL.x),
+            });
+            break;
+          }
+        }
+      }
+    }
+
     return result;
   }
 

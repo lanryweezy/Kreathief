@@ -361,7 +361,6 @@ export const ImageLayerItem = React.memo(
                   : 'none',
               borderRadius: `${imgLayer.cornerRadius || 0}px`,
               willChange: 'transform',
-              zIndex: isSelected ? 100 : isHovered ? 99 : 1,
             };
           })()}
         >
@@ -482,7 +481,7 @@ const parseCssGradient = (colorStr: string | undefined) => {
 export const ShapeLayerItem = React.memo(
   React.forwardRef<HTMLDivElement, LayerItemProps>(
     (
-      { layer, isSelected, isHovered, onMouseDown, onResize, onRotate, onContextMenu, previewAnimation, maskPath },
+      { layer, isSelected, isHovered, onMouseDown, onResize, onRotate, onContextMenu, onDrop, previewAnimation, maskPath },
       ref
     ) => {
       const shapeLayer = layer as ShapeLayer;
@@ -499,7 +498,6 @@ export const ShapeLayerItem = React.memo(
           ...base,
           transform: `${shapeLayer.perspective ? `perspective(${shapeLayer.perspective}px)` : ''} rotateX(${shapeLayer.rotateX || 0}deg) rotateY(${shapeLayer.rotateY || 0}deg) ${base.transform} scale(${flipX}, ${flipY}) skew(${shapeLayer.skewX || 0}deg, ${shapeLayer.skewY || 0}deg)`,
           willChange: 'transform',
-          zIndex: isSelected ? 100 : isHovered ? 99 : 1,
         };
       }, [shapeLayer, isSelected, isHovered]);
 
@@ -565,6 +563,16 @@ export const ShapeLayerItem = React.memo(
           aria-label={shapeLayer.name || 'Shape layer'}
           onMouseDown={(e) => onMouseDown(e, shapeLayer)}
           onContextMenu={(e) => onContextMenu(e, shapeLayer.id)}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.dataTransfer.dropEffect = 'copy';
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onDrop?.(e, shapeLayer.id);
+          }}
           className="absolute cursor-move group shape-layer-item shape-layer"
           style={containerStyle}
         >
@@ -888,14 +896,21 @@ export const TextLayerItem = React.memo(
                   : undefined,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
+              display: isGradientColor || (textLayer as any).textTextureUrl ? 'inline-block' : undefined,
+              width: '100%',
+              paddingBottom: isGradientColor || (textLayer as any).textTextureUrl ? '0.18em' : undefined,
+              marginBottom: isGradientColor || (textLayer as any).textTextureUrl ? '-0.18em' : undefined,
+              WebkitBoxDecorationBreak: isGradientColor || (textLayer as any).textTextureUrl ? 'clone' : undefined,
+              boxDecorationBreak: isGradientColor || (textLayer as any).textTextureUrl ? 'clone' : undefined,
               WebkitBackgroundClip: isGradientColor || (textLayer as any).textTextureUrl ? 'text' : undefined,
+              backgroundClip: isGradientColor || (textLayer as any).textTextureUrl ? 'text' : undefined,
               WebkitTextFillColor: isGradientColor || (textLayer as any).textTextureUrl ? 'transparent' : undefined,
               textAlign: textLayer.textAlign,
               letterSpacing:
                 textLayer.letterSpacing !== null && textLayer.letterSpacing !== undefined
                   ? `${textLayer.letterSpacing}px`
                   : undefined,
-              lineHeight: textLayer.lineHeight || 1.5,
+              lineHeight: textLayer.lineHeight || 1.35,
               fontKerning: textLayer.kerning && textLayer.kerning > 0 ? 'normal' : 'none',
               fontFeatureSettings: textLayer.ligatures !== false ? '"liga" 1, "kern" 1' : '"liga" 0, "kern" 0',
               textDecoration: textLayer.textDecoration,

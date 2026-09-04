@@ -38,8 +38,8 @@ const saveRecentShape = (name: string) => {
   localStorage.setItem(RECENT_SHAPES_KEY, JSON.stringify(recent.slice(0, MAX_RECENT)));
 };
 
-type ShapeCategory = 'all' | 'basic' | 'geometric' | 'decorative' | 'ui' | 'arrows' | 'stars';
-type FilterCategory = 'all' | 'shapes' | '3d' | 'stickers' | 'illustrations' | 'icons';
+type ShapeCategory = 'all' | 'basic' | 'frames' | 'blobs' | 'badges' | 'geometric' | 'decorative' | 'ui' | 'arrows' | 'stars';
+type FilterCategory = 'all' | 'shapes' | 'stickers' | '3d' | 'illustrations' | 'icons';
 
 interface ShapePreset {
   name: string;
@@ -398,13 +398,19 @@ export const ElementsPanel = () => {
                 color:
                   shape.category === 'basic'
                     ? '#00c4cc'
-                    : shape.category === 'geometric'
-                      ? '#7d2ae8'
-                      : shape.category === 'stars'
-                        ? '#f59e0b'
-                        : shape.category === 'decorative'
-                          ? '#ec4899'
-                          : '#10b981',
+                    : shape.category === 'frames'
+                      ? '#38bdf8'
+                      : shape.category === 'blobs'
+                        ? '#a855f7'
+                        : shape.category === 'badges'
+                          ? '#f43f5e'
+                          : shape.category === 'geometric'
+                            ? '#7d2ae8'
+                            : shape.category === 'stars'
+                              ? '#f59e0b'
+                              : shape.category === 'decorative'
+                                ? '#ec4899'
+                                : '#10b981',
                 width: 100,
                 height: 100,
               }
@@ -433,9 +439,9 @@ export const ElementsPanel = () => {
 
   const filterPills: { id: FilterCategory; label: string; icon: any }[] = [
     { id: 'all', label: 'All', icon: Icons.Grid },
-    { id: 'shapes', label: 'Shapes', icon: Icons.Shapes },
+    { id: 'shapes', label: 'Shapes & Frames', icon: Icons.Shapes },
+    { id: 'stickers', label: 'Stickers', icon: Icons.Sticker },
     { id: '3d', label: '3D Assets', icon: Icons.Box },
-    { id: 'stickers', label: 'Stickers & Motion', icon: Icons.Sticker },
     { id: 'illustrations', label: 'Graphics', icon: Icons.Image },
     { id: 'icons', label: 'Icons', icon: Icons.Star },
   ];
@@ -475,7 +481,7 @@ export const ElementsPanel = () => {
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-4">
         {/* Universal Search */}
         <SearchInput
-          placeholder="Search shapes, 3D assets, stickers, graphics..."
+          placeholder="Search shapes, frames, stickers, 3D, graphics..."
           value={searchQuery}
           onChange={handleQueryChange}
           onClear={() => handleQueryChange('')}
@@ -508,7 +514,7 @@ export const ElementsPanel = () => {
                 {isSearching
                   ? 'Searching...'
                   : activeFilter === 'shapes'
-                    ? `All Shapes (${filteredShapePresets.length})`
+                    ? `All Shapes & Frames (${filteredShapePresets.length})`
                     : `Results for "${searchQuery || expandedCategory}"`}
               </span>
               {expandedCategory && (
@@ -529,7 +535,7 @@ export const ElementsPanel = () => {
             {/* Shape Sub-category Pills if Shapes is active */}
             {activeFilter === 'shapes' && (
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
-                {(['all', 'basic', 'geometric', 'stars', 'arrows', 'decorative', 'ui'] as ShapeCategory[]).map(
+                {(['all', 'basic', 'frames', 'blobs', 'badges', 'geometric', 'stars', 'arrows', 'decorative', 'ui'] as ShapeCategory[]).map(
                   (cat) => (
                     <button
                       key={cat}
@@ -621,7 +627,7 @@ export const ElementsPanel = () => {
         ) : (
           /* DEFAULT CANVAS-STYLE HORIZONTAL CAROUSELS */
           <div className="flex flex-col gap-6">
-            {/* Lane 1: Shapes & Lines */}
+            {/* Lane 1: Shapes & Primitives */}
             <div className="flex flex-col gap-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase tracking-wider text-gray-300 flex items-center gap-1.5">
@@ -629,7 +635,10 @@ export const ElementsPanel = () => {
                   Shapes & Primitives
                 </span>
                 <button
-                  onClick={() => handleFilterClick('shapes')}
+                  onClick={() => {
+                    setSelectedCategory('basic');
+                    handleFilterClick('shapes');
+                  }}
                   className="text-[10px] font-bold text-accent hover:underline cursor-pointer flex items-center gap-1"
                 >
                   See all <Icons.ChevronRight className="w-3 h-3" />
@@ -637,11 +646,12 @@ export const ElementsPanel = () => {
               </div>
 
               <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
-                {shapePresets.slice(0, 10).map((item, idx) => (
+                {shapePresets.filter((s) => s.category === 'basic' || s.category === 'geometric').slice(0, 10).map((item, idx) => (
                   <button
                     key={idx}
                     onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
                     className="w-16 h-16 shrink-0 bg-surface-dark-3 border border-gray-800 hover:border-accent rounded-xl flex flex-col items-center justify-center gap-1 transition-all hover:scale-[1.05] cursor-pointer"
+                    title={item.name}
                   >
                     <div className="w-8 h-8 flex items-center justify-center">
                       {item.type === 'path' ? (
@@ -663,6 +673,91 @@ export const ElementsPanel = () => {
                           }}
                         />
                       )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Lane 2: Photo Frames & Masks */}
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
+                  <Icons.Image className="w-3.5 h-3.5 text-sky-400" />
+                  Photo Frames & Masks
+                </span>
+                <button
+                  onClick={() => {
+                    setSelectedCategory('frames');
+                    handleFilterClick('shapes');
+                  }}
+                  className="text-[10px] font-bold text-sky-400 hover:underline cursor-pointer flex items-center gap-1"
+                >
+                  See all <Icons.ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
+                {shapePresets.filter((s) => s.category === 'frames').map((item, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
+                    className="group relative w-20 h-20 shrink-0 bg-surface-dark-3 border border-sky-500/20 hover:border-sky-400 rounded-xl flex flex-col items-center justify-center p-2 transition-all hover:scale-[1.05] cursor-pointer"
+                    title={`${item.name} — Drop any photo to fill`}
+                  >
+                    <div className="w-10 h-10 flex items-center justify-center">
+                      <svg
+                        viewBox={(item.props as any).viewBox || '0 0 100 100'}
+                        width="100%"
+                        height="100%"
+                        className="w-full h-full text-sky-400 fill-sky-400/20 stroke-sky-400 stroke-[2]"
+                      >
+                        <path d={(item.props as any).pathData} />
+                      </svg>
+                    </div>
+                    <span className="text-[8px] font-bold text-sky-300/80 group-hover:text-sky-200 truncate max-w-full mt-1">
+                      {item.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Lane 3: Organic Blobs */}
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+                  <Icons.Circle className="w-3.5 h-3.5 text-purple-400" />
+                  Organic Blobs
+                </span>
+                <button
+                  onClick={() => {
+                    setSelectedCategory('blobs');
+                    handleFilterClick('shapes');
+                  }}
+                  className="text-[10px] font-bold text-purple-400 hover:underline cursor-pointer flex items-center gap-1"
+                >
+                  See all <Icons.ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
+                {shapePresets.filter((s) => s.category === 'blobs').map((item, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
+                    className="w-16 h-16 shrink-0 bg-surface-dark-3 border border-purple-500/20 hover:border-purple-400 rounded-xl flex flex-col items-center justify-center gap-1 transition-all hover:scale-[1.05] cursor-pointer"
+                    title={item.name}
+                  >
+                    <div className="w-9 h-9 flex items-center justify-center">
+                      <svg
+                        viewBox={(item.props as any).viewBox || '0 0 100 100'}
+                        width="100%"
+                        height="100%"
+                        className="w-full h-full text-purple-400 fill-purple-500/30 stroke-purple-400 stroke-[1.5]"
+                      >
+                        <path d={(item.props as any).pathData} />
+                      </svg>
                     </div>
                   </button>
                 ))}

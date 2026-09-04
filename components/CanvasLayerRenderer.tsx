@@ -189,18 +189,20 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
 
     return (
       <>
-        {visibleLayers.map((l) => {
+        {visibleLayers.map((l, idx) => {
           if (l.isMasking) {
             return null;
           }
           const maskLayer = layerMasks.get(l.id);
-
           const children = groupChildrenMap.get(l.id) || [];
+          const layerIndex = layers ? layers.findIndex((lay) => lay.id === l.id) : idx;
+          const zIndex = typeof (l as any).zIndex === 'number' ? (l as any).zIndex : (layerIndex >= 0 ? layerIndex + 1 : idx + 1);
+          const layerWithZIndex = { ...l, zIndex };
 
           return (
             <React.Fragment key={l.id}>
               <CanvasLayerItemWrapper
-                layer={l}
+                layer={layerWithZIndex}
                 allLayers={layers}
                 layerMap={layerMap}
                 maskLayerOverride={maskLayer}
@@ -225,35 +227,39 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
                 isInteracting={isInteracting}
                 previewAnimation={previewAnimation}
               />
-              {children.map((child) => (
-                <CanvasLayerItemWrapper
-                  key={child.id}
-                  layer={child}
-                  allLayers={layers}
-                  layerMap={layerMap}
-                  maskLayerOverride={layerMasks.get(child.id)}
-                  selectedLayerId={selectedLayerId}
-                  selectedLayerIds={selectedLayerIds}
-                  hoveredLayerId={hoveredLayerId}
-                  setHoveredLayerId={setHoveredLayerId}
-                  setLayerRef={setLayerRef}
-                  handleMouseDownLayer={handleMouseDownLayer}
-                  handleResizeStart={handleResizeStart}
-                  handleRotateStart={handleRotateStart}
-                  handleContextMenu={handleContextMenu}
-                  handleTextDoubleClick={handleTextDoubleClick}
-                  handleDropShape={handleDropShape}
-                  onDoubleClickLayer={onDoubleClickLayer}
-                  editingTextId={editingTextId}
-                  textEditRef={textEditRef}
-                  finishEditingText={finishEditingText}
-                  editingPathId={editingPathId}
-                  onUpdatePath={onUpdatePath}
-                  zoom={zoom}
-                  isInteracting={isInteracting}
-                  previewAnimation={previewAnimation}
-                />
-              ))}
+              {children.map((child, cIdx) => {
+                const childLayerIndex = layers ? layers.findIndex((lay) => lay.id === child.id) : cIdx;
+                const childZIndex = typeof (child as any).zIndex === 'number' ? (child as any).zIndex : (childLayerIndex >= 0 ? childLayerIndex + 1 : zIndex);
+                return (
+                  <CanvasLayerItemWrapper
+                    key={child.id}
+                    layer={{ ...child, zIndex: childZIndex }}
+                    allLayers={layers}
+                    layerMap={layerMap}
+                    maskLayerOverride={layerMasks.get(child.id)}
+                    selectedLayerId={selectedLayerId}
+                    selectedLayerIds={selectedLayerIds}
+                    hoveredLayerId={hoveredLayerId}
+                    setHoveredLayerId={setHoveredLayerId}
+                    setLayerRef={setLayerRef}
+                    handleMouseDownLayer={handleMouseDownLayer}
+                    handleResizeStart={handleResizeStart}
+                    handleRotateStart={handleRotateStart}
+                    handleContextMenu={handleContextMenu}
+                    handleTextDoubleClick={handleTextDoubleClick}
+                    handleDropShape={handleDropShape}
+                    onDoubleClickLayer={onDoubleClickLayer}
+                    editingTextId={editingTextId}
+                    textEditRef={textEditRef}
+                    finishEditingText={finishEditingText}
+                    editingPathId={editingPathId}
+                    onUpdatePath={onUpdatePath}
+                    zoom={zoom}
+                    isInteracting={isInteracting}
+                    previewAnimation={previewAnimation}
+                  />
+                );
+              })}
             </React.Fragment>
           );
         })}

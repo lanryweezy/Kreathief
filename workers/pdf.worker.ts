@@ -103,36 +103,42 @@ self.onmessage = async (e: MessageEvent) => {
       // jsPDF also uses a top-left origin, so only the bleed offset applies.
       const x = bleed + layer.x;
       const y = bleed + layer.y;
+      const fill = typeof layer.fill === 'string' ? layer.fill : layer.color || (layer.fill?.stops?.[0]?.color) || '#000000';
 
-      if (layer.type === 'shape') {
-        const fill = layer.color || '#000000';
+      if (layer.type === 'shape' || layer.type === 'rect' || layer.type === 'ellipse' || layer.type === 'path') {
         applyColor(pdf, fill, 'fill');
 
-        if (layer.stroke && layer.stroke.width > 0) {
-          applyColor(pdf, layer.stroke.color || '#000000', 'draw');
-          pdf.setLineWidth(layer.stroke.width);
+        const strokeWidth = layer.strokeWidth || layer.stroke?.width || 0;
+        const strokeColor = layer.strokeColor || (typeof layer.stroke === 'string' ? layer.stroke : layer.stroke?.color) || '#000000';
+
+        if (strokeWidth > 0) {
+          applyColor(pdf, strokeColor, 'draw');
+          pdf.setLineWidth(strokeWidth);
         } else {
           pdf.setLineWidth(0);
         }
 
-        const style = layer.stroke && layer.stroke.width > 0 ? 'DF' : 'F';
+        const style = strokeWidth > 0 ? 'DF' : 'F';
+        const isCircle = layer.type === 'ellipse' || layer.shapeType === 'circle';
+        const isPath = layer.type === 'path' || layer.shapeType === 'path';
 
-        if (layer.shapeType === 'rectangle' || layer.shapeType === undefined) {
+        if (isCircle) {
+          pdf.ellipse(x + layer.width / 2, y + layer.height / 2, layer.width / 2, layer.height / 2, style);
+        } else if (isPath) {
           pdf.rect(x, y, layer.width, layer.height, style);
-        } else if (layer.shapeType === 'circle') {
-          pdf.circle(x + layer.width / 2, y + layer.height / 2, layer.width / 2, style);
-        } else if (layer.shapeType === 'path' && layer.pathData) {
-          // Robust MVP vector
-          if (!layer.stroke || layer.stroke.width === 0) {
-            applyColor(pdf, fill, 'draw');
+        } else {
+          const radius = layer.cornerRadiusPerCorner ? Math.max(layer.cornerRadiusPerCorner.tl || 0, layer.cornerRadiusPerCorner.tr || 0) : (layer.cornerRadius || 0);
+          if (radius > 0 && typeof (pdf as any).roundedRect === 'function') {
+            (pdf as any).roundedRect(x, y, layer.width, layer.height, radius, radius, style);
+          } else {
+            pdf.rect(x, y, layer.width, layer.height, style);
           }
-          pdf.rect(x, y, layer.width, layer.height, style);
         }
       } else if (layer.type === 'text') {
-        const fill = layer.color || '#000000';
+        const textFill = typeof layer.fill === 'string' ? layer.fill : layer.color || '#000000';
         const fontSize = layer.fontSize || 16;
 
-        applyColor(pdf, fill, 'text');
+        applyColor(pdf, textFill, 'text');
         pdf.setFontSize(fontSize);
 
         // Split text by resolving wrap
@@ -152,13 +158,14 @@ self.onmessage = async (e: MessageEvent) => {
           currentY += fontSize * (layer.lineHeight || 1.2);
         }
       } else if (layer.type === 'image') {
-        if (layer.src) {
+        const imgSrc = layer.imageUrl || layer.src;
+        if (imgSrc) {
           try {
             // Determine format
-            const format = layer.src.includes('jpeg') || layer.src.includes('jpg') ? 'JPEG' : 'PNG';
-            pdf.addImage(layer.src, format, x, y, layer.width, layer.height);
+            const format = imgSrc.includes('jpeg') || imgSrc.includes('jpg') ? 'JPEG' : 'PNG';
+            pdf.addImage(imgSrc, format, x, y, layer.width, layer.height);
           } catch (imgErr) {
-            log.error('Failed to embed image layer', imgErr);
+            log.error('Failed to embed image layer in PDF worker', imgErr);
           }
         }
       }

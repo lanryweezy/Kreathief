@@ -23,6 +23,30 @@ export const CanvasTools = React.memo(({ documentColors }: CanvasToolsProps) => 
   const brushType = useStore((state) => state.brushType);
   const setBrushType = useStore((state) => state.setBrushType);
   const setActiveTab = useStore((state) => state.setActiveTab);
+  const [showResizeMenu, setShowResizeMenu] = React.useState(false);
+  const resizeMenuRef = React.useRef<HTMLDivElement>(null);
+
+  const RESIZE_FORMATS = [
+    { name: 'Instagram Post', width: 1080, height: 1080 },
+    { name: 'Story / Reel', width: 1080, height: 1920 },
+    { name: 'YouTube Thumbnail', width: 1280, height: 720 },
+    { name: 'Facebook Post', width: 1200, height: 630 },
+    { name: 'X / Twitter Post', width: 1600, height: 900 },
+    { name: 'Presentation', width: 1920, height: 1080 },
+  ];
+
+  React.useEffect(() => {
+    if (!showResizeMenu) {
+      return;
+    }
+    const handleClick = (e: MouseEvent) => {
+      if (resizeMenuRef.current && !resizeMenuRef.current.contains(e.target as Node)) {
+        setShowResizeMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showResizeMenu]);
 
   return (
     <div className="flex items-center gap-3 flex-nowrap overflow-x-auto no-scrollbar py-1">
@@ -71,6 +95,57 @@ export const CanvasTools = React.memo(({ documentColors }: CanvasToolsProps) => 
       <Divider />
 
       <CanvasSizePicker currentSize={canvasSize} onSizeChange={setCanvasSize} />
+
+      {/* Magic Resize Button */}
+      <div className="relative" ref={resizeMenuRef}>
+        <button
+          onClick={() => setShowResizeMenu(!showResizeMenu)}
+          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded text-xs font-bold transition-all ${
+            showResizeMenu
+              ? 'bg-brand-600 text-white shadow-lg'
+              : 'bg-surface-dark-3 border border-gray-700 text-gray-300 hover:border-brand-600 hover:text-white'
+          }`}
+          title="Magic Resize — Adapt canvas/design to other formats"
+        >
+          <Icons.Maximize className="w-3.5 h-3.5 text-brand-400" />
+          <span>Resize</span>
+        </button>
+
+        {showResizeMenu && (
+          <div className="absolute top-full left-0 mt-2 w-60 bg-surface-dark-3 border border-white/10 rounded-xl shadow-2xl overflow-hidden p-1.5 z-[200]">
+            <div className="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-gray-500">
+              Magic Resize
+            </div>
+            {RESIZE_FORMATS.map((f) => (
+              <button
+                key={f.name}
+                onClick={() => {
+                  useStore.getState().magicResizeAll([f]);
+                  setShowResizeMenu(false);
+                }}
+                className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <span>{f.name}</span>
+                <span className="text-[10px] text-gray-500 font-medium">
+                  {f.width}×{f.height}
+                </span>
+              </button>
+            ))}
+            <div className="h-px bg-white/5 my-1" />
+            <button
+              onClick={() => {
+                useStore.getState().magicResizeAll(RESIZE_FORMATS);
+                setShowResizeMenu(false);
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-brand-400 hover:bg-brand-600/10 rounded-lg transition-colors"
+            >
+              <Icons.Grid className="w-3.5 h-3.5" />
+              Resize for all formats
+            </button>
+          </div>
+        )}
+      </div>
+
       <ColorPicker
         value={canvasBackgroundColor}
         onChange={(color) => {

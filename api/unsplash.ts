@@ -73,7 +73,7 @@ export default async function handler(req: Request) {
     rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   }
 
-  const accessKey = process.env.UNSPLASH_ACCESS_KEY;
+  const accessKey = process.env.UNSPLASH_ACCESS_KEY || process.env.VITE_UNSPLASH_ACCESS_KEY;
 
   if (!accessKey) {
     return new Response(JSON.stringify({ error: 'Unsplash credentials not configured on server' }), {
@@ -96,7 +96,7 @@ export default async function handler(req: Request) {
       const page = url.searchParams.get('page') || '1';
 
       const response = await fetch(
-        `${BASE_URL}/search/photos?query=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&per_page=20`,
+        `${BASE_URL}/search/photos?query=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&per_page=30`,
         {
           headers: {
             Authorization: `Client-ID ${accessKey}`,
