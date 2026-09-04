@@ -114,6 +114,107 @@ export const getBrushConfig = (brushType: string): BrushConfig => {
   );
 };
 
+
+/**
+ * Extensibility Point: BrushDrawingStrategy Registry
+ * Evidence of pressure: The `handleDrawingMouseMove` function relied on a hard-coded switch statement
+ * with multiple cases (eraser, calligraphy, oil, etc.).
+ * Contract: Implementors must provide an `apply` method that accepts the CanvasRenderingContext2D,
+ * and options like brush size, color, pressure, and position. It returns a boolean indicating whether
+ * to skip the default stroke drawing (true for continuous custom drawing like splatter).
+ * The registry enables registering new brush drawing logic without touching the core hook.
+ */
+export interface BrushDrawingStrategy {
+  apply(
+    ctx: CanvasRenderingContext2D,
+    options: {
+      brushColor: string;
+      brushSize: number;
+      brushOpacity: number;
+      pressureWidth: number;
+      ptPressure: number;
+      drawX: number;
+      drawY: number;
+    }
+  ): boolean;
+}
+
+export const brushDrawingStrategies = new Map<string, BrushDrawingStrategy>();
+
+brushDrawingStrategies.set('eraser', {
+  apply(ctx, options) {
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.lineWidth = options.brushSize;
+    return false;
+  }
+});
+
+brushDrawingStrategies.set('calligraphy', {
+  apply(ctx, options) {
+    ctx.lineCap = 'butt';
+    ctx.lineWidth = options.pressureWidth * 1.5;
+    return false;
+  }
+});
+
+brushDrawingStrategies.set('oil', {
+  apply(ctx, options) {
+    ctx.lineWidth = options.pressureWidth * 1.8;
+    ctx.shadowBlur = 4;
+    ctx.shadowColor = options.brushColor;
+    return false;
+  }
+});
+
+brushDrawingStrategies.set('crayon', {
+  apply(ctx, options) {
+    ctx.lineWidth = options.pressureWidth;
+    ctx.setLineDash([2, 5]);
+    return false;
+  }
+});
+
+brushDrawingStrategies.set('pencil', {
+  apply(ctx, options) {
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = options.brushOpacity * 0.7 * (0.5 + options.ptPressure * 0.5);
+    return false;
+  }
+});
+
+brushDrawingStrategies.set('watercolor', {
+  apply(ctx, options) {
+    ctx.lineWidth = options.pressureWidth * 2.5;
+    ctx.globalAlpha = options.brushOpacity * 0.4;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = options.brushColor;
+    return false;
+  }
+});
+
+brushDrawingStrategies.set('splatter', {
+  apply(ctx, options) {
+    ctx.lineWidth = 1;
+    ctx.fillStyle = options.brushColor;
+    ctx.beginPath();
+    ctx.arc(options.drawX, options.drawY, options.pressureWidth * (0.5 + Math.random()), 0, Math.PI * 2);
+    ctx.fill();
+    return true;
+  }
+});
+
+brushDrawingStrategies.set('texture', {
+  apply(ctx, options) {
+    ctx.lineWidth = options.pressureWidth * 2.0;
+    ctx.globalAlpha = options.brushOpacity * 0.85;
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = options.brushColor;
+    ctx.setLineDash([1, 2]);
+    return false;
+  }
+});
+
+
 /**
  * Gets a deterministic index from 0-9 based on a string ID.
  */

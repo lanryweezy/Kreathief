@@ -3,6 +3,7 @@ import { useStore } from '../../store/useStore';
 import { generateLayerId } from '../../utils/layers/layerUtils';
 import { StrokeSmoother } from '../../utils/variableStroke';
 import { recognizeShape } from '../../utils/shapeRecognition';
+import { brushDrawingStrategies } from '../../services/brushEngine';
 
 // Ramer-Douglas-Peucker path simplification
 function rdpSimplify(points: { x: number; y: number }[], epsilon: number): { x: number; y: number }[] {
@@ -297,51 +298,20 @@ export const useDrawingMode = ({ zoom, isDrawing, panOffset }: UseDrawingModePro
           ctx.setLineDash([]);
           ctx.shadowBlur = 0;
 
-          switch (brushType) {
-            case 'eraser':
-              // Neutral trail so the eraser doesn't look like it paints color
-              ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-              ctx.lineWidth = brushSize;
-              break;
-            case 'calligraphy':
-              ctx.lineCap = 'butt';
-              ctx.lineWidth = pressureWidth * 1.5;
-              break;
-            case 'oil':
-              ctx.lineWidth = pressureWidth * 1.8;
-              ctx.shadowBlur = 4;
-              ctx.shadowColor = brushColor;
-              break;
-            case 'crayon':
-              ctx.lineWidth = pressureWidth;
-              ctx.setLineDash([2, 5]);
-              break;
-            case 'pencil':
-              ctx.lineWidth = 1;
-              ctx.globalAlpha = brushOpacity * 0.7 * (0.5 + ptPressure * 0.5);
-              break;
-            case 'watercolor':
-              ctx.lineWidth = pressureWidth * 2.5;
-              ctx.globalAlpha = brushOpacity * 0.4;
-              ctx.shadowBlur = 10;
-              ctx.shadowColor = brushColor;
-              break;
-            case 'splatter':
-              ctx.lineWidth = 1;
-              ctx.fillStyle = brushColor;
-              ctx.beginPath();
-              ctx.arc(drawX, drawY, pressureWidth * (0.5 + Math.random()), 0, Math.PI * 2);
-              ctx.fill();
+          const strategy = brushDrawingStrategies.get(brushType);
+          if (strategy) {
+            const skipDefaultStroke = strategy.apply(ctx, {
+              brushColor,
+              brushSize,
+              brushOpacity,
+              pressureWidth,
+              ptPressure,
+              drawX,
+              drawY
+            });
+            if (skipDefaultStroke) {
               continue;
-            case 'texture':
-              ctx.lineWidth = pressureWidth * 2.0;
-              ctx.globalAlpha = brushOpacity * 0.85;
-              ctx.shadowBlur = 6;
-              ctx.shadowColor = brushColor;
-              ctx.setLineDash([1, 2]);
-              break;
-            default:
-              break;
+            }
           }
 
           ctx.lineTo(drawX, drawY);
