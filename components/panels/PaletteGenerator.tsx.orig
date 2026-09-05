@@ -32,7 +32,7 @@ export const PaletteGenerator: React.FC<PaletteGeneratorProps> = ({ onPaletteSel
         log.error('Failed to extract palette', error);
         const details = getErrorDetails(error);
         // 🌸 Bloom: Added specific error toast for better UX
-        useStore.getState().addToast?.(`Palette extraction failed: ${details.message}${details.suggestion ? '. ' + details.suggestion : ''}`, 'error');
+        useStore.getState().addToast?.(`Palette extraction failed: ${details.message}. ${details.suggestion}`, 'error');
       } finally {
         setIsProcessing(false);
       }
