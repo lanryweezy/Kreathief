@@ -19,3 +19,8 @@
 ## 2024-08-22 - Fallback Photo Provider Registry
 **Learning:** The `getFallbackPhotos` function in `services/fallbackPhotos.ts` used a hard-coded switch statement to parse data for 4 different providers (`unsplash`, `pixabay`, `pexels`, `vecteezy`). Adding a new fallback provider would require modifying this central function.
 **Action:** Introduced a `FallbackPhotoAdapter` registry pattern (`fallbackPhotoAdapters`). The `provider` argument type was relaxed to `string`, and providers now self-register using `registerFallbackPhotoAdapter`. This allows new fallback providers to be added without touching the core `getFallbackPhotos` logic.
+
+## 2026-09-05 - Canvas Brush Strategy Registry
+
+**Learning:** When refactoring a canvas drawing loop with inline `continue` statements into a strategy registry pattern (like the `brushType` switch), the strategy interface needs a way to override control flow. Without this, strategies like "splatter" which render independently and skip the default stroke will break.
+**Action:** Always ensure that strategy execution methods returning from loops provide a mechanism, such as returning a boolean flag, to allow the caller to skip default post-processing steps when necessary.

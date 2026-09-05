@@ -4,6 +4,112 @@ import { generateLayerId } from '../../utils/layers/layerUtils';
 import { StrokeSmoother } from '../../utils/variableStroke';
 import { recognizeShape } from '../../utils/shapeRecognition';
 
+/**
+ * Extensibility Point: Canvas Brush Strategy Registry
+ * Evidence of pressure: The `useDrawingMode` hook used a hardcoded switch statement
+ * inside the `handleDrawingMouseMove` loop to handle 8 different brush types.
+ * Adding new custom brushes would require modifying this core hook continuously.
+ * Contract: Implementors provide an `apply` method that modifies the CanvasRenderingContext2D
+ * for the current stroke. It must return a boolean `skipDefaultPathing` to indicate if the core
+ * loop should skip the default `lineTo` and `stroke` operations (e.g., for splatter brushes).
+ */
+export interface CanvasBrushStrategy {
+  id: string;
+  apply(params: {
+    ctx: CanvasRenderingContext2D;
+    brushColor: string;
+    brushOpacity: number;
+    brushSize: number;
+    pressureWidth: number;
+    ptPressure: number;
+    drawX: number;
+    drawY: number;
+  }): boolean;
+}
+
+export const canvasBrushStrategies = new Map<string, CanvasBrushStrategy>();
+
+canvasBrushStrategies.set('eraser', {
+  id: 'eraser',
+  apply({ ctx, brushSize }) {
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.lineWidth = brushSize;
+    return false;
+  },
+});
+
+canvasBrushStrategies.set('calligraphy', {
+  id: 'calligraphy',
+  apply({ ctx, pressureWidth }) {
+    ctx.lineCap = 'butt';
+    ctx.lineWidth = pressureWidth * 1.5;
+    return false;
+  },
+});
+
+canvasBrushStrategies.set('oil', {
+  id: 'oil',
+  apply({ ctx, pressureWidth, brushColor }) {
+    ctx.lineWidth = pressureWidth * 1.8;
+    ctx.shadowBlur = 4;
+    ctx.shadowColor = brushColor;
+    return false;
+  },
+});
+
+canvasBrushStrategies.set('crayon', {
+  id: 'crayon',
+  apply({ ctx, pressureWidth }) {
+    ctx.lineWidth = pressureWidth;
+    ctx.setLineDash([2, 5]);
+    return false;
+  },
+});
+
+canvasBrushStrategies.set('pencil', {
+  id: 'pencil',
+  apply({ ctx, brushOpacity, ptPressure }) {
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = brushOpacity * 0.7 * (0.5 + ptPressure * 0.5);
+    return false;
+  },
+});
+
+canvasBrushStrategies.set('watercolor', {
+  id: 'watercolor',
+  apply({ ctx, pressureWidth, brushOpacity, brushColor }) {
+    ctx.lineWidth = pressureWidth * 2.5;
+    ctx.globalAlpha = brushOpacity * 0.4;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = brushColor;
+    return false;
+  },
+});
+
+canvasBrushStrategies.set('splatter', {
+  id: 'splatter',
+  apply({ ctx, pressureWidth, brushColor, drawX, drawY }) {
+    ctx.lineWidth = 1;
+    ctx.fillStyle = brushColor;
+    ctx.beginPath();
+    ctx.arc(drawX, drawY, pressureWidth * (0.5 + Math.random()), 0, Math.PI * 2);
+    ctx.fill();
+    return true; // Skip default lineTo/stroke
+  },
+});
+
+canvasBrushStrategies.set('texture', {
+  id: 'texture',
+  apply({ ctx, pressureWidth, brushOpacity, brushColor }) {
+    ctx.lineWidth = pressureWidth * 2.0;
+    ctx.globalAlpha = brushOpacity * 0.85;
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = brushColor;
+    ctx.setLineDash([1, 2]);
+    return false;
+  },
+});
+
 // Ramer-Douglas-Peucker path simplification
 function rdpSimplify(points: { x: number; y: number }[], epsilon: number): { x: number; y: number }[] {
   if (points.length <= 2) {
@@ -297,51 +403,23 @@ export const useDrawingMode = ({ zoom, isDrawing, panOffset }: UseDrawingModePro
           ctx.setLineDash([]);
           ctx.shadowBlur = 0;
 
-          switch (brushType) {
-            case 'eraser':
-              // Neutral trail so the eraser doesn't look like it paints color
-              ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-              ctx.lineWidth = brushSize;
-              break;
-            case 'calligraphy':
-              ctx.lineCap = 'butt';
-              ctx.lineWidth = pressureWidth * 1.5;
-              break;
-            case 'oil':
-              ctx.lineWidth = pressureWidth * 1.8;
-              ctx.shadowBlur = 4;
-              ctx.shadowColor = brushColor;
-              break;
-            case 'crayon':
-              ctx.lineWidth = pressureWidth;
-              ctx.setLineDash([2, 5]);
-              break;
-            case 'pencil':
-              ctx.lineWidth = 1;
-              ctx.globalAlpha = brushOpacity * 0.7 * (0.5 + ptPressure * 0.5);
-              break;
-            case 'watercolor':
-              ctx.lineWidth = pressureWidth * 2.5;
-              ctx.globalAlpha = brushOpacity * 0.4;
-              ctx.shadowBlur = 10;
-              ctx.shadowColor = brushColor;
-              break;
-            case 'splatter':
-              ctx.lineWidth = 1;
-              ctx.fillStyle = brushColor;
-              ctx.beginPath();
-              ctx.arc(drawX, drawY, pressureWidth * (0.5 + Math.random()), 0, Math.PI * 2);
-              ctx.fill();
-              continue;
-            case 'texture':
-              ctx.lineWidth = pressureWidth * 2.0;
-              ctx.globalAlpha = brushOpacity * 0.85;
-              ctx.shadowBlur = 6;
-              ctx.shadowColor = brushColor;
-              ctx.setLineDash([1, 2]);
-              break;
-            default:
-              break;
+          const strategy = canvasBrushStrategies.get(brushType);
+          let skipDefaultPathing = false;
+          if (strategy) {
+            skipDefaultPathing = strategy.apply({
+              ctx,
+              brushColor,
+              brushOpacity,
+              brushSize,
+              pressureWidth,
+              ptPressure,
+              drawX,
+              drawY,
+            });
+          }
+
+          if (skipDefaultPathing) {
+            continue;
           }
 
           ctx.lineTo(drawX, drawY);
