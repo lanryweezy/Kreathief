@@ -126,3 +126,8 @@
 
 **Learning:** Using raw `JSON.parse` coupled with generic prompt string extraction (`generateText`) for LLM tasks that expect dictionary/object outputs (like layer ID mapping for renaming) causes silent crashes and unhandled exceptions if the model generates invalid JSON, markdown blocks, or conversational preamble.
 **Action:** When expecting dynamic key-value pairs (e.g., mapping IDs to names), always call the base API (`callBackendGeminiAPI`) using a structured output schema (`SchemaType.ARRAY` of objects) to enforce the contract, parse it using `safeParseJSON` with a `'null'` fallback string, and construct the dictionary explicitly in the application logic.
+
+## 2026-09-06 - Prevent Dictionary Markdown Wrapping in generateLayerNames
+
+**Learning:** When using `SchemaType.OBJECT` to generate dynamic key-value pairs (like mapping layer IDs to names) without defining explicit properties, the LLM is prone to wrap the output in markdown fences or generate an unexpected structure. This causes `safeParseJSON` to fail.
+**Action:** When expecting a dynamic dictionary from the LLM, strictly enforce the output format by configuring `generationConfig.responseSchema` as a `SchemaType.ARRAY` of objects with explicitly defined properties (e.g., `[{ id: '...', name: '...' }]`). Then, parse this structured array and reconstruct the dictionary explicitly in the application logic.
