@@ -24,7 +24,7 @@ test.describe('Visual Regression Tests', () => {
 
     // Navigate to editor
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
   });
 
@@ -32,7 +32,7 @@ test.describe('Visual Regression Tests', () => {
     await page.goto('/');
 
     // Wait for dashboard to load
-    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('dashboard-templates-grid')).toBeVisible({ timeout: 10000 });
 
     // Take screenshot
     await expect(page).toHaveScreenshot('dashboard-load.png', {
@@ -212,7 +212,7 @@ test.describe('Visual Regression Tests', () => {
 
     // Reload to apply viewport
     await page.reload();
-    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('dashboard-templates-grid')).toBeVisible({ timeout: 10000 });
 
     // Take screenshot
     await expect(page).toHaveScreenshot('mobile-dashboard.png', {
@@ -227,7 +227,7 @@ test.describe('Visual Regression Tests', () => {
 
     // Reload to apply viewport
     await page.reload();
-    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('dashboard-templates-grid')).toBeVisible({ timeout: 10000 });
 
     // Take screenshot
     await expect(page).toHaveScreenshot('tablet-dashboard.png', {

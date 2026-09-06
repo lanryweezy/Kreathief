@@ -330,7 +330,10 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
   };
 
   const toggleNegativeChip = (chip: string) => {
-    const current = negativePrompt.split(',').map((s) => s.trim()).filter(Boolean);
+    const current = negativePrompt
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
     if (current.includes(chip)) {
       setNegativePrompt(current.filter((c) => c !== chip).join(', '));
     } else {
@@ -611,7 +614,9 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                         }}
                         className="flex flex-col p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-brand-500/40 text-left transition-all group"
                       >
-                        <div className={`h-8 w-full rounded-md bg-gradient-to-r ${preset.thumbnailGradient} mb-1.5 flex items-center justify-center`}>
+                        <div
+                          className={`h-8 w-full rounded-md bg-gradient-to-r ${preset.thumbnailGradient} mb-1.5 flex items-center justify-center`}
+                        >
                           <span className="text-[8px] font-black uppercase text-white tracking-widest drop-shadow">
                             {preset.category}
                           </span>
@@ -621,7 +626,11 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                         </span>
                         <div className="flex gap-1 mt-1">
                           {preset.palette.slice(0, 4).map((c, i) => (
-                            <span key={i} className="w-2.5 h-2.5 rounded-full border border-black/40" style={{ backgroundColor: c }} />
+                            <span
+                              key={i}
+                              className="w-2.5 h-2.5 rounded-full border border-black/40"
+                              style={{ backgroundColor: c }}
+                            />
                           ))}
                         </div>
                       </button>
@@ -678,7 +687,9 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                     {/* Extracted Palette Swatches preview */}
                     {styleReference.extracted?.palette && styleReference.extracted.palette.length > 0 && (
                       <div className="flex items-center gap-1 pt-1 border-t border-white/5">
-                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-wider mr-1">Palette:</span>
+                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-wider mr-1">
+                          Palette:
+                        </span>
                         {styleReference.extracted.palette.slice(0, 6).map((col, idx) => (
                           <span
                             key={idx}
@@ -720,9 +731,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                               onClick={() => toggleReferenceAspect(aspect)}
                               aria-pressed={active}
                               className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${
-                                active
-                                  ? 'bg-brand-600 text-white'
-                                  : 'bg-white/5 text-gray-500 hover:text-gray-300'
+                                active ? 'bg-brand-600 text-white' : 'bg-white/5 text-gray-500 hover:text-gray-300'
                               }`}
                             >
                               {REFERENCE_ASPECT_LABELS[aspect]}
@@ -940,7 +949,10 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                       selectedLayerIds: design.layers.map((l) => l.id),
                       isGenerating: false,
                     }));
-                    addToast(`Multi-Layer Design Created: Generated ${design.layers.length} editable layers!`, 'success');
+                    addToast(
+                      `Multi-Layer Design Created: Generated ${design.layers.length} editable layers!`,
+                      'success'
+                    );
                   } else {
                     useStore.setState({ isGenerating: false });
                   }

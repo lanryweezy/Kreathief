@@ -27,7 +27,7 @@ test.describe('Performance Tests', () => {
     const startTime = Date.now();
 
     await page.goto('/');
-    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('dashboard-templates-grid')).toBeVisible({ timeout: 10000 });
 
     const loadTime = Date.now() - startTime;
     console.log(`Dashboard load time: ${loadTime}ms`);
@@ -40,7 +40,7 @@ test.describe('Performance Tests', () => {
     const startTime = Date.now();
 
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     const loadTime = Date.now() - startTime;
@@ -52,7 +52,7 @@ test.describe('Performance Tests', () => {
 
   test('should add text layer quickly', async ({ page }) => {
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     const startTime = Date.now();
@@ -73,7 +73,7 @@ test.describe('Performance Tests', () => {
 
   test('should add shape layer quickly', async ({ page }) => {
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     const startTime = Date.now();
@@ -96,7 +96,7 @@ test.describe('Performance Tests', () => {
 
   test('should save project quickly', async ({ page }) => {
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     // Make a change
@@ -117,7 +117,7 @@ test.describe('Performance Tests', () => {
 
   test('should export PNG quickly', async ({ page }) => {
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     const startTime = Date.now();
@@ -135,7 +135,7 @@ test.describe('Performance Tests', () => {
 
   test('should handle multiple layers without lag', async ({ page }) => {
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     const startTime = Date.now();
@@ -164,7 +164,7 @@ test.describe('Performance Tests', () => {
 
   test('should not have memory leaks during extended use', async ({ page }) => {
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     // Get initial memory usage (if available)
@@ -208,7 +208,7 @@ test.describe('Performance Tests', () => {
 
   test('should render canvas smoothly', async ({ page }) => {
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     // Measure frame rate during zoom
@@ -231,7 +231,7 @@ test.describe('Performance Tests', () => {
 
   test('should load layers panel quickly', async ({ page }) => {
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     const startTime = Date.now();
@@ -252,7 +252,7 @@ test.describe('Performance Tests', () => {
 
     // Open a complex template
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     // Count layers
@@ -268,7 +268,7 @@ test.describe('Performance Tests', () => {
 
   test('should not block UI during save', async ({ page }) => {
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     // Make a change

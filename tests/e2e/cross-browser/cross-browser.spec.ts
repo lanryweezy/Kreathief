@@ -37,7 +37,7 @@ test.describe('Cross-Browser Compatibility', () => {
 
   test('should load editor correctly', async ({ page }) => {
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     // Verify editor loads
@@ -47,7 +47,7 @@ test.describe('Cross-Browser Compatibility', () => {
 
   test('should render canvas correctly', async ({ page }) => {
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     // Check canvas is rendered
@@ -70,7 +70,7 @@ test.describe('Cross-Browser Compatibility', () => {
 
   test('should handle text input correctly', async ({ page }) => {
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     // Set project title
@@ -83,7 +83,7 @@ test.describe('Cross-Browser Compatibility', () => {
 
   test('should handle keyboard shortcuts correctly', async ({ page }) => {
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     // Test Ctrl/Cmd+S for save
@@ -102,7 +102,7 @@ test.describe('Cross-Browser Compatibility', () => {
 
   test('should handle mouse interactions correctly', async ({ page }) => {
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     // Test zoom controls
