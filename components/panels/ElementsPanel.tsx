@@ -437,6 +437,24 @@ export const ElementsPanel = () => {
     });
   }, [shapePresets, selectedCategory, searchQuery]);
 
+  // ⚡ Bolt: Avoid intermediate array allocations by categorizing shape presets in a single pass
+  const categorizedShapes = useMemo(() => {
+    const basic: ShapePreset[] = [];
+    const frames: ShapePreset[] = [];
+    const blobs: ShapePreset[] = [];
+
+    for (const shape of shapePresets) {
+      if (shape.category === 'basic' || shape.category === 'geometric') {
+        if (basic.length < 10) basic.push(shape);
+      } else if (shape.category === 'frames') {
+        frames.push(shape);
+      } else if (shape.category === 'blobs') {
+        blobs.push(shape);
+      }
+    }
+    return { basic, frames, blobs };
+  }, [shapePresets]);
+
   const filterPills: { id: FilterCategory; label: string; icon: any }[] = [
     { id: 'all', label: 'All', icon: Icons.Grid },
     { id: 'shapes', label: 'Shapes & Frames', icon: Icons.Shapes },
@@ -646,7 +664,7 @@ export const ElementsPanel = () => {
               </div>
 
               <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
-                {shapePresets.filter((s) => s.category === 'basic' || s.category === 'geometric').slice(0, 10).map((item, idx) => (
+                {categorizedShapes.basic.map((item, idx) => (
                   <button
                     key={idx}
                     onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
@@ -698,7 +716,7 @@ export const ElementsPanel = () => {
               </div>
 
               <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
-                {shapePresets.filter((s) => s.category === 'frames').map((item, idx) => (
+                {categorizedShapes.frames.map((item, idx) => (
                   <button
                     key={idx}
                     onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
@@ -742,7 +760,7 @@ export const ElementsPanel = () => {
               </div>
 
               <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
-                {shapePresets.filter((s) => s.category === 'blobs').map((item, idx) => (
+                {categorizedShapes.blobs.map((item, idx) => (
                   <button
                     key={idx}
                     onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
