@@ -635,7 +635,7 @@ export type ReferenceAnalysisStatus = 'analyzing' | 'ready' | 'failed';
  */
 export type ReferenceAppliedMode = 'native' | 'descriptor' | 'none';
 export type ReferenceStrength = 'subtle' | 'balanced' | 'strong';
-export type PromptArchetype = 'cinematic' | 'artistic' | 'product' | 'render_3d' | 'vector_graphic';
+export type PromptArchetype = string;
 
 export interface StyleReference {
   id: string;

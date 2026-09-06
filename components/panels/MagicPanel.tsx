@@ -5,7 +5,6 @@ import {
   ReferenceAspect,
   REFERENCE_ASPECT_LABELS,
   StyleReference,
-  PromptArchetype,
   ReferenceStrength,
 } from '../../types';
 import { CURATED_STYLE_PRESETS } from '../../config/stylePresets';
@@ -25,19 +24,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { PanelHeader } from './PanelHeader';
 import { ModelPicker } from '../ModelPicker';
+import { getAllPromptArchetypes } from '../../services/promptArchetypes';
 
 interface MagicPanelProps {
   onGenerate: (negPrompt?: string) => void;
   uploadedImage: string | null;
 }
-
-const PROMPT_ARCHETYPES: { id: PromptArchetype; label: string; icon: string }[] = [
-  { id: 'cinematic', label: 'Cinematic', icon: 'Camera' },
-  { id: 'artistic', label: 'Concept Art', icon: 'Brush' },
-  { id: 'product', label: 'Product Shot', icon: 'Box' },
-  { id: 'render_3d', label: '3D Octane', icon: 'Sparkles' },
-  { id: 'vector_graphic', label: 'Vector Graphic', icon: 'Edit' },
-];
 
 const INSPIRATION_TAGS = [
   'Volumetric Lighting',
@@ -463,7 +455,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                 Prompt Mode
               </label>
               <div className="grid grid-cols-5 gap-1 bg-surface-dark-3 p-1 rounded-xl border border-white/5">
-                {PROMPT_ARCHETYPES.map((arch) => (
+                {getAllPromptArchetypes().map((arch) => (
                   <button
                     key={arch.id}
                     onClick={() => setPromptArchetype(arch.id)}

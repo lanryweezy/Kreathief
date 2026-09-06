@@ -19,3 +19,8 @@
 ## 2024-08-22 - Fallback Photo Provider Registry
 **Learning:** The `getFallbackPhotos` function in `services/fallbackPhotos.ts` used a hard-coded switch statement to parse data for 4 different providers (`unsplash`, `pixabay`, `pexels`, `vecteezy`). Adding a new fallback provider would require modifying this central function.
 **Action:** Introduced a `FallbackPhotoAdapter` registry pattern (`fallbackPhotoAdapters`). The `provider` argument type was relaxed to `string`, and providers now self-register using `registerFallbackPhotoAdapter`. This allows new fallback providers to be added without touching the core `getFallbackPhotos` logic.
+
+## 2024-09-06 - Prompt Archetype Strategy Registry
+
+**Learning:** The `getArchetypeGuidance` and `enhancePromptLocally` functions in `services/geminiService.ts` used hard-coded switch statements for handling `promptArchetype` configurations (`cinematic`, `artistic`, etc.). Adding a new archetype required modifying these core backend functions as well as UI components array (`MagicPanel.tsx`).
+**Action:** Extracted this into a `PromptArchetypeStrategy` registry map (`services/promptArchetypes.ts`), relaxed the `PromptArchetype` union type to a standard `string`, and replaced static UI arrays and backend switch statements with dynamic registry iterators, allowing easy definition of AI styles without touching core generation pipelines. Also learned to ensure that when UI components fetch items from a registry, they fetch dynamically during render `getAllPromptArchetypes()` instead of statically freezing the registry `const ARCHETYPES = getAllPromptArchetypes()` at module import time, preserving extensibility for dynamic plugin registrations.
