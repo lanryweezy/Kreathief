@@ -45,3 +45,7 @@
 
 **Learning:** When using an icon-only button to toggle a binary state (like locking/unlocking the aspect ratio in `TransformPanel.tsx`), it's important to provide not only an `aria-label` but also the correct state attribute. Using `aria-expanded` is semantically incorrect for simple toggles, as it implies the button expands/collapses a section.
 **Action:** Always use `aria-pressed={boolean}` for state toggle buttons, along with a descriptive `aria-label` when the button is icon-only.
+
+## 2026-09-06 - Screen Reader Accessibility for Unlabeled Range Inputs
+**Learning:** Found multiple instances where `<input type="range">` elements in settings panels (like opacity, rotation, sizes, and animation controls) relied on adjacent `<span>` or unlinked `<label>` tags for visual text but had no programmatic association, causing them to be read simply as "slider" by screen readers. When adding an `aria-label`, it is critical that the label matches the visual text label adjacent to it (e.g. "Tilt Forward/Back" rather than "Rotate X") to comply with WCAG 2.5.3 (Label in Name) and prevent confusion for voice-control users.
+**Action:** Always include a context-specific `aria-label` attribute on slider `<input type="range">` elements that do not have an explicit `htmlFor` association, ensuring the aria-label closely matches the visible label.

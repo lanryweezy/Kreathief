@@ -380,6 +380,7 @@ export const TransformPanel: React.FC = () => {
           <span className="text-[10px] text-gray-400 w-12">Opacity</span>
           <input
             type="range"
+            aria-label="Opacity"
             min="0"
             max="1"
             step="0.01"

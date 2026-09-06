@@ -129,6 +129,7 @@ export const GridGuidesPanel: React.FC = () => {
           </div>
           <input
             type="range"
+            aria-label="Grid Size"
             min="5"
             max="100"
             value={gridSize}
