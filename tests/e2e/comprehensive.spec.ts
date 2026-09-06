@@ -10,7 +10,7 @@ if (!fs.existsSync(artifactDir)) {
 
 test('Comprehensive E2E UI Test of Kreathief', async ({ page }) => {
   // 1. Visit App
-  await page.goto('/');
+  await page.goto('/dashboard');
   await page.waitForLoadState('networkidle');
   await page.screenshot({ path: path.join(artifactDir, '01-landing-page.png') });
 

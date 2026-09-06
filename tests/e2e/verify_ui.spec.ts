@@ -9,7 +9,7 @@ test('verify all requested changes', async ({ page }) => {
   page.on('pageerror', (err) => console.log('BROWSER ERROR:', err.message));
 
   // Go to the editor with QA bypass
-  await page.goto('/');
+  await page.goto('/dashboard');
 
   // Manually set the QA bypass session in localStorage
   await page.evaluate(() => {

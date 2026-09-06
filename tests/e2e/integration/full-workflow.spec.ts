@@ -102,7 +102,7 @@ test.describe('Full Design Workflow', () => {
     const editor = new EditorPage(page);
 
     // First session: Create and save
-    await page.goto('/');
+    await page.goto('/dashboard');
     const dashboard = new DashboardPage(page);
     await dashboard.switchToTemplates();
     await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
@@ -157,7 +157,7 @@ test.describe('Full Design Workflow', () => {
     });
 
     // Tab 1: Create project
-    await page.goto('/');
+    await page.goto('/dashboard');
     const dashboard1 = new DashboardPage(page);
     await dashboard1.switchToTemplates();
     await page.getByTestId('dashboard-templates-grid').locator('button').first().click();

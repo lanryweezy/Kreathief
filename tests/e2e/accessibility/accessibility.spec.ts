@@ -111,7 +111,7 @@ test.describe('Accessibility Tests', () => {
   });
 
   test('should have accessible editor', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/dashboard');
     await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
@@ -125,7 +125,7 @@ test.describe('Accessibility Tests', () => {
   });
 
   test('should have accessible text tools', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/dashboard');
     await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
@@ -140,7 +140,7 @@ test.describe('Accessibility Tests', () => {
   });
 
   test('should have accessible shape tools', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/dashboard');
     await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
@@ -155,7 +155,7 @@ test.describe('Accessibility Tests', () => {
   });
 
   test('should have accessible layers panel', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/dashboard');
     await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
@@ -169,7 +169,7 @@ test.describe('Accessibility Tests', () => {
   });
 
   test('should have accessible export modal', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/dashboard');
     await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
@@ -183,7 +183,7 @@ test.describe('Accessibility Tests', () => {
   });
 
   test('should support keyboard shortcuts in editor', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/dashboard');
     await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
@@ -202,7 +202,7 @@ test.describe('Accessibility Tests', () => {
   });
 
   test('should support Escape key to close modals', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/dashboard');
     await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 

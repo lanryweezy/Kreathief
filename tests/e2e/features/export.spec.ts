@@ -29,7 +29,7 @@ test.describe('Export Features', () => {
     });
 
     // Navigate to editor
-    await page.goto('/');
+    await page.goto('/dashboard');
     await page.getByTestId('nav-templates').click();
     await page.waitForLoadState('networkidle');
     await page

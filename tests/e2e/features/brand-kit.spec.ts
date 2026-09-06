@@ -26,7 +26,7 @@ test.describe('Brand Kit Features', () => {
     });
 
     // Navigate to editor
-    await page.goto('/');
+    await page.goto('/dashboard');
     // Switch to templates tab on dashboard to see starter templates
     await page.getByTestId('nav-templates').click();
     await page.waitForLoadState('networkidle');

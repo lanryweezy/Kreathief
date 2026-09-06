@@ -17,7 +17,7 @@ test.describe('Kreathief Smoke Test', () => {
       window.localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
     });
 
-    await page.goto('/');
+    await page.goto('/dashboard');
   });
 
   test('should load the dashboard and create a new project', async ({ page }) => {

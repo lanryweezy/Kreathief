@@ -154,7 +154,7 @@ test.describe('Mobile Responsive Tests', () => {
 
   test('should load editor on mobile', async ({ page }) => {
     await page.setViewportSize(iPhone.viewport);
-    await page.goto('/');
+    await page.goto('/dashboard');
     await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
 
     // Verify editor loads on mobile
@@ -169,7 +169,7 @@ test.describe('Mobile Responsive Tests', () => {
 
   test('should have mobile-friendly toolbar', async ({ page }) => {
     await page.setViewportSize(iPhone.viewport);
-    await page.goto('/');
+    await page.goto('/dashboard');
     await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
@@ -195,7 +195,7 @@ test.describe('Mobile Responsive Tests', () => {
 
   test('should have mobile-friendly sidebar', async ({ page }) => {
     await page.setViewportSize(iPhone.viewport);
-    await page.goto('/');
+    await page.goto('/dashboard');
     await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
@@ -240,7 +240,7 @@ test.describe('Mobile Responsive Tests', () => {
 
   test('should have mobile-friendly modals', async ({ page }) => {
     await page.setViewportSize(iPhone.viewport);
-    await page.goto('/');
+    await page.goto('/dashboard');
     await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
@@ -269,7 +269,7 @@ test.describe('Mobile Responsive Tests', () => {
 
   test('should support mobile gestures', async ({ page }) => {
     await page.setViewportSize(iPhone.viewport);
-    await page.goto('/');
+    await page.goto('/dashboard');
     await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
@@ -311,7 +311,7 @@ test.describe('Mobile Responsive Tests', () => {
 
   test('should load editor on tablet', async ({ page }) => {
     await page.setViewportSize(iPad.viewport);
-    await page.goto('/');
+    await page.goto('/dashboard');
     await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 

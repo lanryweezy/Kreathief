@@ -62,7 +62,7 @@ test.describe('Dashboard Core Features', () => {
     await editor.save();
 
     // Go back to dashboard
-    await page.goto('/');
+    await page.goto('/dashboard');
     await dashboard.verifyDashboardLoaded();
 
     // Search for project
@@ -135,7 +135,9 @@ test.describe('Dashboard Core Features', () => {
   });
 
   test('should logout successfully', async ({ page }) => {
-    const profileBtn = page.locator('[data-testid="profile-menu-btn"], header button[aria-label="Open account menu"]').first();
+    const profileBtn = page
+      .locator('[data-testid="profile-menu-btn"], header button[aria-label="Open account menu"]')
+      .first();
     await profileBtn.click();
     await page.waitForTimeout(300);
     const signOutBtn = page.locator('[data-testid="logout-btn"], button:has-text("Sign Out")').first();
