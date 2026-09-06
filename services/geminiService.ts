@@ -346,24 +346,41 @@ export const generateLayerName = async (description: string): Promise<string> =>
 export const generateLayerNames = async (layerSummaries: any[]): Promise<Record<string, string>> => {
   try {
     const prompt = `You are an expert UI designer. Rename these layers to be extremely logical, concise, and semantic (like Figma).
-Output a JSON object where keys are layer IDs and values are the new string names.
+Output a JSON array of objects, where each object has 'id' (layer ID) and 'name' (new string name) properties.
 Layers: ${JSON.stringify(layerSummaries)}`;
 
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: 'application/json',
-        responseSchema: { type: SchemaType.OBJECT },
+        responseSchema: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              id: { type: SchemaType.STRING },
+              name: { type: SchemaType.STRING },
+            },
+            required: ['id', 'name'],
+          },
+        },
       },
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
     });
 
     // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '{}' to prevent silent failures on empty LLM output and ensure error catching logic executes.
-    const parsed = safeParseJSON<Record<string, string> | null>(data.text || 'null', null);
+    // 🤖 Astra: Enforce structured array schema for dynamic key-value pairs to prevent dictionary markdown wrapping and parsing failures.
+    const parsed = safeParseJSON<{ id: string; name: string }[] | null>(data.text || 'null', null);
     if (!parsed) {
       throw new Error('Failed to parse generateLayerNames output JSON');
     }
-    return parsed;
+
+    // Reconstruct the dictionary explicitly in the application logic
+    const dictionary: Record<string, string> = {};
+    for (const item of parsed) {
+      dictionary[item.id] = item.name;
+    }
+    return dictionary;
   } catch (error) {
     log.error('generateLayerNames error:', error);
     return {};
