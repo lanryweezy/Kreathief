@@ -100,6 +100,7 @@ export const Rotation3DControls: React.FC<Rotation3DControlsProps> = ({ layerId,
             </div>
             <input
               type="range"
+              aria-label="Tilt Forward/Back"
               min="-60"
               max="60"
               step="1"
@@ -117,6 +118,7 @@ export const Rotation3DControls: React.FC<Rotation3DControlsProps> = ({ layerId,
             </div>
             <input
               type="range"
+              aria-label="Rotate Left/Right"
               min="-60"
               max="60"
               step="1"
