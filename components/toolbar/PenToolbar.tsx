@@ -61,6 +61,7 @@ export const PenToolbar = React.memo(({ options, onUpdateOptions, onClose }: Pen
           }`}
           title="Toggle Fill"
           aria-label="Toggle Fill"
+          aria-pressed={options.hasFill}
         >
           <div
             className="w-5 h-5 rounded"
@@ -92,6 +93,7 @@ export const PenToolbar = React.memo(({ options, onUpdateOptions, onClose }: Pen
           }`}
           title="Toggle Stroke"
           aria-label="Toggle Stroke"
+          aria-pressed={options.hasStroke}
         >
           <div
             className="w-5 h-5 rounded border-2"
