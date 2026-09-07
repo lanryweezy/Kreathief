@@ -203,3 +203,7 @@
 ## 2026-08-30 - Prevent O(N) array allocation in AI design analysis
 **Learning:** Found an unoptimized `artboards.flatMap((a) => a.layers).concat(layers)` call in `getAllLayers` in `ai/designEngine.ts`. This was causing massive intermediate array allocations in performance critical paths.
 **Action:** Replaced it with an imperative nested loop to prevent intermediate array allocations and reduce garbage collection overhead, particularly inside frequently called utility functions.
+
+## 2026-09-07 - Pre-compute structured preset collections to avoid rendering bottlenecks
+**Learning:** Found multiple instances in `ElementsPanel.tsx` where a large constant array (`shapePresets`) was being filtered and mapped inline within JSX render blocks (e.g., `{shapePresets.filter(s => s.category === 'basic').slice(0, 10).map(...)}`). This antipattern causes O(N) array iteration and new array allocations on *every* component re-render, contributing to GC pressure and dropped frames during frequent interactions.
+**Action:** Replace inline `.filter().map()` chains with pre-computed collections constructed via an imperative loop inside a single `useMemo` block. This reduces redundant iterations (from M iterations down to 1 pass) and eliminates per-render array allocations.
